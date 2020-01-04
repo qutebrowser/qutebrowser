@@ -114,9 +114,12 @@ def main():
         else:
             outfile = os.path.join(REQ_DIR, 'requirements-{}.txt'.format(name))
 
+        host_python = sys.executable
+
         with tempfile.TemporaryDirectory() as tmpdir:
+            subprocess.run([host_python, '-m', 'venv', tmpdir], check=True)
+
             pip_bin = os.path.join(tmpdir, 'bin', 'pip')
-            subprocess.run(['virtualenv', tmpdir], check=True)
             subprocess.run([pip_bin, 'install', '-r', filename], check=True)
             proc = subprocess.run([pip_bin, 'freeze'], check=True,
                                   stdout=subprocess.PIPE)
