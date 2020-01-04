@@ -114,8 +114,12 @@ def main():
         else:
             outfile = os.path.join(REQ_DIR, 'requirements-{}.txt'.format(name))
 
-        if name in ['pyqt-5.7', 'pyqt-5.9', 'pyqt-5.10', 'pyqt-5.11',
-                    'pyqt-5.12']:
+        if name in [
+                # Need sip v4 which doesn't work on Python 3.8
+                'pyqt-5.7', 'pyqt-5.9', 'pyqt-5.10', 'pyqt-5.11', 'pyqt-5.12',
+                # Installs typed_ast on < 3.8 only
+                'pylint',
+        ]:
             host_python = 'python3.7'
         else:
             host_python = sys.executable
