@@ -25,6 +25,7 @@ matrix:
     ### PyQt 5.7.1 (Python 3.5)
     - python: 3.5
       env: TESTENV=py35-pyqt57
+      dist: xenial
 
     ### PyQt 5.9 (Python 3.6)
     - python: 3.6
