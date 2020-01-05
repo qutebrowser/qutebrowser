@@ -109,6 +109,8 @@ Fixed
 - The tab hover text now shows ampersands (&) correctly.
 - With QtWebEngine and Qt >= 5.11, the inspector now shows its icons correctly
   even if loading of images is disabled via the `content.images` setting.
+- Crash when entering a very long string (over 50k characters) in the
+  completion.
 - Various improvements for URL/searchengine detection:
   - Strings with a dot but with characters not allowed in a URL (e.g. an
     underscore) are now not treated as URL anymore.

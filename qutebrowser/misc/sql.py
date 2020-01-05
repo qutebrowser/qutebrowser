@@ -119,9 +119,9 @@ def raise_sqlite_error(msg, error):
     # If the query we built was too long
     too_long_err = (
         error_code == SqliteErrorCode.ERROR and
-        driver_text == "Unable to execute statement" and
         (database_text.startswith("Expression tree is too large") or
-         database_text == "too many SQL variables"))
+         database_text in ["too many SQL variables",
+                           "LIKE or GLOB pattern too complex"]))
 
     if error_code in known_errors or qtbug_70506 or too_long_err:
         raise KnownError(msg, error)

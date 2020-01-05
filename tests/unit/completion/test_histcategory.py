@@ -22,6 +22,8 @@
 import datetime
 import logging
 
+import hypothesis
+from hypothesis import strategies
 import pytest
 
 from qutebrowser.misc import sql
@@ -135,13 +137,25 @@ def test_set_pattern_repeated(model_validator, hist):
     ])
 
 
-def test_set_pattern_long(hist, message_mock, caplog):
+@pytest.mark.parametrize('pattern', [
+    ' '.join(map(str, range(10000))),
+    'x' * 50000,
+], ids=['numbers', 'characters'])
+def test_set_pattern_long(hist, message_mock, caplog, pattern):
     hist.insert({'url': 'example.com/foo', 'title': 'title1', 'last_atime': 1})
     cat = histcategory.HistoryCategory()
     with caplog.at_level(logging.ERROR):
-        cat.set_pattern(" ".join(map(str, range(10000))))
+        cat.set_pattern(pattern)
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
     assert msg.text.startswith("Error with SQL query:")
+
+
+@hypothesis.given(pat=strategies.text())
+def test_set_pattern_hypothesis(hist, pat, caplog):
+    hist.insert({'url': 'example.com/foo', 'title': 'title1', 'last_atime': 1})
+    cat = histcategory.HistoryCategory()
+    with caplog.at_level(logging.ERROR):
+        cat.set_pattern(pat)
 
 
 @pytest.mark.parametrize('max_items, before, after', [
