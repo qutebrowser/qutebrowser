@@ -28,7 +28,7 @@ from PyQt5.QtCore import pyqtSlot, Qt, QUrl
 from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
 
 from qutebrowser.browser import downloads, pdfjs
-from qutebrowser.utils import debug, usertypes, message, log, qtutils
+from qutebrowser.utils import debug, usertypes, message, log, qtutils, objreg
 
 
 class DownloadItem(downloads.AbstractDownloadItem):
@@ -39,8 +39,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
         _qt_item: The wrapped item.
     """
 
-    def __init__(self, qt_item: QWebEngineDownloadItem, parent=None):
-        super().__init__(parent)
+    def __init__(self, qt_item: QWebEngineDownloadItem, manager, parent=None):
+        super().__init__(manager=manager, parent=manager)
         self._qt_item = qt_item
         qt_item.downloadProgress.connect(  # type: ignore
             self.stats.on_download_progress)
@@ -175,6 +175,30 @@ class DownloadItem(downloads.AbstractDownloadItem):
         self._qt_item.setPath(self._filename)
         self._qt_item.accept()
 
+    def _get_conflicting_download(self):
+        """Return another potential active download with the same name.
+
+        webenginedownloads.DownloadItem needs to look for downloads both in its
+        manager and in qtnetwork-download-manager as both are used
+        simultaneously.
+
+        This method can be safely removed once #2328 is fixed.
+        """
+        conflicting_download = super()._get_conflicting_download()
+        if not conflicting_download:
+            qtnetwork_download_manager = objreg.get(
+                'qtnetwork-download-manager')
+            for download in qtnetwork_download_manager.downloads:
+                if (
+                        download is not self and
+                        download.get_filename() == self._filename and
+                        not download.done
+                ):
+                    return download
+            return None
+        else:
+            return conflicting_download
+
 
 def _get_suggested_filename(path):
     """Convert a path we got from chromium to a suggested filename.
@@ -234,7 +258,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
         suggested_filename = _get_suggested_filename(qt_item.path())
         use_pdfjs = pdfjs.should_use_pdfjs(qt_item.mimeType(), qt_item.url())
 
-        download = DownloadItem(qt_item)
+        download = DownloadItem(qt_item, manager=self)
         self._init_item(download, auto_remove=use_pdfjs,
                         suggested_filename=suggested_filename)
 
