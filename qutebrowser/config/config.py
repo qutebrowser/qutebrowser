@@ -23,7 +23,7 @@ import copy
 import contextlib
 import functools
 import typing
-from typing import Any, Optional
+from typing import Any
 
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 

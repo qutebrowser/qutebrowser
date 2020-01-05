@@ -142,8 +142,6 @@ class TestWritableLocation:
 
 class TestStandardDir:
 
-    """Tests for standarddir."""
-
     @pytest.mark.parametrize('func, varname', [
         (standarddir.data, 'XDG_DATA_HOME'),
         (standarddir.config, 'XDG_CONFIG_HOME'),

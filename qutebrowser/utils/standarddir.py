@@ -220,7 +220,8 @@ def _init_runtime(args: typing.Optional[argparse.Namespace]) -> None:
             # Fall back to TempLocation when RuntimeLocation is misconfigured
             if typ == QStandardPaths.TempLocation:
                 raise
-            path = _writable_location(QStandardPaths.TempLocation)
+            path = _writable_location(  # pragma: no cover
+                QStandardPaths.TempLocation)
 
         # This is generic, but per-user.
         # _writable_location makes sure we have a qutebrowser-specific subdir.
