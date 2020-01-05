@@ -673,7 +673,21 @@ class QuteProc(testprocess.Process):
               **kwargs):  # pylint: disable=arguments-differ
         if not wait_focus:
             self._focus_ready = True
-        super().start(*args, **kwargs)
+
+        try:
+            super().start(*args, **kwargs)
+        except testprocess.ProcessExited:
+            is_dl_inconsistency = str(self.captured_log[-1]).endswith(
+                "_dl_allocate_tls_init: Assertion "
+                "`listp->slotinfo[cnt].gen <= GL(dl_tls_generation)' failed!")
+            if 'TRAVIS' in os.environ and is_dl_inconsistency:
+                # WORKAROUND for https://sourceware.org/bugzilla/show_bug.cgi?id=19329
+                self.captured_log = []
+                self._log("NOTE: Restarted after libc DL inconsistency!")
+                self.clear_data()
+                super().start(*args, **kwargs)
+            else:
+                raise
 
     def send_cmd(self, command, count=None, invalid=False, *, escape=True):
         """Send a command to the running qutebrowser instance.
