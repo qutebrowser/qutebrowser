@@ -20,7 +20,6 @@
 import pytest
 
 from qutebrowser.browser import downloads, qtnetworkdownloads
-from qutebrowser.utils import objreg
 
 
 def test_download_model(qapp, qtmodeltester, config_stub, cookiejar_and_cache,
