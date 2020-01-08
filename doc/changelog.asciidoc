@@ -22,6 +22,11 @@ Added
 ~~~~~
 
 - Initial support for Qt 5.14.
+- New `content.site_specific_quirks` setting which enables workarounds for
+  websites with broken user agent parsing (enabled by default, see the "Fixed"
+  section for fixed websites).
+- New `qt.force_platformtheme` setting to force Qt to use a given platform
+  theme.
 - New `tabs.tooltips` setting which can be used to disable hover tooltips for
   tabs.
 - New settings to configure the appearance of context menus:
@@ -30,11 +35,6 @@ Added
   - `colors.contextmenu.menu.fg`
   - `colors.contextmenu.selected.bg`
   - `colors.contextmenu.selected.fg`
-- New `content.site_specific_quirks` setting which enables workarounds for
-  websites with broken user agent parsing (enabled by default, see the "Fixed"
-  section for fixed websites).
-- New `qt.force_platformtheme` setting to force Qt to use a given platform
-  theme.
 
 Changed
 ~~~~~~~
@@ -58,7 +58,7 @@ Changed
   beginning of the `fonts.monospace` setting.
 - As a workaround for a Qt bug causing a segfault, desktop sharing is now
   automatically rejected on Qt versions before 5.13.2. Note that screen sharing
-  still won't work on Linux until Qt 5.14.
+  still won't work on Linux before Qt 5.14.
 - Comment lines in quickmarks/bookmarks files are now ignored. However, note that
   qutebrowser will overwrite those files if bookmark/quickmark commands are used.
 - Reopening PDF.js pages from e.g. a session file will now re-download and
@@ -95,11 +95,11 @@ Fixed
 - Downloads (e.g. via `:download`) now see the same user agent header as
   webpages, which fixes cases where overly restrictive servers/WAFs closed the
   connection before.
-- dictcli.py now works correctly on Windows again.
-- The logic for `:restart` has been revisited which should fix issues with
+- `dictcli.py` now works correctly on Windows again.
+- The logic for `:restart` has been revisited, which should fix issues with
   relative basedirs.
-- Remaining issues (mostly warnings) related to Python 3.8, especially for
-  QtWebKit.
+- Remaining issues related to Python 3.8 are now fixed (mostly warnings,
+  especially on QtWebKit).
 - Workaround for a Qt bug where a page never finishes loading with a
   non-overridable TLS error (e.g. due to HSTS).
 - The `qute://configdiff` page now doesn't show built-in settings (e.g.
@@ -109,8 +109,8 @@ Fixed
 - The tab hover text now shows ampersands (&) correctly.
 - With QtWebEngine and Qt >= 5.11, the inspector now shows its icons correctly
   even if loading of images is disabled via the `content.images` setting.
-- Crash when entering a very long string (over 50k characters) in the
-  completion.
+- Entering a very long string (over 50k characters) in the completion used to
+  crash, now it shows an error message instead.
 - Various improvements for URL/searchengine detection:
   - Strings with a dot but with characters not allowed in a URL (e.g. an
     underscore) are now not treated as URL anymore.
@@ -122,7 +122,7 @@ Fixed
   - `url.open_base_url = True` together with `url.auto_search = 'never'` is now
     handled correctly.
   - Fixed crash when a search engine URL turns out to be invalid.
-- Site specific quirks which work around some broken websites:
+- New "site specific quirks", which work around some broken websites:
   - WhatsApp Web
   - Google Accounts
   - Slack (with older QtWebEngine versions)
