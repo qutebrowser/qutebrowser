@@ -223,28 +223,6 @@ PYTHON3=yes sbopkg -i qutebrowser
 
 If you use the dialog screen you can deselect any already-installed packages that you don't need/want to rebuild before starting the build process.
 
-On OpenBSD
-----------
-
-WARNING: OpenBSD only packages a legacy unmaintained version of QtWebKit (for
-which support was dropped in qutebrowser v1.0). It's advised to not use
-qutebrowser from OpenBSD ports for untrusted websites.
-
-qutebrowser is in http://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/www/qutebrowser/[OpenBSD ports].
-
-Install the package:
-
-----
-# pkg_add qutebrowser
-----
-
-Or alternatively, use the ports system :
-
-----
-# cd /usr/ports/www/qutebrowser
-# make install
-----
-
 On FreeBSD
 ----------
 
