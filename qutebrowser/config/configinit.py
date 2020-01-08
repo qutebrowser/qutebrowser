@@ -267,6 +267,12 @@ def _qtwebengine_args(namespace: argparse.Namespace) -> typing.Iterator[str]:
             False: '--autoplay-policy=user-gesture-required',
         }
 
+    if qtutils.version_check('5.14'):
+        settings['colors.webpage.force_dark_color_scheme'] = {
+            True: '--force-dark-mode',
+            False: None,
+        }
+
     for setting, args in sorted(settings.items()):
         arg = args[config.instance.get(setting)]
         if arg is not None:

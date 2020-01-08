@@ -109,6 +109,7 @@
 |<<colors.tabs.selected.odd.bg,colors.tabs.selected.odd.bg>>|Background color of selected odd tabs.
 |<<colors.tabs.selected.odd.fg,colors.tabs.selected.odd.fg>>|Foreground color of selected odd tabs.
 |<<colors.webpage.bg,colors.webpage.bg>>|Background color for webpages if unset (or empty to use the theme's color).
+|<<colors.webpage.force_dark_color_scheme,colors.webpage.force_dark_color_scheme>>|Force `prefer-color-scheme: dark` colors for websites.
 |<<completion.cmd_history_max_items,completion.cmd_history_max_items>>|Number of commands to save in the command history.
 |<<completion.delay,completion.delay>>|Delay (in milliseconds) before updating completions after typing a character.
 |<<completion.height,completion.height>>|Height (in pixels or as percentage of the window) of the completion.
@@ -1503,6 +1504,18 @@ Background color for webpages if unset (or empty to use the theme's color).
 Type: <<types,QtColor>>
 
 Default: +pass:[white]+
+
+[[colors.webpage.force_dark_color_scheme]]
+=== colors.webpage.force_dark_color_scheme
+Force `prefer-color-scheme: dark` colors for websites.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
 
 [[completion.cmd_history_max_items]]
 === completion.cmd_history_max_items

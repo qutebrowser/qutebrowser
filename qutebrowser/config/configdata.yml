@@ -2499,6 +2499,14 @@ colors.webpage.bg:
   desc: "Background color for webpages if unset (or empty to use the theme's
     color)."
 
+colors.webpage.force_dark_color_scheme:
+  default: false
+  type: Bool
+  desc: "Force `prefer-color-scheme: dark` colors for websites."
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+
 ## fonts
 
 fonts.monospace:

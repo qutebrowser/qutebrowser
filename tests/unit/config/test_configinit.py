@@ -636,6 +636,27 @@ class TestQtArgs:
         else:
             assert arg in args
 
+    @pytest.mark.parametrize('force, new_qt, added', [
+        (True, True, True),
+        (True, False, False),
+        (False, True, False),
+        (False, False, False),
+    ])
+    def test_force_dark_color_scheme(self, config_stub, monkeypatch, parser,
+                                     force, new_qt, added):
+        monkeypatch.setattr(configinit.qtutils, 'version_check',
+                            lambda version, exact=False, compiled=True:
+                            new_qt)
+
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+
+        config_stub.val.colors.webpage.force_dark_color_scheme = force
+        parsed = parser.parse_args([])
+        args = configinit.qt_args(parsed)
+
+        assert ('--force-dark-mode' in args) == added
+
 
 @pytest.mark.parametrize('arg, confval, used', [
     # overridden by commandline arg
