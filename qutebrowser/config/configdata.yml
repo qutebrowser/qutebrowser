@@ -506,10 +506,7 @@ content.headers.user_agent:
       - upstream_browser_version
       - qutebrowser_version
     completions:
-      # To update the following list of user agents, run the script
-      # 'ua_fetch.py'
-      # Vim-protip: Place your cursor below this comment and run
-      # :r!python scripts/dev/ua_fetch.py
+      # See https://techblog.willshouse.com/2012/01/03/most-common-user-agents/
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
           like Gecko) Chrome/76.0.3809.132 Safari/537.36"
         - Chrome 76 Win10
