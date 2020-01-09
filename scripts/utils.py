@@ -37,6 +37,8 @@ use_color = os.name != 'nt' or colorama
 
 
 fg_colors = {
+    'reset': 0,
+    'bold': 1,
     'black': 30,
     'red': 31,
     'green': 32,
@@ -45,7 +47,6 @@ fg_colors = {
     'magenta': 35,
     'cyan': 36,
     'white': 37,
-    'reset': 39,
 }
 
 
@@ -69,6 +70,7 @@ def print_col(text, color):
 
 def print_title(text):
     """Print a title."""
+    print()
     print_col("==================== {} ====================".format(text),
               'yellow')
 

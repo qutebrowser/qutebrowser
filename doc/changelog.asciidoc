@@ -25,6 +25,13 @@ Added
   `prefer-color-scheme: dark` colors for websites (QtWebEngine with Qt 5.14 or
   newer).
 
+Changed
+~~~~~~~
+
+- The `tox -e mkvenv` (or `mkvenv-pypi`) way of installing qutebrowser is now
+  replaced by a `mkvenv.py` script. See the updated
+  link:install{outfilesuffix}#tox[install instructions] for details.
+
 v1.9.0 (2020-01-08)
 -------------------
 

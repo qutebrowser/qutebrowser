@@ -92,9 +92,9 @@ git format-patch origin/master <1>
 Running qutebrowser
 -------------------
 
-After link:install{outfilesuffix}#tox[installing qutebrowser via tox], you can run
-`.venv/bin/qutebrowser --debug --temp-basedir` to test your changes with debug
-logging enabled and without affecting existing running instances.
+After link:install{outfilesuffix}#tox[installing qutebrowser in a virtualenv],
+you can run `.venv/bin/qutebrowser --debug --temp-basedir` to test your changes
+with debug logging enabled and without affecting existing running instances.
 
 Alternatively, you can install qutebrowser's dependencies system-wide and run
 `python3 -m qutebrowser --debug --temp-basedir`.

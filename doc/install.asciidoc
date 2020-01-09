@@ -14,9 +14,9 @@ Ubuntu 16.04 LTS / Linux Mint 18
 
 Ubuntu 16.04 doesn't come with an up-to-date engine (a new enough QtWebKit, or
 QtWebEngine). However, it comes with Python 3.5, so you can
-<<tox,install qutebrowser via tox>>.
+<<tox,install qutebrowser in a virtualenv>>.
 
-You'll need some basic libraries to use the tox-installed PyQt:
+You'll need some basic libraries to use the virtualenv-installed PyQt:
 
 ----
 # apt install libglib2.0-0 libgl1 libfontconfig1 libx11-xcb1 libxi6 libxrender1 libdbus-1-3
@@ -62,7 +62,7 @@ can install it with apt:
 Additional hints
 ~~~~~~~~~~~~~~~~
 
-- Alternatively, you can <<tox,install qutebrowser via tox>> to get a newer
+- Alternatively, you can <<tox,install qutebrowser in a virtualenv>> to get a newer
   QtWebEngine version.
 - If running from git, run the following to generate the documentation for the
   `:help` command:
@@ -279,16 +279,10 @@ C:\> scoop install qutebrowser
 Manual install
 ~~~~~~~~~~~~~~
 
-* Use the installer from http://www.python.org/downloads[python.org] to get
+Use the installer from http://www.python.org/downloads[python.org] to get
 Python 3 (be sure to install pip).
-* Install https://testrun.org/tox/latest/index.html[tox] via
-https://pip.pypa.io/en/latest/[pip]:
 
-----
-$ pip install tox
-----
-
-Then <<tox,install qutebrowser via tox>>.
+Then <<tox,install qutebrowser via virtualenv>>.
 
 On macOS
 --------
@@ -346,9 +340,25 @@ standard location for your distro (`/usr/share/applications` and
 The normal `setup.py install` doesn't install these files, so you'll have to do
 it as part of the packaging process.
 
+// The tox anchor is so that old links remain compatible.
+// When switching to Sphinx, that should be changed.
+
 [[tox]]
-Installing qutebrowser with tox
--------------------------------
+Installing qutebrowser with virtualenv
+--------------------------------------
+
+IMPORTANT: Before January 2020, this section used to be about installing
+qutebrowser via `tox` which is a wrapper around `virtualenv`. Now, a dedicated
+script is used instead.
+
+A https://packaging.python.org/tutorials/installing-packages/#creating-virtual-environments[virtual environment]
+(virtualenv, venv) allows Python packages to be installed in an isolated
+location for a particular application, rather than being installed globally.
+
+The `scripts/mkvenv.py` script in this repository can be used to create a
+virtualenv for qutebrowser and install it (including all dependencies) there.
+The next couple of sections will explain the most common use-cases - run
+`mkvenv.py` with `--help` to see all available options.
 
 Getting the repository
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -364,11 +374,10 @@ $ cd qutebrowser
 Installing dependencies (including Qt)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Then run tox inside the qutebrowser repository to set up a
-https://docs.python.org/3/library/venv.html[virtual environment]:
+Then run the install script:
 
 ----
-$ tox -e mkvenv-pypi
+$ python3 scripts/mkvenv.py
 ----
 
 This installs all needed Python dependencies in a `.venv` subfolder.
@@ -389,18 +398,21 @@ See the next section for an alternative.
 Installing dependencies (system-wide Qt)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Alternatively, you can use `tox -e mkvenv` (without `-pypi`) to symlink your
-local Qt install instead of installing PyQt in the virtualenv. However, unless
+Alternatively, you can use `mkvenv.py --pyqt-mode link` to symlink your local
+PyQt/Qt install instead of installing PyQt in the virtualenv. However, unless
 you have a new QtWebKit or QtWebEngine available, qutebrowser will not work. It
 also typically means you'll be using an older release of QtWebEngine.
 
 On Windows, run `set PYTHON=C:\path\to\python.exe` (CMD) or ``$Env:PYTHON =
 "..."` (Powershell) first.
 
+There is a third mode, `mkvenv.py --pyqt-mode source` which uses a system-wide
+Qt but builds PyQt from source. In most scenarios, this shouldn't be needed.
+
 Creating a wrapper script
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Running `tox` does not install a system-wide `qutebrowser` script. You can
+Running `mkvenv.py` does not install a system-wide `qutebrowser` script. You can
 launch qutebrowser by doing:
 
 ----
@@ -432,10 +444,5 @@ Updating
 
 When you updated your local copy of the code (e.g. by pulling the git repo, or
 extracting a new version), the virtualenv should automatically use the updated
-code. However, if dependencies got added, this won't be reflected in the
-virtualenv. Thus it's recommended to run the following command to recreate the
-virtualenv:
-
-----
-$ tox -r -e mkvenv-pypi
-----
+code. However, dependencies won't be updated that way. Re-running `mkvenv.py`
+will recreate the virtualenv with updated dependencies.
