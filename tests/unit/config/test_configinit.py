@@ -642,16 +642,17 @@ class TestQtArgs:
         (False, True, False),
         (False, False, False),
     ])
+    @utils.qt514
     def test_force_dark_color_scheme(self, config_stub, monkeypatch, parser,
                                      force, new_qt, added):
+        config_stub.val.colors.webpage.force_dark_color_scheme = force
+
         monkeypatch.setattr(configinit.qtutils, 'version_check',
                             lambda version, exact=False, compiled=True:
                             new_qt)
-
         monkeypatch.setattr(configinit.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
 
-        config_stub.val.colors.webpage.force_dark_color_scheme = force
         parsed = parser.parse_args([])
         args = configinit.qt_args(parsed)
 
