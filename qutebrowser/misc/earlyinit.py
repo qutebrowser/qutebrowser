@@ -29,7 +29,6 @@ try:
 except ImportError:
     hunter = None
 
-import os
 import sys
 import faulthandler
 import traceback
@@ -129,19 +128,6 @@ def init_faulthandler(fileobj=sys.__stderr__):
         # pylint: disable=no-member,useless-suppression
         faulthandler.register(signal.SIGUSR1)
         # pylint: enable=no-member,useless-suppression
-
-
-def pyinstaller_qt_workaround():
-    """Work around PATH issues with PyInstaller.
-
-    See https://github.com/pyinstaller/pyinstaller/issues/4293
-    and https://github.com/gridsync/gridsync/pull/236/commits/0abf8e7363cc8c2a10a0263e6dcceb3be1c07022
-    """
-    if (hasattr(sys, 'frozen') and
-            hasattr(sys, '_MEIPASS') and
-            sys.platform == 'win32'):
-        # pylint: disable=no-member,protected-access
-        os.environ['PATH'] += os.pathsep + sys._MEIPASS  # type: ignore
 
 
 def check_pyqt():
@@ -311,7 +297,6 @@ def early_init(args):
     init_faulthandler()
     # Here we check if QtCore is available, and if not, print a message to the
     # console or via Tk.
-    pyinstaller_qt_workaround()
     check_pyqt()
     # Init logging as early as possible
     init_log(args)
