@@ -69,14 +69,14 @@ matrix:
 
     ### macOS Mojave (10.14)
     - os: osx
-      env: TESTENV=py37-pyqt513 OSX=mojave
+      env: TESTENV=py37-pyqt514 OSX=mojave
       osx_image: xcode11.3
       language: generic
       python: 3.7
 
     ### macOS High Sierra (10.13)
     - os: osx
-      env: TESTENV=py37-pyqt513 OSX=highsierra
+      env: TESTENV=py37-pyqt514 OSX=highsierra
       osx_image: xcode10.1
       language: generic
       python: 3.7
