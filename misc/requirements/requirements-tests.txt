@@ -5,12 +5,12 @@ beautifulsoup4==4.8.2
 cheroot==8.2.1
 Click==7.0
 # colorama==0.4.3
-coverage==5.0.1
+coverage==5.0.2
 EasyProcess==0.2.8
 Flask==1.1.1
 glob2==0.7
 hunter==3.0.5  # rq.filter: != 3.1.0
-hypothesis==5.1.0
+hypothesis==5.1.2
 itsdangerous==1.1.0
 jaraco.functools==3.0.0 ; python_version>="3.6"
 # Jinja2==2.10.3
@@ -18,7 +18,7 @@ Mako==1.1.0
 manhole==1.6.0
 # MarkupSafe==1.1.1
 more-itertools==8.0.2
-packaging==19.2
+packaging==20.0
 parse==1.14.0
 parse-type==0.5.2
 pluggy==0.13.1
