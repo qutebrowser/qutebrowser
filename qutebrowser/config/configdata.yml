@@ -2507,28 +2507,31 @@ colors.webpage.force_dark_color_scheme:
     QtWebEngine: Qt 5.14
     QtWebKit: false
 
-## fonts
-
-fonts.monospace:
-  default: 'Monospace, "DejaVu Sans Mono", Monaco,
-    "Bitstream Vera Sans Mono", "Andale Mono", "Courier New", Courier,
-    "Liberation Mono", monospace, Fixed, Consolas, Terminal'
-  type: Font
-  desc: >-
-    Default monospace fonts.
-
-    Whenever "monospace" is used in a font setting, it's replaced with the
-    fonts listed here.
-
 # emacs: '
 
+## fonts
+
+fonts.default_family:
+  default: []
+  type:
+    name: ListOrValue
+    valtype: Font
+    none_ok: True
+  desc: >-
+    Default font families to use.
+
+    Whenever "default_family" is used in a font setting, it's replaced with the
+    fonts listed here.
+
+    If set to an empty value, a system-specific monospace default is used.
+
 fonts.completion.entry:
-  default: 10pt monospace
+  default: 10pt default_family
   type: Font
   desc: Font used in the completion widget.
 
 fonts.completion.category:
-  default: bold 10pt monospace
+  default: bold 10pt default_family
   type: Font
   desc: Font used in the completion categories.
 
@@ -2543,37 +2546,37 @@ fonts.contextmenu:
     If set to null, the Qt default is used.
 
 fonts.debug_console:
-  default: 10pt monospace
+  default: 10pt default_family
   type: QtFont
   desc: Font used for the debugging console.
 
 fonts.downloads:
-  default: 10pt monospace
+  default: 10pt default_family
   type: Font
   desc: Font used for the downloadbar.
 
 fonts.hints:
-  default: bold 10pt monospace
+  default: bold 10pt default_family
   type: Font
   desc: Font used for the hints.
 
 fonts.keyhint:
-  default: 10pt monospace
+  default: 10pt default_family
   type: Font
   desc: Font used in the keyhint widget.
 
 fonts.messages.error:
-  default: 10pt monospace
+  default: 10pt default_family
   type: Font
   desc: Font used for error messages.
 
 fonts.messages.info:
-  default: 10pt monospace
+  default: 10pt default_family
   type: Font
   desc: Font used for info messages.
 
 fonts.messages.warning:
-  default: 10pt monospace
+  default: 10pt default_family
   type: Font
   desc: Font used for warning messages.
 
@@ -2583,12 +2586,12 @@ fonts.prompts:
   desc: Font used for prompts.
 
 fonts.statusbar:
-  default: 10pt monospace
+  default: 10pt default_family
   type: Font
   desc: Font used in the statusbar.
 
 fonts.tabs:
-  default: 10pt monospace
+  default: 10pt default_family
   type: QtFont
   desc: Font used in the tab bar.
 

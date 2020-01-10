@@ -40,7 +40,7 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
     monkeypatch.setattr(config, 'key_instance', None)
     monkeypatch.setattr(config, 'change_filters', [])
     monkeypatch.setattr(configinit, '_init_errors', None)
-    monkeypatch.setattr(configtypes.Font, 'monospace_fonts', None)
+    monkeypatch.setattr(configtypes.Font, 'default_family', None)
     yield
     try:
         objreg.delete('config-commands')
@@ -233,73 +233,6 @@ class TestEarlyInit:
         assert msg.level == usertypes.MessageLevel.error
         assert msg.text == "set: NoOptionError - No option 'foo'"
 
-    @pytest.mark.parametrize('settings, size, family', [
-        # Only fonts.monospace customized
-        ([('fonts.monospace', '"Comic Sans MS"')], 10, 'Comic Sans MS'),
-        # fonts.monospace and font settings customized
-        # https://github.com/qutebrowser/qutebrowser/issues/3096
-        ([('fonts.monospace', '"Comic Sans MS"'),
-          ('fonts.tabs', '12pt monospace'),
-          ('fonts.keyhint', '12pt monospace')], 12, 'Comic Sans MS'),
-    ])
-    @pytest.mark.parametrize('method', ['temp', 'auto', 'py'])
-    def test_monospace_fonts_init(self, init_patch, args, config_tmpdir,
-                                  method, settings, size, family):
-        """Ensure setting fonts.monospace at init works properly.
-
-        See https://github.com/qutebrowser/qutebrowser/issues/2973
-        """
-        if method == 'temp':
-            args.temp_settings = settings
-        elif method == 'auto':
-            autoconfig_file = config_tmpdir / 'autoconfig.yml'
-            lines = (["config_version: 2", "settings:"] +
-                     ["  {}:\n    global:\n      '{}'".format(k, v)
-                      for k, v in settings])
-            autoconfig_file.write_text('\n'.join(lines), 'utf-8', ensure=True)
-        elif method == 'py':
-            config_py_file = config_tmpdir / 'config.py'
-            lines = ["c.{} = '{}'".format(k, v) for k, v in settings]
-            config_py_file.write_text('\n'.join(lines), 'utf-8', ensure=True)
-
-        configinit.early_init(args)
-
-        # Font
-        expected = '{}pt "{}"'.format(size, family)
-        assert config.instance.get('fonts.keyhint') == expected
-        # QtFont
-        font = config.instance.get('fonts.tabs')
-        assert font.pointSize() == size
-        assert font.family() == family
-
-    def test_monospace_fonts_later(self, init_patch, args):
-        """Ensure setting fonts.monospace after init works properly.
-
-        See https://github.com/qutebrowser/qutebrowser/issues/2973
-        """
-        configinit.early_init(args)
-        changed_options = []
-        config.instance.changed.connect(changed_options.append)
-
-        config.instance.set_obj('fonts.monospace', '"Comic Sans MS"')
-
-        assert 'fonts.keyhint' in changed_options  # Font
-        assert config.instance.get('fonts.keyhint') == '10pt "Comic Sans MS"'
-        assert 'fonts.tabs' in changed_options  # QtFont
-        assert config.instance.get('fonts.tabs').family() == 'Comic Sans MS'
-
-        # Font subclass, but doesn't end with "monospace"
-        assert 'fonts.web.family.standard' not in changed_options
-
-    def test_setting_monospace_fonts_family(self, init_patch, args):
-        """Make sure setting fonts.monospace after a family works.
-
-        See https://github.com/qutebrowser/qutebrowser/issues/3130
-        """
-        configinit.early_init(args)
-        config.instance.set_str('fonts.web.family.standard', '')
-        config.instance.set_str('fonts.monospace', 'Terminus')
-
     @pytest.mark.parametrize('config_opt, config_val, envvar, expected', [
         ('qt.force_software_rendering', 'software-opengl',
          'QT_XCB_FORCE_SOFTWARE_OPENGL', '1'),
@@ -358,41 +291,117 @@ class TestEarlyInit:
         configinit._init_envvars()
 
 
-@pytest.mark.parametrize('errors', [True, 'fatal', False])
-def test_late_init(init_patch, monkeypatch, fake_save_manager, args,
-                   mocker, errors):
-    configinit.early_init(args)
+class TestLateInit:
 
-    if errors:
-        err = configexc.ConfigErrorDesc("Error text", Exception("Exception"))
-        errs = configexc.ConfigFileErrors("config.py", [err])
-        if errors == 'fatal':
-            errs.fatal = True
+    @pytest.mark.parametrize('errors', [True, 'fatal', False])
+    def test_late_init(self, init_patch, monkeypatch, fake_save_manager, args,
+                       mocker, errors):
+        configinit.early_init(args)
 
-        monkeypatch.setattr(configinit, '_init_errors', errs)
+        if errors:
+            err = configexc.ConfigErrorDesc("Error text",
+                                            Exception("Exception"))
+            errs = configexc.ConfigFileErrors("config.py", [err])
+            if errors == 'fatal':
+                errs.fatal = True
 
-    msgbox_mock = mocker.patch('qutebrowser.config.configinit.msgbox.msgbox',
-                               autospec=True)
-    exit_mock = mocker.patch('qutebrowser.config.configinit.sys.exit',
-                             autospec=True)
+            monkeypatch.setattr(configinit, '_init_errors', errs)
 
-    configinit.late_init(fake_save_manager)
+        msgbox_mock = mocker.patch(
+            'qutebrowser.config.configinit.msgbox.msgbox', autospec=True)
+        exit_mock = mocker.patch(
+            'qutebrowser.config.configinit.sys.exit', autospec=True)
 
-    fake_save_manager.add_saveable.assert_any_call(
-        'state-config', unittest.mock.ANY)
-    fake_save_manager.add_saveable.assert_any_call(
-        'yaml-config', unittest.mock.ANY, unittest.mock.ANY)
+        configinit.late_init(fake_save_manager)
 
-    if errors:
-        assert len(msgbox_mock.call_args_list) == 1
-        _call_posargs, call_kwargs = msgbox_mock.call_args_list[0]
-        text = call_kwargs['text'].strip()
-        assert text.startswith('Errors occurred while reading config.py:')
-        assert '<b>Error text</b>: Exception' in text
+        fake_save_manager.add_saveable.assert_any_call(
+            'state-config', unittest.mock.ANY)
+        fake_save_manager.add_saveable.assert_any_call(
+            'yaml-config', unittest.mock.ANY, unittest.mock.ANY)
 
-        assert exit_mock.called == (errors == 'fatal')
-    else:
-        assert not msgbox_mock.called
+        if errors:
+            assert len(msgbox_mock.call_args_list) == 1
+            _call_posargs, call_kwargs = msgbox_mock.call_args_list[0]
+            text = call_kwargs['text'].strip()
+            assert text.startswith('Errors occurred while reading config.py:')
+            assert '<b>Error text</b>: Exception' in text
+
+            assert exit_mock.called == (errors == 'fatal')
+        else:
+            assert not msgbox_mock.called
+
+    @pytest.mark.parametrize('settings, size, family', [
+        # Only fonts.default_family customized
+        ([('fonts.default_family', '"Comic Sans MS"')], 10, 'Comic Sans MS'),
+        # fonts.default_family and font settings customized
+        # https://github.com/qutebrowser/qutebrowser/issues/3096
+        ([('fonts.default_family', '"Comic Sans MS"'),
+          ('fonts.tabs', '12pt default_family'),
+          ('fonts.keyhint', '12pt default_family')], 12, 'Comic Sans MS'),
+    ])
+    @pytest.mark.parametrize('method', ['temp', 'auto', 'py'])
+    def test_fonts_default_family_init(self, init_patch, args, config_tmpdir,
+                                       fake_save_manager, method,
+                                       settings, size, family):
+        """Ensure setting fonts.default_family at init works properly.
+
+        See https://github.com/qutebrowser/qutebrowser/issues/2973
+        """
+        if method == 'temp':
+            args.temp_settings = settings
+        elif method == 'auto':
+            autoconfig_file = config_tmpdir / 'autoconfig.yml'
+            lines = (["config_version: 2", "settings:"] +
+                     ["  {}:\n    global:\n      '{}'".format(k, v)
+                      for k, v in settings])
+            autoconfig_file.write_text('\n'.join(lines), 'utf-8', ensure=True)
+        elif method == 'py':
+            config_py_file = config_tmpdir / 'config.py'
+            lines = ["c.{} = '{}'".format(k, v) for k, v in settings]
+            config_py_file.write_text('\n'.join(lines), 'utf-8', ensure=True)
+
+        configinit.early_init(args)
+        configinit.late_init(fake_save_manager)
+
+        # Font
+        expected = '{}pt "{}"'.format(size, family)
+        assert config.instance.get('fonts.keyhint') == expected
+        # QtFont
+        font = config.instance.get('fonts.tabs')
+        assert font.pointSize() == size
+        assert font.family() == family
+
+    @pytest.fixture
+    def run_configinit(self, init_patch, fake_save_manager, args):
+        """Run configinit.early_init() and .late_init()."""
+        configinit.early_init(args)
+        configinit.late_init(fake_save_manager)
+
+    def test_fonts_default_family_later(self, run_configinit):
+        """Ensure setting fonts.default_family after init works properly.
+
+        See https://github.com/qutebrowser/qutebrowser/issues/2973
+        """
+        changed_options = []
+        config.instance.changed.connect(changed_options.append)
+
+        config.instance.set_obj('fonts.default_family', '"Comic Sans MS"')
+
+        assert 'fonts.keyhint' in changed_options  # Font
+        assert config.instance.get('fonts.keyhint') == '10pt "Comic Sans MS"'
+        assert 'fonts.tabs' in changed_options  # QtFont
+        assert config.instance.get('fonts.tabs').family() == 'Comic Sans MS'
+
+        # Font subclass, but doesn't end with "default_family"
+        assert 'fonts.web.family.standard' not in changed_options
+
+    def test_setting_fonts_default_family(self, run_configinit):
+        """Make sure setting fonts.default_family after a family works.
+
+        See https://github.com/qutebrowser/qutebrowser/issues/3130
+        """
+        config.instance.set_str('fonts.web.family.standard', '')
+        config.instance.set_str('fonts.default_family', 'Terminus')
 
 
 class TestQtArgs:

@@ -56,12 +56,12 @@ import typing
 import attr
 import yaml
 from PyQt5.QtCore import QUrl, Qt
-from PyQt5.QtGui import QColor, QFont
-from PyQt5.QtWidgets import QTabWidget, QTabBar
+from PyQt5.QtGui import QColor, QFont, QFontDatabase
+from PyQt5.QtWidgets import QTabWidget, QTabBar, QApplication
 from PyQt5.QtNetwork import QNetworkProxy
 
 from qutebrowser.misc import objects, debugcachestats
-from qutebrowser.config import configexc
+from qutebrowser.config import configexc, configutils
 from qutebrowser.utils import (standarddir, utils, qtutils, urlutils, urlmatch,
                                usertypes)
 from qutebrowser.keyinput import keyutils
@@ -1151,7 +1151,7 @@ class Font(BaseType):
     """
 
     # Gets set when the config is initialized.
-    monospace_fonts = None  # type: str
+    default_family = None  # type: str
     font_regex = re.compile(r"""
         (
             (
@@ -1168,6 +1168,58 @@ class Font(BaseType):
         )*               # 0-inf size/weight/style tags
         (?P<family>.+)  # mandatory font family""", re.VERBOSE)
 
+    @classmethod
+    def set_default_family(cls, default_family: typing.List[str]) -> None:
+        """Make sure default_family fonts are available.
+
+        If the given value (fonts.default_family in the config) is unset, a
+        system-specific default monospace font is used.
+
+        Note that (at least) three ways of getting the default monospace font
+        exist:
+
+        1) f = QFont()
+           f.setStyleHint(QFont.Monospace)
+           print(f.defaultFamily())
+
+        2) f = QFont()
+           f.setStyleHint(QFont.TypeWriter)
+           print(f.defaultFamily())
+
+        3) f = QFontDatabase.systemFont(QFontDatabase.FixedFont)
+           print(f.family())
+
+        They yield different results depending on the OS:
+
+                   QFont.Monospace  | QFont.TypeWriter    | QFontDatabase
+                   ------------------------------------------------------
+        Windows:   Courier New      | Courier New         | Courier New
+        Linux:     DejaVu Sans Mono | DejaVu Sans Mono    | monospace
+        macOS:     Menlo            | American Typewriter | Monaco
+
+        Test script: https://p.cmpl.cc/d4dfe573
+
+        On Linux, it seems like both actually resolve to the same font.
+
+        On macOS, "American Typewriter" looks like it indeed tries to imitate a
+        typewriter, so it's not really a suitable UI font.
+
+        Looking at those Wikipedia articles:
+
+        https://en.wikipedia.org/wiki/Monaco_(typeface)
+        https://en.wikipedia.org/wiki/Menlo_(typeface)
+
+        the "right" choice isn't really obvious. Thus, let's go for the
+        QFontDatabase approach here, since it's by far the simplest one.
+        """
+        if default_family:
+            cls.default_family = ', '.join(default_family)
+            return
+
+        assert QApplication.instance() is not None
+        font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
+        cls.default_family = font.family()
+
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
@@ -1180,8 +1232,9 @@ class Font(BaseType):
             # as family.
             raise configexc.ValidationError(value, "must be a valid font")
 
-        if value.endswith(' monospace') and self.monospace_fonts is not None:
-            return value.replace('monospace', self.monospace_fonts)
+        if (value.endswith(' default_family') and
+                self.default_family is not None):
+            return value.replace('default_family', self.default_family)
         return value
 
 
@@ -1216,20 +1269,10 @@ class QtFont(Font):
     __doc__ = Font.__doc__  # for src2asciidoc.py
 
     def _parse_families(self, family_str: str) -> typing.List[str]:
-        if family_str == 'monospace' and self.monospace_fonts is not None:
-            family_str = self.monospace_fonts
+        if family_str == 'default_family' and self.default_family is not None:
+            family_str = self.default_family
 
-        families = []
-        for part in family_str.split(','):
-            part = part.strip()
-            # The Qt CSS parser handles " and ' before passing the string to
-            # QFont.setFamily.
-            if ((part.startswith("'") and part.endswith("'")) or
-                    (part.startswith('"') and part.endswith('"'))):
-                part = part[1:-1]
-            families.append(part)
-
-        return families
+        return list(configutils.parse_font_families(family_str))
 
     def to_py(self, value: _StrUnset) -> typing.Union[usertypes.Unset,
                                                       None, QFont]:

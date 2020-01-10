@@ -85,9 +85,6 @@ def early_init(args: argparse.Namespace) -> None:
     objects.backend = get_backend(args)
     objects.debug_flags = set(args.debug_flags)
 
-    configtypes.Font.monospace_fonts = config.val.fonts.monospace
-    config.instance.changed.connect(_update_monospace_fonts)
-
     stylesheet.init()
 
     _init_envvars()
@@ -119,18 +116,16 @@ def _init_envvars() -> None:
         os.environ[env_var] = '1'
 
 
-@config.change_filter('fonts.monospace', function=True)
-def _update_monospace_fonts() -> None:
-    """Update all fonts if fonts.monospace was set."""
-    configtypes.Font.monospace_fonts = config.val.fonts.monospace
+@config.change_filter('fonts.default_family', function=True)
+def _update_font_default_family() -> None:
+    """Update all fonts if fonts.default_family was set."""
+    configtypes.Font.set_default_family(config.val.fonts.default_family)
     for name, opt in configdata.DATA.items():
-        if name == 'fonts.monospace':
-            continue
-        elif not isinstance(opt.typ, configtypes.Font):
+        if not isinstance(opt.typ, configtypes.Font):
             continue
 
         value = config.instance.get_obj(name)
-        if value is None or not value.endswith(' monospace'):
+        if value is None or not value.endswith(' default_family'):
             continue
 
         config.instance.changed.emit(name)
@@ -164,6 +159,9 @@ def late_init(save_manager: savemanager.SaveManager) -> None:
             sys.exit(usertypes.Exit.err_init)
 
     _init_errors = None
+
+    configtypes.Font.set_default_family(config.val.fonts.default_family)
+    config.instance.changed.connect(_update_font_default_family)
 
     config.instance.init_save_manager(save_manager)
     configfiles.state.init_save_manager(save_manager)

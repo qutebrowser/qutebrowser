@@ -28,6 +28,16 @@ Added
 Changed
 ~~~~~~~
 
+- The `fonts.monospace` setting has been removed and replaced by
+  `fonts.default_family`. The new `default_family` setting is improved in
+  various ways:
+  - It accepts a list of font families (or a single font family) rather than a
+    comma-separated string.
+  - It is now empty by default rather than having a long list of font names in
+    the default config. When the value is empty, the system's default
+    monospaced font is used.
+- If `monospace` is now used in a font value, it's used literally and not
+  replaced anymore. Instead, `default_family` is replaced as explained above.
 - The `tox -e mkvenv` (or `mkvenv-pypi`) way of installing qutebrowser is now
   replaced by a `mkvenv.py` script. See the updated
   link:install{outfilesuffix}#tox[install instructions] for details.

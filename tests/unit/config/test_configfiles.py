@@ -538,6 +538,56 @@ class TestYamlMigrations:
     def test_user_agent(self, migration_test, old, new):
         migration_test('content.headers.user_agent', old, new)
 
+    OLD_DEFAULT_FONTS = (
+        'Monospace, "DejaVu Sans Mono", Monaco, "Bitstream Vera Sans Mono", '
+        '"Andale Mono", "Courier New", Courier, "Liberation Mono", monospace, '
+        'Fixed, Consolas, Terminal'
+    )
+
+    @pytest.mark.parametrize('old, new', [
+        (OLD_DEFAULT_FONTS,
+         []),
+        ('Custom Font',
+         ['Custom Font']),
+        ('Custom Font, ' + OLD_DEFAULT_FONTS,
+         ['Custom Font']),
+        ('Terminus, ' + OLD_DEFAULT_FONTS,
+         ['Terminus']),
+        ('"xos4 Terminus", ' + OLD_DEFAULT_FONTS,
+         ['xos4 Terminus']),
+        ('xos4 Terminus, ' + OLD_DEFAULT_FONTS,
+         ['xos4 Terminus']),
+        ('"xos4 Terminus", Terminus, ' + OLD_DEFAULT_FONTS,
+         ['xos4 Terminus', 'Terminus']),
+        ('Terminus, "xos4 Terminus", ' + OLD_DEFAULT_FONTS,
+         ['Terminus', 'xos4 Terminus']),
+        ('xos4 Terminus, Terminus, ' + OLD_DEFAULT_FONTS,
+         ['xos4 Terminus', 'Terminus']),
+        ('Terminus, xos4 Terminus, ' + OLD_DEFAULT_FONTS,
+         ['Terminus', 'xos4 Terminus']),
+    ])
+    def test_font_default_family(self, yaml, autoconfig, old, new):
+        autoconfig.write({'fonts.monospace': {'global': old}})
+
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        assert data['fonts.default_family']['global'] == new
+
+    @pytest.mark.parametrize('setting, old, new', [
+        # Font
+        ('fonts.hints', '10pt monospace', '10pt default_family'),
+        # QtFont
+        ('fonts.debug_console', '10pt monospace', '10pt default_family'),
+        # String
+        ('content.headers.accept_language', 'x monospace', 'x monospace'),
+        # Not at end of string
+        ('fonts.hints', '10pt monospace serif', '10pt monospace serif'),
+    ])
+    def test_font_replacements(self, migration_test, setting, old, new):
+        migration_test(setting, old, new)
+
 
 class ConfPy:
 

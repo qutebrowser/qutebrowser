@@ -1470,15 +1470,15 @@ class TestFont:
         with pytest.raises(configexc.ValidationError):
             klass().to_py(val)
 
-    def test_monospace_replacement(self, klass, monkeypatch):
-        monkeypatch.setattr(configtypes.Font, 'monospace_fonts', 'Terminus')
+    def test_default_family_replacement(self, klass, monkeypatch):
+        configtypes.Font.set_default_family(['Terminus'])
         if klass is configtypes.Font:
             expected = '10pt Terminus'
         elif klass is configtypes.QtFont:
             desc = FontDesc(QFont.StyleNormal, QFont.Normal, 10, None,
                             'Terminus')
             expected = Font.fromdesc(desc)
-        assert klass().to_py('10pt monospace') == expected
+        assert klass().to_py('10pt default_family') == expected
 
 
 class TestFontFamily:

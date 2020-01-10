@@ -263,3 +263,20 @@ class Values:
                 return usertypes.UNSET
 
         return self._get_fallback(fallback)
+
+
+def parse_font_families(family_str: str) -> typing.Iterator[str]:
+    """Parse a CSS-like string of font families."""
+    for part in family_str.split(','):
+        part = part.strip()
+
+        # The Qt CSS parser handles " and ' before passing the string to
+        # QFont.setFamily.
+        if ((part.startswith("'") and part.endswith("'")) or
+                (part.startswith('"') and part.endswith('"'))):
+            part = part[1:-1]
+
+        if not part:
+            continue
+
+        yield part

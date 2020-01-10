@@ -191,13 +191,13 @@
 |<<fonts.completion.entry,fonts.completion.entry>>|Font used in the completion widget.
 |<<fonts.contextmenu,fonts.contextmenu>>|Font used for the context menu.
 |<<fonts.debug_console,fonts.debug_console>>|Font used for the debugging console.
+|<<fonts.default_family,fonts.default_family>>|Default font families to use.
 |<<fonts.downloads,fonts.downloads>>|Font used for the downloadbar.
 |<<fonts.hints,fonts.hints>>|Font used for the hints.
 |<<fonts.keyhint,fonts.keyhint>>|Font used in the keyhint widget.
 |<<fonts.messages.error,fonts.messages.error>>|Font used for error messages.
 |<<fonts.messages.info,fonts.messages.info>>|Font used for info messages.
 |<<fonts.messages.warning,fonts.messages.warning>>|Font used for warning messages.
-|<<fonts.monospace,fonts.monospace>>|Default monospace fonts.
 |<<fonts.prompts,fonts.prompts>>|Font used for prompts.
 |<<fonts.statusbar,fonts.statusbar>>|Font used in the statusbar.
 |<<fonts.tabs,fonts.tabs>>|Font used in the tab bar.
@@ -2449,7 +2449,7 @@ Font used in the completion categories.
 
 Type: <<types,Font>>
 
-Default: +pass:[bold 10pt monospace]+
+Default: +pass:[bold 10pt default_family]+
 
 [[fonts.completion.entry]]
 === fonts.completion.entry
@@ -2457,7 +2457,7 @@ Font used in the completion widget.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[10pt default_family]+
 
 [[fonts.contextmenu]]
 === fonts.contextmenu
@@ -2474,7 +2474,17 @@ Font used for the debugging console.
 
 Type: <<types,QtFont>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[10pt default_family]+
+
+[[fonts.default_family]]
+=== fonts.default_family
+Default font families to use.
+Whenever "default_family" is used in a font setting, it's replaced with the fonts listed here.
+If set to an empty value, a system-specific monospace default is used.
+
+Type: <<types,List of Font&#44; or Font>>
+
+Default: empty
 
 [[fonts.downloads]]
 === fonts.downloads
@@ -2482,7 +2492,7 @@ Font used for the downloadbar.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[10pt default_family]+
 
 [[fonts.hints]]
 === fonts.hints
@@ -2490,7 +2500,7 @@ Font used for the hints.
 
 Type: <<types,Font>>
 
-Default: +pass:[bold 10pt monospace]+
+Default: +pass:[bold 10pt default_family]+
 
 [[fonts.keyhint]]
 === fonts.keyhint
@@ -2498,7 +2508,7 @@ Font used in the keyhint widget.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[10pt default_family]+
 
 [[fonts.messages.error]]
 === fonts.messages.error
@@ -2506,7 +2516,7 @@ Font used for error messages.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[10pt default_family]+
 
 [[fonts.messages.info]]
 === fonts.messages.info
@@ -2514,7 +2524,7 @@ Font used for info messages.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[10pt default_family]+
 
 [[fonts.messages.warning]]
 === fonts.messages.warning
@@ -2522,16 +2532,7 @@ Font used for warning messages.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
-
-[[fonts.monospace]]
-=== fonts.monospace
-Default monospace fonts.
-Whenever "monospace" is used in a font setting, it's replaced with the fonts listed here.
-
-Type: <<types,Font>>
-
-Default: +pass:[Monospace, &quot;DejaVu Sans Mono&quot;, Monaco, &quot;Bitstream Vera Sans Mono&quot;, &quot;Andale Mono&quot;, &quot;Courier New&quot;, Courier, &quot;Liberation Mono&quot;, monospace, Fixed, Consolas, Terminal]+
+Default: +pass:[10pt default_family]+
 
 [[fonts.prompts]]
 === fonts.prompts
@@ -2547,7 +2548,7 @@ Font used in the statusbar.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[10pt default_family]+
 
 [[fonts.tabs]]
 === fonts.tabs
@@ -2555,7 +2556,7 @@ Font used in the tab bar.
 
 Type: <<types,QtFont>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[10pt default_family]+
 
 [[fonts.web.family.cursive]]
 === fonts.web.family.cursive

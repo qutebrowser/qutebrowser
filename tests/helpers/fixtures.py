@@ -313,9 +313,10 @@ def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub):
     monkeypatch.setattr(config, 'cache', cache)
 
     try:
-        configtypes.Font.monospace_fonts = container.fonts.monospace
+        configtypes.Font.set_default_family(['monospace'])
     except configexc.NoOptionError:
-        # Completion tests patch configdata so fonts.monospace is unavailable.
+        # Completion tests patch configdata so fonts.default_family is
+        # unavailable.
         pass
 
     conf.val = container  # For easier use in tests

@@ -34,7 +34,8 @@ import yaml
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QSettings, qVersion
 
 import qutebrowser
-from qutebrowser.config import configexc, config, configdata, configutils
+from qutebrowser.config import (configexc, config, configdata, configutils,
+                                configtypes)
 from qutebrowser.keyinput import keyutils
 from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch
 
@@ -314,6 +315,8 @@ class YamlMigrations(QObject):
         """Migrate older configs to the newest format."""
         self._migrate_configdata()
         self._migrate_bindings_default()
+        self._migrate_font_default_family()
+        self._migrate_font_replacements()
 
         self._migrate_bool('tabs.favicons.show', 'always', 'never')
         self._migrate_bool('scrolling.bar', 'always', 'when-searching')
@@ -365,6 +368,46 @@ class YamlMigrations(QObject):
 
         del self._settings['bindings.default']
         self.changed.emit()
+
+    def _migrate_font_default_family(self) -> None:
+        old_name = 'fonts.monospace'
+        new_name = 'fonts.default_family'
+
+        if old_name not in self._settings:
+            return
+
+        old_default_fonts = (
+            'Monospace, "DejaVu Sans Mono", Monaco, '
+            '"Bitstream Vera Sans Mono", "Andale Mono", "Courier New", '
+            'Courier, "Liberation Mono", monospace, Fixed, Consolas, Terminal'
+        )
+
+        self._settings[new_name] = {}
+
+        for scope, val in self._settings[old_name].items():
+            old_fonts = val.replace(old_default_fonts, '').rstrip(' ,')
+            new_fonts = list(configutils.parse_font_families(old_fonts))
+            self._settings[new_name][scope] = new_fonts
+
+        del self._settings[old_name]
+        self.changed.emit()
+
+    def _migrate_font_replacements(self) -> None:
+        """Replace 'monospace' replacements by 'default_family'."""
+        for name in self._settings:
+            try:
+                opt = configdata.DATA[name]
+            except KeyError:
+                continue
+
+            if not isinstance(opt.typ, configtypes.Font):
+                continue
+
+            for scope, val in self._settings[name].items():
+                if isinstance(val, str) and val.endswith(' monospace'):
+                    new_val = val.replace('monospace', 'default_family')
+                    self._settings[name][scope] = new_val
+                    self.changed.emit()
 
     def _migrate_bool(self, name: str,
                       true_value: str,
