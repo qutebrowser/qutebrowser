@@ -22,7 +22,7 @@ import pytest
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.config import configutils, configdata, configtypes
+from qutebrowser.config import configutils, configdata, configtypes, configexc
 from qutebrowser.utils import urlmatch, usertypes
 from tests.helpers import utils
 
@@ -227,6 +227,28 @@ def test_get_equivalent_patterns(empty_values):
 
     assert empty_values.get_for_pattern(pat1) == 'pat1 value'
     assert empty_values.get_for_pattern(pat2) == 'pat2 value'
+
+
+@pytest.mark.parametrize('func', [
+    pytest.param(lambda values, pattern:
+                 values.add(None, pattern),
+                 id='add'),
+    pytest.param(lambda values, pattern:
+                 values.remove(pattern),
+                 id='remove'),
+    pytest.param(lambda values, pattern:
+                 values.get_for_url(QUrl('https://example.org/')),
+                 id='get_for_url'),
+    pytest.param(lambda values, pattern:
+                 values.get_for_pattern(pattern),
+                 id='get_for_pattern'),
+])
+def test_no_pattern_support(func, opt, pattern):
+    opt.supports_pattern = False
+    values = configutils.Values(opt, [])
+
+    with pytest.raises(configexc.NoPatternError):
+        func(values, pattern)
 
 
 def test_add_url_benchmark(values, benchmark):
