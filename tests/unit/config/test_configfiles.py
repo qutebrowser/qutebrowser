@@ -158,13 +158,12 @@ def test_qt_version_changed(data_tmpdir, monkeypatch,
     assert state.qt_version_changed == changed
 
 
+@pytest.fixture
+def yaml(config_tmpdir):
+    return configfiles.YamlConfig()
+
+
 class TestYaml:
-
-    pytestmark = pytest.mark.usefixtures('config_tmpdir')
-
-    @pytest.fixture
-    def yaml(self):
-        return configfiles.YamlConfig()
 
     @pytest.mark.parametrize('old_config', [
         None,
@@ -243,143 +242,6 @@ class TestYaml:
         assert error1.text == error2.text == "While loading options"
         assert str(error1.exception) == "Unknown option one"
         assert str(error2.exception) == "Unknown option two"
-
-    def test_deleted_key(self, monkeypatch, yaml, autoconfig):
-        """A key marked as deleted should be removed."""
-        autoconfig.write({'hello': {'global': 'world'}})
-
-        monkeypatch.setattr(configdata.MIGRATIONS, 'deleted', ['hello'])
-
-        yaml.load()
-        yaml._save()
-
-        data = autoconfig.read()
-        assert not data
-
-    def test_renamed_key(self, monkeypatch, yaml, autoconfig):
-        """A key marked as renamed should be renamed properly."""
-        autoconfig.write({'old': {'global': 'value'}})
-
-        monkeypatch.setattr(configdata.MIGRATIONS, 'renamed',
-                            {'old': 'tabs.show'})
-
-        yaml.load()
-        yaml._save()
-
-        data = autoconfig.read()
-        assert data == {'tabs.show': {'global': 'value'}}
-
-    @pytest.mark.parametrize('persist, expected', [
-        (True, 'persist'),
-        (False, 'normal'),
-    ])
-    def test_merge_persist(self, yaml, autoconfig, persist, expected):
-        """Tests for migration of tabs.persist_mode_on_change."""
-        autoconfig.write({'tabs.persist_mode_on_change': {'global': persist}})
-        yaml.load()
-        yaml._save()
-
-        data = autoconfig.read()
-        assert 'tabs.persist_mode_on_change' not in data
-        assert data['tabs.mode_on_change']['global'] == expected
-
-    def test_bindings_default(self, yaml, autoconfig):
-        """Make sure bindings.default gets removed from autoconfig.yml."""
-        autoconfig.write({'bindings.default': {'global': '{}'}})
-
-        yaml.load()
-        yaml._save()
-
-        data = autoconfig.read()
-        assert 'bindings.default' not in data
-
-    @pytest.mark.parametrize('public_only, expected', [
-        (True, 'default-public-interface-only'),
-        (False, 'all-interfaces'),
-    ])
-    def test_webrtc(self, yaml, autoconfig, public_only, expected):
-        """Tests for migration of content.webrtc_public_interfaces_only."""
-        autoconfig.write({'content.webrtc_public_interfaces_only':
-                          {'global': public_only}})
-
-        yaml.load()
-        yaml._save()
-
-        data = autoconfig.read()
-        assert data['content.webrtc_ip_handling_policy']['global'] == expected
-
-    @pytest.fixture
-    def migration_test(self, yaml, autoconfig):
-        def run(setting, old, new):
-            autoconfig.write({setting: {'global': old}})
-
-            yaml.load()
-            yaml._save()
-
-            data = autoconfig.read()
-            assert data[setting]['global'] == new
-
-        return run
-
-    @pytest.mark.parametrize('setting, old, new', [
-        ('tabs.favicons.show', True, 'always'),
-        ('tabs.favicons.show', False, 'never'),
-        ('tabs.favicons.show', 'always', 'always'),
-
-        ('scrolling.bar', True, 'always'),
-        ('scrolling.bar', False, 'when-searching'),
-        ('scrolling.bar', 'always', 'always'),
-
-        ('qt.force_software_rendering', True, 'software-opengl'),
-        ('qt.force_software_rendering', False, 'none'),
-        ('qt.force_software_rendering', 'chromium', 'chromium'),
-    ])
-    def test_bool_migrations(self, migration_test, setting, old, new):
-        """Tests for migration of former boolean settings."""
-        migration_test(setting, old, new)
-
-    @pytest.mark.parametrize('setting', [
-        'tabs.title.format',
-        'tabs.title.format_pinned',
-        'window.title_format'
-    ])
-    @pytest.mark.parametrize('old, new', [
-        ('{title}', '{current_title}'),
-        ('eve{title}duna', 'eve{current_title}duna'),
-        ('eve{{title}}duna', 'eve{{title}}duna'),
-        ('{{title}}', '{{title}}'),
-        ('', ''),
-        (None, None),
-    ])
-    def test_title_format_migrations(self, migration_test, setting, old, new):
-        migration_test(setting, old, new)
-
-    @pytest.mark.parametrize('old, new', [
-        (None, ('Mozilla/5.0 ({os_info}) '
-                'AppleWebKit/{webkit_version} (KHTML, like Gecko) '
-                '{qt_key}/{qt_version} '
-                '{upstream_browser_key}/{upstream_browser_version} '
-                'Safari/{webkit_version}')),
-        ('toaster', 'toaster'),
-    ])
-    def test_user_agent_migration(self, migration_test, old, new):
-        migration_test('content.headers.user_agent', old, new)
-
-    def test_renamed_key_unknown_target(self, monkeypatch, yaml,
-                                        autoconfig):
-        """A key marked as renamed with invalid name should raise an error."""
-        autoconfig.write({'old': {'global': 'value'}})
-
-        monkeypatch.setattr(configdata.MIGRATIONS, 'renamed',
-                            {'old': 'new'})
-
-        with pytest.raises(configexc.ConfigFileErrors) as excinfo:
-            yaml.load()
-
-        assert len(excinfo.value.errors) == 1
-        error = excinfo.value.errors[0]
-        assert error.text == "While loading options"
-        assert str(error.exception) == "Unknown option new"
 
     @pytest.mark.parametrize('old_config', [
         None,
@@ -537,6 +399,144 @@ class TestYaml:
             yaml.clear()
 
         assert name not in yaml
+
+
+class TestYamlMigrations:
+
+    @pytest.fixture
+    def migration_test(self, yaml, autoconfig):
+        def run(setting, old, new):
+            autoconfig.write({setting: {'global': old}})
+
+            yaml.load()
+            yaml._save()
+
+            data = autoconfig.read()
+            assert data[setting]['global'] == new
+
+        return run
+
+    def test_deleted_key(self, monkeypatch, yaml, autoconfig):
+        """A key marked as deleted should be removed."""
+        autoconfig.write({'hello': {'global': 'world'}})
+
+        monkeypatch.setattr(configdata.MIGRATIONS, 'deleted', ['hello'])
+
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        assert not data
+
+    def test_renamed_key(self, monkeypatch, yaml, autoconfig):
+        """A key marked as renamed should be renamed properly."""
+        autoconfig.write({'old': {'global': 'value'}})
+
+        monkeypatch.setattr(configdata.MIGRATIONS, 'renamed',
+                            {'old': 'tabs.show'})
+
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        assert data == {'tabs.show': {'global': 'value'}}
+
+    def test_renamed_key_unknown_target(self, monkeypatch, yaml,
+                                        autoconfig):
+        """A key marked as renamed with invalid name should raise an error."""
+        autoconfig.write({'old': {'global': 'value'}})
+
+        monkeypatch.setattr(configdata.MIGRATIONS, 'renamed',
+                            {'old': 'new'})
+
+        with pytest.raises(configexc.ConfigFileErrors) as excinfo:
+            yaml.load()
+
+        assert len(excinfo.value.errors) == 1
+        error = excinfo.value.errors[0]
+        assert error.text == "While loading options"
+        assert str(error.exception) == "Unknown option new"
+
+    @pytest.mark.parametrize('persist, expected', [
+        (True, 'persist'),
+        (False, 'normal'),
+    ])
+    def test_merge_persist(self, yaml, autoconfig, persist, expected):
+        """Tests for migration of tabs.persist_mode_on_change."""
+        autoconfig.write({'tabs.persist_mode_on_change': {'global': persist}})
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        assert 'tabs.persist_mode_on_change' not in data
+        assert data['tabs.mode_on_change']['global'] == expected
+
+    def test_bindings_default(self, yaml, autoconfig):
+        """Make sure bindings.default gets removed from autoconfig.yml."""
+        autoconfig.write({'bindings.default': {'global': '{}'}})
+
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        assert 'bindings.default' not in data
+
+    @pytest.mark.parametrize('public_only, expected', [
+        (True, 'default-public-interface-only'),
+        (False, 'all-interfaces'),
+    ])
+    def test_webrtc(self, yaml, autoconfig, public_only, expected):
+        autoconfig.write({'content.webrtc_public_interfaces_only':
+                          {'global': public_only}})
+
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        assert data['content.webrtc_ip_handling_policy']['global'] == expected
+
+    @pytest.mark.parametrize('setting, old, new', [
+        ('tabs.favicons.show', True, 'always'),
+        ('tabs.favicons.show', False, 'never'),
+        ('tabs.favicons.show', 'always', 'always'),
+
+        ('scrolling.bar', True, 'always'),
+        ('scrolling.bar', False, 'when-searching'),
+        ('scrolling.bar', 'always', 'always'),
+
+        ('qt.force_software_rendering', True, 'software-opengl'),
+        ('qt.force_software_rendering', False, 'none'),
+        ('qt.force_software_rendering', 'chromium', 'chromium'),
+    ])
+    def test_bool(self, migration_test, setting, old, new):
+        migration_test(setting, old, new)
+
+    @pytest.mark.parametrize('setting', [
+        'tabs.title.format',
+        'tabs.title.format_pinned',
+        'window.title_format'
+    ])
+    @pytest.mark.parametrize('old, new', [
+        ('{title}', '{current_title}'),
+        ('eve{title}duna', 'eve{current_title}duna'),
+        ('eve{{title}}duna', 'eve{{title}}duna'),
+        ('{{title}}', '{{title}}'),
+        ('', ''),
+        (None, None),
+    ])
+    def test_title_format(self, migration_test, setting, old, new):
+        migration_test(setting, old, new)
+
+    @pytest.mark.parametrize('old, new', [
+        (None, ('Mozilla/5.0 ({os_info}) '
+                'AppleWebKit/{webkit_version} (KHTML, like Gecko) '
+                '{qt_key}/{qt_version} '
+                '{upstream_browser_key}/{upstream_browser_version} '
+                'Safari/{webkit_version}')),
+        ('toaster', 'toaster'),
+    ])
+    def test_user_agent(self, migration_test, old, new):
+        migration_test('content.headers.user_agent', old, new)
 
 
 class ConfPy:
