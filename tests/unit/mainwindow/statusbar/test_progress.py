@@ -23,7 +23,7 @@
 import pytest
 
 from qutebrowser.mainwindow.statusbar.progress import Progress
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, utils
 
 
 @pytest.fixture
@@ -76,8 +76,10 @@ def test_progress_affecting_statusbar_height(config_stub, fake_statusbar,
     https://github.com/qutebrowser/qutebrowser/issues/886
     https://github.com/qutebrowser/qutebrowser/pull/890
     """
-    # For some reason on Windows, with Courier, there's a 1px difference.
-    config_stub.val.fonts.statusbar = '8pt Monospace'
+    if not utils.is_mac:
+        # There is a difference depending on the font. This seems to avoid
+        # this, but on macOS, we get a warning about the font not being found.
+        config_stub.val.fonts.statusbar = '8pt Monospace'
 
     fake_statusbar.container.expose()
 
