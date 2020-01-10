@@ -17,10 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Partial comparison of dicts/lists."""
+"""Various utilities used inside tests."""
 
-
+import io
 import re
+import gzip
 import pprint
 import os.path
 import contextlib
@@ -193,3 +194,8 @@ def ignore_bs4_warning():
             message="Using or importing the ABCs from 'collections' instead "
             "of from 'collections.abc' is deprecated", module='bs4.element'):
         yield
+
+
+def blocked_hosts():
+    path = os.path.join(abs_datapath(), 'blocked-hosts.gz')
+    yield from io.TextIOWrapper(gzip.open(path), encoding='utf-8')

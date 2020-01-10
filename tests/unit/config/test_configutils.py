@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import pytest
 
 from PyQt5.QtCore import QUrl
@@ -252,12 +251,11 @@ def test_no_pattern_support(func, opt, pattern):
 
 
 def test_add_url_benchmark(values, benchmark):
-    blocked_hosts = os.path.join(utils.abs_datapath(), 'blocked-hosts')
+    blocked_hosts = list(utils.blocked_hosts())
 
     def _add_blocked():
-        with open(blocked_hosts, 'r', encoding='utf-8') as f:
-            for line in f:
-                values.add(False, urlmatch.UrlPattern(line))
+        for line in blocked_hosts:
+            values.add(False, urlmatch.UrlPattern(line))
 
     benchmark(_add_blocked)
 
@@ -268,12 +266,10 @@ def test_add_url_benchmark(values, benchmark):
     'http://bop.foo.bar.baz/',
 ])
 def test_domain_lookup_sparse_benchmark(url, values, benchmark):
-    blocked_hosts = os.path.join(utils.abs_datapath(), 'blocked-hosts')
     url = QUrl(url)
     values.add(False, urlmatch.UrlPattern("*.foo.bar.baz"))
-    with open(blocked_hosts, 'r', encoding='utf-8') as f:
-        for line in f:
-            values.add(False, urlmatch.UrlPattern(line))
+    for line in utils.blocked_hosts():
+        values.add(False, urlmatch.UrlPattern(line))
 
     benchmark(lambda: values.get_for_url(url))
 
