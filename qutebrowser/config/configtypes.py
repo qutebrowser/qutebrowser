@@ -1296,7 +1296,7 @@ class QtFont(Font):
         weight = match.group('weight')
         namedweight = match.group('namedweight')
         size = match.group('size')
-        family = match.group('family')
+        family_str = match.group('family')
 
         style_map = {
             'normal': QFont.StyleNormal,
@@ -1327,10 +1327,11 @@ class QtFont(Font):
                 raise ValueError("Unexpected size unit in {!r}!".format(
                     size))  # pragma: no cover
 
-        families = self._parse_families(family)
+        families = self._parse_families(family_str)
         if hasattr(font, 'setFamilies'):
             # Added in Qt 5.13
-            font.setFamily(families[0])
+            family = families[0] if families else None
+            font.setFamily(family)  # type: ignore
             font.setFamilies(families)
         else:  # pragma: no cover
             font.setFamily(', '.join(families))
