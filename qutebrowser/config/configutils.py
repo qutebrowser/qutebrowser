@@ -265,18 +265,40 @@ class Values:
         return self._get_fallback(fallback)
 
 
-def parse_font_families(family_str: str) -> typing.Iterator[str]:
-    """Parse a CSS-like string of font families."""
-    for part in family_str.split(','):
-        part = part.strip()
+class FontFamilies:
 
-        # The Qt CSS parser handles " and ' before passing the string to
-        # QFont.setFamily.
-        if ((part.startswith("'") and part.endswith("'")) or
-                (part.startswith('"') and part.endswith('"'))):
-            part = part[1:-1]
+    """A list of font family names."""
 
-        if not part:
-            continue
+    def __init__(self, families: typing.Sequence[str]) -> None:
+        self._families = families
+        self.family = families[0] if families else None
 
-        yield part
+    def __iter__(self) -> typing.Iterator[str]:
+        yield from self._families
+
+    def __repr__(self) -> str:
+        return utils.get_repr(self, families=self._families, constructor=True)
+
+    def __str__(self) -> str:
+        return ', '.join(self._families)
+
+    @classmethod
+    def from_str(cls, family_str: str) -> 'FontFamilies':
+        """Parse a CSS-like string of font families."""
+        families = []
+
+        for part in family_str.split(','):
+            part = part.strip()
+
+            # The Qt CSS parser handles " and ' before passing the string to
+            # QFont.setFamily.
+            if ((part.startswith("'") and part.endswith("'")) or
+                    (part.startswith('"') and part.endswith('"'))):
+                part = part[1:-1]
+
+            if not part:
+                continue
+
+            families.append(part)
+
+        return cls(families)
