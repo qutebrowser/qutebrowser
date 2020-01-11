@@ -22,14 +22,14 @@
 
 import pytest
 
-from qutebrowser.mainwindow.statusbar.progress import Progress
+from qutebrowser.mainwindow.statusbar import progress
 from qutebrowser.utils import usertypes, utils
 
 
 @pytest.fixture
 def progress_widget(qtbot, config_stub):
     """Create a Progress widget and checks its initial state."""
-    widget = Progress()
+    widget = progress.Progress()
     widget.enabled = True
     qtbot.add_widget(widget)
     assert not widget.isVisible()
