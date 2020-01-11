@@ -17,8 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import hypothesis
+from hypothesis import strategies
 import pytest
-
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import configutils, configdata, configtypes, configexc
@@ -309,3 +310,10 @@ class TestWiden:
 ])
 def test_parse_font_families(family_str, expected):
     assert list(configutils.parse_font_families(family_str)) == expected
+
+
+@hypothesis.given(strategies.text())
+def test_parse_font_families_hypothesis(family_str):
+    configutils.parse_font_families(family_str)
+    for e in family_str:
+        assert e
