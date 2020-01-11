@@ -271,6 +271,14 @@ def is_ignored_chromium_message(line):
         # SurfaceId(FrameSinkId[](5, 2), LocalSurfaceId(8, 1, 7C3A...))
         'Old/orphaned temporary reference to '
         'SurfaceId(FrameSinkId[](*), LocalSurfaceId(*))',
+        # [79680:79705:0111/151113.071008:WARNING:
+        # important_file_writer.cc(97)] temp file failure:
+        # /tmp/qutebrowser-basedir-gwkvqpyp/data/webengine/user_prefs.json :
+        # could not create temporary file: No such file or directory (2)
+        # (Only in debug builds)
+        # https://bugreports.qt.io/browse/QTBUG-78319
+        'temp file failure: * : could not create temporary file: No such file '
+        'or directory (2)',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
