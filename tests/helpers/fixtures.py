@@ -300,7 +300,7 @@ def yaml_config_stub(config_tmpdir):
 
 
 @pytest.fixture
-def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub):
+def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub, qapp):
     """Fixture which provides a fake config object."""
     conf = config.Config(yaml_config=yaml_config_stub)
     monkeypatch.setattr(config, 'instance', conf)
@@ -313,7 +313,7 @@ def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub):
     monkeypatch.setattr(config, 'cache', cache)
 
     try:
-        configtypes.Font.set_default_family(['monospace'])
+        configtypes.Font.set_default_family(None)
     except configexc.NoOptionError:
         # Completion tests patch configdata so fonts.default_family is
         # unavailable.
