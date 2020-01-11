@@ -31,9 +31,15 @@ Changed
 - The `fonts.monospace` setting has been removed and replaced by
   `fonts.default_family`. The new `default_family` setting is improved in
   various ways:
-  - It accepts a list of font families (or a single font family) rather than a
-    comma-separated string.
-  - It is now empty by default rather than having a long list of font names in
+  * It accepts a list of font families (or a single font family) rather than a
+    comma-separated string. As an example, instead of
+    `fonts.monospace = "Courier, Monaco"`, use
+    `fonts.default_family = ["Courier", "Monaco"]`.
+  * Since a list is now accepted as value, no quoting of font names with spaces
+    is required anymore. As an example, instead of
+    `fonts.monospace = '"xos4 Terminus"'`, use
+    `fonts.default_family = 'xos4 Terminus'`.
+  * It is now empty by default rather than having a long list of font names in
     the default config. When the value is empty, the system's default
     monospaced font is used.
 - If `monospace` is now used in a font value, it's used literally and not
@@ -57,11 +63,11 @@ Added
 - New `tabs.tooltips` setting which can be used to disable hover tooltips for
   tabs.
 - New settings to configure the appearance of context menus:
-  - `fonts.contextmenu`
-  - `colors.contextmenu.menu.bg`
-  - `colors.contextmenu.menu.fg`
-  - `colors.contextmenu.selected.bg`
-  - `colors.contextmenu.selected.fg`
+  * `fonts.contextmenu`
+  * `colors.contextmenu.menu.bg`
+  * `colors.contextmenu.menu.fg`
+  * `colors.contextmenu.selected.bg`
+  * `colors.contextmenu.selected.fg`
 
 Changed
 ~~~~~~~
@@ -139,22 +145,22 @@ Fixed
 - Entering a very long string (over 50k characters) in the completion used to
   crash, now it shows an error message instead.
 - Various improvements for URL/searchengine detection:
-  - Strings with a dot but with characters not allowed in a URL (e.g. an
+  * Strings with a dot but with characters not allowed in a URL (e.g. an
     underscore) are now not treated as URL anymore.
-  - Strings like "5/8" are now not treated as IP anymore.
-  - URLs with an explicit scheme and a space (%20) are correctly treated as
+  * Strings like "5/8" are now not treated as IP anymore.
+  * URLs with an explicit scheme and a space (%20) are correctly treated as
     URLs.
-  - Mail addresses are now treated as search terms.
-  - With `url.open_base_url` set, searching for a search engine name now works.
-  - `url.open_base_url = True` together with `url.auto_search = 'never'` is now
+  * Mail addresses are now treated as search terms.
+  * With `url.open_base_url` set, searching for a search engine name now works.
+  * `url.open_base_url = True` together with `url.auto_search = 'never'` is now
     handled correctly.
-  - Fixed crash when a search engine URL turns out to be invalid.
+  * Fixed crash when a search engine URL turns out to be invalid.
 - New "site specific quirks", which work around some broken websites:
-  - WhatsApp Web
-  - Google Accounts
-  - Slack (with older QtWebEngine versions)
-  - Dell.com support pages (with Qt 5.7)
-  - Google Docs (fixes broken IME/compose key)
+  * WhatsApp Web
+  * Google Accounts
+  * Slack (with older QtWebEngine versions)
+  * Dell.com support pages (with Qt 5.7)
+  * Google Docs (fixes broken IME/compose key)
 
 v1.8.3 (2019-12-05)
 -------------------
