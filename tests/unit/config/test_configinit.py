@@ -332,10 +332,10 @@ class TestLateInit:
 
     @pytest.mark.parametrize('settings, size, family', [
         # Only fonts.default_family customized
-        ([('fonts.default_family', '"Comic Sans MS"')], 10, 'Comic Sans MS'),
+        ([('fonts.default_family', 'Comic Sans MS')], 10, 'Comic Sans MS'),
         # fonts.default_family and font settings customized
         # https://github.com/qutebrowser/qutebrowser/issues/3096
-        ([('fonts.default_family', '"Comic Sans MS"'),
+        ([('fonts.default_family', 'Comic Sans MS'),
           ('fonts.tabs', '12pt default_family'),
           ('fonts.keyhint', '12pt default_family')], 12, 'Comic Sans MS'),
     ])
@@ -385,7 +385,7 @@ class TestLateInit:
         changed_options = []
         config.instance.changed.connect(changed_options.append)
 
-        config.instance.set_obj('fonts.default_family', '"Comic Sans MS"')
+        config.instance.set_obj('fonts.default_family', 'Comic Sans MS')
 
         assert 'fonts.keyhint' in changed_options  # Font
         assert config.instance.get('fonts.keyhint') == '10pt "Comic Sans MS"'

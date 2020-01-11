@@ -1219,7 +1219,7 @@ class Font(BaseType):
             font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
             families = configutils.FontFamilies([font.family()])
 
-        cls.default_family = str(families)
+        cls.default_family = families.to_str(quote=True)
 
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
@@ -1334,7 +1334,7 @@ class QtFont(Font):
             font.setFamily(families.family)  # type: ignore
             font.setFamilies(list(families))
         else:  # pragma: no cover
-            font.setFamily(str(families))
+            font.setFamily(families.to_str(quote=False))
 
         return font
 

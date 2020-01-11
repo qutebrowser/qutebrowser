@@ -280,7 +280,16 @@ class FontFamilies:
         return utils.get_repr(self, families=self._families, constructor=True)
 
     def __str__(self) -> str:
-        return ', '.join(self._families)
+        return self.to_str()
+
+    def _quoted_families(self) -> typing.Iterator[str]:
+        for f in self._families:
+            needs_quoting = any(c in f for c in ', ')
+            yield '"{}"'.format(f) if needs_quoting else f
+
+    def to_str(self, *, quote: bool = True) -> str:
+        families = self._quoted_families() if quote else self._families
+        return ', '.join(families)
 
     @classmethod
     def from_str(cls, family_str: str) -> 'FontFamilies':

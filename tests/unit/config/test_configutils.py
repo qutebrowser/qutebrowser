@@ -313,12 +313,24 @@ class TestFontFamilies:
     def test_from_str(self, family_str, expected):
         assert list(configutils.FontFamilies.from_str(family_str)) == expected
 
-    @pytest.mark.parametrize('families, expected', [
-        (['family'], 'family'),
-        (['family1', 'family2'], 'family1, family2'),
+    @pytest.mark.parametrize('families, quote, expected', [
+        (['family'], True, 'family'),
+        (['family1', 'family2'], True, 'family1, family2'),
+        (['family'], True, 'family'),
+        (['space family', 'alien'], True, '"space family", alien'),
+        (['comma,family', 'period'], True, '"comma,family", period'),
+
+        (['family'], False, 'family'),
+        (['family1', 'family2'], False, 'family1, family2'),
+        (['family'], False, 'family'),
+        (['space family', 'alien'], False, 'space family, alien'),
+        (['comma,family', 'period'], False, 'comma,family, period'),
     ])
-    def test_to_str(self, families, expected):
-        assert str(configutils.FontFamilies(families)) == expected
+    def test_to_str(self, families, quote, expected):
+        ff = configutils.FontFamilies(families)
+        assert ff.to_str(quote=quote) == expected
+        if quote:
+            assert str(ff) == expected
 
     @hypothesis.given(strategies.text())
     def test_from_str_hypothesis(self, family_str):
