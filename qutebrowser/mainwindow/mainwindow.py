@@ -629,7 +629,6 @@ class MainWindow(QWidget):
         sessions.session_manager.save_last_window_session()
         self._save_geometry()
         log.destroy.debug("Closing window {}".format(self.win_id))
-        self.tabbed_browser.shutdown()
 
     def closeEvent(self, e):
         """Override closeEvent to display a confirmation if needed."""

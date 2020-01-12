@@ -35,6 +35,7 @@ from qutebrowser.mainwindow import tabwidget, mainwindow
 from qutebrowser.browser import signalfilter, browsertab, history
 from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message, jinja)
+from qutebrowser.misc import quitter
 
 
 @attr.s
@@ -235,6 +236,7 @@ class TabbedBrowser(QWidget):
         self.is_private = private
         self.tab_deque = TabDeque()
         config.instance.changed.connect(self._on_config_changed)
+        quitter.instance.shutting_down.connect(self.shutdown)
 
     def _update_stack_size(self):
         newsize = config.instance.get('tabs.undo_stack_size')
