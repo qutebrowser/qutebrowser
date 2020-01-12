@@ -618,24 +618,12 @@ class MainWindow(QWidget):
         super().showEvent(e)
         objreg.register('last-visible-main-window', self, update=True)
 
-    def _do_close(self):
-        """Helper function for closeEvent."""
-        try:
-            last_visible = objreg.get('last-visible-main-window')
-            if self is last_visible:
-                objreg.delete('last-visible-main-window')
-        except KeyError:
-            pass
-        sessions.session_manager.save_last_window_session()
-        self._save_geometry()
-        log.destroy.debug("Closing window {}".format(self.win_id))
+    def _confirm_quit(self):
+        """Confirm that this window should be closed.
 
-    def closeEvent(self, e):
-        """Override closeEvent to display a confirmation if needed."""
-        if crashsignal.crash_handler.is_crashing:
-            e.accept()
-            return
-
+        Return:
+            True if closing is okay, False if a closeEvent should be ignored.
+        """
         tab_count = self.tabbed_browser.widget.count()
         download_count = self._download_model.running_downloads()
         quit_texts = []
@@ -664,7 +652,29 @@ class MainWindow(QWidget):
             if not confirmed:
                 log.destroy.debug("Cancelling closing of window {}".format(
                     self.win_id))
-                e.ignore()
-                return
+                return False
+
+        return True
+
+    def closeEvent(self, e):
+        """Override closeEvent to display a confirmation if needed."""
+        if crashsignal.crash_handler.is_crashing:
+            e.accept()
+            return
+
+        if not self._confirm_quit():
+            e.ignore()
+            return
+
         e.accept()
-        self._do_close()
+
+        try:
+            last_visible = objreg.get('last-visible-main-window')
+            if self is last_visible:
+                objreg.delete('last-visible-main-window')
+        except KeyError:
+            pass
+
+        sessions.session_manager.save_last_window_session()
+        self._save_geometry()
+        log.destroy.debug("Closing window {}".format(self.win_id))
