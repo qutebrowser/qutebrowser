@@ -25,6 +25,7 @@ import sys
 import bdb
 import pdb  # noqa: T002
 import signal
+import argparse
 import functools
 import faulthandler
 import typing
@@ -37,10 +38,13 @@ except ImportError:
 import attr
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
+from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.api import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog, ipc, objects
 from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
+if typing.TYPE_CHECKING:
+    from qutebrowser.misc import quitter
 
 
 @attr.s
@@ -55,6 +59,9 @@ class ExceptionInfo:
 
 # Used by mainwindow.py to skip confirm questions on crashes
 is_crashing = False
+
+
+crash_handler = typing.cast('CrashHandler', None)
 
 
 class CrashHandler(QObject):
@@ -412,3 +419,19 @@ class SignalHandler(QObject):
         """
         print("WHY ARE YOU DOING THIS TO ME? :(")
         sys.exit(128 + signum)
+
+
+def init(q_app: QApplication,
+         args: argparse.Namespace,
+         quitter: 'quitter.Quitter') -> None:
+    """Initialize crash/signal handlers."""
+    global crash_handler
+    crash_handler = CrashHandler(
+        app=q_app, quitter=quitter, args=args, parent=q_app)
+    objreg.register('crash-handler', crash_handler, command_only=True)
+    crash_handler.activate()
+    quitter.shutting_down.connect(crash_handler.shutdown)
+
+    signal_handler = SignalHandler(app=q_app, quitter=quitter, parent=q_app)
+    signal_handler.activate()
+    quitter.shutting_down.connect(signal_handler.deactivate)

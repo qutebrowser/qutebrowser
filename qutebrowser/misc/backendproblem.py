@@ -39,9 +39,7 @@ from PyQt5.QtNetwork import QSslSocket
 from qutebrowser.config import config, configfiles
 from qutebrowser.utils import (usertypes, version, qtutils, log, utils,
                                standarddir)
-from qutebrowser.misc import objects, msgbox, savemanager
-if typing.TYPE_CHECKING:
-    from qutebrowser import app
+from qutebrowser.misc import objects, msgbox, savemanager, quitter
 
 
 class _Result(enum.IntEnum):
@@ -170,10 +168,8 @@ class _BackendProblemChecker:
     """Check for various backend-specific issues."""
 
     def __init__(self, *,
-                 quitter: 'app.Quitter',
                  no_err_windows: bool,
                  save_manager: savemanager.SaveManager) -> None:
-        self._quitter = quitter
         self._save_manager = save_manager
         self._no_err_windows = no_err_windows
 
@@ -192,11 +188,11 @@ class _BackendProblemChecker:
         if status in [_Result.quit, QDialog.Rejected]:
             pass
         elif status == _Result.restart_webkit:
-            self._quitter.restart(override_args={'backend': 'webkit'})
+            quitter.instance.restart(override_args={'backend': 'webkit'})
         elif status == _Result.restart_webengine:
-            self._quitter.restart(override_args={'backend': 'webengine'})
+            quitter.instance.restart(override_args={'backend': 'webengine'})
         elif status == _Result.restart:
-            self._quitter.restart()
+            quitter.instance.restart()
         else:
             raise utils.Unreachable(status)
 
@@ -461,11 +457,9 @@ class _BackendProblemChecker:
             self._handle_ssl_support(fatal=True)
 
 
-def init(*, quitter: 'app.Quitter',
-         args: argparse.Namespace,
+def init(*, args: argparse.Namespace,
          save_manager: savemanager.SaveManager) -> None:
     """Run all checks."""
-    checker = _BackendProblemChecker(quitter=quitter,
-                                     no_err_windows=args.no_err_windows,
+    checker = _BackendProblemChecker(no_err_windows=args.no_err_windows,
                                      save_manager=save_manager)
     checker.check()
