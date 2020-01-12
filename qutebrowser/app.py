@@ -191,7 +191,7 @@ def _init_icon():
 def _process_args(args):
     """Open startpage etc. and process commandline args."""
     if not args.override_restore:
-        _load_session(args.session)
+        sessions.load_default(args.session)
 
     if not sessions.session_manager.did_load:
         log.init.debug("Initializing main window...")
@@ -211,37 +211,6 @@ def _process_args(args):
 
     delta = datetime.datetime.now() - earlyinit.START_TIME
     log.init.debug("Init finished after {}s".format(delta.total_seconds()))
-
-
-def _load_session(name):
-    """Load the default session.
-
-    Args:
-        name: The name of the session to load, or None to read state file.
-    """
-    if name is None and sessions.session_manager.exists('_autosave'):
-        name = '_autosave'
-    elif name is None:
-        try:
-            name = configfiles.state['general']['session']
-        except KeyError:
-            # No session given as argument and none in the session file ->
-            # start without loading a session
-            return
-
-    try:
-        sessions.session_manager.load(name)
-    except sessions.SessionNotFoundError:
-        message.error("Session {} not found!".format(name))
-    except sessions.SessionError as e:
-        message.error("Failed to load session {}: {}".format(name, e))
-    try:
-        del configfiles.state['general']['session']
-    except KeyError:
-        pass
-    # If this was a _restart session, delete it.
-    if name == '_restart':
-        sessions.session_manager.delete('_restart')
 
 
 def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):

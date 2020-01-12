@@ -594,3 +594,34 @@ def session_delete(name, *, force: bool = False) -> None:
                                     .format(e))
     else:
         log.sessions.debug("Deleted session {}.".format(name))
+
+
+def load_default(name):
+    """Load the default session.
+
+    Args:
+        name: The name of the session to load, or None to read state file.
+    """
+    if name is None and session_manager.exists('_autosave'):
+        name = '_autosave'
+    elif name is None:
+        try:
+            name = configfiles.state['general']['session']
+        except KeyError:
+            # No session given as argument and none in the session file ->
+            # start without loading a session
+            return
+
+    try:
+        session_manager.load(name)
+    except SessionNotFoundError:
+        message.error("Session {} not found!".format(name))
+    except SessionError as e:
+        message.error("Failed to load session {}: {}".format(name, e))
+    try:
+        del configfiles.state['general']['session']
+    except KeyError:
+        pass
+    # If this was a _restart session, delete it.
+    if name == '_restart':
+        session_manager.delete('_restart')
