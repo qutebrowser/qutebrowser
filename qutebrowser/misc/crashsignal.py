@@ -57,10 +57,6 @@ class ExceptionInfo:
     objects = attr.ib()
 
 
-# Used by mainwindow.py to skip confirm questions on crashes
-is_crashing = False
-
-
 crash_handler = typing.cast('CrashHandler', None)
 
 
@@ -75,6 +71,8 @@ class CrashHandler(QObject):
         _crash_dialog: The CrashDialog currently being shown.
         _crash_log_file: The file handle for the faulthandler crash log.
         _crash_log_data: Crash data read from the previous crash log.
+        is_crashing: Used by mainwindow.py to skip confirm questions on
+                     crashes.
     """
 
     def __init__(self, *, app, quitter, args, parent=None):
@@ -85,6 +83,7 @@ class CrashHandler(QObject):
         self._crash_log_file = None
         self._crash_log_data = None
         self._crash_dialog = None
+        self.is_crashing = False
 
     def activate(self):
         """Activate the exception hook."""
@@ -259,8 +258,7 @@ class CrashHandler(QObject):
         except TypeError:
             log.destroy.exception("Error while preventing shutdown")
 
-        global is_crashing
-        is_crashing = True
+        self.is_crashing = True
 
         self._app.closeAllWindows()
         if self._args.no_err_windows:

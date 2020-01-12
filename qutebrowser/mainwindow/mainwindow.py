@@ -633,9 +633,10 @@ class MainWindow(QWidget):
 
     def closeEvent(self, e):
         """Override closeEvent to display a confirmation if needed."""
-        if crashsignal.is_crashing:
+        if crashsignal.crash_handler.is_crashing:
             e.accept()
             return
+
         tab_count = self.tabbed_browser.widget.count()
         download_count = self._download_model.running_downloads()
         quit_texts = []
