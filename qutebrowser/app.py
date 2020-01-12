@@ -47,10 +47,6 @@ import typing
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject, QEvent, pyqtSignal, Qt
-try:
-    import hunter
-except ImportError:
-    hunter = None
 
 import qutebrowser
 import qutebrowser.resources
@@ -538,15 +534,3 @@ class Application(QApplication):
 
     def __repr__(self):
         return utils.get_repr(self)
-
-    def exit(self, status):
-        """Extend QApplication::exit to log the event."""
-        log.destroy.debug("Now calling QApplication::exit.")
-        if 'debug-exit' in objects.debug_flags:
-            if hunter is None:
-                print("Not logging late shutdown because hunter could not be "
-                      "imported!", file=sys.stderr)
-            else:
-                print("Now logging late shutdown.", file=sys.stderr)
-                hunter.trace()
-        super().exit(status)

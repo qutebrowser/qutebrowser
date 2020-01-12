@@ -33,12 +33,16 @@ import subprocess
 
 from PyQt5.QtCore import QObject, pyqtSignal, QTimer
 from PyQt5.QtWidgets import QApplication
+try:
+    import hunter
+except ImportError:
+    hunter = None
 
 import qutebrowser
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config
 from qutebrowser.utils import log
-from qutebrowser.misc import sessions, ipc
+from qutebrowser.misc import sessions, ipc, objects
 from qutebrowser.mainwindow import prompt
 from qutebrowser.completion.models import miscmodels
 
@@ -235,14 +239,14 @@ class Quitter(QObject):
             # in the real main event loop, or we'll get a segfault.
             log.destroy.debug("Deferring real shutdown because question was "
                               "active.")
-            QTimer.singleShot(0, functools.partial(self._shutdown, status,
+            QTimer.singleShot(0, functools.partial(self._shutdown_2, status,
                                                    is_restart=is_restart))
         else:
             # If we have no questions to shut down, we are already in the real
             # event loop, so we can shut down immediately.
-            self._shutdown(status, is_restart=is_restart)
+            self._shutdown_2(status, is_restart=is_restart)
 
-    def _shutdown(self, status: int, is_restart: bool) -> None:
+    def _shutdown_2(self, status: int, is_restart: bool) -> None:
         """Second stage of shutdown."""
         log.destroy.debug("Stage 2 of shutting down...")
 
@@ -259,8 +263,19 @@ class Quitter(QObject):
         log.destroy.debug("Deferring QApplication::exit...")
         # We use a singleshot timer to exit here to minimize the likelihood of
         # segfaults.
-        QTimer.singleShot(0, functools.partial(
-            QApplication.instance().exit, status))
+        QTimer.singleShot(0, functools.partial(self._shutdown_3, status))
+
+    def _shutdown_3(self, status):
+        """Finally shut down the QApplication."""
+        log.destroy.debug("Now calling QApplication::exit.")
+        if 'debug-exit' in objects.debug_flags:
+            if hunter is None:
+                print("Not logging late shutdown because hunter could not be "
+                      "imported!", file=sys.stderr)
+            else:
+                print("Now logging late shutdown.", file=sys.stderr)
+                hunter.trace()
+        QApplication.instance().exit(status)
 
 
 @cmdutils.register(name='quit')
