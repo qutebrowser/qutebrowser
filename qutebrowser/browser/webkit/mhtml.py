@@ -244,6 +244,10 @@ class MHTMLWriter:
         return msg
 
 
+_PendingDownloadType = typing.Set[
+    typing.Tuple[QUrl, downloads.AbstractDownloadItem]]
+
+
 class _Downloader:
 
     """A class to download whole websites.
@@ -264,9 +268,7 @@ class _Downloader:
         self.target = target
         self.writer = None
         self.loaded_urls = {tab.url()}
-        pending_download_type = typing.Set[  # pylint: disable=unused-variable
-            typing.Tuple[QUrl, downloads.AbstractDownloadItem]]
-        self.pending_downloads = set()  # type: pending_download_type
+        self.pending_downloads = set()  # type: _PendingDownloadType
         self._finished_file = False
         self._used = False
 
