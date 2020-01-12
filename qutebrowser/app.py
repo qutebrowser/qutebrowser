@@ -45,7 +45,7 @@ import argparse
 import typing
 
 from PyQt5.QtWidgets import QApplication, QWidget
-from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QWindow, QKeyEvent
+from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject, QEvent, pyqtSignal, Qt
 try:
     import hunter
@@ -62,7 +62,7 @@ from qutebrowser.browser.network import proxy
 from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.extensions import loader
-from qutebrowser.keyinput import macros, modeman
+from qutebrowser.keyinput import macros, eventfilter
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (ipc, savemanager, sessions, crashsignal,
                               earlyinit, sql, cmdhistory, backendproblem,
@@ -161,9 +161,7 @@ def init(*, args: argparse.Namespace) -> None:
         sys.exit(usertypes.Exit.err_init)
 
     log.init.debug("Initializing eventfilter...")
-    event_filter = EventFilter(q_app)
-    event_filter.install()
-    quitter.instance.shutting_down.connect(event_filter.shutdown)
+    eventfilter.init()
 
     log.init.debug("Connecting signals...")
     q_app.focusChanged.connect(on_focus_changed)  # type: ignore
@@ -554,79 +552,3 @@ class Application(QApplication):
                 print("Now logging late shutdown.", file=sys.stderr)
                 hunter.trace()
         super().exit(status)
-
-
-class EventFilter(QObject):
-
-    """Global Qt event filter.
-
-    Attributes:
-        _activated: Whether the EventFilter is currently active.
-        _handlers; A {QEvent.Type: callable} dict with the handlers for an
-                   event.
-    """
-
-    def __init__(self, parent: QObject = None) -> None:
-        super().__init__(parent)
-        self._activated = True
-        self._handlers = {
-            QEvent.KeyPress: self._handle_key_event,
-            QEvent.KeyRelease: self._handle_key_event,
-            QEvent.ShortcutOverride: self._handle_key_event,
-        }
-
-    def install(self):
-        q_app.installEventFilter(self)
-
-    @pyqtSlot()
-    def shutdown(self):
-        q_app.removeEventFilter(self)
-
-    def _handle_key_event(self, event: QKeyEvent) -> bool:
-        """Handle a key press/release event.
-
-        Args:
-            event: The QEvent which is about to be delivered.
-
-        Return:
-            True if the event should be filtered, False if it's passed through.
-        """
-        if q_app.activeWindow() not in objreg.window_registry.values():
-            # Some other window (print dialog, etc.) is focused so we pass the
-            # event through.
-            return False
-        try:
-            man = modeman.instance('current')
-            return man.handle_event(event)
-        except objreg.RegistryUnavailableError:
-            # No window available yet, or not a MainWindow
-            return False
-
-    def eventFilter(self, obj: QObject, event: QEvent) -> bool:
-        """Handle an event.
-
-        Args:
-            obj: The object which will get the event.
-            event: The QEvent which is about to be delivered.
-
-        Return:
-            True if the event should be filtered, False if it's passed through.
-        """
-        try:
-            if not self._activated:
-                return False
-            if not isinstance(obj, QWindow):
-                # We already handled this same event at some point earlier, so
-                # we're not interested in it anymore.
-                return False
-            try:
-                handler = self._handlers[event.type()]
-            except KeyError:
-                return False
-            else:
-                return handler(event)
-        except:
-            # If there is an exception in here and we leave the eventfilter
-            # activated, we'll get an infinite loop and a stack overflow.
-            self._activated = False
-            raise
