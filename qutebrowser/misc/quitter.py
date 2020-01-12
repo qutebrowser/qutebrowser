@@ -37,7 +37,7 @@ from PyQt5.QtWidgets import QApplication
 import qutebrowser
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config
-from qutebrowser.utils import log, objreg
+from qutebrowser.utils import log
 from qutebrowser.misc import sessions, ipc
 from qutebrowser.mainwindow import prompt
 from qutebrowser.completion.models import miscmodels
@@ -154,22 +154,6 @@ class Quitter(QObject):
 
         return args
 
-    @cmdutils.register(instance='quitter', name='restart')
-    def restart_cmd(self) -> None:
-        """Restart qutebrowser while keeping existing tabs open."""
-        try:
-            ok = self.restart(session='_restart')
-        except sessions.SessionError as e:
-            log.destroy.exception("Failed to save session!")
-            raise cmdutils.CommandError("Failed to save session: {}!"
-                                        .format(e))
-        except SyntaxError as e:
-            log.destroy.exception("Got SyntaxError")
-            raise cmdutils.CommandError("SyntaxError in {}:{}: {}".format(
-                e.filename, e.lineno, e))
-        if ok:
-            self.shutdown(restart=True)
-
     def restart(self, pages: typing.Sequence[str] = (),
                 session: str = None,
                 override_args: typing.Mapping[str, str] = None) -> bool:
@@ -215,31 +199,10 @@ class Quitter(QObject):
         else:
             return True
 
-    @cmdutils.register(instance='quitter', name='quit')
-    @cmdutils.argument('session', completion=miscmodels.session)
-    def quit(self,
-             save: bool = False,
-             session: sessions.ArgType = None) -> None:
-        """Quit qutebrowser.
-
-        Args:
-            save: When given, save the open windows even if auto_save.session
-                  is turned off.
-            session: The name of the session to save.
-        """
-        if session is not None and not save:
-            raise cmdutils.CommandError("Session name given without --save!")
-        if save:
-            if session is None:
-                session = sessions.default
-            self.shutdown(session=session)
-        else:
-            self.shutdown()
-
     def shutdown(self, status: int = 0,
                  session: sessions.ArgType = None,
                  last_window: bool = False,
-                 restart: bool = False) -> None:
+                 is_restart: bool = False) -> None:
         """Quit qutebrowser.
 
         Args:
@@ -247,7 +210,7 @@ class Quitter(QObject):
             session: A session name if saving should be forced.
             last_window: If the shutdown was triggered due to the last window
                             closing.
-            restart: If we're planning to restart.
+            is_restart: If we're planning to restart.
         """
         if self._is_shutting_down:
             return
@@ -273,13 +236,13 @@ class Quitter(QObject):
             log.destroy.debug("Deferring real shutdown because question was "
                               "active.")
             QTimer.singleShot(0, functools.partial(self._shutdown, status,
-                                                   restart=restart))
+                                                   is_restart=is_restart))
         else:
             # If we have no questions to shut down, we are already in the real
             # event loop, so we can shut down immediately.
-            self._shutdown(status, restart=restart)
+            self._shutdown(status, is_restart=is_restart)
 
-    def _shutdown(self, status: int, restart: bool) -> None:  # noqa
+    def _shutdown(self, status: int, is_restart: bool) -> None:
         """Second stage of shutdown."""
         q_app = QApplication.instance()
         log.destroy.debug("Stage 2 of shutting down...")
@@ -292,7 +255,7 @@ class Quitter(QObject):
 
         # Delete temp basedir
         if ((self._args.temp_basedir or self._args.temp_basedir_restarted) and
-                not restart):
+                not is_restart):
             atexit.register(shutil.rmtree, self._args.basedir,
                             ignore_errors=True)
 
@@ -303,9 +266,46 @@ class Quitter(QObject):
         QTimer.singleShot(0, functools.partial(q_app.exit, status))
 
 
+@cmdutils.register(name='quit')
+@cmdutils.argument('session', completion=miscmodels.session)
+def quit_(save: bool = False,
+          session: sessions.ArgType = None) -> None:
+    """Quit qutebrowser.
+
+    Args:
+        save: When given, save the open windows even if auto_save.session
+                is turned off.
+        session: The name of the session to save.
+    """
+    if session is not None and not save:
+        raise cmdutils.CommandError("Session name given without --save!")
+    if save:
+        if session is None:
+            session = sessions.default
+        instance.shutdown(session=session)
+    else:
+        instance.shutdown()
+
+
+@cmdutils.register()
+def restart() -> None:
+    """Restart qutebrowser while keeping existing tabs open."""
+    try:
+        ok = instance.restart(session='_restart')
+    except sessions.SessionError as e:
+        log.destroy.exception("Failed to save session!")
+        raise cmdutils.CommandError("Failed to save session: {}!"
+                                    .format(e))
+    except SyntaxError as e:
+        log.destroy.exception("Got SyntaxError")
+        raise cmdutils.CommandError("SyntaxError in {}:{}: {}".format(
+            e.filename, e.lineno, e))
+    if ok:
+        instance.shutdown(is_restart=True)
+
+
 def init(args: argparse.Namespace) -> None:
     """Initialize the global Quitter instance."""
     global instance
     instance = Quitter(args=args)
-    objreg.register('quitter', instance, command_only=True)
     instance.shutting_down.connect(log.shutdown_log)
