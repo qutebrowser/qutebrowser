@@ -244,11 +244,7 @@ class Quitter(QObject):
 
     def _shutdown(self, status: int, is_restart: bool) -> None:
         """Second stage of shutdown."""
-        q_app = QApplication.instance()
         log.destroy.debug("Stage 2 of shutting down...")
-        if q_app is None:
-            # No QApplication exists yet, so quit hard.
-            sys.exit(status)
 
         # Tell everything to shut itself down
         self.shutting_down.emit()
@@ -263,7 +259,8 @@ class Quitter(QObject):
         log.destroy.debug("Deferring QApplication::exit...")
         # We use a singleshot timer to exit here to minimize the likelihood of
         # segfaults.
-        QTimer.singleShot(0, functools.partial(q_app.exit, status))
+        QTimer.singleShot(0, functools.partial(
+            QApplication.instance().exit, status))
 
 
 @cmdutils.register(name='quit')
@@ -307,5 +304,7 @@ def restart() -> None:
 def init(args: argparse.Namespace) -> None:
     """Initialize the global Quitter instance."""
     global instance
-    instance = Quitter(args=args)
+    qapp = QApplication.instance()
+    instance = Quitter(args=args, parent=qapp)
     instance.shutting_down.connect(log.shutdown_log)
+    qapp.lastWindowClosed.connect(instance.on_last_window_closed)

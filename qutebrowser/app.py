@@ -84,8 +84,6 @@ def run(args):
     if args.temp_basedir:
         args.basedir = tempfile.mkdtemp(prefix='qutebrowser-basedir-')
 
-    quitter.init(args)
-
     log.init.debug("Initializing directories...")
     standarddir.init(args)
     utils.preload_resources()
@@ -93,19 +91,19 @@ def run(args):
     log.init.debug("Initializing config...")
     configinit.early_init(args)
 
+    log.init.debug("Initializing application...")
     global q_app
     q_app = Application(args)
     q_app.setOrganizationName("qutebrowser")
     q_app.setApplicationName("qutebrowser")
     q_app.setDesktopFileName("org.qutebrowser.qutebrowser")
     q_app.setApplicationVersion(qutebrowser.__version__)
-    q_app.lastWindowClosed.connect(  # type: ignore
-        quitter.instance.on_last_window_closed)
 
     if args.version:
         print(version.version())
         sys.exit(usertypes.Exit.ok)
 
+    quitter.init(args)
     crashsignal.init(q_app=q_app, args=args, quitter=quitter.instance)
 
     try:
