@@ -228,7 +228,10 @@ class CrashHandler(QObject):
                                 not issubclass(exctype, Exception))
 
         if 'pdb-postmortem' in objects.debug_flags:
-            pdb.post_mortem(tb)
+            if tb is None:
+                pdb.set_trace()  # noqa: T100
+            else:
+                pdb.post_mortem(tb)
 
         if is_ignored_exception or 'pdb-postmortem' in objects.debug_flags:
             # pdb exit, KeyboardInterrupt, ...
