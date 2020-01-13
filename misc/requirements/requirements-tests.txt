@@ -5,19 +5,19 @@ beautifulsoup4==4.8.2
 cheroot==8.2.1
 Click==7.0
 # colorama==0.4.3
-coverage==5.0.2
+coverage==5.0.3
 EasyProcess==0.2.8
 Flask==1.1.1
 glob2==0.7
 hunter==3.0.5  # rq.filter: != 3.1.0
-hypothesis==5.1.2
+hypothesis==5.1.5
 itsdangerous==1.1.0
 jaraco.functools==3.0.0 ; python_version>="3.6"
 # Jinja2==2.10.3
 Mako==1.1.0
 manhole==1.6.0
 # MarkupSafe==1.1.1
-more-itertools==8.0.2
+more-itertools==8.1.0
 packaging==20.0
 parse==1.14.0
 parse-type==0.5.2
@@ -27,7 +27,7 @@ py-cpuinfo==5.0.0
 pyparsing==2.4.6
 pytest==5.3.2
 pytest-bdd==3.2.1
-pytest-benchmark==3.2.2
+pytest-benchmark==3.2.3
 pytest-cov==2.8.1
 pytest-instafail==0.4.1.post0
 pytest-mock==2.0.0
