@@ -265,7 +265,7 @@ class Quitter(QObject):
         # segfaults.
         QTimer.singleShot(0, functools.partial(self._shutdown_3, status))
 
-    def _shutdown_3(self, status):
+    def _shutdown_3(self, status: int) -> None:
         """Finally shut down the QApplication."""
         log.destroy.debug("Now calling QApplication::exit.")
         if 'debug-exit' in objects.debug_flags:

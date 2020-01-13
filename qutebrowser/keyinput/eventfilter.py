@@ -47,11 +47,11 @@ class EventFilter(QObject):
             QEvent.ShortcutOverride: self._handle_key_event,
         }
 
-    def install(self):
+    def install(self) -> None:
         QApplication.instance().installEventFilter(self)
 
     @pyqtSlot()
-    def shutdown(self):
+    def shutdown(self) -> None:
         QApplication.instance().removeEventFilter(self)
 
     def _handle_key_event(self, event: QKeyEvent) -> bool:
@@ -105,7 +105,8 @@ class EventFilter(QObject):
             raise
 
 
-def init():
+def init() -> None:
+    """Initialize the global EventFilter instance."""
     event_filter = EventFilter(parent=QApplication.instance())
     event_filter.install()
     quitter.instance.shutting_down.connect(event_filter.shutdown)
