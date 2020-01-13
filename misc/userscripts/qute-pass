@@ -61,7 +61,7 @@ argument_parser.add_argument('--password-store', '-p',
                              default=os.getenv('PASSWORD_STORE_DIR', default=os.path.expanduser('~/.password-store')),
                              help='Path to your pass password-store')
 argument_parser.add_argument('--mode', '-M', choices=['pass', 'gopass'], default="pass",
-                             help='Select mode [gopass] to enable gopass-specific features like mounts.')
+                             help='Select mode [gopass] to use gopass instead of the standard pass.')
 argument_parser.add_argument('--username-pattern', '-u', default=r'.*/(.+)',
                              help='Regular expression that matches the username')
 argument_parser.add_argument('--username-target', '-U', choices=['path', 'secret'], default='path',
