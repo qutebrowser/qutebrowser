@@ -59,7 +59,7 @@ argument_parser = argparse.ArgumentParser(description=__doc__, usage=USAGE, epil
 argument_parser.add_argument('url', nargs='?', default=os.getenv('QUTE_URL'))
 argument_parser.add_argument('--password-store', '-p',
                              default=os.getenv('PASSWORD_STORE_DIR', default=os.path.expanduser('~/.password-store')),
-                             help='Path to your pass password-store')
+                             help='Path to your pass password-store (only used in pass-mode)')
 argument_parser.add_argument('--mode', '-M', choices=['pass', 'gopass'], default="pass",
                              help='Select mode [gopass] to use gopass instead of the standard pass.')
 argument_parser.add_argument('--username-pattern', '-u', default=r'.*/(.+)',
