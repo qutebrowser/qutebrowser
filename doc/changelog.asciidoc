@@ -48,6 +48,13 @@ Changed
   replaced by a `mkvenv.py` script. See the updated
   link:install{outfilesuffix}#tox[install instructions] for details.
 
+Fixed
+~~~~~
+
+- When quitting qutebrowser, components are now cleaned up differently. This
+  should fix certain (rare) segmentation faults and exceptions when quitting,
+  especially with the new exit scheme introduced in in PyQt5 5.13.1.
+
 v1.9.0 (2020-01-08)
 -------------------
 
