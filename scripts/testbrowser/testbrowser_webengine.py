@@ -31,7 +31,8 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView
 def parse_args():
     """Parse commandline arguments."""
     parser = argparse.ArgumentParser()
-    parser.add_argument('url', help='The URL to open')
+    parser.add_argument('url', help='The URL to open',
+                        nargs='?', default='https://qutebrowser.org/')
     return parser.parse_known_args()[0]
 
 
