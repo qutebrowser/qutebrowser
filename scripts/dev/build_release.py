@@ -141,9 +141,17 @@ def patch_mac_app():
     with open(plist_path, "wb") as f:
         plistlib.dump(plist_data, f)
 
+    # Copy missing QtQmlModels
+    # WORKAROUND for https://github.com/pyinstaller/pyinstaller/issues/4631
+    app_lib_path = os.path.join(app_path, 'Contents', 'MacOS',
+                                'PyQt5', 'Qt', 'lib')
+    tox_lib_path = os.path.join('.tox', 'pyinstaller', 'lib', 'python3.7',
+                                'site-packages', 'PyQt5', 'Qt', 'lib')
+    shutil.copytree(os.path.join(tox_lib_path, 'QtQmlModels.framework'),
+                    os.path.join(app_lib_path, 'QtQmlModels.framework'))
+
     # Replace some duplicate files by symlinks
-    framework_path = os.path.join(app_path, 'Contents', 'MacOS', 'PyQt5',
-                                  'Qt', 'lib', 'QtWebEngineCore.framework')
+    framework_path = os.path.join(app_lib_path, 'QtWebEngineCore.framework')
 
     core_lib = os.path.join(framework_path, 'Versions', '5', 'QtWebEngineCore')
     os.remove(core_lib)
