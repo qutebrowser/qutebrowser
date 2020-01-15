@@ -225,7 +225,9 @@ class Values:
             return self._get_fallback(fallback)
 
         candidates = []  # type: typing.List[ScopedValue]
-        widened_hosts = _widened_hostnames(url.host())
+        # Urls trailing with '.' are equivalent to non-trailing types.
+        # urlutils strips them, so in order to match we will need to as well.
+        widened_hosts = _widened_hostnames(url.host().rstrip('.'))
         # We must check the 'None' key as well, in case any patterns that
         # did not have a domain match.
         for host in itertools.chain(widened_hosts, [None]):
