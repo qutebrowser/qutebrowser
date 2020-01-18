@@ -105,7 +105,7 @@ def find_pass_candidates(domain, password_store_path):
             continue
 
         # Strip password store path prefix to get the relative pass path
-        pass_path = path[len(password_store_path) + 1:]
+        pass_path = path[len(password_store_path):]
         split_path = pass_path.split(os.path.sep)
         for secret in secrets:
             secret_base = os.path.splitext(secret)[0]
@@ -152,6 +152,8 @@ def main(arguments):
 
     # Expand potential ~ in paths, since this script won't be called from a shell that does it for us
     password_store_path = os.path.expanduser(arguments.password_store)
+    # Add trailing slash if not present
+    password_store_path = os.path.join(password_store_path, '')
 
     # Try to find candidates using targets in the following order: fully-qualified domain name (includes subdomains),
     # the registered domain name, the IPv4 address if that's what the URL represents and finally the private domain
