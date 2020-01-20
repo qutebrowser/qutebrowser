@@ -229,7 +229,13 @@ def test_get_equivalent_patterns(empty_values):
     assert empty_values.get_for_pattern(pat2) == 'pat2 value'
 
 
-def test_get_trailing_url(values):
+def test_get_trailing_dot(values):
+    """A domain with a trailing dot is equivalent to the same without:
+
+    http://www.dns-sd.org/trailingdotsindomainnames.html
+
+    Thus, we expect to get the same setting for both.
+    """
     other_pattern = urlmatch.UrlPattern('https://www.example.org./')
     values.add('example.org value', other_pattern)
     assert values.get_for_url() == 'global value'
