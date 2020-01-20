@@ -128,7 +128,6 @@ def _update_font_defaults(setting: str) -> None:
         if not isinstance(opt.typ, configtypes.Font):
             continue
 
-
         value = config.instance.get_obj(name)
         if value is None or not (value.endswith(' default_family') or
                                  value.startswith('default_size ')):

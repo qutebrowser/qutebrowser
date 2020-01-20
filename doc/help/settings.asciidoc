@@ -192,6 +192,7 @@
 |<<fonts.contextmenu,fonts.contextmenu>>|Font used for the context menu.
 |<<fonts.debug_console,fonts.debug_console>>|Font used for the debugging console.
 |<<fonts.default_family,fonts.default_family>>|Default font families to use.
+|<<fonts.default_size,fonts.default_size>>|Default font size to use.
 |<<fonts.downloads,fonts.downloads>>|Font used for the downloadbar.
 |<<fonts.hints,fonts.hints>>|Font used for the hints.
 |<<fonts.keyhint,fonts.keyhint>>|Font used in the keyhint widget.
@@ -2449,7 +2450,7 @@ Font used in the completion categories.
 
 Type: <<types,Font>>
 
-Default: +pass:[bold 10pt default_family]+
+Default: +pass:[bold default_size default_family]+
 
 [[fonts.completion.entry]]
 === fonts.completion.entry
@@ -2457,7 +2458,7 @@ Font used in the completion widget.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt default_family]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.contextmenu]]
 === fonts.contextmenu
@@ -2474,7 +2475,7 @@ Font used for the debugging console.
 
 Type: <<types,QtFont>>
 
-Default: +pass:[10pt default_family]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.default_family]]
 === fonts.default_family
@@ -2486,13 +2487,23 @@ Type: <<types,List of Font&#44; or Font>>
 
 Default: empty
 
+[[fonts.default_size]]
+=== fonts.default_size
+Default font size to use.
+Whenever "default_size" is used in a font setting, it's replaced with the size listed here.
+Valid values are either a float value with a "pt" suffix, or an integer value with a "px" suffix.
+
+Type: <<types,String>>
+
+Default: +pass:[10pt]+
+
 [[fonts.downloads]]
 === fonts.downloads
 Font used for the downloadbar.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt default_family]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.hints]]
 === fonts.hints
@@ -2500,7 +2511,7 @@ Font used for the hints.
 
 Type: <<types,Font>>
 
-Default: +pass:[bold 10pt default_family]+
+Default: +pass:[bold default_size default_family]+
 
 [[fonts.keyhint]]
 === fonts.keyhint
@@ -2508,7 +2519,7 @@ Font used in the keyhint widget.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt default_family]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.messages.error]]
 === fonts.messages.error
@@ -2516,7 +2527,7 @@ Font used for error messages.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt default_family]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.messages.info]]
 === fonts.messages.info
@@ -2524,7 +2535,7 @@ Font used for info messages.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt default_family]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.messages.warning]]
 === fonts.messages.warning
@@ -2532,7 +2543,7 @@ Font used for warning messages.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt default_family]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.prompts]]
 === fonts.prompts
@@ -2540,7 +2551,7 @@ Font used for prompts.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt sans-serif]+
+Default: +pass:[default_size sans-serif]+
 
 [[fonts.statusbar]]
 === fonts.statusbar
@@ -2548,7 +2559,7 @@ Font used in the statusbar.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt default_family]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.tabs]]
 === fonts.tabs
@@ -2556,7 +2567,7 @@ Font used in the tab bar.
 
 Type: <<types,QtFont>>
 
-Default: +pass:[10pt default_family]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.web.family.cursive]]
 === fonts.web.family.cursive
