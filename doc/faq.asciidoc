@@ -97,7 +97,7 @@ security bugs, please contact me directly at mail@qutebrowser.org, GPG ID
 https://www.the-compiler.org/pubkey.asc[0x916eb0c8fd55a072].
 
 Is there an ad blocker?::
-    There is a simple host-based ad blocker that takes `/etc/hosts`-like lists. 
+    There is a simple host-based ad blocker that takes `/etc/hosts`-like lists.
 +
 More advanced ad blockers can have a big impact on browsing speed and https://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/[RAM usage], so implementing support for AdBlock Plus-like lists is not a priority.
 How can I get No-Script-like behavior?::
@@ -267,8 +267,12 @@ Right now there is no certificate-chooser prompt implemented when there are
 multiple matches. Subscribe to https://github.com/qutebrowser/qutebrowser/issues/4587[Issue#4587]
 for progress notifications.
 +
-Currently QtWebEngine will attempt to use certificates stored in
-`${HOME}/.pki/nssdb` by default. Assuming you have a CA Certificate and a
+QtWebEngine will attempt to use certificates stored in `${HOME}/.pki/nssdb`. If
+you have Chromium installed, you can import the certificate there and
+qutebrowser will pick it up as well. Alternatively, you can use the `certutil`
+commandline tool:
++
+Assuming you have a CA Certificate and a
 Client Certificate that you want for authenticating yourself on a web
 service that validates against this CA Certificate, you need to perform
 the following steps.
