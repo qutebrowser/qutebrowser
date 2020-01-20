@@ -229,6 +229,19 @@ def test_get_equivalent_patterns(empty_values):
     assert empty_values.get_for_pattern(pat2) == 'pat2 value'
 
 
+def test_get_trailing_url(values):
+    other_pattern = urlmatch.UrlPattern('https://www.example.org./')
+    values.add('example.org value', other_pattern)
+    assert values.get_for_url() == 'global value'
+    example_com = QUrl('https://www.example.com/')
+    example_org = QUrl('https://www.example.org./')
+    example_org_2 = QUrl('https://www.example.org/')
+    assert values.get_for_url(example_com) == 'example value'
+    assert (values.get_for_url(example_org) ==
+            values.get_for_url(example_org_2) ==
+            'example.org value')
+
+
 @pytest.mark.parametrize('func', [
     pytest.param(lambda values, pattern:
                  values.add(None, pattern),
