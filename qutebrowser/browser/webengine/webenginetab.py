@@ -1490,6 +1490,21 @@ class WebEngineTab(browsertab.AbstractTab):
         except browsertab.WebTabError as e:
             message.error(str(e))
 
+    @pyqtSlot(QUrl)
+    def _on_url_changed(self, url: QUrl) -> None:
+        """Update settings for the current URL.
+
+        Normally this is done below in _on_navigation_request, but we also need
+        to do it here as WORKAROUND for
+        https://bugreports.qt.io/browse/QTBUG-77137
+
+        Since update_for_url() is idempotent, it doesn't matter much if we end
+        up doing it twice.
+        """
+        super()._on_url_changed(url)
+        if url.isValid() and qtutils.version_check('5.13'):
+            self.settings.update_for_url(url)
+
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(self, navigation):
         super()._on_navigation_request(navigation)
