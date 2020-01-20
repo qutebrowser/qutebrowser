@@ -116,16 +116,22 @@ def _init_envvars() -> None:
         os.environ[env_var] = '1'
 
 
-@config.change_filter('fonts.default_family', function=True)
-def _update_font_default_family() -> None:
-    """Update all fonts if fonts.default_family was set."""
-    configtypes.Font.set_default_family(config.val.fonts.default_family)
+def _update_font_defaults(setting: str) -> None:
+    """Update all fonts if fonts.default_family/_size was set."""
+    if setting not in {'fonts.default_family', 'fonts.default_size'}:
+        return
+
+    configtypes.Font.set_defaults(config.val.fonts.default_family,
+                                  config.val.fonts.default_size)
+
     for name, opt in configdata.DATA.items():
         if not isinstance(opt.typ, configtypes.Font):
             continue
 
+
         value = config.instance.get_obj(name)
-        if value is None or not value.endswith(' default_family'):
+        if value is None or not (value.endswith(' default_family') or
+                                 value.startswith('default_size ')):
             continue
 
         config.instance.changed.emit(name)
@@ -160,8 +166,9 @@ def late_init(save_manager: savemanager.SaveManager) -> None:
 
     _init_errors = None
 
-    configtypes.Font.set_default_family(config.val.fonts.default_family)
-    config.instance.changed.connect(_update_font_default_family)
+    configtypes.Font.set_defaults(config.val.fonts.default_family,
+                                  config.val.fonts.default_size)
+    config.instance.changed.connect(_update_font_defaults)
 
     config.instance.init_save_manager(save_manager)
     configfiles.state.init_save_manager(save_manager)

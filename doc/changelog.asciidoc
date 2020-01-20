@@ -24,6 +24,8 @@ Added
 - New `colors.webpage.force_dark_color_scheme` setting which allows forcing
   `prefer-color-scheme: dark` colors for websites (QtWebEngine with Qt 5.14 or
   newer).
+- New `fonts.default_size` setting which can be used to set a bigger font size
+  for all UI fonts.
 
 Changed
 ~~~~~~~

@@ -2525,13 +2525,27 @@ fonts.default_family:
 
     If set to an empty value, a system-specific monospace default is used.
 
+fonts.default_size:
+  default: 10pt
+  type:
+    name: String
+    regex: '(?P<size>[0-9]+((\.[0-9]+)?[pP][tT]|[pP][xX]))'
+  desc: >-
+    Default font size to use.
+
+    Whenever "default_size" is used in a font setting, it's replaced with the
+    size listed here.
+
+    Valid values are either a float value with a "pt" suffix, or an integer
+    value with a "px" suffix.
+
 fonts.completion.entry:
-  default: 10pt default_family
+  default: default_size default_family
   type: Font
   desc: Font used in the completion widget.
 
 fonts.completion.category:
-  default: bold 10pt default_family
+  default: bold default_size default_family
   type: Font
   desc: Font used in the completion categories.
 
@@ -2546,52 +2560,52 @@ fonts.contextmenu:
     If set to null, the Qt default is used.
 
 fonts.debug_console:
-  default: 10pt default_family
+  default: default_size default_family
   type: QtFont
   desc: Font used for the debugging console.
 
 fonts.downloads:
-  default: 10pt default_family
+  default: default_size default_family
   type: Font
   desc: Font used for the downloadbar.
 
 fonts.hints:
-  default: bold 10pt default_family
+  default: bold default_size default_family
   type: Font
   desc: Font used for the hints.
 
 fonts.keyhint:
-  default: 10pt default_family
+  default: default_size default_family
   type: Font
   desc: Font used in the keyhint widget.
 
 fonts.messages.error:
-  default: 10pt default_family
+  default: default_size default_family
   type: Font
   desc: Font used for error messages.
 
 fonts.messages.info:
-  default: 10pt default_family
+  default: default_size default_family
   type: Font
   desc: Font used for info messages.
 
 fonts.messages.warning:
-  default: 10pt default_family
+  default: default_size default_family
   type: Font
   desc: Font used for warning messages.
 
 fonts.prompts:
-  default: 10pt sans-serif
+  default: default_size sans-serif
   type: Font
   desc: Font used for prompts.
 
 fonts.statusbar:
-  default: 10pt default_family
+  default: default_size default_family
   type: Font
   desc: Font used in the statusbar.
 
 fonts.tabs:
-  default: 10pt default_family
+  default: default_size default_family
   type: QtFont
   desc: Font used in the tab bar.
 

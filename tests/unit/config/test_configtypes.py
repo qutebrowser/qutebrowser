@@ -478,6 +478,8 @@ class TestString:
         ({'valid_values': configtypes.ValidValues('abcd')}, 'abcd'),
         # Surrogate escapes are allowed in strings
         ({}, '\U00010000'),
+        # Regex
+        ({'regex': '[aA]'}, 'a'),
     ])
     def test_to_py_valid(self, klass, kwargs, val):
         assert klass(**kwargs).to_py(val) == val
@@ -495,6 +497,8 @@ class TestString:
         ({'valid_values': configtypes.ValidValues('blah')}, 'abcd'),
         # Encoding
         ({'encoding': 'ascii'}, 'fooäbar'),
+        # Regex
+        ({'regex': '[aA]'}, 'abc'),
     ])
     def test_to_py_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
@@ -1470,15 +1474,15 @@ class TestFont:
         with pytest.raises(configexc.ValidationError):
             klass().to_py(val)
 
-    def test_default_family_replacement(self, klass, monkeypatch):
-        configtypes.Font.set_default_family(['Terminus'])
+    def test_defaults_replacement(self, klass, monkeypatch):
+        configtypes.Font.set_defaults(['Terminus'], '23pt')
         if klass is configtypes.Font:
-            expected = '10pt Terminus'
+            expected = '23pt Terminus'
         elif klass is configtypes.QtFont:
-            desc = FontDesc(QFont.StyleNormal, QFont.Normal, 10, None,
+            desc = FontDesc(QFont.StyleNormal, QFont.Normal, 23, None,
                             'Terminus')
             expected = Font.fromdesc(desc)
-        assert klass().to_py('10pt default_family') == expected
+        assert klass().to_py('23pt default_family') == expected
 
 
 class TestFontFamily:
