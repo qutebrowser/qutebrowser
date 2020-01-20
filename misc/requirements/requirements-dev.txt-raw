@@ -5,5 +5,3 @@ github3.py
 bump2version
 requests
 lxml
-
-#@ filter: hunter != 3.1.0

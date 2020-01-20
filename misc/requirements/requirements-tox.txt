@@ -5,7 +5,7 @@ packaging==20.0
 pluggy==0.13.1
 py==1.8.1
 pyparsing==2.4.6
-six==1.13.0
+six==1.14.0
 toml==0.10.0
 tox==3.14.3
 tox-pip-version==0.0.6
