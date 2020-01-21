@@ -46,6 +46,8 @@ Changed
     monospaced font is used.
 - If `monospace` is now used in a font value, it's used literally and not
   replaced anymore. Instead, `default_family` is replaced as explained above.
+- The `qute-pass` userscript now has a new `--mode gopass` switch which uses
+  gopass rather than pass.
 - The `tox -e mkvenv` (or `mkvenv-pypi`) way of installing qutebrowser is now
   replaced by a `mkvenv.py` script. See the updated
   link:install{outfilesuffix}#tox[install instructions] for details.
