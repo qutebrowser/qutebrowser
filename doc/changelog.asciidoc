@@ -58,6 +58,8 @@ Fixed
   especially with the new exit scheme introduced in in PyQt5 5.13.1.
 - Added a workaround for per-domain settings (e.g. a JavaScript whitelist) not
   being applied in some scenarios with Qt 5.13 and above.
+- The `qute-pass` userscript now works correctly when a `PASSWORD_STORE_DIR`
+  ending with a trailing slash is given.
 
 v1.9.0 (2020-01-08)
 -------------------
