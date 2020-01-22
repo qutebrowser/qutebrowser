@@ -50,7 +50,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--pyqt-version',
                         choices=pyqt_versions(),
                         default='auto',
-                        help="PyQt version to install")
+                        help="PyQt version to install.")
     parser.add_argument('--pyqt-type',
                         choices=['binary', 'source', 'link'],
                         default='binary',
@@ -78,7 +78,7 @@ def pyqt_versions() -> typing.List[str]:
 
 
 def run_venv(venv_dir: pathlib.Path, executable, *args: str) -> None:
-    """Runt he given command inside the virtualenv."""
+    """Run the given command inside the virtualenv."""
     subdir = 'Scripts' if os.name == 'nt' else 'bin'
 
     try:
