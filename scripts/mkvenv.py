@@ -108,8 +108,9 @@ def show_tox_error(pyqt_type: str) -> None:
         raise AssertionError
 
     print()
-    utils.print_col('tox -e {} is deprecated. Please use scripts/mkvenv.py{} '
-                    'instead.'.format(env, args), 'red')
+    utils.print_col('tox -e {} is deprecated. '
+                    'Please use "python3 scripts/mkvenv.py{}" instead.'
+                    .format(env, args), 'red')
     print()
 
 
@@ -192,6 +193,10 @@ def main() -> None:
 
     if args.tox_error:
         show_tox_error(args.pyqt_type)
+        sys.exit(1)
+    elif args.pyqt_type == 'link' and args.pyqt_version != 'auto':
+        utils.print_col('The --pyqt-version option is not available when '
+                        'linking a system-wide install.', 'red')
         sys.exit(1)
 
     if not args.keep:
