@@ -55,6 +55,9 @@ def parse_args() -> argparse.Namespace:
                         choices=['binary', 'source', 'link'],
                         default='binary',
                         help="How to install PyQt/Qt.")
+    parser.add_argument('--virtualenv',
+                        action='store_true',
+                        help="Use virtualenv instead of venv.")
     parser.add_argument('--tox-error',
                         action='store_true',
                         help=argparse.SUPPRESS)
@@ -119,8 +122,14 @@ def delete_old_venv(venv_dir: pathlib.Path) -> None:
     if not venv_dir.exists():
         return
 
-    markers = ['.tox-config1', 'pyvenv.cfg']
-    if not any((venv_dir / m).exists() for m in markers):
+    markers = [
+        venv_dir / '.tox-config1',  # tox
+        venv_dir / 'pyvenv.cfg',  # venv
+        venv_dir / 'Scripts',  # Windows
+        venv_dir / 'bin',  # Linux
+    ]
+
+    if not any(m.exists() for m in markers):
         utils.print_col('{} does not look like a virtualenv, '
                         'cowardly refusing to remove it.'.format(venv_dir),
                         'red')
@@ -130,10 +139,19 @@ def delete_old_venv(venv_dir: pathlib.Path) -> None:
     shutil.rmtree(str(venv_dir))
 
 
-def create_venv(venv_dir: pathlib.Path) -> None:
+def create_venv(venv_dir: pathlib.Path, use_virtualenv: bool = False) -> None:
     """Create a new virtualenv."""
-    utils.print_col('$ python3 -m venv {}'.format(venv_dir), 'blue')
-    venv.create(str(venv_dir), with_pip=True)
+    if use_virtualenv:
+        utils.print_col('$ python3 -m virtualenv {}'.format(venv_dir), 'blue')
+        try:
+            subprocess.run([sys.executable, '-m', 'virtualenv', venv_dir],
+                           check=True)
+        except subprocess.CalledProcessError as e:
+            utils.print_col("virtualenv failed, exiting", 'red')
+            sys.exit(e.returncode)
+    else:
+        utils.print_col('$ python3 -m venv {}'.format(venv_dir), 'blue')
+        venv.create(str(venv_dir), with_pip=True)
 
 
 def upgrade_pip(venv_dir: pathlib.Path) -> None:
@@ -202,7 +220,7 @@ def main() -> None:
     if not args.keep:
         utils.print_title("Creating virtual environment")
         delete_old_venv(venv_dir)
-        create_venv(venv_dir)
+        create_venv(venv_dir, use_virtualenv=args.virtualenv)
 
     upgrade_pip(venv_dir)
 
