@@ -380,7 +380,9 @@ Then run the install script:
 $ python3 scripts/mkvenv.py
 ----
 
-This installs all needed Python dependencies in a `.venv` subfolder.
+This installs all needed Python dependencies in a `.venv` subfolder
+(which subdirectory the environment is created in is configurable via the
+`--venv-dir` flag).
 
 This comes with an up-to-date Qt/PyQt including a pre-compiled QtWebEngine
 binary, but has a few caveats:
@@ -393,14 +395,15 @@ binary, but has a few caveats:
 - It comes with a QtWebEngine compiled without proprietary codec support (such
   as h.264).
 
-See the next section for an alternative.
+You can specify a Qt/PyQt verion with the `--pyqt-version` flag, see
+`mkenv.py --help` for a list of available versions. See the next section for
+an alternative.
 
 Installing dependencies (system-wide Qt)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Alternatively, you can use `mkvenv.py --pyqt-type link` to symlink your local
-PyQt/Qt install instead of installing PyQt in the virtualenv. You can use
-`--pyqt-version <version>` to link against a specific version. However, unless
+PyQt/Qt install instead of installing PyQt in the virtualenv. However, unless
 you have a new QtWebKit or QtWebEngine available, qutebrowser will not work. It
 also typically means you'll be using an older release of QtWebEngine.
 
