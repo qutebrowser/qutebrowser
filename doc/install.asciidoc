@@ -398,15 +398,16 @@ See the next section for an alternative.
 Installing dependencies (system-wide Qt)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Alternatively, you can use `mkvenv.py --pyqt-mode link` to symlink your local
-PyQt/Qt install instead of installing PyQt in the virtualenv. However, unless
+Alternatively, you can use `mkvenv.py --pyqt-type link` to symlink your local
+PyQt/Qt install instead of installing PyQt in the virtualenv. You can use
+`--pyqt-version <version>` to link against a specific version. However, unless
 you have a new QtWebKit or QtWebEngine available, qutebrowser will not work. It
 also typically means you'll be using an older release of QtWebEngine.
 
 On Windows, run `set PYTHON=C:\path\to\python.exe` (CMD) or ``$Env:PYTHON =
 "..."` (Powershell) first.
 
-There is a third mode, `mkvenv.py --pyqt-mode source` which uses a system-wide
+There is a third mode, `mkvenv.py --pyqt-type source` which uses a system-wide
 Qt but builds PyQt from source. In most scenarios, this shouldn't be needed.
 
 Creating a wrapper script
