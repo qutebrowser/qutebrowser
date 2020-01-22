@@ -395,9 +395,12 @@ binary, but has a few caveats:
 - It comes with a QtWebEngine compiled without proprietary codec support (such
   as h.264).
 
-You can specify a Qt/PyQt verion with the `--pyqt-version` flag, see
-`mkenv.py --help` for a list of available versions. See the next section for
-an alternative.
+See the next section for an alternative install method which might help with
+those issues but result in an older Qt version.
+
+You can specify a Qt/PyQt version with the `--pyqt-version` flag, see
+`mkenv.py --help` for a list of available versions. By default, the latest
+version which plays well with qutebrowser is used.
 
 Installing dependencies (system-wide Qt)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
