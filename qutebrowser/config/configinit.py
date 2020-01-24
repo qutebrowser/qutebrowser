@@ -272,7 +272,7 @@ def _qtwebengine_args(namespace: argparse.Namespace) -> typing.Iterator[str]:
         }
 
     if qtutils.version_check('5.14'):
-        settings['colors.webpage.force_dark_color_scheme'] = {
+        settings['colors.webpage.prefers_color_scheme_dark'] = {
             True: '--force-dark-mode',
             False: None,
         }

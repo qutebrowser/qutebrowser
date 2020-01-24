@@ -2500,9 +2500,12 @@ colors.webpage.bg:
     color)."
 
 colors.webpage.force_dark_color_scheme:
+  renamed: colors.webpage.prefers_color_scheme_dark
+
+colors.webpage.prefers_color_scheme_dark:
   default: false
   type: Bool
-  desc: "Force `prefer-color-scheme: dark` colors for websites."
+  desc: "Force `prefers-color-scheme: dark` colors for websites."
   backend:
     QtWebEngine: Qt 5.14
     QtWebKit: false
