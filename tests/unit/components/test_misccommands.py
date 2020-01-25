@@ -35,7 +35,8 @@ def _trapped_segv(handler):
     """Temporarily install given signal handler for SIGSEGV."""
     old_handler = signal.signal(signal.SIGSEGV, handler)
     yield
-    signal.signal(signal.SIGSEGV, old_handler)
+    if old_handler is not None:
+        signal.signal(signal.SIGSEGV, old_handler)
 
 
 def test_debug_crash_exception():
