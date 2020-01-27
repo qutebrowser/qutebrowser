@@ -32,7 +32,7 @@ import venv
 import subprocess
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
-from scripts import utils, link_pyqt
+from scripts import utils, link_pyqt, asciidoc2html
 
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent
@@ -58,6 +58,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--virtualenv',
                         action='store_true',
                         help="Use virtualenv instead of venv.")
+    parser.add_argument('--asciidoc', help="Full path to python and "
+                        "asciidoc.py. If not given, it's searched in PATH.",
+                        nargs=2, required=False,
+                        metavar=('PYTHON', 'ASCIIDOC'))
     parser.add_argument('--tox-error',
                         action='store_true',
                         help=argparse.SUPPRESS)
@@ -203,6 +207,12 @@ def install_qutebrowser(venv_dir: pathlib.Path) -> None:
     pip_install(venv_dir, '-e', str(REPO_ROOT))
 
 
+def regenerate_docs(venv_dir: pathlib.Path, asciidoc: typing.Tuple[str, str]):
+    """Regenerate docs using asciidoc."""
+    utils.print_title("Generating documentation")
+    asciidoc2html.run(website=False, asciidoc=asciidoc)
+
+
 def main() -> None:
     """Install qutebrowser in a virtualenv.."""
     args = parse_args()
@@ -235,6 +245,7 @@ def main() -> None:
 
     install_requirements(venv_dir)
     install_qutebrowser(venv_dir)
+    regenerate_docs(venv_dir, args.asciidoc)
 
 
 if __name__ == '__main__':
