@@ -207,10 +207,19 @@ def install_qutebrowser(venv_dir: pathlib.Path) -> None:
     pip_install(venv_dir, '-e', str(REPO_ROOT))
 
 
-def regenerate_docs(venv_dir: pathlib.Path, asciidoc: typing.Tuple[str, str]):
+def regenerate_docs(venv_dir: pathlib.Path,
+                    asciidoc: typing.Optional[typing.Tuple[str, str]]):
     """Regenerate docs using asciidoc."""
     utils.print_title("Generating documentation")
-    asciidoc2html.run(website=False, asciidoc=asciidoc)
+    if asciidoc is not None:
+        a2h_args = ['--asciidoc'] + asciidoc
+    else:
+        a2h_args = []
+    script_path = pathlib.Path(__file__).parent / 'asciidoc2html.py'
+
+    utils.print_col('venv$ python3 scripts/asciidoc2html.py {}'
+                    .format(' '.join(a2h_args)), 'blue')
+    run_venv(venv_dir, 'python3', str(script_path), *a2h_args)
 
 
 def main() -> None:
