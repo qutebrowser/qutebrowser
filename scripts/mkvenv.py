@@ -32,7 +32,7 @@ import venv
 import subprocess
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
-from scripts import utils, link_pyqt, asciidoc2html
+from scripts import utils, link_pyqt
 
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent
