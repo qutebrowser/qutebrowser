@@ -6,4 +6,4 @@ codecov==2.0.15
 coverage==5.0.3
 idna==2.8
 requests==2.22.0
-urllib3==1.25.7
+urllib3==1.25.8
