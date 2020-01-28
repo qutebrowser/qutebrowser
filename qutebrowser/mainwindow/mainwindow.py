@@ -157,6 +157,7 @@ class MainWindow(QWidget):
             color: {{ conf.colors.hints.fg }};
             font: {{ conf.fonts.hints }};
             border: {{ conf.hints.border }};
+            border-radius: {{ conf.hints.radius }};
             padding-left: 3px;
             padding-right: 3px;
         }

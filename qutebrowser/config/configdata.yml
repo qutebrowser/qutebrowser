@@ -1091,6 +1091,11 @@ hints.border:
   type: String
   desc: CSS border value for hints.
 
+hints.radius:
+  default: '0px'
+  type: String
+  desc: CSS border radius value for hints.
+
 hints.chars:
   default: asdfghjkl
   type:
