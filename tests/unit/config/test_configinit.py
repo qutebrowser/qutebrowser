@@ -422,9 +422,9 @@ class TestLateInit:
 
         See https://github.com/qutebrowser/qutebrowser/issues/5214
         """
-        config.instance.set_obj('fonts.default_family', 'Comic Sans MS')
+        config.instance.set_obj('fonts.default_family', 'SomeFamily')
         config.instance.set_obj('fonts.default_size', '23pt')
-        assert config.instance.get('fonts.hints') == 'bold 23pt "Comic Sans MS"'
+        assert config.instance.get('fonts.hints') == 'bold 23pt SomeFamily'
 
     def test_default_size_hints_changed(self, run_configinit):
         config.instance.set_obj('fonts.hints', 'bold default_size SomeFamily')
