@@ -417,6 +417,25 @@ class TestLateInit:
         config.instance.set_str('fonts.default_family', 'Terminus')
         config.instance.set_str('fonts.default_size', '10pt')
 
+    def test_default_size_hints(self, run_configinit):
+        """Make sure default_size applies to the hints font.
+
+        See https://github.com/qutebrowser/qutebrowser/issues/5214
+        """
+        config.instance.set_obj('fonts.default_family', 'Comic Sans MS')
+        config.instance.set_obj('fonts.default_size', '23pt')
+        assert config.instance.get('fonts.hints') == 'bold 23pt "Comic Sans MS"'
+
+    def test_default_size_hints_changed(self, run_configinit):
+        config.instance.set_obj('fonts.hints', 'bold default_size SomeFamily')
+
+        changed_options = []
+        config.instance.changed.connect(changed_options.append)
+        config.instance.set_obj('fonts.default_size', '23pt')
+
+        assert config.instance.get('fonts.hints') == 'bold 23pt SomeFamily'
+        assert 'fonts.hints' in changed_options
+
 
 class TestQtArgs:
 

@@ -1245,8 +1245,7 @@ class Font(BaseType):
                 self.default_family is not None):
             value = value.replace('default_family', self.default_family)
 
-        if (value.startswith('default_size ') and
-                self.default_size is not None):
+        if 'default_size ' in value and self.default_size is not None:
             value = value.replace('default_size', self.default_size)
 
         return value

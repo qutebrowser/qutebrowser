@@ -130,7 +130,7 @@ def _update_font_defaults(setting: str) -> None:
 
         value = config.instance.get_obj(name)
         if value is None or not (value.endswith(' default_family') or
-                                 value.startswith('default_size ')):
+                                 'default_size ' in value):
             continue
 
         config.instance.changed.emit(name)
