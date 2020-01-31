@@ -1111,9 +1111,9 @@ class _WebEngineScripts(QObject):
         script.setWorldId(QWebEngineScript.ApplicationWorld)
         script.setInjectionPoint(QWebEngineScript.DocumentReady)
         script.setSourceCode(textwrap.dedent(r"""
-            //==UserScript==
+            // ==UserScript==
             // @include https://web.whatsapp.com/
-            //==/UserScript==
+            // ==/UserScript==
             if (document.body.innerText.replace(/\n/g, ' ').search(
                      /whatsapp works with.*to use whatsapp.*update/i) !== -1) {
                 navigator.serviceWorker.getRegistration().then(function (r) {
