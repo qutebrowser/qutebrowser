@@ -24,6 +24,7 @@ import functools
 import re
 import html as html_utils
 import typing
+import textwrap
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
                           QTimer, QObject)
@@ -985,6 +986,7 @@ class _WebEngineScripts(QObject):
             self._greasemonkey.scripts_reloaded.connect(
                 self._inject_all_greasemonkey_scripts)
             self._inject_all_greasemonkey_scripts()
+            self._inject_site_specific_quirks()
 
     def _init_stylesheet(self):
         """Initialize custom stylesheets.
@@ -1091,6 +1093,36 @@ class _WebEngineScripts(QObject):
             log.greasemonkey.debug('adding script: {}'
                                    .format(new_script.name()))
             page_scripts.insert(new_script)
+
+    def _inject_site_specific_quirks(self):
+        """Add site-specific quirk scripts.
+
+        NOTE: This isn't implemented for Qt 5.7 because of different UserScript
+        semantics there. We only have a quirk for WhatsApp Web right now. It
+        looks like that quirk isn't needed for Qt < 5.13.
+        """
+        if not config.val.content.site_specific_quirks:
+            return
+
+        # WhatsApp Web, based on:
+        # https://github.com/jiahaog/nativefier/issues/719#issuecomment-443809630
+        script = QWebEngineScript()
+        script.setName('quirk-whatsapp')
+        script.setWorldId(QWebEngineScript.ApplicationWorld)
+        script.setInjectionPoint(QWebEngineScript.DocumentReady)
+        script.setSourceCode(textwrap.dedent(r"""
+            //==UserScript==
+            // @include https://web.whatsapp.com/
+            //==/UserScript==
+            if (document.body.innerText.replace(/\n/g, ' ').search(
+                     /whatsapp works with.*to use whatsapp.*update/i) !== -1) {
+                navigator.serviceWorker.getRegistration().then(function (r) {
+                    r.unregister();
+                    document.location.reload();
+                });
+            }
+        """))
+        self._widget.page().scripts().insert(script)
 
 
 class WebEngineTabPrivate(browsertab.AbstractTabPrivate):
