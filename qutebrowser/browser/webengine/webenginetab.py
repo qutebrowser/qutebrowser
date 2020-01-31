@@ -1239,7 +1239,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def reload(self, *, force=False):
         if not self.history.loaded:
-            self.load()
+            self.history.load()
             return
 
         if force:
