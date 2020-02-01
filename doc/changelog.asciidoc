@@ -51,6 +51,11 @@ Changed
 - The `tox -e mkvenv` (or `mkvenv-pypi`) way of installing qutebrowser is now
   replaced by a `mkvenv.py` script. See the updated
   link:install{outfilesuffix}#tox[install instructions] for details.
+- macOS and Windows releases now ship with Qt/QtWebEngine 5.14.1
+  * Based on Chromium 77.0.3865.129 with security fixes up to Chromium 79.0.3945.117.
+  * Sandboxing is now enabled on Windows.
+  * Monospace fonts are now used when a website requests them on macOS 10.15.
+  * Web notifications are now supported.
 
 Fixed
 ~~~~~

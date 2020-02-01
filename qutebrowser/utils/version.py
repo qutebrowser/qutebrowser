@@ -364,7 +364,7 @@ def _chromium_version() -> str:
 
     Qt 5.14: Chromium 77
              77.0.3865.129 (~2019-10-10)
-             5.14.0: Security fixes up to 78.0.3904.108 (2019-11-18)
+             5.14.1: Security fixes up to 79.0.3945.117 (2020-01-07)
 
     Also see https://www.chromium.org/developers/calendar
     and https://chromereleases.googleblog.com/
