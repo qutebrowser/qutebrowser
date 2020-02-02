@@ -46,6 +46,9 @@ Changed
     monospaced font is used.
 - If `monospace` is now used in a font value, it's used literally and not
   replaced anymore. Instead, `default_family` is replaced as explained above.
+- The default `content.headers.accept_language` value now adds a `;q=0.9`
+  classifier which should make the value sent more in-line with what other
+  browsers do.
 - The `qute-pass` userscript now has a new `--mode gopass` switch which uses
   gopass rather than pass.
 - The `tox -e mkvenv` (or `mkvenv-pypi`) way of installing qutebrowser is now

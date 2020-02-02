@@ -437,7 +437,7 @@ content.headers.accept_language:
     name: String
     none_ok: true
   supports_pattern: true
-  default: en-US,en
+  default: en-US,en;q=0.9
   desc: >-
     Value to send in the `Accept-Language` header.
 

@@ -1834,7 +1834,7 @@ This setting supports URL patterns.
 
 Type: <<types,String>>
 
-Default: +pass:[en-US,en]+
+Default: +pass:[en-US,en;q=0.9]+
 
 [[content.headers.custom]]
 === content.headers.custom
