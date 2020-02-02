@@ -416,8 +416,8 @@ def github_upload(artifacts, tag):
         raise Exception("No release found for {!r}!".format(tag))
 
     for filename, mimetype, description in artifacts:
-        print("Uploading {}".format(filename))
         while True:
+            print("Uploading {}".format(filename))
             try:
                 with open(filename, 'rb') as f:
                     basename = os.path.basename(filename)
