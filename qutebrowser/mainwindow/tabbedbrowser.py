@@ -525,7 +525,12 @@ class TabbedBrowser(QWidget):
                 # FIXME:typing mypy thinks this is None due to @pyqtSlot
                 newtab = typing.cast(
                     browsertab.AbstractTab,
-                    self.tabopen(background=False, idx=entry.index))
+                    self.tabopen(
+                        background=False,
+                        related=False,
+                        idx=entry.index
+                    )
+                )
 
             newtab.history.private_api.deserialize(entry.history)
             self.widget.set_tab_pinned(newtab, entry.pinned)
