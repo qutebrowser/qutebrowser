@@ -24,7 +24,7 @@ import typing
 
 import attr
 from PyQt5.QtWidgets import QSizePolicy
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, QUrl
 
 from qutebrowser.config import config
 from qutebrowser.mainwindow.tabbedbrowser import TabbedBrowser
@@ -199,8 +199,13 @@ class TreeTabbedBrowser(TabbedBrowser):
     @pyqtSlot('QUrl')
     @pyqtSlot('QUrl', bool)
     @pyqtSlot('QUrl', bool, bool)
-    def tabopen(self, url=None, background=None, related=True, sibling=False,
-                idx=None, *, ignore_tabs_are_windows=False):
+    def tabopen(
+            self, url: QUrl = None,
+            background: bool = None,
+            related: bool = True,
+            sibling: bool = False,
+            idx: int = None,
+    ) -> browsertab.AbstractTab:
         """Open a new tab with a given url.
 
         Args:
@@ -213,8 +218,7 @@ class TreeTabbedBrowser(TabbedBrowser):
         # pylint: disable=arguments-differ
         # we save this now because super.tabopen also resets the focus
         cur_tab = self.widget.currentWidget()
-        tab = super().tabopen(url, background, related, idx,
-                              ignore_tabs_are_windows=ignore_tabs_are_windows)
+        tab = super().tabopen(url, background, related, idx)
 
         tab.node.parent = self.widget.tree_root
         if cur_tab is None or tab is cur_tab:
