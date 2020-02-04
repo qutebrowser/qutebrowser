@@ -85,7 +85,9 @@ class TreeTabbedBrowser(TabbedBrowser):
             self._on_current_changed)
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self._tree_tab_insert_rel_idx = 0
+        self._tree_tab_child_rel_idx = 0
+        self._tree_tab_sibling_rel_idx = 0
+        self._tree_tab_toplevel_rel_idx = 0
 
     def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
         """Handle children positioning after a tab is removed."""
@@ -247,9 +249,9 @@ class TreeTabbedBrowser(TabbedBrowser):
 
         if pos == 'first':
             rel_idx = 0
-            if config.val.tabs.new_position.stacking:
-                rel_idx += self._tree_tab_insert_rel_idx
-                self._tree_tab_insert_rel_idx += 1
+            if config.val.tabs.new_position.stacking and related:
+                rel_idx += self._tree_tab_child_rel_idx
+                self._tree_tab_child_rel_idx += 1
             siblings.insert(rel_idx, tab.node)
         elif pos in ['prev', 'next'] and (sibling or toplevel):
             # pivot is the tab relative to which 'prev' or 'next' apply
@@ -262,8 +264,12 @@ class TreeTabbedBrowser(TabbedBrowser):
             rel_idx = 0 if pos == 'prev' else 1
             tgt_idx = siblings.index(pivot) + rel_idx
             if config.val.tabs.new_position.stacking:
-                tgt_idx += self._tree_tab_insert_rel_idx
-                self._tree_tab_insert_rel_idx += direction
+                if sibling:
+                    tgt_idx += self._tree_tab_sibling_rel_idx
+                    self._tree_tab_sibling_rel_idx += direction
+                elif toplevel:
+                    tgt_idx += self._tree_tab_toplevel_rel_idx
+                    self._tree_tab_toplevel_rel_idx += direction
             siblings.insert(tgt_idx, tab.node)
         else:  # position == 'last'
             siblings.append(tab.node)
@@ -274,7 +280,9 @@ class TreeTabbedBrowser(TabbedBrowser):
     @pyqtSlot(int)
     def _on_current_changed(self, idx):
         super()._on_current_changed(idx)
-        self._tree_tab_insert_rel_idx = 0
+        self._tree_tab_child_rel_idx = 0
+        self._tree_tab_sibling_rel_idx = 0
+        self._tree_tab_toplevel_rel_idx = 0
 
     def cycle_hide_tab(self, node):
         """Utility function for tree_tab_cycle_hide command."""
