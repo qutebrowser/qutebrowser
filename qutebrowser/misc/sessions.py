@@ -474,7 +474,7 @@ class SessionManager(QObject):
                                     window=window.win_id)
         tab_to_focus = None
 
-        # plain_tbas is used in case the saved session contains a tree and
+        # plain_tabs is used in case the saved session contains a tree and
         # tree-tabs is not enabled, or if the saved session contains normal
         # tabs
         plain_tabs = win.get('tabs', None)

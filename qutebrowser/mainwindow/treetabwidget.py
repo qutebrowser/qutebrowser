@@ -65,7 +65,7 @@ class TreeTabWidget(TabWidget):
         return fields
 
     def update_tree_tab_positions(self):
-        """Update tab positions acording tree structure."""
+        """Update tab positions according to the tree structure."""
         nodes = self.tree_root.traverse(render_collapsed=False)
         for idx, node in enumerate(nodes):
             if idx > 0:
