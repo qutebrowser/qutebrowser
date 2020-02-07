@@ -215,6 +215,7 @@
 |<<hints.auto_follow,hints.auto_follow>>|When a hint can be automatically followed without pressing Enter.
 |<<hints.auto_follow_timeout,hints.auto_follow_timeout>>|Duration (in milliseconds) to ignore normal-mode key bindings after a successful auto-follow.
 |<<hints.border,hints.border>>|CSS border value for hints.
+|<<hints.padding,hints.padding>>|CSS padding value for hints.
 |<<hints.radius,hints.radius>>|Rounding radius (in pixels) for the edges of hints.
 |<<hints.chars,hints.chars>>|Characters used for hint strings.
 |<<hints.dictionary,hints.dictionary>>|Dictionary file to be used by the word hints.
@@ -2680,6 +2681,14 @@ CSS border value for hints.
 Type: <<types,String>>
 
 Default: +pass:[1px solid #E3BE23]+
+
+[[hints.padding]]
+=== hints.padding
+CSS padding value for hints.
+
+Type: <<types,String>>
+
+Default: +pass:[0 3px]+
 
 [[hints.radius]]
 === hints.radius

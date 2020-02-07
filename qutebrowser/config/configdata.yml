@@ -1091,6 +1091,11 @@ hints.border:
   type: String
   desc: CSS border value for hints.
 
+hints.padding:
+  default: '0 3px'
+  type: String
+  desc: CSS padding value for hints.
+
 hints.radius:
   default: 0
   type: Int
