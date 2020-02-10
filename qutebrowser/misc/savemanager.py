@@ -28,6 +28,7 @@ from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 from qutebrowser.config import config
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import utils, log, message, usertypes, error
+from qutebrowser.misc import objects
 
 
 class Saveable:
@@ -212,5 +213,5 @@ class SaveManager(QObject):
                 self.save(key, is_exit=True)
             except OSError as e:
                 error.handle_fatal_exc(
-                    e, self._args, "Error while saving!",
+                    e, objects.args, "Error while saving!",
                     pre_text="Error while saving {}".format(key))
