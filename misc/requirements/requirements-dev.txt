@@ -2,7 +2,7 @@
 
 bump2version==1.0.0
 certifi==2019.11.28
-cffi==1.13.2
+cffi==1.14.0
 chardet==3.0.4
 colorama==0.4.3
 cryptography==2.8
