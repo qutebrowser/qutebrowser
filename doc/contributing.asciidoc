@@ -714,4 +714,7 @@ qutebrowser release
 * Run `./.venv/bin/python3 scripts/dev/update_version.py {major,minor,patch}`.
 * Run the printed instructions accordingly.
 * Update `qutebrowser-git` PKGBUILD if dependencies/install changed.
+* Add unreleased future versions to changelog
+* Update IRC topic
 * Announce to qutebrowser and qutebrowser-announce mailinglist.
+* Post announcement mail to subreddit
