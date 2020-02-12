@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -28,6 +28,7 @@ from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 from qutebrowser.config import config
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import utils, log, message, usertypes, error
+from qutebrowser.misc import objects
 
 
 class Saveable:
@@ -212,5 +213,6 @@ class SaveManager(QObject):
                 self.save(key, is_exit=True)
             except OSError as e:
                 error.handle_fatal_exc(
-                    e, self._args, "Error while saving!",
-                    pre_text="Error while saving {}".format(key))
+                    e, "Error while saving!",
+                    pre_text="Error while saving {}".format(key),
+                    no_err_windows=objects.args.no_err_windows)

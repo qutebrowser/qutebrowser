@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -434,6 +434,10 @@ class CommandDispatcher:
                    in which case the closest match will be taken.
             keep: If given, keep the old tab around.
         """
+        if config.val.tabs.tabs_are_windows:
+            raise cmdutils.CommandError("Can't take tabs when using "
+                                        "windows as tabs")
+
         tabbed_browser, tab = self._resolve_buffer_index(index)
 
         if tabbed_browser is self._tabbed_browser:
@@ -458,6 +462,10 @@ class CommandDispatcher:
             keep: If given, keep the old tab around.
             count: Overrides win_id (index starts at 1 for win_id=0).
         """
+        if config.val.tabs.tabs_are_windows:
+            raise cmdutils.CommandError("Can't give tabs when using "
+                                        "windows as tabs")
+
         if count is not None:
             win_id = count - 1
 
@@ -994,8 +1002,9 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)
     @cmdutils.argument('count', value=cmdutils.Value.count)
+    @cmdutils.argument('output_messages', flag='m')
     def spawn(self, cmdline, userscript=False, verbose=False,
-              output=False, detach=False, count=None):
+              output=False, output_messages=False, detach=False, count=None):
         """Spawn a command in a shell.
 
         Args:
@@ -1006,7 +1015,8 @@ class CommandDispatcher:
                               (or `$XDG_DATA_HOME`)
                             - `/usr/share/qutebrowser/userscripts`
             verbose: Show notifications when the command started/exited.
-            output: Whether the output should be shown in a new tab.
+            output: Show the output in a new tab.
+            output_messages: Show the output as messages.
             detach: Whether the command should be detached from qutebrowser.
             cmdline: The commandline to execute.
             count: Given to userscripts as $QUTE_COUNT.
@@ -1048,6 +1058,7 @@ class CommandDispatcher:
         else:
             cmd = os.path.expanduser(cmd)
             proc = guiprocess.GUIProcess(what='command', verbose=verbose,
+                                         output_messages=output_messages,
                                          parent=self._tabbed_browser)
             if detach:
                 ok = proc.start_detached(cmd, args)
@@ -1230,7 +1241,7 @@ class CommandDispatcher:
     def toggle_inspector(self):
         """Toggle the web inspector.
 
-        Note: Due a bug in Qt, the inspector will show incorrect request
+        Note: Due to a bug in Qt, the inspector will show incorrect request
         headers in the network tab.
         """
         tab = self._current_widget()
@@ -1266,7 +1277,6 @@ class CommandDispatcher:
             target = downloads.FileDownloadTarget(dest)
 
         tab = self._current_widget()
-        user_agent = tab.private_api.user_agent()
 
         if url:
             if mhtml_:
@@ -1274,7 +1284,7 @@ class CommandDispatcher:
                                             "page as mhtml.")
             url = urlutils.qurl_from_user_input(url)
             urlutils.raise_cmdexc_if_invalid(url)
-            download_manager.get(url, user_agent=user_agent, target=target)
+            download_manager.get(url, target=target)
         elif mhtml_:
             tab = self._current_widget()
             if tab.backend == usertypes.Backend.QtWebEngine:
@@ -1295,7 +1305,6 @@ class CommandDispatcher:
 
             download_manager.get(
                 self._current_url(),
-                user_agent=user_agent,
                 qnam=qnam,
                 target=target,
                 suggested_fn=suggested_fn

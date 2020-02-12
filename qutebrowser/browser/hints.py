@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -286,12 +286,10 @@ class HintActions:
 
         prompt = False if context.rapid else None
         qnam = context.tab.private_api.networkaccessmanager()
-        user_agent = context.tab.private_api.user_agent()
 
         # FIXME:qtwebengine do this with QtWebEngine downloads?
         download_manager = objreg.get('qtnetwork-download-manager')
-        download_manager.get(url, qnam=qnam, user_agent=user_agent,
-                             prompt_download_directory=prompt)
+        download_manager.get(url, qnam=qnam, prompt_download_directory=prompt)
 
     def call_userscript(self, elem: webelem.AbstractWebElement,
                         context: HintContext) -> None:

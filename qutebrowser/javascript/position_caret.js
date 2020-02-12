@@ -1,5 +1,5 @@
 /**
-* Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+* Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 * Copyright 2015 Artur Shaik <ashaihullin@gmail.com>
 *
 * This file is part of qutebrowser.

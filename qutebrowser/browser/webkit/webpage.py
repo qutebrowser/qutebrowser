@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -29,7 +29,7 @@ from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtPrintSupport import QPrintDialog
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 
-from qutebrowser.config import config
+from qutebrowser.config import websettings
 from qutebrowser.browser import pdfjs, shared, downloads, greasemonkey
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
@@ -411,11 +411,7 @@ class BrowserPage(QWebPage):
 
     def userAgentForUrl(self, url):
         """Override QWebPage::userAgentForUrl to customize the user agent."""
-        ua = config.instance.get('content.headers.user_agent', url=url)
-        if ua is None:
-            return super().userAgentForUrl(url)
-        else:
-            return ua
+        return websettings.user_agent(url)
 
     def supportsExtension(self, ext):
         """Override QWebPage::supportsExtension to provide error pages.

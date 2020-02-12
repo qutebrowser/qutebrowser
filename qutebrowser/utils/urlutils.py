@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -138,18 +138,15 @@ def _is_url_naive(urlstr: str) -> bool:
     """
     url = qurl_from_user_input(urlstr)
     assert url.isValid()
+    host = url.host()
 
-    if not utils.raises(ValueError, ipaddress.ip_address, urlstr):
-        # Valid IPv4/IPv6 address
+    # Valid IPv4/IPv6 address. Qt converts things like "23.42" or "1337" or
+    # "0xDEAD" to IP addresses, which we don't like, so we check if the host
+    # from Qt is part of the input.
+    if (not utils.raises(ValueError, ipaddress.ip_address, host) and
+            host in urlstr):
         return True
 
-    # Qt treats things like "23.42" or "1337" or "0xDEAD" as valid URLs
-    # which we don't want to. Note we already filtered *real* valid IPs
-    # above.
-    if not QHostAddress(urlstr).isNull():
-        return False
-
-    host = url.host()
     tld = r'\.([^.0-9_-]+|xn--[a-z0-9-]+)$'
     forbidden = r'[\u0000-\u002c\u002f\u003a-\u0060\u007b-\u00b6]'
     return bool(re.search(tld, host) and not re.search(forbidden, host))
@@ -617,12 +614,3 @@ def proxy_from_url(url: QUrl) -> QNetworkProxy:
     if url.password():
         proxy.setPassword(url.password())
     return proxy
-
-
-def widened_hostnames(hostname: str) -> typing.Iterable[str]:
-    """A generator for widening string hostnames.
-
-    Ex: a.c.foo -> [a.c.foo, c.foo, foo]"""
-    while hostname:
-        yield hostname
-        hostname = hostname.partition(".")[-1]

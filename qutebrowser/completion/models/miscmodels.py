@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,7 +21,7 @@
 
 import typing
 
-from qutebrowser.config import configdata
+from qutebrowser.config import config, configdata
 from qutebrowser.utils import objreg, log
 from qutebrowser.completion.models import completionmodel, listcategory, util
 
@@ -112,6 +112,10 @@ def _buffer(skip_win_id=None):
 
     model = completionmodel.CompletionModel(column_widths=(6, 40, 54))
 
+    tabs_are_windows = config.val.tabs.tabs_are_windows
+    # list storing all single-tabbed windows when tabs_are_windows
+    windows = []  # type: typing.List[typing.Tuple[str, str, str]]
+
     for win_id in objreg.window_registry:
         if skip_win_id is not None and win_id == skip_win_id:
             continue
@@ -119,15 +123,23 @@ def _buffer(skip_win_id=None):
                                     window=win_id)
         if tabbed_browser.shutting_down:
             continue
-        tabs = []
+        tabs = []  # type: typing.List[typing.Tuple[str, str, str]]
         for idx in range(tabbed_browser.widget.count()):
             tab = tabbed_browser.widget.widget(idx)
             tabs.append(("{}/{}".format(win_id, idx + 1),
                          tab.url().toDisplayString(),
                          tabbed_browser.widget.page_title(idx)))
-        cat = listcategory.ListCategory(
-            str(win_id), tabs, delete_func=delete_buffer, sort=False)
-        model.add_category(cat)
+        if tabs_are_windows:
+            windows += tabs
+        else:
+            cat = listcategory.ListCategory(
+                str(win_id), tabs, delete_func=delete_buffer, sort=False)
+            model.add_category(cat)
+
+    if tabs_are_windows:
+        win = listcategory.ListCategory(
+            "Windows", windows, delete_func=delete_buffer, sort=False)
+        model.add_category(win)
 
     return model
 

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -35,7 +35,8 @@ from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
 from qutebrowser.browser.webengine import spell, webenginequtescheme
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
-from qutebrowser.utils import utils, standarddir, qtutils, message, log
+from qutebrowser.utils import (utils, standarddir, qtutils, message, log,
+                               urlmatch)
 
 # The default QWebEngineProfile
 default_profile = typing.cast(QWebEngineProfile, None)
@@ -44,7 +45,7 @@ private_profile = None  # type: typing.Optional[QWebEngineProfile]
 # The global WebEngineSettings object
 global_settings = typing.cast('WebEngineSettings', None)
 
-default_user_agent = None
+parsed_user_agent = None
 
 
 class _SettingsWrapper:
@@ -228,7 +229,9 @@ class ProfileSetter:
         per-domain values), but this one still gets used for things like
         window.navigator.userAgent/.languages in JS.
         """
-        self._profile.setHttpUserAgent(config.val.content.headers.user_agent)
+        user_agent = websettings.user_agent()
+        self._profile.setHttpUserAgent(user_agent)
+
         accept_language = config.val.content.headers.accept_language
         if accept_language is not None:
             self._profile.setHttpAcceptLanguage(accept_language)
@@ -296,12 +299,22 @@ def _update_settings(option):
             private_profile.setter.set_dictionary_language(warn=False)
 
 
+def _init_user_agent_str(ua):
+    global parsed_user_agent
+    parsed_user_agent = websettings.UserAgent.parse(ua)
+
+
+def init_user_agent():
+    _init_user_agent_str(QWebEngineProfile.defaultProfile().httpUserAgent())
+
+
 def _init_profiles():
     """Init the two used QWebEngineProfiles."""
-    global default_profile, private_profile, default_user_agent
+    global default_profile, private_profile
 
     default_profile = QWebEngineProfile.defaultProfile()
-    default_user_agent = default_profile.httpUserAgent()
+    init_user_agent()
+
     default_profile.setter = ProfileSetter(default_profile)
     default_profile.setCachePath(
         os.path.join(standarddir.cache(), 'webengine'))
@@ -315,6 +328,50 @@ def _init_profiles():
         private_profile.setter = ProfileSetter(private_profile)
         assert private_profile.isOffTheRecord()
         private_profile.setter.init_profile()
+
+
+def _init_site_specific_quirks():
+    if not config.val.content.site_specific_quirks:
+        return
+
+    # default_ua = ("Mozilla/5.0 ({os_info}) "
+    #               "AppleWebKit/{webkit_version} (KHTML, like Gecko) "
+    #               "{qt_key}/{qt_version} "
+    #               "{upstream_browser_key}/{upstream_browser_version} "
+    #               "Safari/{webkit_version}")
+    no_qtwe_ua = ("Mozilla/5.0 ({os_info}) "
+                  "AppleWebKit/{webkit_version} (KHTML, like Gecko) "
+                  "{upstream_browser_key}/{upstream_browser_version} "
+                  "Safari/{webkit_version}")
+    firefox_ua = "Mozilla/5.0 ({os_info}; rv:71.0) Gecko/20100101 Firefox/71.0"
+    new_chrome_ua = ("Mozilla/5.0 ({os_info}) "
+                     "AppleWebKit/537.36 (KHTML, like Gecko) "
+                     "Chrome/99 "
+                     "Safari/537.36")
+
+    user_agents = {
+        'https://web.whatsapp.com/': no_qtwe_ua,
+        'https://accounts.google.com/*': firefox_ua,
+        'https://*.slack.com/*': new_chrome_ua,
+        'https://docs.google.com/*': firefox_ua,
+    }
+
+    if not qtutils.version_check('5.9'):
+        user_agents['https://www.dell.com/support/*'] = new_chrome_ua
+
+    for pattern, ua in user_agents.items():
+        config.instance.set_obj('content.headers.user_agent', ua,
+                                pattern=urlmatch.UrlPattern(pattern),
+                                hide_userconfig=True)
+
+
+def _init_devtools_settings():
+    """Make sure the devtools always get images/JS permissions."""
+    for setting in ['content.javascript.enabled', 'content.images']:
+        for pattern in ['chrome-devtools://*', 'devtools://*']:
+            config.instance.set_obj(setting, True,
+                                    pattern=urlmatch.UrlPattern(pattern),
+                                    hide_userconfig=True)
 
 
 def init(args):
@@ -332,6 +389,9 @@ def init(args):
     global global_settings
     global_settings = WebEngineSettings(_SettingsWrapper())
     global_settings.init_settings()
+
+    _init_site_specific_quirks()
+    _init_devtools_settings()
 
 
 def shutdown():

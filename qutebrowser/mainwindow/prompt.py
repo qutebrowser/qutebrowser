@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -33,7 +33,7 @@ from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QSpacerItem)
 
 from qutebrowser.browser import downloads
-from qutebrowser.config import config, configtypes, configexc
+from qutebrowser.config import config, configtypes, configexc, stylesheet
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
 from qutebrowser.api import cmdutils
@@ -292,7 +292,7 @@ class PromptContainer(QWidget):
 
         self.setObjectName('PromptContainer')
         self.setAttribute(Qt.WA_StyledBackground, True)
-        config.set_register_stylesheet(self)
+        stylesheet.set_register(self)
 
         message.global_bridge.prompt_done.connect(self._on_prompt_done)
         prompt_queue.show_prompts.connect(self._on_show_prompts)

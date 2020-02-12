@@ -96,15 +96,10 @@ Those were handled appropriately
 security bugs, please contact me directly at mail@qutebrowser.org, GPG ID
 https://www.the-compiler.org/pubkey.asc[0x916eb0c8fd55a072].
 
-Is there an adblocker?::
-    There is a host-based adblocker which takes /etc/hosts-like lists. A "real"
-    adblocker has a
-    https://www.reddit.com/r/programming/comments/25j41u/adblock_pluss_effect_on_firefoxs_memory_usage/chhpomw[big
-    impact] on browsing speed and
-    https://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/[RAM
-    usage], so implementing support for AdBlockPlus-like lists is currently not
-    a priority.
-
+Is there an ad blocker?::
+    There is a simple host-based ad blocker that takes `/etc/hosts`-like lists.
++
+More advanced ad blockers can have a big impact on browsing speed and https://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/[RAM usage], so implementing support for AdBlock Plus-like lists is not a priority.
 How can I get No-Script-like behavior?::
     To disable JavaScript by default:
 +
@@ -267,6 +262,62 @@ How do I change the `WM_CLASS` used by qutebrowser windows?::
     qutebrowser instance (unless you use `--temp-basedir` or `--basedir`), so
     they all will share the same `WM_CLASS`.
 
+How do I use X.509 Client Certificates?::
+Right now there is no certificate-chooser prompt implemented when there are
+multiple matches. Subscribe to https://github.com/qutebrowser/qutebrowser/issues/4587[Issue#4587]
+for progress notifications.
++
+QtWebEngine will attempt to use certificates stored in `${HOME}/.pki/nssdb`. If
+you have Chromium installed, you can import the certificate there and
+qutebrowser will pick it up as well. Alternatively, you can use the `certutil`
+commandline tool:
++
+Assuming you have a CA Certificate and a
+Client Certificate that you want for authenticating yourself on a web
+service that validates against this CA Certificate, you need to perform
+the following steps.
++
+1. Import the CA Certificate
++
+----
+certutil -D "sql:${HOME}/.pki/nssdb" -A -i <path_to_ca_cert.pem> -n "My Fancy CA" -t "TC,C,T"
+----
++
+2. Merge your `<cert.crt>` and `<privkey.pem>` files into a single `PKCS#12`
+certificate file (optional, skip if your Client Certificate already is in
+`PKCS#12` format)
++
+----
+openssl pkcs12 -export -in <path_to_client_cert.crt> -inkey <path_to_client_cert_privkey.pem> -out my_fancy_client_cert.pkcs12
+----
++
+3. Import your Client Certificate into the certificate store
++
+----
+pk12util -d "sql:${HOME}/.pki/nssdb" -i <path_to_my_fancy_client_cert.pkcs12> -n "My Fancy Client Certificate"
+----
++
+Upon visiting a website that requests a Client Certificate you should now
+be prompted by qutebrowser whether you want to submit the newly imported
+Client Certificate or not.
++
+If you ever need to renew any of these certificates, you can take a look
+at the currently imported certificates using:
++
+----
+certutil -D "sql:${HOME}/.pki/nssdb" -L
+----
++
+Then remove the expired certificates using:
++
+----
+certutil -D "sql:${HOME}/.pki/nssdb" -D -n "My Fancy Certificate Nickname"
+----
++
+And then import the new and valid certificates using the procedure
+described above.
+
+
 == Troubleshooting
 
 Unable to view Flash content.::
@@ -313,8 +364,8 @@ My issue is not listed.::
 
 Using https://github.com/sponsors/The-Compiler[GitHub Sponsors], you can sign
 up for a monthly donation to The-Compiler (qutebrowser's main developer),
-allowing him to work part-time on qutebrowser. If you sign up in 2019, you can
-even get qutebrowser shirts, stickers and other swag.
+allowing him to work part-time on qutebrowser. If you keep your donation level
+for long enough, you can get some qutebrowser stickers!
 
 Why GitHub Sponsors? What is the GitHub Matching Fund?::
     Thanks to the
@@ -325,37 +376,16 @@ Even outside of the matching fund, GitHub Sponsors is nicely integrated with
 qutebrowser's existing GitHub page and a better offering than alternatives such
 as Patreon or Liberapay.
 
-How do the different tiers/perks work?::
-    The perks you will receive are based on the *total amount* you
-    contributed (without GitHub's matching) until May 2020. For example, anyone who contributed $15 by the
-    cut-off date will get qutebrowser stickers. You could reach that amount in
-    different ways: As an example, you could sign up for the $3/month tier in
-    November/December 2019, so that you paid that amount 5 times by then. Or
-    you could sign up for the $15/month tier at a later time to reach the same
-    goal.
-+
-The displayed tiers take that into account - they're designed for people who
-sign up in 2019 and keep that tier until May 2020. In January 2020, they will
-be adjusted accordingly.
-+
-In some cases, a tier allows you to reach a reward goal in a single month, but
-another higher goal when you keep it for those five months. For example, if you
-select the "shirt and premium swag" tier, you will receive stickers even if you
-only keep the tier for a single month, but get shirt and swag when you keep it
-for five months.
-
 Is it possible to contribute via a one-time donation instead?::
    If you prefer a one-time donation, there are various possibilities:
 +
-- Select a tier which covers the goal you want to reach (note that payments are
-  prorated based on the current date). After the payment is processed, cancel
-  your GitHub sponsors subscription again. This has a big benefit: Thanks to
-  GitHub's matching fund, your donation will be doubled (and nothing will be
-  lost to fees).
+- Select a tier which covers the total amount you'd like to donate (note that
+  payments are prorated based on the current date). After the payment is
+  processed, cancel your GitHub sponsors subscription again. This has a big
+  benefit: Thanks to GitHub's matching fund, your donation will be doubled (and
+  nothing will be lost to fees).
 +
-- Sign up for a lower recurring donation instead. At a later point, it will be
-  possible to "upgrade" to a higher tier via a one-time donation - see the next
-  question for details.
+- Sign up for a lower recurring donation instead.
 +
 - Do so via the https://github.com/qutebrowser/qutebrowser#donating[existing
   donation methods]. Rewards (shirts/stickers/swag) are handled on a

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -35,6 +35,7 @@ from qutebrowser.mainwindow import tabwidget, mainwindow
 from qutebrowser.browser import signalfilter, browsertab, history
 from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message, jinja)
+from qutebrowser.misc import quitter
 
 
 @attr.s
@@ -235,6 +236,7 @@ class TabbedBrowser(QWidget):
         self.is_private = private
         self.tab_deque = TabDeque()
         config.instance.changed.connect(self._on_config_changed)
+        quitter.instance.shutting_down.connect(self.shutdown)
 
     def _update_stack_size(self):
         newsize = config.instance.get('tabs.undo_stack_size')
@@ -553,8 +555,7 @@ class TabbedBrowser(QWidget):
             self, url: QUrl = None,
             background: bool = None,
             related: bool = True,
-            idx: int = None, *,
-            ignore_tabs_are_windows: bool = False
+            idx: int = None,
     ) -> browsertab.AbstractTab:
         """Open a new tab with a given URL.
 
@@ -573,8 +574,6 @@ class TabbedBrowser(QWidget):
                          - Explicitly opened tabs are at the very right
                            (related=False)
             idx: The index where the new tab should be opened.
-            ignore_tabs_are_windows: If given, never open a new window, even
-                                     with tabs.tabs_are_windows set.
 
         Return:
             The opened WebView instance.
@@ -587,8 +586,7 @@ class TabbedBrowser(QWidget):
 
         prev_focus = QApplication.focusWidget()
 
-        if (config.val.tabs.tabs_are_windows and self.widget.count() > 0 and
-                not ignore_tabs_are_windows):
+        if config.val.tabs.tabs_are_windows and self.widget.count() > 0:
             window = mainwindow.MainWindow(private=self.is_private)
             window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',

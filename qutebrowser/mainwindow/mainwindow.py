@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -31,7 +31,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
-from qutebrowser.config import config, configfiles
+from qutebrowser.config import config, configfiles, stylesheet
 from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
                                jinja, debug)
 from qutebrowser.mainwindow import messageview, prompt
@@ -160,6 +160,27 @@ class MainWindow(QWidget):
             padding-left: 3px;
             padding-right: 3px;
         }
+
+        QMenu {
+            {% if conf.fonts.contextmenu %}
+                font: {{ conf.fonts.contextmenu }};
+            {% endif %}
+            {% if conf.colors.contextmenu.menu.bg %}
+                background-color: {{ conf.colors.contextmenu.menu.bg }};
+            {% endif %}
+            {% if conf.colors.contextmenu.menu.fg %}
+                color: {{ conf.colors.contextmenu.menu.fg }};
+            {% endif %}
+        }
+
+        QMenu::item:selected {
+            {% if conf.colors.contextmenu.selected.bg %}
+                background-color: {{ conf.colors.contextmenu.selected.bg }};
+            {% endif %}
+            {% if conf.colors.contextmenu.selected.fg %}
+                color: {{ conf.colors.contextmenu.selected.fg }};
+            {% endif %}
+        }
     """
 
     def __init__(self, *, private, geometry=None, parent=None):
@@ -257,7 +278,7 @@ class MainWindow(QWidget):
         self._set_decoration(config.val.window.hide_decoration)
 
         self.state_before_fullscreen = self.windowState()
-        config.set_register_stylesheet(self)
+        stylesheet.set_register(self)
 
     def _init_geometry(self, geometry):
         """Initialize the window geometry or load it from disk."""
@@ -597,24 +618,12 @@ class MainWindow(QWidget):
         super().showEvent(e)
         objreg.register('last-visible-main-window', self, update=True)
 
-    def _do_close(self):
-        """Helper function for closeEvent."""
-        try:
-            last_visible = objreg.get('last-visible-main-window')
-            if self is last_visible:
-                objreg.delete('last-visible-main-window')
-        except KeyError:
-            pass
-        sessions.session_manager.save_last_window_session()
-        self._save_geometry()
-        log.destroy.debug("Closing window {}".format(self.win_id))
-        self.tabbed_browser.shutdown()
+    def _confirm_quit(self):
+        """Confirm that this window should be closed.
 
-    def closeEvent(self, e):
-        """Override closeEvent to display a confirmation if needed."""
-        if crashsignal.is_crashing:
-            e.accept()
-            return
+        Return:
+            True if closing is okay, False if a closeEvent should be ignored.
+        """
         tab_count = self.tabbed_browser.widget.count()
         download_count = self._download_model.running_downloads()
         quit_texts = []
@@ -643,7 +652,29 @@ class MainWindow(QWidget):
             if not confirmed:
                 log.destroy.debug("Cancelling closing of window {}".format(
                     self.win_id))
-                e.ignore()
-                return
+                return False
+
+        return True
+
+    def closeEvent(self, e):
+        """Override closeEvent to display a confirmation if needed."""
+        if crashsignal.crash_handler.is_crashing:
+            e.accept()
+            return
+
+        if not self._confirm_quit():
+            e.ignore()
+            return
+
         e.accept()
-        self._do_close()
+
+        try:
+            last_visible = objreg.get('last-visible-main-window')
+            if self is last_visible:
+                objreg.delete('last-visible-main-window')
+        except KeyError:
+            pass
+
+        sessions.session_manager.save_last_window_session()
+        self._save_geometry()
+        log.destroy.debug("Closing window {}".format(self.win_id))

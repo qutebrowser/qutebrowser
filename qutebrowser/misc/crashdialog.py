@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -507,7 +507,7 @@ class FatalCrashDialog(_CrashDialog):
         text = ("<b>qutebrowser was restarted after a fatal crash.</b><br/>"
                 "<br/>Note: Crash reports for fatal crashes sometimes don't "
                 "contain the information necessary to fix an issue. Please "
-                "follow the steps in <a href='https://github.com/The-Compiler/"
+                "follow the steps in <a href='https://github.com/qutebrowser/"
                 "qutebrowser/blob/master/doc/stacktrace.asciidoc'>"
                 "stacktrace.asciidoc</a> to submit a stacktrace.<br/>")
         self._lbl.setText(text)

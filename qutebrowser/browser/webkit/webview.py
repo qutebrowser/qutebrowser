@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
-from qutebrowser.config import config
+from qutebrowser.config import config, stylesheet
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import log, usertypes, utils, objreg, debug
 from qutebrowser.browser.webkit import webpage
@@ -84,7 +84,7 @@ class WebView(QWebView):
 
         self.setPage(page)
 
-        config.set_register_stylesheet(self)
+        stylesheet.set_register(self)
 
     def __repr__(self):
         urlstr = self.url().toDisplayString(QUrl.EncodeUnicode)  # type: ignore

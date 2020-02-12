@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -346,7 +346,9 @@ def test_get_search_url_invalid(url):
     (True, True, False, '127.0.0.1'),
     (True, True, False, '::1'),
     (True, True, True, '2001:41d0:2:6c11::1'),
+    (True, True, True, '[2001:41d0:2:6c11::1]:8000'),
     (True, True, True, '94.23.233.17'),
+    (True, True, True, '94.23.233.17:8000'),
     # Special URLs
     (True, True, False, 'file:///tmp/foo'),
     (True, True, False, 'about:blank'),
@@ -706,26 +708,3 @@ class TestProxyFromUrl:
     def test_invalid(self, url, exception):
         with pytest.raises(exception):
             urlutils.proxy_from_url(QUrl(url))
-
-
-class TestWiden:
-
-    @pytest.mark.parametrize('hostname, expected', [
-        ('a.b.c', ['a.b.c', 'b.c', 'c']),
-        ('foobarbaz', ['foobarbaz']),
-        ('', []),
-        ('.c', ['.c', 'c']),
-        ('c.', ['c.']),
-        ('.c.', ['.c.', 'c.']),
-        (None, []),
-    ])
-    def test_widen_hostnames(self, hostname, expected):
-        assert list(urlutils.widened_hostnames(hostname)) == expected
-
-    @pytest.mark.parametrize('hostname', [
-        'test.qutebrowser.org',
-        'a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.z.y.z',
-        'qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq.c',
-    ])
-    def test_bench_widen_hostnames(self, hostname, benchmark):
-        benchmark(lambda: list(urlutils.widened_hostnames(hostname)))

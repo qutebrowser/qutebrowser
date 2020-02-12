@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -28,24 +28,20 @@ import operator
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils, urlmatch, urlutils
+from qutebrowser.utils import utils, urlmatch, usertypes
 from qutebrowser.config import configexc
 
 if typing.TYPE_CHECKING:
     from qutebrowser.config import configdata
 
 
-class Unset:
+def _widened_hostnames(hostname: str) -> typing.Iterable[str]:
+    """A generator for widening string hostnames.
 
-    """Sentinel object."""
-
-    __slots__ = ()
-
-    def __repr__(self) -> str:
-        return '<UNSET>'
-
-
-UNSET = Unset()
+    Ex: a.c.foo -> [a.c.foo, c.foo, foo]"""
+    while hostname:
+        yield hostname
+        hostname = hostname.partition(".")[-1]
 
 
 class ScopedValue:
@@ -55,18 +51,22 @@ class ScopedValue:
     Attributes:
         value: The value itself.
         pattern: The UrlPattern for the value, or None for global values.
+        hide_userconfig: Hide this customization from config.dump_userconfig().
     """
 
     id_gen = itertools.count(0)
 
     def __init__(self, value: typing.Any,
-                 pattern: typing.Optional[urlmatch.UrlPattern]) -> None:
+                 pattern: typing.Optional[urlmatch.UrlPattern],
+                 hide_userconfig: bool = False) -> None:
         self.value = value
         self.pattern = pattern
+        self.hide_userconfig = hide_userconfig
         self.pattern_id = next(ScopedValue.id_gen)
 
     def __repr__(self) -> str:
         return utils.get_repr(self, value=self.value, pattern=self.pattern,
+                              hide_userconfig=self.hide_userconfig,
                               pattern_id=self.pattern_id)
 
 
@@ -102,8 +102,8 @@ class Values:
         self._domain_map = collections.defaultdict(set)  \
             # type: typing.Dict[typing.Optional[str], typing.Set[ScopedValue]]
 
-        for v in values:
-            self.add(value=v.value, pattern=v.pattern)
+        for scoped in values:
+            self._add_scoped(scoped)
 
     def __repr__(self) -> str:
         return utils.get_repr(self, opt=self.opt,
@@ -112,18 +112,31 @@ class Values:
 
     def __str__(self) -> str:
         """Get the values as human-readable string."""
-        if not self:
-            return '{}: <unchanged>'.format(self.opt.name)
+        lines = self.dump(include_hidden=True)
+        if lines:
+            return '\n'.join(lines)
+        return '{}: <unchanged>'.format(self.opt.name)
 
+    def dump(self, include_hidden: bool = False) -> typing.Sequence[str]:
+        """Dump all customizations for this value.
+
+        Arguments:
+           include_hidden: Also show values with hide_userconfig=True.
+        """
         lines = []
+
         for scoped in self._vmap.values():
+            if scoped.hide_userconfig and not include_hidden:
+                continue
+
             str_value = self.opt.typ.to_str(scoped.value)
             if scoped.pattern is None:
                 lines.append('{} = {}'.format(self.opt.name, str_value))
             else:
                 lines.append('{}: {} = {}'.format(
                     scoped.pattern, self.opt.name, str_value))
-        return '\n'.join(lines)
+
+        return lines
 
     def __iter__(self) -> typing.Iterator['ScopedValue']:
         """Yield ScopedValue elements.
@@ -144,14 +157,24 @@ class Values:
             raise configexc.NoPatternError(self.opt.name)
 
     def add(self, value: typing.Any,
-            pattern: urlmatch.UrlPattern = None) -> None:
-        """Add a value with the given pattern to the list of values."""
-        self._check_pattern_support(pattern)
-        self.remove(pattern)
-        scoped = ScopedValue(value, pattern)
-        self._vmap[pattern] = scoped
+            pattern: urlmatch.UrlPattern = None, *,
+            hide_userconfig: bool = False) -> None:
+        """Add a value with the given pattern to the list of values.
 
-        host = pattern.host if pattern else None
+        If hide_userconfig is given, the value is hidden from
+        config.dump_userconfig() and thus qute://configdiff.
+        """
+        scoped = ScopedValue(value, pattern, hide_userconfig=hide_userconfig)
+        self._add_scoped(scoped)
+
+    def _add_scoped(self, scoped: ScopedValue) -> None:
+        """Add an existing ScopedValue object."""
+        self._check_pattern_support(scoped.pattern)
+        self.remove(scoped.pattern)
+
+        self._vmap[scoped.pattern] = scoped
+
+        host = scoped.pattern.host if scoped.pattern else None
         self._domain_map[host].add(scoped)
 
     def remove(self, pattern: urlmatch.UrlPattern = None) -> bool:
@@ -186,7 +209,7 @@ class Values:
         if fallback:
             return self.opt.default
         else:
-            return UNSET
+            return usertypes.UNSET
 
     def get_for_url(self, url: QUrl = None, *,
                     fallback: bool = True) -> typing.Any:
@@ -195,14 +218,16 @@ class Values:
         This first tries to find a value matching the URL (if given).
         If there's no match:
           With fallback=True, the global/default setting is returned.
-          With fallback=False, UNSET is returned.
+          With fallback=False, usertypes.UNSET is returned.
         """
         self._check_pattern_support(url)
         if url is None:
             return self._get_fallback(fallback)
 
         candidates = []  # type: typing.List[ScopedValue]
-        widened_hosts = urlutils.widened_hostnames(url.host())
+        # Urls trailing with '.' are equivalent to non-trailing types.
+        # urlutils strips them, so in order to match we will need to as well.
+        widened_hosts = _widened_hostnames(url.host().rstrip('.'))
         # We must check the 'None' key as well, in case any patterns that
         # did not have a domain match.
         for host in itertools.chain(widened_hosts, [None]):
@@ -216,7 +241,7 @@ class Values:
             return scoped.value
 
         if not fallback:
-            return UNSET
+            return usertypes.UNSET
 
         return self._get_fallback(fallback)
 
@@ -229,7 +254,7 @@ class Values:
 
         If there's no match:
           With fallback=True, the global/default setting is returned.
-          With fallback=False, UNSET is returned.
+          With fallback=False, usertypes.UNSET is returned.
         """
         self._check_pattern_support(pattern)
         if pattern is not None:
@@ -237,6 +262,54 @@ class Values:
                 return self._vmap[pattern].value
 
             if not fallback:
-                return UNSET
+                return usertypes.UNSET
 
         return self._get_fallback(fallback)
+
+
+class FontFamilies:
+
+    """A list of font family names."""
+
+    def __init__(self, families: typing.Sequence[str]) -> None:
+        self._families = families
+        self.family = families[0] if families else None
+
+    def __iter__(self) -> typing.Iterator[str]:
+        yield from self._families
+
+    def __repr__(self) -> str:
+        return utils.get_repr(self, families=self._families, constructor=True)
+
+    def __str__(self) -> str:
+        return self.to_str()
+
+    def _quoted_families(self) -> typing.Iterator[str]:
+        for f in self._families:
+            needs_quoting = any(c in f for c in ', ')
+            yield '"{}"'.format(f) if needs_quoting else f
+
+    def to_str(self, *, quote: bool = True) -> str:
+        families = self._quoted_families() if quote else self._families
+        return ', '.join(families)
+
+    @classmethod
+    def from_str(cls, family_str: str) -> 'FontFamilies':
+        """Parse a CSS-like string of font families."""
+        families = []
+
+        for part in family_str.split(','):
+            part = part.strip()
+
+            # The Qt CSS parser handles " and ' before passing the string to
+            # QFont.setFamily.
+            if ((part.startswith("'") and part.endswith("'")) or
+                    (part.startswith('"') and part.endswith('"'))):
+                part = part[1:-1]
+
+            if not part:
+                continue
+
+            families.append(part)
+
+        return cls(families)

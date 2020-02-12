@@ -32,6 +32,10 @@
 |<<colors.completion.odd.bg,colors.completion.odd.bg>>|Background color of the completion widget for odd rows.
 |<<colors.completion.scrollbar.bg,colors.completion.scrollbar.bg>>|Color of the scrollbar in the completion view.
 |<<colors.completion.scrollbar.fg,colors.completion.scrollbar.fg>>|Color of the scrollbar handle in the completion view.
+|<<colors.contextmenu.menu.bg,colors.contextmenu.menu.bg>>|Background color of the context menu.
+|<<colors.contextmenu.menu.fg,colors.contextmenu.menu.fg>>|Foreground color of the context menu.
+|<<colors.contextmenu.selected.bg,colors.contextmenu.selected.bg>>|Background color of the context menu's selected item.
+|<<colors.contextmenu.selected.fg,colors.contextmenu.selected.fg>>|Foreground color of the context menu's selected item.
 |<<colors.downloads.bar.bg,colors.downloads.bar.bg>>|Background color for the download bar.
 |<<colors.downloads.error.bg,colors.downloads.error.bg>>|Background color for downloads with errors.
 |<<colors.downloads.error.fg,colors.downloads.error.fg>>|Foreground color for downloads with errors.
@@ -105,6 +109,7 @@
 |<<colors.tabs.selected.odd.bg,colors.tabs.selected.odd.bg>>|Background color of selected odd tabs.
 |<<colors.tabs.selected.odd.fg,colors.tabs.selected.odd.fg>>|Foreground color of selected odd tabs.
 |<<colors.webpage.bg,colors.webpage.bg>>|Background color for webpages if unset (or empty to use the theme's color).
+|<<colors.webpage.prefers_color_scheme_dark,colors.webpage.prefers_color_scheme_dark>>|Force `prefers-color-scheme: dark` colors for websites.
 |<<completion.cmd_history_max_items,completion.cmd_history_max_items>>|Number of commands to save in the command history.
 |<<completion.delay,completion.delay>>|Delay (in milliseconds) before updating completions after typing a character.
 |<<completion.height,completion.height>>|Height (in pixels or as percentage of the window) of the completion.
@@ -136,7 +141,7 @@
 |<<content.headers.custom,content.headers.custom>>|Custom headers for qutebrowser HTTP requests.
 |<<content.headers.do_not_track,content.headers.do_not_track>>|Value to send in the `DNT` header.
 |<<content.headers.referer,content.headers.referer>>|When to send the Referer header.
-|<<content.headers.user_agent,content.headers.user_agent>>|User agent to send. Unset to send the default.
+|<<content.headers.user_agent,content.headers.user_agent>>|User agent to send.
 |<<content.host_blocking.enabled,content.host_blocking.enabled>>|Enable host blocking.
 |<<content.host_blocking.lists,content.host_blocking.lists>>|List of URLs of lists which contain hosts to block.
 |<<content.host_blocking.whitelist,content.host_blocking.whitelist>>|A list of patterns that should always be loaded, despite being ad-blocked.
@@ -166,6 +171,7 @@
 |<<content.proxy,content.proxy>>|Proxy to use.
 |<<content.proxy_dns_requests,content.proxy_dns_requests>>|Send DNS requests over the configured proxy.
 |<<content.register_protocol_handler,content.register_protocol_handler>>|Allow websites to register protocol handlers via `navigator.registerProtocolHandler`.
+|<<content.site_specific_quirks,content.site_specific_quirks>>|Enable quirks (such as faked user agent headers) needed to get specific sites to work properly.
 |<<content.ssl_strict,content.ssl_strict>>|Validate SSL handshakes.
 |<<content.user_stylesheets,content.user_stylesheets>>|List of user stylesheet filenames to use.
 |<<content.webgl,content.webgl>>|Enable WebGL.
@@ -179,18 +185,20 @@
 |<<downloads.open_dispatcher,downloads.open_dispatcher>>|Default program used to open downloads.
 |<<downloads.position,downloads.position>>|Where to show the downloaded files.
 |<<downloads.remove_finished,downloads.remove_finished>>|Duration (in milliseconds) to wait before removing finished downloads.
-|<<editor.command,editor.command>>|Editor (and arguments) to use for the `open-editor` command. The following placeholders are defined:
+|<<editor.command,editor.command>>|Editor (and arguments) to use for the `open-editor` command.
 |<<editor.encoding,editor.encoding>>|Encoding to use for the editor.
 |<<fonts.completion.category,fonts.completion.category>>|Font used in the completion categories.
 |<<fonts.completion.entry,fonts.completion.entry>>|Font used in the completion widget.
+|<<fonts.contextmenu,fonts.contextmenu>>|Font used for the context menu.
 |<<fonts.debug_console,fonts.debug_console>>|Font used for the debugging console.
+|<<fonts.default_family,fonts.default_family>>|Default font families to use.
+|<<fonts.default_size,fonts.default_size>>|Default font size to use.
 |<<fonts.downloads,fonts.downloads>>|Font used for the downloadbar.
 |<<fonts.hints,fonts.hints>>|Font used for the hints.
 |<<fonts.keyhint,fonts.keyhint>>|Font used in the keyhint widget.
 |<<fonts.messages.error,fonts.messages.error>>|Font used for error messages.
 |<<fonts.messages.info,fonts.messages.info>>|Font used for info messages.
 |<<fonts.messages.warning,fonts.messages.warning>>|Font used for warning messages.
-|<<fonts.monospace,fonts.monospace>>|Default monospace fonts.
 |<<fonts.prompts,fonts.prompts>>|Font used for prompts.
 |<<fonts.statusbar,fonts.statusbar>>|Font used in the statusbar.
 |<<fonts.tabs,fonts.tabs>>|Font used in the tab bar.
@@ -241,6 +249,7 @@
 |<<prompt.radius,prompt.radius>>|Rounding radius (in pixels) for the edges of prompts.
 |<<qt.args,qt.args>>|Additional arguments to pass to Qt, without leading `--`.
 |<<qt.force_platform,qt.force_platform>>|Force a Qt platform to use.
+|<<qt.force_platformtheme,qt.force_platformtheme>>|Force a Qt platformtheme to use.
 |<<qt.force_software_rendering,qt.force_software_rendering>>|Force software rendering for QtWebEngine.
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
 |<<qt.low_end_device_mode,qt.low_end_device_mode>>|When to use Chromium's low-end device mode.
@@ -855,6 +864,42 @@ Type: <<types,QssColor>>
 
 Default: +pass:[white]+
 
+[[colors.contextmenu.menu.bg]]
+=== colors.contextmenu.menu.bg
+Background color of the context menu.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
+
+[[colors.contextmenu.menu.fg]]
+=== colors.contextmenu.menu.fg
+Foreground color of the context menu.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
+
+[[colors.contextmenu.selected.bg]]
+=== colors.contextmenu.selected.bg
+Background color of the context menu's selected item.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
+
+[[colors.contextmenu.selected.fg]]
+=== colors.contextmenu.selected.fg
+Foreground color of the context menu's selected item.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
+
 [[colors.downloads.bar.bg]]
 === colors.downloads.bar.bg
 Background color for the download bar.
@@ -1461,6 +1506,18 @@ Type: <<types,QtColor>>
 
 Default: +pass:[white]+
 
+[[colors.webpage.prefers_color_scheme_dark]]
+=== colors.webpage.prefers_color_scheme_dark
+Force `prefers-color-scheme: dark` colors for websites.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
 [[completion.cmd_history_max_items]]
 === completion.cmd_history_max_items
 Number of commands to save in the command history.
@@ -1777,7 +1834,7 @@ This setting supports URL patterns.
 
 Type: <<types,String>>
 
-Default: +pass:[en-US,en]+
+Default: +pass:[en-US,en;q=0.9]+
 
 [[content.headers.custom]]
 === content.headers.custom
@@ -1819,14 +1876,30 @@ Default: +pass:[same-domain]+
 
 [[content.headers.user_agent]]
 === content.headers.user_agent
-User agent to send. Unset to send the default.
+User agent to send.
+
+The following placeholders are defined:
+
+* `{os_info}`: Something like "X11; Linux x86_64".
+* `{webkit_version}`: The underlying WebKit version (set to a fixed value
+  with QtWebEngine).
+* `{qt_key}`: "Qt" for QtWebKit, "QtWebEngine" for QtWebEngine.
+* `{qt_version}`: The underlying Qt version.
+* `{upstream_browser_key}`: "Version" for QtWebKit, "Chrome" for QtWebEngine.
+* `{upstream_browser_version}`: The corresponding Safari/Chrome version.
+* `{qutebrowser_version}`: The currently running qutebrowser version.
+
+The default value is equal to the unchanged user agent of
+QtWebKit/QtWebEngine.
+
 Note that the value read from JavaScript is always the global value.
+
 
 This setting supports URL patterns.
 
-Type: <<types,String>>
+Type: <<types,FormatString>>
 
-Default: empty
+Default: +pass:[Mozilla/5.0 ({os_info}) AppleWebKit/{webkit_version} (KHTML, like Gecko) {qt_key}/{qt_version} {upstream_browser_key}/{upstream_browser_version} Safari/{webkit_version}]+
 
 [[content.host_blocking.enabled]]
 === content.host_blocking.enabled
@@ -2185,6 +2258,15 @@ On QtWebEngine, this setting requires Qt 5.11 or newer.
 
 On QtWebKit, this setting is unavailable.
 
+[[content.site_specific_quirks]]
+=== content.site_specific_quirks
+Enable quirks (such as faked user agent headers) needed to get specific sites to work properly.
+This setting requires a restart.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
 [[content.ssl_strict]]
 === content.ssl_strict
 Validate SSL handshakes.
@@ -2334,8 +2416,15 @@ Default: +pass:[-1]+
 
 [[editor.command]]
 === editor.command
-Editor (and arguments) to use for the `open-editor` command. The following placeholders are defined:
-* `{file}`: Filename of the file to be edited. * `{line}`: Line in which the caret is found in the text. * `{column}`: Column in which the caret is found in the text. * `{line0}`: Same as `{line}`, but starting from index 0. * `{column0}`: Same as `{column}`, but starting from index 0.
+Editor (and arguments) to use for the `open-editor` command.
+The following placeholders are defined:
+
+* `{file}`: Filename of the file to be edited.
+* `{line}`: Line in which the caret is found in the text.
+* `{column}`: Column in which the caret is found in the text.
+* `{line0}`: Same as `{line}`, but starting from index 0.
+* `{column0}`: Same as `{column}`, but starting from index 0.
+
 
 Type: <<types,ShellCommand>>
 
@@ -2361,7 +2450,7 @@ Font used in the completion categories.
 
 Type: <<types,Font>>
 
-Default: +pass:[bold 10pt monospace]+
+Default: +pass:[bold default_size default_family]+
 
 [[fonts.completion.entry]]
 === fonts.completion.entry
@@ -2369,7 +2458,16 @@ Font used in the completion widget.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
+
+[[fonts.contextmenu]]
+=== fonts.contextmenu
+Font used for the context menu.
+If set to null, the Qt default is used.
+
+Type: <<types,Font>>
+
+Default: empty
 
 [[fonts.debug_console]]
 === fonts.debug_console
@@ -2377,7 +2475,27 @@ Font used for the debugging console.
 
 Type: <<types,QtFont>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
+
+[[fonts.default_family]]
+=== fonts.default_family
+Default font families to use.
+Whenever "default_family" is used in a font setting, it's replaced with the fonts listed here.
+If set to an empty value, a system-specific monospace default is used.
+
+Type: <<types,List of Font&#44; or Font>>
+
+Default: empty
+
+[[fonts.default_size]]
+=== fonts.default_size
+Default font size to use.
+Whenever "default_size" is used in a font setting, it's replaced with the size listed here.
+Valid values are either a float value with a "pt" suffix, or an integer value with a "px" suffix.
+
+Type: <<types,String>>
+
+Default: +pass:[10pt]+
 
 [[fonts.downloads]]
 === fonts.downloads
@@ -2385,7 +2503,7 @@ Font used for the downloadbar.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.hints]]
 === fonts.hints
@@ -2393,7 +2511,7 @@ Font used for the hints.
 
 Type: <<types,Font>>
 
-Default: +pass:[bold 10pt monospace]+
+Default: +pass:[bold default_size default_family]+
 
 [[fonts.keyhint]]
 === fonts.keyhint
@@ -2401,7 +2519,7 @@ Font used in the keyhint widget.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.messages.error]]
 === fonts.messages.error
@@ -2409,7 +2527,7 @@ Font used for error messages.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.messages.info]]
 === fonts.messages.info
@@ -2417,7 +2535,7 @@ Font used for info messages.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.messages.warning]]
 === fonts.messages.warning
@@ -2425,16 +2543,7 @@ Font used for warning messages.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
-
-[[fonts.monospace]]
-=== fonts.monospace
-Default monospace fonts.
-Whenever "monospace" is used in a font setting, it's replaced with the fonts listed here.
-
-Type: <<types,Font>>
-
-Default: +pass:[Monospace, &quot;DejaVu Sans Mono&quot;, Monaco, &quot;Bitstream Vera Sans Mono&quot;, &quot;Andale Mono&quot;, &quot;Courier New&quot;, Courier, &quot;Liberation Mono&quot;, monospace, Fixed, Consolas, Terminal]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.prompts]]
 === fonts.prompts
@@ -2442,7 +2551,7 @@ Font used for prompts.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt sans-serif]+
+Default: +pass:[default_size sans-serif]+
 
 [[fonts.statusbar]]
 === fonts.statusbar
@@ -2450,7 +2559,7 @@ Font used in the statusbar.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.tabs]]
 === fonts.tabs
@@ -2458,7 +2567,7 @@ Font used in the tab bar.
 
 Type: <<types,QtFont>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.web.family.cursive]]
 === fonts.web.family.cursive
@@ -2967,6 +3076,16 @@ Default: empty
 === qt.force_platform
 Force a Qt platform to use.
 This sets the `QT_QPA_PLATFORM` environment variable and is useful to force using the XCB plugin when running QtWebEngine on Wayland.
+This setting requires a restart.
+
+Type: <<types,String>>
+
+Default: empty
+
+[[qt.force_platformtheme]]
+=== qt.force_platformtheme
+Force a Qt platformtheme to use.
+This sets the `QT_QPA_PLATFORMTHEME` environment variable which controls dialogs like the filepicker. By default, Qt determines the platform theme based on the desktop environment.
 This setting requires a restart.
 
 Type: <<types,String>>

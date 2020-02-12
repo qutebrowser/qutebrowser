@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -216,7 +216,7 @@ class BaseKeyParser(QObject):
             match_type=QKeySequence.NoMatch, command=None, sequence=sequence)
         overrides = config.instance.get(
             'bindings.commands', url=url, fallback=False)
-        if overrides != configutils.UNSET:
+        if overrides != usertypes.UNSET:
             # TODO add caching here, or simply store binding trie in config
             # system instead of converting it on the fly.
             override_trie = BindingTrie()

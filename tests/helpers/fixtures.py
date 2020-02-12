@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -43,7 +43,7 @@ from PyQt5.QtNetwork import QNetworkCookieJar
 
 import helpers.stubs as stubsmod
 from qutebrowser.config import (config, configdata, configtypes, configexc,
-                                configfiles, configcache)
+                                configfiles, configcache, stylesheet)
 from qutebrowser.api import config as configapi
 from qutebrowser.utils import objreg, standarddir, utils, usertypes
 from qutebrowser.browser import greasemonkey, history, qutescheme
@@ -204,12 +204,13 @@ def web_tab_setup(qtbot, tab_registry, session_manager_stub,
 
 @pytest.fixture
 def webkit_tab(web_tab_setup, qtbot, cookiejar_and_cache, mode_manager,
-               widget_container):
+               widget_container, webpage):
     webkittab = pytest.importorskip('qutebrowser.browser.webkit.webkittab')
 
     tab = webkittab.WebKitTab(win_id=0, mode_manager=mode_manager,
                               private=False)
     widget_container.set_widget(tab)
+
     return tab
 
 
@@ -299,7 +300,7 @@ def yaml_config_stub(config_tmpdir):
 
 
 @pytest.fixture
-def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub):
+def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub, qapp):
     """Fixture which provides a fake config object."""
     conf = config.Config(yaml_config=yaml_config_stub)
     monkeypatch.setattr(config, 'instance', conf)
@@ -312,12 +313,16 @@ def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub):
     monkeypatch.setattr(config, 'cache', cache)
 
     try:
-        configtypes.Font.monospace_fonts = container.fonts.monospace
+        configtypes.Font.set_defaults(None, '10pt')
     except configexc.NoOptionError:
-        # Completion tests patch configdata so fonts.monospace is unavailable.
+        # Completion tests patch configdata so fonts.default_family is
+        # unavailable.
         pass
 
     conf.val = container  # For easier use in tests
+
+    stylesheet.init()
+
     return conf
 
 
@@ -416,6 +421,7 @@ def webengineview(qtbot, monkeypatch, web_tab_setup):
 def webpage(qnam):
     """Get a new QWebPage object."""
     QtWebKitWidgets = pytest.importorskip('PyQt5.QtWebKitWidgets')
+
     class WebPageStub(QtWebKitWidgets.QWebPage):
 
         """QWebPage with default error pages disabled."""
@@ -425,8 +431,13 @@ def webpage(qnam):
             return False
 
     page = WebPageStub()
+
     page.networkAccessManager().deleteLater()
     page.setNetworkAccessManager(qnam)
+
+    from qutebrowser.browser.webkit import webkitsettings
+    webkitsettings._init_user_agent()
+
     return page
 
 

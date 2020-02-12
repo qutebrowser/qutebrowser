@@ -22,7 +22,6 @@ import os
 import os.path
 import zipfile
 import logging
-import shutil
 
 import pytest
 
@@ -463,8 +462,9 @@ def test_add_directory(config_stub, tmpdir, host_blocker_factory):
 
 
 def test_adblock_benchmark(data_tmpdir, benchmark, host_blocker_factory):
-    blocked_hosts = os.path.join(utils.abs_datapath(), 'blocked-hosts')
-    shutil.copy(blocked_hosts, str(data_tmpdir))
+    blocked_hosts = data_tmpdir / 'blocked-hosts'
+    blocked_hosts.write_text('\n'.join(utils.blocked_hosts()),
+                             encoding='utf-8')
 
     url = QUrl('https://www.example.org/')
     blocker = host_blocker_factory()

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -37,6 +37,7 @@ class GUIProcess(QObject):
         cmd: The command which was started.
         args: A list of arguments which gets passed.
         verbose: Whether to show more messages.
+        _output_messages: Show output as messages.
         _started: Whether the underlying process is started.
         _proc: The underlying QProcess.
         _what: What kind of thing is spawned (process/editor/userscript/...).
@@ -51,10 +52,11 @@ class GUIProcess(QObject):
     started = pyqtSignal()
 
     def __init__(self, what, *, verbose=False, additional_env=None,
-                 parent=None):
+                 output_messages=False, parent=None):
         super().__init__(parent)
         self._what = what
         self.verbose = verbose
+        self._output_messages = output_messages
         self._started = False
         self.cmd = None
         self.args = None
@@ -91,6 +93,12 @@ class GUIProcess(QObject):
             encoding, 'replace')
         stdout = bytes(self._proc.readAllStandardOutput()).decode(
             encoding, 'replace')
+
+        if self._output_messages:
+            if stdout:
+                message.info(stdout.strip())
+            if stderr:
+                message.error(stderr.strip())
 
         if status == QProcess.CrashExit:
             exitinfo = "{} crashed!".format(self._what.capitalize())

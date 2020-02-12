@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -681,10 +681,6 @@ class WebKitTabPrivate(browsertab.AbstractTabPrivate):
 
     def networkaccessmanager(self):
         return self._widget.page().networkAccessManager()
-
-    def user_agent(self):
-        page = self._widget.page()
-        return page.userAgentForUrl(self._tab.url())
 
     def clear_ssl_errors(self):
         self.networkaccessmanager().clear_all_ssl_errors()

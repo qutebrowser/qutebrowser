@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,3 +25,12 @@ def test_abstract_certificate_error_wrapper():
     err = object()
     wrapper = usertypes.AbstractCertificateErrorWrapper(err)
     assert wrapper._error is err
+
+
+def test_unset_object_identity():
+    assert usertypes.Unset() is not usertypes.Unset()
+    assert usertypes.UNSET is usertypes.UNSET
+
+
+def test_unset_object_repr():
+    assert repr(usertypes.UNSET) == '<UNSET>'

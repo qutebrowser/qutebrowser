@@ -109,9 +109,8 @@ Requirements
 The following software and libraries are required to run qutebrowser:
 
 * https://www.python.org/[Python] 3.5.2 or newer (3.6 recommended)
-* https://www.qt.io/[Qt] 5.7.1 or newer (5.12 recommended due to severe bugs in
-  Qt 5.13.0 and .1); support for < 5.9 will be dropped soon) with the following
-  modules:
+* https://www.qt.io/[Qt] 5.7.1 or newer (5.14 recommended; support for < 5.9
+  will be dropped soon) with the following modules:
   - QtCore / qtbase
   - QtQuick (part of qtbase in some distributions)
   - QtSQL (part of qtbase in some distributions)
@@ -124,7 +123,7 @@ The following software and libraries are required to run qutebrowser:
     avoid visiting untrusted websites and using it for transmission of
     sensitive data.**
 * https://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.7.0 or newer
-  (5.13 recommended, support for < 5.9 will be dropped soon) for Python 3
+  (5.14 recommended, support for < 5.9 will be dropped soon) for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
 * https://fdik.org/pyPEG/[pyPEG2]
 * http://jinja.pocoo.org/[jinja2]
@@ -215,17 +214,22 @@ Active
 * https://fanglingsu.github.io/vimb/[vimb] (C, GTK+ with WebKit2)
 * https://luakit.github.io/luakit/[luakit] (C/Lua, GTK+ with WebKit2)
 * https://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
-* https://github.com/next-browser/next/[next] (Lisp, Emacs-like, GTK+ with WebKit)
+* https://github.com/next-browser/next/[next] (Lisp, Emacs-like but also offers Vim bindings, various backends - note there was a http://jgkamat.gitlab.io/blog/next-rce.html[critical remote code execution] which was handled quite badly)
 * https://github.com/parkouss/webmacs/[webmacs] (Python, Emacs-like with QtWebEngine)
 * Chrome/Chromium addons:
   https://vimium.github.io/[Vimium],
-  https://github.com/brookhong/Surfingkeys[Surfingkeys]
 * Firefox addons (based on WebExtensions):
   https://github.com/tridactyl/tridactyl[Tridactyl],
   https://addons.mozilla.org/en-GB/firefox/addon/vimium-ff/[Vimium-FF] (experimental),
-  https://github.com/brookhong/Surfingkeys[Surfingkeys],
   https://github.com/ueokande/vim-vixen[Vim Vixen],
   https://github.com/amedama41/vvimpulation[VVimpulation]
+* Addons for Firefox and Chrome:
+  https://github.com/brookhong/Surfingkeys[Surfingkeys],
+  https://github.com/lusakasa/saka-key[Saka Key],
+  https://krabby.netlify.com/[Krabby],
+  https://lydell.github.io/LinkHints/[Link Hints] (hinting only)
+* Addons for Safari:
+  https://televator.net/vimari/[Vimari]
 
 Inactive
 ~~~~~~~~
@@ -239,17 +243,19 @@ main inspiration for qutebrowser)
 original site is gone but the Arch Linux wiki has some data)
 * http://conkeror.org/[conkeror] (Javascript, Emacs-like, XULRunner/Gecko)
 * https://www.uzbl.org/[uzbl] (C, GTK+ with WebKit1/WebKit2)
+* https://github.com/conformal/xombrero[xombrero] (C, GTK+ with WebKit1)
+* https://github.com/linkdd/cream-browser[Cream Browser] (C, GTK+ with WebKit1)
 * Firefox addons (not based on WebExtensions or no recent activity):
   http://www.vimperator.org/[Vimperator],
   http://bug.5digits.org/pentadactyl/index[Pentadactyl],
   https://github.com/akhodakivskiy/VimFx[VimFx],
-  https://key.saka.io[Saka Key],
   https://github.com/shinglyu/QuantumVim[QuantumVim]
 * Chrome/Chromium addons:
   https://chrome.google.com/webstore/detail/vichrome/gghkfhpblkcmlkmpcpgaajbbiikbhpdi?hl=en[ViChrome],
-  https://github.com/jinzhu/vrome[Vrome]
+  https://github.com/jinzhu/vrome[Vrome],
   https://github.com/lusakasa/saka-key[Saka Key],
-  https://github.com/1995eaton/chromium-vim[cVim]
+  https://github.com/1995eaton/chromium-vim[cVim],
+  https://glee.github.io/[GleeBox]
 
 License
 -------

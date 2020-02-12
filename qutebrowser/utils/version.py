@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -44,11 +44,6 @@ try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore  # noqa: N816
-
-try:
-    from PyQt5.QtWebEngineWidgets import QWebEngineProfile
-except ImportError:  # pragma: no cover
-    QWebEngineProfile = None  # type: ignore
 
 import qutebrowser
 from qutebrowser.utils import log, utils, standarddir, usertypes, message
@@ -360,27 +355,28 @@ def _chromium_version() -> str:
 
     Qt 5.12: Chromium 69
     (LTS)    69.0.3497.113 (2018-09-27)
-             5.12.5: Security fixes up to 76.0.3809.87 (2019-06-30)
+             5.12.6: Security fixes up to 76.0.3809.87 (2019-07-30)
+                     plus fix for CVE-2019-13720 from Chrome 78
 
     Qt 5.13: Chromium 73
              73.0.3683.105 (~2019-02-28)
-             5.13.1: Security fixes up to 76.0.3809.87 (2019-06-30)
+             5.13.2: Security fixes up to 77.0.3865.120 (2019-10-10)
+
+    Qt 5.14: Chromium 77
+             77.0.3865.129 (~2019-10-10)
+             5.14.1: Security fixes up to 79.0.3945.117 (2020-01-07)
 
     Also see https://www.chromium.org/developers/calendar
     and https://chromereleases.googleblog.com/
     """
-    if webenginesettings is None or QWebEngineProfile is None:  # type: ignore
-        # This should never happen
+    if webenginesettings is None:
         return 'unavailable'  # type: ignore
-    ua = webenginesettings.default_user_agent
-    if ua is None:
-        profile = QWebEngineProfile.defaultProfile()
-        ua = profile.httpUserAgent()
-    match = re.search(r' Chrome/([^ ]*) ', ua)
-    if not match:
-        log.misc.error("Could not get Chromium version from: {}".format(ua))
-        return 'unknown'
-    return match.group(1)
+
+    if webenginesettings.parsed_user_agent is None:
+        webenginesettings.init_user_agent()
+        assert webenginesettings.parsed_user_agent is not None
+
+    return webenginesettings.parsed_user_agent.upstream_browser_version
 
 
 def _backend() -> str:
@@ -419,13 +415,13 @@ def version() -> str:
     if gitver is not None:
         lines.append("Git commit: {}".format(gitver))
 
-    lines.append("Backend: {}".format(_backend()))
+    lines.append('Backend: {}'.format(_backend()))
+    lines.append('Qt: {}'.format(earlyinit.qt_version()))
 
     lines += [
         '',
         '{}: {}'.format(platform.python_implementation(),
                         platform.python_version()),
-        'Qt: {}'.format(earlyinit.qt_version()),
         'PyQt: {}'.format(PYQT_VERSION_STR),
         '',
     ]

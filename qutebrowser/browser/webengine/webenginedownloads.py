@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -171,7 +171,15 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
     def _after_set_filename(self):
         assert self._filename is not None
-        self._qt_item.setPath(self._filename)
+
+        dirname, basename = os.path.split(self._filename)
+        try:
+            # Qt 5.14
+            self._qt_item.setDownloadDirectory(dirname)
+            self._qt_item.setDownloadFileName(basename)
+        except AttributeError:
+            self._qt_item.setPath(self._filename)
+
         self._qt_item.accept()
 
 

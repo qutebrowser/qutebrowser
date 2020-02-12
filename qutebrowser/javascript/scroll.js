@@ -1,5 +1,5 @@
 /**
- * Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+ * Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
  *
  * This file is part of qutebrowser.
  *

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -28,7 +28,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QSocketNotifier
 
 from qutebrowser.utils import message, log, objreg, standarddir, utils
 from qutebrowser.commands import runners
-from qutebrowser.config import config
+from qutebrowser.config import websettings
 from qutebrowser.misc import guiprocess
 from qutebrowser.browser import downloads
 
@@ -429,10 +429,8 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
         lambda cmd:
         log.commands.debug("Got userscript command: {}".format(cmd)))
     runner.got_cmd.connect(commandrunner.run_safely)
-    user_agent = config.val.content.headers.user_agent
-    if user_agent is not None:
-        env['QUTE_USER_AGENT'] = user_agent
 
+    env['QUTE_USER_AGENT'] = websettings.user_agent()
     env['QUTE_CONFIG_DIR'] = standarddir.config()
     env['QUTE_DATA_DIR'] = standarddir.data()
     env['QUTE_DOWNLOAD_DIR'] = downloads.download_dir()

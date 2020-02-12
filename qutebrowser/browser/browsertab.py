@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -815,14 +815,6 @@ class AbstractTabPrivate:
 
     def networkaccessmanager(self) -> typing.Optional[QNetworkAccessManager]:
         """Get the QNetworkAccessManager for this tab.
-
-        This is only implemented for QtWebKit.
-        For QtWebEngine, always returns None.
-        """
-        raise NotImplementedError
-
-    def user_agent(self) -> typing.Optional[str]:
-        """Get the user agent for this tab.
 
         This is only implemented for QtWebKit.
         For QtWebEngine, always returns None.

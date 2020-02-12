@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -851,36 +851,36 @@ class FakeQSslSocket:
         return self._version
 
 
-@pytest.mark.parametrize('ua, expected', [
-    (None, 'unavailable'),  # No QWebEngineProfile
-    ('Mozilla/5.0', 'unknown'),
-    ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) '
-     'QtWebEngine/5.8.0 Chrome/53.0.2785.148 Safari/537.36', '53.0.2785.148'),
-])
-def test_chromium_version(monkeypatch, caplog, ua, expected):
-    pytest.importorskip('PyQt5.QtWebEngineWidgets')
-    if ua is None:
-        monkeypatch.setattr(version, 'webenginesettings', None)
-    else:
-        monkeypatch.setattr(version.webenginesettings,
-                            'default_user_agent', ua)
+_QTWE_USER_AGENT = ("Mozilla/5.0 (X11; Linux x86_64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "QtWebEngine/5.14.0 Chrome/{} Safari/537.36")
 
-    with caplog.at_level(logging.ERROR):
-        assert version._chromium_version() == expected
+
+def test_chromium_version(monkeypatch, caplog):
+    pytest.importorskip('PyQt5.QtWebEngineWidgets')
+
+    ver = '77.0.3865.98'
+    version.webenginesettings._init_user_agent_str(
+        _QTWE_USER_AGENT.format(ver))
+
+    assert version._chromium_version() == ver
+
+
+def test_chromium_version_no_webengine(monkeypatch):
+    monkeypatch.setattr(version, 'webenginesettings', None)
+    assert version._chromium_version() == 'unavailable'
 
 
 def test_chromium_version_prefers_saved_user_agent(monkeypatch):
     pytest.importorskip('PyQt5.QtWebEngineWidgets')
-    monkeypatch.setattr(
-        version.webenginesettings, 'default_user_agent',
-        'QtWebEngine/5.8.0 Chrome/53.0.2785.148 Safari/537.36'
-    )
+    version.webenginesettings._init_user_agent_str(_QTWE_USER_AGENT)
 
     class FakeProfile:
         def defaultProfile(self):
             raise AssertionError("Should not be called")
 
-    monkeypatch.setattr(version, 'QWebEngineProfile', FakeProfile())
+    monkeypatch.setattr(version.webenginesettings, 'QWebEngineProfile',
+                        FakeProfile())
 
     version._chromium_version()
 
@@ -918,12 +918,9 @@ class VersionParams:
 ], ids=lambda param: param.name)
 def test_version_output(params, stubs, monkeypatch, config_stub):
     """Test version.version()."""
-    class FakeWebEngineSettings:
-        default_user_agent = ('Toaster/4.0.4 Chrome/CHROMIUMVERSION '
-                              'Teapot/4.1.8')
-
     config.instance.config_py_loaded = params.config_py_loaded
     import_path = os.path.abspath('/IMPORTPATH')
+
     patches = {
         'qutebrowser.__file__': os.path.join(import_path, '__init__.py'),
         'qutebrowser.__version__': 'VERSION',
@@ -960,6 +957,12 @@ def test_version_output(params, stubs, monkeypatch, config_stub):
         'autoconfig_loaded': "yes" if params.autoconfig_loaded else "no",
     }
 
+    ua = _QTWE_USER_AGENT.format('CHROMIUMVERSION')
+    if version.webenginesettings is None:
+        patches['_chromium_version'] = lambda: 'CHROMIUMVERSION'
+    else:
+        version.webenginesettings._init_user_agent_str(ua)
+
     if params.config_py_loaded:
         substitutions["config_py_loaded"] = "{} has been loaded".format(
             standarddir.config_py())
@@ -975,8 +978,6 @@ def test_version_output(params, stubs, monkeypatch, config_stub):
         monkeypatch.delattr(version, 'qtutils.qWebKitVersion', raising=False)
         patches['objects.backend'] = usertypes.Backend.QtWebEngine
         substitutions['backend'] = 'QtWebEngine (Chromium CHROMIUMVERSION)'
-        patches['webenginesettings'] = FakeWebEngineSettings
-        patches['QWebEngineProfile'] = True
 
     if params.known_distribution:
         patches['distribution'] = lambda: version.DistributionInfo(
@@ -1003,9 +1004,9 @@ def test_version_output(params, stubs, monkeypatch, config_stub):
     template = textwrap.dedent("""
         qutebrowser vVERSION{git_commit}
         Backend: {backend}
+        Qt: {qt}
 
         PYTHON IMPLEMENTATION: PYTHON VERSION
-        Qt: {qt}
         PyQt: PYQT VERSION
 
         MODULE VERSION 1
