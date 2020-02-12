@@ -1333,7 +1333,10 @@ class QtFont(Font):
             if size == 'default_size':
                 size = self.default_size
 
-            if size.lower().endswith('pt'):
+            if size is None:
+                # initial validation before default_size is set up.
+                pass
+            elif size.lower().endswith('pt'):
                 font.setPointSizeF(float(size[:-2]))
             elif size.lower().endswith('px'):
                 font.setPixelSize(int(size[:-2]))
