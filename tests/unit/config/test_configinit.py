@@ -41,7 +41,7 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
     monkeypatch.setattr(config, 'change_filters', [])
     monkeypatch.setattr(configinit, '_init_errors', None)
     monkeypatch.setattr(configtypes.Font, 'default_family', None)
-    monkeypatch.setattr(configtypes.Font, 'default_size', '10pt')
+    monkeypatch.setattr(configtypes.Font, 'default_size', None)
     yield
     try:
         objreg.delete('config-commands')
@@ -356,6 +356,7 @@ class TestLateInit:
         """Ensure setting fonts.default_family at init works properly.
 
         See https://github.com/qutebrowser/qutebrowser/issues/2973
+        and https://github.com/qutebrowser/qutebrowser/issues/5223
         """
         if method == 'temp':
             args.temp_settings = settings
