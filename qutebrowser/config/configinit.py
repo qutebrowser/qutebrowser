@@ -68,7 +68,7 @@ def early_init(args: argparse.Namespace) -> None:
         else:
             configfiles.read_autoconfig()
     except configexc.ConfigFileErrors as e:
-        log.config.exception("Error while loading {}".format(e.basename))
+        log.config.error("Error while loading {}".format(e.basename))
         _init_errors = e
 
     try:
