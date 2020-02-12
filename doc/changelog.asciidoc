@@ -28,6 +28,19 @@ Fixed
 
 - Crash when saving data fails during shutdown (which was a regression
   introduced in v1.9.0).
+- Error while reading config.py when `fonts.tabs` or `fonts.debug_console` is set to a value including `default_size`.
+
+Changed
+~~~~~~~
+
+- When the Qt version changes (and also on the first start of v1.10.1 on Qt
+  5.14), service workers registered by websites are now deleted. This is done
+  as a workaround for QtWebEngine issues causing crashes when visiting pages
+  using service workers (such as Google Mail/Drive). No persistent data should
+  be affected as websites can re-register their service workers, but a (single)
+  backup is kept at `webengine/Service Worker-bak` in qutebrowser's data
+  directory.
+- Better output on stdout when config errors occur.
 
 v1.10.0 (2020-02-02)
 --------------------
