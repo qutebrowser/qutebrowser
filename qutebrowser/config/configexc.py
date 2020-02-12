@@ -150,8 +150,7 @@ class ConfigFileErrors(Error):
         self.fatal = fatal
         for err in errors:
             if err.traceback:
-                log.config.debug("Config error stack:")
-                log.config.debug(err.traceback)
+                log.config.info(err.traceback)
 
     def to_html(self) -> str:
         """Get the error texts as a HTML snippet."""
