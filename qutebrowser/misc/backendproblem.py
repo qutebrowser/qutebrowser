@@ -440,6 +440,41 @@ class _BackendProblemChecker:
         if os.path.exists(cache_dir):
             shutil.rmtree(cache_dir)
 
+    def _handle_serviceworker_nuking(self) -> None:
+        """Nuke the service workers directory if the Qt version changed.
+
+        WORKAROUND for:
+        https://bugreports.qt.io/browse/QTBUG-72532
+        https://bugreports.qt.io/browse/QTBUG-82105
+        """
+        if ('serviceworker_workaround' not in configfiles.state['general'] and
+                qtutils.version_check('5.14', compiled=False)):
+            # Nuke the service worker directory once for every install with Qt
+            # 5.14, given that it seems to cause a variety of segfaults.
+            configfiles.state['general']['serviceworker_workaround'] = '514'
+            affected = True
+        else:
+            # Otherwise, just nuke it when the Qt version changed.
+            affected = configfiles.state.qt_version_changed
+
+        if not affected:
+            return
+
+        service_worker_dir = os.path.join(standarddir.data(), 'webengine',
+                                          'Service Worker')
+        bak_dir = service_worker_dir + '-bak'
+        if not os.path.exists(service_worker_dir):
+            return
+
+        log.init.info("Qt version changed, removing service workers")
+
+        # Keep one backup around - we're not 100% sure what persistent data
+        # could be in there, but this folder can grow to ~300 MB.
+        if os.path.exists(bak_dir):
+            shutil.rmtree(bak_dir)
+
+        shutil.move(service_worker_dir, bak_dir)
+
     def _assert_backend(self, backend: usertypes.Backend) -> None:
         assert objects.backend == backend, objects.backend
 
@@ -452,6 +487,7 @@ class _BackendProblemChecker:
             self._nvidia_shader_workaround()
             self._handle_nouveau_graphics()
             self._handle_cache_nuking()
+            self._handle_serviceworker_nuking()
         else:
             self._assert_backend(usertypes.Backend.QtWebKit)
             self._handle_ssl_support(fatal=True)
