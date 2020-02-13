@@ -1287,8 +1287,8 @@ class QtFont(Font):
 
         return configutils.FontFamilies.from_str(family_str)
 
-    def to_py(self, value: _StrUnset) -> typing.Union[usertypes.Unset,
-                                                      None, QFont]:
+    def to_py(self, value: _StrUnset) -> typing.Union[  # noqa: C901
+            usertypes.Unset, None, QFont]:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value
