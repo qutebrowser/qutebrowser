@@ -41,6 +41,9 @@ Changed
   backup is kept at `webengine/Service Worker-bak` in qutebrowser's data
   directory.
 - Better output on stdout when config errors occur.
+- The `mkvenv.py` now ensures the latest versions of `setuptools` and `wheel`
+  are installed in the virtual environment, which should speed up installation
+  and fix install issues.
 
 v1.10.0 (2020-02-02)
 --------------------
