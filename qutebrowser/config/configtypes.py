@@ -1287,30 +1287,8 @@ class QtFont(Font):
 
         return configutils.FontFamilies.from_str(family_str)
 
-    def to_py(self, value: _StrUnset) -> typing.Union[usertypes.Unset,
-                                                      None, QFont]:
-        self._basic_py_validation(value, str)
-        if isinstance(value, usertypes.Unset):
-            return value
-        elif not value:
-            return None
-
-        font = QFont()
-        font.setStyle(QFont.StyleNormal)
-        font.setWeight(QFont.Normal)
-
-        match = self.font_regex.fullmatch(value)
-        if not match:  # pragma: no cover
-            # This should never happen, as the regex always matches everything
-            # as family.
-            raise configexc.ValidationError(value, "must be a valid font")
-
+    def _set_style(self, font: QFont, match: typing.Match) -> None:
         style = match.group('style')
-        weight = match.group('weight')
-        namedweight = match.group('namedweight')
-        size = match.group('size')
-        family_str = match.group('family')
-
         style_map = {
             'normal': QFont.StyleNormal,
             'italic': QFont.StyleItalic,
@@ -1318,7 +1296,12 @@ class QtFont(Font):
         }
         if style:
             font.setStyle(style_map[style])
+        else:
+            font.setStyle(QFont.StyleNormal)
 
+    def _set_weight(self, font: QFont, match: typing.Match) -> None:
+        weight = match.group('weight')
+        namedweight = match.group('namedweight')
         weight_map = {
             'normal': QFont.Normal,
             'bold': QFont.Bold,
@@ -1328,7 +1311,11 @@ class QtFont(Font):
         elif weight:
             # based on qcssparser.cpp:setFontWeightFromValue
             font.setWeight(min(int(weight) // 8, 99))
+        else:
+            font.setWeight(QFont.Normal)
 
+    def _set_size(self, font: QFont, match: typing.Match) -> None:
+        size = match.group('size')
         if size:
             if size == 'default_size':
                 size = self.default_size
@@ -1346,6 +1333,8 @@ class QtFont(Font):
                 raise ValueError("Unexpected size unit in {!r}!".format(
                     size))  # pragma: no cover
 
+    def _set_families(self, font: QFont, match: typing.Match) -> None:
+        family_str = match.group('family')
         families = self._parse_families(family_str)
         if hasattr(font, 'setFamilies'):
             # Added in Qt 5.13
@@ -1353,6 +1342,26 @@ class QtFont(Font):
             font.setFamilies(list(families))
         else:  # pragma: no cover
             font.setFamily(families.to_str(quote=False))
+
+    def to_py(self, value: _StrUnset) -> typing.Union[usertypes.Unset,
+                                                      None, QFont]:
+        self._basic_py_validation(value, str)
+        if isinstance(value, usertypes.Unset):
+            return value
+        elif not value:
+            return None
+
+        match = self.font_regex.fullmatch(value)
+        if not match:  # pragma: no cover
+            # This should never happen, as the regex always matches everything
+            # as family.
+            raise configexc.ValidationError(value, "must be a valid font")
+
+        font = QFont()
+        self._set_style(font, match)
+        self._set_weight(font, match)
+        self._set_size(font, match)
+        self._set_families(font, match)
 
         return font
 
