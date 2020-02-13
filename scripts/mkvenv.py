@@ -158,10 +158,15 @@ def create_venv(venv_dir: pathlib.Path, use_virtualenv: bool = False) -> None:
         venv.create(str(venv_dir), with_pip=True)
 
 
-def upgrade_pip(venv_dir: pathlib.Path) -> None:
-    """Upgrade pip inside a virtualenv."""
-    utils.print_title("Upgrading pip")
+def upgrade_seed_pkgs(venv_dir: pathlib.Path) -> None:
+    """Upgrade initial seed packages inside a virtualenv.
+
+    This also makes sure that wheel is installed, which causes pip to use its
+    wheel cache for rebuilds.
+    """
+    utils.print_title("Upgrading initial packages")
     pip_install(venv_dir, '-U', 'pip')
+    pip_install(venv_dir, '-U', 'setuptools', 'wheel')
 
 
 def pyqt_requirements_file(version: str):
@@ -241,7 +246,7 @@ def main() -> None:
         delete_old_venv(venv_dir)
         create_venv(venv_dir, use_virtualenv=args.virtualenv)
 
-    upgrade_pip(venv_dir)
+    upgrade_seed_pkgs(venv_dir)
 
     if args.pyqt_type == 'binary':
         install_pyqt_binary(venv_dir, args.pyqt_version)
