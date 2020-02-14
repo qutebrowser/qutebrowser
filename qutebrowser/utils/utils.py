@@ -105,7 +105,7 @@ def elide_filename(filename: str, length: int) -> str:
     The difference to the elide() is that the text is removed from
     the middle instead of from the end. This preserves file name extensions.
     Additionally, standard ASCII dots are used ("...") instead of the unicode
-    "…" (U+2026) so it works regardless of the filesystem encoding.
+    "Ã¢ÂÂ¦" (U+2026) so it works regardless of the filesystem encoding.
 
     This function does not handle path separators.
 
@@ -518,7 +518,8 @@ def force_encoding(text: str, encoding: str) -> str:
 
 
 def sanitize_filename(name: str,
-                      replacement: typing.Optional[str] = '_') -> str:
+                      replacement: typing.Optional[str] = '_',
+                      max_len: typing.Optional[int] = 64) -> str:
     """Replace invalid filename characters.
 
     Note: This should be used for the basename, as it also removes the path
@@ -548,6 +549,11 @@ def sanitize_filename(name: str,
 
     for bad_char in bad_chars:
         name = name.replace(bad_char, replacement)
+
+    exceeded_chars = len(name) - max_len
+    if exceeded_chars > 0:
+        name = name[:-exceeded_chars]
+
     return name
 
 

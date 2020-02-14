@@ -234,14 +234,6 @@ def suggested_fn_from_title(url_path, title=None):
         if not suggested_fn.lower().endswith((".html", ".htm")):
             suggested_fn += ".html"
 
-        max_fn_len = 80
-        exceeded_chars = len(suggested_fn) - max_fn_len
-        if exceeded_chars > 0:
-            if suggested_fn.lower().endswith(".htm"):
-                suggested_fn = suggested_fn[:-4 - exceeded_chars] + ".htm"
-            else:
-                suggested_fn = suggested_fn[:-5 - exceeded_chars] + ".html"
-
     return suggested_fn
 
 
