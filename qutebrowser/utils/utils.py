@@ -105,7 +105,7 @@ def elide_filename(filename: str, length: int) -> str:
     The difference to the elide() is that the text is removed from
     the middle instead of from the end. This preserves file name extensions.
     Additionally, standard ASCII dots are used ("...") instead of the unicode
-    "Ã¢ÂÂ¦" (U+2026) so it works regardless of the filesystem encoding.
+    "…" (U+2026) so it works regardless of the filesystem encoding.
 
     This function does not handle path separators.
 
