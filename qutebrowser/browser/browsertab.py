@@ -157,6 +157,7 @@ class InspectorSplitter(QSplitter):
     """
 
     _main_idx = 0
+    _inspector_idx = 1
     _position = None
     _preferred_size = None
 
@@ -169,12 +170,19 @@ class InspectorSplitter(QSplitter):
     def set_inspector(self, inspector, position):
         """Set the position of the inspector."""
         assert position in ['right', 'left', 'top', 'bottom']
-        self._main_idx = 0 if position in ['right', 'bottom'] else 1
+
+        if position in ['right', 'bottom']:
+            self._main_idx = 0
+            self._inspector_idx = 1
+        else:
+            self._inspector_idx = 0
+            self._main_idx = 1
+
         self.setStretchFactor(self._main_idx, 1)
-        self.setStretchFactor(self._inspector_idx(), 0)
+        self.setStretchFactor(self._inspector_idx, 0)
         self.setOrientation(Qt.Horizontal if position in ['right', 'left']
                             else Qt.Vertical)
-        self.insertWidget(self._inspector_idx(), inspector)
+        self.insertWidget(self._inspector_idx, inspector)
         self._position = position
         self._load_preferred_size()
         self._adjust_size()
@@ -232,19 +240,19 @@ class InspectorSplitter(QSplitter):
         if sizes[self._main_idx] < protected_main_size and total >= 300:
             # Case 2 above
             sizes[self._main_idx] = protected_main_size
-            sizes[self._inspector_idx()] = total - protected_main_size
+            sizes[self._inspector_idx] = total - protected_main_size
             self.setSizes(sizes)
         elif (total >= self._preferred_size + protected_main_size and
-              sizes[self._inspector_idx()] != self._preferred_size):
+              sizes[self._inspector_idx] != self._preferred_size):
             # Case 1 above
-            sizes[self._inspector_idx()] = self._preferred_size
+            sizes[self._inspector_idx] = self._preferred_size
             sizes[self._main_idx] = total - self._preferred_size
             self.setSizes(sizes)
         # else: Case 3 above
 
     def _onSplitterMoved(self, _pos, _index):
         sizes = self.sizes()
-        self._preferred_size = sizes[self._inspector_idx()]
+        self._preferred_size = sizes[self._inspector_idx]
         self._save_preferred_size()
 
     def resizeEvent(self, e):
