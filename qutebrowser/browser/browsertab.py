@@ -190,6 +190,10 @@ class InspectorSplitter(QSplitter):
             full = self.width()
         else:
             full = self.height()
+        # If we first open the inspector with a window size of <300px, we don't
+        # want to default to half of the window size as the small window is
+        # likely a temporary situation and the inspector isn't very usable in
+        # that state.
         self._preferred_size = max(300, full / 2)
 
         try:
@@ -205,19 +209,40 @@ class InspectorSplitter(QSplitter):
         return 1 - self._main_idx
 
     def _adjust_size(self):
+        """Adjust the size of the inspector similarly to Chromium.
+
+        In general, we want to keep the absolute size of the inspector (rather
+        than the ratio) the same, as it's confusing when the layout of its
+        contents changes.
+
+        We're essentially handling three different cases:
+
+        1) We have plenty of space -> Keep inspector at the preferred absolute
+           size.
+
+        2) We're slowly running out of space. Make sure the page still has
+           150px (protected_main_size) left, give the rest to the inspector.
+
+        3) The window is very small (< 300px). Keep Qt's behavior of keeping
+           the aspect ratio, as all hope is lost at this point.
+        """
         sizes = self.sizes()
         total = sizes[0] + sizes[1]
         protected_main_size = 150
         preferred_size = self._preferred_size
-        if (total >= preferred_size + protected_main_size and
-                sizes[self._inspector_idx()] != preferred_size):
-            sizes[self._inspector_idx()] = preferred_size
-            sizes[self._main_idx] = total - preferred_size
-            self.setSizes(sizes)
+
         if sizes[self._main_idx] < protected_main_size and total >= 300:
+            # Case 2 above
             sizes[self._main_idx] = protected_main_size
             sizes[self._inspector_idx()] = total - protected_main_size
             self.setSizes(sizes)
+        elif (total >= preferred_size + protected_main_size and
+              sizes[self._inspector_idx()] != preferred_size):
+            # Case 1 above
+            sizes[self._inspector_idx()] = preferred_size
+            sizes[self._main_idx] = total - preferred_size
+            self.setSizes(sizes)
+        # else: Case 3 above
 
     def _onSplitterMoved(self, _pos, _index):
         sizes = self.sizes()
