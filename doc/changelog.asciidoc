@@ -44,6 +44,9 @@ Changed
 - The `mkvenv.py` now ensures the latest versions of `setuptools` and `wheel`
   are installed in the virtual environment, which should speed up installation
   and fix install issues.
+- The default for `colors.statusbar.command.private.bg` has been changed to a
+  slightly different gray, as a workaround for a Qt issue where the cursor was
+  invisible in that case.
 
 v1.10.0 (2020-02-02)
 --------------------
