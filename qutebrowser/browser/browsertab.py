@@ -156,16 +156,15 @@ class InspectorSplitter(QSplitter):
         _preferred_size: the preferred size of the inpector widget in pixels
     """
 
-    _main_idx = 0
-    _inspector_idx = 1
-    _position = None
-    _preferred_size = None
-
     def __init__(self, main_webview):
         super().__init__()
         self.addWidget(main_webview)
         self.setFocusProxy(main_webview)
         self.splitterMoved.connect(self._onSplitterMoved)
+        self._main_idx = None
+        self._inspector_idx = None
+        self._position = None
+        self._preferred_size = None
 
     def set_inspector(self, inspector, position):
         """Set the position of the inspector."""

@@ -66,14 +66,13 @@ class AbstractWebInspector(QWidget):
     """
 
     closed = pyqtSignal()
-    _position = None
-    _splitter = None
 
     def __init__(self, splitter, parent=None):
         super().__init__(parent)
         self._widget = typing.cast(QWidget, None)
         self._layout = miscwidgets.WrapperLayout(self)
         self._splitter = splitter
+        self._position = None
 
     def _set_widget(self, widget):
         self._widget = widget
