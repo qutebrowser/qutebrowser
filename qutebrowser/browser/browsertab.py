@@ -186,10 +186,9 @@ class InspectorSplitter(QSplitter):
 
     def _load_preferred_size(self):
         """Load the preferred size of the inspector widget."""
-        if self.orientation() == Qt.Horizontal:
-            full = self.width()
-        else:
-            full = self.height()
+        full = (self.width() if self.orientation() == Qt.Horizontal
+                else self.height())
+
         # If we first open the inspector with a window size of <300px, we don't
         # want to default to half of the window size as the small window is
         # likely a temporary situation and the inspector isn't very usable in
@@ -197,8 +196,8 @@ class InspectorSplitter(QSplitter):
         self._preferred_size = max(300, full / 2)
 
         try:
-            self._preferred_size = int(
-                configfiles.state['geometry']['inspector_' + self._position])
+            key = 'inspector_' + self._position
+            self._preferred_size = int(configfiles.state['geometry'][key])
         except KeyError:
             # First start
             pass
@@ -229,18 +228,17 @@ class InspectorSplitter(QSplitter):
         sizes = self.sizes()
         total = sizes[0] + sizes[1]
         protected_main_size = 150
-        preferred_size = self._preferred_size
 
         if sizes[self._main_idx] < protected_main_size and total >= 300:
             # Case 2 above
             sizes[self._main_idx] = protected_main_size
             sizes[self._inspector_idx()] = total - protected_main_size
             self.setSizes(sizes)
-        elif (total >= preferred_size + protected_main_size and
-              sizes[self._inspector_idx()] != preferred_size):
+        elif (total >= self._preferred_size + protected_main_size and
+              sizes[self._inspector_idx()] != self._preferred_size):
             # Case 1 above
-            sizes[self._inspector_idx()] = preferred_size
-            sizes[self._main_idx] = total - preferred_size
+            sizes[self._inspector_idx()] = self._preferred_size
+            sizes[self._main_idx] = total - self._preferred_size
             self.setSizes(sizes)
         # else: Case 3 above
 
