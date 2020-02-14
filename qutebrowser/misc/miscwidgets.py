@@ -413,9 +413,6 @@ class InspectorSplitter(QSplitter):
         except:
             log.misc.exception("Error while reading preferred size")
 
-    def _inspector_idx(self):
-        return 1 - self._main_idx
-
     def _adjust_size(self):
         """Adjust the size of the inspector similarly to Chromium.
 
