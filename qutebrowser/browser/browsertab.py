@@ -163,6 +163,7 @@ class InspectorSplitter(QSplitter):
     def __init__(self, main_webview):
         super().__init__()
         self.addWidget(main_webview)
+        self.setFocusProxy(main_webview)
         self.splitterMoved.connect(self._onSplitterMoved)
 
     def set_inspector(self, inspector, position):
