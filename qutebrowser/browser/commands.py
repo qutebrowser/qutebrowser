@@ -1238,9 +1238,10 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',
                        scope='window')
-    @cmdutils.argument('position', choices=['right', 'left', 'top', 'bottom',
-                                            'window'])
-    def toggle_inspector(self, position=None):
+    def toggle_inspector(
+            self,
+            position: inspector.Position = None
+    ) -> None:
         """Toggle the web inspector.
 
         Note: Due to a bug in Qt, the inspector will show incorrect request
@@ -1262,10 +1263,11 @@ class CommandDispatcher:
             if tab.data.inspector is None:
                 if position is None:
                     try:
-                        position = configfiles.state['general'][
-                            'inspector_last_position']
+                        position = inspector.Position[
+                            configfiles.state['general'][
+                                'inspector_last_position']]
                     except KeyError:
-                        position = 'right'
+                        position = inspector.Position.right
                 tab.data.inspector = inspector.create(tab.data.splitter)
                 tab.data.inspector.inspect(page)
                 tab.data.inspector.closed.connect(_on_inspector_closed)
@@ -1273,7 +1275,7 @@ class CommandDispatcher:
 
             if position:
                 configfiles.state['general'][
-                    'inspector_last_position'] = position
+                    'inspector_last_position'] = position.name
 
         except inspector.WebInspectorError as e:
             raise cmdutils.CommandError(e)

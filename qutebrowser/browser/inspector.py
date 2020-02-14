@@ -22,6 +22,7 @@
 import base64
 import binascii
 import typing
+import enum
 
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import pyqtSignal
@@ -48,6 +49,17 @@ def create(splitter, parent=None):
         return webkitinspector.WebKitInspector(splitter, parent)
 
 
+class Position(enum.Enum):
+
+    """Where the inspector is shown."""
+
+    right = 1
+    left = 2
+    top = 3
+    bottom = 4
+    window = 5
+
+
 class WebInspectorError(Exception):
 
     """Raised when the inspector could not be initialized."""
@@ -72,16 +84,16 @@ class AbstractWebInspector(QWidget):
         self._widget = typing.cast(QWidget, None)
         self._layout = miscwidgets.WrapperLayout(self)
         self._splitter = splitter
-        self._position = None
+        self._position = None  # type: typing.Optional[Position]
 
     def _set_widget(self, widget):
         self._widget = widget
         self._layout.wrap(self, widget)
 
-    def set_position(self, position):
+    def set_position(self, position: typing.Optional[Position]) -> None:
         """Set the position of the inspector. Will close the inspector if position is None."""
         if position != self._position:
-            if self._position == 'window':
+            if self._position == Position.window:
                 self._save_state_geometry()
 
             self._position = position
@@ -90,7 +102,7 @@ class AbstractWebInspector(QWidget):
                 self.hide()
                 self.deleteLater()
                 self.closed.emit()
-            elif position == 'window':
+            elif position == Position.window:
                 self.hide()
                 self.setParent(None)
                 self._load_state_geometry()

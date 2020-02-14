@@ -45,7 +45,7 @@ from qutebrowser.config import config, configfiles
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message)
 from qutebrowser.misc import miscwidgets, objects, sessions
-from qutebrowser.browser import eventfilter
+from qutebrowser.browser import eventfilter, inspector
 from qutebrowser.qt import sip
 
 if typing.TYPE_CHECKING:
@@ -166,11 +166,12 @@ class InspectorSplitter(QSplitter):
         self._position = None
         self._preferred_size = None
 
-    def set_inspector(self, inspector, position):
+    def set_inspector(self, inspector_widget: inspector.AbstractWebInspector,
+                      position: inspector.Position):
         """Set the position of the inspector."""
-        assert position in ['right', 'left', 'top', 'bottom']
+        assert position != inspector.Position.window
 
-        if position in ['right', 'bottom']:
+        if position in [inspector.Position.right, inspector.Position.bottom]:
             self._main_idx = 0
             self._inspector_idx = 1
         else:
@@ -179,17 +180,19 @@ class InspectorSplitter(QSplitter):
 
         self.setStretchFactor(self._main_idx, 1)
         self.setStretchFactor(self._inspector_idx, 0)
-        self.setOrientation(Qt.Horizontal if position in ['right', 'left']
+        self.setOrientation(Qt.Horizontal
+                            if position in [inspector.Position.left,
+                                            inspector.Position.right]
                             else Qt.Vertical)
-        self.insertWidget(self._inspector_idx, inspector)
+        self.insertWidget(self._inspector_idx, inspector_widget)
         self._position = position
         self._load_preferred_size()
         self._adjust_size()
 
     def _save_preferred_size(self):
         """Save the preferred size of the inspector widget."""
-        configfiles.state['geometry']['inspector_' + self._position] = str(
-            self._preferred_size)
+        key = 'inspector_' + self._position.name
+        configfiles.state['geometry'][key] = str(self._preferred_size)
 
     def _load_preferred_size(self):
         """Load the preferred size of the inspector widget."""
@@ -203,7 +206,7 @@ class InspectorSplitter(QSplitter):
         self._preferred_size = max(300, full / 2)
 
         try:
-            key = 'inspector_' + self._position
+            key = 'inspector_' + self._position.name
             self._preferred_size = int(configfiles.state['geometry'][key])
         except KeyError:
             # First start
