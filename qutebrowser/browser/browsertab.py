@@ -28,7 +28,7 @@ import attr
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
                           QEvent, QPoint)
 from PyQt5.QtGui import QKeyEvent, QIcon
-from PyQt5.QtWidgets import QWidget, QApplication, QDialog, QSplitter
+from PyQt5.QtWidgets import QWidget, QApplication, QDialog
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtNetwork import QNetworkAccessManager
 
@@ -144,124 +144,6 @@ class TabData:
     def should_show_icon(self) -> bool:
         return (config.val.tabs.favicons.show == 'always' or
                 config.val.tabs.favicons.show == 'pinned' and self.pinned)
-
-
-class InspectorSplitter(QSplitter):
-
-    """Allows putting an inspector inside the tab.
-
-    Attributes:
-        _main_idx: index of the main webview widget
-        _position: position of the inspector (right/left/top/bottom)
-        _preferred_size: the preferred size of the inpector widget in pixels
-    """
-
-    def __init__(self, main_webview):
-        super().__init__()
-        self.addWidget(main_webview)
-        self.setFocusProxy(main_webview)
-        self.splitterMoved.connect(self._onSplitterMoved)
-        self._main_idx = None
-        self._inspector_idx = None
-        self._position = None
-        self._preferred_size = None
-
-    def set_inspector(self, inspector_widget: inspector.AbstractWebInspector,
-                      position: inspector.Position):
-        """Set the position of the inspector."""
-        assert position != inspector.Position.window
-
-        if position in [inspector.Position.right, inspector.Position.bottom]:
-            self._main_idx = 0
-            self._inspector_idx = 1
-        else:
-            self._inspector_idx = 0
-            self._main_idx = 1
-
-        self.setStretchFactor(self._main_idx, 1)
-        self.setStretchFactor(self._inspector_idx, 0)
-        self.setOrientation(Qt.Horizontal
-                            if position in [inspector.Position.left,
-                                            inspector.Position.right]
-                            else Qt.Vertical)
-        self.insertWidget(self._inspector_idx, inspector_widget)
-        self._position = position
-        self._load_preferred_size()
-        self._adjust_size()
-
-    def _save_preferred_size(self):
-        """Save the preferred size of the inspector widget."""
-        key = 'inspector_' + self._position.name
-        configfiles.state['geometry'][key] = str(self._preferred_size)
-
-    def _load_preferred_size(self):
-        """Load the preferred size of the inspector widget."""
-        full = (self.width() if self.orientation() == Qt.Horizontal
-                else self.height())
-
-        # If we first open the inspector with a window size of <300px, we don't
-        # want to default to half of the window size as the small window is
-        # likely a temporary situation and the inspector isn't very usable in
-        # that state.
-        self._preferred_size = max(300, full / 2)
-
-        try:
-            key = 'inspector_' + self._position.name
-            self._preferred_size = int(configfiles.state['geometry'][key])
-        except KeyError:
-            # First start
-            pass
-        except:
-            log.misc.exception("Error while reading preferred size")
-
-    def _inspector_idx(self):
-        return 1 - self._main_idx
-
-    def _adjust_size(self):
-        """Adjust the size of the inspector similarly to Chromium.
-
-        In general, we want to keep the absolute size of the inspector (rather
-        than the ratio) the same, as it's confusing when the layout of its
-        contents changes.
-
-        We're essentially handling three different cases:
-
-        1) We have plenty of space -> Keep inspector at the preferred absolute
-           size.
-
-        2) We're slowly running out of space. Make sure the page still has
-           150px (protected_main_size) left, give the rest to the inspector.
-
-        3) The window is very small (< 300px). Keep Qt's behavior of keeping
-           the aspect ratio, as all hope is lost at this point.
-        """
-        sizes = self.sizes()
-        total = sizes[0] + sizes[1]
-        protected_main_size = 150
-
-        if sizes[self._main_idx] < protected_main_size and total >= 300:
-            # Case 2 above
-            sizes[self._main_idx] = protected_main_size
-            sizes[self._inspector_idx] = total - protected_main_size
-            self.setSizes(sizes)
-        elif (total >= self._preferred_size + protected_main_size and
-              sizes[self._inspector_idx] != self._preferred_size):
-            # Case 1 above
-            sizes[self._inspector_idx] = self._preferred_size
-            sizes[self._main_idx] = total - self._preferred_size
-            self.setSizes(sizes)
-        # else: Case 3 above
-
-    def _onSplitterMoved(self, _pos, _index):
-        sizes = self.sizes()
-        self._preferred_size = sizes[self._inspector_idx]
-        self._save_preferred_size()
-
-    def resizeEvent(self, e):
-        """Window resize event."""
-        super().resizeEvent(e)
-        if self.count() == 2:
-            self._adjust_size()
 
 
 class AbstractAction:
@@ -1020,7 +902,7 @@ class AbstractTab(QWidget):
     def _set_widget(self, widget: QWidget) -> None:
         # pylint: disable=protected-access
         self._widget = widget
-        self.data.splitter = InspectorSplitter(widget)
+        self.data.splitter = miscwidgets.InspectorSplitter(widget)
         self._layout.wrap(self, self.data.splitter)
         self.history._history = widget.history()
         self.history.private_api._history = widget.history()
