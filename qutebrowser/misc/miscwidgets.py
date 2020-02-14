@@ -359,7 +359,7 @@ class InspectorSplitter(QSplitter):
         super().__init__()
         self.addWidget(main_webview)
         self.setFocusProxy(main_webview)
-        self.splitterMoved.connect(self._onSplitterMoved)
+        self.splitterMoved.connect(self._onSplitterMoved)  # type: ignore
         self._main_idx = None
         self._inspector_idx = None
         self._position = None
@@ -390,11 +390,13 @@ class InspectorSplitter(QSplitter):
 
     def _save_preferred_size(self):
         """Save the preferred size of the inspector widget."""
+        assert self._position is not None
         key = 'inspector_' + self._position.name
         configfiles.state['geometry'][key] = str(self._preferred_size)
 
     def _load_preferred_size(self):
         """Load the preferred size of the inspector widget."""
+        assert self._position is not None
         full = (self.width() if self.orientation() == Qt.Horizontal
                 else self.height())
 
@@ -435,6 +437,10 @@ class InspectorSplitter(QSplitter):
         total = sizes[0] + sizes[1]
         protected_main_size = 150
 
+        assert self._main_idx is not None
+        assert self._inspector_idx is not None
+        assert self._preferred_size is not None
+
         if sizes[self._main_idx] < protected_main_size and total >= 300:
             # Case 2 above
             sizes[self._main_idx] = protected_main_size
@@ -449,6 +455,7 @@ class InspectorSplitter(QSplitter):
         # else: Case 3 above
 
     def _onSplitterMoved(self, _pos, _index):
+        assert self._inspector_idx is not None
         sizes = self.sizes()
         self._preferred_size = sizes[self._inspector_idx]
         self._save_preferred_size()

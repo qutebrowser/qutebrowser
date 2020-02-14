@@ -139,7 +139,7 @@ class TabData:
     netrc_used = attr.ib(False)  # type: bool
     input_mode = attr.ib(usertypes.KeyMode.normal)  # type: usertypes.KeyMode
     last_navigation = attr.ib(None)  # type: usertypes.NavigationRequest
-    splitter = attr.ib(None)
+    splitter = attr.ib(None)  # type: miscwidgets.InspectorSplitter
 
     def should_show_icon(self) -> bool:
         return (config.val.tabs.favicons.show == 'always' or

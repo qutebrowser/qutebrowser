@@ -104,7 +104,7 @@ class AbstractWebInspector(QWidget):
                 self.closed.emit()
             elif position == Position.window:
                 self.hide()
-                self.setParent(None)
+                self.setParent(None)  # type: ignore
                 self._load_state_geometry()
             else:
                 self._splitter.set_inspector(self, position)
