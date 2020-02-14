@@ -1193,7 +1193,7 @@ Background color of the statusbar in private browsing + command mode.
 
 Type: <<types,QssColor>>
 
-Default: +pass:[grey]+
+Default: +pass:[darkslategray]+
 
 [[colors.statusbar.command.private.fg]]
 === colors.statusbar.command.private.fg
