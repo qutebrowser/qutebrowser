@@ -637,6 +637,7 @@ def test_force_encoding(inp, enc, expected):
 def test_sanitize_filename(inp, expected, monkeypatch):
     assert utils.sanitize_filename(inp) == expected
 
+
 @pytest.mark.parametrize('length, extension', [
     (42, '.html'),
     (100, '.py'),
