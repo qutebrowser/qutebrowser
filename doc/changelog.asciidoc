@@ -20,7 +20,7 @@ v1.11.0 (unreleased)
 
 No changes yet.
 
-v1.10.1 (unreleased)
+v1.10.1 (2020-02-15)
 --------------------
 
 Fixed
