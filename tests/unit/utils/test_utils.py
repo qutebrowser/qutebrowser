@@ -637,6 +637,17 @@ def test_force_encoding(inp, enc, expected):
 def test_sanitize_filename(inp, expected, monkeypatch):
     assert utils.sanitize_filename(inp) == expected
 
+@pytest.mark.parametrize('length, extension', [
+    (42, '.html'),
+    (100, '.py'),
+    (100, '.asm'),
+])
+def test_sanitize_filename_truncate_long(length, extension):
+    name = '_' * (length - len(extension)) + extension
+    sanitized = utils.sanitize_filename(name)
+    assert len(sanitized) <= 63
+    assert sanitized.endswith(extension)
+
 
 @pytest.mark.fake_os('windows')
 def test_sanitize_filename_empty_replacement():
