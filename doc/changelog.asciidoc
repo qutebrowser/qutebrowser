@@ -28,7 +28,10 @@ Fixed
 
 - Crash when saving data fails during shutdown (which was a regression
   introduced in v1.9.0).
-- Error while reading config.py when `fonts.tabs` or `fonts.debug_console` is set to a value including `default_size`.
+- Error while reading config.py when `fonts.tabs` or `fonts.debug_console` is
+  set to a value including `default_size`.
+- When a `state` file contains invalid UTF-8 data, a proper error is now
+  displayed.
 
 Changed
 ~~~~~~~
