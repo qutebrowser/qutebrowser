@@ -10,4 +10,4 @@ toml==0.10.0
 tox==3.14.5
 tox-pip-version==0.0.6
 tox-venv==0.4.0
-virtualenv==20.0.1
+virtualenv==20.0.4
