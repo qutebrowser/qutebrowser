@@ -27,6 +27,17 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView
 from qutebrowser.browser import inspector
 from qutebrowser.browser.webengine import webenginesettings
 
+class WebEngineInspectorView(QWebEngineView):
+    def createWindow(self, wintype):
+        """Called by Qt when a page wants to create a new tab or window.
+
+        In case the user wants to open a resource in a new tab, we use the
+        createWindow handling of the main page to achieve that.
+
+        See WebEngineView.createWindow for details.
+
+        """
+        return self.page().inspectedPage().view().createWindow(wintype)
 
 class WebEngineInspector(inspector.AbstractWebInspector):
 
@@ -35,7 +46,7 @@ class WebEngineInspector(inspector.AbstractWebInspector):
     def __init__(self, splitter, parent=None):
         super().__init__(splitter, parent)
         self.port = None
-        view = QWebEngineView()
+        view = WebEngineInspectorView()
         self._settings = webenginesettings.WebEngineSettings(view.settings())
         self._set_widget(view)
 
