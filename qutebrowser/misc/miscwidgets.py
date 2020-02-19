@@ -404,7 +404,7 @@ class InspectorSplitter(QSplitter):
         # want to default to half of the window size as the small window is
         # likely a temporary situation and the inspector isn't very usable in
         # that state.
-        self._preferred_size = max(300, full / 2)
+        self._preferred_size = max(300, full // 2)
 
         try:
             key = 'inspector_' + self._position.name
