@@ -45,7 +45,7 @@ from qutebrowser.config import config, configfiles
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message)
 from qutebrowser.misc import miscwidgets, objects, sessions
-from qutebrowser.browser import eventfilter, inspector
+from qutebrowser.browser import eventfilter
 from qutebrowser.qt import sip
 
 if typing.TYPE_CHECKING:
