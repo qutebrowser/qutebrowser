@@ -187,6 +187,7 @@ Feature: Javascript stuff
         When I set content.javascript.enabled to false
         And I open 500 without waiting
         Then "Showing error page for* 500" should be logged
+        And "Load error: HTTP ERROR 500" should be logged
 
     @flaky
     Scenario: Using JS after window.open
