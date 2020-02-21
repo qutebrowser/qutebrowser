@@ -267,11 +267,11 @@ class SessionManager(QObject):
 
             if tabbed_browser.is_treetabbedbrowser:
                 # a dict where keys are node UIDs, and values are dicts
-                # with tab data (the resul of _save_tab) and a list of
+                # with tab data (the result of _save_tab) and a list of
                 # children UIDs
                 tree_data = {}
                 root_node = tabbed_browser.widget.tree_root
-                for i, node in enumerate(root_node.traverse()):
+                for i, node in enumerate(root_node.traverse(), -1):
                     node_data = {}
                     active = i == tabbed_browser.widget.currentIndex()
                     node_data['tab'] = self._save_tab(node.value, active)
@@ -445,12 +445,20 @@ class SessionManager(QObject):
             return
 
         root_node = tabbed_browser.widget.tree_root
+        tab_to_focus = None
+        index = -1
 
         def recursive_load_node(uid):
+            nonlocal tab_to_focus
+            nonlocal index
+            index += 1
             node_data = tree_data[uid]
             children_uids = node_data['children']
 
             children = [recursive_load_node(uid) for uid in children_uids]
+
+            if tree_data[uid]['tab'].get('active'):
+                tab_to_focus = index
 
             tab_data = node_data['tab']
             new_tab = tabbed_browser.tabopen(background=False)
@@ -464,6 +472,8 @@ class SessionManager(QObject):
         for child_uid in root_data['children']:
             child = recursive_load_node(child_uid)
             child.parent = root_node
+
+        return tab_to_focus
 
     def _load_window(self, win):
         """Turn yaml data into windows."""
@@ -481,7 +491,7 @@ class SessionManager(QObject):
         if win.get('tree'):
             if tabbed_browser.is_treetabbedbrowser:
                 tree_data = win.get('tree')
-                self._load_tree(tabbed_browser, tree_data)
+                tab_to_focus = self._load_tree(tabbed_browser, tree_data)
                 tabbed_browser.widget.tree_tab_update()
             else:
                 tree = win.get('tree')
@@ -496,10 +506,12 @@ class SessionManager(QObject):
                 if new_tab.data.pinned:
                     tabbed_browser.widget.set_tab_pinned(
                         new_tab, new_tab.data.pinned)
-            if tab_to_focus is not None:
-                tabbed_browser.widget.setCurrentIndex(tab_to_focus)
-            if win.get('active', False):
-                QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
+
+        if tab_to_focus is not None:
+            tabbed_browser.widget.setCurrentIndex(tab_to_focus)
+
+        if win.get('active', False):
+            QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
 
     def load(self, name, temp=False):
         """Load a named session.
