@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import time
-
 import pytest_bdd as bdd
 bdd.scenarios('prompts.feature')
 
@@ -57,8 +55,10 @@ def ssl_error_page(request, quteproc):
         msg = quteproc.wait_for(message="Load error: *")
         msg.expected = True
 
-        expected_messages = ['Load error: ERR_INSECURE_RESPONSE',  # Qt <= 5.10
-                             'Load error: ERR_CERT_AUTHORITY_INVALID']  # Qt 5.11
+        expected_messages = [
+            'Load error: ERR_INSECURE_RESPONSE',  # Qt <= 5.10
+            'Load error: ERR_CERT_AUTHORITY_INVALID',  # Qt 5.11
+        ]
         assert msg.message in expected_messages
     else:
         if not request.config.webengine:
