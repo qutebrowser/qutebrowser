@@ -455,8 +455,6 @@ class SessionManager(QObject):
             node_data = tree_data[uid]
             children_uids = node_data['children']
 
-            children = [recursive_load_node(uid) for uid in children_uids]
-
             if tree_data[uid]['tab'].get('active'):
                 tab_to_focus = index
 
@@ -465,6 +463,7 @@ class SessionManager(QObject):
             self._load_tab(new_tab, tab_data)
 
             new_tab.node.parent = root_node
+            children = [recursive_load_node(uid) for uid in children_uids]
             new_tab.node.children = children
             new_tab.node.collapsed = node_data['collapsed']
             return new_tab.node
