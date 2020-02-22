@@ -85,9 +85,7 @@ class TreeTabbedBrowser(TabbedBrowser):
             self._on_current_changed)
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self._tree_tab_child_rel_idx = 0
-        self._tree_tab_sibling_rel_idx = 0
-        self._tree_tab_toplevel_rel_idx = 0
+        self._reset_stack_counters()
 
     def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
         """Handle children positioning after a tab is removed."""
@@ -275,14 +273,19 @@ class TreeTabbedBrowser(TabbedBrowser):
             siblings.append(tab.node)
         parent.children = siblings
         self.widget.tree_tab_update()
+        if not background:
+            self._reset_stack_counters()
         return tab
+
+    def _reset_stack_counters(self):
+        self._tree_tab_child_rel_idx = 0
+        self._tree_tab_sibling_rel_idx = 0
+        self._tree_tab_toplevel_rel_idx = 0
 
     @pyqtSlot(int)
     def _on_current_changed(self, idx):
         super()._on_current_changed(idx)
-        self._tree_tab_child_rel_idx = 0
-        self._tree_tab_sibling_rel_idx = 0
-        self._tree_tab_toplevel_rel_idx = 0
+        self._reset_stack_counters()
 
     def cycle_hide_tab(self, node):
         """Utility function for tree_tab_cycle_hide command."""
