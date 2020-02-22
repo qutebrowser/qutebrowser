@@ -20,17 +20,21 @@
 """Customized QWebInspector for QtWebEngine."""
 
 import os
+import typing
 
 from PyQt5.QtCore import QUrl
-from PyQt5.QtWebEngineWidgets import QWebEngineView
+from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
+from PyQt5.QtWidgets import QWidget
 
 from qutebrowser.browser import inspector
 from qutebrowser.browser.webengine import webenginesettings
+from qutebrowser.misc import miscwidgets
 
 
 class WebEngineInspectorView(QWebEngineView):
 
-    def createWindow(self, wintype):
+    def createWindow(self,
+                     wintype: QWebEnginePage.WebWindowType) -> QWebEnginePage:
         """Called by Qt when a page wants to create a new tab or window.
 
         In case the user wants to open a resource in a new tab, we use the
@@ -45,14 +49,15 @@ class WebEngineInspector(inspector.AbstractWebInspector):
 
     """A web inspector for QtWebEngine."""
 
-    def __init__(self, splitter, parent=None):
+    def __init__(self, splitter: miscwidgets.InspectorSplitter,
+                 parent: QWidget = None) -> None:
         super().__init__(splitter, parent)
         self.port = None
         view = WebEngineInspectorView()
         self._settings = webenginesettings.WebEngineSettings(view.settings())
         self._set_widget(view)
 
-    def _inspect_old(self, page):
+    def _inspect_old(self, page: typing.Optional[QWebEnginePage]) -> None:
         """Set up the inspector for Qt < 5.11."""
         try:
             port = int(os.environ['QTWEBENGINE_REMOTE_DEBUGGING'])
@@ -66,17 +71,19 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         self._settings.update_for_url(QUrl('chrome-devtools://devtools'))
 
         if page is None:
+            # FIXME can this ever happen?
+            # if so, shouldn't _inspect_new/inspect have typing.Optional too?
             self._widget.load(QUrl('about:blank'))
         else:
             self._widget.load(QUrl('http://localhost:{}/'.format(port)))
 
-    def _inspect_new(self, page):
+    def _inspect_new(self, page: QWebEnginePage) -> None:
         """Set up the inspector for Qt >= 5.11."""
         inspector_page = self._widget.page()
         inspector_page.setInspectedPage(page)
         self._settings.update_for_url(inspector_page.requestedUrl())
 
-    def inspect(self, page):
+    def inspect(self, page: QWebEnginePage) -> None:
         try:
             self._inspect_new(page)
         except AttributeError:

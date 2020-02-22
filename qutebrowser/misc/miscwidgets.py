@@ -25,7 +25,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QTimer
 from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
                              QStyleOption, QStyle, QLayout, QApplication,
                              QSplitter)
-from PyQt5.QtGui import QValidator, QPainter
+from PyQt5.QtGui import QValidator, QPainter, QResizeEvent
 
 from qutebrowser.config import config, configfiles
 from qutebrowser.utils import utils, log
@@ -355,18 +355,18 @@ class InspectorSplitter(QSplitter):
         _preferred_size: the preferred size of the inpector widget in pixels
     """
 
-    def __init__(self, main_webview):
+    def __init__(self, main_webview: QWidget) -> None:
         super().__init__()
         self.addWidget(main_webview)
         self.setFocusProxy(main_webview)
         self.splitterMoved.connect(self._onSplitterMoved)  # type: ignore
-        self._main_idx = None
-        self._inspector_idx = None
-        self._position = None
-        self._preferred_size = None
+        self._main_idx = None  # type: typing.Optional[int]
+        self._inspector_idx = None  # type: typing.Optional[int]
+        self._position = None  # type: typing.Optional[inspector.Position]
+        self._preferred_size = None  # type: typing.Optional[int]
 
     def set_inspector(self, inspector_widget: inspector.AbstractWebInspector,
-                      position: inspector.Position):
+                      position: inspector.Position) -> None:
         """Set the position of the inspector."""
         assert position != inspector.Position.window
 
@@ -388,13 +388,13 @@ class InspectorSplitter(QSplitter):
         self._load_preferred_size()
         self._adjust_size()
 
-    def _save_preferred_size(self):
+    def _save_preferred_size(self) -> None:
         """Save the preferred size of the inspector widget."""
         assert self._position is not None
         key = 'inspector_' + self._position.name
         configfiles.state['geometry'][key] = str(self._preferred_size)
 
-    def _load_preferred_size(self):
+    def _load_preferred_size(self) -> None:
         """Load the preferred size of the inspector widget."""
         assert self._position is not None
         full = (self.width() if self.orientation() == Qt.Horizontal
@@ -415,7 +415,7 @@ class InspectorSplitter(QSplitter):
         except:
             log.misc.exception("Error while reading preferred size")
 
-    def _adjust_size(self):
+    def _adjust_size(self) -> None:
         """Adjust the size of the inspector similarly to Chromium.
 
         In general, we want to keep the absolute size of the inspector (rather
@@ -454,13 +454,13 @@ class InspectorSplitter(QSplitter):
             self.setSizes(sizes)
         # else: Case 3 above
 
-    def _onSplitterMoved(self, _pos, _index):
+    def _onSplitterMoved(self) -> None:
         assert self._inspector_idx is not None
         sizes = self.sizes()
         self._preferred_size = sizes[self._inspector_idx]
         self._save_preferred_size()
 
-    def resizeEvent(self, e):
+    def resizeEvent(self, e: QResizeEvent) -> None:
         """Window resize event."""
         super().resizeEvent(e)
         if self.count() == 2:

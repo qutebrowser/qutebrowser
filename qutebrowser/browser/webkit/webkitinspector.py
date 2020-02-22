@@ -20,21 +20,24 @@
 """Customized QWebInspector for QtWebKit."""
 
 from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtWebKitWidgets import QWebInspector
+from PyQt5.QtWebKitWidgets import QWebInspector, QWebPage
+from PyQt5.QtWidgets import QWidget
 
 from qutebrowser.browser import inspector
+from qutebrowser.misc import miscwidgets
 
 
 class WebKitInspector(inspector.AbstractWebInspector):
 
     """A web inspector for QtWebKit."""
 
-    def __init__(self, splitter, parent=None):
+    def __init__(self, splitter: miscwidgets.InspectorSplitter,
+                 parent: QWidget = None) -> None:
         super().__init__(splitter, parent)
         qwebinspector = QWebInspector()
         self._set_widget(qwebinspector)
 
-    def inspect(self, page):
+    def inspect(self, page: QWebPage) -> None:
         settings = QWebSettings.globalSettings()
         settings.setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
         self._widget.setPage(page)

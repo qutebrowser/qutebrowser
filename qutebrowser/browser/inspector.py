@@ -26,13 +26,15 @@ import enum
 
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtGui import QCloseEvent
 
 from qutebrowser.config import configfiles
 from qutebrowser.utils import log, usertypes
 from qutebrowser.misc import miscwidgets, objects
 
 
-def create(splitter, parent=None):
+def create(splitter: 'miscwidgets.InspectorSplitter',
+           parent: QWidget = None) -> 'AbstractWebInspector':
     """Get a WebKitInspector/WebEngineInspector.
 
     Args:
@@ -79,14 +81,15 @@ class AbstractWebInspector(QWidget):
 
     closed = pyqtSignal()
 
-    def __init__(self, splitter, parent=None):
+    def __init__(self, splitter: 'miscwidgets.InspectorSplitter',
+                 parent: QWidget = None) -> None:
         super().__init__(parent)
         self._widget = typing.cast(QWidget, None)
         self._layout = miscwidgets.WrapperLayout(self)
         self._splitter = splitter
         self._position = None  # type: typing.Optional[Position]
 
-    def _set_widget(self, widget):
+    def _set_widget(self, widget: QWidget) -> None:
         self._widget = widget
         self._layout.wrap(self, widget)
 
@@ -110,7 +113,7 @@ class AbstractWebInspector(QWidget):
                 self._splitter.set_inspector(self, position)
             self.show()
 
-    def _load_state_geometry(self):
+    def _load_state_geometry(self) -> None:
         """Load the geometry from the state file."""
         try:
             data = configfiles.state['geometry']['inspector']
@@ -126,17 +129,17 @@ class AbstractWebInspector(QWidget):
             if not ok:
                 log.init.warning("Error while loading geometry.")
 
-    def _save_state_geometry(self):
+    def _save_state_geometry(self) -> None:
         """Save the geometry to the state file."""
         data = bytes(self.saveGeometry())
         geom = base64.b64encode(data).decode('ASCII')
         configfiles.state['geometry']['inspector'] = geom
 
-    def closeEvent(self, e):
+    def closeEvent(self, e: QCloseEvent) -> None:
         """Save the window geometry when closed."""
         self.set_position(None)
         super().closeEvent(e)
 
-    def inspect(self, page):
+    def inspect(self, page: QWidget) -> None:
         """Inspect the given QWeb(Engine)Page."""
         raise NotImplementedError
