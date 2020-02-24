@@ -359,7 +359,7 @@ class InspectorSplitter(QSplitter):
         super().__init__()
         self.addWidget(main_webview)
         self.setFocusProxy(main_webview)
-        self.splitterMoved.connect(self._onSplitterMoved)  # type: ignore
+        self.splitterMoved.connect(self._on_splitter_moved)  # type: ignore
         self._main_idx = None  # type: typing.Optional[int]
         self._inspector_idx = None  # type: typing.Optional[int]
         self._position = None  # type: typing.Optional[inspector.Position]
@@ -454,7 +454,8 @@ class InspectorSplitter(QSplitter):
             self.setSizes(sizes)
         # else: Case 3 above
 
-    def _onSplitterMoved(self) -> None:
+    @pyqtSlot()
+    def _on_splitter_moved(self) -> None:
         assert self._inspector_idx is not None
         sizes = self.sizes()
         self._preferred_size = sizes[self._inspector_idx]
