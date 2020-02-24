@@ -16,7 +16,7 @@ manhole==1.6.0
 pycparser==2.19
 Pympler==0.8
 python-dateutil==2.8.1
-requests==2.22.0
+requests==2.23.0
 six==1.14.0
 uritemplate==3.0.1
 urllib3==1.25.8
