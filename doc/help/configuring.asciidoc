@@ -368,6 +368,21 @@ def bind_chained(key, *commands):
 bind_chained('<Escape>', 'clear-keychain', 'search')
 ----
 
+You can change scroll speed this way:
+
+[source,python]
+----
+def repeat_command(key, repeat_times, command):
+    commands = [command] * repeat_times
+    command = ' ;; '.join(commands)
+    config.bind(key, command)
+    
+# change speed here
+scroll_speed = 5
+repeat_command('<j>', scroll_speed, 'scroll down')
+repeat_command('<k>', scroll_speed, 'scroll up')
+----
+
 Reading colors from Xresources
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
