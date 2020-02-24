@@ -2,7 +2,7 @@
 
 certifi==2019.11.28
 chardet==3.0.4
-codecov==2.0.15
+codecov==2.0.16
 coverage==5.0.3
 idna==2.8
 requests==2.22.0
