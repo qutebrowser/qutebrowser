@@ -226,7 +226,6 @@ window._qutebrowser.webelem = (function() {
         return null;
     }
 
-
     // Return elements that are scrollable
     function find_scrollable(only_visible) {
         let scrollable_elts = [];
@@ -309,21 +308,6 @@ window._qutebrowser.webelem = (function() {
         // elements.
         return {"success": true, "result": selector_out.concat(special_out)};
     };
-
-    // Runs a function in a frame until the result is not null, then return
-    // If no frame succeeds, return null
-    function run_frames(func) {
-        for (let i = 0; i < window.frames.length; ++i) {
-            const frame = window.frames[i];
-            if (iframe_same_domain(frame)) {
-                const result = func(frame);
-                if (result) {
-                    return result;
-                }
-            }
-        }
-        return null;
-    }
 
     funcs.find_id = (id) => {
         const elem = document.getElementById(id);
