@@ -1268,9 +1268,12 @@ class CommandDispatcher:
                                 'inspector_last_position']]
                     except KeyError:
                         position = inspector.Position.right
-                tab.data.inspector = inspector.create(tab.data.splitter)
+
+                tab.data.inspector = inspector.create(
+                    splitter=tab.data.splitter, win_id=tab.win_id)
                 tab.data.inspector.inspect(page)
                 tab.data.inspector.closed.connect(_on_inspector_closed)
+
             tab.data.inspector.set_position(position)
 
             if position:

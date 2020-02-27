@@ -32,8 +32,9 @@ class WebKitInspector(inspector.AbstractWebInspector):
     """A web inspector for QtWebKit."""
 
     def __init__(self, splitter: miscwidgets.InspectorSplitter,
+                 win_id: int,
                  parent: QWidget = None) -> None:
-        super().__init__(splitter, parent)
+        super().__init__(splitter, win_id, parent)
         qwebinspector = QWebInspector()
         self._set_widget(qwebinspector)
 

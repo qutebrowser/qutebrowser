@@ -43,7 +43,7 @@ class ChildEventFilter(QObject):
         _focus_workaround: Whether to enable a workaround for QTBUG-68076.
     """
 
-    def __init__(self, eventfilter, widget, win_id, focus_workaround=False,
+    def __init__(self, *, eventfilter, widget, win_id, focus_workaround=False,
                  parent=None):
         super().__init__(parent)
         self._filter = eventfilter
