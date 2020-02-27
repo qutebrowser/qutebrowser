@@ -120,18 +120,14 @@ class AbstractWebInspector(QWidget):
         self._splitter = splitter
         self._position = None  # type: typing.Optional[Position]
         self._event_filter = _EventFilter(win_id, parent=self)
-        self._child_event_filter = (
-            None)  # type: typing.Optional[eventfilter.ChildEventFilter]
-        self._win_id = win_id
+        self._child_event_filter = eventfilter.ChildEventFilter(
+            eventfilter=self._event_filter,
+            win_id=win_id,
+            parent=self)
 
     def _set_widget(self, widget: QWidget) -> None:
         self._widget = widget
         self._layout.wrap(self, widget)
-        self._child_event_filter = eventfilter.ChildEventFilter(
-            eventfilter=self._event_filter,
-            widget=self._widget,
-            win_id=self._win_id,
-            parent=self)
         self._widget.installEventFilter(self._child_event_filter)
 
     def set_position(self, position: typing.Optional[Position]) -> None:

@@ -43,19 +43,22 @@ class ChildEventFilter(QObject):
         _focus_workaround: Whether to enable a workaround for QTBUG-68076.
     """
 
-    def __init__(self, *, eventfilter, widget, win_id, focus_workaround=False,
-                 parent=None):
+    def __init__(self, *, eventfilter, win_id, focus_workaround=False,
+                 widget=None, parent=None):
         super().__init__(parent)
         self._filter = eventfilter
-        assert widget is not None
         self._widget = widget
         self._win_id = win_id
         self._focus_workaround = focus_workaround
+        if focus_workaround:
+            assert widget is not None
 
     def _do_focus_workaround(self):
         """WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076."""
         if not self._focus_workaround:
             return
+
+        assert self._widget is not None
 
         pass_modes = [usertypes.KeyMode.command,
                       usertypes.KeyMode.prompt,
@@ -80,7 +83,11 @@ class ChildEventFilter(QObject):
             child = event.child()
             log.misc.debug("{} got new child {}, installing filter"
                            .format(obj, child))
-            assert obj is self._widget
+
+            # Additional sanity check, but optional
+            if self._widget is not None:
+                assert obj is self._widget
+
             child.installEventFilter(self._filter)
             self._do_focus_workaround()
         elif event.type() == QEvent.ChildRemoved:
