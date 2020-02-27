@@ -168,7 +168,13 @@ for those, please mailto:mail@qutebrowser.org[get in touch] for details.
   - Bank: PostFinance AG, Mingerstrasse 20, 3030 Bern, Switzerland (BIC: POFICHBEXXX)
   - If you need any other information: Contact me at mail@qutebrowser.org.
 * PayPal: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=CHF&source=url[CHF], https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=EUR&source=url[EUR], https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=USD&source=url[USD]
-* Bitcoin: link:bitcoin:1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE[1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE]
+* Cryptocurrencies:
+  - Bitcoin: link:bitcoin:bc1q3ptyw8hxrcfz6ucfgmglphfvhqpy8xr6k25p00[bc1q3ptyw8hxrcfz6ucfgmglphfvhqpy8xr6k25p00]
+  - Bitcoin Cash: link:bitcoincash:1BnxUbnJ5MrEPeh5nuUMx83tbiRAvqJV3N[1BnxUbnJ5MrEPeh5nuUMx83tbiRAvqJV3N]
+  - Ethereum: link:ethereum:0x10c2425856F7a8799EBCaac4943026803b1089c6[0x10c2425856F7a8799EBCaac4943026803b1089c6]
+  - Litecoin: link:litecoin:MDt3YQciuCh6QyFmr8TiWNxB94PVzbnPm2[MDt3YQciuCh6QyFmr8TiWNxB94PVzbnPm2]
+  - Others: Please mailto:mail@qutebrowser.org[get in touch], I'd happily set up anything link:https://www.ledger.com/supported-crypto-assets[supported by Ledger Live]
+
 
 Sponsors
 --------

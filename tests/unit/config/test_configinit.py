@@ -206,9 +206,13 @@ class TestEarlyInit:
 
         assert dump == '\n'.join(expected)
 
-    def test_state_init_errors(self, init_patch, args, data_tmpdir):
+    @pytest.mark.parametrize('byte', [
+        b'\x00',  # configparser.Error
+        b'\xda',  # UnicodeDecodeError
+    ])
+    def test_state_init_errors(self, init_patch, args, data_tmpdir, byte):
         state_file = data_tmpdir / 'state'
-        state_file.write_binary(b'\x00')
+        state_file.write_binary(byte)
         configinit.early_init(args)
         assert configinit._init_errors.errors
 

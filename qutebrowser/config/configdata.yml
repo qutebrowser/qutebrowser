@@ -2326,7 +2326,7 @@ colors.statusbar.command.private.fg:
   desc: Foreground color of the statusbar in private browsing + command mode.
 
 colors.statusbar.command.private.bg:
-  default: grey
+  default: darkslategray
   type: QssColor
   desc: Background color of the statusbar in private browsing + command mode.
 

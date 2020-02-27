@@ -20,7 +20,7 @@ v1.11.0 (unreleased)
 
 No changes yet.
 
-v1.10.1 (unreleased)
+v1.10.1 (2020-02-15)
 --------------------
 
 Fixed
@@ -28,7 +28,10 @@ Fixed
 
 - Crash when saving data fails during shutdown (which was a regression
   introduced in v1.9.0).
-- Error while reading config.py when `fonts.tabs` or `fonts.debug_console` is set to a value including `default_size`.
+- Error while reading config.py when `fonts.tabs` or `fonts.debug_console` is
+  set to a value including `default_size`.
+- When a `state` file contains invalid UTF-8 data, a proper error is now
+  displayed.
 
 Changed
 ~~~~~~~
@@ -44,6 +47,9 @@ Changed
 - The `mkvenv.py` now ensures the latest versions of `setuptools` and `wheel`
   are installed in the virtual environment, which should speed up installation
   and fix install issues.
+- The default for `colors.statusbar.command.private.bg` has been changed to a
+  slightly different gray, as a workaround for a Qt issue where the cursor was
+  invisible in that case.
 
 v1.10.0 (2020-02-02)
 --------------------

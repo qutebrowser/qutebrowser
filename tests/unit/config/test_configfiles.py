@@ -1223,4 +1223,4 @@ def test_init(init_patch, config_tmpdir):
         settings.sync()
         assert (config_tmpdir / 'qsettings').exists()
 
-    # Lots of other stuff is tested in test_config.py in test_init
+    # Lots of other stuff is tested in test_configinit.py

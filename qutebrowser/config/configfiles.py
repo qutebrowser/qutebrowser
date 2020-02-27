@@ -774,7 +774,7 @@ def init() -> None:
 
     try:
         state = StateConfig()
-    except configparser.Error as e:
+    except (configparser.Error, UnicodeDecodeError) as e:
         msg = "While loading state file from {}".format(standarddir.data())
         desc = configexc.ConfigErrorDesc(msg, e)
         raise configexc.ConfigFileErrors('state', [desc], fatal=True)

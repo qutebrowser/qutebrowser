@@ -62,6 +62,9 @@ def parse_args() -> argparse.Namespace:
                         "asciidoc.py. If not given, it's searched in PATH.",
                         nargs=2, required=False,
                         metavar=('PYTHON', 'ASCIIDOC'))
+    parser.add_argument('--dev',
+                        action='store_true',
+                        help="Also install dev/test dependencies.")
     parser.add_argument('--tox-error',
                         action='store_true',
                         help=argparse.SUPPRESS)
@@ -169,11 +172,16 @@ def upgrade_seed_pkgs(venv_dir: pathlib.Path) -> None:
     pip_install(venv_dir, '-U', 'setuptools', 'wheel')
 
 
-def pyqt_requirements_file(version: str):
-    """Get the filename of the requirements file for the given PyQt version."""
-    suffix = '' if version == 'auto' else '-{}'.format(version)
+def requirements_file(name: str) -> pathlib.Path:
+    """Get the filename of a requirements file."""
     return (REPO_ROOT / 'misc' / 'requirements' /
-            'requirements-pyqt{}.txt'.format(suffix))
+            'requirements-{}.txt'.format(name))
+
+
+def pyqt_requirements_file(version: str) -> pathlib.Path:
+    """Get the filename of the requirements file for the given PyQt version."""
+    name = 'pyqt' if version == 'auto' else 'pyqt-{}'.format(version)
+    return requirements_file(name)
 
 
 def install_pyqt_binary(venv_dir: pathlib.Path, version: str) -> None:
@@ -202,8 +210,16 @@ def install_pyqt_link(venv_dir: pathlib.Path) -> None:
 def install_requirements(venv_dir: pathlib.Path) -> None:
     """Install qutebrowser's requirement.txt."""
     utils.print_title("Installing other qutebrowser dependencies")
-    requirements_file = REPO_ROOT / 'requirements.txt'
-    pip_install(venv_dir, '-r', str(requirements_file))
+    requirements = REPO_ROOT / 'requirements.txt'
+    pip_install(venv_dir, '-r', str(requirements))
+
+
+def install_dev_requirements(venv_dir: pathlib.Path) -> None:
+    """Install development dependencies."""
+    utils.print_title("Installing dev dependencies")
+    pip_install(venv_dir,
+                '-r', str(requirements_file('dev')),
+                '-r', requirements_file('tests'))
 
 
 def install_qutebrowser(venv_dir: pathlib.Path) -> None:
@@ -259,6 +275,9 @@ def main() -> None:
 
     install_requirements(venv_dir)
     install_qutebrowser(venv_dir)
+    if args.dev:
+        install_dev_requirements(venv_dir)
+
     regenerate_docs(venv_dir, args.asciidoc)
 
 

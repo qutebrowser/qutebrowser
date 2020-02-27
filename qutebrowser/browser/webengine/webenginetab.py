@@ -1414,14 +1414,18 @@ class WebEngineTab(browsertab.AbstractTab):
         Needs to check the page content as a WORKAROUND for
         https://bugreports.qt.io/browse/QTBUG-66661
         """
+        match = re.search(r'"errorCode":"([^"]*)"', html)
+        if match is None:
+            return
+
+        error = match.group(1)
+        log.webview.error("Load error: {}".format(error))
+
         missing_jst = 'jstProcess(' in html and 'jstProcess=' not in html
         if js_enabled and not missing_jst:
             return
 
-        match = re.search(r'"errorCode":"([^"]*)"', html)
-        if match is None:
-            return
-        self._show_error_page(self.url(), error=match.group(1))
+        self._show_error_page(self.url(), error=error)
 
     @pyqtSlot(int)
     def _on_load_progress(self, perc: int) -> None:
