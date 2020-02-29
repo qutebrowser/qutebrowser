@@ -196,6 +196,16 @@ Feature: Special qute:// pages
         And I run :leave-mode
         Then no crash should happen
 
+    Scenario: Downloading a pdf via pdf.js preserves the name (issue 5241)
+        Given pdfjs is available
+        When I set content.pdfjs to true
+        And I set downloads.location.prompt to false
+        And I run :download-delete
+        And I open data/misc/test.pdf without waiting
+        And I wait for "[qute://pdfjs/*] PDF * (PDF.js: *)" in the log
+        And I run :jseval document.getElementById("download").click()
+        Then "Download test.pdf finished" should be logged
+
     # :pyeval
 
     Scenario: Running :pyeval
