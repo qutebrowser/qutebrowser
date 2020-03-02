@@ -23,7 +23,7 @@ import os.path
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.browser import pdfjs
+from qutebrowser.browser import downloads, pdfjs
 from qutebrowser.utils import usertypes, utils, urlmatch
 
 
@@ -76,6 +76,13 @@ def test_generate_pdfjs_script(filename, expected):
     actual = pdfjs._generate_pdfjs_script(filename)
     assert expected_open in actual
     assert 'PDFView' in actual
+
+
+def test_generate_script_savename(monkeypatch):
+    monkeypatch.setattr(downloads.temp_download_manager, '_original_names',
+                        {'our-temporary-name.pdf': 'real-name.pdf'})
+    script = pdfjs._generate_pdfjs_script('our-temporary-name.pdf')
+    assert '&saveName=real-name.pdf' in script
 
 
 @pytest.mark.parametrize('qt, backend, expected', [
