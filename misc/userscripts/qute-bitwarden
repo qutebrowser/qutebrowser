@@ -266,6 +266,9 @@ def main(arguments):
         qute_command('fake-key <Tab>')
         fake_key_raw(password)
 
+    if arguments.insert_mode:
+        qute_command('enter-mode insert')
+
     # If it finds a TOTP code, it copies it to the clipboard,
     # which is the same behaviour as the Firefox add-on.
     if (selection['login']['totp'] is not None) and arguments.totp:
@@ -279,9 +282,6 @@ def main(arguments):
                 arguments.auto_lock
             )
         )
-
-    if arguments.insert_mode:
-        qute_command('enter-mode insert')
 
     return ExitCodes.SUCCESS
 
