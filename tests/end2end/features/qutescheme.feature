@@ -201,6 +201,7 @@ Feature: Special qute:// pages
         And I set downloads.location.prompt to false
         And I run :download-delete
         And I open data/misc/test.pdf without waiting
+        And I wait for "Download *test.pdf finished" in the log
         And I wait for "[qute://pdfjs/*] PDF * (PDF.js: *)" in the log
         And I run :jseval document.getElementById("download").click()
         Then "Download test.pdf finished" should be logged
