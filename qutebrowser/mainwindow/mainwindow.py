@@ -150,6 +150,7 @@ class MainWindow(QWidget):
         _private: Whether the window is in private browsing mode.
     """
 
+
     # Application wide stylesheets
     STYLESHEET = """
         HintLabel {
@@ -158,7 +159,10 @@ class MainWindow(QWidget):
             font: {{ conf.fonts.hints }};
             border: {{ conf.hints.border }};
             border-radius: {{ conf.hints.radius }}px;
-            padding: {{ conf.hints.padding }};
+            padding-top: {{ conf.hints.padding['top'] }}px;
+            padding-left: {{ conf.hints.padding['left'] }}px;
+            padding-right: {{ conf.hints.padding['right'] }}px;
+            padding-bottom: {{ conf.hints.padding['bottom'] }}px;
         }
 
         QMenu {
