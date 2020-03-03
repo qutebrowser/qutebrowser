@@ -1102,7 +1102,9 @@ hints.padding:
 
 hints.radius:
   default: 0
-  type: Int
+  type:
+    name: Int
+    minval: 0
   desc: Rounding radius (in pixels) for the edges of hints.
 
 hints.chars:
