@@ -150,7 +150,6 @@ class MainWindow(QWidget):
         _private: Whether the window is in private browsing mode.
     """
 
-
     # Application wide stylesheets
     STYLESHEET = """
         HintLabel {
