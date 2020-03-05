@@ -164,7 +164,7 @@ def pass_(domain, encoding, auto_lock):
     return out
 
 
-def get_totp_code(selection_id, domani_name, encoding, auto_lock):
+def get_totp_code(selection_id, domain_name, encoding, auto_lock):
     session_key = get_session_key(auto_lock)
     process = subprocess.run(
         ['bw', 'get', 'totp', '--session', session_key, selection_id],
