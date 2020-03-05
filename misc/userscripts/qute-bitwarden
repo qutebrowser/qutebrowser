@@ -79,6 +79,8 @@ group.add_argument('--username-only', '-e',
                    action='store_true', help='Only insert username')
 group.add_argument('--password-only', '-w',
                    action='store_true', help='Only insert password')
+group.add_argument('--totp-only', '-T',
+                   action='store_true', help='Only insert totp code')
 
 stderr = functools.partial(print, file=sys.stderr)
 
@@ -253,11 +255,22 @@ def main(arguments):
 
     username = selection['login']['username']
     password = selection['login']['password']
+    totp = selection['login']['totp']
 
     if arguments.username_only:
         fake_key_raw(username)
     elif arguments.password_only:
         fake_key_raw(password)
+    elif arguments.totp_only:
+        # No point in moving it to the clipboard in this case
+        fake_key_raw(
+            get_totp_code(
+                selection['id'],
+                selection['name'],
+                arguments.io_encoding,
+                arguments.auto_lock
+            )
+        )
     else:
         # Enter username and password using fake-key and <Tab> (which seems to work almost universally), then switch
         # back into insert-mode, so the form can be directly submitted by
@@ -271,7 +284,7 @@ def main(arguments):
 
     # If it finds a TOTP code, it copies it to the clipboard,
     # which is the same behaviour as the Firefox add-on.
-    if (selection['login']['totp'] is not None) and arguments.totp:
+    if not arguments.totp_only and totp and arguments.totp:
         # The import is done here, to make pyperclip an optional dependency
         import pyperclip
         pyperclip.copy(
