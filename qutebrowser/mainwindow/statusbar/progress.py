@@ -33,7 +33,7 @@ class Progress(QProgressBar):
     STYLESHEET = """
         QProgressBar {
             border-radius: 0px;
-            border: 2px solid transparent;
+            border: 1px solid {{ conf.colors.statusbar.progress.bg }};
             background-color: transparent;
             font: {{ conf.fonts.statusbar }};
         }
