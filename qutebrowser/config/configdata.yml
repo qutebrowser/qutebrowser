@@ -1950,6 +1950,26 @@ window.title_format:
     Format to use for the window title. The same placeholders like for
     `tabs.title.format` are defined.
 
+window.default_geometry.width:
+  type: Int
+  default: 800
+  desc: Width of new windows.
+
+window.default_geometry.height:
+  type: Int
+  default: 600
+  desc: Height of new windows.
+
+window.default_geometry.x:
+  type: Int
+  default: 50
+  desc: X position of new windows.
+
+window.default_geometry.y:
+  type: Int
+  default: 50
+  desc: Y position of new windows.
+
 ## zoom
 
 zoom.default:

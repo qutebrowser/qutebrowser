@@ -468,7 +468,10 @@ class MainWindow(QWidget):
 
     def _set_default_geometry(self):
         """Set some sensible default geometry."""
-        self.setGeometry(QRect(50, 50, 800, 600))
+        self.setGeometry(QRect(config.val.window.default_geometry.x,
+                               config.val.window.default_geometry.y,
+                               config.val.window.default_geometry.width,
+                               config.val.window.default_geometry.height))
 
     def _get_object(self, name):
         """Get an object for this window in the object registry."""
