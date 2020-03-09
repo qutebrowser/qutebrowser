@@ -14,7 +14,7 @@ hypothesis==5.6.0
 itsdangerous==1.1.0
 jaraco.functools==3.0.0 ; python_version>="3.6"
 # Jinja2==2.11.1
-Mako==1.1.1
+Mako==1.1.2
 manhole==1.6.0
 # MarkupSafe==1.1.1
 more-itertools==8.2.0
