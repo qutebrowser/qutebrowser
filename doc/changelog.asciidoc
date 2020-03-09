@@ -18,7 +18,13 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v1.11.0 (unreleased)
 --------------------
 
-No changes yet.
+Fixed
+~~~~~
+
+- `unsafeWindow` is now defined for Greasemonkey scripts with QtWebKit.
+- The proxied `window` global is now shared between different
+  Greasemonkey scripts (but still separate from the page's `window`), to
+  match the original Greasemonkey implementation.
 
 v1.10.1 (2020-02-15)
 --------------------
