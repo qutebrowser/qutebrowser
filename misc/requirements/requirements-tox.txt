@@ -8,6 +8,6 @@ pyparsing==2.4.6
 six==1.14.0
 toml==0.10.0
 tox==3.14.5
-tox-pip-version==0.0.6
+tox-pip-version==0.0.7
 tox-venv==0.4.0
 virtualenv==20.0.1
