@@ -5,7 +5,7 @@ Babel==2.8.0
 certifi==2019.11.28
 chardet==3.0.4
 docutils==0.16
-idna==2.8
+idna==2.9
 imagesize==1.2.0
 Jinja2==2.11.1
 MarkupSafe==1.1.1
