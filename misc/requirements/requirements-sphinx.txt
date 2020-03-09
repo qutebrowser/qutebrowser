@@ -9,7 +9,7 @@ idna==2.9
 imagesize==1.2.0
 Jinja2==2.11.1
 MarkupSafe==1.1.1
-packaging==20.1
+packaging==20.3
 Pygments==2.5.2
 pyparsing==2.4.6
 pytz==2019.3
