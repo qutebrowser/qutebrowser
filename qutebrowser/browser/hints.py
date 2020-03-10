@@ -1107,9 +1107,19 @@ class WordHinter:
         return (h for h in hints if not self.any_prefix(h, existing))
 
     def new_hint_for(self, elem: webelem.AbstractWebElement,
-                     existing: typing.Iterable[str],
+                     existing: typing.Iterable[tuple],
                      fallback: typing.Iterable[str]) -> typing.Optional[str]:
-        """Return a hint for elem, not conflicting with the existing."""
+        """Return a hint for elem, not conflicting with the existing except when the url is the same."""
+        tag = elem.tag_name()
+        if (tag in ('a', 'img')):
+            for e in existing:
+                cur_tag = e[1].tag_name()
+                if cur_tag = tag and (
+                    (tag == 'a' and e[1]['href'] == elem['href']) or
+                    (tag == 'img' and e[1]['src'] == elem['src'])):
+                    return e[0]
+            # url not already hinted, generate new
+        
         new = self.tag_words_to_hints(self.extract_tag_words(elem))
         new_no_prefixes = self.filter_prefixes(new, existing)
         fallback_no_prefixes = self.filter_prefixes(fallback, existing)
@@ -1132,12 +1142,12 @@ class WordHinter:
         """
         self.ensure_initialized()
         hints = []
-        used_hints = set()  # type: typing.Set[str]
+        used_hints = set()  # type: typing.Set[tuple]
         words = iter(self.words)
         for elem in elems:
             hint = self.new_hint_for(elem, used_hints, words)
             if not hint:
                 raise HintingError("Not enough words in the dictionary.")
-            used_hints.add(hint)
+            used_hints.add((hint, elem))
             hints.append(hint)
         return hints
