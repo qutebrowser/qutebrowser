@@ -24,8 +24,9 @@ parse-type==0.5.2
 pluggy==0.13.1
 py==1.8.1
 py-cpuinfo==5.0.0
+Pygments==2.6.1
 pyparsing==2.4.6
-pytest==5.3.5
+pytest==5.4.0
 pytest-bdd==3.2.1
 pytest-benchmark==3.2.3
 pytest-cov==2.8.1
