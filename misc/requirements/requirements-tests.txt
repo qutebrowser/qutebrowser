@@ -3,7 +3,7 @@
 attrs==19.3.0
 beautifulsoup4==4.8.2
 cheroot==8.3.0
-Click==7.1.1
+click==7.1.1
 # colorama==0.4.3
 coverage==5.0.3
 EasyProcess==0.2.10
