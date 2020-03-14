@@ -1114,7 +1114,7 @@ class WordHinter:
         if (tag in ('a', 'img')):
             for e in existing:
                 cur_tag = e[1].tag_name()
-                if cur_tag = tag and (
+                if cur_tag == tag and (
                     (tag == 'a' and e[1]['href'] == elem['href']) or
                     (tag == 'img' and e[1]['src'] == elem['src'])):
                     return e[0]
