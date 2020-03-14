@@ -99,6 +99,7 @@ class HintLabel(QLabel):
             matched: The part of the text which was typed.
             unmatched: The part of the text which was not typed yet.
         """
+        log.hints.debug('HintLabel.update_text({}, {})'.format(matched, unmatched))
         if (config.cache['hints.uppercase'] and
                 self._context.hint_mode in ['letter', 'word']):
             matched = html.escape(matched.upper())
@@ -118,6 +119,7 @@ class HintLabel(QLabel):
     @pyqtSlot()
     def _move_to_elem(self) -> None:
         """Reposition the label to its element."""
+        log.hints.debug('HintLabel._move_to_elem()')
         if not self.elem.has_frame():
             # This sometimes happens for some reason...
             log.hints.debug("Frame for {!r} vanished!".format(self))
@@ -129,6 +131,7 @@ class HintLabel(QLabel):
 
     def cleanup(self) -> None:
         """Clean up this element and hide it."""
+        log.hints.debug('HintLabel.cleanup()')
         self.hide()
         self.deleteLater()
 
@@ -181,6 +184,7 @@ class HintContext:
 
     def get_args(self, urlstr: str) -> typing.Sequence[str]:
         """Get the arguments, with {hint-url} replaced by the given URL."""
+        log.hints.debug('HintContext.get_args({})'.format(urlstr))
         args = []
         for arg in self.args:
             arg = arg.replace('{hint-url}', urlstr)
@@ -198,6 +202,7 @@ class HintActions:
     def click(self, elem: webelem.AbstractWebElement,
               context: HintContext) -> None:
         """Click an element."""
+        log.hints.debug('HintActions.click({}, {})'.format(elem, context))
         target_mapping = {
             Target.normal: usertypes.ClickTarget.normal,
             Target.current: usertypes.ClickTarget.normal,
@@ -229,6 +234,7 @@ class HintActions:
 
     def yank(self, url: QUrl, context: HintContext) -> None:
         """Yank an element to the clipboard or primary selection."""
+        log.hints.debug('HintActions.yank({}, {})'.format(url, context))
         sel = (context.target == Target.yank_primary and
                utils.supports_selection())
 
@@ -256,6 +262,7 @@ class HintActions:
 
     def run_cmd(self, url: QUrl, context: HintContext) -> None:
         """Run the command based on a hint URL."""
+        log.hints.debug('HintActions.run_cmd({}, {})'.format(url, context))
         urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
@@ -263,6 +270,7 @@ class HintActions:
 
     def preset_cmd_text(self, url: QUrl, context: HintContext) -> None:
         """Preset a commandline text based on a hint URL."""
+        log.hints.debug('HintActions.preset_cmd_text({}, {})'.format(url, context))
         urlstr = url.toDisplayString(QUrl.FullyEncoded)  # type: ignore
         args = context.get_args(urlstr)
         text = ' '.join(args)
@@ -280,6 +288,7 @@ class HintActions:
             elem: The QWebElement to download.
             _context: The HintContext to use.
         """
+        log.hints.debug('HintActions.download({}, {})'.format(elem, context))
         url = elem.resolve_url(context.baseurl)
         if url is None:
             raise HintingError("No suitable link found for this element.")
@@ -299,6 +308,7 @@ class HintActions:
             elem: The QWebElement to use in the userscript.
             context: The HintContext to use.
         """
+        log.hints.debug('HintActions.call_userscript({}, {})'.format(elem, context))
         cmd = context.args[0]
         args = context.args[1:]
         env = {
@@ -318,6 +328,7 @@ class HintActions:
 
     def delete(self, elem: webelem.AbstractWebElement,
                _context: HintContext) -> None:
+        log.hints.debug('HintActions.delete({}, {})'.format(elem, context))
         elem.delete()
 
     def spawn(self, url: QUrl, context: HintContext) -> None:
@@ -327,6 +338,7 @@ class HintActions:
             url: The URL to open as a QUrl.
             context: The HintContext to use.
         """
+        log.hints.debug('HintActions.spawn({}, {})'.format(url, context))
         urlstr = url.toString(
             QUrl.FullyEncoded | QUrl.RemovePassword)  # type: ignore
         args = context.get_args(urlstr)
@@ -387,6 +399,7 @@ class HintManager(QObject):
 
     def _get_text(self) -> str:
         """Get a hint text based on the current context."""
+        log.hints.debug('HintManager.get_text()')
         assert self._context is not None
         text = self.HINT_TEXTS[self._context.target]
         if self._context.rapid:
@@ -396,6 +409,7 @@ class HintManager(QObject):
 
     def _cleanup(self) -> None:
         """Clean up after hinting."""
+        log.hints.debug('HintManager.cleanup()'.format())
         assert self._context is not None
         for label in self._context.all_labels:
             label.cleanup()
@@ -417,6 +431,7 @@ class HintManager(QObject):
         Return:
             A list of hint strings, in the same order as the elements.
         """
+        log.hints.debug('HintManager._hint_strings({})'.format(elems))
         if not elems:
             return []
 
@@ -448,6 +463,7 @@ class HintManager(QObject):
             chars: The alphabet to use for labels.
             elems: The elements to generate labels for.
         """
+        log.hints.debug('HintManager._hint_scattered({}, {}, {})'.format(min_chars, chars, elems))
         # Determine how many digits the link hints will require in the worst
         # case. Usually we do not need all of these digits for every link
         # single hint, so we can show shorter hints for a few of the links.
@@ -487,6 +503,7 @@ class HintManager(QObject):
             chars: The alphabet to use for labels.
             elems: The elements to generate labels for.
         """
+        log.hints.debug('HintManager._hint_linear({}, {}, {})'.format(min_chars, chars, elems))
         strings = []
         needed = max(min_chars, utils.ceil_log(len(elems), len(chars)))
         for i in range(len(elems)):
@@ -509,6 +526,7 @@ class HintManager(QObject):
         Return:
             A list of shuffled hint strings.
         """
+        log.hints.debug('HintManager._shuffle_hints({}, {})'.format(hints, length))
         buckets = [
             [] for i in range(length)
         ]  # type: typing.Sequence[_HintStringsType]
@@ -538,6 +556,7 @@ class HintManager(QObject):
         Return:
             A hint string.
         """
+        log.hints.debug('HintManager._number_to_hint_str({}, {}, {})'.format(number, chars, digits))
         base = len(chars)
         hintstr = []  # type: typing.MutableSequence[str]
         remainder = 0
@@ -560,6 +579,7 @@ class HintManager(QObject):
             target: A Target enum member.
             args: Arguments for userscript/download
         """
+        log.hints.debug('HintManager._check_args({}, ... {})'.format(target, args))
         if not isinstance(target, Target):
             raise TypeError("Target {} is no Target member!".format(target))
         if target in [Target.userscript, Target.spawn, Target.run,
@@ -575,6 +595,7 @@ class HintManager(QObject):
 
     def _filter_matches(self, filterstr: str, elemstr: str) -> bool:
         """Return True if `filterstr` matches `elemstr`."""
+        log.hints.debug('HintManager._filter_matches({}, {})'.format(filterstr, elemstr))
         # Empty string and None always match
         if not filterstr:
             return True
@@ -585,6 +606,7 @@ class HintManager(QObject):
 
     def _filter_matches_exactly(self, filterstr: str, elemstr: str) -> bool:
         """Return True if `filterstr` exactly matches `elemstr`."""
+        log.hints.debug('HintManager._filter_matches_exactly({}, {})'.format(filterstr, elemstr))
         # Empty string and None never match
         if not filterstr:
             return False
@@ -594,11 +616,13 @@ class HintManager(QObject):
 
     def _get_keyparser(self,
                        mode: usertypes.KeyMode) -> basekeyparser.BaseKeyParser:
+        log.hints.debug('HintManager._get_keyparser({})'.format(mode))
         mode_manager = modeman.instance(self._win_id)
         return mode_manager.parsers[mode]
 
     def _start_cb(self, elems: _ElemsType) -> None:
         """Initialize the elements and labels based on the context set."""
+        log.hints.debug('HintManager._start_cb({})'.format(elems))
         if self._context is None:
             log.hints.debug("In _start_cb without context!")
             return
@@ -618,9 +642,14 @@ class HintManager(QObject):
                 "Current tab changed ({} -> {}) before _start_cb is run."
                 .format(self._context.tab.tab_id, tab.tab_id))
             return
+            
+        unique, urls = self._get_unique_url_elems_collection(elems)
 
-        strings = self._hint_strings(elems)
+        strings = self._hint_strings(unique)
         log.hints.debug("hints: {}".format(', '.join(strings)))
+        
+        #urls = dict(map(lambda e: (e[1][1], e[1]), urls.items()))
+        strings = list(map(lambda e: strings[unique.index(e)] if e in unique else strings[unique.index([item[0] for item in urls.values() if e in item][0])], elems))
 
         for elem, string in zip(elems, strings):
             label = HintLabel(elem, self._context)
@@ -642,6 +671,25 @@ class HintManager(QObject):
             return
         # to make auto_follow == 'always' work
         self._handle_auto_follow()
+    
+    def _get_unique_url_elems_collection(self, elems):
+        unique = list()
+        urls = dict()
+        
+        for elem in elems:
+            tag = elem.tag_name()
+            if (tag in ('a', 'img')):
+                log.hints.debug(tag+': checking '+str(elem))
+                url = elem['href' if tag == 'a' else 'src']
+                if url in urls.keys():
+                    urls[url].append(elem)
+                else:
+                    urls[url] = [elem]
+                    unique.append(elem)
+            else:
+                unique.append(elem)
+        
+        return unique, urls
 
     @cmdutils.register(instance='hintmanager', scope='window', name='hint',
                        star_args_optional=True, maxsplit=2)
@@ -718,6 +766,7 @@ class HintManager(QObject):
                                 URL.
                 - With `run`: Same as `fill`.
         """
+        log.hints.debug('HintManager.start({}, {}, ... {}, {}, {}, {}, {})'.format(group, target, args, mode, add_history, rapid, first))
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
         tab = tabbed_browser.widget.currentWidget()
@@ -770,6 +819,7 @@ class HintManager(QObject):
 
     def _get_hint_mode(self, mode: typing.Optional[str]) -> str:
         """Get the hinting mode to use based on a mode argument."""
+        log.hints.debug('HintManager._get_hint_mode({})'.format(mode))
         if mode is None:
             return config.val.hints.mode
 
@@ -782,6 +832,7 @@ class HintManager(QObject):
 
     def current_mode(self) -> typing.Optional[str]:
         """Return the currently active hinting mode (or None otherwise)."""
+        log.hints.debug('HintManager.current_mode()'.format())
         if self._context is None:
             return None
 
@@ -794,6 +845,7 @@ class HintManager(QObject):
             visible: typing.Mapping[str, HintLabel] = None
     ) -> None:
         """Handle the auto_follow option."""
+        log.hints.debug('HintManager._handle_auto_follow({}, {}, {})'.format(keystr, filterstr, visible))
         assert self._context is not None
 
         if visible is None:
@@ -831,6 +883,7 @@ class HintManager(QObject):
     @pyqtSlot(str)
     def handle_partial_key(self, keystr: str) -> None:
         """Handle a new partial keypress."""
+        log.hints.debug('HintManager.handle_partial_key({})'.format(keystr))
         if self._context is None:
             log.hints.debug("Got key without context!")
             return
@@ -863,6 +916,7 @@ class HintManager(QObject):
                        and `self._context.filterstr` are None, all hints are
                        shown.
         """
+        log.hints.debug('HintManager.filter_hints({})'.format(filterstr))
         assert self._context is not None
 
         if filterstr is None:
@@ -915,6 +969,7 @@ class HintManager(QObject):
         Args:
             keystr: The keychain string to follow.
         """
+        log.hints.debug('HintManager._fire({})'.format(keystr))
         assert self._context is not None
         # Handlers which take a QWebElement
         elem_handlers = {
@@ -987,6 +1042,7 @@ class HintManager(QObject):
             select: Only select the given hint, don't necessarily follow it.
             keystring: The hint to follow, or None.
         """
+        log.hints.debug('HintManager.follow_hint({}, {})'.format(select, keystring))
         assert self._context is not None
         if keystring is None:
             if self._context.to_follow is None:
@@ -1005,6 +1061,7 @@ class HintManager(QObject):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode: usertypes.KeyMode) -> None:
         """Stop hinting when hinting mode was left."""
+        log.hints.debug('HintManager.on_mode_left({})'.format(mode))
         if mode != usertypes.KeyMode.hint or self._context is None:
             # We have one HintManager per tab, so when this gets called,
             # self._context might be None, because the current tab is not
@@ -1029,6 +1086,7 @@ class WordHinter:
 
     def ensure_initialized(self) -> None:
         """Generate the used words if yet uninitialized."""
+        log.hints.debug('WordHinter.ensure_initialized()')
         dictionary = config.val.hints.dictionary
         if not self.words or self.dictionary != dictionary:
             self.words.clear()
@@ -1058,6 +1116,7 @@ class WordHinter:
             self, elem: webelem.AbstractWebElement
     ) -> typing.Iterator[str]:
         """Extract tag words form the given element."""
+        log.hints.debug('WordHinter.extract_tag_words({})'.format(elem))
         _extractor_type = typing.Callable[[webelem.AbstractWebElement], str]
         attr_extractors = {
             "alt": lambda elem: elem["alt"],
@@ -1086,6 +1145,7 @@ class WordHinter:
             words: typing.Iterable[str]
     ) -> typing.Iterator[str]:
         """Take words and transform them to proper hints if possible."""
+        log.hints.debug('WordHinter.tag_words_to_hints({})'.format(words))
         for candidate in words:
             if not candidate:
                 continue
@@ -1096,6 +1156,7 @@ class WordHinter:
                 yield candidate[match.start():match.end()].lower()
 
     def any_prefix(self, hint: str, existing: typing.Iterable[str]) -> bool:
+        log.hints.debug('WordHinter.any_prefix({}, {})'.format(hint, existing))
         return any(hint.startswith(e) or e.startswith(hint) for e in existing)
 
     def filter_prefixes(
@@ -1104,19 +1165,25 @@ class WordHinter:
             existing: typing.Iterable[str]
     ) -> typing.Iterator[str]:
         """Filter hints which don't start with the given prefix."""
+        log.hints.debug('WordHinter.filter_prefixes({}, {})'.format(hints, existing))
         return (h for h in hints if not self.any_prefix(h, existing))
 
     def new_hint_for(self, elem: webelem.AbstractWebElement,
-                     existing: typing.Iterable[tuple],
+                     existing: typing.Set[tuple],
                      fallback: typing.Iterable[str]) -> typing.Optional[str]:
         """Return a hint for elem, not conflicting with the existing except when the url is the same."""
+        log.hints.debug('WordHinter.new_hint_for({}, {}, {})'.format(elem, existing, fallback))
         tag = elem.tag_name()
         if (tag in ('a', 'img')):
+            log.hints.debug(tag+': checking '+str(existing))
             for e in existing:
                 cur_tag = e[1].tag_name()
+                if cur_tag == tag:
+                    log.hints.debug('cur_tag == tag == '+str(tag))
                 if cur_tag == tag and (
                     (tag == 'a' and e[1]['href'] == elem['href']) or
                     (tag == 'img' and e[1]['src'] == elem['src'])):
+                    log.hints.debug('reusing tag '+str(e[0])+' for '+str(e[1]['href' if tag == 'a' else 'src']))
                     return e[0]
             # url not already hinted, generate new
         
@@ -1140,6 +1207,7 @@ class WordHinter:
         Return:
             A list of hint strings, in the same order as the elements.
         """
+        log.hints.debug('WordHinter.hint({})'.format(elems))
         self.ensure_initialized()
         hints = []
         used_hints = set()  # type: typing.Set[tuple]
