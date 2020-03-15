@@ -19,7 +19,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 """Generate the html documentation based on the asciidoc files."""
-from typing import Optional, List, Tuple
+from typing import List, Tuple
 
 import re
 import os
@@ -46,16 +46,20 @@ class AsciiDoc:
 
     FILES = ['faq', 'changelog', 'contributing', 'quickstart', 'userscripts']
 
-    def __init__(self, asciidoc: pathlib.Path, website: pathlib.Path) -> None:
+    def __init__(self, asciidoc, website) -> None:
+        """
+        asciidoc: Optional[List[str]]
+        website: Optional[List[str]])
+        """
         self._cmd = None
-        self._asciidoc: Optional[pathlib.Path] = asciidoc
-        self._website: list = website
-        self._homedir: Optional[pathlib.Path] = None
-        self._themedir: Optional[pathlib.Path] = None
-        self._tempdir: Optional[pathlib.Path] = None
-        self._failed: bool = False
+        self._asciidoc = asciidoc
+        self._website = website
+        self._homedir = None
+        self._themedir = None
+        self._tempdir = None
+        self._failed = False
 
-    def prepare(self):
+    def prepare(self) -> None:
         """Get the asciidoc command and create the homedir to use."""
         self._cmd = self._get_asciidoc_cmd()
         self._homedir = pathlib.Path(tempfile.mkdtemp())
@@ -64,12 +68,12 @@ class AsciiDoc:
         self._tempdir.mkdir(parents=True)
         self._themedir.mkdir(parents=True)
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Clean up the temporary home directory for asciidoc."""
         if self._homedir is not None and not self._failed:
             shutil.rmtree(self._homedir)
 
-    def build(self):
+    def build(self) -> None:
         """Build either the website or the docs."""
         if self._website:
             self._build_website()
@@ -77,7 +81,7 @@ class AsciiDoc:
             self._build_docs()
             self._copy_images()
 
-    def _build_docs(self):
+    def _build_docs(self) -> None:
         """Render .asciidoc files to .html sites."""
         files: List[Tuple[pathlib.Path, pathlib.Path]] = [(pathlib.Path('doc/{}.asciidoc'.format(f)),
                   DOC_DIR / (f + ".html"))
@@ -108,38 +112,22 @@ class AsciiDoc:
     def _copy_images(self) -> None:
         """Copy image files to qutebrowser/html/doc."""
         print("Copying files...")
-        dst_path = os.path.join('qutebrowser', 'html', 'doc', 'img')
-        try:
-            os.mkdir(dst_path)
-        except FileExistsError:
-            pass
+        dst_path = DOC_DIR / 'img'
+        dst_path.mkdir(exist_ok=True)
         for filename in ['cheatsheet-big.png', 'cheatsheet-small.png']:
-            src = os.path.join('doc', 'img', filename)
-            dst = os.path.join(dst_path, filename)
+            src = pathlib.Path('doc') / 'img' / filename
+            dst = dst_path / filename
             shutil.copy(src, dst)
 
     def _build_website_file(self, root: pathlib.Path, filename: str) -> None:
         """Build a single website file."""
-        #src = os.path.join(root, filename)
         src = root / filename
         src_basename = src.name
         dst = pathlib.Path(self._website[0])
-        #parts = [self._website[0]]
         dirname = src.parent
         dst = src.parent.relative_to('.') / (src.stem + ".html")
         dst.parent.mkdir(exist_ok=True)
         
-       #if len(dirname.parents) > 0:
-       #    parts.append(os.path.relpath(dirname))
-       #parts.append(os.extsep.join(src.stem, 'html'))   #WHY CAN'T WE MAKE IT A SIMPLE +???
-        
-       #parts.append(
-       #    os.extsep.join((os.path.splitext(src_basename)[0],
-       #                    'html')))
-       #dst = os.path.join(*parts)
-       #os.makedirs(os.path.dirname(dst), exist_ok=True)
-
-        #modified_src = os.path.join(self._tempdir, src.name)
         modified_src = self._tempdir / src.name
         shutil.copy('www/header.asciidoc', modified_src)
 
@@ -222,11 +210,11 @@ class AsciiDoc:
                 ('README.html', 'index.html'),
                 ((pathlib.Path('doc') / 'quickstart.html'), 'quickstart.html')]:
             try:
-                (outdir / link_name).symlink_to(dst)
+                (outdir / link_name).symlink_to(dst)    # mypy gives error here. Not sure why
             except FileExistsError:
                 pass
 
-    def _get_asciidoc_cmd(self):
+    def _get_asciidoc_cmd(self):    # -> List[str]
         """Try to find out what commandline to use to invoke asciidoc."""
         if self._asciidoc is not None:
             return self._asciidoc
@@ -257,9 +245,6 @@ class AsciiDoc:
             dst: The destination .html file, or None to auto-guess.
             *args: Additional arguments passed to asciidoc.
         """
-        #print("Calling asciidoc for {}...".format(os.path.basename(src)))
-        src = pathlib.Path(src)
-        dst = pathlib.Path(dst)
         print("Calling asciidoc for {}...".format(src.name))
         cmdline = self._cmd[:]
         if dst is not None:
@@ -277,7 +262,7 @@ class AsciiDoc:
             sys.exit(1)
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument('--website', help="Build website into a given "
