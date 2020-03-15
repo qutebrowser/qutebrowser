@@ -190,24 +190,20 @@ class AsciiDoc:
 
     def _build_website(self):
         """Prepare and build the website."""
-        #theme_file = os.path.abspath(os.path.join('www', 'qute.css'))
         theme_file = (pathlib.Path('www') / 'qute.css').resolve()
         shutil.copy(theme_file, self._themedir)
 
-        outdir = self._website[0]
+        outdir = pathlib.Path(self._website[0])
 
-        for root, _dirs, files in os.walk(os.getcwd()):
-            for filename in files:
-                basename, ext = os.path.splitext(filename)
-                if (ext != '.asciidoc' or
-                        basename in ['header', 'OpenSans-License']):
-                    continue
-                self._build_website_file(root, filename)
+        for item_path in pathlib.Path().rglob('*.asciidoc'):
+            if item_path.stem in ['header', 'OpenSans-License']:
+                continue
+            self._build_website_file(item_path.parent, item_path.name)
 
         copy = {'icons': 'icons', 'doc/img': 'doc/img', 'www/media': 'media/'}
 
         for src, dest in copy.items():
-            full_dest = os.path.join(outdir, dest)
+            full_dest = outdir / dest
             try:
                 shutil.rmtree(full_dest)
             except FileNotFoundError:
@@ -216,9 +212,9 @@ class AsciiDoc:
 
         for dst, link_name in [
                 ('README.html', 'index.html'),
-                (os.path.join('doc', 'quickstart.html'), 'quickstart.html')]:
+                ((pathlib.Path('doc') / 'quickstart.html'), 'quickstart.html')]:
             try:
-                os.symlink(dst, os.path.join(outdir, link_name))
+                (outdir / link_name).symlink_to(dst)
             except FileExistsError:
                 pass
 
