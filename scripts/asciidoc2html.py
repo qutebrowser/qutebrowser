@@ -105,7 +105,7 @@ class AsciiDoc:
                     modified_f.write(line)
             self.call(modified_src, dst, *asciidoc_args)
 
-    def _copy_images(self):
+    def _copy_images(self) -> None:
         """Copy image files to qutebrowser/html/doc."""
         print("Copying files...")
         dst_path = os.path.join('qutebrowser', 'html', 'doc', 'img')
@@ -118,21 +118,29 @@ class AsciiDoc:
             dst = os.path.join(dst_path, filename)
             shutil.copy(src, dst)
 
-    def _build_website_file(self, root, filename):
+    def _build_website_file(self, root: pathlib.Path, filename: str) -> None:
         """Build a single website file."""
-        src = os.path.join(root, filename)
-        src_basename = os.path.basename(src)
-        parts = [self._website[0]]
-        dirname = os.path.dirname(src)
-        if dirname:
-            parts.append(os.path.relpath(os.path.dirname(src)))
-        parts.append(
-            os.extsep.join((os.path.splitext(src_basename)[0],
-                            'html')))
-        dst = os.path.join(*parts)
-        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        #src = os.path.join(root, filename)
+        src = root / filename
+        src_basename = src.name
+        dst = pathlib.Path(self._website[0])
+        #parts = [self._website[0]]
+        dirname = src.parent
+        dst = src.parent.relative_to('.') / (src.stem + ".html")
+        dst.parent.mkdir(exist_ok=True)
+        
+       #if len(dirname.parents) > 0:
+       #    parts.append(os.path.relpath(dirname))
+       #parts.append(os.extsep.join(src.stem, 'html'))   #WHY CAN'T WE MAKE IT A SIMPLE +???
+        
+       #parts.append(
+       #    os.extsep.join((os.path.splitext(src_basename)[0],
+       #                    'html')))
+       #dst = os.path.join(*parts)
+       #os.makedirs(os.path.dirname(dst), exist_ok=True)
 
-        modified_src = os.path.join(self._tempdir, src_basename)
+        #modified_src = os.path.join(self._tempdir, src.name)
+        modified_src = self._tempdir / src.name
         shutil.copy('www/header.asciidoc', modified_src)
 
         outfp = io.StringIO()
@@ -188,7 +196,7 @@ class AsciiDoc:
                          '-a', 'source-highlighter=pygments']
         self.call(modified_src, dst, *asciidoc_args)
 
-    def _build_website(self):
+    def _build_website(self) -> None:
         """Prepare and build the website."""
         theme_file = (pathlib.Path('www') / 'qute.css').resolve()
         shutil.copy(theme_file, self._themedir)
@@ -281,12 +289,9 @@ def parse_args():
     return parser.parse_args()
 
 
-def run(**kwargs):
+def run(**kwargs) -> None:
     """Regenerate documentation."""
-    try:
-        os.mkdir('qutebrowser/html/doc')
-    except FileExistsError:
-        pass
+    DOC_DIR.mkdir(exist_ok=True)
 
     asciidoc = AsciiDoc(**kwargs)
     try:
@@ -303,7 +308,7 @@ def run(**kwargs):
         asciidoc.cleanup()
 
 
-def main(colors=False):
+def main(colors: bool = False) -> None:
     """Generate html files for the online documentation."""
     utils.change_cwd()
     utils.use_color = colors
