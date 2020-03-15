@@ -397,7 +397,6 @@ def _lookup_path(cmd):
 
     raise NotFoundError(cmd, directories)
 
-
 def run_async(tab, cmd, *args, win_id, env, verbose=False):
     """Run a userscript after dumping page html/source.
 
@@ -426,8 +425,11 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
         raise UnsupportedError
 
     runner.got_cmd.connect(
-        lambda cmd:
-        log.commands.debug("Got userscript command: {}".format(cmd)))
+        lambda cmd: (
+            commandrunner.is_silent(cmd) or
+            log.commands.debug("Got userscript command: {}".format(cmd))
+        )
+    )
     runner.got_cmd.connect(commandrunner.run_safely)
 
     env['QUTE_USER_AGENT'] = websettings.user_agent()

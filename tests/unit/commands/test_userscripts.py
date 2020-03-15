@@ -168,6 +168,24 @@ def test_command_with_error(qtbot, py_proc, runner, caplog):
     assert not os.path.exists(data)
 
 
+def test_silent_command(qtbot, py_proc, runner, caplog):
+    cmd, args = py_proc(r"""
+        import os
+        with open(os.environ['QUTE_FIFO'], 'w') as f:
+            f.write('@insert-text {}\n'.format(9876))
+    """)
+    with qtbot.waitSignal(runner.finished, timeout=10000):
+        with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
+            runner.prepare_run(cmd, *args)
+            runner.store_html('')
+            runner.store_text('')
+    assert blocker.args == ['@insert-text 9876']
+    assert not next(
+        (m for m in caplog.messages if 'insert-text 9876' in m),
+        None
+    )
+
+
 def test_killed_command(qtbot, tmpdir, py_proc, runner, caplog):
     data_file = tmpdir / 'data'
     watcher = QFileSystemWatcher()

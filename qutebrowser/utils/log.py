@@ -257,6 +257,18 @@ def ignore_py_warnings(**kwargs: typing.Any) -> typing.Iterator[None]:
         _init_py_warnings()
 
 
+@contextlib.contextmanager
+def silent() -> typing.Iterator[None]:
+    """Contextmanager which temporarily disables the Qt message handler."""
+    logging.info("Disabling logs")
+    logging.disable()
+    try:
+        yield
+    finally:
+        logging.disable(logging.NOTSET)
+        logging.info("Re-enabling logs")
+
+
 def _init_handlers(
         level: int,
         color: bool,

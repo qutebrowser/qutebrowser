@@ -305,6 +305,15 @@ def test_ignore_py_warnings(caplog):
     assert msg.endswith("UserWarning: not hidden")
 
 
+def test_silent(logger, caplog):
+    with caplog.at_level(logging.DEBUG):
+        with log.silent():
+            logger.error("This is terrible")
+            logger.info("This is ok")
+            logger.debug("This is noisy")
+    assert caplog.messages == ["Disabling logs", "Re-enabling logs"]
+
+
 class TestQtMessageHandler:
 
     @attr.s

@@ -30,7 +30,7 @@ from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc
-from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
+from qutebrowser.utils import log, message, objreg, qtutils, usertypes, utils
 from qutebrowser.misc import split, objects
 from qutebrowser.keyinput import macros, modeman
 
@@ -179,7 +179,7 @@ class CommandParser:
         Yields:
             ParseResult tuples.
         """
-        text = text.strip().lstrip(':').strip()
+        text = text.strip().lstrip(':@').strip()
         if not text:
             raise cmdexc.NoSuchCommandError("No command given")
 
@@ -317,6 +317,9 @@ class AbstractCommandRunner(QObject):
         """Run a command and display exceptions in the statusbar."""
         self.run(text, count, safely=True)
 
+    def is_silent(self, text):
+        return text.lstrip(" :").startswith("@")
+
 
 class CommandRunner(AbstractCommandRunner):
 
@@ -359,6 +362,7 @@ class CommandRunner(AbstractCommandRunner):
         parsed = None
         with self._handle_error(safely):
             parsed = self._parser.parse_all(text)
+            silent = self.is_silent(text)
 
         if parsed is None:
             return
@@ -370,7 +374,8 @@ class CommandRunner(AbstractCommandRunner):
                 else:
                     args = replace_variables(self._win_id, result.args)
 
-                result.cmd.run(self._win_id, args, count=count)
+                with log.silent() if silent else contextlib.nullcontext():
+                    result.cmd.run(self._win_id, args, count=count)
 
             if result.cmdline[0] == 'repeat-command':
                 record_last_command = False
@@ -379,7 +384,7 @@ class CommandRunner(AbstractCommandRunner):
                                      'set-cmd-text']:
                 record_macro = False
 
-        if record_last_command:
+        if record_last_command and not silent:
             last_command[cur_mode] = (text, count)
 
         if record_macro and cur_mode == usertypes.KeyMode.normal:
