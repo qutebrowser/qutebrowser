@@ -19,6 +19,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 """Generate the html documentation based on the asciidoc files."""
+from typing import Optional, List, Tuple
 
 import re
 import os
@@ -30,10 +31,13 @@ import shutil
 import tempfile
 import argparse
 import io
+import pathlib
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 
 from scripts import utils
+
+DOC_DIR = pathlib.Path("qutebrowser/html/doc")
 
 
 class AsciiDoc:
@@ -42,24 +46,23 @@ class AsciiDoc:
 
     FILES = ['faq', 'changelog', 'contributing', 'quickstart', 'userscripts']
 
-    def __init__(self, asciidoc, website):
+    def __init__(self, asciidoc: pathlib.Path, website: pathlib.Path) -> None:
         self._cmd = None
-        self._asciidoc = asciidoc
-        self._website = website
-        self._homedir = None
-        self._themedir = None
-        self._tempdir = None
-        self._failed = False
+        self._asciidoc: Optional[pathlib.Path] = asciidoc
+        self._website: list = website
+        self._homedir: Optional[pathlib.Path] = None
+        self._themedir: Optional[pathlib.Path] = None
+        self._tempdir: Optional[pathlib.Path] = None
+        self._failed: bool = False
 
     def prepare(self):
         """Get the asciidoc command and create the homedir to use."""
         self._cmd = self._get_asciidoc_cmd()
-        self._homedir = tempfile.mkdtemp()
-        self._themedir = os.path.join(
-            self._homedir, '.asciidoc', 'themes', 'qute')
-        self._tempdir = os.path.join(self._homedir, 'tmp')
-        os.makedirs(self._tempdir)
-        os.makedirs(self._themedir)
+        self._homedir = pathlib.Path(tempfile.mkdtemp())
+        self._themedir = self._homedir / '.asciidoc' / 'themes' / 'qute'
+        self._tempdir = self._homedir / 'tmp'
+        self._tempdir.mkdir(parents=True)
+        self._themedir.mkdir(parents=True)
 
     def cleanup(self):
         """Clean up the temporary home directory for asciidoc."""
@@ -76,12 +79,11 @@ class AsciiDoc:
 
     def _build_docs(self):
         """Render .asciidoc files to .html sites."""
-        files = [('doc/{}.asciidoc'.format(f),
-                  'qutebrowser/html/doc/{}.html'.format(f))
+        files: List[Tuple[pathlib.Path, pathlib.Path]] = [(pathlib.Path('doc/{}.asciidoc'.format(f)),
+                  DOC_DIR / (f + ".html"))
                  for f in self.FILES]
-        for src in glob.glob('doc/help/*.asciidoc'):
-            name, _ext = os.path.splitext(os.path.basename(src))
-            dst = 'qutebrowser/html/doc/{}.html'.format(name)
+        for src in pathlib.Path('doc/help/').glob('*.asciidoc'):
+            dst = DOC_DIR / (src.stem + ".html")
             files.append((src, dst))
 
         # patch image links to use local copy
@@ -94,8 +96,7 @@ class AsciiDoc:
         asciidoc_args = ['-a', 'source-highlighter=pygments']
 
         for src, dst in files:
-            src_basename = os.path.basename(src)
-            modified_src = os.path.join(self._tempdir, src_basename)
+            modified_src = self._tempdir / src.name
             with open(modified_src, 'w', encoding='utf-8') as modified_f, \
                     open(src, 'r', encoding='utf-8') as f:
                 for line in f:
@@ -189,7 +190,8 @@ class AsciiDoc:
 
     def _build_website(self):
         """Prepare and build the website."""
-        theme_file = os.path.abspath(os.path.join('www', 'qute.css'))
+        #theme_file = os.path.abspath(os.path.join('www', 'qute.css'))
+        theme_file = (pathlib.Path('www') / 'qute.css').resolve()
         shutil.copy(theme_file, self._themedir)
 
         outdir = self._website[0]
@@ -243,7 +245,7 @@ class AsciiDoc:
 
         raise FileNotFoundError
 
-    def call(self, src, dst, *args):
+    def call(self, src: pathlib.Path, dst: pathlib.Path, *args):
         """Call asciidoc for the given files.
 
         Args:
@@ -251,15 +253,18 @@ class AsciiDoc:
             dst: The destination .html file, or None to auto-guess.
             *args: Additional arguments passed to asciidoc.
         """
-        print("Calling asciidoc for {}...".format(os.path.basename(src)))
+        #print("Calling asciidoc for {}...".format(os.path.basename(src)))
+        src = pathlib.Path(src)
+        dst = pathlib.Path(dst)
+        print("Calling asciidoc for {}...".format(src.name))
         cmdline = self._cmd[:]
         if dst is not None:
-            cmdline += ['--out-file', dst]
+            cmdline += ['--out-file', str(dst)]
         cmdline += args
-        cmdline.append(src)
+        cmdline.append(str(src))
         try:
             env = os.environ.copy()
-            env['HOME'] = self._homedir
+            env['HOME'] = str(self._homedir)
             subprocess.run(cmdline, check=True, env=env)
         except (subprocess.CalledProcessError, OSError) as e:
             self._failed = True
