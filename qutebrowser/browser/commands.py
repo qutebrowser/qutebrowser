@@ -1005,7 +1005,10 @@ class CommandDispatcher:
     @cmdutils.argument('output_messages', flag='m')
     def spawn(self, cmdline, userscript=False, verbose=False,
               output=False, output_messages=False, detach=False, count=None):
-        """Spawn a command in a shell.
+        """Spawn an external command.
+
+        Note that the command is *not* run in a shell, so things like `$VAR` or
+        `> output` won't have the desired effect.
 
         Args:
             userscript: Run the command as a userscript. You can use an
