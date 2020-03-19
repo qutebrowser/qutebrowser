@@ -371,6 +371,9 @@ content.default_encoding:
     _iso-8859-1_, etc.
 
 content.windowed_fullscreen:
+  renamed: content.fullscreen.window
+
+content.fullscreen.window:
   type: Bool
   default: false
   desc: >-
