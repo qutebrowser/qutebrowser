@@ -296,6 +296,7 @@
 |<<tabs.undo_stack_size,tabs.undo_stack_size>>|Number of close tab actions to remember, per window (-1 for no maximum).
 |<<tabs.width,tabs.width>>|Width (in pixels or as percentage of the window) of the tab bar if it's vertical.
 |<<tabs.wrap,tabs.wrap>>|Wrap when changing tabs.
+|<<unknown_url.scheme.policy,unknown_url.scheme.policy>>|Set UnknownUrlSchemePolicy.
 |<<url.auto_search,url.auto_search>>|What search to start when something else than a URL is entered.
 |<<url.default_page,url.default_page>>|Page to open if :open -t/-b/-w is used without URL.
 |<<url.incdec_segments,url.incdec_segments>>|URL segments where `:navigate increment/decrement` will search for a number.
@@ -3700,6 +3701,15 @@ Wrap when changing tabs.
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
+
+[[unknown_url.scheme.policy]]
+=== unknown_url.scheme.policy
+Set UnknownUrlSchemePolicy.
+Only valid for webengine backend. 1: DisallowUnknownUrlSchemes, 2: AllowUnknownUrlSchemesFromUserInteraction, 3: AllowAllUnknownUrlSchemes.
+
+Type: <<types,Int>>
+
+Default: +pass:[1]+
 
 [[url.auto_search]]
 === url.auto_search

@@ -48,7 +48,7 @@ global_settings = typing.cast('WebEngineSettings', None)
 parsed_user_agent = None
 
 
-class _SettingsWrapper:
+class _SettingsWrapper(websettings.AbstractSettingsWrapper):
 
     """Expose a QWebEngineSettings interface which acts on all profiles.
 
@@ -88,6 +88,12 @@ class _SettingsWrapper:
     def defaultTextEncoding(self):
         return self._settings[0].defaultTextEncoding()
 
+    def unknownUrlSchemePolicy(self):
+        return self._settings[0].unknownUrlSchemePolicy()
+
+    def setUnknownUrlSchemePolicy(self, policy):
+        for settings in self._settings:
+            settings.setUnknownUrlSchemePolicy(policy)
 
 class WebEngineSettings(websettings.AbstractSettings):
 
@@ -129,6 +135,11 @@ class WebEngineSettings(websettings.AbstractSettings):
 
         'scrolling.smooth':
             Attr(QWebEngineSettings.ScrollAnimatorEnabled),
+    }
+
+    _UnknownUrlSchemePolicy = {
+        'unknown_url.scheme.policy':
+            QWebEngineSettings.UnknownUrlSchemePolicy,
     }
 
     _FONT_SIZES = {

@@ -35,6 +35,47 @@ from qutebrowser.misc import objects, debugcachestats
 
 UNSET = object()
 
+class AbstractSettingsWrapper:
+
+    """Expose a QWebEngineSettings interface which acts on all profiles.
+
+    For read operations, the default profile value is always used.
+    """
+
+    def setAttribute(self, attribute, on):
+        for settings in self._settings:
+            settings.setAttribute(attribute, on)
+
+    def setFontFamily(self, which, family):
+        for settings in self._settings:
+            settings.setFontFamily(which, family)
+
+    def setFontSize(self, fonttype, size):
+        for settings in self._settings:
+            settings.setFontSize(fonttype, size)
+
+    def setDefaultTextEncoding(self, encoding):
+        for settings in self._settings:
+            settings.setDefaultTextEncoding(encoding)
+
+    def testAttribute(self, attribute):
+        return self._settings[0].testAttribute(attribute)
+
+    def fontSize(self, fonttype):
+        return self._settings[0].fontSize(fonttype)
+
+    def fontFamily(self, which):
+        return self._settings[0].fontFamily(which)
+
+    def defaultTextEncoding(self):
+        return self._settings[0].defaultTextEncoding()
+
+    def unknownUrlSchemePolicy(self):
+        return self._settings[0].unknownUrlSchemePolicy()
+
+    def setUnknownUrlSchemePolicy(self, policy):
+        for settings in self._settings:
+            settings.setUnknownUrlSchemePolicy(policy)
 
 @attr.s
 class UserAgent:
@@ -97,6 +138,7 @@ class AbstractSettings:
 
     _ATTRIBUTES = {}  # type: typing.Dict[str, AttributeInfo]
     _FONT_SIZES = {}  # type: typing.Dict[str, typing.Any]
+    _UnknownUrlSchemePolicy = {} # type: typing.Dict[str, typing.Any]
     _FONT_FAMILIES = {}  # type: typing.Dict[str, typing.Any]
     _FONT_TO_QFONT = {}  # type: typing.Dict[typing.Any, QFont.StyleHint]
 
@@ -177,6 +219,17 @@ class AbstractSettings:
         self._settings.setDefaultTextEncoding(encoding)
         return old_value != encoding
 
+    def set_unknown_url_scheme_policy(self, policy: int) -> bool:
+        """Set the UnknownUrlSchemePolicy to use.
+
+        Return:
+            True if there was a change, False otherwise.
+        """
+        assert policy is not usertypes.UNSET  # type: ignore
+        old_value = self._settings.unknownUrlSchemePolicy()
+        self._settings.setUnknownUrlSchemePolicy(policy)
+        return old_value != policy
+
     def _update_setting(self, setting: str, value: typing.Any) -> bool:
         """Update the given setting/value.
 
@@ -193,6 +246,8 @@ class AbstractSettings:
             return self.set_font_family(setting, value)
         elif setting == 'content.default_encoding':
             return self.set_default_text_encoding(value)
+        elif setting == 'unknown_url.scheme.policy':
+            return self.set_unknown_url_scheme_policy(value)
         return False
 
     def update_setting(self, setting: str) -> None:
@@ -225,7 +280,8 @@ class AbstractSettings:
     def init_settings(self) -> None:
         """Set all supported settings correctly."""
         for setting in (list(self._ATTRIBUTES) + list(self._FONT_SIZES) +
-                        list(self._FONT_FAMILIES)):
+                        list(self._FONT_FAMILIES) +
+                        list(self._UnknownUrlSchemePolicy)):
             self.update_setting(setting)
 
 

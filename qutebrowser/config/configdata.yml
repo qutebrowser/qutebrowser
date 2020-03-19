@@ -2512,6 +2512,22 @@ colors.webpage.prefers_color_scheme_dark:
 
 # emacs: '
 
+## unkown_url
+
+unknown_url.scheme.policy:
+  default: 1
+  type:
+    name: Int
+    minval: 1
+    maxval: 3
+  desc: >-
+    Set UnknownUrlSchemePolicy.
+
+    Only valid for webengine backend.
+    1: DisallowUnknownUrlSchemes, 2: AllowUnknownUrlSchemesFromUserInteraction, 3: AllowAllUnknownUrlSchemes.
+
+
+
 ## fonts
 
 fonts.default_family:
