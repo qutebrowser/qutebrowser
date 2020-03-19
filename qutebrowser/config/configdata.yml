@@ -376,6 +376,17 @@ content.windowed_fullscreen:
   desc: >-
     Limit fullscreen to the browser window (does not expand to fill the screen).
 
+content.fullscreen.overlay_timeout:
+  type:
+    name: Int
+    minval: 0
+    maxval: maxint
+  default: 3000
+  desc: >-
+    Set fullscreen notification overlay timeout in milliseconds.
+
+    If set to 0, no overlay will be displayed.
+
 content.desktop_capture:
   type: BoolAsk
   default: ask
