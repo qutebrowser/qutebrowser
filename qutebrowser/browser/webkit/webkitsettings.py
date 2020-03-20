@@ -44,18 +44,6 @@ global_settings = typing.cast('WebKitSettings', None)
 parsed_user_agent = None
 
 
-
-class _SettingsWrapper(websettings.AbstractSettingsWrapper):
-
-    """Expose a QWebSettings interface which acts on all profiles.
-
-    For read operations, the default profile value is always used.
-    """
-
-    def __init__(self):
-        self._settings = [QWebSettings.globalSettings()]
-
-
 class WebKitSettings(websettings.AbstractSettings):
 
     """A wrapper for the config for QWebSettings."""
@@ -108,10 +96,6 @@ class WebKitSettings(websettings.AbstractSettings):
             Attr(QWebSettings.ScrollAnimatorEnabled),
     }
 
-    _UnknownUrlSchemePolicy = {
-        'unknown_url.scheme.policy': 0,
-    }
-
     _FONT_SIZES = {
         'fonts.web.size.minimum':
             QWebSettings.MinimumFontSize,
@@ -143,14 +127,6 @@ class WebKitSettings(websettings.AbstractSettings):
         QWebSettings.FantasyFont: QFont.Fantasy,
     }
 
-    def update_setting(self, setting: str) -> None:
-        """Update the given setting."""
-        # QWebSettings doesn't provide interface for
-        # setting UnknownUrlSchemePolicy
-        if setting == 'unknown_url.scheme.policy':
-            return
-        value = config.instance.get(setting)
-        self._update_setting(setting, value)
 
 def _set_user_stylesheet(settings):
     """Set the generated user-stylesheet."""
@@ -219,7 +195,7 @@ def init(_args):
     config.instance.changed.connect(_update_settings)
 
     global global_settings
-    global_settings = WebKitSettings(_SettingsWrapper())
+    global_settings = WebKitSettings(QWebSettings.globalSettings())
     global_settings.init_settings()
 
 

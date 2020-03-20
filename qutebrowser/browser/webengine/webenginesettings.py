@@ -48,7 +48,7 @@ global_settings = typing.cast('WebEngineSettings', None)
 parsed_user_agent = None
 
 
-class _SettingsWrapper(websettings.AbstractSettingsWrapper):
+class _SettingsWrapper:
 
     """Expose a QWebEngineSettings interface which acts on all profiles.
 
@@ -95,6 +95,7 @@ class _SettingsWrapper(websettings.AbstractSettingsWrapper):
         for settings in self._settings:
             settings.setUnknownUrlSchemePolicy(policy)
 
+
 class WebEngineSettings(websettings.AbstractSettings):
 
     """A wrapper for the config for QWebEngineSettings."""
@@ -137,9 +138,9 @@ class WebEngineSettings(websettings.AbstractSettings):
             Attr(QWebEngineSettings.ScrollAnimatorEnabled),
     }
 
+    # 2: AllowUnknownUrlSchemesFromUserInteraction
     _UnknownUrlSchemePolicy = {
-        'unknown_url.scheme.policy':
-            QWebEngineSettings.UnknownUrlSchemePolicy,
+        'unknown_url.scheme.policy': 2,
     }
 
     _FONT_SIZES = {
