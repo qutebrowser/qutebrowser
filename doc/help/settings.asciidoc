@@ -3705,7 +3705,7 @@ Default: +pass:[true]+
 [[unknown_url.scheme.policy]]
 === unknown_url.scheme.policy
 Set UnknownUrlSchemePolicy.
-Only valid for webengine backend. 1: DisallowUnknownUrlSchemes, 2: AllowUnknownUrlSchemesFromUserInteraction, 3: AllowAllUnknownUrlSchemes.
+Only valid for webengine backend (Qt > 5.10). 1: DisallowUnknownUrlSchemes, 2: AllowUnknownUrlSchemesFromUserInteraction, 3: AllowAllUnknownUrlSchemes.
 
 Type: <<types,Int>>
 

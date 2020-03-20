@@ -35,47 +35,69 @@ from qutebrowser.misc import objects, debugcachestats
 
 UNSET = object()
 
+
+class AttributeInfo:
+
+    """Info about a settings attribute."""
+
+    def __init__(self, *attributes: typing.Any,
+                 converter: typing.Callable = None) -> None:
+        self.attributes = attributes
+        if converter is None:
+            self.converter = lambda val: val
+        else:
+            self.converter = converter
+
+
 class AbstractSettingsWrapper:
 
-    """Expose a QWebEngineSettings interface which acts on all profiles.
+    """Expose a WebSettings interface which acts on all profiles.
 
     For read operations, the default profile value is always used.
     """
 
-    def setAttribute(self, attribute, on):
+    _settings = []  # type: list
+
+    def setAttribute(self, attribute: AttributeInfo, on: typing.Any) -> None:
         for settings in self._settings:
             settings.setAttribute(attribute, on)
 
-    def setFontFamily(self, which, family):
+    def setFontFamily(self, which: typing.Any,
+                      family: typing.Optional[str]) -> None:
+        """set font family.
+
+        mainly to pass pylint test.
+        """
         for settings in self._settings:
             settings.setFontFamily(which, family)
 
-    def setFontSize(self, fonttype, size):
+    def setFontSize(self, fonttype: str, size: int) -> None:
         for settings in self._settings:
             settings.setFontSize(fonttype, size)
 
-    def setDefaultTextEncoding(self, encoding):
+    def setDefaultTextEncoding(self, encoding: str) -> None:
         for settings in self._settings:
             settings.setDefaultTextEncoding(encoding)
 
-    def testAttribute(self, attribute):
+    def testAttribute(self, attribute: AttributeInfo) -> bool:
         return self._settings[0].testAttribute(attribute)
 
-    def fontSize(self, fonttype):
+    def fontSize(self, fonttype: str) -> int:
         return self._settings[0].fontSize(fonttype)
 
-    def fontFamily(self, which):
+    def fontFamily(self, which: str) -> str:
         return self._settings[0].fontFamily(which)
 
-    def defaultTextEncoding(self):
+    def defaultTextEncoding(self) -> str:
         return self._settings[0].defaultTextEncoding()
 
-    def unknownUrlSchemePolicy(self):
+    def unknownUrlSchemePolicy(self) -> int:
         return self._settings[0].unknownUrlSchemePolicy()
 
-    def setUnknownUrlSchemePolicy(self, policy):
+    def setUnknownUrlSchemePolicy(self, policy: int) -> None:
         for settings in self._settings:
             settings.setUnknownUrlSchemePolicy(policy)
+
 
 @attr.s
 class UserAgent:
@@ -119,26 +141,13 @@ class UserAgent:
                    qt_key=qt_key)
 
 
-class AttributeInfo:
-
-    """Info about a settings attribute."""
-
-    def __init__(self, *attributes: typing.Any,
-                 converter: typing.Callable = None) -> None:
-        self.attributes = attributes
-        if converter is None:
-            self.converter = lambda val: val
-        else:
-            self.converter = converter
-
-
 class AbstractSettings:
 
     """Abstract base class for settings set via QWeb(Engine)Settings."""
 
     _ATTRIBUTES = {}  # type: typing.Dict[str, AttributeInfo]
     _FONT_SIZES = {}  # type: typing.Dict[str, typing.Any]
-    _UnknownUrlSchemePolicy = {} # type: typing.Dict[str, typing.Any]
+    _UnknownUrlSchemePolicy = {}  # type: typing.Dict[str, typing.Any]
     _FONT_FAMILIES = {}  # type: typing.Dict[str, typing.Any]
     _FONT_TO_QFONT = {}  # type: typing.Dict[typing.Any, QFont.StyleHint]
 
@@ -252,8 +261,15 @@ class AbstractSettings:
 
     def update_setting(self, setting: str) -> None:
         """Update the given setting."""
-        value = config.instance.get(setting)
-        self._update_setting(setting, value)
+        # QtWebKit and QWebEngine < 5.11 doesn't provide interfaces for
+        # processing UnknownUrlSchemePolicy.
+        #
+        # AttributeError is expected for such cases.
+        try:
+            value = config.instance.get(setting)
+            self._update_setting(setting, value)
+        except AttributeError:
+            return
 
     def update_for_url(self, url: QUrl) -> typing.Set[str]:
         """Update settings customized for the given tab.

@@ -60,40 +60,6 @@ class _SettingsWrapper(websettings.AbstractSettingsWrapper):
         if private_profile:
             self._settings.append(private_profile.settings())
 
-    def setAttribute(self, attribute, on):
-        for settings in self._settings:
-            settings.setAttribute(attribute, on)
-
-    def setFontFamily(self, which, family):
-        for settings in self._settings:
-            settings.setFontFamily(which, family)
-
-    def setFontSize(self, fonttype, size):
-        for settings in self._settings:
-            settings.setFontSize(fonttype, size)
-
-    def setDefaultTextEncoding(self, encoding):
-        for settings in self._settings:
-            settings.setDefaultTextEncoding(encoding)
-
-    def testAttribute(self, attribute):
-        return self._settings[0].testAttribute(attribute)
-
-    def fontSize(self, fonttype):
-        return self._settings[0].fontSize(fonttype)
-
-    def fontFamily(self, which):
-        return self._settings[0].fontFamily(which)
-
-    def defaultTextEncoding(self):
-        return self._settings[0].defaultTextEncoding()
-
-    def unknownUrlSchemePolicy(self):
-        return self._settings[0].unknownUrlSchemePolicy()
-
-    def setUnknownUrlSchemePolicy(self, policy):
-        for settings in self._settings:
-            settings.setUnknownUrlSchemePolicy(policy)
 
 class WebEngineSettings(websettings.AbstractSettings):
 
@@ -137,9 +103,9 @@ class WebEngineSettings(websettings.AbstractSettings):
             Attr(QWebEngineSettings.ScrollAnimatorEnabled),
     }
 
+    # 2: AllowUnknownUrlSchemesFromUserInteraction
     _UnknownUrlSchemePolicy = {
-        'unknown_url.scheme.policy':
-            QWebEngineSettings.UnknownUrlSchemePolicy,
+        'unknown_url.scheme.policy': 2,
     }
 
     _FONT_SIZES = {
