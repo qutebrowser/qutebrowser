@@ -208,7 +208,6 @@ class BaseKeyParser(QObject):
                          - The found binding with Match.definitive.
         """
         assert sequence
-        assert not isinstance(sequence, str)
         return self.bindings.matches(sequence)
 
     def _match_without_modifiers(
@@ -340,7 +339,6 @@ class BaseKeyParser(QObject):
         self.bindings = BindingTrie()
 
         for key, cmd in config.key_instance.get_bindings_for(modename).items():
-            assert not isinstance(key, str), key
             assert cmd
             self.bindings[key] = cmd
 
