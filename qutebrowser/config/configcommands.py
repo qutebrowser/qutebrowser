@@ -139,8 +139,10 @@ class ConfigCommands:
                        no_cmd_split=True, no_replace_variables=True)
     @cmdutils.argument('command', completion=configmodel.bind)
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
+    @cmdutils.argument('pattern', flag='u')
     def bind(self, win_id: str, key: str = None, command: str = None, *,
-             mode: str = 'normal', default: bool = False) -> None:
+             mode: str = 'normal', default: bool = False,
+             pattern: str = None) -> None:
         """Bind a key to a command.
 
         If no command is given, show the current binding for the given key.
@@ -153,6 +155,7 @@ class ConfigCommands:
             mode: The mode to bind the key in (default: `normal`). See `:help
                   bindings.commands` for the available modes.
             default: If given, restore a default binding.
+            pattern: The URL pattern to use.
         """
         if key is None:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
@@ -162,17 +165,28 @@ class ConfigCommands:
 
         seq = self._parse_key(key)
 
+        # Since we don't split args, this argument is left unparsed, which
+        # means quotes are left behind.
+        if pattern is not None:
+            pattern = pattern.strip("\"'")
+        parsed_pattern = self._parse_pattern(pattern)
+
         if command is None:
             if default:
+
+                if pattern:
+                    raise cmdutils.CommandError(
+                        "Cannot restore binding of per-url settings.")
                 # :bind --default: Restore default
                 with self._handle_config_error():
-                    self._keyconfig.bind_default(seq, mode=mode,
-                                                 save_yaml=True)
+                    self._keyconfig.bind_default(
+                        seq, mode=mode, save_yaml=True)
                 return
 
             # No --default -> print binding
             with self._handle_config_error():
-                cmd = self._keyconfig.get_command(seq, mode)
+                cmd = self._keyconfig.get_command(
+                    seq, mode, pattern=parsed_pattern)
             if cmd is None:
                 message.info("{} is unbound in {} mode".format(seq, mode))
             else:
@@ -181,10 +195,14 @@ class ConfigCommands:
             return
 
         with self._handle_config_error():
-            self._keyconfig.bind(seq, command, mode=mode, save_yaml=True)
+            self._keyconfig.bind(
+                seq, command, mode=mode, save_yaml=True,
+                pattern=parsed_pattern)
 
     @cmdutils.register(instance='config-commands')
-    def unbind(self, key: str, *, mode: str = 'normal') -> None:
+    @cmdutils.argument('pattern', flag='u')
+    def unbind(self, key: str, *,
+               mode: str = 'normal', pattern: str = None) -> None:
         """Unbind a keychain.
 
         Args:
@@ -192,10 +210,12 @@ class ConfigCommands:
                   correct syntax for keychains.
             mode: The mode to unbind the key in (default: `normal`).
                   See `:help bindings.commands` for the available modes.
+            pattern: The URL pattern to use.
         """
+        parsed_pattern = self._parse_pattern(pattern)
         with self._handle_config_error():
             self._keyconfig.unbind(self._parse_key(key), mode=mode,
-                                   save_yaml=True)
+                                   save_yaml=True, pattern=parsed_pattern)
 
     @cmdutils.register(instance='config-commands', star_args_optional=True)
     @cmdutils.argument('option', completion=configmodel.option)

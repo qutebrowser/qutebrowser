@@ -88,15 +88,24 @@ class NormalKeyParser(CommandKeyParser):
         return utils.get_repr(self)
 
     def handle(self, e: QKeyEvent, *,
-               dry_run: bool = False) -> QKeySequence.SequenceMatch:
-        """Override to abort if the key is a startchar."""
+               dry_run: bool = False, url=None) -> QKeySequence.SequenceMatch:
+        """Override to abort if the key is a startchar.
+
+        Args:
+            e: the KeyPressEvent from Qt.
+            dry_run: Don't actually execute anything, only check whether there
+                     would be a match.
+
+        Return:
+            A self.Match member.
+        """
         txt = e.text().strip()
         if self._inhibited:
             self._debug_log("Ignoring key '{}', because the normal mode is "
                             "currently inhibited.".format(txt))
             return QKeySequence.NoMatch
 
-        match = super().handle(e, dry_run=dry_run)
+        match = super().handle(e, dry_run=dry_run, url=url)
 
         if match == QKeySequence.PartialMatch and not dry_run:
             timeout = config.val.input.partial_timeout
@@ -237,17 +246,26 @@ class HintKeyParser(CommandKeyParser):
             return QKeySequence.ExactMatch
 
     def handle(self, e: QKeyEvent, *,
-               dry_run: bool = False) -> QKeySequence.SequenceMatch:
-        """Handle a new keypress and call the respective handlers."""
+               dry_run: bool = False, url=None) -> QKeySequence.SequenceMatch:
+        """Handle a new keypress and call the respective handlers.
+
+        Args:
+            e: the KeyPressEvent from Qt
+            dry_run: Don't actually execute anything, only check whether there
+                     would be a match.
+
+        Returns:
+            True if the match has been handled, False otherwise.
+        """
         if dry_run:
-            return super().handle(e, dry_run=True)
+            return super().handle(e, dry_run=True, url=url)
 
         if keyutils.is_special_hint_mode(Qt.Key(e.key()), e.modifiers()):
             log.keyboard.debug("Got special key, clearing keychain")
             self.clear_keystring()
 
         assert not dry_run
-        match = super().handle(e)
+        match = super().handle(e, url=url)
 
         if match == QKeySequence.PartialMatch:
             self._last_press = LastPress.keystring
@@ -310,9 +328,18 @@ class RegisterKeyParser(CommandKeyParser):
         self._read_config('register')
 
     def handle(self, e: QKeyEvent, *,
-               dry_run: bool = False) -> QKeySequence.SequenceMatch:
-        """Override to always match the next key and use the register."""
-        match = super().handle(e, dry_run=dry_run)
+               dry_run: bool = False, url=None) -> QKeySequence.SequenceMatch:
+        """Override handle to always match the next key and use the register.
+
+        Args:
+            e: the KeyPressEvent from Qt.
+            dry_run: Don't actually execute anything, only check whether there
+                     would be a match.
+
+        Return:
+            True if event has been handled, False otherwise.
+        """
+        match = super().handle(e, dry_run=dry_run, url=url)
         if match or dry_run:
             return match
 

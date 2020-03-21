@@ -28,9 +28,10 @@ from typing import Any
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
 from qutebrowser.config import configdata, configexc, configutils
-from qutebrowser.utils import utils, log, urlmatch
+from qutebrowser.utils import utils, log, urlmatch, usertypes
 from qutebrowser.misc import objects
 from qutebrowser.keyinput import keyutils
+from qutebrowser.api import cmdutils
 
 if typing.TYPE_CHECKING:
     from typing import Tuple, MutableMapping
@@ -185,11 +186,26 @@ class KeyConfig:
     def get_command(self,
                     key: keyutils.KeySequence,
                     mode: str,
-                    default: bool = False) -> typing.Optional[str]:
+                    default: bool = False,
+                    pattern: urlmatch.UrlPattern = None
+                    ) -> typing.Optional[str]:
         """Get the command for a given key (or None)."""
         self._validate(key, mode)
         if default:
+            if pattern is not None:
+                raise cmdutils.CommandError(
+                    "Cannot get defaults with a url pattern!")
             bindings = dict(val.bindings.default[mode])
+        elif pattern is not None:
+            # FIXME is there a way to avoid the to_py here?
+            opt = self._config.get_opt('bindings.commands')
+            bindings = self._config.get_obj_for_pattern(
+                'bindings.commands', pattern=pattern)
+            bindings = opt.typ.to_py(bindings)
+            if bindings == usertypes.UNSET:
+                bindings = {}
+            else:
+                bindings = bindings.get(mode, {})
         else:
             bindings = self.get_bindings_for(mode)
         return bindings.get(key, None)
@@ -198,7 +214,8 @@ class KeyConfig:
              key: keyutils.KeySequence,
              command: str, *,
              mode: str,
-             save_yaml: bool = False) -> None:
+             save_yaml: bool = False,
+             pattern: urlmatch.UrlPattern = None) -> None:
         """Add a new binding from key to command."""
         if not command.strip():
             raise configexc.KeybindingError(
@@ -209,11 +226,16 @@ class KeyConfig:
         log.keyboard.vdebug(  # type: ignore
             "Adding binding {} -> {} in mode {}.".format(key, command, mode))
 
-        bindings = self._config.get_mutable_obj('bindings.commands')
+        bindings = self._config.get_obj_for_pattern(
+            'bindings.commands', pattern=pattern)
+        if bindings == usertypes.UNSET:
+            bindings = {}
         if mode not in bindings:
             bindings[mode] = {}
         bindings[mode][str(key)] = command
-        self._config.update_mutables(save_yaml=save_yaml)
+        self._config.set_obj(
+            'bindings.commands', bindings,
+            save_yaml=save_yaml, pattern=pattern)
 
     def bind_default(self,
                      key: keyutils.KeySequence, *,
@@ -233,13 +255,26 @@ class KeyConfig:
     def unbind(self,
                key: keyutils.KeySequence, *,
                mode: str = 'normal',
-               save_yaml: bool = False) -> None:
+               save_yaml: bool = False,
+               pattern: urlmatch.UrlPattern = None) -> None:
         """Unbind the given key in the given mode."""
         self._validate(key, mode)
 
-        bindings_commands = self._config.get_mutable_obj('bindings.commands')
+        bindings_commands = self._config.get_obj_for_pattern(
+            'bindings.commands', pattern=pattern)
+        if bindings_commands == usertypes.UNSET:
+            bindings_commands = {}
 
-        if val.bindings.commands[mode].get(key, None) is not None:
+        if pattern is not None:
+            # If unbinding a pattern arg, just unbind it
+            if bindings_commands.get(mode, {}).get(str(key), None) is None:
+                # No binding to remove
+                raise configexc.KeybindingError(
+                    "Can't find binding '{}' in {} mode for {} pattern"
+                    .format(key, mode, pattern))
+            del bindings_commands[mode][str(key)]
+
+        elif val.bindings.commands[mode].get(key, None) is not None:
             # In custom bindings -> remove it
             del bindings_commands[mode][str(key)]
         elif key in val.bindings.default[mode]:
@@ -251,7 +286,8 @@ class KeyConfig:
             raise configexc.KeybindingError(
                 "Can't find binding '{}' in {} mode".format(key, mode))
 
-        self._config.update_mutables(save_yaml=save_yaml)
+        self._config.set_obj('bindings.commands', bindings_commands,
+                             save_yaml=save_yaml, pattern=pattern)
 
 
 class Config(QObject):

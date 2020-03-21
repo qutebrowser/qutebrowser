@@ -21,11 +21,11 @@
 
 from unittest import mock
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QUrl
 import pytest
 
 from qutebrowser.keyinput import basekeyparser, keyutils
-from qutebrowser.utils import utils
+from qutebrowser.utils import utils, urlmatch
 
 
 # Alias because we need this a lot in here.
@@ -281,6 +281,26 @@ class TestHandle:
         keyparser._read_config('normal')
         keyparser.handle(fake_keyevent(Qt.Key_A))
         keyparser.execute.assert_called_once_with('message-info foo', None)
+
+    def test_domain_mapping(self, config_stub, key_config_stub, qtbot, fake_keyevent, keyparser):
+        """Test overrides of per-domain mapping."""
+        config_stub.val.bindings.commands = {
+            'normal': {'1': 'message-info default'}}
+        keyparser._read_config('normal')
+
+        keyparser.handle(fake_keyevent(Qt.Key_1, Qt.KeypadModifier),
+                         url=QUrl('https://www.qutebrowser.org/'))
+        keyparser.execute.assert_called_once_with('message-info default', None)
+        keyparser.execute.reset_mock()
+
+        pattern = urlmatch.UrlPattern("*.qutebrowser.org")
+        with qtbot.wait_signal(config_stub.changed):
+            key_config_stub.bind(
+                keyseq('1'), 'nop', mode='normal', pattern=pattern)
+
+        keyparser.handle(fake_keyevent(Qt.Key_1, Qt.KeypadModifier),
+                         url=QUrl('https://www.qutebrowser.org/'))
+        keyparser.execute.assert_called_once_with('nop', None)
 
 
 class TestCount:

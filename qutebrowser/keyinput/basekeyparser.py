@@ -22,14 +22,15 @@
 import string
 import types
 import typing
+import operator
 
 import attr
-from PyQt5.QtCore import pyqtSignal, QObject, Qt
+from PyQt5.QtCore import pyqtSignal, QObject, Qt, QUrl
 from PyQt5.QtGui import QKeySequence, QKeyEvent
 from PyQt5.QtWidgets import QWidget
 
-from qutebrowser.config import config
-from qutebrowser.utils import usertypes, log, utils
+from qutebrowser.config import config, configutils
+from qutebrowser.utils import usertypes, log, utils, objreg, qtutils
 from qutebrowser.keyinput import keyutils
 
 
@@ -195,11 +196,13 @@ class BaseKeyParser(QObject):
         if self.do_log:
             log.keyboard.debug(message)
 
-    def _match_key(self, sequence: keyutils.KeySequence) -> MatchResult:
+    def _match_key(self, sequence: keyutils.KeySequence,
+                   url: str) -> MatchResult:
         """Try to match a given keystring with any bound keychain.
 
         Args:
             sequence: The command string to find.
+            url: The current url.
 
         Return:
             A tuple (matchtype, binding).
@@ -209,17 +212,30 @@ class BaseKeyParser(QObject):
         """
         assert sequence
         assert not isinstance(sequence, str)
-        return self.bindings.matches(sequence)
+        override_result = MatchResult(
+            match_type=QKeySequence.NoMatch, command=None, sequence=sequence)
+        overrides = config.instance.get(
+            'bindings.commands', url=url, fallback=False)
+        if overrides != usertypes.UNSET:
+            # TODO add caching here, or simply store binding trie in config
+            # system instead of converting it on the fly.
+            override_trie = BindingTrie()
+            override_trie.update(overrides.get(self._modename, {}))
+            override_result = override_trie.matches(sequence)
+        normal_result = self.bindings.matches(sequence)
+        # get the most 'complete match' available
+        return max((override_result, normal_result),
+                   key=operator.attrgetter('match_type'))
 
     def _match_without_modifiers(
-            self, sequence: keyutils.KeySequence) -> MatchResult:
+            self, sequence: keyutils.KeySequence, url) -> MatchResult:
         """Try to match a key with optional modifiers stripped."""
         self._debug_log("Trying match without modifiers")
         sequence = sequence.strip_modifiers()
-        return self._match_key(sequence)
+        return self._match_key(sequence, url)
 
     def _match_key_mapping(
-            self, sequence: keyutils.KeySequence) -> MatchResult:
+            self, sequence: keyutils.KeySequence, url) -> MatchResult:
         """Try to match a key in bindings.key_mappings."""
         self._debug_log("Trying match with key_mappings")
         mapped = sequence.with_mappings(
@@ -227,7 +243,7 @@ class BaseKeyParser(QObject):
         if sequence != mapped:
             self._debug_log("Mapped {} -> {}".format(
                 sequence, mapped))
-            return self._match_key(mapped)
+            return self._match_key(mapped, url)
         return MatchResult(match_type=QKeySequence.NoMatch,
                            command=None,
                            sequence=sequence)
@@ -246,8 +262,18 @@ class BaseKeyParser(QObject):
             return True
         return False
 
+    def _get_url(self) -> typing.Optional[QUrl]:
+        try:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window='current')
+            return tabbed_browser.current_url()
+        except (objreg.RegistryUnavailableError, qtutils.QtValueError):
+            return None
+
     def handle(self, e: QKeyEvent, *,
-               dry_run: bool = False) -> QKeySequence.SequenceMatch:
+               dry_run: bool = False,
+               url: typing.Optional[QUrl] = None
+               ) -> QKeySequence.SequenceMatch:
         """Handle a new keypress.
 
         Separate the keypress into count/command, then check if it matches
@@ -267,6 +293,7 @@ class BaseKeyParser(QObject):
         self._debug_log("Got key: 0x{:x} / modifiers: 0x{:x} / text: '{}' / "
                         "dry_run {}".format(key, int(e.modifiers()), txt,
                                             dry_run))
+        url = url if url is not None else self._get_url()
 
         if keyutils.is_modifier_key(key):
             self._debug_log("Ignoring, only modifier")
@@ -279,13 +306,13 @@ class BaseKeyParser(QObject):
             self.clear_keystring()
             return QKeySequence.NoMatch
 
-        result = self._match_key(sequence)
+        result = self._match_key(sequence, url)
         del sequence  # Enforce code below to use the modified result.sequence
 
         if result.match_type == QKeySequence.NoMatch:
-            result = self._match_without_modifiers(result.sequence)
+            result = self._match_without_modifiers(result.sequence, url)
         if result.match_type == QKeySequence.NoMatch:
-            result = self._match_key_mapping(result.sequence)
+            result = self._match_key_mapping(result.sequence, url)
         if result.match_type == QKeySequence.NoMatch:
             was_count = self._match_count(result.sequence, dry_run)
             if was_count:
