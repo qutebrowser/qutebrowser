@@ -355,8 +355,7 @@ def _chromium_version() -> str:
 
     Qt 5.12: Chromium 69
     (LTS)    69.0.3497.113 (2018-09-27)
-             5.12.6: Security fixes up to 76.0.3809.87 (2019-07-30)
-                     plus fix for CVE-2019-13720 from Chrome 78
+             5.12.7: Security fixes up to 79.0.3945.130 (2020-01-16)
 
     Qt 5.13: Chromium 73
              73.0.3683.105 (~2019-02-28)
@@ -364,7 +363,10 @@ def _chromium_version() -> str:
 
     Qt 5.14: Chromium 77
              77.0.3865.129 (~2019-10-10)
-             5.14.1: Security fixes up to 79.0.3945.117 (2020-01-07)
+             5.14.2: Security fixes up to 80.0.3987.132 (2020-03-03)
+
+    Qt 5.15: Chromium 80
+             80.0.3987.136 (~2020-03-09)
 
     Also see https://www.chromium.org/developers/calendar
     and https://chromereleases.googleblog.com/
