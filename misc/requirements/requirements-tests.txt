@@ -5,7 +5,7 @@ beautifulsoup4==4.8.2
 cheroot==8.3.0
 click==7.1.1
 # colorama==0.4.3
-coverage==5.0.3
+coverage==5.0.4
 EasyProcess==0.2.10
 Flask==1.1.1
 glob2==0.7
