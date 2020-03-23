@@ -103,7 +103,7 @@ def pip_install(venv_dir: pathlib.Path, *args: str) -> None:
     """Run a pip install command inside the virtualenv."""
     arg_str = ' '.join(str(arg) for arg in args)
     utils.print_col('venv$ pip install {}'.format(arg_str), 'blue')
-    run_venv(venv_dir, 'python3', '-m', 'pip', 'install', *args)
+    run_venv(venv_dir, 'python', '-m', 'pip', 'install', *args)
 
 
 def show_tox_error(pyqt_type: str) -> None:
@@ -240,7 +240,7 @@ def regenerate_docs(venv_dir: pathlib.Path,
 
     utils.print_col('venv$ python3 scripts/asciidoc2html.py {}'
                     .format(' '.join(a2h_args)), 'blue')
-    run_venv(venv_dir, 'python3', str(script_path), *a2h_args)
+    run_venv(venv_dir, 'python', str(script_path), *a2h_args)
 
 
 def main() -> None:
