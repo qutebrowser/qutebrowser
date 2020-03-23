@@ -13,10 +13,15 @@ idna==2.9
 jwcrypto==0.7
 lxml==4.5.0
 manhole==1.6.0
+packaging==20.3
 pycparser==2.20
 Pympler==0.8
+pyparsing==2.4.6
+PyQt-builder==1.2.0
 python-dateutil==2.8.1
 requests==2.23.0
+sip==5.1.1
 six==1.14.0
+toml==0.10.0
 uritemplate==3.0.1
 urllib3==1.25.8
