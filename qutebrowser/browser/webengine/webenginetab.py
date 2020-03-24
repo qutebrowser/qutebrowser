@@ -24,7 +24,6 @@ import functools
 import re
 import html as html_utils
 import typing
-import textwrap
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
                           QTimer, QObject)
