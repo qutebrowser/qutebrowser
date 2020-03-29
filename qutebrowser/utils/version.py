@@ -441,6 +441,8 @@ def version() -> str:
     if qapp:
         style = qapp.style()
         lines.append('Style: {}'.format(style.metaObject().className()))
+        platform_name = qapp.platformName()
+        lines.append('Platform plugin: {}'.format(platform_name))
 
     importpath = os.path.dirname(os.path.abspath(qutebrowser.__file__))
 
