@@ -578,6 +578,23 @@ content.host_blocking.whitelist:
 
     Local domains are always exempt from hostblocking.
 
+content.ad_blocking.enabled:
+  default: true
+  supports_pattern: true
+  type: Bool
+  desc: Enable Brave AdBlock.
+
+content.ad_blocking.lists:
+  default:
+    - "https://easylist.to/easylist/easylist.txt"
+    - "https://easylist.to/easylist/easyprivacy.txt"
+  type:
+    name: List
+    valtype: Url
+    none_ok: true
+  desc: |
+    List of URLs of lists which contain adblock rules.
+
 content.hyperlink_auditing:
   default: false
   type: Bool
