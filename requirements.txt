@@ -7,4 +7,4 @@ Jinja2==2.11.1
 MarkupSafe==1.1.1
 Pygments==2.6.1
 pyPEG2==2.15.2
-PyYAML==5.3
+PyYAML==5.3.1
