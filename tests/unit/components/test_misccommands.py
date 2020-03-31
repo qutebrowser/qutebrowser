@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -35,7 +35,8 @@ def _trapped_segv(handler):
     """Temporarily install given signal handler for SIGSEGV."""
     old_handler = signal.signal(signal.SIGSEGV, handler)
     yield
-    signal.signal(signal.SIGSEGV, old_handler)
+    if old_handler is not None:
+        signal.signal(signal.SIGSEGV, old_handler)
 
 
 def test_debug_crash_exception():

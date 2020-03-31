@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,40 +17,64 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
-import os.path
-import subprocess
-
-import pytest
 import pytest_bdd as bdd
 
-import qutebrowser
-from qutebrowser.utils import docutils
+from qutebrowser.utils import qtutils
+
 
 bdd.scenarios('qutescheme.feature')
 
 
-@bdd.when("the documentation is up to date")
-def update_documentation():
-    """Update the docs before testing :help."""
-    base_path = os.path.dirname(os.path.abspath(qutebrowser.__file__))
-    doc_path = os.path.join(base_path, 'html', 'doc')
-    script_path = os.path.join(base_path, '..', 'scripts')
+@bdd.then(bdd.parsers.parse("the {kind} request should be blocked"))
+def request_blocked(request, quteproc, kind):
+    blocking_set_msg = (
+        "Blocking malicious request from qute://settings/set?* to "
+        "qute://settings/set?*")
+    blocking_csrf_msg = (
+        "Blocking malicious request from "
+        "http://localhost:*/data/misc/qutescheme_csrf.html to "
+        "qute://settings/set?*")
+    blocking_js_msg = (
+        "[http://localhost:*/data/misc/qutescheme_csrf.html:0] Not allowed to "
+        "load local resource: qute://settings/set?*"
+    )
+    unsafe_redirect_msg = "Load error: ERR_UNSAFE_REDIRECT"
+    blocked_request_msg = "Load error: ERR_BLOCKED_BY_CLIENT"
 
-    try:
-        os.mkdir(doc_path)
-    except FileExistsError:
-        pass
+    webkit_error_invalid = (
+        "Error while loading qute://settings/set?*: Invalid qute://settings "
+        "request")
+    webkit_error_unsupported = (
+        "Error while loading qute://settings/set?*: Unsupported request type")
 
-    files = os.listdir(doc_path)
-    if files and all(docutils.docs_up_to_date(p) for p in files):
-        return
+    if request.config.webengine and qtutils.version_check('5.12'):
+        # On Qt 5.12, we mark qute:// as a local scheme, causing most requests
+        # being blocked by Chromium internally (logging to the JS console).
+        expected_messages = {
+            'img': [blocking_js_msg],
+            'link': [blocking_js_msg],
+            'redirect': [blocking_set_msg, blocked_request_msg],
+            'form': [blocking_js_msg],
+        }
+        if qtutils.version_check('5.15', compiled=False):
+            # On Qt 5.15, Chromium blocks the redirect as ERR_UNSAFE_REDIRECT
+            # instead.
+            expected_messages['redirect'] = [unsafe_redirect_msg]
+    elif request.config.webengine:
+        expected_messages = {
+            'img': [blocking_csrf_msg],
+            'link': [blocking_set_msg, blocked_request_msg],
+            'redirect': [blocking_set_msg, blocked_request_msg],
+            'form': [blocking_set_msg, blocked_request_msg],
+        }
+    else:  # QtWebKit
+        expected_messages = {
+            'img': [blocking_csrf_msg],
+            'link': [blocking_csrf_msg, webkit_error_invalid],
+            'redirect': [blocking_csrf_msg, webkit_error_invalid],
+            'form': [webkit_error_unsupported],
+        }
 
-    try:
-        subprocess.run(['asciidoc'], stdout=subprocess.DEVNULL,
-                       stderr=subprocess.DEVNULL)
-    except OSError:
-        pytest.skip("Docs outdated and asciidoc unavailable!")
-
-    update_script = os.path.join(script_path, 'asciidoc2html.py')
-    subprocess.run([sys.executable, update_script])
+    for pattern in expected_messages[kind]:
+        msg = quteproc.wait_for(message=pattern)
+        msg.expected = True

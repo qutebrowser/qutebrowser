@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2020 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -214,4 +214,5 @@ def test_delay(qtbot, stubs, monkeypatch, config_stub, key_config_stub):
 
     keyhint = KeyHintView(0, None)
     keyhint.update_keyhint('normal', 'a')
+    assert timer.isSingleShot()
     assert timer.interval() == interval

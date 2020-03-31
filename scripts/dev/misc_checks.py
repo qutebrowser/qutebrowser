@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -29,6 +29,7 @@ import subprocess
 import tokenize
 import traceback
 import collections
+import pathlib
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
@@ -146,9 +147,42 @@ def check_vcs_conflict():
         return None
 
 
+def check_userscripts_descriptions():
+    """Make sure all userscripts are described properly."""
+    folder = pathlib.Path('misc/userscripts')
+    readme = folder / 'README.md'
+
+    described = set()
+    for line in readme.open('r'):
+        line = line.strip()
+        if line == '## Others':
+            break
+
+        match = re.fullmatch(r'- \[([^]]*)\].*', line)
+        if match:
+            described.add(match.group(1))
+
+    present = {path.name for path in folder.iterdir()}
+    present.remove('README.md')
+
+    missing = present - described
+    additional = described - present
+    ok = True
+
+    if missing:
+        print("Missing userscript descriptions: {}".format(missing))
+        ok = False
+    if additional:
+        print("Additional userscript descriptions: {}".format(additional))
+        ok = False
+
+    return ok
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('checker', choices=('git', 'vcs', 'spelling'),
+    parser.add_argument('checker',
+                        choices=('git', 'vcs', 'spelling', 'userscripts'),
                         help="Which checker to run.")
     args = parser.parse_args()
     if args.checker == 'git':
@@ -157,6 +191,8 @@ def main():
         ok = check_vcs_conflict()
     elif args.checker == 'spelling':
         ok = check_spelling()
+    elif args.checker == 'userscripts':
+        ok = check_userscripts_descriptions()
     return 0 if ok else 1
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -49,6 +49,7 @@ def parse_args():
                         default='snakeviz',
                         help="The tool to use to view the profiling data")
     parser.add_argument('--profile-file', metavar='FILE', action='store',
+                        default="profile_data",
                         help="The filename to use with --profile-tool=none")
     parser.add_argument('--profile-test', action='store_true',
                         help="Run pytest instead of qutebrowser")
@@ -80,20 +81,20 @@ def main():
     profiler.dump_stats(profilefile)
 
     if args.profile_tool == 'none':
-        pass
+        print("Profile data written to {}".format(profilefile))
     elif args.profile_tool == 'gprof2dot':
         # yep, shell=True. I know what I'm doing.
         subprocess.run(
             'gprof2dot -f pstats {} | dot -Tpng | feh -F -'.format(
-                shlex.quote(profilefile)), shell=True)
+                shlex.quote(profilefile)), shell=True, check=True)
     elif args.profile_tool == 'kcachegrind':
         callgraphfile = os.path.join(tempdir, 'callgraph')
         subprocess.run(['pyprof2calltree', '-k', '-i', profilefile,
-                        '-o', callgraphfile])
+                        '-o', callgraphfile], check=True)
     elif args.profile_tool == 'snakeviz':
-        subprocess.run(['snakeviz', profilefile])
+        subprocess.run(['snakeviz', profilefile], check=True)
     elif args.profile_tool == 'tuna':
-        subprocess.run(['tuna', profilefile])
+        subprocess.run(['tuna', profilefile], check=True)
 
     shutil.rmtree(tempdir)
 

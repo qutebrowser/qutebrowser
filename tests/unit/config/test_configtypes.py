@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -34,11 +34,11 @@ from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtNetwork import QNetworkProxy
 
 from qutebrowser.misc import objects
-from qutebrowser.config import configtypes, configexc, configutils
-from qutebrowser.utils import debug, utils, qtutils, urlmatch
+from qutebrowser.config import configtypes, configexc
+from qutebrowser.utils import debug, utils, qtutils, urlmatch, usertypes
 from qutebrowser.browser.network import pac
 from qutebrowser.keyinput import keyutils
-from tests.helpers import utils as testutils
+from helpers import utils as testutils
 
 
 class Font(QFont):
@@ -48,21 +48,41 @@ class Font(QFont):
     def __repr__(self):
         weight = debug.qenum_key(QFont, self.weight(), add_base=True,
                                  klass=QFont.Weight)
-        return utils.get_repr(self, family=self.family(), pt=self.pointSize(),
-                              px=self.pixelSize(), weight=weight,
-                              style=self.style())
+        kwargs = {
+            'family': self.family(),
+            'pt': self.pointSize(),
+            'px': self.pixelSize(),
+            'weight': weight,
+            'style': self.style(),
+        }
+        try:
+            kwargs['families'] = self.families()
+        except AttributeError:
+            # Added in Qt 5.13
+            pass
+
+        return utils.get_repr(self, **kwargs)
 
     @classmethod
     def fromdesc(cls, desc):
         """Get a Font based on a font description."""
         f = cls()
+
         f.setStyle(desc.style)
         f.setWeight(desc.weight)
+
         if desc.pt is not None and desc.pt != -1:
             f.setPointSize(desc.pt)
         if desc.px is not None and desc.pt != -1:
             f.setPixelSize(desc.px)
+
         f.setFamily(desc.family)
+        try:
+            f.setFamilies([desc.family])
+        except AttributeError:
+            # Added in Qt 5.13
+            pass
+
         return f
 
 
@@ -277,7 +297,7 @@ class TestAll:
     @pytest.mark.parametrize('none_ok', [True, False])
     def test_unset(self, klass, none_ok):
         typ = klass(none_ok=none_ok)
-        assert typ.to_py(configutils.UNSET) is configutils.UNSET
+        assert typ.to_py(usertypes.UNSET) is usertypes.UNSET
 
     def test_to_str_none(self, klass):
         assert klass().to_str(None) == ''
@@ -423,7 +443,7 @@ class TestMappingType:
                                      configtypes.Position(),
                                      configtypes.SelectOnRemove()])
     def test_mapping_type_matches_valid_values(self, typ):
-        assert list(sorted(typ.MAPPING)) == list(sorted(typ.valid_values))
+        assert sorted(typ.MAPPING) == sorted(typ.valid_values)
 
 
 class TestString:
@@ -458,6 +478,8 @@ class TestString:
         ({'valid_values': configtypes.ValidValues('abcd')}, 'abcd'),
         # Surrogate escapes are allowed in strings
         ({}, '\U00010000'),
+        # Regex
+        ({'regex': '[aA]'}, 'a'),
     ])
     def test_to_py_valid(self, klass, kwargs, val):
         assert klass(**kwargs).to_py(val) == val
@@ -475,6 +497,8 @@ class TestString:
         ({'valid_values': configtypes.ValidValues('blah')}, 'abcd'),
         # Encoding
         ({'encoding': 'ascii'}, 'fooäbar'),
+        # Regex
+        ({'regex': '[aA]'}, 'abc'),
     ])
     def test_to_py_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
@@ -936,6 +960,9 @@ class TestNumeric:
         ({'maxval': 2}, 3, False),
         ({'minval': 2, 'maxval': 3}, 1, False),
         ({'minval': 2, 'maxval': 3}, 4, False),
+
+        ({'zero_ok': False}, 0, False),
+        ({'minval': -1}, 0, True),
     ])
     def test_validate_bounds_invalid(self, klass, kwargs, val, valid):
         if valid:
@@ -1250,34 +1277,32 @@ class TestQtColor:
 
         ('rgba(255, 255, 255, 1.0)', QColor.fromRgb(255, 255, 255, 255)),
 
-        # this should be (36, 25, 25) as hue goes to 359
-        # however this is consistent with Qt's CSS parser
-        # https://bugreports.qt.io/browse/QTBUG-70897
-        ('hsv(10%,10%,10%)', QColor.fromHsv(25, 25, 25)),
-        ('hsva(10%,20%,30%,40%)', QColor.fromHsv(25, 51, 76, 102)),
+        ('hsv(10%,10%,10%)', QColor.fromHsv(35, 25, 25)),
+        ('hsva(10%,20%,30%,40%)', QColor.fromHsv(35, 51, 76, 102)),
     ])
     def test_valid(self, klass, val, expected):
         assert klass().to_py(val) == expected
 
-    @pytest.mark.parametrize('val', [
-        '#00000G',
-        '#123456789ABCD',
-        '#12',
-        'foobar',
-        '42',
-        'foo(1, 2, 3)',
-        'rgb(1, 2, 3',
-        'rgb)',
-        'rgb(1, 2, 3))',
-        'rgb((1, 2, 3)',
-        'rgb()',
-        'rgb(1, 2, 3, 4)',
-        'rgba(1, 2, 3)',
-        'rgb(10%%, 0, 0)',
+    @pytest.mark.parametrize('val,msg', [
+        ('#00000G', 'must be a valid color'),
+        ('#123456789ABCD', 'must be a valid color'),
+        ('#12', 'must be a valid color'),
+        ('foobar', 'must be a valid color'),
+        ('42', 'must be a valid color'),
+        ('foo(1, 2, 3)', "foo not in ['hsv', 'hsva', 'rgb', 'rgba']"),
+        ('rgb(1, 2, 3', 'must be a valid color'),
+        ('rgb)', 'must be a valid color'),
+        ('rgb(1, 2, 3))', 'must be a valid color value'),
+        ('rgb((1, 2, 3)', 'must be a valid color value'),
+        ('rgb()', 'expected 3 values for rgb'),
+        ('rgb(1, 2, 3, 4)', 'expected 3 values for rgb'),
+        ('rgba(1, 2, 3)', 'expected 4 values for rgba'),
+        ('rgb(10%%, 0, 0)', 'must be a valid color value'),
     ])
-    def test_invalid(self, klass, val):
-        with pytest.raises(configexc.ValidationError):
+    def test_invalid(self, klass, val, msg):
+        with pytest.raises(configexc.ValidationError) as excinfo:
             klass().to_py(val)
+        assert str(excinfo.value).endswith(msg)
 
 
 class TestQssColor:
@@ -1379,7 +1404,7 @@ class TestFont:
         'bold italic 10pt "Foobar Neue"':
             FontDesc(QFont.StyleItalic, QFont.Bold, 10, None, 'Foobar Neue'),
         'normal 300 10pt "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, 37.5, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.StyleNormal, 37, 10, None, 'Foobar Neue'),
         'normal 800 10pt "Foobar Neue"':
             FontDesc(QFont.StyleNormal, 99, 10, None, 'Foobar Neue'),
     }
@@ -1406,16 +1431,30 @@ class TestFont:
             expected = Font.fromdesc(desc)
         assert klass().to_py(val) == expected
 
+    def test_qtfont(self, qtfont_class):
+        """Test QtFont's to_py."""
+        value = Font(qtfont_class().to_py('10pt "Foobar Neue", Fubar'))
+
+        if hasattr(value, 'families'):
+            # Added in Qt 5.13
+            assert value.family() == 'Foobar Neue'
+            assert value.families() == ['Foobar Neue', 'Fubar']
+        else:
+            assert value.family() == 'Foobar Neue, Fubar'
+
+        assert value.weight() == QFont.Normal
+        assert value.style() == QFont.StyleNormal
+
+        assert value.pointSize() == 10
+
     def test_qtfont_float(self, qtfont_class):
         """Test QtFont's to_py with a float as point size.
 
         We can't test the point size for equality as Qt seems to do some
         rounding as appropriate.
         """
-        value = Font(qtfont_class().to_py('10.5pt "Foobar Neue"'))
-        assert value.family() == 'Foobar Neue'
-        assert value.weight() == QFont.Normal
-        assert value.style() == QFont.StyleNormal
+        value = Font(qtfont_class().to_py('10.5pt Test'))
+        assert value.family() == 'Test'
         assert value.pointSize() >= 10
         assert value.pointSize() <= 11
 
@@ -1435,15 +1474,15 @@ class TestFont:
         with pytest.raises(configexc.ValidationError):
             klass().to_py(val)
 
-    def test_monospace_replacement(self, klass, monkeypatch):
-        monkeypatch.setattr(configtypes.Font, 'monospace_fonts', 'Terminus')
+    def test_defaults_replacement(self, klass, monkeypatch):
+        configtypes.Font.set_defaults(['Terminus'], '23pt')
         if klass is configtypes.Font:
-            expected = '10pt Terminus'
+            expected = '23pt Terminus'
         elif klass is configtypes.QtFont:
-            desc = FontDesc(QFont.StyleNormal, QFont.Normal, 10, None,
-                            'Terminus'),
-            expected = Font.fromdesc(*desc)
-        assert klass().to_py('10pt monospace') == expected
+            desc = FontDesc(QFont.StyleNormal, QFont.Normal, 23, None,
+                            'Terminus')
+            expected = Font.fromdesc(desc)
+        assert klass().to_py('23pt default_family') == expected
 
 
 class TestFontFamily:
@@ -1837,8 +1876,12 @@ class TestDirectory:
 class TestFormatString:
 
     @pytest.fixture
-    def typ(self):
-        return configtypes.FormatString(fields=('foo', 'bar'))
+    def klass(self):
+        return configtypes.FormatString
+
+    @pytest.fixture
+    def typ(self, klass):
+        return klass(fields=('foo', 'bar'))
 
     @pytest.mark.parametrize('val', [
         'foo bar baz',
@@ -1855,6 +1898,14 @@ class TestFormatString:
     def test_to_py_invalid(self, typ, val):
         with pytest.raises(configexc.ValidationError):
             typ.to_py(val)
+
+    @pytest.mark.parametrize('value', [
+        None,
+        ['one', 'two'],
+        [('1', 'one'), ('2', 'two')],
+    ])
+    def test_complete(self, klass, value):
+        assert klass(fields=('foo'), completions=value).complete() == value
 
 
 class TestShellCommand:
@@ -2084,21 +2135,6 @@ class TestConfirmQuit:
     def test_to_py_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().to_py(val)
-
-
-class TestTimestampTemplate:
-
-    @pytest.fixture
-    def klass(self):
-        return configtypes.TimestampTemplate
-
-    @pytest.mark.parametrize('val', ['foobar', '%H:%M', 'foo %H bar %M'])
-    def test_to_py_valid(self, klass, val):
-        assert klass().to_py(val) == val
-
-    def test_to_py_invalid(self, klass):
-        with pytest.raises(configexc.ValidationError):
-            klass().to_py('%')
 
 
 class TestKey:

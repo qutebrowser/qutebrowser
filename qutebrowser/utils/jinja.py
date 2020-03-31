@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,13 +21,17 @@
 
 import os
 import os.path
+import typing
+import functools
 import contextlib
 import html
 
 import jinja2
+import jinja2.nodes
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils, urlutils, log
+from qutebrowser.utils import utils, urlutils, log, qtutils, javascript
+from qutebrowser.misc import debugcachestats
 
 
 html_fallback = """
@@ -57,10 +61,14 @@ class Loader(jinja2.BaseLoader):
         _subdir: The subdirectory to find templates in.
     """
 
-    def __init__(self, subdir):
+    def __init__(self, subdir: str) -> None:
         self._subdir = subdir
 
-    def get_source(self, _env, template):
+    def get_source(
+            self,
+            _env: jinja2.Environment,
+            template: str
+    ) -> typing.Tuple[str, str, typing.Callable[[], bool]]:
         path = os.path.join(self._subdir, template)
         try:
             source = utils.read_file(path)
@@ -78,39 +86,43 @@ class Environment(jinja2.Environment):
 
     """Our own jinja environment which is more strict."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(loader=Loader('html'),
                          autoescape=lambda _name: self._autoescape,
                          undefined=jinja2.StrictUndefined)
         self.globals['resource_url'] = self._resource_url
         self.globals['file_url'] = urlutils.file_url
         self.globals['data_url'] = self._data_url
+        self.globals['qcolor_to_qsscolor'] = qtutils.qcolor_to_qsscolor
+        self.filters['js_string_escape'] = javascript.string_escape
         self._autoescape = True
 
     @contextlib.contextmanager
-    def no_autoescape(self):
+    def no_autoescape(self) -> typing.Iterator[None]:
         """Context manager to temporarily turn off autoescaping."""
         self._autoescape = False
         yield
         self._autoescape = True
 
-    def _resource_url(self, path):
+    def _resource_url(self, path: str) -> str:
         """Load images from a relative path (to qutebrowser).
 
         Arguments:
             path: The relative path to the image
         """
         image = utils.resource_filename(path)
-        return QUrl.fromLocalFile(image).toString(QUrl.FullyEncoded)
+        url = QUrl.fromLocalFile(image)
+        urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore
+        return urlstr
 
-    def _data_url(self, path):
+    def _data_url(self, path: str) -> str:
         """Get a data: url for the broken qutebrowser logo."""
         data = utils.read_file(path, binary=True)
         filename = utils.resource_filename(path)
         mimetype = utils.guess_mimetype(filename)
         return urlutils.data_url(mimetype, data).toString()
 
-    def getattr(self, obj, attribute):
+    def getattr(self, obj: typing.Any, attribute: str) -> typing.Any:
         """Override jinja's getattr() to be less clever.
 
         This means it doesn't fall back to __getitem__, and it doesn't hide
@@ -119,10 +131,44 @@ class Environment(jinja2.Environment):
         return getattr(obj, attribute)
 
 
-def render(template, **kwargs):
+def render(template: str, **kwargs: typing.Any) -> str:
     """Render the given template and pass the given arguments to it."""
     return environment.get_template(template).render(**kwargs)
 
 
 environment = Environment()
 js_environment = jinja2.Environment(loader=Loader('javascript'))
+
+
+@debugcachestats.register()
+@functools.lru_cache()
+def template_config_variables(template: str) -> typing.FrozenSet[str]:
+    """Return the config variables used in the template."""
+    unvisted_nodes = [environment.parse(template)]
+    result = set()  # type: typing.Set[str]
+    while unvisted_nodes:
+        node = unvisted_nodes.pop()
+        if not isinstance(node, jinja2.nodes.Getattr):
+            unvisted_nodes.extend(node.iter_child_nodes())
+            continue
+
+        # List of attribute names in reverse order.
+        # For example it's ['ab', 'c', 'd'] for 'conf.d.c.ab'.
+        attrlist = []  # type: typing.List[str]
+        while isinstance(node, jinja2.nodes.Getattr):
+            attrlist.append(node.attr)  # type: ignore
+            node = node.node  # type: ignore
+
+        if isinstance(node, jinja2.nodes.Name):
+            if node.name == 'conf':  # type: ignore
+                result.add('.'.join(reversed(attrlist)))
+            # otherwise, the node is a Name node so it doesn't have any
+            # child nodes
+        else:
+            unvisted_nodes.append(node)
+
+    from qutebrowser.config import config
+    for option in result:
+        config.instance.ensure_has_opt(option)
+
+    return frozenset(result)

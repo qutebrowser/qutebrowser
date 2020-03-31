@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -130,7 +130,7 @@ def test_untested(covtest):
     """)
     covtest.run()
     expected = check_coverage.Message(
-        check_coverage.MsgType.insufficent_coverage,
+        check_coverage.MsgType.insufficient_coverage,
         'module.py',
         'module.py has 75.00% line and 100.00% branch coverage!')
     assert covtest.check() == [expected]
@@ -159,7 +159,7 @@ def test_untested_floats(covtest):
     """)
     covtest.run()
     expected = check_coverage.Message(
-        check_coverage.MsgType.insufficent_coverage,
+        check_coverage.MsgType.insufficient_coverage,
         'module.py',
         'module.py has 58.33% line and 100.00% branch coverage!')
     assert covtest.check() == [expected]
@@ -178,7 +178,7 @@ def test_untested_branches(covtest):
     """)
     covtest.run()
     expected = check_coverage.Message(
-        check_coverage.MsgType.insufficent_coverage,
+        check_coverage.MsgType.insufficient_coverage,
         'module.py',
         'module.py has 100.00% line and 50.00% branch coverage!')
     assert covtest.check() == [expected]

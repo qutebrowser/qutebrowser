@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -32,6 +32,7 @@ import argparse
 import tarfile
 import tempfile
 import collections
+import re
 
 try:
     import winreg
@@ -92,11 +93,40 @@ def _maybe_remove(path):
         pass
 
 
+def _filter_whitelisted(output, patterns):
+    for line in output.decode('utf-8').splitlines():
+        if not any(re.fullmatch(pattern, line) for pattern in patterns):
+            yield line
+
+
 def smoke_test(executable):
     """Try starting the given qutebrowser executable."""
-    subprocess.run([executable, '--no-err-windows', '--nowindow',
-                    '--temp-basedir', 'about:blank', ':later 500 quit'],
-                   check=True)
+    stdout_whitelist = []
+    stderr_whitelist = [
+        # PyInstaller debug output
+        r'\[.*\] PyInstaller Bootloader .*',
+        r'\[.*\] LOADER: .*',
+
+        # https://github.com/qutebrowser/qutebrowser/issues/4919
+        (r'objc\[.*\]: .* One of the two will be used\. '
+         r'Which one is undefined\.'),
+        (r'QCoreApplication::applicationDirPath: Please instantiate the '
+         r'QApplication object first'),
+        (r'\[.*:ERROR:mach_port_broker.mm\(48\)\] bootstrap_look_up '
+         r'org\.chromium\.Chromium\.rohitfork\.1: Permission denied \(1100\)'),
+        (r'\[.*:ERROR:mach_port_broker.mm\(43\)\] bootstrap_look_up: '
+         r'Unknown service name \(1102\)')
+    ]
+
+    proc = subprocess.run([executable, '--no-err-windows', '--nowindow',
+                           '--temp-basedir', 'about:blank',
+                           ':later 500 quit'], check=True, capture_output=True)
+    stdout = '\n'.join(_filter_whitelisted(proc.stdout, stdout_whitelist))
+    stderr = '\n'.join(_filter_whitelisted(proc.stderr, stderr_whitelist))
+    if stdout:
+        raise Exception("Unexpected stdout:\n{}".format(stdout))
+    if stderr:
+        raise Exception("Unexpected stderr:\n{}".format(stderr))
 
 
 def patch_mac_app():
@@ -112,7 +142,7 @@ def patch_mac_app():
         plistlib.dump(plist_data, f)
 
     # Replace some duplicate files by symlinks
-    framework_path = os.path.join(app_path, 'Contents', 'Resources', 'PyQt5',
+    framework_path = os.path.join(app_path, 'Contents', 'MacOS', 'PyQt5',
                                   'Qt', 'lib', 'QtWebEngineCore.framework')
 
     core_lib = os.path.join(framework_path, 'Versions', '5', 'QtWebEngineCore')
@@ -192,33 +222,48 @@ def build_mac():
                 smoke_test(binary)
             finally:
                 time.sleep(5)
-                subprocess.run(['hdiutil', 'detach', tmpdir])
+                subprocess.run(['hdiutil', 'detach', tmpdir], check=False)
     except PermissionError as e:
         print("Failed to remove tempdir: {}".format(e))
 
     return [(dmg_name, 'application/x-apple-diskimage', 'macOS .dmg')]
 
 
-def build_windows():
-    """Build windows executables/setups."""
-    utils.print_title("Updating 3rdparty content")
-    update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False)
-
-    utils.print_title("Building Windows binaries")
+def _get_windows_python_path(x64):
+    """Get the path to Python.exe on Windows."""
     parts = str(sys.version_info.major), str(sys.version_info.minor)
     ver = ''.join(parts)
     dot_ver = '.'.join(parts)
 
-    # Get python path from registry if possible
+    if x64:
+        path = (r'SOFTWARE\Python\PythonCore\{}\InstallPath'
+                .format(dot_ver))
+        fallback = r'C:\Python{}\python.exe'.format(ver)
+    else:
+        path = (r'SOFTWARE\WOW6432Node\Python\PythonCore\{}-32\InstallPath'
+                .format(dot_ver))
+        fallback = r'C:\Python{}-32\python.exe'.format(ver)
+
     try:
-        reg64_key = winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE,
-                                     r'SOFTWARE\Python\PythonCore'
-                                     r'\{}\InstallPath'.format(dot_ver))
-        python_x64 = winreg.QueryValueEx(reg64_key, 'ExecutablePath')[0]
+        key = winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE, path)
+        return winreg.QueryValueEx(key, 'ExecutablePath')[0]
     except FileNotFoundError:
-        python_x64 = r'C:\Python{}\python.exe'.format(ver)
+        return fallback
+
+
+def build_windows():
+    """Build windows executables/setups."""
+    utils.print_title("Updating 3rdparty content")
+    update_3rdparty.run(nsis=True, ace=False, pdfjs=True, fancy_dmg=False)
+
+    utils.print_title("Building Windows binaries")
+
+    python_x64 = _get_windows_python_path(x64=True)
+    python_x86 = _get_windows_python_path(x64=False)
 
     out_pyinstaller = os.path.join('dist', 'qutebrowser')
+    out_32 = os.path.join('dist',
+                          'qutebrowser-{}-x86'.format(qutebrowser.__version__))
     out_64 = os.path.join('dist',
                           'qutebrowser-{}-x64'.format(qutebrowser.__version__))
 
@@ -228,27 +273,49 @@ def build_windows():
     utils.print_title("Updating VersionInfo file")
     gen_versioninfo.main()
 
+    utils.print_title("Running pyinstaller 32bit")
+    _maybe_remove(out_32)
+    call_tox('pyinstaller', '-r', python=python_x86)
+    shutil.move(out_pyinstaller, out_32)
+
     utils.print_title("Running pyinstaller 64bit")
     _maybe_remove(out_64)
     call_tox('pyinstaller', '-r', python=python_x64)
     shutil.move(out_pyinstaller, out_64)
 
+    utils.print_title("Running 32bit smoke test")
+    smoke_test(os.path.join(out_32, 'qutebrowser.exe'))
     utils.print_title("Running 64bit smoke test")
     smoke_test(os.path.join(out_64, 'qutebrowser.exe'))
 
     utils.print_title("Building installers")
     subprocess.run(['makensis.exe',
-                    '/DX64',
                     '/DVERSION={}'.format(qutebrowser.__version__),
-                    'misc/qutebrowser.nsi'], check=True)
+                    'misc/nsis/qutebrowser.nsi'], check=True)
+    subprocess.run(['makensis.exe',
+                    '/DX86',
+                    '/DVERSION={}'.format(qutebrowser.__version__),
+                    'misc/nsis/qutebrowser.nsi'], check=True)
 
+    name_32 = 'qutebrowser-{}-win32.exe'.format(qutebrowser.__version__)
     name_64 = 'qutebrowser-{}-amd64.exe'.format(qutebrowser.__version__)
 
     artifacts += [
+        (os.path.join('dist', name_32),
+         'application/vnd.microsoft.portable-executable',
+         'Windows 32bit installer'),
         (os.path.join('dist', name_64),
          'application/vnd.microsoft.portable-executable',
          'Windows 64bit installer'),
     ]
+
+    utils.print_title("Zipping 32bit standalone...")
+    name = 'qutebrowser-{}-windows-standalone-win32'.format(
+        qutebrowser.__version__)
+    shutil.make_archive(name, 'zip', 'dist', os.path.basename(out_32))
+    artifacts.append(('{}.zip'.format(name),
+                      'application/zip',
+                      'Windows 32bit standalone'))
 
     utils.print_title("Zipping 64bit standalone...")
     name = 'qutebrowser-{}-windows-standalone-amd64'.format(
@@ -326,6 +393,7 @@ def github_upload(artifacts, tag):
         tag: The name of the release tag
     """
     import github3
+    import github3.exceptions
     utils.print_title("Uploading to github...")
 
     token = read_github_token()
@@ -340,16 +408,40 @@ def github_upload(artifacts, tag):
         raise Exception("No release found for {!r}!".format(tag))
 
     for filename, mimetype, description in artifacts:
-        with open(filename, 'rb') as f:
-            basename = os.path.basename(filename)
-            asset = release.upload_asset(mimetype, basename, f)
-        asset.edit(basename, description)
+        while True:
+            print("Uploading {}".format(filename))
+            try:
+                with open(filename, 'rb') as f:
+                    basename = os.path.basename(filename)
+                    release.upload_asset(mimetype, basename, f, description)
+            except github3.exceptions.ConnectionError as e:
+                utils.print_col('Failed to upload: {}'.format(e), 'red')
+                print("Press Enter to retry...")
+                input()
+                print("Retrying!")
+
+                assets = [asset for asset in release.assets()
+                          if asset.name == basename]
+                if assets:
+                    asset = assets[0]
+                    print("Deleting stray asset {}".format(asset.name))
+                    asset.delete()
+            else:
+                break
 
 
 def pypi_upload(artifacts):
     """Upload the given artifacts to PyPI using twine."""
+    utils.print_title("Uploading to PyPI...")
     filenames = [a[0] for a in artifacts]
-    subprocess.run(['twine', 'upload'] + filenames, check=True)
+    subprocess.run([sys.executable, '-m', 'twine', 'upload'] + filenames,
+                   check=True)
+
+
+def upgrade_sdist_dependencies():
+    """Make sure we have the latest tools for an sdist release."""
+    subprocess.run([sys.executable, '-m', 'pip', 'install', '-U', 'twine',
+                    'pip', 'wheel', 'setuptools'], check=True)
 
 
 def main():
@@ -360,14 +452,14 @@ def main():
                         "asciidoc.py. If not given, it's searched in PATH.",
                         nargs=2, required=False,
                         metavar=('PYTHON', 'ASCIIDOC'))
-    parser.add_argument('--upload', help="Tag to upload the release for",
-                        nargs=1, required=False, metavar='TAG')
+    parser.add_argument('--upload', action='store_true', required=False,
+                        help="Toggle to upload the release to GitHub")
     args = parser.parse_args()
     utils.change_cwd()
 
     upload_to_pypi = False
 
-    if args.upload is not None:
+    if args.upload:
         # Fail early when trying to upload without github3 installed
         # or without API token
         import github3  # pylint: disable=unused-import
@@ -383,14 +475,18 @@ def main():
     elif sys.platform == 'darwin':
         artifacts = build_mac()
     else:
+        upgrade_sdist_dependencies()
         test_makefile()
         artifacts = build_sdist()
         upload_to_pypi = True
 
-    if args.upload is not None:
+    if args.upload:
         utils.print_title("Press enter to release...")
         input()
-        github_upload(artifacts, args.upload[0])
+
+        version_tag = "v" + qutebrowser.__version__
+
+        github_upload(artifacts, version_tag)
         if upload_to_pypi:
             pypi_upload(artifacts)
     else:

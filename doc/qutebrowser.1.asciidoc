@@ -41,6 +41,9 @@ show it.
 *-B* 'BASEDIR', *--basedir* 'BASEDIR'::
     Base directory for all storage.
 
+*-C* 'CONFIG', *--config-py* 'CONFIG'::
+    Path to config.py.
+
 *-V*, *--version*::
     Show version and quit.
 

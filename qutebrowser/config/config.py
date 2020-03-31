@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,16 +25,14 @@ import functools
 import typing
 from typing import Any
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
+from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
 from qutebrowser.config import configdata, configexc, configutils
-from qutebrowser.utils import utils, log, jinja, urlmatch
+from qutebrowser.utils import utils, log, urlmatch
 from qutebrowser.misc import objects
 from qutebrowser.keyinput import keyutils
 
-MYPY = False
-if MYPY:
-    # pylint: disable=unused-import,useless-suppression
+if typing.TYPE_CHECKING:
     from typing import Tuple, MutableMapping
     from qutebrowser.config import configcache, configfiles
     from qutebrowser.misc import savemanager
@@ -187,7 +185,7 @@ class KeyConfig:
     def get_command(self,
                     key: keyutils.KeySequence,
                     mode: str,
-                    default: bool = False) -> str:
+                    default: bool = False) -> typing.Optional[str]:
         """Get the command for a given key (or None)."""
         self._validate(key, mode)
         if default:
@@ -202,7 +200,7 @@ class KeyConfig:
              mode: str,
              save_yaml: bool = False) -> None:
         """Add a new binding from key to command."""
-        if command is not None and not command.strip():
+        if not command.strip():
             raise configexc.KeybindingError(
                 "Can't add binding '{}' with empty command in {} "
                 'mode'.format(key, mode))
@@ -280,10 +278,11 @@ class Config(QObject):
                  yaml_config: 'configfiles.YamlConfig',
                  parent: QObject = None) -> None:
         super().__init__(parent)
-        self.changed.connect(_render_stylesheet.cache_clear)
         self._mutables = {}  # type: MutableMapping[str, Tuple[Any, Any]]
         self._yaml = yaml_config
         self._init_values()
+        self.yaml_loaded = False
+        self.config_py_loaded = False
 
     def _init_values(self) -> None:
         """Populate the self._values dict."""
@@ -307,7 +306,8 @@ class Config(QObject):
     def _set_value(self,
                    opt: 'configdata.Option',
                    value: Any,
-                   pattern: urlmatch.UrlPattern = None) -> None:
+                   pattern: urlmatch.UrlPattern = None,
+                   hide_userconfig: bool = False) -> None:
         """Set the given option to the given value."""
         if not isinstance(objects.backend, objects.NoBackend):
             if objects.backend not in opt.backends:
@@ -316,7 +316,8 @@ class Config(QObject):
 
         opt.typ.to_py(value)  # for validation
 
-        self._values[opt.name].add(opt.typ.from_obj(value), pattern)
+        self._values[opt.name].add(opt.typ.from_obj(value),
+                                   pattern, hide_userconfig=hide_userconfig)
 
         self.changed.emit(opt.name)
         log.config.debug("Config option changed: {} = {}".format(
@@ -330,6 +331,7 @@ class Config(QObject):
     def read_yaml(self) -> None:
         """Read the YAML settings from self._yaml."""
         self._yaml.load()
+        self.yaml_loaded = True
         for values in self._yaml:
             for scoped in values:
                 self._set_value(values.opt, scoped.value,
@@ -345,6 +347,10 @@ class Config(QObject):
             exception = configexc.NoOptionError(
                 name, deleted=deleted, renamed=renamed)
             raise exception from None
+
+    def ensure_has_opt(self, name: str) -> None:
+        """Raise NoOptionError if the given setting does not exist."""
+        self.get_opt(name)
 
     def get(self,
             name: str,
@@ -379,7 +385,7 @@ class Config(QObject):
         Note that the returned values are not watched for mutation.
         If a URL is given, return the value which should be used for that URL.
         """
-        self.get_opt(name)  # To make sure it exists
+        self.ensure_has_opt(name)
         value = self._values[name].get_for_url(url, fallback=fallback)
         return self._maybe_copy(value)
 
@@ -390,9 +396,9 @@ class Config(QObject):
         """Get the given setting as object (for YAML/config.py).
 
         This gets the overridden value for a given pattern, or
-        configutils.UNSET if no such override exists.
+        usertypes.UNSET if no such override exists.
         """
-        self.get_opt(name)  # To make sure it exists
+        self.ensure_has_opt(name)
         value = self._values[name].get_for_pattern(pattern, fallback=False)
         return self._maybe_copy(value)
 
@@ -404,7 +410,7 @@ class Config(QObject):
         Note that it's impossible to get a mutable object for a URL as we
         wouldn't know what pattern to apply.
         """
-        self.get_opt(name)  # To make sure it exists
+        self.ensure_has_opt(name)
 
         # If we allow mutation, there is a chance that prior mutations already
         # entered the mutable dictionary and thus further copies are unneeded
@@ -427,7 +433,7 @@ class Config(QObject):
         """Get the given setting as string.
 
         If a pattern is given, get the setting for the given pattern or
-        configutils.UNSET.
+        usertypes.UNSET.
         """
         opt = self.get_opt(name)
         values = self._values[name]
@@ -437,14 +443,19 @@ class Config(QObject):
     def set_obj(self, name: str,
                 value: Any, *,
                 pattern: urlmatch.UrlPattern = None,
-                save_yaml: bool = False) -> None:
+                save_yaml: bool = False,
+                hide_userconfig: bool = False) -> None:
         """Set the given setting from a YAML/config.py object.
 
         If save_yaml=True is given, store the new value to YAML.
+
+        If hide_userconfig=True is given, hide the value from
+        dump_userconfig().
         """
         opt = self.get_opt(name)
         self._check_yaml(opt, save_yaml)
-        self._set_value(opt, value, pattern=pattern)
+        self._set_value(opt, value, pattern=pattern,
+                        hide_userconfig=hide_userconfig)
         if save_yaml:
             self._yaml.set_obj(name, value, pattern=pattern)
 
@@ -514,15 +525,14 @@ class Config(QObject):
         Return:
             The changed config part as string.
         """
-        blocks = []
+        lines = []  # type: typing.List[str]
         for values in sorted(self, key=lambda v: v.opt.name):
-            if values:
-                blocks.append(str(values))
+            lines += values.dump()
 
-        if not blocks:
+        if not lines:
             return '<Default configuration>'
 
-        return '\n'.join(blocks)
+        return '\n'.join(lines)
 
 
 class ConfigContainer:
@@ -606,75 +616,3 @@ class ConfigContainer:
             return '{}.{}'.format(self._prefix, attr)
         else:
             return attr
-
-
-def set_register_stylesheet(obj: QObject, *,
-                            stylesheet: str = None,
-                            update: bool = True) -> None:
-    """Set the stylesheet for an object.
-
-    Also, register an update when the config is changed.
-
-    Args:
-        obj: The object to set the stylesheet for and register.
-             Must have a STYLESHEET attribute if stylesheet is not given.
-        stylesheet: The stylesheet to use.
-        update: Whether to update the stylesheet on config changes.
-    """
-    observer = StyleSheetObserver(obj, stylesheet, update)
-    observer.register()
-
-
-@functools.lru_cache()
-def _render_stylesheet(stylesheet: str) -> str:
-    """Render the given stylesheet jinja template."""
-    with jinja.environment.no_autoescape():
-        template = jinja.environment.from_string(stylesheet)
-    return template.render(conf=val)
-
-
-class StyleSheetObserver(QObject):
-
-    """Set the stylesheet on the given object and update it on changes.
-
-    Attributes:
-        _obj: The object to observe.
-        _stylesheet: The stylesheet template to use.
-    """
-
-    def __init__(self, obj: QObject,
-                 stylesheet: typing.Optional[str],
-                 update: bool) -> None:
-        super().__init__()
-        self._obj = obj
-        self._update = update
-
-        # We only need to hang around if we are asked to update.
-        if self._update:
-            self.setParent(self._obj)
-        if stylesheet is None:
-            self._stylesheet = obj.STYLESHEET  # type: str
-        else:
-            self._stylesheet = stylesheet
-
-    def _get_stylesheet(self) -> str:
-        """Format a stylesheet based on a template.
-
-        Return:
-            The formatted template as string.
-        """
-        return _render_stylesheet(self._stylesheet)
-
-    @pyqtSlot()
-    def _update_stylesheet(self) -> None:
-        """Update the stylesheet for obj."""
-        self._obj.setStyleSheet(self._get_stylesheet())
-
-    def register(self) -> None:
-        """Do a first update and listen for more."""
-        qss = self._get_stylesheet()
-        log.config.vdebug(  # type: ignore
-            "stylesheet for {}: {}".format(self._obj.__class__.__name__, qss))
-        self._obj.setStyleSheet(qss)
-        if self._update:
-            instance.changed.connect(self._update_stylesheet)

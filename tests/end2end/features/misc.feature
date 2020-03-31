@@ -331,19 +331,16 @@ Feature: Various utility commands.
         When I set content.headers.do_not_track to true
         And I open headers
         Then the header Dnt should be set to 1
-        And the header X-Do-Not-Track should be set to 1
 
     Scenario: DNT header (off)
         When I set content.headers.do_not_track to false
         And I open headers
         Then the header Dnt should be set to 0
-        And the header X-Do-Not-Track should be set to 0
 
     Scenario: DNT header (unset)
         When I set content.headers.do_not_track to <empty>
         And I open headers
         Then the header Dnt should be set to <unset>
-        And the header X-Do-Not-Track should be set to <unset>
 
     Scenario: Accept-Language header
         When I set content.headers.accept_language to en,de
@@ -364,13 +361,6 @@ Feature: Various utility commands.
         And I run :jseval console.log(window.navigator.userAgent)
         Then the header User-Agent should be set to toaster
         And the javascript message "toaster" should be logged
-
-    Scenario: Setting the default user-agent header
-        When I set content.headers.user_agent to <empty>
-        And I open headers
-        And I run :jseval console.log(window.navigator.userAgent)
-        Then the header User-Agent should be set to Mozilla/5.0 *
-        And the javascript message "Mozilla/5.0 *" should be logged
 
     ## https://github.com/qutebrowser/qutebrowser/issues/1523
 
@@ -393,6 +383,12 @@ Feature: Various utility commands.
         When I run :   :  set-cmd-text :  :  message-i "Hello World"
         And I run :command-accept
         Then the message "Hello World" should be shown
+
+    ## https://github.com/qutebrowser/qutebrowser/issues/4720
+    Scenario: Chaining failing commands
+        When I run :scroll x ;; message-info foo
+        Then the error "Invalid value 'x' for direction - *" should be shown
+        And the message "foo" should be shown
 
     # We can't run :message-i as startup command, so we use
     # :set-cmd-text
@@ -417,32 +413,6 @@ Feature: Various utility commands.
               - active: true
                 history:
                 - url: http://localhost:*/data/hello3.txt
-
-    ## Variables
-
-    Scenario: {url} as part of an argument
-        When I open data/hello.txt
-        And I run :message-info foo{url}
-        Then the message "foohttp://localhost:*/hello.txt" should be shown
-
-    Scenario: Multiple variables in an argument
-        When I open data/hello.txt
-        And I put "foo" into the clipboard
-        And I run :message-info {clipboard}bar{url}
-        Then the message "foobarhttp://localhost:*/hello.txt" should be shown
-
-    Scenario: escaping {{url}} variable
-        When I open data/hello.txt
-        And I run :message-info foo{{url}}bar
-        Then the message "foo{url}bar" should be shown
-
-    @xfail_norun
-    Scenario: {url} in clipboard should not be expanded
-        When I open data/hello.txt
-        # FIXME: {url} should be escaped, otherwise it is replaced before it enters clipboard
-        And I put "{url}" into the clipboard
-        And I run :message-info {clipboard}bar{url}
-        Then the message "{url}barhttp://localhost:*/hello.txt" should be shown
 
     ## :click-element
 

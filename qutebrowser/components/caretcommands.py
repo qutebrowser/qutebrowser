@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -209,3 +209,10 @@ def follow_selected(tab_obj: apitypes.Tab, *, tab: bool = False) -> None:
         tab_obj.caret.follow_selected(tab=tab)
     except apitypes.WebTabError as e:
         raise cmdutils.CommandError(str(e))
+
+
+@cmdutils.register(modes=[cmdutils.KeyMode.caret])
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
+def reverse_selection(tab: apitypes.Tab) -> None:
+    """Swap the stationary and moving end of the current selection."""
+    tab.caret.reverse_selection()

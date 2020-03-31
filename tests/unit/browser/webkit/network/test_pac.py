@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -203,6 +203,20 @@ def test_secret_url(url, has_secret, from_file):
     """.format('true' if (has_secret or from_file) else 'false')
     res = pac.PACResolver(test_str)
     res.resolve(QNetworkProxyQuery(QUrl(url)), from_file=from_file)
+
+
+def test_logging(qtlog):
+    """Make sure console.log() works for PAC files."""
+    test_str = """
+        function FindProxyForURL(domain, host) {
+            console.log("logging test");
+            return "DIRECT";
+        }
+    """
+    res = pac.PACResolver(test_str)
+    res.resolve(QNetworkProxyQuery(QUrl("https://example.com/test")))
+    assert len(qtlog.records) == 1
+    assert qtlog.records[0].message == 'logging test'
 
 
 def fetcher_test(test_str):

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,12 +25,13 @@ DATA: A dict of Option objects after init() has been called.
 """
 
 import typing
-from typing import Optional  # pylint: disable=unused-import,useless-suppression
+from typing import Optional
 import functools
 
 import attr
 from qutebrowser.config import configtypes
 from qutebrowser.utils import usertypes, qtutils, utils
+from qutebrowser.misc import debugcachestats
 
 DATA = typing.cast(typing.Mapping[str, 'Option'], None)
 MIGRATIONS = typing.cast('Migrations', None)
@@ -91,15 +92,15 @@ def _parse_yaml_type(
 ) -> configtypes.BaseType:
     if isinstance(node, str):
         # e.g:
-        #  type: Bool
+        #   > type: Bool
         # -> create the type object without any arguments
         type_name = node
         kwargs = {}  # type: typing.MutableMapping[str, typing.Any]
     elif isinstance(node, dict):
         # e.g:
-        #  type:
-        #    name: String
-        #    none_ok: true
+        #   > type:
+        #   >   name: String
+        #   >   none_ok: true
         # -> create the type object and pass arguments
         type_name = node.pop('name')
         kwargs = node
@@ -164,6 +165,9 @@ def _parse_yaml_backends_dict(
         'Qt 5.9.2': qtutils.version_check('5.9.2'),
         'Qt 5.10': qtutils.version_check('5.10'),
         'Qt 5.11': qtutils.version_check('5.11'),
+        'Qt 5.12': qtutils.version_check('5.12'),
+        'Qt 5.13': qtutils.version_check('5.13'),
+        'Qt 5.14': qtutils.version_check('5.14'),
     }
     for key in sorted(node.keys()):
         if conditionals[node[key]]:
@@ -265,6 +269,7 @@ def _read_yaml(
     return parsed, migrations
 
 
+@debugcachestats.register()
 @functools.lru_cache(maxsize=256)
 def is_valid_prefix(prefix: str) -> bool:
     """Check whether the given prefix is a valid prefix for some option."""

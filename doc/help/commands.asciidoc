@@ -14,11 +14,15 @@ For command arguments, there are also some variables you can use:
 
 - `{url}` expands to the URL of the current page
 - `{url:pretty}` expands to the URL in decoded format
-- `{url:host}` expands to the host part of the URL
+- `{url:host}`, `{url:domain}`, `{url:auth}`, `{url:scheme}`, `{url:username}`,
+  `{url:password}`, `{url:host}`, `{url:port}`, `{url:path}` and `{url:query}`
+  expand to the respective parts of the current URL
+- `{title}` expands to the current page's title
 - `{clipboard}` expands to the clipboard contents
 - `{primary}` expands to the primary selection contents
 
-It is possible to run or bind multiple commands by separating them with `;;`.
+Those variables can be escaped by doubling the braces, e.g. `{{url}}`. It is
+possible to run or bind multiple commands by separating them with `;;`.
 
 == Normal commands
 .Quick reference
@@ -108,7 +112,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<set,set>>|Set an option.
 |<<set-cmd-text,set-cmd-text>>|Preset the statusbar to some text.
 |<<set-mark,set-mark>>|Set a mark at the current scroll position in the current tab.
-|<<spawn,spawn>>|Spawn a command in a shell.
+|<<spawn,spawn>>|Spawn an external command.
 |<<stop,stop>>|Stop loading in the current/[count]th tab.
 |<<tab-clone,tab-clone>>|Duplicate the current tab.
 |<<tab-close,tab-close>>|Close the current/[count]th tab.
@@ -126,7 +130,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<version,version>>|Show version information.
 |<<view-source,view-source>>|Show the source of the current page in a new tab.
 |<<window-only,window-only>>|Close all windows except for the current one.
-|<<yank,yank>>|Yank something to the clipboard or primary selection.
+|<<yank,yank>>|Yank (copy) something to the clipboard or primary selection.
 |<<zoom,zoom>>|Set the zoom level for the current tab.
 |<<zoom-in,zoom-in>>|Increase the zoom level for the current tab.
 |<<zoom-out,zoom-out>>|Decrease the zoom level for the current tab.
@@ -165,8 +169,7 @@ If no command is given, show the current binding for the given key. Using :bind 
 * +'command'+: The command to execute, with optional args.
 
 ==== optional arguments
-* +*-m*+, +*--mode*+: A comma-separated list of modes to bind the key in (default: `normal`). See `:help bindings.commands` for the
- available modes.
+* +*-m*+, +*--mode*+: The mode to bind the key in (default: `normal`). See `:help bindings.commands` for the available modes.
 
 * +*-d*+, +*--default*+: If given, restore a default binding.
 
@@ -510,7 +513,9 @@ Syntax: +:enter-mode 'mode'+
 Enter a key mode.
 
 ==== positional arguments
-* +'mode'+: The mode to enter.
+* +'mode'+: The mode to enter. See `:help bindings.commands` for the available modes, but note that hint/command/yesno/prompt mode
+ can't be entered manually.
+
 
 [[fake-key]]
 === fake-key
@@ -551,12 +556,14 @@ How many pages to go forward.
 
 [[fullscreen]]
 === fullscreen
-Syntax: +:fullscreen [*--leave*]+
+Syntax: +:fullscreen [*--leave*] [*--enter*]+
 
 Toggle fullscreen mode.
 
 ==== optional arguments
 * +*-l*+, +*--leave*+: Only leave fullscreen if it was entered by the page.
+* +*-e*+, +*--enter*+: Activate fullscreen and do not toggle if it is already active.
+
 
 [[greasemonkey-reload]]
 === greasemonkey-reload
@@ -614,11 +621,12 @@ Start hinting.
  - `normal`: Open the link.
  - `current`: Open the link in the current tab.
  - `tab`: Open the link in a new tab (honoring the
- `tabs.background_tabs` setting).
+ `tabs.background` setting).
  - `tab-fg`: Open the link in a new foreground tab.
  - `tab-bg`: Open the link in a new background tab.
  - `window`: Open the link in a new window.
  - `hover` : Hover over the link.
+ - `right-click`: Right-click the element.
  - `yank`: Yank the link to the clipboard.
  - `yank-primary`: Yank the link to the primary selection.
  - `run`: Run the argument as command.
@@ -628,6 +636,7 @@ Start hinting.
  - `userscript`: Call a userscript with `$QUTE_URL` set to the
  link.
  - `spawn`: Spawn a command.
+ - `delete`: Delete the selected element.
  
 
 
@@ -661,7 +670,7 @@ Start hinting.
 
 * +*-r*+, +*--rapid*+: Whether to do rapid hinting. With rapid hinting, the hint mode isn't left after a hint is followed, so you can easily
  open multiple links. This is only possible with targets
- `tab` (with `tabs.background_tabs=true`), `tab-bg`,
+ `tab` (with `tabs.background=true`), `tab-bg`,
  `window`, `run`, `hover`, `userscript` and `spawn`.
 
 * +*-f*+, +*--first*+: Click the first hinted element without prompting.
@@ -711,7 +720,7 @@ Insert text at cursor position.
 === inspector
 Toggle the web inspector.
 
-Note: Due a bug in Qt, the inspector will show incorrect request headers in the network tab.
+Note: Due to a bug in Qt, the inspector will show incorrect request headers in the network tab.
 
 [[jseval]]
 === jseval
@@ -1160,7 +1169,6 @@ Delete a session.
 ==== optional arguments
 * +*-f*+, +*--force*+: Force deleting internal sessions (starting with an underline).
 
-
 [[session-load]]
 === session-load
 Syntax: +:session-load [*--clear*] [*--temp*] [*--force*] [*--delete*] 'name'+
@@ -1174,7 +1182,6 @@ Load a session.
 * +*-c*+, +*--clear*+: Close all existing windows.
 * +*-t*+, +*--temp*+: Don't set the current session for :session-save.
 * +*-f*+, +*--force*+: Force loading internal sessions (starting with an underline).
-
 * +*-d*+, +*--delete*+: Delete the saved session once it has loaded.
 
 [[session-save]]
@@ -1245,9 +1252,13 @@ Set a mark at the current scroll position in the current tab.
 
 [[spawn]]
 === spawn
-Syntax: +:spawn [*--userscript*] [*--verbose*] [*--output*] [*--detach*] 'cmdline'+
+Syntax: +:spawn [*--userscript*] [*--verbose*] [*--output*] [*--output-messages*]
+      [*--detach*]
+      'cmdline'+
 
-Spawn a command in a shell.
+Spawn an external command.
+
+Note that the command is *not* run in a shell, so things like `$VAR` or `> output` won't have the desired effect.
 
 ==== positional arguments
 * +'cmdline'+: The commandline to execute.
@@ -1260,7 +1271,8 @@ Spawn a command in a shell.
  - `/usr/share/qutebrowser/userscripts`
 
 * +*-v*+, +*--verbose*+: Show notifications when the command started/exited.
-* +*-o*+, +*--output*+: Whether the output should be shown in a new tab.
+* +*-o*+, +*--output*+: Show the output in a new tab.
+* +*-m*+, +*--output-messages*+: Show the output as messages.
 * +*-d*+, +*--detach*+: Whether the command should be detached from qutebrowser.
 
 ==== count
@@ -1311,9 +1323,10 @@ Select the tab given as argument/[count].
 If neither count nor index are given, it behaves like tab-next. If both are given, use count.
 
 ==== positional arguments
-* +'index'+: The tab index to focus, starting with 1. The special value `last` focuses the last focused tab (regardless of count).
- Negative indices count from the end, such that -1 is the
- last tab.
+* +'index'+: The tab index to focus, starting with 1. The special value `last` focuses the last focused tab (regardless of count),
+ and `stack-prev`/`stack-next` traverse a stack of visited
+ tabs. Negative indices count from the end, such that -1 is
+ the last tab.
 
 
 ==== optional arguments
@@ -1425,7 +1438,7 @@ Unbind a keychain.
 
 
 ==== optional arguments
-* +*-m*+, +*--mode*+: A mode to unbind the key in (default: `normal`). See `:help bindings.commands` for the available modes.
+* +*-m*+, +*--mode*+: The mode to unbind the key in (default: `normal`). See `:help bindings.commands` for the available modes.
 
 
 [[undo]]
@@ -1460,9 +1473,9 @@ Close all windows except for the current one.
 
 [[yank]]
 === yank
-Syntax: +:yank [*--sel*] [*--keep*] [*--quiet*] ['what']+
+Syntax: +:yank [*--sel*] [*--keep*] [*--quiet*] ['what'] ['inline']+
 
-Yank something to the clipboard or primary selection.
+Yank (copy) something to the clipboard or primary selection.
 
 ==== positional arguments
 * +'what'+: What to yank. 
@@ -1472,9 +1485,13 @@ Yank something to the clipboard or primary selection.
  - `title`: The current page's title.
  - `domain`: The current scheme, domain, and port number.
  - `selection`: The selection under the cursor.
- - `markdown`: Yank title and URL in markdown format.
+ - `markdown`: Yank title and URL in markdown format
+ (deprecated, use `:yank inline [{title}]({url})` instead).
+ - `inline`: Yank the text contained in the 'inline' argument.
  
 
+
+* +'inline'+: A block of text, to be yanked if 'what' is inline and ignored otherwise.
 
 
 ==== optional arguments
@@ -1557,6 +1574,7 @@ How many steps to zoom out.
 |<<prompt-item-focus,prompt-item-focus>>|Shift the focus of the prompt file completion menu to another item.
 |<<prompt-open-download,prompt-open-download>>|Immediately open a download.
 |<<prompt-yank,prompt-yank>>|Yank URL to clipboard or primary selection.
+|<<reverse-selection,reverse-selection>>|Swap the stationary and moving end of the current selection.
 |<<rl-backward-char,rl-backward-char>>|Move back a character.
 |<<rl-backward-delete-char,rl-backward-delete-char>>|Delete the character before the cursor.
 |<<rl-backward-kill-word,rl-backward-kill-word>>|Remove chars from the cursor to the beginning of the word.
@@ -1731,13 +1749,16 @@ How many blocks to move.
 
 [[prompt-accept]]
 === prompt-accept
-Syntax: +:prompt-accept ['value']+
+Syntax: +:prompt-accept [*--save*] ['value']+
 
 Accept the current prompt.
 
 ==== positional arguments
 * +'value'+: If given, uses this value instead of the entered one. For boolean prompts, "yes"/"no" are accepted as value.
 
+
+==== optional arguments
+* +*-s*+, +*--save*+: Save the value to the config.
 
 [[prompt-item-focus]]
 === prompt-item-focus
@@ -1776,6 +1797,10 @@ Yank URL to clipboard or primary selection.
 
 ==== optional arguments
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
+
+[[reverse-selection]]
+=== reverse-selection
+Swap the stationary and moving end of the current selection.
 
 [[rl-backward-char]]
 === rl-backward-char

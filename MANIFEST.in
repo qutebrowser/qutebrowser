@@ -12,8 +12,8 @@ recursive-include scripts *.py *.sh *.js
 include qutebrowser/utils/testfile
 include qutebrowser/git-commit-id
 include LICENSE doc/* README.asciidoc
-include misc/qutebrowser.desktop
-include misc/qutebrowser.appdata.xml
+include misc/org.qutebrowser.qutebrowser.desktop
+include misc/org.qutebrowser.qutebrowser.appdata.xml
 include misc/Makefile
 include requirements.txt
 include tox.ini
@@ -38,8 +38,8 @@ exclude qutebrowser/javascript/.eslintignore
 exclude doc/help
 exclude .*
 exclude misc/qutebrowser.spec
-exclude misc/qutebrowser.nsi
 exclude misc/qutebrowser.rcc
 prune doc/extapi
+prune misc/nsis
 
 global-exclude __pycache__ *.pyc *.pyo

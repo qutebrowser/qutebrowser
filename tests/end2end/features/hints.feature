@@ -19,6 +19,16 @@ Feature: Using hints
         When I run :hint --mode=foobar
         Then the error "Invalid mode: Invalid value 'foobar' - valid values: number, letter, word" should be shown
 
+    Scenario: Switching tab between :hint and start_cb (issue 3892)
+        When I open data/hints/html/simple.html
+        And I open data/hints/html/simple.html in a new tab
+        And I run :hint ;; tab-prev
+        And I wait for regex "hints: .*|Current tab changed \(\d* -> \d*\) before _start_cb is run\." in the log
+        # 'hints: .*' is logged when _start_cb is called before tab-prev (on
+        # qtwebkit, _start_cb is called synchronously)
+        And I run :follow-hint a
+        Then the error "follow-hint: This command is only allowed in hint mode, not normal." should be shown
+
     ### Opening in current or new tab
 
     Scenario: Following a hint and force to open in current tab.
@@ -417,6 +427,17 @@ Feature: Using hints
         And I hint with args "--rapid" and follow 00
         Then data/numbers/1.txt should be loaded
 
+    Scenario: Changing rapid hint filter after selecting hint
+        When I open data/hints/number.html
+        And I set hints.mode to number
+        And I hint with args "all tab-bg --rapid "
+        And I press the key "e"
+        And I press the key "2"
+        And I press the key "<Backspace>"
+        And I press the key "o"
+        And I press the key "0"
+        Then data/numbers/1.txt should be loaded
+
     Scenario: Using a specific hints mode
         When I open data/hints/number.html
         And I set hints.mode to letter
@@ -425,6 +446,21 @@ Feature: Using hints
         And I wait for "Filtering hints on 's'" in the log
         And I run :follow-hint 1
         Then data/numbers/7.txt should be loaded
+
+    ### hints.leave_on_load
+    Scenario: Leaving hint mode on reload
+        When I open data/hints/html/wrapped.html
+        And I hint with args "all"
+        And I run :reload
+        Then "Leaving mode KeyMode.hint (reason: load started)" should be logged
+
+    Scenario: Leaving hint mode on reload without leave_on_load
+        When I set hints.leave_on_load to false
+        And I open data/hints/html/simple.html
+        And I hint with args "all"
+        And I run :reload
+        Then "Leaving mode KeyMode.hint (reason: load started)" should not be logged
+
 
     ### hints.auto_follow option
 
@@ -569,3 +605,10 @@ Feature: Using hints
         And I run :jseval console.log(document.activeElement.id == "qute-input");
         And I run :leave-mode
         Then the javascript message "true" should be logged
+
+    # Delete hint target
+    Scenario: Deleting a simple target
+        When I open data/hints/html/simple.html
+        And I hint with args "all delete" and follow a
+        And I run :hint
+        Then the error "No elements found." should be shown

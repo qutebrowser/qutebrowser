@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,7 +19,6 @@
 
 """Functions related to ad blocking."""
 
-import io
 import os.path
 import functools
 import posixpath
@@ -31,7 +30,7 @@ import pathlib
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.api import (cmdutils, hook, config, message, downloads,
-                             interceptor, apitypes)
+                             interceptor, apitypes, qtutils)
 
 
 logger = logging.getLogger('misc')
@@ -114,6 +113,8 @@ class HostBlocker:
         if first_party_url is not None and not first_party_url.isValid():
             first_party_url = None
 
+        qtutils.ensure_valid(request_url)
+
         if not config.get('content.host_blocking.enabled',
                           url=first_party_url):
             return False
@@ -131,6 +132,44 @@ class HostBlocker:
                         .format(info.request_url.host()))
             info.block()
 
+    def _read_hosts_line(self, raw_line: bytes) -> typing.Set[str]:
+        """Read hosts from the given line.
+
+        Args:
+            line: The bytes object to read.
+
+        Returns:
+            A set containing valid hosts found
+            in the line.
+        """
+        if raw_line.startswith(b'#'):
+            # Ignoring comments early so we don't have to care about
+            # encoding errors in them
+            return set()
+
+        line = raw_line.decode('utf-8')
+
+        # Remove comments
+        hash_idx = line.find('#')
+        line = line if hash_idx == -1 else line[:hash_idx]
+
+        parts = line.strip().split()
+        if len(parts) == 1:
+            # "one host per line" format
+            hosts = parts
+        else:
+            # /etc/hosts format
+            hosts = parts[1:]
+
+        filtered_hosts = set()
+        for host in hosts:
+            if ('.' in host and
+                    not host.endswith('.localdomain') and
+                    host != '0.0.0.0'):
+                filtered_hosts.update([host])
+
+        return filtered_hosts
+
     def _read_hosts_file(self, filename: str, target: typing.Set[str]) -> bool:
         """Read hosts from the given filename.
 
@@ -145,9 +184,10 @@ class HostBlocker:
             return False
 
         try:
-            with open(filename, 'r', encoding='utf-8') as f:
+            with open(filename, 'rb') as f:
                 for line in f:
-                    target.add(line.strip())
+                    target |= self._read_hosts_line(line)
+
         except (OSError, UnicodeDecodeError):
             logger.exception("Failed to read host blocklist!")
 
@@ -206,55 +246,7 @@ class HostBlocker:
         self._in_progress.append(download)
         self._on_download_finished(download)
 
-    def _parse_line(self, raw_line: bytes) -> bool:
-        """Parse a line from a host file.
-
-        Args:
-            raw_line: The bytes object to parse.
-
-        Returns:
-            True if parsing succeeded, False otherwise.
-        """
-        if raw_line.startswith(b'#'):
-            # Ignoring comments early so we don't have to care about
-            # encoding errors in them.
-            return True
-
-        try:
-            line = raw_line.decode('utf-8')
-        except UnicodeDecodeError:
-            logger.error("Failed to decode: {!r}".format(raw_line))
-            return False
-
-        # Remove comments
-        try:
-            hash_idx = line.index('#')
-            line = line[:hash_idx]
-        except ValueError:
-            pass
-
-        line = line.strip()
-        # Skip empty lines
-        if not line:
-            return True
-
-        parts = line.split()
-        if len(parts) == 1:
-            # "one host per line" format
-            hosts = [parts[0]]
-        else:
-            # /etc/hosts format
-            hosts = parts[1:]
-
-        for host in hosts:
-            if ('.' in host and
-                    not host.endswith('.localdomain') and
-                    host != '0.0.0.0'):
-                self._blocked_hosts.add(host)
-
-        return True
-
-    def _merge_file(self, byte_io: io.BytesIO) -> None:
+    def _merge_file(self, byte_io: typing.IO[bytes]) -> None:
         """Read and merge host files.
 
         Args:
@@ -272,8 +264,10 @@ class HostBlocker:
 
         for line in f:
             line_count += 1
-            ok = self._parse_line(line)
-            if not ok:
+            try:
+                self._blocked_hosts |= self._read_hosts_line(line)
+            except UnicodeDecodeError:
+                logger.error("Failed to decode: {!r}".format(line))
                 error_count += 1
 
         logger.debug("{}: read {} lines".format(byte_io.name, line_count))
@@ -308,6 +302,9 @@ class HostBlocker:
         self._in_progress.remove(download)
         if download.successful:
             self._done_count += 1
+            assert not isinstance(download.fileobj,
+                                  downloads.UnsupportedAttribute)
+            assert download.fileobj is not None
             try:
                 self._merge_file(download.fileobj)
             finally:

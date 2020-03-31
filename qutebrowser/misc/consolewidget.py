@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,6 +21,7 @@
 
 import sys
 import code
+import typing
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 from PyQt5.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QApplication
@@ -29,6 +30,9 @@ from PyQt5.QtGui import QTextCursor
 from qutebrowser.config import config
 from qutebrowser.misc import cmdhistory, miscwidgets
 from qutebrowser.utils import utils, objreg
+
+
+console_widget = None
 
 
 class ConsoleLineEdit(miscwidgets.CommandLineEdit):
@@ -162,14 +166,14 @@ class ConsoleWidget(QWidget):
         namespace = {
             '__name__': '__console__',
             '__doc__': None,
-            'qApp': QApplication.instance(),
+            'q_app': QApplication.instance(),
             # We use parent as self here because the user "feels" the whole
             # console, not just the line edit.
             'self': parent,
             'objreg': objreg,
         }
         self._more = False
-        self._buffer = []
+        self._buffer = []  # type: typing.MutableSequence[str]
         self._lineedit = ConsoleLineEdit(namespace, self)
         self._lineedit.execute.connect(self.push)
         self._output = ConsoleTextEdit()
@@ -211,3 +215,9 @@ class ConsoleWidget(QWidget):
     def _curprompt(self):
         """Get the prompt which is visible currently."""
         return sys.ps2 if self._more else sys.ps1
+
+
+def init():
+    """Initialize a global console."""
+    global console_widget
+    console_widget = ConsoleWidget()

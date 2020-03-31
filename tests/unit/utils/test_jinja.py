@@ -1,4 +1,4 @@
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 #
@@ -28,6 +28,7 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import utils, jinja
+from qutebrowser.config import configexc
 
 
 @pytest.fixture(autouse=True)
@@ -146,3 +147,25 @@ def test_autoescape(escape):
 
     template = jinja.environment.from_string("{{ v }}")
     assert template.render(v='<foo') == '&lt;foo'
+
+
+@pytest.mark.parametrize('template, expected', [
+    ('{{ func1(conf.aliases) }} {{ func2(conf.backend) }}',
+     ['aliases', 'backend']),
+    ('{{ conf.aliases["a"].propname }}', ['aliases']),
+    ('{{ conf.auto_save.interval + conf.hints.min_chars }}',
+     ['auto_save.interval', 'hints.min_chars']),
+    ('{{ notconf.a.b.c }}', []),
+])
+def test_template_config_variables(template, expected, config_stub):
+    assert jinja.template_config_variables(template) == frozenset(expected)
+
+
+@pytest.mark.parametrize('template', [
+    '{{ func1(conf.aaa) }}',
+    '{{ conf.bbb["a"].propname }}',
+    '{{ conf.ccc + 1 }}',
+])
+def test_template_config_variables_no_option(template, config_stub):
+    with pytest.raises(configexc.NoOptionError):
+        jinja.template_config_variables(template)

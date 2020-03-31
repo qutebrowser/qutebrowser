@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2020 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -29,7 +29,7 @@ from qutebrowser.misc import sql
 pytestmark = pytest.mark.usefixtures('init_sql')
 
 
-@pytest.mark.parametrize('klass', [sql.SqlEnvironmentError, sql.SqlBugError])
+@pytest.mark.parametrize('klass', [sql.KnownError, sql.BugError])
 def test_sqlerror(klass):
     text = "Hello World"
     err = klass(text)
@@ -40,10 +40,10 @@ def test_sqlerror(klass):
 class TestSqlError:
 
     @pytest.mark.parametrize('error_code, exception', [
-        (sql.SqliteErrorCode.BUSY, sql.SqlEnvironmentError),
-        (sql.SqliteErrorCode.CONSTRAINT, sql.SqlBugError),
+        (sql.SqliteErrorCode.BUSY, sql.KnownError),
+        (sql.SqliteErrorCode.CONSTRAINT, sql.BugError),
     ])
-    def test_environmental(self, error_code, exception):
+    def test_known(self, error_code, exception):
         sql_err = QSqlError("driver text", "db text", QSqlError.UnknownError,
                             error_code)
         with pytest.raises(exception):
@@ -59,13 +59,13 @@ class TestSqlError:
                             "out of memory",
                             QSqlError.UnknownError,
                             sql.SqliteErrorCode.UNKNOWN)
-        with pytest.raises(sql.SqlEnvironmentError):
+        with pytest.raises(sql.KnownError):
             sql.raise_sqlite_error("Message", sql_err)
 
     def test_logging(self, caplog):
         sql_err = QSqlError("driver text", "db text", QSqlError.UnknownError,
                             '23')
-        with pytest.raises(sql.SqlBugError):
+        with pytest.raises(sql.BugError):
             sql.raise_sqlite_error("Message", sql_err)
 
         expected = ['SQL error:',
@@ -76,8 +76,7 @@ class TestSqlError:
 
         assert caplog.messages == expected
 
-    @pytest.mark.parametrize('klass',
-                             [sql.SqlEnvironmentError, sql.SqlBugError])
+    @pytest.mark.parametrize('klass', [sql.KnownError, sql.BugError])
     def test_text(self, klass):
         sql_err = QSqlError("driver text", "db text")
         err = klass("Message", sql_err)
@@ -107,7 +106,7 @@ def test_insert_replace(qtbot):
         table.insert({'name': 'one', 'val': 11, 'lucky': True}, replace=True)
     assert list(table) == [('one', 11, True)]
 
-    with pytest.raises(sql.SqlBugError):
+    with pytest.raises(sql.BugError):
         table.insert({'name': 'one', 'val': 11, 'lucky': True}, replace=False)
 
 
@@ -143,7 +142,7 @@ def test_insert_batch_replace(qtbot):
                            ('one', 11, True),
                            ('nine', 19, True)]
 
-    with pytest.raises(sql.SqlBugError):
+    with pytest.raises(sql.BugError):
         table.insert_batch({'name': ['one', 'nine'],
                             'val': [11, 19],
                             'lucky': [True, True]})
@@ -240,7 +239,7 @@ def test_version():
 class TestSqlQuery:
 
     def test_prepare_error(self):
-        with pytest.raises(sql.SqlBugError) as excinfo:
+        with pytest.raises(sql.BugError) as excinfo:
             sql.Query('invalid')
 
         expected = ('Failed to prepare query "invalid": "near "invalid": '
@@ -254,7 +253,7 @@ class TestSqlQuery:
 
     def test_iter_inactive(self):
         q = sql.Query('SELECT 0')
-        with pytest.raises(sql.SqlBugError,
+        with pytest.raises(sql.BugError,
                            match='Cannot iterate inactive query'):
             next(iter(q))
 
@@ -283,7 +282,7 @@ class TestSqlQuery:
 
     def test_run_missing_binding(self):
         q = sql.Query('SELECT :answer')
-        with pytest.raises(sql.SqlBugError, match='Missing bound values!'):
+        with pytest.raises(sql.BugError, match='Missing bound values!'):
             q.run()
 
     def test_run_batch(self):
@@ -293,13 +292,13 @@ class TestSqlQuery:
 
     def test_run_batch_missing_binding(self):
         q = sql.Query('SELECT :answer')
-        with pytest.raises(sql.SqlBugError, match='Missing bound values!'):
+        with pytest.raises(sql.BugError, match='Missing bound values!'):
             q.run_batch(values={})
 
     def test_value_missing(self):
         q = sql.Query('SELECT 0 WHERE 0')
         q.run()
-        with pytest.raises(sql.SqlBugError,
+        with pytest.raises(sql.BugError,
                            match='No result for single-result query'):
             q.value()
 

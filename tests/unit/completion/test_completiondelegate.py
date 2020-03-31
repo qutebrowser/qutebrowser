@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2018-2020 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -20,7 +20,8 @@ from unittest import mock
 
 import pytest
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QTextDocument
+from PyQt5.QtGui import QTextDocument, QColor
+from PyQt5.QtWidgets import QTextEdit
 
 from qutebrowser.completion import completiondelegate
 
@@ -50,3 +51,24 @@ def test_highlight(pat, txt, segments):
     highlighter.setFormat.assert_has_calls([
         mock.call(s[0], s[1], mock.ANY) for s in segments
     ])
+
+
+def test_highlighted(qtbot):
+    """Make sure highlighting works.
+
+    Note that with Qt 5.11.3 and > 5.12.1 we need to call setPlainText *after*
+    creating the highlighter for highlighting to work. Ideally, we'd test
+    whether CompletionItemDelegate._get_textdoc() works properly, but testing
+    that is kind of hard, so we just test it in isolation here.
+    """
+    doc = QTextDocument()
+    completiondelegate._Highlighter(doc, 'Hello', Qt.red)
+    doc.setPlainText('Hello World')
+
+    # Needed so the highlighting actually works.
+    edit = QTextEdit()
+    qtbot.addWidget(edit)
+    edit.setDocument(doc)
+
+    colors = [f.foreground().color() for f in doc.allFormats()]
+    assert QColor('red') in colors

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -499,7 +499,7 @@ def _format_block(filename, what, data):
         if not found_start:
             raise Exception("Marker '// QUTE_{}_START' not found in "
                             "'{}'!".format(what, filename))
-        elif not found_end:
+        if not found_end:
             raise Exception("Marker '// QUTE_{}_END' not found in "
                             "'{}'!".format(what, filename))
     except:
@@ -545,6 +545,7 @@ def regenerate_cheatsheet():
         subprocess.run(['inkscape', '-e', filename, '-b', 'white',
                         '-w', str(x), '-h', str(y),
                         'misc/cheatsheet.svg'], check=True)
+        subprocess.run(['optipng', filename], check=True)
 
 
 def main():

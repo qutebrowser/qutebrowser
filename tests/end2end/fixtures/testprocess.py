@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -310,7 +310,9 @@ class Process(QObject):
             self.proc.terminate()
 
         ok = self.proc.waitForFinished()
-        assert ok
+        if not ok:
+            self.proc.kill()
+            self.proc.waitForFinished()
 
     def is_running(self):
         """Check if the process is currently running."""
@@ -468,7 +470,7 @@ class Process(QObject):
             else:
                 timeout = 5000
 
-        timeout /= divisor
+        timeout //= divisor
 
         if not kwargs:
             raise TypeError("No keyword arguments given!")

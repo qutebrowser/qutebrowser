@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -100,7 +100,7 @@ class Request(testprocess.Line):
         return NotImplemented
 
 
-@attr.s(frozen=True, cmp=False, hash=True)
+@attr.s(frozen=True, eq=False, hash=True)
 class ExpectedRequest:
 
     """Class to compare expected requests easily."""

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -22,18 +22,20 @@
 import os
 import time
 import contextlib
+import typing
 
 from PyQt5.QtCore import pyqtSlot, QUrl, pyqtSignal
 from PyQt5.QtWidgets import QProgressDialog, QApplication
 
 from qutebrowser.config import config
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import utils, objreg, log, usertypes, message, qtutils
+from qutebrowser.utils import utils, log, usertypes, message, qtutils
 from qutebrowser.misc import objects, sql
 
 
 # increment to indicate that HistoryCompletion must be regenerated
 _USER_VERSION = 2
+web_history = typing.cast('WebHistory', None)
 
 
 class HistoryProgress:
@@ -55,7 +57,7 @@ class HistoryProgress:
         self._progress.setMinimumDuration(500)
         self._progress.setLabelText(text)
         self._progress.setMaximum(maximum)
-        self._progress.setCancelButton(None)
+        self._progress.setCancelButton(None)  # type: ignore
         self._progress.show()
         QApplication.processEvents()
 
@@ -148,6 +150,8 @@ class WebHistory(sql.SqlTable):
                                       'redirect': 'NOT NULL'},
                          parent=parent)
         self._progress = progress
+        # Store the last saved url to avoid duplicate immedate saves.
+        self._last_url = None
 
         self.completion = CompletionHistory(parent=self)
         self.metainfo = CompletionMetaInfo(parent=self)
@@ -195,7 +199,7 @@ class WebHistory(sql.SqlTable):
     def _handle_sql_errors(self):
         try:
             yield
-        except sql.SqlEnvironmentError as e:
+        except sql.KnownError as e:
             message.error("Failed to write history: {}".format(e.text()))
 
     def _is_excluded(self, url):
@@ -204,7 +208,11 @@ class WebHistory(sql.SqlTable):
         return any(pattern.matches(url) for pattern in patterns)
 
     def _rebuild_completion(self):
-        data = {'url': [], 'title': [], 'last_atime': []}
+        data = {
+            'url': [],
+            'title': [],
+            'last_atime': []
+        }  # type: typing.Mapping[str, typing.MutableSequence[str]]
         # select the latest entry for each url
         q = sql.Query('SELECT url, title, max(atime) AS atime FROM History '
                       'WHERE NOT redirect and url NOT LIKE "qute://back%" '
@@ -254,28 +262,13 @@ class WebHistory(sql.SqlTable):
         self._before_query.run(latest=latest, limit=limit, offset=offset)
         return iter(self._before_query)
 
-    @cmdutils.register(name='history-clear', instance='web-history')
-    def clear(self, force=False):
-        """Clear all browsing history.
-
-        Note this only clears the global history
-        (e.g. `~/.local/share/qutebrowser/history` on Linux) but not cookies,
-        the back/forward history of a tab, cache or other persistent data.
-
-        Args:
-            force: Don't ask for confirmation.
-        """
-        if force:
-            self._do_clear()
-        else:
-            message.confirm_async(yes_action=self._do_clear,
-                                  title="Clear all browsing history?")
-
-    def _do_clear(self):
+    def clear(self):
+        """Clear all browsing history."""
         with self._handle_sql_errors():
             self.delete_all()
             self.completion.delete_all()
         self.history_cleared.emit()
+        self._last_url = None
 
     def delete_url(self, url):
         """Remove all history entries with the given url.
@@ -287,6 +280,8 @@ class WebHistory(sql.SqlTable):
         qtutils.ensure_valid(qurl)
         self.delete('url', self._format_url(qurl))
         self.completion.delete('url', self._format_completion_url(qurl))
+        if self._last_url == url:
+            self._last_url = None
         self.url_cleared.emit(qurl)
 
     @pyqtSlot(QUrl, QUrl, str)
@@ -306,7 +301,9 @@ class WebHistory(sql.SqlTable):
             # If the url of the page is different than the url of the link
             # originally clicked, save them both.
             self.add_url(requested_url, title, redirect=True)
-        self.add_url(url, title)
+        if url != self._last_url:
+            self.add_url(url, title)
+            self._last_url = url
 
     def add_url(self, url, title="", *, redirect=False, atime=None):
         """Called via add_from_tab when a URL should be added to the history.
@@ -321,7 +318,7 @@ class WebHistory(sql.SqlTable):
             log.misc.warning("Ignoring invalid URL being added to history")
             return
 
-        if 'no-sql-history' in objreg.get('args').debug_flags:
+        if 'no-sql-history' in objects.debug_flags:
             return
 
         atime = int(atime) if (atime is not None) else int(time.time())
@@ -347,26 +344,48 @@ class WebHistory(sql.SqlTable):
     def _format_completion_url(self, url):
         return url.toString(QUrl.RemovePassword)
 
-    @cmdutils.register(instance='web-history', debug=True)
-    def debug_dump_history(self, dest):
-        """Dump the history to a file in the old pre-SQL format.
 
-        Args:
-            dest: Where to write the file to.
-        """
-        dest = os.path.expanduser(dest)
+@cmdutils.register()
+def history_clear(force=False):
+    """Clear all browsing history.
 
-        lines = ('{}{} {} {}'
-                 .format(int(x.atime), '-r' * x.redirect, x.url, x.title)
-                 for x in self.select(sort_by='atime', sort_order='asc'))
+    Note this only clears the global history
+    (e.g. `~/.local/share/qutebrowser/history` on Linux) but not cookies,
+    the back/forward history of a tab, cache or other persistent data.
 
-        try:
-            with open(dest, 'w', encoding='utf-8') as f:
-                f.write('\n'.join(lines))
-            message.info("Dumped history to {}".format(dest))
-        except OSError as e:
-            raise cmdutils.CommandError('Could not write history: {}'
-                                        .format(e))
+    Args:
+        force: Don't ask for confirmation.
+    """
+    if force:
+        web_history.clear()
+    else:
+        message.confirm_async(yes_action=web_history.clear,
+                              title="Clear all browsing history?")
+
+
+@cmdutils.register(debug=True)
+def debug_dump_history(dest):
+    """Dump the history to a file in the old pre-SQL format.
+
+    Args:
+        dest: Where to write the file to.
+    """
+    dest = os.path.expanduser(dest)
+
+    lines = ('{}{} {} {}'.format(int(x.atime),
+                                 '-r' * x.redirect,
+                                 x.url,
+                                 x.title)
+             for x in web_history.select(sort_by='atime',
+                                         sort_order='asc'))
+
+    try:
+        with open(dest, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(lines))
+        message.info("Dumped history to {}".format(dest))
+    except OSError as e:
+        raise cmdutils.CommandError('Could not write history: {}'
+                                    .format(e))
 
 
 def init(parent=None):
@@ -375,10 +394,10 @@ def init(parent=None):
     Args:
         parent: The parent to use for WebHistory.
     """
+    global web_history
     progress = HistoryProgress()
-    history = WebHistory(progress=progress, parent=parent)
-    objreg.register('web-history', history)
+    web_history = WebHistory(progress=progress, parent=parent)
 
     if objects.backend == usertypes.Backend.QtWebKit:  # pragma: no cover
         from qutebrowser.browser.webkit import webkithistory
-        webkithistory.init(history)
+        webkithistory.init(web_history)

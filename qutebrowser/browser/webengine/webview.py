@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,8 +27,8 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import webenginesettings, certificateerror
 from qutebrowser.config import config
-from qutebrowser.utils import log, debug, usertypes, objreg, qtutils
-from qutebrowser.misc import miscwidgets
+from qutebrowser.utils import log, debug, usertypes, qtutils
+from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.qt import sip
 
 
@@ -43,6 +43,7 @@ class WebEngineView(QWebEngineView):
 
         theme_color = self.style().standardPalette().color(QPalette.Base)
         if private:
+            assert webenginesettings.private_profile is not None
             profile = webenginesettings.private_profile
             assert profile.isOffTheRecord()
         else:
@@ -64,8 +65,10 @@ class WebEngineView(QWebEngineView):
         Normally, this would always be the focusProxy().
         However, it sometimes isn't, so we use this as a WORKAROUND for
         https://bugreports.qt.io/browse/QTBUG-68727
+
+        This got introduced in Qt 5.11.0 and fixed in 5.12.0.
         """
-        if 'lost-focusproxy' not in objreg.get('args').debug_flags:
+        if 'lost-focusproxy' not in objects.debug_flags:
             proxy = self.focusProxy()
             if proxy is not None:
                 return proxy
@@ -213,7 +216,8 @@ class WebEnginePage(QWebEnginePage):
                                                           self.shutting_down],
                                                 escape_msg=escape_msg)
             except shared.CallSuper:
-                return super().javaScriptPrompt(url, js_msg, default)
+                return super().javaScriptPrompt(  # type: ignore
+                    url, js_msg, default)
 
     def javaScriptAlert(self, url, js_msg):
         """Override javaScriptAlert to use qutebrowser prompts."""
@@ -256,9 +260,18 @@ class WebEnginePage(QWebEnginePage):
             QWebEnginePage.NavigationTypeOther:
                 usertypes.NavigationRequest.Type.other,
         }
-        navigation = usertypes.NavigationRequest(url=url,
-                                                 navigation_type=type_map[typ],
-                                                 is_main_frame=is_main_frame)
+        try:
+            type_map[QWebEnginePage.NavigationTypeRedirect] = (
+                usertypes.NavigationRequest.Type.redirect)
+        except AttributeError:
+            # Added in Qt 5.14
+            pass
+
+        navigation = usertypes.NavigationRequest(
+            url=url,
+            navigation_type=type_map.get(
+                typ, usertypes.NavigationRequest.Type.other),
+            is_main_frame=is_main_frame)
         self.navigation_request.emit(navigation)
         return navigation.accepted
 

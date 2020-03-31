@@ -1,4 +1,4 @@
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # This file is part of qutebrowser.
@@ -41,15 +41,14 @@ class Error(Exception):
     (ipc.Error, 'misc.ipc.Error', 'none'),
     (Error, 'test_error.Error', 'none'),
 ])
-def test_no_err_windows(caplog, exc, name, exc_text, fake_args):
+def test_no_err_windows(caplog, exc, name, exc_text):
     """Test handle_fatal_exc with no_err_windows = True."""
-    fake_args.no_err_windows = True
     try:
         raise exc
     except Exception as e:
         with caplog.at_level(logging.ERROR):
-            error.handle_fatal_exc(e, fake_args, 'title', pre_text='pre',
-                                   post_text='post')
+            error.handle_fatal_exc(e, 'title', pre_text='pre',
+                                   post_text='post', no_err_windows=True)
 
     expected = [
         'Handling fatal {} with --no-err-windows!'.format(name),
@@ -74,7 +73,7 @@ def test_no_err_windows(caplog, exc, name, exc_text, fake_args):
     ('foo', 'bar', 'foo: exception\n\nbar'),
     ('', 'bar', 'exception\n\nbar'),
 ], ids=repr)
-def test_err_windows(qtbot, qapp, fake_args, pre_text, post_text, expected):
+def test_err_windows(qtbot, qapp, pre_text, post_text, expected):
 
     def err_window_check():
         w = qapp.activeModalWidget()
@@ -88,7 +87,7 @@ def test_err_windows(qtbot, qapp, fake_args, pre_text, post_text, expected):
         finally:
             w.close()
 
-    fake_args.no_err_windows = False
     QTimer.singleShot(0, err_window_check)
-    error.handle_fatal_exc(ValueError("exception"), fake_args, 'title',
-                           pre_text=pre_text, post_text=post_text)
+    error.handle_fatal_exc(ValueError("exception"), 'title',
+                           pre_text=pre_text, post_text=post_text,
+                           no_err_windows=False)

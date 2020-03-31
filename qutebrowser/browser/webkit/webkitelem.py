@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,16 +21,15 @@
 
 import typing
 
-from PyQt5.QtCore import QRect
+from PyQt5.QtCore import QRect, Qt
 from PyQt5.QtWebKit import QWebElement, QWebSettings
 from PyQt5.QtWebKitWidgets import QWebFrame
 
 from qutebrowser.config import config
 from qutebrowser.utils import log, utils, javascript, usertypes
 from qutebrowser.browser import webelem
-MYPY = False
-if MYPY:
-    # pylint: disable=unused-import,useless-suppression
+
+if typing.TYPE_CHECKING:
     from qutebrowser.browser.webkit import webkittab
 
 
@@ -58,7 +57,7 @@ class WebKitElement(webelem.AbstractWebElement):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, WebKitElement):
             return NotImplemented
-        return self._elem == other._elem  # pylint: disable=protected-access
+        return self._elem == other._elem
 
     def __getitem__(self, key: str) -> str:
         self._check_vanished()
@@ -172,7 +171,8 @@ class WebKitElement(webelem.AbstractWebElement):
     def _parent(self) -> typing.Optional['WebKitElement']:
         """Get the parent element of this element."""
         self._check_vanished()
-        elem = self._elem.parent()
+        elem = typing.cast(typing.Optional[QWebElement],
+                           self._elem.parent())
         if elem is None or elem.isNull():
             return None
         return WebKitElement(elem, tab=self._tab)
@@ -204,7 +204,8 @@ class WebKitElement(webelem.AbstractWebElement):
                     rect["top"] *= zoom
                     width *= zoom
                     height *= zoom
-                rect = QRect(rect["left"], rect["top"], width, height)
+                rect = QRect(int(rect["left"]), int(rect["top"]),
+                             int(width), int(height))
                 frame = self._elem.webFrame()
                 while frame is not None:
                     # Translate to parent frames' position (scroll position
@@ -324,6 +325,9 @@ class WebKitElement(webelem.AbstractWebElement):
                 break
             elem = elem._parent()  # pylint: disable=protected-access
 
+    def delete(self) -> None:
+        self._elem.evaluateJavaScript('this.remove();')
+
     def _move_text_cursor(self) -> None:
         if self.is_text_input() and self.is_editable():
             self._tab.caret.move_to_end_of_document()
@@ -350,7 +354,8 @@ class WebKitElement(webelem.AbstractWebElement):
             log.webelem.debug("Failed to click via JS, falling back to event")
             self._click_fake_event(click_target)
 
-    def _click_fake_event(self, click_target: usertypes.ClickTarget) -> None:
+    def _click_fake_event(self, click_target: usertypes.ClickTarget,
+                          button: Qt.MouseButton = Qt.LeftButton) -> None:
         self._tab.data.override_target = click_target
         super()._click_fake_event(click_target)
 

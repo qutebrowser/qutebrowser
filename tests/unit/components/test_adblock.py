@@ -22,7 +22,6 @@ import os
 import os.path
 import zipfile
 import logging
-import shutil
 
 import pytest
 
@@ -30,7 +29,7 @@ from PyQt5.QtCore import QUrl
 
 from qutebrowser.components import adblock
 from qutebrowser.utils import urlmatch
-from tests.helpers import utils
+from helpers import utils
 
 
 pytestmark = pytest.mark.usefixtures('qapp')
@@ -268,7 +267,8 @@ def test_parsing_multiple_hosts_on_line(host_blocker_factory):
     """Ensure multiple hosts on a line get parsed correctly."""
     host_blocker = host_blocker_factory()
     bytes_host_line = ' '.join(BLOCKLIST_HOSTS).encode('utf-8')
-    host_blocker._parse_line(bytes_host_line)
+    parsed_hosts = host_blocker._read_hosts_line(bytes_host_line)
+    host_blocker._blocked_hosts |= parsed_hosts
     assert_urls(host_blocker, whitelisted=[])
 
 
@@ -294,8 +294,8 @@ def test_whitelisted_lines(host_blocker_factory, ip, host):
     """Make sure we don't block hosts we don't want to."""
     host_blocker = host_blocker_factory()
     line = ('{} {}'.format(ip, host)).encode('ascii')
-    host_blocker._parse_line(line)
-    assert host not in host_blocker._blocked_hosts
+    parsed_hosts = host_blocker._read_hosts_line(line)
+    assert host not in parsed_hosts
 
 
 def test_failed_dl_update(config_stub, tmpdir, caplog, host_blocker_factory):
@@ -462,8 +462,9 @@ def test_add_directory(config_stub, tmpdir, host_blocker_factory):
 
 
 def test_adblock_benchmark(data_tmpdir, benchmark, host_blocker_factory):
-    blocked_hosts = os.path.join(utils.abs_datapath(), 'blocked-hosts')
-    shutil.copy(blocked_hosts, str(data_tmpdir))
+    blocked_hosts = data_tmpdir / 'blocked-hosts'
+    blocked_hosts.write_text('\n'.join(utils.blocked_hosts()),
+                             encoding='utf-8')
 
     url = QUrl('https://www.example.org/')
     blocker = host_blocker_factory()

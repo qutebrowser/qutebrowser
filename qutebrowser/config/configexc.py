@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -22,7 +22,7 @@
 import typing
 import attr
 
-from qutebrowser.utils import jinja, usertypes
+from qutebrowser.utils import usertypes, log
 
 
 class Error(Exception):
@@ -141,14 +141,20 @@ class ConfigFileErrors(Error):
 
     def __init__(self,
                  basename: str,
-                 errors: typing.Sequence[ConfigErrorDesc]) -> None:
+                 errors: typing.Sequence[ConfigErrorDesc], *,
+                 fatal: bool = False) -> None:
         super().__init__("Errors occurred while reading {}:\n{}".format(
             basename, '\n'.join('  {}'.format(e) for e in errors)))
         self.basename = basename
         self.errors = errors
+        self.fatal = fatal
+        for err in errors:
+            if err.traceback:
+                log.config.info(err.traceback)
 
     def to_html(self) -> str:
         """Get the error texts as a HTML snippet."""
+        from qutebrowser.utils import jinja  # circular import
         template = jinja.environment.from_string("""
         Errors occurred while reading {{ basename }}:
 

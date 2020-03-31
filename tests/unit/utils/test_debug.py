@@ -1,4 +1,4 @@
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 #
@@ -25,8 +25,8 @@ import time
 import textwrap
 
 import pytest
-from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QObject
-from PyQt5.QtWidgets import QStyle, QFrame
+from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QObject, QTimer
+from PyQt5.QtWidgets import QStyle, QFrame, QSpinBox
 
 from qutebrowser.utils import debug
 
@@ -176,6 +176,26 @@ class TestQFlagsKey:
         flags = debug.qflags_key(base, value, klass=klass)
         assert flags == expected
 
+    def test_find_flags(self):
+        """Test a weird TypeError we get from PyQt.
+
+        In exactly this constellation (happening via the "Searching with
+        --reverse" BDD test), calling QMetaEnum::valueToKey without wrapping
+        the flags in int() causes a TypeError.
+
+        No idea what's happening here exactly...
+        """
+        qwebpage = pytest.importorskip("PyQt5.QtWebKitWidgets").QWebPage
+
+        flags = qwebpage.FindWrapsAroundDocument
+        flags |= qwebpage.FindBackward
+        flags &= ~qwebpage.FindBackward
+        flags &= ~qwebpage.FindWrapsAroundDocument
+
+        debug.qflags_key(qwebpage,
+                         flags,
+                         klass=qwebpage.FindFlag)
+
     def test_add_base(self):
         """Test with add_base=True."""
         flags = debug.qflags_key(Qt, Qt.AlignTop, add_base=True)
@@ -187,12 +207,17 @@ class TestQFlagsKey:
             debug.qflags_key(Qt, 42)
 
 
-@pytest.mark.parametrize('signal, expected', [
-    (SignalObject().signal1, 'signal1'),
-    (SignalObject().signal2, 'signal2'),
+@pytest.mark.parametrize('cls, signal', [
+    (SignalObject, 'signal1'),
+    (SignalObject, 'signal2'),
+    (QTimer, 'timeout'),
+    (QSpinBox, 'valueChanged'),  # Overloaded signal
 ])
-def test_signal_name(signal, expected):
-    assert debug.signal_name(signal) == expected
+@pytest.mark.parametrize('bound', [True, False])
+def test_signal_name(cls, signal, bound):
+    base = cls() if bound else cls
+    sig = getattr(base, signal)
+    assert debug.signal_name(sig) == signal
 
 
 @pytest.mark.parametrize('args, kwargs, expected', [

@@ -1,5 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015-2018 Antoni Boucher (antoyo) <bouanto@zoho.com>
 #
 # This file is part of qutebrowser.
@@ -27,6 +28,7 @@ from PyQt5.QtNetwork import QNetworkRequest
 
 from qutebrowser.browser.webkit.network import filescheme
 from qutebrowser.utils import urlutils, utils
+from helpers import utils as testutils
 
 
 @pytest.mark.parametrize('create_file, create_dir, filterfunc, expected', [
@@ -128,7 +130,10 @@ class TestDirbrowserHtml:
         def parse(path):
             html = filescheme.dirbrowser_html(path).decode('utf-8')
             soup = bs4.BeautifulSoup(html, 'html.parser')
-            print(soup.prettify())
+
+            with testutils.ignore_bs4_warning():
+                print(soup.prettify())
+
             container = soup('div', id='dirbrowserContainer')[0]
 
             parent_elem = container('ul', class_='parent')
@@ -155,7 +160,10 @@ class TestDirbrowserHtml:
     def test_basic(self):
         html = filescheme.dirbrowser_html(os.getcwd()).decode('utf-8')
         soup = bs4.BeautifulSoup(html, 'html.parser')
-        print(soup.prettify())
+
+        with testutils.ignore_bs4_warning():
+            print(soup.prettify())
+
         container = soup.div
         assert container['id'] == 'dirbrowserContainer'
         title_elem = container('div', id='dirbrowserTitle')[0]
@@ -169,7 +177,9 @@ class TestDirbrowserHtml:
 
         html = filescheme.dirbrowser_html(os.getcwd()).decode('utf-8')
         soup = bs4.BeautifulSoup(html, 'html.parser')
-        print(soup.prettify())
+
+        with testutils.ignore_bs4_warning():
+            print(soup.prettify())
 
         css = soup.html.head.style.string
         assert "background-image: url('file:///test%20path/foo.svg');" in css
@@ -238,7 +248,10 @@ class TestDirbrowserHtml:
         m.side_effect = OSError('Error message')
         html = filescheme.dirbrowser_html('').decode('utf-8')
         soup = bs4.BeautifulSoup(html, 'html.parser')
-        print(soup.prettify())
+
+        with testutils.ignore_bs4_warning():
+            print(soup.prettify())
+
         error_msg = soup('p', id='error-message-text')[0].string
         assert error_msg == 'Error message'
 

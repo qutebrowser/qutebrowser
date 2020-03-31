@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -23,8 +23,9 @@
 """Message singleton so we don't have to define unneeded signals."""
 
 import traceback
+import typing
 
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
 from qutebrowser.utils import usertypes, log, utils
 
@@ -82,23 +83,34 @@ def info(message: str, *, replace: bool = False) -> None:
     global_bridge.show(usertypes.MessageLevel.info, message, replace)
 
 
-def _build_question(title, text=None, *, mode, default=None, abort_on=(),
-                    url=None):
+def _build_question(title: str,
+                    text: str = None, *,
+                    mode: usertypes.PromptMode,
+                    default: typing.Union[None, bool, str] = None,
+                    abort_on: typing.Iterable[pyqtSignal] = (),
+                    url: QUrl = None,
+                    option: bool = None) -> usertypes.Question:
     """Common function for ask/ask_async."""
-    if not isinstance(mode, usertypes.PromptMode):
-        raise TypeError("Mode {} is no PromptMode member!".format(mode))
     question = usertypes.Question()
     question.title = title
     question.text = text
     question.mode = mode
     question.default = default
     question.url = url
+
+    if option is not None:
+        if mode != usertypes.PromptMode.yesno:
+            raise ValueError("Can only 'option' with PromptMode.yesno")
+        if url is None:
+            raise ValueError("Need 'url' given when 'option' is given")
+    question.option = option
+
     for sig in abort_on:
         sig.connect(question.abort)
     return question
 
 
-def ask(*args, **kwargs):
+def ask(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
     """Ask a modular question in the statusbar (blocking).
 
     Args:
@@ -106,6 +118,8 @@ def ask(*args, **kwargs):
         mode: A PromptMode.
         default: The default value to display.
         text: Additional text to show
+        option: The option for always/never question answers.
+                Only available with PromptMode.yesno.
         abort_on: A list of signals which abort the question if emitted.
 
     Return:
@@ -118,7 +132,10 @@ def ask(*args, **kwargs):
     return answer
 
 
-def ask_async(title, mode, handler, **kwargs):
+def ask_async(title: str,
+              mode: usertypes.PromptMode,
+              handler: typing.Callable[[typing.Any], None],
+              **kwargs: typing.Any) -> None:
     """Ask an async question in the statusbar.
 
     Args:
@@ -134,8 +151,13 @@ def ask_async(title, mode, handler, **kwargs):
     global_bridge.ask(question, blocking=False)
 
 
-def confirm_async(*, yes_action, no_action=None, cancel_action=None,
-                  **kwargs):
+_ActionType = typing.Callable[[], typing.Any]
+
+
+def confirm_async(*, yes_action: _ActionType,
+                  no_action: _ActionType = None,
+                  cancel_action: _ActionType = None,
+                  **kwargs: typing.Any) -> usertypes.Question:
     """Ask a yes/no question to the user and execute the given actions.
 
     Args:
@@ -145,6 +167,7 @@ def confirm_async(*, yes_action, no_action=None, cancel_action=None,
         cancel_action: Callable to be called when the user cancelled the
                        question.
         default: True/False to set a default value, or None.
+        option: The option for always/never question answers.
         text: Additional text to show.
 
     Return:
@@ -193,12 +216,15 @@ class GlobalMessageBridge(QObject):
     mode_left = pyqtSignal(usertypes.KeyMode)
     clear_messages = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
         self._connected = False
-        self._cache = []
+        self._cache = [
+        ]  # type: typing.List[typing.Tuple[usertypes.MessageLevel, str, bool]]
 
-    def ask(self, question, blocking, *, log_stack=False):
+    def ask(self, question: usertypes.Question,
+            blocking: bool, *,
+            log_stack: bool = False) -> None:
         """Ask a question to the user.
 
         Note this method doesn't return the answer, it only blocks. The caller
@@ -212,14 +238,16 @@ class GlobalMessageBridge(QObject):
         """
         self.ask_question.emit(question, blocking)
 
-    def show(self, level, text, replace=False):
+    def show(self, level: usertypes.MessageLevel,
+             text: str,
+             replace: bool = False) -> None:
         """Show the given message."""
         if self._connected:
             self.show_message.emit(level, text, replace)
         else:
             self._cache.append((level, text, replace))
 
-    def flush(self):
+    def flush(self) -> None:
         """Flush messages which accumulated while no handler was connected.
 
         This is so we don't miss messages shown during some early init phase.
@@ -245,10 +273,10 @@ class MessageBridge(QObject):
     s_set_text = pyqtSignal(str)
     s_maybe_reset_text = pyqtSignal(str)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self)
 
-    def set_text(self, text, *, log_stack=False):
+    def set_text(self, text: str, *, log_stack: bool = False) -> None:
         """Set the normal text of the statusbar.
 
         Args:
@@ -259,7 +287,7 @@ class MessageBridge(QObject):
         log.message.debug(text)
         self.s_set_text.emit(text)
 
-    def maybe_reset_text(self, text, *, log_stack=False):
+    def maybe_reset_text(self, text: str, *, log_stack: bool = False) -> None:
         """Reset the text in the statusbar if it matches an expected text.
 
         Args:

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -135,15 +135,22 @@ class TestFileHandling:
         msg = message_mock.getmsg(usertypes.MessageLevel.error)
         assert msg.text.startswith("Failed to read back edited file: ")
 
-    def test_unwritable(self, monkeypatch, message_mock, editor, tmpdir,
-                        caplog):
-        """Test file handling when the initial file is not writable."""
+    @pytest.fixture
+    def unwritable_tmpdir(self, tmpdir):
         tmpdir.chmod(0)
         if os.access(str(tmpdir), os.W_OK):
             # Docker container or similar
             pytest.skip("File was still writable")
 
-        monkeypatch.setattr(editormod.tempfile, 'tempdir', str(tmpdir))
+        yield tmpdir
+
+        tmpdir.chmod(0o755)
+
+    def test_unwritable(self, monkeypatch, message_mock, editor,
+                        unwritable_tmpdir, caplog):
+        """Test file handling when the initial file is not writable."""
+        monkeypatch.setattr(editormod.tempfile, 'tempdir',
+                            str(unwritable_tmpdir))
 
         with caplog.at_level(logging.ERROR):
             editor.edit("")

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import QMessageBox
 from qutebrowser.utils import log, utils
 
 
-def _get_name(exc):
+def _get_name(exc: BaseException) -> str:
     """Get a suitable exception name as a string."""
     prefixes = ['qutebrowser', 'builtins']
     name = utils.qualname(exc.__class__)
@@ -35,7 +35,11 @@ def _get_name(exc):
     return name
 
 
-def handle_fatal_exc(exc, args, title, *, pre_text='', post_text=''):
+def handle_fatal_exc(exc: BaseException,
+                     title: str, *,
+                     no_err_windows: bool,
+                     pre_text: str = '',
+                     post_text: str = '') -> None:
     """Handle a fatal "expected" exception by displaying an error box.
 
     If --no-err-windows is given as argument, the text is logged to the error
@@ -43,12 +47,12 @@ def handle_fatal_exc(exc, args, title, *, pre_text='', post_text=''):
 
     Args:
         exc: The Exception object being handled.
-        args: The argparser namespace.
+        no_err_windows: Show text in log instead of error window.
         title: The title to be used for the error message.
         pre_text: The text to be displayed before the exception text.
         post_text: The text to be displayed after the exception text.
     """
-    if args.no_err_windows:
+    if no_err_windows:
         lines = [
             "Handling fatal {} with --no-err-windows!".format(_get_name(exc)),
             "",

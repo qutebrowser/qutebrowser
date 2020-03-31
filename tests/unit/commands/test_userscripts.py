@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -65,8 +65,7 @@ def runner(request, runtime_tmpdir):
             request.param is userscripts._POSIXUserscriptRunner):
         pytest.skip("Requires a POSIX os")
         raise utils.Unreachable
-    else:
-        return request.param()
+    return request.param()
 
 
 def test_command(qtbot, py_proc, runner):
@@ -75,10 +74,11 @@ def test_command(qtbot, py_proc, runner):
         with open(os.environ['QUTE_FIFO'], 'w') as f:
             f.write('foo\n')
     """)
-    with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
-        runner.prepare_run(cmd, *args)
-        runner.store_html('')
-        runner.store_text('')
+    with qtbot.waitSignal(runner.finished, timeout=10000):
+        with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
+            runner.prepare_run(cmd, *args)
+            runner.store_html('')
+            runner.store_text('')
     assert blocker.args == ['foo']
 
 

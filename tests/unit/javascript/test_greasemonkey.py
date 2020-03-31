@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -25,6 +25,7 @@ import pytest
 import py.path  # pylint: disable=no-name-in-module
 from PyQt5.QtCore import QUrl
 
+from qutebrowser.utils import usertypes
 from qutebrowser.browser import greasemonkey
 
 test_gm_script = r"""
@@ -165,6 +166,56 @@ def test_utf8_bom():
     assert '// ==UserScript==' in script.code().splitlines()
 
 
+class TestForceDocumentEnd:
+
+    @pytest.fixture
+    def patch(self, monkeypatch):
+        def _patch(*, backend, qt_512):
+            monkeypatch.setattr(greasemonkey.objects, 'backend', backend)
+            monkeypatch.setattr(greasemonkey.qtutils, 'version_check',
+                                lambda version, exact=False, compiled=True:
+                                qt_512)
+        return _patch
+
+    def _get_script(self, *, namespace, name):
+        source = textwrap.dedent("""
+            // ==UserScript==
+            // @namespace {}
+            // @name {}
+            // ==/UserScript==
+        """.format(namespace, name))
+        _save_script(source, 'force.user.js')
+
+        gm_manager = greasemonkey.GreasemonkeyManager()
+
+        scripts = gm_manager.all_scripts()
+        assert len(scripts) == 1
+        return scripts[0]
+
+    @pytest.mark.parametrize('backend, qt_512', [
+        (usertypes.Backend.QtWebKit, True),
+        (usertypes.Backend.QtWebEngine, False),
+    ])
+    def test_not_applicable(self, patch, backend, qt_512):
+        """Test backend/Qt version combinations which don't need a fix."""
+        patch(backend=backend, qt_512=qt_512)
+        script = self._get_script(namespace='https://github.com/ParticleCore',
+                                  name='Iridium')
+        assert not script.needs_document_end_workaround()
+
+    @pytest.mark.parametrize('namespace, name, force', [
+        ('http://userstyles.org', 'foobar', True),
+        ('https://github.com/ParticleCore', 'Iridium', True),
+        ('https://github.com/ParticleCore', 'Foo', False),
+        ('https://example.org', 'Iridium', False),
+    ])
+    def test_matching(self, patch, namespace, name, force):
+        """Test matching based on namespace/name."""
+        patch(backend=usertypes.Backend.QtWebEngine, qt_512=True)
+        script = self._get_script(namespace=namespace, name=name)
+        assert script.needs_document_end_workaround() == force
+
+
 def test_required_scripts_are_included(download_stub, tmpdir):
     test_require_script = textwrap.dedent("""
         // ==UserScript==
@@ -258,9 +309,61 @@ class TestWindowIsolation:
         callback.assert_called_with(setup.expected)
 
     # The JSCore in 602.1 doesn't fully support Proxy.
-    @pytest.mark.qtwebkit6021_skip
+    @pytest.mark.qtwebkit6021_xfail
     def test_webkit(self, webview, setup):
         elem = webview.page().mainFrame().documentElement()
         elem.evaluateJavaScript(setup.setup_script)
         result = elem.evaluateJavaScript(setup.test_script)
+        assert result == setup.expected
+
+
+class TestSharedWindowProxy:
+    """Check that all scripts have access to the same window proxy."""
+
+    @pytest.fixture
+    def setup(self):
+        # pylint: disable=attribute-defined-outside-init
+        class SetupData:
+            pass
+        ret = SetupData()
+
+        # Greasemonkey script to add a property to the window proxy.
+        ret.test_script_a = greasemonkey.GreasemonkeyScript.parse(
+            textwrap.dedent("""
+                // ==UserScript==
+                // @name a
+                // ==/UserScript==
+                // Set a value from script a
+                window.$ = 'test';
+            """)
+        ).code()
+
+        # Greasemonkey script to retrieve a property from the window proxy.
+        ret.test_script_b = greasemonkey.GreasemonkeyScript.parse(
+            textwrap.dedent("""
+                // ==UserScript==
+                // @name b
+                // ==/UserScript==
+                // Check that the value is accessible from script b
+                return [window.$, $];
+            """)
+        ).code()
+
+        # What we expect the script to report back.
+        ret.expected = ["test", "test"]
+        return ret
+
+    def test_webengine(self, qtbot, webengineview, setup):
+        page = webengineview.page()
+
+        with qtbot.wait_callback() as callback:
+            page.runJavaScript(setup.test_script_a, callback)
+        with qtbot.wait_callback() as callback:
+            page.runJavaScript(setup.test_script_b, callback)
+        callback.assert_called_with(setup.expected)
+
+    def test_webkit(self, webview, setup):
+        elem = webview.page().mainFrame().documentElement()
+        elem.evaluateJavaScript(setup.test_script_a)
+        result = elem.evaluateJavaScript(setup.test_script_b)
         assert result == setup.expected

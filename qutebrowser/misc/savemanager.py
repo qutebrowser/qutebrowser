@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,12 +21,14 @@
 
 import os.path
 import collections
+import typing
 
 from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import utils, log, message, usertypes
+from qutebrowser.utils import utils, log, message, usertypes, error
+from qutebrowser.misc import objects
 
 
 class Saveable:
@@ -110,7 +112,8 @@ class SaveManager(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.saveables = collections.OrderedDict()
+        self.saveables = collections.OrderedDict(
+        )  # type: typing.MutableMapping[str, Saveable]
         self._save_timer = usertypes.Timer(self, name='save-timer')
         self._save_timer.timeout.connect(self.autosave)
         self._set_autosave_interval()
@@ -190,7 +193,7 @@ class SaveManager(QObject):
         if what:
             explicit = True
         else:
-            what = self.saveables
+            what = tuple(self.saveables)
             explicit = False
         for key in what:
             if key not in self.saveables:
@@ -201,3 +204,15 @@ class SaveManager(QObject):
                 except OSError as e:
                     message.error("Could not save {}: {}".format(key, e))
         log.save.debug(":save saved {}".format(', '.join(what)))
+
+    @pyqtSlot()
+    def shutdown(self):
+        """Save all saveables when shutting down."""
+        for key in self.saveables:
+            try:
+                self.save(key, is_exit=True)
+            except OSError as e:
+                error.handle_fatal_exc(
+                    e, "Error while saving!",
+                    pre_text="Error while saving {}".format(key),
+                    no_err_windows=objects.args.no_err_windows)

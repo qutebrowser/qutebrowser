@@ -15,30 +15,557 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v1.6.0 (unreleased)
+v1.11.0 (unreleased)
+--------------------
+
+Fixed
+~~~~~
+
+- `unsafeWindow` is now defined for Greasemonkey scripts with QtWebKit.
+- The proxied `window` global is now shared between different
+  Greasemonkey scripts (but still separate from the page's `window`), to
+  match the original Greasemonkey implementation.
+- The WhatsApp workaround now also works when using WhatsApp in languages other
+  than English.
+- The `mkvenv.py` script now also works properly on Windows.
+
+v1.10.1 (2020-02-15)
+--------------------
+
+Fixed
+~~~~~
+
+- Crash when saving data fails during shutdown (which was a regression
+  introduced in v1.9.0).
+- Error while reading config.py when `fonts.tabs` or `fonts.debug_console` is
+  set to a value including `default_size`.
+- When a `state` file contains invalid UTF-8 data, a proper error is now
+  displayed.
+
+Changed
+~~~~~~~
+
+- When the Qt version changes (and also on the first start of v1.10.1 on Qt
+  5.14), service workers registered by websites are now deleted. This is done
+  as a workaround for QtWebEngine issues causing crashes when visiting pages
+  using service workers (such as Google Mail/Drive). No persistent data should
+  be affected as websites can re-register their service workers, but a (single)
+  backup is kept at `webengine/Service Worker-bak` in qutebrowser's data
+  directory.
+- Better output on stdout when config errors occur.
+- The `mkvenv.py` now ensures the latest versions of `setuptools` and `wheel`
+  are installed in the virtual environment, which should speed up installation
+  and fix install issues.
+- The default for `colors.statusbar.command.private.bg` has been changed to a
+  slightly different gray, as a workaround for a Qt issue where the cursor was
+  invisible in that case.
+
+v1.10.0 (2020-02-02)
+--------------------
+
+Added
+~~~~~
+
+- New `colors.webpage.prefers_color_scheme_dark` setting which allows forcing
+  `prefers-color-scheme: dark` colors for websites (QtWebEngine with Qt 5.14 or
+  newer).
+- New `fonts.default_size` setting which can be used to set a bigger font size
+  for all UI fonts.
+
+Changed
+~~~~~~~
+
+- The `fonts.monospace` setting has been removed and replaced by
+  `fonts.default_family`. The new `default_family` setting is improved in
+  various ways:
+  * It accepts a list of font families (or a single font family) rather than a
+    comma-separated string. As an example, instead of
+    `fonts.monospace = "Courier, Monaco"`, use
+    `fonts.default_family = ["Courier", "Monaco"]`.
+  * Since a list is now accepted as value, no quoting of font names with spaces
+    is required anymore. As an example, instead of
+    `fonts.monospace = '"xos4 Terminus"'`, use
+    `fonts.default_family = 'xos4 Terminus'`.
+  * It is now empty by default rather than having a long list of font names in
+    the default config. When the value is empty, the system's default
+    monospaced font is used.
+- If `monospace` is now used in a font value, it's used literally and not
+  replaced anymore. Instead, `default_family` is replaced as explained above.
+- The default `content.headers.accept_language` value now adds a `;q=0.9`
+  classifier which should make the value sent more in-line with what other
+  browsers do.
+- The `qute-pass` userscript now has a new `--mode gopass` switch which uses
+  gopass rather than pass.
+- The `tox -e mkvenv` (or `mkvenv-pypi`) way of installing qutebrowser is now
+  replaced by a `mkvenv.py` script. See the updated
+  link:install{outfilesuffix}#tox[install instructions] for details.
+- macOS and Windows releases now ship with Qt/QtWebEngine 5.14.1
+  * Based on Chromium 77.0.3865.129 with security fixes up to Chromium 79.0.3945.117.
+  * Sandboxing is now enabled on Windows.
+  * Monospace fonts are now used when a website requests them on macOS 10.15.
+  * Web notifications are now supported.
+
+Fixed
+~~~~~
+
+- When quitting qutebrowser, components are now cleaned up differently. This
+  should fix certain (rare) segmentation faults and exceptions when quitting,
+  especially with the new exit scheme introduced in in PyQt5 5.13.1.
+- Added a workaround for per-domain settings (e.g. a JavaScript whitelist) not
+  being applied in some scenarios with Qt 5.13 and above.
+- Added additional site-specific quirk for WhatsApp Web.
+- The `qute-pass` userscript now works correctly when a `PASSWORD_STORE_DIR`
+  ending with a trailing slash is given.
+
+v1.9.0 (2020-01-08)
 -------------------
 
 Added
 ~~~~~
 
-- New `tabs.new_position.stacking` setting which controls whether new tabs
-  opened from a page should stack on each other or not.
-- New `completion.open_categories` setting which allows to configure which
-  categories are shown in the `:open` completion, and how they are ordered.
+- Initial support for Qt 5.14.
+- New `content.site_specific_quirks` setting which enables workarounds for
+  websites with broken user agent parsing (enabled by default, see the "Fixed"
+  section for fixed websites).
+- New `qt.force_platformtheme` setting to force Qt to use a given platform
+  theme.
+- New `tabs.tooltips` setting which can be used to disable hover tooltips for
+  tabs.
+- New settings to configure the appearance of context menus:
+  * `fonts.contextmenu`
+  * `colors.contextmenu.menu.bg`
+  * `colors.contextmenu.menu.fg`
+  * `colors.contextmenu.selected.bg`
+  * `colors.contextmenu.selected.fg`
+
+Changed
+~~~~~~~
+
+- The macOS binaries now require macOS 10.13 High Sierra or newer. Support for
+  macOS 10.12 Sierra has been dropped.
+- The `content.headers.user_agent` setting now is a format string with the
+  default value resembling the behavior of it being set to null before.
+  This slightly changes the sent user agent for QtWebKit: Instead of mentioning
+  qutebrowser and its version it now mentions the Qt version.
+- The `qute-pass` userscript now has a new `--extra-url-suffixes` (`-s`)
+  argument which passes extra URL suffixes to the tldextract library.
+- A stack is now used for `:tab-focus last` rather than just saving one tab.
+  Additionally, `:tab-focus` now understands `stack-prev` and `stack-next`
+  arguments to traverse that stack.
+- `:hint` now has a new `right-click` target which allows right-clicking
+  elements via hints.
+- The Terminus font has been removed from the default monospace fonts since it
+  caused trouble with HighDPI setups. To get it back, add either
+  `"xos4 Terminus"` or `Terminus` (depending on fontconfig version) to the
+  beginning of the `fonts.monospace` setting.
+- As a workaround for a Qt bug causing a segfault, desktop sharing is now
+  automatically rejected on Qt versions before 5.13.2. Note that screen sharing
+  still won't work on Linux before Qt 5.14.
+- Comment lines in quickmarks/bookmarks files are now ignored. However, note that
+  qutebrowser will overwrite those files if bookmark/quickmark commands are used.
+- Reopening PDF.js pages from e.g. a session file will now re-download and
+  display those PDFs.
+- Improved behavior when using `:open-download` in a sandboxed environment (KDE
+  Flatpak).
+- qutebrowser now enables the new PyQt exit scheme, which should result in
+  things being cleaned up more properly (e.g. cookies being saved even without
+  a timeout) on PyQt 5.13.1 and newer.
+- The `:spawn` command has a new `-m` / `--output-messages` argument which
+  shows qutebrowser messages based on a command's standard output/error.
+- Improved insert mode detection for some CodeMirror usages (e.g. in
+  JupyterLab and Jupyter Notebook).
+- If JavaScript is disabled globally, `file://*` now doesn't automatically have
+  it enabled anymore. Run `:set -u file://* content.javascript.enabled true` to
+  restore the previous behavior.
+- Settings with URL patterns can now be used to affect the behavior of the
+  QtWebEngine inspector. Note that the underlying URL is `chrome-devtools://*`
+  from Qt 5.11 to Qt 5.13, but `devtools://*` with Qt 5.14.
+- Improvements when `tabs.tabs_are_windows` is set:
+  * Using `:tab-take` and `:tab-give` now shows an error, as the effect of
+    doing so would be equal to `:tab-clone`.
+  * The `:buffer` completion doesn't show any window sections anymore, only a
+    flat list of tabs.
+- Improved parsing in some corner cases for the `QtFont` type (used for
+  `fonts.tabs` and `fonts.debug_console`).
+- Performance improvements for the following areas:
+  * Adding settings with URL patterns
+  * Matching of settings using URL patterns
+
+Fixed
+~~~~~
+
+- Downloads (e.g. via `:download`) now see the same user agent header as
+  webpages, which fixes cases where overly restrictive servers/WAFs closed the
+  connection before.
+- `dictcli.py` now works correctly on Windows again.
+- The logic for `:restart` has been revisited, which should fix issues with
+  relative basedirs.
+- Remaining issues related to Python 3.8 are now fixed (mostly warnings,
+  especially on QtWebKit).
+- Workaround for a Qt bug where a page never finishes loading with a
+  non-overridable TLS error (e.g. due to HSTS).
+- The `qute://configdiff` page now doesn't show built-in settings (e.g.
+  javascript being enabled for `qute://` and `chrome://` pages) anymore.
+- The `qute-lastpass` userscript now stops prompting for passwords when
+  cancelling the password input.
+- The tab hover text now shows ampersands (&) correctly.
+- With QtWebEngine and Qt >= 5.11, the inspector now shows its icons correctly
+  even if loading of images is disabled via the `content.images` setting.
+- Entering a very long string (over 50k characters) in the completion used to
+  crash, now it shows an error message instead.
+- Various improvements for URL/searchengine detection:
+  * Strings with a dot but with characters not allowed in a URL (e.g. an
+    underscore) are now not treated as URL anymore.
+  * Strings like "5/8" are now not treated as IP anymore.
+  * URLs with an explicit scheme and a space (%20) are correctly treated as
+    URLs.
+  * Mail addresses are now treated as search terms.
+  * With `url.open_base_url` set, searching for a search engine name now works.
+  * `url.open_base_url = True` together with `url.auto_search = 'never'` is now
+    handled correctly.
+  * Fixed crash when a search engine URL turns out to be invalid.
+- New "site specific quirks", which work around some broken websites:
+  * WhatsApp Web
+  * Google Accounts
+  * Slack (with older QtWebEngine versions)
+  * Dell.com support pages (with Qt 5.7)
+  * Google Docs (fixes broken IME/compose key)
+
+v1.8.3 (2019-12-05)
+-------------------
+
+Fixed
+~~~~~
+
+- Segmentation fault introduced in v1.8.2 when a tab gets closed immediately
+  after it has finished loading (e.g. with certain login flows).
+
+v1.8.2 (2019-11-22)
+-------------------
+
+Changed
+~~~~~~~
+
+- Windows/macOS releases now ship with Qt 5.12.6. This includes security fixes
+  up to Chromium 77.0.3865.120 plus a security fix for CVE-2019-13720 from
+  Chromium 78.
+
+Fixed
+~~~~~
+
+- Unbinding keys via `config.bind(key, None)` accidentally worked in
+  v1.7.0 but raises an exception in v1.8.0. It now works again, but is
+  deprecated and shows an error. Note that `:config-py-write` did write
+  such invalid lines before v1.8.0, so existing config files might need
+  adjustments.
+- The `readability-js` userscript now handles encodings correctly (which it
+  didn't before for some websites).
+- <Shift-Insert> can now be used to paste text starting with a hyphen.
+- Following hints via the number keypad now works properly again.
+- Errors while reading the state file are now displayed instead of causing a
+  crash.
+- Crash when using `:debug-log-level` without a console attached.
+- Downloads are now hidden properly when the browser is in fullscreen mode.
+- Crash when setting `colors.webpage.bg` to an empty value with QtWebKit.
+- Crash when the history database file is not a proper sqlite database.
+- Workaround for missing/broken error pages on Debian.
+- A deprecation warning (caused by pywin32) about the imp module on Windows is
+  now hidden.
+
+v1.8.1 (2019-09-27)
+-------------------
+
+Changed
+~~~~~~~
+
+- No code changes - this release only repackages the Windows/macOS
+  releases due to issues with the v1.8.0 release.
+- Updated dependencies for Windows/macOS releases:
+  * macOS and Windows releases now ship with Qt/QtWebEngine 5.12.5. Those
+    are based on Chromium 69.0.3497.128 with security fixes up to Chromium
+    76.0.3809.87.
+  * Qt 5.13 couldn't be used yet due to various bugs in Qt 5.13.0 and .1.
+
+v1.8.0 (2019-09-25)
+-------------------
+
+Added
+~~~~~
+
+- New userscripts:
+  * `readability-js` which uses Mozilla's node.js readability library.
+  * `qute-bitwarden` which integrates the Bitwarden CLI.
+
+Changed
+~~~~~~~
+
+- The statusbar text for passthrough mode now shows all configured bindings to
+  leave the mode, not only one.
+- When `:config-source` is used with a relative filename, the file is now
+  searched in the config directory instead of the current working directory.
+- HTML5 inputs with date/time types now enter insert mode when selected.
+- `dictcli.py` now shows where dictionaries are installed to and complains when
+  running it as root if doing so would result in a wrong installation path.
+- The Makefile now can also run `setup.py build` when invoked without a target.
+- Changes to userscripts:
+  * qute-pass: Don't run `pass` if only a username is requested.
+  * qute-pass: Support private domains like `myrouter.local`.
+  * readability: Improved CSS styling.
+- Performance improvements in various areas:
+  * Loading config files
+  * Typing without any completion matches
+  * General keyboard handling
+  * Scrolling
+- `:version` now shows details about the loaded autoconfig.yml/config.py.
+- Hosts are now additionally looked up including their ports in netrc files.
+- With Qt 5.10 or newer, qutebrowser now doesn't force software rendering with
+  Nouveau drivers anymore. However, QtWebEngine/Chromium still do so.
+- The XSS Auditor is now disabled by default (`content.xss_auditing` =
+  `false`). This reflects a similar change in Chromium, see
+  their https://www.chromium.org/developers/design-documents/xss-auditor[XSS
+  Auditor Design Document] for details.
+
+Fixed
+~~~~~
+
+- `:config-write-py` now correctly writes `config.unbind(...)` lines (instead
+  of `config.bind(..., None)`) when unbinding a default keybinding.
+- Prevent repeat keyup events for JavaScript when a key is held down.
+- The Makefile now rebuilds the manpage correctly.
+- `~/.config/qutebrowser/blocked-hosts` can now also contain /etc/hosts-like
+  lines, not just simple hostnames.
+- Restored compatibility with Jinja2 2.8 (e.g. used on Debian Stretch or Ubuntu
+  16.04 LTS).
+- Fixed implicit type conversion warning with Python 3.8.
+- The desktop file now sets `StartupWMClass` correctly, so the qutebrowser icon
+  is no longer shown twice in the Gnome dock when pinned.
+- Bindings involving keys which need the AltGr key now work properly.
+- Fixed crash (caused by a Qt bug) when typing characters above the Unicode BMP
+  (such as certain emoji or CJK characters).
+- `dictcli.py` now works properly again.
+- Shift can now be used while typing hint keystrings, which e.g. allows typing
+  number hints on French keyboards.
+- With rapid hinting in number mode, backspace now edits the filter text after
+  following a hint.
+- A certain type of error ("locking protocol") while initializing sqlite now
+  isn't handled as crash anymore.
+- Crash when showing a permission request in certain scenarios.
+
+Removed
+~~~~~~~
+
+- At least Python 3.5.2 is now required to run qutebrowser, support for 3.5.0
+  and 3.5.1 was dropped.
+
+
+v1.7.0 (2019-07-18)
+-------------------
+
+Added
+~~~~~
+
+- New settings:
+  * `colors.tabs.pinned.*` to control colors of pinned tabs.
+  * `hints.leave_on_load` which allows disabling leaving of hint mode when a
+    new page is loaded.
+  * `colors.completion.item.selected.match.fg` which allows configuring the
+    text color for the matching text in the currently selected completion item.
+  * `tabs.undo_stack_size` to limit how many undo entries are kept for closed tabs.
+- New commands:
+  * `:reverse-selection` (`o` in caret mode) to swap the stationary/moving ends
+    of a selection.
+- New commandline replacements:
+  * `{url:domain}`, `{url:auth}`, `{url:scheme}`, `{url:username}`,
+    `{url:password}`, `{url:host}`, `{url:port}`, `{url:path}`, `{url:query}`
+    for the respective parts of the current URL.
+  * `{title}` for the current page title.
+- The `{title}` field in `tabs.title.format`, `tabs.title.format_pinned` and
+  `window.title_format` got renamed to `{current_title}` (mirroring
+  `{current_url}`) in order to not conflict with the new `{title}` commandline
+  replacement.
+- New `delete` target for `:hint` which removes the hinted element from
+  the DOM.
+- New `--config-py` commandline argument to use a custom `config.py` file.
+- Qt 5.13: Support for notifications (shown via system tray).
+
+Changed
+~~~~~~~
+
+- Updated dependencies for Windows/macOS releases:
+   - PyQt5 5.12.3 / PyQtWebEngine 5.12.1
+   - Qt 5.12.4, which includes security fixes up to Chromium 74.0.3729.157
+   - Python 3.7.4
+   - OpenSSL 1.1.1
+   - Note: This release includes Qt 5.12.4 instead of Qt 5.13.0 due to
+     https://bugreports.qt.io/browse/QTBUG-76913[QTBUG-76913] causing frequent
+     segfaults with Qt 5.13. After Qt 5.13.1 is released, qutebrowser v1.8.0
+     will be released with an updated Qt.
+- Completely revamped Windows installer which allows installing without admin
+  permissions and allows setting qutebrowser as default browser.
+- The desktop file `qutebrowser.desktop` is now renamed to
+  `org.qutebrowser.qutebrowser.desktop`.
+- Pinned tabs now always show a favicon (even if the site doesn't provide one)
+  when shrinking.
+- Setting `downloads.location.directory` now changes the directory displayed in
+  the download prompt even if `downloads.location.remember` is set.
+- The `yank` command gained a new `inline` argument, which allows to e.g. use
+  `:yank inline [{title}]({url})`.
+- Duplicate consecutive history entries with the same URL are now ignored.
+- More detailed error messages when spawning a process failed.
+- The `content.pdfjs` setting now supports domain patterns.
+- Improved process status output with `:spawn -o`.
+- The `colors.tabs.bar.bg` setting is now of type `QssColor` and thus supports
+  gradients.
+- The `:fullscreen` command now understands a new `--enter` flag which
+  causes it to always enter fullscreen instead of toggling the current
+  state.
+- `--debug-flag stack` is now needed to show stack traces on renderer process
+  crashes.
+- `--debug-flag chromium` can be used to easily turn on verbose Chromium logging.
+- For runtime data (such as the IPC socket), a proper runtime path is now used
+  on BSD; only macOS/Windows continue to use the temporary directory.
+- PDF.js is now also searched in `/app/share/pdf.js/` (for Flatpak)
+- Permission prompts can now be answered with `Y` (`:prompt-accept --save yes`)
+  and `N` (`:prompt-accept --save no`) to save the answer as a per-domain
+  setting.
+- `content.dns_prefetch` is now turned off by default, as it causes crashes
+  inside QtWebEngine.
+- The (still unofficial) interceptor plugin API now contains `resource_type`
+  for a request and allows redirecting requests.
+- `:bookmark-remove` now shows a message for consistency with `:bookmark-add`.
+- Very early segfaults are now also caught by the crash handler.
+- The appdata XML now contains proper release information and an (empty) OARS
+  content rating.
+- Improved Linux distribution detection.
+- Qt 5.13: Request filtering now happens in the UI rather than IO thread.
+- Qt 5.13: Support for PDFium (Chromium's PDF viewer) is disabled for now so
+  that PDFs can still be downloaded (or shown with PDF.js) properly.
+- Various performance improvements (e.g. for showing hints or the :open
+  completion).
+
+Deprecated
+~~~~~~~~~~
+
+- `:yank markdown` got deprecated, as `:yank inline [{title}]({url})` can now
+  be used instead.
+
+Fixed
+~~~~~
+
+- Various QtWebEngine load signals are now handled differently, which should
+  fix issues with insert mode being left while typing on sites like Google
+  Translate.
+- Race condition causing a colored statusbar in normal mode when
+  entering/exiting caret mode quickly.
+- Using `100%` for a hue in a `hsv(...)` config value now corresponds to 359
+  (rather than 255), matching the fixed behavior in Qt 5.13.
+- Chaining commands with `;;` used to abort with some failing commands. It now
+  runs the second command no matter whether the first one succeeded or not.
+- Handling of profiles and private windows (and resulting crashes with Qt
+  5.12.2).
+- Fixes for corner-cases when using `:navigate increment/decrement`.
+- The type for the `colors.hints.match.fg` setting was changed to `QtColor`.
+  Gradients were never supported for this setting, and with this change, values
+  like `rgb(0, 0, 0)` now work as well.
+- Permission prompts now show a properly normalized URL with QtWebKit.
+- Crash on start when PyQt was built without SSL support with Qt >= 5.12.
+- Minor memory leaks.
+
+v1.6.3 (2019-06-18)
+-------------------
+
+Fixed
+~~~~~
+
+- Crash when hinting and changing/closing the tab before hints are displayed.
+- Crash on redirects with Qt 5.13.
+- Hide bogus `AA_ShareOpenGLContexts` warning with Qt 5.12.4.
+- Workaround for renderer process crashes with Qt 5.12.4.
+  If you're unable to update, you can remove `~/.cache/qutebrowser` for the
+  same result.
+
+v1.6.2 (2019-05-06)
+-------------------
+
+Changed
+~~~~~~~
+
+- Windows/macOS releases now ship with Qt 5.12.3, which includes security fixes
+  up to Chromium 73.0.3683.75.
+
+Fixed
+~~~~~
+
+- Crash when SQL errors occur while using the completion.
+- Crash when cancelling a download prompt started in an already closed window.
+- Crash when many prompts are opened at the same time.
+- Running without Qt installed now displays a proper error again.
+- High CPU usage when using the keyhint widget with a low delay.
+- Crash with Qt >= 5.14 on redirects.
+
+v1.6.1 (2019-03-20)
+-------------------
+
+Changed
+~~~~~~~
+
+- Windows/macOS releases now ship with Qt 5.12.2, which includes
+  security fixes up to Chromium 72.0.3626.121 (including CVE-2019-5786
+  which is known to be exploited in the wild).
+
+Fixed
+~~~~~
+
+- Crash when using `:config-{dict,list}-{add,remove}` with an invalid setting.
+- Functionality like hinting on pages with an element with ID `_qutebrowser` (such as qutebrowser.org) on Qt 5.12.
+- The .desktop file in v1.6.0 was missing the "Actions" key, which is now fixed.
+- The SVG icon now has a size of 256x256px set to comply with freedesktop standards.
+- Setting `colors.statusbar.*.bg` to a gradient now has the expected effect of
+  the gradient spanning the entire statusbar.
+
+v1.6.0 (2019-02-25)
+-------------------
+
+Added
+~~~~~
+
+- New settings:
+  * `tabs.new_position.stacking` which controls whether new tabs opened from a
+    page should stack on each other or not.
+  * `completion.open_categories` which allows to configure which categories are
+    shown in the `:open` completion, and how they are ordered.
+  * `tabs.pinned.frozen` to allow/deny navigating in pinned tabs.
+  * `hints.selectors` which allows to configure what CSS selectors are used for
+    hints, and also allows adding custom hint groups.
+  * `input.insert_mode.leave_on_load` to turn off leaving insert mode when a
+    new page is loaded.
 - New config manipulation commands:
   * `:config-dict-add` and `:config-list-add` to a new element to a dict/list
     setting.
   * `:config-dict-remove` and `:config-list-remove` to remove an element from a
     dict/list setting.
-- New `hints.selectors` setting which allows to configure what CSS selectors
-  are used for hints, and also allows adding custom hint groups.
 - New `:yank markdown` feature which yanks the current URL and title in
   markdown format.
+- Support for new QtWebEngine features in Qt 5.12:
+  * Basic support for client certificates. Selecting the certificate to use
+    when there are multiple matching certificates isn't implemented yet.
+  * Support for DNS prefetching (plus new `content.dns_prefetch` setting).
 
 Changed
 ~~~~~~~
 
-- `:q` now closes current window instead of quitting qutebrowser completely
+- Various changes to the Windows and macOS builds:
+  * Bundling Qt 5.12.1, based on Chromium 69.0.3497.128 with security fixes up
+    to 71.0.3578.94.
+  * Windows: A 32-bit build is available again.
+  * Windows: The builds now bundle the Universal CRT DLLs, causing them to work
+    on earlier versions of Windows 10.
+  * macOS: Support for OS X 10.11 El Capitan was dropped, requiring macOS 10.12
+    Sierra or newer.
+  * macOS: The IPC socket path used to communicate with existing instances
+    changed due to changes in Qt 5.12. Please make sure to quit qutebrowser
+    before upgrading.
+- `:q` now closes the current window instead of quitting qutebrowser completely
   (`:close`), while `:qa` quits (`:quit`). The behavior of `:wq` remains
   unchanged (`:quit --save`), as closing a window while saving the session
   doesn't make sense.
@@ -53,6 +580,18 @@ Changed
 - Various small performance improvements for hints and the completion.
 - The Wayland check for QtWebEngine is now disabled on Qt >= 5.11.2, as those
   versions should work without any issues.
+- The JavaScript `console` object is now available in PAC files.
+- PAC proxies currently don't work properly on QtWebEngine (and never did), so
+  an error is now shown when trying to configure a PAC proxy.
+- The metainfo file `qutebrowser.appdata.xml` is now renamed to
+  `org.qutebrowser.qutebrowser.appdata.xml`.
+- The `qute-pass` userscript now understands domains in gpg filenames
+  in addition to directory names.
+- The autocompletion for `content.headers.user_agent` got updated to only
+  include the default and Chrome, as setting the UA to Firefox has various
+  bad side-effects.
+- Combining Qt 5.12 with an older PyQt can lead to issues, so a warning is
+  now shown when starting qutebrowser with that combination.
 
 Fixed
 ~~~~~
@@ -67,12 +606,31 @@ Fixed
   `content.cookies.accept = no-3rdparty` from working properly on some pages
   like GMail. However, the default for `content.cookies.accept` is still `all`
   to be in line with what other browsers do.
-- `:navigate` not incrementing in anchors or queries or anchors.
+- `:navigate` not incrementing in anchors or queries.
 - Crash when trying to use a proxy requiring authentication with QtWebKit.
 - Slashes in search terms are now percent-escaped.
+- When `scrolling.bar = True` was set in versions before v1.5.0, this now
+  correctly gets migrated to `always` instead of `when-searching`.
+- Completion highlighting now works again on Qt 5.11.3 and 5.12.1.
+- The non-standard header `X-Do-Not-Track` is no longer sent.
+- PAC proxies were never correctly supported with QtWebEngine, but are now
+  explicitly disallowed.
+- macOS: Context menus for download items now show in the correct macOS style.
+- Issues with fullscreen handling when exiting a video player.
+- Various fixes for Qt 5.12 issues:
+  * A javascript error on page load was fixed.
+  * `window.print()` works with Qt 5.12 now.
+  * Fixed handling of duplicate download filenames.
+  * Fixed broken `qute://history` page.
+  * Fixed PDF.js not working properly.
+  * The download button in PDF.js now works (it's not possible to make
+    it work with earlier Qt versions).
+  * Since Greasemonkey scripts modifying the DOM fail when being run at
+    document-start, some known-broken scripts (Iridium, userstyles.org) are now
+    forced to run at document-end.
 
-v1.5.2
-------
+v1.5.2 (2018-10-26)
+-------------------
 
 Changed
 ~~~~~~~
@@ -81,8 +639,8 @@ Changed
   `no-3rdparty` by default, as `no-3rdparty` breaks various pages such as
   GMail.
 
-v1.5.1
-------
+v1.5.1 (2018-10-10)
+-------------------
 
 Fixed
 ~~~~~
@@ -96,8 +654,8 @@ Fixed
 - Crash when closing a tab after doing a search.
 - Tabs appearing when hidden after e.g. closing tabs.
 
-v1.5.0
-------
+v1.5.0 (2018-10-03)
+-------------------
 
 Added
 ~~~~~
@@ -191,8 +749,8 @@ Removed
 - The `content.webrtc_public_interfaces_only` setting has been removed and
   replaced by `content.webrtc_ip_handling_policy`.
 
-v1.4.2
-------
+v1.4.2 (2018-09-02)
+-------------------
 
 Changed
 ~~~~~~~
@@ -221,8 +779,8 @@ Fixed
 - Crash when using :// as URL pattern.
 - The `:buffer` completion now sorts tabs with indices >= 10 correctly again.
 
-v1.4.1
-------
+v1.4.1 (2018-07-11)
+-------------------
 
 Security
 ~~~~~~~~
@@ -245,8 +803,8 @@ Fixed
   new one, fixing issues with qutebrowser not starting after installing v1.4.0
   over v1.3.3.
 
-v1.4.0
-------
+v1.4.0 (2018-07-03)
+-------------------
 
 Added
 ~~~~~
@@ -363,17 +921,17 @@ Removed
 - The `content.developer_extras` setting got removed. On QtWebKit, developer
   extras are now automatically enabled when opening the inspector.
 
-v1.3.3
-------
+v1.3.3 (2018-06-21)
+-------------------
 
 Security
 ~~~~~~~~
 
-- An XSS vulnerability on the `qute://history` page allowed websites to inject
-  HTML into the page via a crafted title tag. This could allow them to steal
-  your browsing history. If you're currently unable to upgrade, avoid using
-  `:history`. A CVE request for this issue is pending, see
-  https://github.com/qutebrowser/qutebrowser/issues/4011[#4011] for updates.
+- CVE-2018-1000559: An XSS vulnerability on the `qute://history` page allowed
+  websites to inject HTML into the page via a crafted title tag. This could
+  allow them to steal your browsing history. If you're currently unable to
+  upgrade, avoid using `:history`. See the related GitHub issue for details:
+  https://github.com/qutebrowser/qutebrowser/issues/4011.
 
 Fixed
 ~~~~~
@@ -384,8 +942,8 @@ Fixed
   introduced. Since that module isn't packaged everywhere, it's been removed
   again.
 
-v1.3.2
-------
+v1.3.2 (2018-06-10)
+-------------------
 
 Fixed
 ~~~~~
@@ -399,8 +957,8 @@ Fixed
 - QtWebEngine: It's now possible to open external links such as `magnet://` or
   `mailto:` via hints.
 
-v1.3.1
-------
+v1.3.1 (2018-05-29)
+-------------------
 
 Fixed
 ~~~~~
@@ -414,8 +972,8 @@ Fixed
 - Don't crash when a tab is opened and quickly closed again.
 
 
-v1.3.0
-------
+v1.3.0 (2018-05-03)
+-------------------
 
 Added
 ~~~~~
@@ -494,8 +1052,8 @@ Fixed
   messenger.
 - The macOS release now should work again on macOS 10.11 and newer.
 
-v1.2.1
-------
+v1.2.1 (2018-03-14)
+-------------------
 
 Fixed
 ~~~~~
@@ -517,8 +1075,8 @@ Fixed
   from sessions.
 - Shortcuts now correctly use `Ctrl` instead of `Command` on macOS again.
 
-v1.2.0
-------
+v1.2.0 (2018-03-09)
+-------------------
 
 Added
 ~~~~~
@@ -649,8 +1207,8 @@ Removed
 - The `tabs.persist_mode_on_change` setting has been removed and replaced by
   `tabs.mode_on_change`.
 
-v1.1.2
-------
+v1.1.2 (2018-03-01)
+-------------------
 
 Changed
 ~~~~~~~
@@ -664,8 +1222,8 @@ Fixed
 - QtWebEngine: Crash with Qt 5.10.1 when using :undo on some tabs.
 - Compatibility with Python 3.7
 
-v1.1.1
-------
+v1.1.1 (2018-01-20)
+-------------------
 
 Fixed
 ~~~~~
@@ -673,8 +1231,8 @@ Fixed
 - The Makefile now actually works.
 - Fixed crashes with Qt 5.10 when closing a tab before it finished loading.
 
-v1.1.0
-------
+v1.1.0 (2018-01-15)
+-------------------
 
 Added
 ~~~~~
@@ -816,8 +1374,8 @@ Removed
 - The `x[xtb]` default bindings got removed again as many users accidentally
   triggered them.
 
-v1.0.4
-------
+v1.0.4 (2017-11-28)
+-------------------
 
 Fixed
 ~~~~~
@@ -829,8 +1387,8 @@ Fixed
 - Improved handling for various SQL errors
 - Fix crash when setting content.cache.size to a big value (> 2 GB)
 
-v1.0.3
-------
+v1.0.3 (2017-11-04)
+-------------------
 
 Changed
 ~~~~~~~
@@ -851,8 +1409,8 @@ Fixed
 - Unbinding a default keybinding twice now doesn't bind it again
 - Completions are now sorted correctly again when filtered
 
-v1.0.2
-------
+v1.0.2 (2017-10-17)
+-------------------
 
 Fixed
 ~~~~~
@@ -869,8 +1427,8 @@ Changed
 
 - Nicer error messages and other minor improvements
 
-v1.0.1
-------
+v1.0.1 (2017-10-13)
+-------------------
 
 Fixed
 ~~~~~
@@ -879,8 +1437,8 @@ Fixed
 - Fixed starting with old PyQt versions compiled against newer Qt versions.
 - Fixed check for PyQt version to correctly enforce 5.7 (not 5.2).
 
-v1.0.0
-------
+v1.0.0 (2017-10-12)
+-------------------
 
 Major changes
 ~~~~~~~~~~~~~
@@ -969,8 +1527,8 @@ Fixes
   count.
 - The `window.hide_wayland_decoration` setting now works correctly again.
 
-v0.11.1
--------
+v0.11.1 (2017-10-09)
+--------------------
 
 Fixes
 ~~~~~
@@ -983,8 +1541,8 @@ Fixes
 - :spawn -u -d is now disallowed.
 - :spawn -d shows error messages correctly now.
 
-v0.11.0
--------
+v0.11.0 (2017-07-04)
+--------------------
 
 New dependencies
 ~~~~~~~~~~~~~~~~
@@ -1109,8 +1667,8 @@ Fixed
   frequent crashes due to a Qt bug.
 - (QtWebKit) Fixed Crash when a PAC file returns an invalid value.
 
-v0.10.1
--------
+v0.10.1 (2017-03-08)
+--------------------
 
 Changed
 ~~~~~~~
@@ -1130,8 +1688,8 @@ Fixed
 - Crash when trying to print a tab which was closed in the meantime
 - Crash when trying to open a file twice on Windows
 
-v0.10.0
--------
+v0.10.0 (2017-02-25)
+--------------------
 
 Added
 ~~~~~
@@ -1209,8 +1767,8 @@ Fixed
 - Fixed a crash when hinting with target `userscript` and spawning a non-existing script
 - Lines in Jupyter notebook now trigger insert mode
 
-v0.9.1
-------
+v0.9.1 (2017-01-13)
+-------------------
 
 Fixed
 ~~~~~
@@ -1218,8 +1776,8 @@ Fixed
 - Prevent websites from downloading files to a location outside of the download
   folder with QtWebEngine.
 
-v0.9.0
-------
+v0.9.0 (2016-12-28)
+-------------------
 
 Added
 ~~~~~
@@ -1402,8 +1960,8 @@ Fixed
 - Fixed crash when a userscript writes invalid unicode data to the FIFO
 - Fixed crash when a included HTML was not found
 
-v0.8.3
-------
+v0.8.3 (2016-11-05)
+-------------------
 
 Fixed
 ~~~~~
@@ -1422,8 +1980,8 @@ Fixed
 - Fixed crash when closing a window without focusing it
 - Userscripts now can access QUTE_FIFO correctly on Windows
 
-v0.8.2
-------
+v0.8.2 (2016-08-02)
+-------------------
 
 Fixed
 ~~~~~
@@ -1445,8 +2003,8 @@ Fixed
   `:prompt-open-download`.
 - Fixed `:restart` deleting the basedir when it was given with `--basedir`.
 
-v0.8.1
-------
+v0.8.1 (2016-07-27)
+-------------------
 
 Fixed
 ~~~~~
@@ -1456,8 +2014,8 @@ Fixed
   X .app currently.
 - Hide Harfbuzz warning with the macOS .app
 
-v0.8.0
-------
+v0.8.0 (2016-07-26)
+-------------------
 
 Added
 ~~~~~
@@ -1493,7 +2051,7 @@ Changed
   is given.
 
 Fixed
------
+~~~~~
 
 - Compatibility with PyQt 5.7
 - Fixed some configuration values being lost when a config option gets removed
@@ -1503,7 +2061,7 @@ Fixed
   anymore.
 
 Removed
--------
+~~~~~~~
 
 - The ability to display status messages from webpages, as well as the related
   `ui ->  display-statusbar-messages` setting.
@@ -1514,8 +2072,8 @@ Removed
 - `:edit-url` now doesn't accept a count anymore as its behavior was confusing
   and it doesn't make much sense to add a count.
 
-v0.7.0
-------
+v0.7.0 (2016-06-10)
+-------------------
 
 Added
 ~~~~~
@@ -1575,7 +2133,7 @@ Changed
   history too, marked with a `-r` suffix to the timestamp field.
 
 Fixed
------
+~~~~~
 
 - Fixed using `:hint links spawn` with flags - you can now use things like the
   `-v` argument for `:spawn` or pass flags to the spawned commands.
@@ -1600,8 +2158,8 @@ Fixed
 - Hints now work with (non-standard) links with spaces around the URL
 - Strip off trailing spaces for history entries with no title
 
-v0.6.2
-------
+v0.6.2 (2016-04-30)
+-------------------
 
 Fixed
 ~~~~~
@@ -1614,8 +2172,8 @@ Fixed
 - Fixed crash in some circumstances when using dictionary hints
 - Fixed various crashes related to PyQt 5.6
 
-v0.6.1
------
+v0.6.1 (2016-04-10)
+-------------------
 
 Fixed
 ~~~~~~
@@ -1625,8 +2183,8 @@ Fixed
 - Fixed crash when downloading non-ascii files with a broken locale (`LC_ALL=C`)
 - Added workaround for a Qt/PyQt bug which is too weird to describe here
 
-v0.6.0
-------
+v0.6.0 (2016-04-04)
+-------------------
 
 Added
 ~~~~~
@@ -1697,8 +2255,8 @@ Removed
   (except for existing configs) to make room for the `gt` binding to show
   buffers.
 
-v0.5.1
-------
+v0.5.1 (2016-01-18)
+-------------------
 
 Fixed
 ~~~~~
@@ -1708,8 +2266,8 @@ Fixed
 - Prevented an error being logged when a website with HTTP authentication was
   opened on Windows.
 
-v0.5.0
-------
+v0.5.0 (2016-01-05)
+-------------------
 
 Added
 ~~~~~
@@ -1825,8 +2383,8 @@ Fixed
 - Fixed restarting after a crash is reported.
 - Removed `.pyc` files accidentally contained in source releases.
 
-v0.4.1
-------
+v0.4.1 (2015-09-30)
+-------------------
 
 Fixed
 ~~~~~
@@ -1846,8 +2404,8 @@ Fixed
   versions (e.g. on Debian experimental).
 - Fixed various `PendingDeprecationWarnings` shown with Python 3.5.
 
-v0.4.0
-------
+v0.4.0 (2015-09-11)
+-------------------
 
 Added
 ~~~~~
@@ -1931,8 +2489,8 @@ Removed
 - The `tabs -> hide-always` and `tabs -> hide-auto` settings got merged into
   the new `tabs -> show` setting.
 
-v0.3.0
-------
+v0.3.0 (2015-06-28)
+-------------------
 
 Added
 ~~~~~
@@ -2009,16 +2567,16 @@ Fixed
 - Fixed horrible completion performance when the `shrink` option was set.
 - Sessions now store zoom/scroll-position correctly.
 
-https://github.com/qutebrowser/qutebrowser/releases/tag/v0.2.1[v0.2.1]
------------------------------------------------------------------------
+v0.2.1 (2015-04-19)
+-------------------
 
 Fixed
 ~~~~~
 
 - Added missing manpage (doc/qutebrowser.1.asciidoc) to archive.
 
-https://github.com/qutebrowser/qutebrowser/releases/tag/v0.2.0[v0.2.0]
------------------------------------------------------------------------
+v0.2.0 (2015-04-19)
+-------------------
 
 Added
 ~~~~~
@@ -2160,8 +2718,8 @@ Fixed
 - Add a timeout to pastebin HTTP replies.
 - Various other fixes for small/rare bugs.
 
-https://github.com/qutebrowser/qutebrowser/releases/tag/v0.1.4[v0.1.4]
------------------------------------------------------------------------
+v0.1.4 (2015-03-19)
+-------------------
 
 Changed
 ~~~~~~~
@@ -2204,8 +2762,8 @@ Security
 * Stop the icon database from being created when private-browsing is set to true.
 * Disable insecure SSL ciphers.
 
-https://github.com/qutebrowser/qutebrowser/releases/tag/v0.1.3[v0.1.3]
------------------------------------------------------------------------
+v0.1.3 (2015-02-12)
+-------------------
 
 Changed
 ~~~~~~~
@@ -2238,8 +2796,8 @@ Security
 
 * Fix for HTTP passwords accidentally being written to debug log.
 
-https://github.com/qutebrowser/qutebrowser/releases/tag/v0.1.2[v0.1.2]
------------------------------------------------------------------------
+v0.1.2 (2015-01-09)
+-------------------
 
 Changed
 ~~~~~~~
@@ -2270,8 +2828,8 @@ Fixed
 * Fix user-stylesheet setting with an empty value.
 
 
-https://github.com/qutebrowser/qutebrowser/releases/tag/v0.1.1[v0.1.1]
------------------------------------------------------------------------
+v0.1.1 (2014-12-28)
+-------------------
 
 Added
 ~~~~~
@@ -2328,7 +2886,7 @@ Fixed
 * Ensure the docs get included in `freeze.py`.
 * Fix crash with `:zoom`.
 
-https://github.com/qutebrowser/qutebrowser/releases/tag/v0.1[v0.1]
--------------------------------------------------------------------
+v0.1 (2014-12-14)
+-----------------
 
 Initial release.

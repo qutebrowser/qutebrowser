@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015 Daniel Schadt
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -33,6 +33,35 @@ sys.path.insert(
     0, os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
 from scripts import dictcli
 from qutebrowser.config import configdata
+
+
+def download_nsis_plugins():
+    """Download the plugins required by the NSIS script."""
+    github_url = 'https://raw.githubusercontent.com/Drizin/NsisMultiUser'
+    git_commit = 'master'
+    nsh_files = ('Include/NsisMultiUser.nsh', 'Include/NsisMultiUserLang.nsh',
+                 'Include/UAC.nsh', 'Include/StdUtils.nsh',
+                 'Demos/Common/Utils.nsh')
+    dll_files = ('Plugins/x86-unicode/UAC.dll',
+                 'Plugins/x86-unicode/StdUtils.dll')
+    include_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               '..', '..', 'misc', 'nsis',
+                               'include')
+    plugins_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               '..', '..', 'misc', 'nsis',
+                               'plugins', 'x86-unicode')
+    os.makedirs(include_dir, exist_ok=True)
+    os.makedirs(plugins_dir, exist_ok=True)
+    print("=> Downloading NSIS plugins")
+    for nsh_file in nsh_files:
+        target_path = os.path.join(include_dir, os.path.basename(nsh_file))
+        urllib.request.urlretrieve('{}/{}/{}'.format(github_url, git_commit,
+                                                     nsh_file), target_path)
+    for dll_file in dll_files:
+        target_path = os.path.join(plugins_dir, os.path.basename(dll_file))
+        urllib.request.urlretrieve('{}/{}/{}'.format(github_url, git_commit,
+                                                     dll_file), target_path)
+    urllib.request.urlcleanup()
 
 
 def get_latest_pdfjs_url():
@@ -120,7 +149,7 @@ def test_dicts():
     configdata.init()
     for lang in dictcli.available_languages():
         print('Testing dictionary {}... '.format(lang.code), end='')
-        lang_url = urllib.parse.urljoin(dictcli.API_URL, lang.remote_path)
+        lang_url = urllib.parse.urljoin(dictcli.API_URL, lang.remote_filename)
         request = urllib.request.Request(lang_url, method='HEAD')
         response = urllib.request.urlopen(request)
         if response.status == 200:
@@ -129,9 +158,11 @@ def test_dicts():
             print('ERROR: {}'.format(response.status))
 
 
-def run(ace=False, pdfjs=True, fancy_dmg=False, pdfjs_version=None,
+def run(nsis=False, ace=False, pdfjs=True, fancy_dmg=False, pdfjs_version=None,
         dicts=False):
     """Update components based on the given arguments."""
+    if nsis:
+        download_nsis_plugins()
     if pdfjs:
         update_pdfjs(pdfjs_version)
     if ace:
@@ -144,6 +175,8 @@ def run(ace=False, pdfjs=True, fancy_dmg=False, pdfjs_version=None,
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--nsis', '-n', help='Download NSIS plugins.',
+                        required=False, action='store_true')
     parser.add_argument(
         '--pdfjs', '-p',
         help='Specify pdfjs version. If not given, '
@@ -157,7 +190,7 @@ def main():
         'can be reached at the remote repository.',
         required=False, action='store_true')
     args = parser.parse_args()
-    run(ace=True, pdfjs=True, fancy_dmg=args.fancy_dmg,
+    run(nsis=False, ace=True, pdfjs=True, fancy_dmg=args.fancy_dmg,
         pdfjs_version=args.pdfjs, dicts=args.dicts)
 
 
