@@ -60,7 +60,8 @@ class BraveAdBlocker:
         self._engine = adblock.Engine([])
 
     def _is_blocked(self, request_url: QUrl,
-                    first_party_url: QUrl = None) -> bool:
+                    first_party_url: QUrl = None,
+                    request_type: str = "") -> bool:
         """Check whether the given request is blocked."""
         if not first_party_url or not first_party_url.isValid():
             first_party_url = None
@@ -74,16 +75,17 @@ class BraveAdBlocker:
         result = self._engine.check_network_urls(
             request_url.toString(),
             first_party_url.toString() if first_party_url else "",
-            # TODO: Send the real request type
-            ""
+            request_type,
         )
         return result.matched
 
 
     def filter_request(self, info: interceptor.Request) -> None:
         """Block the given request if necessary."""
+        request_type = info.resource_type.name if info.resource_type else ""
         if self._is_blocked(request_url=info.request_url,
-                            first_party_url=info.first_party_url):
+                            first_party_url=info.first_party_url,
+                            request_type=request_type):
             logger.info("Request to {} blocked by ad blocker."
                         .format(info.request_url.toString()))
             info.block()
