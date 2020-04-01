@@ -59,35 +59,34 @@ class BraveAdBlocker:
         self._cache_path = str(data_dir / "adblock-cache.dat")
         self._engine = adblock.Engine([])
 
-    def _is_blocked(self, request_url: QUrl,
-                    first_party_url: QUrl = None,
-                    request_type: str = "") -> bool:
-        """Check whether the given request is blocked."""
-        if not first_party_url or not first_party_url.isValid():
+
+    def filter_request(self, info: interceptor.Request) -> None:
+        """Block or redirect the given request if necessary."""
+        request_type = info.resource_type.name if info.resource_type else ""
+
+        first_party_url = info.first_party_url
+        if first_party_url is not None and not first_party_url.isValid():
             first_party_url = None
 
-        qtutils.ensure_valid(request_url)
+        qtutils.ensure_valid(info.request_url)
 
         if not config.get('content.ad_blocking.enabled',
                           url=first_party_url):
-            return False
+            # Do nothing if adblocking is disabled.
+            return
 
         result = self._engine.check_network_urls(
-            request_url.toString(),
+            info.request_url.toString(),
             first_party_url.toString() if first_party_url else "",
-            request_type,
+            info.resource_type.name if info.resource_type else "",
         )
-        return result.matched
-
-
-    def filter_request(self, info: interceptor.Request) -> None:
-        """Block the given request if necessary."""
-        request_type = info.resource_type.name if info.resource_type else ""
-        if self._is_blocked(request_url=info.request_url,
-                            first_party_url=info.first_party_url,
-                            request_type=request_type):
+        if result.redirect is not None:
+            logger.info("Request to {} redirected to {} by ad blocker."
+            .format(info.request_url.toString(), result.redirect))
+            info.redirect(QUrl(result.redirect))
+        elif result.matched:
             logger.info("Request to {} blocked by ad blocker."
-                        .format(info.request_url.toString()))
+                .format(info.request_url.toString()))
             info.block()
 
     def read_cache(self) -> None:
