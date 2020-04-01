@@ -28,9 +28,6 @@ time, your help is needed! See the
 https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] for more
 information. Depending on your sign-up date and how long you keep a certain
 level, you can get qutebrowser t-shirts, stickers and more!
-
-Thanks to the GitHub Sponsors Matching Fund, all donations done via GitHub
-Sponsors (up to a $5000 total) will be doubled until October 2020.
 // QUTE_WEB_HIDE_END
 
 Screenshots
@@ -152,9 +149,6 @@ time, your help is needed! See the
 https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] for more
 information. Depending on your sign-up date and how long you keep a certain
 level, you can get qutebrowser t-shirts, stickers and more!
-
-Thanks to the GitHub Sponsors Matching Fund, all donations done via GitHub
-Sponsors (up to a $5000 total) will be doubled until October 2020!
 
 Alternatively, the following donation methods are available -- note that
 eligibility for swag (shirts/stickers/etc.) is handled on a case-by-case basis
