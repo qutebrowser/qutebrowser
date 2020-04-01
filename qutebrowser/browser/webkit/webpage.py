@@ -196,7 +196,7 @@ class BrowserPage(QWebPage):
             return super().chooseFile(parent_frame, suggested_file)
 
         selected_file = shared.choose_file(multiple=False)
-        if selected_file == []:
+        if not selected_file:
             return ''
         else:
             return selected_file[0]
