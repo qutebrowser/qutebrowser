@@ -80,9 +80,12 @@ class BraveAdBlocker:
             first_party_url.toString() if first_party_url else "",
             info.resource_type.name if info.resource_type else "",
         )
-        if result.redirect is not None:
+        if result.exception is not None:
+            logger.debug("Excepting {} from being blocked by {} because of {}"
+                .format(info.request_url.toString(), result.filter, result.exception))
+        elif result.redirect is not None:
             logger.info("Request to {} redirected to {} by ad blocker."
-            .format(info.request_url.toString(), result.redirect))
+                .format(info.request_url.toString(), result.redirect))
             info.redirect(QUrl(result.redirect))
         elif result.matched:
             logger.info("Request to {} blocked by ad blocker."
