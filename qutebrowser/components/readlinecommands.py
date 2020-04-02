@@ -24,6 +24,7 @@ import typing
 from PyQt5.QtWidgets import QApplication, QLineEdit
 
 from qutebrowser.api import cmdutils
+from qutebrowser.utils.utils import get_clipboard
 
 
 class _ReadlineBridge:
@@ -135,6 +136,12 @@ class _ReadlineBridge:
 
     def backward_delete_char(self) -> None:
         self._dispatch('backspace')
+
+    def paste_clipboard(self) -> None:
+        widget = self._widget()
+        if widget is None:
+            return
+        widget.insert(get_clipboard())
 
 
 bridge = _ReadlineBridge()
@@ -259,6 +266,16 @@ def rl_yank() -> None:
     This acts like readline's yank.
     """
     bridge.yank()
+
+
+@_register
+def rl_paste_clipboard() -> None:
+    """Paste text under clipboard.
+
+    Not really a readline command,
+    allow remaping of Ctrl-V
+    """
+    bridge.paste_clipboard()
 
 
 @_register
