@@ -148,7 +148,8 @@ class _BaseUserscriptRunner(QObject):
             log.procs.debug("Both text/HTML stored, kicking off userscript!")
             self._run_process(*self._args, **self._kwargs)
 
-    def _run_process(self, cmd, *args, env=None, verbose=False):
+    def _run_process(self, cmd, *args, env=None, verbose=False,
+                     output_messages=False):
         """Start the given command.
 
         Args:
@@ -156,15 +157,16 @@ class _BaseUserscriptRunner(QObject):
             *args: The arguments to hand to the command
             env: A dictionary of environment variables to add.
             verbose: Show notifications when the command started/exited.
+            output_messages: Show the output as messages.
         """
         assert self._filepath is not None
         self._env['QUTE_FIFO'] = self._filepath
         if env is not None:
             self._env.update(env)
 
-        self._proc = guiprocess.GUIProcess('userscript',
-                                           additional_env=self._env,
-                                           verbose=verbose, parent=self)
+        self._proc = guiprocess.GUIProcess(
+            'userscript', additional_env=self._env,
+            output_messages=output_messages, verbose=verbose, parent=self)
         self._proc.finished.connect(self.on_proc_finished)
         self._proc.error.connect(self.on_proc_error)
         self._proc.start(cmd, args)
@@ -398,7 +400,8 @@ def _lookup_path(cmd):
     raise NotFoundError(cmd, directories)
 
 
-def run_async(tab, cmd, *args, win_id, env, verbose=False):
+def run_async(tab, cmd, *args, win_id, env, verbose=False,
+              output_messages=False):
     """Run a userscript after dumping page html/source.
 
     Raises:
@@ -413,6 +416,7 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
         win_id: The window id the userscript is executed in.
         env: A dictionary of variables to add to the process environment.
         verbose: Show notifications when the command started/exited.
+        output_messages: Show the output as messages.
     """
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
@@ -451,7 +455,8 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
     runner.finished.connect(commandrunner.deleteLater)
     runner.finished.connect(runner.deleteLater)
 
-    runner.prepare_run(cmd_path, *args, env=env, verbose=verbose)
+    runner.prepare_run(cmd_path, *args, env=env, verbose=verbose,
+                       output_messages=output_messages)
     tab.dump_async(runner.store_html)
     tab.dump_async(runner.store_text, plain=True)
     return runner
