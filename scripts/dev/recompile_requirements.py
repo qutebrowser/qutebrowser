@@ -113,6 +113,19 @@ def get_all_names():
         yield basename[len('requirements-'):-len('.txt-raw')]
 
 
+def init_venv(host_python, tmpdir, filename):
+    subprocess.run([host_python, '-m', 'venv', tmpdir], check=True)
+
+    venv_python = os.path.join(tmpdir, 'bin', 'python')
+    subprocess.run([venv_python, '-m', 'pip',
+                    'install', '-U', 'pip'], check=True)
+
+    subprocess.run([venv_python, '-m', 'pip',
+                    'install', '-r', filename], check=True)
+    subprocess.run([venv_python, '-m', 'pip', 'check'], check=True)
+    return venv_python
+
+
 def main():
     """Re-compile the given (or all) requirement files."""
     names = sys.argv[1:] if len(sys.argv) > 1 else sorted(get_all_names())
@@ -136,15 +149,10 @@ def main():
         else:
             host_python = sys.executable
 
+        utils.print_subtitle("Building")
+
         with tempfile.TemporaryDirectory() as tmpdir:
-            subprocess.run([host_python, '-m', 'venv', tmpdir], check=True)
-
-            venv_python = os.path.join(tmpdir, 'bin', 'python')
-            subprocess.run([venv_python, '-m', 'pip',
-                            'install', '-U', 'pip'], check=True)
-
-            subprocess.run([venv_python, '-m', 'pip',
-                            'install', '-r', filename], check=True)
+            venv_python = init_venv(host_python, tmpdir, filename)
             proc = subprocess.run([venv_python, '-m', 'pip', 'freeze'],
                                   check=True, stdout=subprocess.PIPE)
             reqs = proc.stdout.decode('utf-8')
@@ -162,6 +170,11 @@ def main():
 
             for line in comments['add']:
                 f.write(line + '\n')
+
+        # Test resulting file
+        utils.print_subtitle("Testing")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            init_venv(host_python, tmpdir, outfile)
 
 
 if __name__ == '__main__':

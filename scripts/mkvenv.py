@@ -52,7 +52,7 @@ def parse_args() -> argparse.Namespace:
                         default='auto',
                         help="PyQt version to install.")
     parser.add_argument('--pyqt-type',
-                        choices=['binary', 'source', 'link'],
+                        choices=['binary', 'source', 'link', 'skip'],
                         default='binary',
                         help="How to install PyQt/Qt.")
     parser.add_argument('--virtualenv',
@@ -270,6 +270,8 @@ def main() -> None:
         install_pyqt_source(venv_dir, args.pyqt_version)
     elif args.pyqt_type == 'link':
         install_pyqt_link(venv_dir)
+    elif args.pyqt_type == 'skip':
+        pass
     else:
         raise AssertionError
 
