@@ -15,6 +15,22 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v1.10.2 (unreleased)
+--------------------
+
+Changed
+~~~~~~~
+
+- Windows and macOS releases now bundle Qt 5.14.2, including security fixes up
+  to Chromium 80.0.3987.132.
+
+Fixed
+~~~~~
+
+- The WhatsApp workaround now also works when using WhatsApp in languages other
+  than English.
+- The `mkvenv.py` script now also works properly on Windows.
+
 v1.10.1 (2020-02-15)
 --------------------
 
