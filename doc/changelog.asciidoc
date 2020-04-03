@@ -25,6 +25,19 @@ Fixed
 - The proxied `window` global is now shared between different
   Greasemonkey scripts (but still separate from the page's `window`), to
   match the original Greasemonkey implementation.
+
+v1.10.2 (unreleased)
+--------------------
+
+Changed
+~~~~~~~
+
+- Windows and macOS releases now bundle Qt 5.14.2, including security fixes up
+  to Chromium 80.0.3987.132.
+
+Fixed
+~~~~~
+
 - The WhatsApp workaround now also works when using WhatsApp in languages other
   than English.
 - The `mkvenv.py` script now also works properly on Windows.
