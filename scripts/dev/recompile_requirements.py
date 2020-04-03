@@ -145,6 +145,8 @@ def main():
 
             subprocess.run([venv_python, '-m', 'pip',
                             'install', '-r', filename], check=True)
+            subprocess.run([venv_python, '-m', 'pip', 'check'], check=True)
+
             proc = subprocess.run([venv_python, '-m', 'pip', 'freeze'],
                                   check=True, stdout=subprocess.PIPE)
             reqs = proc.stdout.decode('utf-8')
