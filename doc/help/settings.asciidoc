@@ -25,12 +25,17 @@
 |<<colors.completion.fg,colors.completion.fg>>|Text color of the completion widget.
 |<<colors.completion.item.selected.bg,colors.completion.item.selected.bg>>|Background color of the selected completion item.
 |<<colors.completion.item.selected.border.bottom,colors.completion.item.selected.border.bottom>>|Bottom border color of the selected completion item.
-|<<colors.completion.item.selected.border.top,colors.completion.item.selected.border.top>>|Top border color of the completion widget category headers.
+|<<colors.completion.item.selected.border.top,colors.completion.item.selected.border.top>>|Top border color of the selected completion item.
 |<<colors.completion.item.selected.fg,colors.completion.item.selected.fg>>|Foreground color of the selected completion item.
+|<<colors.completion.item.selected.match.fg,colors.completion.item.selected.match.fg>>|Foreground color of the matched text in the selected completion item.
 |<<colors.completion.match.fg,colors.completion.match.fg>>|Foreground color of the matched text in the completion.
 |<<colors.completion.odd.bg,colors.completion.odd.bg>>|Background color of the completion widget for odd rows.
 |<<colors.completion.scrollbar.bg,colors.completion.scrollbar.bg>>|Color of the scrollbar in the completion view.
 |<<colors.completion.scrollbar.fg,colors.completion.scrollbar.fg>>|Color of the scrollbar handle in the completion view.
+|<<colors.contextmenu.menu.bg,colors.contextmenu.menu.bg>>|Background color of the context menu.
+|<<colors.contextmenu.menu.fg,colors.contextmenu.menu.fg>>|Foreground color of the context menu.
+|<<colors.contextmenu.selected.bg,colors.contextmenu.selected.bg>>|Background color of the context menu's selected item.
+|<<colors.contextmenu.selected.fg,colors.contextmenu.selected.fg>>|Foreground color of the context menu's selected item.
 |<<colors.downloads.bar.bg,colors.downloads.bar.bg>>|Background color for the download bar.
 |<<colors.downloads.error.bg,colors.downloads.error.bg>>|Background color for downloads with errors.
 |<<colors.downloads.error.fg,colors.downloads.error.fg>>|Foreground color for downloads with errors.
@@ -91,11 +96,20 @@
 |<<colors.tabs.indicator.system,colors.tabs.indicator.system>>|Color gradient interpolation system for the tab indicator.
 |<<colors.tabs.odd.bg,colors.tabs.odd.bg>>|Background color of unselected odd tabs.
 |<<colors.tabs.odd.fg,colors.tabs.odd.fg>>|Foreground color of unselected odd tabs.
+|<<colors.tabs.pinned.even.bg,colors.tabs.pinned.even.bg>>|Background color of pinned unselected even tabs.
+|<<colors.tabs.pinned.even.fg,colors.tabs.pinned.even.fg>>|Foreground color of pinned unselected even tabs.
+|<<colors.tabs.pinned.odd.bg,colors.tabs.pinned.odd.bg>>|Background color of pinned unselected odd tabs.
+|<<colors.tabs.pinned.odd.fg,colors.tabs.pinned.odd.fg>>|Foreground color of pinned unselected odd tabs.
+|<<colors.tabs.pinned.selected.even.bg,colors.tabs.pinned.selected.even.bg>>|Background color of pinned selected even tabs.
+|<<colors.tabs.pinned.selected.even.fg,colors.tabs.pinned.selected.even.fg>>|Foreground color of pinned selected even tabs.
+|<<colors.tabs.pinned.selected.odd.bg,colors.tabs.pinned.selected.odd.bg>>|Background color of pinned selected odd tabs.
+|<<colors.tabs.pinned.selected.odd.fg,colors.tabs.pinned.selected.odd.fg>>|Foreground color of pinned selected odd tabs.
 |<<colors.tabs.selected.even.bg,colors.tabs.selected.even.bg>>|Background color of selected even tabs.
 |<<colors.tabs.selected.even.fg,colors.tabs.selected.even.fg>>|Foreground color of selected even tabs.
 |<<colors.tabs.selected.odd.bg,colors.tabs.selected.odd.bg>>|Background color of selected odd tabs.
 |<<colors.tabs.selected.odd.fg,colors.tabs.selected.odd.fg>>|Foreground color of selected odd tabs.
 |<<colors.webpage.bg,colors.webpage.bg>>|Background color for webpages if unset (or empty to use the theme's color).
+|<<colors.webpage.prefers_color_scheme_dark,colors.webpage.prefers_color_scheme_dark>>|Force `prefers-color-scheme: dark` colors for websites.
 |<<completion.cmd_history_max_items,completion.cmd_history_max_items>>|Number of commands to save in the command history.
 |<<completion.delay,completion.delay>>|Delay (in milliseconds) before updating completions after typing a character.
 |<<completion.height,completion.height>>|Height (in pixels or as percentage of the window) of the completion.
@@ -127,7 +141,7 @@
 |<<content.headers.custom,content.headers.custom>>|Custom headers for qutebrowser HTTP requests.
 |<<content.headers.do_not_track,content.headers.do_not_track>>|Value to send in the `DNT` header.
 |<<content.headers.referer,content.headers.referer>>|When to send the Referer header.
-|<<content.headers.user_agent,content.headers.user_agent>>|User agent to send. Unset to send the default.
+|<<content.headers.user_agent,content.headers.user_agent>>|User agent to send.
 |<<content.host_blocking.enabled,content.host_blocking.enabled>>|Enable host blocking.
 |<<content.host_blocking.lists,content.host_blocking.lists>>|List of URLs of lists which contain hosts to block.
 |<<content.host_blocking.whitelist,content.host_blocking.whitelist>>|A list of patterns that should always be loaded, despite being ad-blocked.
@@ -157,6 +171,7 @@
 |<<content.proxy,content.proxy>>|Proxy to use.
 |<<content.proxy_dns_requests,content.proxy_dns_requests>>|Send DNS requests over the configured proxy.
 |<<content.register_protocol_handler,content.register_protocol_handler>>|Allow websites to register protocol handlers via `navigator.registerProtocolHandler`.
+|<<content.site_specific_quirks,content.site_specific_quirks>>|Enable quirks (such as faked user agent headers) needed to get specific sites to work properly.
 |<<content.ssl_strict,content.ssl_strict>>|Validate SSL handshakes.
 |<<content.user_stylesheets,content.user_stylesheets>>|List of user stylesheet filenames to use.
 |<<content.webgl,content.webgl>>|Enable WebGL.
@@ -170,18 +185,20 @@
 |<<downloads.open_dispatcher,downloads.open_dispatcher>>|Default program used to open downloads.
 |<<downloads.position,downloads.position>>|Where to show the downloaded files.
 |<<downloads.remove_finished,downloads.remove_finished>>|Duration (in milliseconds) to wait before removing finished downloads.
-|<<editor.command,editor.command>>|Editor (and arguments) to use for the `open-editor` command. The following placeholders are defined:
+|<<editor.command,editor.command>>|Editor (and arguments) to use for the `open-editor` command.
 |<<editor.encoding,editor.encoding>>|Encoding to use for the editor.
 |<<fonts.completion.category,fonts.completion.category>>|Font used in the completion categories.
 |<<fonts.completion.entry,fonts.completion.entry>>|Font used in the completion widget.
+|<<fonts.contextmenu,fonts.contextmenu>>|Font used for the context menu.
 |<<fonts.debug_console,fonts.debug_console>>|Font used for the debugging console.
+|<<fonts.default_family,fonts.default_family>>|Default font families to use.
+|<<fonts.default_size,fonts.default_size>>|Default font size to use.
 |<<fonts.downloads,fonts.downloads>>|Font used for the downloadbar.
 |<<fonts.hints,fonts.hints>>|Font used for the hints.
 |<<fonts.keyhint,fonts.keyhint>>|Font used in the keyhint widget.
 |<<fonts.messages.error,fonts.messages.error>>|Font used for error messages.
 |<<fonts.messages.info,fonts.messages.info>>|Font used for info messages.
 |<<fonts.messages.warning,fonts.messages.warning>>|Font used for warning messages.
-|<<fonts.monospace,fonts.monospace>>|Default monospace fonts.
 |<<fonts.prompts,fonts.prompts>>|Font used for prompts.
 |<<fonts.statusbar,fonts.statusbar>>|Font used in the statusbar.
 |<<fonts.tabs,fonts.tabs>>|Font used in the tab bar.
@@ -202,6 +219,7 @@
 |<<hints.dictionary,hints.dictionary>>|Dictionary file to be used by the word hints.
 |<<hints.find_implementation,hints.find_implementation>>|Which implementation to use to find elements to hint.
 |<<hints.hide_unmatched_rapid_hints,hints.hide_unmatched_rapid_hints>>|Hide unmatched hints in rapid mode.
+|<<hints.leave_on_load,hints.leave_on_load>>|Leave hint mode when starting a new page load.
 |<<hints.min_chars,hints.min_chars>>|Minimum number of characters used for hint strings.
 |<<hints.mode,hints.mode>>|Mode to use for hints.
 |<<hints.next_regexes,hints.next_regexes>>|Comma-separated list of regular expressions to use for 'next' links.
@@ -215,6 +233,7 @@
 |<<input.insert_mode.auto_enter,input.insert_mode.auto_enter>>|Enter insert mode if an editable element is clicked.
 |<<input.insert_mode.auto_leave,input.insert_mode.auto_leave>>|Leave insert mode if a non-editable element is clicked.
 |<<input.insert_mode.auto_load,input.insert_mode.auto_load>>|Automatically enter insert mode if an editable element is focused after loading the page.
+|<<input.insert_mode.leave_on_load,input.insert_mode.leave_on_load>>|Leave insert mode when starting a new page load.
 |<<input.insert_mode.plugins,input.insert_mode.plugins>>|Switch to insert mode when clicking flash and other plugins.
 |<<input.links_included_in_focus_chain,input.links_included_in_focus_chain>>|Include hyperlinks in the keyboard focus chain when tabbing.
 |<<input.partial_timeout,input.partial_timeout>>|Timeout (in milliseconds) for partially typed key bindings.
@@ -230,6 +249,7 @@
 |<<prompt.radius,prompt.radius>>|Rounding radius (in pixels) for the edges of prompts.
 |<<qt.args,qt.args>>|Additional arguments to pass to Qt, without leading `--`.
 |<<qt.force_platform,qt.force_platform>>|Force a Qt platform to use.
+|<<qt.force_platformtheme,qt.force_platformtheme>>|Force a Qt platformtheme to use.
 |<<qt.force_software_rendering,qt.force_software_rendering>>|Force software rendering for QtWebEngine.
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
 |<<qt.low_end_device_mode,qt.low_end_device_mode>>|When to use Chromium's low-end device mode.
@@ -250,6 +270,7 @@
 |<<tabs.close_mouse_button_on_bar,tabs.close_mouse_button_on_bar>>|How to behave when the close mouse button is pressed on the tab bar.
 |<<tabs.favicons.scale,tabs.favicons.scale>>|Scaling factor for favicons in the tab bar.
 |<<tabs.favicons.show,tabs.favicons.show>>|When to show favicons in the tab bar.
+|<<tabs.focus_stack_size,tabs.focus_stack_size>>|Maximum stack size to remember for tab switches (-1 for no maximum).
 |<<tabs.indicator.padding,tabs.indicator.padding>>|Padding (in pixels) for tab indicators.
 |<<tabs.indicator.width,tabs.indicator.width>>|Width (in pixels) of the progress indicator (0 to disable).
 |<<tabs.last_close,tabs.last_close>>|How to behave when the last tab is closed.
@@ -261,6 +282,7 @@
 |<<tabs.new_position.stacking,tabs.new_position.stacking>>|Stack related tabs on top of each other when opened consecutively.
 |<<tabs.new_position.unrelated,tabs.new_position.unrelated>>|Position of new tabs which are not opened from another tab.
 |<<tabs.padding,tabs.padding>>|Padding (in pixels) around text for tabs.
+|<<tabs.pinned.frozen,tabs.pinned.frozen>>|Force pinned tabs to stay at fixed URL.
 |<<tabs.pinned.shrink,tabs.pinned.shrink>>|Shrink pinned tabs down to their contents.
 |<<tabs.position,tabs.position>>|Position of the tab bar.
 |<<tabs.select_on_remove,tabs.select_on_remove>>|Which tab to select when the focused tab is removed.
@@ -270,6 +292,8 @@
 |<<tabs.title.alignment,tabs.title.alignment>>|Alignment of the text inside of tabs.
 |<<tabs.title.format,tabs.title.format>>|Format to use for the tab title.
 |<<tabs.title.format_pinned,tabs.title.format_pinned>>|Format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
+|<<tabs.tooltips,tabs.tooltips>>|Show tooltips on tabs.
+|<<tabs.undo_stack_size,tabs.undo_stack_size>>|Number of close tab actions to remember, per window (-1 for no maximum).
 |<<tabs.width,tabs.width>>|Width (in pixels or as percentage of the window) of the tab bar if it's vertical.
 |<<tabs.wrap,tabs.wrap>>|Wrap when changing tabs.
 |<<url.auto_search,url.auto_search>>|What search to start when something else than a URL is entered.
@@ -426,6 +450,7 @@ Default:
 * +pass:[j]+: +pass:[move-to-next-line]+
 * +pass:[k]+: +pass:[move-to-prev-line]+
 * +pass:[l]+: +pass:[move-to-next-char]+
+* +pass:[o]+: +pass:[reverse-selection]+
 * +pass:[v]+: +pass:[toggle-selection]+
 * +pass:[w]+: +pass:[move-to-next-word]+
 * +pass:[y]+: +pass:[yank selection]+
@@ -473,7 +498,7 @@ Default:
 
 * +pass:[&lt;Ctrl-E&gt;]+: +pass:[open-editor]+
 * +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
-* +pass:[&lt;Shift-Ins&gt;]+: +pass:[insert-text {primary}]+
+* +pass:[&lt;Shift-Ins&gt;]+: +pass:[insert-text -- {primary}]+
 - +pass:[normal]+:
 
 * +pass:[&#x27;]+: +pass:[enter-mode jump_mark]+
@@ -640,10 +665,12 @@ Default:
 * +pass:[xO]+: +pass:[set-cmd-text :open -b -r {url:pretty}]+
 * +pass:[xo]+: +pass:[set-cmd-text -s :open -b]+
 * +pass:[yD]+: +pass:[yank domain -s]+
+* +pass:[yM]+: +pass:[yank inline [{title}]({url}) -s]+
 * +pass:[yP]+: +pass:[yank pretty-url -s]+
 * +pass:[yT]+: +pass:[yank title -s]+
 * +pass:[yY]+: +pass:[yank -s]+
 * +pass:[yd]+: +pass:[yank domain]+
+* +pass:[ym]+: +pass:[yank inline [{title}]({url})]+
 * +pass:[yp]+: +pass:[yank pretty-url]+
 * +pass:[yt]+: +pass:[yank title]+
 * +pass:[yy]+: +pass:[yank]+
@@ -687,6 +714,8 @@ Default:
 * +pass:[&lt;Alt-Y&gt;]+: +pass:[prompt-yank]+
 * +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
 * +pass:[&lt;Return&gt;]+: +pass:[prompt-accept]+
+* +pass:[N]+: +pass:[prompt-accept --save no]+
+* +pass:[Y]+: +pass:[prompt-accept --save yes]+
 * +pass:[n]+: +pass:[prompt-accept no]+
 * +pass:[y]+: +pass:[prompt-accept yes]+
 
@@ -781,7 +810,7 @@ Default: +pass:[#bbbb00]+
 
 [[colors.completion.item.selected.border.top]]
 === colors.completion.item.selected.border.top
-Top border color of the completion widget category headers.
+Top border color of the selected completion item.
 
 Type: <<types,QssColor>>
 
@@ -794,6 +823,14 @@ Foreground color of the selected completion item.
 Type: <<types,QtColor>>
 
 Default: +pass:[black]+
+
+[[colors.completion.item.selected.match.fg]]
+=== colors.completion.item.selected.match.fg
+Foreground color of the matched text in the selected completion item.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[#ff4444]+
 
 [[colors.completion.match.fg]]
 === colors.completion.match.fg
@@ -826,6 +863,42 @@ Color of the scrollbar handle in the completion view.
 Type: <<types,QssColor>>
 
 Default: +pass:[white]+
+
+[[colors.contextmenu.menu.bg]]
+=== colors.contextmenu.menu.bg
+Background color of the context menu.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
+
+[[colors.contextmenu.menu.fg]]
+=== colors.contextmenu.menu.fg
+Foreground color of the context menu.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
+
+[[colors.contextmenu.selected.bg]]
+=== colors.contextmenu.selected.bg
+Background color of the context menu's selected item.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
+
+[[colors.contextmenu.selected.fg]]
+=== colors.contextmenu.selected.fg
+Foreground color of the context menu's selected item.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
 
 [[colors.downloads.bar.bg]]
 === colors.downloads.bar.bg
@@ -934,7 +1007,7 @@ Default: +pass:[black]+
 === colors.hints.match.fg
 Font color for the matched part of hints.
 
-Type: <<types,QssColor>>
+Type: <<types,QtColor>>
 
 Default: +pass:[green]+
 
@@ -1120,7 +1193,7 @@ Background color of the statusbar in private browsing + command mode.
 
 Type: <<types,QssColor>>
 
-Default: +pass:[grey]+
+Default: +pass:[darkslategray]+
 
 [[colors.statusbar.command.private.fg]]
 === colors.statusbar.command.private.fg
@@ -1254,7 +1327,7 @@ Default: +pass:[yellow]+
 === colors.tabs.bar.bg
 Background color of the tab bar.
 
-Type: <<types,QtColor>>
+Type: <<types,QssColor>>
 
 Default: +pass:[#555555]+
 
@@ -1329,6 +1402,70 @@ Type: <<types,QtColor>>
 
 Default: +pass:[white]+
 
+[[colors.tabs.pinned.even.bg]]
+=== colors.tabs.pinned.even.bg
+Background color of pinned unselected even tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[darkseagreen]+
+
+[[colors.tabs.pinned.even.fg]]
+=== colors.tabs.pinned.even.fg
+Foreground color of pinned unselected even tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[white]+
+
+[[colors.tabs.pinned.odd.bg]]
+=== colors.tabs.pinned.odd.bg
+Background color of pinned unselected odd tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[seagreen]+
+
+[[colors.tabs.pinned.odd.fg]]
+=== colors.tabs.pinned.odd.fg
+Foreground color of pinned unselected odd tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[white]+
+
+[[colors.tabs.pinned.selected.even.bg]]
+=== colors.tabs.pinned.selected.even.bg
+Background color of pinned selected even tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[black]+
+
+[[colors.tabs.pinned.selected.even.fg]]
+=== colors.tabs.pinned.selected.even.fg
+Foreground color of pinned selected even tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[white]+
+
+[[colors.tabs.pinned.selected.odd.bg]]
+=== colors.tabs.pinned.selected.odd.bg
+Background color of pinned selected odd tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[black]+
+
+[[colors.tabs.pinned.selected.odd.fg]]
+=== colors.tabs.pinned.selected.odd.fg
+Foreground color of pinned selected odd tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[white]+
+
 [[colors.tabs.selected.even.bg]]
 === colors.tabs.selected.even.bg
 Background color of selected even tabs.
@@ -1368,6 +1505,18 @@ Background color for webpages if unset (or empty to use the theme's color).
 Type: <<types,QtColor>>
 
 Default: +pass:[white]+
+
+[[colors.webpage.prefers_color_scheme_dark]]
+=== colors.webpage.prefers_color_scheme_dark
+Force `prefers-color-scheme: dark` colors for websites.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
 
 [[completion.cmd_history_max_items]]
 === completion.cmd_history_max_items
@@ -1471,8 +1620,9 @@ Default: +pass:[false]+
 [[completion.timestamp_format]]
 === completion.timestamp_format
 Format of timestamps (e.g. for the history completion).
+See https://sqlite.org/lang_datefunc.html for allowed substitutions.
 
-Type: <<types,TimestampTemplate>>
+Type: <<types,String>>
 
 Default: +pass:[%Y-%m-%d]+
 
@@ -1591,11 +1741,11 @@ Type: <<types,String>>
 Valid values:
 
  * +all+: Accept all cookies.
- * +no-3rdparty+: Accept cookies from the same origin only.
+ * +no-3rdparty+: Accept cookies from the same origin only. This is known to break some sites, such as GMail.
  * +no-unknown-3rdparty+: Accept cookies from the same origin only, unless a cookie is already set for the domain. On QtWebEngine, this is the same as no-3rdparty.
  * +never+: Don't accept cookies at all.
 
-Default: +pass:[no-3rdparty]+
+Default: +pass:[all]+
 
 On QtWebEngine, this setting requires Qt 5.11 or newer.
 
@@ -1642,9 +1792,9 @@ This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
-Default: +pass:[true]+
+Default: +pass:[false]+
 
-This setting is only available with the QtWebKit backend.
+On QtWebEngine, this setting requires Qt 5.12 or newer.
 
 [[content.frame_flattening]]
 === content.frame_flattening
@@ -1684,7 +1834,7 @@ This setting supports URL patterns.
 
 Type: <<types,String>>
 
-Default: +pass:[en-US,en]+
+Default: +pass:[en-US,en;q=0.9]+
 
 [[content.headers.custom]]
 === content.headers.custom
@@ -1726,14 +1876,30 @@ Default: +pass:[same-domain]+
 
 [[content.headers.user_agent]]
 === content.headers.user_agent
-User agent to send. Unset to send the default.
+User agent to send.
+
+The following placeholders are defined:
+
+* `{os_info}`: Something like "X11; Linux x86_64".
+* `{webkit_version}`: The underlying WebKit version (set to a fixed value
+  with QtWebEngine).
+* `{qt_key}`: "Qt" for QtWebKit, "QtWebEngine" for QtWebEngine.
+* `{qt_version}`: The underlying Qt version.
+* `{upstream_browser_key}`: "Version" for QtWebKit, "Chrome" for QtWebEngine.
+* `{upstream_browser_version}`: The corresponding Safari/Chrome version.
+* `{qutebrowser_version}`: The currently running qutebrowser version.
+
+The default value is equal to the unchanged user agent of
+QtWebKit/QtWebEngine.
+
 Note that the value read from JavaScript is always the global value.
+
 
 This setting supports URL patterns.
 
-Type: <<types,String>>
+Type: <<types,FormatString>>
 
-Default: empty
+Default: +pass:[Mozilla/5.0 ({os_info}) AppleWebKit/{webkit_version} (KHTML, like Gecko) {qt_key}/{qt_version} {upstream_browser_key}/{upstream_browser_version} Safari/{webkit_version}]+
 
 [[content.host_blocking.enabled]]
 === content.host_blocking.enabled
@@ -1776,9 +1942,7 @@ Local domains are always exempt from hostblocking.
 
 Type: <<types,List of UrlPattern>>
 
-Default: 
-
-- +pass:[piwik.org]+
+Default: empty
 
 [[content.hyperlink_auditing]]
 === content.hyperlink_auditing
@@ -1856,6 +2020,7 @@ Default: +pass:[true]+
 Log levels to use for JavaScript console logging messages.
 When a JavaScript message with the level given in the dictionary key is logged, the corresponding dictionary value selects the qutebrowser logger to use.
 On QtWebKit, the "unknown" setting is always used.
+The following levels are valid: `none`, `debug`, `info`, `warning`, `error`.
 
 Type: <<types,Dict>>
 
@@ -1986,12 +2151,14 @@ Valid values:
 
 Default: +pass:[ask]+
 
-This setting is only available with the QtWebKit backend.
+On QtWebEngine, this setting requires Qt 5.13 or newer.
 
 [[content.pdfjs]]
 === content.pdfjs
 Allow pdf.js to view PDF files in the browser.
 Note that the files can still be downloaded by clicking the download button in the pdf.js viewer.
+
+This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
@@ -2091,6 +2258,15 @@ On QtWebEngine, this setting requires Qt 5.11 or newer.
 
 On QtWebKit, this setting is unavailable.
 
+[[content.site_specific_quirks]]
+=== content.site_specific_quirks
+Enable quirks (such as faked user agent headers) needed to get specific sites to work properly.
+This setting requires a restart.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
 [[content.ssl_strict]]
 === content.ssl_strict
 Validate SSL handshakes.
@@ -2158,12 +2334,13 @@ Default: +pass:[false]+
 === content.xss_auditing
 Monitor load requests for cross-site scripting attempts.
 Suspicious scripts will be blocked and reported in the inspector's JavaScript console.
+Note that bypasses for the XSS auditor are widely known and it can be abused for cross-site info leaks in some scenarios, see: https://www.chromium.org/developers/design-documents/xss-auditor
 
 This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
-Default: +pass:[true]+
+Default: +pass:[false]+
 
 [[downloads.location.directory]]
 === downloads.location.directory
@@ -2239,8 +2416,15 @@ Default: +pass:[-1]+
 
 [[editor.command]]
 === editor.command
-Editor (and arguments) to use for the `open-editor` command. The following placeholders are defined:
-* `{file}`: Filename of the file to be edited. * `{line}`: Line in which the caret is found in the text. * `{column}`: Column in which the caret is found in the text. * `{line0}`: Same as `{line}`, but starting from index 0. * `{column0}`: Same as `{column}`, but starting from index 0.
+Editor (and arguments) to use for the `open-editor` command.
+The following placeholders are defined:
+
+* `{file}`: Filename of the file to be edited.
+* `{line}`: Line in which the caret is found in the text.
+* `{column}`: Column in which the caret is found in the text.
+* `{line0}`: Same as `{line}`, but starting from index 0.
+* `{column0}`: Same as `{column}`, but starting from index 0.
+
 
 Type: <<types,ShellCommand>>
 
@@ -2266,7 +2450,7 @@ Font used in the completion categories.
 
 Type: <<types,Font>>
 
-Default: +pass:[bold 10pt monospace]+
+Default: +pass:[bold default_size default_family]+
 
 [[fonts.completion.entry]]
 === fonts.completion.entry
@@ -2274,7 +2458,16 @@ Font used in the completion widget.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
+
+[[fonts.contextmenu]]
+=== fonts.contextmenu
+Font used for the context menu.
+If set to null, the Qt default is used.
+
+Type: <<types,Font>>
+
+Default: empty
 
 [[fonts.debug_console]]
 === fonts.debug_console
@@ -2282,7 +2475,27 @@ Font used for the debugging console.
 
 Type: <<types,QtFont>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
+
+[[fonts.default_family]]
+=== fonts.default_family
+Default font families to use.
+Whenever "default_family" is used in a font setting, it's replaced with the fonts listed here.
+If set to an empty value, a system-specific monospace default is used.
+
+Type: <<types,List of Font&#44; or Font>>
+
+Default: empty
+
+[[fonts.default_size]]
+=== fonts.default_size
+Default font size to use.
+Whenever "default_size" is used in a font setting, it's replaced with the size listed here.
+Valid values are either a float value with a "pt" suffix, or an integer value with a "px" suffix.
+
+Type: <<types,String>>
+
+Default: +pass:[10pt]+
 
 [[fonts.downloads]]
 === fonts.downloads
@@ -2290,7 +2503,7 @@ Font used for the downloadbar.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.hints]]
 === fonts.hints
@@ -2298,7 +2511,7 @@ Font used for the hints.
 
 Type: <<types,Font>>
 
-Default: +pass:[bold 10pt monospace]+
+Default: +pass:[bold default_size default_family]+
 
 [[fonts.keyhint]]
 === fonts.keyhint
@@ -2306,7 +2519,7 @@ Font used in the keyhint widget.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.messages.error]]
 === fonts.messages.error
@@ -2314,7 +2527,7 @@ Font used for error messages.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.messages.info]]
 === fonts.messages.info
@@ -2322,7 +2535,7 @@ Font used for info messages.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.messages.warning]]
 === fonts.messages.warning
@@ -2330,16 +2543,7 @@ Font used for warning messages.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
-
-[[fonts.monospace]]
-=== fonts.monospace
-Default monospace fonts.
-Whenever "monospace" is used in a font setting, it's replaced with the fonts listed here.
-
-Type: <<types,Font>>
-
-Default: +pass:[&quot;xos4 Terminus&quot;, Terminus, Monospace, &quot;DejaVu Sans Mono&quot;, Monaco, &quot;Bitstream Vera Sans Mono&quot;, &quot;Andale Mono&quot;, &quot;Courier New&quot;, Courier, &quot;Liberation Mono&quot;, monospace, Fixed, Consolas, Terminal]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.prompts]]
 === fonts.prompts
@@ -2347,7 +2551,7 @@ Font used for prompts.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt sans-serif]+
+Default: +pass:[default_size sans-serif]+
 
 [[fonts.statusbar]]
 === fonts.statusbar
@@ -2355,7 +2559,7 @@ Font used in the statusbar.
 
 Type: <<types,Font>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.tabs]]
 === fonts.tabs
@@ -2363,7 +2567,7 @@ Font used in the tab bar.
 
 Type: <<types,QtFont>>
 
-Default: +pass:[10pt monospace]+
+Default: +pass:[default_size default_family]+
 
 [[fonts.web.family.cursive]]
 === fonts.web.family.cursive
@@ -2510,6 +2714,14 @@ This setting is only available with the QtWebKit backend.
 [[hints.hide_unmatched_rapid_hints]]
 === hints.hide_unmatched_rapid_hints
 Hide unmatched hints in rapid mode.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
+[[hints.leave_on_load]]
+=== hints.leave_on_load
+Leave hint mode when starting a new page load.
 
 Type: <<types,Bool>>
 
@@ -2708,6 +2920,17 @@ Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
+[[input.insert_mode.leave_on_load]]
+=== input.insert_mode.leave_on_load
+Leave insert mode when starting a new page load.
+Patterns may be unreliable on this setting, and they may match the url you are navigating to, or the URL you are navigating from.
+
+This setting supports URL patterns.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
 [[input.insert_mode.plugins]]
 === input.insert_mode.plugins
 Switch to insert mode when clicking flash and other plugins.
@@ -2810,7 +3033,7 @@ Default: +pass:[tab]+
 [[new_instance_open_target_window]]
 === new_instance_open_target_window
 Which window to choose when opening links as new tabs.
-When `new_instance_open_target` is not set to `window`, this is ignored.
+When `new_instance_open_target` is set to `window`, this is ignored.
 
 Type: <<types,String>>
 
@@ -2859,6 +3082,16 @@ Type: <<types,String>>
 
 Default: empty
 
+[[qt.force_platformtheme]]
+=== qt.force_platformtheme
+Force a Qt platformtheme to use.
+This sets the `QT_QPA_PLATFORMTHEME` environment variable which controls dialogs like the filepicker. By default, Qt determines the platform theme based on the desktop environment.
+This setting requires a restart.
+
+Type: <<types,String>>
+
+Default: empty
+
 [[qt.force_software_rendering]]
 === qt.force_software_rendering
 Force software rendering for QtWebEngine.
@@ -2881,7 +3114,7 @@ This setting is only available with the QtWebEngine backend.
 [[qt.highdpi]]
 === qt.highdpi
 Turn on Qt HighDPI scaling.
-This is equivalent to setting QT_AUTO_SCREEN_SCALE_FACTOR=1 in the environment.
+This is equivalent to setting QT_AUTO_SCREEN_SCALE_FACTOR=1 or QT_ENABLE_HIGHDPI_SCALING=1 (Qt >= 5.14) in the environment.
 It's off by default as it can cause issues with some bitmap fonts. As an alternative to this, it's possible to set font sizes and the `zoom.default` setting.
 This setting requires a restart.
 
@@ -2958,7 +3191,7 @@ Default: +pass:[false]+
 === search.ignore_case
 When to find text on a page case-insensitively.
 
-Type: <<types,String>>
+Type: <<types,IgnoreCase>>
 
 Valid values:
 
@@ -3171,6 +3404,14 @@ Valid values:
 
 Default: +pass:[always]+
 
+[[tabs.focus_stack_size]]
+=== tabs.focus_stack_size
+Maximum stack size to remember for tab switches (-1 for no maximum).
+
+Type: <<types,Int>>
+
+Default: +pass:[10]+
+
 [[tabs.indicator.padding]]
 === tabs.indicator.padding
 Padding (in pixels) for tab indicators.
@@ -3305,6 +3546,14 @@ Default:
 - +pass:[right]+: +pass:[5]+
 - +pass:[top]+: +pass:[0]+
 
+[[tabs.pinned.frozen]]
+=== tabs.pinned.frozen
+Force pinned tabs to stay at fixed URL.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
 [[tabs.pinned.shrink]]
 === tabs.pinned.shrink
 Shrink pinned tabs down to their contents.
@@ -3394,7 +3643,7 @@ The following placeholders are defined:
 
 * `{perc}`: Percentage as a string like `[10%]`.
 * `{perc_raw}`: Raw percentage, e.g. `10`.
-* `{title}`: Title of the current web page.
+* `{current_title}`: Title of the current web page.
 * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
 * `{index}`: Index of this tab.
 * `{id}`: Internal tab ID of this tab.
@@ -3409,7 +3658,7 @@ The following placeholders are defined:
 
 Type: <<types,FormatString>>
 
-Default: +pass:[{audio}{index}: {title}]+
+Default: +pass:[{audio}{index}: {current_title}]+
 
 [[tabs.title.format_pinned]]
 === tabs.title.format_pinned
@@ -3418,6 +3667,23 @@ Format to use for the tab title for pinned tabs. The same placeholders like for 
 Type: <<types,FormatString>>
 
 Default: +pass:[{index}]+
+
+[[tabs.tooltips]]
+=== tabs.tooltips
+Show tooltips on tabs.
+Note this setting only affects windows opened after it has been set.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
+[[tabs.undo_stack_size]]
+=== tabs.undo_stack_size
+Number of close tab actions to remember, per window (-1 for no maximum).
+
+Type: <<types,Int>>
+
+Default: +pass:[100]+
 
 [[tabs.width]]
 === tabs.width
@@ -3539,7 +3805,7 @@ Format to use for the window title. The same placeholders like for
 
 Type: <<types,FormatString>>
 
-Default: +pass:[{perc}{title}{title_sep}qutebrowser]+
+Default: +pass:[{perc}{current_title}{title_sep}qutebrowser]+
 
 [[zoom.default]]
 === zoom.default
@@ -3622,6 +3888,7 @@ Lists with duplicate flags are invalid. Each item is checked against the valid v
 |FontFamily|A Qt font family.
 |FormatString|A string with placeholders.
 |FuzzyUrl|A URL which gets interpreted as search if needed.
+|IgnoreCase|Whether to search case insensitively.
 |Int|Base class for an integer setting.
 |Key|A name of a key.
 |List|A list of values.
@@ -3656,9 +3923,6 @@ See the documentation for `List`.
 
 See the setting's valid values for more information on allowed values.
 |TextAlignment|Alignment of text.
-|TimestampTemplate|An strftime-like template for timestamps.
-
-See https://sqlite.org/lang_datefunc.html for reference.
 |UniqueCharString|A string which may not contain duplicate chars.
 |Url|A URL as a string.
 |UrlPattern|A match pattern for a URL.

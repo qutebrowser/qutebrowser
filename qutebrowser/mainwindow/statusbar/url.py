@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,7 +24,7 @@ import enum
 from PyQt5.QtCore import pyqtSlot, pyqtProperty, QUrl
 
 from qutebrowser.mainwindow.statusbar import textbase
-from qutebrowser.config import config
+from qutebrowser.config import stylesheet
 from qutebrowser.utils import usertypes, urlutils
 
 
@@ -42,16 +42,9 @@ class UrlText(textbase.TextBase):
         _normal_url_type: The type of the normal URL as a UrlType instance.
         _hover_url: The URL we're currently hovering over.
         _ssl_errors: Whether SSL errors occurred while loading.
-
-    Class attributes:
         _urltype: The URL type to show currently (normal/ok/error/warn/hover).
                   Accessed via the urltype property.
-
-                  For some reason we need to have this as class attribute so
-                  pyqtProperty works correctly.
     """
-
-    _urltype = None
 
     STYLESHEET = """
         QLabel#UrlText[urltype="normal"] {
@@ -81,8 +74,9 @@ class UrlText(textbase.TextBase):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._urltype = None
         self.setObjectName(self.__class__.__name__)
-        config.set_register_stylesheet(self)
+        stylesheet.set_register(self)
         self._hover_url = None
         self._normal_url = None
         self._normal_url_type = UrlType.normal
@@ -101,6 +95,7 @@ class UrlText(textbase.TextBase):
 
     def _update_url(self):
         """Update the displayed URL if the url or the hover url changed."""
+        old_urltype = self._urltype
         if self._hover_url is not None:
             self.setText(self._hover_url)
             self._urltype = UrlType.hover
@@ -110,21 +105,24 @@ class UrlText(textbase.TextBase):
         else:
             self.setText('')
             self._urltype = UrlType.normal
-        config.set_register_stylesheet(self, update=False)
+        if old_urltype != self._urltype:
+            # We can avoid doing an unpolish here because the new style will
+            # always override the old one.
+            self.style().polish(self)
 
-    @pyqtSlot(str)
-    def on_load_status_changed(self, status_str):
+    @pyqtSlot(usertypes.LoadStatus)
+    def on_load_status_changed(self, status):
         """Slot for load_status_changed. Sets URL color accordingly.
 
         Args:
-            status_str: The LoadStatus as string.
+            status: The usertypes.LoadStatus.
         """
-        status = usertypes.LoadStatus[status_str]
+        assert isinstance(status, usertypes.LoadStatus), status
         if status in [usertypes.LoadStatus.success,
                       usertypes.LoadStatus.success_https,
                       usertypes.LoadStatus.error,
                       usertypes.LoadStatus.warn]:
-            self._normal_url_type = UrlType[status_str]
+            self._normal_url_type = UrlType[status.name]
         else:
             self._normal_url_type = UrlType.normal
         self._update_url()
@@ -172,5 +170,5 @@ class UrlText(textbase.TextBase):
             self._normal_url = urlutils.safe_display_string(tab.url())
         else:
             self._normal_url = ''
-        self.on_load_status_changed(tab.load_status().name)
+        self.on_load_status_changed(tab.load_status())
         self._update_url()

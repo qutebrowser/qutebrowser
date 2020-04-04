@@ -24,7 +24,7 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import pdfjs
-from qutebrowser.utils import usertypes, utils
+from qutebrowser.utils import usertypes, utils, urlmatch
 
 
 pytestmark = [pytest.mark.usefixtures('data_tmpdir')]
@@ -82,14 +82,14 @@ def test_generate_pdfjs_script_disable_object_url(monkeypatch,
     if qt == 'new':
         monkeypatch.setattr(pdfjs.qtutils, 'version_check',
                             lambda version, exact=False, compiled=True:
-                            False if version == '5.7.1' else True)
+                            version != '5.7.1')
     elif qt == 'old':
         monkeypatch.setattr(pdfjs.qtutils, 'version_check',
                             lambda version, exact=False, compiled=True: False)
     elif qt == '5.7':
         monkeypatch.setattr(pdfjs.qtutils, 'version_check',
                             lambda version, exact=False, compiled=True:
-                            True if version == '5.7.1' else False)
+                            version == '5.7.1')
     else:
         raise utils.Unreachable
 
@@ -154,9 +154,8 @@ class TestResources:
                                match="Path 'web/test' not found"):
                 pdfjs.get_pdfjs_res_and_path('web/test')
 
-        assert len(caplog.records) == 1
-        rec = caplog.records[0]
-        assert rec.message == 'OSError while reading PDF.js file: Message'
+        expected = 'OSError while reading PDF.js file: Message'
+        assert caplog.messages == [expected]
 
 
 @pytest.mark.parametrize('path, expected', [
@@ -191,7 +190,8 @@ def test_read_from_system(names, expected_name, tmpdir):
     assert pdfjs._read_from_system(str(tmpdir), names) == expected
 
 
-def test_read_from_system_oserror(tmpdir, caplog):
+@pytest.fixture
+def unreadable_file(tmpdir):
     unreadable_file = tmpdir / 'unreadable'
     unreadable_file.ensure()
     unreadable_file.chmod(0)
@@ -199,13 +199,19 @@ def test_read_from_system_oserror(tmpdir, caplog):
         # Docker container or similar
         pytest.skip("File was still readable")
 
+    yield unreadable_file
+
+    unreadable_file.chmod(0o755)
+
+
+def test_read_from_system_oserror(tmpdir, caplog, unreadable_file):
     expected = (None, None)
     with caplog.at_level(logging.WARNING):
         assert pdfjs._read_from_system(str(tmpdir), ['unreadable']) == expected
 
     assert len(caplog.records) == 1
-    rec = caplog.records[0]
-    assert rec.message.startswith('OSError while reading PDF.js file:')
+    message = caplog.messages[0]
+    assert message.startswith('OSError while reading PDF.js file:')
 
 
 @pytest.mark.parametrize('available', [True, False])
@@ -235,7 +241,19 @@ def test_should_use_pdfjs(mimetype, url, enabled, expected, config_stub):
     assert pdfjs.should_use_pdfjs(mimetype, QUrl(url)) == expected
 
 
+@pytest.mark.parametrize('url, expected', [
+    ('http://example.com', True),
+    ('http://example.org', False),
+])
+def test_should_use_pdfjs_url_pattern(config_stub, url, expected):
+    config_stub.val.content.pdfjs = False
+    pattern = urlmatch.UrlPattern('http://example.com')
+    config_stub.set_obj('content.pdfjs', True, pattern=pattern)
+    assert pdfjs.should_use_pdfjs('application/pdf', QUrl(url)) == expected
+
+
 def test_get_main_url():
-    expected = ('qute://pdfjs/web/viewer.html?filename='
-                'hello?world.pdf&file=')
-    assert pdfjs.get_main_url('hello?world.pdf') == QUrl(expected)
+    expected = QUrl('qute://pdfjs/web/viewer.html?filename=hello?world.pdf&'
+                    'file=&source=http://a.com/hello?world.pdf')
+    original_url = QUrl('http://a.com/hello?world.pdf')
+    assert pdfjs.get_main_url('hello?world.pdf', original_url) == expected

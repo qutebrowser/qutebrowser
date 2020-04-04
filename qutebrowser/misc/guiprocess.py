@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -28,19 +28,6 @@ from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
 from qutebrowser.utils import message, log
 from qutebrowser.browser import qutescheme
 
-# A mapping of QProcess::ErrorCode's to human-readable strings.
-
-ERROR_STRINGS = {
-    QProcess.FailedToStart: "The process failed to start.",
-    QProcess.Crashed: "The process crashed.",
-    QProcess.Timedout: "The last waitFor...() function timed out.",
-    QProcess.WriteError: ("An error occurred when attempting to write to the "
-                          "process."),
-    QProcess.ReadError: ("An error occurred when attempting to read from the "
-                         "process."),
-    QProcess.UnknownError: "An unknown error occurred.",
-}
-
 
 class GUIProcess(QObject):
 
@@ -50,6 +37,7 @@ class GUIProcess(QObject):
         cmd: The command which was started.
         args: A list of arguments which gets passed.
         verbose: Whether to show more messages.
+        _output_messages: Show output as messages.
         _started: Whether the underlying process is started.
         _proc: The underlying QProcess.
         _what: What kind of thing is spawned (process/editor/userscript/...).
@@ -64,21 +52,22 @@ class GUIProcess(QObject):
     started = pyqtSignal()
 
     def __init__(self, what, *, verbose=False, additional_env=None,
-                 parent=None):
+                 output_messages=False, parent=None):
         super().__init__(parent)
         self._what = what
         self.verbose = verbose
+        self._output_messages = output_messages
         self._started = False
         self.cmd = None
         self.args = None
 
         self._proc = QProcess(self)
-        self._proc.error.connect(self.on_error)
-        self._proc.error.connect(self.error)
-        self._proc.finished.connect(self.on_finished)
-        self._proc.finished.connect(self.finished)
-        self._proc.started.connect(self.on_started)
-        self._proc.started.connect(self.started)
+        self._proc.errorOccurred.connect(self._on_error)  # type: ignore
+        self._proc.errorOccurred.connect(self.error)  # type: ignore
+        self._proc.finished.connect(self._on_finished)  # type: ignore
+        self._proc.finished.connect(self.finished)  # type: ignore
+        self._proc.started.connect(self._on_started)  # type: ignore
+        self._proc.started.connect(self.started)  # type: ignore
 
         if additional_env is not None:
             procenv = QProcessEnvironment.systemEnvironment()
@@ -86,14 +75,14 @@ class GUIProcess(QObject):
                 procenv.insert(k, v)
             self._proc.setProcessEnvironment(procenv)
 
-    @pyqtSlot(QProcess.ProcessError)
-    def on_error(self, error):
+    @pyqtSlot()
+    def _on_error(self):
         """Show a message if there was an error while spawning."""
-        msg = ERROR_STRINGS[error]
+        msg = self._proc.errorString()
         message.error("Error while spawning {}: {}".format(self._what, msg))
 
     @pyqtSlot(int, QProcess.ExitStatus)
-    def on_finished(self, code, status):
+    def _on_finished(self, code, status):
         """Show a message when the process finished."""
         self._started = False
         log.procs.debug("Process finished with code {}, status {}.".format(
@@ -105,40 +94,48 @@ class GUIProcess(QObject):
         stdout = bytes(self._proc.readAllStandardOutput()).decode(
             encoding, 'replace')
 
-        qutescheme.spawn_output = self._spawn_format(code, status,
-                                                     stdout, stderr)
+        if self._output_messages:
+            if stdout:
+                message.info(stdout.strip())
+            if stderr:
+                message.error(stderr.strip())
 
         if status == QProcess.CrashExit:
-            message.error("{} crashed!".format(self._what.capitalize()))
+            exitinfo = "{} crashed!".format(self._what.capitalize())
+            message.error(exitinfo)
         elif status == QProcess.NormalExit and code == 0:
+            exitinfo = "{} exited successfully.".format(
+                self._what.capitalize())
             if self.verbose:
-                message.info("{} exited successfully.".format(
-                    self._what.capitalize()))
+                message.info(exitinfo)
         else:
             assert status == QProcess.NormalExit
             # We call this 'status' here as it makes more sense to the user -
             # it's actually 'code'.
-            message.error("{} exited with status {}, see :messages for "
-                          "details.".format(self._what.capitalize(), code))
+            exitinfo = ("{} exited with status {}, see :messages for "
+                        "details.").format(self._what.capitalize(), code)
+            message.error(exitinfo)
 
             if stdout:
                 log.procs.error("Process stdout:\n" + stdout.strip())
             if stderr:
                 log.procs.error("Process stderr:\n" + stderr.strip())
 
-    def _spawn_format(self, code=0, status=0, stdout="", stderr=""):
+        qutescheme.spawn_output = self._spawn_format(exitinfo, stdout, stderr)
+
+    def _spawn_format(self, exitinfo, stdout, stderr):
         """Produce a formatted string for spawn output."""
         stdout = (stdout or "(No output)").strip()
         stderr = (stderr or "(No output)").strip()
 
-        spawn_string = ("Process finished with code {}, status {}\n"
+        spawn_string = ("{}\n"
                         "\nProcess stdout:\n {}"
-                        "\nProcess stderr:\n {}").format(code, status,
+                        "\nProcess stderr:\n {}").format(exitinfo,
                                                          stdout, stderr)
         return spawn_string
 
     @pyqtSlot()
-    def on_started(self):
+    def _on_started(self):
         """Called when the process started successfully."""
         log.procs.debug("Process started.")
         assert not self._started
@@ -155,28 +152,26 @@ class GUIProcess(QObject):
         if self.verbose:
             message.info('Executing: ' + fake_cmdline)
 
-    def start(self, cmd, args, mode=None):
+    def start(self, cmd, args):
         """Convenience wrapper around QProcess::start."""
         log.procs.debug("Starting process.")
         self._pre_start(cmd, args)
-        if mode is None:
-            self._proc.start(cmd, args)
-        else:
-            self._proc.start(cmd, args, mode)
+        self._proc.start(cmd, args)
         self._proc.closeWriteChannel()
 
-    def start_detached(self, cmd, args, cwd=None):
+    def start_detached(self, cmd, args):
         """Convenience wrapper around QProcess::startDetached."""
         log.procs.debug("Starting detached.")
         self._pre_start(cmd, args)
-        ok, _pid = self._proc.startDetached(cmd, args, cwd)
+        ok, _pid = self._proc.startDetached(cmd, args, None)  # type: ignore
 
-        if ok:
-            log.procs.debug("Process started.")
-            self._started = True
-        else:
-            message.error("Error while spawning {}: {}".format(
-                self._what, ERROR_STRINGS[self._proc.error()]))
+        if not ok:
+            message.error("Error while spawning {}".format(self._what))
+            return False
+
+        log.procs.debug("Process started.")
+        self._started = True
+        return True
 
     def exit_status(self):
         return self._proc.exitStatus()

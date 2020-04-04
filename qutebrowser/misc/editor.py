@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -64,16 +64,16 @@ class ExternalEditor(QObject):
     def _cleanup(self):
         """Clean up temporary files after the editor closed."""
         assert self._remove_file is not None
-
-        watched_files = self._watcher.files() if self._watcher else []
-        if watched_files:
-            failed = self._watcher.removePaths(watched_files)
+        if self._watcher is not None and self._watcher.files():
+            failed = self._watcher.removePaths(self._watcher.files())
             if failed:
                 log.procs.error("Failed to unwatch paths: {}".format(failed))
 
         if self._filename is None or not self._remove_file:
             # Could not create initial file.
             return
+
+        assert self._proc is not None
 
         try:
             if self._proc.exit_status() != QProcess.CrashExit:
@@ -84,7 +84,7 @@ class ExternalEditor(QObject):
             message.error("Failed to delete tempfile... ({})".format(e))
 
     @pyqtSlot(int, QProcess.ExitStatus)
-    def on_proc_closed(self, _exitcode, exitstatus):
+    def _on_proc_closed(self, _exitcode, exitstatus):
         """Write the editor text into the form field and clean up tempfile.
 
         Callback for QProcess when the editor was closed.
@@ -100,7 +100,7 @@ class ExternalEditor(QObject):
         self._cleanup()
 
     @pyqtSlot(QProcess.ProcessError)
-    def on_proc_error(self, _err):
+    def _on_proc_error(self, _err):
         self._cleanup()
 
     def edit(self, text, caret_position=None):
@@ -176,17 +176,19 @@ class ExternalEditor(QObject):
             column: the column number to pass to the editor
         """
         self._proc = guiprocess.GUIProcess(what='editor', parent=self)
-        self._proc.finished.connect(self.on_proc_closed)
-        self._proc.error.connect(self.on_proc_error)
+        self._proc.finished.connect(self._on_proc_closed)
+        self._proc.error.connect(self._on_proc_error)
         editor = config.val.editor.command
         executable = editor[0]
 
         if self._watcher:
+            assert self._filename is not None
             ok = self._watcher.addPath(self._filename)
             if not ok:
                 log.procs.error("Failed to watch path: {}"
                                 .format(self._filename))
-            self._watcher.fileChanged.connect(self._on_file_changed)
+            self._watcher.fileChanged.connect(  # type: ignore
+                self._on_file_changed)
 
         args = [self._sub_placeholder(arg, line, column) for arg in editor[1:]]
         log.procs.debug("Calling \"{}\" with args {}".format(executable, args))

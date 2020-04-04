@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -82,11 +82,16 @@ class CompletionItemDelegate(QStyledItemDelegate):
 
     def _draw_background(self):
         """Draw the background of an ItemViewItem."""
+        assert self._opt is not None
+        assert self._style is not None
         self._style.drawPrimitive(self._style.PE_PanelItemViewItem, self._opt,
                                   self._painter, self._opt.widget)
 
     def _draw_icon(self):
         """Draw the icon of an ItemViewItem."""
+        assert self._opt is not None
+        assert self._style is not None
+
         icon_rect = self._style.subElementRect(
             self._style.SE_ItemViewItemDecoration, self._opt, self._opt.widget)
         if not icon_rect.isValid():
@@ -112,6 +117,9 @@ class CompletionItemDelegate(QStyledItemDelegate):
         Args:
             index: The QModelIndex of the item to draw.
         """
+        assert self._opt is not None
+        assert self._painter is not None
+        assert self._style is not None
         if not self._opt.text:
             return
 
@@ -161,6 +169,10 @@ class CompletionItemDelegate(QStyledItemDelegate):
         Args:
             rect: The QRect to clip the drawing to.
         """
+        assert self._painter is not None
+        assert self._doc is not None
+        assert self._opt is not None
+
         # We can't use drawContents because then the color would be ignored.
         clip = QRectF(0, 0, rect.width(), rect.height())
         self._painter.save()
@@ -189,6 +201,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         Args:
             index: The QModelIndex of the item to draw.
         """
+        assert self._opt is not None
         # FIXME we probably should do eliding here. See
         # qcommonstyle.cpp:viewItemDrawText
         # https://github.com/qutebrowser/qutebrowser/issues/118
@@ -212,11 +225,14 @@ class CompletionItemDelegate(QStyledItemDelegate):
             view = self.parent()
             pattern = view.pattern
             columns_to_filter = index.model().columns_to_filter(index)
-            self._doc.setPlainText(self._opt.text)
             if index.column() in columns_to_filter and pattern:
                 pat = re.escape(pattern).replace(r'\ ', r'|')
-                _Highlighter(self._doc, pat,
-                             config.val.colors.completion.match.fg)
+                if self._opt.state & QStyle.State_Selected:
+                    color = config.val.colors.completion.item.selected.match.fg
+                else:
+                    color = config.val.colors.completion.match.fg
+                _Highlighter(self._doc, pat, color)
+            self._doc.setPlainText(self._opt.text)
         else:
             self._doc.setHtml(
                 '<span style="font: {};">{}</span>'.format(
@@ -225,13 +241,15 @@ class CompletionItemDelegate(QStyledItemDelegate):
 
     def _draw_focus_rect(self):
         """Draw the focus rectangle of an ItemViewItem."""
+        assert self._opt is not None
+        assert self._style is not None
         state = self._opt.state
         if not state & QStyle.State_HasFocus:
             return
         o = self._opt
         o.rect = self._style.subElementRect(
             self._style.SE_ItemViewItemFocusRect, self._opt, self._opt.widget)
-        o.state |= QStyle.State_KeyboardFocusChange | QStyle.State_Item
+        o.state |= int(QStyle.State_KeyboardFocusChange | QStyle.State_Item)
         qtutils.ensure_valid(o.rect)
         if state & QStyle.State_Enabled:
             cg = QPalette.Normal
@@ -264,7 +282,10 @@ class CompletionItemDelegate(QStyledItemDelegate):
         self._opt = QStyleOptionViewItem(option)
         self.initStyleOption(self._opt, index)
         self._style = self._opt.widget.style()
+
         self._get_textdoc(index)
+        assert self._doc is not None
+
         docsize = self._doc.size().toSize()
         size = self._style.sizeFromContents(QStyle.CT_ItemViewItem, self._opt,
                                             docsize, self._opt.widget)

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -38,7 +38,7 @@ import datetime
 try:
     import tkinter
 except ImportError:
-    tkinter = None
+    tkinter = None  # type: ignore
 
 # NOTE: No qutebrowser or PyQt import should be done here, as some early
 # initialization needs to take place before that!
@@ -130,26 +130,27 @@ def init_faulthandler(fileobj=sys.__stderr__):
         # pylint: enable=no-member,useless-suppression
 
 
-def check_pyqt_core():
-    """Check if PyQt core is installed."""
-    try:
-        import PyQt5.QtCore  # pylint: disable=unused-variable
-    except ImportError as e:
-        text = _missing_str('PyQt5')
-        text = text.replace('<b>', '')
-        text = text.replace('</b>', '')
-        text = text.replace('<br />', '\n')
-        text = text.replace('%ERROR%', str(e))
-        if tkinter and '--no-err-windows' not in sys.argv:
-            root = tkinter.Tk()
-            root.withdraw()
-            tkinter.messagebox.showerror("qutebrowser: Fatal error!", text)
-        else:
-            print(text, file=sys.stderr)
-        if '--debug' in sys.argv or '--no-err-windows' in sys.argv:
-            print(file=sys.stderr)
-            traceback.print_exc()
-        sys.exit(1)
+def check_pyqt():
+    """Check if PyQt core modules (QtCore/QtWidgets) are installed."""
+    for name in ['PyQt5.QtCore', 'PyQt5.QtWidgets']:
+        try:
+            importlib.import_module(name)
+        except ImportError as e:
+            text = _missing_str(name)
+            text = text.replace('<b>', '')
+            text = text.replace('</b>', '')
+            text = text.replace('<br />', '\n')
+            text = text.replace('%ERROR%', str(e))
+            if tkinter and '--no-err-windows' not in sys.argv:
+                root = tkinter.Tk()
+                root.withdraw()
+                tkinter.messagebox.showerror("qutebrowser: Fatal error!", text)
+            else:
+                print(text, file=sys.stderr)
+            if '--debug' in sys.argv or '--no-err-windows' in sys.argv:
+                print(file=sys.stderr)
+                traceback.print_exc()
+            sys.exit(1)
 
 
 def qt_version(qversion=None, qt_version_str=None):
@@ -173,8 +174,10 @@ def check_qt_version():
                               PYQT_VERSION_STR)
     from pkg_resources import parse_version
     from qutebrowser.utils import log
+    parsed_qversion = parse_version(qVersion())
+
     if (QT_VERSION < 0x050701 or PYQT_VERSION < 0x050700 or
-            parse_version(qVersion()) < parse_version('5.7.1')):
+            parsed_qversion < parse_version('5.7.1')):
         text = ("Fatal error: Qt >= 5.7.1 and PyQt >= 5.7 are required, "
                 "but Qt {} / PyQt {} is installed.".format(qt_version(),
                                                            PYQT_VERSION_STR))
@@ -184,12 +187,17 @@ def check_qt_version():
         log.init.warning("Running qutebrowser with Qt 5.8 is untested and "
                          "unsupported!")
 
+    if (parsed_qversion >= parse_version('5.12') and
+            (PYQT_VERSION < 0x050c00 or QT_VERSION < 0x050c00)):
+        log.init.warning("Combining PyQt {} with Qt {} is unsupported! Ensure "
+                         "all versions are newer than 5.12 to avoid potential "
+                         "issues.".format(PYQT_VERSION_STR, qt_version()))
+
 
 def check_ssl_support():
     """Check if SSL support is available."""
-    # pylint: disable=unused-variable
     try:
-        from PyQt5.QtNetwork import QSslSocket
+        from PyQt5.QtNetwork import QSslSocket  # pylint: disable=unused-import
     except ImportError:
         _die("Fatal error: Your Qt is built without SSL support.")
 
@@ -200,22 +208,17 @@ def _check_modules(modules):
 
     for name, text in modules.items():
         try:
-            # https://github.com/pallets/jinja/pull/628
-            # https://bitbucket.org/birkenfeld/pygments-main/issues/1314/
-            # https://github.com/pallets/jinja/issues/646
             # https://bitbucket.org/fdik/pypeg/commits/dd15ca462b532019c0a3be1d39b8ee2f3fa32f4e
-            messages = ['invalid escape sequence',
-                        'Flags not at the start of the expression']
             # pylint: disable=bad-continuation
             with log.ignore_py_warnings(
                 category=DeprecationWarning,
-                message=r'({})'.format('|'.join(messages))
-            ), log.ignore_py_warnings(
-                category=PendingDeprecationWarning,
-                module='imp'
+                message=r'invalid escape sequence'
             ), log.ignore_py_warnings(
                 category=ImportWarning,
                 message=r'Not importing directory .*: missing __init__'
+            ), log.ignore_py_warnings(
+                category=DeprecationWarning,
+                message=r'the imp module is deprecated',
             ):
                 # pylint: enable=bad-continuation
                 importlib.import_module(name)
@@ -245,13 +248,18 @@ def configure_pyqt():
     Doing this means we can't use the interactive shell anymore (which we don't
     anyways), but we can use pdb instead.
     """
-    from PyQt5.QtCore import pyqtRemoveInputHook
-    pyqtRemoveInputHook()
+    from PyQt5 import QtCore
+    QtCore.pyqtRemoveInputHook()
+    try:
+        QtCore.pyqt5_enable_new_onexit_scheme(True)  # type: ignore
+    except AttributeError:
+        # Added in PyQt 5.13 somewhere, going to be the default in 5.14
+        pass
 
     from qutebrowser.qt import sip
     try:
         # Added in sip 4.19.4
-        sip.enableoverflowchecking(True)
+        sip.enableoverflowchecking(True)  # type: ignore
     except AttributeError:
         pass
 
@@ -289,7 +297,7 @@ def early_init(args):
     init_faulthandler()
     # Here we check if QtCore is available, and if not, print a message to the
     # console or via Tk.
-    check_pyqt_core()
+    check_pyqt()
     # Init logging as early as possible
     init_log(args)
     # Now we can be sure QtCore is available, so we can print dialogs on

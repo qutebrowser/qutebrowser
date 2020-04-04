@@ -57,7 +57,7 @@ Feature: Page history
         When I run :tab-only
         And I open data/javascript/window_open.html
         And I run :click-element id open-invalid
-        Then "Changing title for idx 1 to 'about:blank'" should be logged
+        Then "load status for * LoadStatus.success" should be logged
 
     Scenario: History with data URL
         When I open data/data_link.html

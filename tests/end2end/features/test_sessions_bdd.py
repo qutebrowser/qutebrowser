@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,8 +20,14 @@
 import os.path
 import logging
 
+import pytest
 import pytest_bdd as bdd
 bdd.scenarios('sessions.feature')
+
+
+@pytest.fixture(autouse=True)
+def turn_on_scroll_logging(quteproc):
+    quteproc.turn_on_scroll_logging()
 
 
 @bdd.when(bdd.parsers.parse('I have a "{name}" session file:\n{contents}'))

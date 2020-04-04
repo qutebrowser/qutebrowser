@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -39,12 +39,6 @@ def test_mode(question):
     """Test setting mode to valid members."""
     question.mode = usertypes.PromptMode.yesno
     assert question.mode == usertypes.PromptMode.yesno
-
-
-def test_mode_invalid(question):
-    """Test setting mode to something which is not a PromptMode member."""
-    with pytest.raises(TypeError):
-        question.mode = 42
 
 
 @pytest.mark.parametrize('mode, answer, signal_names', [

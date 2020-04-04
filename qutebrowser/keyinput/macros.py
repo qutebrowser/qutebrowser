@@ -1,5 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2016-2018 Jan Verbeek (blyxxyz) <ring@openmailbox.org>
 #
 # This file is part of qutebrowser.
@@ -19,9 +20,17 @@
 
 """Keyboard macro system."""
 
-from qutebrowser.commands import cmdexc, cmdutils, runners
+import typing
+
+from qutebrowser.commands import runners
+from qutebrowser.api import cmdutils
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import message, objreg, usertypes
+
+
+_CommandType = typing.Tuple[str, int]  # command, type
+
+macro_recorder = typing.cast('MacroRecorder', None)
 
 
 class MacroRecorder:
@@ -37,15 +46,15 @@ class MacroRecorder:
         _last_register: The macro which did run last.
     """
 
-    def __init__(self):
-        self._macros = {}
-        self._recording_macro = None
-        self._macro_count = {}
-        self._last_register = None
+    def __init__(self) -> None:
+        self._macros = {}  # type: typing.Dict[str, typing.List[_CommandType]]
+        self._recording_macro = None  # type: typing.Optional[str]
+        self._macro_count = {}  # type: typing.Dict[int, int]
+        self._last_register = None  # type: typing.Optional[str]
 
     @cmdutils.register(instance='macro-recorder', name='record-macro')
-    @cmdutils.argument('win_id', win_id=True)
-    def record_macro_command(self, win_id, register=None):
+    @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
+    def record_macro_command(self, win_id: int, register: str = None) -> None:
         """Start or stop recording a macro.
 
         Args:
@@ -62,16 +71,18 @@ class MacroRecorder:
             message.info("Macro '{}' recorded.".format(self._recording_macro))
             self._recording_macro = None
 
-    def record_macro(self, register):
+    def record_macro(self, register: str) -> None:
         """Start recording a macro."""
         message.info("Recording macro '{}'...".format(register))
         self._macros[register] = []
         self._recording_macro = register
 
     @cmdutils.register(instance='macro-recorder', name='run-macro')
-    @cmdutils.argument('win_id', win_id=True)
-    @cmdutils.argument('count', count=True)
-    def run_macro_command(self, win_id, count=1, register=None):
+    @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
+    def run_macro_command(self, win_id: int,
+                          count: int = 1,
+                          register: str = None) -> None:
         """Run a recorded macro.
 
         Args:
@@ -85,16 +96,16 @@ class MacroRecorder:
         else:
             self.run_macro(win_id, register)
 
-    def run_macro(self, win_id, register):
+    def run_macro(self, win_id: int, register: str) -> None:
         """Run a recorded macro."""
         if register == '@':
             if self._last_register is None:
-                raise cmdexc.CommandError("No previous macro")
+                raise cmdutils.CommandError("No previous macro")
             register = self._last_register
         self._last_register = register
 
         if register not in self._macros:
-            raise cmdexc.CommandError(
+            raise cmdutils.CommandError(
                 "No macro recorded in '{}'!".format(register))
 
         commandrunner = runners.CommandRunner(win_id)
@@ -102,13 +113,14 @@ class MacroRecorder:
             for cmd in self._macros[register]:
                 commandrunner.run_safely(*cmd)
 
-    def record_command(self, text, count):
+    def record_command(self, text: str, count: int) -> None:
         """Record a command if a macro is being recorded."""
         if self._recording_macro is not None:
             self._macros[self._recording_macro].append((text, count))
 
 
-def init():
+def init() -> None:
     """Initialize the MacroRecorder."""
+    global macro_recorder
     macro_recorder = MacroRecorder()
-    objreg.register('macro-recorder', macro_recorder)
+    objreg.register('macro-recorder', macro_recorder, command_only=True)

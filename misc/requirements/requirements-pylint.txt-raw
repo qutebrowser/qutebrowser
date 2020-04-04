@@ -5,3 +5,4 @@ github3.py
 
 # fix qute-pylint location
 #@ replace: qute-pylint==.* ./scripts/dev/pylint_checkers
+#@ markers: typed-ast python_version<"3.8"

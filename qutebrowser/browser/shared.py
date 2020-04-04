@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -22,6 +22,7 @@
 import os
 import html
 import netrc
+import typing
 
 from PyQt5.QtCore import QUrl
 
@@ -42,7 +43,6 @@ def custom_headers(url):
     if dnt_config is not None:
         dnt = b'1' if dnt_config else b'0'
         headers[b'DNT'] = dnt
-        headers[b'X-Do-Not-Track'] = dnt
 
     conf_headers = config.instance.get('content.headers.custom', url=url)
     for header, value in conf_headers.items():
@@ -131,19 +131,21 @@ def javascript_alert(url, js_msg, abort_on, *, escape_msg=True):
                 abort_on=abort_on, url=urlstr)
 
 
+# Needs to line up with the values allowed for the
+# content.javascript.log setting.
+_JS_LOGMAP = {
+    'none': lambda arg: None,
+    'debug': log.js.debug,
+    'info': log.js.info,
+    'warning': log.js.warning,
+    'error': log.js.error,
+}  # type: typing.Mapping[str, typing.Callable[[str], None]]
+
+
 def javascript_log_message(level, source, line, msg):
     """Display a JavaScript log message."""
     logstring = "[{}:{}] {}".format(source, line, msg)
-    # Needs to line up with the values allowed for the
-    # content.javascript.log setting.
-    logmap = {
-        'none': lambda arg: None,
-        'debug': log.js.debug,
-        'info': log.js.info,
-        'warning': log.js.warning,
-        'error': log.js.error,
-    }
-    logger = logmap[config.val.content.javascript.log[level.name]]
+    logger = _JS_LOGMAP[config.cache['content.javascript.log'][level.name]]
     logger(logstring)
 
 
@@ -222,11 +224,12 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
                 html.escape(url.toDisplayString()), msg)
         else:
             urlstr = None
+            option = None  # For message.ask/confirm_async
             text = "Allow the website to {}?".format(msg)
 
         if blocking:
             answer = message.ask(abort_on=abort_on, title='Permission request',
-                                 text=text, url=urlstr,
+                                 text=text, url=urlstr, option=option,
                                  mode=usertypes.PromptMode.yesno)
             if answer:
                 yes_action()
@@ -237,7 +240,8 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
             return message.confirm_async(
                 yes_action=yes_action, no_action=no_action,
                 cancel_action=no_action, abort_on=abort_on,
-                title='Permission request', text=text, url=urlstr)
+                title='Permission request', text=text, url=urlstr,
+                option=option)
     elif config_val:
         yes_action()
         return None
@@ -254,15 +258,13 @@ def get_tab(win_id, target):
         target: A usertypes.ClickTarget
     """
     if target == usertypes.ClickTarget.tab:
-        win_id = win_id
         bg_tab = False
     elif target == usertypes.ClickTarget.tab_bg:
-        win_id = win_id
         bg_tab = True
     elif target == usertypes.ClickTarget.window:
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=win_id)
-        window = mainwindow.MainWindow(private=tabbed_browser.private)
+        window = mainwindow.MainWindow(private=tabbed_browser.is_private)
         window.show()
         win_id = window.win_id
         bg_tab = False
@@ -306,12 +308,23 @@ def netrc_authentication(url, authenticator):
         # os.environ. We don't want to log that, so we prevent it
         # altogether.
         return False
-    user, password = None, None
+
+    user = None
+    password = None
+    authenticators = None
+
     try:
         net = netrc.netrc(config.val.content.netrc_file)
-        authenticators = net.authenticators(url.host())
-        if authenticators is not None:
-            (user, _account, password) = authenticators
+
+        if url.port() != -1:
+            authenticators = net.authenticators(
+                "{}:{}".format(url.host(), url.port()))
+
+        if not authenticators:
+            authenticators = net.authenticators(url.host())
+
+        if authenticators:
+            user, _account, password = authenticators
     except FileNotFoundError:
         log.misc.debug("No .netrc file found")
     except OSError as e:

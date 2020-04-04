@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,23 +21,31 @@
 
 import collections
 import html
+import typing
 
 import attr
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QCoreApplication, QUrl,
                           QByteArray)
-from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QSslSocket
+from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslSocket,
+                             QSslError)
 
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg,
                                urlutils, debug)
 from qutebrowser.browser import shared
-from qutebrowser.browser.webkit import certificateerror
+from qutebrowser.browser.network import proxy as proxymod
+from qutebrowser.extensions import interceptors
+from qutebrowser.browser.webkit import certificateerror, cookies, cache
 from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
                                                 filescheme)
+from qutebrowser.misc import objects
+
+if typing.TYPE_CHECKING:
+    from qutebrowser.mainwindow import prompt
 
 
 HOSTBLOCK_ERROR_STRING = '%HOSTBLOCK%'
-_proxy_auth_cache = {}
+_proxy_auth_cache = {}  # type: typing.Dict[ProxyId, prompt.AuthInfo]
 
 
 @attr.s(frozen=True)
@@ -113,6 +121,10 @@ def init():
     QSslSocket.setDefaultCiphers(good_ciphers)
 
 
+_SavedErrorsType = typing.MutableMapping[urlutils.HostTupleType,
+                                         typing.Sequence[QSslError]]
+
+
 class NetworkManager(QNetworkAccessManager):
 
     """Our own QNetworkAccessManager.
@@ -148,7 +160,6 @@ class NetworkManager(QNetworkAccessManager):
             super().__init__(parent)
         log.init.debug("NetworkManager init done")
         self.adopted_downloads = 0
-        self._args = objreg.get('args')
         self._win_id = win_id
         self._tab_id = tab_id
         self._private = private
@@ -158,20 +169,24 @@ class NetworkManager(QNetworkAccessManager):
         }
         self._set_cookiejar()
         self._set_cache()
-        self.sslErrors.connect(self.on_ssl_errors)
-        self._rejected_ssl_errors = collections.defaultdict(list)
-        self._accepted_ssl_errors = collections.defaultdict(list)
-        self.authenticationRequired.connect(self.on_authentication_required)
-        self.proxyAuthenticationRequired.connect(
+        self.sslErrors.connect(self.on_ssl_errors)  # type: ignore
+        self._rejected_ssl_errors = collections.defaultdict(
+            list)  # type: _SavedErrorsType
+        self._accepted_ssl_errors = collections.defaultdict(
+            list)  # type: _SavedErrorsType
+        self.authenticationRequired.connect(  # type: ignore
+            self.on_authentication_required)
+        self.proxyAuthenticationRequired.connect(  # type: ignore
             self.on_proxy_authentication_required)
         self.netrc_used = False
 
     def _set_cookiejar(self):
         """Set the cookie jar of the NetworkManager correctly."""
         if self._private:
-            cookie_jar = objreg.get('ram-cookie-jar')
+            cookie_jar = cookies.ram_cookie_jar
         else:
-            cookie_jar = objreg.get('cookie-jar')
+            cookie_jar = cookies.cookie_jar
+        assert cookie_jar is not None
 
         # We have a shared cookie jar - we restore its parent so we don't
         # take ownership of it.
@@ -186,9 +201,8 @@ class NetworkManager(QNetworkAccessManager):
         # We have a shared cache - we restore its parent so we don't take
         # ownership of it.
         app = QCoreApplication.instance()
-        cache = objreg.get('cache')
-        self.setCache(cache)
-        cache.setParent(app)
+        self.setCache(cache.diskcache)
+        cache.diskcache.setParent(app)
 
     def _get_abort_signals(self, owner=None):
         """Get a list of signals which should abort a question."""
@@ -224,12 +238,14 @@ class NetworkManager(QNetworkAccessManager):
         log.webview.debug("Certificate errors: {!r}".format(
             ' / '.join(str(err) for err in errors)))
         try:
-            host_tpl = urlutils.host_tuple(reply.url())
+            host_tpl = urlutils.host_tuple(
+                reply.url())  # type: typing.Optional[urlutils.HostTupleType]
         except ValueError:
             host_tpl = None
             is_accepted = False
             is_rejected = False
         else:
+            assert host_tpl is not None
             is_accepted = set(errors).issubset(
                 self._accepted_ssl_errors[host_tpl])
             is_rejected = set(errors).issubset(
@@ -275,14 +291,19 @@ class NetworkManager(QNetworkAccessManager):
     @pyqtSlot('QNetworkReply*', 'QAuthenticator*')
     def on_authentication_required(self, reply, authenticator):
         """Called when a website needs authentication."""
+        url = reply.url()
+        log.network.debug("Authentication requested for {}, netrc_used {}"
+                          .format(url.toDisplayString(), self.netrc_used))
+
         netrc_success = False
         if not self.netrc_used:
             self.netrc_used = True
-            netrc_success = shared.netrc_authentication(reply.url(),
-                                                        authenticator)
+            netrc_success = shared.netrc_authentication(url, authenticator)
+
         if not netrc_success:
+            log.network.debug("Asking for credentials")
             abort_on = self._get_abort_signals(reply)
-            shared.authentication_required(reply.url(), authenticator,
+            shared.authentication_required(url, authenticator,
                                            abort_on=abort_on)
 
     @pyqtSlot('QNetworkProxy', 'QAuthenticator*')
@@ -290,9 +311,9 @@ class NetworkManager(QNetworkAccessManager):
         """Called when a proxy needs authentication."""
         proxy_id = ProxyId(proxy.type(), proxy.hostName(), proxy.port())
         if proxy_id in _proxy_auth_cache:
-            user, password = _proxy_auth_cache[proxy_id]
-            authenticator.setUser(user)
-            authenticator.setPassword(password)
+            authinfo = _proxy_auth_cache[proxy_id]
+            authenticator.setUser(authinfo.user)
+            authenticator.setPassword(authinfo.password)
         else:
             msg = '<b>{}</b> says:<br/>{}'.format(
                 html.escape(proxy.hostName()),
@@ -365,9 +386,8 @@ class NetworkManager(QNetworkAccessManager):
         Return:
             A QNetworkReply.
         """
-        proxy_factory = objreg.get('proxy-factory', None)
-        if proxy_factory is not None:
-            proxy_error = proxy_factory.get_error()
+        if proxymod.application_factory is not None:
+            proxy_error = proxymod.application_factory.get_error()
             if proxy_error is not None:
                 return networkreply.ErrorNetworkReply(
                     req, proxy_error, QNetworkReply.UnknownProxyError,
@@ -393,15 +413,15 @@ class NetworkManager(QNetworkAccessManager):
                 # the webpage shutdown here.
                 current_url = QUrl()
 
-        host_blocker = objreg.get('host-blocker')
-        if host_blocker.is_blocked(req.url(), current_url):
-            log.webview.info("Request to {} blocked by host blocker.".format(
-                req.url().host()))
+        request = interceptors.Request(first_party_url=current_url,
+                                       request_url=req.url())
+        interceptors.run(request)
+        if request.is_blocked:
             return networkreply.ErrorNetworkReply(
                 req, HOSTBLOCK_ERROR_STRING, QNetworkReply.ContentAccessDenied,
                 self)
 
-        if 'log-requests' in self._args.debug_flags:
+        if 'log-requests' in objects.debug_flags:
             operation = debug.qenum_key(QNetworkAccessManager, op)
             operation = operation.replace('Operation', '').upper()
             log.webview.debug("{} {}, first-party {}".format(

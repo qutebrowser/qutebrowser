@@ -1,4 +1,4 @@
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 #
@@ -25,8 +25,8 @@ import time
 import textwrap
 
 import pytest
-from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QObject
-from PyQt5.QtWidgets import QStyle, QFrame
+from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QObject, QTimer
+from PyQt5.QtWidgets import QStyle, QFrame, QSpinBox
 
 from qutebrowser.utils import debug
 
@@ -41,8 +41,7 @@ def test_log_events(qapp, caplog):
     obj = EventObject()
     qapp.sendEvent(obj, QEvent(QEvent.User))
     qapp.processEvents()
-    assert len(caplog.records) == 1
-    assert caplog.records[0].msg == 'Event in test_debug.EventObject: User'
+    assert caplog.messages == ['Event in test_debug.EventObject: User']
 
 
 class SignalObject(QObject):
@@ -74,9 +73,8 @@ def test_log_signals(caplog, signal_obj):
     signal_obj.signal1.emit()
     signal_obj.signal2.emit('foo', 'bar')
 
-    assert len(caplog.records) == 2
-    assert caplog.records[0].msg == 'Signal in <repr>: signal1()'
-    assert caplog.records[1].msg == "Signal in <repr>: signal2('foo', 'bar')"
+    assert caplog.messages == ['Signal in <repr>: signal1()',
+                               "Signal in <repr>: signal2('foo', 'bar')"]
 
 
 class TestLogTime:
@@ -91,7 +89,7 @@ class TestLogTime:
             assert len(caplog.records) == 1
 
             pattern = re.compile(r'Foobar took ([\d.]*) seconds\.')
-            match = pattern.fullmatch(caplog.records[0].msg)
+            match = pattern.fullmatch(caplog.messages[0])
             assert match
 
             duration = float(match.group(1))
@@ -119,7 +117,7 @@ class TestLogTime:
             func(1, kwarg=2)
 
         assert len(caplog.records) == 1
-        assert caplog.records[0].msg.startswith('Foo took')
+        assert caplog.messages[0].startswith('Foo took')
 
 
 class TestQEnumKey:
@@ -178,6 +176,26 @@ class TestQFlagsKey:
         flags = debug.qflags_key(base, value, klass=klass)
         assert flags == expected
 
+    def test_find_flags(self):
+        """Test a weird TypeError we get from PyQt.
+
+        In exactly this constellation (happening via the "Searching with
+        --reverse" BDD test), calling QMetaEnum::valueToKey without wrapping
+        the flags in int() causes a TypeError.
+
+        No idea what's happening here exactly...
+        """
+        qwebpage = pytest.importorskip("PyQt5.QtWebKitWidgets").QWebPage
+
+        flags = qwebpage.FindWrapsAroundDocument
+        flags |= qwebpage.FindBackward
+        flags &= ~qwebpage.FindBackward
+        flags &= ~qwebpage.FindWrapsAroundDocument
+
+        debug.qflags_key(qwebpage,
+                         flags,
+                         klass=qwebpage.FindFlag)
+
     def test_add_base(self):
         """Test with add_base=True."""
         flags = debug.qflags_key(Qt, Qt.AlignTop, add_base=True)
@@ -189,12 +207,17 @@ class TestQFlagsKey:
             debug.qflags_key(Qt, 42)
 
 
-@pytest.mark.parametrize('signal, expected', [
-    (SignalObject().signal1, 'signal1'),
-    (SignalObject().signal2, 'signal2'),
+@pytest.mark.parametrize('cls, signal', [
+    (SignalObject, 'signal1'),
+    (SignalObject, 'signal2'),
+    (QTimer, 'timeout'),
+    (QSpinBox, 'valueChanged'),  # Overloaded signal
 ])
-def test_signal_name(signal, expected):
-    assert debug.signal_name(signal) == expected
+@pytest.mark.parametrize('bound', [True, False])
+def test_signal_name(cls, signal, bound):
+    base = cls() if bound else cls
+    sig = getattr(base, signal)
+    assert debug.signal_name(sig) == signal
 
 
 @pytest.mark.parametrize('args, kwargs, expected', [

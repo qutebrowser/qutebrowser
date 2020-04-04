@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -30,6 +30,7 @@ import re
 import shlex
 import math
 
+import pkg_resources
 import attr
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QClipboard
@@ -39,7 +40,7 @@ from hypothesis import strategies
 
 import qutebrowser
 import qutebrowser.utils  # for test_qualname
-from qutebrowser.utils import utils, qtutils
+from qutebrowser.utils import utils, qtutils, version, usertypes
 
 
 ELLIPSIS = '\u2026'
@@ -409,8 +410,6 @@ class GotException(Exception):
 
     """Exception used for TestDisabledExcepthook."""
 
-    pass
-
 
 def excepthook(_exc, _val, _tb):
     pass
@@ -465,14 +464,10 @@ class TestPreventExceptions:
     def test_raising(self, caplog):
         """Test with a raising function."""
         with caplog.at_level(logging.ERROR, 'misc'):
-            # pylint: disable=assignment-from-no-return
             ret = self.func_raising()
-            # pylint: enable=assignment-from-no-return
         assert ret == 42
-        assert len(caplog.records) == 1
         expected = 'Error in test_utils.TestPreventExceptions.func_raising'
-        actual = caplog.records[0].message
-        assert actual == expected
+        assert caplog.messages == [expected]
 
     @utils.prevent_exceptions(42)
     def func_not_raising(self):
@@ -492,9 +487,7 @@ class TestPreventExceptions:
     def test_predicate_true(self, caplog):
         """Test with a True predicate."""
         with caplog.at_level(logging.ERROR, 'misc'):
-            # pylint: disable=assignment-from-no-return
             ret = self.func_predicate_true()
-            # enable: disable=assignment-from-no-return
         assert ret == 42
         assert len(caplog.records) == 1
 
@@ -513,8 +506,6 @@ class TestPreventExceptions:
 class Obj:
 
     """Test object for test_get_repr()."""
-
-    pass
 
 
 @pytest.mark.parametrize('constructor, attrs, expected', [
@@ -536,12 +527,10 @@ class QualnameObj():
 
     def func(self):
         """Test method for test_qualname."""
-        pass
 
 
 def qualname_func(_blah):
     """Test function for test_qualname."""
-    pass
 
 
 QUALNAME_OBJ = QualnameObj()
@@ -580,8 +569,6 @@ class TestIsEnum:
 
             """Test class for is_enum."""
 
-            pass
-
         assert not utils.is_enum(Test)
 
     def test_object(self):
@@ -599,7 +586,6 @@ class TestRaises:
 
     def do_nothing(self):
         """Helper function which does nothing."""
-        pass
 
     @pytest.mark.parametrize('exception, value, expected', [
         (ValueError, 'a', True),
@@ -691,7 +677,7 @@ class TestGetSetClipboard:
         utils.set_clipboard(text, selection=selection)
         assert not clipboard_mock.setText.called
         expected = 'Setting fake {}: "{}"'.format(what, expected)
-        assert caplog.records[0].message == expected
+        assert caplog.messages[0] == expected
 
     def test_get(self):
         assert utils.get_clipboard() == 'mocked clipboard text'
@@ -742,7 +728,7 @@ class TestOpenFile:
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass'.format(executable)
         utils.open_file('/foo/bar', cmdline)
-        result = caplog.records[0].message
+        result = caplog.messages[0]
         assert re.fullmatch(
             r'Opening /foo/bar with \[.*python.*/foo/bar.*\]', result)
 
@@ -751,7 +737,7 @@ class TestOpenFile:
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass {{}} raboof'.format(executable)
         utils.open_file('/foo/bar', cmdline)
-        result = caplog.records[0].message
+        result = caplog.messages[0]
         assert re.fullmatch(
             r"Opening /foo/bar with \[.*python.*/foo/bar.*'raboof'\]", result)
 
@@ -761,18 +747,56 @@ class TestOpenFile:
         cmdline = '{} -c pass'.format(executable)
         config_stub.val.downloads.open_dispatcher = cmdline
         utils.open_file('/foo/bar')
-        result = caplog.records[1].message
+        result = caplog.messages[1]
         assert re.fullmatch(
             r"Opening /foo/bar with \[.*python.*/foo/bar.*\]", result)
 
-    def test_system_default_application(self, caplog, config_stub, mocker):
-        m = mocker.patch('PyQt5.QtGui.QDesktopServices.openUrl', spec={},
-                         new_callable=mocker.Mock)
+    @pytest.fixture
+    def openurl_mock(self, mocker):
+        return mocker.patch('PyQt5.QtGui.QDesktopServices.openUrl', spec={},
+                            new_callable=mocker.Mock)
+
+    def test_system_default_application(self, caplog, config_stub,
+                                        openurl_mock):
         utils.open_file('/foo/bar')
-        result = caplog.records[0].message
+        result = caplog.messages[0]
         assert re.fullmatch(
             r"Opening /foo/bar with the system application", result)
-        m.assert_called_with(QUrl('file:///foo/bar'))
+        openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
+
+    @pytest.fixture
+    def sandbox_patch(self, monkeypatch):
+        info = version.DistributionInfo(
+            id='org.kde.Platform',
+            parsed=version.Distribution.kde_flatpak,
+            version=pkg_resources.parse_version('5.12'),
+            pretty='Unknown')
+        monkeypatch.setattr(version, 'distribution',
+                            lambda: info)
+
+    def test_cmdline_sandboxed(self, sandbox_patch,
+                               config_stub, message_mock, caplog):
+        with caplog.at_level(logging.ERROR):
+            utils.open_file('/foo/bar', 'custom_cmd')
+        msg = message_mock.getmsg(usertypes.MessageLevel.error)
+        assert msg.text == 'Cannot spawn download dispatcher from sandbox'
+
+    @pytest.mark.not_frozen
+    def test_setting_override_sandboxed(self, sandbox_patch, openurl_mock,
+                                        caplog, config_stub):
+        config_stub.val.downloads.open_dispatcher = 'test'
+
+        with caplog.at_level(logging.WARNING):
+            utils.open_file('/foo/bar')
+
+        assert caplog.messages[1] == ('Ignoring download dispatcher from '
+                                      'config in sandbox environment')
+        openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
+
+    def test_system_default_sandboxed(self, config_stub, openurl_mock,
+                                      sandbox_patch):
+        utils.open_file('/foo/bar')
+        openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
 
 
 def test_unused():

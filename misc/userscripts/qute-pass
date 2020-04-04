@@ -27,6 +27,8 @@ USAGE = """The domain of the site has to appear as a segment in the pass path, f
 login information is inserted by emulating key events using qutebrowser's fake-key command in this manner:
 [USERNAME]<Tab>[PASSWORD], which is compatible with almost all login forms.
 
+If you use gopass with multiple mounts, use the CLI switch --mode gopass to switch to gopass mode.
+
 Suggested bindings similar to Uzbl's `formfiller` script:
 
     config.bind('<z><l>', 'spawn --userscript qute-pass')
@@ -55,8 +57,11 @@ import tldextract
 
 argument_parser = argparse.ArgumentParser(description=__doc__, usage=USAGE, epilog=EPILOG)
 argument_parser.add_argument('url', nargs='?', default=os.getenv('QUTE_URL'))
-argument_parser.add_argument('--password-store', '-p', default=os.path.expanduser('~/.password-store'),
-                             help='Path to your pass password-store')
+argument_parser.add_argument('--password-store', '-p',
+                             default=os.getenv('PASSWORD_STORE_DIR', default=os.path.expanduser('~/.password-store')),
+                             help='Path to your pass password-store (only used in pass-mode)')
+argument_parser.add_argument('--mode', '-M', choices=['pass', 'gopass'], default="pass",
+                             help='Select mode [gopass] to use gopass instead of the standard pass.')
 argument_parser.add_argument('--username-pattern', '-u', default=r'.*/(.+)',
                              help='Regular expression that matches the username')
 argument_parser.add_argument('--username-target', '-U', choices=['path', 'secret'], default='path',
@@ -71,6 +76,8 @@ argument_parser.add_argument('--io-encoding', '-i', default='UTF-8',
                              help='Encoding used to communicate with subprocesses')
 argument_parser.add_argument('--merge-candidates', '-m', action='store_true',
                              help='Merge pass candidates for fully-qualified and registered domain name')
+argument_parser.add_argument('--extra-url-suffixes', '-s', default='',
+                             help='Comma-separated string containing extra suffixes (e.g local)')
 group = argument_parser.add_mutually_exclusive_group()
 group.add_argument('--username-only', '-e', action='store_true', help='Only insert username')
 group.add_argument('--password-only', '-w', action='store_true', help='Only insert password')
@@ -96,28 +103,44 @@ def qute_command(command):
 
 def find_pass_candidates(domain, password_store_path):
     candidates = []
-    for path, directories, file_names in os.walk(password_store_path, followlinks=True):
-        if directories or domain not in path.split(os.path.sep):
-            continue
 
-        # Strip password store path prefix to get the relative pass path
-        pass_path = path[len(password_store_path) + 1:]
-        secrets = fnmatch.filter(file_names, '*.gpg')
-        candidates.extend(os.path.join(pass_path, os.path.splitext(secret)[0]) for secret in secrets)
+    if arguments.mode == "gopass":
+        all_passwords = subprocess.run(["gopass", "list", "--flat" ], stdout=subprocess.PIPE).stdout.decode("UTF-8").splitlines()
+
+        for password in all_passwords:
+            if domain in password:
+                candidates.append(password)
+    else:
+        for path, directories, file_names in os.walk(password_store_path, followlinks=True):
+            secrets = fnmatch.filter(file_names, '*.gpg')
+            if not secrets:
+                continue
+
+            # Strip password store path prefix to get the relative pass path
+            pass_path = path[len(password_store_path):]
+            split_path = pass_path.split(os.path.sep)
+            for secret in secrets:
+                secret_base = os.path.splitext(secret)[0]
+                if domain not in (split_path + [secret_base]):
+                    continue
+
+                candidates.append(os.path.join(pass_path, secret_base))
     return candidates
 
 
-def _run_pass(command, encoding):
-    process = subprocess.run(command, stdout=subprocess.PIPE)
+def _run_pass(pass_arguments, encoding):
+    # The executable is conveniently named after it's mode [pass|gopass].
+    pass_command = [arguments.mode]
+    process = subprocess.run(pass_command + pass_arguments, stdout=subprocess.PIPE)
     return process.stdout.decode(encoding).strip()
 
 
 def pass_(path, encoding):
-    return _run_pass(['pass', path], encoding)
+    return _run_pass([path], encoding)
 
 
 def pass_otp(path, encoding):
-    return _run_pass(['pass', 'otp', path], encoding)
+    return _run_pass(['otp', path], encoding)
 
 
 def dmenu(items, invocation, encoding):
@@ -138,15 +161,27 @@ def main(arguments):
         argument_parser.print_help()
         return ExitCodes.FAILURE
 
-    extract_result = tldextract.extract(arguments.url)
+    extractor = tldextract.TLDExtract(extra_suffixes=arguments.extra_url_suffixes.split(','))
+    extract_result = extractor(arguments.url)
 
     # Expand potential ~ in paths, since this script won't be called from a shell that does it for us
     password_store_path = os.path.expanduser(arguments.password_store)
+    # Add trailing slash if not present
+    password_store_path = os.path.join(password_store_path, '')
 
     # Try to find candidates using targets in the following order: fully-qualified domain name (includes subdomains),
-    # the registered domain name and finally: the IPv4 address if that's what the URL represents
+    # the registered domain name, the IPv4 address if that's what the URL represents and finally the private domain
+    # (if a non-public suffix was used).
     candidates = set()
-    for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4]):
+    attempted_targets = []
+
+    private_domain = ''
+    if not extract_result.suffix:
+        private_domain = ('.'.join((extract_result.subdomain, extract_result.domain))
+                          if extract_result.subdomain else extract_result.domain)
+
+    for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4, private_domain]):
+        attempted_targets.append(target)
         target_candidates = find_pass_candidates(target, password_store_path)
         if not target_candidates:
             continue
@@ -156,7 +191,7 @@ def main(arguments):
             break
     else:
         if not candidates:
-            stderr('No pass candidates for URL {!r} found!'.format(arguments.url))
+            stderr('No pass candidates for URL {!r} found! (I tried {!r})'.format(arguments.url, attempted_targets))
             return ExitCodes.NO_PASS_CANDIDATES
 
     selection = candidates.pop() if len(candidates) == 1 else dmenu(sorted(candidates), arguments.dmenu_invocation,
@@ -165,7 +200,17 @@ def main(arguments):
     if not selection:
         return ExitCodes.SUCCESS
 
-    secret = pass_(selection, arguments.io_encoding)
+    # If username-target is path and user asked for username-only, we don't need to run pass
+    secret = None
+    if not (arguments.username_target == 'path' and arguments.username_only):
+        secret = pass_(selection, arguments.io_encoding)
+
+        # Match password
+        match = re.match(arguments.password_pattern, secret)
+        if not match:
+            stderr('Failed to match password pattern on secret!')
+            return ExitCodes.COULD_NOT_MATCH_PASSWORD
+        password = match.group(1)
 
     # Match username
     target = selection if arguments.username_target == 'path' else secret
@@ -174,13 +219,6 @@ def main(arguments):
         stderr('Failed to match username pattern on {}!'.format(arguments.username_target))
         return ExitCodes.COULD_NOT_MATCH_USERNAME
     username = match.group(1)
-
-    # Match password
-    match = re.match(arguments.password_pattern, secret)
-    if not match:
-        stderr('Failed to match password pattern on secret!')
-        return ExitCodes.COULD_NOT_MATCH_PASSWORD
-    password = match.group(1)
 
     if arguments.username_only:
         fake_key_raw(username)

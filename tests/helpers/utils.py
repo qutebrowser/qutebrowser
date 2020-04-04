@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,18 +17,20 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Partial comparison of dicts/lists."""
+"""Various utilities used inside tests."""
 
-
+import io
 import re
+import gzip
 import pprint
 import os.path
 import contextlib
 
 import pytest
 
-from qutebrowser.utils import qtutils
+from qutebrowser.utils import qtutils, log
 
+ON_CI = 'CI' in os.environ
 
 qt58 = pytest.mark.skipif(
     qtutils.version_check('5.9'), reason="Needs Qt 5.8 or earlier")
@@ -36,6 +38,8 @@ qt59 = pytest.mark.skipif(
     not qtutils.version_check('5.9'), reason="Needs Qt 5.9 or newer")
 qt510 = pytest.mark.skipif(
     not qtutils.version_check('5.10'), reason="Needs Qt 5.10 or newer")
+qt514 = pytest.mark.skipif(
+    not qtutils.version_check('5.14'), reason="Needs Qt 5.14 or newer")
 skip_qt511 = pytest.mark.skipif(
     qtutils.version_check('5.11'), reason="Needs Qt 5.10 or earlier")
 
@@ -180,3 +184,18 @@ def abs_datapath():
 @contextlib.contextmanager
 def nop_contextmanager():
     yield
+
+
+@contextlib.contextmanager
+def ignore_bs4_warning():
+    """WORKAROUND for https://bugs.launchpad.net/beautifulsoup/+bug/1847592."""
+    with log.ignore_py_warnings(
+            category=DeprecationWarning,
+            message="Using or importing the ABCs from 'collections' instead "
+            "of from 'collections.abc' is deprecated", module='bs4.element'):
+        yield
+
+
+def blocked_hosts():
+    path = os.path.join(abs_datapath(), 'blocked-hosts.gz')
+    yield from io.TextIOWrapper(gzip.open(path), encoding='utf-8')

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,12 +20,11 @@
 """The main browser widgets."""
 
 from PyQt5.QtCore import pyqtSignal, Qt, QUrl
-from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
-from qutebrowser.config import config
+from qutebrowser.config import config, stylesheet
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import log, usertypes, utils, objreg, debug
 from qutebrowser.browser.webkit import webpage
@@ -50,6 +49,14 @@ class WebView(QWebView):
         shutting_down: Emitted when the view is shutting down.
     """
 
+    STYLESHEET = """
+        WebView {
+            {% if conf.colors.webpage.bg %}
+            background-color: {{ qcolor_to_qsscolor(conf.colors.webpage.bg) }};
+            {% endif %}
+        }
+    """
+
     scroll_pos_changed = pyqtSignal(int, int)
     shutting_down = pyqtSignal()
 
@@ -66,7 +73,6 @@ class WebView(QWebView):
         self.win_id = win_id
         self.scroll_pos = (-1, -1)
         self._old_scroll_pos = (-1, -1)
-        self._set_bg_color()
         self._tab_id = tab_id
 
         page = webpage.BrowserPage(win_id=self.win_id, tab_id=self._tab_id,
@@ -78,10 +84,11 @@ class WebView(QWebView):
 
         self.setPage(page)
 
-        config.instance.changed.connect(self._set_bg_color)
+        stylesheet.set_register(self)
 
     def __repr__(self):
-        url = utils.elide(self.url().toDisplayString(QUrl.EncodeUnicode), 100)
+        urlstr = self.url().toDisplayString(QUrl.EncodeUnicode)  # type: ignore
+        url = utils.elide(urlstr, 100)
         return utils.get_repr(self, tab_id=self._tab_id, url=url)
 
     def __del__(self):
@@ -90,22 +97,12 @@ class WebView(QWebView):
         # Copied from:
         # https://code.google.com/p/webscraping/source/browse/webkit.py#325
         try:
-            self.setPage(None)
+            self.setPage(None)  # type: ignore
         except RuntimeError:
             # It seems sometimes Qt has already deleted the QWebView and we
             # get: RuntimeError: wrapped C/C++ object of type WebView has been
             # deleted
             pass
-
-    @config.change_filter('colors.webpage.bg')
-    def _set_bg_color(self):
-        """Set the webpage background color as configured."""
-        col = config.val.colors.webpage.bg
-        palette = self.palette()
-        if col is None:
-            col = self.style().standardPalette().color(QPalette.Base)
-        palette.setColor(QPalette.Base, col)
-        self.setPalette(palette)
 
     def shutdown(self):
         """Shut down the webview."""
@@ -117,14 +114,6 @@ class WebView(QWebView):
         settings.setAttribute(QWebSettings.JavascriptEnabled, False)
         self.stop()
         self.page().shutdown()
-
-    def openurl(self, url):
-        """Open a URL in the browser.
-
-        Args:
-            url: The URL to load as QUrl
-        """
-        self.load(url)
 
     def createWindow(self, wintype):
         """Called by Qt when a page wants to create a new window.
@@ -191,8 +180,9 @@ class WebView(QWebView):
         This is not needed for QtWebEngine, so it's in here.
         """
         menu = self.page().createStandardContextMenu()
-        self.shutting_down.connect(menu.close)
-        modeman.instance(self.win_id).entered.connect(menu.close)
+        self.shutting_down.connect(menu.close)  # type: ignore
+        mm = modeman.instance(self.win_id)
+        mm.entered.connect(menu.close)  # type: ignore
         menu.exec_(e.globalPos())
 
     def showEvent(self, e):

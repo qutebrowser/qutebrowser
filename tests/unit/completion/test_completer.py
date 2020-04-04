@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2020 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -26,7 +26,8 @@ from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QStandardItemModel
 
 from qutebrowser.completion import completer
-from qutebrowser.commands import command, cmdutils
+from qutebrowser.commands import command
+from qutebrowser.api import cmdutils
 
 
 class FakeCompletionModel(QStandardItemModel):
@@ -105,37 +106,31 @@ def cmdutils_patch(monkeypatch, stubs, miscmodels_patch):
     @cmdutils.argument('value', completion=miscmodels_patch.value)
     def set_command(section_=None, option=None, value=None):
         """docstring."""
-        pass
 
     @cmdutils.argument('topic', completion=miscmodels_patch.helptopic)
     def show_help(tab=False, bg=False, window=False, topic=None):
         """docstring."""
-        pass
 
     @cmdutils.argument('url', completion=miscmodels_patch.url)
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def openurl(url=None, related=False, bg=False, tab=False, window=False,
                 count=None):
         """docstring."""
-        pass
 
-    @cmdutils.argument('win_id', win_id=True)
+    @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
     @cmdutils.argument('command', completion=miscmodels_patch.command)
     def bind(key, win_id, command=None, *, mode='normal'):
         """docstring."""
-        pass
 
     def tab_give():
         """docstring."""
-        pass
 
     @cmdutils.argument('option', completion=miscmodels_patch.option)
     @cmdutils.argument('values', completion=miscmodels_patch.value)
     def config_cycle(option, *values):
         """For testing varargs."""
-        pass
 
-    cmd_utils = stubs.FakeCmdUtils({
+    commands = {
         'set': command.Command(name='set', handler=set_command),
         'help': command.Command(name='help', handler=show_help),
         'open': command.Command(name='open', handler=openurl, maxsplit=0),
@@ -143,8 +138,8 @@ def cmdutils_patch(monkeypatch, stubs, miscmodels_patch):
         'tab-give': command.Command(name='tab-give', handler=tab_give),
         'config-cycle': command.Command(name='config-cycle',
                                         handler=config_cycle),
-    })
-    monkeypatch.setattr(completer, 'cmdutils', cmd_utils)
+    }
+    monkeypatch.setattr(completer.objects, 'commands', commands)
 
 
 def _set_cmd_prompt(cmd, txt):

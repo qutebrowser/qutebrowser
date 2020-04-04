@@ -118,13 +118,14 @@ Feature: Opening external editors
 
     # Could not get signals working on Windows
     # There's no guarantee that the tab gets deleted...
-    @posix @flaky
+    @posix
     Scenario: Spawning an editor and closing the tab
         When I set up a fake editor that writes "foobar" on save
         And I open data/editor.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :open-editor
+        And I wait until the editor has started
         And I set tabs.last_close to blank
         And I run :tab-close
         And I kill the waiting editor
@@ -139,6 +140,7 @@ Feature: Opening external editors
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :open-editor
+        And I wait until the editor has started
         And I save without exiting the editor
         And I wait for "Read back: foobar" in the log
         And I run :click-element id qute-button

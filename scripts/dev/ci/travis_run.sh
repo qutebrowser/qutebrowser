@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ $DOCKER ]]; then
+if [[ -n $DOCKER ]]; then
     docker run \
            --privileged \
            -v "$PWD:/outside" \
@@ -23,10 +23,11 @@ elif [[ $TESTENV == shellcheck ]]; then
     docker run \
            -v "$PWD:/outside" \
            -w /outside \
-           koalaman/shellcheck:latest "${scripts[@]}"
+           koalaman/shellcheck:stable "${scripts[@]}"
 else
     args=()
-    [[ $TRAVIS_OS_NAME == osx ]] && args=('--qute-bdd-webengine' '--no-xvfb' 'tests/unit')
+    # We only run unit tests on macOS because it's quite slow.
+    [[ $TRAVIS_OS_NAME == osx ]] && args+=('--qute-bdd-webengine' '--no-xvfb' 'tests/unit')
 
     # WORKAROUND for unknown crash inside swrast_dri.so
     # See https://github.com/qutebrowser/qutebrowser/pull/4218#issuecomment-421931770

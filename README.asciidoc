@@ -21,6 +21,15 @@ on Python and PyQt5 and free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
+// QUTE_WEB_HIDE
+**qutebrowser's primary maintainer, The-Compiler, is currently working
+part-time on qutebrowser, funded by donations.** To sustain this for a long
+time, your help is needed! See the
+https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] for more
+information. Depending on your sign-up date and how long you keep a certain
+level, you can get qutebrowser t-shirts, stickers and more!
+// QUTE_WEB_HIDE_END
+
 Screenshots
 -----------
 
@@ -96,19 +105,22 @@ Requirements
 
 The following software and libraries are required to run qutebrowser:
 
-* https://www.python.org/[Python] 3.5 or newer (3.6 recommended)
-* https://www.qt.io/[Qt] 5.7.1 or newer (5.11 recommended, support for < 5.9
+* https://www.python.org/[Python] 3.5.2 or newer (3.6 recommended)
+* https://www.qt.io/[Qt] 5.7.1 or newer (5.14 recommended; support for < 5.9
   will be dropped soon) with the following modules:
   - QtCore / qtbase
   - QtQuick (part of qtbase in some distributions)
   - QtSQL (part of qtbase in some distributions)
   - QtOpenGL
   - QtWebEngine, or
-  - alternatively QtWebKit - support for QtWebKit will be dropped soon, and
-    only the link:https://github.com/annulen/webkit/wiki[updated fork] (5.212)
-    is supported
+  - alternatively QtWebKit - only the
+    link:https://github.com/qtwebkit/qtwebkit/wiki[updated fork] (5.212) is
+    supported. **Note: The latest QtWebKit release is based on old WebKit
+    revision with known unpatched vulnerabilities. Please use it carefully and
+    avoid visiting untrusted websites and using it for transmission of
+    sensitive data.**
 * https://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.7.0 or newer
-  (5.11 recommended, support for < 5.9 will be dropped soon) for Python 3
+  (5.14 recommended, support for < 5.9 will be dropped soon) for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
 * https://fdik.org/pyPEG/[pyPEG2]
 * http://jinja.pocoo.org/[jinja2]
@@ -131,18 +143,32 @@ install qutebrowser and its dependencies.
 Donating
 --------
 
-Working on qutebrowser is a very rewarding hobby, but like (nearly) all hobbies
-it also costs some money. Namely I have to pay for the server and domain, and
-do occasional hardware upgrades footnote:[It turned out a 160 GB SSD is rather
-small - the VMs and custom Qt builds I use for testing/developing qutebrowser
-need about 100 GB of space].
+**qutebrowser's primary maintainer, The-Compiler, is currently working
+part-time on qutebrowser, funded by donations.** To sustain this for a long
+time, your help is needed! See the
+https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] for more
+information. Depending on your sign-up date and how long you keep a certain
+level, you can get qutebrowser t-shirts, stickers and more!
 
-If you want to give me a beer or a pizza back, I'm trying to make it as easy as
-possible for you to do so. If some other way would be easier for you, please
-get in touch!
+Alternatively, the following donation methods are available -- note that
+eligibility for swag (shirts/stickers/etc.) is handled on a case-by-case basis
+for those, please mailto:mail@qutebrowser.org[get in touch] for details.
 
-* PayPal: me@the-compiler.org
-* Bitcoin: link:bitcoin:1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE[1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE]
+* SEPA bank transfer inside Europe (no fee):
+  - Account holder: Florian Bruhin
+  - Country: Switzerland
+  - IBAN (EUR): CH13 0900 0000 9160 4094 6
+  - IBAN (other): CH80 0900 0000 8711 8587 3
+  - Bank: PostFinance AG, Mingerstrasse 20, 3030 Bern, Switzerland (BIC: POFICHBEXXX)
+  - If you need any other information: Contact me at mail@qutebrowser.org.
+* PayPal: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=CHF&source=url[CHF], https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=EUR&source=url[EUR], https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=USD&source=url[USD]
+* Cryptocurrencies:
+  - Bitcoin: link:bitcoin:bc1q3ptyw8hxrcfz6ucfgmglphfvhqpy8xr6k25p00[bc1q3ptyw8hxrcfz6ucfgmglphfvhqpy8xr6k25p00]
+  - Bitcoin Cash: link:bitcoincash:1BnxUbnJ5MrEPeh5nuUMx83tbiRAvqJV3N[1BnxUbnJ5MrEPeh5nuUMx83tbiRAvqJV3N]
+  - Ethereum: link:ethereum:0x10c2425856F7a8799EBCaac4943026803b1089c6[0x10c2425856F7a8799EBCaac4943026803b1089c6]
+  - Litecoin: link:litecoin:MDt3YQciuCh6QyFmr8TiWNxB94PVzbnPm2[MDt3YQciuCh6QyFmr8TiWNxB94PVzbnPm2]
+  - Others: Please mailto:mail@qutebrowser.org[get in touch], I'd happily set up anything link:https://www.ledger.com/supported-crypto-assets[supported by Ledger Live]
+
 
 Sponsors
 --------
@@ -154,7 +180,11 @@ https://www.macstadium.com/opensource[Open Source Project].
 (They don't require including this here - I've just been very happy with their
 offer, and without them, no macOS releases or tests would exist)
 
-image:.github/img/macstadium.png["powered by MacStadium",width=200,link="https://www.macstadium.com/"]
+Thanks to the https://www.hsr.ch/[HSR Hochschule für Technik Rapperswil], which
+made it possible to work on qutebrowser extensions as a student research project.
+
+image:doc/img/sponsors/macstadium.png["powered by MacStadium",width=200,link="https://www.macstadium.com/"]
+image:doc/img/sponsors/hsr.png["HSR Hochschule für Technik Rapperswil",link="https://www.hsr.ch/"]
 
 Authors
 -------
@@ -184,18 +214,22 @@ Active
 * https://fanglingsu.github.io/vimb/[vimb] (C, GTK+ with WebKit2)
 * https://luakit.github.io/luakit/[luakit] (C/Lua, GTK+ with WebKit2)
 * https://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
-* https://github.com/next-browser/next/[next] (Lisp, Emacs-like, GTK+ with WebKit)
+* https://github.com/next-browser/next/[next] (Lisp, Emacs-like but also offers Vim bindings, various backends - note there was a http://jgkamat.gitlab.io/blog/next-rce.html[critical remote code execution] which was handled quite badly)
 * https://github.com/parkouss/webmacs/[webmacs] (Python, Emacs-like with QtWebEngine)
 * Chrome/Chromium addons:
   https://vimium.github.io/[Vimium],
-  https://github.com/brookhong/Surfingkeys[Surfingkeys],
 * Firefox addons (based on WebExtensions):
+  https://github.com/tridactyl/tridactyl[Tridactyl],
   https://addons.mozilla.org/en-GB/firefox/addon/vimium-ff/[Vimium-FF] (experimental),
   https://github.com/ueokande/vim-vixen[Vim Vixen],
-  https://github.com/amedama41/vvimpulation[VVimpulation],
-  https://github.com/cmcaine/tridactyl[Tridactyl] (working
-  on a https://bugzilla.mozilla.org/show_bug.cgi?id=1215061[better API] for
-  keyboard integration in Firefox).
+  https://github.com/amedama41/vvimpulation[VVimpulation]
+* Addons for Firefox and Chrome:
+  https://github.com/brookhong/Surfingkeys[Surfingkeys],
+  https://github.com/lusakasa/saka-key[Saka Key],
+  https://krabby.netlify.com/[Krabby],
+  https://lydell.github.io/LinkHints/[Link Hints] (hinting only)
+* Addons for Safari:
+  https://televator.net/vimari/[Vimari]
 
 Inactive
 ~~~~~~~~
@@ -206,20 +240,22 @@ main inspiration for qutebrowser)
 * https://sourceforge.net/p/vimprobable/wiki/Home/[vimprobable] (C, GTK+ with
   WebKit1)
 * https://wiki.archlinux.org/index.php?title=Jumanji[jumanji] (C, GTK+ with WebKit1,
-original site is gone but Arch Linux has some data)
+original site is gone but the Arch Linux wiki has some data)
 * http://conkeror.org/[conkeror] (Javascript, Emacs-like, XULRunner/Gecko)
 * https://www.uzbl.org/[uzbl] (C, GTK+ with WebKit1/WebKit2)
+* https://github.com/conformal/xombrero[xombrero] (C, GTK+ with WebKit1)
+* https://github.com/linkdd/cream-browser[Cream Browser] (C, GTK+ with WebKit1)
 * Firefox addons (not based on WebExtensions or no recent activity):
   http://www.vimperator.org/[Vimperator],
   http://bug.5digits.org/pentadactyl/index[Pentadactyl],
   https://github.com/akhodakivskiy/VimFx[VimFx],
-  https://key.saka.io[Saka Key],
-  https://github.com/shinglyu/QuantumVim[QuantumVim],
+  https://github.com/shinglyu/QuantumVim[QuantumVim]
 * Chrome/Chromium addons:
   https://chrome.google.com/webstore/detail/vichrome/gghkfhpblkcmlkmpcpgaajbbiikbhpdi?hl=en[ViChrome],
-  https://github.com/jinzhu/vrome[Vrome]
-  https://key.saka.io[Saka Key],
+  https://github.com/jinzhu/vrome[Vrome],
+  https://github.com/lusakasa/saka-key[Saka Key],
   https://github.com/1995eaton/chromium-vim[cVim],
+  https://glee.github.io/[GleeBox]
 
 License
 -------

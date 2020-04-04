@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -247,7 +247,7 @@ class TestWebKitElement:
         pytest.param(lambda e: e[None], id='getitem'),
         pytest.param(lambda e: operator.setitem(e, None, None), id='setitem'),
         pytest.param(lambda e: operator.delitem(e, None), id='delitem'),
-        pytest.param(lambda e: None in e, id='contains'),
+        pytest.param(lambda e: '' in e, id='contains'),
         pytest.param(list, id='iter'),
         pytest.param(len, id='len'),
         pytest.param(lambda e: e.has_frame(), id='has_frame'),
@@ -387,7 +387,7 @@ class TestWebKitElement:
     def test_simple_getters(self, elem, attribute, code):
         sentinel = object()
         mock = getattr(elem._elem, attribute)
-        setattr(mock, 'return_value', sentinel)
+        mock.return_value = sentinel
         assert code(elem) is sentinel
 
     @pytest.mark.parametrize('frame, expected', [

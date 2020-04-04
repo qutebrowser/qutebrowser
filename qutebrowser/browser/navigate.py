@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,7 +19,11 @@
 
 """Implementation of :navigate."""
 
+import re
 import posixpath
+import typing
+
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import webelem
 from qutebrowser.config import config
@@ -30,6 +34,55 @@ from qutebrowser.mainwindow import mainwindow
 class Error(Exception):
 
     """Raised when the navigation can't be done."""
+
+
+# Order of the segments in a URL.
+# Each list entry is a tuple of (path name (string), getter, setter).
+# Note that the getters must not use FullyDecoded decoded mode to prevent loss
+# of information. (host and path use FullyDecoded by default)
+_URL_SEGMENTS = [
+    ('host',
+     lambda url: url.host(QUrl.FullyEncoded),
+     lambda url, host: url.setHost(host, QUrl.StrictMode)),
+
+    ('port',
+     lambda url: str(url.port()) if url.port() > 0 else '',
+     lambda url, x: url.setPort(int(x))),
+
+    ('path',
+     lambda url: url.path(QUrl.FullyEncoded),
+     lambda url, path: url.setPath(path, QUrl.StrictMode)),
+
+    ('query',
+     lambda url: url.query(QUrl.FullyEncoded),
+     lambda url, query: url.setQuery(query, QUrl.StrictMode)),
+
+    ('anchor',
+     lambda url: url.fragment(QUrl.FullyEncoded),
+     lambda url, fragment: url.setFragment(fragment, QUrl.StrictMode)),
+]
+
+
+def _get_incdec_value(match, inc_or_dec, count):
+    """Get an incremented/decremented URL based on a URL match."""
+    pre, zeroes, number, post = match.groups()
+    # This should always succeed because we match \d+
+    val = int(number)
+    if inc_or_dec == 'decrement':
+        if val < count:
+            raise Error("Can't decrement {} by {}!".format(val, count))
+        val -= count
+    elif inc_or_dec == 'increment':
+        val += count
+    else:
+        raise ValueError("Invalid value {} for inc_or_dec!".format(inc_or_dec))
+    if zeroes:
+        if len(number) < len(str(val)):
+            zeroes = zeroes[1:]
+        elif len(number) > len(str(val)):
+            zeroes += '0'
+
+    return ''.join([pre, zeroes, str(val), post])
 
 
 def incdec(url, count, inc_or_dec):
@@ -43,13 +96,33 @@ def incdec(url, count, inc_or_dec):
         background: Open the link in a new background tab.
         window: Open the link in a new window.
     """
-    segments = set(config.val.url.incdec_segments)
-    try:
-        new_url = urlutils.incdec_number(url, inc_or_dec, count,
-                                         segments=segments)
-    except urlutils.IncDecError as error:
-        raise Error(error.msg)
-    return new_url
+    urlutils.ensure_valid(url)
+    segments = (
+        set(config.val.url.incdec_segments)
+    )  # type: typing.Optional[typing.Set[str]]
+
+    if segments is None:
+        segments = {'path', 'query'}
+
+    # Make a copy of the QUrl so we don't modify the original
+    url = QUrl(url)
+    # We're searching the last number so we walk the url segments backwards
+    for segment, getter, setter in reversed(_URL_SEGMENTS):
+        if segment not in segments:
+            continue
+
+        # Get the last number in a string not preceded by regex '%' or '%.'
+        match = re.fullmatch(r'(.*\D|^)(?<!%)(?<!%.)(0*)(\d+)(.*)',
+                             getter(url))
+        if not match:
+            continue
+
+        setter(url, _get_incdec_value(match, inc_or_dec, count))
+        qtutils.ensure_valid(url)
+
+        return url
+
+    raise Error("No number found in URL!")
 
 
 def path_up(url, count):
@@ -89,7 +162,8 @@ def _find_prevnext(prev, elems):
     # pylint: disable=bad-config-option
     for regex in getattr(config.val.hints, option):
         # pylint: enable=bad-config-option
-        log.hints.vdebug("== Checking regex '{}'.".format(regex.pattern))
+        log.hints.vdebug("== Checking regex '{}'."  # type: ignore
+                         .format(regex.pattern))
         for e in elems:
             text = str(e)
             if not text:
@@ -99,7 +173,8 @@ def _find_prevnext(prev, elems):
                     regex.pattern, text))
                 return e
             else:
-                log.hints.vdebug("No match on '{}'!".format(text))
+                log.hints.vdebug("No match on '{}'!"  # type: ignore
+                                 .format(text))
     return None
 
 
@@ -116,13 +191,6 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
         window: True to open in a new window, False for the current one.
     """
     def _prevnext_cb(elems):
-        if elems is None:
-            message.error("Unknown error while getting hint elements")
-            return
-        elif isinstance(elems, webelem.Error):
-            message.error(str(elems))
-            return
-
         elem = _find_prevnext(prev, elems)
         word = 'prev' if prev else 'forward'
 
@@ -140,7 +208,7 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
 
         if window:
             new_window = mainwindow.MainWindow(
-                private=cur_tabbed_browser.private)
+                private=cur_tabbed_browser.is_private)
             new_window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=new_window.win_id)
@@ -148,11 +216,12 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
         elif tab:
             cur_tabbed_browser.tabopen(url, background=background)
         else:
-            browsertab.openurl(url)
+            browsertab.load_url(url)
 
     try:
         link_selector = webelem.css_selector('links', baseurl)
     except webelem.Error as e:
         raise Error(str(e))
 
-    browsertab.elements.find_css(link_selector, _prevnext_cb)
+    browsertab.elements.find_css(link_selector, callback=_prevnext_cb,
+                                 error_cb=lambda err: message.error(str(err)))

@@ -4,11 +4,10 @@ coverage
 Flask
 hunter
 hypothesis
-pytest<3.7
+pytest
 pytest-bdd
 pytest-benchmark
 pytest-cov
-pytest-faulthandler
 pytest-instafail
 pytest-mock
 pytest-qt
@@ -17,6 +16,8 @@ pytest-rerunfailures
 pytest-travis-fold
 pytest-xvfb
 vulture
+pygments
 
+#@ markers: jaraco.functools python_version>="3.6"
+#@ add: jaraco.functools==2.0; python_version<"3.6"  # rq.filter: <= 2.0
 #@ ignore: Jinja2, MarkupSafe, colorama
-#@ filter: pytest <3.7

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2018 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2017-2020 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -19,10 +19,12 @@
 
 """A model that proxies access to one or more completion categories."""
 
+import typing
+
 from PyQt5.QtCore import Qt, QModelIndex, QAbstractItemModel
 
 from qutebrowser.utils import log, qtutils
-from qutebrowser.commands import cmdexc
+from qutebrowser.api import cmdutils
 
 
 class CompletionModel(QAbstractItemModel):
@@ -41,7 +43,8 @@ class CompletionModel(QAbstractItemModel):
     def __init__(self, *, column_widths=(30, 70, 0), parent=None):
         super().__init__(parent)
         self.column_widths = column_widths
-        self._categories = []
+        self._categories = [
+        ]  # type: typing.MutableSequence[QAbstractItemModel]
 
     def _cat_from_idx(self, index):
         """Return the category pointed to by the given index.
@@ -180,10 +183,11 @@ class CompletionModel(QAbstractItemModel):
         # WORKAROUND:
         # layoutChanged is broken in PyQt 5.7.1, so we must use metaObject
         # https://www.riverbankcomputing.com/pipermail/pyqt/2017-January/038483.html
-        self.metaObject().invokeMethod(self, "layoutAboutToBeChanged")
+        self.metaObject().invokeMethod(self,  # type: ignore
+                                       "layoutAboutToBeChanged")
         for cat in self._categories:
             cat.set_pattern(pattern)
-        self.metaObject().invokeMethod(self, "layoutChanged")
+        self.metaObject().invokeMethod(self, "layoutChanged")  # type: ignore
 
     def first_item(self):
         """Return the index of the first child (non-category) in the model."""
@@ -224,7 +228,7 @@ class CompletionModel(QAbstractItemModel):
         cat = self._cat_from_idx(parent)
         assert cat, "CompletionView sent invalid index for deletion"
         if not cat.delete_func:
-            raise cmdexc.CommandError("Cannot delete this item.")
+            raise cmdutils.CommandError("Cannot delete this item.")
 
         data = [cat.data(cat.index(index.row(), i))
                 for i in range(cat.columnCount())]

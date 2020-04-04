@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,7 +21,8 @@
 
 import pytest
 
-from qutebrowser.commands import runners, cmdexc, cmdutils
+from qutebrowser.misc import objects
+from qutebrowser.commands import runners, cmdexc
 
 
 class TestCommandParser:
@@ -74,7 +75,7 @@ class TestCompletions:
     @pytest.fixture(autouse=True)
     def cmdutils_stub(self, monkeypatch, stubs):
         """Patch the cmdutils module to provide fake commands."""
-        monkeypatch.setattr(cmdutils, 'cmd_dict', {
+        monkeypatch.setattr(objects, 'commands', {
             'one': stubs.FakeCommand(name='one'),
             'two': stubs.FakeCommand(name='two'),
             'two-foo': stubs.FakeCommand(name='two-foo'),

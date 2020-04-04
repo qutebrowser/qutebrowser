@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2017-2018 Josefson Souza <josefson.br@gmail.com>
 
 # This file is part of qutebrowser.
@@ -32,8 +32,6 @@ import os
 class Error(Exception):
 
     """Exception for errors in this module."""
-
-    pass
 
 
 def parse():
@@ -157,10 +155,10 @@ def run():
     if browser not in query:
         raise Error('Sorry, the selected browser: "{}" is not '
                     'supported.'.format(browser))
-    else:
-        history = extract(source, query[browser])
-        history = clean(history)
-        insert_qb(history, dest)
+
+    history = extract(source, query[browser])
+    history = clean(history)
+    insert_qb(history, dest)
 
 
 def main():

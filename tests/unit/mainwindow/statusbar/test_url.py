@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Clayton Craft (craftyguy) <craftyguy@gmail.com>
+# Copyright 2016-2020 Clayton Craft (craftyguy) <craftyguy@gmail.com>
 #
 # This file is part of qutebrowser.
 #
@@ -89,25 +89,33 @@ def test_set_url(url_widget, url_text, expected, which):
 def test_on_load_status_changed(url_widget, status, expected):
     """Test text when status is changed."""
     url_widget.set_url(QUrl('www.example.com'))
-    url_widget.on_load_status_changed(status.name)
+    url_widget.on_load_status_changed(status)
     assert url_widget._urltype == expected
 
 
 @pytest.mark.parametrize('load_status, qurl', [
-    (url.UrlType.success, QUrl('http://abc123.com/this/awesome/url.html')),
-    (url.UrlType.success, QUrl('http://reddit.com/r/linux')),
-    (url.UrlType.success, QUrl('http://ä.com/')),
-    (url.UrlType.success_https, QUrl('www.google.com')),
-    (url.UrlType.success_https, QUrl('https://supersecret.gov/nsa/files.txt')),
-    (url.UrlType.warn, QUrl('www.shadysite.org/some/file/with/issues.htm')),
-    (url.UrlType.error, QUrl('invalid::/url')),
-    (url.UrlType.error, QUrl()),
+    (usertypes.LoadStatus.success,
+     QUrl('http://abc123.com/this/awesome/url.html')),
+    (usertypes.LoadStatus.success,
+     QUrl('http://reddit.com/r/linux')),
+    (usertypes.LoadStatus.success,
+     QUrl('http://ä.com/')),
+    (usertypes.LoadStatus.success_https,
+     QUrl('www.google.com')),
+    (usertypes.LoadStatus.success_https,
+     QUrl('https://supersecret.gov/nsa/files.txt')),
+    (usertypes.LoadStatus.warn,
+     QUrl('www.shadysite.org/some/file/with/issues.htm')),
+    (usertypes.LoadStatus.error,
+     QUrl('invalid::/url')),
+    (usertypes.LoadStatus.error,
+     QUrl()),
 ])
 def test_on_tab_changed(url_widget, fake_web_tab, load_status, qurl):
     tab_widget = fake_web_tab(load_status=load_status, url=qurl)
     url_widget.on_tab_changed(tab_widget)
 
-    assert url_widget._urltype == load_status
+    assert url_widget._urltype.name == load_status.name
     if not qurl.isValid():
         expected = ''
     else:
@@ -139,7 +147,7 @@ def test_on_tab_changed(url_widget, fake_web_tab, load_status, qurl):
 ])
 def test_normal_url(url_widget, qurl, load_status, expected_status):
     url_widget.set_url(qurl)
-    url_widget.on_load_status_changed(load_status.name)
+    url_widget.on_load_status_changed(load_status)
     url_widget.set_hover_url(qurl.toDisplayString())
     url_widget.set_hover_url("")
     assert url_widget.text() == qurl.toDisplayString()

@@ -1,5 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015-2018 Daniel Schadt
 #
 # This file is part of qutebrowser.
@@ -32,6 +33,7 @@ import email.encoders
 import email.mime.multipart
 import email.message
 import quopri
+import typing
 
 import attr
 from PyQt5.QtCore import QUrl
@@ -39,6 +41,7 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import webkitelem
 from qutebrowser.utils import log, objreg, message, usertypes, utils, urlutils
+from qutebrowser.extensions import interceptors
 
 
 @attr.s
@@ -186,7 +189,7 @@ class MHTMLWriter:
         self.root_content = root_content
         self.content_location = content_location
         self.content_type = content_type
-        self._files = {}
+        self._files = {}  # type: typing.MutableMapping[QUrl, _File]
 
     def add_file(self, location, content, content_type=None,
                  transfer_encoding=E_QUOPRI):
@@ -241,6 +244,10 @@ class MHTMLWriter:
         return msg
 
 
+_PendingDownloadType = typing.Set[
+    typing.Tuple[QUrl, downloads.AbstractDownloadItem]]
+
+
 class _Downloader:
 
     """A class to download whole websites.
@@ -261,7 +268,7 @@ class _Downloader:
         self.target = target
         self.writer = None
         self.loaded_urls = {tab.url()}
-        self.pending_downloads = set()
+        self.pending_downloads = set()  # type: _PendingDownloadType
         self._finished_file = False
         self._used = False
 
@@ -341,6 +348,8 @@ class _Downloader:
         Args:
             url: The file to download as QUrl.
         """
+        assert self.writer is not None
+
         if url.scheme() not in ['http', 'https']:
             return
         # Prevent loading an asset twice
@@ -354,8 +363,9 @@ class _Downloader:
         # qute, see the comments/discussion on
         # https://github.com/qutebrowser/qutebrowser/pull/962#discussion_r40256987
         # and https://github.com/qutebrowser/qutebrowser/issues/1053
-        host_blocker = objreg.get('host-blocker')
-        if host_blocker.is_blocked(url):
+        request = interceptors.Request(first_party_url=None, request_url=url)
+        interceptors.run(request)
+        if request.is_blocked:
             log.downloads.debug("Skipping {}, host-blocked".format(url))
             # We still need an empty file in the output, QWebView can be pretty
             # picky about displaying a file correctly when not all assets are
@@ -379,6 +389,8 @@ class _Downloader:
             url: The original url of the asset as QUrl.
             item: The DownloadItem given by the DownloadManager
         """
+        assert self.writer is not None
+
         self.pending_downloads.remove((url, item))
         mime = item.raw_headers.get(b'Content-Type', b'')
 
@@ -429,6 +441,7 @@ class _Downloader:
             url: The original url of the asset as QUrl.
             item: The DownloadItem given by the DownloadManager.
         """
+        assert self.writer is not None
         try:
             self.pending_downloads.remove((url, item))
         except KeyError:
@@ -459,6 +472,8 @@ class _Downloader:
 
     def _finish_file(self):
         """Save the file to the filename given in __init__."""
+        assert self.writer is not None
+
         if self._finished_file:
             log.downloads.debug("finish_file called twice, ignored!")
             return
@@ -516,7 +531,6 @@ class _NoCloseBytesIO(io.BytesIO):
 
     def close(self):
         """Do nothing."""
-        pass
 
     def actual_close(self):
         """Close the stream."""

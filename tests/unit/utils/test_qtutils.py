@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -29,8 +29,9 @@ import unittest.mock
 import pytest
 from PyQt5.QtCore import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
                           QTimer, QBuffer, QFile, QProcess, QFileDevice)
+from PyQt5.QtGui import QColor
 
-from qutebrowser.utils import qtutils, utils
+from qutebrowser.utils import qtutils, utils, usertypes
 import overflow_test_cases
 
 if utils.is_linux:
@@ -111,6 +112,18 @@ def test_is_new_qtwebkit(monkeypatch, version, is_new):
     assert qtutils.is_new_qtwebkit() == is_new
 
 
+@pytest.mark.parametrize('backend, arguments, single_process', [
+    (usertypes.Backend.QtWebKit, ['--single-process'], False),
+    (usertypes.Backend.QtWebEngine, ['--single-process'], True),
+    (usertypes.Backend.QtWebEngine, [], False),
+])
+def test_is_single_process(monkeypatch, stubs, backend, arguments, single_process):
+    qapp = stubs.FakeQApplication(arguments=arguments)
+    monkeypatch.setattr(qtutils, 'QApplication', qapp)
+    monkeypatch.setattr(qtutils.objects, 'backend', backend)
+    assert qtutils.is_single_process() == single_process
+
+
 class TestCheckOverflow:
 
     """Test check_overflow."""
@@ -153,8 +166,7 @@ class QtObject:
         """Get the fake error, or raise AttributeError if set to None."""
         if self._error is None:
             raise AttributeError
-        else:
-            return self._error
+        return self._error
 
     def isValid(self):
         return self._valid
@@ -222,6 +234,20 @@ def test_qdatastream_status_count():
     values = vars(QDataStream).values()
     status_vals = [e for e in values if isinstance(e, QDataStream.Status)]
     assert len(status_vals) == 4
+
+
+@pytest.mark.parametrize('color, expected', [
+    (QColor('red'), 'rgba(255, 0, 0, 255)'),
+    (QColor('blue'), 'rgba(0, 0, 255, 255)'),
+    (QColor(1, 3, 5, 7), 'rgba(1, 3, 5, 7)'),
+])
+def test_qcolor_to_qsscolor(color, expected):
+    assert qtutils.qcolor_to_qsscolor(color) == expected
+
+
+def test_qcolor_to_qsscolor_invalid():
+    with pytest.raises(qtutils.QtValueError):
+        qtutils.qcolor_to_qsscolor(QColor())
 
 
 @pytest.mark.parametrize('obj', [
@@ -335,8 +361,6 @@ class TestSerializeStream:
 class SavefileTestException(Exception):
 
     """Exception raised in TestSavefileOpen for testing."""
-
-    pass
 
 
 @pytest.mark.usefixtures('qapp')
@@ -541,7 +565,6 @@ if test_file is not None:
 
         def testReadinto_text(self):
             """Skip this test as BufferedIOBase seems to fail it."""
-            pass
 
     class PyOtherFileTests(PyIODeviceTestMixin, test_file.OtherFileTests,
                            unittest.TestCase):
@@ -550,11 +573,9 @@ if test_file is not None:
 
         def testSetBufferSize(self):
             """Skip this test as setting buffer size is unsupported."""
-            pass
 
         def testTruncateOnWindows(self):
             """Skip this test truncating is unsupported."""
-            pass
 
 
 class FailingQIODevice(QIODevice):

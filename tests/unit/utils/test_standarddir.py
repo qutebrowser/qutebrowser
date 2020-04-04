@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -32,7 +32,7 @@ import attr
 from PyQt5.QtCore import QStandardPaths
 import pytest
 
-from qutebrowser.utils import standarddir, utils
+from qutebrowser.utils import standarddir, utils, qtutils
 
 
 # Use a different application name for tests to make sure we don't change real
@@ -142,8 +142,6 @@ class TestWritableLocation:
 
 class TestStandardDir:
 
-    """Tests for standarddir."""
-
     @pytest.mark.parametrize('func, varname', [
         (standarddir.data, 'XDG_DATA_HOME'),
         (standarddir.config, 'XDG_CONFIG_HOME'),
@@ -160,6 +158,9 @@ class TestStandardDir:
             varname: The environment variable which should be set.
         """
         monkeypatch.setenv(varname, str(tmpdir))
+        if varname == 'XDG_RUNTIME_DIR':
+            tmpdir.chmod(0o0700)
+
         standarddir._init_dirs()
         assert func() == str(tmpdir / APPNAME)
 
@@ -181,12 +182,15 @@ class TestStandardDir:
 
     @pytest.mark.linux
     @pytest.mark.qt_log_ignore(r'^QStandardPaths: ')
+    @pytest.mark.skipif(
+        qtutils.version_check('5.14', compiled=False),
+        reason="Qt 5.14 automatically creates missing runtime dirs")
     def test_linux_invalid_runtimedir(self, monkeypatch, tmpdir):
         """With invalid XDG_RUNTIME_DIR, fall back to TempLocation."""
         tmpdir_env = tmpdir / 'temp'
         tmpdir_env.ensure(dir=True)
         monkeypatch.setenv('XDG_RUNTIME_DIR', str(tmpdir / 'does-not-exist'))
-        monkeypatch.setenv('TMPDIR', tmpdir_env)
+        monkeypatch.setenv('TMPDIR', str(tmpdir_env))
 
         standarddir._init_dirs()
         assert standarddir.runtime() == str(tmpdir_env / APPNAME)
@@ -253,6 +257,24 @@ class TestArguments:
             standarddir._init_dirs(args)
             assert standarddir.config() == str(basedir / 'config')
 
+    def test_config_py_arg(self, tmpdir):
+        basedir = tmpdir / 'basedir'
+        basedir.ensure(dir=True)
+        with tmpdir.as_cwd():
+            args = types.SimpleNamespace(
+                basedir='foo', config_py='basedir/config.py')
+            standarddir._init_dirs(args)
+            assert standarddir.config_py() == str(basedir / 'config.py')
+
+    def test_config_py_no_arg(self, tmpdir):
+        basedir = tmpdir / 'basedir'
+        basedir.ensure(dir=True)
+        with tmpdir.as_cwd():
+            args = types.SimpleNamespace(basedir='basedir')
+            standarddir._init_dirs(args)
+            assert standarddir.config_py() == str(
+                basedir / 'config' / 'config.py')
+
 
 class TestInitCacheDirTag:
 
@@ -288,8 +310,7 @@ class TestInitCacheDirTag:
         mocker.patch('builtins.open', side_effect=OSError)
         with caplog.at_level(logging.ERROR, 'init'):
             standarddir._init_cachedir_tag()
-        assert len(caplog.records) == 1
-        assert caplog.records[0].message == 'Failed to create CACHEDIR.TAG'
+        assert caplog.messages == ['Failed to create CACHEDIR.TAG']
         assert not tmpdir.listdir()
 
 
@@ -455,8 +476,8 @@ class TestMove:
     def test_no_old_dir(self, dirs, caplog):
         """Nothing should happen without any old directory."""
         standarddir._move_data(str(dirs.old), str(dirs.new))
-        assert not any(rec.message.startswith('Migrating data from')
-                       for rec in caplog.records)
+        assert not any(message.startswith('Migrating data from')
+                       for message in caplog.messages)
 
     @pytest.mark.parametrize('empty_dest', [True, False])
     def test_moving_data(self, dirs, empty_dest):
@@ -475,10 +496,9 @@ class TestMove:
         with caplog.at_level(logging.ERROR):
             standarddir._move_data(str(dirs.old), str(dirs.new))
 
-        record = caplog.records[-1]
         expected = "Failed to move data from {} as {} is non-empty!".format(
             dirs.old, dirs.new)
-        assert record.message == expected
+        assert caplog.messages[-1] == expected
 
     def test_deleting_error(self, dirs, monkeypatch, mocker, caplog):
         """When there was an error it should be logged."""
@@ -489,10 +509,9 @@ class TestMove:
         with caplog.at_level(logging.ERROR):
             standarddir._move_data(str(dirs.old), str(dirs.new))
 
-        record = caplog.records[-1]
         expected = "Failed to move data from {} to {}: error".format(
             dirs.old, dirs.new)
-        assert record.message == expected
+        assert caplog.messages[-1] == expected
 
 
 @pytest.mark.parametrize('args_kind', ['basedir', 'normal', 'none'])

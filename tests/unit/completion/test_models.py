@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2020 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -27,11 +27,11 @@ from datetime import datetime
 import pytest
 from PyQt5.QtCore import QUrl
 
+from qutebrowser.misc import objects
 from qutebrowser.completion import completer
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.config import configdata, configtypes
 from qutebrowser.utils import usertypes
-from qutebrowser.commands import cmdutils
 
 
 def _check_completions(model, expected):
@@ -66,7 +66,7 @@ def _check_completions(model, expected):
 @pytest.fixture()
 def cmdutils_stub(monkeypatch, stubs):
     """Patch the cmdutils module to provide fake commands."""
-    return monkeypatch.setattr(cmdutils, 'cmd_dict', {
+    return monkeypatch.setattr(objects, 'commands', {
         'quit': stubs.FakeCommand(name='quit', desc='quit qutebrowser'),
         'open': stubs.FakeCommand(name='open', desc='open a url'),
         'prompt-yes': stubs.FakeCommand(name='prompt-yes', deprecated=True),
@@ -430,12 +430,6 @@ def test_bookmark_completion_delete(qtmodeltester, bookmarks, row, removed):
     assert before.difference(after) == {removed}
 
 
-@pytest.fixture(autouse=True)
-def url_args(fake_args):
-    """Prepare arguments needed to test the URL completion."""
-    fake_args.debug_flags = []
-
-
 def test_url_completion(qtmodeltester, config_stub, web_history_populated,
                         quickmarks, bookmarks, info):
     """Test the results of url completion.
@@ -683,7 +677,7 @@ def test_session_completion(qtmodeltester, session_manager_stub):
     })
 
 
-def test_tab_completion(qtmodeltester, fake_web_tab, app_stub, win_registry,
+def test_tab_completion(qtmodeltester, fake_web_tab, win_registry,
                         tabbed_browser_stubs):
     tabbed_browser_stubs[0].widget.tabs = [
         fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
@@ -709,8 +703,8 @@ def test_tab_completion(qtmodeltester, fake_web_tab, app_stub, win_registry,
     })
 
 
-def test_tab_completion_delete(qtmodeltester, fake_web_tab, app_stub,
-                               win_registry, tabbed_browser_stubs):
+def test_tab_completion_delete(qtmodeltester, fake_web_tab, win_registry,
+                               tabbed_browser_stubs):
     """Verify closing a tab by deleting it from the completion widget."""
     tabbed_browser_stubs[0].widget.tabs = [
         fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
@@ -737,8 +731,8 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, app_stub,
                       QUrl('https://duckduckgo.com')]
 
 
-def test_tab_completion_not_sorted(qtmodeltester, fake_web_tab, app_stub,
-                                   win_registry, tabbed_browser_stubs):
+def test_tab_completion_not_sorted(qtmodeltester, fake_web_tab, win_registry,
+                                   tabbed_browser_stubs):
     """Ensure that the completion row order is the same as tab index order.
 
     Would be violated for more than 9 tabs if the completion was being
@@ -764,8 +758,36 @@ def test_tab_completion_not_sorted(qtmodeltester, fake_web_tab, app_stub,
     })
 
 
-def test_other_buffer_completion(qtmodeltester, fake_web_tab, app_stub,
-                                 win_registry, tabbed_browser_stubs, info):
+def test_tab_completion_tabs_are_windows(qtmodeltester, fake_web_tab,
+                                         win_registry, tabbed_browser_stubs,
+                                         config_stub):
+    """Verify tabs across all windows are listed under a single category."""
+    tabbed_browser_stubs[0].widget.tabs = [
+        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
+        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
+    ]
+    tabbed_browser_stubs[1].widget.tabs = [
+        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
+    ]
+
+    config_stub.val.tabs.tabs_are_windows = True
+    model = miscmodels.buffer()
+    model.set_pattern('')
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        'Windows': [
+            ('0/1', 'https://github.com', 'GitHub'),
+            ('0/2', 'https://wikipedia.org', 'Wikipedia'),
+            ('0/3', 'https://duckduckgo.com', 'DuckDuckGo'),
+            ('1/1', 'https://wiki.archlinux.org', 'ArchWiki'),
+        ]
+    })
+
+
+def test_other_buffer_completion(qtmodeltester, fake_web_tab, win_registry,
+                                 tabbed_browser_stubs, info):
     tabbed_browser_stubs[0].widget.tabs = [
         fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
         fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
@@ -788,7 +810,7 @@ def test_other_buffer_completion(qtmodeltester, fake_web_tab, app_stub,
     })
 
 
-def test_other_buffer_completion_id0(qtmodeltester, fake_web_tab, app_stub,
+def test_other_buffer_completion_id0(qtmodeltester, fake_web_tab,
                                      win_registry, tabbed_browser_stubs, info):
     tabbed_browser_stubs[0].widget.tabs = [
         fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),

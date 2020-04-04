@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,6 +19,8 @@
 
 """Misc. widgets used at different places."""
 
+import typing
+
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QTimer
 from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
                              QStyleOption, QStyle, QLayout, QApplication)
@@ -34,14 +36,16 @@ class MinimalLineEditMixin:
     """A mixin to give a QLineEdit a minimal look and nicer repr()."""
 
     def __init__(self):
-        self.setStyleSheet("""
+        self.setStyleSheet(  # type: ignore
+            """
             QLineEdit {
                 border: 0px;
                 padding-left: 1px;
                 background-color: transparent;
             }
-        """)
-        self.setAttribute(Qt.WA_MacShowFocusRect, False)
+            """
+        )
+        self.setAttribute(Qt.WA_MacShowFocusRect, False)  # type: ignore
 
     def keyPressEvent(self, e):
         """Override keyPressEvent to paste primary selection on Shift + Ins."""
@@ -52,9 +56,9 @@ class MinimalLineEditMixin:
                 e.ignore()
             else:
                 e.accept()
-                self.insert(text)
+                self.insert(text)  # type: ignore
             return
-        super().keyPressEvent(e)
+        super().keyPressEvent(e)  # type: ignore
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -94,7 +98,7 @@ class CommandLineEdit(QLineEdit):
         We use __ here to avoid accidentally overriding it in subclasses.
         """
         if new < self._promptlen:
-            self.setCursorPosition(self._promptlen)
+            self.cursorForward(self.hasSelectedText(), self._promptlen - new)
 
     def set_prompt(self, text):
         """Set the current prompt to text.
@@ -104,13 +108,6 @@ class CommandLineEdit(QLineEdit):
         """
         self._validator.prompt = text
         self._promptlen = len(text)
-
-    def home(self, mark):
-        """Override home so it works properly with our cursor restriction."""
-        oldpos = self.cursorPosition()
-        self.setCursorPosition(self._promptlen)
-        if mark:
-            self.setSelection(self._promptlen, oldpos - self._promptlen)
 
 
 class _CommandValidator(QValidator):
@@ -238,7 +235,7 @@ class WrapperLayout(QLayout):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._widget = None
+        self._widget = typing.cast(QWidget, None)
 
     def addItem(self, _widget):
         raise utils.Unreachable
@@ -262,7 +259,7 @@ class WrapperLayout(QLayout):
         widget.setParent(container)
 
     def unwrap(self):
-        self._widget.setParent(None)
+        self._widget.setParent(None)  # type: ignore
         self._widget.deleteLater()
 
 
@@ -333,7 +330,7 @@ class FullscreenNotification(QLabel):
             geom = self.parentWidget().geometry()
         else:
             geom = QApplication.desktop().screenGeometry(self)
-        self.move((geom.width() - self.sizeHint().width()) / 2, 30)
+        self.move((geom.width() - self.sizeHint().width()) // 2, 30)
 
     def set_timeout(self, timeout):
         """Hide the widget after the given timeout."""
