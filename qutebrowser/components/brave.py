@@ -171,6 +171,7 @@ class BraveAdBlocker:
     def _on_lists_downloaded(self) -> None:
         """Install block lists after files have been downloaded."""
         self._engine.serialize_to_file(self._cache_path)
+        logger.info("Block lists have bene successfully imported")
 
     def update_files(self) -> None:
         """Update files when the config changed."""
