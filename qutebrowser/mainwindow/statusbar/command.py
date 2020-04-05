@@ -121,6 +121,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
                              count: int = None,
                              space: bool = False,
                              append: bool = False,
+                             insert: bool = False,
                              run_on_count: bool = False) -> None:
         """Preset the statusbar to some text.
 
@@ -134,15 +135,25 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             count: The count if given.
             space: If given, a space is added to the end.
             append: If given, the text is appended to the current text.
+            insert: If given, the text is inserted in the current text
+                    at cursor position. This cannot be used with append
             run_on_count: If given with a count, the command is run with the
                           given count rather than setting the command text.
         """
         if space:
             text += ' '
+        if append and insert:
+            raise cmdutils.CommandError(
+                "Can't insert and append at the same time")
         if append:
             if not self.text():
                 raise cmdutils.CommandError("No current text!")
             text = self.text() + text
+        elif insert:
+            old_cursor_position = self.cursorPosition()
+            new_cursor_position = old_cursor_position + len(text)
+            text = (self.text()[:old_cursor_position] +
+                    text + self.text()[old_cursor_position:])
 
         if not text or text[0] not in modeparsers.STARTCHARS:
             raise cmdutils.CommandError(
@@ -151,6 +162,8 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             self.got_cmd[str, int].emit(text, count)  # type: ignore
         else:
             self.set_cmd_text(text)
+            if insert:
+                self.setCursorPosition(new_cursor_position)
 
     @cmdutils.register(instance='status-command',
                        modes=[usertypes.KeyMode.command], scope='window')
