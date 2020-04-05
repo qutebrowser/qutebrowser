@@ -40,6 +40,21 @@ logger = logging.getLogger('misc')
 _host_blocker = typing.cast('HostBlocker', None)
 
 
+def _is_whitelisted_url(url: QUrl) -> bool:
+    """Check if the given URL is on the adblock whitelist."""
+
+    # Prevent a block-list for being able to block itself, otherwise you
+    # couldn't update it.
+    if config.val.content.ad_blocking.lists is not None:
+        # FIXME: This list comprehension is probably too expensive to do for
+        # every request. There must be a better way.
+        block_list_urls = [url.toString() for url in config.val.content.ad_blocking.lists]
+        if url.toString() in block_list_urls:
+            return True
+
+    return False
+
+
 # TODO: Move this code somewhere so that `adblock.py` can make use of it too.
 class _FakeDownload(downloads.TempDownload):
 
@@ -84,6 +99,9 @@ class BraveAdBlocker:
         if not config.get('content.ad_blocking.enabled',
                           url=first_party_url):
             # Do nothing if adblocking is disabled.
+            return
+
+        if _is_whitelisted_url(info.request_url):
             return
 
         result = self._engine.check_network_urls(
