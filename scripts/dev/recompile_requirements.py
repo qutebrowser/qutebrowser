@@ -113,15 +113,16 @@ def get_all_names():
         yield basename[len('requirements-'):-len('.txt-raw')]
 
 
-def init_venv(host_python, tmpdir, filename):
-    subprocess.run([host_python, '-m', 'venv', tmpdir], check=True)
+def init_venv(host_python, venv_dir, requirements):
+    """Initialize a new virtualenv and install the given packages."""
+    subprocess.run([host_python, '-m', 'venv', venv_dir], check=True)
 
-    venv_python = os.path.join(tmpdir, 'bin', 'python')
+    venv_python = os.path.join(venv_dir, 'bin', 'python')
     subprocess.run([venv_python, '-m', 'pip',
                     'install', '-U', 'pip'], check=True)
 
     subprocess.run([venv_python, '-m', 'pip',
-                    'install', '-r', filename], check=True)
+                    'install', '-r', requirements], check=True)
     subprocess.run([venv_python, '-m', 'pip', 'check'], check=True)
     return venv_python
 
