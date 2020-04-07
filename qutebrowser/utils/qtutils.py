@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# FIXME:typing Can we have less "# type: ignore" in here?
+
 """Misc. utilities related to Qt.
 
 Module attributes:
@@ -31,7 +33,7 @@ Module attributes:
 import io
 import operator
 import contextlib
-import typing  # pylint: disable=unused-import,useless-suppression
+import typing
 
 import pkg_resources
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
@@ -116,7 +118,7 @@ def is_new_qtwebkit() -> bool:
             pkg_resources.parse_version('538.1'))
 
 
-def is_single_process():
+def is_single_process() -> bool:
     """Check whether QtWebEngine is running in single-process mode."""
     if objects.backend == usertypes.Backend.QtWebKit:
         return False
@@ -199,7 +201,11 @@ def deserialize_stream(stream: QDataStream, obj: QObject) -> None:
 
 
 @contextlib.contextmanager
-def savefile_open(filename, binary=False, encoding='utf-8'):
+def savefile_open(
+        filename: str,
+        binary: bool = False,
+        encoding: str = 'utf-8'
+) -> typing.Iterator[typing.Union['PyQIODevice', io.TextIOWrapper]]:
     """Context manager to easily use a QSaveFile."""
     f = QSaveFile(filename)
     cancelled = False
@@ -209,9 +215,11 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
             raise QtOSError(f)
 
         if binary:
-            new_f = PyQIODevice(f)
+            new_f = PyQIODevice(
+                f)  # type: typing.Union[PyQIODevice, io.TextIOWrapper]
         else:
-            new_f = io.TextIOWrapper(PyQIODevice(f), encoding=encoding)
+            new_f = io.TextIOWrapper(PyQIODevice(f),  # type: ignore
+                                     encoding=encoding)
 
         yield new_f
 
@@ -268,7 +276,7 @@ class PyQIODevice(io.BufferedIOBase):
         if not self.writable():
             raise OSError("Trying to write to unwritable file!")
 
-    def open(self, mode):
+    def open(self, mode: QIODevice.OpenMode) -> contextlib.closing:
         """Open the underlying device and ensure opening succeeded.
 
         Raises OSError if opening failed.
@@ -289,10 +297,10 @@ class PyQIODevice(io.BufferedIOBase):
         """Close the underlying device."""
         self.dev.close()
 
-    def fileno(self):
+    def fileno(self) -> int:
         raise io.UnsupportedOperation
 
-    def seek(self, offset, whence=io.SEEK_SET):
+    def seek(self, offset: int, whence: int = io.SEEK_SET) -> int:
         self._check_open()
         self._check_random()
         if whence == io.SEEK_SET:
@@ -307,7 +315,9 @@ class PyQIODevice(io.BufferedIOBase):
         if not ok:
             raise QtOSError(self.dev, msg="seek failed!")
 
-    def truncate(self, size=None):
+        return self.dev.pos()
+
+    def truncate(self, size: int = None) -> int:
         raise io.UnsupportedOperation
 
     @property
@@ -325,7 +335,7 @@ class PyQIODevice(io.BufferedIOBase):
     def readable(self) -> bool:
         return self.dev.isReadable()
 
-    def readline(self, size=-1):
+    def readline(self, size: int = -1) -> QByteArray:
         self._check_open()
         self._check_readable()
 
@@ -346,7 +356,7 @@ class PyQIODevice(io.BufferedIOBase):
 
         if buf is None:
             raise QtOSError(self.dev)
-        return buf
+        return buf  # type: ignore
 
     def seekable(self) -> bool:
         return not self.dev.isSequential()
@@ -359,23 +369,26 @@ class PyQIODevice(io.BufferedIOBase):
     def writable(self) -> bool:
         return self.dev.isWritable()
 
-    def write(self, b: bytes) -> int:
+    def write(self, data: str) -> int:  # type: ignore
         self._check_open()
         self._check_writable()
-        num = self.dev.write(b)
-        if num == -1 or num < len(b):
+        num = self.dev.write(data)  # type: ignore
+        if num == -1 or num < len(data):
             raise QtOSError(self.dev)
         return num
 
-    def read(self, size=-1):
+    def read(self, size: typing.Optional[int] = None) -> QByteArray:
         self._check_open()
         self._check_readable()
-        if size < 0:
+
+        if size in [None, -1]:
             buf = self.dev.readAll()
         else:
-            buf = self.dev.read(size)
+            buf = self.dev.read(size)  # type: ignore
+
         if buf is None:
             raise QtOSError(self.dev)
+
         return buf
 
 
@@ -405,11 +418,14 @@ class EventLoop(QEventLoop):
         super().__init__(parent)
         self._executing = False
 
-    def exec_(self, flags=QEventLoop.AllEvents):
+    def exec_(
+            self,
+            flags: QEventLoop.ProcessEventsFlag = QEventLoop.AllEvents
+    ) -> int:
         """Override exec_ to raise an exception when re-running."""
         if self._executing:
             raise AssertionError("Eventloop is already running!")
         self._executing = True
-        status = super().exec_(flags)
+        status = super().exec_(flags)  # type: ignore
         self._executing = False
         return status

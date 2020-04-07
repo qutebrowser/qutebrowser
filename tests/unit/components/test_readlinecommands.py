@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,15 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.misc.readline."""
-
 import re
 import inspect
 
 from PyQt5.QtWidgets import QLineEdit, QApplication
 import pytest
 
-from qutebrowser.misc import readline
+from qutebrowser.components import readlinecommands
 
 
 # Some functions aren't 100% readline compatible:
@@ -96,12 +94,11 @@ class LineEdit(QLineEdit):
         return ''.join(chars)
 
 
-def _validate_deletion(lineedit, bridge, method, text, deleted, rest):
+def _validate_deletion(lineedit, method, text, deleted, rest):
     """Run and validate a text deletion method on the ReadLine bridge.
 
     Args:
         lineedit: The LineEdit instance.
-        bridge: The ReadlineBridge instance.
         method: Reference to the method on the bridge to test.
         text: The starting 'augmented' text (see LineEdit.set_aug_text)
         deleted: The text that should be deleted when the method is invoked.
@@ -109,10 +106,10 @@ def _validate_deletion(lineedit, bridge, method, text, deleted, rest):
     """
     lineedit.set_aug_text(text)
     method()
-    assert bridge._deleted[lineedit] == deleted
+    assert readlinecommands.bridge._deleted[lineedit] == deleted
     assert lineedit.aug_text() == rest
     lineedit.clear()
-    bridge.rl_yank()
+    readlinecommands.rl_yank()
     assert lineedit.aug_text() == deleted + '|'
 
 
@@ -125,45 +122,40 @@ def lineedit(qtbot, monkeypatch):
     return le
 
 
-@pytest.fixture
-def bridge():
-    """Fixture providing a ReadlineBridge."""
-    return readline.ReadlineBridge()
-
-
-def test_none(bridge, qtbot):
+def test_none(qtbot):
     """Call each rl_* method with a None focusWidget."""
     assert QApplication.instance().focusWidget() is None
-    for name, method in inspect.getmembers(bridge, inspect.ismethod):
+    for name, method in inspect.getmembers(readlinecommands,
+                                           inspect.isfunction):
         if name.startswith('rl_'):
             method()
 
 
 @pytest.mark.parametrize('text, expected', [('f<oo>bar', 'fo|obar'),
                                             ('|foobar', '|foobar')])
-def test_rl_backward_char(text, expected, lineedit, bridge):
+def test_rl_backward_char(text, expected, lineedit):
     """Test rl_backward_char."""
     lineedit.set_aug_text(text)
-    bridge.rl_backward_char()
+    readlinecommands.rl_backward_char()
     assert lineedit.aug_text() == expected
 
 
 @pytest.mark.parametrize('text, expected', [('f<oo>bar', 'foob|ar'),
                                             ('foobar|', 'foobar|')])
-def test_rl_forward_char(text, expected, lineedit, bridge):
+def test_rl_forward_char(text, expected, lineedit):
     """Test rl_forward_char."""
     lineedit.set_aug_text(text)
-    bridge.rl_forward_char()
+    readlinecommands.rl_forward_char()
     assert lineedit.aug_text() == expected
 
 
 @pytest.mark.parametrize('text, expected', [('one <tw>o', 'one |two'),
                                             ('<one >two', '|one two'),
                                             ('|one two', '|one two')])
-def test_rl_backward_word(text, expected, lineedit, bridge):
+def test_rl_backward_word(text, expected, lineedit):
     """Test rl_backward_word."""
     lineedit.set_aug_text(text)
-    bridge.rl_backward_word()
+    readlinecommands.rl_backward_word()
     assert lineedit.aug_text() == expected
 
 
@@ -174,24 +166,24 @@ def test_rl_backward_word(text, expected, lineedit, bridge):
     ('<one> two', 'one |two'),  # wrong
     ('one t<wo>', 'one two|')
 ])
-def test_rl_forward_word(text, expected, lineedit, bridge):
+def test_rl_forward_word(text, expected, lineedit):
     """Test rl_forward_word."""
     lineedit.set_aug_text(text)
-    bridge.rl_forward_word()
+    readlinecommands.rl_forward_word()
     assert lineedit.aug_text() == expected
 
 
-def test_rl_beginning_of_line(lineedit, bridge):
+def test_rl_beginning_of_line(lineedit):
     """Test rl_beginning_of_line."""
     lineedit.set_aug_text('f<oo>bar')
-    bridge.rl_beginning_of_line()
+    readlinecommands.rl_beginning_of_line()
     assert lineedit.aug_text() == '|foobar'
 
 
-def test_rl_end_of_line(lineedit, bridge):
+def test_rl_end_of_line(lineedit):
     """Test rl_end_of_line."""
     lineedit.set_aug_text('f<oo>bar')
-    bridge.rl_end_of_line()
+    readlinecommands.rl_end_of_line()
     assert lineedit.aug_text() == 'foobar|'
 
 
@@ -199,10 +191,10 @@ def test_rl_end_of_line(lineedit, bridge):
                                             ('foobar|', 'foobar|'),
                                             ('|foobar', '|oobar'),
                                             ('f<oo>bar', 'f|bar')])
-def test_rl_delete_char(text, expected, lineedit, bridge):
+def test_rl_delete_char(text, expected, lineedit):
     """Test rl_delete_char."""
     lineedit.set_aug_text(text)
-    bridge.rl_delete_char()
+    readlinecommands.rl_delete_char()
     assert lineedit.aug_text() == expected
 
 
@@ -210,10 +202,10 @@ def test_rl_delete_char(text, expected, lineedit, bridge):
                                             ('foobar|', 'fooba|'),
                                             ('|foobar', '|foobar'),
                                             ('f<oo>bar', 'f|bar')])
-def test_rl_backward_delete_char(text, expected, lineedit, bridge):
+def test_rl_backward_delete_char(text, expected, lineedit):
     """Test rl_backward_delete_char."""
     lineedit.set_aug_text(text)
-    bridge.rl_backward_delete_char()
+    readlinecommands.rl_backward_delete_char()
     assert lineedit.aug_text() == expected
 
 
@@ -224,10 +216,10 @@ def test_rl_backward_delete_char(text, expected, lineedit, bridge):
     pytest.param('f<oo>bar', 'foo', '|bar', marks=fixme),
     ('f<oo>bar', 'f', '|oobar'),  # wrong
 ])
-def test_rl_unix_line_discard(lineedit, bridge, text, deleted, rest):
+def test_rl_unix_line_discard(lineedit, text, deleted, rest):
     """Delete from the cursor to the beginning of the line and yank back."""
-    _validate_deletion(lineedit, bridge, bridge.rl_unix_line_discard, text,
-                       deleted, rest)
+    _validate_deletion(lineedit, readlinecommands.rl_unix_line_discard,
+                       text, deleted, rest)
 
 
 @pytest.mark.parametrize('text, deleted, rest', [
@@ -236,10 +228,10 @@ def test_rl_unix_line_discard(lineedit, bridge, text, deleted, rest):
                  marks=fixme),
     ('<test >delete this', 'test delete this', '|'),  # wrong
 ])
-def test_rl_kill_line(lineedit, bridge, text, deleted, rest):
+def test_rl_kill_line(lineedit, text, deleted, rest):
     """Delete from the cursor to the end of line and yank back."""
-    _validate_deletion(lineedit, bridge, bridge.rl_kill_line, text, deleted,
-                       rest)
+    _validate_deletion(lineedit, readlinecommands.rl_kill_line,
+                       text, deleted, rest)
 
 
 @pytest.mark.parametrize('text, deleted, rest', [
@@ -251,10 +243,10 @@ def test_rl_kill_line(lineedit, bridge, text, deleted, rest):
                  marks=fixme),
     ('test del<ete >foobar', 'del', 'test |ete foobar'),  # wrong
 ])
-def test_rl_unix_word_rubout(lineedit, bridge, text, deleted, rest):
+def test_rl_unix_word_rubout(lineedit, text, deleted, rest):
     """Delete to word beginning and see if it comes back with yank."""
-    _validate_deletion(lineedit, bridge, bridge.rl_unix_word_rubout, text,
-                       deleted, rest)
+    _validate_deletion(lineedit, readlinecommands.rl_unix_word_rubout,
+                       text, deleted, rest)
 
 
 @pytest.mark.parametrize('text, deleted, rest', [
@@ -264,10 +256,10 @@ def test_rl_unix_word_rubout(lineedit, bridge, text, deleted, rest):
     ('open -t |github.com/foo/bar', '-t ', 'open |github.com/foo/bar'),
     ('open foo/bar.baz|', 'bar.baz', 'open foo/|'),
 ])
-def test_rl_unix_filename_rubout(lineedit, bridge, text, deleted, rest):
+def test_rl_unix_filename_rubout(lineedit, text, deleted, rest):
     """Delete filename segment and see if it comes back with yank."""
-    _validate_deletion(lineedit, bridge, bridge.rl_unix_filename_rubout, text,
-                       deleted, rest)
+    _validate_deletion(lineedit, readlinecommands.rl_unix_filename_rubout,
+                       text, deleted, rest)
 
 
 @pytest.mark.parametrize('text, deleted, rest', [
@@ -281,10 +273,10 @@ def test_rl_unix_filename_rubout(lineedit, bridge, text, deleted, rest):
                  marks=fixme),
     ('test foo<bar>delete', 'bardelete', 'test foo|'),  # wrong
 ])
-def test_rl_kill_word(lineedit, bridge, text, deleted, rest):
+def test_rl_kill_word(lineedit, text, deleted, rest):
     """Delete to word end and see if it comes back with yank."""
-    _validate_deletion(lineedit, bridge, bridge.rl_kill_word, text, deleted,
-                       rest)
+    _validate_deletion(lineedit, readlinecommands.rl_kill_word,
+                       text, deleted, rest)
 
 
 @pytest.mark.parametrize('text, deleted, rest', [
@@ -296,14 +288,14 @@ def test_rl_kill_word(lineedit, bridge, text, deleted, rest):
     ('test del<ete >foobar', 'del', 'test |ete foobar'),  # wrong
     ('open foo/bar.baz|', 'baz', 'open foo/bar.|'),
 ])
-def test_rl_backward_kill_word(lineedit, bridge, text, deleted, rest):
+def test_rl_backward_kill_word(lineedit, text, deleted, rest):
     """Delete to word beginning and see if it comes back with yank."""
-    _validate_deletion(lineedit, bridge, bridge.rl_backward_kill_word, text,
-                       deleted, rest)
+    _validate_deletion(lineedit, readlinecommands.rl_backward_kill_word,
+                       text, deleted, rest)
 
 
-def test_rl_yank_no_text(lineedit, bridge):
+def test_rl_yank_no_text(lineedit):
     """Test yank without having deleted anything."""
     lineedit.clear()
-    bridge.rl_yank()
+    readlinecommands.rl_yank()
     assert lineedit.aug_text() == '|'

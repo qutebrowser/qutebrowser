@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2017-2018 Imran Sobir
 #
 # This file is part of qutebrowser.
@@ -101,7 +101,6 @@ class TestHistoryHandler:
     @pytest.fixture(autouse=True)
     def fake_history(self, web_history, fake_args, entries):
         """Create fake history."""
-        fake_args.debug_flags = []
         for item in entries:
             web_history.add_url(**item)
 
@@ -210,13 +209,34 @@ class TestPDFJSHandler:
 
     def test_viewer_page(self, data_tmpdir):
         """Load the /web/viewer.html page."""
+        filename = 'foobar.pdf'
+        path = qutescheme._pdf_path(filename)
+
+        # Make sure that the file exists otherwise the handler will attempt to
+        # redirect to source (it's not necessary to make sure that it's valid
+        # PDF content)
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write('<pdf content>')
+
         _mimetype, data = qutescheme.data_for_url(
-            QUrl('qute://pdfjs/web/viewer.html?filename=foobar'))
+            QUrl('qute://pdfjs/web/viewer.html?filename=' + filename))
         assert b'PDF.js' in data
 
     def test_viewer_no_filename(self):
-        with pytest.raises(qutescheme.UrlInvalidError):
+        with pytest.raises(qutescheme.UrlInvalidError,
+                           match='Missing filename'):
             qutescheme.data_for_url(QUrl('qute://pdfjs/web/viewer.html'))
+
+    def test_viewer_inexistent_file(self):
+        with pytest.raises(qutescheme.Redirect):
+            qutescheme.data_for_url(QUrl('qute://pdfjs/web/viewer.html?'
+                                         'filename=foobar&source=example.org'))
+
+    def test_viewer_inexistent_file_no_source(self):
+        with pytest.raises(qutescheme.UrlInvalidError,
+                           match='Missing source'):
+            qutescheme.data_for_url(
+                QUrl('qute://pdfjs/web/viewer.html?filename=foobar'))
 
     def test_file(self, download_tmpdir):
         """Load a file via qute://pdfjs/file."""

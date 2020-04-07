@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -48,9 +48,13 @@ def sess_man(tmpdir):
 class TestInit:
 
     @pytest.fixture(autouse=True)
-    def cleanup(self):
+    def cleanup(self, monkeypatch):
+        monkeypatch.setattr(sessions, 'session_manager', None)
         yield
-        objreg.delete('session-manager')
+        try:
+            objreg.delete('session-manager')
+        except KeyError:
+            pass
 
     @pytest.mark.parametrize('create_dir', [True, False])
     def test_with_standarddir(self, tmpdir, monkeypatch, create_dir):
@@ -60,10 +64,9 @@ class TestInit:
             session_dir.ensure(dir=True)
 
         sessions.init()
-        manager = objreg.get('session-manager')
 
         assert session_dir.exists()
-        assert manager._base_path == str(session_dir)
+        assert sessions.session_manager._base_path == str(session_dir)
 
 
 def test_did_not_load(sess_man):
@@ -171,7 +174,7 @@ class TestSaveAll:
 def test_get_session_name(config_stub, sess_man, arg, config, current,
                           expected):
     config_stub.val.session.default_name = config
-    sess_man._current = current
+    sess_man.current = current
     assert sess_man._get_session_name(arg) == expected
 
 

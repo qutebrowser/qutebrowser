@@ -24,7 +24,7 @@ SOURCE_DIR ?= .
 SOURCE_FILES ?= dist/qutebrowser.app LICENSE
 
 TEMPLATE_DMG ?= template.dmg
-TEMPLATE_SIZE ?= 300m
+TEMPLATE_SIZE ?= 500m
 
 ################################################################################
 # DMG building. No editing should be needed beyond this point.

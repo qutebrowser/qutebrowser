@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -42,11 +42,10 @@ class ShellLexer:
         self.escape = '\\'
         self.escapedquotes = '"'
         self.keep = False
-        self.quoted = None
-        self.escapedstate = None
-        self.token = None
-        self.state = None
-        self.reset()
+        self.quoted = False
+        self.escapedstate = ' '
+        self.token = ''
+        self.state = ' '
 
     def reset(self):
         """Reset the state machine state to the defaults."""
@@ -139,7 +138,7 @@ def split(s, keep=False):
     out = []
     spaces = ""
 
-    log.shlexer.vdebug("{!r} -> {!r}".format(s, tokens))
+    log.shlexer.vdebug("{!r} -> {!r}".format(s, tokens))  # type: ignore
 
     for t in tokens:
         if t.isspace():

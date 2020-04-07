@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,6 +21,7 @@
 
 import base64
 import binascii
+import typing
 
 from PyQt5.QtWidgets import QWidget
 
@@ -56,7 +57,7 @@ class AbstractWebInspector(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._widget = None
+        self._widget = typing.cast(QWidget, None)
         self._layout = miscwidgets.WrapperLayout(self)
         self._load_state_geometry()
 
@@ -75,7 +76,7 @@ class AbstractWebInspector(QWidget):
         except binascii.Error:
             log.misc.exception("Error while reading geometry")
         else:
-            log.init.debug("Loading geometry from {}".format(geom))
+            log.init.debug("Loading geometry from {!r}".format(geom))
             ok = self.restoreGeometry(geom)
             if not ok:
                 log.init.warning("Error while loading geometry.")

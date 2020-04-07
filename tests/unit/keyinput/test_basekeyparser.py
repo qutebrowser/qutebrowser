@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>:
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>:
 #
 # This file is part of qutebrowser.
 #
@@ -36,7 +36,7 @@ def keyseq(s):
 @pytest.fixture
 def keyparser(key_config_stub):
     """Fixture providing a BaseKeyParser supporting count/chains."""
-    kp = basekeyparser.BaseKeyParser(0, supports_count=True)
+    kp = basekeyparser.BaseKeyParser(win_id=0)
     kp.execute = mock.Mock()
     yield kp
 
@@ -79,7 +79,8 @@ class TestDebugLog:
 ])
 def test_split_count(config_stub, key_config_stub,
                      input_key, supports_count, count, command):
-    kp = basekeyparser.BaseKeyParser(0, supports_count=supports_count)
+    kp = basekeyparser.BaseKeyParser(win_id=0)
+    kp.supports_count = supports_count
     kp._read_config('normal')
 
     for info in keyseq(input_key):

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,7 +24,7 @@ import sys
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMessageBox
 
-from qutebrowser.utils import objreg
+from qutebrowser.misc import objects
 
 
 class DummyBox:
@@ -51,8 +51,7 @@ def msgbox(parent, title, text, *, icon, buttons=QMessageBox.Ok,
     Return:
         A new QMessageBox.
     """
-    args = objreg.get('args')
-    if args.no_err_windows:
+    if objects.args.no_err_windows:
         print('Message box: {}; {}'.format(title, text), file=sys.stderr)
         return DummyBox()
 
@@ -61,7 +60,7 @@ def msgbox(parent, title, text, *, icon, buttons=QMessageBox.Ok,
     box.setIcon(icon)
     box.setStandardButtons(buttons)
     if on_finished is not None:
-        box.finished.connect(on_finished)
+        box.finished.connect(on_finished)  # type: ignore
     if plain_text:
         box.setTextFormat(Qt.PlainText)
     elif plain_text is not None:

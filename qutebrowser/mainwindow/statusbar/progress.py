@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -22,7 +22,7 @@
 from PyQt5.QtCore import pyqtSlot, QSize
 from PyQt5.QtWidgets import QProgressBar, QSizePolicy
 
-from qutebrowser.config import config
+from qutebrowser.config import stylesheet
 from qutebrowser.utils import utils, usertypes
 
 
@@ -45,7 +45,7 @@ class Progress(QProgressBar):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        config.set_register_stylesheet(self)
+        stylesheet.set_register(self)
         self.enabled = False
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.setTextVisible(False)

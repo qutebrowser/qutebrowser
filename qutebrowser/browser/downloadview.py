@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,13 +20,14 @@
 """The ListView to display downloads in."""
 
 import functools
+import typing
 
 from PyQt5.QtCore import pyqtSlot, QSize, Qt, QTimer
 from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu, QStyleFactory
 
 from qutebrowser.browser import downloads
-from qutebrowser.config import config
-from qutebrowser.utils import qtutils, utils, objreg
+from qutebrowser.config import stylesheet
+from qutebrowser.utils import qtutils, utils
 from qutebrowser.qt import sip
 
 
@@ -53,13 +54,20 @@ def update_geometry(obj):
     QTimer.singleShot(0, _update_geometry)
 
 
+_ActionListType = typing.MutableSequence[
+    typing.Union[
+        typing.Tuple[None, None],  # separator
+        typing.Tuple[str, typing.Callable[[], None]],
+    ]
+]
+
+
 class DownloadView(QListView):
 
     """QListView which shows currently running downloads as a bar.
 
     Attributes:
         _menu: The QMenu which is currently displayed.
-        _model: The currently set model.
     """
 
     STYLESHEET = """
@@ -73,11 +81,11 @@ class DownloadView(QListView):
         }
     """
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, model, parent=None):
         super().__init__(parent)
         if not utils.is_mac:
             self.setStyle(QStyleFactory.create('Fusion'))
-        config.set_register_stylesheet(self)
+        stylesheet.set_register(self)
         self.setResizeMode(QListView.Adjust)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
@@ -85,7 +93,6 @@ class DownloadView(QListView):
         self.setFlow(QListView.LeftToRight)
         self.setSpacing(1)
         self._menu = None
-        model = objreg.get('download-model', scope='window', window=win_id)
         model.rowsInserted.connect(functools.partial(update_geometry, self))
         model.rowsRemoved.connect(functools.partial(update_geometry, self))
         model.dataChanged.connect(functools.partial(update_geometry, self))
@@ -98,10 +105,18 @@ class DownloadView(QListView):
     def __repr__(self):
         model = self.model()
         if model is None:
-            count = 'None'
+            count = 'None'  # type: ignore
         else:
             count = model.rowCount()
         return utils.get_repr(self, count=count)
+
+    @pyqtSlot(bool)
+    def on_fullscreen_requested(self, on):
+        """Hide/show the downloadview when entering/leaving fullscreen."""
+        if on:
+            self.hide()
+        else:
+            self.show()
 
     @pyqtSlot('QModelIndex')
     def on_clicked(self, index):
@@ -117,19 +132,14 @@ class DownloadView(QListView):
             item.open_file()
             item.remove()
 
-    def _get_menu_actions(self, item):
+    def _get_menu_actions(self, item) -> _ActionListType:
         """Get the available context menu actions for a given DownloadItem.
 
         Args:
             item: The DownloadItem to get the actions for, or None.
-
-        Return:
-            A list of either:
-                - (QAction, callable) tuples.
-                - (None, None) for a separator
         """
         model = self.model()
-        actions = []
+        actions = []  # type: _ActionListType
         if item is None:
             pass
         elif item.done:
@@ -159,6 +169,8 @@ class DownloadView(QListView):
             if name is None and handler is None:
                 self._menu.addSeparator()
             else:
+                assert name is not None
+                assert handler is not None
                 action = self._menu.addAction(name)
                 action.triggered.connect(handler)
         if actions:

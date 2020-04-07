@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -25,7 +25,7 @@ import subprocess
 import os
 
 code = subprocess.run(['git', '--no-pager', 'diff',
-                       '--exit-code', '--stat']).returncode
+                       '--exit-code', '--stat'], check=False).returncode
 
 if os.environ.get('TRAVIS_PULL_REQUEST', 'false') != 'false':
     if code != 0:
@@ -43,6 +43,6 @@ if code != 0:
     if 'TRAVIS' in os.environ:
         print()
         print("travis_fold:start:gitdiff")
-        subprocess.run(['git', '--no-pager', 'diff'])
+        subprocess.run(['git', '--no-pager', 'diff'], check=True)
         print("travis_fold:end:gitdiff")
 sys.exit(code)

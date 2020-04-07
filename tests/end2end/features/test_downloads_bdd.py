@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -32,21 +32,29 @@ PROMPT_MSG = ("Asking question <qutebrowser.utils.usertypes.Question "
               "text=* title='Save file to:'>, *")
 
 
+@pytest.fixture
+def download_dir(tmpdir):
+    downloads = tmpdir / 'downloads'
+    downloads.ensure(dir=True)
+    (downloads / 'subdir').ensure(dir=True)
+    try:
+        os.mkfifo(str(downloads / 'fifo'))
+    except AttributeError:
+        pass
+    unwritable = downloads / 'unwritable'
+    unwritable.ensure(dir=True)
+    unwritable.chmod(0)
+
+    yield downloads
+
+    unwritable.chmod(0o755)
+
+
 @bdd.given("I set up a temporary download dir")
-def temporary_download_dir(quteproc, tmpdir):
-    download_dir = tmpdir / 'downloads'
-    download_dir.ensure(dir=True)
+def temporary_download_dir(quteproc, download_dir):
     quteproc.set_setting('downloads.location.prompt', 'false')
     quteproc.set_setting('downloads.location.remember', 'false')
     quteproc.set_setting('downloads.location.directory', str(download_dir))
-    (download_dir / 'subdir').ensure(dir=True)
-    try:
-        os.mkfifo(str(download_dir / 'fifo'))
-    except AttributeError:
-        pass
-    unwritable = download_dir / 'unwritable'
-    unwritable.ensure(dir=True)
-    unwritable.chmod(0)
 
 
 @bdd.given("I clean old downloads")

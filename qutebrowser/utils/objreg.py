@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -22,20 +22,18 @@
 
 import collections
 import functools
+import typing
 
 from PyQt5.QtCore import QObject, QTimer
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QWidget  # pylint: disable=unused-import
 
-from qutebrowser.utils import log
+from qutebrowser.utils import log, usertypes
+if typing.TYPE_CHECKING:
+    from qutebrowser.mainwindow import mainwindow
 
 
-class UnsetObject:
-
-    """Class for an unset object.
-
-    Only used (rather than object) so we can tell pylint to shut up about it.
-    """
-
-    __slots__ = ()
+_WindowTab = typing.Union[str, int, None]
 
 
 class RegistryUnavailableError(Exception):
@@ -48,7 +46,12 @@ class NoWindow(Exception):
     """Exception raised by last_window if no window is available."""
 
 
-_UNSET = UnsetObject()
+class CommandOnlyError(Exception):
+
+    """Raised when an object is requested which is used for commands only."""
+
+
+_IndexType = typing.Union[str, int]
 
 
 class ObjectRegistry(collections.UserDict):
@@ -59,13 +62,16 @@ class ObjectRegistry(collections.UserDict):
 
     Attributes:
         _partial_objs: A dictionary of the connected partial objects.
+        command_only: Objects which are only registered for commands.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self._partial_objs = {}
+        self._partial_objs = {
+        }  # type: typing.MutableMapping[_IndexType, typing.Callable[[], None]]
+        self.command_only = []  # type: typing.MutableSequence[str]
 
-    def __setitem__(self, name, obj):
+    def __setitem__(self, name: _IndexType, obj: typing.Any) -> None:
         """Register an object in the object registry.
 
         Sets a slot to remove QObjects when they are destroyed.
@@ -80,17 +86,17 @@ class ObjectRegistry(collections.UserDict):
 
         if isinstance(obj, QObject):
             func = functools.partial(self.on_destroyed, name)
-            obj.destroyed.connect(func)
+            obj.destroyed.connect(func)  # type: ignore
             self._partial_objs[name] = func
 
         super().__setitem__(name, obj)
 
-    def __delitem__(self, name):
+    def __delitem__(self, name: str) -> None:
         """Extend __delitem__ to disconnect the destroyed signal."""
         self._disconnect_destroyed(name)
         super().__delitem__(name)
 
-    def _disconnect_destroyed(self, name):
+    def _disconnect_destroyed(self, name: _IndexType) -> None:
         """Disconnect the destroyed slot if it was connected."""
         try:
             partial_objs = self._partial_objs
@@ -109,7 +115,7 @@ class ObjectRegistry(collections.UserDict):
                 pass
             del partial_objs[name]
 
-    def on_destroyed(self, name):
+    def on_destroyed(self, name: str) -> None:
         """Schedule removing of a destroyed QObject.
 
         We don't remove the destroyed object immediately because it might still
@@ -119,7 +125,7 @@ class ObjectRegistry(collections.UserDict):
         log.destroy.debug("schedule removal: {}".format(name))
         QTimer.singleShot(0, functools.partial(self._on_destroyed, name))
 
-    def _on_destroyed(self, name):
+    def _on_destroyed(self, name: str) -> None:
         """Remove a destroyed QObject."""
         log.destroy.debug("removed: {}".format(name))
         if not hasattr(self, 'data'):
@@ -133,7 +139,7 @@ class ObjectRegistry(collections.UserDict):
         except KeyError:
             pass
 
-    def dump_objects(self):
+    def dump_objects(self) -> typing.Sequence[str]:
         """Dump all objects as a list of strings."""
         lines = []
         for name, obj in self.data.items():
@@ -142,7 +148,9 @@ class ObjectRegistry(collections.UserDict):
             except RuntimeError:
                 # Underlying object deleted probably
                 obj_repr = '<deleted>'
-            lines.append("{}: {}".format(name, obj_repr))
+            suffix = (" (for commands only)" if name in self.command_only
+                      else "")
+            lines.append("{}: {}{}".format(name, obj_repr, suffix))
         return lines
 
 
@@ -152,13 +160,13 @@ global_registry = ObjectRegistry()
 window_registry = ObjectRegistry()
 
 
-def _get_tab_registry(win_id, tab_id):
+def _get_tab_registry(win_id: _WindowTab,
+                      tab_id: _WindowTab) -> ObjectRegistry:
     """Get the registry of a tab."""
     if tab_id is None:
         raise ValueError("Got tab_id None (win_id {})".format(win_id))
     if tab_id == 'current' and win_id is None:
-        app = get('app')
-        window = app.activeWindow()
+        window = QApplication.activeWindow()  # type: typing.Optional[QWidget]
         if window is None or not hasattr(window, 'win_id'):
             raise RegistryUnavailableError('tab')
         win_id = window.win_id
@@ -180,27 +188,32 @@ def _get_tab_registry(win_id, tab_id):
         raise RegistryUnavailableError('tab')
 
 
-def _get_window_registry(window):
+def _get_window_registry(window: _WindowTab) -> ObjectRegistry:
     """Get the registry of a window."""
     if window is None:
         raise TypeError("window is None with scope window!")
     try:
         if window == 'current':
-            app = get('app')
-            win = app.activeWindow()
+            win = QApplication.activeWindow()  # type: typing.Optional[QWidget]
         elif window == 'last-focused':
             win = last_focused_window()
         else:
             win = window_registry[window]
     except (KeyError, NoWindow):
         win = None
+
+    if win is None:
+        raise RegistryUnavailableError('window')
+
     try:
         return win.registry
     except AttributeError:
         raise RegistryUnavailableError('window')
 
 
-def _get_registry(scope, window=None, tab=None):
+def _get_registry(scope: str,
+                  window: _WindowTab = None,
+                  tab: _WindowTab = None) -> ObjectRegistry:
     """Get the correct registry for a given scope."""
     if window is not None and scope not in ['window', 'tab']:
         raise TypeError("window is set with scope {}".format(scope))
@@ -216,24 +229,39 @@ def _get_registry(scope, window=None, tab=None):
         raise ValueError("Invalid scope '{}'!".format(scope))
 
 
-def get(name, default=_UNSET, scope='global', window=None, tab=None):
+def get(name: str,
+        default: typing.Any = usertypes.UNSET,
+        scope: str = 'global',
+        window: _WindowTab = None,
+        tab: _WindowTab = None,
+        from_command: bool = False) -> typing.Any:
     """Helper function to get an object.
 
     Args:
         default: A default to return if the object does not exist.
     """
     reg = _get_registry(scope, window, tab)
+    if name in reg.command_only and not from_command:
+        raise CommandOnlyError("{} is only registered for commands"
+                               .format(name))
+
     try:
         return reg[name]
     except KeyError:
-        if default is not _UNSET:
+        if default is not usertypes.UNSET:
             return default
         else:
             raise
 
 
-def register(name, obj, update=False, scope=None, registry=None, window=None,
-             tab=None):
+def register(name: str,
+             obj: typing.Any,
+             update: bool = False,
+             scope: str = None,
+             registry: ObjectRegistry = None,
+             window: _WindowTab = None,
+             tab: _WindowTab = None,
+             command_only: bool = False) -> None:
     """Helper function to register an object.
 
     Args:
@@ -244,25 +272,33 @@ def register(name, obj, update=False, scope=None, registry=None, window=None,
     if scope is not None and registry is not None:
         raise ValueError("scope ({}) and registry ({}) can't be given at the "
                          "same time!".format(scope, registry))
+
     if registry is not None:
         reg = registry
     else:
         if scope is None:
             scope = 'global'
         reg = _get_registry(scope, window, tab)
+
     if not update and name in reg:
         raise KeyError("Object '{}' is already registered ({})!".format(
             name, repr(reg[name])))
     reg[name] = obj
 
+    if command_only:
+        reg.command_only.append(name)
 
-def delete(name, scope='global', window=None, tab=None):
+
+def delete(name: str,
+           scope: str = 'global',
+           window: _WindowTab = None,
+           tab: _WindowTab = None) -> None:
     """Helper function to unregister an object."""
     reg = _get_registry(scope, window, tab)
     del reg[name]
 
 
-def dump_objects():
+def dump_objects() -> typing.Sequence[str]:
     """Get all registered objects in all registries as a string."""
     blocks = []
     lines = []
@@ -275,16 +311,16 @@ def dump_objects():
             dump = tab.registry.dump_objects()
             data = ['    ' + line for line in dump]
             blocks.append(('    tab-{}'.format(tab_id), data))
-    for name, data in blocks:
+    for name, block_data in blocks:
         lines.append("")
         lines.append("{} object registry - {} objects:".format(
-            name, len(data)))
-        for line in data:
+            name, len(block_data)))
+        for line in block_data:
             lines.append("    {}".format(line))
     return lines
 
 
-def last_visible_window():
+def last_visible_window() -> 'mainwindow.MainWindow':
     """Get the last visible window, or the last focused window if none."""
     try:
         return get('last-visible-main-window')
@@ -292,7 +328,7 @@ def last_visible_window():
         return last_focused_window()
 
 
-def last_focused_window():
+def last_focused_window() -> 'mainwindow.MainWindow':
     """Get the last focused window, or the last window if none."""
     try:
         return get('last-focused-main-window')
@@ -300,7 +336,7 @@ def last_focused_window():
         return window_by_index(-1)
 
 
-def window_by_index(idx):
+def window_by_index(idx: int) -> 'mainwindow.MainWindow':
     """Get the Nth opened window object."""
     if not window_registry:
         raise NoWindow()

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,6 +25,7 @@ import os.path
 import ipaddress
 import posixpath
 import urllib.parse
+import typing
 
 from PyQt5.QtCore import QUrl, QUrlQuery
 from PyQt5.QtNetwork import QHostInfo, QHostAddress, QNetworkProxy
@@ -54,15 +55,11 @@ WEBENGINE_SCHEMES = [
 ]
 
 
-class InvalidUrlError(ValueError):
+class InvalidUrlError(Exception):
 
-    """Error raised if a function got an invalid URL.
+    """Error raised if a function got an invalid URL."""
 
-    Inherits ValueError because that was the exception originally used for
-    that, so there still might be some code around which checks for that.
-    """
-
-    def __init__(self, url):
+    def __init__(self, url: QUrl) -> None:
         if url.isValid():
             raise ValueError("Got valid URL {}!".format(url.toDisplayString()))
         self.url = url
@@ -70,7 +67,8 @@ class InvalidUrlError(ValueError):
         super().__init__(self.msg)
 
 
-def _parse_search_term(s):
+def _parse_search_term(s: str) -> typing.Tuple[typing.Optional[str],
+                                               typing.Optional[str]]:
     """Get a search engine name and search term from a string.
 
     Args:
@@ -81,27 +79,29 @@ def _parse_search_term(s):
     """
     s = s.strip()
     split = s.split(maxsplit=1)
+    if not split:
+        raise ValueError("Empty search term!")
 
     if len(split) == 2:
-        engine = split[0]
-        try:
-            config.val.url.searchengines[engine]
-        except KeyError:
+        if split[0] in config.val.url.searchengines:
+            engine = split[0]  # type: typing.Optional[str]
+            term = split[1]  # type: typing.Optional[str]
+        else:
             engine = None
             term = s
-        else:
-            term = split[1]
-    elif not split:
-        raise ValueError("Empty search term!")
     else:
-        engine = None
-        term = s
+        if config.val.url.open_base_url and s in config.val.url.searchengines:
+            engine = s
+            term = None
+        else:
+            engine = None
+            term = s
 
     log.url.debug("engine {}, term {!r}".format(engine, term))
     return (engine, term)
 
 
-def _get_search_url(txt):
+def _get_search_url(txt: str) -> QUrl:
     """Get a search engine URL for a text.
 
     Args:
@@ -112,23 +112,22 @@ def _get_search_url(txt):
     """
     log.url.debug("Finding search engine for {!r}".format(txt))
     engine, term = _parse_search_term(txt)
-    assert term
-    if engine is None:
+    if not engine:
         engine = 'DEFAULT'
-    template = config.val.url.searchengines[engine]
-    quoted_term = urllib.parse.quote(term, safe='')
-    url = qurl_from_user_input(template.format(quoted_term))
-
-    if config.val.url.open_base_url and term in config.val.url.searchengines:
-        url = qurl_from_user_input(config.val.url.searchengines[term])
-        url.setPath(None)
-        url.setFragment(None)
-        url.setQuery(None)
+    if term:
+        template = config.val.url.searchengines[engine]
+        quoted_term = urllib.parse.quote(term, safe='')
+        url = qurl_from_user_input(template.format(quoted_term))
+    else:
+        url = qurl_from_user_input(config.val.url.searchengines[engine])
+        url.setPath(None)  # type: ignore
+        url.setFragment(None)  # type: ignore
+        url.setQuery(None)  # type: ignore
     qtutils.ensure_valid(url)
     return url
 
 
-def _is_url_naive(urlstr):
+def _is_url_naive(urlstr: str) -> bool:
     """Naive check if given URL is really a URL.
 
     Args:
@@ -139,22 +138,21 @@ def _is_url_naive(urlstr):
     """
     url = qurl_from_user_input(urlstr)
     assert url.isValid()
+    host = url.host()
 
-    if not utils.raises(ValueError, ipaddress.ip_address, urlstr):
-        # Valid IPv4/IPv6 address
+    # Valid IPv4/IPv6 address. Qt converts things like "23.42" or "1337" or
+    # "0xDEAD" to IP addresses, which we don't like, so we check if the host
+    # from Qt is part of the input.
+    if (not utils.raises(ValueError, ipaddress.ip_address, host) and
+            host in urlstr):
         return True
 
-    # Qt treats things like "23.42" or "1337" or "0xDEAD" as valid URLs
-    # which we don't want to. Note we already filtered *real* valid IPs
-    # above.
-    if not QHostAddress(urlstr).isNull():
-        return False
-
-    host = url.host()
-    return '.' in host and not host.endswith('.')
+    tld = r'\.([^.0-9_-]+|xn--[a-z0-9-]+)$'
+    forbidden = r'[\u0000-\u002c\u002f\u003a-\u0060\u007b-\u00b6]'
+    return bool(re.search(tld, host) and not re.search(forbidden, host))
 
 
-def _is_url_dns(urlstr):
+def _is_url_dns(urlstr: str) -> bool:
     """Check if a URL is really a URL via DNS.
 
     Args:
@@ -182,8 +180,11 @@ def _is_url_dns(urlstr):
     return not info.error()
 
 
-def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True,
-              force_search=False):
+def fuzzy_url(urlstr: str,
+              cwd: str = None,
+              relative: bool = False,
+              do_search: bool = True,
+              force_search: bool = False) -> QUrl:
     """Get a QUrl based on a user input which is URL or search term.
 
     Args:
@@ -215,15 +216,11 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True,
         url = qurl_from_user_input(urlstr)
     log.url.debug("Converting fuzzy term {!r} to URL -> {}".format(
         urlstr, url.toDisplayString()))
-    if do_search and config.val.url.auto_search != 'never' and urlstr:
-        qtutils.ensure_valid(url)
-    else:
-        if not url.isValid():
-            raise InvalidUrlError(url)
+    ensure_valid(url)
     return url
 
 
-def _has_explicit_scheme(url):
+def _has_explicit_scheme(url: QUrl) -> bool:
     """Check if a url has an explicit scheme given.
 
     Args:
@@ -233,13 +230,12 @@ def _has_explicit_scheme(url):
     # after the scheme delimiter. Since we don't know of any URIs
     # using this and want to support e.g. searching for scoped C++
     # symbols, we treat this as not a URI anyways.
-    return (url.isValid() and url.scheme() and
-            (url.host() or url.path()) and
-            ' ' not in url.path() and
-            not url.path().startswith(':'))
+    return bool(url.isValid() and url.scheme() and
+                (url.host() or url.path()) and
+                not url.path().startswith(':'))
 
 
-def is_special_url(url):
+def is_special_url(url: QUrl) -> bool:
     """Return True if url is an about:... or other special URL.
 
     Args:
@@ -251,7 +247,7 @@ def is_special_url(url):
     return url.scheme() in special_schemes
 
 
-def is_url(urlstr):
+def is_url(urlstr: str) -> bool:
     """Check if url seems to be a valid URL.
 
     Args:
@@ -280,10 +276,10 @@ def is_url(urlstr):
             return engine is None
 
     if not qurl_userinput.isValid():
-        # This will also catch URLs containing spaces.
+        # This will also catch non-URLs containing spaces.
         return False
 
-    if _has_explicit_scheme(qurl):
+    if _has_explicit_scheme(qurl) and ' ' not in urlstr:
         # URLs with explicit schemes are always URLs
         log.url.debug("Contains explicit scheme")
         url = True
@@ -298,17 +294,17 @@ def is_url(urlstr):
         log.url.debug("Checking via DNS check")
         # We want to use qurl_from_user_input here, as the user might enter
         # "foo.de" and that should be treated as URL here.
-        url = _is_url_dns(urlstr)
+        url = ' ' not in qurl_userinput.userName() and _is_url_dns(urlstr)
     elif autosearch == 'naive':
         log.url.debug("Checking via naive check")
-        url = _is_url_naive(urlstr)
+        url = ' ' not in qurl_userinput.userName() and _is_url_naive(urlstr)
     else:  # pragma: no cover
         raise ValueError("Invalid autosearch value")
     log.url.debug("url = {}".format(url))
     return url
 
 
-def qurl_from_user_input(urlstr):
+def qurl_from_user_input(urlstr: str) -> QUrl:
     """Get a QUrl based on a user input. Additionally handles IPv6 addresses.
 
     QUrl.fromUserInput handles something like '::1' as a file URL instead of an
@@ -344,7 +340,12 @@ def qurl_from_user_input(urlstr):
         return QUrl('http://[{}]{}'.format(ipstr, rest))
 
 
-def invalid_url_error(url, action):
+def ensure_valid(url: QUrl) -> None:
+    if not url.isValid():
+        raise InvalidUrlError(url)
+
+
+def invalid_url_error(url: QUrl, action: str) -> None:
     """Display an error message for a URL.
 
     Args:
@@ -358,13 +359,18 @@ def invalid_url_error(url, action):
     message.error(errstring)
 
 
-def raise_cmdexc_if_invalid(url):
+def raise_cmdexc_if_invalid(url: QUrl) -> None:
     """Check if the given QUrl is invalid, and if so, raise a CommandError."""
-    if not url.isValid():
-        raise cmdutils.CommandError(get_errstring(url))
+    try:
+        ensure_valid(url)
+    except InvalidUrlError as e:
+        raise cmdutils.CommandError(str(e))
 
 
-def get_path_if_valid(pathstr, cwd=None, relative=False, check_exists=False):
+def get_path_if_valid(pathstr: str,
+                      cwd: str = None,
+                      relative: bool = False,
+                      check_exists: bool = False) -> typing.Optional[str]:
     """Check if path is a valid path.
 
     Args:
@@ -382,7 +388,7 @@ def get_path_if_valid(pathstr, cwd=None, relative=False, check_exists=False):
     expanded = os.path.expanduser(pathstr)
 
     if os.path.isabs(expanded):
-        path = expanded
+        path = expanded  # type: typing.Optional[str]
     elif relative and cwd:
         path = os.path.join(cwd, expanded)
     elif relative:
@@ -409,7 +415,7 @@ def get_path_if_valid(pathstr, cwd=None, relative=False, check_exists=False):
     return path
 
 
-def filename_from_url(url):
+def filename_from_url(url: QUrl) -> typing.Optional[str]:
     """Get a suitable filename from a URL.
 
     Args:
@@ -429,13 +435,15 @@ def filename_from_url(url):
         return None
 
 
-def host_tuple(url):
+HostTupleType = typing.Tuple[str, str, int]
+
+
+def host_tuple(url: QUrl) -> HostTupleType:
     """Get a (scheme, host, port) tuple from a QUrl.
 
     This is suitable to identify a connection, e.g. for SSL errors.
     """
-    if not url.isValid():
-        raise InvalidUrlError(url)
+    ensure_valid(url)
     scheme, host, port = url.scheme(), url.host(), url.port()
     assert scheme
     if not host:
@@ -455,7 +463,7 @@ def host_tuple(url):
     return scheme, host, port
 
 
-def get_errstring(url, base="Invalid URL"):
+def get_errstring(url: QUrl, base: str = "Invalid URL") -> str:
     """Get an error string for a URL.
 
     Args:
@@ -472,7 +480,7 @@ def get_errstring(url, base="Invalid URL"):
         return base
 
 
-def same_domain(url1, url2):
+def same_domain(url1: QUrl, url2: QUrl) -> bool:
     """Check if url1 and url2 belong to the same website.
 
     This will use a "public suffix list" to determine what a "top level domain"
@@ -484,14 +492,12 @@ def same_domain(url1, url2):
     Return:
         True if the domains are the same, False otherwise.
     """
-    if not url1.isValid():
-        raise InvalidUrlError(url1)
-    if not url2.isValid():
-        raise InvalidUrlError(url2)
+    ensure_valid(url1)
+    ensure_valid(url2)
 
     suffix1 = url1.topLevelDomain()
     suffix2 = url2.topLevelDomain()
-    if suffix1 == '':
+    if not suffix1:
         return url1.host() == url2.host()
 
     if suffix1 != suffix2:
@@ -502,7 +508,7 @@ def same_domain(url1, url2):
     return domain1 == domain2
 
 
-def encoded_url(url):
+def encoded_url(url: QUrl) -> str:
     """Return the fully encoded url as string.
 
     Args:
@@ -511,132 +517,17 @@ def encoded_url(url):
     return bytes(url.toEncoded()).decode('ascii')
 
 
-class IncDecError(Exception):
-
-    """Exception raised by incdec_number on problems.
-
-    Attributes:
-        msg: The error message.
-        url: The QUrl which caused the error.
-    """
-
-    def __init__(self, msg, url):
-        super().__init__(msg)
-        self.url = url
-        self.msg = msg
-
-    def __str__(self):
-        return '{}: {}'.format(self.msg, self.url.toString())
-
-
-def _get_incdec_value(match, incdec, url, count):
-    """Get an incremented/decremented URL based on a URL match."""
-    pre, zeroes, number, post = match.groups()
-    # This should always succeed because we match \d+
-    val = int(number)
-    if incdec == 'decrement':
-        if val < count:
-            raise IncDecError("Can't decrement {} by {}!".format(val, count),
-                              url)
-        val -= count
-    elif incdec == 'increment':
-        val += count
-    else:
-        raise ValueError("Invalid value {} for incdec!".format(incdec))
-    if zeroes:
-        if len(number) < len(str(val)):
-            zeroes = zeroes[1:]
-        elif len(number) > len(str(val)):
-            zeroes += '0'
-
-    return ''.join([pre, zeroes, str(val), post])
-
-
-# Order of the segments in a URL.
-# Each list entry is a tuple of (path name (string), getter, setter).
-# Note that the getters must not use FullyDecoded decoded mode to prevent loss
-# of information. (host and path use FullyDecoded by default)
-_URL_SEGMENTS = [
-    ('host',
-     lambda url: url.host(QUrl.FullyEncoded),
-     lambda url, host: url.setHost(host, QUrl.StrictMode)),
-
-    ('port',
-     lambda url: str(url.port()) if url.port() > 0 else '',
-     lambda url, x: url.setPort(int(x))),
-
-    ('path',
-     lambda url: url.path(QUrl.FullyEncoded),
-     lambda url, path: url.setPath(path, QUrl.StrictMode)),
-
-    ('query',
-     lambda url: url.query(QUrl.FullyEncoded),
-     lambda url, query: url.setQuery(query, QUrl.StrictMode)),
-
-    ('anchor',
-     lambda url: url.fragment(QUrl.FullyEncoded),
-     lambda url, fragment: url.setFragment(fragment, QUrl.StrictMode)),
-]
-
-
-def incdec_number(url, incdec, count=1, segments=None):
-    """Find a number in the url and increment or decrement it.
-
-    Args:
-        url: The current url
-        incdec: Either 'increment' or 'decrement'
-        count: The number to increment or decrement by
-        segments: A set of URL segments to search. Valid segments are:
-                  'host', 'port', 'path', 'query', 'anchor'.
-                  Default: {'path', 'query'}
-
-    Return:
-        The new url with the number incremented/decremented.
-
-    Raises IncDecError if the url contains no number.
-    """
-    if not url.isValid():
-        raise InvalidUrlError(url)
-
-    if segments is None:
-        segments = {'path', 'query'}
-    valid_segments = {'host', 'port', 'path', 'query', 'anchor'}
-    if segments - valid_segments:
-        extra_elements = segments - valid_segments
-        raise IncDecError("Invalid segments: {}".format(
-            ', '.join(extra_elements)), url)
-
-    # Make a copy of the QUrl so we don't modify the original
-    url = QUrl(url)
-    # We're searching the last number so we walk the url segments backwards
-    for segment, getter, setter in reversed(_URL_SEGMENTS):
-        if segment not in segments:
-            continue
-
-        # Get the last number in a string not preceded by regex '%' or '%.'
-        match = re.fullmatch(r'(.*\D|^)(?<!%)(?<!%.)(0*)(\d+)(.*)',
-                             getter(url))
-        if not match:
-            continue
-
-        setter(url, _get_incdec_value(match, incdec, url, count))
-        qtutils.ensure_valid(url)
-
-        return url
-
-    raise IncDecError("No number found in URL!", url)
-
-
-def file_url(path):
+def file_url(path: str) -> QUrl:
     """Return a file:// url (as string) to the given local path.
 
     Arguments:
         path: The absolute path to the local file
     """
-    return QUrl.fromLocalFile(path).toString(QUrl.FullyEncoded)
+    url = QUrl.fromLocalFile(path)
+    return url.toString(QUrl.FullyEncoded)  # type: ignore
 
 
-def data_url(mimetype, data):
+def data_url(mimetype: str, data: bytes) -> QUrl:
     """Get a data: QUrl for the given data."""
     b64 = base64.b64encode(data).decode('ascii')
     url = QUrl('data:{};base64,{}'.format(mimetype, b64))
@@ -644,7 +535,7 @@ def data_url(mimetype, data):
     return url
 
 
-def safe_display_string(qurl):
+def safe_display_string(qurl: QUrl) -> str:
     """Get a IDN-homograph phishing safe form of the given QUrl.
 
     If we're dealing with a Punycode-encoded URL, this prepends the hostname in
@@ -653,22 +544,22 @@ def safe_display_string(qurl):
     See https://github.com/qutebrowser/qutebrowser/issues/2547
     and https://bugreports.qt.io/browse/QTBUG-60365
     """
-    if not qurl.isValid():
-        raise InvalidUrlError(qurl)
+    ensure_valid(qurl)
 
-    host = qurl.host(QUrl.FullyEncoded)
+    host = qurl.host(QUrl.FullyEncoded)  # type: ignore
     if '..' in host:  # pragma: no cover
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-60364
         return '(unparseable URL!) {}'.format(qurl.toDisplayString())
 
     for part in host.split('.'):
-        if part.startswith('xn--') and host != qurl.host(QUrl.FullyDecoded):
+        url_host = qurl.host(QUrl.FullyDecoded)  # type: ignore
+        if part.startswith('xn--') and host != url_host:
             return '({}) {}'.format(host, qurl.toDisplayString())
 
     return qurl.toDisplayString()
 
 
-def query_string(qurl):
+def query_string(qurl: QUrl) -> str:
     """Get a query string for the given URL.
 
     This is a WORKAROUND for:
@@ -684,11 +575,11 @@ class InvalidProxyTypeError(Exception):
 
     """Error raised when proxy_from_url gets an unknown proxy type."""
 
-    def __init__(self, typ):
+    def __init__(self, typ: str) -> None:
         super().__init__("Invalid proxy type {}!".format(typ))
 
 
-def proxy_from_url(url):
+def proxy_from_url(url: QUrl) -> QNetworkProxy:
     """Create a QNetworkProxy from QUrl and a proxy type.
 
     Args:
@@ -697,8 +588,7 @@ def proxy_from_url(url):
     Return:
         New QNetworkProxy.
     """
-    if not url.isValid():
-        raise InvalidUrlError(url)
+    ensure_valid(url)
 
     scheme = url.scheme()
     if scheme in ['pac+http', 'pac+https', 'pac+file']:

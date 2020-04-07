@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -37,6 +37,7 @@ class GUIProcess(QObject):
         cmd: The command which was started.
         args: A list of arguments which gets passed.
         verbose: Whether to show more messages.
+        _output_messages: Show output as messages.
         _started: Whether the underlying process is started.
         _proc: The underlying QProcess.
         _what: What kind of thing is spawned (process/editor/userscript/...).
@@ -51,21 +52,22 @@ class GUIProcess(QObject):
     started = pyqtSignal()
 
     def __init__(self, what, *, verbose=False, additional_env=None,
-                 parent=None):
+                 output_messages=False, parent=None):
         super().__init__(parent)
         self._what = what
         self.verbose = verbose
+        self._output_messages = output_messages
         self._started = False
         self.cmd = None
         self.args = None
 
         self._proc = QProcess(self)
-        self._proc.errorOccurred.connect(self._on_error)
-        self._proc.errorOccurred.connect(self.error)
-        self._proc.finished.connect(self._on_finished)
-        self._proc.finished.connect(self.finished)
-        self._proc.started.connect(self._on_started)
-        self._proc.started.connect(self.started)
+        self._proc.errorOccurred.connect(self._on_error)  # type: ignore
+        self._proc.errorOccurred.connect(self.error)  # type: ignore
+        self._proc.finished.connect(self._on_finished)  # type: ignore
+        self._proc.finished.connect(self.finished)  # type: ignore
+        self._proc.started.connect(self._on_started)  # type: ignore
+        self._proc.started.connect(self.started)  # type: ignore
 
         if additional_env is not None:
             procenv = QProcessEnvironment.systemEnvironment()
@@ -91,6 +93,12 @@ class GUIProcess(QObject):
             encoding, 'replace')
         stdout = bytes(self._proc.readAllStandardOutput()).decode(
             encoding, 'replace')
+
+        if self._output_messages:
+            if stdout:
+                message.info(stdout.strip())
+            if stderr:
+                message.error(stderr.strip())
 
         if status == QProcess.CrashExit:
             exitinfo = "{} crashed!".format(self._what.capitalize())
@@ -155,7 +163,7 @@ class GUIProcess(QObject):
         """Convenience wrapper around QProcess::startDetached."""
         log.procs.debug("Starting detached.")
         self._pre_start(cmd, args)
-        ok, _pid = self._proc.startDetached(cmd, args, None)
+        ok, _pid = self._proc.startDetached(cmd, args, None)  # type: ignore
 
         if not ok:
             message.error("Error while spawning {}".format(self._what))

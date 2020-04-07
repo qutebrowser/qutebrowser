@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015 Daniel Schadt
 #
 # This file is part of qutebrowser.
@@ -149,7 +149,7 @@ def test_dicts():
     configdata.init()
     for lang in dictcli.available_languages():
         print('Testing dictionary {}... '.format(lang.code), end='')
-        lang_url = urllib.parse.urljoin(dictcli.API_URL, lang.remote_path)
+        lang_url = urllib.parse.urljoin(dictcli.API_URL, lang.remote_filename)
         request = urllib.request.Request(lang_url, method='HEAD')
         response = urllib.request.urlopen(request)
         if response.status == 200:

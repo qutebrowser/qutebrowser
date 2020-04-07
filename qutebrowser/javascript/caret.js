@@ -30,7 +30,7 @@ default-case */
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /**
- * Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+ * Copyright 2018-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
  *
  * This file is part of qutebrowser.
  *

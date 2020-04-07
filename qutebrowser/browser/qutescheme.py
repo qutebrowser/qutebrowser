@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -32,6 +32,8 @@ import textwrap
 import urllib
 import collections
 import base64
+import typing
+from typing import TypeVar, Callable, Union, Tuple
 
 try:
     import secrets
@@ -42,7 +44,7 @@ except ImportError:
 from PyQt5.QtCore import QUrlQuery, QUrl, qVersion
 
 import qutebrowser
-from qutebrowser.browser import pdfjs, downloads
+from qutebrowser.browser import pdfjs, downloads, history
 from qutebrowser.config import config, configdata, configexc, configdiff
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg, urlutils)
@@ -90,9 +92,14 @@ class Redirect(Exception):
         url: The URL to redirect to, as a QUrl.
     """
 
-    def __init__(self, url):
+    def __init__(self, url: QUrl):
         super().__init__(url.toDisplayString())
         self.url = url
+
+
+# Return value: (mimetype, data) (encoded as utf-8 if a str is returned)
+_Handler = TypeVar('_Handler',
+                   bound=Callable[[QUrl], Tuple[str, Union[str, bytes]]])
 
 
 class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
@@ -105,15 +112,16 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
 
     def __init__(self, name):
         self._name = name
-        self._function = None
+        self._function = None  # type: typing.Optional[typing.Callable]
 
-    def __call__(self, function):
+    def __call__(self, function: _Handler) -> _Handler:
         self._function = function
         _HANDLERS[self._name] = self.wrapper
         return function
 
     def wrapper(self, *args, **kwargs):
         """Call the underlying function."""
+        assert self._function is not None
         return self._function(*args, **kwargs)
 
 
@@ -190,7 +198,8 @@ def qute_bookmarks(_url):
 @add_handler('tabs')
 def qute_tabs(_url):
     """Handler for qute://tabs. Display information about all open tabs."""
-    tabs = collections.defaultdict(list)
+    tabs = collections.defaultdict(
+        list)  # type: typing.Dict[str, typing.List[typing.Tuple[str, str]]]
     for win_id, window in objreg.window_registry.items():
         if sip.isdeleted(window):
             continue
@@ -217,13 +226,13 @@ def history_data(start_time, offset=None):
     """
     # history atimes are stored as ints, ensure start_time is not a float
     start_time = int(start_time)
-    hist = objreg.get('web-history')
     if offset is not None:
-        entries = hist.entries_before(start_time, limit=1000, offset=offset)
+        entries = history.web_history.entries_before(start_time, limit=1000,
+                                                     offset=offset)
     else:
         # end is 24hrs earlier than start
         end_time = start_time - 24*60*60
-        entries = hist.entries_between(end_time, start_time)
+        entries = history.web_history.entries_between(end_time, start_time)
 
     return [{"url": e.url,
              "title": html.escape(e.title) or html.escape(e.url),
@@ -234,15 +243,16 @@ def history_data(start_time, offset=None):
 def qute_history(url):
     """Handler for qute://history. Display and serve history."""
     if url.path() == '/data':
+        q_offset = QUrlQuery(url).queryItemValue("offset")
         try:
-            offset = QUrlQuery(url).queryItemValue("offset")
-            offset = int(offset) if offset else None
+            offset = int(q_offset) if q_offset else None
         except ValueError:
             raise UrlInvalidError("Query parameter offset is invalid")
+
         # Use start_time in query or current time.
+        q_start_time = QUrlQuery(url).queryItemValue("start_time")
         try:
-            start_time = QUrlQuery(url).queryItemValue("start_time")
-            start_time = float(start_time) if start_time else time.time()
+            start_time = float(q_start_time) if q_start_time else time.time()
         except ValueError:
             raise UrlInvalidError("Query parameter start_time is invalid")
 
@@ -451,9 +461,11 @@ def qute_bindings(_url):
     """Handler for qute://bindings. View keybindings."""
     bindings = {}
     defaults = config.val.bindings.default
-    modes = set(defaults.keys()).union(config.val.bindings.commands)
-    modes.remove('normal')
-    modes = ['normal'] + sorted(list(modes))
+
+    config_modes = set(defaults.keys()).union(config.val.bindings.commands)
+    config_modes.remove('normal')
+
+    modes = ['normal'] + sorted(config_modes)
     for mode in modes:
         bindings[mode] = config.key_instance.get_bindings_for(mode)
 
@@ -496,9 +508,19 @@ def qute_pastebin_version(_url):
     return 'text/plain', b'Paste called.'
 
 
+def _pdf_path(filename: str) -> str:
+    """Get the path of a temporary PDF file."""
+    return os.path.join(downloads.temp_download_manager.get_tmpdir().name,
+                        filename)
+
+
 @add_handler('pdfjs')
-def qute_pdfjs(url):
-    """Handler for qute://pdfjs. Return the pdf.js viewer."""
+def qute_pdfjs(url: QUrl):
+    """Handler for qute://pdfjs.
+
+    Return the pdf.js viewer or redirect to original URL if the file does not
+    exist.
+    """
     if url.path() == '/file':
         filename = QUrlQuery(url).queryItemValue('filename')
         if not filename:
@@ -506,9 +528,7 @@ def qute_pdfjs(url):
         if '/' in filename or os.sep in filename:
             raise RequestDeniedError("Path separator in filename.")
 
-        path = os.path.join(downloads.temp_download_manager.get_tmpdir().name,
-                            filename)
-
+        path = _pdf_path(filename)
         with open(path, 'rb') as f:
             data = f.read()
 
@@ -516,9 +536,18 @@ def qute_pdfjs(url):
         return mimetype, data
 
     if url.path() == '/web/viewer.html':
-        filename = QUrlQuery(url).queryItemValue("filename")
+        query = QUrlQuery(url)
+        filename = query.queryItemValue("filename")
         if not filename:
             raise UrlInvalidError("Missing filename")
+
+        path = _pdf_path(filename)
+        if not os.path.isfile(path):
+            source = query.queryItemValue('source')
+            if not source:  # This may happen with old URLs stored in history
+                raise UrlInvalidError("Missing source")
+            raise Redirect(QUrl(source))
+
         data = pdfjs.generate_pdfjs_page(filename, url)
         return 'text/html', data
 

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015 Daniel Schadt
 #
 # This file is part of qutebrowser.
@@ -105,7 +105,7 @@ def _generate_pdfjs_script(filename):
           viewer.open({{ url }});
         });
     """).render(
-        url=javascript.to_js(url.toString(QUrl.FullyEncoded)),
+        url=javascript.to_js(url.toString(QUrl.FullyEncoded)),  # type: ignore
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70420
         disable_create_object_url=(
             not qtutils.version_check('5.12') and
@@ -237,11 +237,13 @@ def should_use_pdfjs(mimetype, url):
     return is_pdf and not is_download_url and config_enabled
 
 
-def get_main_url(filename):
+def get_main_url(filename: str, original_url: QUrl) -> QUrl:
     """Get the URL to be opened to view a local PDF."""
     url = QUrl('qute://pdfjs/web/viewer.html')
     query = QUrlQuery()
     query.addQueryItem('filename', filename)  # read from our JS
     query.addQueryItem('file', '')  # to avoid pdfjs opening the default PDF
+    urlstr = original_url.toString(QUrl.FullyEncoded)  # type: ignore
+    query.addQueryItem('source', urlstr)
     url.setQuery(query)
     return url

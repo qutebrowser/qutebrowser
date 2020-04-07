@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2019 Jay Kamat <jaygkamat@gmail.com>
+# Copyright 2018-2020 Jay Kamat <jaygkamat@gmail.com>
 #
 # This file is part of qutebrowser.
 #
@@ -19,7 +19,7 @@
 
 # False-positives
 # FIXME: Report this to pylint?
-# pylint: disable=unsubscriptable-object
+# pylint: disable=unsubscriptable-object,useless-suppression
 
 """Tests for qutebrowser.config.configcache."""
 
@@ -34,7 +34,7 @@ def test_configcache_except_pattern(config_stub):
 
 
 def test_configcache_error_set(config_stub):
-    # pylint: disable=unsupported-assignment-operation
+    # pylint: disable=unsupported-assignment-operation,useless-suppression
     with pytest.raises(TypeError):
         config.cache['content.javascript.enabled'] = True
 

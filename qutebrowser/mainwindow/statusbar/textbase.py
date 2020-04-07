@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -68,7 +68,8 @@ class TextBase(QLabel):
             txt: The text to set (string).
         """
         super().setText(txt)
-        self._update_elided_text(self.geometry().width())
+        if self._elidemode != Qt.ElideNone:
+            self._update_elided_text(self.geometry().width())
 
     def resizeEvent(self, e):
         """Extend QLabel::resizeEvent to update the elided text afterwards."""

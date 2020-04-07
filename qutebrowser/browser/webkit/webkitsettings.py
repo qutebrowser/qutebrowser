@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,10 +24,13 @@ Module attributes:
                 constants.
 """
 
+import typing
 import os.path
 
+from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebKit import QWebSettings
+from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
@@ -36,7 +39,9 @@ from qutebrowser.browser import shared
 
 
 # The global WebKitSettings object
-global_settings = None
+global_settings = typing.cast('WebKitSettings', None)
+
+parsed_user_agent = None
 
 
 class WebKitSettings(websettings.AbstractSettings):
@@ -77,6 +82,8 @@ class WebKitSettings(websettings.AbstractSettings):
             Attr(QWebSettings.PrintElementBackgrounds),
         'content.xss_auditing':
             Attr(QWebSettings.XSSAuditingEnabled),
+        'content.site_specific_quirks':
+            Attr(QWebSettings.SiteSpecificQuirksEnabled),
 
         'input.spatial_navigation':
             Attr(QWebSettings.SpatialNavigationEnabled),
@@ -159,6 +166,12 @@ def _update_settings(option):
         _set_cache_maximum_pages(settings)
 
 
+def _init_user_agent():
+    global parsed_user_agent
+    ua = QWebPage().userAgentForUrl(QUrl())
+    parsed_user_agent = websettings.UserAgent.parse(ua)
+
+
 def init(_args):
     """Initialize the global QWebSettings."""
     cache_path = standarddir.cache()
@@ -176,6 +189,8 @@ def init(_args):
     _set_user_stylesheet(settings)
     _set_cookie_accept_policy(settings)
     _set_cache_maximum_pages(settings)
+
+    _init_user_agent()
 
     config.instance.changed.connect(_update_settings)
 

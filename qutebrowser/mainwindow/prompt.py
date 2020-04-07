@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -23,6 +23,7 @@ import os.path
 import html
 import collections
 import functools
+import typing
 
 import attr
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
@@ -32,14 +33,14 @@ from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QSpacerItem)
 
 from qutebrowser.browser import downloads
-from qutebrowser.config import config, configtypes, configexc
+from qutebrowser.config import config, configtypes, configexc, stylesheet
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import urlmatch
 
 
-prompt_queue = None
+prompt_queue = typing.cast('PromptQueue', None)
 
 
 @attr.s
@@ -101,8 +102,9 @@ class PromptQueue(QObject):
         super().__init__(parent)
         self._question = None
         self._shutting_down = False
-        self._loops = []
-        self._queue = collections.deque()
+        self._loops = []  # type: typing.MutableSequence[qtutils.EventLoop]
+        self._queue = collections.deque(
+        )  # type: typing.Deque[usertypes.Question]
         message.global_bridge.mode_left.connect(self._on_mode_left)
 
     def __repr__(self):
@@ -190,7 +192,8 @@ class PromptQueue(QObject):
         if blocking:
             loop = qtutils.EventLoop()
             self._loops.append(loop)
-            loop.destroyed.connect(lambda: self._loops.remove(loop))
+            loop.destroyed.connect(  # type: ignore
+                lambda: self._loops.remove(loop))
             question.completed.connect(loop.quit)
             question.completed.connect(loop.deleteLater)
             log.prompt.debug("Starting loop.exec_() for {}".format(question))
@@ -285,11 +288,11 @@ class PromptContainer(QWidget):
         self._layout = QVBoxLayout(self)
         self._layout.setContentsMargins(10, 10, 10, 10)
         self._win_id = win_id
-        self._prompt = None
+        self._prompt = None  # type: typing.Optional[_BasePrompt]
 
         self.setObjectName('PromptContainer')
         self.setAttribute(Qt.WA_StyledBackground, True)
-        config.set_register_stylesheet(self)
+        stylesheet.set_register(self)
 
         message.global_bridge.prompt_done.connect(self._on_prompt_done)
         prompt_queue.show_prompts.connect(self._on_show_prompts)
@@ -326,7 +329,7 @@ class PromptContainer(QWidget):
             usertypes.PromptMode.alert: AlertPrompt,
         }
         klass = classes[question.mode]
-        prompt = klass(question)
+        prompt = typing.cast(_BasePrompt, klass(question))
 
         log.prompt.debug("Displaying prompt {}".format(prompt))
         self._prompt = prompt
@@ -391,6 +394,7 @@ class PromptContainer(QWidget):
                    For boolean prompts, "yes"/"no" are accepted as value.
             save: Save the value to the config.
         """
+        assert self._prompt is not None
         question = self._prompt.question
 
         try:
@@ -418,6 +422,7 @@ class PromptContainer(QWidget):
                      cmdline.
             pdfjs: Open the download via PDF.js.
         """
+        assert self._prompt is not None
         try:
             self._prompt.download_open(cmdline, pdfjs=pdfjs)
         except UnsupportedOperationError:
@@ -432,6 +437,7 @@ class PromptContainer(QWidget):
         Args:
             which: 'next', 'prev'
         """
+        assert self._prompt is not None
         try:
             self._prompt.item_focus(which)
         except UnsupportedOperationError:
@@ -446,6 +452,7 @@ class PromptContainer(QWidget):
         Args:
             sel: Use the primary selection instead of the clipboard.
         """
+        assert self._prompt is not None
         question = self._prompt.question
         if question.url is None:
             message.error('No URL found.')
@@ -700,7 +707,7 @@ class FilenamePrompt(_BasePrompt):
         # Nothing selected initially
         self._file_view.setCurrentIndex(QModelIndex())
         # The model needs to be sorted so we get the correct first/last index
-        self._file_model.directoryLoaded.connect(
+        self._file_model.directoryLoaded.connect(  # type: ignore
             lambda: self._file_model.sort(0))
 
     def accept(self, value=None, save=False):
@@ -747,7 +754,9 @@ class FilenamePrompt(_BasePrompt):
         idx = self._do_completion(idx, which)
 
         selmodel.setCurrentIndex(
-            idx, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
+            idx,
+            QItemSelectionModel.ClearAndSelect |  # type: ignore
+            QItemSelectionModel.Rows)
         self._insert_path(idx, clicked=False)
 
     def _do_completion(self, idx, which):
@@ -772,7 +781,8 @@ class DownloadFilenamePrompt(FilenamePrompt):
 
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
-        self._file_model.setFilter(QDir.AllDirs | QDir.Drives | QDir.NoDot)
+        self._file_model.setFilter(
+            QDir.AllDirs | QDir.Drives | QDir.NoDot)  # type: ignore
 
     def accept(self, value=None, save=False):
         done = super().accept(value, save)
@@ -783,7 +793,8 @@ class DownloadFilenamePrompt(FilenamePrompt):
 
     def download_open(self, cmdline, pdfjs):
         if pdfjs:
-            target = downloads.PDFJSDownloadTarget()
+            target = downloads.PDFJSDownloadTarget(
+            )  # type: downloads._DownloadTarget
         else:
             target = downloads.OpenFileDownloadTarget(cmdline)
 
@@ -949,6 +960,5 @@ def init():
     """Initialize global prompt objects."""
     global prompt_queue
     prompt_queue = PromptQueue()
-    objreg.register('prompt-queue', prompt_queue)  # for commands
-    message.global_bridge.ask_question.connect(
+    message.global_bridge.ask_question.connect(  # type: ignore
         prompt_queue.ask_question, Qt.DirectConnection)

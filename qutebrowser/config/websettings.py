@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,17 +19,63 @@
 
 """Bridge from QWeb(Engine)Settings to our own settings."""
 
+import re
 import typing
 import argparse
+import functools
 
-from PyQt5.QtCore import QUrl
+import attr
+from PyQt5.QtCore import QUrl, pyqtSlot, qVersion
 from PyQt5.QtGui import QFont
 
-from qutebrowser.config import config, configutils
+import qutebrowser
+from qutebrowser.config import config
 from qutebrowser.utils import log, usertypes, urlmatch, qtutils
-from qutebrowser.misc import objects
+from qutebrowser.misc import objects, debugcachestats
 
 UNSET = object()
+
+
+@attr.s
+class UserAgent:
+
+    """A parsed user agent."""
+
+    os_info = attr.ib()  # type: str
+    webkit_version = attr.ib()  # type: str
+    upstream_browser_key = attr.ib()  # type: str
+    upstream_browser_version = attr.ib()  # type: str
+    qt_key = attr.ib()  # type: str
+
+    @classmethod
+    def parse(cls, ua: str) -> 'UserAgent':
+        """Parse a user agent string into its components."""
+        comment_matches = re.finditer(r'\(([^)]*)\)', ua)
+        os_info = list(comment_matches)[0].group(1)
+
+        version_matches = re.finditer(r'(\S+)/(\S+)', ua)
+        versions = {}
+        for match in version_matches:
+            versions[match.group(1)] = match.group(2)
+
+        webkit_version = versions['AppleWebKit']
+
+        if 'Chrome' in versions:
+            upstream_browser_key = 'Chrome'
+            qt_key = 'QtWebEngine'
+        elif 'Version' in versions:
+            upstream_browser_key = 'Version'
+            qt_key = 'Qt'
+        else:
+            raise ValueError("Invalid upstream browser key: {}".format(ua))
+
+        upstream_browser_version = versions[upstream_browser_key]
+
+        return cls(os_info=os_info,
+                   webkit_version=webkit_version,
+                   upstream_browser_key=upstream_browser_key,
+                   upstream_browser_version=upstream_browser_version,
+                   qt_key=qt_key)
 
 
 class AttributeInfo:
@@ -60,7 +106,7 @@ class AbstractSettings:
     def set_attribute(self, name: str, value: typing.Any) -> bool:
         """Set the given QWebSettings/QWebEngineSettings attribute.
 
-        If the value is configutils.UNSET, the value is reset instead.
+        If the value is usertypes.UNSET, the value is reset instead.
 
         Return:
             True if there was a change, False otherwise.
@@ -69,7 +115,7 @@ class AbstractSettings:
 
         info = self._ATTRIBUTES[name]
         for attribute in info.attributes:
-            if value is configutils.UNSET:
+            if value is usertypes.UNSET:
                 self._settings.resetAttribute(attribute)
                 new_value = self.test_attribute(name)
             else:
@@ -93,7 +139,7 @@ class AbstractSettings:
         Return:
             True if there was a change, False otherwise.
         """
-        assert value is not configutils.UNSET  # type: ignore
+        assert value is not usertypes.UNSET  # type: ignore
         family = self._FONT_SIZES[name]
         old_value = self._settings.fontSize(family)
         self._settings.setFontSize(family, value)
@@ -108,7 +154,7 @@ class AbstractSettings:
         Return:
             True if there was a change, False otherwise.
         """
-        assert value is not configutils.UNSET  # type: ignore
+        assert value is not usertypes.UNSET  # type: ignore
         family = self._FONT_FAMILIES[name]
         if value is None:
             font = QFont()
@@ -126,7 +172,7 @@ class AbstractSettings:
         Return:
             True if there was a change, False otherwise.
         """
-        assert encoding is not configutils.UNSET  # type: ignore
+        assert encoding is not usertypes.UNSET  # type: ignore
         old_value = self._settings.defaultTextEncoding()
         self._settings.setDefaultTextEncoding(encoding)
         return old_value != encoding
@@ -183,6 +229,34 @@ class AbstractSettings:
             self.update_setting(setting)
 
 
+@debugcachestats.register(name='user agent cache')
+@functools.lru_cache()
+def _format_user_agent(template: str, backend: usertypes.Backend) -> str:
+    if backend == usertypes.Backend.QtWebEngine:
+        from qutebrowser.browser.webengine import webenginesettings
+        parsed = webenginesettings.parsed_user_agent
+    else:
+        from qutebrowser.browser.webkit import webkitsettings
+        parsed = webkitsettings.parsed_user_agent
+
+    assert parsed is not None
+
+    return template.format(
+        os_info=parsed.os_info,
+        webkit_version=parsed.webkit_version,
+        qt_key=parsed.qt_key,
+        qt_version=qVersion(),
+        upstream_browser_key=parsed.upstream_browser_key,
+        upstream_browser_version=parsed.upstream_browser_version,
+        qutebrowser_version=qutebrowser.__version__,
+    )
+
+
+def user_agent(url: QUrl = None) -> str:
+    template = config.instance.get('content.headers.user_agent', url=url)
+    return _format_user_agent(template=template, backend=objects.backend)
+
+
 def init(args: argparse.Namespace) -> None:
     """Initialize all QWeb(Engine)Settings."""
     if objects.backend == usertypes.Backend.QtWebEngine:
@@ -193,11 +267,13 @@ def init(args: argparse.Namespace) -> None:
         webkitsettings.init(args)
 
     # Make sure special URLs always get JS support
-    for pattern in ['file://*', 'chrome://*/*', 'qute://*/*']:
+    for pattern in ['chrome://*/*', 'qute://*/*']:
         config.instance.set_obj('content.javascript.enabled', True,
-                                pattern=urlmatch.UrlPattern(pattern))
+                                pattern=urlmatch.UrlPattern(pattern),
+                                hide_userconfig=True)
 
 
+@pyqtSlot()
 def shutdown() -> None:
     """Shut down QWeb(Engine)Settings."""
     if objects.backend == usertypes.Backend.QtWebEngine:

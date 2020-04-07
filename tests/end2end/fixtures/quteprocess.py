@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -247,6 +247,38 @@ def is_ignored_chromium_message(line):
         # resource_coordinator.mojom.FrameCoordinationUnit
         'InterfaceRequest was dropped, the document is no longer active: '
         'resource_coordinator.mojom.FrameCoordinationUnit',
+
+        # Qt 5.14
+        # [1:7:1119/162200.709920:ERROR:command_buffer_proxy_impl.cc(124)]
+        # ContextResult::kTransientFailure: Failed to send
+        # GpuChannelMsg_CreateCommandBuffer.
+        'ContextResult::kTransientFailure: Failed to send '
+        'GpuChannelMsg_CreateCommandBuffer.',
+        # [156330:156350:1121/120052.060701:WARNING:
+        # important_file_writer.cc(97)]
+        # temp file failure: /home/florian/.local/share/qutebrowser/
+        # qutebrowser/QtWebEngine/Default/user_prefs.json : could not create
+        # temporary file: No such file or directory (2)
+        'temp file failure: */qutebrowser/qutebrowser/QtWebEngine/Default/'
+        'user_prefs.json : could not create temporary file: No such file or '
+        'directory (2)',
+        # [156330:156330:1121/120052.602236:ERROR:
+        # viz_process_transport_factory.cc(331)]
+        # Switching to software compositing.
+        'Switching to software compositing.',
+        # [160686:160712:1121/121226.457866:ERROR:surface_manager.cc(438)]
+        # Old/orphaned temporary reference to
+        # SurfaceId(FrameSinkId[](5, 2), LocalSurfaceId(8, 1, 7C3A...))
+        'Old/orphaned temporary reference to '
+        'SurfaceId(FrameSinkId[](*), LocalSurfaceId(*))',
+        # [79680:79705:0111/151113.071008:WARNING:
+        # important_file_writer.cc(97)] temp file failure:
+        # /tmp/qutebrowser-basedir-gwkvqpyp/data/webengine/user_prefs.json :
+        # could not create temporary file: No such file or directory (2)
+        # (Only in debug builds)
+        # https://bugreports.qt.io/browse/QTBUG-78319
+        'temp file failure: * : could not create temporary file: No such file '
+        'or directory (2)',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -487,7 +519,8 @@ class QuteProc(testprocess.Process):
         backend = 'webengine' if self.request.config.webengine else 'webkit'
         args = ['--debug', '--no-err-windows', '--temp-basedir',
                 '--json-logging', '--loglevel', 'vdebug',
-                '--backend', backend, '--debug-flag', 'no-sql-history']
+                '--backend', backend, '--debug-flag', 'no-sql-history',
+                '--debug-flag', 'werror']
         if qVersion() == '5.7.1':
             # https://github.com/qutebrowser/qutebrowser/issues/3163
             args += ['--qt-flag', 'disable-seccomp-filter-sandbox']
@@ -648,7 +681,21 @@ class QuteProc(testprocess.Process):
               **kwargs):  # pylint: disable=arguments-differ
         if not wait_focus:
             self._focus_ready = True
-        super().start(*args, **kwargs)
+
+        try:
+            super().start(*args, **kwargs)
+        except testprocess.ProcessExited:
+            is_dl_inconsistency = str(self.captured_log[-1]).endswith(
+                "_dl_allocate_tls_init: Assertion "
+                "`listp->slotinfo[cnt].gen <= GL(dl_tls_generation)' failed!")
+            if 'TRAVIS' in os.environ and is_dl_inconsistency:
+                # WORKAROUND for https://sourceware.org/bugzilla/show_bug.cgi?id=19329
+                self.captured_log = []
+                self._log("NOTE: Restarted after libc DL inconsistency!")
+                self.clear_data()
+                super().start(*args, **kwargs)
+            else:
+                raise
 
     def send_cmd(self, command, count=None, invalid=False, *, escape=True):
         """Send a command to the running qutebrowser instance.
@@ -871,6 +918,13 @@ class QuteProc(testprocess.Process):
             msg = "Session comparison failed: {}".format(outcome.error)
             msg += '\nsee stdout for details'
             pytest.fail(msg)
+
+    def turn_on_scroll_logging(self, no_scroll_filtering=False):
+        """Make sure all scrolling changes are logged."""
+        cmd = ":debug-pyeval -q objects.debug_flags.add('{}')"
+        if no_scroll_filtering:
+            self.send_cmd(cmd.format('no-scroll-filtering'))
+        self.send_cmd(cmd.format('log-scroll-pos'))
 
 
 class YamlLoader(yaml.SafeLoader):

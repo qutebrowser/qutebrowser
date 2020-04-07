@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,6 +19,7 @@
 
 """An HTTP client based on QNetworkAccessManager."""
 
+import typing
 import functools
 import urllib.request
 import urllib.parse
@@ -66,7 +67,7 @@ class HTTPClient(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._nam = QNetworkAccessManager(self)
-        self._timers = {}
+        self._timers = {}  # type: typing.MutableMapping[QNetworkReply, QTimer]
 
     def post(self, url, data=None):
         """Create a new POST request.

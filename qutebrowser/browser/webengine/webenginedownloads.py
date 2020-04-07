@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,7 +24,7 @@ import os.path
 import urllib
 import functools
 
-from PyQt5.QtCore import pyqtSlot, Qt
+from PyQt5.QtCore import pyqtSlot, Qt, QUrl
 from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
 
 from qutebrowser.browser import downloads, pdfjs
@@ -39,15 +39,16 @@ class DownloadItem(downloads.AbstractDownloadItem):
         _qt_item: The wrapped item.
     """
 
-    def __init__(self, qt_item, parent=None):
+    def __init__(self, qt_item: QWebEngineDownloadItem, parent=None):
         super().__init__(parent)
         self._qt_item = qt_item
-        qt_item.downloadProgress.connect(self.stats.on_download_progress)
-        qt_item.stateChanged.connect(self._on_state_changed)
+        qt_item.downloadProgress.connect(  # type: ignore
+            self.stats.on_download_progress)
+        qt_item.stateChanged.connect(self._on_state_changed)  # type: ignore
 
         # Ensure wrapped qt_item is deleted manually when the wrapper object
         # is deleted. See https://github.com/qutebrowser/qutebrowser/issues/3373
-        self.destroyed.connect(self._qt_item.deleteLater)
+        self.destroyed.connect(self._qt_item.deleteLater)  # type: ignore
 
     def _is_page_download(self):
         """Check if this item is a page (i.e. mhtml) download."""
@@ -92,7 +93,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
                              "{}".format(state_name))
 
     def _do_die(self):
-        self._qt_item.downloadProgress.disconnect()
+        self._qt_item.downloadProgress.disconnect()  # type: ignore
         if self._qt_item.state() != QWebEngineDownloadItem.DownloadInterrupted:
             self._qt_item.cancel()
 
@@ -116,6 +117,9 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
     def _get_open_filename(self):
         return self._filename
+
+    def url(self) -> QUrl:
+        return self._qt_item.url()
 
     def _set_fileobj(self, fileobj, *, autoclose=True):
         raise downloads.UnsupportedOperationError
@@ -149,6 +153,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
     def _ask_create_parent_question(self, title, msg,
                                     force_overwrite, remember_directory):
+        assert self._filename is not None
         no_action = functools.partial(self.cancel, remove_data=False)
         question = usertypes.Question()
         question.title = title
@@ -165,7 +170,16 @@ class DownloadItem(downloads.AbstractDownloadItem):
         message.global_bridge.ask(question, blocking=True)
 
     def _after_set_filename(self):
-        self._qt_item.setPath(self._filename)
+        assert self._filename is not None
+
+        dirname, basename = os.path.split(self._filename)
+        try:
+            # Qt 5.14
+            self._qt_item.setDownloadDirectory(dirname)
+            self._qt_item.setDownloadFileName(basename)
+        except AttributeError:
+            self._qt_item.setPath(self._filename)
+
         self._qt_item.accept()
 
 

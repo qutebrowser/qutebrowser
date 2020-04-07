@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,8 +19,11 @@
 
 """Function to return the url completion model for the `open` command."""
 
+import typing
+
 from qutebrowser.completion.models import (completionmodel, listcategory,
                                            histcategory)
+from qutebrowser.browser import history
 from qutebrowser.utils import log, objreg
 from qutebrowser.config import config
 
@@ -32,18 +35,17 @@ _TEXTCOL = 1
 def _delete_history(data):
     urlstr = data[_URLCOL]
     log.completion.debug('Deleting history entry {}'.format(urlstr))
-    hist = objreg.get('web-history')
-    hist.delete_url(urlstr)
+    history.web_history.delete_url(urlstr)
 
 
-def _delete_bookmark(data):
+def _delete_bookmark(data: typing.Sequence[str]) -> None:
     urlstr = data[_URLCOL]
     log.completion.debug('Deleting bookmark {}'.format(urlstr))
     bookmark_manager = objreg.get('bookmark-manager')
     bookmark_manager.delete(urlstr)
 
 
-def _delete_quickmark(data):
+def _delete_quickmark(data: typing.Sequence[str]) -> None:
     name = data[_TEXTCOL]
     quickmark_manager = objreg.get('quickmark-manager')
     log.completion.debug('Deleting quickmark {}'.format(name))

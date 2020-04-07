@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,21 +19,25 @@
 
 """Handling of proxies."""
 
+import typing
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, pyqtSlot
 from PyQt5.QtNetwork import QNetworkProxy, QNetworkProxyFactory
 
 from qutebrowser.config import config, configtypes
-from qutebrowser.utils import objreg, message, usertypes, urlutils
+from qutebrowser.utils import message, usertypes, urlutils
 from qutebrowser.misc import objects
 from qutebrowser.browser.network import pac
 
 
+application_factory = None
+
+
 def init():
     """Set the application wide proxy factory."""
-    proxy_factory = ProxyFactory()
-    objreg.register('proxy-factory', proxy_factory)
-    QNetworkProxyFactory.setApplicationProxyFactory(proxy_factory)
+    global application_factory
+    application_factory = ProxyFactory()
+    QNetworkProxyFactory.setApplicationProxyFactory(application_factory)
 
     config.instance.changed.connect(_warn_for_pac)
     _warn_for_pac()
@@ -48,8 +52,9 @@ def _warn_for_pac():
         message.error("PAC support isn't implemented for QtWebEngine yet!")
 
 
+@pyqtSlot()
 def shutdown():
-    QNetworkProxyFactory.setApplicationProxyFactory(None)
+    QNetworkProxyFactory.setApplicationProxyFactory(None)  # type: ignore
 
 
 class ProxyFactory(QNetworkProxyFactory):
@@ -94,9 +99,10 @@ class ProxyFactory(QNetworkProxyFactory):
         for p in proxies:
             if p.type() != QNetworkProxy.NoProxy:
                 capabilities = p.capabilities()
+                lookup_cap = QNetworkProxy.HostNameLookupCapability
                 if config.val.content.proxy_dns_requests:
-                    capabilities |= QNetworkProxy.HostNameLookupCapability
+                    capabilities |= lookup_cap  # type: ignore
                 else:
-                    capabilities &= ~QNetworkProxy.HostNameLookupCapability
+                    capabilities &= ~lookup_cap  # type: ignore
                 p.setCapabilities(capabilities)
         return proxies

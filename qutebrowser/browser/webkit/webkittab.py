@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -85,7 +85,7 @@ class WebKitSearch(browsertab.AbstractSearch):
 
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
-        self._flags = QWebPage.FindFlags(0)
+        self._flags = QWebPage.FindFlags(0)  # type: ignore
 
     def _call_cb(self, callback, found, text, flags, caller):
         """Call the given callback if it's non-None.
@@ -157,7 +157,7 @@ class WebKitSearch(browsertab.AbstractSearch):
     def prev_result(self, *, result_cb=None):
         self.search_displayed = True
         # The int() here makes sure we get a copy of the flags.
-        flags = QWebPage.FindFlags(int(self._flags))
+        flags = QWebPage.FindFlags(int(self._flags))  # type: ignore
         if flags & QWebPage.FindBackward:
             flags &= ~QWebPage.FindBackward
         else:
@@ -434,12 +434,12 @@ class WebKitScroller(browsertab.AbstractScroller):
     def to_anchor(self, name):
         self._widget.page().mainFrame().scrollToAnchor(name)
 
-    def delta(self, x=0, y=0):
+    def delta(self, x: int = 0, y: int = 0) -> None:
         qtutils.check_overflow(x, 'int')
         qtutils.check_overflow(y, 'int')
         self._widget.page().mainFrame().scroll(x, y)
 
-    def delta_page(self, x=0.0, y=0.0):
+    def delta_page(self, x: float = 0.0, y: float = 0.0) -> None:
         if y.is_integer():
             y = int(y)
             if y == 0:
@@ -452,7 +452,7 @@ class WebKitScroller(browsertab.AbstractScroller):
         if x == 0 and y == 0:
             return
         size = self._widget.page().mainFrame().geometry()
-        self.delta(x * size.width(), y * size.height())
+        self.delta(int(x * size.width()), int(y * size.height()))
 
     def to_perc(self, x=None, y=None):
         if x is None and y == 0:
@@ -681,10 +681,6 @@ class WebKitTabPrivate(browsertab.AbstractTabPrivate):
 
     def networkaccessmanager(self):
         return self._widget.page().networkAccessManager()
-
-    def user_agent(self):
-        page = self._widget.page()
-        return page.userAgentForUrl(self._tab.url())
 
     def clear_ssl_errors(self):
         self.networkaccessmanager().clear_all_ssl_errors()

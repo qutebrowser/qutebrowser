@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,6 +27,9 @@ from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QUrl
 
 from qutebrowser.browser import downloads, qtnetworkdownloads
 from qutebrowser.utils import objreg
+
+
+UnsupportedAttribute = downloads.UnsupportedAttribute
 
 
 class TempDownload(QObject):

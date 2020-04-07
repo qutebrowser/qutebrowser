@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -116,12 +116,13 @@ class Command:
         self.parser.add_argument('-h', '--help', action=argparser.HelpAction,
                                  default=argparser.SUPPRESS, nargs=0,
                                  help=argparser.SUPPRESS)
-        self.opt_args = collections.OrderedDict()
+        self.opt_args = collections.OrderedDict(
+        )  # type: typing.MutableMapping[str, typing.Tuple[str, str]]
         self.namespace = None
         self._count = None
-        self.pos_args = []
-        self.desc = None
-        self.flags_with_args = []
+        self.pos_args = [
+        ]  # type: typing.MutableSequence[typing.Tuple[str, str]]
+        self.flags_with_args = []  # type: typing.MutableSequence[str]
         self._has_vararg = False
 
         # This is checked by future @cmdutils.argument calls so they fail
@@ -138,8 +139,8 @@ class Command:
         Args:
             win_id: The window ID the command is run in.
         """
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=win_id)
+        from qutebrowser.keyinput import modeman
+        mode_manager = modeman.instance(win_id)
         self.validate_mode(mode_manager.mode)
 
         if self.backend is not None and objects.backend != self.backend:
@@ -243,8 +244,9 @@ class Command:
             args = self._param_to_argparse_args(param, is_bool)
             callsig = debug_utils.format_call(self.parser.add_argument, args,
                                               kwargs, full=False)
-            log.commands.vdebug('Adding arg {} of type {} -> {}'.format(
-                param.name, typ, callsig))
+            log.commands.vdebug(  # type: ignore
+                'Adding arg {} of type {} -> {}'
+                .format(param.name, typ, callsig))
             self.parser.add_argument(*args, **kwargs)
             if param.kind == inspect.Parameter.VAR_POSITIONAL:
                 self._has_vararg = True
@@ -359,7 +361,8 @@ class Command:
             tab_id = None
         else:
             raise ValueError("Invalid scope {}!".format(scope))
-        return objreg.get(name, scope=scope, window=win_id, tab=tab_id)
+        return objreg.get(name, scope=scope, window=win_id, tab=tab_id,
+                          from_command=True)
 
     def _add_special_arg(self, *, value, param, args, kwargs):
         """Add a special argument value to a function call.
@@ -403,16 +406,19 @@ class Command:
             raise TypeError("{}: Legacy tuple type annotation!".format(
                 self.name))
 
-        if getattr(typ, '__origin__', None) is typing.Union or (
-                # Older Python 3.5 patch versions
-                # pylint: disable=no-member,useless-suppression
-                hasattr(typing, 'UnionMeta') and
-                isinstance(typ, typing.UnionMeta)):
+        if hasattr(typing, 'UnionMeta'):
+            # Python 3.5.2
+            # pylint: disable=no-member,useless-suppression
+            is_union = isinstance(typ, typing.UnionMeta)  # type: ignore
+        else:
+            is_union = getattr(typ, '__origin__', None) is typing.Union
+
+        if is_union:
             # this is... slightly evil, I know
             try:
                 types = list(typ.__args__)
             except AttributeError:
-                # Older Python 3.5 patch versions
+                # Python 3.5.2
                 types = list(typ.__union_params__)
             # pylint: enable=no-member,useless-suppression
             if param.default is not inspect.Parameter.empty:
@@ -490,8 +496,8 @@ class Command:
         Return:
             An (args, kwargs) tuple.
         """
-        args = []
-        kwargs = {}
+        args = []  # type: typing.Any
+        kwargs = {}  # type: typing.MutableMapping[str, typing.Any]
         signature = inspect.signature(self.handler)
 
         for i, param in enumerate(signature.parameters.values()):
@@ -569,7 +575,7 @@ class Command:
 
     def register(self):
         """Register this command in objects.commands."""
-        log.commands.vdebug(
+        log.commands.vdebug(  # type: ignore
             "Registering command {} (from {}:{})".format(
                 self.name, self.handler.__module__, self.handler.__qualname__))
         if self.name in objects.commands:

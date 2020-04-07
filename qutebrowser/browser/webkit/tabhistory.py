@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,6 +19,7 @@
 
 """Utilities related to QWebHistory."""
 
+import typing
 
 from PyQt5.QtCore import QByteArray, QDataStream, QIODevice, QUrl
 
@@ -80,7 +81,7 @@ def serialize(items):
     """
     data = QByteArray()
     stream = QDataStream(data, QIODevice.ReadWrite)
-    user_data = []
+    user_data = []  # type: typing.List[typing.Mapping[str, typing.Any]]
 
     current_idx = None
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -64,6 +64,8 @@ PERFECT_FILES = [
      'api/config.py'),
     (None,
      'api/message.py'),
+    (None,
+     'api/qtutils.py'),
 
     ('tests/unit/browser/webkit/test_cache.py',
      'browser/webkit/cache.py'),
@@ -98,10 +100,11 @@ PERFECT_FILES = [
     ('tests/unit/keyinput/test_keyutils.py',
      'keyinput/keyutils.py'),
 
+    ('tests/unit/components/test_readlinecommands.py',
+     'components/readlinecommands.py'),
+
     ('tests/unit/misc/test_autoupdate.py',
      'misc/autoupdate.py'),
-    ('tests/unit/misc/test_readline.py',
-     'misc/readline.py'),
     ('tests/unit/misc/test_split.py',
      'misc/split.py'),
     ('tests/unit/misc/test_msgbox.py',
@@ -122,6 +125,8 @@ PERFECT_FILES = [
      'misc/pastebin.py'),
     ('tests/unit/misc/test_objects.py',
      'misc/objects.py'),
+    ('tests/unit/misc/test_throttle.py',
+     'misc/throttle.py'),
 
     (None,
      'mainwindow/statusbar/keystring.py'),
@@ -142,6 +147,8 @@ PERFECT_FILES = [
 
     ('tests/unit/config/test_config.py',
      'config/config.py'),
+    ('tests/unit/config/test_stylesheet.py',
+     'config/stylesheet.py'),
     ('tests/unit/config/test_configdata.py',
      'config/configdata.py'),
     ('tests/unit/config/test_configexc.py',

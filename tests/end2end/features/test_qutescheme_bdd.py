@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -38,6 +38,8 @@ def request_blocked(request, quteproc, kind):
         "[http://localhost:*/data/misc/qutescheme_csrf.html:0] Not allowed to "
         "load local resource: qute://settings/set?*"
     )
+    unsafe_redirect_msg = "Load error: ERR_UNSAFE_REDIRECT"
+    blocked_request_msg = "Load error: ERR_BLOCKED_BY_CLIENT"
 
     webkit_error_invalid = (
         "Error while loading qute://settings/set?*: Invalid qute://settings "
@@ -51,15 +53,19 @@ def request_blocked(request, quteproc, kind):
         expected_messages = {
             'img': [blocking_js_msg],
             'link': [blocking_js_msg],
-            'redirect': [blocking_set_msg],
+            'redirect': [blocking_set_msg, blocked_request_msg],
             'form': [blocking_js_msg],
         }
+        if qtutils.version_check('5.15', compiled=False):
+            # On Qt 5.15, Chromium blocks the redirect as ERR_UNSAFE_REDIRECT
+            # instead.
+            expected_messages['redirect'] = [unsafe_redirect_msg]
     elif request.config.webengine:
         expected_messages = {
             'img': [blocking_csrf_msg],
-            'link': [blocking_set_msg],
-            'redirect': [blocking_set_msg],
-            'form': [blocking_set_msg],
+            'link': [blocking_set_msg, blocked_request_msg],
+            'redirect': [blocking_set_msg, blocked_request_msg],
+            'form': [blocking_set_msg, blocked_request_msg],
         }
     else:  # QtWebKit
         expected_messages = {

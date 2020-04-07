@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -41,7 +41,7 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
         return hash(self._error)
 
     def __eq__(self, other):
-        return self._error == other._error  # pylint: disable=protected-access
+        return self._error == other._error
 
     def is_overridable(self):
         return True

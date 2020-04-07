@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -29,7 +29,6 @@ try:
 except ImportError:
     hunter = None
 
-import os
 import sys
 import faulthandler
 import traceback
@@ -131,19 +130,6 @@ def init_faulthandler(fileobj=sys.__stderr__):
         # pylint: enable=no-member,useless-suppression
 
 
-def pyinstaller_qt_workaround():
-    """Work around PATH issues with PyInstaller.
-
-    See https://github.com/pyinstaller/pyinstaller/issues/4293
-    and https://github.com/gridsync/gridsync/pull/236/commits/0abf8e7363cc8c2a10a0263e6dcceb3be1c07022
-    """
-    if (hasattr(sys, 'frozen') and
-            hasattr(sys, '_MEIPASS') and
-            sys.platform == 'win32'):
-        # pylint: disable=no-member,protected-access
-        os.environ['PATH'] += os.pathsep + sys._MEIPASS
-
-
 def check_pyqt():
     """Check if PyQt core modules (QtCore/QtWidgets) are installed."""
     for name in ['PyQt5.QtCore', 'PyQt5.QtWidgets']:
@@ -230,6 +216,9 @@ def _check_modules(modules):
             ), log.ignore_py_warnings(
                 category=ImportWarning,
                 message=r'Not importing directory .*: missing __init__'
+            ), log.ignore_py_warnings(
+                category=DeprecationWarning,
+                message=r'the imp module is deprecated',
             ):
                 # pylint: enable=bad-continuation
                 importlib.import_module(name)
@@ -259,13 +248,18 @@ def configure_pyqt():
     Doing this means we can't use the interactive shell anymore (which we don't
     anyways), but we can use pdb instead.
     """
-    from PyQt5.QtCore import pyqtRemoveInputHook
-    pyqtRemoveInputHook()
+    from PyQt5 import QtCore
+    QtCore.pyqtRemoveInputHook()
+    try:
+        QtCore.pyqt5_enable_new_onexit_scheme(True)  # type: ignore
+    except AttributeError:
+        # Added in PyQt 5.13 somewhere, going to be the default in 5.14
+        pass
 
     from qutebrowser.qt import sip
     try:
         # Added in sip 4.19.4
-        sip.enableoverflowchecking(True)
+        sip.enableoverflowchecking(True)  # type: ignore
     except AttributeError:
         pass
 
@@ -303,7 +297,6 @@ def early_init(args):
     init_faulthandler()
     # Here we check if QtCore is available, and if not, print a message to the
     # console or via Tk.
-    pyinstaller_qt_workaround()
     check_pyqt()
     # Init logging as early as possible
     init_log(args)

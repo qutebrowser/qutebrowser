@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,18 +25,19 @@ import inspect
 import os.path
 import collections
 import enum
+import typing
 
 import qutebrowser
 from qutebrowser.utils import log, utils
 
 
-def is_git_repo():
+def is_git_repo() -> bool:
     """Check if we're running from a git repository."""
     gitfolder = os.path.join(qutebrowser.basedir, os.path.pardir, '.git')
     return os.path.isdir(gitfolder)
 
 
-def docs_up_to_date(path):
+def docs_up_to_date(path: str) -> bool:
     """Check if the generated html documentation is up to date.
 
     Args:
@@ -79,17 +80,18 @@ class DocstringParser:
     State = enum.Enum('State', ['short', 'desc', 'desc_hidden',
                                 'arg_start', 'arg_inside', 'misc'])
 
-    def __init__(self, func):
+    def __init__(self, func: typing.Callable) -> None:
         """Constructor.
 
         Args:
             func: The function to parse the docstring for.
         """
         self._state = self.State.short
-        self._cur_arg_name = None
-        self._short_desc_parts = []
-        self._long_desc_parts = []
-        self.arg_descs = collections.OrderedDict()
+        self._cur_arg_name = None  # type: typing.Optional[str]
+        self._short_desc_parts = []  # type: typing.List[str]
+        self._long_desc_parts = []  # type: typing.List[str]
+        self.arg_descs = collections.OrderedDict(
+        )  # type: typing.Dict[str, typing.Union[str, typing.List[str]]]
         doc = inspect.getdoc(func)
         handlers = {
             self.State.short: self._parse_short,
@@ -121,25 +123,25 @@ class DocstringParser:
         self.long_desc = ' '.join(self._long_desc_parts)
         self.short_desc = ' '.join(self._short_desc_parts)
 
-    def _process_arg(self, line):
+    def _process_arg(self, line: str) -> None:
         """Helper method to process a line like 'fooarg: Blah blub'."""
         self._cur_arg_name, argdesc = line.split(':', maxsplit=1)
         self._cur_arg_name = self._cur_arg_name.strip().lstrip('*')
         self.arg_descs[self._cur_arg_name] = [argdesc.strip()]
 
-    def _skip(self, line):
+    def _skip(self, line: str) -> None:
         """Handler to ignore everything until we get 'Args:'."""
         if line.startswith('Args:'):
             self._state = self.State.arg_start
 
-    def _parse_short(self, line):
+    def _parse_short(self, line: str) -> None:
         """Parse the short description (first block) in the docstring."""
         if not line:
             self._state = self.State.desc
         else:
             self._short_desc_parts.append(line.strip())
 
-    def _parse_desc(self, line):
+    def _parse_desc(self, line: str) -> None:
         """Parse the long description in the docstring."""
         if line.startswith('Args:'):
             self._state = self.State.arg_start
@@ -148,22 +150,27 @@ class DocstringParser:
         elif line.strip():
             self._long_desc_parts.append(line.strip())
 
-    def _parse_arg_start(self, line):
+    def _parse_arg_start(self, line: str) -> None:
         """Parse first argument line."""
         self._process_arg(line)
         self._state = self.State.arg_inside
 
-    def _parse_arg_inside(self, line):
+    def _parse_arg_inside(self, line: str) -> bool:
         """Parse subsequent argument lines."""
         argname = self._cur_arg_name
+        assert argname is not None
+
+        descs = self.arg_descs[argname]
+        assert isinstance(descs, list)
+
         if re.fullmatch(r'[A-Z][a-z]+:', line):
-            if not self.arg_descs[argname][-1].strip():
-                self.arg_descs[argname] = self.arg_descs[argname][:-1]
+            if not descs[-1].strip():
+                del descs[-1]
                 return True
         elif not line.strip():
-            self.arg_descs[argname].append('\n\n')
+            descs.append('\n\n')
         elif line[4:].startswith(' '):
-            self.arg_descs[argname].append(line.strip() + '\n')
+            descs.append(line.strip() + '\n')
         else:
             self._process_arg(line)
         return False

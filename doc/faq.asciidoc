@@ -43,32 +43,31 @@ Google's https://www.chromium.org/Home[Chromium]. With an up-to-date Qt, it has
 much more man-power behind it than WebKitGTK+ has, and thus supports more modern
 web features - it's also arguably more secure.
 
-What's wrong with https://www.mozilla.org/en-US/firefox/new/[Firefox] and link:http://bug.5digits.org/pentadactyl/[Pentadactyl]/link:http://www.vimperator.org/vimperator[Vimperator]?::
-    Firefox likes to break compatibility with addons on each upgrade, gets
-    slower and more bloated with every upgrade, and has some
-    https://blog.mozilla.org/advancingcontent/2014/02/11/publisher-transformation-with-users-at-the-center/[horrible
-    ideas] lately.
-+
-Also, developing addons for it is a nightmare.
-
-What's wrong with https://www.chromium.org/Home[Chromium] and https://vimium.github.io/[Vimium]?::
-    The Chrome plugin API doesn't seem to allow much freedom for plugin
-    writers, which results in Vimium not really having all the features you'd
-    expect from a proper minimal, vim-like browser.
+What's the difference to Firefox/Chromium addons like https://github.com/tridactyl/tridactyl[Tridactyl] or https://vimium.github.io/[Vimium]?::
+    The WebExtensions API doesn't seem to allow much freedom for plugin
+    writers, which results in Vimium/Tridactyl not really having all the
+    features you'd expect from a proper minimal, vim-like browser. Due to the
+    same reason, those addons are quite inconsistent - on some pages, they
+    can't run and intercept keyboard inputs correctly. Tridactyl gets around
+    those limitations with various measures (such as a native messenger written
+    in Python doing some work which can't be done from the addon directly), but
+    there's only so much that can be done.
 
 Why Python?::
     I enjoy writing Python since 2011, which made it one of the possible
     choices. I wanted to use https://www.qt.io/[Qt] because of
     https://wiki.qt.io/QtWebKit[QtWebKit] so I didn't have
-    https://wiki.qt.io/Category:LanguageBindings[many other choices]. I don't
-    like C++ and can't write it very well, so that wasn't an alternative.
+    https://wiki.qt.io/Category:LanguageBindings[many other choices]. At that
+    point, I wasn't comfortable with C++ so that wasn't an alternative.
 
 But isn't Python too slow for a browser?::
-    https://www.infoworld.com/d/application-development/van-rossum-python-not-too-slow-188715[No.]
-    I believe efficiency while coding is a lot more important than efficiency
-    while running. Also, most of the heavy lifting of qutebrowser is done by Qt
-    and WebKit in C++, with the
+    https://www.infoworld.com/d/application-development/van-rossum-python-not-too-slow-188715[It's generally less of a problem than one would expect.]
+    Most of the heavy lifting of qutebrowser is done by Qt and
+    QtWebKit/QtWebEngine in C++, with the
     https://wiki.python.org/moin/GlobalInterpreterLock[GIL] released.
++
+It can be problematic in some areas, but various performance optimizations have
+been carried out to problematic portions of the code.
 
 Is qutebrowser secure?::
     Most security issues are in the backend (which handles networking,
@@ -90,22 +89,17 @@ https://github.com/annulen/webkit/releases[in a while]. It also doesn't have any
 process isolation or sandboxing. See
 https://github.com/qutebrowser/qutebrowser/issues/4039[#4039] for more details.
 +
-Security issues in qutebrowser's code happen very rarely (as per July 2018,
-there have been three security issues caused by qutebrowser in over 4.5 years).
+Security issues in qutebrowser's code happen very rarely (as per September 2019,
+there have been three security issues caused by qutebrowser in almost 6 years).
 Those were handled appropriately
 (http://seclists.org/oss-sec/2018/q3/29[example]) and fixed timely. To report
 security bugs, please contact me directly at mail@qutebrowser.org, GPG ID
 https://www.the-compiler.org/pubkey.asc[0x916eb0c8fd55a072].
 
-Is there an adblocker?::
-    There is a host-based adblocker which takes /etc/hosts-like lists. A "real"
-    adblocker has a
-    https://www.reddit.com/r/programming/comments/25j41u/adblock_pluss_effect_on_firefoxs_memory_usage/chhpomw[big
-    impact] on browsing speed and
-    https://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/[RAM
-    usage], so implementing support for AdBlockPlus-like lists is currently not
-    a priority.
-
+Is there an ad blocker?::
+    There is a simple host-based ad blocker that takes `/etc/hosts`-like lists.
++
+More advanced ad blockers can have a big impact on browsing speed and https://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/[RAM usage], so implementing support for AdBlock Plus-like lists is not a priority.
 How can I get No-Script-like behavior?::
     To disable JavaScript by default:
 +
@@ -124,9 +118,12 @@ How do I play Youtube videos with mpv?::
     player - optionally even with hinting for links:
 +
 ----
-:bind m spawn mpv {url}
-:bind M hint links spawn mpv {hint-url}
+:bind ,m spawn mpv {url}
+:bind ,M hint links spawn mpv {hint-url}
 ----
++
+The comma prefix is used to make sure user-defined bindings don't conflict with
+the built-in ones.
 +
 Note that you might need an additional package (e.g.
 https://www.archlinux.org/packages/community/any/youtube-dl/[youtube-dl] on
@@ -141,8 +138,8 @@ You can find the script here: https://github.com/mpv-player/mpv/blob/master/TOOL
 It also works nicely with rapid hints:
 +
 ----
-:bind m spawn umpv {url}
-:bind M hint links spawn umpv {hint-url}
+:bind ,m spawn umpv {url}
+:bind ,M hint links spawn umpv {hint-url}
 :bind ;M hint --rapid links spawn umpv {hint-url}
 ----
 
@@ -265,60 +262,94 @@ How do I change the `WM_CLASS` used by qutebrowser windows?::
     qutebrowser instance (unless you use `--temp-basedir` or `--basedir`), so
     they all will share the same `WM_CLASS`.
 
+How do I use X.509 Client Certificates?::
+Right now there is no certificate-chooser prompt implemented when there are
+multiple matches. Subscribe to https://github.com/qutebrowser/qutebrowser/issues/4587[Issue#4587]
+for progress notifications.
++
+QtWebEngine will attempt to use certificates stored in `${HOME}/.pki/nssdb`. If
+you have Chromium installed, you can import the certificate there and
+qutebrowser will pick it up as well. Alternatively, you can use the `certutil`
+commandline tool:
++
+Assuming you have a CA Certificate and a
+Client Certificate that you want for authenticating yourself on a web
+service that validates against this CA Certificate, you need to perform
+the following steps.
++
+1. Import the CA Certificate
++
+----
+certutil -D "sql:${HOME}/.pki/nssdb" -A -i <path_to_ca_cert.pem> -n "My Fancy CA" -t "TC,C,T"
+----
++
+2. Merge your `<cert.crt>` and `<privkey.pem>` files into a single `PKCS#12`
+certificate file (optional, skip if your Client Certificate already is in
+`PKCS#12` format)
++
+----
+openssl pkcs12 -export -in <path_to_client_cert.crt> -inkey <path_to_client_cert_privkey.pem> -out my_fancy_client_cert.pkcs12
+----
++
+3. Import your Client Certificate into the certificate store
++
+----
+pk12util -d "sql:${HOME}/.pki/nssdb" -i <path_to_my_fancy_client_cert.pkcs12> -n "My Fancy Client Certificate"
+----
++
+Upon visiting a website that requests a Client Certificate you should now
+be prompted by qutebrowser whether you want to submit the newly imported
+Client Certificate or not.
++
+If you ever need to renew any of these certificates, you can take a look
+at the currently imported certificates using:
++
+----
+certutil -D "sql:${HOME}/.pki/nssdb" -L
+----
++
+Then remove the expired certificates using:
++
+----
+certutil -D "sql:${HOME}/.pki/nssdb" -D -n "My Fancy Certificate Nickname"
+----
++
+And then import the new and valid certificates using the procedure
+described above.
+
+
 == Troubleshooting
 
-Unable to view flash content.::
-    If you have flash installed for on your system, it's necessary to enable plugins
+Unable to view Flash content.::
+    If you have Flash installed for on your system, it's necessary to enable plugins
     to use the flash plugin. Using the command `:set content.plugins true`
-    in qutebrowser will enable plugins. Packages for flash should
+    in qutebrowser will enable plugins. Packages for Flash should
     be provided for your platform or it can be obtained from
-    https://get.adobe.com/flashplayer/[Adobe].
+    https://get.adobe.com/flashplayer/[Adobe]. Note that QtWebEngine needs
+    PPAPI Flash, while QtWebKit needs NPAPI Flash.
 
-Experiencing freezing on sites like duckduckgo and youtube.::
+Unable to view DRM content (Netflix, Spotify, etc.).::
+    On Arch Linux, simply install `chromium-widevine` from the AUR.
++
+For other distributions, it should be possible to obtain the needed
+widevine files and store them in the correct places, but the details differ
+wildly between various Qt versions.
+
+Unable to use `spawn` on MacOS.::
+    When running qutebrowser from the prebuilt binary (`qutebrowser.app`) it
+    *will not* read any files that would alter your `$PATH` (e.g. `.profile`,
+    `.bashrc`, etc). This is not a bug, just that `.profile` is not propagated
+    to GUI applications in MacOS.
++
+See https://github.com/qutebrowser/qutebrowser/issues/4273[Issue #4273] for
+details and potential workarounds.
+
+QtWebKit: Experiencing freezing on sites like DuckDuckGo and YouTube.::
     This issue could be caused by stale plugin files installed by `mozplugger`
     if mozplugger was subsequently removed.
     Try exiting qutebrowser and removing `~/.mozilla/plugins/mozplugger*.so`.
     See https://github.com/qutebrowser/qutebrowser/issues/357[Issue #357]
     for more details.
-
-When using QtWebEngine, qutebrowser reports "Render Process Crashed" and the console prints a traceback on Gentoo Linux or another Source-Based Distro::
-    As stated in https://gcc.gnu.org/gcc-6/changes.html[GCC's Website] GCC 6 has introduced some optimizations that could break non-conforming codebases, like QtWebEngine. +
-    As a workaround, you can disable the nullpointer check optimization by adding the -fno-delete-null-pointer-checks flag while compiling. +
-    On gentoo, you just need to add it into your make.conf, like this: +
-
-    CFLAGS="... -fno-delete-null-pointer-checks"
-    CXXFLAGS="... -fno-delete-null-pointer-checks"
-+
-And then re-emerging qtwebengine with: +
-
-    emerge -1 qtwebengine
-
-Unable to view DRM content (Netflix, Spotify, etc.).::
-    You will need to install `widevine` and set `qt.args` to point to it.
-    Qt 5.9 currently only supports widevine up to Chrome version 61.
-+
-On Arch, simply install `chromium-widevine` from the AUR.
-+
-For other distributions, download the chromium tarball and widevine-cdm zip from
-https://aur.archlinux.org/packages/chromium-widevine/[the AUR page],
-extract `libwidevinecdmadapter.so` and `libwidevinecdm.so` files, respectively,
-and move them to the `ppapi` plugin directory in your Qt library directory (create it if it does not exist).
-+
-Lastly, set your `qt.args` to point to that directory and restart qutebrowser:
-+
-----
-:set qt.args '["ppapi-widevine-path=/usr/lib64/qt5/plugins/ppapi/libwidevinecdmadapter.so"]'
-:restart
-----
-
-Unable to use `spawn` on MacOS.::
-When running qutebrowser from the prebuilt binary (`qutebrowser.app`) it *will
-not* read any files that would alter your `$PATH` (e.g. `.profile`, `.bashrc`,
-etc). This is not a bug, just that `.profile` is not propagated to GUI
-applications in MacOS.
-+
-See https://github.com/qutebrowser/qutebrowser/issues/4273[Issue #4273] for
-details and potential workarounds.
 
 My issue is not listed.::
     If you experience any segfaults or crashes, you can report the issue in
@@ -327,3 +358,174 @@ My issue is not listed.::
     If you are reporting a segfault, make sure you read the
     link:stacktrace{outfilesuffix}[guide] on how to report them with all needed
     information.
+
+[[sponsors]]
+== GitHub Sponsors FAQ
+
+Using https://github.com/sponsors/The-Compiler[GitHub Sponsors], you can sign
+up for a monthly donation to The-Compiler (qutebrowser's main developer),
+allowing him to work part-time on qutebrowser. If you keep your donation level
+for long enough, you can get some qutebrowser stickers!
+
+Why GitHub Sponsors?::
+    GitHub Sponsors is a crowdfundign platform nicely integrated with
+    qutebrowser's existing GitHub page and a better offering than alternatives such
+    as Patreon or Liberapay.
++
+It also offers a
+https://help.github.com/en/github/supporting-the-open-source-community-with-github-sponsors/about-github-sponsors#about-the-github-sponsors-matching-fund[Matching Fund]
+which matches all donations until a cap of $5000, which has already been
+reached by qutebrowser.
+
+Is it possible to contribute via a one-time donation instead?::
+   If you prefer a one-time donation, there are various possibilities:
++
+- Select a tier which covers the total amount you'd like to donate (note that
+  payments are prorated based on the current date). After the payment is
+  processed, cancel your GitHub sponsors subscription again. This has a big
+  benefit: There are no fees deducted from your amount.
++
+- Sign up for a lower recurring donation instead.
++
+- Do so via the https://github.com/qutebrowser/qutebrowser#donating[existing
+  donation methods]. Rewards (shirts/stickers/swag) are handled on a
+  case-by-case basis as GitHub's matching fund isn't applicable and there might
+  be relatively high fees which make this tricky.
++
+- If you want to contribute via a one-time donation and want to make sure
+  you'll receive a reward, you might want to sign up to the
+  https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[qutebrowser-announce]
+  mailinglist and wait until there is an official way to do so. It's planned to
+  set this up at a later date. Note that the thresholds for perks will be
+  higher because those donations aren't matched by GitHub and fees are
+  relatively high.
+
+I'd like a certain reward (e.g. a t-shirt) but I'd prefer making a smaller monthly donation. Can I upgrade via a one-time donation?::
+    It's planned to set up a donation page to allow this at a later date.
+    However, the thresholds for perks will be higher because those donations
+    aren't matched by GitHub and fees are relatively high. Note that you can
+    switch tiers on GitHub sponsors at any time.
+
+GitHub tries to charge me for an entire year. What gives?::
+    This happens if you have an existing annual billing cycle with GitHub (for
+    example a Pro membership or Marketplace subscription). At the moment,
+    GitHub's billing system only supports annual sponsor payments in that case.
+
+Can I support you without getting any rewards/merchandise?::
+    Absolutely! Any merchandise is optional. Before sending out merchandise
+    I'll distribute forms asking for size/address/etc. - those forms will have
+    an option to not get any merch at all.
+
+Can I select my own amount rather than using the predefined tiers?::
+    Unfortunately, GitHub sponsors doesn't support this at the moment. The
+    existing tiers should hopefully cover various options. If you disagree,
+    please mailto:mail@qutebrowser.org[get in touch] - I might be able to add a
+    new sponsorship tier.
+
+When will rewards be shipped?::
+    Rewards will be ordered and subsequently shipped once it's clear how many
+    people are eliglible. The cut-off date for the donation goals is May
+    2020, so rewards will likely be shipped Q2/2020. This also applies to tiers
+    which make you eliglible for a certain perk immediately, though stickers
+    might be shipped earlier depending on how many people this affects.
+
+I'd like some stickers, but I can't donate anything because of my financial situation.::
+    Please mailto:mail@qutebrowser.org[get in touch]! As long as this doesn't
+    get abused, I'd happily send stickers for free.
+
+We're a company interested in sponsoring qutebrowser, can you invoice us for the sponsored amount?::
+    You will receive a confirmation mail including a PDF receipt from GitHub
+    when sponsoring qutebrowser. If you really need an invoice, I can bill
+    you via my company, https://bruhin.software/[Bruhin Software]. Please
+    mailto:mail@qutebrowser.org[get in touch] to discuss details!
+
+Can you share details on the stickers?::
+    There are two sticker designs: Rectangular stickers (with text) and round
+    vinyl stickers. Those are the same as during the 2016/2017 crowdfundings.
++
+image:https://qutebrowser.org/img/sponsors/stickers.jpg["stickers",width=300,link="https://qutebrowser.org/img/sponsors/stickers.jpg"]
+
+Can you share details on the swag?::
+    A limited number of metal buttons and magnets is available:
++
+image:https://qutebrowser.org/img/sponsors/swag.jpg["swag",width=300,link="https://qutebrowser.org/img/sponsors/swag.jpg"]
++
+It's planned to order more swag, depending on the exact demand. Possibilites
+would include:
++
+- qutebrowser pens (refillable)
+- notebooks (the paper kind)
+- USB-sticks (for the "expensive swag" reward).
+
+Can you share details on the t-shirts?::
+    The shirts will be
+    https://www.bc-collection.eu/en/t-shirts/bc-e190-tu03t[B&C #E190] shirts
+    which are the successor to the "Exact 190" shirts distributed in the
+    previous crowdfundings: 100% cotton and relatively thick/heavy.
++
+Sizes from XS and 5XL are available, most of them also as a fitted (women) cut.
+Up to 40 colors are available from the supplier - there will be a selection of
+recommended/tested colors, but any available color can be selected on your own
+risk.
++
+The print will be a white silk-screen print, with the same design as in the
+2016 crowdfunding:
++
+image:https://qutebrowser.org/img/sponsors/shirt.jpg["shirt",width=300,link="https://qutebrowser.org/img/sponsors/shirt.jpg"]
+
+[[privacy]]
+== Privacy Policy
+
+Being a mostly volunteer-run project, qutebrowser does not have the resources
+for a full legalese version of a privacy policy. Instead, this overview should
+answer the most common questions.
+
+For any privacy questions, please contact mailto:privacy@qutebrowser.org[].
+
+=== Website
+
+The qutebrowser.org website does not use any cookies or trackers.
+
+However, IP addresses are currently (October 2019) logged and stored
+indefinitely. It's planned to change this soon by migrating qutebrowser.org to
+a different server.
+
+Note that some services related to qutebrowser are stored on third-party
+services such as GitHub, Travis CI or AppVeyor. By using their websites, you're
+subject to their privacy policies.
+
+=== Crash reports
+
+When qutebrowser crashes or you use the `:report` command, you have the
+possibility to send a crash report. If you decide to do so, your crash report
+is stored on qutebrowser's server, where core qutebrowser developers (four
+people at the time of writing) can access it.
+
+If you select the option to include a debug log with your report, it's possible
+that sensitive information is contained in your report. You can show and edit
+the log in the crash report window to redact any such information as you see
+fit. Additionally, qutebrowser tries to avoid logging information such as
+passwords entirely (by not logging any input going to websites).
+
+Currently, crash reports are stored indefinitely for technical reasons. With a
+https://github.com/The-Compiler/crashbin/[new tool designed for crash reports],
+it'll become possible to delete crashreports after the underlying issue is
+fixed, but that tool needs some more work before qutebrowser can use it.
+
+=== Application
+
+Without any user interaction, qutebrowser can be expected to make no
+unsolicited requests. It does not contain any telemetry code.
+
+The QtWebEngine library (on which qutebrowser is based on) strips out any
+Chromium features which talk to Google servers, so any unsolicited requests
+should be treated as a bug.
+
+While qutebrowser uses DuckDuckGo as the default search page, no advertising
+deal exists between DuckDuckGo and qutebrowser. Note that by visiting
+DuckDuckGo, you're subject to their privacy policy.
+
+With regard to websites you visit, qutebrowser tries to strike a balance
+between usability/compatibility and privacy. There are various `content.*`
+settings which can be used to tweak such behavior, reduce fingerprinting or
+disable various features (usually at a cost of website compatibility).

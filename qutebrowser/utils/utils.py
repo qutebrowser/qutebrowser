@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -35,6 +35,7 @@ import socket
 import shlex
 import glob
 import mimetypes
+import typing
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QClipboard, QDesktopServices
@@ -78,7 +79,7 @@ class SelectionUnsupportedError(ClipboardError):
 
     """Raised if [gs]et_clipboard is used and selection=True is unsupported."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("Primary selection is not supported on this "
                          "platform!")
 
@@ -88,7 +89,7 @@ class ClipboardEmptyError(ClipboardError):
     """Raised if get_clipboard is used and the clipboard is empty."""
 
 
-def elide(text, length):
+def elide(text: str, length: int) -> str:
     """Elide text so it uses a maximum of length chars."""
     if length < 1:
         raise ValueError("length must be >= 1!")
@@ -98,7 +99,7 @@ def elide(text, length):
         return text[:length - 1] + '\u2026'
 
 
-def elide_filename(filename, length):
+def elide_filename(filename: str, length: int) -> str:
     """Elide a filename to the given length.
 
     The difference to the elide() is that the text is removed from
@@ -130,7 +131,7 @@ def elide_filename(filename, length):
         return filename[:left] + elidestr + filename[-right:]
 
 
-def compact_text(text, elidelength=None):
+def compact_text(text: str, elidelength: int = None) -> str:
     """Remove leading whitespace and newlines from a text and maybe elide it.
 
     Args:
@@ -146,7 +147,7 @@ def compact_text(text, elidelength=None):
     return out
 
 
-def preload_resources():
+def preload_resources() -> None:
     """Load resource files into the cache."""
     for subdir, pattern in [('html', '*.html'), ('javascript', '*.js')]:
         path = resource_filename(subdir)
@@ -155,7 +156,8 @@ def preload_resources():
             _resource_cache[sub_path] = read_file(sub_path)
 
 
-def read_file(filename, binary=False):
+# FIXME:typing Return value should be bytes/str
+def read_file(filename: str, binary: bool = False) -> typing.Any:
     """Get the contents of a file contained with qutebrowser.
 
     Args:
@@ -177,19 +179,22 @@ def read_file(filename, binary=False):
         # https://github.com/pyinstaller/pyinstaller/wiki/FAQ#misc
         fn = os.path.join(os.path.dirname(sys.executable), filename)
         if binary:
-            with open(fn, 'rb') as f:
+            with open(fn, 'rb') as f:  # type: typing.IO
                 return f.read()
         else:
             with open(fn, 'r', encoding='utf-8') as f:
                 return f.read()
     else:
-        data = pkg_resources.resource_string(qutebrowser.__name__, filename)
-        if not binary:
-            data = data.decode('UTF-8')
-        return data
+        data = pkg_resources.resource_string(
+            qutebrowser.__name__, filename)
+
+        if binary:
+            return data
+
+        return data.decode('UTF-8')
 
 
-def resource_filename(filename):
+def resource_filename(filename: str) -> str:
     """Get the absolute filename of a file contained with qutebrowser.
 
     Args:
@@ -203,7 +208,9 @@ def resource_filename(filename):
     return pkg_resources.resource_filename(qutebrowser.__name__, filename)
 
 
-def _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3, percent):
+def _get_color_percentage(a_c1: int, a_c2: int, a_c3:
+                          int, b_c1: int, b_c2: int, b_c3: int,
+                          percent: int) -> typing.Tuple[int, int, int]:
     """Get a color which is percent% interpolated between start and end.
 
     Args:
@@ -224,7 +231,12 @@ def _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3, percent):
     return (out_c1, out_c2, out_c3)
 
 
-def interpolate_color(start, end, percent, colorspace=QColor.Rgb):
+def interpolate_color(
+        start: QColor,
+        end: QColor,
+        percent: int,
+        colorspace: typing.Optional[QColor.Spec] = QColor.Rgb
+) -> QColor:
     """Get an interpolated color value.
 
     Args:
@@ -273,7 +285,7 @@ def interpolate_color(start, end, percent, colorspace=QColor.Rgb):
     return out
 
 
-def format_seconds(total_seconds):
+def format_seconds(total_seconds: int) -> str:
     """Format a count of seconds to get a [H:]M:SS string."""
     prefix = '-' if total_seconds < 0 else ''
     hours, rem = divmod(abs(round(total_seconds)), 3600)
@@ -289,7 +301,9 @@ def format_seconds(total_seconds):
     return prefix + ':'.join(chunks)
 
 
-def format_size(size, base=1024, suffix=''):
+def format_size(size: typing.Optional[float],
+                base: int = 1024,
+                suffix: str = '') -> str:
     """Format a byte size so it's human readable.
 
     Inspired by http://stackoverflow.com/q/1094841
@@ -308,13 +322,13 @@ class FakeIOStream(io.TextIOBase):
 
     """A fake file-like stream which calls a function for write-calls."""
 
-    def __init__(self, write_func):
+    def __init__(self, write_func: typing.Callable[[str], int]) -> None:
         super().__init__()
-        self.write = write_func
+        self.write = write_func  # type: ignore
 
 
 @contextlib.contextmanager
-def fake_io(write_func):
+def fake_io(write_func: typing.Callable[[str], int]) -> typing.Iterator[None]:
     """Run code with stdout and stderr replaced by FakeIOStreams.
 
     Args:
@@ -324,21 +338,21 @@ def fake_io(write_func):
     old_stderr = sys.stderr
     fake_stderr = FakeIOStream(write_func)
     fake_stdout = FakeIOStream(write_func)
-    sys.stderr = fake_stderr
-    sys.stdout = fake_stdout
+    sys.stderr = fake_stderr  # type: ignore
+    sys.stdout = fake_stdout  # type: ignore
     try:
         yield
     finally:
         # If the code we did run did change sys.stdout/sys.stderr, we leave it
         # unchanged. Otherwise, we reset it.
-        if sys.stdout is fake_stdout:
+        if sys.stdout is fake_stdout:  # type: ignore
             sys.stdout = old_stdout
-        if sys.stderr is fake_stderr:
+        if sys.stderr is fake_stderr:  # type: ignore
             sys.stderr = old_stderr
 
 
 @contextlib.contextmanager
-def disabled_excepthook():
+def disabled_excepthook() -> typing.Iterator[None]:
     """Run code with the exception hook temporarily disabled."""
     old_excepthook = sys.excepthook
     sys.excepthook = sys.__excepthook__
@@ -371,7 +385,7 @@ class prevent_exceptions:  # noqa: N801,N806 pylint: disable=invalid-name
         _predicate: The condition which needs to be True to prevent exceptions
     """
 
-    def __init__(self, retval, predicate=True):
+    def __init__(self, retval: typing.Any, predicate: bool = True) -> None:
         """Save decorator arguments.
 
         Gets called on parse-time with the decorator arguments.
@@ -382,7 +396,7 @@ class prevent_exceptions:  # noqa: N801,N806 pylint: disable=invalid-name
         self._retval = retval
         self._predicate = predicate
 
-    def __call__(self, func):
+    def __call__(self, func: typing.Callable) -> typing.Callable:
         """Called when a function should be decorated.
 
         Args:
@@ -397,7 +411,7 @@ class prevent_exceptions:  # noqa: N801,N806 pylint: disable=invalid-name
         retval = self._retval
 
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             """Call the original function."""
             try:
                 return func(*args, **kwargs)
@@ -408,7 +422,7 @@ class prevent_exceptions:  # noqa: N801,N806 pylint: disable=invalid-name
         return wrapper
 
 
-def is_enum(obj):
+def is_enum(obj: typing.Any) -> bool:
     """Check if a given object is an enum."""
     try:
         return issubclass(obj, enum.Enum)
@@ -416,7 +430,9 @@ def is_enum(obj):
         return False
 
 
-def get_repr(obj, constructor=False, **attrs):
+def get_repr(obj: typing.Any,
+             constructor: bool = False,
+             **attrs: typing.Any) -> str:
     """Get a suitable __repr__ string for an object.
 
     Args:
@@ -439,7 +455,7 @@ def get_repr(obj, constructor=False, **attrs):
             return '<{}>'.format(cls)
 
 
-def qualname(obj):
+def qualname(obj: typing.Any) -> str:
     """Get the fully qualified name of an object.
 
     Based on twisted.python.reflect.fullyQualifiedName.
@@ -467,7 +483,14 @@ def qualname(obj):
         return repr(obj)
 
 
-def raises(exc, func, *args):
+# The string annotation is a WORKAROUND for a Python 3.5.2 bug:
+# https://github.com/python/typing/issues/266
+
+def raises(exc: ('typing.Union['  # pylint: disable=bad-docstring-quotes
+                 '    typing.Type[BaseException], '
+                 '    typing.Tuple[typing.Type[BaseException]]]'),
+           func: typing.Callable,
+           *args: typing.Any) -> bool:
     """Check if a function raises a given exception.
 
     Args:
@@ -486,7 +509,7 @@ def raises(exc, func, *args):
         return False
 
 
-def force_encoding(text, encoding):
+def force_encoding(text: str, encoding: str) -> str:
     """Make sure a given text is encodable with the given encoding.
 
     This replaces all chars not encodable with question marks.
@@ -494,7 +517,8 @@ def force_encoding(text, encoding):
     return text.encode(encoding, errors='replace').decode(encoding)
 
 
-def sanitize_filename(name, replacement='_'):
+def sanitize_filename(name: str,
+                      replacement: typing.Optional[str] = '_') -> str:
     """Replace invalid filename characters.
 
     Note: This should be used for the basename, as it also removes the path
@@ -527,7 +551,7 @@ def sanitize_filename(name, replacement='_'):
     return name
 
 
-def set_clipboard(data, selection=False):
+def set_clipboard(data: str, selection: bool = False) -> None:
     """Set the clipboard to some given data."""
     global fake_clipboard
     if selection and not supports_selection():
@@ -541,7 +565,7 @@ def set_clipboard(data, selection=False):
         QApplication.clipboard().setText(data, mode=mode)
 
 
-def get_clipboard(selection=False, fallback=False):
+def get_clipboard(selection: bool = False, fallback: bool = False) -> str:
     """Get data from the clipboard.
 
     Args:
@@ -574,12 +598,12 @@ def get_clipboard(selection=False, fallback=False):
     return data
 
 
-def supports_selection():
+def supports_selection() -> bool:
     """Check if the OS supports primary selection."""
     return QApplication.clipboard().supportsSelection()
 
 
-def random_port():
+def random_port() -> int:
     """Get a random free port."""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind(('localhost', 0))
@@ -588,7 +612,7 @@ def random_port():
     return port
 
 
-def open_file(filename, cmdline=None):
+def open_file(filename: str, cmdline: str = None) -> None:
     """Open the given file.
 
     If cmdline is not given, downloads.open_dispatcher is used.
@@ -607,10 +631,20 @@ def open_file(filename, cmdline=None):
     #   cmdutils -> command -> message -> usertypes
     from qutebrowser.config import config
     from qutebrowser.misc import guiprocess
+    from qutebrowser.utils import version, message
 
     # the default program to open downloads with - will be empty string
     # if we want to use the default
     override = config.val.downloads.open_dispatcher
+
+    if version.is_sandboxed():
+        if cmdline:
+            message.error("Cannot spawn download dispatcher from sandbox")
+            return
+        if override:
+            message.warning("Ignoring download dispatcher from config in "
+                            "sandbox environment")
+            override = None
 
     # precedence order: cmdline > downloads.open_dispatcher > openUrl
 
@@ -624,6 +658,8 @@ def open_file(filename, cmdline=None):
     if cmdline is None and override:
         cmdline = override
 
+    assert cmdline is not None
+
     cmd, *args = shlex.split(cmdline)
     args = [arg.replace('{}', filename) for arg in args]
     if '{}' not in cmdline:
@@ -634,11 +670,11 @@ def open_file(filename, cmdline=None):
     proc.start_detached(cmd, args)
 
 
-def unused(_arg):
+def unused(_arg: typing.Any) -> None:
     """Function which does nothing to avoid pylint complaining."""
 
 
-def expand_windows_drive(path):
+def expand_windows_drive(path: str) -> str:
     r"""Expand a drive-path like E: into E:\.
 
     Does nothing for other paths.
@@ -656,7 +692,7 @@ def expand_windows_drive(path):
         return path
 
 
-def yaml_load(f):
+def yaml_load(f: typing.Union[str, typing.IO[str]]) -> typing.Any:
     """Wrapper over yaml.load using the C loader if possible."""
     start = datetime.datetime.now()
 
@@ -686,7 +722,8 @@ def yaml_load(f):
     return data
 
 
-def yaml_dump(data, f=None):
+def yaml_dump(data: typing.Any,
+              f: typing.IO[str] = None) -> typing.Optional[str]:
     """Wrapper over yaml.dump using the C dumper if possible.
 
     Also returns a str instead of bytes.
@@ -699,7 +736,7 @@ def yaml_dump(data, f=None):
         return yaml_data.decode('utf-8')
 
 
-def chunk(elems, n):
+def chunk(elems: typing.Sequence, n: int) -> typing.Iterator[typing.Sequence]:
     """Yield successive n-sized chunks from elems.
 
     If elems % n != 0, the last chunk will be smaller.
@@ -710,7 +747,7 @@ def chunk(elems, n):
         yield elems[i:i + n]
 
 
-def guess_mimetype(filename, fallback=False):
+def guess_mimetype(filename: str, fallback: bool = False) -> str:
     """Guess a mimetype based on a filename.
 
     Args:
@@ -726,7 +763,7 @@ def guess_mimetype(filename, fallback=False):
     return mimetype
 
 
-def ceil_log(number, base):
+def ceil_log(number: int, base: int) -> int:
     """Compute max(1, ceil(log(number, base))).
 
     Use only integer arithmetic in order to avoid numerical error.

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,11 +19,13 @@
 
 """Utilities related to javascript interaction."""
 
+import typing
 
-from qutebrowser.utils import jinja
+_InnerJsArgType = typing.Union[None, str, bool, int, float]
+_JsArgType = typing.Union[_InnerJsArgType, typing.Sequence[_InnerJsArgType]]
 
 
-def string_escape(text):
+def string_escape(text: str) -> str:
     """Escape values special to javascript in strings.
 
     With this we should be able to use something like:
@@ -49,7 +51,7 @@ def string_escape(text):
     return text
 
 
-def to_js(arg):
+def to_js(arg: _JsArgType) -> str:
     """Convert the given argument so it's the equivalent in JS."""
     if arg is None:
         return 'undefined'
@@ -66,7 +68,7 @@ def to_js(arg):
             arg, type(arg).__name__))
 
 
-def assemble(module, function, *args):
+def assemble(module: str, function: str, *args: _JsArgType) -> str:
     """Assemble a javascript file and a function call."""
     js_args = ', '.join(to_js(arg) for arg in args)
     if module == 'window':
@@ -77,7 +79,8 @@ def assemble(module, function, *args):
     return code
 
 
-def wrap_global(name, *sources):
+def wrap_global(name: str, *sources: str) -> str:
     """Wrap a script using window._qutebrowser."""
+    from qutebrowser.utils import jinja  # circular import
     template = jinja.js_environment.get_template('global_wrapper.js')
     return template.render(code='\n'.join(sources), name=name)

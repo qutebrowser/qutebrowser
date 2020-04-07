@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -61,10 +61,14 @@ class Loader(jinja2.BaseLoader):
         _subdir: The subdirectory to find templates in.
     """
 
-    def __init__(self, subdir):
+    def __init__(self, subdir: str) -> None:
         self._subdir = subdir
 
-    def get_source(self, _env, template):
+    def get_source(
+            self,
+            _env: jinja2.Environment,
+            template: str
+    ) -> typing.Tuple[str, str, typing.Callable[[], bool]]:
         path = os.path.join(self._subdir, template)
         try:
             source = utils.read_file(path)
@@ -82,7 +86,7 @@ class Environment(jinja2.Environment):
 
     """Our own jinja environment which is more strict."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(loader=Loader('html'),
                          autoescape=lambda _name: self._autoescape,
                          undefined=jinja2.StrictUndefined)
@@ -94,29 +98,31 @@ class Environment(jinja2.Environment):
         self._autoescape = True
 
     @contextlib.contextmanager
-    def no_autoescape(self):
+    def no_autoescape(self) -> typing.Iterator[None]:
         """Context manager to temporarily turn off autoescaping."""
         self._autoescape = False
         yield
         self._autoescape = True
 
-    def _resource_url(self, path):
+    def _resource_url(self, path: str) -> str:
         """Load images from a relative path (to qutebrowser).
 
         Arguments:
             path: The relative path to the image
         """
         image = utils.resource_filename(path)
-        return QUrl.fromLocalFile(image).toString(QUrl.FullyEncoded)
+        url = QUrl.fromLocalFile(image)
+        urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore
+        return urlstr
 
-    def _data_url(self, path):
+    def _data_url(self, path: str) -> str:
         """Get a data: url for the broken qutebrowser logo."""
         data = utils.read_file(path, binary=True)
         filename = utils.resource_filename(path)
         mimetype = utils.guess_mimetype(filename)
         return urlutils.data_url(mimetype, data).toString()
 
-    def getattr(self, obj, attribute):
+    def getattr(self, obj: typing.Any, attribute: str) -> typing.Any:
         """Override jinja's getattr() to be less clever.
 
         This means it doesn't fall back to __getitem__, and it doesn't hide
@@ -125,7 +131,7 @@ class Environment(jinja2.Environment):
         return getattr(obj, attribute)
 
 
-def render(template, **kwargs):
+def render(template: str, **kwargs: typing.Any) -> str:
     """Render the given template and pass the given arguments to it."""
     return environment.get_template(template).render(**kwargs)
 

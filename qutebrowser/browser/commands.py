@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -157,18 +157,29 @@ class CommandDispatcher:
         else:
             return None
 
-    def _tab_focus_last(self, *, show_error=True):
+    def _tab_focus_stack(self, mode: str, *, show_error=True):
         """Select the tab which was last focused."""
+        tab_deque = self._tabbed_browser.tab_deque
+        cur_tab = self._cntwidget()
+
         try:
-            tab = objreg.get('last-focused-tab', scope='window',
-                             window=self._win_id)
-        except KeyError:
+            if mode == "last":
+                tab = tab_deque.last(cur_tab)
+            elif mode == "stack-prev":
+                tab = tab_deque.prev(cur_tab)
+            elif mode == "stack-next":
+                tab = tab_deque.next(cur_tab)
+            else:
+                raise NotImplementedError(
+                    "Missing implementation for stack mode!")
+        except IndexError:
             if not show_error:
                 return
-            raise cmdutils.CommandError("No last focused tab!")
+            raise cmdutils.CommandError("Could not find requested tab!")
+
         idx = self._tabbed_browser.widget.indexOf(tab)
         if idx == -1:
-            raise cmdutils.CommandError("Last focused tab vanished!")
+            raise cmdutils.CommandError("Requested tab vanished!")
         self._set_current_index(idx)
 
     def _get_selection_override(self, prev, next_, opposite):
@@ -423,6 +434,10 @@ class CommandDispatcher:
                    in which case the closest match will be taken.
             keep: If given, keep the old tab around.
         """
+        if config.val.tabs.tabs_are_windows:
+            raise cmdutils.CommandError("Can't take tabs when using "
+                                        "windows as tabs")
+
         tabbed_browser, tab = self._resolve_buffer_index(index)
 
         if tabbed_browser is self._tabbed_browser:
@@ -447,6 +462,10 @@ class CommandDispatcher:
             keep: If given, keep the old tab around.
             count: Overrides win_id (index starts at 1 for win_id=0).
         """
+        if config.val.tabs.tabs_are_windows:
+            raise cmdutils.CommandError("Can't give tabs when using "
+                                        "windows as tabs")
+
         if count is not None:
             win_id = count - 1
 
@@ -629,9 +648,9 @@ class CommandDispatcher:
         assert what in ['url', 'pretty-url', 'markdown'], what
         flags = QUrl.RemovePassword
         if what == 'pretty-url':
-            flags |= QUrl.DecodeReserved
+            flags |= QUrl.DecodeReserved  # type: ignore
         else:
-            flags |= QUrl.FullyEncoded
+            flags |= QUrl.FullyEncoded  # type: ignore
         url = QUrl(self._current_url())
         url_query = QUrlQuery()
         url_query_str = urlutils.query_string(url)
@@ -642,7 +661,7 @@ class CommandDispatcher:
             if key in config.val.url.yank_ignored_parameters:
                 url_query.removeQueryItem(key)
         url.setQuery(url_query)
-        return url.toString(flags)
+        return url.toString(flags)  # type: ignore
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('what', choices=['selection', 'url', 'pretty-url',
@@ -839,7 +858,7 @@ class CommandDispatcher:
             idx = int(index_parts[1])
         elif len(index_parts) == 1:
             idx = int(index_parts[0])
-            active_win = objreg.get('app').activeWindow()
+            active_win = QApplication.activeWindow()
             if active_win is None:
                 # Not sure how you enter a command without an active window...
                 raise cmdutils.CommandError(
@@ -890,7 +909,7 @@ class CommandDispatcher:
         tabbed_browser.widget.setCurrentWidget(tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('index', choices=['last'])
+    @cmdutils.argument('index', choices=['last', 'stack-next', 'stack-prev'])
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_focus(self, index: typing.Union[str, int] = None,
                   count: int = None, no_last: bool = False) -> None:
@@ -901,16 +920,18 @@ class CommandDispatcher:
 
         Args:
             index: The tab index to focus, starting with 1. The special value
-                   `last` focuses the last focused tab (regardless of count).
-                   Negative indices count from the end, such that -1 is the
-                   last tab.
+                   `last` focuses the last focused tab (regardless of count),
+                   and `stack-prev`/`stack-next` traverse a stack of visited
+                   tabs. Negative indices count from the end, such that -1 is
+                   the last tab.
             count: The tab index to focus, starting with 1.
             no_last: Whether to avoid focusing last tab if already focused.
         """
         index = count if count is not None else index
 
-        if index == 'last':
-            self._tab_focus_last()
+        if index in {'last', 'stack-next', 'stack-prev'}:
+            assert isinstance(index, str)
+            self._tab_focus_stack(index)
             return
         elif index is None:
             self.tab_next()
@@ -922,7 +943,7 @@ class CommandDispatcher:
             index = self._count() + index + 1
 
         if not no_last and index == self._current_index() + 1:
-            self._tab_focus_last(show_error=False)
+            self._tab_focus_stack('last', show_error=False)
             return
 
         if 1 <= index <= self._count():
@@ -981,9 +1002,13 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)
     @cmdutils.argument('count', value=cmdutils.Value.count)
+    @cmdutils.argument('output_messages', flag='m')
     def spawn(self, cmdline, userscript=False, verbose=False,
-              output=False, detach=False, count=None):
-        """Spawn a command in a shell.
+              output=False, output_messages=False, detach=False, count=None):
+        """Spawn an external command.
+
+        Note that the command is *not* run in a shell, so things like `$VAR` or
+        `> output` won't have the desired effect.
 
         Args:
             userscript: Run the command as a userscript. You can use an
@@ -993,7 +1018,8 @@ class CommandDispatcher:
                               (or `$XDG_DATA_HOME`)
                             - `/usr/share/qutebrowser/userscripts`
             verbose: Show notifications when the command started/exited.
-            output: Whether the output should be shown in a new tab.
+            output: Show the output in a new tab.
+            output_messages: Show the output as messages.
             detach: Whether the command should be detached from qutebrowser.
             cmdline: The commandline to execute.
             count: Given to userscripts as $QUTE_COUNT.
@@ -1035,6 +1061,7 @@ class CommandDispatcher:
         else:
             cmd = os.path.expanduser(cmd)
             proc = guiprocess.GUIProcess(what='command', verbose=verbose,
+                                         output_messages=output_messages,
                                          parent=self._tabbed_browser)
             if detach:
                 ok = proc.start_detached(cmd, args)
@@ -1217,7 +1244,7 @@ class CommandDispatcher:
     def toggle_inspector(self):
         """Toggle the web inspector.
 
-        Note: Due a bug in Qt, the inspector will show incorrect request
+        Note: Due to a bug in Qt, the inspector will show incorrect request
         headers in the network tab.
         """
         tab = self._current_widget()
@@ -1253,7 +1280,6 @@ class CommandDispatcher:
             target = downloads.FileDownloadTarget(dest)
 
         tab = self._current_widget()
-        user_agent = tab.private_api.user_agent()
 
         if url:
             if mhtml_:
@@ -1261,7 +1287,7 @@ class CommandDispatcher:
                                             "page as mhtml.")
             url = urlutils.qurl_from_user_input(url)
             urlutils.raise_cmdexc_if_invalid(url)
-            download_manager.get(url, user_agent=user_agent, target=target)
+            download_manager.get(url, target=target)
         elif mhtml_:
             tab = self._current_widget()
             if tab.backend == usertypes.Backend.QtWebEngine:
@@ -1282,7 +1308,6 @@ class CommandDispatcher:
 
             download_manager.get(
                 self._current_url(),
-                user_agent=user_agent,
                 qnam=qnam,
                 target=target,
                 suggested_fn=suggested_fn

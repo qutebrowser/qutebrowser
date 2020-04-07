@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -29,8 +29,8 @@ from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtPrintSupport import QPrintDialog
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 
-from qutebrowser.config import config
-from qutebrowser.browser import pdfjs, shared, downloads
+from qutebrowser.config import websettings
+from qutebrowser.browser import pdfjs, shared, downloads, greasemonkey
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.utils import message, usertypes, log, jinja, objreg
@@ -77,19 +77,22 @@ class BrowserPage(QWebPage):
         self.setNetworkAccessManager(self._networkmanager)
         self.setForwardUnsupportedContent(True)
         self.reloading.connect(self._networkmanager.clear_rejected_ssl_errors)
-        self.printRequested.connect(self.on_print_requested)
-        self.downloadRequested.connect(self.on_download_requested)
-        self.unsupportedContent.connect(self.on_unsupported_content)
-        self.loadStarted.connect(self.on_load_started)
-        self.featurePermissionRequested.connect(
+        self.printRequested.connect(  # type: ignore
+            self.on_print_requested)
+        self.downloadRequested.connect(  # type: ignore
+            self.on_download_requested)
+        self.unsupportedContent.connect(  # type: ignore
+            self.on_unsupported_content)
+        self.loadStarted.connect(self.on_load_started)  # type: ignore
+        self.featurePermissionRequested.connect(  # type: ignore
             self._on_feature_permission_requested)
-        self.saveFrameStateRequested.connect(
+        self.saveFrameStateRequested.connect(  # type: ignore
             self.on_save_frame_state_requested)
-        self.restoreFrameStateRequested.connect(
+        self.restoreFrameStateRequested.connect(  # type: ignore
             self.on_restore_frame_state_requested)
-        self.loadFinished.connect(
+        self.loadFinished.connect(  # type: ignore
             functools.partial(self._inject_userjs, self.mainFrame()))
-        self.frameCreated.connect(self._connect_userjs_signals)
+        self.frameCreated.connect(self._connect_userjs_signals)  # type: ignore
 
     @pyqtSlot('QWebFrame*')
     def _connect_userjs_signals(self, frame):
@@ -202,8 +205,8 @@ class BrowserPage(QWebPage):
         suggested_file = ""
         if info.suggestedFileNames:
             suggested_file = info.suggestedFileNames[0]
-        files.fileNames, _ = QFileDialog.getOpenFileNames(None, None,
-                                                          suggested_file)
+        files.fileNames, _ = QFileDialog.getOpenFileNames(
+            None, None, suggested_file)  # type: ignore
         return True
 
     def shutdown(self):
@@ -302,8 +305,7 @@ class BrowserPage(QWebPage):
         log.greasemonkey.debug("_inject_userjs called for {} ({})"
                                .format(frame, url.toDisplayString()))
 
-        greasemonkey = objreg.get('greasemonkey')
-        scripts = greasemonkey.scripts_for(url)
+        scripts = greasemonkey.gm_manager.scripts_for(url)
         # QtWebKit has trouble providing us with signals representing
         # page load progress at reasonable times, so we just load all
         # scripts on the same event.
@@ -358,7 +360,7 @@ class BrowserPage(QWebPage):
             abort_on=[self.shutting_down, self.loadStarted])
 
         if question is not None:
-            self.featurePermissionRequestCanceled.connect(
+            self.featurePermissionRequestCanceled.connect(  # type: ignore
                 functools.partial(self._on_feature_permission_cancelled,
                                   question, frame, feature))
 
@@ -409,11 +411,7 @@ class BrowserPage(QWebPage):
 
     def userAgentForUrl(self, url):
         """Override QWebPage::userAgentForUrl to customize the user agent."""
-        ua = config.instance.get('content.headers.user_agent', url=url)
-        if ua is None:
-            return super().userAgentForUrl(url)
-        else:
-            return ua
+        return websettings.user_agent(url)
 
     def supportsExtension(self, ext):
         """Override QWebPage::supportsExtension to provide error pages.

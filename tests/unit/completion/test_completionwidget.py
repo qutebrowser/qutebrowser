@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2020 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -37,7 +37,7 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
     mocker.patch(
         'qutebrowser.completion.completiondelegate.CompletionItemDelegate',
         new=lambda *_: None)
-    view = completionwidget.CompletionView(win_id=0)
+    view = completionwidget.CompletionView(cmd=status_command_stub, win_id=0)
     qtbot.addWidget(view)
     return view
 

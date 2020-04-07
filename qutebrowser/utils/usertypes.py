@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,26 +17,36 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Custom useful data types.
-
-Module attributes:
-    _UNSET: Used as default argument in the constructor so default can be None.
-"""
+"""Custom useful data types."""
 
 import operator
-import collections.abc
 import enum
+import typing
 
 import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import log, qtutils, utils
 
 
-_UNSET = object()
+_T = typing.TypeVar('_T')
 
 
-class NeighborList(collections.abc.Sequence):
+class Unset:
+
+    """Class for an unset object."""
+
+    __slots__ = ()
+
+    def __repr__(self) -> str:
+        return '<UNSET>'
+
+
+UNSET = Unset()
+
+
+class NeighborList(typing.Sequence[_T]):
 
     """A list of items which saves its current position.
 
@@ -52,7 +62,9 @@ class NeighborList(collections.abc.Sequence):
 
     Modes = enum.Enum('Modes', ['edge', 'exception'])
 
-    def __init__(self, items=None, default=_UNSET, mode=Modes.exception):
+    def __init__(self, items: typing.Sequence[_T] = None,
+                 default: typing.Union[_T, Unset] = UNSET,
+                 mode: Modes = Modes.exception) -> None:
         """Constructor.
 
         Args:
@@ -65,28 +77,31 @@ class NeighborList(collections.abc.Sequence):
         if not isinstance(mode, self.Modes):
             raise TypeError("Mode {} is not a Modes member!".format(mode))
         if items is None:
-            self._items = []
+            self._items = []  # type: typing.Sequence[_T]
         else:
             self._items = list(items)
         self._default = default
-        if default is not _UNSET:
-            self._idx = self._items.index(default)
+
+        if not isinstance(default, Unset):
+            idx = self._items.index(default)
+            self._idx = idx  # type: typing.Optional[int]
         else:
             self._idx = None
-        self._mode = mode
-        self.fuzzyval = None
 
-    def __getitem__(self, key):
+        self._mode = mode
+        self.fuzzyval = None  # type: typing.Optional[int]
+
+    def __getitem__(self, key: int) -> _T:  # type: ignore
         return self._items[key]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._items)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, items=self._items, mode=self._mode,
                               idx=self._idx, fuzzyval=self.fuzzyval)
 
-    def _snap_in(self, offset):
+    def _snap_in(self, offset: int) -> bool:
         """Set the current item to the closest item to self.fuzzyval.
 
         Args:
@@ -97,20 +112,23 @@ class NeighborList(collections.abc.Sequence):
             True if the value snapped in (changed),
             False when the value already was in the list.
         """
+        assert isinstance(self.fuzzyval, (int, float)), self.fuzzyval
+
         op = operator.le if offset < 0 else operator.ge
         items = [(idx, e) for (idx, e) in enumerate(self._items)
                  if op(e, self.fuzzyval)]
         if items:
-            item = min(items, key=lambda tpl: abs(self.fuzzyval - tpl[1]))
+            item = min(
+                items,
+                key=lambda tpl: abs(self.fuzzyval - tpl[1]))  # type: ignore
         else:
-            sorted_items = sorted(((idx, e) for (idx, e) in
-                                   enumerate(self.items)), key=lambda e: e[1])
+            sorted_items = sorted(enumerate(self.items), key=lambda e: e[1])
             idx = 0 if offset < 0 else -1
             item = sorted_items[idx]
         self._idx = item[0]
         return self.fuzzyval not in self._items
 
-    def _get_new_item(self, offset):
+    def _get_new_item(self, offset: int) -> _T:
         """Logic for getitem to get the item at offset.
 
         Args:
@@ -119,6 +137,7 @@ class NeighborList(collections.abc.Sequence):
         Return:
             The new item.
         """
+        assert self._idx is not None
         try:
             if self._idx + offset >= 0:
                 new = self._items[self._idx + offset]
@@ -138,11 +157,11 @@ class NeighborList(collections.abc.Sequence):
         return new
 
     @property
-    def items(self):
+    def items(self) -> typing.Sequence[_T]:
         """Getter for items, which should not be set."""
         return self._items
 
-    def getitem(self, offset):
+    def getitem(self, offset: int) -> _T:
         """Get the item with a relative position.
 
         Args:
@@ -167,38 +186,38 @@ class NeighborList(collections.abc.Sequence):
             self.fuzzyval = None
         return self._get_new_item(offset)
 
-    def curitem(self):
+    def curitem(self) -> _T:
         """Get the current item in the list."""
         if self._idx is not None:
             return self._items[self._idx]
         else:
             raise IndexError("No current item!")
 
-    def nextitem(self):
+    def nextitem(self) -> _T:
         """Get the next item in the list."""
         return self.getitem(1)
 
-    def previtem(self):
+    def previtem(self) -> _T:
         """Get the previous item in the list."""
         return self.getitem(-1)
 
-    def firstitem(self):
+    def firstitem(self) -> _T:
         """Get the first item in the list."""
         if not self._items:
             raise IndexError("No items found!")
         self._idx = 0
         return self.curitem()
 
-    def lastitem(self):
+    def lastitem(self) -> _T:
         """Get the last item in the list."""
         if not self._items:
             raise IndexError("No items found!")
         self._idx = len(self._items) - 1
         return self.curitem()
 
-    def reset(self):
+    def reset(self) -> _T:
         """Reset the position to the default."""
-        if self._default is _UNSET:
+        if self._default is UNSET:
             raise ValueError("No default set!")
         self._idx = self._items.index(self._default)
         return self.curitem()
@@ -334,37 +353,25 @@ class Question(QObject):
     answered_no = pyqtSignal()
     completed = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
-        self._mode = None
-        self.default = None
-        self.title = None
-        self.text = None
-        self.url = None
-        self.option = None
-        self.answer = None
+        self.mode = None  # type: typing.Optional[PromptMode]
+        self.default = None  # type: typing.Union[bool, str, None]
+        self.title = None  # type: typing.Optional[str]
+        self.text = None  # type: typing.Optional[str]
+        self.url = None  # type: typing.Optional[str]
+        self.option = None  # type: typing.Optional[bool]
+        self.answer = None  # type: typing.Union[str, bool, None]
         self.is_aborted = False
         self.interrupted = False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, title=self.title, text=self.text,
-                              mode=self._mode, default=self.default,
+                              mode=self.mode, default=self.default,
                               option=self.option)
 
-    @property
-    def mode(self):
-        """Getter for mode so we can define a setter."""
-        return self._mode
-
-    @mode.setter
-    def mode(self, val):
-        """Setter for mode to do basic type checking."""
-        if not isinstance(val, PromptMode):
-            raise TypeError("Mode {} is no PromptMode member!".format(val))
-        self._mode = val
-
     @pyqtSlot()
-    def done(self):
+    def done(self) -> None:
         """Must be called when the question was answered completely."""
         self.answered.emit(self.answer)
         if self.mode == PromptMode.yesno:
@@ -375,13 +382,13 @@ class Question(QObject):
         self.completed.emit()
 
     @pyqtSlot()
-    def cancel(self):
+    def cancel(self) -> None:
         """Cancel the question (resulting from user-input)."""
         self.cancelled.emit()
         self.completed.emit()
 
     @pyqtSlot()
-    def abort(self):
+    def abort(self) -> None:
         """Abort the question."""
         if self.is_aborted:
             log.misc.debug("Question was already aborted")
@@ -399,7 +406,7 @@ class Timer(QTimer):
         _name: The name of the timer.
     """
 
-    def __init__(self, parent=None, name=None):
+    def __init__(self, parent: QObject = None, name: str = None) -> None:
         super().__init__(parent)
         if name is None:
             self._name = "unnamed"
@@ -407,15 +414,15 @@ class Timer(QTimer):
             self.setObjectName(name)
             self._name = name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, name=self._name)
 
-    def setInterval(self, msec):
+    def setInterval(self, msec: int) -> None:
         """Extend setInterval to check for overflows."""
         qtutils.check_overflow(msec, 'int')
         super().setInterval(msec)
 
-    def start(self, msec=None):
+    def start(self, msec: int = None) -> None:
         """Extend start to check for overflows."""
         if msec is not None:
             qtutils.check_overflow(msec, 'int')
@@ -428,16 +435,16 @@ class AbstractCertificateErrorWrapper:
 
     """A wrapper over an SSL/certificate error."""
 
-    def __init__(self, error):
+    def __init__(self, error: typing.Any) -> None:
         self._error = error
 
-    def __str__(self):
+    def __str__(self) -> str:
         raise NotImplementedError
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         raise NotImplementedError
 
-    def is_overridable(self):
+    def is_overridable(self) -> bool:
         raise NotImplementedError
 
 
@@ -457,7 +464,7 @@ class NavigationRequest:
         'other'
     ])
 
-    url = attr.ib()
-    navigation_type = attr.ib()
-    is_main_frame = attr.ib()
-    accepted = attr.ib(default=True)
+    url = attr.ib()  # type: QUrl
+    navigation_type = attr.ib()  # type: Type
+    is_main_frame = attr.ib()  # type: bool
+    accepted = attr.ib(default=True)  # type: bool

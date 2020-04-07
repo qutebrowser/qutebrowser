@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -42,9 +42,10 @@ class AsciiDoc:
 
     FILES = ['faq', 'changelog', 'contributing', 'quickstart', 'userscripts']
 
-    def __init__(self, args):
+    def __init__(self, asciidoc, website):
         self._cmd = None
-        self._args = args
+        self._asciidoc = asciidoc
+        self._website = website
         self._homedir = None
         self._themedir = None
         self._tempdir = None
@@ -67,7 +68,7 @@ class AsciiDoc:
 
     def build(self):
         """Build either the website or the docs."""
-        if self._args.website:
+        if self._website:
             self._build_website()
         else:
             self._build_docs()
@@ -120,7 +121,7 @@ class AsciiDoc:
         """Build a single website file."""
         src = os.path.join(root, filename)
         src_basename = os.path.basename(src)
-        parts = [self._args.website[0]]
+        parts = [self._website[0]]
         dirname = os.path.dirname(src)
         if dirname:
             parts.append(os.path.relpath(os.path.dirname(src)))
@@ -191,7 +192,7 @@ class AsciiDoc:
         theme_file = os.path.abspath(os.path.join('www', 'qute.css'))
         shutil.copy(theme_file, self._themedir)
 
-        outdir = self._args.website[0]
+        outdir = self._website[0]
 
         for root, _dirs, files in os.walk(os.getcwd()):
             for filename in files:
@@ -221,12 +222,12 @@ class AsciiDoc:
 
     def _get_asciidoc_cmd(self):
         """Try to find out what commandline to use to invoke asciidoc."""
-        if self._args.asciidoc is not None:
-            return self._args.asciidoc
+        if self._asciidoc is not None:
+            return self._asciidoc
 
         try:
             subprocess.run(['asciidoc'], stdout=subprocess.DEVNULL,
-                           stderr=subprocess.DEVNULL)
+                           stderr=subprocess.DEVNULL, check=True)
         except OSError:
             pass
         else:
@@ -234,7 +235,7 @@ class AsciiDoc:
 
         try:
             subprocess.run(['asciidoc.py'], stdout=subprocess.DEVNULL,
-                           stderr=subprocess.DEVNULL)
+                           stderr=subprocess.DEVNULL, check=True)
         except OSError:
             pass
         else:
@@ -267,10 +268,8 @@ class AsciiDoc:
             sys.exit(1)
 
 
-def main(colors=False):
-    """Generate html files for the online documentation."""
-    utils.change_cwd()
-    utils.use_color = colors
+def parse_args():
+    """Parse command-line arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument('--website', help="Build website into a given "
                         "directory.", nargs=1)
@@ -278,13 +277,17 @@ def main(colors=False):
                         "asciidoc.py. If not given, it's searched in PATH.",
                         nargs=2, required=False,
                         metavar=('PYTHON', 'ASCIIDOC'))
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def run(**kwargs):
+    """Regenerate documentation."""
     try:
         os.mkdir('qutebrowser/html/doc')
     except FileExistsError:
         pass
 
-    asciidoc = AsciiDoc(args)
+    asciidoc = AsciiDoc(**kwargs)
     try:
         asciidoc.prepare()
     except FileNotFoundError:
@@ -297,6 +300,14 @@ def main(colors=False):
         asciidoc.build()
     finally:
         asciidoc.cleanup()
+
+
+def main(colors=False):
+    """Generate html files for the online documentation."""
+    utils.change_cwd()
+    utils.use_color = colors
+    args = parse_args()
+    run(asciidoc=args.asciidoc, website=args.website)
 
 
 if __name__ == '__main__':

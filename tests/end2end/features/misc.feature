@@ -362,13 +362,6 @@ Feature: Various utility commands.
         Then the header User-Agent should be set to toaster
         And the javascript message "toaster" should be logged
 
-    Scenario: Setting the default user-agent header
-        When I set content.headers.user_agent to <empty>
-        And I open headers
-        And I run :jseval console.log(window.navigator.userAgent)
-        Then the header User-Agent should be set to Mozilla/5.0 *
-        And the javascript message "Mozilla/5.0 *" should be logged
-
     ## https://github.com/qutebrowser/qutebrowser/issues/1523
 
     Scenario: Completing a single option argument

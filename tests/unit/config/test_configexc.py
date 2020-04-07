@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -126,3 +126,9 @@ Fake traceback
     """)
     # Make sure the traceback is not indented
     assert '<pre>\nFake traceback\n' in html
+
+
+def test_config_file_errors_fatal():
+    err = configexc.ConfigErrorDesc("Text", Exception("Text"))
+    errors = configexc.ConfigFileErrors("state", [err], fatal=True)
+    assert errors.fatal

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,10 +25,11 @@ from PyQt5.QtCore import QUrl, QByteArray
 from PyQt5.QtWebEngineCore import (QWebEngineUrlRequestInterceptor,
                                    QWebEngineUrlRequestInfo)
 
-from qutebrowser.config import config
+from qutebrowser.config import websettings
 from qutebrowser.browser import shared
 from qutebrowser.utils import utils, log, debug, qtutils
 from qutebrowser.extensions import interceptors
+from qutebrowser.misc import objects
 
 
 @attr.s
@@ -62,53 +63,65 @@ class WebEngineRequest(interceptors.Request):
 class RequestInterceptor(QWebEngineUrlRequestInterceptor):
     """Handle ad blocking and custom headers."""
 
-    # This dict should be from QWebEngine Resource Types to qutebrowser
-    # extension ResourceTypes. If a ResourceType is added to Qt, this table
-    # should be updated too.
-    RESOURCE_TYPES = {
-        QWebEngineUrlRequestInfo.ResourceTypeMainFrame:
-            interceptors.ResourceType.main_frame,
-        QWebEngineUrlRequestInfo.ResourceTypeSubFrame:
-            interceptors.ResourceType.sub_frame,
-        QWebEngineUrlRequestInfo.ResourceTypeStylesheet:
-            interceptors.ResourceType.stylesheet,
-        QWebEngineUrlRequestInfo.ResourceTypeScript:
-            interceptors.ResourceType.script,
-        QWebEngineUrlRequestInfo.ResourceTypeImage:
-            interceptors.ResourceType.image,
-        QWebEngineUrlRequestInfo.ResourceTypeFontResource:
-            interceptors.ResourceType.font_resource,
-        QWebEngineUrlRequestInfo.ResourceTypeSubResource:
-            interceptors.ResourceType.sub_resource,
-        QWebEngineUrlRequestInfo.ResourceTypeObject:
-            interceptors.ResourceType.object,
-        QWebEngineUrlRequestInfo.ResourceTypeMedia:
-            interceptors.ResourceType.media,
-        QWebEngineUrlRequestInfo.ResourceTypeWorker:
-            interceptors.ResourceType.worker,
-        QWebEngineUrlRequestInfo.ResourceTypeSharedWorker:
-            interceptors.ResourceType.shared_worker,
-        QWebEngineUrlRequestInfo.ResourceTypePrefetch:
-            interceptors.ResourceType.prefetch,
-        QWebEngineUrlRequestInfo.ResourceTypeFavicon:
-            interceptors.ResourceType.favicon,
-        QWebEngineUrlRequestInfo.ResourceTypeXhr:
-            interceptors.ResourceType.xhr,
-        QWebEngineUrlRequestInfo.ResourceTypePing:
-            interceptors.ResourceType.ping,
-        QWebEngineUrlRequestInfo.ResourceTypeServiceWorker:
-            interceptors.ResourceType.service_worker,
-        QWebEngineUrlRequestInfo.ResourceTypeCspReport:
-            interceptors.ResourceType.csp_report,
-        QWebEngineUrlRequestInfo.ResourceTypePluginResource:
-            interceptors.ResourceType.plugin_resource,
-        QWebEngineUrlRequestInfo.ResourceTypeUnknown:
-            interceptors.ResourceType.unknown,
-    }
-
-    def __init__(self, args, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self._args = args
+        # This dict should be from QWebEngine Resource Types to qutebrowser
+        # extension ResourceTypes. If a ResourceType is added to Qt, this table
+        # should be updated too.
+        self._resource_types = {
+            QWebEngineUrlRequestInfo.ResourceTypeMainFrame:
+                interceptors.ResourceType.main_frame,
+            QWebEngineUrlRequestInfo.ResourceTypeSubFrame:
+                interceptors.ResourceType.sub_frame,
+            QWebEngineUrlRequestInfo.ResourceTypeStylesheet:
+                interceptors.ResourceType.stylesheet,
+            QWebEngineUrlRequestInfo.ResourceTypeScript:
+                interceptors.ResourceType.script,
+            QWebEngineUrlRequestInfo.ResourceTypeImage:
+                interceptors.ResourceType.image,
+            QWebEngineUrlRequestInfo.ResourceTypeFontResource:
+                interceptors.ResourceType.font_resource,
+            QWebEngineUrlRequestInfo.ResourceTypeSubResource:
+                interceptors.ResourceType.sub_resource,
+            QWebEngineUrlRequestInfo.ResourceTypeObject:
+                interceptors.ResourceType.object,
+            QWebEngineUrlRequestInfo.ResourceTypeMedia:
+                interceptors.ResourceType.media,
+            QWebEngineUrlRequestInfo.ResourceTypeWorker:
+                interceptors.ResourceType.worker,
+            QWebEngineUrlRequestInfo.ResourceTypeSharedWorker:
+                interceptors.ResourceType.shared_worker,
+            QWebEngineUrlRequestInfo.ResourceTypePrefetch:
+                interceptors.ResourceType.prefetch,
+            QWebEngineUrlRequestInfo.ResourceTypeFavicon:
+                interceptors.ResourceType.favicon,
+            QWebEngineUrlRequestInfo.ResourceTypeXhr:
+                interceptors.ResourceType.xhr,
+            QWebEngineUrlRequestInfo.ResourceTypePing:
+                interceptors.ResourceType.ping,
+            QWebEngineUrlRequestInfo.ResourceTypeServiceWorker:
+                interceptors.ResourceType.service_worker,
+            QWebEngineUrlRequestInfo.ResourceTypeCspReport:
+                interceptors.ResourceType.csp_report,
+            QWebEngineUrlRequestInfo.ResourceTypePluginResource:
+                interceptors.ResourceType.plugin_resource,
+            QWebEngineUrlRequestInfo.ResourceTypeUnknown:
+                interceptors.ResourceType.unknown,
+        }
+
+        try:
+            preload_main_frame = (QWebEngineUrlRequestInfo.
+                                  ResourceTypeNavigationPreloadMainFrame)
+            preload_sub_frame = (QWebEngineUrlRequestInfo.
+                                 ResourceTypeNavigationPreloadSubFrame)
+        except AttributeError:
+            # Added in Qt 5.14
+            pass
+        else:
+            self._resource_types[preload_main_frame] = (
+                interceptors.ResourceType.preload_main_frame)
+            self._resource_types[preload_sub_frame] = (
+                interceptors.ResourceType.preload_sub_frame)
 
     def install(self, profile):
         """Install the interceptor on the given QWebEngineProfile."""
@@ -136,25 +149,29 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         Args:
             info: QWebEngineUrlRequestInfo &info
         """
-        if 'log-requests' in self._args.debug_flags:
-            resource_type = debug.qenum_key(QWebEngineUrlRequestInfo,
-                                            info.resourceType())
-            navigation_type = debug.qenum_key(QWebEngineUrlRequestInfo,
-                                              info.navigationType())
+        if 'log-requests' in objects.debug_flags:
+            resource_type_str = debug.qenum_key(QWebEngineUrlRequestInfo,
+                                                info.resourceType())
+            navigation_type_str = debug.qenum_key(QWebEngineUrlRequestInfo,
+                                                  info.navigationType())
             log.webview.debug("{} {}, first-party {}, resource {}, "
                               "navigation {}".format(
                                   bytes(info.requestMethod()).decode('ascii'),
                                   info.requestUrl().toDisplayString(),
                                   info.firstPartyUrl().toDisplayString(),
-                                  resource_type, navigation_type))
+                                  resource_type_str, navigation_type_str))
 
         url = info.requestUrl()
         first_party = info.firstPartyUrl()
+        if not url.isValid():
+            log.webview.debug("Ignoring invalid intercepted URL: {}".format(
+                url.errorString()))
+            return
+
         # Per QWebEngineUrlRequestInfo::ResourceType documentation, if we fail
         # our lookup, we should fall back to ResourceTypeUnknown
         try:
-            resource_type = RequestInterceptor.RESOURCE_TYPES[
-                info.resourceType()]
+            resource_type = self._resource_types[info.resourceType()]
         except KeyError:
             log.webview.warning(
                 "Resource type {} not found in RequestInterceptor dict."
@@ -187,6 +204,5 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         for header, value in shared.custom_headers(url=url):
             info.setHttpHeader(header, value)
 
-        user_agent = config.instance.get('content.headers.user_agent', url=url)
-        if user_agent is not None:
-            info.setHttpHeader(b'User-Agent', user_agent.encode('ascii'))
+        user_agent = websettings.user_agent(url)
+        info.setHttpHeader(b'User-Agent', user_agent.encode('ascii'))

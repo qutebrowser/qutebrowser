@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -30,6 +30,7 @@ import re
 import shlex
 import math
 
+import pkg_resources
 import attr
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QClipboard
@@ -39,7 +40,7 @@ from hypothesis import strategies
 
 import qutebrowser
 import qutebrowser.utils  # for test_qualname
-from qutebrowser.utils import utils, qtutils
+from qutebrowser.utils import utils, qtutils, version, usertypes
 
 
 ELLIPSIS = '\u2026'
@@ -750,14 +751,52 @@ class TestOpenFile:
         assert re.fullmatch(
             r"Opening /foo/bar with \[.*python.*/foo/bar.*\]", result)
 
-    def test_system_default_application(self, caplog, config_stub, mocker):
-        m = mocker.patch('PyQt5.QtGui.QDesktopServices.openUrl', spec={},
-                         new_callable=mocker.Mock)
+    @pytest.fixture
+    def openurl_mock(self, mocker):
+        return mocker.patch('PyQt5.QtGui.QDesktopServices.openUrl', spec={},
+                            new_callable=mocker.Mock)
+
+    def test_system_default_application(self, caplog, config_stub,
+                                        openurl_mock):
         utils.open_file('/foo/bar')
         result = caplog.messages[0]
         assert re.fullmatch(
             r"Opening /foo/bar with the system application", result)
-        m.assert_called_with(QUrl('file:///foo/bar'))
+        openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
+
+    @pytest.fixture
+    def sandbox_patch(self, monkeypatch):
+        info = version.DistributionInfo(
+            id='org.kde.Platform',
+            parsed=version.Distribution.kde_flatpak,
+            version=pkg_resources.parse_version('5.12'),
+            pretty='Unknown')
+        monkeypatch.setattr(version, 'distribution',
+                            lambda: info)
+
+    def test_cmdline_sandboxed(self, sandbox_patch,
+                               config_stub, message_mock, caplog):
+        with caplog.at_level(logging.ERROR):
+            utils.open_file('/foo/bar', 'custom_cmd')
+        msg = message_mock.getmsg(usertypes.MessageLevel.error)
+        assert msg.text == 'Cannot spawn download dispatcher from sandbox'
+
+    @pytest.mark.not_frozen
+    def test_setting_override_sandboxed(self, sandbox_patch, openurl_mock,
+                                        caplog, config_stub):
+        config_stub.val.downloads.open_dispatcher = 'test'
+
+        with caplog.at_level(logging.WARNING):
+            utils.open_file('/foo/bar')
+
+        assert caplog.messages[1] == ('Ignoring download dispatcher from '
+                                      'config in sandbox environment')
+        openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
+
+    def test_system_default_sandboxed(self, config_stub, openurl_mock,
+                                      sandbox_patch):
+        utils.open_file('/foo/bar')
+        openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
 
 
 def test_unused():

@@ -6,10 +6,14 @@ extension-pkg-whitelist=PyQt5,sip
 load-plugins=qute_pylint.config,
              qute_pylint.modeline,
              qute_pylint.openencoding,
-             qute_pylint.settrace,
-             pylint.extensions.bad_builtin,
-             pylint.extensions.docstyle
+             pylint.extensions.docstyle,
+             pylint.extensions.emptystring,
+             pylint.extensions.broad_try_clause,
+             pylint.extensions.overlapping_exceptions,
 persistent=n
+
+[broad_try_clause]
+max-try-statements=7
 
 [MESSAGES CONTROL]
 enable=all
@@ -30,6 +34,7 @@ disable=locally-disabled,
         wrong-import-position,
         duplicate-code,
         no-else-return,
+        no-else-continue,
         too-many-ancestors,
         too-many-public-methods,
         too-many-instance-attributes,
@@ -40,7 +45,7 @@ disable=locally-disabled,
         too-many-branches,
         too-many-statements,
         too-few-public-methods,
-        bad-builtin
+        import-outside-toplevel,
 
 [BASIC]
 function-rgx=[a-z_][a-z0-9_]{2,50}$
@@ -69,10 +74,7 @@ valid-metaclass-classmethod-first-arg=cls
 
 [TYPECHECK]
 ignored-modules=PyQt5,PyQt5.QtWebKit
+ignored-classes=DummyBox
 
 [IMPORTS]
-# WORKAROUND
-# For some reason, pylint doesn't know about some Python 3 modules on
-# AppVeyor...
-known-standard-library=faulthandler,http,enum,tokenize,posixpath,importlib,types
 known-third-party=sip
