@@ -71,7 +71,7 @@ try:
         entry_points={'gui_scripts':
                       ['qutebrowser = qutebrowser.qutebrowser:main']},
         zip_safe=True,
-        install_requires=['pypeg2', 'jinja2', 'pygments', 'PyYAML', 'attrs', 'adblock'],
+        install_requires=['pypeg2', 'jinja2', 'pygments', 'PyYAML', 'attrs'],
         python_requires='>=3.5',
         name='qutebrowser',
         version=_get_constant('version'),

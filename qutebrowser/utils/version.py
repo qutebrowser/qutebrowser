@@ -224,6 +224,7 @@ def _module_versions() -> typing.Sequence[str]:
         ('jinja2', ['__version__']),
         ('pygments', ['__version__']),
         ('yaml', ['__version__']),
+        ('adblock', ['__version__']),
         ('cssutils', ['__version__']),
         ('attr', ['__version__']),
         ('PyQt5.QtWebEngineWidgets', []),
