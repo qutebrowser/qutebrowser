@@ -218,6 +218,7 @@ def brave_adblock_update() -> None:
     """
     # FIXME: As soon as we can register instances again, we should move this
     # back to the class.
+
     if _ad_blocker is not None:
         _ad_blocker.adblock_update()
     else:
@@ -240,6 +241,9 @@ def init(context: apitypes.InitContext) -> None:
     try:
         import adblock
     except ImportError:
+        # We want 'adblock' to be an optional dependency. If the module is
+        # not found, we simply set the `_ad_blocker` global to `None`. Always
+        # remember to check the case where `_ad_blocker` is `None`!
         _ad_blocker = None
         return
 
