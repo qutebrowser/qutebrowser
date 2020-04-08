@@ -30,12 +30,20 @@ import pathlib
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.api import (cmdutils, hook, config, message, downloads,
-                             interceptor, apitypes, qtutils)
+from qutebrowser.api import (
+    cmdutils,
+    hook,
+    config,
+    message,
+    downloads,
+    interceptor,
+    apitypes,
+    qtutils,
+)
 
 
-logger = logging.getLogger('misc')
-_host_blocker = typing.cast('HostBlocker', None)
+logger = logging.getLogger("misc")
+_host_blocker = typing.cast("HostBlocker", None)
 
 
 def _is_whitelisted_url(url: QUrl) -> bool:
@@ -46,7 +54,9 @@ def _is_whitelisted_url(url: QUrl) -> bool:
     if config.val.content.ad_blocking.lists is not None:
         # FIXME: This list comprehension is probably too expensive to do for
         # every request. There must be a better way.
-        block_list_urls = [url.toString() for url in config.val.content.ad_blocking.lists]
+        block_list_urls = [
+            url.toString() for url in config.val.content.ad_blocking.lists
+        ]
         if url.toString() in block_list_urls:
             return True
 
@@ -58,8 +68,9 @@ class _FakeDownload(downloads.TempDownload):
 
     """A download stub to use on_download_finished with local files."""
 
-    def __init__(self,  # pylint: disable=super-init-not-called
-                 fileobj: typing.IO[bytes]) -> None:
+    def __init__(
+        self, fileobj: typing.IO[bytes]  # pylint: disable=super-init-not-called
+    ) -> None:
         self.fileobj = fileobj
         self.successful = True
 
@@ -89,7 +100,6 @@ class BraveAdBlocker:
         self._cache_path = str(data_dir / "adblock-cache.dat")
         self._engine = engine
 
-
     def filter_request(self, info: interceptor.Request) -> None:
         """Block or redirect the given request if necessary."""
         request_type = info.resource_type.name if info.resource_type else ""
@@ -100,8 +110,7 @@ class BraveAdBlocker:
 
         qtutils.ensure_valid(info.request_url)
 
-        if not config.get('content.ad_blocking.enabled',
-                          url=first_party_url):
+        if not config.get("content.ad_blocking.enabled", url=first_party_url):
             # Do nothing if adblocking is disabled.
             return
 
@@ -116,12 +125,18 @@ class BraveAdBlocker:
 
         if result.matched:
             if (result.exception is not None) and (result.important is None):
-                logger.debug("Excepting {} from being blocked by {} because of {}"
-                    .format(info.request_url.toString(), result.filter, result.exception))
+                logger.debug(
+                    "Excepting {} from being blocked by {} because of {}".format(
+                        info.request_url.toString(), result.filter, result.exception
+                    )
+                )
                 return
 
-            logger.info("Request to {} blocked by ad blocker."
-                .format(info.request_url.toString()))
+            logger.info(
+                "Request to {} blocked by ad blocker.".format(
+                    info.request_url.toString()
+                )
+            )
             info.block()
 
     def read_cache(self) -> None:
@@ -129,9 +144,11 @@ class BraveAdBlocker:
             logger.info("Loading cached adblock data: {}".format(self._cache_path))
             self._engine.deserialize_from_file(self._cache_path)
         else:
-            if (config.val.content.ad_blocking.lists and
-                    not self._has_basedir and
-                    config.val.content.ad_blocking.enabled):
+            if (
+                config.val.content.ad_blocking.lists
+                and not self._has_basedir
+                and config.val.content.ad_blocking.enabled
+            ):
                 message.info("Run :brave-adblock-update to get adblock lists.")
 
     def adblock_update(self) -> None:
@@ -153,7 +170,8 @@ class BraveAdBlocker:
                 download = downloads.download_temp(url)
                 self._in_progress.append(download)
                 download.finished.connect(
-                    functools.partial(self._on_download_finished, download))
+                    functools.partial(self._on_download_finished, download)
+                )
 
     def _import_local(self, filename: str) -> None:
         """Adds the contents of a file to the blocklist.
@@ -164,8 +182,9 @@ class BraveAdBlocker:
         try:
             fileobj = open(filename, "rb")
         except OSError as e:
-            message.error("adblock: Error while reading {}: {}".format(
-                filename, e.strerror))
+            message.error(
+                "adblock: Error while reading {}: {}".format(filename, e.strerror)
+            )
             return
         download = _FakeDownload(fileobj)
         self._in_progress.append(download)
@@ -186,7 +205,6 @@ class BraveAdBlocker:
             except OSError as e:
                 logger.exception("Failed to adblock cache file: {}".format(e))
 
-
     def _on_download_finished(self, download: downloads.TempDownload) -> None:
         """Check if all downloads are finished and if so, trigger reading.
 
@@ -196,8 +214,7 @@ class BraveAdBlocker:
         self._in_progress.remove(download)
         if download.successful:
             self._done_count += 1
-            assert not isinstance(download.fileobj,
-                                  downloads.UnsupportedAttribute)
+            assert not isinstance(download.fileobj, downloads.UnsupportedAttribute)
             assert download.fileobj is not None
             try:
                 download.fileobj.seek(0)
@@ -233,7 +250,7 @@ def brave_adblock_update() -> None:
         )
 
 
-@hook.config_changed('content.ad_blocking.lists')
+@hook.config_changed("content.ad_blocking.lists")
 def on_config_changed() -> None:
     if _ad_blocker is not None:
         _ad_blocker.update_files()
@@ -258,7 +275,7 @@ def init(context: apitypes.InitContext) -> None:
         engine=engine,
         data_dir=context.data_dir,
         config_dir=context.config_dir,
-        has_basedir=context.args.basedir is not None
+        has_basedir=context.args.basedir is not None,
     )
     _ad_blocker.read_cache()
     interceptor.register(_ad_blocker.filter_request)
