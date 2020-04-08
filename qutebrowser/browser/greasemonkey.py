@@ -100,7 +100,7 @@ class GreasemonkeyScript:
     PROPS_REGEX = r'// @(?P<prop>[^\s]+)\s*(?P<val>.*)'
 
     @classmethod
-    def parse(cls, source, filename=None):
+    def parse(cls, source, filename=None) -> "GreasemonkeyScript":
         """GreasemonkeyScript factory.
 
         Takes a userscript source and returns a GreasemonkeyScript.
@@ -294,7 +294,7 @@ class GreasemonkeyManager(QObject):
                 self.add_script(script, force)
         self.scripts_reloaded.emit()
 
-    def add_script(self, script, force=False):
+    def add_script(self, script: GreasemonkeyScript, force=False):
         """Add a GreasemonkeyScript to this manager.
 
         Args:
@@ -309,7 +309,7 @@ class GreasemonkeyManager(QObject):
         else:
             self._add_script(script)
 
-    def _add_script(self, script):
+    def _add_script(self, script: GreasemonkeyScript):
         if script.run_at == 'document-start':
             self._run_start.append(script)
         elif script.run_at == 'document-end':
