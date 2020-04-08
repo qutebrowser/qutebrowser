@@ -75,13 +75,19 @@ class BraveAdBlocker:
         _engine: Brave ad-blocking engine.
     """
 
-    def __init__(self, *, data_dir: pathlib.Path, config_dir: pathlib.Path,
-                 has_basedir: bool = False) -> None:
+    def __init__(
+        self,
+        *,
+        engine: "adblock.Engine",
+        data_dir: pathlib.Path,
+        config_dir: pathlib.Path,
+        has_basedir: bool = False
+    ) -> None:
         self._has_basedir = has_basedir
         self._in_progress = []  # type: typing.List[downloads.TempDownload]
         self._done_count = 0
         self._cache_path = str(data_dir / "adblock-cache.dat")
-        self._engine = adblock.Engine([])
+        self._engine = engine
 
 
     def filter_request(self, info: interceptor.Request) -> None:
@@ -247,8 +253,12 @@ def init(context: apitypes.InitContext) -> None:
         _ad_blocker = None
         return
 
-    _ad_blocker = BraveAdBlocker(data_dir=context.data_dir,
-                                config_dir=context.config_dir,
-                                has_basedir=context.args.basedir is not None)
+    engine = adblock.Engine([])
+    _ad_blocker = BraveAdBlocker(
+        engine=engine,
+        data_dir=context.data_dir,
+        config_dir=context.config_dir,
+        has_basedir=context.args.basedir is not None
+    )
     _ad_blocker.read_cache()
     interceptor.register(_ad_blocker.filter_request)
