@@ -107,15 +107,24 @@
         }
     }
 
-    // Stub these two so that the gm4 polyfill script doesn't try to
+    // Stub this function so that the gm4 polyfill script doesn't try to
     // create broken versions as attributes of window.
-    function GM_getResourceText(caption, commandFunc, accessKey) {
-        console.error(`${GM_info.script.name} called unimplemented GM_getResourceText`);
-    }
-
     function GM_registerMenuCommand(caption, commandFunc, accessKey) {
         console.error(`${GM_info.script.name} called unimplemented GM_registerMenuCommand`);
     }
+
+    function GM_getResourceURL(name) {
+        return GM_info.script.resources[name].url
+    }
+
+    {
+        const _resource_text = {{ resourceText }}
+
+        function GM_getResourceText(name) {
+            return _resource_text[name]
+        }
+    }
+
 
     // Mock the greasemonkey 4.0 async API.
     const GM = {};
@@ -129,6 +138,7 @@
         'openInTab': GM_openInTab,
         'setValue': GM_setValue,
         'xmlHttpRequest': GM_xmlhttpRequest,
+        'getResourceUrl': GM_getResourceURL,
     }
     for (newKey in entries) {
         let old = entries[newKey];
