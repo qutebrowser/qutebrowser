@@ -30,8 +30,6 @@ import pathlib
 
 from PyQt5.QtCore import QUrl
 
-import adblock
-
 from qutebrowser.api import (cmdutils, hook, config, message, downloads,
                              interceptor, apitypes, qtutils)
 
@@ -220,18 +218,31 @@ def brave_adblock_update() -> None:
     """
     # FIXME: As soon as we can register instances again, we should move this
     # back to the class.
-    _ad_blocker.adblock_update()
+    if _ad_blocker is not None:
+        _ad_blocker.adblock_update()
+    else:
+        message.warning(
+            "The 'adblock' dependency is not installed. Please install it to continue."
+        )
 
 
 @hook.config_changed('content.ad_blocking.lists')
 def on_config_changed() -> None:
-    _ad_blocker.update_files()
+    if _ad_blocker is not None:
+        _ad_blocker.update_files()
 
 
 @hook.init()
 def init(context: apitypes.InitContext) -> None:
     """Initialize the Brave ad blocker."""
     global _ad_blocker
+
+    try:
+        import adblock
+    except ImportError:
+        _ad_blocker = None
+        return
+
     _ad_blocker = BraveAdBlocker(data_dir=context.data_dir,
                                 config_dir=context.config_dir,
                                 has_basedir=context.args.basedir is not None)
