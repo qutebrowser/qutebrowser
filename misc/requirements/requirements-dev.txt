@@ -16,7 +16,7 @@ manhole==1.6.0
 packaging==20.3
 pycparser==2.20
 Pympler==0.8
-pyparsing==2.4.6
+pyparsing==2.4.7
 PyQt-builder==1.3.0
 python-dateutil==2.8.1
 requests==2.23.0
