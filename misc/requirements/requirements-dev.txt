@@ -20,7 +20,7 @@ pyparsing==2.4.7
 PyQt-builder==1.3.1
 python-dateutil==2.8.1
 requests==2.23.0
-sip==5.1.2
+sip==5.2.0
 six==1.14.0
 toml==0.10.0
 uritemplate==3.0.1
