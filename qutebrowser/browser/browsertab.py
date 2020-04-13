@@ -332,19 +332,23 @@ class AbstractSearch(QObject):
         """Clear the current search."""
         raise NotImplementedError
 
-    def prev_result(self, *, result_cb: _Callback = None) -> None:
+    def prev_result(self, *, result_cb: _Callback = None,
+                    nowrap: bool = False) -> None:
         """Go to the previous result of the current search.
 
         Args:
             result_cb: Called with a bool indicating whether a match was found.
+            nowrap: Do not wrap at the top or bottom of the page.
         """
         raise NotImplementedError
 
-    def next_result(self, *, result_cb: _Callback = None) -> None:
+    def next_result(self, *, result_cb: _Callback = None,
+                    nowrap: bool = False) -> None:
         """Go to the next result of the current search.
 
         Args:
             result_cb: Called with a bool indicating whether a match was found.
+            nowrap: Do not wrap at the top or bottom of the page.
         """
         raise NotImplementedError
 

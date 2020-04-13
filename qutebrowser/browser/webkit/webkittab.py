@@ -149,12 +149,16 @@ class WebKitSearch(browsertab.AbstractSearch):
                               self._flags | QWebPage.HighlightAllOccurrences)
         self._call_cb(result_cb, found, text, self._flags, 'search')
 
-    def next_result(self, *, result_cb=None):
+    def next_result(self, *, result_cb=None, nowrap=False):
         self.search_displayed = True
-        found = self._widget.findText(self.text, self._flags)
-        self._call_cb(result_cb, found, self.text, self._flags, 'next_result')
+        # The int() here makes sure we get a copy of the flags.
+        flags = QWebPage.FindFlags(int(self._flags))  # type: ignore
+        if nowrap:
+            flags &= ~QWebPage.FindWrapsAroundDocument
+        found = self._widget.findText(self.text, flags)
+        self._call_cb(result_cb, found, self.text, flags, 'next_result')
 
-    def prev_result(self, *, result_cb=None):
+    def prev_result(self, *, result_cb=None, nowrap=False):
         self.search_displayed = True
         # The int() here makes sure we get a copy of the flags.
         flags = QWebPage.FindFlags(int(self._flags))  # type: ignore
@@ -162,6 +166,8 @@ class WebKitSearch(browsertab.AbstractSearch):
             flags &= ~QWebPage.FindBackward
         else:
             flags |= QWebPage.FindBackward
+        if nowrap:
+            flags &= ~QWebPage.FindWrapsAroundDocument
         found = self._widget.findText(self.text, flags)
         self._call_cb(result_cb, found, self.text, flags, 'prev_result')
 

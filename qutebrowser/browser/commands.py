@@ -1518,11 +1518,13 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def search_next(self, count=1):
+    def search_next(self, count=1, nowrap=False):
         """Continue the search to the ([count]th) next term.
 
         Args:
             count: How many elements to ignore.
+            nowrap: Do not wrap when hitting the end of the page.
+                    With QtWebEngine, Qt >= 5.14 is required for this.
         """
         tab = self._current_widget()
         window_text = self._tabbed_browser.search_text
@@ -1547,16 +1549,18 @@ class CommandDispatcher:
                                prev=False)
 
         for _ in range(count - 1):
-            tab.search.next_result()
-        tab.search.next_result(result_cb=cb)
+            tab.search.next_result(nowrap=nowrap)
+        tab.search.next_result(result_cb=cb, nowrap=nowrap)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def search_prev(self, count=1):
+    def search_prev(self, count=1, nowrap=False):
         """Continue the search to the ([count]th) previous term.
 
         Args:
             count: How many elements to ignore.
+            nowrap: Do not wrap when hitting the end of the page.
+                    With QtWebEngine, Qt >= 5.14 is required for this.
         """
         tab = self._current_widget()
         window_text = self._tabbed_browser.search_text
@@ -1581,8 +1585,8 @@ class CommandDispatcher:
                                prev=True)
 
         for _ in range(count - 1):
-            tab.search.prev_result()
-        tab.search.prev_result(result_cb=cb)
+            tab.search.prev_result(nowrap=nowrap)
+        tab.search.prev_result(result_cb=cb, nowrap=nowrap)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_cmd_split=True)
