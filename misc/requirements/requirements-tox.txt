@@ -6,7 +6,7 @@ filelock==3.0.12
 packaging==20.3
 pluggy==0.13.1
 py==1.8.1
-pyparsing==2.4.6
+pyparsing==2.4.7
 six==1.14.0
 toml==0.10.0
 tox==3.14.6
