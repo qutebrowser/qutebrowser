@@ -20,6 +20,6 @@ mccabe==0.6.1
 pep8-naming==0.10.0
 pycodestyle==2.5.0
 pydocstyle==5.0.2
-pyflakes==2.1.1
+pyflakes==2.2.0
 six==1.14.0
 snowballstemmer==2.0.0
