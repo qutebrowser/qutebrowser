@@ -180,6 +180,8 @@ class WebEngineSearch(browsertab.AbstractSearch):
             self._total_matches = 0
             self._nowrap_enabled = True
             self._store_match_data_connected = False
+        else:
+            self._nowrap_enabled = False
 
     def _store_match_data(self, result):
         self._active_match = result.activeMatch()
