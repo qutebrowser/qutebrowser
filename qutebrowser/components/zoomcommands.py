@@ -20,18 +20,24 @@
 """Zooming-related commands."""
 
 from qutebrowser.api import cmdutils, apitypes, message, config
+from qutebrowser.browser import pdfjs
 
 
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def zoom_in(tab: apitypes.Tab, count: int = 1, quiet: bool = False) -> None:
+def zoom_in(tab: apitypes.Tab, no_pdfjs: bool = False, count: int = 1,
+            quiet: bool = False) -> None:
     """Increase the zoom level for the current tab.
 
     Args:
+        no_pdfjs: Use browser's zoom even if the tab displays PDF.js.
         count: How many steps to zoom in.
         quiet: Don't show a zoom level message.
     """
+    if pdfjs.is_pdfjs_page(tab) and not no_pdfjs:
+        pdfjs.zoom_in(tab, count)
+        return
     try:
         perc = tab.zoom.apply_offset(count)
     except ValueError as e:
@@ -43,13 +49,18 @@ def zoom_in(tab: apitypes.Tab, count: int = 1, quiet: bool = False) -> None:
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def zoom_out(tab: apitypes.Tab, count: int = 1, quiet: bool = False) -> None:
+def zoom_out(tab: apitypes.Tab, no_pdfjs: bool = False, count: int = 1,
+             quiet: bool = False) -> None:
     """Decrease the zoom level for the current tab.
 
     Args:
+        no_pdfjs: Use browser's zoom even if the tab displays PDF.js.
         count: How many steps to zoom out.
         quiet: Don't show a zoom level message.
     """
+    if pdfjs.is_pdfjs_page(tab) and not no_pdfjs:
+        pdfjs.zoom_out(tab, count)
+        return
     try:
         perc = tab.zoom.apply_offset(-count)
     except ValueError as e:
@@ -62,6 +73,7 @@ def zoom_out(tab: apitypes.Tab, count: int = 1, quiet: bool = False) -> None:
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
 def zoom(tab: apitypes.Tab,
+         no_pdfjs: bool = False,
          level: str = None,
          count: int = None,
          quiet: bool = False) -> None:
@@ -72,10 +84,12 @@ def zoom(tab: apitypes.Tab,
     use [count].
 
     Args:
+        no_pdfjs: Use browser's zoom even if the tab displays PDF.js.
         level: The zoom percentage to set.
         count: The zoom percentage to set.
         quiet: Don't show a zoom level message.
     """
+    use_default_zoom = False
     if count is not None:
         int_level = count
     elif level is not None:
@@ -85,6 +99,16 @@ def zoom(tab: apitypes.Tab,
             raise cmdutils.CommandError("zoom: Invalid int value {}"
                                         .format(level))
     else:
+        use_default_zoom = True
+
+    if pdfjs.is_pdfjs_page(tab) and not no_pdfjs:
+        if use_default_zoom:
+            pdfjs.zoom(tab)
+        else:
+            pdfjs.zoom(tab, int_level / 100)
+        return
+
+    if use_default_zoom:
         int_level = int(config.val.zoom.default)
 
     try:

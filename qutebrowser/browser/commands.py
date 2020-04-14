@@ -31,7 +31,7 @@ from qutebrowser.commands import userscripts, runners
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config, configdata
 from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
-                                 webelem, downloads)
+                                 webelem, downloads, pdfjs)
 from qutebrowser.keyinput import modeman, keyutils
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils, standarddir, debug)
