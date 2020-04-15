@@ -2287,17 +2287,16 @@ Default: +pass:[ask]+
 [[content.unknown_url_scheme_policy]]
 === content.unknown_url_scheme_policy
 How navigation requests to URLs with unknown schemes are handled.
-Only valid for webengine backend (Qt > 5.10). See https://doc.qt.io/qt-5/qwebenginesettings.html#UnknownUrlSchemePolicy-enum.
 
 Type: <<types,String>>
 
 Valid values:
 
- * +DisallowUnknownUrlSchemes+: Disallows all navigation requests to URLs with unknown schemes.
- * +AllowUnknownUrlSchemesFromUserInteraction+: Allows navigation requests to URLs with unknown schemes that are issued from user-interaction (like a mouse-click), whereas other navigation requests (for example from JavaScript) are suppressed.
- * +AllowAllUnknownUrlSchemes+: Allows all navigation requests to URLs with unknown schemes.
+ * +disallow-unknown-url-schemes+: Disallows all navigation requests to URLs with unknown schemes.
+ * +allow-unknown-url-schemes-from-user-interaction+: Allows navigation requests to URLs with unknown schemes that are issued from user-interaction (like a mouse-click), whereas other navigation requests (for example from JavaScript) are suppressed.
+ * +allow-all-unknown-url-schemes+: Allows all navigation requests to URLs with unknown schemes.
 
-Default: +pass:[AllowUnknownUrlSchemesFromUserInteraction]+
+Default: +pass:[allow-unknown-url-schemes-from-user-interaction]+
 
 On QtWebEngine, this setting requires Qt 5.11 or newer.
 

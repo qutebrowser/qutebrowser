@@ -161,15 +161,15 @@ class WebEngineSettings(websettings.AbstractSettings):
     # Only Qt >= 5.11 support UnknownUrlSchemePolicy
     try:
         _UNKNOWN_URL_SCHEME_POLICY = {
-            'DisallowUnknownUrlSchemes':
+            'disallow-unknown-url-schemes':
                 QWebEngineSettings.DisallowUnknownUrlSchemes,
-            'AllowUnknownUrlSchemesFromUserInteraction':
+            'allow-unknown-url-schemes-from-user-interaction':
                 QWebEngineSettings.AllowUnknownUrlSchemesFromUserInteraction,
-            'AllowAllUnknownUrlSchemes':
+            'allow-all-unknown-url-schemes':
                 QWebEngineSettings.AllowAllUnknownUrlSchemes,
         }
-    except Exception:
-        pass
+    except AttributeError:
+        _UNKNOWN_URL_SCHEME_POLICY = None
 
     # Mapping from WebEngineSettings::initDefaults in
     # qtwebengine/src/core/web_engine_settings.cpp
@@ -181,7 +181,6 @@ class WebEngineSettings(websettings.AbstractSettings):
         QWebEngineSettings.CursiveFont: QFont.Cursive,
         QWebEngineSettings.FantasyFont: QFont.Fantasy,
     }
-
 
     def set_unknown_url_scheme_policy(self, policy: str) -> bool:
         """Set the UnknownUrlSchemePolicy to use.
@@ -197,7 +196,7 @@ class WebEngineSettings(websettings.AbstractSettings):
 
     def _update_setting(self, setting, value):
         if setting == 'content.unknown_url_scheme_policy':
-            if hasattr(self, '_UNKNOWN_URL_SCHEME_POLICY'):
+            if self._UNKNOWN_URL_SCHEME_POLICY:
                 return self.set_unknown_url_scheme_policy(value)
             return False
         return super()._update_setting(setting, value)
