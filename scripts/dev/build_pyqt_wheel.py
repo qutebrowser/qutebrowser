@@ -34,7 +34,8 @@ from scripts import utils
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('qt_location', help='Qt compiler directory')
-    parser.add_argument('--wheels-dir', help='Directory to use for wheels')
+    parser.add_argument('--wheels-dir', help='Directory to use for wheels',
+                        default='wheels')
     args = parser.parse_args()
 
     old_cwd = pathlib.Path.cwd()
@@ -59,7 +60,7 @@ def main():
         utils.print_subtitle(wheel.stem.split('-')[0])
         bin_path = pathlib.Path(sys.executable).parent
         subprocess.run([str(bin_path / 'pyqt-bundle'),
-                        '--qt-dir', args.qt_location, wheel],
+                        '--qt-dir', args.qt_location, str(wheel)],
                        check=True)
         wheel.unlink()
 
