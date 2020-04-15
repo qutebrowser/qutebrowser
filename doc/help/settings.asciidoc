@@ -173,6 +173,7 @@
 |<<content.register_protocol_handler,content.register_protocol_handler>>|Allow websites to register protocol handlers via `navigator.registerProtocolHandler`.
 |<<content.site_specific_quirks,content.site_specific_quirks>>|Enable quirks (such as faked user agent headers) needed to get specific sites to work properly.
 |<<content.ssl_strict,content.ssl_strict>>|Validate SSL handshakes.
+|<<content.unknown_url_scheme_policy,content.unknown_url_scheme_policy>>|How navigation requests to URLs with unknown schemes are handled.
 |<<content.user_stylesheets,content.user_stylesheets>>|List of user stylesheet filenames to use.
 |<<content.webgl,content.webgl>>|Enable WebGL.
 |<<content.webrtc_ip_handling_policy,content.webrtc_ip_handling_policy>>|Which interfaces to expose via WebRTC.
@@ -296,7 +297,6 @@
 |<<tabs.undo_stack_size,tabs.undo_stack_size>>|Number of close tab actions to remember, per window (-1 for no maximum).
 |<<tabs.width,tabs.width>>|Width (in pixels or as percentage of the window) of the tab bar if it's vertical.
 |<<tabs.wrap,tabs.wrap>>|Wrap when changing tabs.
-|<<unknown_url.scheme.policy,unknown_url.scheme.policy>>|Set UnknownUrlSchemePolicy.
 |<<url.auto_search,url.auto_search>>|What search to start when something else than a URL is entered.
 |<<url.default_page,url.default_page>>|Page to open if :open -t/-b/-w is used without URL.
 |<<url.incdec_segments,url.incdec_segments>>|URL segments where `:navigate increment/decrement` will search for a number.
@@ -2284,6 +2284,25 @@ Valid values:
 
 Default: +pass:[ask]+
 
+[[content.unknown_url_scheme_policy]]
+=== content.unknown_url_scheme_policy
+How navigation requests to URLs with unknown schemes are handled.
+Only valid for webengine backend (Qt > 5.10). See https://doc.qt.io/qt-5/qwebenginesettings.html#UnknownUrlSchemePolicy-enum.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +DisallowUnknownUrlSchemes+: Disallows all navigation requests to URLs with unknown schemes.
+ * +AllowUnknownUrlSchemesFromUserInteraction+: Allows navigation requests to URLs with unknown schemes that are issued from user-interaction (like a mouse-click), whereas other navigation requests (for example from JavaScript) are suppressed.
+ * +AllowAllUnknownUrlSchemes+: Allows all navigation requests to URLs with unknown schemes.
+
+Default: +pass:[AllowUnknownUrlSchemesFromUserInteraction]+
+
+On QtWebEngine, this setting requires Qt 5.11 or newer.
+
+On QtWebKit, this setting is unavailable.
+
 [[content.user_stylesheets]]
 === content.user_stylesheets
 List of user stylesheet filenames to use.
@@ -3701,15 +3720,6 @@ Wrap when changing tabs.
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
-
-[[unknown_url.scheme.policy]]
-=== unknown_url.scheme.policy
-Set UnknownUrlSchemePolicy.
-Only valid for webengine backend (Qt > 5.10). 1: DisallowUnknownUrlSchemes, 2: AllowUnknownUrlSchemesFromUserInteraction, 3: AllowAllUnknownUrlSchemes.
-
-Type: <<types,Int>>
-
-Default: +pass:[1]+
 
 [[url.auto_search]]
 === url.auto_search

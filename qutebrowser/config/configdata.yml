@@ -370,6 +370,23 @@ content.default_encoding:
     The encoding must be a string describing an encoding such as _utf-8_,
     _iso-8859-1_, etc.
 
+content.unknown_url_scheme_policy:
+  type:
+    name: String
+    valid_values:
+      - DisallowUnknownUrlSchemes: Disallows all navigation requests to URLs with unknown schemes.
+      - AllowUnknownUrlSchemesFromUserInteraction: Allows navigation requests to URLs with unknown schemes that are issued from user-interaction (like a mouse-click), whereas other navigation requests (for example from JavaScript) are suppressed.
+      - AllowAllUnknownUrlSchemes: Allows all navigation requests to URLs with unknown schemes.
+  default: AllowUnknownUrlSchemesFromUserInteraction
+  backend:
+    QtWebEngine: Qt 5.11
+    QtWebKit: false
+  desc: >-
+    How navigation requests to URLs with unknown schemes are handled.
+
+    Only valid for webengine backend (Qt > 5.10). See
+    https://doc.qt.io/qt-5/qwebenginesettings.html#UnknownUrlSchemePolicy-enum.
+
 content.windowed_fullscreen:
   type: Bool
   default: false
@@ -2511,22 +2528,6 @@ colors.webpage.prefers_color_scheme_dark:
     QtWebKit: false
 
 # emacs: '
-
-## unkown_url
-
-unknown_url.scheme.policy:
-  default: 1
-  type:
-    name: Int
-    minval: 1
-    maxval: 3
-  desc: >-
-    Set UnknownUrlSchemePolicy.
-
-    Only valid for webengine backend (Qt > 5.10).
-    1: DisallowUnknownUrlSchemes, 2: AllowUnknownUrlSchemesFromUserInteraction, 3: AllowAllUnknownUrlSchemes.
-
-
 
 ## fonts
 

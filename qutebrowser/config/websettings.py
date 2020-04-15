@@ -99,7 +99,6 @@ class AbstractSettings:
     _FONT_SIZES = {}  # type: typing.Dict[str, typing.Any]
     _FONT_FAMILIES = {}  # type: typing.Dict[str, typing.Any]
     _FONT_TO_QFONT = {}  # type: typing.Dict[typing.Any, QFont.StyleHint]
-    _UnknownUrlSchemePolicy = {}  # type: typing.Dict[str, typing.Any]
 
     def __init__(self, settings: typing.Any) -> None:
         self._settings = settings
@@ -178,17 +177,6 @@ class AbstractSettings:
         self._settings.setDefaultTextEncoding(encoding)
         return old_value != encoding
 
-    def set_unknown_url_scheme_policy(self, policy: int) -> bool:
-        """Set the UnknownUrlSchemePolicy to use.
-
-        Return:
-            True if there was a change, False otherwise.
-        """
-        assert policy is not usertypes.UNSET  # type: ignore
-        old_value = self._settings.unknownUrlSchemePolicy()
-        self._settings.setUnknownUrlSchemePolicy(policy)
-        return old_value != policy
-
     def _update_setting(self, setting: str, value: typing.Any) -> bool:
         """Update the given setting/value.
 
@@ -205,15 +193,6 @@ class AbstractSettings:
             return self.set_font_family(setting, value)
         elif setting == 'content.default_encoding':
             return self.set_default_text_encoding(value)
-        elif setting == 'unknown_url.scheme.policy':
-            # QtWebKit and QWebEngine < 5.11 doesn't provide interfaces
-            # for processing UnknownUrlSchemePolicy.
-            #
-            # AttributeError is expected for such cases.
-            try:
-                return self.set_unknown_url_scheme_policy(value)
-            except AttributeError:
-                pass
         return False
 
     def update_setting(self, setting: str) -> None:
@@ -246,8 +225,7 @@ class AbstractSettings:
     def init_settings(self) -> None:
         """Set all supported settings correctly."""
         for setting in (list(self._ATTRIBUTES) + list(self._FONT_SIZES) +
-                        list(self._FONT_FAMILIES) +
-                        list(self._UnknownUrlSchemePolicy)):
+                        list(self._FONT_FAMILIES)):
             self.update_setting(setting)
 
 

@@ -36,7 +36,7 @@ from qutebrowser.browser.webengine import spell, webenginequtescheme
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import (utils, standarddir, qtutils, message, log,
-                               urlmatch)
+                               urlmatch, usertypes)
 
 # The default QWebEngineProfile
 default_profile = typing.cast(QWebEngineProfile, None)
@@ -138,11 +138,6 @@ class WebEngineSettings(websettings.AbstractSettings):
             Attr(QWebEngineSettings.ScrollAnimatorEnabled),
     }
 
-    # 2: AllowUnknownUrlSchemesFromUserInteraction
-    _UnknownUrlSchemePolicy = {
-        'unknown_url.scheme.policy': 2,
-    }
-
     _FONT_SIZES = {
         'fonts.web.size.minimum':
             QWebEngineSettings.MinimumFontSize,
@@ -163,6 +158,19 @@ class WebEngineSettings(websettings.AbstractSettings):
         'fonts.web.family.fantasy': QWebEngineSettings.FantasyFont,
     }
 
+    # Only Qt >= 5.11 support UnknownUrlSchemePolicy
+    try:
+        _UNKNOWN_URL_SCHEME_POLICY = {
+            'DisallowUnknownUrlSchemes':
+                QWebEngineSettings.DisallowUnknownUrlSchemes,
+            'AllowUnknownUrlSchemesFromUserInteraction':
+                QWebEngineSettings.AllowUnknownUrlSchemesFromUserInteraction,
+            'AllowAllUnknownUrlSchemes':
+                QWebEngineSettings.AllowAllUnknownUrlSchemes,
+        }
+    except Exception:
+        pass
+
     # Mapping from WebEngineSettings::initDefaults in
     # qtwebengine/src/core/web_engine_settings.cpp
     _FONT_TO_QFONT = {
@@ -173,6 +181,30 @@ class WebEngineSettings(websettings.AbstractSettings):
         QWebEngineSettings.CursiveFont: QFont.Cursive,
         QWebEngineSettings.FantasyFont: QFont.Fantasy,
     }
+
+
+    def set_unknown_url_scheme_policy(self, policy: str) -> bool:
+        """Set the UnknownUrlSchemePolicy to use.
+
+        Return:
+            True if there was a change, False otherwise.
+        """
+        assert policy is not usertypes.UNSET  # type: ignore
+        old_value = self._settings.unknownUrlSchemePolicy()
+        policy = self._UNKNOWN_URL_SCHEME_POLICY[policy]
+        self._settings.setUnknownUrlSchemePolicy(policy)
+        return old_value != policy
+
+    def _update_setting(self, setting, value):
+        if setting == 'content.unknown_url_scheme_policy':
+            if hasattr(self, '_UNKNOWN_URL_SCHEME_POLICY'):
+                return self.set_unknown_url_scheme_policy(value)
+            return False
+        return super()._update_setting(setting, value)
+
+    def init_settings(self):
+        super().init_settings()
+        self.update_setting('content.unknown_url_scheme_policy')
 
     def __init__(self, settings):
         super().__init__(settings)
