@@ -49,7 +49,8 @@ def _get_echo_exe_path():
         return os.path.join(testutils.abs_datapath(), 'userscripts',
                             'echo.bat')
     else:
-        return 'echo'
+        import shutil
+        return shutil.which("echo")
 
 
 @pytest.hookimpl(hookwrapper=True)
