@@ -68,6 +68,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--dev',
                         action='store_true',
                         help="Also install dev/test dependencies.")
+    parser.add_argument('--skip-docs',
+                        action='store_true',
+                        help="Skip doc generation.")
     parser.add_argument('--tox-error',
                         action='store_true',
                         help=argparse.SUPPRESS)
@@ -294,7 +297,8 @@ def main() -> None:
     if args.dev:
         install_dev_requirements(venv_dir)
 
-    regenerate_docs(venv_dir, args.asciidoc)
+    if not args.skip_docs:
+        regenerate_docs(venv_dir, args.asciidoc)
 
 
 if __name__ == '__main__':
