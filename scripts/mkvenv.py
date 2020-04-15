@@ -52,9 +52,12 @@ def parse_args() -> argparse.Namespace:
                         default='auto',
                         help="PyQt version to install.")
     parser.add_argument('--pyqt-type',
-                        choices=['binary', 'source', 'link', 'skip'],
+                        choices=['binary', 'source', 'link', 'wheels', 'skip'],
                         default='binary',
                         help="How to install PyQt/Qt.")
+    parser.add_argument('--pyqt-wheels-dir',
+                        default='wheels',
+                        help="Directory to get PyQt wheels from.")
     parser.add_argument('--virtualenv',
                         action='store_true',
                         help="Use virtualenv instead of venv.")
@@ -207,6 +210,14 @@ def install_pyqt_link(venv_dir: pathlib.Path) -> None:
     link_pyqt.link_pyqt(sys.executable, lib_path)
 
 
+def install_pyqt_wheels(venv_dir: pathlib.Path,
+                        wheels_dir: pathlib.Path) -> None:
+    """Install PyQt from the wheels/ directory."""
+    utils.print_title("Installing PyQt wheels")
+    wheels = [str(wheel) for wheel in wheels_dir.glob('*.whl')]
+    pip_install(venv_dir, *wheels)
+
+
 def install_requirements(venv_dir: pathlib.Path) -> None:
     """Install qutebrowser's requirement.txt."""
     utils.print_title("Installing other qutebrowser dependencies")
@@ -247,6 +258,7 @@ def main() -> None:
     """Install qutebrowser in a virtualenv.."""
     args = parse_args()
     venv_dir = pathlib.Path(args.venv_dir)
+    wheels_dir = pathlib.Path(args.pyqt_wheels_dir)
     utils.change_cwd()
 
     if args.tox_error:
@@ -270,6 +282,8 @@ def main() -> None:
         install_pyqt_source(venv_dir, args.pyqt_version)
     elif args.pyqt_type == 'link':
         install_pyqt_link(venv_dir)
+    elif args.pyqt_type == 'wheels':
+        install_pyqt_wheels(venv_dir, wheels_dir)
     elif args.pyqt_type == 'skip':
         pass
     else:
