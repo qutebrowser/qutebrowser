@@ -317,6 +317,7 @@ class AbstractSearch(QObject):
     def search(self, text: str, *,
                ignore_case: usertypes.IgnoreCase = usertypes.IgnoreCase.never,
                reverse: bool = False,
+               wrap: bool = True,
                result_cb: _Callback = None) -> None:
         """Find the given text on the page.
 
@@ -324,6 +325,7 @@ class AbstractSearch(QObject):
             text: The text to search for.
             ignore_case: Search case-insensitively.
             reverse: Reverse search direction.
+            wrap: Allow wrapping at the top or bottom of the page.
             result_cb: Called with a bool indicating whether a match was found.
         """
         raise NotImplementedError
@@ -332,23 +334,19 @@ class AbstractSearch(QObject):
         """Clear the current search."""
         raise NotImplementedError
 
-    def prev_result(self, *, result_cb: _Callback = None,
-                    nowrap: bool = False) -> None:
+    def prev_result(self, *, result_cb: _Callback = None) -> None:
         """Go to the previous result of the current search.
 
         Args:
             result_cb: Called with a bool indicating whether a match was found.
-            nowrap: Do not wrap at the top or bottom of the page.
         """
         raise NotImplementedError
 
-    def next_result(self, *, result_cb: _Callback = None,
-                    nowrap: bool = False) -> None:
+    def next_result(self, *, result_cb: _Callback = None) -> None:
         """Go to the next result of the current search.
 
         Args:
             result_cb: Called with a bool indicating whether a match was found.
-            nowrap: Do not wrap at the top or bottom of the page.
         """
         raise NotImplementedError
 

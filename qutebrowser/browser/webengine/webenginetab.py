@@ -162,9 +162,11 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
     Attributes:
         _flags: The QWebEnginePage.FindFlags of the last search.
+        _flag_wrap: An additional flag indicating whether the last search
+                    used wrapping.
         _pending_searches: How many searches have been started but not called
                            back yet.
-        _nowrap_enabled: Whether the nowrap functionality is available.
+        _nowrap_available: Whether the nowrap functionality is available.
         _active_match: The 1-based index of the currently active matc
                        on the page.
         _total_matches: The total number of search matches on the page.
@@ -173,15 +175,16 @@ class WebEngineSearch(browsertab.AbstractSearch):
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
         self._flags = QWebEnginePage.FindFlags(0)  # type: ignore
+        self._flag_wrap = True
         self._pending_searches = 0
         # The API necessary to stop wrapping was added in this version
         if qtutils.version_check("5.14"):
             self._active_match = 0
             self._total_matches = 0
-            self._nowrap_enabled = True
+            self._nowrap_available = True
             self._store_match_data_connected = False
         else:
-            self._nowrap_enabled = False
+            self._nowrap_available = False
 
     def _store_match_data(self, result):
         self._active_match = result.activeMatch()
@@ -195,7 +198,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
     def _find(self, text, flags, callback, caller):
         """Call findText on the widget."""
-        if self._nowrap_enabled and not self._store_match_data_connected:
+        if self._nowrap_available and not self._store_match_data_connected:
             self._widget.page().findTextFinished.connect(
                 self._store_match_data)
             self._store_match_data_connected = True
@@ -236,7 +239,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self._widget.page().findText(text, flags, wrapped_callback)
 
     def search(self, text, *, ignore_case=usertypes.IgnoreCase.never,
-               reverse=False, result_cb=None):
+               reverse=False, wrap=True, result_cb=None):
         # Don't go to next entry on duplicate search
         if self.text == text and self.search_displayed:
             log.webview.debug("Ignoring duplicate search request"
@@ -245,8 +248,9 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
         self.text = text
         self._flags = QWebEnginePage.FindFlags(0)  # type: ignore
-        if self._nowrap_enabled:
+        if self._nowrap_available:
             self._reset_match_data()
+            self._flag_wrap = wrap
         if self._is_case_sensitive(ignore_case):
             self._flags |= QWebEnginePage.FindCaseSensitively
         if reverse:
@@ -258,7 +262,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
         if self.search_displayed:
             self.cleared.emit()
         self.search_displayed = False
-        if self._nowrap_enabled:
+        if self._nowrap_available:
             self._reset_match_data()
         self._widget.findText('')
 
@@ -268,33 +272,30 @@ class WebEngineSearch(browsertab.AbstractSearch):
         else:
             message.info("Search hit BOTTOM")
 
-    def prev_result(self, *, result_cb=None, nowrap=False):
+    def prev_result(self, *, result_cb=None):
         # The int() here makes sure we get a copy of the flags.
         flags = QWebEnginePage.FindFlags(int(self._flags))  # type: ignore
+        nowrap = self._nowrap_available and not self._flag_wrap
         if flags & QWebEnginePage.FindBackward:
-            if (self._nowrap_enabled and nowrap and
-                    self._active_match == self._total_matches):
+            if nowrap and self._active_match == self._total_matches:
                 self._message_wrap_prevented(top=False)
                 return
             flags &= ~QWebEnginePage.FindBackward
         else:
-            if self._nowrap_enabled and nowrap and self._active_match == 1:
+            if nowrap and self._active_match == 1:
                 self._message_wrap_prevented(top=True)
                 return
             flags |= QWebEnginePage.FindBackward
         self._find(self.text, flags, result_cb, 'prev_result')
 
-    def next_result(self, *, result_cb=None, nowrap=False):
-        if self._nowrap_enabled and nowrap:
-            hit_page_top = (self._flags & QWebEnginePage.FindBackward and
-                            self._active_match == 1)
-            hit_page_bottom = (not (self._flags &
-                                    QWebEnginePage.FindBackward) and
-                               self._active_match == self._total_matches)
-            if hit_page_top:
+    def next_result(self, *, result_cb=None):
+        if self._nowrap_available and not self._flag_wrap:
+            going_up = self._flags & QWebEnginePage.FindBackward
+
+            if going_up and self._active_match == 1:
                 self._message_wrap_prevented(top=True)
                 return
-            elif hit_page_bottom:
+            elif not going_up and self._active_match == self._total_matches:
                 self._message_wrap_prevented(top=False)
                 return
         self._find(self.text, self._flags, result_cb, 'next_result')
