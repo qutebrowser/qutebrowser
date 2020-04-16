@@ -98,6 +98,8 @@ def init_config(config_stub):
         'test': 'http://www.qutebrowser.org/?q={}',
         'test-with-dash': 'http://www.example.org/?q={}',
         'path-search': 'http://www.example.org/{}',
+        'quoted-path': 'http://www.example.org/{quoted}',
+        'unquoted': 'http://www.example.org/?{unquoted}',
         'DEFAULT': 'http://www.example.com/?q={}',
     }
 
@@ -286,8 +288,11 @@ def test_special_urls(url, special):
     ('blub testfoo', 'www.example.com', 'q=blub testfoo'),
     ('stripped ', 'www.example.com', 'q=stripped'),
     ('test-with-dash testfoo', 'www.example.org', 'q=testfoo'),
-    ('test/with/slashes', 'www.example.com', 'q=test%2Fwith%2Fslashes'),
+    ('test/with/slashes', 'www.example.com', 'q=test/with/slashes'),
     ('test path-search', 'www.qutebrowser.org', 'q=path-search'),
+    ('slash/and&amp', 'www.example.com', 'q=slash/and%26amp'),
+    ('quoted-path t/w/s', 'www.example.org', 't%26w%26s'),
+    ('unquoted one=1&two=2', 'www.example.org', 'one=1&two=2'),
 ])
 def test_get_search_url(config_stub, url, host, query, open_base_url):
     """Test _get_search_url().
