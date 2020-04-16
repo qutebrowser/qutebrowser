@@ -1776,11 +1776,6 @@ class SearchEngineUrl(BaseType):
         except ValueError as e:
             raise configexc.ValidationError(value, str(e))
 
-        url = QUrl(value.replace('{}', 'foobar'))
-        if not url.isValid():
-            raise configexc.ValidationError(
-                value, "invalid url, {}".format(url.errorString()))
-
         return value
 
 
