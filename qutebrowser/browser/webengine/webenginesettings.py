@@ -76,6 +76,10 @@ class _SettingsWrapper:
         for settings in self._settings:
             settings.setDefaultTextEncoding(encoding)
 
+    def setUnknownUrlSchemePolicy(self, policy):
+        for settings in self._settings:
+            settings.setUnknownUrlSchemePolicy(policy)
+
     def testAttribute(self, attribute):
         return self._settings[0].testAttribute(attribute)
 
@@ -90,10 +94,6 @@ class _SettingsWrapper:
 
     def unknownUrlSchemePolicy(self):
         return self._settings[0].unknownUrlSchemePolicy()
-
-    def setUnknownUrlSchemePolicy(self, policy):
-        for settings in self._settings:
-            settings.setUnknownUrlSchemePolicy(policy)
 
 
 class WebEngineSettings(websettings.AbstractSettings):
@@ -188,7 +188,8 @@ class WebEngineSettings(websettings.AbstractSettings):
         Return:
             True if there was a change, False otherwise.
         """
-        assert policy is not usertypes.UNSET  # type: ignore
+        if policy is usertypes.UNSET:
+            return False
         old_value = self._settings.unknownUrlSchemePolicy()
         policy = self._UNKNOWN_URL_SCHEME_POLICY[policy]
         self._settings.setUnknownUrlSchemePolicy(policy)

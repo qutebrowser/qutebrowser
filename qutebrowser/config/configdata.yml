@@ -386,6 +386,7 @@ content.unknown_url_scheme_policy:
   backend:
     QtWebEngine: Qt 5.11
     QtWebKit: false
+  supports_pattern: true
   desc: >-
     How navigation requests to URLs with unknown schemes are handled.
 
