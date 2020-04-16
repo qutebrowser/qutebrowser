@@ -291,7 +291,6 @@ def test_special_urls(url, special):
     ('test/with/slashes', 'www.example.com', 'q=test/with/slashes'),
     ('test path-search', 'www.qutebrowser.org', 'q=path-search'),
     ('slash/and&amp', 'www.example.com', 'q=slash/and%26amp'),
-    ('quoted-path t/w/s', 'www.example.org', 't%26w%26s'),
     ('unquoted one=1&two=2', 'www.example.org', 'one=1&two=2'),
 ])
 def test_get_search_url(config_stub, url, host, query, open_base_url):
@@ -306,6 +305,25 @@ def test_get_search_url(config_stub, url, host, query, open_base_url):
     url = urlutils._get_search_url(url)
     assert url.host() == host
     assert url.query() == query
+
+
+@pytest.mark.parametrize('open_base_url', [True, False])
+@pytest.mark.parametrize('url, host, path', [
+    ('path-search t/w/s', 'www.example.org', 't/w/s'),
+    ('quoted-path t/w/s', 'www.example.org', 't%2Fw%2Fs'),
+])
+def test_get_search_url_for_path_search(config_stub, url, host, path, open_base_url):
+    """Test _get_search_url_for_path_search().
+
+    Args:
+        url: The "URL" to enter.
+        host: The expected search machine host.
+        path: The expected path on that host that is requested.
+    """
+    config_stub.val.url.open_base_url = open_base_url
+    url = urlutils._get_search_url(url)
+    assert url.host() == host
+    assert url.path(options=QUrl.PrettyDecoded) == '/' + path
 
 
 @pytest.mark.parametrize('url, host', [
