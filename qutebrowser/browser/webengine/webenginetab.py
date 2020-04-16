@@ -176,14 +176,14 @@ class _WebEngineSearchWrapHandler:
         self.flag_wrap = True
         self._nowrap_available = False
 
-    def connect_signal(self, signal):
-        """Connect the given findTextFinished signal to the internal handler.
+    def connect_signal(self, page):
+        """Connect to the findTextFinished signal of the page.
 
         Args:
-            signal: A findTextFinished signal to connect to.
+            page: The QtWebEnginePage to connect to this handler.
         """
         if qtutils.version_check("5.14"):
-            signal.connect(self._store_match_data)
+            page.findTextFinished.connect(self._store_match_data)
             self._nowrap_available = True
 
     def _store_match_data(self, result):
@@ -252,7 +252,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self._wrap_handler = _WebEngineSearchWrapHandler()
 
     def connect_signals(self):
-        self._wrap_handler.connect_signal(self._widget.page().findTextFinished)
+        self._wrap_handler.connect_signal(self._widget.page())
 
     def _find(self, text, flags, callback, caller):
         """Call findText on the widget."""
