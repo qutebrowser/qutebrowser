@@ -188,7 +188,7 @@ class WebEngineSettings(websettings.AbstractSettings):
         Return:
             True if there was a change, False otherwise.
         """
-        if policy is usertypes.UNSET:
+        if policy is usertypes.UNSET:  # type: ignore
             return False
         old_value = self._settings.unknownUrlSchemePolicy()
         policy = self._UNKNOWN_URL_SCHEME_POLICY[policy]
