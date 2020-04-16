@@ -123,7 +123,8 @@ def _get_search_url(txt: str) -> QUrl:
             'quoted': quoted_term,
             'semiquoted': semiquoted_term,
         }
-        url = qurl_from_user_input(template.format(semiquoted_term, **format_keys))
+        evaluated = template.format(semiquoted_term, **format_keys)
+        url = qurl_from_user_input(evaluated)
     else:
         url = qurl_from_user_input(config.val.url.searchengines[engine])
         url.setPath(None)  # type: ignore
