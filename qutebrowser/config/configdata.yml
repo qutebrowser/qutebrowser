@@ -51,11 +51,12 @@ search.incremental:
 search.wrap:
   type: Bool
   default: True
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: true
   desc: >-
     Wrap around at the top and bottom of the page when advancing through text matches
     using `:search-next` and `:search-prev`.
-
-    When using QtWebEngine, Qt>=5.14 is required to disable wrapping.
 
 new_instance_open_target:
   type:
