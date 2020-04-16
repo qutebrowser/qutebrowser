@@ -248,8 +248,8 @@ Feature: Searching on a page
         And I run :search-next
         And I wait for "next_result found foo with flags FindBackward" in the log
         And I run :search-next
-        And I wait for "next_result found foo with flags FindBackward" in the log
-        Then "foo" should be found
+        And I wait for "next_result didn't find foo with flags FindBackward" in the log
+        Then the warning "Text 'foo' not found on page!" should be shown
 
     @qtwebengine_skip
     Scenario: Preventing wrapping at the bottom of the page with QtWebKit
@@ -260,8 +260,8 @@ Feature: Searching on a page
         And I run :search-next
         And I wait for "next_result found foo" in the log
         And I run :search-next
-        And I wait for "next_result found foo" in the log
-        Then "Foo" should be found
+        And I wait for "next_result didn't find foo" in the log
+        Then the warning "Text 'foo' not found on page!" should be shown
 
     ## follow searched links
     @skip  # Too flaky
