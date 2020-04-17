@@ -267,9 +267,14 @@ def main() -> None:
     if args.tox_error:
         show_tox_error(args.pyqt_type)
         sys.exit(1)
-    elif args.pyqt_type == 'link' and args.pyqt_version != 'auto':
-        utils.print_col('The --pyqt-version option is not available when '
-                        'linking a system-wide install.', 'red')
+    elif (args.pyqt_version != 'auto' and
+          args.pyqt_type not in ['binary', 'source']):
+        utils.print_col('The --pyqt-version option is only available when '
+                        'installing PyQt from binary or source', 'red')
+        sys.exit(1)
+    elif args.pyqt_wheels_dir != 'wheels' and args.pyqt_type != 'wheels':
+        utils.print_col('The --pyqt-wheels-dir option is only available when '
+                        'installing PyQt from wheels', 'red')
         sys.exit(1)
 
     if not args.keep:
