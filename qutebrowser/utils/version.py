@@ -287,7 +287,7 @@ def _os_info() -> typing.Sequence[str]:
             versioninfo = ''
         else:
             versioninfo = '.'.join(info_tpl)
-        osver = ', '.join([e for e in [release, versioninfo, machine] if e])
+        osver = ', '.join(e for e in [release, versioninfo, machine] if e)
     elif utils.is_posix:
         osver = ' '.join(platform.uname())
     else:
