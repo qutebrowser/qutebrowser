@@ -36,7 +36,7 @@ from qutebrowser.browser.webengine import spell, webenginequtescheme
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import (utils, standarddir, qtutils, message, log,
-                               urlmatch)
+                               urlmatch, usertypes)
 
 # The default QWebEngineProfile
 default_profile = typing.cast(QWebEngineProfile, None)
@@ -169,7 +169,7 @@ class WebEngineSettings(websettings.AbstractSettings):
                 QWebEngineSettings.AllowAllUnknownUrlSchemes,
         }
     except AttributeError:
-        pass
+        _UNKNOWN_URL_SCHEME_POLICY = None
 
     # Mapping from WebEngineSettings::initDefaults in
     # qtwebengine/src/core/web_engine_settings.cpp
@@ -181,6 +181,21 @@ class WebEngineSettings(websettings.AbstractSettings):
         QWebEngineSettings.CursiveFont: QFont.Cursive,
         QWebEngineSettings.FantasyFont: QFont.Fantasy,
     }
+
+    def set_unknown_url_scheme_policy(self, policy: str) -> bool:
+        """Set the UnknownUrlSchemePolicy to use.
+
+        Return:
+            True if there was a change, False otherwise.
+        """
+        old_value = self._settings.unknownUrlSchemePolicy()
+        if policy is usertypes.UNSET:  # type: ignore
+            self._settings.resetUnknownUrlSchemePolicy()
+            new_value = self._settings.unknownUrlSchemePolicy()
+        else:
+            new_value = self._UNKNOWN_URL_SCHEME_POLICY[policy]
+            self._settings.setUnknownUrlSchemePolicy(new_value)
+        return old_value != new_value
 
     def _update_setting(self, setting, value):
         if setting == 'content.unknown_url_scheme_policy':

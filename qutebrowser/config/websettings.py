@@ -99,7 +99,6 @@ class AbstractSettings:
     _FONT_SIZES = {}  # type: typing.Dict[str, typing.Any]
     _FONT_FAMILIES = {}  # type: typing.Dict[str, typing.Any]
     _FONT_TO_QFONT = {}  # type: typing.Dict[typing.Any, QFont.StyleHint]
-    _UNKNOWN_URL_SCHEME_POLICY = {}  # type: typing.Dict[str, typing.Any]
 
     def __init__(self, settings: typing.Any) -> None:
         self._settings = settings
@@ -177,21 +176,6 @@ class AbstractSettings:
         old_value = self._settings.defaultTextEncoding()
         self._settings.setDefaultTextEncoding(encoding)
         return old_value != encoding
-
-    def set_unknown_url_scheme_policy(self, policy: str) -> bool:
-        """Set the UnknownUrlSchemePolicy to use.
-
-        Return:
-            True if there was a change, False otherwise.
-        """
-        old_value = self._settings.unknownUrlSchemePolicy()
-        if policy is usertypes.UNSET:  # type: ignore
-            self._settings.resetUnknownUrlSchemePolicy()
-            new_value = self._settings.unknownUrlSchemePolicy()
-        else:
-            new_value = self._UNKNOWN_URL_SCHEME_POLICY[policy]
-            self._settings.setUnknownUrlSchemePolicy(new_value)
-        return old_value != new_value
 
     def _update_setting(self, setting: str, value: typing.Any) -> bool:
         """Update the given setting/value.
