@@ -26,7 +26,7 @@ Fixed
   Greasemonkey scripts (but still separate from the page's `window`), to
   match the original Greasemonkey implementation.
 
-v1.10.2 (unreleased)
+v1.10.2 (2020-04-17)
 --------------------
 
 Changed
