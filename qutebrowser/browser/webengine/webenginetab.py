@@ -207,14 +207,7 @@ class _WebEngineSearchWrapHandler:
         self._active_match = 0
         self._total_matches = 0
 
-    def _message_wrap_prevented(self, top=True):
-        """Show a message informing the user that wrapping was prevented."""
-        if top:
-            message.info("Search hit TOP")
-        else:
-            message.info("Search hit BOTTOM")
-
-    def prevent_wrapping(self, going_up):
+    def prevent_wrapping(self, *, going_up):
         """Prevent wrapping if possible and required.
 
         Returns True if a wrap was prevented and False if not.
@@ -225,10 +218,10 @@ class _WebEngineSearchWrapHandler:
         if not self._nowrap_available or self.flag_wrap:
             return False
         elif going_up and self._active_match == 1:
-            self._message_wrap_prevented(True)
+            message.info("Search hit TOP")
             return True
         elif not going_up and self._active_match == self._total_matches:
-            self._message_wrap_prevented(False)
+            message.info("Search hit BOTTOM")
             return True
         else:
             return False
