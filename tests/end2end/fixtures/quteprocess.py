@@ -279,6 +279,12 @@ def is_ignored_chromium_message(line):
         # https://bugreports.qt.io/browse/QTBUG-78319
         'temp file failure: * : could not create temporary file: No such file '
         'or directory (2)',
+
+        # Travis
+        # test_ssl_error_with_contentssl_strict__true
+        # [5306:5324:0417/151739.362362:ERROR:address_tracker_linux.cc(171)]
+        # Could not bind NETLINK socket: Address already in use (98)
+        'Could not bind NETLINK socket: Address already in use (98)',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
