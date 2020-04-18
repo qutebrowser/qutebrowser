@@ -410,9 +410,17 @@ def github_upload(artifacts, tag):
     for filename, mimetype, description in artifacts:
         while True:
             print("Uploading {}".format(filename))
+
+            basename = os.path.basename(filename)
+            assets = [asset for asset in release.assets()
+                      if asset.name == basename]
+            if assets:
+                print("Assets already exist: {}".format(assets))
+                print("Press enter to continue anyways or Ctrl-C to abort.")
+                input()
+
             try:
                 with open(filename, 'rb') as f:
-                    basename = os.path.basename(filename)
                     release.upload_asset(mimetype, basename, f, description)
             except github3.exceptions.ConnectionError as e:
                 utils.print_col('Failed to upload: {}'.format(e), 'red')
