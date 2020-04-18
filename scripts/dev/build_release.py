@@ -481,10 +481,9 @@ def main():
         upload_to_pypi = True
 
     if args.upload:
-        utils.print_title("Press enter to release...")
-        input()
-
         version_tag = "v" + qutebrowser.__version__
+        utils.print_title("Press enter to release {}...".format(version_tag))
+        input()
 
         github_upload(artifacts, version_tag)
         if upload_to_pypi:
