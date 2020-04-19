@@ -81,7 +81,7 @@ class AsciiDoc:
     def _build_docs(self) -> None:
         """Render .asciidoc files to .html sites."""
         files = [(pathlib.Path('doc/{}.asciidoc'.format(f)),
-                 DOC_DIR / (f + ".html")) for f in self.FILES]
+                  DOC_DIR / (f + ".html")) for f in self.FILES]
         for src in pathlib.Path('doc/help/').glob('*.asciidoc'):
             dst = DOC_DIR / (src.stem + ".html")
             files.append((src, dst))
