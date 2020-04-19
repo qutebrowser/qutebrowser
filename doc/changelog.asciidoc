@@ -25,6 +25,8 @@ Fixed
 - The proxied `window` global is now shared between different
   Greasemonkey scripts (but still separate from the page's `window`), to
   match the original Greasemonkey implementation.
+- The `--output-messages` (`-m`) flag added in v1.9.0 now also works correctly
+  when using `:spawn --userscript`.
 
 v1.10.2 (2020-04-17)
 --------------------
