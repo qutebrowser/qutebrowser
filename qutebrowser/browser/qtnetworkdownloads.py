@@ -414,7 +414,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
             private=config.val.content.private_browsing, parent=self)
 
     @pyqtSlot('QUrl')
-    def get(self, url, **kwargs):
+    def get(self, url: QUrl, **kwargs) -> typing.Optional[DownloadItem]:
         """Start a download with a link URL.
 
         Args:
@@ -434,7 +434,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
 
         return self.get_request(req, **kwargs)
 
-    def get_mhtml(self, tab, target):
+    def get_mhtml(self, tab, target) -> None:
         """Download the given tab as mhtml to the given DownloadTarget."""
         assert tab.backend == usertypes.Backend.QtWebKit
         from qutebrowser.browser.webkit import mhtml
@@ -457,7 +457,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
             message.global_bridge.ask(question, blocking=False)
 
     def get_request(self, request, *, target=None,
-                    suggested_fn=None, **kwargs):
+                    suggested_fn=None, **kwargs) -> DownloadItem:
         """Start a download with a QNetworkRequest.
 
         Args:
@@ -502,7 +502,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
                                    suggested_filename=suggested_fn,
                                    **kwargs)
 
-    def _fetch_request(self, request, *, qnam=None, **kwargs):
+    def _fetch_request(self, request, *, qnam=None, **kwargs) -> DownloadItem:
         """Download a QNetworkRequest to disk.
 
         Args:
@@ -516,11 +516,12 @@ class DownloadManager(downloads.AbstractDownloadManager):
         if qnam is None:
             qnam = self._networkmanager
         reply = qnam.get(request)
-        return self.fetch(reply, **kwargs)
+        return self.fetch(reply, **kwargs)  # type: ignore
 
     @pyqtSlot('QNetworkReply')
     def fetch(self, reply, *, target=None, auto_remove=False,
-              suggested_filename=None, prompt_download_directory=None):
+              suggested_filename=None, prompt_download_directory=None
+              ) -> DownloadItem:
         """Download a QNetworkReply to disk.
 
         Args:
@@ -564,7 +565,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
 
         return download
 
-    def has_downloads_with_nam(self, nam):
+    def has_downloads_with_nam(self, nam) -> bool:
         """Check if the DownloadManager has any downloads with the given QNAM.
 
         Args:

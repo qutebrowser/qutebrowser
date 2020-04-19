@@ -38,6 +38,8 @@ from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
 from qutebrowser.api import cmdutils
 from qutebrowser.browser import downloads
 from qutebrowser.misc import objects
+if typing.TYPE_CHECKING:
+    from qutebrowser.browser.qtnetworkdownloads import DownloadItem
 
 
 gm_manager = typing.cast('GreasemonkeyManager', None)
@@ -307,7 +309,7 @@ class GreasemonkeyManager(QObject):
 
         self.load_scripts()
 
-    def load_scripts(self, *, force=False):
+    def load_scripts(self, *, force: bool = False):
         """Re-read Greasemonkey scripts from disk.
 
         The scripts are read from a 'greasemonkey' subdirectory in
@@ -335,7 +337,7 @@ class GreasemonkeyManager(QObject):
                 self.add_script(script, force)
         self.scripts_reloaded.emit()
 
-    def add_script(self, script: GreasemonkeyScript, force=False):
+    def add_script(self, script: GreasemonkeyScript, force: bool = False):
         """Add a GreasemonkeyScript to this manager.
 
         Args:
@@ -376,7 +378,8 @@ class GreasemonkeyManager(QObject):
             os.mkdir(requires_dir)
         return os.path.join(requires_dir, utils.sanitize_filename(url))
 
-    def _on_required_download_finished(self, script, download):
+    def _on_required_download_finished(self, script: GreasemonkeyScript,
+                                       download: 'DownloadItem'):
         self._in_progress_dls.remove(download)
         if not self._add_script_with_requires(script):
             log.greasemonkey.debug(
@@ -384,7 +387,8 @@ class GreasemonkeyManager(QObject):
                 "but some requirements are still pending"
                 .format(download.basename, script.name))
 
-    def _add_script_with_requires(self, script, quiet=False):
+    def _add_script_with_requires(self, script: GreasemonkeyScript,
+                                  quiet: bool = False):
         """Add a script with pending downloads to this GreasemonkeyManager.
 
         Specifically a script that has dependancies specified via an
@@ -427,7 +431,8 @@ class GreasemonkeyManager(QObject):
             self.scripts_reloaded.emit()
         return True
 
-    def _get_requirements(self, script, force=False):
+    def _get_requirements(self, script: GreasemonkeyScript, force: bool = False
+                          ) -> None:
         all_downloads = [
             (url, self._required_url_to_file_path(
                 _RequirementType.requires, url)) for url in script.requires
