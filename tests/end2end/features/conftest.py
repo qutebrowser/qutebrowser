@@ -29,6 +29,7 @@ import logging
 import collections
 import textwrap
 import subprocess
+import shutil
 
 import pytest
 import pytest_bdd as bdd
@@ -49,7 +50,6 @@ def _get_echo_exe_path():
         return os.path.join(testutils.abs_datapath(), 'userscripts',
                             'echo.bat')
     else:
-        import shutil
         return shutil.which("echo")
 
 
