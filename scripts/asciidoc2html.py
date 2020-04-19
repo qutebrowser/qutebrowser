@@ -19,6 +19,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 """Generate the html documentation based on the asciidoc files."""
+
 from typing import List, Tuple, Optional
 import re
 import os
