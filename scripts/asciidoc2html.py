@@ -19,14 +19,12 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 """Generate the html documentation based on the asciidoc files."""
-from typing import List, Tuple
-
+from typing import List, Tuple, Optional
 import re
 import os
 import os.path
 import sys
 import subprocess
-import glob
 import shutil
 import tempfile
 import argparse
@@ -46,17 +44,15 @@ class AsciiDoc:
 
     FILES = ['faq', 'changelog', 'contributing', 'quickstart', 'userscripts']
 
-    def __init__(self, asciidoc, website) -> None:
-        """
-        asciidoc: Optional[List[str]]
-        website: Optional[List[str]])
-        """
-        self._cmd = None
+    def __init__(self,
+                 asciidoc: Optional[List[str]],
+                 website: Optional[str]) -> None:
+        self._cmd = None        # type: Optional[List[str]]
         self._asciidoc = asciidoc
         self._website = website
-        self._homedir = None
-        self._themedir = None
-        self._tempdir = None
+        self._homedir = None    # type: Optional[pathlib.Path]
+        self._themedir = None   # type: Optional[pathlib.Path]
+        self._tempdir = None    # type: Optional[pathlib.Path]
         self._failed = False
 
     def prepare(self) -> None:
@@ -83,9 +79,8 @@ class AsciiDoc:
 
     def _build_docs(self) -> None:
         """Render .asciidoc files to .html sites."""
-        files: List[Tuple[pathlib.Path, pathlib.Path]] = [(pathlib.Path('doc/{}.asciidoc'.format(f)),
-                  DOC_DIR / (f + ".html"))
-                 for f in self.FILES]
+        files = [(pathlib.Path('doc/{}.asciidoc'.format(f)),
+                 DOC_DIR / (f + ".html")) for f in self.FILES]
         for src in pathlib.Path('doc/help/').glob('*.asciidoc'):
             dst = DOC_DIR / (src.stem + ".html")
             files.append((src, dst))
@@ -100,6 +95,7 @@ class AsciiDoc:
         asciidoc_args = ['-a', 'source-highlighter=pygments']
 
         for src, dst in files:
+            assert self._tempdir is not None    # for mypy
             modified_src = self._tempdir / src.name
             with open(modified_src, 'w', encoding='utf-8') as modified_f, \
                     open(src, 'r', encoding='utf-8') as f:
@@ -122,12 +118,12 @@ class AsciiDoc:
     def _build_website_file(self, root: pathlib.Path, filename: str) -> None:
         """Build a single website file."""
         src = root / filename
-        src_basename = src.name
-        dst = pathlib.Path(self._website[0])
-        dirname = src.parent
+        assert self._website is not None    # for mypy
+        dst = pathlib.Path(self._website)
         dst = src.parent.relative_to('.') / (src.stem + ".html")
         dst.parent.mkdir(exist_ok=True)
-        
+
+        assert self._tempdir is not None    # for mypy
         modified_src = self._tempdir / src.name
         shutil.copy('www/header.asciidoc', modified_src)
 
@@ -187,9 +183,11 @@ class AsciiDoc:
     def _build_website(self) -> None:
         """Prepare and build the website."""
         theme_file = (pathlib.Path('www') / 'qute.css').resolve()
+        assert self._themedir is not None   # for mypy
         shutil.copy(theme_file, self._themedir)
 
-        outdir = pathlib.Path(self._website[0])
+        assert self._website is not None    # for mypy
+        outdir = pathlib.Path(self._website)
 
         for item_path in pathlib.Path().rglob('*.asciidoc'):
             if item_path.stem in ['header', 'OpenSans-License']:
@@ -209,12 +207,13 @@ class AsciiDoc:
         for dst, link_name in [
                 ('README.html', 'index.html'),
                 ((pathlib.Path('doc') / 'quickstart.html'), 'quickstart.html')]:
+            assert isinstance(dst, (str, pathlib.Path))    # for mypy
             try:
-                (outdir / link_name).symlink_to(dst)    # mypy gives error here. Not sure why
+                (outdir / link_name).symlink_to(dst)
             except FileExistsError:
                 pass
 
-    def _get_asciidoc_cmd(self):    # -> List[str]
+    def _get_asciidoc_cmd(self) -> List[str]:
         """Try to find out what commandline to use to invoke asciidoc."""
         if self._asciidoc is not None:
             return self._asciidoc
@@ -246,6 +245,7 @@ class AsciiDoc:
             *args: Additional arguments passed to asciidoc.
         """
         print("Calling asciidoc for {}...".format(src.name))
+        assert self._cmd is not None    # for mypy
         cmdline = self._cmd[:]
         if dst is not None:
             cmdline += ['--out-file', str(dst)]
@@ -266,7 +266,7 @@ def parse_args() -> argparse.Namespace:
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument('--website', help="Build website into a given "
-                        "directory.", nargs=1)
+                        "directory.")
     parser.add_argument('--asciidoc', help="Full path to python and "
                         "asciidoc.py. If not given, it's searched in PATH.",
                         nargs=2, required=False,
