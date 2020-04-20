@@ -90,7 +90,7 @@ def distribution() -> typing.Optional[DistributionInfo]:
         with open(filename, 'r', encoding='utf-8') as f:
             for line in f:
                 line = line.strip()
-                if (not line) or line.startswith('#'):
+                if (not line) or line.startswith('#') or '=' not in line:
                     continue
                 k, v = line.split("=", maxsplit=1)
                 info[k] = v.strip('"')

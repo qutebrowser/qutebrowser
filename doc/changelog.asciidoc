@@ -60,6 +60,8 @@ Fixed
   match the original Greasemonkey implementation.
 - The `--output-messages` (`-m`) flag added in v1.9.0 now also works correctly
   when using `:spawn --userscript`.
+- `:version` and `--version` now don't crash if there's an (invalid)
+  `/etc/os-release` file which has non-comment lines without a `=` character.
 
 v1.10.2 (2020-04-17)
 --------------------

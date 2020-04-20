@@ -196,6 +196,15 @@ from qutebrowser.browser import pdfjs
      version.DistributionInfo(
          id='tux', parsed=version.Distribution.unknown,
          version=None, pretty='Tux')),
+    # Invalid multi-line value
+    ("""
+        ID=tux
+        PRETTY_NAME="Multiline
+        Text"
+     """,
+     version.DistributionInfo(
+         id='tux', parsed=version.Distribution.unknown,
+         version=None, pretty='Multiline')),
 ])
 def test_distribution(tmpdir, monkeypatch, os_release, expected):
     os_release_file = tmpdir / 'os-release'
