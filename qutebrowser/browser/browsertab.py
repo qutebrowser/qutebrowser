@@ -427,13 +427,22 @@ class AbstractZoom(QObject):
         self._set_factor_internal(self._zoom_factor)
 
 
+class SelectionState(enum.IntEnum):
+
+    """Possible states of selection in Caret mode."""
+
+    none = 1
+    normal = 2
+    line = 3
+
+
 class AbstractCaret(QObject):
 
     """Attribute ``caret`` of AbstractTab for caret browsing."""
 
     #: Signal emitted when the selection was toggled.
     #: (argument - whether the selection is now active)
-    selection_toggled = pyqtSignal(bool)
+    selection_toggled = pyqtSignal(SelectionState)
     #: Emitted when a ``follow_selection`` action is done.
     follow_selected_done = pyqtSignal()
 
@@ -444,7 +453,7 @@ class AbstractCaret(QObject):
         super().__init__(parent)
         self._tab = tab
         self._widget = typing.cast(QWidget, None)
-        self.selection_enabled = False
+        self.selection_state = SelectionState.none
         self._mode_manager = mode_manager
         mode_manager.entered.connect(self._on_mode_entered)
         mode_manager.left.connect(self._on_mode_left)
@@ -500,7 +509,7 @@ class AbstractCaret(QObject):
     def move_to_end_of_document(self) -> None:
         raise NotImplementedError
 
-    def toggle_selection(self) -> None:
+    def toggle_selection(self, line: bool = False) -> None:
         raise NotImplementedError
 
     def drop_selection(self) -> None:
@@ -824,6 +833,15 @@ class AbstractTabPrivate:
         raise NotImplementedError
 
     def shutdown(self) -> None:
+        raise NotImplementedError
+
+    def run_js_sync(self, code: str) -> None:
+        """Run javascript sync.
+
+        Result will be returned when running JS is complete.
+        This is only implemented for QtWebKit.
+        For QtWebEngine, always raises UnsupportedOperationError.
+        """
         raise NotImplementedError
 
 

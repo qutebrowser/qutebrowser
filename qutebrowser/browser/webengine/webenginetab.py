@@ -369,7 +369,10 @@ class WebEngineCaret(browsertab.AbstractCaret):
         if enabled is None:
             log.webview.debug("Ignoring selection status None")
             return
-        self.selection_toggled.emit(enabled)
+        if enabled:
+            self.selection_toggled.emit(browsertab.SelectionState.normal)
+        else:
+            self.selection_toggled.emit(browsertab.SelectionState.none)
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self, mode):
@@ -424,8 +427,9 @@ class WebEngineCaret(browsertab.AbstractCaret):
     def move_to_end_of_document(self):
         self._js_call('moveToEndOfDocument')
 
-    def toggle_selection(self):
-        self._js_call('toggleSelection', callback=self.selection_toggled.emit)
+    def toggle_selection(self, line=False):
+        self._js_call('toggleSelection', line,
+                      callback=self._toggle_sel_translate)
 
     def drop_selection(self):
         self._js_call('dropSelection')
@@ -499,6 +503,10 @@ class WebEngineCaret(browsertab.AbstractCaret):
     def _js_call(self, command, *args, callback=None):
         code = javascript.assemble('caret', command, *args)
         self._tab.run_js_async(code, callback)
+
+    def _toggle_sel_translate(self, state_int):
+        state = browsertab.SelectionState(state_int)
+        self.selection_toggled.emit(state)
 
 
 class WebEngineScroller(browsertab.AbstractScroller):
@@ -1230,6 +1238,9 @@ class WebEngineTabPrivate(browsertab.AbstractTabPrivate):
         self._tab.shutting_down.emit()
         self._tab.action.exit_fullscreen()
         self._widget.shutdown()
+
+    def run_js_sync(self, code):
+        raise browsertab.UnsupportedOperationError
 
 
 class WebEngineTab(browsertab.AbstractTab):

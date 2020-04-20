@@ -3051,6 +3051,7 @@ bindings.default:
       <Escape>: leave-mode
     caret:
       v: toggle-selection
+      V: toggle-selection --line
       <Space>: toggle-selection
       <Ctrl-Space>: drop-selection
       c: enter-mode normal

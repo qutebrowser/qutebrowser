@@ -185,9 +185,13 @@ def move_to_end_of_document(tab: apitypes.Tab) -> None:
 
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-def toggle_selection(tab: apitypes.Tab) -> None:
-    """Toggle caret selection mode."""
-    tab.caret.toggle_selection()
+def toggle_selection(tab: apitypes.Tab, line: bool = False) -> None:
+    """Toggle caret selection mode.
+
+    Args:
+        line: Enables line-selection.
+    """
+    tab.caret.toggle_selection(line)
 
 
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
