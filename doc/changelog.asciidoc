@@ -27,6 +27,8 @@ Added
   * `content.unknown_url_scheme_policy` which allows controlling when an
     external application is opened for external links (never, from user
     interaction, always).
+  * `content.fullscreen.overlay_timeout` to configure how long the fullscreen
+    overlay should be displayed. If set to `0`, no overlay is displayed.
 - New placeholders for `url.searchengines` values:
   * `{unquoted}` inserts the search term without any quoting
   * `{semiquoted}` (same as `{}`) quotes most special characters, but slashes
@@ -42,6 +44,8 @@ Changed
   does not quote slashes anymore, but other characters typically encoded in
   URLs still get encoded. This matches the behavior of search engines in
   Chromium. To revert to the old behavior, use `{quoted}` instead.
+- The `content.windowed_fullscreen` setting got renamed to
+  `content.fullscreen.window`.
 
 Fixed
 ~~~~~
