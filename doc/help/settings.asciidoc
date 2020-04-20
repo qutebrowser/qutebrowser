@@ -2292,9 +2292,9 @@ Type: <<types,String>>
 
 Valid values:
 
- * +disallow-unknown-url-schemes+: Disallows all navigation requests to URLs with unknown schemes.
- * +allow-unknown-url-schemes-from-user-interaction+: Allows navigation requests to URLs with unknown schemes that are issued from user-interaction (like a mouse-click), whereas other navigation requests (for example from JavaScript) are suppressed.
- * +allow-all-unknown-url-schemes+: Allows all navigation requests to URLs with unknown schemes.
+ * +disallow+: Disallows all navigation requests to URLs with unknown schemes.
+ * +allow-from-user-interaction+: Allows navigation requests to URLs with unknown schemes that are issued from user-interaction (like a mouse-click), whereas other navigation requests (for example from JavaScript) are suppressed.
+ * +allow-all+: Allows all navigation requests to URLs with unknown schemes.
 
 Default: +pass:[allow-unknown-url-schemes-from-user-interaction]+
 

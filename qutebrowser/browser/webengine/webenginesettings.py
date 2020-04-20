@@ -161,11 +161,11 @@ class WebEngineSettings(websettings.AbstractSettings):
     # Only Qt >= 5.11 support UnknownUrlSchemePolicy
     try:
         _UNKNOWN_URL_SCHEME_POLICY = {
-            'disallow-unknown-url-schemes':
+            'disallow':
                 QWebEngineSettings.DisallowUnknownUrlSchemes,
-            'allow-unknown-url-schemes-from-user-interaction':
+            'allow-from-user-interaction':
                 QWebEngineSettings.AllowUnknownUrlSchemesFromUserInteraction,
-            'allow-all-unknown-url-schemes':
+            'allow-all':
                 QWebEngineSettings.AllowAllUnknownUrlSchemes,
         }
     except AttributeError:
