@@ -901,8 +901,8 @@ class _WebEnginePermissions(QObject):
         self._tab.data.fullscreen = on
         self._tab.fullscreen_requested.emit(on)
         if on:
-            timeout = config.instance.get('content.fullscreen.overlay_timeout')
-            if timeout !=  0:
+            timeout = config.val.content.fullscreen.overlay_timeout
+            if timeout != 0:
                 notification = miscwidgets.FullscreenNotification(self._widget)
                 notification.set_timeout(timeout)
                 notification.show()
