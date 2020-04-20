@@ -169,13 +169,17 @@ class TabEventFilter(QObject):
 
             divider = config.val.zoom.mouse_divider
             if divider == 0:
-                return False
+                # Disable mouse zooming
+                return True
+
             factor = self._tab.zoom.factor() + (e.angleDelta().y() / divider)
             if factor < 0:
-                return False
+                return True
+
             perc = int(100 * factor)
             message.info("Zoom level: {}%".format(perc), replace=True)
             self._tab.zoom.set_factor(factor)
+            return True
         elif (e.modifiers() & Qt.ShiftModifier and
               not qtutils.version_check('5.9', compiled=False)):
             if e.angleDelta().y() > 0:
