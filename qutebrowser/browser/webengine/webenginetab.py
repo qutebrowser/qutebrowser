@@ -1133,10 +1133,9 @@ class WebEngineTab(browsertab.AbstractTab):
 
     abort_questions = pyqtSignal()
 
-    def __init__(self, *, win_id, mode_manager, private, parent=None):
+    def __init__(self, *, win_id, mode_manager, private, parent=None,
+                 from_session=False):
         super().__init__(win_id=win_id, private=private, parent=parent)
-        widget = webview.WebEngineView(tabdata=self.data, win_id=win_id,
-                                       private=private)
         self.history = WebEngineHistory(tab=self)
         self.scroller = WebEngineScroller(tab=self, parent=self)
         self.caret = WebEngineCaret(mode_manager=mode_manager,
@@ -1153,13 +1152,19 @@ class WebEngineTab(browsertab.AbstractTab):
         self._scripts = _WebEngineScripts(tab=self, parent=self)
         # We're assigning settings in _set_widget
         self.settings = webenginesettings.WebEngineSettings(settings=None)
-        self._set_widget(widget)
-        self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine
         self._child_event_filter = None
         self._saved_zoom = None
         self._reload_url = None  # type: typing.Optional[QUrl]
+        self._init_widget(from_session)
+
+    def _new_widget(self):
+        widget = webview.WebEngineView(tabdata=self.data, win_id=self.win_id,
+                                       private=self.is_private)
+        self._set_widget(widget)
+        self._connect_signals()
         self._scripts.init()
+        self._webview_loaded = True
 
     def _set_widget(self, widget):
         # pylint: disable=protected-access
@@ -1206,7 +1211,6 @@ class WebEngineTab(browsertab.AbstractTab):
         if not self.history.loaded and self.history.to_load:
             idx = self.history.current_idx()
             return self.history.to_load[idx].url
-
         page = self._widget.page()
         if requested:
             return page.requestedUrl()

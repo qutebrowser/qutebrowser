@@ -556,6 +556,7 @@ class TabbedBrowser(QWidget):
             background: bool = None,
             related: bool = True,
             idx: int = None,
+            from_session: bool = False,
     ) -> browsertab.AbstractTab:
         """Open a new tab with a given URL.
 
@@ -592,12 +593,15 @@ class TabbedBrowser(QWidget):
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=window.win_id)
             return tabbed_browser.tabopen(url=url, background=background,
-                                          related=related)
+                                          related=related,
+                                          from_session=from_session)
 
         tab = browsertab.create(win_id=self._win_id,
                                 private=self.is_private,
-                                parent=self.widget)
-        self._connect_tab_signals(tab)
+                                parent=self.widget, from_session=from_session)
+
+        if not from_session:
+            self._connect_tab_signals(tab)
 
         if idx is None:
             idx = self._get_new_tab_idx(related)

@@ -365,7 +365,8 @@ class SessionManager(QObject):
         tab_to_focus = None
         new_tabs = []
         for i, tab in enumerate(win['tabs']):
-            new_tab = tabbed_browser.tabopen(background=False)
+            new_tab = tabbed_browser.tabopen(background=False,
+                                             from_session=True)
             new_tabs.append(new_tab)
             self._load_tab(new_tab, tab)
             if tab.get('active', False):

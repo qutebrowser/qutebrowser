@@ -28,6 +28,7 @@ from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
+from PyQt5.QtWidgets import QWidget
 from PyQt5.QtPrintSupport import QPrinter
 
 if typing.TYPE_CHECKING:
@@ -703,12 +704,9 @@ class WebKitTab(browsertab.AbstractTab):
 
     """A QtWebKit tab in the browser."""
 
-    def __init__(self, *, win_id, mode_manager, private, parent=None):
+    def __init__(self, *, win_id, mode_manager, private, parent=None,
+                 from_session=False):
         super().__init__(win_id=win_id, private=private, parent=parent)
-        widget = webview.WebView(win_id=win_id, tab_id=self.tab_id,
-                                 private=private, tab=self)
-        if private:
-            self._make_private(widget)
         self.history = WebKitHistory(tab=self)
         self.scroller = WebKitScroller(tab=self, parent=self)
         self.caret = WebKitCaret(mode_manager=mode_manager,
@@ -723,9 +721,19 @@ class WebKitTab(browsertab.AbstractTab):
                                             tab=self)
         # We're assigning settings in _set_widget
         self.settings = webkitsettings.WebKitSettings(settings=None)
+        self.backend = usertypes.Backend.QtWebKit
+
+        self._init_widget(from_session)
+
+    def _new_widget(self):
+        widget = webview.WebView(win_id=self.win_id, tab_id=self.tab_id,
+                                 private=self.is_private, tab=self)
+        if self.is_private:
+            self._make_private(widget)
+
         self._set_widget(widget)
         self._connect_signals()
-        self.backend = usertypes.Backend.QtWebKit
+        self._webview_loaded = True
 
     def _install_event_filter(self):
         self._widget.installEventFilter(self._tab_event_filter)

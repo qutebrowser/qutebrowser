@@ -138,6 +138,9 @@ class TabWidget(QTabWidget):
                    is only set if the given field is in the template.
         """
         tab = self.widget(idx)
+        # TODO Deal with the case of webkit
+        if not tab._webview_loaded:
+            return
         if tab.data.pinned:
             fmt = config.cache['tabs.title.format_pinned']
         else:

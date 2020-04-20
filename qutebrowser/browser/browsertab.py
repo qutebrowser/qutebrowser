@@ -62,7 +62,8 @@ TypeHistoryItem = typing.Union['QWebEngineHistoryItem',
 
 def create(win_id: int,
            private: bool,
-           parent: QWidget = None) -> 'AbstractTab':
+           parent: QWidget = None,
+           from_session: bool = False) -> 'AbstractTab':
     """Get a QtWebKit/QtWebEngine tab object.
 
     Args:
@@ -80,7 +81,7 @@ def create(win_id: int,
         from qutebrowser.browser.webkit import webkittab
         tab_class = webkittab.WebKitTab
     return tab_class(win_id=win_id, mode_manager=mode_manager, private=private,
-                     parent=parent)
+                     parent=parent, from_session=from_session)
 
 
 def init() -> None:
@@ -1009,6 +1010,20 @@ class AbstractTab(QWidget):
 
         self.before_load_started.connect(self._on_before_load_started)
 
+    def _init_widget(self, from_session: bool) -> None:
+        self._webview_loaded = False
+        if not from_session or not config.val.session.lazy_restore:
+            self._new_widget()
+        else:
+            # insert empty widget to keep things like
+            # WrapperLayout.setGeometry happy
+            widget = QWidget()
+            self._widget = widget
+            self._layout.wrap(self, widget)
+
+    def _new_widget(self) -> None:
+        raise NotImplementedError
+
     def _set_widget(self, widget: QWidget) -> None:
         # pylint: disable=protected-access
         self._widget = widget
@@ -1298,5 +1313,14 @@ class AbstractTab(QWidget):
         if event.spontaneous():
             return
 
+        if not self._webview_loaded:
+            self._new_widget()
+            tb = objreg.get('tabbed-browser', scope='window',
+                            window=self.win_id)
+            tb._connect_tab_signals(self)
+
         if self.history.load_on_focus:
             self.history.load()
+
+        # TODO why is it inVisible?
+        self._widget.setVisible(True)
