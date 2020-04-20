@@ -22,8 +22,6 @@
 import io
 import os.path
 import functools
-import posixpath
-import zipfile
 import logging
 import typing
 import pathlib
@@ -91,7 +89,6 @@ class BraveAdBlocker:
         *,
         engine: "adblock.Engine",
         data_dir: pathlib.Path,
-        config_dir: pathlib.Path,
         has_basedir: bool = False
     ) -> None:
         self._has_basedir = has_basedir
@@ -102,8 +99,6 @@ class BraveAdBlocker:
 
     def filter_request(self, info: interceptor.Request) -> None:
         """Block or redirect the given request if necessary."""
-        request_type = info.resource_type.name if info.resource_type else ""
-
         first_party_url = info.first_party_url
         if first_party_url is not None and not first_party_url.isValid():
             first_party_url = None
@@ -274,7 +269,6 @@ def init(context: apitypes.InitContext) -> None:
     _ad_blocker = BraveAdBlocker(
         engine=engine,
         data_dir=context.data_dir,
-        config_dir=context.config_dir,
         has_basedir=context.args.basedir is not None,
     )
     _ad_blocker.read_cache()
