@@ -215,7 +215,8 @@ class _WebEngineSearchWrapHandler:
         Args:
             going_up: Whether the search would scroll the page up or down.
         """
-        if not self._nowrap_available or self.flag_wrap:
+        if (not self._nowrap_available or
+                self.flag_wrap or self._total_matches == 0):
             return False
         elif going_up and self._active_match == 1:
             message.info("Search hit TOP")
