@@ -24,7 +24,9 @@ Added
 - New settings:
   * `search.wrap` which can be set to false to prevent wrapping around the page
     when searching. With QtWebEngine, Qt 5.14 or newer is required.
-
+  * `content.unknown_url_scheme_policy` which allows controlling when an
+    external application is opened for external links (never, from user
+    interaction, always).
 
 Changed
 ~~~~~~~
