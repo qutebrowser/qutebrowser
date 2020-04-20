@@ -1135,6 +1135,22 @@ hints.border:
   type: String
   desc: CSS border value for hints.
 
+hints.padding:
+  default:
+    top: 0
+    bottom: 0
+    left: 3
+    right: 3
+  type: Padding
+  desc: Padding (in pixels) for hints.
+
+hints.radius:
+  default: 0
+  type:
+    name: Int
+    minval: 0
+  desc: Rounding radius (in pixels) for the edges of hints.
+
 hints.chars:
   default: asdfghjkl
   type:

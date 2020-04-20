@@ -157,8 +157,11 @@ class MainWindow(QWidget):
             color: {{ conf.colors.hints.fg }};
             font: {{ conf.fonts.hints }};
             border: {{ conf.hints.border }};
-            padding-left: 3px;
-            padding-right: 3px;
+            border-radius: {{ conf.hints.radius }}px;
+            padding-top: {{ conf.hints.padding['top'] }}px;
+            padding-left: {{ conf.hints.padding['left'] }}px;
+            padding-right: {{ conf.hints.padding['right'] }}px;
+            padding-bottom: {{ conf.hints.padding['bottom'] }}px;
         }
 
         QMenu {
