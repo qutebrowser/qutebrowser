@@ -1394,7 +1394,7 @@ messages.unfocused:
 prompt.filebrowser:
   type: Bool
   default: true
-  desc: Show a filebrowser in upload/download prompts.
+  desc: Show a filebrowser in download prompts.
 
 prompt.radius:
   type:

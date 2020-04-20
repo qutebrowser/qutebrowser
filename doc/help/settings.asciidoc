@@ -245,7 +245,7 @@
 |<<messages.timeout,messages.timeout>>|Duration (in milliseconds) to show messages in the statusbar for.
 |<<new_instance_open_target,new_instance_open_target>>|How to open links in an existing instance if a new one is launched.
 |<<new_instance_open_target_window,new_instance_open_target_window>>|Which window to choose when opening links as new tabs.
-|<<prompt.filebrowser,prompt.filebrowser>>|Show a filebrowser in upload/download prompts.
+|<<prompt.filebrowser,prompt.filebrowser>>|Show a filebrowser in download prompts.
 |<<prompt.radius,prompt.radius>>|Rounding radius (in pixels) for the edges of prompts.
 |<<qt.args,qt.args>>|Additional arguments to pass to Qt, without leading `--`.
 |<<qt.force_platform,qt.force_platform>>|Force a Qt platform to use.
@@ -3048,7 +3048,7 @@ Default: +pass:[last-focused]+
 
 [[prompt.filebrowser]]
 === prompt.filebrowser
-Show a filebrowser in upload/download prompts.
+Show a filebrowser in download prompts.
 
 Type: <<types,Bool>>
 
