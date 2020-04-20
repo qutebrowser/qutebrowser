@@ -1507,6 +1507,7 @@ class CommandDispatcher:
         options = {
             'ignore_case': config.val.search.ignore_case,
             'reverse': reverse,
+            'wrap': config.val.search.wrap,
         }
 
         self._tabbed_browser.search_text = text

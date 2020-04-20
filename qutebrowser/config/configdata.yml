@@ -48,6 +48,16 @@ search.incremental:
   default: True
   desc: Find text on a page incrementally, renewing the search for each typed character.
 
+search.wrap:
+  type: Bool
+  default: True
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: true
+  desc: >-
+    Wrap around at the top and bottom of the page when advancing through text matches
+    using `:search-next` and `:search-prev`.
+
 new_instance_open_target:
   type:
     name: String
