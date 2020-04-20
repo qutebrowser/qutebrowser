@@ -46,6 +46,8 @@ Changed
   Chromium. To revert to the old behavior, use `{quoted}` instead.
 - The `content.windowed_fullscreen` setting got renamed to
   `content.fullscreen.window`.
+- The `qute-bitwarden` userscript now has an optional `--totp` flag which can
+  be used to copy TOTP codes to clipboard (requires the `pyperclip` module).
 
 Fixed
 ~~~~~
