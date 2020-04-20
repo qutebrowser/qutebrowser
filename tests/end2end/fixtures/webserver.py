@@ -63,7 +63,6 @@ class Request(testprocess.Line):
     def _check_status(self):
         """Check if the http status is what we expected."""
         path_to_statuses = {
-            '/favicon.ico': [HTTPStatus.NOT_FOUND],
             '/does-not-exist': [HTTPStatus.NOT_FOUND],
             '/does-not-exist-2': [HTTPStatus.NOT_FOUND],
             '/404': [HTTPStatus.NOT_FOUND],
