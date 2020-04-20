@@ -595,6 +595,16 @@ content.ad_blocking.lists:
   desc: |
     List of URLs of lists which contain adblock rules.
 
+content.ad_blocking.whitelist:
+  default: []
+  type:
+    name: List
+    valtype: UrlPattern
+    none_ok: true
+  desc: >-
+    A list of patterns that should always be loaded, despite being ad-blocked.
+    Local domains are always exempt from adblocking.
+
 content.hyperlink_auditing:
   default: false
   type: Bool

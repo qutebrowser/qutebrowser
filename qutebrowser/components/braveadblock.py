@@ -46,6 +46,9 @@ _host_blocker = typing.cast("HostBlocker", None)
 
 def _is_whitelisted_url(url: QUrl) -> bool:
     """Check if the given URL is on the adblock whitelist."""
+    for pattern in config.val.content.ad_blocking.whitelist:
+        if pattern.matches(url):
+            return True
 
     # Prevent a block-list for being able to block itself, otherwise you
     # couldn't update it.
@@ -109,9 +112,6 @@ class BraveAdBlocker:
             # Do nothing if adblocking is disabled.
             return
 
-        if _is_whitelisted_url(info.request_url):
-            return
-
         result = self._engine.check_network_urls(
             info.request_url.toString(),
             first_party_url.toString() if first_party_url else "",
@@ -123,6 +123,14 @@ class BraveAdBlocker:
                 logger.debug(
                     "Excepting {} from being blocked by {} because of {}".format(
                         info.request_url.toString(), result.filter, result.exception
+                    )
+                )
+                return
+
+            if _is_whitelisted_url(info.request_url):
+                logger.debug(
+                    "Request to {} is whitelisted, thus not blocked".format(
+                        info.request_url.toString()
                     )
                 )
                 return
