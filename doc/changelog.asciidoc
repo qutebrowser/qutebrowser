@@ -27,12 +27,21 @@ Added
   * `content.unknown_url_scheme_policy` which allows controlling when an
     external application is opened for external links (never, from user
     interaction, always).
+- New placeholders for `url.searchengines` values:
+  * `{unquoted}` inserts the search term without any quoting
+  * `{semiquoted}` (same as `{}`) quotes most special characters, but slashes
+    remain unquoted.
+  * `{quoted}` (same as `{}` in earlier releases) also quotes slashes.
 
 Changed
 ~~~~~~~
 
 - Searching now wraps around the page by default with QtWebKit (where it didn't
   before). Set `search.wrap` to `false` to restore the old behavior.
+- The `{}` placeholder for search engines (the `url.searchengines` setting) now
+  does not quote slashes anymore, but other characters typically encoded in
+  URLs still get encoded. This matches the behavior of search engines in
+  Chromium. To revert to the old behavior, use `{quoted}` instead.
 
 Fixed
 ~~~~~
