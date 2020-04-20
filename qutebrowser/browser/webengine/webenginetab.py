@@ -901,9 +901,11 @@ class _WebEnginePermissions(QObject):
         self._tab.data.fullscreen = on
         self._tab.fullscreen_requested.emit(on)
         if on:
-            notification = miscwidgets.FullscreenNotification(self._widget)
-            notification.show()
-            notification.set_timeout(3000)
+            timeout = config.instance.get('content.fullscreen.overlay_timeout')
+            if timeout !=  0:
+                notification = miscwidgets.FullscreenNotification(self._widget)
+                notification.set_timeout(timeout)
+                notification.show()
 
     @pyqtSlot(QUrl, 'QWebEnginePage::Feature')
     def _on_feature_permission_requested(self, url, feature):

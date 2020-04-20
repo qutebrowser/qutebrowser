@@ -326,7 +326,7 @@ class FullscreenNotification(QLabel):
             self.setText("Page is now fullscreen.")
 
         self.resize(self.sizeHint())
-        if config.val.content.windowed_fullscreen:
+        if config.val.content.fullscreen.window:
             geom = self.parentWidget().geometry()
         else:
             geom = QApplication.desktop().screenGeometry(self)
