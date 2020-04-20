@@ -182,14 +182,15 @@ class WebEngineSettings(websettings.AbstractSettings):
         QWebEngineSettings.FantasyFont: QFont.Fantasy,
     }
 
-    def set_unknown_url_scheme_policy(self, policy: str) -> bool:
+    def set_unknown_url_scheme_policy(
+            self, policy: typing.Union[str, usertypes.Unset]) -> bool:
         """Set the UnknownUrlSchemePolicy to use.
 
         Return:
             True if there was a change, False otherwise.
         """
         old_value = self._settings.unknownUrlSchemePolicy()
-        if policy is usertypes.UNSET:  # type: ignore
+        if isinstance(policy, usertypes.Unset):
             self._settings.resetUnknownUrlSchemePolicy()
             new_value = self._settings.unknownUrlSchemePolicy()
         else:
