@@ -217,8 +217,6 @@
 |<<hints.auto_follow,hints.auto_follow>>|When a hint can be automatically followed without pressing Enter.
 |<<hints.auto_follow_timeout,hints.auto_follow_timeout>>|Duration (in milliseconds) to ignore normal-mode key bindings after a successful auto-follow.
 |<<hints.border,hints.border>>|CSS border value for hints.
-|<<hints.padding,hints.padding>>|Padding (in pixels) for hints.
-|<<hints.radius,hints.radius>>|Rounding radius (in pixels) for the edges of hints.
 |<<hints.chars,hints.chars>>|Characters used for hint strings.
 |<<hints.dictionary,hints.dictionary>>|Dictionary file to be used by the word hints.
 |<<hints.find_implementation,hints.find_implementation>>|Which implementation to use to find elements to hint.
@@ -227,7 +225,9 @@
 |<<hints.min_chars,hints.min_chars>>|Minimum number of characters used for hint strings.
 |<<hints.mode,hints.mode>>|Mode to use for hints.
 |<<hints.next_regexes,hints.next_regexes>>|Comma-separated list of regular expressions to use for 'next' links.
+|<<hints.padding,hints.padding>>|Padding (in pixels) for hints.
 |<<hints.prev_regexes,hints.prev_regexes>>|Comma-separated list of regular expressions to use for 'prev' links.
+|<<hints.radius,hints.radius>>|Rounding radius (in pixels) for the edges of hints.
 |<<hints.scatter,hints.scatter>>|Scatter hint key chains (like Vimium) or not (like dwb).
 |<<hints.selectors,hints.selectors>>|CSS selectors used to determine which elements on a page should have hints.
 |<<hints.uppercase,hints.uppercase>>|Make characters in hint strings uppercase.
@@ -2319,7 +2319,7 @@ Valid values:
  * +allow-from-user-interaction+: Allows navigation requests to URLs with unknown schemes that are issued from user-interaction (like a mouse-click), whereas other navigation requests (for example from JavaScript) are suppressed.
  * +allow-all+: Allows all navigation requests to URLs with unknown schemes.
 
-Default: +pass:[allow-unknown-url-schemes-from-user-interaction]+
+Default: +pass:[allow-from-user-interaction]+
 
 On QtWebEngine, this setting requires Qt 5.11 or newer.
 
@@ -2714,27 +2714,6 @@ Type: <<types,String>>
 
 Default: +pass:[1px solid #E3BE23]+
 
-[[hints.padding]]
-=== hints.padding
-Padding (in pixels) for hints.
-
-Type: <<types,Padding>>
-
-Default:
-
-- +pass:[bottom]+: +pass:[0]+
-- +pass:[left]+: +pass:[3]+
-- +pass:[right]+: +pass:[3]+
-- +pass:[top]+: +pass:[0]+
-
-[[hints.radius]]
-=== hints.radius
-Rounding radius (in pixels) for the edges of hints.
-
-Type: <<types,Int>>
-
-Default: +pass:[0]+
-
 [[hints.chars]]
 === hints.chars
 Characters used for hint strings.
@@ -2819,6 +2798,19 @@ Default:
 - +pass:[\b(&gt;&gt;|»)\b]+
 - +pass:[\bcontinue\b]+
 
+[[hints.padding]]
+=== hints.padding
+Padding (in pixels) for hints.
+
+Type: <<types,Padding>>
+
+Default: 
+
+- +pass:[bottom]+: +pass:[0]+
+- +pass:[left]+: +pass:[3]+
+- +pass:[right]+: +pass:[3]+
+- +pass:[top]+: +pass:[0]+
+
 [[hints.prev_regexes]]
 === hints.prev_regexes
 Comma-separated list of regular expressions to use for 'prev' links.
@@ -2832,6 +2824,14 @@ Default:
 - +pass:[\bolder\b]+
 - +pass:[\b[&lt;←≪]\b]+
 - +pass:[\b(&lt;&lt;|«)\b]+
+
+[[hints.radius]]
+=== hints.radius
+Rounding radius (in pixels) for the edges of hints.
+
+Type: <<types,Int>>
+
+Default: +pass:[3]+
 
 [[hints.scatter]]
 === hints.scatter
