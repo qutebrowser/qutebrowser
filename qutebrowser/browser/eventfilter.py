@@ -108,7 +108,14 @@ class TabEventFilter(QObject):
         self._check_insertmode_on_release = False
 
     def _handle_mouse_press(self, e):
-        """Handle pressing of a mouse button."""
+        """Handle pressing of a mouse button.
+
+        Args:
+            e: The QMouseEvent.
+
+        Return:
+            True if the event should be filtered, False otherwise.
+        """
         is_rocker_gesture = (config.val.input.rocker_gestures and
                              e.buttons() == Qt.LeftButton | Qt.RightButton)
 
@@ -129,7 +136,14 @@ class TabEventFilter(QObject):
         return False
 
     def _handle_mouse_release(self, _e):
-        """Handle releasing of a mouse button."""
+        """Handle releasing of a mouse button.
+
+        Args:
+            e: The QMouseEvent.
+
+        Return:
+            True if the event should be filtered, False otherwise.
+        """
         # We want to make sure we check the focus element after the WebView is
         # updated completely.
         QTimer.singleShot(0, self._mouserelease_insertmode)
@@ -140,6 +154,9 @@ class TabEventFilter(QObject):
 
         Args:
             e: The QWheelEvent.
+
+        Return:
+            True if the event should be filtered, False otherwise.
         """
         if self._ignore_wheel_event:
             # See https://github.com/qutebrowser/qutebrowser/issues/395
@@ -170,13 +187,26 @@ class TabEventFilter(QObject):
         return False
 
     def _handle_context_menu(self, _e):
-        """Suppress context menus if rocker gestures are turned on."""
+        """Suppress context menus if rocker gestures are turned on.
+
+        Args:
+            e: The QContextMenuEvent.
+
+        Return:
+            True if the event should be filtered, False otherwise.
+        """
         return config.val.input.rocker_gestures
 
     def _handle_key_release(self, e):
         """Ignore repeated key release events going to the website.
 
         WORKAROUND for https://bugreports.qt.io/browse/QTBUG-77208
+
+        Args:
+            e: The QKeyEvent.
+
+        Return:
+            True if the event should be filtered, False otherwise.
         """
         return (e.isAutoRepeat() and
                 qtutils.version_check('5.10') and
@@ -232,6 +262,9 @@ class TabEventFilter(QObject):
 
         Args:
             e: The QMouseEvent.
+
+        Return:
+            True if the event should be filtered, False otherwise.
         """
         if e.button() in [Qt.XButton1, Qt.LeftButton]:
             # Back button on mice which have it, or rocker gesture
@@ -247,7 +280,11 @@ class TabEventFilter(QObject):
                 message.error("At end of history.")
 
     def eventFilter(self, obj, event):
-        """Filter events going to a QWeb(Engine)View."""
+        """Filter events going to a QWeb(Engine)View.
+
+        Return:
+            True if the event should be filtered, False otherwise.
+        """
         evtype = event.type()
         if evtype not in self._handlers:
             return False
