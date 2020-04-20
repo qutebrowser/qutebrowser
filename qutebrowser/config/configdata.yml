@@ -1145,7 +1145,7 @@ hints.padding:
   desc: Padding (in pixels) for hints.
 
 hints.radius:
-  default: 0
+  default: 3
   type:
     name: Int
     minval: 0
