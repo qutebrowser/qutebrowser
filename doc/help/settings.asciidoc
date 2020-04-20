@@ -173,6 +173,7 @@
 |<<content.register_protocol_handler,content.register_protocol_handler>>|Allow websites to register protocol handlers via `navigator.registerProtocolHandler`.
 |<<content.site_specific_quirks,content.site_specific_quirks>>|Enable quirks (such as faked user agent headers) needed to get specific sites to work properly.
 |<<content.ssl_strict,content.ssl_strict>>|Validate SSL handshakes.
+|<<content.unknown_url_scheme_policy,content.unknown_url_scheme_policy>>|How navigation requests to URLs with unknown schemes are handled.
 |<<content.user_stylesheets,content.user_stylesheets>>|List of user stylesheet filenames to use.
 |<<content.webgl,content.webgl>>|Enable WebGL.
 |<<content.webrtc_ip_handling_policy,content.webrtc_ip_handling_policy>>|Which interfaces to expose via WebRTC.
@@ -2282,6 +2283,24 @@ Valid values:
  * +ask+
 
 Default: +pass:[ask]+
+
+[[content.unknown_url_scheme_policy]]
+=== content.unknown_url_scheme_policy
+How navigation requests to URLs with unknown schemes are handled.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +disallow-unknown-url-schemes+: Disallows all navigation requests to URLs with unknown schemes.
+ * +allow-unknown-url-schemes-from-user-interaction+: Allows navigation requests to URLs with unknown schemes that are issued from user-interaction (like a mouse-click), whereas other navigation requests (for example from JavaScript) are suppressed.
+ * +allow-all-unknown-url-schemes+: Allows all navigation requests to URLs with unknown schemes.
+
+Default: +pass:[allow-unknown-url-schemes-from-user-interaction]+
+
+On QtWebEngine, this setting requires Qt 5.11 or newer.
+
+On QtWebKit, this setting is unavailable.
 
 [[content.user_stylesheets]]
 === content.user_stylesheets

@@ -380,6 +380,26 @@ content.default_encoding:
     The encoding must be a string describing an encoding such as _utf-8_,
     _iso-8859-1_, etc.
 
+content.unknown_url_scheme_policy:
+  type:
+    name: String
+    valid_values:
+      - disallow-unknown-url-schemes: "Disallows all navigation requests to
+          URLs with unknown schemes."
+      - allow-unknown-url-schemes-from-user-interaction: "Allows navigation
+          requests to URLs with unknown schemes that are issued from
+          user-interaction (like a mouse-click), whereas other navigation
+          requests (for example from JavaScript) are suppressed."
+      - allow-all-unknown-url-schemes: "Allows all navigation requests to
+          URLs with unknown schemes."
+  default: allow-unknown-url-schemes-from-user-interaction
+  backend:
+    QtWebEngine: Qt 5.11
+    QtWebKit: false
+  supports_pattern: true
+  desc: >-
+    How navigation requests to URLs with unknown schemes are handled.
+
 content.windowed_fullscreen:
   type: Bool
   default: false
