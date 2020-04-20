@@ -29,6 +29,8 @@ Added
     interaction, always).
   * `content.fullscreen.overlay_timeout` to configure how long the fullscreen
     overlay should be displayed. If set to `0`, no overlay is displayed.
+  * `hints.padding` to add additional padding for hints.
+  * `hints.radius` to set a border radius for hints (set to `3` by default).
 - New placeholders for `url.searchengines` values:
   * `{unquoted}` inserts the search term without any quoting
   * `{semiquoted}` (same as `{}`) quotes most special characters, but slashes
