@@ -177,7 +177,8 @@ class TabEventFilter(QObject):
             perc = int(100 * factor)
             message.info("Zoom level: {}%".format(perc), replace=True)
             self._tab.zoom.set_factor(factor)
-        elif e.modifiers() & Qt.ShiftModifier:
+        elif (e.modifiers() & Qt.ShiftModifier and
+              not qtutils.version_check('5.9', compiled=False)):
             if e.angleDelta().y() > 0:
                 self._tab.scroller.left()
             else:
@@ -209,7 +210,8 @@ class TabEventFilter(QObject):
             True if the event should be filtered, False otherwise.
         """
         return (e.isAutoRepeat() and
-                qtutils.version_check('5.10') and
+                qtutils.version_check('5.10', compiled=False) and
+                not qtutils.version_check('5.14', compiled=False) and
                 objects.backend == usertypes.Backend.QtWebEngine)
 
     def _mousepress_insertmode_cb(self, elem):
