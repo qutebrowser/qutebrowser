@@ -20,7 +20,7 @@
 
 """Generate the html documentation based on the asciidoc files."""
 
-from typing import List, Tuple, Optional
+from typing import List, Optional
 import re
 import os
 import os.path
@@ -207,7 +207,8 @@ class AsciiDoc:
 
         for dst, link_name in [
                 ('README.html', 'index.html'),
-                ((pathlib.Path('doc') / 'quickstart.html'), 'quickstart.html')]:
+                ((pathlib.Path('doc') / 'quickstart.html'),
+                 'quickstart.html')]:
             assert isinstance(dst, (str, pathlib.Path))    # for mypy
             try:
                 (outdir / link_name).symlink_to(dst)
