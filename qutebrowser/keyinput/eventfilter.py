@@ -85,19 +85,22 @@ class EventFilter(QObject):
         Return:
             True if the event should be filtered, False if it's passed through.
         """
+        if not isinstance(obj, QWindow):
+            # We already handled this same event at some point earlier, so
+            # we're not interested in it anymore.
+            return False
+
+        typ = event.type()
+
+        if typ not in self._handlers:
+            return False
+
+        if not self._activated:
+            return False
+
+        handler = self._handlers[typ]
         try:
-            if not self._activated:
-                return False
-            if not isinstance(obj, QWindow):
-                # We already handled this same event at some point earlier, so
-                # we're not interested in it anymore.
-                return False
-            try:
-                handler = self._handlers[event.type()]
-            except KeyError:
-                return False
-            else:
-                return handler(event)
+            return handler(event)
         except:
             # If there is an exception in here and we leave the eventfilter
             # activated, we'll get an infinite loop and a stack overflow.
