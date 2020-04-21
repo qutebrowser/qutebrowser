@@ -262,11 +262,13 @@ class TestAll:
                 configtypes.PercOrInt,  # ditto
         ]:
             return
-
-        if (isinstance(typ, functools.partial) and
-                isinstance(typ.func, configtypes.ListOrValue)):
-            # in:  "- /"
-            # out: "/"
+        elif (isinstance(typ, functools.partial) and
+              isinstance(typ.func, configtypes.ListOrValue)):
+            # "- /" -> "/"
+            return
+        elif (isinstance(typ, configtypes.ListOrValue) and
+              isinstance(typ.valtype, configtypes.Int)):
+            # "00" -> "0"
             return
 
         assert converted == s
