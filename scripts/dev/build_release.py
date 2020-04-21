@@ -423,8 +423,8 @@ def github_upload(artifacts, tag):
                 with open(filename, 'rb') as f:
                     release.upload_asset(mimetype, basename, f, description)
             except github3.exceptions.ConnectionError as e:
-                utils.print_col('Failed to upload: {}'.format(e), 'red')
-                print("Press Enter to retry...")
+                utils.print_error('Failed to upload: {}'.format(e))
+                print("Press Enter to retry...", file=sys.stderr)
                 input()
                 print("Retrying!")
 

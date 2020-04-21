@@ -101,7 +101,7 @@ def run_venv(venv_dir: pathlib.Path, executable, *args: str) -> None:
         subprocess.run([str(venv_dir / subdir / executable)] +
                        [str(arg) for arg in args], check=True)
     except subprocess.CalledProcessError as e:
-        utils.print_col("Subprocess failed, exiting", 'red')
+        utils.print_error("Subprocess failed, exiting")
         sys.exit(e.returncode)
 
 
@@ -124,9 +124,9 @@ def show_tox_error(pyqt_type: str) -> None:
         raise AssertionError
 
     print()
-    utils.print_col('tox -e {} is deprecated. '
-                    'Please use "python3 scripts/mkvenv.py{}" instead.'
-                    .format(env, args), 'red')
+    utils.print_error('tox -e {} is deprecated. '
+                      'Please use "python3 scripts/mkvenv.py{}" instead.'
+                      .format(env, args))
     print()
 
 
@@ -143,9 +143,8 @@ def delete_old_venv(venv_dir: pathlib.Path) -> None:
     ]
 
     if not any(m.exists() for m in markers):
-        utils.print_col('{} does not look like a virtualenv, '
-                        'cowardly refusing to remove it.'.format(venv_dir),
-                        'red')
+        utils.print_error('{} does not look like a virtualenv, '
+                          'cowardly refusing to remove it.'.format(venv_dir))
         sys.exit(1)
 
     utils.print_col('$ rm -r {}'.format(venv_dir), 'blue')
@@ -160,7 +159,7 @@ def create_venv(venv_dir: pathlib.Path, use_virtualenv: bool = False) -> None:
             subprocess.run([sys.executable, '-m', 'virtualenv', venv_dir],
                            check=True)
         except subprocess.CalledProcessError as e:
-            utils.print_col("virtualenv failed, exiting", 'red')
+            utils.print_error("virtualenv failed, exiting")
             sys.exit(e.returncode)
     else:
         utils.print_col('$ python3 -m venv {}'.format(venv_dir), 'blue')
@@ -269,12 +268,12 @@ def main() -> None:
         sys.exit(1)
     elif (args.pyqt_version != 'auto' and
           args.pyqt_type not in ['binary', 'source']):
-        utils.print_col('The --pyqt-version option is only available when '
-                        'installing PyQt from binary or source', 'red')
+        utils.print_error('The --pyqt-version option is only available when '
+                          'installing PyQt from binary or source')
         sys.exit(1)
     elif args.pyqt_wheels_dir != 'wheels' and args.pyqt_type != 'wheels':
-        utils.print_col('The --pyqt-wheels-dir option is only available when '
-                        'installing PyQt from wheels', 'red')
+        utils.print_error('The --pyqt-wheels-dir option is only available '
+                          'when installing PyQt from wheels')
         sys.exit(1)
 
     if not args.keep:

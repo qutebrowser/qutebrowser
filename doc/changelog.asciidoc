@@ -62,6 +62,8 @@ Fixed
   when using `:spawn --userscript`.
 - `:version` and `--version` now don't crash if there's an (invalid)
   `/etc/os-release` file which has non-comment lines without a `=` character.
+- Scripts in `scripts/` now report errors to `stderr` correctly, instead of
+  using `stdout`.
 
 v1.10.2 (2020-04-17)
 --------------------

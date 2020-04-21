@@ -225,7 +225,7 @@ def install(languages):
                    "system-wide. If your qutebrowser uses a newer Qt version "
                    "via a virtualenv, make sure you start this script with "
                    "the virtualenv's Python.".format(e))
-            scriptutils.print_col(msg, 'red')
+            scriptutils.print_error(msg)
             sys.exit(1)
 
 
