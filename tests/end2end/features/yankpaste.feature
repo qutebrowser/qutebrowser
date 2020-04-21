@@ -315,6 +315,7 @@ Feature: Yanking and pasting.
         And I run :insert-text This text should be undone
         And I wait for the javascript message "textarea contents: This text should be undone"
         And I press the key "<Ctrl+z>"
+        And I wait for the javascript message "textarea contents: "
         # Paste final text
         And I run :insert-text This text should stay
         # Compare
