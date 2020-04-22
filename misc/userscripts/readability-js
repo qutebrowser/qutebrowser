@@ -66,6 +66,6 @@ JSDOM.fromFile(process.env.QUTE_HTML, domOpts).then(dom => {
             return 1;
         }
         // Success
-        qute.open(['-t', tmpFile]);
+        qute.open(['-t', '-r', tmpFile]);
     })
 });
