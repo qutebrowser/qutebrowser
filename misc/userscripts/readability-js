@@ -46,6 +46,8 @@ const HEADER = `
             line-height: 1.2;
         }
     </style>
+    <!-- This icon is licensed under the Mozilla Public License 2.0 (available at: https://www.mozilla.org/en-US/MPL/2.0/).
+    The original icon can be found here: https://dxr.mozilla.org/mozilla-central/source/browser/themes/shared/reader/readerMode.svg -->
     <link rel="shortcut icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjRweCIgaGVpZ2h0PSI2NHB4IiB2ZXJzaW9uPSIxLjEiI
     HZpZXdCb3g9IjAgMCA2NCA2NCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGcgZmlsbD0iI2ZmZiI+CjxwYXRoIGQ9Im01MiAwaC00
     MGMtNC40MiAwLTggMy41OC04IDh2NDhjMCA0LjQyIDMuNTggOCA4IDhoNDBjNC40MiAwIDgtMy41OCA4LTh2LTQ4YzAtNC40Mi0zLjU4LTgtOC04em0wIDU
