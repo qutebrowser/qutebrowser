@@ -58,8 +58,14 @@ Changed
     data.
 - The `dictcli.py` script now shows better error messages.
 - Various improvements to the `mkvenv.py` script (mainly useful for development).
-- First adoptions to Qt 5.15
+- First adoptions to Qt 5.15.
 - Minor performance improvements.
+
+Deprecated
+~~~~~~~~~~
+
+- A warning about old Qt versions is now also shown with Qt 5.9 and 5.10, as
+  support for Qt < 5.11 will be dropped in qutebrowser v2.0.
 
 Fixed
 ~~~~~
