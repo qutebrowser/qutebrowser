@@ -334,7 +334,7 @@ def _open_special_pages(args):
          'qute://warning/webkit'),
 
         ('old-qt-warning-shown',
-         not qtutils.version_check('5.9'),
+         not qtutils.version_check('5.11'),
          'qute://warning/old-qt'),
     ]
 

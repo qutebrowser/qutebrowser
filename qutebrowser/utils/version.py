@@ -343,7 +343,7 @@ def _chromium_version() -> str:
 
     Qt 5.9:  Chromium 56
     (LTS)    56.0.2924.122 (2017-01-25)
-             5.9.8: Security fixes up to 72.0.3626.121 (2019-03-01)
+             5.9.9: Security fixes up to 78.0.3904.108 (2019-11-18)
 
     Qt 5.10: Chromium 61
              61.0.3163.140 (2017-09-05)
