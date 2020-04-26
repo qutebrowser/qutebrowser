@@ -1,5 +1,6 @@
 from PyQt5.QtCore import QUrl
 
+import csv
 import os.path
 import pytest
 from adblock import Engine
@@ -58,8 +59,51 @@ def ad_blocker_factory(config_tmpdir, data_tmpdir, download_stub, config_stub):
     return factory
 
 
+def test_dataset(ad_blocker_factory):
+    """
+    In the data folder, we have a file called `adblock_dataset.tsv`, which
+    contains tuples of (url, source_url, type) in each line.
+
+    Thus, this test is only meant to catch syntax errors and the like, not
+    incorrectness in the adblocker. There are thus no assert statements.
+    """
+    def dataset_type_to_enum(type_int: int) -> ResourceType:
+        """
+        Translate
+        """
+        if type_int == 0:
+            return ResourceType.unknown
+        elif type_int == 1:
+            return ResourceType.image
+        elif type_int == 2:
+            return ResourceType.stylesheet
+        elif type_int == 3:
+            return ResourceType.media
+        elif type_int == 4:
+            return ResourceType.script
+        elif type_int == 5:
+            return ResourceType.font_resource
+        elif type_int == 6:
+            return ResourceType.xhr
+        else:
+            assert type_int == 7
+            return ResourceType.sub_frame
+
+    blocker = ad_blocker_factory()
+    populate_blocker(blocker)
+
+    dataset_path = os.path.join(THIS_DIR, "data", "adblock_dataset.tsv")
+    with open(dataset_path, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f, delimiter="\t")
+        for row in reader:
+            url = QUrl(row["url"])
+            source_url = QUrl(row["source_url"])
+            resource_type = dataset_type_to_enum(int(row["type"]))
+            blocker._is_blocked(url, source_url, resource_type)
+
+
 def test_okay_urls(ad_blocker_factory):
-    """Test if Urls to check are blocked or not by BraveAdBlocker."""
+    """Test if our set of okay are urls to check are blocked or not."""
     blocker = ad_blocker_factory()
     populate_blocker(blocker)
 
@@ -70,7 +114,7 @@ def test_okay_urls(ad_blocker_factory):
 
 
 def test_not_okay_urls(ad_blocker_factory):
-    """Test if Urls to check are blocked or not by BraveAdBlocker."""
+    """Test if our set of not-okay are urls to check are blocked or not."""
     blocker = ad_blocker_factory()
     populate_blocker(blocker)
 
