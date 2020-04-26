@@ -84,6 +84,7 @@ class BraveAdBlocker:
         _in_progress: The DownloadItems which are currently downloading.
         _done_count: How many files have been read successfully.
         _has_basedir: Whether a custom --basedir is set.
+        _cache_path: The path of the adblock engine cache file
         _engine: Brave ad-blocking engine.
     """
 
@@ -100,41 +101,50 @@ class BraveAdBlocker:
         self._cache_path = str(data_dir / "adblock-cache.dat")
         self._engine = engine
 
-    def filter_request(self, info: interceptor.Request) -> None:
-        """Block or redirect the given request if necessary."""
-        first_party_url = info.first_party_url
+    def _is_blocked(
+        self,
+        request_url: QUrl,
+        first_party_url: typing.Optional[QUrl] = None,
+        resource_type: typing.Optional[interceptor.ResourceType] = None,
+    ) -> bool:
+        """Check whether the given request is blocked."""
+        first_party_url = first_party_url
         if first_party_url is not None and not first_party_url.isValid():
             first_party_url = None
 
-        qtutils.ensure_valid(info.request_url)
+        qtutils.ensure_valid(request_url)
 
         if not config.get("content.ad_blocking.enabled", url=first_party_url):
             # Do nothing if adblocking is disabled.
-            return
+            return False
 
         result = self._engine.check_network_urls(
-            info.request_url.toString(),
+            request_url.toString(),
             first_party_url.toString() if first_party_url else "",
-            info.resource_type.name if info.resource_type else "",
+            resource_type.name if resource_type else "",
         )
 
-        if result.matched:
-            if (result.exception is not None) and (result.important is None):
-                logger.debug(
-                    "Excepting {} from being blocked by {} because of {}".format(
-                        info.request_url.toString(), result.filter, result.exception
-                    )
+        if not result.matched:
+            return False
+        if (result.exception is not None) and (result.important is None):
+            logger.debug(
+                "Excepting {} from being blocked by {} because of {}".format(
+                    request_url.toString(), result.filter, result.exception
                 )
-                return
-
-            if _is_whitelisted_url(info.request_url):
-                logger.debug(
-                    "Request to {} is whitelisted, thus not blocked".format(
-                        info.request_url.toString()
-                    )
+            )
+            return False
+        if _is_whitelisted_url(request_url):
+            logger.debug(
+                "Request to {} is whitelisted, thus not blocked".format(
+                    request_url.toString()
                 )
-                return
+            )
+            return False
+        return True
 
+    def filter_request(self, info: interceptor.Request) -> None:
+        """Block the given request if necessary."""
+        if self._is_blocked(info.request_url, info.first_party_url, info.resource_type):
             logger.info(
                 "Request to {} blocked by ad blocker.".format(
                     info.request_url.toString()
