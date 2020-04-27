@@ -246,7 +246,7 @@ def main() -> None:
     utils.change_cwd()
 
     if (args.pyqt_version != 'auto' and
-          args.pyqt_type not in ['binary', 'source']):
+            args.pyqt_type not in ['binary', 'source']):
         utils.print_error('The --pyqt-version option is only available when '
                           'installing PyQt from binary or source')
         sys.exit(1)
