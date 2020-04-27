@@ -29,6 +29,8 @@ from qutebrowser.utils import utils, qtutils, usertypes
 
 @pytest.fixture
 def caret(web_tab, qtbot, mode_manager):
+    web_tab.container.expose()
+
     with qtbot.wait_signal(web_tab.load_finished):
         web_tab.load_url(QUrl('qute://testdata/data/caret.html'))
 
@@ -61,8 +63,12 @@ class Selection:
                     selection = selection.strip()
                 assert selection == expected
                 return
+            elif not selection and not expected:
+                return
 
             self._qtbot.wait(50)
+
+        assert False, 'Failed to get selection!'
 
     def check_multiline(self, expected, *, strip=False):
         self.check(textwrap.dedent(expected).strip(), strip=strip)
@@ -287,17 +293,6 @@ def test_drop_selection(caret, selection):
 
 class TestSearch:
 
-    @pytest.fixture(autouse=True)
-    def expose(self, web_tab):
-        """Expose the web view if needed.
-
-        With QtWebEngine 5.13 on macOS/Windows, searching fails (callback
-        called with False) when the view isn't exposed.
-        """
-        if qtutils.version_check('5.13') and not utils.is_linux:
-            web_tab.container.expose()
-        web_tab.show()
-
     # https://bugreports.qt.io/browse/QTBUG-60673
 
     @pytest.mark.qtbug60673
@@ -339,15 +334,6 @@ class TestFollowSelected:
     @pytest.fixture(params=[True, False], autouse=True)
     def toggle_js(self, request, config_stub):
         config_stub.val.content.javascript.enabled = request.param
-
-    @pytest.fixture(autouse=True)
-    def expose(self, web_tab):
-        """Expose the web view if needed.
-
-        On QtWebKit, or Qt < 5.11 and > 5.12 on QtWebEngine, we need to
-        show the tab for selections to work properly.
-        """
-        web_tab.container.expose()
 
     def test_follow_selected_without_a_selection(self, qtbot, caret, selection, web_tab,
                                                  mode_manager):
