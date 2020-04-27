@@ -366,7 +366,8 @@ def _chromium_version() -> str:
              5.14.2: Security fixes up to 80.0.3987.132 (2020-03-03)
 
     Qt 5.15: Chromium 80
-             80.0.3987.136 (~2020-03-09)
+             80.0.3987.163 (2020-04-02)
+             5.15.0: Security fixes up to 81.0.4044.122 (2020-04-21)
 
     Also see https://www.chromium.org/developers/calendar
     and https://chromereleases.googleblog.com/
