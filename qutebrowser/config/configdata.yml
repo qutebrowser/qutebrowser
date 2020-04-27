@@ -638,6 +638,14 @@ content.suspender.timeout:
     maxval: maxint
   desc: Timeout (in seconds) for discarding inactive tabs.
 
+content.suspender.max_active_tabs:
+  default: 6
+  type:
+    name: Int
+    minval: 1
+    maxval: maxint
+  desc: Max number of active tabs.
+
 content.hyperlink_auditing:
   default: false
   type: Bool

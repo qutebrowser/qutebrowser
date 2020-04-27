@@ -38,7 +38,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            cookies, webenginedownloads,
                                            webenginesettings, certificateerror)
-from qutebrowser.misc import miscwidgets, objects
+from qutebrowser.misc import miscwidgets, objects, suspender
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, objreg, jinja, debug)
 from qutebrowser.qt import sip
@@ -1305,13 +1305,7 @@ class WebEngineTab(browsertab.AbstractTab):
     def discard_tab(self) -> None:
         page = self._widget.page()
         if not page.isVisible():
-            page.setLifecycleState(page.LifecycleState.Discarded)
-            self.stop_suspender_timer()
-            # change tabbar icon
-            self.indicator_color_restore = self.get_indicator_color()
-            self.set_indicator_color(config.instance.get(
-                                        "colors.suspender.discarded"))
-            log.webview.debug("Tab #{} discard".format(repr(self.tab_id)))
+            suspender.suspender.discard(self)
 
     def _set_widget(self, widget):
         # pylint: disable=protected-access
