@@ -2587,6 +2587,11 @@ colors.webpage.bg:
   desc: "Background color for webpages if unset (or empty to use the theme's
     color)."
 
+colors.suspender.discarded:
+  default: black
+  type: QtColor
+  desc: Color for the indicator of discarded tab.
+
 colors.webpage.force_dark_color_scheme:
   renamed: colors.webpage.prefers_color_scheme_dark
 

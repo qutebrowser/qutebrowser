@@ -1273,21 +1273,44 @@ class WebEngineTab(browsertab.AbstractTab):
 
         self.suspender_timer = QTimer()
         self.suspender_timer.timeout.connect(self.discard_tab)
+        self.indicator_color_restore = None
 
     def start_suspender_timer(self):
         if config.instance.get("content.suspender.enabled"):
             self.suspender_timer.start(
                 config.instance.get("content.suspender.timeout") * 1000)
 
+    def _get_tabwidget(self):
+        # somehow the parent became PyQt5.QtWidgets.QStackedWidget
+        tabwidget = self.parent().parent()
+        return tabwidget
+
+    def get_indicator_color(self):
+        tabwidget = self._get_tabwidget()
+        idx = tabwidget.indexOf(self)
+        tabwidget.tab_indicator_color(idx)
+
+    def set_indicator_color(self, color):
+        tabwidget = self._get_tabwidget()
+        idx = tabwidget.indexOf(self)
+        tabwidget.set_tab_indicator_color(idx, color)
+
     def stop_suspender_timer(self):
         if config.instance.get("content.suspender.enabled"):
             self.suspender_timer.stop()
+            # restore indicator color
+            if self.indicator_color_restore:
+                self.set_indicator_color(self.indicator_color_restore)
 
     def discard_tab(self) -> None:
         page = self._widget.page()
         if not page.isVisible():
             page.setLifecycleState(page.LifecycleState.Discarded)
             self.stop_suspender_timer()
+            # change tabbar icon
+            self.indicator_color_restore = self.get_indicator_color()
+            self.set_indicator_color(config.instance.get(
+                                        "colors.suspender.discarded"))
             log.webview.debug("Tab #{} discard".format(repr(self.tab_id)))
 
     def _set_widget(self, widget):
