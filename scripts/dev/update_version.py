@@ -52,11 +52,15 @@ if __name__ == "__main__":
     parser.add_argument('bump', action="store",
                         choices=["major", "minor", "patch"],
                         help="Update release version")
+    parser.add_argument('--commands', action="store_true",
+                        help="Only show commands to run post-release.")
     args = parser.parse_args()
 
     utils.change_cwd()
-    bump_version(args.bump)
-    show_commit()
+
+    if not args.commands:
+        bump_version(args.bump)
+        show_commit()
 
     import qutebrowser
     version = qutebrowser.__version__
