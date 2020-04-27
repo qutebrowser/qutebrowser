@@ -195,7 +195,7 @@ class TestStandardDir:
         monkeypatch.setenv('XDG_RUNTIME_DIR', str(tmpdir / 'does-not-exist'))
         monkeypatch.setenv('TMPDIR', str(tmpdir_env))
 
-        standarddir._init_dirs()
+        standarddir._init_runtime(args=None)
         assert standarddir.runtime() == str(tmpdir_env / APPNAME)
 
     @pytest.mark.fake_os('windows')
