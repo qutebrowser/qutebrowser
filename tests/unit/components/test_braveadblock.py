@@ -19,6 +19,8 @@
 
 import csv
 import os.path
+from typing import Tuple, List
+from shutil import copy
 
 from PyQt5.QtCore import QUrl
 
@@ -60,14 +62,41 @@ NOT_OKAY_URLS = [
         "https://pagead2.googlesyndication.com/pcs/activeview?xai=AKAOjsvBN5MuZsVQyE7HD18bD-JjK589TD3zkugwCoLE2C5nP26WFNCQb8WwxzZTelPEHwwnhaOCsGxYc8WeFgYZLReqLYl8r9BtAQ6r83OHa04&sig=Cg0ArKJSzKMgXuVbXAD1EAE&adk=1473563476&tt=-1&bs=1431%2C473&mtos=120250,120250,120250,120250,120250&tos=120250,0,0,0,0&p=60,352,150,1080&mcvt=120250&rs=0&ht=0&tfs=5491&tls=125682&mc=1&lte=0&bas=0&bac=0&if=1&met=ie&avms=nio&exg=1&md=2&btr=0&lm=2&rst=1587887205533&dlt=226&rpt=1849&isd=0&msd=0&ext&xdi=0&ps=1431%2C7860&ss=1440%2C810&pt=-1&bin=4&deb=1-0-0-1192-5-1191-1191-0-0-0&tvt=125678&is=728%2C90&iframe_loc=https%3A%2F%2Ftpc.googlesyndication.com%2Fsafeframe%2F1-0-37%2Fhtml%2Fcontainer.html&r=u&id=osdtos&vs=4&uc=1192&upc=1&tgt=DIV&cl=1&cec=1&wf=0&cac=1&cd=0x0&itpl=19&v=20200422",
         "https://google.com",
         ResourceType.image,
-    )
+    ),
+    (
+        "https://e.deployads.com/e/myanimelist.net",
+        "https://myanimelist.net",
+        ResourceType.xhr,
+    ),
+    (
+        "https://c.amazon-adsystem.com/aax2/apstag.js",
+        "https://www.reddit.com",
+        ResourceType.script,
+    ),
+    (
+        "https://c.aaxads.com/aax.js?pub=AAX763KC6&hst=www.reddit.com&ver=1.2",
+        "https://www.reddit.com",
+        ResourceType.script,
+    ),
+    (
+        "https://pixel.mathtag.com/sync/img/?mt_exid=10009&mt_exuid=&mm_bnc&mm_bct&UUID=c7b65ea6-76cc-4700-b0c7-6dbcd10820ed",
+        "https://damndelicious.net/2019/04/03/easy-slow-cooker-chili/",
+        ResourceType.image,
+    ),
 ]
 
 
-def populate_blocker(blocker: BraveAdBlocker) -> None:
+def create_easylist_easyprivacy(directory) -> List[QUrl]:
+    """Copy the easyprivacy and easylist blocklists into the given dir."""
+    urls = []
     for blocklist in ["easyprivacy.txt", "easylist.txt"]:
-        blocklist_path = os.path.join(THIS_DIR, "data", blocklist)
-        blocker._import_local(blocklist_path)
+        bl_src_path = os.path.join(THIS_DIR, "data", blocklist)
+        bl_dst_path = os.path.join(directory, blocklist)
+        assert not os.path.isfile(bl_dst_path)
+        copy(bl_src_path, bl_dst_path)
+        assert os.path.isfile(bl_dst_path)
+        urls.append(QUrl.fromLocalFile(bl_dst_path).toString())
+    return urls
 
 
 @pytest.fixture
@@ -79,7 +108,41 @@ def ad_blocker_factory(config_tmpdir, data_tmpdir, download_stub, config_stub):
     return factory
 
 
-def test_dataset(ad_blocker_factory):
+def assert_urls(
+    ad_blocker: BraveAdBlocker,
+    urls: Tuple[str, str, ResourceType],
+    should_be_blocked: bool,
+) -> None:
+    for (str_url, source_str_url, request_type) in urls:
+        url = QUrl(str_url)
+        source_url = QUrl(source_str_url)
+        if should_be_blocked:
+            assert ad_blocker._is_blocked(url, source_url, request_type)
+        else:
+            assert not ad_blocker._is_blocked(url, source_url, request_type)
+
+
+@pytest.mark.parametrize(
+    "blocking_enabled, should_be_blocked", [(True, True), (False, False)]
+)
+def test_blocking_enabled(
+    config_stub, tmpdir, caplog, ad_blocker_factory, blocking_enabled, should_be_blocked
+):
+    """Tests that the ads are blocked when the adblocker is enabled, and vice versa."""
+    config_stub.val.content.ad_blocking.lists = create_easylist_easyprivacy(tmpdir)
+    config_stub.val.content.ad_blocking.enabled = blocking_enabled
+
+    ad_blocker = ad_blocker_factory()
+    ad_blocker.adblock_update()
+    while ad_blocker._in_progress:
+        current_download = ad_blocker._in_progress[0]
+        with caplog.at_level(logging.ERROR):
+            current_download.successful = True
+            current_download.finished.emit()
+    assert_urls(ad_blocker, NOT_OKAY_URLS, should_be_blocked)
+
+
+def test_dataset(ad_blocker_factory, tmpdir, config_stub):
     """Run the ad-blocking logic on a bunch of urls.
 
     In the data folder, we have a file called `adblock_dataset.tsv`, which
@@ -110,8 +173,11 @@ def test_dataset(ad_blocker_factory):
             assert type_int == 7
             return ResourceType.sub_frame
 
+    config_stub.val.content.ad_blocking.lists = create_easylist_easyprivacy(tmpdir)
+    config_stub.val.content.ad_blocking.enabled = True
+
     blocker = ad_blocker_factory()
-    populate_blocker(blocker)
+    blocker.adblock_update()
 
     dataset_path = os.path.join(THIS_DIR, "data", "adblock_dataset.tsv")
     with open(dataset_path, "r", encoding="utf-8") as f:
@@ -121,25 +187,3 @@ def test_dataset(ad_blocker_factory):
             source_url = QUrl(row["source_url"])
             resource_type = dataset_type_to_enum(int(row["type"]))
             blocker._is_blocked(url, source_url, resource_type)
-
-
-def test_okay_urls(ad_blocker_factory):
-    """Test if our set of okay are urls to check are blocked or not."""
-    blocker = ad_blocker_factory()
-    populate_blocker(blocker)
-
-    for (str_url, source_str_url, request_type) in OKAY_URLS:
-        url = QUrl(str_url)
-        source_url = QUrl(source_str_url)
-        assert not blocker._is_blocked(url, source_url, request_type)
-
-
-def test_not_okay_urls(ad_blocker_factory):
-    """Test if our set of not-okay are urls to check are blocked or not."""
-    blocker = ad_blocker_factory()
-    populate_blocker(blocker)
-
-    for (str_url, source_str_url, request_type) in NOT_OKAY_URLS:
-        url = QUrl(str_url)
-        source_url = QUrl(source_str_url)
-        assert blocker._is_blocked(url, source_url, request_type)
