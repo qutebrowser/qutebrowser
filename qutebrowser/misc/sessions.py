@@ -69,7 +69,7 @@ def init(parent=None):
             qtutils.version_check('5.15', compiled=False)):
         os.mkdir(backup_path)
         for filename in glob.glob(os.path.join(base_path, '*.yml')):
-           shutil.copy(filename, backup_path)
+            shutil.copy(filename, backup_path)
 
     try:
         os.mkdir(base_path)
