@@ -112,24 +112,6 @@ def pip_install(venv_dir: pathlib.Path, *args: str) -> None:
     run_venv(venv_dir, 'python', '-m', 'pip', 'install', *args)
 
 
-def show_tox_error(pyqt_type: str) -> None:
-    """DIsplay an error when invoked from tox."""
-    if pyqt_type == 'link':
-        env = 'mkvenv'
-        args = ' --pyqt-type link'
-    elif pyqt_type == 'binary':
-        env = 'mkvenv-pypi'
-        args = ''
-    else:
-        raise AssertionError
-
-    print()
-    utils.print_error('tox -e {} is deprecated. '
-                      'Please use "python3 scripts/mkvenv.py{}" instead.'
-                      .format(env, args))
-    print()
-
-
 def delete_old_venv(venv_dir: pathlib.Path) -> None:
     """Remove an existing virtualenv directory."""
     if not venv_dir.exists():
@@ -263,10 +245,7 @@ def main() -> None:
     wheels_dir = pathlib.Path(args.pyqt_wheels_dir)
     utils.change_cwd()
 
-    if args.tox_error:
-        show_tox_error(args.pyqt_type)
-        sys.exit(1)
-    elif (args.pyqt_version != 'auto' and
+    if (args.pyqt_version != 'auto' and
           args.pyqt_type not in ['binary', 'source']):
         utils.print_error('The --pyqt-version option is only available when '
                           'installing PyQt from binary or source')

@@ -18,7 +18,16 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v1.12.0 (unreleased)
 --------------------
 
-No changes yet.
+Removed
+~~~~~~~
+
+- `tox -e mkvenv` which was deprecated in qutebrowser v1.10.0 is now
+  removed. Use the `mkvenv.py` script instead.
+- Support for using `config.bind(key, None)` in `config.py` to unbind a
+  key was deprecated in v1.8.2 and is now removed. Use
+  `config.unbind(key)` instead.
+- `:yank markdown` was deprecated in v1.7.0 and is now removed. Use
+  `:yank inline [{title}]({url})` instead.
 
 v1.11.1 (unreleased)
 --------------------

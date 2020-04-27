@@ -645,7 +645,7 @@ class CommandDispatcher:
 
     def _yank_url(self, what):
         """Helper method for yank() to get the URL to copy."""
-        assert what in ['url', 'pretty-url', 'markdown'], what
+        assert what in ['url', 'pretty-url'], what
         flags = QUrl.RemovePassword
         if what == 'pretty-url':
             flags |= QUrl.DecodeReserved  # type: ignore
@@ -665,8 +665,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('what', choices=['selection', 'url', 'pretty-url',
-                                        'title', 'domain', 'markdown',
-                                        'inline'])
+                                        'title', 'domain', 'inline'])
     def yank(self, what='url', inline=None,
              sel=False, keep=False, quiet=False):
         """Yank (copy) something to the clipboard or primary selection.
@@ -679,8 +678,6 @@ class CommandDispatcher:
                 - `title`: The current page's title.
                 - `domain`: The current scheme, domain, and port number.
                 - `selection`: The selection under the cursor.
-                - `markdown`: Yank title and URL in markdown format
-                  (deprecated, use `:yank inline [{title}]({url})` instead).
                 - `inline`: Yank the text contained in the 'inline' argument.
 
             sel: Use the primary selection instead of the clipboard.
@@ -712,14 +709,6 @@ class CommandDispatcher:
             caret = self._current_widget().caret
             caret.selection(callback=_selection_callback)
             return
-        elif what == 'markdown':
-            message.warning(":yank markdown is deprecated, use `:yank inline "
-                            "[{title}]({url})` instead.")
-            idx = self._current_index()
-            title = self._tabbed_browser.widget.page_title(idx)
-            url = self._yank_url(what)
-            s = '[{}]({})'.format(title, url)
-            what = 'markdown URL'  # For printing
         else:  # pragma: no cover
             raise ValueError("Invalid value {!r} for `what'.".format(what))
 
