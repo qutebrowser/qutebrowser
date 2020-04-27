@@ -60,17 +60,18 @@ def ad_blocker_factory(config_tmpdir, data_tmpdir, download_stub, config_stub):
 
 
 def test_dataset(ad_blocker_factory):
-    """
-    In the data folder, we have a file called `adblock_dataset.tsv`, which
-    contains tuples of (url, source_url, type) in each line.
+    """Run the ad-blocking logic on a bunch of urls.
 
-    Thus, this test is only meant to catch syntax errors and the like, not
+    In the data folder, we have a file called `adblock_dataset.tsv`, which
+    contains tuples of (url, source_url, type) in each line. We run these
+    through the ad blocker to see if we get any exceptions.
+
+    This test is only meant to catch syntax errors and the like, not
     incorrectness in the adblocker. There are thus no assert statements.
     """
+
     def dataset_type_to_enum(type_int: int) -> ResourceType:
-        """
-        Translate
-        """
+        """Translate the dataset's encoding of a resource type to Qutebrowser's."""
         if type_int == 0:
             return ResourceType.unknown
         elif type_int == 1:

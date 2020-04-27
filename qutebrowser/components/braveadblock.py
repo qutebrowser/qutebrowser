@@ -42,7 +42,7 @@ from qutebrowser.api.interceptor import ResourceType
 
 
 logger = logging.getLogger("misc")
-_ad_blocker = typing.cast(typing.Optional['BraveAdBlocker'], None)
+_ad_blocker = typing.cast(typing.Optional["BraveAdBlocker"], None)
 
 
 def _is_whitelisted_url(url: QUrl) -> bool:
@@ -65,31 +65,33 @@ def _is_whitelisted_url(url: QUrl) -> bool:
     return False
 
 
+MAP_FROM_RESOURCE_TYPE_TO_STRING = {
+    ResourceType.main_frame: "main_frame",
+    ResourceType.sub_frame: "sub_frame",
+    ResourceType.stylesheet: "stylesheet",
+    ResourceType.script: "script",
+    ResourceType.image: "image",
+    ResourceType.font_resource: "font",
+    ResourceType.sub_resource: "sub_frame",
+    ResourceType.object: "object",
+    ResourceType.media: "media",
+    ResourceType.worker: "other",
+    ResourceType.shared_worker: "other",
+    ResourceType.prefetch: "other",
+    ResourceType.favicon: "image",
+    ResourceType.xhr: "xhr",
+    ResourceType.ping: "ping",
+    ResourceType.service_worker: "other",
+    ResourceType.csp_report: "csp_report",
+    ResourceType.plugin_resource: "other",
+    ResourceType.preload_main_frame: "other",
+    ResourceType.preload_sub_frame: "other",
+    ResourceType.unknown: "other",
+}
+
+
 def resource_type_to_string(resource_type: ResourceType) -> str:
-    MAP = {
-        ResourceType.main_frame: "main_frame",
-        ResourceType.sub_frame: "sub_frame",
-        ResourceType.stylesheet: "stylesheet",
-        ResourceType.script: "script",
-        ResourceType.image: "image",
-        ResourceType.font_resource: "font",
-        ResourceType.sub_resource: "sub_frame",
-        ResourceType.object: "object",
-        ResourceType.media: "media",
-        ResourceType.worker: "other",
-        ResourceType.shared_worker: "other",
-        ResourceType.prefetch: "other",
-        ResourceType.favicon: "image",
-        ResourceType.xhr: "xhr",
-        ResourceType.ping: "ping",
-        ResourceType.service_worker: "other",
-        ResourceType.csp_report: "csp_report",
-        ResourceType.plugin_resource: "other",
-        ResourceType.preload_main_frame: "other",
-        ResourceType.preload_sub_frame: "other",
-        ResourceType.unknown: "other",
-    }
-    return MAP.get(resource_type, "other")
+    return MAP_FROM_RESOURCE_TYPE_TO_STRING.get(resource_type, "other")
 
 
 # TODO: Move this code somewhere so that `adblock.py` can make use of it too.

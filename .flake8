@@ -37,6 +37,7 @@ exclude = .*,__pycache__,resources.py
 #       (numpy-style)
 # D413: Missing blank line after last section (not in pep257?)
 # A003: Builtin name for class attribute (needed for overridden methods)
+# W503: like break before binary operator
 # W504: line break after binary operator
 ignore =
     B001,B008,B305,
@@ -46,7 +47,7 @@ ignore =
     P101,P102,P103,
     D102,D103,D106,D107,D104,D105,D209,D211,D401,D402,D403,D412,D413,
     A003,
-    W504
+    W503, W504
 min-version = 3.4.0
 max-complexity = 12
 per-file-ignores =
