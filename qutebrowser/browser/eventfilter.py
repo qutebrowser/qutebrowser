@@ -169,7 +169,6 @@ class TabEventFilter(QObject):
             return True
 
         elif e.modifiers() & Qt.ControlModifier:
-            mode = modeman.instance(self._tab.win_id).mode
             if mode == usertypes.KeyMode.passthrough:
                 return False
 
