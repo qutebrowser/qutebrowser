@@ -622,6 +622,22 @@ content.host_blocking.whitelist:
 
     Local domains are always exempt from hostblocking.
 
+content.suspender.enabled:
+  default: false
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: true
+  type: Bool
+  desc: Enable automatically suspending tabs to reduce memory consumption.
+
+content.suspender.timeout:
+  default: 600
+  type:
+    name: Int
+    minval: 1
+    maxval: maxint
+  desc: Timeout (in seconds) for discarding inactive tabs.
+
 content.hyperlink_auditing:
   default: false
   type: Bool

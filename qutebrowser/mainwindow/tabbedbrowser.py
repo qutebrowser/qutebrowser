@@ -845,8 +845,22 @@ class TabbedBrowser(QWidget):
             modeman.enter(self._win_id, tab.data.input_mode, 'restore')
         if self._now_focused is not None:
             self.tab_deque.on_switch(self._now_focused)
+            # start suspender timer for previous focused tab
+            # only support QtWebEngine >= 5.14
+            try:
+                self._now_focused.start_suspender_timer()
+            except AttributeError:
+                pass
+
         log.modes.debug("Mode after tab change: {} (mode_on_change = {})"
                         .format(current_mode.name, mode_on_change))
+
+        # stop suspender timer for now focused tab
+        try:
+            tab.stop_suspender_timer()
+        except AttributeError:
+            pass
+
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
         QTimer.singleShot(0, self._update_window_title)

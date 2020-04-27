@@ -1271,6 +1271,25 @@ class WebEngineTab(browsertab.AbstractTab):
         self._reload_url = None  # type: typing.Optional[QUrl]
         self._scripts.init()
 
+        self.suspender_timer = QTimer()
+        self.suspender_timer.timeout.connect(self.discard_tab)
+
+    def start_suspender_timer(self):
+        if config.instance.get("content.suspender.enabled"):
+            self.suspender_timer.start(
+                config.instance.get("content.suspender.timeout") * 1000)
+
+    def stop_suspender_timer(self):
+        if config.instance.get("content.suspender.enabled"):
+            self.suspender_timer.stop()
+
+    def discard_tab(self) -> None:
+        page = self._widget.page()
+        if not page.isVisible():
+            page.setLifecycleState(page.LifecycleState.Discarded)
+            self.stop_suspender_timer()
+            log.webview.debug("Tab #{} discard".format(repr(self.tab_id)))
+
     def _set_widget(self, widget):
         # pylint: disable=protected-access
         super()._set_widget(widget)
