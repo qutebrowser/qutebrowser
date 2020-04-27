@@ -83,7 +83,7 @@ def qlocalsocket(qapp):
 @pytest.fixture(autouse=True)
 def fake_runtime_dir(monkeypatch, short_tmpdir):
     monkeypatch.setenv('XDG_RUNTIME_DIR', str(short_tmpdir))
-    standarddir._init_dirs()
+    standarddir._init_runtime(args=None)
     return short_tmpdir
 
 
