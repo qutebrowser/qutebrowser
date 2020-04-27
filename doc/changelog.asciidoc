@@ -50,6 +50,7 @@ Changed
   Chromium. To revert to the old behavior, use `{quoted}` instead.
 - The `content.windowed_fullscreen` setting got renamed to
   `content.fullscreen.window`.
+- Mouse-wheel scrolling is now prevented while hints are active.
 - Changes to userscripts:
   * `qute-bitwarden` now has an optional `--totp` flag which can be used
     to copy TOTP codes to clipboard (requires the `pyperclip` module).
