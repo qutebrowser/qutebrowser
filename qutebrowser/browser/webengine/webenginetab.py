@@ -645,6 +645,12 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
         qtutils.deserialize(data, self._history)
 
     def load_items(self, items):
+        if qtutils.version_check('5.15', compiled=False):
+            # WORKAROUND for https://github.com/qutebrowser/qutebrowser/issues/5359
+            if items:
+                self._tab.load_url(items[-1].url)
+            return
+
         if items:
             self._tab.before_load_started.emit(items[-1].url)
 

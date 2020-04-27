@@ -47,7 +47,7 @@ import qutebrowser
 from qutebrowser.browser import pdfjs, downloads, history
 from qutebrowser.config import config, configdata, configexc, configdiff
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
-                               objreg, urlutils)
+                               objreg, urlutils, standarddir)
 from qutebrowser.qt import sip
 
 
@@ -576,6 +576,11 @@ def qute_warning(url):
     elif path == '/webkit':
         src = jinja.render('warning-webkit.html',
                            title='QtWebKit backend warning')
+    elif path == '/sessions':
+        src = jinja.render('warning-sessions.html',
+                           title='Qt 5.15 sessions warning',
+                           datadir=standarddir.data(),
+                           sep=os.sep)
     else:
         raise NotFoundError("Invalid warning page {}".format(path))
     return 'text/html', src

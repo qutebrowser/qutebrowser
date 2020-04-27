@@ -336,6 +336,10 @@ def _open_special_pages(args):
         ('old-qt-warning-shown',
          not qtutils.version_check('5.11'),
          'qute://warning/old-qt'),
+
+        ('session-warning-shown',
+         qtutils.version_check('5.15', compiled=False),
+         'qute://warning/sessions'),
     ]
 
     for state, condition, url in pages:

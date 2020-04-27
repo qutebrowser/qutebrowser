@@ -24,6 +24,8 @@ import os.path
 import itertools
 import urllib
 import typing
+import glob
+import shutil
 
 from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer, pyqtSlot
 from PyQt5.QtWidgets import QApplication
@@ -59,6 +61,16 @@ def init(parent=None):
         parent: The parent to use for the SessionManager.
     """
     base_path = os.path.join(standarddir.data(), 'sessions')
+
+    # WORKAROUND for https://github.com/qutebrowser/qutebrowser/issues/5359
+    backup_path = os.path.join(base_path, 'before-qt-515')
+    if (os.path.exists(base_path) and
+            not os.path.exists(backup_path) and
+            qtutils.version_check('5.15', compiled=False)):
+        os.mkdir(backup_path)
+        for filename in glob.glob(os.path.join(base_path, '*.yml')):
+           shutil.copy(filename, backup_path)
+
     try:
         os.mkdir(base_path)
     except FileExistsError:

@@ -40,6 +40,8 @@ Added
 Changed
 ~~~~~~~
 
+- First adaptions to Qt 5.15, including a stop-gap measure for session loading
+  not working properly with it.
 - Searching now wraps around the page by default with QtWebKit (where it didn't
   before). Set `search.wrap` to `false` to restore the old behavior.
 - The `{}` placeholder for search engines (the `url.searchengines` setting) now
@@ -58,7 +60,6 @@ Changed
     data.
 - The `dictcli.py` script now shows better error messages.
 - Various improvements to the `mkvenv.py` script (mainly useful for development).
-- First adoptions to Qt 5.15.
 - Minor performance improvements.
 
 Deprecated
