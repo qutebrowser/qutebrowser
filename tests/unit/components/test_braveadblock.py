@@ -148,6 +148,49 @@ def test_blocking_enabled(
             current_download.successful = True
             current_download.finished.emit()
     assert_urls(ad_blocker, NOT_OKAY_URLS, should_be_blocked)
+    assert_urls(ad_blocker, OKAY_URLS, False)
+
+
+def test_adblock_cache(config_stub, tmpdir, caplog, ad_blocker_factory):
+    config_stub.val.content.ad_blocking.lists = create_easylist_easyprivacy(tmpdir)
+    config_stub.val.content.ad_blocking.enabled = True
+
+    ad_blocker = ad_blocker_factory()
+    for i in range(3):
+        print("At cache test iteration {}".format(i))
+        # Trying to read the cache before calling the update command should return
+        # a log message.
+        with caplog.at_level(logging.INFO):
+            ad_blocker.read_cache()
+        caplog.messages[-1].startswith(
+            "Run :brave-adblock-update to get adblock lists."
+        )
+
+        if i == 0:
+            # We haven't initialized the ad blocker yet, so we shouldn't be blocking
+            # anything.
+            assert_urls(ad_blocker, NOT_OKAY_URLS + OKAY_URLS, False)
+
+        # Now we initialize the adblocker.
+        ad_blocker.adblock_update()
+        while ad_blocker._in_progress:
+            current_download = ad_blocker._in_progress[0]
+            with caplog.at_level(logging.ERROR):
+                current_download.successful = True
+                current_download.finished.emit()
+
+        # After initializing the the adblocker, we should start seeing ads
+        # blocked.
+        assert_urls(ad_blocker, NOT_OKAY_URLS, True)
+        assert_urls(ad_blocker, OKAY_URLS, False)
+
+        # After reading the cache, we should still be seeing ads blocked.
+        ad_blocker.read_cache()
+        assert_urls(ad_blocker, NOT_OKAY_URLS, True)
+        assert_urls(ad_blocker, OKAY_URLS, False)
+
+        # Now we remove the cache file and try all over again...
+        os.remove(ad_blocker._cache_path)
 
 
 def test_invalid_utf8(ad_blocker_factory, config_stub, tmpdir, caplog):
