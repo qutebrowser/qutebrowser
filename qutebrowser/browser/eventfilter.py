@@ -162,8 +162,13 @@ class TabEventFilter(QObject):
             # See https://github.com/qutebrowser/qutebrowser/issues/395
             self._ignore_wheel_event = False
             return True
+
+        # Don't allow scrolling while hinting
+        mode = modeman.instance(self._tab.win_id).mode
+        if mode == usertypes.KeyMode.hint:
+            return True
+
         elif e.modifiers() & Qt.ControlModifier:
-            mode = modeman.instance(self._tab.win_id).mode
             if mode == usertypes.KeyMode.passthrough:
                 return False
 
