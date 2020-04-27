@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import csv
 import os.path
 from typing import Tuple, List
@@ -86,7 +87,14 @@ NOT_OKAY_URLS = [
 ]
 
 
-def create_easylist_easyprivacy(directory) -> List[QUrl]:
+def create_blocklist_invalid_utf8(directory) -> str:
+    dest_path = os.path.join(directory, "invalid_utf8.txt")
+    with open(dest_path, "wb") as f:
+        f.write(b"invalidutf8\xa0")
+    return QUrl.fromLocalFile(dest_path).toString()
+
+
+def create_easylist_easyprivacy(directory) -> List[str]:
     """Copy the easyprivacy and easylist blocklists into the given dir."""
     urls = []
     for blocklist in ["easyprivacy.txt", "easylist.txt"]:
@@ -140,6 +148,18 @@ def test_blocking_enabled(
             current_download.successful = True
             current_download.finished.emit()
     assert_urls(ad_blocker, NOT_OKAY_URLS, should_be_blocked)
+
+
+def test_invalid_utf8(ad_blocker_factory, config_stub, tmpdir, caplog):
+    """Test that the adblocker handles invalid utf-8 correctly."""
+    config_stub.val.content.ad_blocking.lists = [create_blocklist_invalid_utf8(tmpdir)]
+    config_stub.val.content.ad_blocking.enabled = True
+
+    ad_blocker = ad_blocker_factory()
+    with caplog.at_level(logging.INFO):
+        ad_blocker.adblock_update()
+    expected = "Block list is not valid utf-8"
+    assert caplog.messages[-2].startswith(expected)
 
 
 def test_dataset(ad_blocker_factory, tmpdir, config_stub):
