@@ -42,7 +42,7 @@ from qutebrowser.api.interceptor import ResourceType
 
 
 logger = logging.getLogger("misc")
-_host_blocker = typing.cast("HostBlocker", None)
+_ad_blocker = typing.cast(typing.Optional['BraveAdBlocker'], None)
 
 
 def _is_whitelisted_url(url: QUrl) -> bool:
@@ -119,7 +119,14 @@ class BraveAdBlocker:
     def __init__(
         self,
         *,
-        engine: "adblock.Engine",
+        # FIXME: This type should be `adblock.Engine`. I don't know how to
+        # annotate it in such a way that mypy doesn't complain about it being
+        # undefined, since `adblock` is an optional dependency:
+        # ```
+        # qutebrowser/components/braveadblock.py:125: error: Name 'adblock' is not defined  [name-defined]
+        #    engine: "adblock.Engine",
+        # ```
+        engine: typing.Any,
         data_dir: pathlib.Path,
         has_basedir: bool = False
     ) -> None:
