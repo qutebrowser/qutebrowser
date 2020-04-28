@@ -47,7 +47,7 @@ class Suspender:
         return count
 
     def should_discard(self, tab):
-        return config.instance.get("content.suspender.max_active_tabs") > \
+        return config.instance.get("content.suspender.max_active_tabs") < \
                    self.total_active_tabs() \
                 and not tab.data.pinned \
                 and not tab.data.fullscreen \
