@@ -1304,19 +1304,18 @@ class WebEngineTab(browsertab.AbstractTab):
             self.set_indicator_color(self.indicator_color_restore)
 
     def discard_tab(self) -> None:
-        """discard an inactive tab
+        """Try to discard a tab.
 
         If the tab isn't discarded, the timer will try to discard the tab next
         time.
         """
         if suspender.suspender.discard(self):
-           self.stop_suspender_timer()
-           # change tab indicator color
-           self.indicator_color_restore = self.get_indicator_color()
-           self.set_indicator_color(config.instance.get(
-                                       "colors.suspender.discarded"))
-           log.webview.debug("Tab #{} discarded".format(repr(self.tab_id)))
-           print("Tab #{} discarded".format(repr(self.tab_id)))
+            self.stop_suspender_timer()
+            # change tab indicator color
+            self.indicator_color_restore = self.get_indicator_color()
+            self.set_indicator_color(config.instance.get(
+                "colors.suspender.discarded"))
+            log.webview.debug("Tab #{} discarded".format(repr(self.tab_id)))
 
     def _set_widget(self, widget):
         # pylint: disable=protected-access

@@ -30,6 +30,8 @@ suspender = typing.cast('Suspender', None)
 
 class Suspender:
 
+    """Automatically discard tabs."""
+
     def get_tab_page(self, tab):
         return tab._widget.page()
 
@@ -55,11 +57,11 @@ class Suspender:
 
     def should_discard(self, tab):
         return (config.instance.get("content.suspender.max_active_tabs") <
-                   self.total_active_tabs()
-                and not tab.data.pinned
-                and not tab.data.fullscreen
-                and not tab.audio.is_recently_audible()
-                and not self.in_whitelist(tab))
+                self.total_active_tabs() and not
+                tab.data.pinned and not
+                tab.data.fullscreen and not
+                tab.audio.is_recently_audible() and not
+                self.in_whitelist(tab))
 
     def start_timer(self, tab):
         if config.instance.get("content.suspender.enabled"):
@@ -77,8 +79,9 @@ class Suspender:
 
         return False
 
+
 def init():
-    """init suspender
+    """Initialize suspender.
 
     Suspender use the QWebEnginePage.LifecycleState API which is only
     supported by QtWebEngine >= 5.14.

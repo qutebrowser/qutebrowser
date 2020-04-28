@@ -852,7 +852,7 @@ class TabbedBrowser(QWidget):
         if suspender.suspender:
             suspender.suspender.stop_timer(tab)
             if self._now_focused:
-               suspender.suspender.start_timer(self._now_focused)
+                suspender.suspender.start_timer(self._now_focused)
 
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
