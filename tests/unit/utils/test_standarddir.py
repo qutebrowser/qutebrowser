@@ -573,7 +573,6 @@ def test_no_qapplication(qapp, tmpdir, monkeypatch):
     sub_code = """
         import sys
         import json
-        import os
 
         sys.path = sys.argv[1:]  # make sure we have the same python path
 
@@ -582,22 +581,35 @@ def test_no_qapplication(qapp, tmpdir, monkeypatch):
 
         assert QApplication.instance() is None
 
-        os.environ['HOME'] = r'%TMPDIR%'
         standarddir.APPNAME = 'qute_test'
         standarddir._init_dirs()
 
         locations = {k.name: v for k, v in standarddir._locations.items()}
         print(json.dumps(locations))
-    """.replace('%TMPDIR%', str(tmpdir))
+    """
     pyfile = tmpdir / 'sub.py'
     pyfile.write_text(textwrap.dedent(sub_code), encoding='ascii')
 
-    output = subprocess.run([sys.executable, str(pyfile)] + sys.path,
-                            universal_newlines=True,
-                            check=True, stdout=subprocess.PIPE).stdout
-    sub_locations = json.loads(output)
+    for name in ['CONFIG', 'DATA', 'CACHE']:
+        monkeypatch.delenv('XDG_{}_HOME'.format(name), raising=False)
 
-    monkeypatch.setenv('HOME', str(tmpdir))
+    runtime_dir = tmpdir / 'runtime'
+    runtime_dir.ensure(dir=True)
+    runtime_dir.chmod(0o0700)
+    monkeypatch.setenv('XDG_RUNTIME_DIR', str(runtime_dir))
+
+    home_dir = tmpdir / 'home'
+    home_dir.ensure(dir=True)
+    monkeypatch.setenv('HOME', str(home_dir))
+
+    env = {'HOME': str(home_dir), 'XDG_RUNTIME_DIR': str(runtime_dir)}
+    proc = subprocess.run([sys.executable, str(pyfile)] + sys.path,
+                          universal_newlines=True,
+                          check=True,
+                          stdout=subprocess.PIPE,
+                          env=env)
+    sub_locations = json.loads(proc.stdout)
+
     standarddir._init_dirs()
     locations = {k.name: v for k, v in standarddir._locations.items()}
 
