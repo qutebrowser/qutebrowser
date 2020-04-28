@@ -46,12 +46,20 @@ class Suspender:
 
         return count
 
+    def in_whitelist(self, tab):
+        url = tab.url()
+        for pattern in config.instance.get("content.suspender.whitelist"):
+            if pattern.matches(url):
+                return True
+        return False
+
     def should_discard(self, tab):
-        return config.instance.get("content.suspender.max_active_tabs") < \
-                   self.total_active_tabs() \
-                and not tab.data.pinned \
-                and not tab.data.fullscreen \
+        return (config.instance.get("content.suspender.max_active_tabs") <
+                   self.total_active_tabs()
+                and not tab.data.pinned
+                and not tab.data.fullscreen
                 and not tab.audio.is_recently_audible()
+                and not self.in_whitelist(tab))
 
     def start_timer(self, tab):
         if config.instance.get("content.suspender.enabled"):

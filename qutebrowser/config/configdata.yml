@@ -646,6 +646,16 @@ content.suspender.max_active_tabs:
     maxval: maxint
   desc: Max number of active tabs.
 
+content.suspender.whitelist:
+  default: []
+  type:
+    name: List
+    valtype: UrlPattern
+    none_ok: true
+  desc: >-
+    A list of patterns that exempt a tab from being automatically
+    discarded by the suspender.
+
 content.hyperlink_auditing:
   default: false
   type: Bool
