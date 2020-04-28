@@ -602,12 +602,10 @@ def test_no_qapplication(qapp, tmpdir, monkeypatch):
     home_dir.ensure(dir=True)
     monkeypatch.setenv('HOME', str(home_dir))
 
-    env = {'HOME': str(home_dir), 'XDG_RUNTIME_DIR': str(runtime_dir)}
     proc = subprocess.run([sys.executable, str(pyfile)] + sys.path,
                           universal_newlines=True,
                           check=True,
-                          stdout=subprocess.PIPE,
-                          env=env)
+                          stdout=subprocess.PIPE)
     sub_locations = json.loads(proc.stdout)
 
     standarddir._init_dirs()
