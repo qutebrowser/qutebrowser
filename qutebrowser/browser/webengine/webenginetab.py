@@ -1271,14 +1271,16 @@ class WebEngineTab(browsertab.AbstractTab):
         self._reload_url = None  # type: typing.Optional[QUrl]
         self._scripts.init()
 
-        self.suspender_timer = QTimer()
-        self.suspender_timer.timeout.connect(self.discard_tab)
-        self.indicator_color_restore = None
+        if suspender.suspender is not None:
+            self.suspender_timer = QTimer()
+            self.suspender_timer.timeout.connect(self.discard_tab)
+            self.indicator_color_restore = None
 
     def start_suspender_timer(self):
-        if config.instance.get("content.suspender.enabled"):
-            self.suspender_timer.start(
-                config.instance.get("content.suspender.timeout") * 1000)
+        if suspender.suspender is None:
+            return
+        self.suspender_timer.start(
+            config.instance.get("content.suspender.timeout") * 1000)
 
     def _get_tabwidget(self):
         # somehow the parent became PyQt5.QtWidgets.QStackedWidget
@@ -1296,11 +1298,10 @@ class WebEngineTab(browsertab.AbstractTab):
         tabwidget.set_tab_indicator_color(idx, color)
 
     def stop_suspender_timer(self):
-        if config.instance.get("content.suspender.enabled"):
-            self.suspender_timer.stop()
-            # restore indicator color
-            if self.indicator_color_restore:
-                self.set_indicator_color(self.indicator_color_restore)
+        self.suspender_timer.stop()
+        # restore indicator color
+        if self.indicator_color_restore:
+            self.set_indicator_color(self.indicator_color_restore)
 
     def discard_tab(self) -> None:
         """discard an inactive tab
@@ -1314,7 +1315,8 @@ class WebEngineTab(browsertab.AbstractTab):
            self.indicator_color_restore = self.get_indicator_color()
            self.set_indicator_color(config.instance.get(
                                        "colors.suspender.discarded"))
-           log.webview.debug("Tab #{} discard".format(repr(self.tab_id)))
+           log.webview.debug("Tab #{} discarded".format(repr(self.tab_id)))
+           print("Tab #{} discarded".format(repr(self.tab_id)))
 
     def _set_widget(self, widget):
         # pylint: disable=protected-access

@@ -21,9 +21,9 @@
 
 import typing
 
-from qutebrowser.utils import objreg, log
+from qutebrowser.utils import objreg, log, usertypes
 from qutebrowser.config import config
-
+from qutebrowser.misc import objects
 
 suspender = typing.cast('Suspender', None)
 
@@ -53,6 +53,14 @@ class Suspender:
                 and not tab.data.fullscreen \
                 and not tab.audio.is_recently_audible()
 
+    def start_timer(self, tab):
+        if config.instance.get("content.suspender.enabled"):
+            tab.start_suspender_timer()
+
+    def stop_timer(self, tab):
+        if config.instance.get("content.suspender.enabled"):
+            tab.stop_suspender_timer()
+
     def discard(self, tab):
         if self.should_discard(tab):
             page = self.get_tab_page(tab)
@@ -62,11 +70,14 @@ class Suspender:
         return False
 
 def init():
-    """Initialize sessions.
+    """init suspender
 
-    Args:
-        parent: The parent to use for the SessionManager.
+    Suspender use the QWebEnginePage.LifecycleState API which is only
+    supported by QtWebEngine >= 5.14.
+
     """
-
-    global suspender
-    suspender = Suspender()
+    if objects.backend == usertypes.Backend.QtWebEngine:
+        from PyQt5.QtWebEngineWidgets import QWebEnginePage
+        if hasattr(QWebEnginePage, 'LifecycleState'):
+            global suspender
+            suspender = Suspender()
