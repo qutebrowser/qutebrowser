@@ -582,7 +582,7 @@ def test_no_qapplication(qapp, tmpdir, monkeypatch):
 
         assert QApplication.instance() is None
 
-        os.environ['HOME'] = '%TMPDIR%'
+        os.environ['HOME'] = r'%TMPDIR%'
         standarddir.APPNAME = 'qute_test'
         standarddir._init_dirs()
 
