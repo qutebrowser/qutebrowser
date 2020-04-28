@@ -57,12 +57,9 @@ class Suspender:
         if self.should_discard(tab):
             page = self.get_tab_page(tab)
             page.setLifecycleState(page.LifecycleState.Discarded)
-            tab.stop_suspender_timer()
-            # change tabbar icon
-            tab.indicator_color_restore = tab.get_indicator_color()
-            tab.set_indicator_color(config.instance.get(
-                                        "colors.suspender.discarded"))
-            log.webview.debug("Tab #{} discard".format(repr(tab.tab_id)))
+            return page.lifecycleState() == page.LifecycleState.Discarded
+
+        return False
 
 def init():
     """Initialize sessions.
