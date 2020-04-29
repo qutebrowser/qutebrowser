@@ -405,8 +405,12 @@ class WebKitCaret(browsertab.AbstractCaret):
     def drop_selection(self):
         self._widget.triggerPageAction(QWebPage.MoveToNextChar)
 
-    def selection(self, callback):
-        callback(self._widget.selectedText())
+    def selection(self, callback, rich=False):
+        if rich:
+            callback(self._widget.selectedHtml())
+        else:
+            callback(self._widget.selectedText())
+
 
     def reverse_selection(self):
         self._tab.run_js_async("""{
