@@ -3103,8 +3103,10 @@ bindings.default:
       $: move-to-end-of-line
       gg: move-to-start-of-document
       G: move-to-end-of-document
-      Y: yank selection -s
-      y: yank selection
+      Yy: yank selection -s
+      yy: yank selection
+      Yh: yank selection -s --rich
+      yh: yank selection --rich
       <Return>: yank selection
       H: scroll left
       J: scroll down

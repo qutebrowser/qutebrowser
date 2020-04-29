@@ -1447,6 +1447,47 @@ window._qutebrowser.caret = (function() {
     };
 
     funcs.getSelection = () => window.getSelection().toString();
+    funcs.getSelectionHTML = () => {
+        var html = "";
+        var sel = window.getSelection();
+        if (sel.rangeCount) {
+            var container = document.createElement("div");
+            for (var i = 0, len = sel.rangeCount; i < len; ++i) {
+                var range = sel.getRangeAt(i);
+                // To copy the format, we should iterate all childnodes within
+                // the selection and their style attribute
+                if (range.commonAncestorContainer.hasChildNodes) {
+                    var elesWithinRangeParent = range.commonAncestorContainer.getElementsByTagName("*");
+                    for (var j = 0; j < elesWithinRangeParent.length; j++) {
+                        var ele = elesWithinRangeParent[j];
+                        if (range.intersectsNode(ele)) {
+                            ele.setAttribute('style', getComputedStyle(ele).cssText);
+                        }
+                    }
+                }
+
+                container.appendChild(range.cloneContents());
+            }
+            html = container.innerHTML;
+
+            // convert a's href attirbue and img's src attribute to absolute
+            // url by using object property a.href, img.src respectively
+            var parser = new DOMParser()
+            var selectedDoc = parser.parseFromString(html, "text/html");
+
+            var tags_relative = {'a': 'href', 'img': 'src'};
+            for (var key in tags_relative) {
+                var elements = selectedDoc.getElementsByTagName(key);
+                var attr = tags_relative[key];
+                for (var i = 0; i < elements.length; i++) {
+                    var ele = elements[i];
+                    ele.setAttribute(attr, ele[attr]);
+                }
+            }
+            html = selectedDoc.getElementsByTagName("body")[0].innerHTML;
+        }
+        return html;
+    }
 
     funcs.toggleSelection = (line) => {
         if (line) {

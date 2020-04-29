@@ -674,7 +674,7 @@ class CommandDispatcher:
     @cmdutils.argument('what', choices=['selection', 'url', 'pretty-url',
                                         'title', 'domain', 'inline'])
     def yank(self, what='url', inline=None,
-             sel=False, keep=False, quiet=False):
+             sel=False, rich=False, keep=False, quiet=False):
         """Yank (copy) something to the clipboard or primary selection.
 
         Args:
@@ -711,24 +711,24 @@ class CommandDispatcher:
                 if not s and not quiet:
                     message.info("Nothing to yank")
                     return
-                self._yank_to_target(s, sel, what, keep, quiet)
+                self._yank_to_target(s, sel, what, keep, quiet, rich)
 
             caret = self._current_widget().caret
-            caret.selection(callback=_selection_callback)
+            caret.selection(callback=_selection_callback, rich=rich)
             return
         else:  # pragma: no cover
             raise ValueError("Invalid value {!r} for `what'.".format(what))
 
         self._yank_to_target(s, sel, what, keep, quiet)
 
-    def _yank_to_target(self, s, sel, what, keep, quiet):
+    def _yank_to_target(self, s, sel, what, keep, quiet, rich=False):
         if sel and utils.supports_selection():
             target = "primary selection"
         else:
             sel = False
             target = "clipboard"
 
-        utils.set_clipboard(s, selection=sel)
+        utils.set_clipboard(s, selection=sel, rich=rich)
         if what != 'selection':
             if not quiet:
                 message.info("Yanked {} to {}: {}".format(what, target, s))

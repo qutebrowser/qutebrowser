@@ -460,12 +460,14 @@ class WebEngineCaret(browsertab.AbstractCaret):
     def drop_selection(self):
         self._js_call('dropSelection')
 
-    def selection(self, callback):
+    def selection(self, callback, rich=False):
         # Not using selectedText() as WORKAROUND for
         # https://bugreports.qt.io/browse/QTBUG-53134
         # Even on Qt 5.10 selectedText() seems to work poorly, see
         # https://github.com/qutebrowser/qutebrowser/issues/3523
-        self._tab.run_js_async(javascript.assemble('caret', 'getSelection'),
+        js_cmd = 'getSelectionHTML' if rich else 'getSelection'
+
+        self._tab.run_js_async(javascript.assemble('caret', js_cmd),
                                callback)
 
     def reverse_selection(self):

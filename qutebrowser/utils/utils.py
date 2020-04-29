@@ -37,7 +37,7 @@ import glob
 import mimetypes
 import typing
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QMimeData
 from PyQt5.QtGui import QColor, QClipboard, QDesktopServices
 from PyQt5.QtWidgets import QApplication
 import pkg_resources
@@ -551,7 +551,7 @@ def sanitize_filename(name: str,
     return name
 
 
-def set_clipboard(data: str, selection: bool = False) -> None:
+def set_clipboard(data: str, selection: bool = False, rich: bool = False) -> None:
     """Set the clipboard to some given data."""
     global fake_clipboard
     if selection and not supports_selection():
@@ -562,8 +562,12 @@ def set_clipboard(data: str, selection: bool = False) -> None:
         fake_clipboard = data
     else:
         mode = QClipboard.Selection if selection else QClipboard.Clipboard
-        QApplication.clipboard().setText(data, mode=mode)
-
+        if not rich:
+            QApplication.clipboard().setText(data, mode=mode)
+        else:
+            mime_data = QMimeData()
+            mime_data.setHtml(data)
+            QApplication.clipboard().setMimeData(mime_data, mode=mode)
 
 def get_clipboard(selection: bool = False, fallback: bool = False) -> str:
     """Get data from the clipboard.
