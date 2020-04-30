@@ -59,7 +59,7 @@ const HEADER = `
 </head>`;
 const scriptsDir = path.join(process.env.QUTE_DATA_DIR, 'userscripts');
 const tmpFile = path.join(scriptsDir, '/readability.html');
-const domOpts = {url: process.env.QUTE_URL, contentType: "text/html; charset=utf-8"}
+const domOpts = {url: process.env.QUTE_URL, contentType: "text/html; charset=utf-8"};
 
 if (!fs.existsSync(scriptsDir)){
     fs.mkdirSync(scriptsDir);

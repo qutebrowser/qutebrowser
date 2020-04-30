@@ -14,7 +14,6 @@ https://ocefpaf.github.io/python4oceanographers/blog/2014/05/19/doi2bibtex/
 
 import os
 import sys
-import shutil
 import re
 from collections import Counter
 from urllib import parse as url_parse

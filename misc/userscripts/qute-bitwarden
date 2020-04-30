@@ -46,10 +46,8 @@ WARNING: The login details are viewable as plaintext in qutebrowser's debug log
 
 import argparse
 import enum
-import fnmatch
 import functools
 import os
-import re
 import shlex
 import subprocess
 import sys
