@@ -41,12 +41,19 @@ class Suspender:
     def __init__(self):
         self.check_timer = QTimer()
         self.check_timer.timeout.connect(self._check_discard_tabs)
+        self._cal_timer_period()
         self._set_timer()
-        # _set_timer_timemout calls the same function as _toggle_timer.
-        # But @config.change_filter doesn't support two options.
-        # Thus we need to repeat it.
         config.instance.changed.connect(self._toggle_timer)
         config.instance.changed.connect(self._set_timer_timemout)
+
+    def _cal_timer_period(self):
+        """Calculate the timer's period.
+
+        Set the period to 1/5 of content.suspender.timeout.
+        """
+        self._tab_timeout = config.instance.get("content.suspender.timeout")
+        secs = self._tab_timeout / 5
+        self.timer_period = secs
 
     @config.change_filter('content.suspender.enabled')
     def _toggle_timer(self):
@@ -54,12 +61,12 @@ class Suspender:
 
     @config.change_filter('content.suspender.timeout')
     def _set_timer_timemout(self):
+        self._cal_timer_period()
         self._set_timer()
 
     def _set_timer(self):
         if config.instance.get("content.suspender.enabled"):
-            self.check_timer.start(config.instance.get(
-                "content.suspender.timeout") * 1000)
+            self.check_timer.start(self.timer_period * 1000)
         else:
             self.check_timer.stop()
 
@@ -84,10 +91,9 @@ class Suspender:
                 if tab is not current_tab:
                     page = tab.get_page()
                     if page.lifecycleState() != page.LifecycleState.Discarded:
-                        if tab.discard_next_cycle:
+                        tab.inactive_time += self.timer_period
+                        if tab.inactive_time > self._tab_timeout:
                             can_be_discarded.append(tab)
-                        else:
-                            tab.discard_next_cycle = True
                         active_count += 1
 
         max_active_tabs = config.instance.get(
@@ -97,7 +103,7 @@ class Suspender:
             tab = can_be_discarded.pop()
             if self.should_discard(tab) and tab.discard():
                 left -= 1
-                self.discard_next_cycle = False
+                tab.inactive_time = 0
 
     def in_whitelist(self, tab):
         """check if a tab is whitelisted."""

@@ -634,7 +634,7 @@ content.suspender.timeout:
   default: 600
   type:
     name: Int
-    minval: 1
+    minval: 10
     maxval: maxint
   desc: Timeout (in seconds) for discarding inactive tabs.
 
