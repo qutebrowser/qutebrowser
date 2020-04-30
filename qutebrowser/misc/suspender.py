@@ -41,9 +41,27 @@ class Suspender:
     def __init__(self):
         self.check_timer = QTimer()
         self.check_timer.timeout.connect(self._check_discard_tabs)
+        self._set_timer()
+        # _set_timer_timemout calls the same function as _toggle_timer.
+        # But @config.change_filter doesn't support two options.
+        # Thus we need to repeat it.
+        config.instance.changed.connect(self._toggle_timer)
+        config.instance.changed.connect(self._set_timer_timemout)
+
+    @config.change_filter('content.suspender.enabled')
+    def _toggle_timer(self):
+        self._set_timer()
+
+    @config.change_filter('content.suspender.timeout')
+    def _set_timer_timemout(self):
+        self._set_timer()
+
+    def _set_timer(self):
         if config.instance.get("content.suspender.enabled"):
             self.check_timer.start(config.instance.get(
                 "content.suspender.timeout") * 1000)
+        else:
+            self.check_timer.stop()
 
     def _check_discard_tabs(self):
         """Iterate through all tabs and try to discard some
