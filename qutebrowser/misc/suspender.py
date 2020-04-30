@@ -91,8 +91,8 @@ class Suspender:
                 if tab is not current_tab:
                     page = tab.get_page()
                     if page.lifecycleState() != page.LifecycleState.Discarded:
-                        tab.inactive_time += self.timer_period
-                        if tab.inactive_time > self._tab_timeout:
+                        tab.background_time += self.timer_period
+                        if tab.background_time > self._tab_timeout:
                             can_be_discarded.append(tab)
                         active_count += 1
 
@@ -103,7 +103,7 @@ class Suspender:
             tab = can_be_discarded.pop()
             if self.should_discard(tab) and tab.discard():
                 left -= 1
-                tab.inactive_time = 0
+                tab.background_time = 0
 
     def in_whitelist(self, tab):
         """check if a tab is whitelisted."""

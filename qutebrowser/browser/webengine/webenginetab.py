@@ -1270,7 +1270,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self._saved_zoom = None
         self._reload_url = None  # type: typing.Optional[QUrl]
         self._scripts.init()
-        self.inactive_time = 0
+        self.background_time = 0
         self.indicator_color_restore = None
 
     def get_tabwidget(self):
@@ -1292,7 +1292,7 @@ class WebEngineTab(browsertab.AbstractTab):
         tabwidget.set_tab_indicator_color(idx, color)
 
     def activate(self):
-        self.inactive_time = 0
+        self.background_time = 0
         """restore indicator state."""
         if self.indicator_color_restore:
             self.set_indicator_color(self.indicator_color_restore)
