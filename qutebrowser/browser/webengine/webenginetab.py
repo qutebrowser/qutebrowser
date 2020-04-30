@@ -1270,16 +1270,8 @@ class WebEngineTab(browsertab.AbstractTab):
         self._saved_zoom = None
         self._reload_url = None  # type: typing.Optional[QUrl]
         self._scripts.init()
-
-        if suspender.suspender is not None:
-            self.suspender_timer = QTimer()
-            self.suspender_timer.timeout.connect(self.discard_tab)
-            self.indicator_color_restore = None
-
-    def start_suspender_timer(self):
-        if suspender.suspender is not None:
-            self.suspender_timer.start(
-                config.instance.get("content.suspender.timeout") * 1000)
+        self.discard_next_cycle = False
+        self.indicator_color_restore = None
 
     def get_tabwidget(self):
         """get TabWidget instance."""
@@ -1299,26 +1291,36 @@ class WebEngineTab(browsertab.AbstractTab):
         idx = tabwidget.indexOf(self)
         tabwidget.set_tab_indicator_color(idx, color)
 
-    def stop_suspender_timer(self):
-        """Stop the suspender timer and restore indicator state."""
-        self.suspender_timer.stop()
-        # restore indicator color
+    def activate(self):
+        """restore indicator state."""
         if self.indicator_color_restore:
             self.set_indicator_color(self.indicator_color_restore)
 
-    def discard_tab(self) -> None:
+    def get_page(self):
+        return self._widget.page()
+
+    def discard(self) -> None:
         """Try to discard a tab.
 
-        If the tab isn't discarded, the timer will try to discard the tab next
+        Sometimes we can't discard a tab, e.g. when
+          - the tab is visible
+          - the inspector (DevTools) is open
+
+        Return False is the tab is not discarded.
+
+        If the tab isn't discarded, the suspender will try to discard the tab next
         time.
         """
-        if suspender.suspender.discard(self):
-            self.stop_suspender_timer()
+        page = self.get_page()
+        page.setLifecycleState(page.LifecycleState.Discarded)
+        success = page.lifecycleState() == page.LifecycleState.Discarded
+        if success:
             # change tab indicator color
             self.indicator_color_restore = self.get_indicator_color()
             self.set_indicator_color(config.instance.get(
                 "colors.suspender.discarded"))
             log.webview.debug("Tab #{} discarded".format(repr(self.tab_id)))
+        return success
 
     def _set_widget(self, widget):
         # pylint: disable=protected-access
@@ -1362,7 +1364,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self._widget.load(url)
 
     def url(self, *, requested=False):
-        page = self._widget.page()
+        page = self.get_page()
         if requested:
             return page.requestedUrl()
         else:

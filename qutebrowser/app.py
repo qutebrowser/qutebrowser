@@ -418,9 +418,8 @@ def _init_modules(*, args):
     cmdhistory.init()
     log.init.debug("Initializing sessions...")
     sessions.init(q_app)
-    if config.instance.get("content.suspender.enabled"):
-        log.init.debug("Initializing suspender...")
-        suspender.init()
+    log.init.debug("Initializing suspender...")
+    suspender.init()
 
     quitter.instance.shutting_down.connect(sessions.shutdown)
 

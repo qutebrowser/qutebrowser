@@ -21,6 +21,8 @@
 
 import typing
 
+from PyQt5.QtCore import QTimer
+
 from qutebrowser.utils import objreg, usertypes
 from qutebrowser.config import config
 from qutebrowser.misc import objects
@@ -30,24 +32,54 @@ suspender = typing.cast('Suspender', None)
 
 class Suspender:
 
-    """Automatically discard tabs."""
+    """Automatically discard tabs.
 
-    def get_tab_page(self, tab):
-        return tab.get_tabwidget.page()
+    Ths suspender will check periodically all tabs and discard tabs
+    meeting certain conditions.
+    """
 
-    def total_active_tabs(self):
-        """count active tabs."""
-        count = 0
+    def __init__(self):
+        self.check_timer = QTimer()
+        self.check_timer.timeout.connect(self._check_discard_tabs)
+        if config.instance.get("content.suspender.enabled"):
+            self.check_timer.start(config.instance.get(
+                "content.suspender.timeout") * 1000)
+
+    def _check_discard_tabs(self):
+        """Iterate through all tabs and try to discard some
+
+        Only discard a tab if,
+          - there are more than content.suspender.max_active_tabs tabs
+          - it's not playing audio
+          - it's not pinned
+
+        """
+        active_count = 0
         winlist = objreg.window_registry
+        can_be_discarded = []
         for win_id in sorted(winlist):
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
+            current_tab = tabbed_browser.widget.currentWidget()
+            active_count += 1
             for tab in tabbed_browser.widgets():
-                page = self.get_tab_page(tab)
-                if page.lifecycleState() != page.LifecycleState.Discarded:
-                    count += 1
+                if tab is not current_tab:
+                    page = tab.get_page()
+                    if page.lifecycleState() != page.LifecycleState.Discarded:
+                        if tab.discard_next_cycle:
+                            can_be_discarded.append(tab)
+                        else:
+                            tab.discard_next_cycle = True
+                        active_count += 1
 
-        return count
+        max_active_tabs = config.instance.get(
+            "content.suspender.max_active_tabs")
+        left = active_count - max_active_tabs
+        while left > 0 and can_be_discarded:
+            tab = can_be_discarded.pop()
+            if self.should_discard(tab) and tab.discard():
+                left -= 1
+                self.discard_next_cycle = False
 
     def in_whitelist(self, tab):
         """check if a tab is whitelisted."""
@@ -58,41 +90,10 @@ class Suspender:
         return False
 
     def should_discard(self, tab):
-        return (config.instance.get("content.suspender.max_active_tabs") <
-                self.total_active_tabs() and not
-                tab.data.pinned and not
+        return (not tab.data.pinned and not
                 tab.data.fullscreen and not
                 tab.audio.is_recently_audible() and not
                 self.in_whitelist(tab))
-
-    def start_timer(self, tab):
-        if config.instance.get("content.suspender.enabled"):
-            tab.start_suspender_timer()
-
-    def stop_timer(self, tab):
-        if config.instance.get("content.suspender.enabled"):
-            tab.stop_suspender_timer()
-
-    def discard(self, tab):
-        """Discard a tab.
-
-        Only discard a tab if,
-          - there are more than content.suspender.max_active_tabs tabs
-          - it's not playing audio
-          - it's not pinned
-
-        But sometimes we can't discard a tab, e.g. when
-          - the tab is visible
-          - the inspector (DevTools) is open
-
-        Return False is the tab is not discarded.
-        """
-        if self.should_discard(tab):
-            page = self.get_tab_page(tab)
-            page.setLifecycleState(page.LifecycleState.Discarded)
-            return page.lifecycleState() == page.LifecycleState.Discarded
-
-        return False
 
 
 def init():
