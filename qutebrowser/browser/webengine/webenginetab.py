@@ -1277,27 +1277,30 @@ class WebEngineTab(browsertab.AbstractTab):
             self.indicator_color_restore = None
 
     def start_suspender_timer(self):
-        if suspender.suspender is None:
-            return
-        self.suspender_timer.start(
-            config.instance.get("content.suspender.timeout") * 1000)
+        if suspender.suspender is not None:
+            self.suspender_timer.start(
+                config.instance.get("content.suspender.timeout") * 1000)
 
-    def _get_tabwidget(self):
+    def get_tabwidget(self):
+        """get TabWidget instance."""
         # somehow the parent became PyQt5.QtWidgets.QStackedWidget
         tabwidget = self.parent().parent()
         return tabwidget
 
     def get_indicator_color(self):
-        tabwidget = self._get_tabwidget()
+        """get tab's current indicator color."""
+        tabwidget = self.get_tabwidget()
         idx = tabwidget.indexOf(self)
-        tabwidget.tab_indicator_color(idx)
+        return tabwidget.tab_indicator_color(idx)
 
     def set_indicator_color(self, color):
-        tabwidget = self._get_tabwidget()
+        """change tab's indicator color."""
+        tabwidget = self.get_tabwidget()
         idx = tabwidget.indexOf(self)
         tabwidget.set_tab_indicator_color(idx, color)
 
     def stop_suspender_timer(self):
+        """Stop the suspender timer and restore indicator state."""
         self.suspender_timer.stop()
         # restore indicator color
         if self.indicator_color_restore:

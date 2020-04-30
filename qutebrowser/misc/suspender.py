@@ -21,7 +21,7 @@
 
 import typing
 
-from qutebrowser.utils import objreg, log, usertypes
+from qutebrowser.utils import objreg, usertypes
 from qutebrowser.config import config
 from qutebrowser.misc import objects
 
@@ -33,9 +33,10 @@ class Suspender:
     """Automatically discard tabs."""
 
     def get_tab_page(self, tab):
-        return tab._widget.page()
+        return tab.get_tabwidget.page()
 
     def total_active_tabs(self):
+        """count active tabs."""
         count = 0
         winlist = objreg.window_registry
         for win_id in sorted(winlist):
@@ -49,6 +50,7 @@ class Suspender:
         return count
 
     def in_whitelist(self, tab):
+        """check if a tab is whitelisted."""
         url = tab.url()
         for pattern in config.instance.get("content.suspender.whitelist"):
             if pattern.matches(url):
@@ -72,6 +74,19 @@ class Suspender:
             tab.stop_suspender_timer()
 
     def discard(self, tab):
+        """Discard a tab.
+
+        Only discard a tab if,
+          - there are more than content.suspender.max_active_tabs tabs
+          - it's not playing audio
+          - it's not pinned
+
+        But sometimes we can't discard a tab, e.g. when
+          - the tab is visible
+          - the inspector (DevTools) is open
+
+        Return False is the tab is not discarded.
+        """
         if self.should_discard(tab):
             page = self.get_tab_page(tab)
             page.setLifecycleState(page.LifecycleState.Discarded)
