@@ -44,7 +44,7 @@ import pygments.formatters
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
-                               urlutils, message, jinja)
+                               urlutils, message)
 from qutebrowser.misc import miscwidgets, objects, sessions
 from qutebrowser.browser import eventfilter
 from qutebrowser.qt import sip
@@ -1175,7 +1175,7 @@ class AbstractTab(QWidget):
 
     def unload(self) -> None:
         raise NotImplementedError
-
+   
     def _load_url_prepare(self, url: QUrl, *,
                           emit_before_load_started: bool = True) -> None:
         qtutils.ensure_valid(url)
