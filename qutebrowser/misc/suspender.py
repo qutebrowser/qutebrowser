@@ -100,6 +100,10 @@ class Suspender:
         max_active_tabs = config.instance.get(
             "content.suspender.max_active_tabs")
         left = active_count - max_active_tabs
+
+        # discard the tabs having been in the background for
+        # the longest time first
+        can_be_discarded.sort(key = lambda tab: tab.background_time)
         while left > 0 and can_be_discarded:
             tab = can_be_discarded.pop()
             if tab.discard():
