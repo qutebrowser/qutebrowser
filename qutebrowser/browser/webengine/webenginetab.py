@@ -1392,6 +1392,9 @@ class WebEngineTab(browsertab.AbstractTab):
     def icon(self):
         return self._widget.icon()
 
+    def recommended_lifecycle_state(self) -> QWebEnginePage.LifecycleState:
+        return self._widget.page().recommendedState()
+
     def lifecycle_state(self) -> QWebEnginePage.LifecycleState:
         return self._widget.page().lifecycleState()
 
@@ -1599,6 +1602,32 @@ class WebEngineTab(browsertab.AbstractTab):
                 emit_before_load_started=False))
             self._reload_url = None
 
+    @pyqtSlot(QWebEnginePage.LifecycleState)
+    def _check_recommended_lifecycle_state(
+            self,
+            state: QWebEnginePage.LifecycleState
+    ) -> None:
+        log.webview.debug(
+            "Recommended lifecycle state changed to {}. Current state".format(
+                recommended_state,
+                self.lifecycle_state()
+            ))
+
+        delay = 0
+        if recommended_state == QWebEnginePage.LifecycleState.Active:
+            return
+        elif recommended_state == QWebEnginePage.LifecycleState.Frozen:
+            delay = config.val.tabs.lifecycle_freeze_delay
+        elif recommended_state == QWebEnginePage.LifecycleState.Discarded:
+            delay = config.val.tabs.lifecycle_discard_delay
+
+        if delay == 0:
+            return
+
+        QTimer.singleShot(freeze_delay, functools.partial(
+            self.set_lifecycle_state, recommended_state
+        ))
+
     @pyqtSlot(certificateerror.CertificateErrorWrapper)
     def _on_ssl_errors(self, error):
         self._has_ssl_errors = True
@@ -1783,6 +1812,8 @@ class WebEngineTab(browsertab.AbstractTab):
         page.loadFinished.connect(self._on_history_trigger)
         page.loadFinished.connect(self._restore_zoom)
         page.loadFinished.connect(self._on_load_finished)
+
+        page.recommendedStateChanged.connect(self._check_recommended_lifecycle_state)
 
         self.before_load_started.connect(self._on_before_load_started)
         self.shutting_down.connect(self.abort_questions)  # type: ignore
