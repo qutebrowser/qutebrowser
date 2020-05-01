@@ -1646,6 +1646,24 @@ tabs.last_close:
       - close: "Close the window."
   desc: How to behave when the last tab is closed.
 
+tabs.lifecycle_freeze_delay:
+  default: 30000
+  type:
+    name: Int
+    minval: 0
+    maxval: maxint
+  desc: "Duration (in milliseconds) to wait before freezing
+    tabs."
+
+tabs.lifecycle_discard_delay:
+  default: 100000
+  type:
+    name: Int
+    minval: 0
+    maxval: maxint
+  desc: "Duration (in milliseconds) to wait before discarding
+    tabs."
+
 tabs.mousewheel_switching:
   default: true
   type: Bool

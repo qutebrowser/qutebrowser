@@ -279,6 +279,8 @@
 |<<tabs.indicator.padding,tabs.indicator.padding>>|Padding (in pixels) for tab indicators.
 |<<tabs.indicator.width,tabs.indicator.width>>|Width (in pixels) of the progress indicator (0 to disable).
 |<<tabs.last_close,tabs.last_close>>|How to behave when the last tab is closed.
+|<<tabs.lifecycle_freeze_delay,tabs.lifecycle_freeze_delay>>|Duration (in milliseconds) to wait before freezing tabs.
+|<<tabs.lifecycle_discard_delay,tabs.lifecycle_discard_delay>>|Duration (in milliseconds) to wait before discarding tabs.
 |<<tabs.max_width,tabs.max_width>>|Maximum width (in pixels) of tabs (-1 for no maximum).
 |<<tabs.min_width,tabs.min_width>>|Minimum width (in pixels) of tabs (-1 for the default minimum size behavior).
 |<<tabs.mode_on_change,tabs.mode_on_change>>|When switching tabs, what input mode is applied.
@@ -3674,6 +3676,22 @@ Default: +pass:[always]+
 [[tabs.show_switching_delay]]
 === tabs.show_switching_delay
 Duration (in milliseconds) to show the tab bar before hiding it when tabs.show is set to 'switching'.
+
+Type: <<types,Int>>
+
+Default: +pass:[800]+
+
+[[tabs.lifecycle_freeze_delay]]
+=== tabs.lifecycle_freeze_delay
+Duration (in milliseconds) to wait before freezing tabs.
+
+Type: <<types,Int>>
+
+Default: +pass:[800]+
+
+[[tabs.lifecycle_discard_delay]]
+=== tabs.lifecycle_discard_delay
+Duration (in milliseconds) to wait before discarding tabs.
 
 Type: <<types,Int>>
 
