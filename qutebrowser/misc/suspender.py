@@ -88,12 +88,13 @@ class Suspender:
             current_tab = tabbed_browser.widget.currentWidget()
             active_count += 1
             for tab in tabbed_browser.widgets():
-                if tab is not current_tab:
-                    page = tab.get_page()
-                    if page.lifecycleState() != page.LifecycleState.Discarded:
-                        tab.background_time += self.timer_period
-                        if tab.background_time > self._tab_timeout:
-                            can_be_discarded.append(tab)
+                if tab is not current_tab and not self.should_discard(tab):
+                    continue
+                page = tab.get_page()
+                if page.lifecycleState() != page.LifecycleState.Discarded:
+                    tab.background_time += self.timer_period
+                    if tab.background_time > self._tab_timeout:
+                        can_be_discarded.append(tab)
                         active_count += 1
 
         max_active_tabs = config.instance.get(
@@ -101,7 +102,7 @@ class Suspender:
         left = active_count - max_active_tabs
         while left > 0 and can_be_discarded:
             tab = can_be_discarded.pop()
-            if self.should_discard(tab) and tab.discard():
+            if tab.discard():
                 left -= 1
                 tab.background_time = 0
 
