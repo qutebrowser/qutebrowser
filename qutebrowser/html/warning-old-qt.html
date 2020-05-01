@@ -7,18 +7,26 @@ qute://warning/old-qt</span> to show it again at a later time.</span>
 
 <p>You're using qutebrowser with Qt {{qt_version}}.</p>
 
+{% if qt_version.startswith('5.7.') %}
 <p>Qt 5.7 was released in June 2016, with the 5.7.1 patch release in December
 2016. It is based on Chromium 49 (March 2016) with (some) security fixes up to
-Chromium 54 (October 2016). It is also
-<a href="https://www.debian.org/releases/stable/amd64/release-notes/ch-information.en.html#browser-security">not covered</a>
-by Debian security updates.</p>
-
+Chromium 54 (October 2016).</p>
+{% elif qt_version.startswith('5.8.') %}
 <p>Qt 5.8 has had various bugs, and has been unsupported (but working to some
 degree) in qutebrowser for a while.</p>
+{% elif qt_version.startswith('5.9.') %}
+<p>Qt 5.9 LTS was released in May 2017 and is based on Chromium 56 (January 2017). It is a long term support release with the 5.9.9 patch release in December 2019 including (some) security fixes up to Chromium 78 (November 2019). However, its usage was found to be low, and the next LTS (Qt 5.12) was released in December 2018.</p>
+{% elif qt_version.startswith('5.10.') %}
+<p>Qt 5.10 was released in December 2017, with the 5.10.1 patch release in February
+2018. It is based on Chromium 65 (March 2018) with (some) security fixes up to
+Chromium 70 (November 2018).</p>
+{% endif %}
+
+Also, note that QtWebEngine is <a href="https://www.debian.org/releases/stable/amd64/release-notes/ch-information.en.html#browser-security">not covered</a> by Debian security updates.
 
 <p>Because of those security issues and the maintaince burden coming with
-supporting old versions, support for Qt < 5.9 will be dropped in a future
-qutebrowser release. You might want to check
+supporting old versions, support for Qt < 5.11 will be dropped in qutebrowser
+v2.0. You might want to check
 <a href="https://qutebrowser.org/doc/install.html">alternate installation methods</a>
 which allow you to get a newer Qt.</p>
 {% endblock %}

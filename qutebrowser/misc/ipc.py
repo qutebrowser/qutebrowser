@@ -472,8 +472,9 @@ def send_to_running_instance(socketname, command, target_arg, *, socket=None):
 def display_error(exc, args):
     """Display a message box with an IPC error."""
     error.handle_fatal_exc(
-        exc, args, "Error while connecting to running instance!",
-        post_text="Maybe another instance is running but frozen?")
+        exc, "Error while connecting to running instance!",
+        post_text="Maybe another instance is running but frozen?",
+        no_err_windows=args.no_err_windows)
 
 
 def send_or_listen(args):

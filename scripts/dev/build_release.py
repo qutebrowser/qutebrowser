@@ -141,17 +141,9 @@ def patch_mac_app():
     with open(plist_path, "wb") as f:
         plistlib.dump(plist_data, f)
 
-    # Copy missing QtQmlModels
-    # WORKAROUND for https://github.com/pyinstaller/pyinstaller/issues/4631
-    app_lib_path = os.path.join(app_path, 'Contents', 'MacOS',
-                                'PyQt5', 'Qt', 'lib')
-    tox_lib_path = os.path.join('.tox', 'pyinstaller', 'lib', 'python3.7',
-                                'site-packages', 'PyQt5', 'Qt', 'lib')
-    shutil.copytree(os.path.join(tox_lib_path, 'QtQmlModels.framework'),
-                    os.path.join(app_lib_path, 'QtQmlModels.framework'))
-
     # Replace some duplicate files by symlinks
-    framework_path = os.path.join(app_lib_path, 'QtWebEngineCore.framework')
+    framework_path = os.path.join(app_path, 'Contents', 'MacOS', 'PyQt5',
+                                  'Qt', 'lib', 'QtWebEngineCore.framework')
 
     core_lib = os.path.join(framework_path, 'Versions', '5', 'QtWebEngineCore')
     os.remove(core_lib)
@@ -283,7 +275,7 @@ def build_windows():
 
     utils.print_title("Running pyinstaller 32bit")
     _maybe_remove(out_32)
-    call_tox('pyinstaller', '-r', python=python_x86)
+    call_tox('pyinstaller32', '-r', python=python_x86)
     shutil.move(out_pyinstaller, out_32)
 
     utils.print_title("Running pyinstaller 64bit")
@@ -416,15 +408,23 @@ def github_upload(artifacts, tag):
         raise Exception("No release found for {!r}!".format(tag))
 
     for filename, mimetype, description in artifacts:
-        print("Uploading {}".format(filename))
         while True:
+            print("Uploading {}".format(filename))
+
+            basename = os.path.basename(filename)
+            assets = [asset for asset in release.assets()
+                      if asset.name == basename]
+            if assets:
+                print("Assets already exist: {}".format(assets))
+                print("Press enter to continue anyways or Ctrl-C to abort.")
+                input()
+
             try:
                 with open(filename, 'rb') as f:
-                    basename = os.path.basename(filename)
                     release.upload_asset(mimetype, basename, f, description)
             except github3.exceptions.ConnectionError as e:
-                utils.print_col('Failed to upload: {}'.format(e), 'red')
-                print("Press Enter to retry...")
+                utils.print_error('Failed to upload: {}'.format(e))
+                print("Press Enter to retry...", file=sys.stderr)
                 input()
                 print("Retrying!")
 
@@ -489,10 +489,9 @@ def main():
         upload_to_pypi = True
 
     if args.upload:
-        utils.print_title("Press enter to release...")
-        input()
-
         version_tag = "v" + qutebrowser.__version__
+        utils.print_title("Press enter to release {}...".format(version_tag))
+        input()
 
         github_upload(artifacts, version_tag)
         if upload_to_pypi:

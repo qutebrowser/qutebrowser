@@ -150,7 +150,8 @@ def init(*, args: argparse.Namespace) -> None:
     try:
         _init_modules(args=args)
     except (OSError, UnicodeDecodeError, browsertab.WebTabError) as e:
-        error.handle_fatal_exc(e, args, "Error while initializing!",
+        error.handle_fatal_exc(e, "Error while initializing!",
+                               no_err_windows=args.no_err_windows,
                                pre_text="Error while initializing")
         sys.exit(usertypes.Exit.err_init)
 
@@ -172,7 +173,6 @@ def init(*, args: argparse.Namespace) -> None:
 
 def _init_icon():
     """Initialize the icon of qutebrowser."""
-    icon = QIcon()
     fallback_icon = QIcon()
     for size in [16, 24, 32, 48, 64, 96, 128, 256, 512]:
         filename = ':/icons/qutebrowser-{size}x{size}.png'.format(size=size)
@@ -198,7 +198,8 @@ def _process_args(args):
         if config.val.content.private_browsing and qtutils.is_single_process():
             err = Exception("Private windows are unavailable with "
                             "the single-process process model.")
-            error.handle_fatal_exc(err, args, 'Cannot start in private mode')
+            error.handle_fatal_exc(err, 'Cannot start in private mode',
+                                   no_err_windows=args.no_err_windows)
             sys.exit(usertypes.Exit.err_init)
         window = mainwindow.MainWindow(private=None)
         if not args.nowindow:
@@ -332,8 +333,12 @@ def _open_special_pages(args):
          'qute://warning/webkit'),
 
         ('old-qt-warning-shown',
-         not qtutils.version_check('5.9'),
+         not qtutils.version_check('5.11'),
          'qute://warning/old-qt'),
+
+        ('session-warning-shown',
+         qtutils.version_check('5.15', compiled=False),
+         'qute://warning/sessions'),
     ]
 
     for state, condition, url in pages:
@@ -404,8 +409,9 @@ def _init_modules(*, args):
         log.init.debug("Initializing web history...")
         history.init(q_app)
     except sql.KnownError as e:
-        error.handle_fatal_exc(e, args, 'Error initializing SQL',
-                               pre_text='Error initializing SQL')
+        error.handle_fatal_exc(e, 'Error initializing SQL',
+                               pre_text='Error initializing SQL',
+                               no_err_windows=args.no_err_windows)
         sys.exit(usertypes.Exit.err_init)
 
     log.init.debug("Initializing command history...")

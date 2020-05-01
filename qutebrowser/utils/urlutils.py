@@ -116,8 +116,13 @@ def _get_search_url(txt: str) -> QUrl:
         engine = 'DEFAULT'
     if term:
         template = config.val.url.searchengines[engine]
+        semiquoted_term = urllib.parse.quote(term)
         quoted_term = urllib.parse.quote(term, safe='')
-        url = qurl_from_user_input(template.format(quoted_term))
+        evaluated = template.format(semiquoted_term,
+                                    unquoted=term,
+                                    quoted=quoted_term,
+                                    semiquoted=semiquoted_term)
+        url = qurl_from_user_input(evaluated)
     else:
         url = qurl_from_user_input(config.val.url.searchengines[engine])
         url.setPath(None)  # type: ignore

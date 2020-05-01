@@ -255,7 +255,7 @@ def set_backend(monkeypatch, request):
     monkeypatch.setattr(objects, 'backend', backend)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True, scope='session')
 def apply_libgl_workaround():
     """Make sure we load libGL early so QtWebEngine tests run properly."""
     libgl = ctypes.util.find_library("GL")

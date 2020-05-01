@@ -41,7 +41,7 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
     monkeypatch.setattr(config, 'change_filters', [])
     monkeypatch.setattr(configinit, '_init_errors', None)
     monkeypatch.setattr(configtypes.Font, 'default_family', None)
-    monkeypatch.setattr(configtypes.Font, 'default_size', '10pt')
+    monkeypatch.setattr(configtypes.Font, 'default_size', None)
     yield
     try:
         objreg.delete('config-commands')
@@ -206,9 +206,13 @@ class TestEarlyInit:
 
         assert dump == '\n'.join(expected)
 
-    def test_state_init_errors(self, init_patch, args, data_tmpdir):
+    @pytest.mark.parametrize('byte', [
+        b'\x00',  # configparser.Error
+        b'\xda',  # UnicodeDecodeError
+    ])
+    def test_state_init_errors(self, init_patch, args, data_tmpdir, byte):
         state_file = data_tmpdir / 'state'
-        state_file.write_binary(b'\x00')
+        state_file.write_binary(byte)
         configinit.early_init(args)
         assert configinit._init_errors.errors
 
@@ -356,6 +360,7 @@ class TestLateInit:
         """Ensure setting fonts.default_family at init works properly.
 
         See https://github.com/qutebrowser/qutebrowser/issues/2973
+        and https://github.com/qutebrowser/qutebrowser/issues/5223
         """
         if method == 'temp':
             args.temp_settings = settings
@@ -416,6 +421,25 @@ class TestLateInit:
         config.instance.set_str('fonts.web.family.standard', '')
         config.instance.set_str('fonts.default_family', 'Terminus')
         config.instance.set_str('fonts.default_size', '10pt')
+
+    def test_default_size_hints(self, run_configinit):
+        """Make sure default_size applies to the hints font.
+
+        See https://github.com/qutebrowser/qutebrowser/issues/5214
+        """
+        config.instance.set_obj('fonts.default_family', 'SomeFamily')
+        config.instance.set_obj('fonts.default_size', '23pt')
+        assert config.instance.get('fonts.hints') == 'bold 23pt SomeFamily'
+
+    def test_default_size_hints_changed(self, run_configinit):
+        config.instance.set_obj('fonts.hints', 'bold default_size SomeFamily')
+
+        changed_options = []
+        config.instance.changed.connect(changed_options.append)
+        config.instance.set_obj('fonts.default_size', '23pt')
+
+        assert config.instance.get('fonts.hints') == 'bold 23pt SomeFamily'
+        assert 'fonts.hints' in changed_options
 
 
 class TestQtArgs:

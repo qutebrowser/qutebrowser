@@ -15,7 +15,141 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v1.10.0 (unreleased)
+v1.12.0 (unreleased)
+--------------------
+
+Removed
+~~~~~~~
+
+- `tox -e mkvenv` which was deprecated in qutebrowser v1.10.0 is now
+  removed. Use the `mkvenv.py` script instead.
+- Support for using `config.bind(key, None)` in `config.py` to unbind a
+  key was deprecated in v1.8.2 and is now removed. Use
+  `config.unbind(key)` instead.
+- `:yank markdown` was deprecated in v1.7.0 and is now removed. Use
+  `:yank inline [{title}]({url})` instead.
+
+v1.11.1 (unreleased)
+--------------------
+
+No changes yet.
+
+v1.11.0 (2020-04-27)
+--------------------
+
+Added
+~~~~~
+
+- New settings:
+  * `search.wrap` which can be set to false to prevent wrapping around the page
+    when searching. With QtWebEngine, Qt 5.14 or newer is required.
+  * `content.unknown_url_scheme_policy` which allows controlling when an
+    external application is opened for external links (never, from user
+    interaction, always).
+  * `content.fullscreen.overlay_timeout` to configure how long the fullscreen
+    overlay should be displayed. If set to `0`, no overlay is displayed.
+  * `hints.padding` to add additional padding for hints.
+  * `hints.radius` to set a border radius for hints (set to `3` by default).
+- New placeholders for `url.searchengines` values:
+  * `{unquoted}` inserts the search term without any quoting.
+  * `{semiquoted}` (same as `{}`) quotes most special characters, but slashes
+    remain unquoted.
+  * `{quoted}` (same as `{}` in earlier releases) also quotes slashes.
+
+Changed
+~~~~~~~
+
+- First adaptions to Qt 5.15, including a stop-gap measure for session loading
+  not working properly with it.
+- Searching now wraps around the page by default with QtWebKit (where it didn't
+  before). Set `search.wrap` to `false` to restore the old behavior.
+- The `{}` placeholder for search engines (the `url.searchengines` setting) now
+  does not quote slashes anymore, but other characters typically encoded in
+  URLs still get encoded. This matches the behavior of search engines in
+  Chromium. To revert to the old behavior, use `{quoted}` instead.
+- The `content.windowed_fullscreen` setting got renamed to
+  `content.fullscreen.window`.
+- Mouse-wheel scrolling is now prevented while hints are active.
+- Changes to userscripts:
+  * `qute-bitwarden` now has an optional `--totp` flag which can be used
+    to copy TOTP codes to clipboard (requires the `pyperclip` module).
+  * `readability-js` now opens readability tabs next to the original
+    tab (using the `:open --related` flag).
+  * `readability-js` now displays a favicon for readability tabs.
+  * `password_fill` now triggers a `change` JavaScript event after filling the
+    data.
+- The `dictcli.py` script now shows better error messages.
+- Various improvements to the `mkvenv.py` script (mainly useful for development).
+- Minor performance improvements.
+
+Deprecated
+~~~~~~~~~~
+
+- A warning about old Qt versions is now also shown with Qt 5.9 and 5.10, as
+  support for Qt < 5.11 will be dropped in qutebrowser v2.0.
+
+Fixed
+~~~~~
+
+- `unsafeWindow` is now defined for Greasemonkey scripts with QtWebKit.
+- The proxied `window` global is now shared between different
+  Greasemonkey scripts (but still separate from the page's `window`), to
+  match the original Greasemonkey implementation.
+- The `--output-messages` (`-m`) flag added in v1.9.0 now also works correctly
+  when using `:spawn --userscript`.
+- `:version` and `--version` now don't crash if there's an (invalid)
+  `/etc/os-release` file which has non-comment lines without a `=` character.
+- Scripts in `scripts/` now report errors to `stderr` correctly, instead of
+  using `stdout`.
+
+v1.10.2 (2020-04-17)
+--------------------
+
+Changed
+~~~~~~~
+
+- Windows and macOS releases now bundle Qt 5.14.2, including security fixes up
+  to Chromium 80.0.3987.132.
+
+Fixed
+~~~~~
+
+- The WhatsApp workaround now also works when using WhatsApp in languages other
+  than English.
+- The `mkvenv.py` script now also works properly on Windows.
+
+v1.10.1 (2020-02-15)
+--------------------
+
+Fixed
+~~~~~
+
+- Crash when saving data fails during shutdown (which was a regression
+  introduced in v1.9.0).
+- Error while reading config.py when `fonts.tabs` or `fonts.debug_console` is
+  set to a value including `default_size`.
+- When a `state` file contains invalid UTF-8 data, a proper error is now
+  displayed.
+
+Changed
+~~~~~~~
+
+- When the Qt version changes (and also on the first start of v1.10.1 on Qt
+  5.14), service workers registered by websites are now deleted. This is done
+  as a workaround for QtWebEngine issues causing crashes when visiting pages
+  using service workers (such as Google Mail/Drive). No persistent data should
+  be affected as websites can re-register their service workers, but a (single)
+  backup is kept at `webengine/Service Worker-bak` in qutebrowser's data
+  directory.
+- Better output on stdout when config errors occur.
+- The `mkvenv.py` now ensures the latest versions of `setuptools` and `wheel`
+  are installed in the virtual environment, which should speed up installation
+  and fix install issues.
+- The default for `colors.statusbar.command.private.bg` has been changed to a
+  slightly different gray, as a workaround for a Qt issue where the cursor was
+  invisible in that case.
+
+v1.10.0 (2020-02-02)
 --------------------
 
 Added
@@ -46,11 +180,19 @@ Changed
     monospaced font is used.
 - If `monospace` is now used in a font value, it's used literally and not
   replaced anymore. Instead, `default_family` is replaced as explained above.
+- The default `content.headers.accept_language` value now adds a `;q=0.9`
+  classifier which should make the value sent more in-line with what other
+  browsers do.
 - The `qute-pass` userscript now has a new `--mode gopass` switch which uses
   gopass rather than pass.
 - The `tox -e mkvenv` (or `mkvenv-pypi`) way of installing qutebrowser is now
   replaced by a `mkvenv.py` script. See the updated
   link:install{outfilesuffix}#tox[install instructions] for details.
+- macOS and Windows releases now ship with Qt/QtWebEngine 5.14.1
+  * Based on Chromium 77.0.3865.129 with security fixes up to Chromium 79.0.3945.117.
+  * Sandboxing is now enabled on Windows.
+  * Monospace fonts are now used when a website requests them on macOS 10.15.
+  * Web notifications are now supported.
 
 Fixed
 ~~~~~
@@ -60,6 +202,7 @@ Fixed
   especially with the new exit scheme introduced in in PyQt5 5.13.1.
 - Added a workaround for per-domain settings (e.g. a JavaScript whitelist) not
   being applied in some scenarios with Qt 5.13 and above.
+- Added additional site-specific quirk for WhatsApp Web.
 - The `qute-pass` userscript now works correctly when a `PASSWORD_STORE_DIR`
   ending with a trailing slash is given.
 

@@ -48,6 +48,16 @@ search.incremental:
   default: True
   desc: Find text on a page incrementally, renewing the search for each typed character.
 
+search.wrap:
+  type: Bool
+  default: True
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: true
+  desc: >-
+    Wrap around at the top and bottom of the page when advancing through text matches
+    using `:search-next` and `:search-prev`.
+
 new_instance_open_target:
   type:
     name: String
@@ -370,11 +380,45 @@ content.default_encoding:
     The encoding must be a string describing an encoding such as _utf-8_,
     _iso-8859-1_, etc.
 
+content.unknown_url_scheme_policy:
+  type:
+    name: String
+    valid_values:
+      - disallow: "Disallows all navigation requests to URLs with unknown
+          schemes."
+      - allow-from-user-interaction: "Allows navigation requests to URLs with
+          unknown schemes that are issued from user-interaction (like a
+          mouse-click), whereas other navigation requests (for example from
+          JavaScript) are suppressed."
+      - allow-all: "Allows all navigation requests to URLs with unknown
+          schemes."
+  default: allow-from-user-interaction
+  backend:
+    QtWebEngine: Qt 5.11
+    QtWebKit: false
+  supports_pattern: true
+  desc: >-
+    How navigation requests to URLs with unknown schemes are handled.
+
 content.windowed_fullscreen:
+  renamed: content.fullscreen.window
+
+content.fullscreen.window:
   type: Bool
   default: false
   desc: >-
     Limit fullscreen to the browser window (does not expand to fill the screen).
+
+content.fullscreen.overlay_timeout:
+  type:
+    name: Int
+    minval: 0
+    maxval: maxint
+  default: 3000
+  desc: >-
+    Set fullscreen notification overlay timeout in milliseconds.
+
+    If set to 0, no overlay will be displayed.
 
 content.desktop_capture:
   type: BoolAsk
@@ -437,7 +481,7 @@ content.headers.accept_language:
     name: String
     none_ok: true
   supports_pattern: true
-  default: en-US,en
+  default: en-US,en;q=0.9
   desc: >-
     Value to send in the `Accept-Language` header.
 
@@ -508,11 +552,11 @@ content.headers.user_agent:
     completions:
       # See https://techblog.willshouse.com/2012/01/03/most-common-user-agents/
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/79.0.3945.88 Safari/537.36"
-        - Chrome 79 Win10
+          like Gecko) Chrome/80.0.3987.163 Safari/537.36"
+        - Chrome 80 Win10
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/79.0.3945.88 Safari/537.36"
-        - Chrome 79 Linux
+          Gecko) Chrome/80.0.3987.149 Safari/537.36 "
+        - Chrome 80 Linux
   supports_pattern: true
   desc: |
     User agent to send.
@@ -1091,6 +1135,22 @@ hints.border:
   type: String
   desc: CSS border value for hints.
 
+hints.padding:
+  default:
+    top: 0
+    bottom: 0
+    left: 3
+    right: 3
+  type: Padding
+  desc: Padding (in pixels) for hints.
+
+hints.radius:
+  default: 3
+  type:
+    name: Int
+    minval: 0
+  desc: Rounding radius (in pixels) for the edges of hints.
+
 hints.chars:
   default: asdfghjkl
   type:
@@ -1394,7 +1454,7 @@ messages.unfocused:
 prompt.filebrowser:
   type: Bool
   default: true
-  desc: Show a filebrowser in upload/download prompts.
+  desc: Show a filebrowser in download prompts.
 
 prompt.radius:
   type:
@@ -1883,12 +1943,24 @@ url.searchengines:
       name: String
       forbidden: ' '
     valtype: SearchEngineUrl
-  desc: >-
+  desc: |
     Search engines which can be used via the address bar.
 
     Maps a search engine name (such as `DEFAULT`, or `ddg`) to a URL with a
     `{}` placeholder. The placeholder will be replaced by the search term, use
-    `{{` and `}}` for literal `{`/`}` signs.
+    `{{` and `}}` for literal `{`/`}` braces.
+
+    The following further placeholds are defined to configure how special
+    characters in the search terms are replaced by safe characters (called
+    'quoting'):
+
+    * `{}` and `{semiquoted}` quote everything except slashes; this is the most
+      sensible choice for almost all search engines (for the search term
+      `slash/and&amp` this placeholder expands to `slash/and%26amp`).
+    * `{quoted}` quotes all characters (for `slash/and&amp` this placeholder
+      expands to `slash%2Fand%26amp`).
+    * `{unquoted}` quotes nothing (for `slash/and&amp` this placeholder
+      expands to `slash/and&amp`).
 
     The search engine named `DEFAULT` is used when `url.auto_search` is turned
     on and something else than a URL was entered to be opened. Other search
@@ -2326,7 +2398,7 @@ colors.statusbar.command.private.fg:
   desc: Foreground color of the statusbar in private browsing + command mode.
 
 colors.statusbar.command.private.bg:
-  default: grey
+  default: darkslategray
   type: QssColor
   desc: Background color of the statusbar in private browsing + command mode.
 

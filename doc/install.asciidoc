@@ -256,7 +256,7 @@ mailinglist] to get notified on new releases). You can install a newer version
 without uninstalling the older one.
 
 The binary release ships with a QtWebEngine built without proprietary codec
-support. To get support for e.g. h264/h265 videos, you'll need to build
+support. To get support for e.g. h264/mp4 videos, you'll need to build
 QtWebEngine from source yourself with support for that enabled.
 
 https://chocolatey.org/packages/qutebrowser[Chocolatey package]
@@ -299,7 +299,7 @@ https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[qutebrows
 mailinglist] to get notified on new releases).
 
 The binary release ships with a QtWebEngine built without proprietary codec
-support. To get support for e.g. h264/h265 videos, you'll need to build
+support. To get support for e.g. h264/mp4 videos, you'll need to build
 QtWebEngine from source yourself with support for that enabled.
 
 This binary is also available through the

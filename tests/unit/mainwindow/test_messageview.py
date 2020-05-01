@@ -36,7 +36,7 @@ def view(qtbot, config_stub):
                                    usertypes.MessageLevel.warning,
                                    usertypes.MessageLevel.error])
 def test_single_message(qtbot, view, level):
-    with qtbot.waitExposed(view):
+    with qtbot.waitExposed(view, timeout=5000):
         view.show_message(level, 'test')
     assert view._messages[0].isVisible()
 

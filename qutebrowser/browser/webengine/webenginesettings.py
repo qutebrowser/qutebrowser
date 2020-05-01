@@ -36,7 +36,7 @@ from qutebrowser.browser.webengine import spell, webenginequtescheme
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import (utils, standarddir, qtutils, message, log,
-                               urlmatch)
+                               urlmatch, usertypes)
 
 # The default QWebEngineProfile
 default_profile = typing.cast(QWebEngineProfile, None)
@@ -76,6 +76,10 @@ class _SettingsWrapper:
         for settings in self._settings:
             settings.setDefaultTextEncoding(encoding)
 
+    def setUnknownUrlSchemePolicy(self, policy):
+        for settings in self._settings:
+            settings.setUnknownUrlSchemePolicy(policy)
+
     def testAttribute(self, attribute):
         return self._settings[0].testAttribute(attribute)
 
@@ -87,6 +91,9 @@ class _SettingsWrapper:
 
     def defaultTextEncoding(self):
         return self._settings[0].defaultTextEncoding()
+
+    def unknownUrlSchemePolicy(self):
+        return self._settings[0].unknownUrlSchemePolicy()
 
 
 class WebEngineSettings(websettings.AbstractSettings):
@@ -151,6 +158,19 @@ class WebEngineSettings(websettings.AbstractSettings):
         'fonts.web.family.fantasy': QWebEngineSettings.FantasyFont,
     }
 
+    # Only Qt >= 5.11 support UnknownUrlSchemePolicy
+    try:
+        _UNKNOWN_URL_SCHEME_POLICY = {
+            'disallow':
+                QWebEngineSettings.DisallowUnknownUrlSchemes,
+            'allow-from-user-interaction':
+                QWebEngineSettings.AllowUnknownUrlSchemesFromUserInteraction,
+            'allow-all':
+                QWebEngineSettings.AllowAllUnknownUrlSchemes,
+        }
+    except AttributeError:
+        _UNKNOWN_URL_SCHEME_POLICY = None
+
     # Mapping from WebEngineSettings::initDefaults in
     # qtwebengine/src/core/web_engine_settings.cpp
     _FONT_TO_QFONT = {
@@ -161,6 +181,33 @@ class WebEngineSettings(websettings.AbstractSettings):
         QWebEngineSettings.CursiveFont: QFont.Cursive,
         QWebEngineSettings.FantasyFont: QFont.Fantasy,
     }
+
+    def set_unknown_url_scheme_policy(
+            self, policy: typing.Union[str, usertypes.Unset]) -> bool:
+        """Set the UnknownUrlSchemePolicy to use.
+
+        Return:
+            True if there was a change, False otherwise.
+        """
+        old_value = self._settings.unknownUrlSchemePolicy()
+        if isinstance(policy, usertypes.Unset):
+            self._settings.resetUnknownUrlSchemePolicy()
+            new_value = self._settings.unknownUrlSchemePolicy()
+        else:
+            new_value = self._UNKNOWN_URL_SCHEME_POLICY[policy]
+            self._settings.setUnknownUrlSchemePolicy(new_value)
+        return old_value != new_value
+
+    def _update_setting(self, setting, value):
+        if setting == 'content.unknown_url_scheme_policy':
+            if self._UNKNOWN_URL_SCHEME_POLICY:
+                return self.set_unknown_url_scheme_policy(value)
+            return False
+        return super()._update_setting(setting, value)
+
+    def init_settings(self):
+        super().init_settings()
+        self.update_setting('content.unknown_url_scheme_policy')
 
     def __init__(self, settings):
         super().__init__(settings)

@@ -28,9 +28,6 @@ time, your help is needed! See the
 https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] for more
 information. Depending on your sign-up date and how long you keep a certain
 level, you can get qutebrowser t-shirts, stickers and more!
-
-Thanks to the GitHub Sponsors Matching Fund, all donations done via GitHub
-Sponsors (up to a $5000 total) will be doubled until October 2020.
 // QUTE_WEB_HIDE_END
 
 Screenshots
@@ -109,9 +106,8 @@ Requirements
 The following software and libraries are required to run qutebrowser:
 
 * https://www.python.org/[Python] 3.5.2 or newer (3.6 recommended)
-* https://www.qt.io/[Qt] 5.7.1 or newer (5.12 recommended due to severe bugs in
-  Qt 5.13.0 and .1); support for < 5.9 will be dropped soon) with the following
-  modules:
+* https://www.qt.io/[Qt] 5.7.1 or newer (5.14 recommended; support for < 5.11
+  will be dropped soon) with the following modules:
   - QtCore / qtbase
   - QtQuick (part of qtbase in some distributions)
   - QtSQL (part of qtbase in some distributions)
@@ -124,7 +120,7 @@ The following software and libraries are required to run qutebrowser:
     avoid visiting untrusted websites and using it for transmission of
     sensitive data.**
 * https://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.7.0 or newer
-  (5.13 recommended, support for < 5.9 will be dropped soon) for Python 3
+  (5.14 recommended, support for < 5.11 will be dropped soon) for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
 * https://fdik.org/pyPEG/[pyPEG2]
 * http://jinja.pocoo.org/[jinja2]
@@ -154,9 +150,6 @@ https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] for more
 information. Depending on your sign-up date and how long you keep a certain
 level, you can get qutebrowser t-shirts, stickers and more!
 
-Thanks to the GitHub Sponsors Matching Fund, all donations done via GitHub
-Sponsors (up to a $5000 total) will be doubled until October 2020!
-
 Alternatively, the following donation methods are available -- note that
 eligibility for swag (shirts/stickers/etc.) is handled on a case-by-case basis
 for those, please mailto:mail@qutebrowser.org[get in touch] for details.
@@ -169,7 +162,13 @@ for those, please mailto:mail@qutebrowser.org[get in touch] for details.
   - Bank: PostFinance AG, Mingerstrasse 20, 3030 Bern, Switzerland (BIC: POFICHBEXXX)
   - If you need any other information: Contact me at mail@qutebrowser.org.
 * PayPal: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=CHF&source=url[CHF], https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=EUR&source=url[EUR], https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=USD&source=url[USD]
-* Bitcoin: link:bitcoin:1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE[1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE]
+* Cryptocurrencies:
+  - Bitcoin: link:bitcoin:bc1q3ptyw8hxrcfz6ucfgmglphfvhqpy8xr6k25p00[bc1q3ptyw8hxrcfz6ucfgmglphfvhqpy8xr6k25p00]
+  - Bitcoin Cash: link:bitcoincash:1BnxUbnJ5MrEPeh5nuUMx83tbiRAvqJV3N[1BnxUbnJ5MrEPeh5nuUMx83tbiRAvqJV3N]
+  - Ethereum: link:ethereum:0x10c2425856F7a8799EBCaac4943026803b1089c6[0x10c2425856F7a8799EBCaac4943026803b1089c6]
+  - Litecoin: link:litecoin:MDt3YQciuCh6QyFmr8TiWNxB94PVzbnPm2[MDt3YQciuCh6QyFmr8TiWNxB94PVzbnPm2]
+  - Others: Please mailto:mail@qutebrowser.org[get in touch], I'd happily set up anything link:https://www.ledger.com/supported-crypto-assets[supported by Ledger Live]
+
 
 Sponsors
 --------

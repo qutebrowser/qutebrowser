@@ -19,8 +19,6 @@
 
 """Handling of proxies."""
 
-import typing
-
 from PyQt5.QtCore import QUrl, pyqtSlot
 from PyQt5.QtNetwork import QNetworkProxy, QNetworkProxyFactory
 

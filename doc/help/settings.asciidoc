@@ -136,6 +136,8 @@
 |<<content.desktop_capture,content.desktop_capture>>|Allow websites to share screen content.
 |<<content.dns_prefetch,content.dns_prefetch>>|Try to pre-fetch DNS entries to speed up browsing.
 |<<content.frame_flattening,content.frame_flattening>>|Expand each subframe to its contents.
+|<<content.fullscreen.overlay_timeout,content.fullscreen.overlay_timeout>>|Set fullscreen notification overlay timeout in milliseconds.
+|<<content.fullscreen.window,content.fullscreen.window>>|Limit fullscreen to the browser window (does not expand to fill the screen).
 |<<content.geolocation,content.geolocation>>|Allow websites to request geolocations.
 |<<content.headers.accept_language,content.headers.accept_language>>|Value to send in the `Accept-Language` header.
 |<<content.headers.custom,content.headers.custom>>|Custom headers for qutebrowser HTTP requests.
@@ -173,10 +175,10 @@
 |<<content.register_protocol_handler,content.register_protocol_handler>>|Allow websites to register protocol handlers via `navigator.registerProtocolHandler`.
 |<<content.site_specific_quirks,content.site_specific_quirks>>|Enable quirks (such as faked user agent headers) needed to get specific sites to work properly.
 |<<content.ssl_strict,content.ssl_strict>>|Validate SSL handshakes.
+|<<content.unknown_url_scheme_policy,content.unknown_url_scheme_policy>>|How navigation requests to URLs with unknown schemes are handled.
 |<<content.user_stylesheets,content.user_stylesheets>>|List of user stylesheet filenames to use.
 |<<content.webgl,content.webgl>>|Enable WebGL.
 |<<content.webrtc_ip_handling_policy,content.webrtc_ip_handling_policy>>|Which interfaces to expose via WebRTC.
-|<<content.windowed_fullscreen,content.windowed_fullscreen>>|Limit fullscreen to the browser window (does not expand to fill the screen).
 |<<content.xss_auditing,content.xss_auditing>>|Monitor load requests for cross-site scripting attempts.
 |<<downloads.location.directory,downloads.location.directory>>|Directory to save downloads to.
 |<<downloads.location.prompt,downloads.location.prompt>>|Prompt the user for the download location.
@@ -223,7 +225,9 @@
 |<<hints.min_chars,hints.min_chars>>|Minimum number of characters used for hint strings.
 |<<hints.mode,hints.mode>>|Mode to use for hints.
 |<<hints.next_regexes,hints.next_regexes>>|Comma-separated list of regular expressions to use for 'next' links.
+|<<hints.padding,hints.padding>>|Padding (in pixels) for hints.
 |<<hints.prev_regexes,hints.prev_regexes>>|Comma-separated list of regular expressions to use for 'prev' links.
+|<<hints.radius,hints.radius>>|Rounding radius (in pixels) for the edges of hints.
 |<<hints.scatter,hints.scatter>>|Scatter hint key chains (like Vimium) or not (like dwb).
 |<<hints.selectors,hints.selectors>>|CSS selectors used to determine which elements on a page should have hints.
 |<<hints.uppercase,hints.uppercase>>|Make characters in hint strings uppercase.
@@ -245,7 +249,7 @@
 |<<messages.timeout,messages.timeout>>|Duration (in milliseconds) to show messages in the statusbar for.
 |<<new_instance_open_target,new_instance_open_target>>|How to open links in an existing instance if a new one is launched.
 |<<new_instance_open_target_window,new_instance_open_target_window>>|Which window to choose when opening links as new tabs.
-|<<prompt.filebrowser,prompt.filebrowser>>|Show a filebrowser in upload/download prompts.
+|<<prompt.filebrowser,prompt.filebrowser>>|Show a filebrowser in download prompts.
 |<<prompt.radius,prompt.radius>>|Rounding radius (in pixels) for the edges of prompts.
 |<<qt.args,qt.args>>|Additional arguments to pass to Qt, without leading `--`.
 |<<qt.force_platform,qt.force_platform>>|Force a Qt platform to use.
@@ -258,6 +262,7 @@
 |<<scrolling.smooth,scrolling.smooth>>|Enable smooth scrolling for web pages.
 |<<search.ignore_case,search.ignore_case>>|When to find text on a page case-insensitively.
 |<<search.incremental,search.incremental>>|Find text on a page incrementally, renewing the search for each typed character.
+|<<search.wrap,search.wrap>>|Wrap around at the top and bottom of the page when advancing through text matches using `:search-next` and `:search-prev`.
 |<<session.default_name,session.default_name>>|Name of the session to save by default.
 |<<session.lazy_restore,session.lazy_restore>>|Load a restored tab as soon as it takes focus.
 |<<spellcheck.languages,spellcheck.languages>>|Languages to use for spell checking.
@@ -1193,7 +1198,7 @@ Background color of the statusbar in private browsing + command mode.
 
 Type: <<types,QssColor>>
 
-Default: +pass:[grey]+
+Default: +pass:[darkslategray]+
 
 [[colors.statusbar.command.private.fg]]
 === colors.statusbar.command.private.fg
@@ -1809,6 +1814,23 @@ Default: +pass:[false]+
 
 This setting is only available with the QtWebKit backend.
 
+[[content.fullscreen.overlay_timeout]]
+=== content.fullscreen.overlay_timeout
+Set fullscreen notification overlay timeout in milliseconds.
+If set to 0, no overlay will be displayed.
+
+Type: <<types,Int>>
+
+Default: +pass:[3000]+
+
+[[content.fullscreen.window]]
+=== content.fullscreen.window
+Limit fullscreen to the browser window (does not expand to fill the screen).
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
 [[content.geolocation]]
 === content.geolocation
 Allow websites to request geolocations.
@@ -1834,7 +1856,7 @@ This setting supports URL patterns.
 
 Type: <<types,String>>
 
-Default: +pass:[en-US,en]+
+Default: +pass:[en-US,en;q=0.9]+
 
 [[content.headers.custom]]
 === content.headers.custom
@@ -2283,6 +2305,26 @@ Valid values:
 
 Default: +pass:[ask]+
 
+[[content.unknown_url_scheme_policy]]
+=== content.unknown_url_scheme_policy
+How navigation requests to URLs with unknown schemes are handled.
+
+This setting supports URL patterns.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +disallow+: Disallows all navigation requests to URLs with unknown schemes.
+ * +allow-from-user-interaction+: Allows navigation requests to URLs with unknown schemes that are issued from user-interaction (like a mouse-click), whereas other navigation requests (for example from JavaScript) are suppressed.
+ * +allow-all+: Allows all navigation requests to URLs with unknown schemes.
+
+Default: +pass:[allow-from-user-interaction]+
+
+On QtWebEngine, this setting requires Qt 5.11 or newer.
+
+On QtWebKit, this setting is unavailable.
+
 [[content.user_stylesheets]]
 === content.user_stylesheets
 List of user stylesheet filenames to use.
@@ -2321,14 +2363,6 @@ Default: +pass:[all-interfaces]+
 On QtWebEngine, this setting requires Qt 5.9.2 or newer.
 
 On QtWebKit, this setting is unavailable.
-
-[[content.windowed_fullscreen]]
-=== content.windowed_fullscreen
-Limit fullscreen to the browser window (does not expand to fill the screen).
-
-Type: <<types,Bool>>
-
-Default: +pass:[false]+
 
 [[content.xss_auditing]]
 === content.xss_auditing
@@ -2764,6 +2798,19 @@ Default:
 - +pass:[\b(&gt;&gt;|»)\b]+
 - +pass:[\bcontinue\b]+
 
+[[hints.padding]]
+=== hints.padding
+Padding (in pixels) for hints.
+
+Type: <<types,Padding>>
+
+Default: 
+
+- +pass:[bottom]+: +pass:[0]+
+- +pass:[left]+: +pass:[3]+
+- +pass:[right]+: +pass:[3]+
+- +pass:[top]+: +pass:[0]+
+
 [[hints.prev_regexes]]
 === hints.prev_regexes
 Comma-separated list of regular expressions to use for 'prev' links.
@@ -2777,6 +2824,14 @@ Default:
 - +pass:[\bolder\b]+
 - +pass:[\b[&lt;←≪]\b]+
 - +pass:[\b(&lt;&lt;|«)\b]+
+
+[[hints.radius]]
+=== hints.radius
+Rounding radius (in pixels) for the edges of hints.
+
+Type: <<types,Int>>
+
+Default: +pass:[3]+
 
 [[hints.scatter]]
 === hints.scatter
@@ -3048,7 +3103,7 @@ Default: +pass:[last-focused]+
 
 [[prompt.filebrowser]]
 === prompt.filebrowser
-Show a filebrowser in upload/download prompts.
+Show a filebrowser in download prompts.
 
 Type: <<types,Bool>>
 
@@ -3208,6 +3263,16 @@ Find text on a page incrementally, renewing the search for each typed character.
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
+
+[[search.wrap]]
+=== search.wrap
+Wrap around at the top and bottom of the page when advancing through text matches using `:search-next` and `:search-prev`.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
 
 [[session.default_name]]
 === session.default_name
@@ -3754,8 +3819,28 @@ Default: +pass:[false]+
 [[url.searchengines]]
 === url.searchengines
 Search engines which can be used via the address bar.
-Maps a search engine name (such as `DEFAULT`, or `ddg`) to a URL with a `{}` placeholder. The placeholder will be replaced by the search term, use `{{` and `}}` for literal `{`/`}` signs.
-The search engine named `DEFAULT` is used when `url.auto_search` is turned on and something else than a URL was entered to be opened. Other search engines can be used by prepending the search engine name to the search term, e.g.  `:open google qutebrowser`.
+
+Maps a search engine name (such as `DEFAULT`, or `ddg`) to a URL with a
+`{}` placeholder. The placeholder will be replaced by the search term, use
+`{{` and `}}` for literal `{`/`}` braces.
+
+The following further placeholds are defined to configure how special
+characters in the search terms are replaced by safe characters (called
+'quoting'):
+
+* `{}` and `{semiquoted}` quote everything except slashes; this is the most
+  sensible choice for almost all search engines (for the search term
+  `slash/and&amp` this placeholder expands to `slash/and%26amp`).
+* `{quoted}` quotes all characters (for `slash/and&amp` this placeholder
+  expands to `slash%2Fand%26amp`).
+* `{unquoted}` quotes nothing (for `slash/and&amp` this placeholder
+  expands to `slash/and&amp`).
+
+The search engine named `DEFAULT` is used when `url.auto_search` is turned
+on and something else than a URL was entered to be opened. Other search
+engines can be used by prepending the search engine name to the search
+term, e.g.  `:open google qutebrowser`.
+
 
 Type: <<types,Dict>>
 

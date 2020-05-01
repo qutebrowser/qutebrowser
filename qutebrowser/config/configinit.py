@@ -68,7 +68,7 @@ def early_init(args: argparse.Namespace) -> None:
         else:
             configfiles.read_autoconfig()
     except configexc.ConfigFileErrors as e:
-        log.config.exception("Error while loading {}".format(e.basename))
+        log.config.error("Error while loading {}".format(e.basename))
         _init_errors = e
 
     try:
@@ -130,7 +130,7 @@ def _update_font_defaults(setting: str) -> None:
 
         value = config.instance.get_obj(name)
         if value is None or not (value.endswith(' default_family') or
-                                 value.startswith('default_size ')):
+                                 'default_size ' in value):
             continue
 
         config.instance.changed.emit(name)

@@ -105,7 +105,7 @@ def vdebug(self: logging.Logger,
     """
     if self.isEnabledFor(VDEBUG_LEVEL):
         # pylint: disable=protected-access
-        self._log(VDEBUG_LEVEL, msg, args, **kwargs)  # type: ignore
+        self._log(VDEBUG_LEVEL, msg, args, **kwargs)
         # pylint: enable=protected-access
 
 

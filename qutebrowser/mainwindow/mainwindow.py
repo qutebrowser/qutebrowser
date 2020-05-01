@@ -157,8 +157,11 @@ class MainWindow(QWidget):
             color: {{ conf.colors.hints.fg }};
             font: {{ conf.fonts.hints }};
             border: {{ conf.hints.border }};
-            padding-left: 3px;
-            padding-right: 3px;
+            border-radius: {{ conf.hints.radius }}px;
+            padding-top: {{ conf.hints.padding['top'] }}px;
+            padding-left: {{ conf.hints.padding['left'] }}px;
+            padding-right: {{ conf.hints.padding['right'] }}px;
+            padding-bottom: {{ conf.hints.padding['bottom'] }}px;
         }
 
         QMenu {
@@ -577,7 +580,7 @@ class MainWindow(QWidget):
 
     @pyqtSlot(bool)
     def _on_fullscreen_requested(self, on):
-        if not config.val.content.windowed_fullscreen:
+        if not config.val.content.fullscreen.window:
             if on:
                 self.state_before_fullscreen = self.windowState()
                 self.setWindowState(Qt.WindowFullScreen |  # type: ignore

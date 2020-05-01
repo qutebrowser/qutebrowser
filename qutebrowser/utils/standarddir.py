@@ -314,6 +314,9 @@ def _create(path: str) -> None:
         0700. If the destination directory exists already the permissions
         should not be changed.
     """
+    if APPNAME == 'qute_test' and path.startswith('/home'):  # pragma: no cover
+        raise Exception("Trying to create directory inside /home during "
+                        "tests, this should not happen.")
     os.makedirs(path, 0o700, exist_ok=True)
 
 

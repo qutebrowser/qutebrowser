@@ -530,14 +530,10 @@ class ConfigAPI:
         with self._handle_error('binding', key):
             seq = keyutils.KeySequence.parse(key)
             if command is None:
-                text = ("Unbinding commands with config.bind('{key}', None) "
-                        "is deprecated. Use config.unbind('{key}') instead."
-                        .format(key=key))
-                self.errors.append(configexc.ConfigErrorDesc(
-                    "While unbinding '{}'".format(key), text))
-                self._keyconfig.unbind(seq, mode=mode)
-            else:
-                self._keyconfig.bind(seq, command, mode=mode)
+                raise configexc.Error("Can't bind {key} to None (maybe you "
+                                      "want to use config.unbind('{key}') "
+                                      "instead?)".format(key=key))
+            self._keyconfig.bind(seq, command, mode=mode)
 
     def unbind(self, key: str, mode: str = 'normal') -> None:
         """Unbind a key from a command, with an optional key mode."""
@@ -774,7 +770,7 @@ def init() -> None:
 
     try:
         state = StateConfig()
-    except configparser.Error as e:
+    except (configparser.Error, UnicodeDecodeError) as e:
         msg = "While loading state file from {}".format(standarddir.data())
         desc = configexc.ConfigErrorDesc(msg, e)
         raise configexc.ConfigFileErrors('state', [desc], fatal=True)

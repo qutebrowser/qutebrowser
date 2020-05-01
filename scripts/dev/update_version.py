@@ -52,11 +52,15 @@ if __name__ == "__main__":
     parser.add_argument('bump', action="store",
                         choices=["major", "minor", "patch"],
                         help="Update release version")
+    parser.add_argument('--commands', action="store_true",
+                        help="Only show commands to run post-release.")
     args = parser.parse_args()
 
     utils.change_cwd()
-    bump_version(args.bump)
-    show_commit()
+
+    if not args.commands:
+        bump_version(args.bump)
+        show_commit()
 
     import qutebrowser
     version = qutebrowser.__version__
@@ -69,19 +73,19 @@ if __name__ == "__main__":
         print("* git checkout master && git cherry-pick v{v} && "
               "git push origin".format(v=version))
     else:
-        print("* git branch v{x} v{v} && git push origin v{x}"
+        print("* git branch v{x} v{v} && git push --set-upstream origin v{x}"
               .format(v=version, x=x_version))
     print("* Create new release via GitHub (required to upload release "
           "artifacts)")
-    print("* Linux: git pull && git checkout v{v} && "
+    print("* Linux: git fetch && git checkout v{v} && "
           "./.venv/bin/python3 scripts/dev/build_release.py --upload"
           .format(v=version))
-    print("* Windows: git pull; git checkout v{v}; "
+    print("* Windows: git fetch; git checkout v{v}; "
           "py -3 scripts\\dev\\build_release.py --asciidoc "
           "C:\\Python27\\python "
           "$env:userprofile\\bin\\asciidoc-8.6.10\\asciidoc.py --upload"
           .format(v=version))
-    print("* macOS: git pull && git checkout v{v} && "
+    print("* macOS: git fetch && git checkout v{v} && "
           "python3 scripts/dev/build_release.py --upload"
           .format(v=version))
 

@@ -196,6 +196,15 @@ from qutebrowser.browser import pdfjs
      version.DistributionInfo(
          id='tux', parsed=version.Distribution.unknown,
          version=None, pretty='Tux')),
+    # Invalid multi-line value
+    ("""
+        ID=tux
+        PRETTY_NAME="Multiline
+        Text"
+     """,
+     version.DistributionInfo(
+         id='tux', parsed=version.Distribution.unknown,
+         version=None, pretty='Multiline')),
 ])
 def test_distribution(tmpdir, monkeypatch, os_release, expected):
     os_release_file = tmpdir / 'os-release'
@@ -897,7 +906,7 @@ class VersionParams:
     name = attr.ib()
     git_commit = attr.ib(True)
     frozen = attr.ib(False)
-    style = attr.ib(True)
+    qapp = attr.ib(True)
     with_webkit = attr.ib(True)
     known_distribution = attr.ib(True)
     ssl_support = attr.ib(True)
@@ -909,7 +918,7 @@ class VersionParams:
     VersionParams('normal'),
     VersionParams('no-git-commit', git_commit=False),
     VersionParams('frozen', frozen=True),
-    VersionParams('no-style', style=False),
+    VersionParams('no-qapp', qapp=False),
     VersionParams('no-webkit', with_webkit=False),
     VersionParams('unknown-dist', known_distribution=False),
     VersionParams('no-ssl', ssl_support=False),
@@ -937,8 +946,9 @@ def test_version_output(params, stubs, monkeypatch, config_stub):
         'platform.architecture': lambda: ('ARCHITECTURE', ''),
         '_os_info': lambda: ['OS INFO 1', 'OS INFO 2'],
         '_path_info': lambda: {'PATH DESC': 'PATH NAME'},
-        'QApplication': (stubs.FakeQApplication(style='STYLE')
-                         if params.style else
+        'QApplication': (stubs.FakeQApplication(style='STYLE',
+                                                platform_name='PLATFORM')
+                         if params.qapp else
                          stubs.FakeQApplication(instance=None)),
         'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
         'sql.version': lambda: 'SQLITE VERSION',
@@ -948,7 +958,9 @@ def test_version_output(params, stubs, monkeypatch, config_stub):
 
     substitutions = {
         'git_commit': '\nGit commit: GIT COMMIT' if params.git_commit else '',
-        'style': '\nStyle: STYLE' if params.style else '',
+        'style': '\nStyle: STYLE' if params.qapp else '',
+        'platform_plugin': ('\nPlatform plugin: PLATFORM' if params.qapp
+                            else ''),
         'qt': 'QT VERSION',
         'frozen': str(params.frozen),
         'import_path': import_path,
@@ -1014,7 +1026,7 @@ def test_version_output(params, stubs, monkeypatch, config_stub):
         pdf.js: PDFJS VERSION
         sqlite: SQLITE VERSION
         QtNetwork SSL: {ssl}
-        {style}
+        {style}{platform_plugin}
         Platform: PLATFORM, ARCHITECTURE{linuxdist}
         Frozen: {frozen}
         Imported from {import_path}

@@ -263,8 +263,9 @@ class AsciiDoc:
             subprocess.run(cmdline, check=True, env=env)
         except (subprocess.CalledProcessError, OSError) as e:
             self._failed = True
-            utils.print_col(str(e), 'red')
-            print("Keeping modified sources in {}.".format(self._homedir))
+            utils.print_error(str(e))
+            print("Keeping modified sources in {}.".format(self._homedir),
+                  file=sys.stderr)
             sys.exit(1)
 
 
@@ -291,9 +292,9 @@ def run(**kwargs):
     try:
         asciidoc.prepare()
     except FileNotFoundError:
-        utils.print_col("Could not find asciidoc! Please install it, or use "
-                        "the --asciidoc argument to point this script to the "
-                        "correct python/asciidoc.py location!", 'red')
+        utils.print_error("Could not find asciidoc! Please install it, or use "
+                          "the --asciidoc argument to point this script to "
+                          "the correct python/asciidoc.py location!")
         sys.exit(1)
 
     try:

@@ -262,8 +262,13 @@ class TestAll:
                 configtypes.PercOrInt,  # ditto
         ]:
             return
-        if (isinstance(typ, configtypes.ListOrValue) and
-                isinstance(typ.valtype, configtypes.Int)):
+        elif (isinstance(typ, functools.partial) and
+              isinstance(typ.func, configtypes.ListOrValue)):
+            # "- /" -> "/"
+            return
+        elif (isinstance(typ, configtypes.ListOrValue) and
+              isinstance(typ.valtype, configtypes.Int)):
+            # "00" -> "0"
             return
 
         assert converted == s
@@ -2003,7 +2008,6 @@ class TestSearchEngineUrl:
 
     @pytest.mark.parametrize('val', [
         'foo',  # no placeholder
-        ':{}',  # invalid URL
         'foo{bar}baz{}',  # {bar} format string variable
         '{1}{}',  # numbered format string variable
         '{{}',  # invalid format syntax

@@ -112,7 +112,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<set,set>>|Set an option.
 |<<set-cmd-text,set-cmd-text>>|Preset the statusbar to some text.
 |<<set-mark,set-mark>>|Set a mark at the current scroll position in the current tab.
-|<<spawn,spawn>>|Spawn a command in a shell.
+|<<spawn,spawn>>|Spawn an external command.
 |<<stop,stop>>|Stop loading in the current/[count]th tab.
 |<<tab-clone,tab-clone>>|Duplicate the current tab.
 |<<tab-close,tab-close>>|Close the current/[count]th tab.
@@ -1256,7 +1256,9 @@ Syntax: +:spawn [*--userscript*] [*--verbose*] [*--output*] [*--output-messages*
       [*--detach*]
       'cmdline'+
 
-Spawn a command in a shell.
+Spawn an external command.
+
+Note that the command is *not* run in a shell, so things like `$VAR` or `> output` won't have the desired effect.
 
 ==== positional arguments
 * +'cmdline'+: The commandline to execute.
@@ -1483,8 +1485,6 @@ Yank (copy) something to the clipboard or primary selection.
  - `title`: The current page's title.
  - `domain`: The current scheme, domain, and port number.
  - `selection`: The selection under the cursor.
- - `markdown`: Yank title and URL in markdown format
- (deprecated, use `:yank inline [{title}]({url})` instead).
  - `inline`: Yank the text contained in the 'inline' argument.
  
 
