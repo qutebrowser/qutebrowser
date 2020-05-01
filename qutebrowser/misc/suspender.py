@@ -86,9 +86,11 @@ class Suspender:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
             current_tab = tabbed_browser.widget.currentWidget()
-            active_count += 1
+            # Rarely there could be no current widget.
+            if current_tab:
+                active_count += 1
             for tab in tabbed_browser.widgets():
-                if tab is not current_tab and not self.should_discard(tab):
+                if tab is current_tab or not self.should_discard(tab):
                     continue
                 page = tab.get_page()
                 if page.lifecycleState() != page.LifecycleState.Discarded:
