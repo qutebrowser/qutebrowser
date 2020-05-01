@@ -1174,32 +1174,7 @@ class AbstractTab(QWidget):
         return self._load_status
 
     def unload(self) -> None:
-        """Unload the tab."""
-        if not self.history.loaded:
-            return
-
-        self.history.unload()
-
-        try:
-            icon_url = self._widget.iconUrl().toDisplayString(
-                QUrl.EncodeUnicode
-            )
-        except AttributeError:
-            # QtWebkit doesn't have the iconUrl property
-            icon_url = ''
-
-        page_template = jinja.environment.from_string(
-            '<html><head>'
-            '{% if icon_url %}'
-            '<link rel="shortcut icon" href="{{icon_url}}"/>'
-            '{% endif %}'
-            '<title>{{title}}</title>'
-            '</head></html>'
-        )
-
-        self._widget.setHtml(
-            page_template.render(title=self.title(), icon_url=icon_url),
-            self._widget.url())
+        raise NotImplementedError
 
     def _load_url_prepare(self, url: QUrl, *,
                           emit_before_load_started: bool = True) -> None:
@@ -1302,3 +1277,4 @@ class AbstractTab(QWidget):
 
         if self.history.load_on_focus:
             self.history.load()
+

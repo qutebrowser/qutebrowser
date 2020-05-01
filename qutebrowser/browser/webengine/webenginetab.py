@@ -37,10 +37,11 @@ if typing.TYPE_CHECKING:
 from qutebrowser.config import configdata, config
 from qutebrowser.browser import (browsertab, eventfilter, shared, webelem,
                                  history, greasemonkey)
-from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
+from qutebrowser.browser.webengine import (webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            cookies, webenginedownloads,
                                            webenginesettings, certificateerror)
+from qutebrowser.browser.webengine.webview import WebEngineView
 from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, objreg, jinja, debug)
@@ -707,6 +708,23 @@ class WebEngineHistory(browsertab.AbstractHistory):
         super().__init__(tab)
         self.private_api = WebEngineHistoryPrivate(tab)
 
+    def load(self) -> None:
+        """Load the tab history."""
+        super().load()
+
+        if self._tab.lifecycle_state == QWebEnginePage.LifecycleState.Active:
+            return
+
+        self._tab.set_lifecycle_state(QWebEnginePage.LifecycleState.Active)
+
+    def unload(self) -> None:
+        super().unload()
+       
+        if self._tab.lifecycle_state() != QWebEnginePage.LifecycleState.Active:
+            return
+
+        self._tab.set_lifecycle_state(QWebEnginePage.LifecycleState.Frozen)
+
 
 class WebEngineZoom(browsertab.AbstractZoom):
 
@@ -1252,7 +1270,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
         super().__init__(win_id=win_id, private=private, parent=parent)
-        widget = webview.WebEngineView(tabdata=self.data, win_id=win_id,
+        widget = WebEngineView(tabdata=self.data, win_id=win_id,
                                        private=private)
         self.history = WebEngineHistory(tab=self)
         self.scroller = WebEngineScroller(tab=self, parent=self)
@@ -1373,6 +1391,12 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def icon(self):
         return self._widget.icon()
+
+    def lifecycle_state(self) -> QWebEnginePage.LifecycleState:
+        return self._widget.page().lifecycleState()
+
+    def set_lifecycle_state(self, state: QWebEnginePage.LifecycleState) -> None:
+        self._widget.page().setLifecycleState(state)
 
     def set_html(self, html, base_url=QUrl()):
         # FIXME:qtwebengine
@@ -1769,3 +1793,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self.search.connect_signals()
         self._permissions.connect_signals()
         self._scripts.connect_signals()
+
+    def unload(self) -> None:
+        """Unload the tab."""
+        self.history.unload()

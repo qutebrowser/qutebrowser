@@ -1794,4 +1794,12 @@ class CommandDispatcher:
         if tab is None:
             return
 
+        conf_selection = config.val.tabs.select_on_remove
+        if conf_selection == QTabBar.SelectLeftTab:
+            self.tab_prev()
+        elif conf_selection == QTabBar.SelectRightTab:
+            self.tab_next()
+        elif conf_selection == QTabBar.SelectPreviousTab:
+            self._tab_focus_stack("last")
+
         tab.unload()
