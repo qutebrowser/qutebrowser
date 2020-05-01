@@ -38,7 +38,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            cookies, webenginedownloads,
                                            webenginesettings, certificateerror)
-from qutebrowser.misc import miscwidgets, objects, suspender
+from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, objreg, jinja, debug)
 from qutebrowser.qt import sip
@@ -1292,8 +1292,8 @@ class WebEngineTab(browsertab.AbstractTab):
         tabwidget.set_tab_indicator_color(idx, color)
 
     def activate(self):
+        """restore indicator state and reset background_time."""
         self.background_time = 0
-        """restore indicator state."""
         if self.indicator_color_restore:
             self.set_indicator_color(self.indicator_color_restore)
 
@@ -1309,8 +1309,8 @@ class WebEngineTab(browsertab.AbstractTab):
 
         Return False is the tab is not discarded.
 
-        If the tab isn't discarded, the suspender will try to discard the tab next
-        time.
+        If the tab isn't discarded, the suspender will try to
+        discard the tab next time.
         """
         page = self.get_page()
         page.setLifecycleState(page.LifecycleState.Discarded)

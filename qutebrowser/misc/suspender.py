@@ -71,7 +71,7 @@ class Suspender:
             self.check_timer.stop()
 
     def _check_discard_tabs(self):
-        """Iterate through all tabs and try to discard some
+        """Iterate through all tabs and try to discard some tabs.
 
         Only discard a tab if,
           - there are more than content.suspender.max_active_tabs tabs
