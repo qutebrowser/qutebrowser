@@ -737,6 +737,13 @@ class AbstractTab(QWidget):
     renderer_process_terminated = pyqtSignal(TerminationStatus, int)
     predicted_navigation = pyqtSignal(QUrl)
 
+    # Hosts for which a certificate error happened. Shared between all tabs.
+    #
+    # Note that we remember hosts here, without scheme/port:
+    # QtWebEngine/Chromium also only remembers hostnames, and certificates are
+    # for a given hostname anyways.
+    _insecure_hosts = set()  # type: typing.Set[str]
+
     def __init__(self, *, win_id, mode_manager, private, parent=None):
         self.private = private
         self.win_id = win_id
@@ -753,7 +760,6 @@ class AbstractTab(QWidget):
         self._layout = miscwidgets.WrapperLayout(self)
         self._widget = None
         self._progress = 0
-        self._has_ssl_errors = False
         self._mode_manager = mode_manager
         self._load_status = usertypes.LoadStatus.none
         self._mouse_event_filter = mouse.MouseEventFilter(
@@ -840,7 +846,6 @@ class AbstractTab(QWidget):
     @pyqtSlot()
     def _on_load_started(self):
         self._progress = 0
-        self._has_ssl_errors = False
         self.data.viewing_source = False
         self._set_load_status(usertypes.LoadStatus.loading)
         self.load_started.emit()
@@ -899,9 +904,12 @@ class AbstractTab(QWidget):
         sess_manager = objreg.get('session-manager')
         sess_manager.save_autosave()
 
-        if ok and not self._has_ssl_errors:
+        if ok:
             if self.url().scheme() == 'https':
-                self._set_load_status(usertypes.LoadStatus.success_https)
+                if self.url().host() in self._insecure_hosts:
+                    self._set_load_status(usertypes.LoadStatus.warn)
+                else:
+                    self._set_load_status(usertypes.LoadStatus.success_https)
             else:
                 self._set_load_status(usertypes.LoadStatus.success)
         elif ok:
