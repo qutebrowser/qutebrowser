@@ -1549,9 +1549,9 @@ class WebEngineTab(browsertab.AbstractTab):
 
     @pyqtSlot(certificateerror.CertificateErrorWrapper)
     def _on_ssl_errors(self, error):
-        self._has_ssl_errors = True
-
         url = error.url()
+        self._insecure_hosts.add(url.host())
+
         log.webview.debug("Certificate error: {}".format(error))
 
         if error.is_overridable():
