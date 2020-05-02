@@ -25,20 +25,18 @@ bdd.scenarios('open.feature')
 
 
 @pytest.mark.parametrize('scheme', ['http://', ''])
-def test_open_s(quteproc, ssl_server, scheme):
+def test_open_s(request, quteproc, ssl_server, scheme):
     """Test :open with -s."""
     quteproc.set_setting('content.ssl_strict', 'false')
     quteproc.send_cmd(':open -s {}localhost:{}/'
                       .format(scheme, ssl_server.port))
-    if scheme == 'http://':
-        # Error is only logged once
+    if scheme == 'http://' or not request.config.webengine:
+        # Error is only logged on the first error with QtWebEngine
         quteproc.mark_expected(category='message',
-                            loglevel=logging.ERROR,
-                            message="Certificate error: *")
-        quteproc.wait_for_load_finished('/', port=ssl_server.port, https=True,
-                                        load_status='warn')
-    else:
-        quteproc.wait_for_load_finished('/', port=ssl_server.port, https=True)
+                               loglevel=logging.ERROR,
+                               message="Certificate error: *")
+    quteproc.wait_for_load_finished('/', port=ssl_server.port, https=True,
+                                    load_status='warn')
 
 
 def test_open_s_non_http(quteproc, ssl_server):
