@@ -1402,7 +1402,33 @@ class WebEngineTab(browsertab.AbstractTab):
         if self._widget.page().isVisible():
             log.misc.debug("Skipped lifecycle update. Page is visible")
             return
-       
+        current_state = self.lifecycle_state()
+
+        is_legal_transition = (
+            (
+                current_state == QWebEnginePage.LifecycleState.Active and
+                (
+                    state == QWebEnginePage.LifecycleState.Frozen or
+                    state == QWebEnginePage.LifecycleState.Discarded
+
+                )
+            ) or
+            (
+                current_state == QWebEnginePage.LifecycleState.Frozen and
+                (
+                    state == QWebEnginePage.LifecycleState.Active or
+                    state == QWebEnginePage.LifecycleState.Discarded
+                )
+            ) or
+            (
+                current_state == QWebEnginePage.LifecycleState.Discarded
+                and state == QWebEnginePage.LifecycleState.Active
+            )
+        )
+
+        if not is_legal_transition:
+            return
+
         self._widget.page().setLifecycleState(state)
 
     def set_html(self, html, base_url=QUrl()):
