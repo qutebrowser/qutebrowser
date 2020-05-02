@@ -1602,16 +1602,17 @@ class WebEngineTab(browsertab.AbstractTab):
                 emit_before_load_started=False))
             self._reload_url = None
 
-    @pyqtSlot(QWebEnginePage.LifecycleState)
-    def _check_recommended_lifecycle_state(
-            self,
-            state: QWebEnginePage.LifecycleState
-    ) -> None:
-        log.webview.debug(
-            "Recommended lifecycle state changed to {}. Current state".format(
-                recommended_state,
-                self.lifecycle_state()
-            ))
+        timer = QTimer()
+        timer.timeout.connect(self._check_recommended_lifecycle_state)   # assuming that move_towards is the handler
+        timer.start(1000)
+        self.check_lifecycle_state_timer = timer
+
+    def _check_recommended_lifecycle_state(self) -> None:
+        recommended_state = self.recommended_lifecycle_state()
+        current_state = self.lifecycle_state()
+
+        if recommended_state == current_state:
+            return
 
         delay = 0
         if recommended_state == QWebEnginePage.LifecycleState.Active:
@@ -1624,7 +1625,7 @@ class WebEngineTab(browsertab.AbstractTab):
         if delay == 0:
             return
 
-        QTimer.singleShot(freeze_delay, functools.partial(
+        QTimer.singleShot(delay, functools.partial(
             self.set_lifecycle_state, recommended_state
         ))
 
@@ -1812,8 +1813,6 @@ class WebEngineTab(browsertab.AbstractTab):
         page.loadFinished.connect(self._on_history_trigger)
         page.loadFinished.connect(self._restore_zoom)
         page.loadFinished.connect(self._on_load_finished)
-
-        page.recommendedStateChanged.connect(self._check_recommended_lifecycle_state)
 
         self.before_load_started.connect(self._on_before_load_started)
         self.shutting_down.connect(self.abort_questions)  # type: ignore
