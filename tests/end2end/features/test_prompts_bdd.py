@@ -87,20 +87,3 @@ def test_certificate_error_load_status(request, quteproc, ssl_server):
                                    message="Certificate error: *")
         quteproc.wait_for_load_finished('/', port=ssl_server.port, https=True,
                                         load_status='warn')
-
-
-class AbstractCertificateErrorWrapper:
-
-    """A wrapper over an SSL/certificate error."""
-
-    def __init__(self, error):
-        self._error = error
-
-    def __str__(self):
-        raise NotImplementedError
-
-    def __repr__(self):
-        raise NotImplementedError
-
-    def is_overridable(self):
-        raise NotImplementedError
