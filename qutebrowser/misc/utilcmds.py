@@ -24,6 +24,7 @@
 import functools
 import os
 import traceback
+import typing
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QApplication
@@ -34,7 +35,7 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
 from qutebrowser.misc import (  # pylint: disable=unused-import
-    consolewidget, debugcachestats, objects)
+    consolewidget, debugcachestats, objects, miscwidgets)
 from qutebrowser.utils.version import pastebin_version
 from qutebrowser.qt import sip
 
@@ -293,3 +294,17 @@ def version(win_id: int, paste: bool = False) -> None:
 
     if paste:
         pastebin_version()
+
+
+_keytester_widget = None  # type: typing.Optional[miscwidgets.KeyTesterWidget]
+
+
+@cmdutils.register(debug=True)
+def debug_keytester() -> None:
+    """Show a keytester widget."""
+    global _keytester_widget
+    if _keytester_widget and _keytester_widget.isVisible():
+        _keytester_widget.close()
+    else:
+        _keytester_widget = miscwidgets.KeyTesterWidget()
+        _keytester_widget.show()

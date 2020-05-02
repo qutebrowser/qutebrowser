@@ -29,6 +29,13 @@ Removed
 - `:yank markdown` was deprecated in v1.7.0 and is now removed. Use
   `:yank inline [{title}]({url})` instead.
 
+Added
+~~~~~
+
+- New `:debug-keytester` command, which shows a "key tester" widget.
+  Previously, that was only available as a separate application via `python3 -m
+  scripts.keytester`.
+
 v1.11.1 (unreleased)
 --------------------
 

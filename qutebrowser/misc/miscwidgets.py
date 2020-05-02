@@ -23,12 +23,14 @@ import typing
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QTimer
 from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
-                             QStyleOption, QStyle, QLayout, QApplication)
+                             QStyleOption, QStyle, QLayout, QApplication,
+                             QWidget)
 from PyQt5.QtGui import QValidator, QPainter
 
 from qutebrowser.config import config
 from qutebrowser.utils import utils
 from qutebrowser.misc import cmdhistory
+from qutebrowser.keyinput import keyutils
 
 
 class MinimalLineEditMixin:
@@ -341,3 +343,26 @@ class FullscreenNotification(QLabel):
         """Hide and delete the widget."""
         self.hide()
         self.deleteLater()
+
+
+class KeyTesterWidget(QWidget):
+
+    """Widget displaying key presses."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
+        self._layout = QHBoxLayout(self)
+        self._label = QLabel(text="Waiting for keypress...")
+        self._layout.addWidget(self._label)
+
+    def keyPressEvent(self, e):
+        """Show pressed keys."""
+        lines = [
+            str(keyutils.KeyInfo.from_event(e)),
+            '',
+            'key: 0x{:x}'.format(int(e.key())),
+            'modifiers: 0x{:x}'.format(int(e.modifiers())),
+            'text: {!r}'.format(e.text()),
+        ]
+        self._label.setText('\n'.join(lines))
