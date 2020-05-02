@@ -1037,18 +1037,19 @@ class AbstractTab(QWidget):
         Needs to be called by subclasses to trigger a load status update, e.g.
         as a response to a loadFinished signal.
         """
-        if ok:
-            if self.url().scheme() == 'https':
-                if self.url().host() in self._insecure_hosts:
-                    self._set_load_status(usertypes.LoadStatus.warn)
-                else:
-                    self._set_load_status(usertypes.LoadStatus.success_https)
-            else:
-                self._set_load_status(usertypes.LoadStatus.success)
-        elif ok:
-            self._set_load_status(usertypes.LoadStatus.warn)
+        url = self.url()
+        is_https = url.scheme() == 'https'
+
+        if not ok:
+            loadstatus = usertypes.LoadStatus.error
+        elif is_https and url.host() in self._insecure_hosts:
+            loadstatus = usertypes.LoadStatus.warn
+        elif is_https:
+            loadstatus = usertypes.LoadStatus.success_https
         else:
-            self._set_load_status(usertypes.LoadStatus.error)
+            loadstatus = usertypes.LoadStatus.success
+
+        self._set_load_status(loadstatus)
 
     @pyqtSlot()
     def _on_history_trigger(self) -> None:
