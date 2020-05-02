@@ -308,8 +308,9 @@ class CommandDispatcher:
             urls = self._parse_url_input(url)
 
         for i, cur_url in enumerate(urls):
-            if secure:
+            if secure and cur_url.scheme() == 'http':
                 cur_url.setScheme('https')
+
             if not window and i > 0:
                 tab = False
                 bg = True

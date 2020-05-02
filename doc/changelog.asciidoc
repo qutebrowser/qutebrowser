@@ -36,6 +36,12 @@ Added
   Previously, that was only available as a separate application via `python3 -m
   scripts.keytester`.
 
+Fixed
+~~~~~
+
+- Using `:open -s` now only rewrites `http://` in URLs to `https://`, not other
+  schemes like `qute://`.
+
 v1.11.1 (unreleased)
 --------------------
 
