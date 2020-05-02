@@ -23,8 +23,7 @@ import typing
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QTimer
 from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
-                             QStyleOption, QStyle, QLayout, QApplication,
-                             QWidget)
+                             QStyleOption, QStyle, QLayout, QApplication)
 from PyQt5.QtGui import QValidator, QPainter
 
 from qutebrowser.config import config

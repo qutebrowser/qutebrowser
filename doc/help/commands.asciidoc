@@ -1909,6 +1909,7 @@ These commands are mainly intended for debugging. They are hidden if qutebrowser
 |<<debug-crash,debug-crash>>|Crash for debugging purposes.
 |<<debug-dump-history,debug-dump-history>>|Dump the history to a file in the old pre-SQL format.
 |<<debug-dump-page,debug-dump-page>>|Dump the current page's content to a file.
+|<<debug-keytester,debug-keytester>>|Show a keytester widget.
 |<<debug-log-capacity,debug-log-capacity>>|Change the number of log lines to be stored in RAM.
 |<<debug-log-filter,debug-log-filter>>|Change the log filter for console logging.
 |<<debug-log-level,debug-log-level>>|Change the log level for console logging.
@@ -1962,6 +1963,10 @@ Dump the current page's content to a file.
 
 ==== optional arguments
 * +*-p*+, +*--plain*+: Write plain text instead of HTML.
+
+[[debug-keytester]]
+=== debug-keytester
+Show a keytester widget.
 
 [[debug-log-capacity]]
 === debug-log-capacity
