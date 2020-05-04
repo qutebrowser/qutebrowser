@@ -115,6 +115,8 @@ class BraveAdBlocker:
         _done_count: How many files have been read successfully.
         _has_basedir: Whether a custom --basedir is set.
         _cache_path: The path of the adblock engine cache file
+        _engine_factory: A function that can be called to create an empty
+                         adblocking engine.
         _engine: Brave ad-blocking engine.
     """
 
@@ -123,12 +125,8 @@ class BraveAdBlocker:
         *,
         # FIXME: This type should be `adblock.Engine`. I don't know how to
         # annotate it in such a way that mypy doesn't complain about it being
-        # undefined, since `adblock` is an optional dependency:
-        # ```
-        # qutebrowser/components/braveadblock.py:125: error: Name 'adblock' is not defined  [name-defined]
-        #    engine: "adblock.Engine",
-        # ```
-        engine: typing.Any,
+        # undefined, since `adblock` is an optional dependency.
+        engine_factory: typing.Callable[[], typing.Any],
         data_dir: pathlib.Path,
         has_basedir: bool = False
     ) -> None:
@@ -136,7 +134,8 @@ class BraveAdBlocker:
         self._in_progress = []  # type: typing.List[downloads.TempDownload]
         self._done_count = 0
         self._cache_path = str(data_dir / "adblock-cache.dat")
-        self._engine = engine
+        self._engine_factory = engine_factory
+        self._engine = engine_factory()
 
     def _is_blocked(
         self,
@@ -204,6 +203,7 @@ class BraveAdBlocker:
     def adblock_update(self) -> None:
         """Update the adblock block lists."""
         self._done_count = 0
+        self._engine = self._engine_factory()
         logger.info("Downloading adblock filter lists...")
         for url in config.val.content.ad_blocking.lists:
             if url.scheme() == "file":
@@ -320,9 +320,8 @@ def init(context: apitypes.InitContext) -> None:
         _ad_blocker = None
         return
 
-    engine = adblock.Engine([])
     _ad_blocker = BraveAdBlocker(
-        engine=engine,
+        engine_factory=lambda: adblock.Engine([]),
         data_dir=context.data_dir,
         has_basedir=context.args.basedir is not None,
     )

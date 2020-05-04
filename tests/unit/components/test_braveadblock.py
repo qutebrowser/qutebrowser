@@ -20,7 +20,7 @@
 import logging
 import csv
 import os.path
-from typing import Tuple, List
+from typing import Tuple, List, Iterable
 from shutil import copy
 
 from PyQt5.QtCore import QUrl
@@ -87,6 +87,57 @@ NOT_OKAY_URLS = [
 ]
 
 
+def run_function_on_dataset(given_function):
+    """Run the given function on a bunch of urls.
+
+    In the data folder, we have a file called `adblock_dataset.tsv`, which
+    contains tuples of (url, source_url, type) in each line. We give these
+    to values to the given function, row by row.
+    """
+
+    def dataset_type_to_enum(type_int: int) -> ResourceType:
+        """Translate the dataset's encoding of a resource type to Qutebrowser's."""
+        if type_int == 0:
+            return ResourceType.unknown
+        elif type_int == 1:
+            return ResourceType.image
+        elif type_int == 2:
+            return ResourceType.stylesheet
+        elif type_int == 3:
+            return ResourceType.media
+        elif type_int == 4:
+            return ResourceType.script
+        elif type_int == 5:
+            return ResourceType.font_resource
+        elif type_int == 6:
+            return ResourceType.xhr
+        else:
+            assert type_int == 7
+            return ResourceType.sub_frame
+
+    dataset_path = os.path.join(THIS_DIR, "data", "adblock_dataset.tsv")
+    with open(dataset_path, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f, delimiter="\t")
+        for row in reader:
+            url = QUrl(row["url"])
+            source_url = QUrl(row["source_url"])
+            resource_type = dataset_type_to_enum(int(row["type"]))
+            given_function(url, source_url, resource_type)
+
+
+def assert_none_blocked(ad_blocker):
+    assert_urls(ad_blocker, NOT_OKAY_URLS + OKAY_URLS, False)
+
+    def assert_not_blocked(ad_blocker, url, source_url, resource_type):
+        assert not ad_blocker._is_blocked(url, source_url, resource_type)
+
+    run_function_on_dataset(
+        lambda url, source_url, resource_type: assert_not_blocked(
+            ad_blocker, url, source_url, resource_type
+        )
+    )
+
+
 def create_blocklist_invalid_utf8(directory) -> str:
     dest_path = os.path.join(directory, "invalid_utf8.txt")
     with open(dest_path, "wb") as f:
@@ -100,7 +151,6 @@ def create_easylist_easyprivacy(directory) -> List[str]:
     for blocklist in ["easyprivacy.txt", "easylist.txt"]:
         bl_src_path = os.path.join(THIS_DIR, "data", blocklist)
         bl_dst_path = os.path.join(directory, blocklist)
-        assert not os.path.isfile(bl_dst_path)
         copy(bl_src_path, bl_dst_path)
         assert os.path.isfile(bl_dst_path)
         urls.append(QUrl.fromLocalFile(bl_dst_path).toString())
@@ -110,15 +160,14 @@ def create_easylist_easyprivacy(directory) -> List[str]:
 @pytest.fixture
 def ad_blocker_factory(config_tmpdir, data_tmpdir, download_stub, config_stub):
     def factory():
-        engine = Engine([])
-        return BraveAdBlocker(engine=engine, data_dir=data_tmpdir)
+        return BraveAdBlocker(engine_factory=lambda: Engine([]), data_dir=data_tmpdir)
 
     return factory
 
 
 def assert_urls(
     ad_blocker: BraveAdBlocker,
-    urls: Tuple[str, str, ResourceType],
+    urls: Iterable[Tuple[str, str, ResourceType]],
     should_be_blocked: bool,
 ) -> None:
     for (str_url, source_str_url, request_type) in urls:
@@ -169,7 +218,7 @@ def test_adblock_cache(config_stub, tmpdir, caplog, ad_blocker_factory):
         if i == 0:
             # We haven't initialized the ad blocker yet, so we shouldn't be blocking
             # anything.
-            assert_urls(ad_blocker, NOT_OKAY_URLS + OKAY_URLS, False)
+            assert_none_blocked(ad_blocker)
 
         # Now we initialize the adblocker.
         ad_blocker.adblock_update()
@@ -205,48 +254,38 @@ def test_invalid_utf8(ad_blocker_factory, config_stub, tmpdir, caplog):
     assert caplog.messages[-2].startswith(expected)
 
 
-def test_dataset(ad_blocker_factory, tmpdir, config_stub):
-    """Run the ad-blocking logic on a bunch of urls.
-
-    In the data folder, we have a file called `adblock_dataset.tsv`, which
-    contains tuples of (url, source_url, type) in each line. We run these
-    through the ad blocker to see if we get any exceptions.
-
-    This test is only meant to catch syntax errors and the like, not
-    incorrectness in the adblocker. There are thus no assert statements.
-    """
-
-    def dataset_type_to_enum(type_int: int) -> ResourceType:
-        """Translate the dataset's encoding of a resource type to Qutebrowser's."""
-        if type_int == 0:
-            return ResourceType.unknown
-        elif type_int == 1:
-            return ResourceType.image
-        elif type_int == 2:
-            return ResourceType.stylesheet
-        elif type_int == 3:
-            return ResourceType.media
-        elif type_int == 4:
-            return ResourceType.script
-        elif type_int == 5:
-            return ResourceType.font_resource
-        elif type_int == 6:
-            return ResourceType.xhr
-        else:
-            assert type_int == 7
-            return ResourceType.sub_frame
-
-    config_stub.val.content.ad_blocking.lists = create_easylist_easyprivacy(tmpdir)
+def test_config_changed(ad_blocker_factory, config_stub, tmpdir, caplog):
+    """Ensure blocked-hosts resets if host-block-list is changed to None."""
     config_stub.val.content.ad_blocking.enabled = True
+    config_stub.val.content.ad_blocking.whitelist = None
 
-    blocker = ad_blocker_factory()
-    blocker.adblock_update()
+    ad_blocker = ad_blocker_factory()
 
-    dataset_path = os.path.join(THIS_DIR, "data", "adblock_dataset.tsv")
-    with open(dataset_path, "r", encoding="utf-8") as f:
-        reader = csv.DictReader(f, delimiter="\t")
-        for row in reader:
-            url = QUrl(row["url"])
-            source_url = QUrl(row["source_url"])
-            resource_type = dataset_type_to_enum(int(row["type"]))
-            blocker._is_blocked(url, source_url, resource_type)
+    for _ in range(2):
+        # We should be blocking like normal, since the block lists are set to
+        # easylist and easyprivacy.
+        config_stub.val.content.ad_blocking.lists = create_easylist_easyprivacy(tmpdir)
+        ad_blocker.adblock_update()
+        while ad_blocker._in_progress:
+            current_download = ad_blocker._in_progress[0]
+            with caplog.at_level(logging.ERROR):
+                current_download.successful = True
+                current_download.finished.emit()
+        assert_urls(ad_blocker, NOT_OKAY_URLS, True)
+        assert_urls(ad_blocker, OKAY_URLS, False)
+
+        # After setting the ad blocking lists to None, the ads should still be
+        # blocked, since we haven't run `:brave-adblock-update`.
+        config_stub.val.content.ad_blocking.lists = None
+        assert_urls(ad_blocker, NOT_OKAY_URLS, True)
+        assert_urls(ad_blocker, OKAY_URLS, False)
+
+        # After updating the adblocker, nothing should be blocked, since we set
+        # the blocklist to None.
+        ad_blocker.adblock_update()
+        while ad_blocker._in_progress:
+            current_download = ad_blocker._in_progress[0]
+            with caplog.at_level(logging.ERROR):
+                current_download.successful = True
+                current_download.finished.emit()
+        assert_none_blocked(ad_blocker)
