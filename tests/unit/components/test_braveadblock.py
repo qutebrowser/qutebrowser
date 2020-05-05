@@ -29,7 +29,7 @@ import pytest
 from adblock import Engine
 
 from qutebrowser.api.interceptor import ResourceType
-from qutebrowser.components.braveadblock import BraveAdBlocker
+from qutebrowser.components.braveadblock import BraveAdBlocker, _is_whitelisted_url
 
 pytestmark = pytest.mark.usefixtures("qapp")
 
@@ -289,3 +289,32 @@ def test_config_changed(ad_blocker_factory, config_stub, tmpdir, caplog):
                 current_download.successful = True
                 current_download.finished.emit()
         assert_none_blocked(ad_blocker)
+
+
+def test_whitelist_on_dataset(ad_blocker_factory, config_stub, tmpdir, caplog):
+    config_stub.val.content.ad_blocking.lists = create_easylist_easyprivacy(tmpdir)
+    config_stub.val.content.ad_blocking.enabled = True
+    config_stub.val.content.ad_blocking.whitelist = None
+
+    def assert_whitelisted(url, source_url, resource_type):
+        config_stub.val.content.ad_blocking.whitelist = None
+        assert not _is_whitelisted_url(url)
+        config_stub.val.content.ad_blocking.whitelist = []
+        assert not _is_whitelisted_url(url)
+        whitelist_url = url.toString(QUrl.RemovePath) + "/*"
+        config_stub.val.content.ad_blocking.whitelist = [whitelist_url]
+        assert _is_whitelisted_url(url)
+
+    run_function_on_dataset(assert_whitelisted)
+
+
+def test_blocklists_are_whitelisted(ad_blocker_factory, config_stub, tmpdir, caplog):
+    blocklist_urls = [url for url, _s_url, _type in NOT_OKAY_URLS]
+    config_stub.val.content.ad_blocking.lists = (
+        create_easylist_easyprivacy(tmpdir) + blocklist_urls
+    )
+    config_stub.val.content.ad_blocking.enabled = True
+    config_stub.val.content.ad_blocking.whitelist = None
+
+    for url in blocklist_urls:
+        assert _is_whitelisted_url(QUrl(url))
