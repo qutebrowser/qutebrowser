@@ -31,6 +31,16 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 from scripts import utils
 
 
+def find_pyqt_bundle():
+    bin_path = pathlib.Path(sys.executable).parent
+    path = bin_path / 'pyqt-bundle'
+
+    if not path.exists():
+        raise FileNotFoundError("Can't find pyqt-bundle at {}".format(path))
+
+    return path
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('qt_location', help='Qt compiler directory')
@@ -39,6 +49,18 @@ def main():
     args = parser.parse_args()
 
     old_cwd = pathlib.Path.cwd()
+
+    try:
+        pyqt_bundle = find_pyqt_bundle()
+    except FileNotFoundError as e:
+        utils.print_error(str(e))
+        sys.exit(1)
+
+    qt_dir = pathlib.Path(args.qt_location)
+    bin_dir = qt_dir / 'bin'
+    if not bin_dir.exists():
+        utils.print_error("Can't find {}".format(bin_dir))
+        sys.exit(1)
 
     wheels_dir = pathlib.Path(args.wheels_dir).resolve()
     wheels_dir.mkdir(exist_ok=True)
@@ -58,8 +80,7 @@ def main():
     input_files = wheels_dir.glob('*.whl')
     for wheel in input_files:
         utils.print_subtitle(wheel.stem.split('-')[0])
-        bin_path = pathlib.Path(sys.executable).parent
-        subprocess.run([str(bin_path / 'pyqt-bundle'),
+        subprocess.run([str(pyqt_bundle),
                         '--qt-dir', args.qt_location, str(wheel)],
                        check=True)
         wheel.unlink()
