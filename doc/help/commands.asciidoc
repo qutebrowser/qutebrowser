@@ -44,6 +44,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<config-cycle,config-cycle>>|Cycle an option between multiple values.
 |<<config-dict-add,config-dict-add>>|Add a key/value pair to a dictionary option.
 |<<config-dict-remove,config-dict-remove>>|Remove a key from a dict.
+|<<config-diff,config-diff>>|Show all customized options.
 |<<config-edit,config-edit>>|Open the config.py file in the editor.
 |<<config-list-add,config-list-add>>|Append a value to a config option that is a list.
 |<<config-list-remove,config-list-remove>>|Remove a value from a list.
@@ -327,6 +328,16 @@ Remove a key from a dict.
 
 ==== optional arguments
 * +*-t*+, +*--temp*+: Remove value temporarily until qutebrowser is closed.
+
+[[config-diff]]
+=== config-diff
+Syntax: +:config-diff [*--old*]+
+
+Show all customized options.
+
+==== optional arguments
+* +*-o*+, +*--old*+: Show difference for the pre-v1.0 files (qutebrowser.conf/keys.conf).
+
 
 [[config-edit]]
 === config-edit
