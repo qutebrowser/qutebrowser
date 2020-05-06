@@ -56,7 +56,7 @@ class RAMCookieJar(QNetworkCookieJar):
         Return:
             True if one or more cookies are set for 'url', otherwise False.
         """
-        if config.val.content.cookies.accept == 'never':
+        if config.instance.get('content.cookies.accept', url=url) == 'never':
             return False
         else:
             self.changed.emit()
