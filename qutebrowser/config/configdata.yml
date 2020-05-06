@@ -351,6 +351,7 @@ content.cookies.accept:
   backend:
     QtWebKit: true
     QtWebEngine: Qt 5.11
+  supports_pattern: true
   type:
     name: String
     valid_values:
@@ -361,7 +362,10 @@ content.cookies.accept:
           a cookie is already set for the domain. On QtWebEngine, this is the
           same as no-3rdparty."
       - never: "Don't accept cookies at all."
-  desc: Which cookies to accept.
+  desc: >-
+    Which cookies to accept.
+
+    Note that this option only supports URL patterns on QtWebEngine.
 
 content.cookies.store:
   default: true
