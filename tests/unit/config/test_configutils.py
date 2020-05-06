@@ -23,7 +23,7 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import configutils, configdata, configtypes, configexc
-from qutebrowser.utils import urlmatch, usertypes
+from qutebrowser.utils import urlmatch, usertypes, qtutils
 from tests.helpers import utils
 
 
@@ -143,6 +143,11 @@ def test_clear(values):
 def test_get_matching(values):
     url = QUrl('https://www.example.com/')
     assert values.get_for_url(url, fallback=False) == 'example value'
+
+
+def test_get_invalid(values):
+    with pytest.raises(qtutils.QtValueError):
+        values.get_for_url(QUrl())
 
 
 def test_get_unset(empty_values):
