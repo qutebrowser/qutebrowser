@@ -32,6 +32,11 @@ from scripts import utils
 
 
 def find_pyqt_bundle():
+    """Try to find the pyqt-bundle executable next to the current Python.
+
+    We do this instead of using $PATH so that the script can be used via
+    .venv/bin/python.
+    """
     bin_path = pathlib.Path(sys.executable).parent
     path = bin_path / 'pyqt-bundle'
 
