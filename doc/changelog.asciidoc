@@ -37,11 +37,20 @@ Added
   scripts.keytester`.
 - New `:config-diff` command which opens the `qute://configdiff` page.
 
+Changed
+~~~~~~~
+
+- The `content.cookies.accept` setting now accepts URL patterns.
+
 Fixed
 ~~~~~
 
 - Using `:open -s` now only rewrites `http://` in URLs to `https://`, not other
   schemes like `qute://`.
+- When an unhandled exception happens in certain parts of the code (outside of
+  the main thread), qutebrowser did crash or freeze when trying to show its
+  exception handler. This is now fixed.
+- `:inspector` now works correctly when cookies are disabled globally.
 
 v1.11.1 (unreleased)
 --------------------
