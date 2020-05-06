@@ -27,6 +27,7 @@ import pdb  # noqa: T002
 import signal
 import argparse
 import functools
+import threading
 import faulthandler
 import typing
 try:
@@ -242,6 +243,11 @@ class CrashHandler(QObject):
         if is_ignored_exception or 'pdb-postmortem' in objects.debug_flags:
             # pdb exit, KeyboardInterrupt, ...
             sys.exit(usertypes.Exit.exception)
+
+        if threading.current_thread() != threading.main_thread():
+            log.misc.error("Ignoring exception outside of main thread... "
+                           "Please report this as a bug.")
+            return
 
         self._quitter.quit_status['crash'] = False
         info = self._get_exception_info()
