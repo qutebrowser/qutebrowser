@@ -23,6 +23,7 @@ from qutebrowser.config import config
 from qutebrowser.utils import utils, qtutils
 
 
+@utils.prevent_exceptions(False)  # Runs in I/O thread
 def _accept_cookie(request):
     """Check whether the given cookie should be accepted."""
     url = request.firstPartyUrl
