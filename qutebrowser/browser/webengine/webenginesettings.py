@@ -414,9 +414,11 @@ def _init_site_specific_quirks():
 
 def _init_devtools_settings():
     """Make sure the devtools always get images/JS permissions."""
-    for setting in ['content.javascript.enabled', 'content.images']:
+    for setting, value in [('content.javascript.enabled', True),
+                           ('content.images', True),
+                           ('content.cookies.accept', 'all')]:
         for pattern in ['chrome-devtools://*', 'devtools://*']:
-            config.instance.set_obj(setting, True,
+            config.instance.set_obj(setting, value,
                                     pattern=urlmatch.UrlPattern(pattern),
                                     hide_userconfig=True)
 
