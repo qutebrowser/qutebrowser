@@ -64,3 +64,16 @@ def test_accept_cookie_with_pattern(config_stub, filter_request, setting,
     config_stub.set_str('content.cookies.accept', pattern_setting,
                         pattern=urlmatch.UrlPattern('https://*.domain1.com'))
     assert cookies._accept_cookie(filter_request) == accepted
+
+
+@pytest.mark.parametrize('global_value', ['never', 'all'])
+def test_invalid_url(config_stub, filter_request, global_value):
+    """Make sure we fall back to the global value with invalid URLs.
+
+    This can happen when there's a cookie request from an iframe, e.g. here:
+    https://developers.google.com/youtube/youtube_player_demo
+    """
+    config_stub.val.content.cookies.accept = global_value
+    filter_request.firstPartyUrl = QUrl()
+    accepted = global_value == 'all'
+    assert cookies._accept_cookie(filter_request) == accepted
