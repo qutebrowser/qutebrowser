@@ -21,7 +21,7 @@ Why another browser?::
 Read the next few questions to find out why I was unhappy with existing
 software.
 
-What's wrong with link:https://bitbucket.org/portix/dwb/[dwb]/link:https://sourceforge.net/projects/vimprobable/[vimprobable]/link:https://mason-larobina.github.io/luakit/[luakit]/jumanji/... (projects based on WebKitGTK)?::
+What's wrong with link:https://bitbucket.org/portix/dwb/[dwb]/link:https://sourceforge.net/projects/vimprobable/[vimprobable]/link:https://luakit.github.io/[luakit]/jumanji/... (projects based on WebKitGTK)?::
     Most of them are based on the https://webkitgtk.org/[WebKitGTK+]
     https://webkitgtk.org/reference/webkitgtk/stable/index.html[WebKit1] API,
     which causes a lot of crashes. As the GTK API using WebKit1 is
