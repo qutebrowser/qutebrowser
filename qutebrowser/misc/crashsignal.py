@@ -216,18 +216,19 @@ class CrashHandler(QObject):
             all_objects = ""
         return ExceptionInfo(pages, cmd_history, all_objects)
 
-    def exception_hook(self, exctype, excvalue, tb):
-        """Handle uncaught python exceptions.
+    def _handle_early_exits(self, exc):
+        """Handle some special cases for the exception hook.
 
-        It'll try very hard to write all open tabs to a file, and then exit
-        gracefully.
+        Return value:
+            True: Exception hook should be aborted.
+            False: Continue handling exception.
         """
-        exc = (exctype, excvalue, tb)
+        exctype, excvalue, tb = exc
 
         if not self._quitter.quit_status['crash']:
             log.misc.error("ARGH, there was an exception while the crash "
                            "dialog is already shown:", exc_info=exc)
-            return
+            return True
 
         log.misc.error("Uncaught exception", exc_info=exc)
 
@@ -247,6 +248,19 @@ class CrashHandler(QObject):
         if threading.current_thread() != threading.main_thread():
             log.misc.error("Ignoring exception outside of main thread... "
                            "Please report this as a bug.")
+            return True
+
+        return False
+
+    def exception_hook(self, exctype, excvalue, tb):
+        """Handle uncaught python exceptions.
+
+        It'll try very hard to write all open tabs to a file, and then exit
+        gracefully.
+        """
+        exc = (exctype, excvalue, tb)
+
+        if self._handle_early_exits(exc):
             return
 
         self._quitter.quit_status['crash'] = False
