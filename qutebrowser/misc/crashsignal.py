@@ -223,7 +223,7 @@ class CrashHandler(QObject):
             True: Exception hook should be aborted.
             False: Continue handling exception.
         """
-        exctype, excvalue, tb = exc
+        exctype, _excvalue, tb = exc
 
         if not self._quitter.quit_status['crash']:
             log.misc.error("ARGH, there was an exception while the crash "
