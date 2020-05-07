@@ -60,11 +60,11 @@ v1.11.1 (unreleased)
 Security
 ~~~~~~~~
 
-- After a certificate error was overridden by the user, qutebrowser displays
-  the URL as yellow (`colors.statusbar.url.warn.fg`). However, when the
-  affected website was subsequently loaded again, the URL was mistakenly
-  displayed as green (`colors.statusbar.url.success_https`). While the user
-  already has seen a certificate error prompt at this point (or set
+- CVE-2020-11054: After a certificate error was overridden by the user,
+  qutebrowser displays the URL as yellow (`colors.statusbar.url.warn.fg`).
+  However, when the affected website was subsequently loaded again, the URL was
+  mistakenly displayed as green (`colors.statusbar.url.success_https`). While
+  the user already has seen a certificate error prompt at this point (or set
   `content.ssl_strict` to `false` which is not recommended), this could still
   provide a false sense of security. This is now fixed.
 
