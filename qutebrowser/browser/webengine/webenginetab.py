@@ -816,7 +816,7 @@ class WebEngineAudio(browsertab.AbstractAudio):
 
     @pyqtSlot(QUrl)
     def _on_url_changed(self, url):
-        if self._overridden:
+        if self._overridden or not url.isValid():
             return
         mute = config.instance.get('content.mute', url=url)
         self.set_muted(mute)
