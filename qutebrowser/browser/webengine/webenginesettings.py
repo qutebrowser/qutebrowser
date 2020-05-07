@@ -414,10 +414,13 @@ def _init_site_specific_quirks():
 
 def _init_devtools_settings():
     """Make sure the devtools always get images/JS permissions."""
-    settings = [('content.javascript.enabled', True),
-                ('content.images', True)]
+    settings = [
+        ('content.javascript.enabled', True),
+        ('content.images', True)
+    ]  # type: typing.List[typing.Tuple[str, typing.Any]]
     if qtutils.version_check('5.11'):
         settings.append(('content.cookies.accept', 'all'))
+
     for setting, value in settings:
         for pattern in ['chrome-devtools://*', 'devtools://*']:
             config.instance.set_obj(setting, value,
