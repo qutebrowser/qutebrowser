@@ -411,6 +411,8 @@ class BrowserPage(QWebPage):
 
     def userAgentForUrl(self, url):
         """Override QWebPage::userAgentForUrl to customize the user agent."""
+        if not url.isValid():
+            url = None
         return websettings.user_agent(url)
 
     def supportsExtension(self, ext):
