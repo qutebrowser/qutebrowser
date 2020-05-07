@@ -652,3 +652,18 @@ class FakeHintManager:
 
     def handle_partial_key(self, keystr):
         self.keystr = keystr
+
+
+class FakeWebEngineProfile:
+
+    def __init__(self, cookie_store):
+        self.cookieStore = lambda: cookie_store
+
+
+class FakeCookieStore:
+
+    def __init__(self, has_cookie_filter):
+        self.cookie_filter = None
+        if has_cookie_filter:
+            self.setCookieFilter = (lambda func:
+                                    setattr(self, 'cookie_filter', func))
