@@ -54,7 +54,7 @@ Fixed
   exception handler. This is now fixed.
 - `:inspector` now works correctly when cookies are disabled globally.
 
-v1.11.1 (unreleased)
+v1.11.1 (2020-05-07)
 --------------------
 
 Security
