@@ -36,6 +36,8 @@ Added
   Previously, that was only available as a separate application via `python3 -m
   scripts.keytester`.
 - New `:config-diff` command which opens the `qute://configdiff` page.
+- New `--debug-flag log-cookies` to log cokies to the debug log for
+  debugging.
 
 Changed
 ~~~~~~~
