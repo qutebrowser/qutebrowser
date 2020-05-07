@@ -45,7 +45,7 @@ def _accept_cookie(request):
         first_party_str = ("<unknown>" if not request.firstPartyUrl.isValid()
                            else request.firstPartyUrl.toDisplayString())
         origin_str = ("<unknown>" if not request.origin.isValid()
-                      else request.origin.toDisplayString()
+                      else request.origin.toDisplayString())
         log.network.debug('Cookie from origin {} on {} (third party: {}) '
                           '-> applying setting {}'
                           .format(origin_str, first_party_str, third_party,
