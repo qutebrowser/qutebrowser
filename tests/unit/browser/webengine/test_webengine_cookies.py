@@ -22,10 +22,9 @@ from PyQt5.QtCore import QUrl
 pytest.importorskip('PyQt5.QtWebEngineCore')
 from PyQt5.QtWebEngineCore import QWebEngineCookieStore
 from PyQt5.QtWebEngineWidgets import QWebEngineProfile
-from PyQt5.QtNetwork import QNetworkCookie
 
 from qutebrowser.browser.webengine import cookies
-from qutebrowser.utils import urlmatch, qtutils
+from qutebrowser.utils import urlmatch
 
 
 @pytest.fixture
