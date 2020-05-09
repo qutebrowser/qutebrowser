@@ -712,20 +712,24 @@ class WebEngineHistory(browsertab.AbstractHistory):
         """Load the tab history."""
         super().load()
 
-        if qtutils.version_check("5.14"):
-            if self._tab.lifecycle_state == QWebEnginePage.LifecycleState.Active:
-                return
+        if not qtutils.version_check("5.14"):
+            return
 
-            self._tab.set_lifecycle_state(QWebEnginePage.LifecycleState.Active)
+        if self._tab.lifecycle_state == QWebEnginePage.LifecycleState.Active:
+            return
+
+        self._tab.set_lifecycle_state(QWebEnginePage.LifecycleState.Active)
 
     def unload(self) -> None:
         super().unload()
 
-        if qtutils.version_check("5.14"):
-            if self._tab.lifecycle_state() != QWebEnginePage.LifecycleState.Active:
-                return
+        if not qtutils.version_check("5.14"):
+            return
 
-            self._tab.set_lifecycle_state(QWebEnginePage.LifecycleState.Frozen)
+        if self._tab.lifecycle_state() != QWebEnginePage.LifecycleState.Active:
+            return
+
+        self._tab.set_lifecycle_state(QWebEnginePage.LifecycleState.Frozen)
 
 
 class WebEngineZoom(browsertab.AbstractZoom):
@@ -1273,7 +1277,7 @@ class WebEngineTab(browsertab.AbstractTab):
     def __init__(self, *, win_id, mode_manager, private, parent=None):
         super().__init__(win_id=win_id, private=private, parent=parent)
         widget = WebEngineView(tabdata=self.data, win_id=win_id,
-                                       private=private)
+                               private=private)
         self.history = WebEngineHistory(tab=self)
         self.scroller = WebEngineScroller(tab=self, parent=self)
         self.caret = WebEngineCaret(mode_manager=mode_manager,
@@ -1290,6 +1294,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self._scripts = _WebEngineScripts(tab=self, parent=self)
         # We're assigning settings in _set_widget
         self.settings = webenginesettings.WebEngineSettings(settings=None)
+        self._check_lifecycle_state_timer = None
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine
@@ -1398,9 +1403,14 @@ class WebEngineTab(browsertab.AbstractTab):
         return self._widget.page().recommendedState()
 
     def lifecycle_state(self) -> QWebEnginePage.LifecycleState:
+        """Return the lifecycle state of the current tab."""
         return self._widget.page().lifecycleState()
 
-    def set_lifecycle_state(self, state: QWebEnginePage.LifecycleState) -> None:
+    def set_lifecycle_state(
+            self,
+            new_state: QWebEnginePage.LifecycleState
+    ) -> None:
+        """Set the lifecycle state of the current tab."""
         if self._widget.page().isVisible():
             log.misc.debug("Skipped lifecycle update. Page is visible")
             return
@@ -1409,29 +1419,29 @@ class WebEngineTab(browsertab.AbstractTab):
         is_legal_transition = (
             (
                 current_state == QWebEnginePage.LifecycleState.Active and
-                (
-                    state == QWebEnginePage.LifecycleState.Frozen or
-                    state == QWebEnginePage.LifecycleState.Discarded
-
+                new_state in (
+                    QWebEnginePage.LifecycleState.Frozen,
+                    QWebEnginePage.LifecycleState.Discarded,
                 )
+
             ) or
             (
                 current_state == QWebEnginePage.LifecycleState.Frozen and
-                (
-                    state == QWebEnginePage.LifecycleState.Active or
-                    state == QWebEnginePage.LifecycleState.Discarded
+                new_state in (
+                    QWebEnginePage.LifecycleState.Active,
+                    QWebEnginePage.LifecycleState.Discarded,
                 )
             ) or
             (
-                current_state == QWebEnginePage.LifecycleState.Discarded
-                and state == QWebEnginePage.LifecycleState.Active
+                current_state == QWebEnginePage.LifecycleState.Discarded and
+                new_state == QWebEnginePage.LifecycleState.Active
             )
         )
 
         if not is_legal_transition:
             return
 
-        self._widget.page().setLifecycleState(state)
+        self._widget.page().setLifecycleState(new_state)
 
     def set_html(self, html, base_url=QUrl()):
         # FIXME:qtwebengine

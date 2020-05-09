@@ -1200,7 +1200,7 @@ class AbstractTab(QWidget):
         self._widget.setHtml(
             page_template.render(title=self.title(), icon_url=icon_url),
             self._widget.url())
-  
+
     def _load_url_prepare(self, url: QUrl, *,
                           emit_before_load_started: bool = True) -> None:
         qtutils.ensure_valid(url)
@@ -1302,4 +1302,3 @@ class AbstractTab(QWidget):
 
         if self.history.load_on_focus:
             self.history.load()
-
