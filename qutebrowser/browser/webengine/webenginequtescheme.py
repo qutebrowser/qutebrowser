@@ -26,7 +26,7 @@ try:
     from PyQt5.QtWebEngineCore import QWebEngineUrlScheme
 except ImportError:
     # Added in Qt 5.12
-    QWebEngineUrlScheme = None
+    QWebEngineUrlScheme = None  # type: ignore
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, qtutils
