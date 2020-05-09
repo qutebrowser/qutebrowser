@@ -200,15 +200,17 @@ def deserialize(data: QByteArray, obj: _QtSerializableType) -> None:
 
 def serialize_stream(stream: QDataStream, obj: _QtSerializableType) -> None:
     """Serialize an object into a QDataStream."""
+    # pylint: disable=pointless-statement
     check_qdatastream(stream)
-    stream << obj  # pylint: disable=pointless-statement
+    stream << obj  # type: ignore
     check_qdatastream(stream)
 
 
 def deserialize_stream(stream: QDataStream, obj: _QtSerializableType) -> None:
     """Deserialize a QDataStream into an object."""
+    # pylint: disable=pointless-statement
     check_qdatastream(stream)
-    stream >> obj  # pylint: disable=pointless-statement
+    stream >> obj  # type: ignore
     check_qdatastream(stream)
 
 
