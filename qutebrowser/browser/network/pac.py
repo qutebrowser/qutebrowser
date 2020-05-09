@@ -65,7 +65,7 @@ def _js_slot(*args):
                 # pylint: disable=protected-access
                 return self._error_con.callAsConstructor([e])
                 # pylint: enable=protected-access
-        return pyqtSlot(*args, result=QJSValue)(new_method)
+        return pyqtSlot(*args, result=QJSValue)(new_method)  # type: ignore
     return _decorator
 
 
