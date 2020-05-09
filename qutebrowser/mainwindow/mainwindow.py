@@ -409,7 +409,7 @@ class MainWindow(QWidget):
         self._vbox.removeWidget(self.tabbed_browser.widget)
         self._vbox.removeWidget(self._downloadview)
         self._vbox.removeWidget(self.status)
-        widgets = [self.tabbed_browser.widget]
+        widgets = [self.tabbed_browser.widget]  # type: typing.List[QWidget]
 
         downloads_position = config.val.downloads.position
         if downloads_position == 'top':

@@ -402,11 +402,11 @@ class WebKitCaret(browsertab.AbstractCaret):
 
             if selected_element is not None:
                 try:
-                    url = selected_element.attrib['href']
+                    href = selected_element.attrib['href']
                 except KeyError:
                     raise browsertab.WebTabError('Anchor element without '
                                                  'href!')
-                url = self._tab.url().resolved(QUrl(url))
+                url = self._tab.url().resolved(QUrl(href))
                 if tab:
                     self._tab.new_tab_requested.emit(url)
                 else:

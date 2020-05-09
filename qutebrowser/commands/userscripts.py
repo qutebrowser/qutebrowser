@@ -418,14 +418,13 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False,
         verbose: Show notifications when the command started/exited.
         output_messages: Show the output as messages.
     """
-    tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                window=win_id)
-    commandrunner = runners.CommandRunner(win_id, parent=tabbed_browser)
+    tb = objreg.get('tabbed-browser', scope='window', window=win_id)
+    commandrunner = runners.CommandRunner(win_id, parent=tb)
 
     if utils.is_posix:
-        runner = _POSIXUserscriptRunner(tabbed_browser)
+        runner = _POSIXUserscriptRunner(tb)  # type: _BaseUserscriptRunner
     elif utils.is_windows:  # pragma: no cover
-        runner = _WindowsUserscriptRunner(tabbed_browser)
+        runner = _WindowsUserscriptRunner(tb)
     else:  # pragma: no cover
         raise UnsupportedError
 
