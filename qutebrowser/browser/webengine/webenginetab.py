@@ -1399,10 +1399,13 @@ class WebEngineTab(browsertab.AbstractTab):
     def icon(self):
         return self._widget.icon()
 
-    def recommended_lifecycle_state(self):  # type: QWebEnginePage.LifecycleState
+    def recommended_lifecycle_state(self):
+        # type: QWebEnginePage.LifecycleState
+        """Returns the recommended lifecycle state."""
         return self._widget.page().recommendedState()
 
-    def lifecycle_state(self) -> QWebEnginePage.LifecycleState:
+    def lifecycle_state(self):
+        # type: QWebEnginePage.LifecycleState
         """Return the lifecycle state of the current tab."""
         return self._widget.page().lifecycleState()
 
