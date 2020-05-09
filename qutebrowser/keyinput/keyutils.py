@@ -167,9 +167,11 @@ def _assert_plain_key(key: Qt.Key) -> None:
     assert not key & Qt.KeyboardModifierMask, hex(key)
 
 
-def _assert_plain_modifier(key: Qt.KeyboardModifier) -> None:
+def _assert_plain_modifier(
+        key: typing.Union[Qt.KeyboardModifier, Qt.KeyboardModifiers]
+) -> None:
     """Make sure this is a modifier without a key mixed in."""
-    assert not key & ~Qt.KeyboardModifierMask, hex(key)
+    assert not key & ~Qt.KeyboardModifierMask, hex(key)  # type: ignore
 
 
 def _is_printable(key: Qt.Key) -> bool:
@@ -177,7 +179,10 @@ def _is_printable(key: Qt.Key) -> bool:
     return key <= 0xff and key not in [Qt.Key_Space, _NIL_KEY]
 
 
-def is_special_hint_mode(key: Qt.Key, modifiers: Qt.KeyboardModifier) -> bool:
+def is_special_hint_mode(
+        key: Qt.Key,
+        modifiers: typing.Union[Qt.KeyboardModifier, Qt.KeyboardModifiers],
+) -> bool:
     """Check whether this key should clear the keychain in hint mode.
 
     When we press "s<Escape>", we don't want <Escape> to be handled as part of
@@ -192,7 +197,10 @@ def is_special_hint_mode(key: Qt.Key, modifiers: Qt.KeyboardModifier) -> bool:
                               Qt.KeypadModifier])
 
 
-def is_special(key: Qt.Key, modifiers: Qt.KeyboardModifier) -> bool:
+def is_special(
+        key: Qt.Key,
+        modifiers: typing.Union[Qt.KeyboardModifier, Qt.KeyboardModifiers],
+) -> bool:
     """Check whether this key requires special key syntax."""
     _assert_plain_key(key)
     _assert_plain_modifier(modifiers)
@@ -388,7 +396,7 @@ class KeyInfo:
         modifiers = e.modifiers()
         _assert_plain_key(key)
         _assert_plain_modifier(modifiers)
-        return cls(key, modifiers)
+        return cls(key, typing.cast(Qt.KeyboardModifier, modifiers))
 
     def __hash__(self) -> int:
         """Convert KeyInfo to int before hashing.
@@ -565,7 +573,9 @@ class KeySequence:
             return infos[item]
 
     def _iter_keys(self) -> typing.Iterator[int]:
-        return itertools.chain.from_iterable(self._sequences)
+        sequences = typing.cast(typing.Iterable[typing.Iterable[int]],
+                                self._sequences)
+        return itertools.chain.from_iterable(sequences)
 
     def _validate(self, keystr: str = None) -> None:
         for info in self:
@@ -646,7 +656,7 @@ class KeySequence:
         if (modifiers == Qt.ShiftModifier and
                 _is_printable(key) and
                 not ev.text().isupper()):
-            modifiers = Qt.KeyboardModifiers()
+            modifiers = Qt.KeyboardModifiers()  # type: ignore
 
         # On macOS, swap Ctrl and Meta back
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-51293
