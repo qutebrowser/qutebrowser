@@ -89,9 +89,9 @@ class GUIProcess(QObject):
             code, status))
 
         encoding = locale.getpreferredencoding(do_setlocale=False)
-        stderr = bytes(self._proc.readAllStandardError()).decode(
+        stderr = self._proc.readAllStandardError().data().decode(
             encoding, 'replace')
-        stdout = bytes(self._proc.readAllStandardOutput()).decode(
+        stdout = self._proc.readAllStandardOutput().data().decode(
             encoding, 'replace')
 
         if self._output_messages:

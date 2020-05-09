@@ -519,7 +519,7 @@ def encoded_url(url: QUrl) -> str:
     Args:
         url: The url to encode as QUrl.
     """
-    return bytes(url.toEncoded()).decode('ascii')
+    return url.toEncoded().data().decode('ascii')
 
 
 def file_url(path: str) -> QUrl:

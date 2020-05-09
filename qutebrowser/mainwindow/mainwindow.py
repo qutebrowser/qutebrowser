@@ -446,7 +446,7 @@ class MainWindow(QWidget):
 
     def _save_geometry(self):
         """Save the window geometry to the state config."""
-        data = bytes(self.saveGeometry())
+        data = self.saveGeometry().data()
         geom = base64.b64encode(data).decode('ASCII')
         configfiles.state['geometry']['mainwindow'] = geom
 

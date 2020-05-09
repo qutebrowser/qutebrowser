@@ -69,7 +69,7 @@ def log_signals(obj: QObject) -> QObject:
             meta_method = metaobj.method(i)
             qtutils.ensure_valid(meta_method)
             if meta_method.methodType() == QMetaMethod.Signal:
-                name = bytes(meta_method.name()).decode('ascii')
+                name = meta_method.name().data().decode('ascii')
                 if name != 'destroyed':
                     signal = getattr(obj, name)
                     try:
