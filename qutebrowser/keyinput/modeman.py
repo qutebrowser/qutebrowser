@@ -246,7 +246,8 @@ class ModeManager(QObject):
         match = parser.handle(event, dry_run=dry_run)
 
         is_non_alnum = (
-            event.modifiers() not in [Qt.NoModifier, Qt.ShiftModifier] or
+            event.modifiers() not in [Qt.NoModifier,  # type: ignore
+                                      Qt.ShiftModifier] or
             not event.text().strip())
 
         forward_unbound_keys = config.cache['input.forward_unbound_keys']
@@ -415,9 +416,9 @@ class ModeManager(QObject):
             QEvent.KeyRelease: self._handle_keyrelease,
             QEvent.ShortcutOverride:
                 functools.partial(self._handle_keypress, dry_run=True),
-        }  # type: typing.Mapping[QEvent.Type, typing.Callable[[QEvent], bool]]
+        }  # type: Mapping[QEvent.Type, Callable[[QKeyEvent], bool]]
         handler = handlers[event.type()]
-        return handler(event)
+        return handler(cast(QKeyEvent, event))
 
     @cmdutils.register(instance='mode-manager', scope='window')
     def clear_keychain(self) -> None:
