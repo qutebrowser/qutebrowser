@@ -41,6 +41,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
 from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, objreg, jinja, debug)
+from qutebrowser.keyinput import modeman
 from qutebrowser.qt import sip
 
 
@@ -335,6 +336,13 @@ class WebEngineSearch(browsertab.AbstractSearch):
 class WebEngineCaret(browsertab.AbstractCaret):
 
     """QtWebEngine implementations related to moving the cursor/selection."""
+
+    def __init__(self,
+                 tab: 'WebEngineTab',
+                 mode_manager: modeman.ModeManager,
+                 parent: QWidget = None) -> None:
+        super().__init__(mode_manager, parent)
+        self._tab = tab
 
     def _flags(self):
         """Get flags to pass to JS."""
@@ -712,6 +720,10 @@ class WebEngineZoom(browsertab.AbstractZoom):
 class WebEngineElements(browsertab.AbstractElements):
 
     """QtWebEngine implemementations related to elements on the page."""
+
+    def __init__(self, tab: 'WebEngineTab') -> None:
+        super().__init__()
+        self._tab = tab
 
     def _js_cb_multiple(self, callback, error_cb, js_elems):
         """Handle found elements coming from JS and call the real callback.
@@ -1244,7 +1256,10 @@ class WebEngineTab(browsertab.AbstractTab):
     abort_questions = pyqtSignal()
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
-        super().__init__(win_id=win_id, private=private, parent=parent)
+        super().__init__(win_id=win_id,
+                         mode_manager=mode_manager,
+                         private=private,
+                         parent=parent)
         widget = webview.WebEngineView(tabdata=self.data, win_id=win_id,
                                        private=private)
         self.history = WebEngineHistory(tab=self)

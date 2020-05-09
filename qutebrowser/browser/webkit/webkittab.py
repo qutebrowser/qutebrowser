@@ -27,12 +27,14 @@ from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
+from PyQt5.QtWidgets import QWidget
 from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab, shared
 from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
                                         webkitsettings)
 from qutebrowser.utils import qtutils, usertypes, utils, log, debug
+from qutebrowser.keyinput import modeman
 from qutebrowser.qt import sip
 
 
@@ -171,6 +173,13 @@ class WebKitSearch(browsertab.AbstractSearch):
 class WebKitCaret(browsertab.AbstractCaret):
 
     """QtWebKit implementations related to moving the cursor/selection."""
+
+    def __init__(self,
+                 tab: 'WebKitTab',
+                 mode_manager: modeman.ModeManager,
+                 parent: QWidget = None) -> None:
+        super().__init__(mode_manager, parent)
+        self._tab = tab
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_entered(self, mode):
@@ -582,6 +591,10 @@ class WebKitElements(browsertab.AbstractElements):
 
     """QtWebKit implemementations related to elements on the page."""
 
+    def __init__(self, tab: 'WebKitTab') -> None:
+        super().__init__()
+        self._tab = tab
+
     def find_css(self, selector, callback, error_cb, *, only_visible=False):
         utils.unused(error_cb)
         mainframe = self._widget.page().mainFrame()
@@ -699,7 +712,10 @@ class WebKitTab(browsertab.AbstractTab):
     """A QtWebKit tab in the browser."""
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
-        super().__init__(win_id=win_id, private=private, parent=parent)
+        super().__init__(win_id=win_id,
+                         mode_manager=mode_manager,
+                         private=private,
+                         parent=parent)
         widget = webview.WebView(win_id=win_id, tab_id=self.tab_id,
                                  private=private, tab=self)
         if private:

@@ -23,6 +23,7 @@ import enum
 import itertools
 import typing
 import functools
+import typing
 
 import attr
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
@@ -71,7 +72,7 @@ def create(win_id: int,
     mode_manager = modeman.instance(win_id)
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginetab
-        tab_class = webenginetab.WebEngineTab
+        tab_class = webenginetab.WebEngineTab  # type: typing.Type[AbstractTab]
     else:
         from qutebrowser.browser.webkit import webkittab
         tab_class = webkittab.WebKitTab
@@ -438,16 +439,15 @@ class AbstractCaret(QObject):
     follow_selected_done = pyqtSignal()
 
     def __init__(self,
-                 tab: 'AbstractTab',
                  mode_manager: modeman.ModeManager,
                  parent: QWidget = None) -> None:
         super().__init__(parent)
-        self._tab = tab
         self._widget = typing.cast(QWidget, None)
         self.selection_enabled = False
         self._mode_manager = mode_manager
         mode_manager.entered.connect(self._on_mode_entered)
         mode_manager.left.connect(self._on_mode_left)
+        # self._tab is set by subclasses so mypy knows its concrete type.
 
     def _on_mode_entered(self, mode: usertypes.KeyMode) -> None:
         raise NotImplementedError
@@ -689,9 +689,9 @@ class AbstractElements:
         [typing.Optional['webelem.AbstractWebElement']], None]
     _ErrorCallback = typing.Callable[[Exception], None]
 
-    def __init__(self, tab: 'AbstractTab') -> None:
+    def __init__(self) -> None:
         self._widget = typing.cast(QWidget, None)
-        self._tab = tab
+        # self._tab is set by subclasses so mypy knows its concrete type.
 
     def find_css(self, selector: str,
                  callback: _MultiCallback,
@@ -876,8 +876,11 @@ class AbstractTab(QWidget):
     # for a given hostname anyways.
     _insecure_hosts = set()  # type: typing.Set[str]
 
-    def __init__(self, *, win_id: int, private: bool,
+    def __init__(self, *, win_id: int,
+                 mode_manager: modeman.ModeManager,
+                 private: bool,
                  parent: QWidget = None) -> None:
+        utils.unused(mode_manager)  # needed for mypy
         self.is_private = private
         self.win_id = win_id
         self.tab_id = next(tab_id_gen)
