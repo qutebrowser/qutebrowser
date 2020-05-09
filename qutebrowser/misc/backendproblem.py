@@ -353,13 +353,22 @@ class _BackendProblemChecker:
 
         If "fatal" is given, show an error and exit.
         """
-        text = ("Could not initialize QtNetwork SSL support. If you use "
-                "OpenSSL 1.1 with a PyQt package from PyPI (e.g. on Archlinux "
-                "or Debian Stretch), you need to set LD_LIBRARY_PATH to the "
-                "path of OpenSSL 1.0. This only affects downloads.")
-
         if QSslSocket.supportsSsl():
             return
+
+        if qtutils.version_check('5.12.4'):
+            version_text = ("If you use OpenSSL 1.0 with a PyQt package from "
+                            "PyPI (e.g. on Ubuntu 16.04), you will need to "
+                            "build OpenSSL 1.1 from sources and set "
+                            "LD_LIBRARY_PATH accordingly.")
+        else:
+            version_text = ("If you use OpenSSL 1.1 with a PyQt package from "
+                            "PyPI (e.g. on Archlinux or Debian Stretch), you "
+                            "need to set LD_LIBRARY_PATH to the path of "
+                            "OpenSSL 1.0 or use Qt >= 5.12.4.")
+
+        text = ("Could not initialize QtNetwork SSL support. {} This only "
+                "affects downloads and :adblock-update.".format(version_text))
 
         if fatal:
             errbox = msgbox.msgbox(parent=None,
