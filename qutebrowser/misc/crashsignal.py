@@ -44,6 +44,7 @@ from PyQt5.QtWidgets import QApplication
 from qutebrowser.api import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog, ipc, objects
 from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
+from qutebrowser.qt import sip
 if typing.TYPE_CHECKING:
     from qutebrowser.misc import quitter
 
@@ -351,7 +352,8 @@ class SignalHandler(QObject):
             for fd in [read_fd, write_fd]:
                 flags = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-            self._notifier = QSocketNotifier(read_fd, QSocketNotifier.Read,
+            self._notifier = QSocketNotifier(typing.cast(sip.voidptr, read_fd),
+                                             QSocketNotifier.Read,
                                              self)
             self._notifier.activated.connect(  # type: ignore
                 self.handle_signal_wakeup)

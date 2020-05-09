@@ -31,6 +31,7 @@ from qutebrowser.commands import runners
 from qutebrowser.config import websettings
 from qutebrowser.misc import guiprocess
 from qutebrowser.browser import downloads
+from qutebrowser.qt import sip
 
 
 class _QtFIFOReader(QObject):
@@ -59,7 +60,8 @@ class _QtFIFOReader(QObject):
         fd = os.open(filepath, os.O_RDWR | os.O_NONBLOCK)
         # pylint: enable=no-member,useless-suppression
         self._fifo = os.fdopen(fd, 'r')
-        self._notifier = QSocketNotifier(fd, QSocketNotifier.Read, self)
+        self._notifier = QSocketNotifier(typing.cast(sip.voidptr, fd),
+                                         QSocketNotifier.Read, self)
         self._notifier.activated.connect(self.read_line)  # type: ignore
 
     @pyqtSlot()
