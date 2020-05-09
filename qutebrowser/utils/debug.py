@@ -31,6 +31,7 @@ from PyQt5.QtCore import Qt, QEvent, QMetaMethod, QObject, pyqtSignal
 from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.utils import log, utils, qtutils, objreg
+from qutebrowser.qt import sip
 
 
 def log_events(klass: typing.Type) -> typing.Type:
@@ -97,7 +98,7 @@ def log_signals(obj: QObject) -> QObject:
 
 
 def qenum_key(base: typing.Type,
-              value: int,
+              value: typing.Union[int, sip.simplewrapper],
               add_base: bool = False,
               klass: typing.Type = None) -> str:
     """Convert a Qt Enum value to its key as a string.
@@ -121,7 +122,7 @@ def qenum_key(base: typing.Type,
     try:
         idx = base.staticMetaObject.indexOfEnumerator(klass.__name__)
         meta_enum = base.staticMetaObject.enumerator(idx)
-        ret = meta_enum.valueToKey(int(value))
+        ret = meta_enum.valueToKey(int(value))  # type: ignore
     except AttributeError:
         ret = None
 
@@ -131,7 +132,7 @@ def qenum_key(base: typing.Type,
                 ret = name
                 break
         else:
-            ret = '0x{:04x}'.format(int(value))
+            ret = '0x{:04x}'.format(int(value))  # type: ignore
 
     if add_base and hasattr(base, '__name__'):
         return '.'.join([base.__name__, ret])
@@ -140,7 +141,7 @@ def qenum_key(base: typing.Type,
 
 
 def qflags_key(base: typing.Type,
-               value: int,
+               value: typing.Union[int, sip.simplewrapper],
                add_base: bool = False,
                klass: typing.Type = None) -> str:
     """Convert a Qt QFlags value to its keys as string.
@@ -174,7 +175,7 @@ def qflags_key(base: typing.Type,
     bits = []
     names = []
     mask = 0x01
-    value = int(value)
+    value = int(value)  # type: ignore
     while mask <= value:
         if value & mask:
             bits.append(mask)
@@ -182,7 +183,7 @@ def qflags_key(base: typing.Type,
     for bit in bits:
         # We have to re-convert to an enum type here or we'll sometimes get an
         # empty string back.
-        names.append(qenum_key(base, klass(bit), add_base))
+        names.append(qenum_key(base, klass(bit), add_base))  # type: ignore
     return '|'.join(names)
 
 

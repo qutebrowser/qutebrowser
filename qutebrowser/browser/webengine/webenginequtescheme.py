@@ -165,6 +165,6 @@ def init():
     if QWebEngineUrlScheme is not None:
         assert not QWebEngineUrlScheme.schemeByName(b'qute').name()
         scheme = QWebEngineUrlScheme(b'qute')
-        scheme.setFlags(QWebEngineUrlScheme.LocalScheme |
+        scheme.setFlags(QWebEngineUrlScheme.LocalScheme |  # type: ignore
                         QWebEngineUrlScheme.LocalAccessAllowed)
         QWebEngineUrlScheme.registerScheme(scheme)

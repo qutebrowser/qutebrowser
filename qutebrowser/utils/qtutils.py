@@ -429,12 +429,13 @@ class EventLoop(QEventLoop):
 
     def exec_(
             self,
-            flags: QEventLoop.ProcessEventsFlag = QEventLoop.AllEvents
+            flags: QEventLoop.ProcessEventsFlags =
+            typing.cast(QEventLoop.ProcessEventsFlags, QEventLoop.AllEvents)
     ) -> int:
         """Override exec_ to raise an exception when re-running."""
         if self._executing:
             raise AssertionError("Eventloop is already running!")
         self._executing = True
-        status = super().exec_(flags)  # type: ignore
+        status = super().exec_(flags)
         self._executing = False
         return status

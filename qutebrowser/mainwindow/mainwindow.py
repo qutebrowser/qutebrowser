@@ -574,7 +574,7 @@ class MainWindow(QWidget):
         refresh_window = self.isVisible()
         if hidden:
             window_flags |= Qt.CustomizeWindowHint | Qt.NoDropShadowWindowHint
-        self.setWindowFlags(window_flags)
+        self.setWindowFlags(typing.cast(Qt.WindowFlags, window_flags))
         if refresh_window:
             self.show()
 
@@ -583,8 +583,9 @@ class MainWindow(QWidget):
         if not config.val.content.fullscreen.window:
             if on:
                 self.state_before_fullscreen = self.windowState()
-                self.setWindowState(Qt.WindowFullScreen |  # type: ignore
-                                    self.state_before_fullscreen)
+                self.setWindowState(
+                    Qt.WindowFullScreen |  # type: ignore
+                    self.state_before_fullscreen)  # type: ignore
             elif self.isFullScreen():
                 self.setWindowState(self.state_before_fullscreen)
         log.misc.debug('on: {}, state before fullscreen: {}'.format(

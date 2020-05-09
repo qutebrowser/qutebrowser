@@ -71,7 +71,8 @@ def _print_preview(tab: apitypes.Tab) -> None:
     tab.printing.check_preview_support()
     diag = QPrintPreviewDialog(tab)
     diag.setAttribute(Qt.WA_DeleteOnClose)
-    diag.setWindowFlags(diag.windowFlags() | Qt.WindowMaximizeButtonHint |
+    diag.setWindowFlags(diag.windowFlags() |  # type: ignore
+                        Qt.WindowMaximizeButtonHint |
                         Qt.WindowMinimizeButtonHint)
     diag.paintRequested.connect(functools.partial(
         tab.printing.to_printer, callback=print_callback))
