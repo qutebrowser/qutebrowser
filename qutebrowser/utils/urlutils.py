@@ -551,13 +551,13 @@ def safe_display_string(qurl: QUrl) -> str:
     """
     ensure_valid(qurl)
 
-    host = qurl.host(QUrl.FullyEncoded)  # type: ignore
+    host = qurl.host(QUrl.FullyEncoded)
     if '..' in host:  # pragma: no cover
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-60364
         return '(unparseable URL!) {}'.format(qurl.toDisplayString())
 
     for part in host.split('.'):
-        url_host = qurl.host(QUrl.FullyDecoded)  # type: ignore
+        url_host = qurl.host(QUrl.FullyDecoded)
         if part.startswith('xn--') and host != url_host:
             return '({}) {}'.format(host, qurl.toDisplayString())
 

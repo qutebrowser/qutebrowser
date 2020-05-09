@@ -345,7 +345,7 @@ class _CrashDialog(QDialog):
             text: The paste text to show.
         """
         error_dlg = ReportErrorDialog(text, self._paste_text, self)
-        error_dlg.finished.connect(self.finish)  # type: ignore
+        error_dlg.finished.connect(self.finish)
         error_dlg.show()
 
     @pyqtSlot(str)

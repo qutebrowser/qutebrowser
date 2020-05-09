@@ -954,7 +954,7 @@ class AbstractTab(QWidget):
             log.webview.warning("Unable to find event target!")
             return
 
-        evt.posted = True
+        evt.posted = True  # type: ignore
         QApplication.postEvent(recipient, evt)
 
     def navigation_blocked(self) -> bool:

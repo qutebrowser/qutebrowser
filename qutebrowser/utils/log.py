@@ -216,7 +216,7 @@ def init_log(args: argparse.Namespace) -> None:
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
     _init_py_warnings()
-    QtCore.qInstallMessageHandler(qt_message_handler)  # type: ignore
+    QtCore.qInstallMessageHandler(qt_message_handler)
     _log_inited = True
 
 

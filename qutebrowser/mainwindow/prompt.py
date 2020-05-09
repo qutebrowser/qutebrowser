@@ -329,7 +329,7 @@ class PromptContainer(QWidget):
             usertypes.PromptMode.alert: AlertPrompt,
         }
         klass = classes[question.mode]
-        prompt = typing.cast(_BasePrompt, klass(question))
+        prompt = klass(question)
 
         log.prompt.debug("Displaying prompt {}".format(prompt))
         self._prompt = prompt
@@ -707,7 +707,7 @@ class FilenamePrompt(_BasePrompt):
         # Nothing selected initially
         self._file_view.setCurrentIndex(QModelIndex())
         # The model needs to be sorted so we get the correct first/last index
-        self._file_model.directoryLoaded.connect(  # type: ignore
+        self._file_model.directoryLoaded.connect(
             lambda: self._file_model.sort(0))
 
     def accept(self, value=None, save=False):

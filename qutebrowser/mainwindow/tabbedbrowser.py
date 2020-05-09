@@ -204,11 +204,9 @@ class TabbedBrowser(QWidget):
         self._tab_insert_idx_left = 0
         self._tab_insert_idx_right = -1
         self.shutting_down = False
-        self.widget.tabCloseRequested.connect(  # type: ignore
-            self.on_tab_close_requested)
-        self.widget.new_tab_requested.connect(self.tabopen)
-        self.widget.currentChanged.connect(  # type: ignore
-            self._on_current_changed)
+        self.widget.tabCloseRequested.connect(self.on_tab_close_requested)
+        self.widget.new_tab_requested.connect(self.tabopen)  # type: ignore
+        self.widget.currentChanged.connect(self._on_current_changed)
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
@@ -506,10 +504,7 @@ class TabbedBrowser(QWidget):
                 newtab = self.widget.widget(0)
                 use_current_tab = False
             else:
-                # FIXME:typing mypy thinks this is None due to @pyqtSlot
-                newtab = typing.cast(
-                    browsertab.AbstractTab,
-                    self.tabopen(background=False, idx=entry.index))
+                newtab = self.tabopen(background=False, idx=entry.index)
 
             newtab.history.private_api.deserialize(entry.history)
             self.widget.set_tab_pinned(newtab, entry.pinned)

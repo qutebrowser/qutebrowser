@@ -61,9 +61,9 @@ class TabWidget(QTabWidget):
         self.setStyle(TabBarStyle())
         self.setTabBar(bar)
         bar.tabCloseRequested.connect(self.tabCloseRequested)  # type: ignore
-        bar.tabMoved.connect(functools.partial(  # type: ignore
+        bar.tabMoved.connect(functools.partial(
             QTimer.singleShot, 0, self.update_tab_titles))
-        bar.currentChanged.connect(self._on_current_changed)  # type: ignore
+        bar.currentChanged.connect(self._on_current_changed)
         bar.new_tab_requested.connect(self._on_new_tab_requested)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setDocumentMode(True)
@@ -544,7 +544,7 @@ class TabBar(QTabBar):
                     idx = self.currentIndex()
                 elif action == 'close-last':
                     idx = self.count() - 1
-            self.tabCloseRequested.emit(idx)  # type: ignore
+            self.tabCloseRequested.emit(idx)
             return
         super().mousePressEvent(e)
 

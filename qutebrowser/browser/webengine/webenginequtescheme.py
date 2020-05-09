@@ -23,7 +23,7 @@ from PyQt5.QtCore import QBuffer, QIODevice, QUrl
 from PyQt5.QtWebEngineCore import (QWebEngineUrlSchemeHandler,
                                    QWebEngineUrlRequestJob)
 try:
-    from PyQt5.QtWebEngineCore import QWebEngineUrlScheme  # type: ignore
+    from PyQt5.QtWebEngineCore import QWebEngineUrlScheme
 except ImportError:
     # Added in Qt 5.12
     QWebEngineUrlScheme = None
