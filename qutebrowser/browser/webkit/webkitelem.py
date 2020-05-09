@@ -175,6 +175,10 @@ class WebKitElement(webelem.AbstractWebElement):
                            self._elem.parent())
         if elem is None or elem.isNull():
             return None
+
+        if typing.TYPE_CHECKING:
+            assert isinstance(self._tab, webkittab.WebKitTab)
+
         return WebKitElement(elem, tab=self._tab)
 
     def _rect_on_view_js(self) -> typing.Optional[QRect]:
