@@ -20,7 +20,7 @@
 """Mode manager singleton which handles the current keyboard mode."""
 
 import functools
-import typing
+from typing import Mapping, Callable, MutableMapping, Union, Set, cast
 
 import attr
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
@@ -37,8 +37,7 @@ from qutebrowser.browser import hints
 INPUT_MODES = [usertypes.KeyMode.insert, usertypes.KeyMode.passthrough]
 PROMPT_MODES = [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]
 
-ParserDictType = typing.MutableMapping[
-    usertypes.KeyMode, basekeyparser.BaseKeyParser]
+ParserDictType = MutableMapping[usertypes.KeyMode, basekeyparser.BaseKeyParser]
 
 
 @attr.s(frozen=True)
@@ -169,7 +168,7 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
     return modeman
 
 
-def instance(win_id: typing.Union[int, str]) -> 'ModeManager':
+def instance(win_id: Union[int, str]) -> 'ModeManager':
     """Get a modemanager object."""
     return objreg.get('mode-manager', scope='window', window=win_id)
 
@@ -223,7 +222,7 @@ class ModeManager(QObject):
         self.parsers = {}  # type: ParserDictType
         self._prev_mode = usertypes.KeyMode.normal
         self.mode = usertypes.KeyMode.normal
-        self._releaseevents_to_pass = set()  # type: typing.Set[KeyEvent]
+        self._releaseevents_to_pass = set()  # type: Set[KeyEvent]
 
     def __repr__(self) -> str:
         return utils.get_repr(self, mode=self.mode)
