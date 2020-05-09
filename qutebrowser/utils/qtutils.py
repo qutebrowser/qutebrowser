@@ -152,7 +152,16 @@ def check_overflow(arg: int, ctype: str, fatal: bool = True) -> int:
         return arg
 
 
-def ensure_valid(obj: QObject) -> None:
+if typing.TYPE_CHECKING:
+    class Validatable(typing.Protocol):
+
+        """An object with an isValid() method (e.g. QUrl)."""
+
+        def isValid(self) -> bool:
+            ...
+
+
+def ensure_valid(obj: 'Validatable') -> None:
     """Ensure a Qt object with an .isValid() method is valid."""
     if not obj.isValid():
         raise QtValueError(obj)
@@ -396,9 +405,9 @@ class QtValueError(ValueError):
 
     """Exception which gets raised by ensure_valid."""
 
-    def __init__(self, obj: QObject) -> None:
+    def __init__(self, obj: 'Validatable') -> None:
         try:
-            self.reason = obj.errorString()
+            self.reason = obj.errorString()  # type: ignore
         except AttributeError:
             self.reason = None
         err = "{} is not valid".format(obj)
