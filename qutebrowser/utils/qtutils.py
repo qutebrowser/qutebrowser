@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# FIXME:typing Can we have less "# type: ignore" in here?
-
 """Misc. utilities related to Qt.
 
 Module attributes:
@@ -232,7 +230,7 @@ def savefile_open(
             new_f = PyQIODevice(
                 f)  # type: typing.Union[PyQIODevice, io.TextIOWrapper]
         else:
-            new_f = io.TextIOWrapper(PyQIODevice(f),  # type: ignore
+            new_f = io.TextIOWrapper(PyQIODevice(f),
                                      encoding=encoding)
 
         yield new_f
@@ -370,7 +368,7 @@ class PyQIODevice(io.BufferedIOBase):
 
         if buf is None:
             raise QtOSError(self.dev)
-        return buf  # type: ignore
+        return buf
 
     def seekable(self) -> bool:
         return not self.dev.isSequential()
@@ -383,10 +381,10 @@ class PyQIODevice(io.BufferedIOBase):
     def writable(self) -> bool:
         return self.dev.isWritable()
 
-    def write(self, data: str) -> int:  # type: ignore
+    def write(self, data: str) -> int:
         self._check_open()
         self._check_writable()
-        num = self.dev.write(data)  # type: ignore
+        num = self.dev.write(data)
         if num == -1 or num < len(data):
             raise QtOSError(self.dev)
         return num
@@ -398,7 +396,7 @@ class PyQIODevice(io.BufferedIOBase):
         if size in [None, -1]:
             buf = self.dev.readAll()
         else:
-            buf = self.dev.read(size)  # type: ignore
+            buf = self.dev.read(size)
 
         if buf is None:
             raise QtOSError(self.dev)
