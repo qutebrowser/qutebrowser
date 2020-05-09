@@ -65,6 +65,7 @@ from qutebrowser.config import configexc, configutils
 from qutebrowser.utils import (standarddir, utils, qtutils, urlutils, urlmatch,
                                usertypes)
 from qutebrowser.keyinput import keyutils
+from qutebrowser.browser.network import pac
 
 
 class _SystemProxy:
@@ -1713,7 +1714,8 @@ class Proxy(BaseType):
     def to_py(
             self,
             value: _StrUnset
-    ) -> typing.Union[usertypes.Unset, None, QNetworkProxy, _SystemProxy]:
+    ) -> typing.Union[usertypes.Unset, None,
+                      QNetworkProxy, _SystemProxy, pac.PACFetcher]:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value
@@ -1783,7 +1785,10 @@ class FuzzyUrl(BaseType):
 
     """A URL which gets interpreted as search if needed."""
 
-    def to_py(self, value: _StrUnset) -> _StrUnsetNone:
+    def to_py(
+            self,
+            value: _StrUnset
+    ) -> typing.Union[None, QUrl, usertypes.Unset]:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value

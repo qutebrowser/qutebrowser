@@ -89,7 +89,9 @@ class ProxyFactory(QNetworkProxyFactory):
         elif isinstance(proxy, pac.PACFetcher):
             if objects.backend == usertypes.Backend.QtWebEngine:
                 # Looks like query.url() is always invalid on QtWebEngine...
-                proxies = [urlutils.proxy_from_url(QUrl('direct://'))]
+                proxy = urlutils.proxy_from_url(QUrl('direct://'))
+                assert not isinstance(proxy, pac.PACFetcher)
+                proxies = [proxy]
             else:
                 proxies = proxy.resolve(query)
         else:

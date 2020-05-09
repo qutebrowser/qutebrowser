@@ -584,7 +584,7 @@ class InvalidProxyTypeError(Exception):
         super().__init__("Invalid proxy type {}!".format(typ))
 
 
-def proxy_from_url(url: QUrl) -> QNetworkProxy:
+def proxy_from_url(url: QUrl) -> typing.Union[QNetworkProxy, pac.PACFetcher]:
     """Create a QNetworkProxy from QUrl and a proxy type.
 
     Args:

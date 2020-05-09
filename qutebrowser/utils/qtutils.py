@@ -38,7 +38,7 @@ import typing
 import pkg_resources
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QSaveFile, QT_VERSION_STR,
-                          PYQT_VERSION_STR, QFileDevice, QObject)
+                          PYQT_VERSION_STR, QFileDevice, QObject, QUrl)
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QApplication
 try:
@@ -181,7 +181,10 @@ def check_qdatastream(stream: QDataStream) -> None:
         raise OSError(status_to_str[stream.status()])
 
 
-def serialize(obj: QObject) -> QByteArray:
+_QtSerializableType = typing.Union[QObject, QByteArray, QUrl]
+
+
+def serialize(obj: _QtSerializableType) -> QByteArray:
     """Serialize an object into a QByteArray."""
     data = QByteArray()
     stream = QDataStream(data, QIODevice.WriteOnly)
@@ -189,20 +192,20 @@ def serialize(obj: QObject) -> QByteArray:
     return data
 
 
-def deserialize(data: QByteArray, obj: QObject) -> None:
+def deserialize(data: QByteArray, obj: _QtSerializableType) -> None:
     """Deserialize an object from a QByteArray."""
     stream = QDataStream(data, QIODevice.ReadOnly)
     deserialize_stream(stream, obj)
 
 
-def serialize_stream(stream: QDataStream, obj: QObject) -> None:
+def serialize_stream(stream: QDataStream, obj: _QtSerializableType) -> None:
     """Serialize an object into a QDataStream."""
     check_qdatastream(stream)
     stream << obj  # pylint: disable=pointless-statement
     check_qdatastream(stream)
 
 
-def deserialize_stream(stream: QDataStream, obj: QObject) -> None:
+def deserialize_stream(stream: QDataStream, obj: _QtSerializableType) -> None:
     """Deserialize a QDataStream into an object."""
     check_qdatastream(stream)
     stream >> obj  # pylint: disable=pointless-statement
