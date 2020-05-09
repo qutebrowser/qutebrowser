@@ -82,7 +82,8 @@ class TabWidget(QTabWidget):
         position = config.val.tabs.position
         selection_behavior = config.val.tabs.select_on_remove
         self.setTabPosition(position)
-        tabbar.vertical = position in [QTabWidget.West, QTabWidget.East]
+        tabbar.vertical = position in [  # type: ignore
+            QTabWidget.West, QTabWidget.East]
         tabbar.setSelectionBehaviorOnRemove(selection_behavior)
         tabbar.refresh()
 
