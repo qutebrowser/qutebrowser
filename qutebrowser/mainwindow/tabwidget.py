@@ -60,10 +60,11 @@ class TabWidget(QTabWidget):
         bar = TabBar(win_id, self)
         self.setStyle(TabBarStyle())
         self.setTabBar(bar)
-        bar.tabCloseRequested.connect(self.tabCloseRequested)  # type: ignore
-        bar.tabMoved.connect(functools.partial(  # type: ignore
+        bar.tabCloseRequested.connect(
+            self.tabCloseRequested)  # type: ignore[arg-type]
+        bar.tabMoved.connect(functools.partial(
             QTimer.singleShot, 0, self.update_tab_titles))
-        bar.currentChanged.connect(self._on_current_changed)  # type: ignore
+        bar.currentChanged.connect(self._on_current_changed)
         bar.new_tab_requested.connect(self._on_new_tab_requested)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setDocumentMode(True)
@@ -82,7 +83,8 @@ class TabWidget(QTabWidget):
         position = config.val.tabs.position
         selection_behavior = config.val.tabs.select_on_remove
         self.setTabPosition(position)
-        tabbar.vertical = position in [QTabWidget.West, QTabWidget.East]
+        tabbar.vertical = position in [  # type: ignore[attr-defined]
+            QTabWidget.West, QTabWidget.East]
         tabbar.setSelectionBehaviorOnRemove(selection_behavior)
         tabbar.refresh()
 
@@ -163,7 +165,7 @@ class TabWidget(QTabWidget):
         """Get the tab field data."""
         tab = self.widget(idx)
         if tab is None:
-            log.misc.debug(  # type: ignore
+            log.misc.debug(  # type: ignore[unreachable]
                 "Got None-tab in get_tab_fields!")
 
         page_title = self.page_title(idx)
@@ -330,7 +332,7 @@ class TabWidget(QTabWidget):
         """
         tab = self.widget(idx)
         if tab is None:
-            url = QUrl()  # type: ignore
+            url = QUrl()  # type: ignore[unreachable]
         else:
             url = tab.url()
         # It's possible for url to be invalid, but the caller will handle that.
@@ -350,7 +352,7 @@ class TabWidget(QTabWidget):
             if config.val.tabs.tabs_are_windows:
                 self.window().setWindowIcon(self.window().windowIcon())
 
-    def setTabIcon(self, idx: int, icon: QIcon):
+    def setTabIcon(self, idx: int, icon: QIcon) -> None:
         """Always show tab icons for pinned tabs in some circumstances."""
         tab = typing.cast(typing.Optional[browsertab.AbstractTab],
                           self.widget(idx))
@@ -544,7 +546,7 @@ class TabBar(QTabBar):
                     idx = self.currentIndex()
                 elif action == 'close-last':
                     idx = self.count() - 1
-            self.tabCloseRequested.emit(idx)  # type: ignore
+            self.tabCloseRequested.emit(idx)
             return
         super().mousePressEvent(e)
 

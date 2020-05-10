@@ -72,8 +72,9 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
 
         self.cursorPositionChanged.connect(
-            self.update_completion)  # type: ignore
-        self.textChanged.connect(self.update_completion)  # type: ignore
+            self.update_completion)  # type: ignore[arg-type]
+        self.textChanged.connect(
+            self.update_completion)  # type: ignore[arg-type]
         self.textChanged.connect(self.updateGeometry)
         self.textChanged.connect(self._incremental_search)
 
@@ -148,7 +149,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             raise cmdutils.CommandError(
                 "Invalid command text '{}'.".format(text))
         if run_on_count and count is not None:
-            self.got_cmd[str, int].emit(text, count)  # type: ignore
+            self.got_cmd[str, int].emit(text, count)  # type: ignore[index]
         else:
             self.set_cmd_text(text)
 
@@ -198,7 +199,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
                           'cmd accept')
 
         if not was_search:
-            self.got_cmd[str].emit(text[1:])  # type: ignore
+            self.got_cmd[str].emit(text[1:])  # type: ignore[index]
 
     @cmdutils.register(instance='status-command', scope='window')
     def edit_command(self, run: bool = False) -> None:

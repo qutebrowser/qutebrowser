@@ -208,12 +208,12 @@ class argument:  # noqa: N801,N806 pylint: disable=invalid-name
             raise ValueError("{} has no argument {}!".format(funcname,
                                                              self._argname))
         if not hasattr(func, 'qute_args'):
-            func.qute_args = {}  # type: ignore
-        elif func.qute_args is None:  # type: ignore
+            func.qute_args = {}  # type: ignore[attr-defined]
+        elif func.qute_args is None:  # type: ignore[attr-defined]
             raise ValueError("@cmdutils.argument got called above (after) "
                              "@cmdutils.register for {}!".format(funcname))
 
         arginfo = command.ArgInfo(**self._kwargs)
-        func.qute_args[self._argname] = arginfo  # type: ignore
+        func.qute_args[self._argname] = arginfo  # type: ignore[attr-defined]
 
         return func

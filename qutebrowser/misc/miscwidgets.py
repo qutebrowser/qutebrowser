@@ -37,7 +37,7 @@ class MinimalLineEditMixin:
     """A mixin to give a QLineEdit a minimal look and nicer repr()."""
 
     def __init__(self):
-        self.setStyleSheet(  # type: ignore
+        self.setStyleSheet(  # type: ignore[attr-defined]
             """
             QLineEdit {
                 border: 0px;
@@ -46,7 +46,8 @@ class MinimalLineEditMixin:
             }
             """
         )
-        self.setAttribute(Qt.WA_MacShowFocusRect, False)  # type: ignore
+        self.setAttribute(  # type: ignore[attr-defined]
+            Qt.WA_MacShowFocusRect, False)
 
     def keyPressEvent(self, e):
         """Override keyPressEvent to paste primary selection on Shift + Ins."""
@@ -57,9 +58,9 @@ class MinimalLineEditMixin:
                 e.ignore()
             else:
                 e.accept()
-                self.insert(text)  # type: ignore
+                self.insert(text)  # type: ignore[attr-defined]
             return
-        super().keyPressEvent(e)  # type: ignore
+        super().keyPressEvent(e)  # type: ignore[misc]
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -260,7 +261,7 @@ class WrapperLayout(QLayout):
         widget.setParent(container)
 
     def unwrap(self):
-        self._widget.setParent(None)  # type: ignore
+        self._widget.setParent(None)  # type: ignore[call-overload]
         self._widget.deleteLater()
 
 

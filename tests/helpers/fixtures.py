@@ -315,7 +315,7 @@ def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub, qapp):
     monkeypatch.setattr(config, 'cache', cache)
 
     try:
-        configtypes.Font.set_defaults(None, '10pt')
+        configtypes.FontBase.set_defaults(None, '10pt')
     except configexc.NoOptionError:
         # Completion tests patch configdata so fonts.default_family is
         # unavailable.

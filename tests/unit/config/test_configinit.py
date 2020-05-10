@@ -40,8 +40,8 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
     monkeypatch.setattr(config, 'key_instance', None)
     monkeypatch.setattr(config, 'change_filters', [])
     monkeypatch.setattr(configinit, '_init_errors', None)
-    monkeypatch.setattr(configtypes.Font, 'default_family', None)
-    monkeypatch.setattr(configtypes.Font, 'default_size', None)
+    monkeypatch.setattr(configtypes.FontBase, 'default_family', None)
+    monkeypatch.setattr(configtypes.FontBase, 'default_size', None)
     yield
     try:
         objreg.delete('config-commands')

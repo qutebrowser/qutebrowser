@@ -362,7 +362,8 @@ def _init_profiles():
     default_profile = QWebEngineProfile.defaultProfile()
     init_user_agent()
 
-    default_profile.setter = ProfileSetter(default_profile)
+    default_profile.setter = ProfileSetter(  # type: ignore[attr-defined]
+        default_profile)
     default_profile.setCachePath(
         os.path.join(standarddir.cache(), 'webengine'))
     default_profile.setPersistentStoragePath(
@@ -372,7 +373,8 @@ def _init_profiles():
 
     if not qtutils.is_single_process():
         private_profile = QWebEngineProfile()
-        private_profile.setter = ProfileSetter(private_profile)
+        private_profile.setter = ProfileSetter(  # type: ignore[attr-defined]
+            private_profile)
         assert private_profile.isOffTheRecord()
         private_profile.setter.init_profile()
 

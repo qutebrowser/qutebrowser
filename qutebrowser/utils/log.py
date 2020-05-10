@@ -81,10 +81,10 @@ LOG_COLORS = {
 # mypy doesn't know about this, so we need to ignore it.
 VDEBUG_LEVEL = 9
 logging.addLevelName(VDEBUG_LEVEL, 'VDEBUG')
-logging.VDEBUG = VDEBUG_LEVEL  # type: ignore
+logging.VDEBUG = VDEBUG_LEVEL  # type: ignore[attr-defined]
 
 LOG_LEVELS = {
-    'VDEBUG': logging.VDEBUG,  # type: ignore
+    'VDEBUG': logging.VDEBUG,  # type: ignore[attr-defined]
     'DEBUG': logging.DEBUG,
     'INFO': logging.INFO,
     'WARNING': logging.WARNING,
@@ -109,7 +109,7 @@ def vdebug(self: logging.Logger,
         # pylint: enable=protected-access
 
 
-logging.Logger.vdebug = vdebug  # type: ignore
+logging.Logger.vdebug = vdebug  # type: ignore[attr-defined]
 
 
 # The different loggers used.
@@ -216,7 +216,7 @@ def init_log(args: argparse.Namespace) -> None:
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
     _init_py_warnings()
-    QtCore.qInstallMessageHandler(qt_message_handler)  # type: ignore
+    QtCore.qInstallMessageHandler(qt_message_handler)
     _log_inited = True
 
 
@@ -278,7 +278,7 @@ def _init_handlers(
         level, color, force_color, json_logging)
 
     if sys.stderr is None:
-        console_handler = None  # type: ignore
+        console_handler = None  # type: ignore[unreachable]
     else:
         strip = False if force_color else None
         if use_colorama:
@@ -337,14 +337,17 @@ def _init_formatters(
                                      use_colors=False)
     html_formatter = HTMLFormatter(EXTENDED_FMT_HTML, DATEFMT,
                                    log_colors=LOG_COLORS)
+
+    use_colorama = False
+
     if sys.stderr is None:
-        return None, ram_formatter, html_formatter, False  # type: ignore
+        console_formatter = None  # type: ignore[unreachable]
+        return console_formatter, ram_formatter, html_formatter, use_colorama
 
     if json_logging:
         json_formatter = JSONFormatter()
-        return json_formatter, ram_formatter, html_formatter, False
+        return json_formatter, ram_formatter, html_formatter, use_colorama
 
-    use_colorama = False
     color_supported = os.name == 'posix' or colorama
 
     if color_supported and (sys.stderr.isatty() or force_color) and color:
@@ -481,13 +484,13 @@ def qt_message_handler(msg_type: QtCore.QtMsgType,
         level = qt_to_logging[msg_type]
 
     if context.function is None:
-        func = 'none'  # type: ignore
+        func = 'none'  # type: ignore[unreachable]
     elif ':' in context.function:
         func = '"{}"'.format(context.function)
     else:
         func = context.function
 
-    if (context.category is None or  # type: ignore
+    if (context.category is None or  # type: ignore[unreachable]
             context.category == 'default'):
         name = 'qt'
     else:
@@ -692,9 +695,10 @@ class HTMLFormatter(logging.Formatter):
         record_clone.__dict__.update(self._colordict)
         if record_clone.levelname in self._log_colors:
             color = self._log_colors[record_clone.levelname]
-            record_clone.log_color = self._colordict[color]  # type: ignore
+            color_str = self._colordict[color]
+            record_clone.log_color = color_str  # type: ignore[attr-defined]
         else:
-            record_clone.log_color = ''  # type: ignore
+            record_clone.log_color = ''  # type: ignore[attr-defined]
         for field in ['msg', 'filename', 'funcName', 'levelname', 'module',
                       'name', 'pathname', 'processName', 'threadName']:
             data = str(getattr(record_clone, field))

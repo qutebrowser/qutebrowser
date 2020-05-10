@@ -162,7 +162,7 @@ def _get_configtypes():
         inspect.isclass(e) and
         # pylint: disable=protected-access
         e not in [configtypes.BaseType, configtypes.MappingType,
-                  configtypes._Numeric] and
+                  configtypes._Numeric, configtypes.FontBase] and
         # pylint: enable=protected-access
         issubclass(e, configtypes.BaseType))
     yield from inspect.getmembers(configtypes, predicate)

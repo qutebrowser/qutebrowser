@@ -161,7 +161,7 @@ class YamlConfig(QObject):
                 # Instead, create a config.py - see :help for details.
 
             """.lstrip('\n')))
-            utils.yaml_dump(data, f)  # type: ignore
+            utils.yaml_dump(data, f)
 
     def _pop_object(self,
                     yaml_data: typing.Any,
@@ -400,7 +400,7 @@ class YamlMigrations(QObject):
             except KeyError:
                 continue
 
-            if not isinstance(opt.typ, configtypes.Font):
+            if not isinstance(opt.typ, configtypes.FontBase):
                 continue
 
             for scope, val in self._settings[name].items():
@@ -692,8 +692,8 @@ def read_config_py(filename: str, raising: bool = False) -> None:
     basename = os.path.basename(filename)
 
     module = types.ModuleType('config')
-    module.config = api  # type: ignore
-    module.c = container  # type: ignore
+    module.config = api  # type: ignore[attr-defined]
+    module.c = container  # type: ignore[attr-defined]
     module.__file__ = filename
 
     try:

@@ -151,7 +151,7 @@ class Values:
         return bool(self._vmap)
 
     def _check_pattern_support(
-            self, arg: typing.Optional[urlmatch.UrlPattern]) -> None:
+            self, arg: typing.Union[urlmatch.UrlPattern, QUrl, None]) -> None:
         """Make sure patterns are supported if one was given."""
         if arg is not None and not self.opt.supports_pattern:
             raise configexc.NoPatternError(self.opt.name)

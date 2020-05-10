@@ -65,6 +65,7 @@ from qutebrowser.config import configexc, configutils
 from qutebrowser.utils import (standarddir, utils, qtutils, urlutils, urlmatch,
                                usertypes)
 from qutebrowser.keyinput import keyutils
+from qutebrowser.browser.network import pac
 
 
 class _SystemProxy:
@@ -702,8 +703,10 @@ class Bool(BaseType):
         super().__init__(none_ok)
         self.valid_values = ValidValues('true', 'false', generate_docs=False)
 
-    def to_py(self, value: typing.Optional[bool]) -> typing.Optional[bool]:
+    def to_py(self,
+              value: typing.Union[bool, str, None]) -> typing.Optional[bool]:
         self._basic_py_validation(value, bool)
+        assert not isinstance(value, str)
         return value
 
     def from_str(self, value: str) -> typing.Optional[bool]:
@@ -733,15 +736,15 @@ class BoolAsk(Bool):
         super().__init__(none_ok)
         self.valid_values = ValidValues('true', 'false', 'ask')
 
-    def to_py(self,  # type: ignore
+    def to_py(self,  # type: ignore[override]
               value: typing.Union[bool, str]) -> typing.Union[bool, str, None]:
         # basic validation unneeded if it's == 'ask' and done by Bool if we
         # call super().to_py
         if isinstance(value, str) and value.lower() == 'ask':
             return 'ask'
-        return super().to_py(value)  # type: ignore
+        return super().to_py(value)
 
-    def from_str(self,  # type: ignore
+    def from_str(self,  # type: ignore[override]
                  value: str) -> typing.Union[bool, str, None]:
         # basic validation unneeded if it's == 'ask' and done by Bool if we
         # call super().from_str
@@ -1146,14 +1149,9 @@ class QssColor(BaseType):
         return value
 
 
-class Font(BaseType):
+class FontBase(BaseType):
 
-    """A font family, with optional style/weight/size.
-
-    * Style: `normal`/`italic`/`oblique`
-    * Weight: `normal`, `bold`, `100`..`900`
-    * Size: _number_ `px`/`pt`
-    """
+    """Base class for Font/QtFont/FontFamily."""
 
     # Gets set when the config is initialized.
     default_family = None  # type: str
@@ -1229,6 +1227,19 @@ class Font(BaseType):
         cls.default_family = families.to_str(quote=True)
         cls.default_size = default_size
 
+    def to_py(self, value: typing.Any) -> typing.Any:
+        raise NotImplementedError
+
+
+class Font(FontBase):
+
+    """A font family, with optional style/weight/size.
+
+    * Style: `normal`/`italic`/`oblique`
+    * Weight: `normal`, `bold`, `100`..`900`
+    * Size: _number_ `px`/`pt`
+    """
+
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
@@ -1251,7 +1262,7 @@ class Font(BaseType):
         return value
 
 
-class FontFamily(Font):
+class FontFamily(FontBase):
 
     """A Qt font family."""
 
@@ -1275,7 +1286,7 @@ class FontFamily(Font):
         return value
 
 
-class QtFont(Font):
+class QtFont(FontBase):
 
     """A Font which gets converted to a QFont."""
 
@@ -1338,7 +1349,7 @@ class QtFont(Font):
         families = self._parse_families(family_str)
         if hasattr(font, 'setFamilies'):
             # Added in Qt 5.13
-            font.setFamily(families.family)  # type: ignore
+            font.setFamily(families.family)  # type: ignore[arg-type]
             font.setFamilies(list(families))
         else:  # pragma: no cover
             font.setFamily(families.to_str(quote=False))
@@ -1713,7 +1724,8 @@ class Proxy(BaseType):
     def to_py(
             self,
             value: _StrUnset
-    ) -> typing.Union[usertypes.Unset, None, QNetworkProxy, _SystemProxy]:
+    ) -> typing.Union[usertypes.Unset, None,
+                      QNetworkProxy, _SystemProxy, pac.PACFetcher]:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value
@@ -1783,7 +1795,10 @@ class FuzzyUrl(BaseType):
 
     """A URL which gets interpreted as search if needed."""
 
-    def to_py(self, value: _StrUnset) -> _StrUnsetNone:
+    def to_py(
+            self,
+            value: _StrUnset
+    ) -> typing.Union[None, QUrl, usertypes.Unset]:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value
@@ -1819,7 +1834,7 @@ class Padding(Dict):
                          fixed_keys=['top', 'bottom', 'left', 'right'],
                          none_ok=none_ok)
 
-    def to_py(  # type: ignore
+    def to_py(  # type: ignore[override]
             self,
             value: typing.Union[usertypes.Unset, typing.Dict, None],
     ) -> typing.Union[usertypes.Unset, PaddingValues]:

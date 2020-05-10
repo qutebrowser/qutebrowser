@@ -44,6 +44,7 @@ from PyQt5.QtWidgets import QApplication
 from qutebrowser.api import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog, ipc, objects
 from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
+from qutebrowser.qt import sip
 if typing.TYPE_CHECKING:
     from qutebrowser.misc import quitter
 
@@ -184,7 +185,7 @@ class CrashHandler(QObject):
         if sys.__stderr__ is not None:
             faulthandler.enable(sys.__stderr__)
         else:
-            faulthandler.disable()  # type: ignore
+            faulthandler.disable()  # type: ignore[unreachable]
         try:
             self._crash_log_file.close()
             os.remove(self._crash_log_file.name)
@@ -351,9 +352,10 @@ class SignalHandler(QObject):
             for fd in [read_fd, write_fd]:
                 flags = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-            self._notifier = QSocketNotifier(read_fd, QSocketNotifier.Read,
+            self._notifier = QSocketNotifier(typing.cast(sip.voidptr, read_fd),
+                                             QSocketNotifier.Read,
                                              self)
-            self._notifier.activated.connect(  # type: ignore
+            self._notifier.activated.connect(  # type: ignore[attr-defined]
                 self.handle_signal_wakeup)
             self._orig_wakeup_fd = signal.set_wakeup_fd(write_fd)
             # pylint: enable=import-error,no-member,useless-suppression

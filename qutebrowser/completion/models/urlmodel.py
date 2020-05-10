@@ -21,6 +21,9 @@
 
 import typing
 
+if typing.TYPE_CHECKING:
+    from PyQt5.QtCore import QAbstractItemModel
+
 from qutebrowser.completion.models import (completionmodel, listcategory,
                                            histcategory)
 from qutebrowser.browser import history
@@ -74,7 +77,7 @@ def url(*, info):
                      if k != 'DEFAULT']
     # pylint: enable=bad-config-option
     categories = config.val.completion.open_categories
-    models = {}
+    models = {}  # type: typing.Dict[str, QAbstractItemModel]
 
     if searchengines and 'searchengines' in categories:
         models['searchengines'] = listcategory.ListCategory(

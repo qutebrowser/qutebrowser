@@ -27,12 +27,14 @@ from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
+from PyQt5.QtWidgets import QWidget
 from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab, shared
 from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
                                         webkitsettings)
 from qutebrowser.utils import qtutils, usertypes, utils, log, debug
+from qutebrowser.keyinput import modeman
 from qutebrowser.qt import sip
 
 
@@ -85,7 +87,10 @@ class WebKitSearch(browsertab.AbstractSearch):
 
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
-        self._flags = QWebPage.FindFlags(0)  # type: ignore
+        self._flags = self._empty_flags()
+
+    def _empty_flags(self):
+        return QWebPage.FindFlags(0)  # type: ignore[call-overload]
 
     def _call_cb(self, callback, found, text, flags, caller):
         """Call the given callback if it's non-None.
@@ -137,7 +142,7 @@ class WebKitSearch(browsertab.AbstractSearch):
 
         self.text = text
         self.search_displayed = True
-        self._flags = QWebPage.FindFlags(0)  # type: ignore
+        self._flags = self._empty_flags()
         if self._is_case_sensitive(ignore_case):
             self._flags |= QWebPage.FindCaseSensitively
         if reverse:
@@ -159,7 +164,8 @@ class WebKitSearch(browsertab.AbstractSearch):
     def prev_result(self, *, result_cb=None):
         self.search_displayed = True
         # The int() here makes sure we get a copy of the flags.
-        flags = QWebPage.FindFlags(int(self._flags))  # type: ignore
+        flags = QWebPage.FindFlags(
+            int(self._flags))  # type: ignore[call-overload]
         if flags & QWebPage.FindBackward:
             flags &= ~QWebPage.FindBackward
         else:
@@ -171,6 +177,13 @@ class WebKitSearch(browsertab.AbstractSearch):
 class WebKitCaret(browsertab.AbstractCaret):
 
     """QtWebKit implementations related to moving the cursor/selection."""
+
+    def __init__(self,
+                 tab: 'WebKitTab',
+                 mode_manager: modeman.ModeManager,
+                 parent: QWidget = None) -> None:
+        super().__init__(mode_manager, parent)
+        self._tab = tab
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_entered(self, mode):
@@ -393,11 +406,11 @@ class WebKitCaret(browsertab.AbstractCaret):
 
             if selected_element is not None:
                 try:
-                    url = selected_element.attrib['href']
+                    href = selected_element.attrib['href']
                 except KeyError:
                     raise browsertab.WebTabError('Anchor element without '
                                                  'href!')
-                url = self._tab.url().resolved(QUrl(url))
+                url = self._tab.url().resolved(QUrl(href))
                 if tab:
                     self._tab.new_tab_requested.emit(url)
                 else:
@@ -582,6 +595,10 @@ class WebKitElements(browsertab.AbstractElements):
 
     """QtWebKit implemementations related to elements on the page."""
 
+    def __init__(self, tab: 'WebKitTab') -> None:
+        super().__init__()
+        self._tab = tab
+
     def find_css(self, selector, callback, error_cb, *, only_visible=False):
         utils.unused(error_cb)
         mainframe = self._widget.page().mainFrame()
@@ -699,7 +716,10 @@ class WebKitTab(browsertab.AbstractTab):
     """A QtWebKit tab in the browser."""
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
-        super().__init__(win_id=win_id, private=private, parent=parent)
+        super().__init__(win_id=win_id,
+                         mode_manager=mode_manager,
+                         private=private,
+                         parent=parent)
         widget = webview.WebView(win_id=win_id, tab_id=self.tab_id,
                                  private=private, tab=self)
         if private:

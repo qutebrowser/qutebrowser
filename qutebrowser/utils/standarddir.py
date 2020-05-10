@@ -68,7 +68,7 @@ def _unset_organization() -> typing.Iterator[None]:
     qapp = QApplication.instance()
     if qapp is not None:
         orgname = qapp.organizationName()
-        qapp.setOrganizationName(None)  # type: ignore
+        qapp.setOrganizationName(None)  # type: ignore[arg-type]
     try:
         yield
     finally:

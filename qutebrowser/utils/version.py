@@ -43,7 +43,7 @@ from PyQt5.QtWidgets import QApplication
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
-    qWebKitVersion = None  # type: ignore  # noqa: N816
+    qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
 
 import qutebrowser
 from qutebrowser.utils import log, utils, standarddir, usertypes, message
@@ -54,7 +54,7 @@ from qutebrowser.config import config
 try:
     from qutebrowser.browser.webengine import webenginesettings
 except ImportError:  # pragma: no cover
-    webenginesettings = None  # type: ignore
+    webenginesettings = None  # type: ignore[assignment]
 
 
 @attr.s
@@ -373,7 +373,7 @@ def _chromium_version() -> str:
     and https://chromereleases.googleblog.com/
     """
     if webenginesettings is None:
-        return 'unavailable'  # type: ignore
+        return 'unavailable'  # type: ignore[unreachable]
 
     if webenginesettings.parsed_user_agent is None:
         webenginesettings.init_user_agent()

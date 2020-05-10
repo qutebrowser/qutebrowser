@@ -26,7 +26,6 @@ import typing
 import attr
 from PyQt5.QtCore import pyqtSignal, QObject, Qt
 from PyQt5.QtGui import QKeySequence, QKeyEvent
-from PyQt5.QtWidgets import QWidget
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, utils
@@ -174,7 +173,7 @@ class BaseKeyParser(QObject):
     passthrough = False
     supports_count = True
 
-    def __init__(self, win_id: int, parent: QWidget = None) -> None:
+    def __init__(self, win_id: int, parent: QObject = None) -> None:
         super().__init__(parent)
         self._win_id = win_id
         self._modename = None

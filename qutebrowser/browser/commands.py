@@ -157,7 +157,7 @@ class CommandDispatcher:
         else:
             return None
 
-    def _tab_focus_stack(self, mode: str, *, show_error=True):
+    def _tab_focus_stack(self, mode: str, *, show_error: bool = True) -> None:
         """Select the tab which was last focused."""
         tab_deque = self._tabbed_browser.tab_deque
         cur_tab = self._cntwidget()
@@ -647,11 +647,12 @@ class CommandDispatcher:
     def _yank_url(self, what):
         """Helper method for yank() to get the URL to copy."""
         assert what in ['url', 'pretty-url'], what
-        flags = QUrl.RemovePassword
+
         if what == 'pretty-url':
-            flags |= QUrl.DecodeReserved  # type: ignore
+            flags = QUrl.RemovePassword | QUrl.DecodeReserved
         else:
-            flags |= QUrl.FullyEncoded  # type: ignore
+            flags = QUrl.RemovePassword | QUrl.FullyEncoded
+
         url = QUrl(self._current_url())
         url_query = QUrlQuery()
         url_query_str = urlutils.query_string(url)
@@ -662,7 +663,7 @@ class CommandDispatcher:
             if key in config.val.url.yank_ignored_parameters:
                 url_query.removeQueryItem(key)
         url.setQuery(url_query)
-        return url.toString(flags)  # type: ignore
+        return url.toString(flags)  # type: ignore[arg-type]
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('what', choices=['selection', 'url', 'pretty-url',

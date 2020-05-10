@@ -323,10 +323,11 @@ class SessionManager(QObject):
         else:
             data = self._save_all(only_window=only_window,
                                   with_private=with_private)
-        log.sessions.vdebug("Saving data: {}".format(data))  # type: ignore
+        log.sessions.vdebug(  # type: ignore[attr-defined]
+            "Saving data: {}".format(data))
         try:
             with qtutils.savefile_open(path) as f:
-                utils.yaml_dump(data, f)  # type: ignore
+                utils.yaml_dump(data, f)
         except (OSError, UnicodeEncodeError, yaml.YAMLError) as e:
             raise SessionError(e)
 
@@ -586,7 +587,7 @@ def session_save(name: ArgType = default, *,
 
 @cmdutils.register()
 @cmdutils.argument('name', completion=miscmodels.session)
-def session_delete(name, *, force: bool = False) -> None:
+def session_delete(name: str, *, force: bool = False) -> None:
     """Delete a session.
 
     Args:

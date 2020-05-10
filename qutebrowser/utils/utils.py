@@ -47,7 +47,7 @@ try:
                       CSafeDumper as YamlDumper)
     YAML_C_EXT = True
 except ImportError:  # pragma: no cover
-    from yaml import (SafeLoader as YamlLoader,  # type: ignore
+    from yaml import (SafeLoader as YamlLoader,  # type: ignore[misc]
                       SafeDumper as YamlDumper)
     YAML_C_EXT = False
 
@@ -324,7 +324,7 @@ class FakeIOStream(io.TextIOBase):
 
     def __init__(self, write_func: typing.Callable[[str], int]) -> None:
         super().__init__()
-        self.write = write_func  # type: ignore
+        self.write = write_func  # type: ignore[assignment]
 
 
 @contextlib.contextmanager
@@ -338,16 +338,16 @@ def fake_io(write_func: typing.Callable[[str], int]) -> typing.Iterator[None]:
     old_stderr = sys.stderr
     fake_stderr = FakeIOStream(write_func)
     fake_stdout = FakeIOStream(write_func)
-    sys.stderr = fake_stderr  # type: ignore
-    sys.stdout = fake_stdout  # type: ignore
+    sys.stderr = fake_stderr  # type: ignore[assignment]
+    sys.stdout = fake_stdout  # type: ignore[assignment]
     try:
         yield
     finally:
         # If the code we did run did change sys.stdout/sys.stderr, we leave it
         # unchanged. Otherwise, we reset it.
-        if sys.stdout is fake_stdout:  # type: ignore
+        if sys.stdout is fake_stdout:  # type: ignore[comparison-overlap]
             sys.stdout = old_stdout
-        if sys.stderr is fake_stderr:  # type: ignore
+        if sys.stderr is fake_stderr:  # type: ignore[comparison-overlap]
             sys.stderr = old_stderr
 
 

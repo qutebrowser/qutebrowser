@@ -31,6 +31,7 @@ from qutebrowser.commands import runners
 from qutebrowser.config import websettings
 from qutebrowser.misc import guiprocess
 from qutebrowser.browser import downloads
+from qutebrowser.qt import sip
 
 
 class _QtFIFOReader(QObject):
@@ -59,8 +60,10 @@ class _QtFIFOReader(QObject):
         fd = os.open(filepath, os.O_RDWR | os.O_NONBLOCK)
         # pylint: enable=no-member,useless-suppression
         self._fifo = os.fdopen(fd, 'r')
-        self._notifier = QSocketNotifier(fd, QSocketNotifier.Read, self)
-        self._notifier.activated.connect(self.read_line)  # type: ignore
+        self._notifier = QSocketNotifier(typing.cast(sip.voidptr, fd),
+                                         QSocketNotifier.Read, self)
+        self._notifier.activated.connect(  # type: ignore[attr-defined]
+            self.read_line)
 
     @pyqtSlot()
     def read_line(self):
@@ -263,7 +266,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
             return
 
         self._reader = _QtFIFOReader(self._filepath)
-        self._reader.got_line.connect(self.got_cmd)  # type: ignore
+        self._reader.got_line.connect(self.got_cmd)  # type: ignore[arg-type]
 
     @pyqtSlot()
     def on_proc_finished(self):
@@ -418,14 +421,13 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False,
         verbose: Show notifications when the command started/exited.
         output_messages: Show the output as messages.
     """
-    tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                window=win_id)
-    commandrunner = runners.CommandRunner(win_id, parent=tabbed_browser)
+    tb = objreg.get('tabbed-browser', scope='window', window=win_id)
+    commandrunner = runners.CommandRunner(win_id, parent=tb)
 
     if utils.is_posix:
-        runner = _POSIXUserscriptRunner(tabbed_browser)
+        runner = _POSIXUserscriptRunner(tb)  # type: _BaseUserscriptRunner
     elif utils.is_windows:  # pragma: no cover
-        runner = _WindowsUserscriptRunner(tabbed_browser)
+        runner = _WindowsUserscriptRunner(tb)
     else:  # pragma: no cover
         raise UnsupportedError
 
