@@ -893,7 +893,7 @@ class HintManager(QObject):
 
         if self._context.hint_mode == 'number':
             # renumber filtered hints
-            strings = self._hint_strings(visible)
+            strings = self._hint_strings([label.elem for label in visible])
             self._context.labels = {}
             for label, string in zip(visible, strings):
                 label.update_text('', string)
