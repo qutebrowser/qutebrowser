@@ -97,7 +97,7 @@ class TabDeque:
         self._ignore_next = True
         return tab
 
-    def next(self, cur_tab: QWidget, *, keep_overflow=True) -> QWidget:
+    def next(self, cur_tab: QWidget, *, keep_overflow: bool = True) -> QWidget:
         """Get the 'next' tab in the stack.
 
         Throws IndexError on failure.

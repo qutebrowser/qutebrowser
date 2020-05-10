@@ -157,7 +157,7 @@ class CommandDispatcher:
         else:
             return None
 
-    def _tab_focus_stack(self, mode: str, *, show_error=True):
+    def _tab_focus_stack(self, mode: str, *, show_error: bool = True) -> None:
         """Select the tab which was last focused."""
         tab_deque = self._tabbed_browser.tab_deque
         cur_tab = self._cntwidget()

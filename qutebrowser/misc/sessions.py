@@ -587,7 +587,7 @@ def session_save(name: ArgType = default, *,
 
 @cmdutils.register()
 @cmdutils.argument('name', completion=miscmodels.session)
-def session_delete(name, *, force: bool = False) -> None:
+def session_delete(name: str, *, force: bool = False) -> None:
     """Delete a session.
 
     Args:

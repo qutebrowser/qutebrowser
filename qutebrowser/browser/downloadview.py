@@ -132,7 +132,10 @@ class DownloadView(QListView):
             item.open_file()
             item.remove()
 
-    def _get_menu_actions(self, item) -> _ActionListType:
+    def _get_menu_actions(
+            self,
+            item: downloads.AbstractDownloadItem
+    ) -> _ActionListType:
         """Get the available context menu actions for a given DownloadItem.
 
         Args:

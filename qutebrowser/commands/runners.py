@@ -332,7 +332,7 @@ class CommandRunner(AbstractCommandRunner):
         self._win_id = win_id
 
     @contextlib.contextmanager
-    def _handle_error(self, safely) -> typing.Iterator[None]:
+    def _handle_error(self, safely: bool) -> typing.Iterator[None]:
         """Show exceptions as errors if safely=True is given."""
         try:
             yield

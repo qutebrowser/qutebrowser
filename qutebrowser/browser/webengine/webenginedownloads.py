@@ -24,7 +24,7 @@ import os.path
 import urllib
 import functools
 
-from PyQt5.QtCore import pyqtSlot, Qt, QUrl
+from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QObject
 from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
 
 from qutebrowser.browser import downloads, pdfjs
@@ -39,7 +39,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
         _qt_item: The wrapped item.
     """
 
-    def __init__(self, qt_item: QWebEngineDownloadItem, parent=None):
+    def __init__(self, qt_item: QWebEngineDownloadItem,
+                 parent: QObject = None) -> None:
         super().__init__(parent)
         self._qt_item = qt_item
         qt_item.downloadProgress.connect(  # type: ignore[attr-defined]

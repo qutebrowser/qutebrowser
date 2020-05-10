@@ -352,7 +352,7 @@ class TabWidget(QTabWidget):
             if config.val.tabs.tabs_are_windows:
                 self.window().setWindowIcon(self.window().windowIcon())
 
-    def setTabIcon(self, idx: int, icon: QIcon):
+    def setTabIcon(self, idx: int, icon: QIcon) -> None:
         """Always show tab icons for pinned tabs in some circumstances."""
         tab = typing.cast(typing.Optional[browsertab.AbstractTab],
                           self.widget(idx))
