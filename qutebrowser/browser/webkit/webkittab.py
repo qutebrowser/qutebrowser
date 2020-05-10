@@ -85,11 +85,12 @@ class WebKitSearch(browsertab.AbstractSearch):
 
     """QtWebKit implementations related to searching on the page."""
 
-    _NO_FLAGS = QWebPage.FindFlags(0)  # type: ignore[call-overload]
-
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
-        self._flags = self._NO_FLAGS
+        self._flags = self._empty_flags()
+
+    def _empty_flags(self):
+        return QWebPage.FindFlags(0)  # type: ignore[call-overload]
 
     def _call_cb(self, callback, found, text, flags, caller):
         """Call the given callback if it's non-None.
@@ -141,7 +142,7 @@ class WebKitSearch(browsertab.AbstractSearch):
 
         self.text = text
         self.search_displayed = True
-        self._flags = self._NO_FLAGS
+        self._flags = self._empty_flags()
         if self._is_case_sensitive(ignore_case):
             self._flags |= QWebPage.FindCaseSensitively
         if reverse:

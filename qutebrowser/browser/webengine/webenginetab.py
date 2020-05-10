@@ -239,14 +239,15 @@ class WebEngineSearch(browsertab.AbstractSearch):
                            back yet.
     """
 
-    _NO_FLAGS = QWebEnginePage.FindFlags(0)  # type: ignore[call-overload]
-
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
-        self._flags = self._NO_FLAGS
+        self._flags = self._empty_flags()
         self._pending_searches = 0
         # The API necessary to stop wrapping was added in this version
         self._wrap_handler = _WebEngineSearchWrapHandler()
+
+    def _empty_flags(self):
+        return QWebEnginePage.FindFlags(0)  # type: ignore[call-overload]
 
     def connect_signals(self):
         self._wrap_handler.connect_signal(self._widget.page())
@@ -298,7 +299,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
             return
 
         self.text = text
-        self._flags = self._NO_FLAGS
+        self._flags = self._empty_flags()
         self._wrap_handler.reset_match_data()
         self._wrap_handler.flag_wrap = wrap
         if self._is_case_sensitive(ignore_case):
