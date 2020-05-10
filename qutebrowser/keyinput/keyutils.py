@@ -53,6 +53,8 @@ _MODIFIER_MAP = {
 
 _NIL_KEY = Qt.Key(0)
 
+_ModifierType = typing.Union[Qt.KeyboardModifier, Qt.KeyboardModifiers]
+
 
 def _build_special_names() -> typing.Mapping[Qt.Key, str]:
     """Build _SPECIAL_NAMES dict from the special_names_str mapping below.
@@ -167,9 +169,7 @@ def _assert_plain_key(key: Qt.Key) -> None:
     assert not key & Qt.KeyboardModifierMask, hex(key)
 
 
-def _assert_plain_modifier(
-        key: typing.Union[Qt.KeyboardModifier, Qt.KeyboardModifiers]
-) -> None:
+def _assert_plain_modifier(key: _ModifierType) -> None:
     """Make sure this is a modifier without a key mixed in."""
     assert not key & ~Qt.KeyboardModifierMask, hex(key)  # type: ignore
 
@@ -179,10 +179,7 @@ def _is_printable(key: Qt.Key) -> bool:
     return key <= 0xff and key not in [Qt.Key_Space, _NIL_KEY]
 
 
-def is_special_hint_mode(
-        key: Qt.Key,
-        modifiers: typing.Union[Qt.KeyboardModifier, Qt.KeyboardModifiers],
-) -> bool:
+def is_special_hint_mode(key: Qt.Key, modifiers: _ModifierType) -> bool:
     """Check whether this key should clear the keychain in hint mode.
 
     When we press "s<Escape>", we don't want <Escape> to be handled as part of
@@ -197,10 +194,7 @@ def is_special_hint_mode(
                               Qt.KeypadModifier])
 
 
-def is_special(
-        key: Qt.Key,
-        modifiers: typing.Union[Qt.KeyboardModifier, Qt.KeyboardModifiers],
-) -> bool:
+def is_special(key: Qt.Key, modifiers: _ModifierType) -> bool:
     """Check whether this key requires special key syntax."""
     _assert_plain_key(key)
     _assert_plain_modifier(modifiers)
@@ -252,7 +246,7 @@ def _remap_unicode(key: Qt.Key, text: str) -> Qt.Key:
 
 
 def _check_valid_utf8(s: str,
-                      data: typing.Union[Qt.Key, Qt.KeyboardModifier]) -> None:
+                      data: typing.Union[Qt.Key, _ModifierType]) -> None:
     """Make sure the given string is valid UTF-8.
 
     Makes sure there are no chars where Qt did fall back to weird UTF-16
@@ -262,7 +256,7 @@ def _check_valid_utf8(s: str,
         s.encode('utf-8')
     except UnicodeEncodeError as e:  # pragma: no cover
         raise ValueError("Invalid encoding in 0x{:x} -> {}: {}"
-                         .format(data, s, e))
+                         .format(int(data), s, e))
 
 
 def _key_to_string(key: Qt.Key) -> str:
@@ -284,14 +278,14 @@ def _key_to_string(key: Qt.Key) -> str:
     return result
 
 
-def _modifiers_to_string(modifiers: Qt.KeyboardModifier) -> str:
+def _modifiers_to_string(modifiers: _ModifierType) -> str:
     """Convert the given Qt::KeyboardModifiers to a string.
 
     Handles Qt.GroupSwitchModifier because Qt doesn't handle that as a
     modifier.
     """
     _assert_plain_modifier(modifiers)
-    if modifiers & Qt.GroupSwitchModifier:
+    if modifiers & Qt.GroupSwitchModifier:  # type: ignore
         modifiers &= ~Qt.GroupSwitchModifier  # type: ignore
         result = 'AltGr+'
     else:
@@ -383,7 +377,7 @@ class KeyInfo:
     """
 
     key = attr.ib()  # type: Qt.Key
-    modifiers = attr.ib()  # type: Qt.KeyboardModifier
+    modifiers = attr.ib()  # type: _ModifierType
 
     @classmethod
     def from_event(cls, e: QKeyEvent) -> 'KeyInfo':
@@ -459,7 +453,7 @@ class KeyInfo:
             return ''
 
         text = QKeySequence(self.key).toString()
-        if not self.modifiers & Qt.ShiftModifier:
+        if not self.modifiers & Qt.ShiftModifier:  # type: ignore
             text = text.lower()
         return text
 
