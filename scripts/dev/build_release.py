@@ -44,7 +44,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 
 import qutebrowser
 from scripts import utils
-from scripts.dev import update_3rdparty
+from scripts.dev import update_3rdparty, misc_checks
 
 
 def call_script(name, *args, python=sys.executable):
@@ -472,6 +472,10 @@ def main():
         # or without API token
         import github3  # pylint: disable=unused-import
         read_github_token()
+
+    if not misc_checks.check_git():
+        utils.print_error("Refusing to do a release with a dirty git tree")
+        sys.exit(1)
 
     if args.no_asciidoc:
         os.makedirs(os.path.join('qutebrowser', 'html', 'doc'), exist_ok=True)
