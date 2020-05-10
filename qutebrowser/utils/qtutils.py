@@ -67,7 +67,7 @@ class QtOSError(OSError):
         qt_errno: The error attribute of the given QFileDevice, if applicable.
     """
 
-    def __init__(self, dev: QFileDevice, msg: str = None) -> None:
+    def __init__(self, dev: QIODevice, msg: str = None) -> None:
         if msg is None:
             msg = dev.errorString()
 
@@ -217,7 +217,7 @@ def savefile_open(
         filename: str,
         binary: bool = False,
         encoding: str = 'utf-8'
-) -> typing.Iterator[typing.Union['PyQIODevice', io.TextIOWrapper]]:
+) -> typing.Iterator[typing.IO]:
     """Context manager to easily use a QSaveFile."""
     f = QSaveFile(filename)
     cancelled = False
@@ -226,12 +226,12 @@ def savefile_open(
         if not open_ok:
             raise QtOSError(f)
 
+        dev = typing.cast(typing.IO[bytes], PyQIODevice(f))
+
         if binary:
-            new_f = PyQIODevice(
-                f)  # type: typing.Union[PyQIODevice, io.TextIOWrapper]
+            new_f = dev  # type: typing.IO
         else:
-            new_f = io.TextIOWrapper(PyQIODevice(f),
-                                     encoding=encoding)
+            new_f = io.TextIOWrapper(dev, encoding=encoding)
 
         yield new_f
 
@@ -347,27 +347,33 @@ class PyQIODevice(io.BufferedIOBase):
     def readable(self) -> bool:
         return self.dev.isReadable()
 
-    def readline(self, size: int = -1) -> QByteArray:
+    def readline(self, size: int = -1) -> bytes:
         self._check_open()
         self._check_readable()
 
         if size < 0:
             qt_size = 0  # no maximum size
         elif size == 0:
-            return QByteArray()
+            return b''
         else:
             qt_size = size + 1  # Qt also counts the NUL byte
 
+        buf = None  # type: typing.Union[QByteArray, bytes, None]
         if self.dev.canReadLine():
             buf = self.dev.readLine(qt_size)
+        elif size < 0:
+            buf = self.dev.readAll()
         else:
-            if size < 0:
-                buf = self.dev.readAll()
-            else:
-                buf = self.dev.read(size)
+            buf = self.dev.read(size)
 
         if buf is None:
             raise QtOSError(self.dev)
+
+        if isinstance(buf, QByteArray):
+            # The type (bytes or QByteArray) seems to depend on what data we
+            # feed in...
+            buf = buf.data()
+
         return buf
 
     def seekable(self) -> bool:
@@ -381,7 +387,7 @@ class PyQIODevice(io.BufferedIOBase):
     def writable(self) -> bool:
         return self.dev.isWritable()
 
-    def write(self, data: str) -> int:
+    def write(self, data: typing.Union[bytes, bytearray]) -> int:
         self._check_open()
         self._check_writable()
         num = self.dev.write(data)
@@ -389,17 +395,24 @@ class PyQIODevice(io.BufferedIOBase):
             raise QtOSError(self.dev)
         return num
 
-    def read(self, size: typing.Optional[int] = None) -> QByteArray:
+    def read(self, size: typing.Optional[int] = None) -> bytes:
         self._check_open()
         self._check_readable()
 
+        buf = None  # type: typing.Union[QByteArray, bytes, None]
         if size in [None, -1]:
             buf = self.dev.readAll()
         else:
+            assert size is not None
             buf = self.dev.read(size)
 
         if buf is None:
             raise QtOSError(self.dev)
+
+        if isinstance(buf, QByteArray):
+            # The type (bytes or QByteArray) seems to depend on what data we
+            # feed in...
+            buf = buf.data()
 
         return buf
 

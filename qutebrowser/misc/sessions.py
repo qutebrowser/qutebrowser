@@ -326,7 +326,7 @@ class SessionManager(QObject):
         log.sessions.vdebug("Saving data: {}".format(data))  # type: ignore
         try:
             with qtutils.savefile_open(path) as f:
-                utils.yaml_dump(data, f)  # type: ignore
+                utils.yaml_dump(data, f)
         except (OSError, UnicodeEncodeError, yaml.YAMLError) as e:
             raise SessionError(e)
 

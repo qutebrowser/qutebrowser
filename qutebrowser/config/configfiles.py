@@ -161,7 +161,7 @@ class YamlConfig(QObject):
                 # Instead, create a config.py - see :help for details.
 
             """.lstrip('\n')))
-            utils.yaml_dump(data, f)  # type: ignore
+            utils.yaml_dump(data, f)
 
     def _pop_object(self,
                     yaml_data: typing.Any,
