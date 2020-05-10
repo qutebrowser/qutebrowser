@@ -1147,14 +1147,9 @@ class QssColor(BaseType):
         return value
 
 
-class Font(BaseType):
+class FontBase(BaseType):
 
-    """A font family, with optional style/weight/size.
-
-    * Style: `normal`/`italic`/`oblique`
-    * Weight: `normal`, `bold`, `100`..`900`
-    * Size: _number_ `px`/`pt`
-    """
+    """Base class for Font/QtFont/FontFamily."""
 
     # Gets set when the config is initialized.
     default_family = None  # type: str
@@ -1230,6 +1225,19 @@ class Font(BaseType):
         cls.default_family = families.to_str(quote=True)
         cls.default_size = default_size
 
+    def to_py(self, value: typing.Any) -> typing.Any:
+        raise NotImplementedError
+
+
+class Font(FontBase):
+
+    """A font family, with optional style/weight/size.
+
+    * Style: `normal`/`italic`/`oblique`
+    * Weight: `normal`, `bold`, `100`..`900`
+    * Size: _number_ `px`/`pt`
+    """
+
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
@@ -1252,7 +1260,7 @@ class Font(BaseType):
         return value
 
 
-class FontFamily(Font):
+class FontFamily(FontBase):
 
     """A Qt font family."""
 
@@ -1276,7 +1284,7 @@ class FontFamily(Font):
         return value
 
 
-class QtFont(Font):
+class QtFont(FontBase):
 
     """A Font which gets converted to a QFont."""
 

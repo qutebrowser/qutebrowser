@@ -212,7 +212,7 @@ class TestAll:
         """
         for _name, member in inspect.getmembers(configtypes, inspect.isclass):
             if member in [configtypes.BaseType, configtypes.MappingType,
-                          configtypes._Numeric]:
+                          configtypes._Numeric, configtypes.FontBase]:
                 pass
             elif (member is configtypes.List or
                   member is configtypes.ListOrValue):
@@ -1480,7 +1480,7 @@ class TestFont:
             klass().to_py(val)
 
     def test_defaults_replacement(self, klass, monkeypatch):
-        configtypes.Font.set_defaults(['Terminus'], '23pt')
+        configtypes.FontBase.set_defaults(['Terminus'], '23pt')
         if klass is configtypes.Font:
             expected = '23pt Terminus'
         elif klass is configtypes.QtFont:

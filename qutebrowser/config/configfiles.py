@@ -400,7 +400,7 @@ class YamlMigrations(QObject):
             except KeyError:
                 continue
 
-            if not isinstance(opt.typ, configtypes.Font):
+            if not isinstance(opt.typ, configtypes.FontBase):
                 continue
 
             for scope, val in self._settings[name].items():
