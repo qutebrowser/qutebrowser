@@ -105,7 +105,7 @@ class DownloadView(QListView):
     def __repr__(self):
         model = self.model()
         if model is None:
-            count = 'None'  # type: ignore
+            count = 'None'  # type: ignore[unreachable]
         else:
             count = model.rowCount()
         return utils.get_repr(self, count=count)

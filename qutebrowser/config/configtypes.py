@@ -703,8 +703,10 @@ class Bool(BaseType):
         super().__init__(none_ok)
         self.valid_values = ValidValues('true', 'false', generate_docs=False)
 
-    def to_py(self, value: typing.Optional[bool]) -> typing.Optional[bool]:
+    def to_py(self,
+              value: typing.Union[bool, str, None]) -> typing.Optional[bool]:
         self._basic_py_validation(value, bool)
+        assert not isinstance(value, str)
         return value
 
     def from_str(self, value: str) -> typing.Optional[bool]:
@@ -734,15 +736,15 @@ class BoolAsk(Bool):
         super().__init__(none_ok)
         self.valid_values = ValidValues('true', 'false', 'ask')
 
-    def to_py(self,  # type: ignore
+    def to_py(self,  # type: ignore[override]
               value: typing.Union[bool, str]) -> typing.Union[bool, str, None]:
         # basic validation unneeded if it's == 'ask' and done by Bool if we
         # call super().to_py
         if isinstance(value, str) and value.lower() == 'ask':
             return 'ask'
-        return super().to_py(value)  # type: ignore
+        return super().to_py(value)
 
-    def from_str(self,  # type: ignore
+    def from_str(self,  # type: ignore[override]
                  value: str) -> typing.Union[bool, str, None]:
         # basic validation unneeded if it's == 'ask' and done by Bool if we
         # call super().from_str
@@ -1347,7 +1349,7 @@ class QtFont(FontBase):
         families = self._parse_families(family_str)
         if hasattr(font, 'setFamilies'):
             # Added in Qt 5.13
-            font.setFamily(families.family)  # type: ignore
+            font.setFamily(families.family)  # type: ignore[arg-type]
             font.setFamilies(list(families))
         else:  # pragma: no cover
             font.setFamily(families.to_str(quote=False))
@@ -1832,7 +1834,7 @@ class Padding(Dict):
                          fixed_keys=['top', 'bottom', 'left', 'right'],
                          none_ok=none_ok)
 
-    def to_py(  # type: ignore
+    def to_py(  # type: ignore[override]
             self,
             value: typing.Union[usertypes.Unset, typing.Dict, None],
     ) -> typing.Union[usertypes.Unset, PaddingValues]:

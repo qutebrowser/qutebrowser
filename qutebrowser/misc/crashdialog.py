@@ -532,7 +532,7 @@ class FatalCrashDialog(_CrashDialog):
         if self._chk_history.isChecked():
             try:
                 if history.web_history is None:
-                    history_data = '<unavailable>'  # type: ignore
+                    history_data = '<unavailable>'  # type: ignore[unreachable]
                 else:
                     history_data = '\n'.join(str(e) for e in
                                              history.web_history.get_recent())
@@ -629,7 +629,7 @@ class ReportErrorDialog(QDialog):
         hbox = QHBoxLayout()
         hbox.addStretch()
         btn = QPushButton("Close")
-        btn.clicked.connect(self.close)  # type: ignore
+        btn.clicked.connect(self.close)  # type: ignore[arg-type]
         hbox.addWidget(btn)
         vbox.addLayout(hbox)
 

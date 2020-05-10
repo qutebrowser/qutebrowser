@@ -95,7 +95,8 @@ class CookieJar(RAMCookieJar):
         """Parse cookies from lineparser and store them."""
         cookies = []  # type: typing.Sequence[QNetworkCookie]
         for line in self._lineparser:
-            cookies += QNetworkCookie.parseCookies(line)  # type: ignore
+            line_cookies = QNetworkCookie.parseCookies(line)
+            cookies += line_cookies  # type: ignore[operator]
         self.setAllCookies(cookies)
 
     def purge_old_cookies(self):
@@ -105,7 +106,7 @@ class CookieJar(RAMCookieJar):
         now = QDateTime.currentDateTime()
         cookies = [c for c in self.allCookies()
                    if c.isSessionCookie() or
-                   c.expirationDate() >= now]  # type: ignore
+                   c.expirationDate() >= now]  # type: ignore[operator]
         self.setAllCookies(cookies)
 
     def save(self):

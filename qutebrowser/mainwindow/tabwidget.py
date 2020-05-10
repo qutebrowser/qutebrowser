@@ -60,7 +60,8 @@ class TabWidget(QTabWidget):
         bar = TabBar(win_id, self)
         self.setStyle(TabBarStyle())
         self.setTabBar(bar)
-        bar.tabCloseRequested.connect(self.tabCloseRequested)  # type: ignore
+        bar.tabCloseRequested.connect(
+            self.tabCloseRequested)  # type: ignore[arg-type]
         bar.tabMoved.connect(functools.partial(
             QTimer.singleShot, 0, self.update_tab_titles))
         bar.currentChanged.connect(self._on_current_changed)
@@ -82,7 +83,7 @@ class TabWidget(QTabWidget):
         position = config.val.tabs.position
         selection_behavior = config.val.tabs.select_on_remove
         self.setTabPosition(position)
-        tabbar.vertical = position in [  # type: ignore
+        tabbar.vertical = position in [  # type: ignore[attr-defined]
             QTabWidget.West, QTabWidget.East]
         tabbar.setSelectionBehaviorOnRemove(selection_behavior)
         tabbar.refresh()
@@ -164,7 +165,7 @@ class TabWidget(QTabWidget):
         """Get the tab field data."""
         tab = self.widget(idx)
         if tab is None:
-            log.misc.debug(  # type: ignore
+            log.misc.debug(  # type: ignore[unreachable]
                 "Got None-tab in get_tab_fields!")
 
         page_title = self.page_title(idx)
@@ -331,7 +332,7 @@ class TabWidget(QTabWidget):
         """
         tab = self.widget(idx)
         if tab is None:
-            url = QUrl()  # type: ignore
+            url = QUrl()  # type: ignore[unreachable]
         else:
             url = tab.url()
         # It's possible for url to be invalid, but the caller will handle that.

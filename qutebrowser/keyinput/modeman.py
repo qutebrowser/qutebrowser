@@ -245,10 +245,11 @@ class ModeManager(QObject):
                             "{}".format(curmode, utils.qualname(parser)))
         match = parser.handle(event, dry_run=dry_run)
 
-        is_non_alnum = (
-            event.modifiers() not in [Qt.NoModifier,  # type: ignore
-                                      Qt.ShiftModifier] or
-            not event.text().strip())
+        has_modifier = event.modifiers() not in [
+            Qt.NoModifier,
+            Qt.ShiftModifier,
+        ]  # type: ignore[comparison-overlap]
+        is_non_alnum = has_modifier or not event.text().strip()
 
         forward_unbound_keys = config.cache['input.forward_unbound_keys']
 

@@ -171,7 +171,8 @@ def _assert_plain_key(key: Qt.Key) -> None:
 
 def _assert_plain_modifier(key: _ModifierType) -> None:
     """Make sure this is a modifier without a key mixed in."""
-    assert not key & ~Qt.KeyboardModifierMask, hex(key)  # type: ignore
+    mask = Qt.KeyboardModifierMask
+    assert not key & ~mask, hex(key)  # type: ignore[operator]
 
 
 def _is_printable(key: Qt.Key) -> bool:
@@ -285,8 +286,9 @@ def _modifiers_to_string(modifiers: _ModifierType) -> str:
     modifier.
     """
     _assert_plain_modifier(modifiers)
-    if modifiers & Qt.GroupSwitchModifier:  # type: ignore
-        modifiers &= ~Qt.GroupSwitchModifier  # type: ignore
+    altgr = Qt.GroupSwitchModifier
+    if modifiers & altgr:  # type: ignore[operator]
+        modifiers &= ~altgr  # type: ignore[operator, assignment]
         result = 'AltGr+'
     else:
         result = ''
@@ -453,7 +455,7 @@ class KeyInfo:
             return ''
 
         text = QKeySequence(self.key).toString()
-        if not self.modifiers & Qt.ShiftModifier:  # type: ignore
+        if not self.modifiers & Qt.ShiftModifier:  # type: ignore[operator]
             text = text.lower()
         return text
 
@@ -510,7 +512,7 @@ class KeySequence:
         """Iterate over KeyInfo objects."""
         for key_and_modifiers in self._iter_keys():
             key = Qt.Key(int(key_and_modifiers) & ~Qt.KeyboardModifierMask)
-            modifiers = Qt.KeyboardModifiers(  # type: ignore
+            modifiers = Qt.KeyboardModifiers(  # type: ignore[call-overload]
                 int(key_and_modifiers) & Qt.KeyboardModifierMask)
             yield KeyInfo(key=key, modifiers=modifiers)
 
@@ -650,7 +652,7 @@ class KeySequence:
         if (modifiers == Qt.ShiftModifier and
                 _is_printable(key) and
                 not ev.text().isupper()):
-            modifiers = Qt.KeyboardModifiers()  # type: ignore
+            modifiers = Qt.KeyboardModifiers()  # type: ignore[assignment]
 
         # On macOS, swap Ctrl and Meta back
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-51293

@@ -42,13 +42,15 @@ class DownloadItem(downloads.AbstractDownloadItem):
     def __init__(self, qt_item: QWebEngineDownloadItem, parent=None):
         super().__init__(parent)
         self._qt_item = qt_item
-        qt_item.downloadProgress.connect(  # type: ignore
+        qt_item.downloadProgress.connect(  # type: ignore[attr-defined]
             self.stats.on_download_progress)
-        qt_item.stateChanged.connect(self._on_state_changed)  # type: ignore
+        qt_item.stateChanged.connect(  # type: ignore[attr-defined]
+            self._on_state_changed)
 
         # Ensure wrapped qt_item is deleted manually when the wrapper object
         # is deleted. See https://github.com/qutebrowser/qutebrowser/issues/3373
-        self.destroyed.connect(self._qt_item.deleteLater)  # type: ignore
+        self.destroyed.connect(  # type: ignore[attr-defined]
+            self._qt_item.deleteLater)
 
     def _is_page_download(self):
         """Check if this item is a page (i.e. mhtml) download."""
@@ -93,7 +95,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
                              "{}".format(state_name))
 
     def _do_die(self):
-        self._qt_item.downloadProgress.disconnect()  # type: ignore
+        progress_signal = self._qt_item.downloadProgress
+        progress_signal.disconnect()  # type: ignore[attr-defined]
         if self._qt_item.state() != QWebEngineDownloadItem.DownloadInterrupted:
             self._qt_item.cancel()
 

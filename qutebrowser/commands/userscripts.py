@@ -62,7 +62,8 @@ class _QtFIFOReader(QObject):
         self._fifo = os.fdopen(fd, 'r')
         self._notifier = QSocketNotifier(typing.cast(sip.voidptr, fd),
                                          QSocketNotifier.Read, self)
-        self._notifier.activated.connect(self.read_line)  # type: ignore
+        self._notifier.activated.connect(  # type: ignore[attr-defined]
+            self.read_line)
 
     @pyqtSlot()
     def read_line(self):
@@ -265,7 +266,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
             return
 
         self._reader = _QtFIFOReader(self._filepath)
-        self._reader.got_line.connect(self.got_cmd)  # type: ignore
+        self._reader.got_line.connect(self.got_cmd)  # type: ignore[arg-type]
 
     @pyqtSlot()
     def on_proc_finished(self):

@@ -187,7 +187,7 @@ class ExternalEditor(QObject):
             if not ok:
                 log.procs.error("Failed to watch path: {}"
                                 .format(self._filename))
-            self._watcher.fileChanged.connect(  # type: ignore
+            self._watcher.fileChanged.connect(  # type: ignore[attr-defined]
                 self._on_file_changed)
 
         args = [self._sub_placeholder(arg, line, column) for arg in editor[1:]]

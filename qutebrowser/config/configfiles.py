@@ -692,8 +692,8 @@ def read_config_py(filename: str, raising: bool = False) -> None:
     basename = os.path.basename(filename)
 
     module = types.ModuleType('config')
-    module.config = api  # type: ignore
-    module.c = container  # type: ignore
+    module.config = api  # type: ignore[attr-defined]
+    module.c = container  # type: ignore[attr-defined]
     module.__file__ = filename
 
     try:

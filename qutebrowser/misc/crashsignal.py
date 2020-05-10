@@ -185,7 +185,7 @@ class CrashHandler(QObject):
         if sys.__stderr__ is not None:
             faulthandler.enable(sys.__stderr__)
         else:
-            faulthandler.disable()  # type: ignore
+            faulthandler.disable()  # type: ignore[unreachable]
         try:
             self._crash_log_file.close()
             os.remove(self._crash_log_file.name)
@@ -355,7 +355,7 @@ class SignalHandler(QObject):
             self._notifier = QSocketNotifier(typing.cast(sip.voidptr, read_fd),
                                              QSocketNotifier.Read,
                                              self)
-            self._notifier.activated.connect(  # type: ignore
+            self._notifier.activated.connect(  # type: ignore[attr-defined]
                 self.handle_signal_wakeup)
             self._orig_wakeup_fd = signal.set_wakeup_fd(write_fd)
             # pylint: enable=import-error,no-member,useless-suppression

@@ -194,7 +194,7 @@ class WebKitElement(webelem.AbstractWebElement):
             return None
 
         text = utils.compact_text(self._elem.toOuterXml(), 500)
-        log.webelem.vdebug(  # type: ignore
+        log.webelem.vdebug(  # type: ignore[attr-defined]
             "Client rectangles of element '{}': {}".format(text, rects))
 
         for i in range(int(rects.get("length", 0))):

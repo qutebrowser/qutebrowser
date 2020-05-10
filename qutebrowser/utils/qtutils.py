@@ -42,7 +42,7 @@ from PyQt5.QtWidgets import QApplication
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
-    qWebKitVersion = None  # type: ignore  # noqa: N816
+    qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
 
 if typing.TYPE_CHECKING:
     from PyQt5.QtCore import QFileDevice
@@ -203,7 +203,7 @@ def serialize_stream(stream: QDataStream, obj: _QtSerializableType) -> None:
     """Serialize an object into a QDataStream."""
     # pylint: disable=pointless-statement
     check_qdatastream(stream)
-    stream << obj  # type: ignore
+    stream << obj  # type: ignore[operator]
     check_qdatastream(stream)
 
 
@@ -211,7 +211,7 @@ def deserialize_stream(stream: QDataStream, obj: _QtSerializableType) -> None:
     """Deserialize a QDataStream into an object."""
     # pylint: disable=pointless-statement
     check_qdatastream(stream)
-    stream >> obj  # type: ignore
+    stream >> obj  # type: ignore[operator]
     check_qdatastream(stream)
 
 
@@ -426,7 +426,7 @@ class QtValueError(ValueError):
 
     def __init__(self, obj: 'Validatable') -> None:
         try:
-            self.reason = obj.errorString()  # type: ignore
+            self.reason = obj.errorString()  # type: ignore[attr-defined]
         except AttributeError:
             self.reason = None
         err = "{} is not valid".format(obj)

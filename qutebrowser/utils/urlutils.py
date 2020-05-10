@@ -125,9 +125,9 @@ def _get_search_url(txt: str) -> QUrl:
         url = qurl_from_user_input(evaluated)
     else:
         url = qurl_from_user_input(config.val.url.searchengines[engine])
-        url.setPath(None)  # type: ignore
-        url.setFragment(None)  # type: ignore
-        url.setQuery(None)  # type: ignore
+        url.setPath(None)  # type: ignore[arg-type]
+        url.setFragment(None)  # type: ignore[arg-type]
+        url.setQuery(None)  # type: ignore[call-overload]
     qtutils.ensure_valid(url)
     return url
 
@@ -522,14 +522,14 @@ def encoded_url(url: QUrl) -> str:
     return url.toEncoded().data().decode('ascii')
 
 
-def file_url(path: str) -> QUrl:
+def file_url(path: str) -> str:
     """Return a file:// url (as string) to the given local path.
 
     Arguments:
         path: The absolute path to the local file
     """
     url = QUrl.fromLocalFile(path)
-    return url.toString(QUrl.FullyEncoded)  # type: ignore
+    return url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
 
 
 def data_url(mimetype: str, data: bytes) -> QUrl:

@@ -26,7 +26,7 @@ try:
     from PyQt5.QtWebEngineCore import QWebEngineUrlScheme
 except ImportError:
     # Added in Qt 5.12
-    QWebEngineUrlScheme = None  # type: ignore
+    QWebEngineUrlScheme = None  # type: ignore[misc, assignment]
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, qtutils
@@ -165,6 +165,7 @@ def init():
     if QWebEngineUrlScheme is not None:
         assert not QWebEngineUrlScheme.schemeByName(b'qute').name()
         scheme = QWebEngineUrlScheme(b'qute')
-        scheme.setFlags(QWebEngineUrlScheme.LocalScheme |  # type: ignore
-                        QWebEngineUrlScheme.LocalAccessAllowed)
+        scheme.setFlags(
+            QWebEngineUrlScheme.LocalScheme |  # type: ignore[arg-type]
+            QWebEngineUrlScheme.LocalAccessAllowed)
         QWebEngineUrlScheme.registerScheme(scheme)

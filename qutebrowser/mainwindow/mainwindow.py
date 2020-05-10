@@ -102,7 +102,7 @@ def raise_window(window, alert=True):
     window.setWindowState(window.windowState() | Qt.WindowActive)
     window.raise_()
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-69568
-    QCoreApplication.processEvents(  # type: ignore
+    QCoreApplication.processEvents(  # type: ignore[call-overload]
         QEventLoop.ExcludeUserInputEvents | QEventLoop.ExcludeSocketNotifiers)
     window.activateWindow()
 
@@ -384,7 +384,9 @@ class MainWindow(QWidget):
                         self._command_dispatcher,
                         command_only=True,
                         scope='window', window=self.win_id)
-        self.tabbed_browser.widget.destroyed.connect(  # type: ignore
+
+        widget = self.tabbed_browser.widget
+        widget.destroyed.connect(  # type: ignore[attr-defined]
             functools.partial(objreg.delete, 'command-dispatcher',
                               scope='window', window=self.win_id))
 
@@ -491,15 +493,15 @@ class MainWindow(QWidget):
         mode_manager.left.connect(self.status.on_mode_left)
         mode_manager.left.connect(self.status.cmd.on_mode_left)
         mode_manager.left.connect(
-            message.global_bridge.mode_left)  # type: ignore
+            message.global_bridge.mode_left)  # type: ignore[arg-type]
 
         # commands
         normal_parser = mode_manager.parsers[usertypes.KeyMode.normal]
         normal_parser.keystring_updated.connect(
             self.status.keystring.setText)
-        self.status.cmd.got_cmd[str].connect(  # type: ignore
+        self.status.cmd.got_cmd[str].connect(  # type: ignore[index]
             self._commandrunner.run_safely)
-        self.status.cmd.got_cmd[str, int].connect(  # type: ignore
+        self.status.cmd.got_cmd[str, int].connect(  # type: ignore[index]
             self._commandrunner.run_safely)
         self.status.cmd.returnPressed.connect(
             self.tabbed_browser.on_cmd_return_pressed)
@@ -584,8 +586,8 @@ class MainWindow(QWidget):
             if on:
                 self.state_before_fullscreen = self.windowState()
                 self.setWindowState(
-                    Qt.WindowFullScreen |  # type: ignore
-                    self.state_before_fullscreen)  # type: ignore
+                    Qt.WindowFullScreen |  # type: ignore[arg-type]
+                    self.state_before_fullscreen)  # type: ignore[operator]
             elif self.isFullScreen():
                 self.setWindowState(self.state_before_fullscreen)
         log.misc.debug('on: {}, state before fullscreen: {}'.format(

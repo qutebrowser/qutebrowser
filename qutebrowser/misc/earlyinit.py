@@ -38,7 +38,7 @@ import datetime
 try:
     import tkinter
 except ImportError:
-    tkinter = None  # type: ignore
+    tkinter = None  # type: ignore[assignment]
 
 # NOTE: No qutebrowser or PyQt import should be done here, as some early
 # initialization needs to take place before that!
@@ -251,7 +251,8 @@ def configure_pyqt():
     from PyQt5 import QtCore
     QtCore.pyqtRemoveInputHook()
     try:
-        QtCore.pyqt5_enable_new_onexit_scheme(True)  # type: ignore
+        QtCore.pyqt5_enable_new_onexit_scheme(  # type: ignore[attr-defined]
+            True)
     except AttributeError:
         # Added in PyQt 5.13 somewhere, going to be the default in 5.14
         pass
@@ -259,7 +260,7 @@ def configure_pyqt():
     from qutebrowser.qt import sip
     try:
         # Added in sip 4.19.4
-        sip.enableoverflowchecking(True)  # type: ignore
+        sip.enableoverflowchecking(True)  # type: ignore[attr-defined]
     except AttributeError:
         pass
 

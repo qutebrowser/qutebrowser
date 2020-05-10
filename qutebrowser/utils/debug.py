@@ -80,7 +80,7 @@ def log_signals(obj: QObject) -> QObject:
                         pass
 
     if inspect.isclass(obj):
-        old_init = obj.__init__  # type: ignore
+        old_init = obj.__init__  # type: ignore[misc]
 
         @functools.wraps(old_init)
         def new_init(self: typing.Any,
@@ -90,7 +90,7 @@ def log_signals(obj: QObject) -> QObject:
             old_init(self, *args, **kwargs)
             connect_log_slot(self)
 
-        obj.__init__ = new_init  # type: ignore
+        obj.__init__ = new_init  # type: ignore[misc]
     else:
         connect_log_slot(obj)
 
@@ -122,7 +122,7 @@ def qenum_key(base: typing.Type,
     try:
         idx = base.staticMetaObject.indexOfEnumerator(klass.__name__)
         meta_enum = base.staticMetaObject.enumerator(idx)
-        ret = meta_enum.valueToKey(int(value))  # type: ignore
+        ret = meta_enum.valueToKey(int(value))  # type: ignore[arg-type]
     except AttributeError:
         ret = None
 
@@ -132,7 +132,7 @@ def qenum_key(base: typing.Type,
                 ret = name
                 break
         else:
-            ret = '0x{:04x}'.format(int(value))  # type: ignore
+            ret = '0x{:04x}'.format(int(value))  # type: ignore[arg-type]
 
     if add_base and hasattr(base, '__name__'):
         return '.'.join([base.__name__, ret])
@@ -175,7 +175,7 @@ def qflags_key(base: typing.Type,
     bits = []
     names = []
     mask = 0x01
-    value = int(value)  # type: ignore
+    value = int(value)  # type: ignore[arg-type]
     while mask <= value:
         if value & mask:
             bits.append(mask)
@@ -183,7 +183,8 @@ def qflags_key(base: typing.Type,
     for bit in bits:
         # We have to re-convert to an enum type here or we'll sometimes get an
         # empty string back.
-        names.append(qenum_key(base, klass(bit), add_base))  # type: ignore
+        enum_value = klass(bit)  # type: ignore[call-arg]
+        names.append(qenum_key(base, enum_value, add_base))
     return '|'.join(names)
 
 
@@ -209,14 +210,14 @@ def signal_name(sig: pyqtSignal) -> str:
         # sig.signal == '2signal1'
         # sig.signal == '2signal2(QString,QString)'
         m = re.fullmatch(r'[0-9]+(?P<name>.*)\(.*\)',
-                         sig.signal)  # type: ignore
+                         sig.signal)  # type: ignore[attr-defined]
     elif hasattr(sig, 'signatures'):
         # Unbound signal, PyQt >= 5.11
         # Examples:
         # sig.signatures == ('signal1()',)
         # sig.signatures == ('signal2(QString,QString)',)
         m = re.fullmatch(r'(?P<name>.*)\(.*\)',
-                         sig.signatures[0])  # type: ignore
+                         sig.signatures[0])  # type: ignore[attr-defined]
     else:  # pragma: no cover
         # Unbound signal, PyQt < 5.11
         # Examples:

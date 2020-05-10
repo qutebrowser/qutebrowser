@@ -94,7 +94,7 @@ def _init_variable_replacements() -> typing.Mapping[str, _ReplacementFunction]:
         modified_key = '{' + key + '}'
         # x = modified_key is to avoid binding x as a closure
         replacements[modified_key] = (
-            lambda _, x=modified_key: x)  # type: ignore
+            lambda _, x=modified_key: x)  # type: ignore[misc]
     return replacements
 
 

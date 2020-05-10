@@ -323,7 +323,8 @@ class SessionManager(QObject):
         else:
             data = self._save_all(only_window=only_window,
                                   with_private=with_private)
-        log.sessions.vdebug("Saving data: {}".format(data))  # type: ignore
+        log.sessions.vdebug(  # type: ignore[attr-defined]
+            "Saving data: {}".format(data))
         try:
             with qtutils.savefile_open(path) as f:
                 utils.yaml_dump(data, f)

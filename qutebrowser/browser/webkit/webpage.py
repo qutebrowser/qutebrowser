@@ -78,22 +78,24 @@ class BrowserPage(QWebPage):
         self.setNetworkAccessManager(self._networkmanager)
         self.setForwardUnsupportedContent(True)
         self.reloading.connect(self._networkmanager.clear_rejected_ssl_errors)
-        self.printRequested.connect(  # type: ignore
+        self.printRequested.connect(  # type: ignore[attr-defined]
             self.on_print_requested)
-        self.downloadRequested.connect(  # type: ignore
+        self.downloadRequested.connect(  # type: ignore[attr-defined]
             self.on_download_requested)
-        self.unsupportedContent.connect(  # type: ignore
+        self.unsupportedContent.connect(  # type: ignore[attr-defined]
             self.on_unsupported_content)
-        self.loadStarted.connect(self.on_load_started)  # type: ignore
-        self.featurePermissionRequested.connect(  # type: ignore
+        self.loadStarted.connect(  # type: ignore[attr-defined]
+            self.on_load_started)
+        self.featurePermissionRequested.connect(  # type: ignore[attr-defined]
             self._on_feature_permission_requested)
-        self.saveFrameStateRequested.connect(  # type: ignore
+        self.saveFrameStateRequested.connect(  # type: ignore[attr-defined]
             self.on_save_frame_state_requested)
-        self.restoreFrameStateRequested.connect(  # type: ignore
+        self.restoreFrameStateRequested.connect(  # type: ignore[attr-defined]
             self.on_restore_frame_state_requested)
-        self.loadFinished.connect(  # type: ignore
+        self.loadFinished.connect(  # type: ignore[attr-defined]
             functools.partial(self._inject_userjs, self.mainFrame()))
-        self.frameCreated.connect(self._connect_userjs_signals)  # type: ignore
+        self.frameCreated.connect(  # type: ignore[attr-defined]
+            self._connect_userjs_signals)
 
     @pyqtSlot('QWebFrame*')
     def _connect_userjs_signals(self, frame):
@@ -206,8 +208,10 @@ class BrowserPage(QWebPage):
         suggested_file = ""
         if info.suggestedFileNames:
             suggested_file = info.suggestedFileNames[0]
+
         files.fileNames, _ = QFileDialog.getOpenFileNames(
-            None, None, suggested_file)  # type: ignore
+            None, None, suggested_file)  # type: ignore[arg-type]
+
         return True
 
     def shutdown(self):

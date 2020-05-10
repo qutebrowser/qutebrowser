@@ -39,7 +39,7 @@ try:
     import secrets
 except ImportError:
     # New in Python 3.6
-    secrets = None  # type: ignore
+    secrets = None  # type: ignore[assignment]
 
 from PyQt5.QtCore import QUrlQuery, QUrl, qVersion
 

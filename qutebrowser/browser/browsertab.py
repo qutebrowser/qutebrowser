@@ -541,7 +541,7 @@ class AbstractScroller(QObject):
 
     @pyqtSlot()
     def _log_scroll_pos_change(self) -> None:
-        log.webview.vdebug(  # type: ignore
+        log.webview.vdebug(  # type: ignore[attr-defined]
             "Scroll position changed to {}".format(self.pos_px()))
 
     def _init_widget(self, widget: QWidget) -> None:
@@ -956,7 +956,7 @@ class AbstractTab(QWidget):
             log.webview.warning("Unable to find event target!")
             return
 
-        evt.posted = True  # type: ignore
+        evt.posted = True  # type: ignore[attr-defined]
         QApplication.postEvent(recipient, evt)
 
     def navigation_blocked(self) -> bool:
@@ -1139,7 +1139,8 @@ class AbstractTab(QWidget):
     def __repr__(self) -> str:
         try:
             qurl = self.url()
-            url = qurl.toDisplayString(QUrl.EncodeUnicode)  # type: ignore
+            url = qurl.toDisplayString(
+                QUrl.EncodeUnicode)  # type: ignore[arg-type]
         except (AttributeError, RuntimeError) as exc:
             url = '<{}>'.format(exc.__class__.__name__)
         else:

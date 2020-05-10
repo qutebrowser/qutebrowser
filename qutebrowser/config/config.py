@@ -206,7 +206,7 @@ class KeyConfig:
                 'mode'.format(key, mode))
 
         self._validate(key, mode)
-        log.keyboard.vdebug(  # type: ignore
+        log.keyboard.vdebug(  # type: ignore[attr-defined]
             "Adding binding {} -> {} in mode {}.".format(key, command, mode))
 
         bindings = self._config.get_mutable_obj('bindings.commands')
