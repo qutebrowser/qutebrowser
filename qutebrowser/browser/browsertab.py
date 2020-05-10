@@ -21,7 +21,6 @@
 
 import enum
 import itertools
-import typing
 import functools
 import typing
 

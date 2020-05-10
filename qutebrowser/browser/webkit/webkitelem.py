@@ -177,6 +177,7 @@ class WebKitElement(webelem.AbstractWebElement):
             return None
 
         if typing.TYPE_CHECKING:
+            # pylint: disable=used-before-assignment
             assert isinstance(self._tab, webkittab.WebKitTab)
 
         return WebKitElement(elem, tab=self._tab)

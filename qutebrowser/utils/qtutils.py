@@ -36,13 +36,16 @@ import typing
 import pkg_resources
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QSaveFile, QT_VERSION_STR,
-                          PYQT_VERSION_STR, QFileDevice, QObject, QUrl)
+                          PYQT_VERSION_STR, QObject, QUrl)
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QApplication
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore  # noqa: N816
+
+if typing.TYPE_CHECKING:
+    from PyQt5.QtCore import QFileDevice
 
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes
@@ -61,7 +64,7 @@ MINVALS = {
 
 class QtOSError(OSError):
 
-    """An OSError triggered by a QFileDevice.
+    """An OSError triggered by a QIODevice.
 
     Attributes:
         qt_errno: The error attribute of the given QFileDevice, if applicable.

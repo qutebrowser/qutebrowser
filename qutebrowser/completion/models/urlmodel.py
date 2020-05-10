@@ -21,7 +21,8 @@
 
 import typing
 
-from PyQt5.QtCore import QAbstractItemModel
+if typing.TYPE_CHECKING:
+    from PyQt5.QtCore import QAbstractItemModel
 
 from qutebrowser.completion.models import (completionmodel, listcategory,
                                            histcategory)
