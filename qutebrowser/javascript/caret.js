@@ -1184,13 +1184,6 @@ window._qutebrowser.caret = (function() {
         }
     };
 
-    CaretBrowsing.selectionEnabled = function() {
-        if (CaretBrowsing.selectionState === CaretBrowsing.SelectionState.NONE) {
-            return false;
-        }
-        return true;
-    };
-
     CaretBrowsing.move = function(direction, granularity, count = 1) {
         let action = "move";
         if (CaretBrowsing.selectionState !== CaretBrowsing.SelectionState.NONE) {
@@ -1348,14 +1341,14 @@ window._qutebrowser.caret = (function() {
     funcs.setInitialCursor = () => {
         if (!CaretBrowsing.initiated) {
             CaretBrowsing.setInitialCursor();
-            return CaretBrowsing.selectionEnabled();
+            return CaretBrowsing.selectionState !== CaretBrowsing.SelectionState.NONE;
         }
 
         if (window.getSelection().toString().length === 0) {
             positionCaret();
         }
         CaretBrowsing.toggle();
-        return CaretBrowsing.selectionEnabled();
+        return CaretBrowsing.selectionState !== CaretBrowsing.SelectionState.NONE;
     };
 
     funcs.setFlags = (flags) => {
