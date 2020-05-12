@@ -14,5 +14,3 @@ flake8-tuple
 pep8-naming
 pydocstyle
 pyflakes
-
-#@ pre
