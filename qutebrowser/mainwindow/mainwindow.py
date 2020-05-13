@@ -386,7 +386,7 @@ class MainWindow(QWidget):
                         scope='window', window=self.win_id)
 
         widget = self.tabbed_browser.widget
-        widget.destroyed.connect(  # type: ignore[attr-defined]
+        widget.destroyed.connect(
             functools.partial(objreg.delete, 'command-dispatcher',
                               scope='window', window=self.win_id))
 

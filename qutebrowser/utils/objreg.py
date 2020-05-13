@@ -86,7 +86,7 @@ class ObjectRegistry(collections.UserDict):
 
         if isinstance(obj, QObject):
             func = functools.partial(self.on_destroyed, name)
-            obj.destroyed.connect(func)  # type: ignore[attr-defined]
+            obj.destroyed.connect(func)
             self._partial_objs[name] = func
 
         super().__setitem__(name, obj)

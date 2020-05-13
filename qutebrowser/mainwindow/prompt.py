@@ -192,8 +192,7 @@ class PromptQueue(QObject):
         if blocking:
             loop = qtutils.EventLoop()
             self._loops.append(loop)
-            loop.destroyed.connect(  # type: ignore[attr-defined]
-                lambda: self._loops.remove(loop))
+            loop.destroyed.connect(lambda: self._loops.remove(loop))
             question.completed.connect(loop.quit)
             question.completed.connect(loop.deleteLater)
             log.prompt.debug("Starting loop.exec_() for {}".format(question))
