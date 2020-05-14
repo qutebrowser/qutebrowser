@@ -64,7 +64,7 @@ def get_fileobj(byte_io: typing.IO[bytes]) -> typing.IO[bytes]:
 
 def _is_whitelisted_url(url: QUrl) -> bool:
     """Check if the given URL is on the adblock whitelist."""
-    for pattern in config.val.content.host_blocking.whitelist:
+    for pattern in config.val.content.blocking.whitelist:
         if pattern.matches(url):
             return True
     return False
@@ -115,7 +115,7 @@ class HostBlocker:
 
         qtutils.ensure_valid(request_url)
 
-        if not config.get('content.host_blocking.enabled',
+        if not config.get('content.blocking.hosts.enabled',
                           url=first_party_url):
             return False
 
@@ -204,9 +204,9 @@ class HostBlocker:
                                       self._blocked_hosts)
 
         if not found:
-            if (config.val.content.host_blocking.lists and
+            if (config.val.content.blocking.hosts.lists and
                     not self._has_basedir and
-                    config.val.content.host_blocking.enabled):
+                    config.val.content.blocking.hosts.enabled):
                 message.info("Run :adblock-update to get adblock lists.")
 
     def adblock_update(self) -> None:
@@ -215,7 +215,7 @@ class HostBlocker:
                               self._config_blocked_hosts)
         self._blocked_hosts = set()
         self._done_count = 0
-        for url in config.val.content.host_blocking.lists:
+        for url in config.val.content.blocking.hosts.lists:
             if url.scheme() == 'file':
                 filename = url.toLocalFile()
                 if os.path.isdir(filename):
@@ -285,7 +285,7 @@ class HostBlocker:
 
     def update_files(self) -> None:
         """Update files when the config changed."""
-        if not config.val.content.host_blocking.lists:
+        if not config.val.content.blocking.hosts.lists:
             try:
                 os.remove(self._local_hosts_file)
             except FileNotFoundError:
@@ -328,7 +328,7 @@ def adblock_update() -> None:
     _host_blocker.adblock_update()
 
 
-@hook.config_changed('content.host_blocking.lists')
+@hook.config_changed('content.blocking.hosts.lists')
 def on_config_changed() -> None:
     _host_blocker.update_files()
 

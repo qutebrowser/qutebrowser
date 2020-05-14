@@ -142,9 +142,11 @@
 |<<content.headers.do_not_track,content.headers.do_not_track>>|Value to send in the `DNT` header.
 |<<content.headers.referer,content.headers.referer>>|When to send the Referer header.
 |<<content.headers.user_agent,content.headers.user_agent>>|User agent to send.
-|<<content.host_blocking.enabled,content.host_blocking.enabled>>|Enable host blocking.
-|<<content.host_blocking.lists,content.host_blocking.lists>>|List of URLs of lists which contain hosts to block.
-|<<content.host_blocking.whitelist,content.host_blocking.whitelist>>|A list of patterns that should always be loaded, despite being ad-blocked.
+|<<content.blocking.hosts.enabled,content.blocking.hosts.enabled>>|Enable host blocking.
+|<<content.blocking.hosts.lists,content.blocking.hosts.lists>>|List of URLs of lists which contain hosts to block.
+|<<content.blocking.adblock.enabled,content.blocking.adblock.enabled>>|Enable host adblock plus style adblocking.
+|<<content.blocking.adblock.lists,content.blocking.adblock.lists>>|List of URLs of lists which contain adblock rules.
+|<<content.blocking.whitelist,content.blocking.whitelist>>|A list of patterns that should always be loaded, despite being ad– or host–blocked.
 |<<content.hyperlink_auditing,content.hyperlink_auditing>>|Enable hyperlink auditing (`<a ping>`).
 |<<content.images,content.images>>|Load images automatically in web pages.
 |<<content.javascript.alert,content.javascript.alert>>|Show javascript alerts.
@@ -318,7 +320,7 @@ The keys of the given dictionary are the aliases, while the values are the comma
 
 Type: <<types,Dict>>
 
-Default: 
+Default:
 
 - +pass:[q]+: +pass:[close]+
 - +pass:[qa]+: +pass:[quit]+
@@ -424,7 +426,7 @@ This setting can only be set in config.py.
 
 Type: <<types,Dict>>
 
-Default: 
+Default:
 
 - +pass:[caret]+:
 
@@ -728,7 +730,7 @@ Note that when a key is bound (via `bindings.default` or `bindings.commands`), t
 
 Type: <<types,Dict>>
 
-Default: 
+Default:
 
 - +pass:[&lt;Ctrl-6&gt;]+: +pass:[&lt;Ctrl-^&gt;]+
 - +pass:[&lt;Ctrl-Enter&gt;]+: +pass:[&lt;Ctrl-Return&gt;]+
@@ -786,7 +788,7 @@ May be a single color to use for all columns or a list of three colors, one for 
 
 Type: <<types,List of QtColor&#44; or QtColor>>
 
-Default: 
+Default:
 
 - +pass:[white]+
 - +pass:[white]+
@@ -1564,7 +1566,7 @@ Valid values:
  * +bookmarks+
  * +history+
 
-Default: 
+Default:
 
 - +pass:[searchengines]+
 - +pass:[quickmarks]+
@@ -1667,7 +1669,7 @@ Valid values:
  * +downloads+: Show a confirmation if downloads are running
  * +never+: Never show a confirmation.
 
-Default: 
+Default:
 
 - +pass:[never]+
 
@@ -1901,8 +1903,8 @@ Type: <<types,FormatString>>
 
 Default: +pass:[Mozilla/5.0 ({os_info}) AppleWebKit/{webkit_version} (KHTML, like Gecko) {qt_key}/{qt_version} {upstream_browser_key}/{upstream_browser_version} Safari/{webkit_version}]+
 
-[[content.host_blocking.enabled]]
-=== content.host_blocking.enabled
+[[content.blocking.hosts.enabled]]
+=== content.blocking.hosts.enabled
 Enable host blocking.
 
 This setting supports URL patterns.
@@ -1911,8 +1913,8 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-[[content.host_blocking.lists]]
-=== content.host_blocking.lists
+[[content.blocking.hosts.lists]]
+=== content.blocking.hosts.lists
 List of URLs of lists which contain hosts to block.
 
 The file can be in one of the following formats:
@@ -1930,14 +1932,14 @@ The file `~/.config/qutebrowser/blocked-hosts` is always read if it exists.
 
 Type: <<types,List of Url>>
 
-Default: 
+Default:
 
 - +pass:[https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts]+
 
-[[content.host_blocking.whitelist]]
-=== content.host_blocking.whitelist
+[[content.blocking.whitelist]]
+=== content.blocking.whitelist
 A list of patterns that should always be loaded, despite being ad-blocked.
-Note this whitelists blocked hosts, not first-party URLs. As an example, if `example.org` loads an ad from `ads.example.org`, the whitelisted host should be `ads.example.org`. If you want to disable the adblocker on a given page, use the `content.host_blocking.enabled` setting with a URL pattern instead.
+Note this whitelists blocked hosts, not first-party URLs. As an example, if `example.org` loads an ad from `ads.example.org`, the whitelisted host should be `ads.example.org`. If you want to disable the adblocker on a given page, use the `content.blocking.hosts.enabled` setting with a URL pattern instead.
 Local domains are always exempt from hostblocking.
 
 Type: <<types,List of UrlPattern>>
@@ -2024,7 +2026,7 @@ The following levels are valid: `none`, `debug`, `info`, `warning`, `error`.
 
 Type: <<types,Dict>>
 
-Default: 
+Default:
 
 - +pass:[error]+: +pass:[debug]+
 - +pass:[info]+: +pass:[debug]+
@@ -2428,7 +2430,7 @@ The following placeholders are defined:
 
 Type: <<types,ShellCommand>>
 
-Default: 
+Default:
 
 - +pass:[gvim]+
 - +pass:[-f]+
@@ -2755,7 +2757,7 @@ Comma-separated list of regular expressions to use for 'next' links.
 
 Type: <<types,List of Regex>>
 
-Default: 
+Default:
 
 - +pass:[\bnext\b]+
 - +pass:[\bmore\b]+
@@ -2770,7 +2772,7 @@ Comma-separated list of regular expressions to use for 'prev' links.
 
 Type: <<types,List of Regex>>
 
-Default: 
+Default:
 
 - +pass:[\bprev(ious)?\b]+
 - +pass:[\bback\b]+
@@ -2797,7 +2799,7 @@ This setting can only be set in config.py.
 
 Type: <<types,Dict>>
 
-Default: 
+Default:
 
 - +pass:[all]+:
 
@@ -3299,7 +3301,7 @@ Padding (in pixels) for the statusbar.
 
 Type: <<types,Padding>>
 
-Default: 
+Default:
 
 - +pass:[bottom]+: +pass:[1]+
 - +pass:[left]+: +pass:[0]+
@@ -3335,7 +3337,7 @@ Valid values:
  * +keypress+: Display pressed keys when composing a vi command.
  * +progress+: Progress bar for the current page loading.
 
-Default: 
+Default:
 
 - +pass:[keypress]+
 - +pass:[url]+
@@ -3418,7 +3420,7 @@ Padding (in pixels) for tab indicators.
 
 Type: <<types,Padding>>
 
-Default: 
+Default:
 
 - +pass:[bottom]+: +pass:[2]+
 - +pass:[left]+: +pass:[0]+
@@ -3539,7 +3541,7 @@ Padding (in pixels) around text for tabs.
 
 Type: <<types,Padding>>
 
-Default: 
+Default:
 
 - +pass:[bottom]+: +pass:[0]+
 - +pass:[left]+: +pass:[5]+
@@ -3738,7 +3740,7 @@ Valid values:
  * +query+
  * +anchor+
 
-Default: 
+Default:
 
 - +pass:[path]+
 - +pass:[query]+
@@ -3759,7 +3761,7 @@ The search engine named `DEFAULT` is used when `url.auto_search` is turned on an
 
 Type: <<types,Dict>>
 
-Default: 
+Default:
 
 - +pass:[DEFAULT]+: +pass:[https://duckduckgo.com/?q={}]+
 
@@ -3777,7 +3779,7 @@ URL parameters to strip with `:yank url`.
 
 Type: <<types,List of String>>
 
-Default: 
+Default:
 
 - +pass:[ref]+
 - +pass:[utm_source]+
@@ -3821,7 +3823,7 @@ Available zoom levels.
 
 Type: <<types,List of Perc>>
 
-Default: 
+Default:
 
 - +pass:[25%]+
 - +pass:[33%]+

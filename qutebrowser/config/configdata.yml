@@ -534,12 +534,21 @@ content.headers.user_agent:
     Note that the value read from JavaScript is always the global value.
 
 content.host_blocking.enabled:
+  renamed: content.blocking.hosts.enabled
+
+content.host_blocking.lists:
+  renamed: content.blocking.hosts.lists
+
+content.host_blocking.whitelist:
+  renamed: content.blocking.whitelist
+
+content.blocking.hosts.enabled:
   default: true
   supports_pattern: true
   type: Bool
   desc: Enable host blocking.
 
-content.host_blocking.lists:
+content.blocking.hosts.lists:
   default:
     - "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
   type:
@@ -561,30 +570,13 @@ content.host_blocking.lists:
 
     The file `~/.config/qutebrowser/blocked-hosts` is always read if it exists.
 
-content.host_blocking.whitelist:
-  default: []
-  type:
-    name: List
-    valtype: UrlPattern
-    none_ok: true
-  desc: >-
-    A list of patterns that should always be loaded, despite being ad-blocked.
-
-    Note this whitelists blocked hosts, not first-party URLs. As an example, if
-    `example.org` loads an ad from `ads.example.org`, the whitelisted host
-    should be `ads.example.org`. If you want to disable the adblocker on a
-    given page, use the `content.host_blocking.enabled` setting with a URL
-    pattern instead.
-
-    Local domains are always exempt from hostblocking.
-
-content.ad_blocking.enabled:
+content.blocking.adblock.enabled:
   default: true
   supports_pattern: true
   type: Bool
   desc: Enable Brave AdBlock.
 
-content.ad_blocking.lists:
+content.blocking.adblock.lists:
   default:
     - "https://easylist.to/easylist/easylist.txt"
     - "https://easylist.to/easylist/easyprivacy.txt"
@@ -595,7 +587,7 @@ content.ad_blocking.lists:
   desc: |
     List of URLs of lists which contain adblock rules.
 
-content.ad_blocking.whitelist:
+content.blocking.whitelist:
   default: []
   type:
     name: List

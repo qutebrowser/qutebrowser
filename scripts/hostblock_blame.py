@@ -39,7 +39,7 @@ def main():
 
     configdata.init()
 
-    for url in configdata.DATA['content.host_blocking.lists'].default:
+    for url in configdata.DATA['content.blocking.hosts.lists'].default:
         print("checking {}...".format(url))
         raw_file = urllib.request.urlopen(url)
         byte_io = io.BytesIO(raw_file.read())

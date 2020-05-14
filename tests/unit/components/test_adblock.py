@@ -199,8 +199,8 @@ def generic_blocklists(directory):
 def test_disabled_blocking_update(config_stub, tmpdir, caplog,
                                   host_blocker_factory):
     """Ensure no URL is blocked when host blocking is disabled."""
-    config_stub.val.content.host_blocking.lists = generic_blocklists(tmpdir)
-    config_stub.val.content.host_blocking.enabled = False
+    config_stub.val.content.blocking.hosts.lists = generic_blocklists(tmpdir)
+    config_stub.val.content.blocking.hosts.enabled = False
 
     host_blocker = host_blocker_factory()
     host_blocker.adblock_update()
@@ -217,9 +217,9 @@ def test_disabled_blocking_update(config_stub, tmpdir, caplog,
 def test_disabled_blocking_per_url(config_stub, host_blocker_factory):
     example_com = 'https://www.example.com/'
 
-    config_stub.val.content.host_blocking.lists = []
+    config_stub.val.content.blocking.hosts.lists = []
     pattern = urlmatch.UrlPattern(example_com)
-    config_stub.set_obj('content.host_blocking.enabled', False,
+    config_stub.set_obj('content.blocking.hosts.enabled', False,
                         pattern=pattern)
 
     url = QUrl('blocked.example.com')
@@ -233,8 +233,8 @@ def test_disabled_blocking_per_url(config_stub, host_blocker_factory):
 
 def test_no_blocklist_update(config_stub, download_stub, host_blocker_factory):
     """Ensure no URL is blocked when no block list exists."""
-    config_stub.val.content.host_blocking.lists = None
-    config_stub.val.content.host_blocking.enabled = True
+    config_stub.val.content.blocking.hosts.lists = None
+    config_stub.val.content.blocking.hosts.enabled = True
 
     host_blocker = host_blocker_factory()
     host_blocker.adblock_update()
@@ -247,9 +247,9 @@ def test_no_blocklist_update(config_stub, download_stub, host_blocker_factory):
 
 def test_successful_update(config_stub, tmpdir, caplog, host_blocker_factory):
     """Ensure hosts from host_blocking.lists are blocked after an update."""
-    config_stub.val.content.host_blocking.lists = generic_blocklists(tmpdir)
-    config_stub.val.content.host_blocking.enabled = True
-    config_stub.val.content.host_blocking.whitelist = None
+    config_stub.val.content.blocking.hosts.lists = generic_blocklists(tmpdir)
+    config_stub.val.content.blocking.hosts.enabled = True
+    config_stub.val.content.blocking.whitelist = None
 
     host_blocker = host_blocker_factory()
     host_blocker.adblock_update()
@@ -308,9 +308,9 @@ def test_failed_dl_update(config_stub, tmpdir, caplog, host_blocker_factory):
         line_format='one_per_line'))
     hosts_to_block = (generic_blocklists(tmpdir) +
                       [dl_fail_blocklist.toString()])
-    config_stub.val.content.host_blocking.lists = hosts_to_block
-    config_stub.val.content.host_blocking.enabled = True
-    config_stub.val.content.host_blocking.whitelist = None
+    config_stub.val.content.blocking.hosts.lists = hosts_to_block
+    config_stub.val.content.blocking.hosts.enabled = True
+    config_stub.val.content.blocking.whitelist = None
 
     host_blocker = host_blocker_factory()
     host_blocker.adblock_update()
@@ -344,9 +344,9 @@ def test_invalid_utf8(config_stub, tmpdir, caplog, host_blocker_factory,
         blocklist.write(url + '\n', mode='a')
 
     url = blocklist_to_url('blocklist')
-    config_stub.val.content.host_blocking.lists = [url.toString()]
-    config_stub.val.content.host_blocking.enabled = True
-    config_stub.val.content.host_blocking.whitelist = None
+    config_stub.val.content.blocking.hosts.lists = [url.toString()]
+    config_stub.val.content.blocking.hosts.enabled = True
+    config_stub.val.content.blocking.whitelist = None
 
     host_blocker = host_blocker_factory()
     host_blocker.adblock_update()
@@ -370,7 +370,7 @@ def test_invalid_utf8(config_stub, tmpdir, caplog, host_blocker_factory,
 def test_invalid_utf8_compiled(config_stub, config_tmpdir, data_tmpdir,
                                monkeypatch, caplog, host_blocker_factory):
     """Make sure invalid UTF-8 in the compiled file is handled."""
-    config_stub.val.content.host_blocking.lists = []
+    config_stub.val.content.blocking.hosts.lists = []
 
     # Make sure the HostBlocker doesn't delete blocked-hosts in __init__
     monkeypatch.setattr(adblock.HostBlocker, 'update_files',
@@ -387,7 +387,7 @@ def test_invalid_utf8_compiled(config_stub, config_tmpdir, data_tmpdir,
 
 
 def test_blocking_with_whitelist(config_stub, data_tmpdir, host_blocker_factory):
-    """Ensure hosts in content.host_blocking.whitelist are never blocked."""
+    """Ensure hosts in content.blocking.whitelist are never blocked."""
     # Simulate adblock_update has already been run
     # by creating a file named blocked-hosts,
     # Exclude localhost from it as localhost is never blocked via list
@@ -396,9 +396,9 @@ def test_blocking_with_whitelist(config_stub, data_tmpdir, host_blocker_factory)
                                  blocked_hosts=filtered_blocked_hosts,
                                  name='blocked-hosts',
                                  line_format='one_per_line')
-    config_stub.val.content.host_blocking.lists = [blocklist]
-    config_stub.val.content.host_blocking.enabled = True
-    config_stub.val.content.host_blocking.whitelist = list(WHITELISTED_HOSTS)
+    config_stub.val.content.blocking.hosts.lists = [blocklist]
+    config_stub.val.content.blocking.hosts.enabled = True
+    config_stub.val.content.blocking.whitelist = list(WHITELISTED_HOSTS)
 
     host_blocker = host_blocker_factory()
     host_blocker.read_hosts()
@@ -415,9 +415,9 @@ def test_config_change_initial(config_stub, tmpdir, host_blocker_factory):
     """
     create_blocklist(tmpdir, blocked_hosts=BLOCKLIST_HOSTS,
                      name='blocked-hosts', line_format='one_per_line')
-    config_stub.val.content.host_blocking.lists = None
-    config_stub.val.content.host_blocking.enabled = True
-    config_stub.val.content.host_blocking.whitelist = None
+    config_stub.val.content.blocking.hosts.lists = None
+    config_stub.val.content.blocking.hosts.enabled = True
+    config_stub.val.content.blocking.whitelist = None
 
     host_blocker = host_blocker_factory()
     host_blocker.read_hosts()
@@ -431,13 +431,13 @@ def test_config_change(config_stub, tmpdir, host_blocker_factory):
     blocklist = blocklist_to_url(create_blocklist(
         tmpdir, blocked_hosts=filtered_blocked_hosts, name='blocked-hosts',
         line_format='one_per_line'))
-    config_stub.val.content.host_blocking.lists = [blocklist.toString()]
-    config_stub.val.content.host_blocking.enabled = True
-    config_stub.val.content.host_blocking.whitelist = None
+    config_stub.val.content.blocking.hosts.lists = [blocklist.toString()]
+    config_stub.val.content.blocking.hosts.enabled = True
+    config_stub.val.content.blocking.whitelist = None
 
     host_blocker = host_blocker_factory()
     host_blocker.read_hosts()
-    config_stub.val.content.host_blocking.lists = None
+    config_stub.val.content.blocking.hosts.lists = None
     host_blocker.read_hosts()
     for str_url in URLS_TO_CHECK:
         assert not host_blocker._is_blocked(QUrl(str_url))
@@ -454,8 +454,8 @@ def test_add_directory(config_stub, tmpdir, host_blocker_factory):
     create_blocklist(tmpdir, blocked_hosts=blocklist_hosts2,
                      name='blocked-hosts2', line_format='one_per_line')
 
-    config_stub.val.content.host_blocking.lists = [tmpdir.strpath]
-    config_stub.val.content.host_blocking.enabled = True
+    config_stub.val.content.blocking.hosts.lists = [tmpdir.strpath]
+    config_stub.val.content.blocking.hosts.enabled = True
     host_blocker = host_blocker_factory()
     host_blocker.adblock_update()
     assert len(host_blocker._blocked_hosts) == len(blocklist_hosts2) * 2

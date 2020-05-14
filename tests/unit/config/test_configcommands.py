@@ -289,7 +289,7 @@ class TestAdd:
     @pytest.mark.parametrize('temp', [True, False])
     @pytest.mark.parametrize('value', ['test1', 'test2'])
     def test_list_add(self, commands, config_stub, yaml_value, temp, value):
-        name = 'content.host_blocking.whitelist'
+        name = 'content.blocking.whitelist'
 
         commands.config_list_add(name, value, temp=temp)
 
@@ -316,7 +316,7 @@ class TestAdd:
         with pytest.raises(
                 cmdutils.CommandError,
                 match="Invalid value '{}'".format(value)):
-            commands.config_list_add('content.host_blocking.whitelist', value)
+            commands.config_list_add('content.blocking.whitelist', value)
 
     @pytest.mark.parametrize('value', ['test1', 'test2'])
     @pytest.mark.parametrize('temp', [True, False])

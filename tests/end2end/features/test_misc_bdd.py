@@ -34,4 +34,4 @@ def pdf_exists(quteproc, tmpdir, filename):
 def set_up_blocking(quteproc, lists, server):
     url = 'http://localhost:{}/data/adblock/'.format(server.port)
     urls = [url + item.strip() for item in lists.split(',')]
-    quteproc.set_setting('content.host_blocking.lists', json.dumps(urls))
+    quteproc.set_setting('content.blocking.hosts.lists', json.dumps(urls))

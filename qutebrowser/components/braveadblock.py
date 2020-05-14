@@ -47,17 +47,17 @@ _ad_blocker = typing.cast(typing.Optional["BraveAdBlocker"], None)
 
 def _is_whitelisted_url(url: QUrl) -> bool:
     """Check if the given URL is on the adblock whitelist."""
-    for pattern in config.val.content.ad_blocking.whitelist:
+    for pattern in config.val.content.blocking.whitelist:
         if pattern.matches(url):
             return True
 
     # Prevent a block-list for being able to block itself, otherwise you
     # couldn't update it.
-    if config.val.content.ad_blocking.lists is not None:
+    if config.val.content.blocking.adblock.lists is not None:
         # FIXME: This list comprehension is probably too expensive to do for
         # every request. There must be a better way.
         block_list_urls = [
-            url.toString() for url in config.val.content.ad_blocking.lists
+            url.toString() for url in config.val.content.blocking.adblock.lists
         ]
         if url.toString() in block_list_urls:
             return True
@@ -150,7 +150,7 @@ class BraveAdBlocker:
 
         qtutils.ensure_valid(request_url)
 
-        if not config.get("content.ad_blocking.enabled", url=first_party_url):
+        if not config.get("content.blocking.adblock.enabled", url=first_party_url):
             # Do nothing if adblocking is disabled.
             return False
 
@@ -194,9 +194,9 @@ class BraveAdBlocker:
             self._engine.deserialize_from_file(self._cache_path)
         else:
             if (
-                config.val.content.ad_blocking.lists
+                config.val.content.blocking.adblock.lists
                 and not self._has_basedir
-                and config.val.content.ad_blocking.enabled
+                and config.val.content.blocking.adblock.enabled
             ):
                 message.info("Run :brave-adblock-update to get adblock lists.")
 
@@ -205,7 +205,7 @@ class BraveAdBlocker:
         self._done_count = 0
         self._engine = self._engine_factory()
         logger.info("Downloading adblock filter lists...")
-        for url in config.val.content.ad_blocking.lists:
+        for url in config.val.content.blocking.adblock.lists:
             if url.scheme() == "file":
                 # The URL describes a local file on disk if the url scheme is
                 # "file://". We handle those as a special case.
@@ -247,7 +247,7 @@ class BraveAdBlocker:
 
     def update_files(self) -> None:
         """Update files when the config changed."""
-        if not config.val.content.ad_blocking.lists:
+        if not config.val.content.blocking.adblock.lists:
             try:
                 os.remove(self._cache_path)
             except FileNotFoundError:
@@ -300,7 +300,7 @@ def brave_adblock_update() -> None:
         )
 
 
-@hook.config_changed("content.ad_blocking.lists")
+@hook.config_changed("content.blocking.adblock.lists")
 def on_config_changed() -> None:
     if _ad_blocker is not None:
         _ad_blocker.update_files()
