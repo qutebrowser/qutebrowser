@@ -43,6 +43,9 @@ Changed
 ~~~~~~~
 
 - The `content.cookies.accept` setting now accepts URL patterns.
+- Tests are now included in release tarballs. Note that only running them with
+  the exact dependencies listed in
+  `misc/requirements/requirements-tests.txt{,-raw}` is supported.
 
 Fixed
 ~~~~~
