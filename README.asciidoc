@@ -215,7 +215,7 @@ Active
 * https://fanglingsu.github.io/vimb/[vimb] (C, GTK+ with WebKit2)
 * https://luakit.github.io/luakit/[luakit] (C/Lua, GTK+ with WebKit2)
 * https://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
-* https://github.com/next-browser/next/[next] (Lisp, Emacs-like but also offers Vim bindings, various backends - note there was a http://jgkamat.gitlab.io/blog/next-rce.html[critical remote code execution] which was handled quite badly)
+* https://next.atlas.engineer/[next] (Lisp, Emacs-like but also offers Vim bindings, various backends - note there was a http://jgkamat.gitlab.io/blog/next-rce.html[critical remote code execution] which was handled quite badly)
 * https://github.com/parkouss/webmacs/[webmacs] (Python, Emacs-like with QtWebEngine)
 * Chrome/Chromium addons:
   https://vimium.github.io/[Vimium],
