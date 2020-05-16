@@ -46,6 +46,7 @@ Changed
 - Tests are now included in release tarballs. Note that only running them with
   the exact dependencies listed in
   `misc/requirements/requirements-tests.txt{,-raw}` is supported.
+- The `:tab-focus` command now has completion for tabs in the current window.
 
 Fixed
 ~~~~~
