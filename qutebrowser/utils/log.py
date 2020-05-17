@@ -176,7 +176,7 @@ def stub(suffix: str = '') -> None:
 
 def init_log(args: argparse.Namespace) -> None:
     """Init loggers based on the argparse namespace passed."""
-    level = args.loglevel.upper()
+    level = (args.loglevel or "info").upper()
     try:
         numeric_level = getattr(logging, level)
     except AttributeError:
@@ -524,6 +524,30 @@ def hide_qt_warning(pattern: str, logger: str = 'qt') -> typing.Iterator[None]:
         yield
     finally:
         logger_obj.removeFilter(log_filter)
+
+
+def init_from_config(conf: typing.Any) -> None:
+    """Initialize logging settings from the config.
+
+    init_log is called before the config module is initialized, so config-based
+    initialization cannot be performed there.
+
+    Args:
+        conf: The global ConfigContainer.
+              This is passed rather than accessed via the module to avoid a
+              cyclic import.
+    """
+    ramlevel = conf.logging.level.ram
+    consolelevel = conf.logging.level.console
+    if ramlevel and ram_handler:
+        init.info("Configuring RAM loglevel to %s", ramlevel)
+        ram_handler.setLevel(LOG_LEVELS[ramlevel])
+    if consolelevel and console_handler:
+        if _args and _args.loglevel:
+            init.info("--loglevel flag overrides logging.level.console")
+        else:
+            init.info("Configuring console loglevel to %s", consolelevel)
+            console_handler.setLevel(LOG_LEVELS[consolelevel])
 
 
 class QtWarningFilter(logging.Filter):

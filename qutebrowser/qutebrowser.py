@@ -96,7 +96,7 @@ def get_argparser():
 
     debug = parser.add_argument_group('debug arguments')
     debug.add_argument('-l', '--loglevel', dest='loglevel',
-                       help="Set loglevel", default='info',
+                       help="Override the configured console loglevel",
                        choices=['critical', 'error', 'warning', 'info',
                                 'debug', 'vdebug'])
     debug.add_argument('--logfilter', type=logfilter_error,
