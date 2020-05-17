@@ -2651,6 +2651,7 @@ window.title_format:
       - current_title
       - title_sep
       - id
+      - session
       - scroll_pos
       - host
       - backend
@@ -2658,7 +2659,8 @@ window.title_format:
       - current_url
       - protocol
       - audio
-  default: '{perc}{current_title}{title_sep}qutebrowser'
+  #TODO default should not display session, especially if no session is set
+  default: '[{session}] {perc}{current_title}{title_sep}qutebrowser'
   desc: |
     Format to use for the window title. The same placeholders like for
     `tabs.title.format` are defined.
