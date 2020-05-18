@@ -848,8 +848,8 @@ def test_tab_focus_completion(qtmodeltester, fake_web_tab, win_registry,
     qtmodeltester.check(model)
 
     _check_completions(model, {
-        '1': [
-            ('1/1', 'https://wiki.archlinux.org', 'ArchWiki'),
+        'Tabs': [
+            ('1', 'https://wiki.archlinux.org', 'ArchWiki'),
         ],
         'Special': [
             ("last",

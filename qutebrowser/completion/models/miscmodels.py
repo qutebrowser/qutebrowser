@@ -97,12 +97,13 @@ def session(*, info=None):  # pylint: disable=unused-argument
     return model
 
 
-def _buffer(*, win_id_filter=lambda _win_id: True):
+def _buffer(*, win_id_filter=lambda _win_id: True, add_win_id=True):
     """Helper to get the completion model for buffer/other_buffer.
 
     Args:
         win_id_filter: A filter function for window IDs to include.
                        Should return True for all included windows.
+        add_win_id: Whether to add the window ID to the completion items.
     """
     def delete_buffer(data):
         """Close the selected tab."""
@@ -128,14 +129,18 @@ def _buffer(*, win_id_filter=lambda _win_id: True):
         tabs = []  # type: typing.List[typing.Tuple[str, str, str]]
         for idx in range(tabbed_browser.widget.count()):
             tab = tabbed_browser.widget.widget(idx)
-            tabs.append(("{}/{}".format(win_id, idx + 1),
+            tab_str = ("{}/{}".format(win_id, idx + 1) if add_win_id
+                       else str(idx + 1))
+            tabs.append((tab_str,
                          tab.url().toDisplayString(),
                          tabbed_browser.widget.page_title(idx)))
+
         if tabs_are_windows:
             windows += tabs
         else:
+            title = str(win_id) if add_win_id else "Tabs"
             cat = listcategory.ListCategory(
-                str(win_id), tabs, delete_func=delete_buffer, sort=False)
+                title, tabs, delete_func=delete_buffer, sort=False)
             model.add_category(cat)
 
     if tabs_are_windows:
@@ -164,7 +169,8 @@ def other_buffer(*, info):
 
 def tab_focus(*, info):
     """A model to complete on open tabs in the current window."""
-    model = _buffer(win_id_filter=lambda win_id: win_id == info.win_id)
+    model = _buffer(win_id_filter=lambda win_id: win_id == info.win_id,
+                    add_win_id=False)
 
     special = [
         ("last", "Focus the last-focused tab"),
