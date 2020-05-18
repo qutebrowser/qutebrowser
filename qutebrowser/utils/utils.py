@@ -519,7 +519,7 @@ def force_encoding(text: str, encoding: str) -> str:
 
 def sanitize_filename(name: str,
                       replacement: typing.Optional[str] = '_',
-                      optional_suffix: typing.Optional[str] = '') -> str:
+                      optional_suffix: str = '') -> str:
     """Replace invalid filename characters.
 
     Note: This should be used for the basename, as it also removes the path
