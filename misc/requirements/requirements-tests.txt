@@ -40,7 +40,7 @@ pytest-xvfb==1.2.0
 PyVirtualDisplay==0.2.5
 six==1.14.0
 sortedcontainers==2.1.0
-soupsieve==2.0
+soupsieve==2.0.1
 vulture==1.4
 wcwidth==0.1.9
 Werkzeug==1.0.1
