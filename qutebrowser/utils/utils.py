@@ -518,7 +518,8 @@ def force_encoding(text: str, encoding: str) -> str:
 
 
 def sanitize_filename(name: str,
-                      replacement: typing.Optional[str] = '_') -> str:
+                      replacement: typing.Optional[str] = '_',
+                      optional_suffix: typing.Optional[str] = '') -> str:
     """Replace invalid filename characters.
 
     Note: This should be used for the basename, as it also removes the path
@@ -549,17 +550,19 @@ def sanitize_filename(name: str,
     for bad_char in bad_chars:
         name = name.replace(bad_char, replacement)
 
+
     # Truncate the filename if it's too long.
-    # Reasoning about the threshold see there:
-    # https://github.com/qutebrowser/qutebrowser/pull/5236
-    # TL;DR 63 should work for most file systems, though it's somewhat strict.
-    # Also see this table:
-    # https://en.wikipedia.org/wiki/Comparison_of_file_systems#Limits
-    max_len = 63
-    if len(name) > max_len:
-        root, ext = os.path.splitext(name)
-        root = root[:(max_len - len(ext))]
-        name = root + ext
+    max_bytes = 255
+    root, ext = os.path.splitext(name)
+    root = root[:max_bytes - len(ext) - len(optional_suffix)]
+    excess = len(os.fsencode(root + ext + optional_suffix)) - max_bytes
+
+    while excess > 0:
+        # Max 4 bytes per character is assumed.
+        # Integer division floors to -∞, not to 0.
+        root = root[:(-excess // 4)]
+        excess = len(os.fsencode(root + ext + optional_suffix)) - max_bytes
+    name = root + ext
 
     return name
 
