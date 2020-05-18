@@ -638,22 +638,20 @@ def test_sanitize_filename(inp, expected, monkeypatch):
     assert utils.sanitize_filename(inp) == expected
 
 
-@pytest.mark.parametrize('length, extension', [
-    (42, '.html'),
-    (100, '.py'),
-    (100, '.asm'),
-])
-def test_sanitize_filename_truncate_long(length, extension):
-    name = '_' * (length - len(extension)) + extension
-    sanitized = utils.sanitize_filename(name)
-    assert len(sanitized) <= 63
-    assert sanitized.endswith(extension)
-
-
 @pytest.mark.fake_os('windows')
 def test_sanitize_filename_empty_replacement():
     name = '/<Bad File>/'
     assert utils.sanitize_filename(name, replacement=None) == 'Bad File'
+
+
+@hypothesis.given(filename=hypothesis.strategies.text(min_size=100),
+                  suffix = hypothesis.strategies.text())
+def test_sanitize_filename_invariants(filename, suffix):
+    try:
+        sanitized = utils.sanitize_filename(filename, optional_suffix=suffix)
+    except ValueError:
+        hypothesis.assume(False)
+    assert len(os.fsencode(sanitized + suffix)) <= 255
 
 
 class TestGetSetClipboard:
