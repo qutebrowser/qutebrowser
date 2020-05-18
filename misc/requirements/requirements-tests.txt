@@ -17,7 +17,7 @@ jaraco.functools==3.0.1 ; python_version>="3.6"
 Mako==1.1.2
 manhole==1.6.0
 # MarkupSafe==1.1.1
-more-itertools==8.2.0
+more-itertools==8.3.0
 packaging==20.3
 parse==1.15.0
 parse-type==0.5.2
