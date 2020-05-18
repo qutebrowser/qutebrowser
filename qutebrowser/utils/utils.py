@@ -528,11 +528,10 @@ def sanitize_filename(name: str,
     Args:
         name: The filename.
         replacement: The replacement character (or None).
-        optional_suffix: The suffix that may be optionally added to the filename.
+        optional_suffix: The suffix that may be optionally appended.
     """
     if replacement is None:
         replacement = ''
-
 
     # Remove chars which can't be encoded in the filename encoding.
     # See https://github.com/qutebrowser/qutebrowser/issues/427
@@ -552,21 +551,20 @@ def sanitize_filename(name: str,
     for bad_char in bad_chars:
         name = name.replace(bad_char, replacement)
 
-
     # Truncate the filename if it's too long.
     max_bytes = 255
     root, ext = os.path.splitext(name)
     root = root[:max_bytes - len(ext) - len(optional_suffix)]
     excess = len(os.fsencode(root + ext + optional_suffix)) - max_bytes
 
-    while excess > 0 and root != '':
+    while excess > 0 and root:
         # Max 4 bytes per character is assumed.
         # Integer division floors to -∞, not to 0.
         root = root[:(-excess // 4)]
         excess = len(os.fsencode(root + ext + optional_suffix)) - max_bytes
 
-    if root == '':
-        raise ValueError("the extension and/or the optional suffix is too long")
+    if not root:
+        raise ValueError("the extension or the optional suffix is too long")
 
     name = root + ext
 

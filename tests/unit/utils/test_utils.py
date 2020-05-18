@@ -645,7 +645,7 @@ def test_sanitize_filename_empty_replacement():
 
 
 @hypothesis.given(filename=hypothesis.strategies.text(min_size=100),
-                  suffix = hypothesis.strategies.text())
+                  suffix=hypothesis.strategies.text())
 def test_sanitize_filename_invariants(filename, suffix):
     try:
         sanitized = utils.sanitize_filename(filename, optional_suffix=suffix)
