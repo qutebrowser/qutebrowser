@@ -644,13 +644,10 @@ def test_sanitize_filename_empty_replacement():
     assert utils.sanitize_filename(name, replacement=None) == 'Bad File'
 
 
-@hypothesis.given(filename=hypothesis.strategies.text(min_size=100),
-                  suffix=hypothesis.strategies.text())
+@hypothesis.given(filename=strategies.text(min_size=100),
+                  suffix=strategies.text(max_size=50))
 def test_sanitize_filename_invariants(filename, suffix):
-    try:
-        sanitized = utils.sanitize_filename(filename, optional_suffix=suffix)
-    except ValueError:
-        hypothesis.assume(False)
+    sanitized = utils.sanitize_filename(filename, optional_suffix=suffix)
     assert len(os.fsencode(sanitized + suffix)) <= 255
 
 
