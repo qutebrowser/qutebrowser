@@ -38,6 +38,8 @@ Added
 - New `:config-diff` command which opens the `qute://configdiff` page.
 - New `--debug-flag log-cookies` to log cokies to the debug log for
   debugging.
+- New `colors.contextmenu.disabled.{fg,bg}` settings to customize colors for
+  disabled items in the context menu.
 
 Changed
 ~~~~~~~

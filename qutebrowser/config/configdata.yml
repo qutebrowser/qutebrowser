@@ -2204,6 +2204,26 @@ colors.contextmenu.selected.fg:
 
     If set to null, the Qt default is used.
 
+colors.contextmenu.disabled.bg:
+  type:
+    name: QssColor
+    none_ok: true
+  default: null
+  desc: >-
+    Background color of disabled items in the context menu.
+
+    If set to null, the Qt default is used.
+
+colors.contextmenu.disabled.fg:
+  type:
+    name: QssColor
+    none_ok: true
+  default: null
+  desc: >-
+    Foreground color of disabled items in the context menu.
+
+    If set to null, the Qt default is used.
+
 colors.downloads.bar.bg:
   default: black
   type: QssColor

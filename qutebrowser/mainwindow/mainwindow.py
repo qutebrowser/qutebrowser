@@ -184,6 +184,15 @@ class MainWindow(QWidget):
                 color: {{ conf.colors.contextmenu.selected.fg }};
             {% endif %}
         }
+
+        QMenu::item:disabled {
+            {% if conf.colors.contextmenu.disabled.bg %}
+                background-color: {{ conf.colors.contextmenu.disabled.bg }};
+            {% endif %}
+            {% if conf.colors.contextmenu.disabled.fg %}
+                color: {{ conf.colors.contextmenu.disabled.fg }};
+            {% endif %}
+        }
     """
 
     def __init__(self, *, private, geometry=None, parent=None):
