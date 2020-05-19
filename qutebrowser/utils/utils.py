@@ -564,7 +564,17 @@ def sanitize_filename(name: str,
         excess = len(os.fsencode(root + ext + optional_suffix)) - max_bytes
 
     if not root:
-        raise ValueError("the extension or the optional suffix is too long")
+        # Trimming the root is not enough. We must trim the extension.
+        # We leave one character in the root, so that the filename
+        # doesn't start with a dot, which makes the file hidden.
+        root = name[0]
+        excess = len(os.fsencode(root + ext + optional_suffix)) - max_bytes
+        while excess > 0 and ext:
+            ext = ext[:(-excess // 4)]
+            excess = len(os.fsencode(root + ext + optional_suffix)) - max_bytes
+
+        if not ext:
+            raise ValueError("the optional suffix is too long")
 
     name = root + ext
 
