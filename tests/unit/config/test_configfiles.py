@@ -887,7 +887,9 @@ class TestConfigPy:
         assert tblines[0] == "Traceback (most recent call last):"
         assert tblines[-1] == "SyntaxError: invalid syntax"
         assert "    +" in tblines
-        assert "    ^" in tblines
+        # Starting with the new PEG-based parser in Python 3.9, the caret
+        # points at the location *after* the +
+        assert "    ^" in tblines or "     ^" in tblines
 
     def test_unhandled_exception(self, confpy):
         confpy.write("1/0")
