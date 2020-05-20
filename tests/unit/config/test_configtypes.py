@@ -212,7 +212,7 @@ class TestAll:
         """
         for _name, member in inspect.getmembers(configtypes, inspect.isclass):
             if member in [configtypes.BaseType, configtypes.MappingType,
-                          configtypes._Numeric]:
+                          configtypes._Numeric, configtypes.FontBase]:
                 pass
             elif (member is configtypes.List or
                   member is configtypes.ListOrValue):
@@ -262,8 +262,13 @@ class TestAll:
                 configtypes.PercOrInt,  # ditto
         ]:
             return
-        if (isinstance(typ, configtypes.ListOrValue) and
-                isinstance(typ.valtype, configtypes.Int)):
+        elif (isinstance(typ, functools.partial) and
+              isinstance(typ.func, configtypes.ListOrValue)):
+            # "- /" -> "/"
+            return
+        elif (isinstance(typ, configtypes.ListOrValue) and
+              isinstance(typ.valtype, configtypes.Int)):
+            # "00" -> "0"
             return
 
         assert converted == s
@@ -1475,7 +1480,7 @@ class TestFont:
             klass().to_py(val)
 
     def test_defaults_replacement(self, klass, monkeypatch):
-        configtypes.Font.set_defaults(['Terminus'], '23pt')
+        configtypes.FontBase.set_defaults(['Terminus'], '23pt')
         if klass is configtypes.Font:
             expected = '23pt Terminus'
         elif klass is configtypes.QtFont:
@@ -2003,7 +2008,6 @@ class TestSearchEngineUrl:
 
     @pytest.mark.parametrize('val', [
         'foo',  # no placeholder
-        ':{}',  # invalid URL
         'foo{bar}baz{}',  # {bar} format string variable
         '{1}{}',  # numbered format string variable
         '{{}',  # invalid format syntax

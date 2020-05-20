@@ -183,11 +183,13 @@ class CompletionModel(QAbstractItemModel):
         # WORKAROUND:
         # layoutChanged is broken in PyQt 5.7.1, so we must use metaObject
         # https://www.riverbankcomputing.com/pipermail/pyqt/2017-January/038483.html
-        self.metaObject().invokeMethod(self,  # type: ignore
-                                       "layoutAboutToBeChanged")
+        meta = self.metaObject()
+        meta.invokeMethod(self,  # type: ignore[misc, call-overload]
+                          "layoutAboutToBeChanged")
         for cat in self._categories:
             cat.set_pattern(pattern)
-        self.metaObject().invokeMethod(self, "layoutChanged")  # type: ignore
+        meta.invokeMethod(self,  # type: ignore[misc, call-overload]
+                          "layoutChanged")
 
     def first_item(self):
         """Return the index of the first child (non-category) in the model."""

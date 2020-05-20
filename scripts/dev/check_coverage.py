@@ -202,7 +202,8 @@ PERFECT_FILES = [
 
     ('tests/unit/browser/webengine/test_spell.py',
      'browser/webengine/spell.py'),
-
+    ('tests/unit/browser/webengine/test_webengine_cookies.py',
+     'browser/webengine/cookies.py'),
 ]
 
 

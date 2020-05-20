@@ -83,7 +83,7 @@ def check_spelling():
     """Check commonly misspelled words."""
     # Words which I often misspell
     words = {'[Bb]ehaviour', '[Qq]uitted', 'Ll]ikelyhood', '[Ss]ucessfully',
-             '[Oo]ccur[^rs .]', '[Ss]eperator', '[Ee]xplicitely',
+             '[Oo]ccur[^rs .!]', '[Ss]eperator', '[Ee]xplicitely',
              '[Aa]uxillary', '[Aa]ccidentaly', '[Aa]mbigious', '[Ll]oosly',
              '[Ii]nitialis', '[Cc]onvienence', '[Ss]imiliar', '[Uu]ncommited',
              '[Rr]eproducable', '[Aa]n [Uu]ser', '[Cc]onvienience',

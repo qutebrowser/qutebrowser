@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 import pytest_bdd as bdd
 bdd.scenarios('prompts.feature')
 
@@ -71,18 +73,17 @@ def ssl_error_page(request, quteproc):
         assert "Unable to load page" in content
 
 
-class AbstractCertificateErrorWrapper:
+def test_certificate_error_load_status(request, quteproc, ssl_server):
+    """If we load the same page twice, we should get a 'warn' status twice."""
+    quteproc.set_setting('content.ssl_strict', 'false')
 
-    """A wrapper over an SSL/certificate error."""
-
-    def __init__(self, error):
-        self._error = error
-
-    def __str__(self):
-        raise NotImplementedError
-
-    def __repr__(self):
-        raise NotImplementedError
-
-    def is_overridable(self):
-        raise NotImplementedError
+    for i in range(2):
+        quteproc.open_path('/', port=ssl_server.port, https=True, wait=False,
+                           new_tab=True)
+        if i == 0 or not request.config.webengine:
+            # Error is only logged on the first error with QtWebEngine
+            quteproc.mark_expected(category='message',
+                                   loglevel=logging.ERROR,
+                                   message="Certificate error: *")
+        quteproc.wait_for_load_finished('/', port=ssl_server.port, https=True,
+                                        load_status='warn')

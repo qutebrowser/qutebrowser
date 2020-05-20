@@ -94,7 +94,7 @@ def _init_variable_replacements() -> typing.Mapping[str, _ReplacementFunction]:
         modified_key = '{' + key + '}'
         # x = modified_key is to avoid binding x as a closure
         replacements[modified_key] = (
-            lambda _, x=modified_key: x)  # type: ignore
+            lambda _, x=modified_key: x)  # type: ignore[misc]
     return replacements
 
 
@@ -332,7 +332,7 @@ class CommandRunner(AbstractCommandRunner):
         self._win_id = win_id
 
     @contextlib.contextmanager
-    def _handle_error(self, safely) -> typing.Iterator[None]:
+    def _handle_error(self, safely: bool) -> typing.Iterator[None]:
         """Show exceptions as errors if safely=True is given."""
         try:
             yield

@@ -103,6 +103,9 @@ class AbstractSettings:
     def __init__(self, settings: typing.Any) -> None:
         self._settings = settings
 
+    def _assert_not_unset(self, value: typing.Any) -> None:
+        assert value is not usertypes.UNSET
+
     def set_attribute(self, name: str, value: typing.Any) -> bool:
         """Set the given QWebSettings/QWebEngineSettings attribute.
 
@@ -139,7 +142,7 @@ class AbstractSettings:
         Return:
             True if there was a change, False otherwise.
         """
-        assert value is not usertypes.UNSET  # type: ignore
+        self._assert_not_unset(value)
         family = self._FONT_SIZES[name]
         old_value = self._settings.fontSize(family)
         self._settings.setFontSize(family, value)
@@ -154,7 +157,7 @@ class AbstractSettings:
         Return:
             True if there was a change, False otherwise.
         """
-        assert value is not usertypes.UNSET  # type: ignore
+        self._assert_not_unset(value)
         family = self._FONT_FAMILIES[name]
         if value is None:
             font = QFont()
@@ -172,7 +175,7 @@ class AbstractSettings:
         Return:
             True if there was a change, False otherwise.
         """
-        assert encoding is not usertypes.UNSET  # type: ignore
+        self._assert_not_unset(encoding)
         old_value = self._settings.defaultTextEncoding()
         self._settings.setDefaultTextEncoding(encoding)
         return old_value != encoding
@@ -253,6 +256,10 @@ def _format_user_agent(template: str, backend: usertypes.Backend) -> str:
 
 
 def user_agent(url: QUrl = None) -> str:
+    """Get the user agent for the given URL, or the global one if URL is None.
+
+    Note that the given URL should always be valid.
+    """
     template = config.instance.get('content.headers.user_agent', url=url)
     return _format_user_agent(template=template, backend=objects.backend)
 

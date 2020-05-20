@@ -86,7 +86,7 @@ class ObjectRegistry(collections.UserDict):
 
         if isinstance(obj, QObject):
             func = functools.partial(self.on_destroyed, name)
-            obj.destroyed.connect(func)  # type: ignore
+            obj.destroyed.connect(func)
             self._partial_objs[name] = func
 
         super().__setitem__(name, obj)
@@ -170,9 +170,7 @@ def _get_tab_registry(win_id: _WindowTab,
         if window is None or not hasattr(window, 'win_id'):
             raise RegistryUnavailableError('tab')
         win_id = window.win_id
-    elif win_id is not None:
-        window = window_registry[win_id]
-    else:
+    elif win_id is None:
         raise TypeError("window is None with scope tab!")
 
     if tab_id == 'current':

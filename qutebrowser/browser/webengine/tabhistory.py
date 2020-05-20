@@ -26,6 +26,13 @@ from PyQt5.QtCore import QByteArray, QDataStream, QIODevice, QUrl
 from qutebrowser.utils import qtutils
 
 
+# kHistoryStreamVersion = 3 was originally set when history serializing was
+# implemented in QtWebEngine:
+# https://codereview.qt-project.org/c/qt/qtwebengine/+/81529
+#
+# Qt 5.14 added version 4 which also serializes favicons:
+# https://codereview.qt-project.org/c/qt/qtwebengine/+/279407
+# However, we don't care about those, so let's keep it at 3.
 HISTORY_STREAM_VERSION = 3
 
 
@@ -36,32 +43,63 @@ def _serialize_item(item, stream):
         item: The WebHistoryItem to write.
         stream: The QDataStream to write to.
     """
-    ### Thanks to Otter Browser:
-    ### https://github.com/OtterBrowser/otter-browser/blob/v0.9.10/src/modules/backends/web/qtwebengine/QtWebEngineWebWidget.cpp#L1210
-    ### src/core/web_contents_adapter.cpp serializeNavigationHistory
+    # Thanks to Otter Browser:
+    # https://github.com/OtterBrowser/otter-browser/blob/v1.0.01/src/modules/backends/web/qtwebengine/QtWebEnginePage.cpp#L260
+    #
+    # Relevant QtWebEngine source:
+    # src/core/web_contents_adapter.cpp serializeNavigationHistory
+    #
+    # Sample data:
+    # [TabHistoryItem(active=True,
+    #                 original_url=QUrl('file:///home/florian/proj/qutebrowser/git/tests/end2end/data/numbers/1.txt'),
+    #                 title='1.txt',
+    #                 url=QUrl('file:///home/florian/proj/qutebrowser/git/tests/end2end/data/numbers/1.txt'),
+    #                 user_data={'zoom': 1.0, 'scroll-pos': QPoint()})]
+
     ## toQt(entry->GetVirtualURL());
+    # \x00\x00\x00Jfile:///home/florian/proj/qutebrowser/git/tests/end2end/data/numbers/1.txt
     qtutils.serialize_stream(stream, item.url)
+
     ## toQt(entry->GetTitle());
+    # \x00\x00\x00\n\x001\x00.\x00t\x00x\x00t
     stream.writeQString(item.title)
+
     ## QByteArray(encodedPageState.data(), encodedPageState.size());
+    # \xff\xff\xff\xff
     qtutils.serialize_stream(stream, QByteArray())
+
     ## static_cast<qint32>(entry->GetTransitionType());
     # chromium/ui/base/page_transition_types.h
+    # \x00\x00\x00\x00
     stream.writeInt32(0)  # PAGE_TRANSITION_LINK
+
     ## entry->GetHasPostData();
+    # \x00
     stream.writeBool(False)
+
     ## toQt(entry->GetReferrer().url);
+    # \xff\xff\xff\xff
     qtutils.serialize_stream(stream, QUrl())
+
     ## static_cast<qint32>(entry->GetReferrer().policy);
     # chromium/third_party/WebKit/public/platform/WebReferrerPolicy.h
+    # \x00\x00\x00\x00
     stream.writeInt32(0)  # WebReferrerPolicyAlways
+
     ## toQt(entry->GetOriginalRequestURL());
+    # \x00\x00\x00Jfile:///home/florian/proj/qutebrowser/git/tests/end2end/data/numbers/1.txt
     qtutils.serialize_stream(stream, item.original_url)
+
     ## entry->GetIsOverridingUserAgent();
+    # \x00
     stream.writeBool(False)
+
     ## static_cast<qint64>(entry->GetTimestamp().ToInternalValue());
+    # \x00\x00\x00\x00^\x97$\xe7
     stream.writeInt64(int(time.time()))
+
     ## entry->GetHttpStatusCode();
+    # \x00\x00\x00\xc8
     stream.writeInt(200)
 
 
@@ -102,12 +140,13 @@ def serialize(items):
         current_idx = -1
 
     ### src/core/web_contents_adapter.cpp serializeNavigationHistory
+    #                                          sample data:
     # kHistoryStreamVersion
-    stream.writeInt(HISTORY_STREAM_VERSION)
+    stream.writeInt(HISTORY_STREAM_VERSION)  # \x00\x00\x00\x03
     # count
-    stream.writeInt(len(items))
+    stream.writeInt(len(items))              # \x00\x00\x00\x01
     # currentIndex
-    stream.writeInt(current_idx)
+    stream.writeInt(current_idx)             # \x00\x00\x00\x00
 
     for item in items:
         _serialize_item(item, stream)

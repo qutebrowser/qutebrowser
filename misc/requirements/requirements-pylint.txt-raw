@@ -1,4 +1,4 @@
-pylint
+pylint<2.5
 ./scripts/dev/pylint_checkers
 requests
 github3.py
@@ -6,3 +6,5 @@ github3.py
 # fix qute-pylint location
 #@ replace: qute-pylint==.* ./scripts/dev/pylint_checkers
 #@ markers: typed-ast python_version<"3.8"
+#@ filter: pylint < 2.5
+#@ filter: astroid < 2.4

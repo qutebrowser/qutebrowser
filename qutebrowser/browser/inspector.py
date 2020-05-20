@@ -168,7 +168,7 @@ class AbstractWebInspector(QWidget):
 
     def _save_state_geometry(self) -> None:
         """Save the geometry to the state file."""
-        data = bytes(self.saveGeometry())
+        data = self.saveGeometry().data()
         geom = base64.b64encode(data).decode('ASCII')
         configfiles.state['geometry']['inspector'] = geom
 

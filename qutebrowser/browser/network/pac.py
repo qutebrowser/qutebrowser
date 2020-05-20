@@ -65,7 +65,9 @@ def _js_slot(*args):
                 # pylint: disable=protected-access
                 return self._error_con.callAsConstructor([e])
                 # pylint: enable=protected-access
-        return pyqtSlot(*args, result=QJSValue)(new_method)
+
+        deco = pyqtSlot(*args, result=QJSValue)  # type: ignore[arg-type]
+        return deco(new_method)
     return _decorator
 
 
@@ -215,10 +217,10 @@ class PACResolver:
         if from_file:
             string_flags = QUrl.PrettyDecoded
         else:
-            string_flags = QUrl.RemoveUserInfo  # type: ignore
+            string_flags = QUrl.RemoveUserInfo  # type: ignore[assignment]
             if query.url().scheme() == 'https':
-                string_flags |= QUrl.RemovePath  # type: ignore
-                string_flags |= QUrl.RemoveQuery  # type: ignore
+                string_flags |= QUrl.RemovePath  # type: ignore[assignment]
+                string_flags |= QUrl.RemoveQuery  # type: ignore[assignment]
 
         result = self._resolver.call([query.url().toString(string_flags),
                                       query.peerHostName()])
@@ -266,7 +268,8 @@ class PACFetcher(QObject):
         """Fetch the proxy from the remote URL."""
         assert self._manager is not None
         self._reply = self._manager.get(QNetworkRequest(self._pac_url))
-        self._reply.finished.connect(self._finish)  # type: ignore
+        self._reply.finished.connect(  # type: ignore[attr-defined]
+            self._finish)
 
     @pyqtSlot()
     def _finish(self):

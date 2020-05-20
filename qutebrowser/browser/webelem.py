@@ -392,7 +392,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
             window.show()
             # FIXME:typing Why can't mypy determine the type of
             # window.tabbed_browser?
-            window.tabbed_browser.tabopen(url)  # type: ignore
+            window.tabbed_browser.tabopen(url)  # type: ignore[has-type]
         else:
             raise ValueError("Unknown ClickTarget {}".format(click_target))
 

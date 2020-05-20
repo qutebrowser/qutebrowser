@@ -116,13 +116,18 @@ def _get_search_url(txt: str) -> QUrl:
         engine = 'DEFAULT'
     if term:
         template = config.val.url.searchengines[engine]
+        semiquoted_term = urllib.parse.quote(term)
         quoted_term = urllib.parse.quote(term, safe='')
-        url = qurl_from_user_input(template.format(quoted_term))
+        evaluated = template.format(semiquoted_term,
+                                    unquoted=term,
+                                    quoted=quoted_term,
+                                    semiquoted=semiquoted_term)
+        url = qurl_from_user_input(evaluated)
     else:
         url = qurl_from_user_input(config.val.url.searchengines[engine])
-        url.setPath(None)  # type: ignore
-        url.setFragment(None)  # type: ignore
-        url.setQuery(None)  # type: ignore
+        url.setPath(None)  # type: ignore[arg-type]
+        url.setFragment(None)  # type: ignore[arg-type]
+        url.setQuery(None)  # type: ignore[call-overload]
     qtutils.ensure_valid(url)
     return url
 
@@ -514,17 +519,17 @@ def encoded_url(url: QUrl) -> str:
     Args:
         url: The url to encode as QUrl.
     """
-    return bytes(url.toEncoded()).decode('ascii')
+    return url.toEncoded().data().decode('ascii')
 
 
-def file_url(path: str) -> QUrl:
+def file_url(path: str) -> str:
     """Return a file:// url (as string) to the given local path.
 
     Arguments:
         path: The absolute path to the local file
     """
     url = QUrl.fromLocalFile(path)
-    return url.toString(QUrl.FullyEncoded)  # type: ignore
+    return url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
 
 
 def data_url(mimetype: str, data: bytes) -> QUrl:
@@ -546,13 +551,13 @@ def safe_display_string(qurl: QUrl) -> str:
     """
     ensure_valid(qurl)
 
-    host = qurl.host(QUrl.FullyEncoded)  # type: ignore
+    host = qurl.host(QUrl.FullyEncoded)
     if '..' in host:  # pragma: no cover
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-60364
         return '(unparseable URL!) {}'.format(qurl.toDisplayString())
 
     for part in host.split('.'):
-        url_host = qurl.host(QUrl.FullyDecoded)  # type: ignore
+        url_host = qurl.host(QUrl.FullyDecoded)
         if part.startswith('xn--') and host != url_host:
             return '({}) {}'.format(host, qurl.toDisplayString())
 
@@ -579,7 +584,7 @@ class InvalidProxyTypeError(Exception):
         super().__init__("Invalid proxy type {}!".format(typ))
 
 
-def proxy_from_url(url: QUrl) -> QNetworkProxy:
+def proxy_from_url(url: QUrl) -> typing.Union[QNetworkProxy, pac.PACFetcher]:
     """Create a QNetworkProxy from QUrl and a proxy type.
 
     Args:

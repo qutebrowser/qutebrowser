@@ -136,7 +136,7 @@ class TestHistoryHandler:
         assert items
 
     def test_qute_history_benchmark(self, web_history, benchmark, now):
-        r = range(100000)
+        r = range(20000)
         entries = {
             'atime': [int(now - t) for t in r],
             'url': ['www.x.com/{}'.format(t) for t in r],

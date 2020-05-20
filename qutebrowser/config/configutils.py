@@ -28,7 +28,7 @@ import operator
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils, urlmatch, usertypes
+from qutebrowser.utils import utils, urlmatch, usertypes, qtutils
 from qutebrowser.config import configexc
 
 if typing.TYPE_CHECKING:
@@ -151,7 +151,7 @@ class Values:
         return bool(self._vmap)
 
     def _check_pattern_support(
-            self, arg: typing.Optional[urlmatch.UrlPattern]) -> None:
+            self, arg: typing.Union[urlmatch.UrlPattern, QUrl, None]) -> None:
         """Make sure patterns are supported if one was given."""
         if arg is not None and not self.opt.supports_pattern:
             raise configexc.NoPatternError(self.opt.name)
@@ -223,6 +223,7 @@ class Values:
         self._check_pattern_support(url)
         if url is None:
             return self._get_fallback(fallback)
+        qtutils.ensure_valid(url)
 
         candidates = []  # type: typing.List[ScopedValue]
         # Urls trailing with '.' are equivalent to non-trailing types.

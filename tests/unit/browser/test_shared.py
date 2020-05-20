@@ -19,8 +19,6 @@
 
 import pytest
 
-from PyQt5.QtCore import QUrl
-
 from qutebrowser.browser import shared
 
 
@@ -46,4 +44,4 @@ def test_custom_headers(config_stub, dnt, accept_language, custom_headers,
     headers.custom = custom_headers
 
     expected_items = sorted(expected.items())
-    assert shared.custom_headers(QUrl()) == expected_items
+    assert shared.custom_headers(url=None) == expected_items

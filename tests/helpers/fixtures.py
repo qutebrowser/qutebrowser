@@ -237,8 +237,10 @@ def webengine_tab(web_tab_setup, qtbot, redirect_webengine_data,
 def web_tab(request):
     """A WebKitTab/WebEngineTab."""
     if request.param == 'webkit':
+        pytest.importorskip('qutebrowser.browser.webkit.webkittab')
         return request.getfixturevalue('webkit_tab')
     elif request.param == 'webengine':
+        pytest.importorskip('qutebrowser.browser.webengine.webenginetab')
         return request.getfixturevalue('webengine_tab')
     else:
         raise utils.Unreachable
@@ -313,7 +315,7 @@ def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub, qapp):
     monkeypatch.setattr(config, 'cache', cache)
 
     try:
-        configtypes.Font.set_defaults(None, '10pt')
+        configtypes.FontBase.set_defaults(None, '10pt')
     except configexc.NoOptionError:
         # Completion tests patch configdata so fonts.default_family is
         # unavailable.

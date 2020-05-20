@@ -82,8 +82,8 @@ def add_module_info(module: types.ModuleType) -> ModuleInfo:
     """Add ModuleInfo to a module (if not added yet)."""
     # pylint: disable=protected-access
     if not hasattr(module, '__qute_module_info'):
-        module.__qute_module_info = ModuleInfo()  # type: ignore
-    return module.__qute_module_info  # type: ignore
+        module.__qute_module_info = ModuleInfo()  # type: ignore[attr-defined]
+    return module.__qute_module_info  # type: ignore[attr-defined]
 
 
 def load_components(*, skip_hooks: bool = False) -> None:
@@ -109,7 +109,7 @@ def _walk_normal() -> typing.Iterator[ExtensionInfo]:
     for _finder, name, ispkg in pkgutil.walk_packages(
             # Only packages have a __path__ attribute,
             # but we're sure this is one.
-            path=components.__path__,  # type: ignore
+            path=components.__path__,  # type: ignore[attr-defined]
             prefix=components.__name__ + '.',
             onerror=_on_walk_error):
         if ispkg:

@@ -44,6 +44,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<config-cycle,config-cycle>>|Cycle an option between multiple values.
 |<<config-dict-add,config-dict-add>>|Add a key/value pair to a dictionary option.
 |<<config-dict-remove,config-dict-remove>>|Remove a key from a dict.
+|<<config-diff,config-diff>>|Show all customized options.
 |<<config-edit,config-edit>>|Open the config.py file in the editor.
 |<<config-list-add,config-list-add>>|Append a value to a config option that is a list.
 |<<config-list-remove,config-list-remove>>|Remove a value from a list.
@@ -112,7 +113,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<set,set>>|Set an option.
 |<<set-cmd-text,set-cmd-text>>|Preset the statusbar to some text.
 |<<set-mark,set-mark>>|Set a mark at the current scroll position in the current tab.
-|<<spawn,spawn>>|Spawn a command in a shell.
+|<<spawn,spawn>>|Spawn an external command.
 |<<stop,stop>>|Stop loading in the current/[count]th tab.
 |<<tab-clone,tab-clone>>|Duplicate the current tab.
 |<<tab-close,tab-close>>|Close the current/[count]th tab.
@@ -327,6 +328,16 @@ Remove a key from a dict.
 
 ==== optional arguments
 * +*-t*+, +*--temp*+: Remove value temporarily until qutebrowser is closed.
+
+[[config-diff]]
+=== config-diff
+Syntax: +:config-diff [*--old*]+
+
+Show all customized options.
+
+==== optional arguments
+* +*-o*+, +*--old*+: Show difference for the pre-v1.0 files (qutebrowser.conf/keys.conf).
+
 
 [[config-edit]]
 === config-edit
@@ -1256,7 +1267,9 @@ Syntax: +:spawn [*--userscript*] [*--verbose*] [*--output*] [*--output-messages*
       [*--detach*]
       'cmdline'+
 
-Spawn a command in a shell.
+Spawn an external command.
+
+Note that the command is *not* run in a shell, so things like `$VAR` or `> output` won't have the desired effect.
 
 ==== positional arguments
 * +'cmdline'+: The commandline to execute.
@@ -1483,8 +1496,6 @@ Yank (copy) something to the clipboard or primary selection.
  - `title`: The current page's title.
  - `domain`: The current scheme, domain, and port number.
  - `selection`: The selection under the cursor.
- - `markdown`: Yank title and URL in markdown format
- (deprecated, use `:yank inline [{title}]({url})` instead).
  - `inline`: Yank the text contained in the 'inline' argument.
  
 
@@ -1909,6 +1920,7 @@ These commands are mainly intended for debugging. They are hidden if qutebrowser
 |<<debug-crash,debug-crash>>|Crash for debugging purposes.
 |<<debug-dump-history,debug-dump-history>>|Dump the history to a file in the old pre-SQL format.
 |<<debug-dump-page,debug-dump-page>>|Dump the current page's content to a file.
+|<<debug-keytester,debug-keytester>>|Show a keytester widget.
 |<<debug-log-capacity,debug-log-capacity>>|Change the number of log lines to be stored in RAM.
 |<<debug-log-filter,debug-log-filter>>|Change the log filter for console logging.
 |<<debug-log-level,debug-log-level>>|Change the log level for console logging.
@@ -1962,6 +1974,10 @@ Dump the current page's content to a file.
 
 ==== optional arguments
 * +*-p*+, +*--plain*+: Write plain text instead of HTML.
+
+[[debug-keytester]]
+=== debug-keytester
+Show a keytester widget.
 
 [[debug-log-capacity]]
 === debug-log-capacity

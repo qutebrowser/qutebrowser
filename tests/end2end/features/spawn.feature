@@ -38,6 +38,14 @@ Feature: :spawn
         And I run :spawn (echo-exe) {url:pretty}
         Then "Executing * with args ['http://localhost:(port)/data/title with spaces.html'], userscript=False" should be logged
 
+    Scenario: Running :spawn with -m
+        When I run :spawn -m (echo-exe) Message 1
+        Then the message "Message 1" should be shown
+
+    Scenario: Running :spawn with -u -m
+        When I run :spawn -u -m (echo-exe) Message 2
+        Then the message "Message 2" should be shown
+
     @posix
     Scenario: Running :spawn with userscript
         When I open data/hello.txt

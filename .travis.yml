@@ -19,8 +19,8 @@ matrix:
       services: docker
 
     ### Archlinux QtWebEngine with testing/KDE-Unstable
-    # - env: DOCKER=archlinux-webengine-unstable QUTE_BDD_WEBENGINE=true
-    #   services: docker
+    - env: DOCKER=archlinux-webengine-unstable QUTE_BDD_WEBENGINE=true
+      services: docker
 
     ### PyQt 5.7.1 (Python 3.5)
     - python: 3.5

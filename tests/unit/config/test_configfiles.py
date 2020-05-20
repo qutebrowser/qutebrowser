@@ -810,12 +810,10 @@ class TestConfigPy:
         with pytest.raises(configexc.ConfigFileErrors) as excinfo:
             confpy.read()
 
-        expected = {'normal': {'<Ctrl+q>': None}}
-        assert config.instance.get_obj('bindings.commands') == expected
+        assert not config.instance.get_obj('bindings.commands')
 
-        msg = ("While unbinding '<Ctrl+q>': Unbinding commands with "
-               "config.bind('<Ctrl+q>', None) is deprecated. Use "
-               "config.unbind('<Ctrl+q>') instead.")
+        msg = ("While binding '<Ctrl+q>': Can't bind <Ctrl+q> to None "
+               "(maybe you want to use config.unbind('<Ctrl+q>') instead?)")
         assert len(excinfo.value.errors) == 1
         assert str(excinfo.value.errors[0]) == msg
 
@@ -889,7 +887,9 @@ class TestConfigPy:
         assert tblines[0] == "Traceback (most recent call last):"
         assert tblines[-1] == "SyntaxError: invalid syntax"
         assert "    +" in tblines
-        assert "    ^" in tblines
+        # Starting with the new PEG-based parser in Python 3.9, the caret
+        # points at the location *after* the +
+        assert "    ^" in tblines or "     ^" in tblines
 
     def test_unhandled_exception(self, confpy):
         confpy.write("1/0")

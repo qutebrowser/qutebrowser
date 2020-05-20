@@ -23,7 +23,7 @@ from PyQt5.QtCore import QUrl
 import pytest
 
 from qutebrowser.browser.webkit import cookies
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, urlmatch
 from qutebrowser.misc import lineparser, objects
 
 pytestmark = pytest.mark.usefixtures('data_tmpdir')
@@ -62,36 +62,71 @@ class LineparserSaveStub(lineparser.BaseLineParser):
         return self.data[key]
 
 
-def test_set_cookies_accept(config_stub, qtbot, monkeypatch):
-    """Test setCookiesFromUrl with cookies enabled."""
-    monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
-    config_stub.val.content.cookies.accept = 'all'
+class TestSetCookies:
 
-    ram_jar = cookies.RAMCookieJar()
-    cookie = QNetworkCookie(b'foo', b'bar')
-    url = QUrl('http://example.com/')
-    with qtbot.waitSignal(ram_jar.changed):
-        assert ram_jar.setCookiesFromUrl([cookie], url)
+    @pytest.fixture
+    def cookie(self):
+        return QNetworkCookie(b'foo', b'bar')
 
-    # assert the cookies are added correctly
-    all_cookies = ram_jar.cookiesForUrl(url)
-    assert len(all_cookies) == 1
-    saved_cookie = all_cookies[0]
-    expected = cookie.name(), cookie.value()
-    assert saved_cookie.name(), saved_cookie.value() == expected
+    @pytest.fixture
+    def ram_jar(self):
+        return cookies.RAMCookieJar()
 
+    @pytest.fixture
+    def url(self):
+        return QUrl('http://example.com/')
 
-def test_set_cookies_never_accept(qtbot, config_stub, monkeypatch):
-    """Test setCookiesFromUrl when cookies are not accepted."""
-    monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
-    config_stub.val.content.cookies.accept = 'never'
+    @pytest.fixture(autouse=True)
+    def set_webkit_backend(self, monkeypatch):
+        monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
 
-    ram_jar = cookies.RAMCookieJar()
-    url = QUrl('http://example.com/')
+    def test_accept(self, config_stub, qtbot, monkeypatch,
+                    cookie, ram_jar, url):
+        """Test setCookiesFromUrl with cookies enabled."""
+        config_stub.val.content.cookies.accept = 'all'
 
-    with qtbot.assertNotEmitted(ram_jar.changed):
-        assert not ram_jar.setCookiesFromUrl('test', url)
-    assert not ram_jar.cookiesForUrl(url)
+        with qtbot.waitSignal(ram_jar.changed):
+            assert ram_jar.setCookiesFromUrl([cookie], url)
+
+        # assert the cookies are added correctly
+        all_cookies = ram_jar.cookiesForUrl(url)
+        assert len(all_cookies) == 1
+        saved_cookie = all_cookies[0]
+        expected = cookie.name(), cookie.value()
+        assert saved_cookie.name(), saved_cookie.value() == expected
+
+    def test_never_accept(self, qtbot, config_stub, monkeypatch,
+                          cookie, ram_jar, url):
+        """Test setCookiesFromUrl when cookies are not accepted."""
+        config_stub.val.content.cookies.accept = 'never'
+
+        with qtbot.assertNotEmitted(ram_jar.changed):
+            assert not ram_jar.setCookiesFromUrl([cookie], url)
+        assert not ram_jar.cookiesForUrl(url)
+
+    def test_per_url(self, config_stub, qtbot, monkeypatch,
+                     cookie, ram_jar, url):
+        config_stub.val.content.cookies.accept = 'all'
+        config_stub.set_str('content.cookies.accept', 'never',
+                            pattern=urlmatch.UrlPattern('http://example.com'))
+
+        org_url = QUrl('http://example.org/')
+
+        with qtbot.waitSignal(ram_jar.changed):
+            assert ram_jar.setCookiesFromUrl([cookie], org_url)
+        assert ram_jar.cookiesForUrl(org_url)
+
+        with qtbot.assertNotEmitted(ram_jar.changed):
+            assert not ram_jar.setCookiesFromUrl([cookie], url)
+        assert not ram_jar.cookiesForUrl(url)
+
+    def test_logging(self, monkeypatch, caplog, config_stub,
+                     cookie, ram_jar, url):
+        monkeypatch.setattr(objects, 'debug_flags', ['log-cookies'])
+        ram_jar.setCookiesFromUrl([cookie], url)
+
+        expected = "Cookie on http://example.com/ -> applying setting all"
+        assert caplog.messages == [expected]
 
 
 def test_cookie_jar_init(config_stub, fake_save_manager):
@@ -159,3 +194,11 @@ def test_cookies_changed(config_stub, fake_save_manager, monkeypatch, qtbot,
         assert not jar._lineparser.saved
     else:
         assert jar._lineparser.data
+
+
+def test_init(qapp, config_stub, fake_save_manager):
+    assert cookies.cookie_jar is None
+    assert cookies.ram_cookie_jar is None
+    cookies.init(qapp)
+    assert isinstance(cookies.cookie_jar, cookies.CookieJar)
+    assert isinstance(cookies.ram_cookie_jar, cookies.RAMCookieJar)

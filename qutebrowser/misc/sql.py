@@ -190,7 +190,8 @@ class Query:
             raise BugError("Cannot iterate inactive query")
         rec = self.query.record()
         fields = [rec.fieldName(i) for i in range(rec.count())]
-        rowtype = collections.namedtuple('ResultRow', fields)  # type: ignore
+        rowtype = collections.namedtuple(  # type: ignore[misc]
+            'ResultRow', fields)
 
         while self.query.next():
             rec = self.query.record()

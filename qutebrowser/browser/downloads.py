@@ -860,7 +860,7 @@ class AbstractDownloadManager(QObject):
         self.data_changed.emit(-1)
 
     @pyqtSlot(str, QUrl)
-    def _on_pdfjs_requested(self, filename: str, original_url: QUrl):
+    def _on_pdfjs_requested(self, filename: str, original_url: QUrl) -> None:
         """Open PDF.js when a download requests it."""
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')
