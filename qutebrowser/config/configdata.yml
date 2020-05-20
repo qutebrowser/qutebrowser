@@ -3200,20 +3200,16 @@ bindings.commands:
 logging.level.ram:
   default: null
   type:
-    name: String
+    name: LogLevel
     none_ok: true
-    # levels match those in qutebrowser/utils/log.py
-    valid_values: ['VDEBUG', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
   desc:
     Level for in-memory logs.
 
 logging.level.console:
   default: null
   type:
-    name: String
+    name: LogLevel
     none_ok: true
-    # levels match those in qutebrowser/utils/log.py
-    valid_values: ['VDEBUG', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
   desc:  >-
     Level for console (stdout/stderr) logs.
     Ignored if the --loglevel or --debug CLI flags are used.

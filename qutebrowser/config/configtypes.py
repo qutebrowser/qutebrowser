@@ -63,7 +63,7 @@ from PyQt5.QtNetwork import QNetworkProxy
 from qutebrowser.misc import objects, debugcachestats
 from qutebrowser.config import configexc, configutils
 from qutebrowser.utils import (standarddir, utils, qtutils, urlutils, urlmatch,
-                               usertypes)
+                               usertypes, log)
 from qutebrowser.keyinput import keyutils
 from qutebrowser.browser.network import pac
 
@@ -2012,6 +2012,15 @@ class NewTabPosition(String):
             ('next', "After the current tab."),
             ('first', "At the beginning."),
             ('last', "At the end."))
+
+
+class LogLevel(String):
+
+    """Log level."""
+
+    def __init__(self, none_ok: bool = False) -> None:
+        super().__init__(none_ok=none_ok)
+        self.valid_values = ValidValues(*log.LOG_LEVELS.keys())
 
 
 class Key(BaseType):
