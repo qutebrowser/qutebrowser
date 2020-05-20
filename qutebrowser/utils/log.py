@@ -41,6 +41,9 @@ try:
 except ImportError:
     colorama = None
 
+if typing.TYPE_CHECKING:
+    from qutebrowser.config import config as configmodule
+
 _log_inited = False
 _args = None
 
@@ -526,7 +529,7 @@ def hide_qt_warning(pattern: str, logger: str = 'qt') -> typing.Iterator[None]:
         logger_obj.removeFilter(log_filter)
 
 
-def init_from_config(conf: typing.Any) -> None:
+def init_from_config(conf: 'configmodule.ConfigContainer') -> None:
     """Initialize logging settings from the config.
 
     init_log is called before the config module is initialized, so config-based
@@ -537,13 +540,16 @@ def init_from_config(conf: typing.Any) -> None:
               This is passed rather than accessed via the module to avoid a
               cyclic import.
     """
+    assert ram_handler is not None
+    assert console_handler is not None
+    assert _args is not None
     ramlevel = conf.logging.level.ram
     consolelevel = conf.logging.level.console
-    if ramlevel and ram_handler:
+    if ramlevel:
         init.info("Configuring RAM loglevel to %s", ramlevel)
         ram_handler.setLevel(LOG_LEVELS[ramlevel])
-    if consolelevel and console_handler:
-        if _args and _args.loglevel:
+    if consolelevel:
+        if _args.loglevel:
             init.info("--loglevel flag overrides logging.level.console")
         else:
             init.info("Configuring console loglevel to %s", consolelevel)
