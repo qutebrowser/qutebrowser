@@ -59,6 +59,8 @@ Fixed
   the main thread), qutebrowser did crash or freeze when trying to show its
   exception handler. This is now fixed.
 - `:inspector` now works correctly when cookies are disabled globally.
+- Added workaround for a (Gentoo?) PyQt/packaging issue related to the
+  `QWebEngineFindTextResult` handling added in v1.11.0.
 
 v1.11.1 (2020-05-07)
 --------------------

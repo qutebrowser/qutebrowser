@@ -183,9 +183,22 @@ class _WebEngineSearchWrapHandler:
         Args:
             page: The QtWebEnginePage to connect to this handler.
         """
-        if qtutils.version_check("5.14"):
-            page.findTextFinished.connect(self._store_match_data)
-            self._nowrap_available = True
+        if not qtutils.version_check("5.14"):
+            return
+
+        try:
+            from PyQt5.QtWebEngineCore import QWebEngineFindTextResult
+        except ImportError:
+            # WORKAROUND for some odd PyQt/packaging bug where the
+            # findTextResult signal is available, but QWebEngineFindTextResult
+            # is not. Seems to happen on e.g. Gentoo.
+            log.webview.warn("Could not import QWebEngineFindTextResult "
+                             "despite running on Qt 5.14. You might need to "
+                             "rebuild PyQtWebEngine.")
+            return
+
+        page.findTextFinished.connect(self._store_match_data)
+        self._nowrap_available = True
 
     def _store_match_data(self, result):
         """Store information on the last match.
