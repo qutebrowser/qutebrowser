@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -103,7 +103,7 @@ class DBusNotificationManager:
             -1,  # timeout; -1 means 'use default'
         )
 
-        if not (len(reply.arguments()) == 1):
+        if len(reply.arguments()) != 1:
             raise DBusException(
                 "Got an unexpected number of reply arguments {}".format(
                     len(reply.arguments())
@@ -111,7 +111,7 @@ class DBusNotificationManager:
             )
 
         notification_id = reply.arguments()[0]
-        log.sessions.debug("Sent out notification {}".format(notification_id))
+        log.webview.debug("Sent out notification {}".format(notification_id))
 
     def _convert_image(self, qimage: QImage) -> QDBusArgument:
         """Converts a QImage to the structure DBus expects."""
