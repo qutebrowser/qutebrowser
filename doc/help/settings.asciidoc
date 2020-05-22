@@ -739,6 +739,7 @@ Default:
 
 - +pass:[&lt;Ctrl-6&gt;]+: +pass:[&lt;Ctrl-^&gt;]+
 - +pass:[&lt;Ctrl-Enter&gt;]+: +pass:[&lt;Ctrl-Return&gt;]+
+- +pass:[&lt;Ctrl-I&gt;]+: +pass:[&lt;Tab&gt;]+
 - +pass:[&lt;Ctrl-J&gt;]+: +pass:[&lt;Return&gt;]+
 - +pass:[&lt;Ctrl-M&gt;]+: +pass:[&lt;Return&gt;]+
 - +pass:[&lt;Ctrl-[&gt;]+: +pass:[&lt;Escape&gt;]+

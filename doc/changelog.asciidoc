@@ -49,6 +49,7 @@ Changed
   the exact dependencies listed in
   `misc/requirements/requirements-tests.txt{,-raw}` is supported.
 - The `:tab-focus` command now has completion for tabs in the current window.
+- The `bindings.key_mappings` setting now maps `<Ctrl+I>` to the tab key by default.
 
 Fixed
 ~~~~~
