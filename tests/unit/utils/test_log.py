@@ -263,7 +263,7 @@ class TestInitLog:
             ('INFO', 'WARNING', logging.INFO, 'VDEBUG', logging.VDEBUG),
             ('WARNING', 'INFO', logging.WARNING, 'CRITICAL', logging.CRITICAL),
         ])
-    def test_init_from_config(self, mocker, console_cli, console_conf,
+    def test_init_from_config(self, console_cli, console_conf,
                               console_expected, ram_conf, ram_expected, args,
                               config_stub):
         args.debug = False
