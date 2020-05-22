@@ -286,8 +286,7 @@ Set all settings back to their default.
 
 [[config-cycle]]
 === config-cycle
-Syntax: +:config-cycle [*--pattern* 'pattern'] [*--temp*] [*--print*]
-             'option' ['values' ['values' ...]]+
+Syntax: +:config-cycle [*--pattern* 'pattern'] [*--temp*] [*--print*] 'option' ['values' ['values' ...]]+
 
 Cycle an option between multiple values.
 
@@ -608,8 +607,7 @@ Show help about a command or setting.
 
 [[hint]]
 === hint
-Syntax: +:hint [*--mode* 'mode'] [*--add-history*] [*--rapid*] [*--first*]
-     ['group'] ['target'] ['args' ['args' ...]]+
+Syntax: +:hint [*--mode* 'mode'] [*--add-history*] [*--rapid*] [*--first*] ['group'] ['target'] ['args' ['args' ...]]+
 
 Start hinting.
 
@@ -866,8 +864,7 @@ Do nothing.
 
 [[open]]
 === open
-Syntax: +:open [*--related*] [*--bg*] [*--tab*] [*--window*] [*--secure*] [*--private*]
-     ['url']+
+Syntax: +:open [*--related*] [*--bg*] [*--tab*] [*--window*] [*--secure*] [*--private*] ['url']+
 
 Open a URL in the current/[count]th tab.
 
@@ -1197,9 +1194,7 @@ Load a session.
 
 [[session-save]]
 === session-save
-Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-window*]
-             [*--with-private*]
-             ['name']+
+Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-window*] [*--with-private*] ['name']+
 
 Save a session.
 
@@ -1263,9 +1258,7 @@ Set a mark at the current scroll position in the current tab.
 
 [[spawn]]
 === spawn
-Syntax: +:spawn [*--userscript*] [*--verbose*] [*--output*] [*--output-messages*]
-      [*--detach*]
-      'cmdline'+
+Syntax: +:spawn [*--userscript*] [*--verbose*] [*--output*] [*--output-messages*] [*--detach*] 'cmdline'+
 
 Spawn an external command.
 
