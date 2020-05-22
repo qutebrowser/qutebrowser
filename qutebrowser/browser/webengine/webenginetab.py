@@ -187,14 +187,15 @@ class _WebEngineSearchWrapHandler:
             return
 
         try:
+            # pylint: disable=unused-import
             from PyQt5.QtWebEngineCore import QWebEngineFindTextResult
         except ImportError:
             # WORKAROUND for some odd PyQt/packaging bug where the
             # findTextResult signal is available, but QWebEngineFindTextResult
             # is not. Seems to happen on e.g. Gentoo.
-            log.webview.warn("Could not import QWebEngineFindTextResult "
-                             "despite running on Qt 5.14. You might need to "
-                             "rebuild PyQtWebEngine.")
+            log.webview.warning("Could not import QWebEngineFindTextResult "
+                                "despite running on Qt 5.14. You might need "
+                                "to rebuild PyQtWebEngine.")
             return
 
         page.findTextFinished.connect(self._store_match_data)
