@@ -25,6 +25,7 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import usertypes
+from qutebrowser.browser import browsertab
 
 
 @pytest.fixture
@@ -75,13 +76,27 @@ class Selection:
         self.check(textwrap.dedent(expected).strip(), strip=strip)
 
     def toggle(self, *, line=False):
-        with self._qtbot.wait_signal(self._caret.selection_toggled):
+        """Toggle the selection and return the new selection state."""
+        with self._qtbot.wait_signal(self._caret.selection_toggled) as blocker:
             self._caret.toggle_selection(line=line)
+        return blocker.args[0]
 
 
 @pytest.fixture
 def selection(qtbot, caret):
     return Selection(qtbot, caret)
+
+
+def test_toggle(caret, selection, qtbot):
+    """Make sure calling toggleSelection produces the correct callback values.
+
+    This also makes sure that the SelectionState enum in JS lines up with the
+    Python browsertab.SelectionState enum.
+    """
+    assert selection.toggle() == browsertab.SelectionState.normal
+    assert selection.toggle(line=True) == browsertab.SelectionState.line
+    assert selection.toggle() == browsertab.SelectionState.normal
+    assert selection.toggle() == browsertab.SelectionState.none
 
 
 class TestDocument:

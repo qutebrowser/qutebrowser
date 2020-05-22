@@ -1452,7 +1452,7 @@ window._qutebrowser.caret = (function() {
                 CaretBrowsing.SelectionState.LINE;
             CaretBrowsing.selectLine();
             CaretBrowsing.finishMove();
-        } else if (CaretBrowsing.selectionState === CaretBrowsing.SelectionState.NONE) {
+        } else if (CaretBrowsing.selectionState !== CaretBrowsing.SelectionState.NORMAL) {
             CaretBrowsing.selectionState = CaretBrowsing.SelectionState.NORMAL;
         } else {
             CaretBrowsing.selectionState = CaretBrowsing.SelectionState.NONE;
