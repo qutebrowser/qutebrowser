@@ -453,7 +453,7 @@ class CommandDispatcher:
     @cmdutils.argument('win_id', completion=miscmodels.window)
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_give(self, win_id: int = None, keep: bool = False,
-            count: int = None, private: bool = False) -> None:
+                 count: int = None, private: bool = False) -> None:
         """Give the current tab to a new or existing window if win_id given.
 
         If no win_id is given, the tab will get detached into a new window.
@@ -490,7 +490,8 @@ class CommandDispatcher:
                                         window=win_id)
 
             if private and not tabbed_browser.is_private:
-                raise cmdutils.CommandError("The window with id {} is not private".format(win_id))
+                raise cmdutils.CommandError(
+                    "The window with id {} is not private".format(win_id))
 
         tabbed_browser.tabopen(self._current_url())
         if not keep:
