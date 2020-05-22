@@ -64,6 +64,8 @@ Fixed
 - `:inspector` now works correctly when cookies are disabled globally.
 - Added workaround for a (Gentoo?) PyQt/packaging issue related to the
   `QWebEngineFindTextResult` handling added in v1.11.0.
+- When entering caret selection mode (`v, v`) very early before a page is
+  loaded, an error is now shown instead of a crash happening.
 
 v1.11.1 (2020-05-07)
 --------------------
