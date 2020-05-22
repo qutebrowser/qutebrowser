@@ -446,6 +446,7 @@ Default:
 * +pass:[J]+: +pass:[scroll down]+
 * +pass:[K]+: +pass:[scroll up]+
 * +pass:[L]+: +pass:[scroll right]+
+* +pass:[V]+: +pass:[toggle-selection --line]+
 * +pass:[Y]+: +pass:[yank selection -s]+
 * +pass:[[]+: +pass:[move-to-start-of-prev-block]+
 * +pass:[]]+: +pass:[move-to-start-of-next-block]+
