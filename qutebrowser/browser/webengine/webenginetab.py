@@ -504,8 +504,8 @@ class WebEngineCaret(browsertab.AbstractCaret):
         code = javascript.assemble('caret', command, *args)
         self._tab.run_js_async(code, callback)
 
-    def _toggle_sel_translate(self, state_int):
-        state = browsertab.SelectionState(state_int)
+    def _toggle_sel_translate(self, state_str):
+        state = browsertab.SelectionState[state_str]
         self.selection_toggled.emit(state)
 
 

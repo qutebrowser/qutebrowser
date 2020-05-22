@@ -706,13 +706,15 @@ window._qutebrowser.caret = (function() {
     CaretBrowsing.isCaretVisible = false;
 
     /**
-     * selection modes
+     * Selection modes.
+     * NOTE: Values need to line up with SelectionState in browsertab.py!
+     *
      * @type {enum}
      */
     CaretBrowsing.SelectionState = {
-        "NONE": 1,
-        "NORMAL": 2,
-        "LINE": 3,
+        "NONE": "none",
+        "NORMAL": "normal",
+        "LINE": "line",
     };
 
     /**

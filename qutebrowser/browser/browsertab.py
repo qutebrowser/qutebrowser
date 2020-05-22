@@ -427,9 +427,12 @@ class AbstractZoom(QObject):
         self._set_factor_internal(self._zoom_factor)
 
 
-class SelectionState(enum.IntEnum):
+class SelectionState(enum.Enum):
 
-    """Possible states of selection in Caret mode."""
+    """Possible states of selection in caret mode.
+
+    NOTE: Names need to line up with SelectionState in caret.js!
+    """
 
     none = 1
     normal = 2
