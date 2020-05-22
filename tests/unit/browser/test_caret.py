@@ -34,7 +34,8 @@ def caret(web_tab, qtbot, mode_manager):
     with qtbot.wait_signal(web_tab.load_finished, timeout=10000):
         web_tab.load_url(QUrl('qute://testdata/data/caret.html'))
 
-    mode_manager.enter(usertypes.KeyMode.caret)
+    with qtbot.wait_signal(web_tab.caret.selection_toggled):
+        mode_manager.enter(usertypes.KeyMode.caret)
 
     return web_tab.caret
 
