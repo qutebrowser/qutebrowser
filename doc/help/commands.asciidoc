@@ -1341,7 +1341,7 @@ The tab index to focus, starting with 1.
 
 [[tab-give]]
 === tab-give
-Syntax: +:tab-give [*--keep*] ['win-id']+
+Syntax: +:tab-give [*--keep*] [*--private*] ['win-id']+
 
 Give the current tab to a new or existing window if win_id given.
 
@@ -1352,6 +1352,7 @@ If no win_id is given, the tab will get detached into a new window.
 
 ==== optional arguments
 * +*-k*+, +*--keep*+: If given, keep the old tab around.
+* +*-p*+, +*--private*+: If the tab should be detached into a private instance.
 
 ==== count
 Overrides win_id (index starts at 1 for win_id=0).
