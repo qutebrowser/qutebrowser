@@ -64,14 +64,17 @@ class WidgetContainer(QWidget):
         self._qtbot = qtbot
         self.vbox = QVBoxLayout(self)
         qtbot.add_widget(self)
+        self._widget = None
 
     def set_widget(self, widget):
         self.vbox.addWidget(widget)
         widget.container = self
+        self._widget = widget
 
     def expose(self):
         with self._qtbot.waitExposed(self):
             self.show()
+        self._widget.setFocus()
 
 
 @pytest.fixture
