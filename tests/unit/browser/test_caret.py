@@ -31,7 +31,7 @@ from qutebrowser.utils import usertypes
 def caret(web_tab, qtbot, mode_manager):
     web_tab.container.expose()
 
-    with qtbot.wait_signal(web_tab.load_finished):
+    with qtbot.wait_signal(web_tab.load_finished, timeout=10000):
         web_tab.load_url(QUrl('qute://testdata/data/caret.html'))
 
     mode_manager.enter(usertypes.KeyMode.caret)
