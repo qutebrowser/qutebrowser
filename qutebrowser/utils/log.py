@@ -540,15 +540,13 @@ def init_from_config(conf: 'configmodule.ConfigContainer') -> None:
               This is passed rather than accessed via the module to avoid a
               cyclic import.
     """
-    assert ram_handler is not None
-    assert console_handler is not None
     assert _args is not None
     ramlevel = conf.logging.level.ram
     consolelevel = conf.logging.level.console
-    if ramlevel:
+    if ram_handler and ramlevel:
         init.info("Configuring RAM loglevel to %s", ramlevel)
         ram_handler.setLevel(LOG_LEVELS[ramlevel])
-    if consolelevel:
+    if console_handler and consolelevel:
         if _args.loglevel:
             init.info("--loglevel flag overrides logging.level.console")
         else:
