@@ -441,7 +441,6 @@ class AbstractCaret(QObject):
     """Attribute ``caret`` of AbstractTab for caret browsing."""
 
     #: Signal emitted when the selection was toggled.
-    #: (argument - whether the selection is now active)
     selection_toggled = pyqtSignal(SelectionState)
     #: Emitted when a ``follow_selection`` action is done.
     follow_selected_done = pyqtSignal()

@@ -73,7 +73,7 @@ class Selection:
     def check_multiline(self, expected, *, strip=False):
         self.check(textwrap.dedent(expected).strip(), strip=strip)
 
-    def toggle(self, line=False):
+    def toggle(self, *, line=False):
         with self._qtbot.wait_signal(self._caret.selection_toggled):
             self._caret.toggle_selection(line=line)
 
@@ -396,24 +396,24 @@ class TestReverse:
 class TestLineSelection:
 
     def test_toggle(self, caret, selection):
-        selection.toggle(True)
+        selection.toggle(line=True)
         selection.check("one two three")
 
     def test_toggle_untoggle(self, caret, selection):
         selection.toggle()
         selection.check("")
-        selection.toggle(True)
+        selection.toggle(line=True)
         selection.check("one two three")
         selection.toggle()
         selection.check("one two three")
 
     def test_from_center(self, caret, selection):
         caret.move_to_next_char(4)
-        selection.toggle(True)
+        selection.toggle(line=True)
         selection.check("one two three")
 
     def test_more_lines(self, caret, selection):
-        selection.toggle(True)
+        selection.toggle(line=True)
         caret.move_to_next_line(2)
         selection.check_multiline("""
             one two three
@@ -423,26 +423,26 @@ class TestLineSelection:
         """, strip=True)
 
     def test_not_selecting_char(self, caret, selection):
-        selection.toggle(True)
+        selection.toggle(line=True)
         caret.move_to_next_char()
         selection.check("one two three")
         caret.move_to_prev_char()
         selection.check("one two three")
 
     def test_selecting_prev_next_word(self, caret, selection):
-        selection.toggle(True)
+        selection.toggle(line=True)
         caret.move_to_next_word()
         selection.check("one two three")
         caret.move_to_prev_word()
         selection.check("one two three")
 
     def test_selecting_end_word(self, caret, selection):
-        selection.toggle(True)
+        selection.toggle(line=True)
         caret.move_to_end_of_word()
         selection.check("one two three")
 
     def test_selecting_prev_next_line(self, caret, selection):
-        selection.toggle(True)
+        selection.toggle(line=True)
         caret.move_to_next_line()
         selection.check_multiline("""
             one two three
@@ -452,14 +452,14 @@ class TestLineSelection:
         selection.check("one two three")
 
     def test_not_selecting_start_end_line(self, caret, selection):
-        selection.toggle(True)
+        selection.toggle(line=True)
         caret.move_to_end_of_line()
         selection.check("one two three")
         caret.move_to_start_of_line()
         selection.check("one two three")
 
     def test_selecting_block(self, caret, selection):
-        selection.toggle(True)
+        selection.toggle(line=True)
         caret.move_to_end_of_next_block()
         selection.check_multiline("""
             one two three
@@ -467,7 +467,7 @@ class TestLineSelection:
         """, strip=True)
 
     def test_selecting_start_end_document(self, caret, selection):
-        selection.toggle(True)
+        selection.toggle(line=True)
         caret.move_to_end_of_document()
         selection.check_multiline("""
             one two three
@@ -476,5 +476,6 @@ class TestLineSelection:
             four five six
             vier fünf sechs
         """, strip=True)
+
         caret.move_to_start_of_document()
         selection.check("one two three")

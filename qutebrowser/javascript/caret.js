@@ -1176,7 +1176,7 @@ window._qutebrowser.caret = (function() {
     };
 
     CaretBrowsing.updateLineSelection = function(direction, granularity) {
-        if (!(granularity === "character") && !(granularity === "word")) {
+        if (granularity !== "character" && granularity !== "word") {
             window.
                 getSelection().
                 modify("extend", direction, granularity);

@@ -204,8 +204,7 @@ class WebKitCaret(browsertab.AbstractCaret):
     def _on_mode_left(self, _mode):
         settings = self._widget.settings()
         if settings.testAttribute(QWebSettings.CaretBrowsingEnabled):
-            if (self.selection_state is not
-                    browsertab.SelectionState.none and
+            if (self.selection_state is not browsertab.SelectionState.none and
                     self._widget.hasSelection()):
                 # Remove selection if it exists
                 self._widget.triggerPageAction(QWebPage.MoveToNextChar)
@@ -414,24 +413,21 @@ class WebKitCaret(browsertab.AbstractCaret):
         # direction of selection (if anchor is to the left or right
         # of focus) has to be checked before moving selection
         # to the end of line
-        direction = self._js_selection_direction()
-        if direction:
+        if self._js_selection_left_to_right():
             self._widget.triggerPageAction(QWebPage.SelectEndOfLine)
 
     def _select_line_to_start(self):
-        direction = self._js_selection_direction()
-        if not direction:
+        if not self._js_selection_left_to_right():
             self._widget.triggerPageAction(QWebPage.SelectStartOfLine)
 
-    def _js_selection_direction(self):
-        # return true if selection's direction
-        # is left to right else false
+    def _js_selection_left_to_right(self):
+        """Return True iff the selection's direction is left to right."""
         return self._tab.private_api.run_js_sync("""
-                var sel = window.getSelection();
-                var position = sel.anchorNode.compareDocumentPosition(sel.focusNode);
-                (!position && sel.anchorOffset < sel.focusOffset ||
-                    position === Node.DOCUMENT_POSITION_FOLLOWING);
-           """)
+            var sel = window.getSelection();
+            var position = sel.anchorNode.compareDocumentPosition(sel.focusNode);
+            (!position && sel.anchorOffset < sel.focusOffset ||
+                position === Node.DOCUMENT_POSITION_FOLLOWING);
+        """)
 
     def _follow_selected(self, *, tab=False):
         if QWebSettings.globalSettings().testAttribute(
