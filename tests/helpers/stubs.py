@@ -615,6 +615,10 @@ class FakeDownloadManager:
         self.downloads.append(download_item)
         return download_item
 
+    def has_downloads_with_nam(self, _nam):
+        """Needed during WebView.shutdown()."""
+        return False
+
 
 class FakeHistoryProgress:
 

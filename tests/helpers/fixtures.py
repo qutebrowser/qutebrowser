@@ -45,11 +45,12 @@ import helpers.stubs as stubsmod
 from qutebrowser.config import (config, configdata, configtypes, configexc,
                                 configfiles, configcache, stylesheet)
 from qutebrowser.api import config as configapi
-from qutebrowser.utils import objreg, standarddir, utils, usertypes
+from qutebrowser.utils import objreg, standarddir, utils, usertypes, qtutils
 from qutebrowser.browser import greasemonkey, history, qutescheme
 from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.misc import savemanager, sql, objects, sessions
 from qutebrowser.keyinput import modeman
+from qutebrowser.qt import sip
 
 
 _qute_scheme_handler = None
@@ -207,14 +208,17 @@ def web_tab_setup(qtbot, tab_registry, session_manager_stub,
 
 @pytest.fixture
 def webkit_tab(web_tab_setup, qtbot, cookiejar_and_cache, mode_manager,
-               widget_container, webpage):
+               widget_container, download_stub, webpage):
     webkittab = pytest.importorskip('qutebrowser.browser.webkit.webkittab')
 
     tab = webkittab.WebKitTab(win_id=0, mode_manager=mode_manager,
                               private=False)
     widget_container.set_widget(tab)
 
-    return tab
+    yield tab
+
+    # Make sure the tab shuts itself down properly
+    tab.private_api.shutdown()
 
 
 @pytest.fixture
@@ -230,10 +234,23 @@ def webengine_tab(web_tab_setup, qtbot, redirect_webengine_data,
     tab = webenginetab.WebEngineTab(win_id=0, mode_manager=mode_manager,
                                     private=False)
     widget_container.set_widget(tab)
+
     yield tab
+
     # If a page is still loading here, _on_load_finished could get called
     # during teardown when session_manager_stub is already deleted.
     tab.stop()
+
+    # Make sure the tab shuts itself down properly
+    tab.private_api.shutdown()
+
+    # If we wait for the GC to clean things up, there's a segfault inside
+    # QtWebEngine sometimes (e.g. if we only run
+    # tests/unit/browser/test_caret.py).
+    # However, with Qt < 5.12, doing this here will lead to an immediate
+    # segfault...
+    if qtutils.version_check('5.12'):
+        sip.delete(tab._widget)
 
 
 @pytest.fixture(params=['webkit', 'webengine'])
