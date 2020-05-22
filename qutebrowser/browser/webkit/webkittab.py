@@ -28,7 +28,6 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtWidgets import QWidget
 from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab, shared
@@ -37,7 +36,6 @@ from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
 from qutebrowser.utils import qtutils, usertypes, utils, log, debug
 from qutebrowser.keyinput import modeman
 from qutebrowser.qt import sip
-from qutebrowser.keyinput import modeman
 
 
 class WebKitAction(browsertab.AbstractAction):
