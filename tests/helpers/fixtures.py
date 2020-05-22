@@ -223,7 +223,8 @@ def webkit_tab(web_tab_setup, qtbot, cookiejar_and_cache, mode_manager,
 
 @pytest.fixture
 def webengine_tab(web_tab_setup, qtbot, redirect_webengine_data,
-                  tabbed_browser_stubs, mode_manager, widget_container):
+                  tabbed_browser_stubs, mode_manager, widget_container,
+                  monkeypatch):
     tabwidget = tabbed_browser_stubs[0].widget
     tabwidget.current_index = 0
     tabwidget.index_of = 0
@@ -249,6 +250,7 @@ def webengine_tab(web_tab_setup, qtbot, redirect_webengine_data,
     # tests/unit/browser/test_caret.py).
     # However, with Qt < 5.12, doing this here will lead to an immediate
     # segfault...
+    monkeypatch.undo()  # version_check could be patched
     if qtutils.version_check('5.12'):
         sip.delete(tab._widget)
 
