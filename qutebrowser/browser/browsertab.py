@@ -452,7 +452,6 @@ class AbstractCaret(QObject):
         super().__init__(parent)
         self._tab = tab
         self._widget = typing.cast(QWidget, None)
-        self.selection_state = SelectionState.none
         self._mode_manager = mode_manager
         mode_manager.entered.connect(self._on_mode_entered)
         mode_manager.left.connect(self._on_mode_left)
