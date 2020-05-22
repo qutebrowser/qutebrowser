@@ -35,6 +35,7 @@ Added
 - New `:debug-keytester` command, which shows a "key tester" widget.
   Previously, that was only available as a separate application via `python3 -m
   scripts.keytester`.
+- New line selection mode (`:toggle-selection --line`), bound to `Shift-V` in caret mode.
 
 Fixed
 ~~~~~

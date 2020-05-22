@@ -1885,7 +1885,12 @@ This acts like readline's yank.
 
 [[toggle-selection]]
 === toggle-selection
+Syntax: +:toggle-selection [*--line*]+
+
 Toggle caret selection mode.
+
+==== optional arguments
+* +*-l*+, +*--line*+: Enables line-selection.
 
 
 == Debugging commands
