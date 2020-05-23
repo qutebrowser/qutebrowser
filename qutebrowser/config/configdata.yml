@@ -136,6 +136,17 @@ session.save_when_close:
   desc: >-
     Whether to automatically save a session when it is closed.
 
+session.startup_sessions:
+  type:
+    name: List
+    valtype: String
+    none_ok: true
+  default: null
+  #TODO The default value doesn't seem to actually be set to None, so this doesn't work
+  desc: >-
+    Which sessions to load on startup. None will load the last saved sessions
+    from the sate file, if you want to not load any sessions, pass an empty list.
+
 backend:
   type:
     name: String
