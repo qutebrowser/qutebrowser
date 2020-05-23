@@ -63,15 +63,23 @@ def init():
     if webenginesettings.private_profile:
         _qute_scheme_handler.install(webenginesettings.private_profile)
 
-    log.init.debug("Setting up DBus notification presenter...")
-    try:
-        presenter = notification.DBusNotificationPresenter()
-        for p in [webenginesettings.default_profile, webenginesettings.private_profile]:
-            if not p:
-                continue
-            presenter.install(p)
-    except notification.DBusException as e:
-        log.init.error("Failed to initialize DBus notification presenter: {}".format(e))
+    should_use_dbus = (
+        config.val.content.notification_presenter == "libnotify" and
+        # Don't even try to use DBus notifications on platforms that won't have
+        # it supported.
+        not utils.is_windows and
+        not utils.is_mac
+    )
+    if should_use_dbus:
+        log.init.debug("Setting up DBus notification presenter...")
+        try:
+            presenter = notification.DBusNotificationPresenter()
+            for p in [webenginesettings.default_profile, webenginesettings.private_profile]:
+                if not p:
+                    continue
+                presenter.install(p)
+        except notification.DBusException as e:
+            log.init.error("Failed to initialize DBus notification presenter: {}".format(e))
 
     log.init.debug("Initializing request interceptor...")
     req_interceptor = interceptor.RequestInterceptor(parent=app)

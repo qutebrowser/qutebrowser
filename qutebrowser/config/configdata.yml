@@ -758,6 +758,23 @@ content.notifications:
     QtWebKit: true
   desc: Allow websites to show notifications.
 
+content.notification_presenter:
+  default: libnotify
+  restart: true  # no way to clear the presenter libnotify installs
+  type:
+    name: String
+    valid_values:
+      - qt: Use Qt's native notification presenter.
+      - libnotify: Use a libnotify-compatible presenter if one is present,
+            otherwise fall back to Qt.
+  backend:
+    QtWebEngine: Qt 5.13
+    QtWebKit: false
+  desc: >-
+    What notification presenter to use for web notifications.
+
+    Windows and macOS will always act as if this is set to `qt.`
+
 content.pdfjs:
   default: false
   type: Bool
