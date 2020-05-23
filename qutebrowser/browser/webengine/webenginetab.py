@@ -64,11 +64,14 @@ def init():
         _qute_scheme_handler.install(webenginesettings.private_profile)
 
     log.init.debug("Setting up DBus notification presenter...")
-    presenter = notification.DBusNotificationPresenter()
-    for p in [webenginesettings.default_profile, webenginesettings.private_profile]:
-        if not p:
-            continue
-        presenter.install(p)
+    try:
+        presenter = notification.DBusNotificationPresenter()
+        for p in [webenginesettings.default_profile, webenginesettings.private_profile]:
+            if not p:
+                continue
+            presenter.install(p)
+    except notification.DBusException as e:
+        log.init.error("Failed to initialize DBus notification presenter: {}".format(e))
 
     log.init.debug("Initializing request interceptor...")
     req_interceptor = interceptor.RequestInterceptor(parent=app)
