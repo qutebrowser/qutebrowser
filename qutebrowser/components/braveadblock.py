@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -51,21 +51,17 @@ def _is_whitelisted_url(url: QUrl) -> bool:
         if pattern.matches(url):
             return True
 
-    # Prevent a block-list for being able to block itself, otherwise you
+    # Prevent a block-list from being able to block itself, otherwise you
     # couldn't update it.
-    if config.val.content.blocking.adblock.lists is not None:
-        # FIXME: This list comprehension is probably too expensive to do for
-        # every request. There must be a better way.
-        block_list_urls = [
-            url.toString() for url in config.val.content.blocking.adblock.lists
-        ]
-        if url.toString() in block_list_urls:
+    blocklists = config.val.content.blocking.adblock.lists
+    if blocklists is not None:
+        if url in blocklists:
             return True
 
     return False
 
 
-MAP_FROM_RESOURCE_TYPE_TO_STRING = {
+_RESOURCE_TYPE_STRINGS = {
     ResourceType.main_frame: "main_frame",
     ResourceType.sub_frame: "sub_frame",
     ResourceType.stylesheet: "stylesheet",
@@ -87,11 +83,12 @@ MAP_FROM_RESOURCE_TYPE_TO_STRING = {
     ResourceType.preload_main_frame: "other",
     ResourceType.preload_sub_frame: "other",
     ResourceType.unknown: "other",
+    None: ""
 }
 
 
-def resource_type_to_string(resource_type: ResourceType) -> str:
-    return MAP_FROM_RESOURCE_TYPE_TO_STRING.get(resource_type, "other")
+def resource_type_to_string(resource_type: typing.Optional[ResourceType]) -> str:
+    return _RESOURCE_TYPE_STRINGS.get(resource_type, "other")
 
 
 # TODO: Move this code somewhere so that `adblock.py` can make use of it too.
@@ -144,7 +141,6 @@ class BraveAdBlocker:
         resource_type: typing.Optional[interceptor.ResourceType] = None,
     ) -> bool:
         """Check whether the given request is blocked."""
-        first_party_url = first_party_url
         if first_party_url is not None and not first_party_url.isValid():
             first_party_url = None
 
@@ -157,22 +153,22 @@ class BraveAdBlocker:
         result = self._engine.check_network_urls(
             request_url.toString(),
             first_party_url.toString() if first_party_url else "",
-            resource_type_to_string(resource_type) if resource_type else "",
+            resource_type_to_string(resource_type),
         )
 
         if not result.matched:
             return False
-        if (result.exception is not None) and (result.important is None):
+        if result.exception is not None and result.important is None:
             logger.debug(
                 "Excepting {} from being blocked by {} because of {}".format(
-                    request_url.toString(), result.filter, result.exception
+                    request_url.toDisplayString(), result.filter, result.exception
                 )
             )
             return False
         if _is_whitelisted_url(request_url):
             logger.debug(
                 "Request to {} is whitelisted, thus not blocked".format(
-                    request_url.toString()
+                    request_url.toDisplayString()
                 )
             )
             return False
@@ -183,7 +179,7 @@ class BraveAdBlocker:
         if self._is_blocked(info.request_url, info.first_party_url, info.resource_type):
             logger.info(
                 "Request to {} blocked by ad blocker.".format(
-                    info.request_url.toString()
+                    info.request_url.toDisplayString()
                 )
             )
             info.block()
@@ -284,13 +280,7 @@ class BraveAdBlocker:
 
 @cmdutils.register()
 def brave_adblock_update() -> None:
-    """Update the adblock block lists.
-
-    This updates `~/.local/share/qutebrowser/blocked-hosts` with downloaded
-    host lists and re-reads `~/.config/qutebrowser/blocked-hosts`.
-    """
-    # FIXME: As soon as we can register instances again, we should move this
-    # back to the class.
+    """Update the adblock block lists."""
 
     if _ad_blocker is not None:
         _ad_blocker.adblock_update()

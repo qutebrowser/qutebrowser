@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -158,7 +158,7 @@ def create_easylist_easyprivacy(directory) -> List[str]:
 
 
 @pytest.fixture
-def ad_blocker_factory(config_tmpdir, data_tmpdir, download_stub, config_stub):
+def ad_blocker_factory(data_tmpdir):
     def factory():
         return BraveAdBlocker(engine_factory=lambda: Engine([]), data_dir=data_tmpdir)
 
@@ -291,7 +291,7 @@ def test_config_changed(ad_blocker_factory, config_stub, tmpdir, caplog):
         assert_none_blocked(ad_blocker)
 
 
-def test_whitelist_on_dataset(ad_blocker_factory, config_stub, tmpdir, caplog):
+def test_whitelist_on_dataset(config_stub, tmpdir):
     config_stub.val.content.blocking.adblock.lists = create_easylist_easyprivacy(tmpdir)
     config_stub.val.content.blocking.adblock.enabled = True
     config_stub.val.content.blocking.whitelist = None
@@ -308,7 +308,7 @@ def test_whitelist_on_dataset(ad_blocker_factory, config_stub, tmpdir, caplog):
     run_function_on_dataset(assert_whitelisted)
 
 
-def test_blocklists_are_whitelisted(ad_blocker_factory, config_stub, tmpdir, caplog):
+def test_blocklists_are_whitelisted(config_stub, tmpdir):
     blocklist_urls = [url for url, _s_url, _type in NOT_OKAY_URLS]
     config_stub.val.content.blocking.adblock.lists = (
         create_easylist_easyprivacy(tmpdir) + blocklist_urls
