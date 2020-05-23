@@ -747,7 +747,7 @@ def load_default(name):
         name: The name of the session to load, or None to read state file.
     """
     if name is not None:
-        names = [name]
+        names = name.split(',')
     elif session_manager.exists('_autosave'):
         names = ['_autosave']
     elif config.val.session.startup_sessions is not None:
