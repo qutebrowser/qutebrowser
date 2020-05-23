@@ -37,8 +37,7 @@ from qutebrowser.browser import (browsertab, eventfilter, shared, webelem,
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            cookies, webenginedownloads,
-                                           webenginesettings, certificateerror,
-                                           notification)
+                                           webenginesettings, certificateerror)
 from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, objreg, jinja, debug)
@@ -64,6 +63,7 @@ def init():
         _qute_scheme_handler.install(webenginesettings.private_profile)
 
     should_use_dbus = (
+        qtutils.version_check("5.13") and
         config.val.content.notification_presenter == "libnotify" and
         # Don't even try to use DBus notifications on platforms that won't have
         # it supported.
@@ -71,6 +71,9 @@ def init():
         not utils.is_mac
     )
     if should_use_dbus:
+        # Import here because some of the classes it uses don't even exist
+        # prior to 5.13.
+        from qutebrowser.browser.webengine import notification
         log.init.debug("Setting up DBus notification presenter...")
         try:
             presenter = notification.DBusNotificationPresenter()
