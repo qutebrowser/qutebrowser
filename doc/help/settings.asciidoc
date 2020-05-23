@@ -1762,6 +1762,7 @@ This setting is only available with the QtWebEngine backend.
 [[content.cookies.accept]]
 === content.cookies.accept
 Which cookies to accept.
+With QtWebEngine, this setting also controls other features with tracking capabilities similar to those of cookies; including IndexedDB, DOM storage, filesystem API, service workers, and AppCache.
 Note that with QtWebKit, only `all` and `never` are supported as per-domain values. Setting `no-3rdparty` or `no-unknown-3rdparty` per-domain on QtWebKit will have the same effect as `all`.
 
 This setting supports URL patterns.
