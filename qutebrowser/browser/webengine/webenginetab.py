@@ -37,7 +37,8 @@ from qutebrowser.browser import (browsertab, eventfilter, shared, webelem,
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            cookies, webenginedownloads,
-                                           webenginesettings, certificateerror)
+                                           webenginesettings, certificateerror,
+                                           notification)
 from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, objreg, jinja, debug)
@@ -61,6 +62,13 @@ def init():
     _qute_scheme_handler.install(webenginesettings.default_profile)
     if webenginesettings.private_profile:
         _qute_scheme_handler.install(webenginesettings.private_profile)
+
+    log.init.debug("Setting up DBus notification presenter...")
+    presenter = notification.DBusNotificationPresenter()
+    for p in [webenginesettings.default_profile, webenginesettings.private_profile]:
+        if not p:
+            continue
+        presenter.install(p)
 
     log.init.debug("Initializing request interceptor...")
     req_interceptor = interceptor.RequestInterceptor(parent=app)

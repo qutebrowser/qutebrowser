@@ -32,7 +32,7 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
                                       QWebEnginePage)
 
-from qutebrowser.browser.webengine import notification, spell, webenginequtescheme
+from qutebrowser.browser.webengine import spell, webenginequtescheme
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import (utils, standarddir, qtutils, message, log,
@@ -361,8 +361,6 @@ def _init_profiles():
 
     default_profile = QWebEngineProfile.defaultProfile()
     init_user_agent()
-    presenter = notification.DBusNotificationPresenter()
-    presenter.install(default_profile)
 
     default_profile.setter = ProfileSetter(  # type: ignore[attr-defined]
         default_profile)
@@ -378,8 +376,6 @@ def _init_profiles():
         private_profile.setter = ProfileSetter(  # type: ignore[attr-defined]
             private_profile)
         assert private_profile.isOffTheRecord()
-        private_profile.setter.init_profile()
-        presenter.install(private_profile)
 
 
 def _init_site_specific_quirks():
