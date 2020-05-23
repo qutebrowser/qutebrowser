@@ -750,6 +750,10 @@ def load_default(name):
         names = [name]
     elif session_manager.exists('_autosave'):
         names = ['_autosave']
+    elif config.val.session.startup_sessions is not None:
+        names = config.val.session.startup_sessions
+        if not isinstance(names, list):
+            names = [names]
     else:
         try:
             names = configfiles.state['general']['session'].split(',')
