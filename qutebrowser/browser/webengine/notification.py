@@ -38,9 +38,6 @@ class DBusNotificationPresenter:
     """Manages notifications that are sent over DBus."""
 
     def __init__(self):
-        # Dict mapping notification IDs to the corresponding QWebEngine
-        # notification objects.
-        self.active_notifications = {}
         bus = QDBusConnection.sessionBus()
         if not bus.isConnected():
             raise DBusException("Failed to connect to DBus session bus")
