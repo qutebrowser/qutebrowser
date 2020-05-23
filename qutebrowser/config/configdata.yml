@@ -130,6 +130,12 @@ session.lazy_restore:
   default: false
   desc: Load a restored tab as soon as it takes focus.
 
+session.save_when_close:
+  type: Bool
+  default: True
+  desc: >-
+    Whether to automatically save a session when it is closed.
+
 backend:
   type:
     name: String

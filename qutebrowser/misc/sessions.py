@@ -630,6 +630,7 @@ def session_window_unset(*, win_id: int = None) -> None:
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
 def session_close(name: str = None, *,
                   save: bool = False,
+                  nosave: bool = False,
                   force: bool = False,
                   win_id: int = None) -> None:
     """Close a session.
@@ -638,7 +639,11 @@ def session_close(name: str = None, *,
         name: The name of the session. If not given the session of the
               current window is closed.
         save: Save the session before closing it
+        nosave: Don't save the session, overrides config.session.save_when_close
     """
+    if save and nosave:
+        raise cmdutils.CommandError("Both --save and --nosave have been given.")
+
     if name is not None and name.startswith('_') and not force:
         raise cmdutils.CommandError("{} is an internal session, use --force "
                                     "to close anyways.".format(name))
@@ -648,8 +653,7 @@ def session_close(name: str = None, *,
 
     log.sessions.vdebug("Closing session: {}".format(name))
 
-    #TODO config for save by default
-    if save:
+    if not nosave and (save or config.val.session.save_when_close):
         #TODO also needs to handle private windows if required
         session_manager.save(name)
 
