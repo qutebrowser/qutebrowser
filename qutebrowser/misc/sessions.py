@@ -624,6 +624,8 @@ def session_window_set(name: str, *,
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
     tabbed_browser.session = name
+    #FIXME Probably not meant to call this from here
+    tabbed_browser._update_window_title("session")
 
 @cmdutils.register()
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
@@ -632,6 +634,8 @@ def session_window_unset(*, win_id: int = None) -> None:
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
     tabbed_browser.session = "_nosession"
+    #FIXME Probably not meant to call this from here
+    tabbed_browser._update_window_title("session")
 
 
 @cmdutils.register()
