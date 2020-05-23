@@ -19,12 +19,12 @@
 
 """Handles sending notifications over DBus."""
 
-from typing import Dict, Any
+import typing
 
 from qutebrowser.utils import log
 
 from PyQt5.QtGui import QImage
-from PyQt5.QtCore import QVariant, QMetaType, QByteArray
+from PyQt5.QtCore import QVariant, QMetaType, QByteArray, PYQT_VERSION
 from PyQt5.QtDBus import QDBusConnection, QDBusInterface, QDBus, QDBusArgument
 from PyQt5.QtWebEngineCore import QWebEngineNotification
 from PyQt5.QtWebEngineWidgets import QWebEngineProfile
@@ -34,7 +34,7 @@ class DBusException(Exception):
     """Raised when something goes wrong with talking to DBus."""
 
 
-class DBusNotificationManager:
+class DBusNotificationPresenter:
     """Manages notifications that are sent over DBus."""
 
     def __init__(self):
@@ -55,18 +55,21 @@ class DBusNotificationManager:
         if not self.interface:
             raise DBusException("Could not construct a DBus interface")
 
-    def set_as_presenter_for(self, profile: QWebEngineProfile) -> None:
+    def install(self, profile: QWebEngineProfile) -> None:
         """Sets the profile to use the manager as the presenter."""
-        # PyQtWebEngine unrefs the callback after it's called, for some reason.
-        # So we call setNotificationPresenter again to *increase* its refcount
-        # to prevent it from getting GC'd. Otherwise, random methods start
-        # getting called with the notification as `self`, or segfaults happen,
-        # or other badness.
-        def _present_and_reset(qt_notification: QWebEngineNotification) -> None:
+        # WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042916.html
+        if PYQT_VERSION < 0x050F00:  # PyQt 5.15
+            # PyQtWebEngine unrefs the callback after it's called, for some reason.
+            # So we call setNotificationPresenter again to *increase* its refcount
+            # to prevent it from getting GC'd. Otherwise, random methods start
+            # getting called with the notification as `self`, or segfaults happen,
+            # or other badness.
+            def _present_and_reset(qt_notification: QWebEngineNotification) -> None:
+                profile.setNotificationPresenter(_present_and_reset)
+                self._present(qt_notification)
             profile.setNotificationPresenter(_present_and_reset)
-            self._present(qt_notification)
-
-        profile.setNotificationPresenter(_present_and_reset)
+        else:
+            profile.setNotificationPresenter(self._present)
 
     def _present(self, qt_notification: QWebEngineNotification) -> None:
         """Shows a notification over DBus.
@@ -82,11 +85,11 @@ class DBusNotificationManager:
         actions_list = QDBusArgument([], QMetaType.QStringList)
 
         qt_notification.show()
-        hints: Dict[str, Any] = {
+        hints = {
             # Include the origin in case the user wants to do different things
             # with different origin's notifications.
             "x-qutebrowser-origin": qt_notification.origin().toDisplayString()
-        }
+        }  # type: typing.Dict[str, typing.Any]
         if not qt_notification.icon().isNull():
             hints["image-data"] = self._convert_image(qt_notification.icon())
 
@@ -103,11 +106,9 @@ class DBusNotificationManager:
             -1,  # timeout; -1 means 'use default'
         )
 
-        if len(reply.arguments()) != 1:
+        if reply.signature() != "u":
             raise DBusException(
-                "Got an unexpected number of reply arguments {}".format(
-                    len(reply.arguments())
-                )
+                "Got an unexpected reply {}; expected a single uint32".format(reply.arguments())
             )
 
         notification_id = reply.arguments()[0]
@@ -127,8 +128,14 @@ class DBusNotificationManager:
         # RGBA_8888 always has 8 bits per color, 4 channels.
         image_data.add(8)
         image_data.add(4)
-        # sizeInBytes() is preferred, but PyQt complains it's a private method.
-        bits = qimage.constBits().asstring(qimage.byteCount())
+        try:
+            size = qimage.sizeInBytes()
+        except TypeError:
+            # WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042919.html
+            # byteCount() is obsolete, but sizeInBytes() is only available with
+            # SIP >= 5.3.0.
+            size = qimage.byteCount()
+        bits = qimage.constBits().asstring(size)
         image_data.add(QByteArray(bits))
         image_data.endStructure()
         return image_data

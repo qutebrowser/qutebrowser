@@ -361,8 +361,8 @@ def _init_profiles():
 
     default_profile = QWebEngineProfile.defaultProfile()
     init_user_agent()
-    manager = notification.DBusNotificationManager()
-    manager.set_as_presenter_for(default_profile)
+    presenter = notification.DBusNotificationPresenter()
+    presenter.install(default_profile)
 
     default_profile.setter = ProfileSetter(  # type: ignore[attr-defined]
         default_profile)
@@ -379,7 +379,7 @@ def _init_profiles():
             private_profile)
         assert private_profile.isOffTheRecord()
         private_profile.setter.init_profile()
-        manager.set_as_presenter_for(private_profile)
+        presenter.install(private_profile)
 
 
 def _init_site_specific_quirks():
