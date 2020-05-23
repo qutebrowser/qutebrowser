@@ -35,6 +35,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<bookmark-add,bookmark-add>>|Save the current page as a bookmark, or a specific url.
 |<<bookmark-del,bookmark-del>>|Delete a bookmark.
 |<<bookmark-load,bookmark-load>>|Load a bookmark.
+|<<brave-adblock-update,brave-adblock-update>>|Update the adblock block lists.
 |<<buffer,buffer>>|Select tab by index or url/title best match.
 |<<clear-keychain,clear-keychain>>|Clear the currently entered key chain.
 |<<clear-messages,clear-messages>>|Clear all message notifications.
@@ -226,6 +227,12 @@ Load a bookmark.
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
 
+[[brave-adblock-update]]
+=== brave-adblock-update
+Update the adblock block lists.
+
+This updates `~/.local/share/qutebrowser/blocked-hosts` with downloaded host lists and re-reads `~/.config/qutebrowser/blocked-hosts`.
+
 [[buffer]]
 === buffer
 Syntax: +:buffer ['index']+
@@ -285,8 +292,7 @@ Set all settings back to their default.
 
 [[config-cycle]]
 === config-cycle
-Syntax: +:config-cycle [*--pattern* 'pattern'] [*--temp*] [*--print*]
-             'option' ['values' ['values' ...]]+
+Syntax: +:config-cycle [*--pattern* 'pattern'] [*--temp*] [*--print*] 'option' ['values' ['values' ...]]+
 
 Cycle an option between multiple values.
 
@@ -597,8 +603,7 @@ Show help about a command or setting.
 
 [[hint]]
 === hint
-Syntax: +:hint [*--mode* 'mode'] [*--add-history*] [*--rapid*] [*--first*]
-     ['group'] ['target'] ['args' ['args' ...]]+
+Syntax: +:hint [*--mode* 'mode'] [*--add-history*] [*--rapid*] [*--first*] ['group'] ['target'] ['args' ['args' ...]]+
 
 Start hinting.
 
@@ -855,8 +860,7 @@ Do nothing.
 
 [[open]]
 === open
-Syntax: +:open [*--related*] [*--bg*] [*--tab*] [*--window*] [*--secure*] [*--private*]
-     ['url']+
+Syntax: +:open [*--related*] [*--bg*] [*--tab*] [*--window*] [*--secure*] [*--private*] ['url']+
 
 Open a URL in the current/[count]th tab.
 
@@ -1186,9 +1190,7 @@ Load a session.
 
 [[session-save]]
 === session-save
-Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-window*]
-             [*--with-private*]
-             ['name']+
+Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-window*] [*--with-private*] ['name']+
 
 Save a session.
 
@@ -1252,9 +1254,7 @@ Set a mark at the current scroll position in the current tab.
 
 [[spawn]]
 === spawn
-Syntax: +:spawn [*--userscript*] [*--verbose*] [*--output*] [*--output-messages*]
-      [*--detach*]
-      'cmdline'+
+Syntax: +:spawn [*--userscript*] [*--verbose*] [*--output*] [*--output-messages*] [*--detach*] 'cmdline'+
 
 Spawn an external command.
 
