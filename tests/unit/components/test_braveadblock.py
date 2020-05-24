@@ -33,8 +33,6 @@ from helpers import utils
 
 pytestmark = pytest.mark.usefixtures("qapp")
 
-THIS_DIR = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-
 OKAY_URLS = [
     (
         "https://qutebrowser.org/icons/qutebrowser.svg",
