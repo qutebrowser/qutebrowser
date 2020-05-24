@@ -20,13 +20,13 @@
 import logging
 import csv
 import os.path
-from typing import Tuple, List, Iterable
-from shutil import copy
+import typing
+import shutil
 
 from PyQt5.QtCore import QUrl
 
 import pytest
-from adblock import Engine
+import adblock
 
 from qutebrowser.api.interceptor import ResourceType
 from qutebrowser.components.braveadblock import BraveAdBlocker, _is_whitelisted_url
@@ -138,36 +138,37 @@ def assert_none_blocked(ad_blocker):
     )
 
 
-def create_blocklist_invalid_utf8(directory) -> str:
-    dest_path = os.path.join(directory, "invalid_utf8.txt")
+@pytest.fixture
+def blocklist_invalid_utf8(tmpdir):
+    dest_path = os.path.join(tmpdir, "invalid_utf8.txt")
     with open(dest_path, "wb") as f:
         f.write(b"invalidutf8\xa0")
     return QUrl.fromLocalFile(dest_path).toString()
 
 
-def create_easylist_easyprivacy(directory) -> List[str]:
+@pytest.fixture
+def easylist_easyprivacy(tmpdir):
     """Copy the easyprivacy and easylist blocklists into the given dir."""
     urls = []
     for blocklist in ["easyprivacy.txt", "easylist.txt"]:
         bl_src_path = os.path.join(THIS_DIR, "data", blocklist)
-        bl_dst_path = os.path.join(directory, blocklist)
-        copy(bl_src_path, bl_dst_path)
+        bl_dst_path = os.path.join(tmpdir, blocklist)
+        shutil.copy(bl_src_path, bl_dst_path)
         assert os.path.isfile(bl_dst_path)
         urls.append(QUrl.fromLocalFile(bl_dst_path).toString())
     return urls
 
 
 @pytest.fixture
-def ad_blocker_factory(data_tmpdir):
-    def factory():
-        return BraveAdBlocker(engine_factory=lambda: Engine([]), data_dir=data_tmpdir)
-
-    return factory
+def ad_blocker(data_tmpdir):
+    return BraveAdBlocker(
+        engine_factory=lambda: adblock.Engine([]), data_dir=data_tmpdir
+    )
 
 
 def assert_urls(
     ad_blocker: BraveAdBlocker,
-    urls: Iterable[Tuple[str, str, ResourceType]],
+    urls: typing.Iterable[typing.Tuple[str, str, ResourceType]],
     should_be_blocked: bool,
 ) -> None:
     for (str_url, source_str_url, request_type) in urls:
@@ -183,13 +184,17 @@ def assert_urls(
     "blocking_enabled, should_be_blocked", [(True, True), (False, False)]
 )
 def test_blocking_enabled(
-    config_stub, tmpdir, caplog, ad_blocker_factory, blocking_enabled, should_be_blocked
+    config_stub,
+    easylist_easyprivacy,
+    caplog,
+    ad_blocker,
+    blocking_enabled,
+    should_be_blocked,
 ):
     """Tests that the ads are blocked when the adblocker is enabled, and vice versa."""
-    config_stub.val.content.blocking.adblock.lists = create_easylist_easyprivacy(tmpdir)
+    config_stub.val.content.blocking.adblock.lists = easylist_easyprivacy
     config_stub.val.content.blocking.adblock.enabled = blocking_enabled
 
-    ad_blocker = ad_blocker_factory()
     ad_blocker.adblock_update()
     while ad_blocker._in_progress:
         current_download = ad_blocker._in_progress[0]
@@ -200,11 +205,10 @@ def test_blocking_enabled(
     assert_urls(ad_blocker, OKAY_URLS, False)
 
 
-def test_adblock_cache(config_stub, tmpdir, caplog, ad_blocker_factory):
-    config_stub.val.content.blocking.adblock.lists = create_easylist_easyprivacy(tmpdir)
+def test_adblock_cache(config_stub, easylist_easyprivacy, caplog, ad_blocker):
+    config_stub.val.content.blocking.adblock.lists = easylist_easyprivacy
     config_stub.val.content.blocking.adblock.enabled = True
 
-    ad_blocker = ad_blocker_factory()
     for i in range(3):
         print("At cache test iteration {}".format(i))
         # Trying to read the cache before calling the update command should return
@@ -242,29 +246,26 @@ def test_adblock_cache(config_stub, tmpdir, caplog, ad_blocker_factory):
         os.remove(ad_blocker._cache_path)
 
 
-def test_invalid_utf8(ad_blocker_factory, config_stub, tmpdir, caplog):
+def test_invalid_utf8(ad_blocker, config_stub, blocklist_invalid_utf8, caplog):
     """Test that the adblocker handles invalid utf-8 correctly."""
-    config_stub.val.content.blocking.adblock.lists = [create_blocklist_invalid_utf8(tmpdir)]
+    config_stub.val.content.blocking.adblock.lists = [blocklist_invalid_utf8]
     config_stub.val.content.blocking.adblock.enabled = True
 
-    ad_blocker = ad_blocker_factory()
     with caplog.at_level(logging.INFO):
         ad_blocker.adblock_update()
     expected = "Block list is not valid utf-8"
     assert caplog.messages[-2].startswith(expected)
 
 
-def test_config_changed(ad_blocker_factory, config_stub, tmpdir, caplog):
+def test_config_changed(ad_blocker, config_stub, easylist_easyprivacy, caplog):
     """Ensure blocked-hosts resets if host-block-list is changed to None."""
     config_stub.val.content.blocking.adblock.enabled = True
     config_stub.val.content.blocking.whitelist = None
 
-    ad_blocker = ad_blocker_factory()
-
     for _ in range(2):
         # We should be blocking like normal, since the block lists are set to
         # easylist and easyprivacy.
-        config_stub.val.content.blocking.adblock.lists = create_easylist_easyprivacy(tmpdir)
+        config_stub.val.content.blocking.adblock.lists = easylist_easyprivacy
         ad_blocker.adblock_update()
         while ad_blocker._in_progress:
             current_download = ad_blocker._in_progress[0]
@@ -291,8 +292,8 @@ def test_config_changed(ad_blocker_factory, config_stub, tmpdir, caplog):
         assert_none_blocked(ad_blocker)
 
 
-def test_whitelist_on_dataset(config_stub, tmpdir):
-    config_stub.val.content.blocking.adblock.lists = create_easylist_easyprivacy(tmpdir)
+def test_whitelist_on_dataset(config_stub, easylist_easyprivacy):
+    config_stub.val.content.blocking.adblock.lists = easylist_easyprivacy
     config_stub.val.content.blocking.adblock.enabled = True
     config_stub.val.content.blocking.whitelist = None
 
@@ -308,10 +309,10 @@ def test_whitelist_on_dataset(config_stub, tmpdir):
     run_function_on_dataset(assert_whitelisted)
 
 
-def test_blocklists_are_whitelisted(config_stub, tmpdir):
+def test_blocklists_are_whitelisted(config_stub, easylist_easyprivacy):
     blocklist_urls = [url for url, _s_url, _type in NOT_OKAY_URLS]
     config_stub.val.content.blocking.adblock.lists = (
-        create_easylist_easyprivacy(tmpdir) + blocklist_urls
+        easylist_easyprivacy + blocklist_urls
     )
     config_stub.val.content.blocking.adblock.enabled = True
     config_stub.val.content.blocking.whitelist = None
