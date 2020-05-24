@@ -21,7 +21,6 @@ import logging
 import csv
 import os.path
 import typing
-import shutil
 
 from PyQt5.QtCore import QUrl
 
@@ -30,6 +29,7 @@ import adblock
 
 from qutebrowser.api.interceptor import ResourceType
 from qutebrowser.components.braveadblock import BraveAdBlocker, _is_whitelisted_url
+from helpers import utils
 
 pytestmark = pytest.mark.usefixtures("qapp")
 
@@ -115,14 +115,13 @@ def run_function_on_dataset(given_function):
             assert type_int == 7
             return ResourceType.sub_frame
 
-    dataset_path = os.path.join(THIS_DIR, "data", "adblock_dataset.tsv")
-    with open(dataset_path, "r", encoding="utf-8") as f:
-        reader = csv.DictReader(f, delimiter="\t")
-        for row in reader:
-            url = QUrl(row["url"])
-            source_url = QUrl(row["source_url"])
-            resource_type = dataset_type_to_enum(int(row["type"]))
-            given_function(url, source_url, resource_type)
+    dataset = utils.adblock_dataset_tsv()
+    reader = csv.DictReader(dataset, delimiter="\t")
+    for row in reader:
+        url = QUrl(row["url"])
+        source_url = QUrl(row["source_url"])
+        resource_type = dataset_type_to_enum(int(row["type"]))
+        given_function(url, source_url, resource_type)
 
 
 def assert_none_blocked(ad_blocker):
@@ -150,10 +149,13 @@ def blocklist_invalid_utf8(tmpdir):
 def easylist_easyprivacy(tmpdir):
     """Copy the easyprivacy and easylist blocklists into the given dir."""
     urls = []
-    for blocklist in ["easyprivacy.txt", "easylist.txt"]:
-        bl_src_path = os.path.join(THIS_DIR, "data", blocklist)
-        bl_dst_path = os.path.join(tmpdir, blocklist)
-        shutil.copy(bl_src_path, bl_dst_path)
+    for blocklist, filename in [
+        (utils.easylist_txt(), "easylist.txt"),
+        (utils.easyprivacy_txt(), "easyprivacy.txt"),
+    ]:
+        bl_dst_path = os.path.join(tmpdir, filename)
+        with open(bl_dst_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(list(blocklist)))
         assert os.path.isfile(bl_dst_path)
         urls.append(QUrl.fromLocalFile(bl_dst_path).toString())
     return urls

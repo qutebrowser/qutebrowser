@@ -196,6 +196,22 @@ def ignore_bs4_warning():
         yield
 
 
+def _decompress_gzip_datafile(filename):
+    path = os.path.join(abs_datapath(), filename)
+    yield from io.TextIOWrapper(gzip.open(path), encoding="utf-8")
+
+
 def blocked_hosts():
-    path = os.path.join(abs_datapath(), 'blocked-hosts.gz')
-    yield from io.TextIOWrapper(gzip.open(path), encoding='utf-8')
+    return _decompress_gzip_datafile("blocked-hosts.gz")
+
+
+def adblock_dataset_tsv():
+    return _decompress_gzip_datafile("adblock_dataset.tsv.gz")
+
+
+def easylist_txt():
+    return _decompress_gzip_datafile("easylist.txt.gz")
+
+
+def easyprivacy_txt():
+    return _decompress_gzip_datafile("easyprivacy.txt.gz")
