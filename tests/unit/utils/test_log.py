@@ -254,27 +254,37 @@ class TestInitLog:
         with pytest.raises(PendingDeprecationWarning):
             warnings.warn("test warning", PendingDeprecationWarning)
 
-    @pytest.mark.parametrize(
-        'console_cli, console_conf, console_expected, ram_conf, ram_expected',
+    @pytest.mark.parametrize('cli, conf, expected',
         [
-            (None, 'info', logging.INFO, 'debug', logging.DEBUG),
-            (None, 'info', logging.INFO, 'critical', logging.CRITICAL),
-            (None, 'warning', logging.WARNING, 'info', logging.INFO),
-            ('info', 'warning', logging.INFO, 'vdebug', logging.VDEBUG),
-            ('warning', 'info', logging.WARNING, 'critical', logging.CRITICAL),
+            (None, 'info', logging.INFO),
+            (None, 'warning', logging.WARNING),
+            ('info', 'warning', logging.INFO),
+            ('warning', 'info', logging.WARNING),
         ])
-    def test_init_from_config(self, console_cli, console_conf,
-                              console_expected, ram_conf, ram_expected, args,
-                              config_stub):
+    def test_init_from_config_console(self, cli, conf, expected, args,
+                                      config_stub):
         args.debug = False
-        args.loglevel = console_cli
+        args.loglevel = cli
         log.init_log(args)
 
-        config_stub.val.logging.level.ram = ram_conf
-        config_stub.val.logging.level.console = console_conf
+        config_stub.val.logging.level.console = conf
         log.init_from_config(config_stub.val)
-        assert log.ram_handler.level == ram_expected
-        assert log.console_handler.level == console_expected
+        assert log.console_handler.level == expected
+
+    @pytest.mark.parametrize('conf, expected',
+        [
+            ('vdebug', logging.VDEBUG),
+            ('debug', logging.DEBUG),
+            ('info', logging.INFO),
+            ('critical', logging.CRITICAL),
+        ])
+    def test_init_from_config_ram(self, conf, expected, args, config_stub):
+        args.debug = False
+        log.init_log(args)
+
+        config_stub.val.logging.level.ram = conf
+        log.init_from_config(config_stub.val)
+        assert log.ram_handler.level == expected
 
 
 class TestHideQtWarning:
