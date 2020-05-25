@@ -3198,18 +3198,16 @@ bindings.commands:
 ## logging
 
 logging.level.ram:
-  default: null
+  default: debug
   type:
     name: LogLevel
-    none_ok: true
   desc:
     Level for in-memory logs.
 
 logging.level.console:
-  default: null
+  default: info
   type:
     name: LogLevel
-    none_ok: true
   desc:  >-
     Level for console (stdout/stderr) logs.
     Ignored if the --loglevel or --debug CLI flags are used.

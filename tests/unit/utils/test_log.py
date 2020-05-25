@@ -257,11 +257,11 @@ class TestInitLog:
     @pytest.mark.parametrize(
         'console_cli, console_conf, console_expected, ram_conf, ram_expected',
         [
-            (None, None, logging.INFO, None, logging.NOTSET),
-            (None, None, logging.INFO, 'CRITICAL', logging.CRITICAL),
-            (None, 'WARNING', logging.WARNING, 'INFO', logging.INFO),
-            ('INFO', 'WARNING', logging.INFO, 'VDEBUG', logging.VDEBUG),
-            ('WARNING', 'INFO', logging.WARNING, 'CRITICAL', logging.CRITICAL),
+            (None, 'info', logging.INFO, 'debug', logging.DEBUG),
+            (None, 'info', logging.INFO, 'critical', logging.CRITICAL),
+            (None, 'warning', logging.WARNING, 'info', logging.INFO),
+            ('info', 'warning', logging.INFO, 'vdebug', logging.VDEBUG),
+            ('warning', 'info', logging.WARNING, 'critical', logging.CRITICAL),
         ])
     def test_init_from_config(self, console_cli, console_conf,
                               console_expected, ram_conf, ram_expected, args,

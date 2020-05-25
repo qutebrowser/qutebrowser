@@ -541,17 +541,17 @@ def init_from_config(conf: 'configmodule.ConfigContainer') -> None:
               cyclic import.
     """
     assert _args is not None
-    ramlevel = conf.logging.level.ram
-    consolelevel = conf.logging.level.console
-    if ram_handler and ramlevel:
+    if ram_handler:
+        ramlevel = conf.logging.level.ram
         init.info("Configuring RAM loglevel to %s", ramlevel)
-        ram_handler.setLevel(LOG_LEVELS[ramlevel].upper())
-    if console_handler and consolelevel:
+        ram_handler.setLevel(LOG_LEVELS[ramlevel.upper()])
+    if console_handler:
+        consolelevel = conf.logging.level.console
         if _args.loglevel:
             init.info("--loglevel flag overrides logging.level.console")
         else:
             init.info("Configuring console loglevel to %s", consolelevel)
-            console_handler.setLevel(LOG_LEVELS[consolelevel].upper())
+            console_handler.setLevel(LOG_LEVELS[consolelevel.upper()])
 
 
 class QtWarningFilter(logging.Filter):
