@@ -2016,7 +2016,7 @@ class NewTabPosition(String):
 
 class LogLevel(String):
 
-    """Log level."""
+    """A logging level."""
 
     def __init__(self, none_ok: bool = False) -> None:
         super().__init__(none_ok=none_ok)
