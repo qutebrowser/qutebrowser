@@ -13,7 +13,7 @@ idna==2.9
 jwcrypto==0.7
 lxml==4.5.1
 manhole==1.6.0
-packaging==20.3
+packaging==20.4
 pycparser==2.20
 Pympler==0.8
 pyparsing==2.4.7
