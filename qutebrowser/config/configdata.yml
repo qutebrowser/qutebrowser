@@ -2901,6 +2901,7 @@ bindings.default:
       N: search-prev
       i: enter-mode insert
       v: enter-mode caret
+      V: enter-mode caret ;; toggle-selection --line
       "`": enter-mode set_mark
       "'": enter-mode jump_mark
       yy: yank
