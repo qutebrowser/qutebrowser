@@ -167,7 +167,7 @@ class TestFileHandling:
     def test_backup(self, qtbot, message_mock):
         editor = editormod.ExternalEditor(watch=True)
         editor.edit('foo')
-        with qtbot.wait_signal(editor.file_updated):
+        with qtbot.wait_signal(editor.file_updated, timeout=5000):
             _update_file(editor._filename, 'bar')
 
         editor.backup()
