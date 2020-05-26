@@ -515,7 +515,8 @@ class AbstractCaret(QObject):
     def drop_selection(self) -> None:
         raise NotImplementedError
 
-    def selection(self, callback: typing.Callable[[str], None]) -> None:
+    def selection(self, callback: typing.Callable[[str], None],
+                  rich: bool = False) -> None:
         raise NotImplementedError
 
     def reverse_selection(self) -> None:

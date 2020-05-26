@@ -411,7 +411,6 @@ class WebKitCaret(browsertab.AbstractCaret):
         else:
             callback(self._widget.selectedText())
 
-
     def reverse_selection(self):
         self._tab.run_js_async("""{
             const sel = window.getSelection();
