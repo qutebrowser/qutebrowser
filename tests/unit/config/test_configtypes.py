@@ -271,8 +271,10 @@ class TestAll:
         ]:
             return
         elif (isinstance(typ, functools.partial) and
-              isinstance(typ.func, configtypes.ListOrValue)):
-            # "- /" -> "/"
+              isinstance(typ.func, (configtypes.ListOrValue,
+                                    configtypes.List))):
+            # ListOrValue: "- /" -> "/"
+            # List: "- /" -> ["/"]
             return
         elif (isinstance(typ, configtypes.ListOrValue) and
               isinstance(typ.valtype, configtypes.Int)):
