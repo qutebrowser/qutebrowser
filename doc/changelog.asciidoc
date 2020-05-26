@@ -66,6 +66,9 @@ Fixed
   `QWebEngineFindTextResult` handling added in v1.11.0.
 - When entering caret selection mode (`v, v`) very early before a page is
   loaded, an error is now shown instead of a crash happening.
+- The workaround for session loading with Qt 5.15 now handles
+  `sessions.lazy_restore` so that the saved page is loaded instead of the
+  "stub" page with no possibility to get to the web page.
 
 v1.11.1 (2020-05-07)
 --------------------

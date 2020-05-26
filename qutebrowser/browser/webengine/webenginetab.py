@@ -685,7 +685,11 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
         if qtutils.version_check('5.15', compiled=False):
             # WORKAROUND for https://github.com/qutebrowser/qutebrowser/issues/5359
             if items:
-                self._tab.load_url(items[-1].url)
+                url = items[-1].url
+                if ((url.scheme(), url.host()) == ('qute', 'back') and
+                        len(items) >= 2):
+                    url = items[-2].url
+                self._tab.load_url(url)
             return
 
         if items:
