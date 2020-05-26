@@ -30,6 +30,7 @@ import pytest
 import _pytest.logging
 from PyQt5 import QtCore
 
+from qutebrowser import qutebrowser
 from qutebrowser.utils import log
 from qutebrowser.misc import utilcmds
 
@@ -285,6 +286,19 @@ class TestInitLog:
         config_stub.val.logging.level.ram = conf
         log.init_from_config(config_stub.val)
         assert log.ram_handler.level == expected
+
+    def test_init_from_config_consistent_default(self, config_stub):
+        """Ensure config defaults are consistent with the builtin defaults"""
+        args = qutebrowser.get_argparser().parse_args([])
+        log.init_log(args)
+
+        assert log.ram_handler.level == logging.DEBUG
+        assert log.console_handler.level == logging.INFO
+
+        log.init_from_config(config_stub.val)
+
+        assert log.ram_handler.level == logging.DEBUG
+        assert log.console_handler.level == logging.INFO
 
 
 class TestHideQtWarning:

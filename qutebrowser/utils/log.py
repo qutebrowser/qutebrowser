@@ -296,7 +296,7 @@ def _init_handlers(
         ram_handler = None
     else:
         ram_handler = RAMHandler(capacity=ram_capacity)
-        ram_handler.setLevel(logging.NOTSET)
+        ram_handler.setLevel(logging.DEBUG)
         ram_handler.setFormatter(ram_fmt)
         ram_handler.html_formatter = html_fmt
 
@@ -629,9 +629,7 @@ class RAMHandler(logging.Handler):
             self._data = collections.deque()
 
     def emit(self, record: logging.LogRecord) -> None:
-        if record.levelno >= logging.DEBUG:
-            # We don't log VDEBUG to RAM.
-            self._data.append(record)
+        self._data.append(record)
 
     def dump_log(self, html: bool = False, level: str = 'vdebug') -> str:
         """Dump the complete formatted log data as string.
