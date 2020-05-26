@@ -562,10 +562,10 @@ content.headers.user_agent:
     completions:
       # See https://techblog.willshouse.com/2012/01/03/most-common-user-agents/
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/80.0.3987.163 Safari/537.36"
+          like Gecko) Chrome/81.0.4044.129 Safari/537.36"
         - Chrome 80 Win10
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/80.0.3987.149 Safari/537.36 "
+          Gecko) Chrome/81.0.4044.138 Safari/537.36"
         - Chrome 80 Linux
   supports_pattern: true
   desc: |
