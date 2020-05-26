@@ -92,5 +92,5 @@ def test_err_windows(qtbot, qapp, pre_text, post_text, expected, caplog):
 
     with caplog.at_level(logging.ERROR):
         error.handle_fatal_exc(ValueError("exception"), 'title',
-                            pre_text=pre_text, post_text=post_text,
-                            no_err_windows=False)
+                               pre_text=pre_text, post_text=post_text,
+                               no_err_windows=False)
