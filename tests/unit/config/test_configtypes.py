@@ -216,13 +216,21 @@ class TestAll:
                 pass
             elif (member is configtypes.List or
                   member is configtypes.ListOrValue):
-                yield functools.partial(member, valtype=configtypes.Int())
-                yield functools.partial(member, valtype=configtypes.Url())
+                yield pytest.param(
+                    functools.partial(member, valtype=configtypes.Int()),
+                    id=member.__name__ + '-Int')
+                yield pytest.param(
+                    functools.partial(member, valtype=configtypes.Url()),
+                    id=member.__name__ + '-Url')
             elif member is configtypes.Dict:
-                yield functools.partial(member, keytype=configtypes.String(),
-                                        valtype=configtypes.String())
+                yield pytest.param(
+                    functools.partial(member, keytype=configtypes.String(),
+                                      valtype=configtypes.String()),
+                    id=member.__name__)
             elif member is configtypes.FormatString:
-                yield functools.partial(member, fields=['a', 'b'])
+                yield pytest.param(
+                    functools.partial(member, fields=['a', 'b']),
+                    id=member.__name__)
             elif issubclass(member, configtypes.BaseType):
                 yield member
 
