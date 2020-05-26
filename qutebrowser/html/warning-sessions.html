@@ -15,6 +15,7 @@ qute://warning/sessions</span> to show it again at a later time.</span>
 
 <ul>
     <li>Loading a session with this release will <b>only load the most recently opened page</b> for every tab. As a result, the back/forward-history of every tab <b>will be lost</b> as soon as the session is saved again.</li>
+    <li>Due to that, the <span class="mono">session.lazy_restore</span> setting does not have any effect.</li>
     <li>A one-time backup of the session folder has been created at <span class="mono">{{ datadir }}{{ sep }}sessions{{ sep }}before-qt-515</span>.</li>
 </ul>
 
