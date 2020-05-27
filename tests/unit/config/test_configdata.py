@@ -59,6 +59,9 @@ def test_data(config_stub):
                           option.typ.maxval]:
                 assert value is None or isinstance(value, float), option
 
+        # No double spaces after dots
+        assert '.  ' not in option.description, option
+
 
 def test_init_benchmark(benchmark):
     benchmark(configdata.init)

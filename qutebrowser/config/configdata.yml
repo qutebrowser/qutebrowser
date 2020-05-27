@@ -1975,7 +1975,7 @@ url.searchengines:
     The search engine named `DEFAULT` is used when `url.auto_search` is turned
     on and something else than a URL was entered to be opened. Other search
     engines can be used by prepending the search engine name to the search
-    term, e.g.  `:open google qutebrowser`.
+    term, e.g. `:open google qutebrowser`.
 
 url.start_pages:
   type:
@@ -2719,7 +2719,7 @@ colors.webpage.darkmode.threshold.text:
       Threshold for inverting text with dark mode.
 
       Text colors with brightness below this threshold will be inverted, and
-      above it will be left as in the original, non-dark-mode page.  Set to 256
+      above it will be left as in the original, non-dark-mode page. Set to 256
       to always invert text color or to 0 to never invert text color.
   restart: true
   backend:
@@ -2736,7 +2736,7 @@ colors.webpage.darkmode.threshold.background:
       Threshold for inverting background elements with dark mode.
 
       Background elements with brightness above this threshold will be inverted,
-      and below it will be left as in the original, non-dark-mode page.  Set to
+      and below it will be left as in the original, non-dark-mode page. Set to
       256 to never invert the color or to 0 to always invert it.
 
       Note: This behavior is the opposite of
