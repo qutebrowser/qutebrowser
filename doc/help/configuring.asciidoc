@@ -108,7 +108,7 @@ c.completion.shrink = True
 ----
 
 Note that qutebrowser does some Python magic so it's able to warn you about
-mistyped config settings. As an example, if you do `c.tabs.position = "left"`,
+mistyped config settings. As an example, if you do `c.tabs.possition = "left"`,
 you'll get an error when starting.
 
 See the link:settings{outfilesuffix}[settings help page] for all available settings. The
