@@ -705,6 +705,7 @@ class TestQtArgs:
 
         assert ('--force-dark-mode' in args) == added
 
+    @utils.qt514
     def test_blink_settings(self, config_stub, monkeypatch, parser):
         monkeypatch.setattr(configinit.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
@@ -721,6 +722,13 @@ class TestQtArgs:
 
 
 class TestDarkMode:
+
+    pytestmark = utils.qt514
+
+    @pytest.fixture(autouse=True)
+    def patch_backend(self, monkeypatch):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
 
     @pytest.mark.parametrize('settings, new_qt, expected', [
         # Disabled
@@ -753,7 +761,6 @@ class TestDarkMode:
         ),
 
     ])
-    @utils.qt514
     def test_basics(self, config_stub, monkeypatch,
                     settings, new_qt, expected):
         for k, v in settings.items():
@@ -791,7 +798,6 @@ class TestDarkMode:
         expected = [('darkModeEnabled', 'true'), (exp_key, exp_val)]
         assert list(configinit._darkmode_settings()) == expected
 
-    @utils.qt514
     def test_new_chromium(self):
         """Fail if we encounter an unknown Chromium version.
 
