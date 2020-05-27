@@ -1047,6 +1047,10 @@ class TestInt:
         converted = typ.from_str(text)
         assert typ.to_str(converted) == text
 
+    def test_bounds_handling_unset(self, klass):
+        typ = klass(minval=1, maxval=2)
+        assert typ.to_py(usertypes.UNSET) is usertypes.UNSET
+
 
 class TestFloat:
 

@@ -797,10 +797,15 @@ class _Numeric(BaseType):  # pylint: disable=abstract-method
                 assert isinstance(bound, (int, float)), bound
             return bound
 
-    def _validate_bounds(self, value: typing.Union[None, int, float],
-                         suffix: str = '') -> None:
+    def _validate_bounds(
+            self,
+            value: typing.Union[None, int, float, usertypes.Unset],
+            suffix: str = ''
+    ) -> None:
         """Validate self.minval and self.maxval."""
         if value is None:
+            return
+        elif isinstance(value, usertypes.Unset):
             return
         elif self.minval is not None and value < self.minval:
             raise configexc.ValidationError(
@@ -837,7 +842,10 @@ class Int(_Numeric):
         self.to_py(intval)
         return intval
 
-    def to_py(self, value: typing.Optional[int]) -> typing.Optional[int]:
+    def to_py(
+            self,
+            value: typing.Union[None, int, usertypes.Unset]
+    ) -> typing.Union[None, int, usertypes.Unset]:
         self._basic_py_validation(value, int)
         self._validate_bounds(value)
         return value
@@ -861,8 +869,8 @@ class Float(_Numeric):
 
     def to_py(
             self,
-            value: typing.Union[None, int, float],
-    ) -> typing.Union[None, int, float]:
+            value: typing.Union[None, int, float, usertypes.Unset],
+    ) -> typing.Union[None, int, float, usertypes.Unset]:
         self._basic_py_validation(value, (int, float))
         self._validate_bounds(value)
         return value
