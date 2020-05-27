@@ -2612,6 +2612,169 @@ colors.webpage.prefers_color_scheme_dark:
     QtWebEngine: Qt 5.14
     QtWebKit: false
 
+## dark mode
+
+# darkModeClassifierType is not exposed, as the icon classifier isn't actually
+# implemented in Chromium:
+#
+# https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/platform/graphics/dark_mode_icon_classifier.cc
+
+colors.webpage.darkmode.enabled:
+  default: false
+  type: Bool
+  desc: >-
+    Render all web contents using a dark theme.
+
+    Example configurations from Chromium's `chrome://flags`:
+
+
+    - "With simple HSL/CIELAB/RGB-based inversion": Set
+      `colors.webpage.darkmode.algorithm` accordingly.
+
+    - "With selective image inversion": Set
+      `colors.webpage.darkmode.policy.images` to `smart`.
+
+    - "With selective inversion of non-image elements": Set
+      `colors.webpage.darkmode.threshold.text` to 150 and
+      `colors.webpage.darkmode.threshold.background` to 205.
+
+    - "With selective inversion of everything": Combines the two variants
+      above.
+  restart: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+
+colors.webpage.darkmode.algorithm:
+  default: lightness-cielab
+  desc: "Which algorithm to use for modifying how colors are rendered with
+    darkmode."
+  type:
+    name: String
+    valid_values:
+      - lightness-cielab: Modify colors by converting them to CIELAB color
+            space and inverting the L value.
+      - lightness-hsl: Modify colors by converting them to the HSL color space
+            and inverting the lightness (i.e. the "L" in HSL).
+      - brightness-rgb: Modify colors by subtracting each of r, g, and b from
+            their maximum value.
+      # kSimpleInvertForTesting is not exposed, as it's equivalent to
+      # kInvertBrightness without gamma correction, and only available for
+      # Chromium's automated tests
+  restart: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+
+colors.webpage.darkmode.contrast:
+  default: 0.0
+  type:
+    name: Float
+    minval: -1.0
+    maxval: 1.0
+  desc: >-
+    Contrast for dark mode.
+
+    This only has an effect when `colors.webpage.darkmode.algorithm` is set to
+    `lightness-hsl` or `brightness-rgb`.
+  restart: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+
+colors.webpage.darkmode.policy.images:
+  default: never
+  type:
+    name: String
+    valid_values:
+      - always: Apply dark mode filter to all images.
+      - never: Never apply dark mode filter to any images.
+      - smart: Apply dark mode based on image content.
+  desc: Which images to apply dark mode to.
+  restart: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+
+colors.webpage.darkmode.policy.page:
+  default: smart
+  type:
+    name: String
+    valid_values:
+      - always: Apply dark mode filter to all frames, regardless of content.
+      - smart: Apply dark mode filter to frames based on background color.
+  desc: Which pages to apply dark mode to.
+  restart: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+
+colors.webpage.darkmode.threshold.text:
+  default: 256
+  type:
+    name: Int
+    minval: 0
+    maxval: 256
+  desc: >-
+      Threshold for inverting text with dark mode.
+
+      Text colors with brightness below this threshold will be inverted, and
+      above it will be left as in the original, non-dark-mode page.  Set to 256
+      to always invert text color or to 0 to never invert text color.
+  restart: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+
+colors.webpage.darkmode.threshold.background:
+  default: 0
+  type:
+    name: Int
+    minval: 0
+    maxval: 256
+  desc: >-
+      Threshold for inverting background elements with dark mode.
+
+      Background elements with brightness above this threshold will be inverted,
+      and below it will be left as in the original, non-dark-mode page.  Set to
+      256 to never invert the color or to 0 to always invert it.
+
+      Note: This behavior is the opposite of
+      `colors.webpage.darkmode.threshold.text`!
+  restart: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+
+colors.webpage.darkmode.grayscale.all:
+  default: false
+  type: Bool
+  desc: >-
+    Render all colors as grayscale.
+
+    This only has an effect when `colors.webpage.darkmode.algorithm` is set to
+    `lightness-hsl` or `brightness-rgb`.
+  restart: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+
+colors.webpage.darkmode.grayscale.images:
+  default: 0.0
+  type:
+    name: Float
+    minval: 0.0
+    maxval: 1.0
+  desc: >-
+    Desaturation factor for images in dark mode.
+
+    If set to 0, images are left as-is. If set to 1, images are completely
+    grayscale. Values between 0 and 1 desaturate the colors accordingly.
+  restart: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+
 # emacs: '
 
 ## fonts

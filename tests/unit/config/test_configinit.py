@@ -28,7 +28,7 @@ import pytest
 from qutebrowser import qutebrowser
 from qutebrowser.config import (config, configexc, configfiles, configinit,
                                 configdata, configtypes)
-from qutebrowser.utils import objreg, usertypes
+from qutebrowser.utils import objreg, usertypes, version
 from helpers import utils
 
 
@@ -704,6 +704,120 @@ class TestQtArgs:
         args = configinit.qt_args(parsed)
 
         assert ('--force-dark-mode' in args) == added
+
+    def test_blink_settings(self, config_stub, monkeypatch, parser):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+        monkeypatch.setattr(configinit.qtutils, 'version_check',
+                            lambda version, exact=False, compiled=True:
+                            True)
+
+        config_stub.val.colors.webpage.darkmode.enabled = True
+
+        parsed = parser.parse_args([])
+        args = configinit.qt_args(parsed)
+
+        assert '--blink-settings=darkModeEnabled=true' in args
+
+
+class TestDarkMode:
+
+    @pytest.mark.parametrize('settings, new_qt, expected', [
+        # Disabled
+        ({}, True, []),
+        ({}, False, []),
+
+        # Enabled without customization
+        (
+            {'enabled': True},
+            True,
+            [('darkModeEnabled', 'true')]
+        ),
+        (
+            {'enabled': True},
+            False,
+            [('darkMode', '4')]
+        ),
+
+        # Algorithm
+        (
+            {'enabled': True, 'algorithm': 'brightness-rgb'},
+            True,
+            [('darkModeEnabled', 'true'),
+             ('darkModeInversionAlgorithm', '2')],
+        ),
+        (
+            {'enabled': True, 'algorithm': 'brightness-rgb'},
+            False,
+            [('darkMode', '2')],
+        ),
+
+    ])
+    @utils.qt514
+    def test_basics(self, config_stub, monkeypatch,
+                    settings, new_qt, expected):
+        for k, v in settings.items():
+            config_stub.set_obj('colors.webpage.darkmode.' + k, v)
+        monkeypatch.setattr(configinit.qtutils, 'version_check',
+                            lambda version, exact=False, compiled=True:
+                            new_qt)
+
+        assert list(configinit._darkmode_settings()) == expected
+
+    @pytest.mark.parametrize('setting, value, exp_key, exp_val', [
+        ('contrast', -0.5,
+         'darkModeContrast', '-0.5'),
+        ('policy.page', 'smart',
+         'darkModePagePolicy', '1'),
+        ('policy.images', 'smart',
+         'darkModeImagePolicy', '2'),
+        ('threshold.text', 100,
+         'darkModeTextBrightnessThreshold', '100'),
+        ('threshold.background', 100,
+         'darkModeBackgroundBrightnessThreshold', '100'),
+        ('grayscale.all', True,
+         'darkModeGrayscale', 'true'),
+        ('grayscale.images', 0.5,
+         'darkModeImageGrayscale', '0.5'),
+    ])
+    def test_customization(self, config_stub, monkeypatch,
+                           setting, value, exp_key, exp_val):
+        config_stub.val.colors.webpage.darkmode.enabled = True
+        config_stub.set_obj('colors.webpage.darkmode.' + setting, value)
+        monkeypatch.setattr(configinit.qtutils, 'version_check',
+                            lambda version, exact=False, compiled=True:
+                            True)
+
+        expected = [('darkModeEnabled', 'true'), (exp_key, exp_val)]
+        assert list(configinit._darkmode_settings()) == expected
+
+    @utils.qt514
+    def test_new_chromium(self):
+        """Fail if we encounter an unknown Chromium version.
+
+        Dark mode in Chromium currently is undergoing various changes (as it's
+        relatively recent), and Qt 5.15 is supposed to update the underlying
+        Chromium at some point.
+
+        Make this test fail deliberately with newer Chromium versions, so that
+        we can test whether dark mode still works manually, and adjust if not.
+        """
+        assert version._chromium_version() in [
+            'unavailable',  # QtWebKit
+            '77.0.3865.129',  # Qt 5.14
+            '80.0.3987.163',  # Qt 5.15
+        ]
+
+    def test_options(self, configdata_init):
+        """Make sure all darkmode options have the right attributes set."""
+        for name, opt in configdata.DATA.items():
+            if not name.startswith('colors.webpage.darkmode.'):
+                continue
+
+            backends = {'QtWebEngine': 'Qt 5.14', 'QtWebKit': False}
+            assert not opt.supports_pattern, name
+            assert opt.restart, name
+            assert opt.raw_backends == backends, name
 
 
 @pytest.mark.parametrize('arg, confval, used', [

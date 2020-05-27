@@ -41,6 +41,9 @@ Added
 - New `colors.contextmenu.disabled.{fg,bg}` settings to customize colors for
   disabled items in the context menu.
 - New line selection mode (`:toggle-selection --line`), bound to `Shift-V` in caret mode.
+- New `colors.webpage.darkmode.*` settings to control Chromium's dark mode.
+  Note that those settings only work with QtWebEngine on Qt >= 5.14 and require
+  a restart of qutebrowser.
 
 Changed
 ~~~~~~~
