@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -68,7 +68,7 @@ def _unset_organization() -> typing.Iterator[None]:
     qapp = QApplication.instance()
     if qapp is not None:
         orgname = qapp.organizationName()
-        qapp.setOrganizationName(None)  # type: ignore
+        qapp.setOrganizationName(None)  # type: ignore[arg-type]
     try:
         yield
     finally:
@@ -220,7 +220,8 @@ def _init_runtime(args: typing.Optional[argparse.Namespace]) -> None:
             # Fall back to TempLocation when RuntimeLocation is misconfigured
             if typ == QStandardPaths.TempLocation:
                 raise
-            path = _writable_location(QStandardPaths.TempLocation)
+            path = _writable_location(  # pragma: no cover
+                QStandardPaths.TempLocation)
 
         # This is generic, but per-user.
         # _writable_location makes sure we have a qutebrowser-specific subdir.
@@ -313,6 +314,9 @@ def _create(path: str) -> None:
         0700. If the destination directory exists already the permissions
         should not be changed.
     """
+    if APPNAME == 'qute_test' and path.startswith('/home'):  # pragma: no cover
+        raise Exception("Trying to create directory inside /home during "
+                        "tests, this should not happen.")
     os.makedirs(path, 0o700, exist_ok=True)
 
 

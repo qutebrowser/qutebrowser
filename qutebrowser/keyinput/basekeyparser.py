@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -26,7 +26,6 @@ import typing
 import attr
 from PyQt5.QtCore import pyqtSignal, QObject, Qt
 from PyQt5.QtGui import QKeySequence, QKeyEvent
-from PyQt5.QtWidgets import QWidget
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, utils
@@ -174,7 +173,7 @@ class BaseKeyParser(QObject):
     passthrough = False
     supports_count = True
 
-    def __init__(self, win_id: int, parent: QWidget = None) -> None:
+    def __init__(self, win_id: int, parent: QObject = None) -> None:
         super().__init__(parent)
         self._win_id = win_id
         self._modename = None
@@ -208,7 +207,6 @@ class BaseKeyParser(QObject):
                          - The found binding with Match.definitive.
         """
         assert sequence
-        assert not isinstance(sequence, str)
         return self.bindings.matches(sequence)
 
     def _match_without_modifiers(
@@ -340,7 +338,6 @@ class BaseKeyParser(QObject):
         self.bindings = BindingTrie()
 
         for key, cmd in config.key_instance.get_bindings_for(modename).items():
-            assert not isinstance(key, str), key
             assert cmd
             self.bindings[key] = cmd
 

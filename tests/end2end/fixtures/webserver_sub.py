@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -270,6 +270,15 @@ def query():
 def view_user_agent():
     """Return User-Agent."""
     return flask.jsonify({'user-agent': flask.request.headers['user-agent']})
+
+
+@app.route('/favicon.ico')
+def favicon():
+    basedir = os.path.join(os.path.realpath(os.path.dirname(__file__)),
+                           '..', '..', '..')
+    return flask.send_from_directory(os.path.join(basedir, 'icons'),
+                                     'qutebrowser.ico',
+                                     mimetype='image/vnd.microsoft.icon')
 
 
 @app.after_request

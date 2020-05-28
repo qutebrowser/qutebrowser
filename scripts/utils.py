@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -21,6 +21,7 @@
 
 import os
 import os.path
+import sys
 
 
 # Import side-effects are an evil thing, but here it's okay so scripts using
@@ -37,6 +38,8 @@ use_color = os.name != 'nt' or colorama
 
 
 fg_colors = {
+    'reset': 0,
+    'bold': 1,
     'black': 30,
     'red': 31,
     'green': 32,
@@ -45,7 +48,6 @@ fg_colors = {
     'magenta': 35,
     'cyan': 36,
     'white': 37,
-    'reset': 39,
 }
 
 
@@ -57,18 +59,23 @@ def _esc(code):
     return '\033[{}m'.format(code)
 
 
-def print_col(text, color):
+def print_col(text, color, file=sys.stdout):
     """Print a colorized text."""
     if use_color:
         fg = _esc(fg_colors[color.lower()])
         reset = _esc(fg_colors['reset'])
-        print(''.join([fg, text, reset]))
+        print(''.join([fg, text, reset]), file=file)
     else:
-        print(text)
+        print(text, file=file)
+
+
+def print_error(text):
+    print_col(text, 'red', file=sys.stderr)
 
 
 def print_title(text):
     """Print a title."""
+    print()
     print_col("==================== {} ====================".format(text),
               'yellow')
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -23,34 +23,11 @@
 Use python3 -m scripts.keytester to launch it.
 """
 
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QHBoxLayout
+from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.keyinput import keyutils
-
-
-class KeyWidget(QWidget):
-
-    """Widget displaying key presses."""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._layout = QHBoxLayout(self)
-        self._label = QLabel(text="Waiting for keypress...")
-        self._layout.addWidget(self._label)
-
-    def keyPressEvent(self, e):
-        """Show pressed keys."""
-        lines = [
-            str(keyutils.KeyInfo.from_event(e)),
-            '',
-            'key: 0x{:x}'.format(int(e.key())),
-            'modifiers: 0x{:x}'.format(int(e.modifiers())),
-            'text: {!r}'.format(e.text()),
-        ]
-        self._label.setText('\n'.join(lines))
-
+from qutebrowser.misc import miscwidgets
 
 app = QApplication([])
-w = KeyWidget()
+w = miscwidgets.KeyTesterWidget()
 w.show()
 app.exec_()

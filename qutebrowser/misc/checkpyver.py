@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -30,12 +30,12 @@ try:
 except ImportError:  # pragma: no cover
     try:
         # Python2
-        from Tkinter import Tk  # type: ignore
+        from Tkinter import Tk  # type: ignore[import, no-redef]
         import tkMessageBox as messagebox  # type: ignore  # noqa: N813
     except ImportError:
         # Some Python without Tk
-        Tk = None  # type: ignore
-        messagebox = None  # type: ignore
+        Tk = None  # type: ignore[misc, assignment]
+        messagebox = None  # type: ignore[assignment]
 
 
 # First we check the version of Python. This code should run fine with python2
@@ -49,7 +49,7 @@ def check_python_version():
         version_str = '.'.join(map(str, sys.version_info[:3]))
         text = ("At least Python 3.5.2 is required to run qutebrowser, but " +
                 "it's running with " + version_str + ".\n")
-        if (Tk and  # type: ignore
+        if (Tk and  # type: ignore[unreachable]
                 '--no-err-windows' not in sys.argv):  # pragma: no cover
             root = Tk()
             root.withdraw()

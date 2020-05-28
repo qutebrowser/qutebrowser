@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -74,7 +74,10 @@ def _render_log(data, *, verbose, threshold=100):
     data = [str(d) for d in data]
     is_exception = any('Traceback (most recent call last):' in line or
                        'Uncaught exception' in line for line in data)
-    if len(data) > threshold and not verbose and not is_exception:
+    if (len(data) > threshold and
+            not verbose and
+            not is_exception and
+            not utils.ON_CI):
         msg = '[{} lines suppressed, use -v to show]'.format(
             len(data) - threshold)
         data = [msg] + data[-threshold:]
@@ -310,7 +313,9 @@ class Process(QObject):
             self.proc.terminate()
 
         ok = self.proc.waitForFinished()
-        assert ok
+        if not ok:
+            self.proc.kill()
+            self.proc.waitForFinished()
 
     def is_running(self):
         """Check if the process is currently running."""

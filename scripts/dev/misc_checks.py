@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -83,7 +83,7 @@ def check_spelling():
     """Check commonly misspelled words."""
     # Words which I often misspell
     words = {'[Bb]ehaviour', '[Qq]uitted', 'Ll]ikelyhood', '[Ss]ucessfully',
-             '[Oo]ccur[^rs .]', '[Ss]eperator', '[Ee]xplicitely',
+             '[Oo]ccur[^rs .!]', '[Ss]eperator', '[Ee]xplicitely',
              '[Aa]uxillary', '[Aa]ccidentaly', '[Aa]mbigious', '[Ll]oosly',
              '[Ii]nitialis', '[Cc]onvienence', '[Ss]imiliar', '[Uu]ncommited',
              '[Rr]eproducable', '[Aa]n [Uu]ser', '[Cc]onvienience',
@@ -91,7 +91,7 @@ def check_spelling():
              '[Mm]ininum', '[Rr]esett?ed', '[Rr]ecieved', '[Rr]egularily',
              '[Uu]nderlaying', '[Ii]nexistant', '[Ee]lipsis', 'commiting',
              'existant', '[Rr]esetted', '[Ss]imilarily', '[Ii]nformations',
-             '[Aa]n [Uu][Rr][Ll]'}
+             '[Aa]n [Uu][Rr][Ll]', '[Tt]reshold'}
 
     # Words which look better when splitted, but might need some fine tuning.
     words |= {'[Ww]ebelements', '[Mm]ouseevent', '[Kk]eysequence',

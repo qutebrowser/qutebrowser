@@ -1,6 +1,7 @@
 recursive-include qutebrowser *.py
 recursive-include qutebrowser/img *.svg *.png
 recursive-include qutebrowser/javascript *.js
+graft tests
 graft qutebrowser/html
 graft qutebrowser/3rdparty
 graft icons
@@ -16,10 +17,10 @@ include misc/org.qutebrowser.qutebrowser.desktop
 include misc/org.qutebrowser.qutebrowser.appdata.xml
 include misc/Makefile
 include requirements.txt
-include tox.ini
 include qutebrowser.py
 include misc/cheatsheet.svg
 include qutebrowser/config/configdata.yml
+include pytest.ini
 
 prune www
 prune scripts/dev
@@ -29,16 +30,17 @@ exclude scripts/asciidoc2html.py
 recursive-exclude doc *.asciidoc
 include doc/qutebrowser.1.asciidoc
 include doc/changelog.asciidoc
-prune tests
 prune qutebrowser/3rdparty
-exclude pytest.ini
 exclude mypy.ini
+exclude tox.ini
 exclude qutebrowser/javascript/.eslintrc.yaml
 exclude qutebrowser/javascript/.eslintignore
 exclude doc/help
 exclude .*
 exclude misc/qutebrowser.spec
 exclude misc/qutebrowser.rcc
+exclude tests/unit/scripts/test_run_vulture.py
+exclude tests/unit/scripts/test_check_coverage.py
 prune doc/extapi
 prune misc/nsis
 

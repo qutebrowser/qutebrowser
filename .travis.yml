@@ -1,4 +1,4 @@
-dist: xenial
+dist: bionic
 language: python
 group: edge
 python: 3.8
@@ -6,18 +6,26 @@ os: linux
 
 matrix:
   fast_finish: true
+  # allow_failures:
+  #   - env: DOCKER=archlinux-webengine-unstable QUTE_BDD_WEBENGINE=true
+  #     services: docker
   include:
     ### Archlinux QtWebKit
-    - env: DOCKER=archlinux
+    - env: DOCKER=archlinux-webkit
       services: docker
 
     ### Archlinux QtWebEngine
     - env: DOCKER=archlinux-webengine QUTE_BDD_WEBENGINE=true
       services: docker
 
+    ### Archlinux QtWebEngine with testing/KDE-Unstable
+    - env: DOCKER=archlinux-webengine-unstable QUTE_BDD_WEBENGINE=true
+      services: docker
+
     ### PyQt 5.7.1 (Python 3.5)
     - python: 3.5
       env: TESTENV=py35-pyqt57
+      dist: xenial
 
     ### PyQt 5.9 (Python 3.6)
     - python: 3.6
@@ -43,25 +51,35 @@ matrix:
           packages:
           - libxkbcommon-x11-0
 
-    ### PyQt 5.13 (Python 3.8, with coverage)
-    - env: TESTENV=py38-pyqt513-cov
+    ### PyQt 5.13 (Python 3.8)
+    - env: TESTENV=py38-pyqt513
       # http://code.qt.io/cgit/qt/qtbase.git/commit/?id=c3a963da1f9e7b1d37e63eedded61da4fbdaaf9a
       addons:
         apt:
           packages:
           - libxkbcommon-x11-0
 
-    ### macOS sierra
+    ### PyQt 5.14 (Python 3.8, with coverage)
+    - env: TESTENV=py38-pyqt514-cov
+      # http://code.qt.io/cgit/qt/qtbase.git/commit/?id=c3a963da1f9e7b1d37e63eedded61da4fbdaaf9a
+      addons:
+        apt:
+          packages:
+          - libxkbcommon-x11-0
+
+    ### macOS Mojave (10.14)
     - os: osx
-      env: TESTENV=py37-pyqt513 OSX=sierra
-      osx_image: xcode9.2
+      env: TESTENV=py37-pyqt514 OSX=mojave
+      osx_image: xcode11.3
       language: generic
       python: 3.7
-    ### macOS yosemite
-    # https://github.com/qutebrowser/qutebrowser/issues/2013
-    # - os: osx
-    #   env: TESTENV=py35 OSX=yosemite
-    #   osx_image: xcode6.4
+
+    ### macOS High Sierra (10.13)
+    - os: osx
+      env: TESTENV=py37-pyqt514 OSX=highsierra
+      osx_image: xcode10.1
+      language: generic
+      python: 3.7
 
     ### pylint/flake8/mypy
     - env: TESTENV=pylint

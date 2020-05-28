@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -138,7 +138,8 @@ def split(s, keep=False):
     out = []
     spaces = ""
 
-    log.shlexer.vdebug("{!r} -> {!r}".format(s, tokens))  # type: ignore
+    log.shlexer.vdebug(  # type: ignore[attr-defined]
+        "{!r} -> {!r}".format(s, tokens))
 
     for t in tokens:
         if t.isspace():

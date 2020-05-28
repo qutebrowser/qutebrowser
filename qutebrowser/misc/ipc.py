@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -178,7 +178,7 @@ class IPCServer(QObject):
             self._atime_timer.setTimerType(Qt.VeryCoarseTimer)
 
         self._server = QLocalServer(self)
-        self._server.newConnection.connect(  # type: ignore
+        self._server.newConnection.connect(  # type: ignore[attr-defined]
             self.handle_connection)
 
         self._socket = None
@@ -252,21 +252,24 @@ class IPCServer(QObject):
             return
         socket = self._server.nextPendingConnection()
         if socket is None:
-            log.ipc.debug("No new connection to handle.")  # type: ignore
+            log.ipc.debug(  # type: ignore[unreachable]
+                "No new connection to handle.")
             return
         log.ipc.debug("Client connected (socket 0x{:x}).".format(id(socket)))
         self._timer.start()
         self._socket = socket
-        socket.readyRead.connect(self.on_ready_read)  # type: ignore
+        socket.readyRead.connect(  # type: ignore[attr-defined]
+            self.on_ready_read)
         if socket.canReadLine():
             log.ipc.debug("We can read a line immediately.")
             self.on_ready_read()
-        socket.error.connect(self.on_error)  # type: ignore
+        socket.error.connect(self.on_error)  # type: ignore[attr-defined]
         if socket.error() not in [QLocalSocket.UnknownSocketError,
                                   QLocalSocket.PeerClosedError]:
             log.ipc.debug("We got an error immediately.")
             self.on_error(socket.error())
-        socket.disconnected.connect(self.on_disconnected)  # type: ignore
+        socket.disconnected.connect(  # type: ignore[attr-defined]
+            self.on_disconnected)
         if socket.state() == QLocalSocket.UnconnectedState:
             log.ipc.debug("Socket was disconnected immediately.")
             self.on_disconnected()
@@ -472,8 +475,9 @@ def send_to_running_instance(socketname, command, target_arg, *, socket=None):
 def display_error(exc, args):
     """Display a message box with an IPC error."""
     error.handle_fatal_exc(
-        exc, args, "Error while connecting to running instance!",
-        post_text="Maybe another instance is running but frozen?")
+        exc, "Error while connecting to running instance!",
+        post_text="Maybe another instance is running but frozen?",
+        no_err_windows=args.no_err_windows)
 
 
 def send_or_listen(args):

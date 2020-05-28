@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2020 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -119,9 +119,9 @@ def raise_sqlite_error(msg, error):
     # If the query we built was too long
     too_long_err = (
         error_code == SqliteErrorCode.ERROR and
-        driver_text == "Unable to execute statement" and
         (database_text.startswith("Expression tree is too large") or
-         database_text == "too many SQL variables"))
+         database_text in ["too many SQL variables",
+                           "LIKE or GLOB pattern too complex"]))
 
     if error_code in known_errors or qtbug_70506 or too_long_err:
         raise KnownError(msg, error)
@@ -190,7 +190,8 @@ class Query:
             raise BugError("Cannot iterate inactive query")
         rec = self.query.record()
         fields = [rec.fieldName(i) for i in range(rec.count())]
-        rowtype = collections.namedtuple('ResultRow', fields)  # type: ignore
+        rowtype = collections.namedtuple(  # type: ignore[misc]
+            'ResultRow', fields)
 
         while self.query.next():
             rec = self.query.record()

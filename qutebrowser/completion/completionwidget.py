@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -28,7 +28,7 @@ import typing
 from PyQt5.QtWidgets import QTreeView, QSizePolicy, QStyleFactory, QWidget
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
-from qutebrowser.config import config
+from qutebrowser.config import config, stylesheet
 from qutebrowser.completion import completiondelegate
 from qutebrowser.utils import utils, usertypes, debug, log
 from qutebrowser.api import cmdutils
@@ -125,7 +125,7 @@ class CompletionView(QTreeView):
         self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
         self.setStyle(QStyleFactory.create('Fusion'))
-        config.set_register_stylesheet(self)
+        stylesheet.set_register(self)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setHeaderHidden(True)
         self.setAlternatingRowColors(True)
@@ -278,7 +278,7 @@ class CompletionView(QTreeView):
 
         selmodel.setCurrentIndex(
             idx,
-            QItemSelectionModel.ClearAndSelect |  # type: ignore
+            QItemSelectionModel.ClearAndSelect |  # type: ignore[arg-type]
             QItemSelectionModel.Rows)
 
         # if the last item is focused, try to fetch more

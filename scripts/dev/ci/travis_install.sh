@@ -57,9 +57,6 @@ set -e
 
 if [[ -n $DOCKER ]]; then
     exit 0
-elif [[ $TRAVIS_OS_NAME == osx ]]; then
-    brew update
-    brew upgrade python
 fi
 
 case $TESTENV in

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -83,7 +83,7 @@ def qlocalsocket(qapp):
 @pytest.fixture(autouse=True)
 def fake_runtime_dir(monkeypatch, short_tmpdir):
     monkeypatch.setenv('XDG_RUNTIME_DIR', str(short_tmpdir))
-    standarddir._init_dirs()
+    standarddir._init_runtime(args=None)
     return short_tmpdir
 
 

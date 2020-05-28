@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,13 +20,12 @@
 """Custom useful data types."""
 
 import operator
-import collections.abc
 import enum
 import typing
 
 import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
-from PyQt5.QtCore import QUrl  # pylint: disable=unused-import
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import log, qtutils, utils
 
@@ -34,17 +33,20 @@ from qutebrowser.utils import log, qtutils, utils
 _T = typing.TypeVar('_T')
 
 
-class UnsetObject:
+class Unset:
 
     """Class for an unset object."""
 
     __slots__ = ()
 
+    def __repr__(self) -> str:
+        return '<UNSET>'
 
-UNSET = UnsetObject()
+
+UNSET = Unset()
 
 
-class NeighborList(collections.abc.Sequence):
+class NeighborList(typing.Sequence[_T]):
 
     """A list of items which saves its current position.
 
@@ -61,7 +63,7 @@ class NeighborList(collections.abc.Sequence):
     Modes = enum.Enum('Modes', ['edge', 'exception'])
 
     def __init__(self, items: typing.Sequence[_T] = None,
-                 default: typing.Union[_T, UnsetObject] = UNSET,
+                 default: typing.Union[_T, Unset] = UNSET,
                  mode: Modes = Modes.exception) -> None:
         """Constructor.
 
@@ -80,7 +82,7 @@ class NeighborList(collections.abc.Sequence):
             self._items = list(items)
         self._default = default
 
-        if not isinstance(default, UnsetObject):
+        if not isinstance(default, Unset):
             idx = self._items.index(default)
             self._idx = idx  # type: typing.Optional[int]
         else:
@@ -89,7 +91,7 @@ class NeighborList(collections.abc.Sequence):
         self._mode = mode
         self.fuzzyval = None  # type: typing.Optional[int]
 
-    def __getitem__(self, key: int) -> _T:  # type: ignore
+    def __getitem__(self, key: int) -> _T:  # type: ignore[override]
         return self._items[key]
 
     def __len__(self) -> int:
@@ -118,10 +120,10 @@ class NeighborList(collections.abc.Sequence):
         if items:
             item = min(
                 items,
-                key=lambda tpl: abs(self.fuzzyval - tpl[1]))  # type: ignore
+                key=lambda tpl:
+                abs(self.fuzzyval - tpl[1]))  # type: ignore[operator]
         else:
-            sorted_items = sorted(((idx, e) for (idx, e) in
-                                   enumerate(self.items)), key=lambda e: e[1])
+            sorted_items = sorted(enumerate(self.items), key=lambda e: e[1])
             idx = 0 if offset < 0 else -1
             item = sorted_items[idx]
         self._idx = item[0]

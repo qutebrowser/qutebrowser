@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -63,7 +63,8 @@ class Request(testprocess.Line):
     def _check_status(self):
         """Check if the http status is what we expected."""
         path_to_statuses = {
-            '/favicon.ico': [HTTPStatus.NOT_FOUND],
+            '/favicon.ico': [HTTPStatus.OK, HTTPStatus.PARTIAL_CONTENT],
+
             '/does-not-exist': [HTTPStatus.NOT_FOUND],
             '/does-not-exist-2': [HTTPStatus.NOT_FOUND],
             '/404': [HTTPStatus.NOT_FOUND],

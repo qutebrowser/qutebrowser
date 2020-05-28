@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -162,8 +162,8 @@ def _find_prevnext(prev, elems):
     # pylint: disable=bad-config-option
     for regex in getattr(config.val.hints, option):
         # pylint: enable=bad-config-option
-        log.hints.vdebug("== Checking regex '{}'."  # type: ignore
-                         .format(regex.pattern))
+        log.hints.vdebug(  # type: ignore[attr-defined]
+            "== Checking regex '{}'.".format(regex.pattern))
         for e in elems:
             text = str(e)
             if not text:
@@ -173,8 +173,8 @@ def _find_prevnext(prev, elems):
                     regex.pattern, text))
                 return e
             else:
-                log.hints.vdebug("No match on '{}'!"  # type: ignore
-                                 .format(text))
+                log.hints.vdebug(  # type: ignore[attr-defined]
+                    "No match on '{}'!".format(text))
     return None
 
 

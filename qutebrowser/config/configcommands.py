@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -260,6 +260,23 @@ class ConfigCommands:
         """
         with self._handle_config_error():
             self._config.unset(option, save_yaml=not temp)
+
+    @cmdutils.register(instance='config-commands')
+    @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
+    def config_diff(self, win_id: int, old: bool = False) -> None:
+        """Show all customized options.
+
+        Args:
+            old: Show difference for the pre-v1.0 files
+                 (qutebrowser.conf/keys.conf).
+        """
+        url = QUrl('qute://configdiff')
+        if old:
+            url.setPath('/old')
+
+        tabbed_browser = objreg.get('tabbed-browser',
+                                    scope='window', window=win_id)
+        tabbed_browser.load_url(url, newtab=False)
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.list_option)

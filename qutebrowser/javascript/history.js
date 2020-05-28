@@ -1,5 +1,5 @@
 /**
- * Copyright 2017-2019 Florian Bruhin (The-Compiler) <me@the-compiler.org>
+ * Copyright 2017-2020 Florian Bruhin (The-Compiler) <me@the-compiler.org>
  * Copyright 2017 Imran Sobir
  *
  * This file is part of qutebrowser.

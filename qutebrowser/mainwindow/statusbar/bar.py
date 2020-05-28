@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,11 +21,13 @@
 
 import enum
 import attr
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QSize, QTimer
+from PyQt5.QtCore import (pyqtSignal, pyqtSlot,  # type: ignore[attr-defined]
+                          pyqtProperty, Qt, QSize, QTimer)
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 from qutebrowser.browser import browsertab
-from qutebrowser.config import config
+from qutebrowser.config import config, stylesheet
+from qutebrowser.keyinput import modeman
 from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.mainwindow.statusbar import (backforward, command, progress,
                                               keystring, percentage, url,
@@ -96,7 +98,7 @@ def _generate_stylesheet():
         ('passthrough', 'statusbar.passthrough'),
         ('private-command', 'statusbar.command.private'),
     ]
-    stylesheet = """
+    qss = """
         QWidget#StatusBar,
         QWidget#StatusBar QLabel,
         QWidget#StatusBar QLineEdit {
@@ -109,7 +111,7 @@ def _generate_stylesheet():
         }
     """
     for flag, option in flags:
-        stylesheet += """
+        qss += """
             QWidget#StatusBar[color_flags~="%s"],
             QWidget#StatusBar[color_flags~="%s"] QLabel,
             QWidget#StatusBar[color_flags~="%s"] QLineEdit {
@@ -121,7 +123,7 @@ def _generate_stylesheet():
             }
         """ % (flag, flag, flag,  # noqa: S001
                option + '.fg', flag, option + '.bg')
-    return stylesheet
+    return qss
 
 
 class StatusBar(QWidget):
@@ -157,7 +159,7 @@ class StatusBar(QWidget):
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
         self.setAttribute(Qt.WA_StyledBackground)
-        config.set_register_stylesheet(self)
+        stylesheet.set_register(self)
 
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
 
@@ -297,7 +299,7 @@ class StatusBar(QWidget):
                 # Turning on is handled in on_current_caret_selection_toggled
                 log.statusbar.debug("Setting caret mode off")
                 self._color_flags.caret = ColorFlags.CaretMode.off
-        config.set_register_stylesheet(self, update=False)
+        stylesheet.set_register(self, update=False)
 
     def _set_mode_text(self, mode):
         """Set the mode text."""
@@ -333,9 +335,8 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
-        keyparsers = objreg.get('keyparsers', scope='window',
-                                window=self._win_id)
-        if keyparsers[mode].passthrough:
+        mode_manager = modeman.instance(self._win_id)
+        if mode_manager.parsers[mode].passthrough:
             self._set_mode_text(mode.name)
         if mode in [usertypes.KeyMode.insert,
                     usertypes.KeyMode.command,
@@ -348,10 +349,9 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode, usertypes.KeyMode)
     def on_mode_left(self, old_mode, new_mode):
         """Clear marked mode."""
-        keyparsers = objreg.get('keyparsers', scope='window',
-                                window=self._win_id)
-        if keyparsers[old_mode].passthrough:
-            if keyparsers[new_mode].passthrough:
+        mode_manager = modeman.instance(self._win_id)
+        if mode_manager.parsers[old_mode].passthrough:
+            if mode_manager.parsers[new_mode].passthrough:
                 self._set_mode_text(new_mode.name)
             else:
                 self.txt.set_text(self.txt.Text.normal, '')
@@ -373,17 +373,21 @@ class StatusBar(QWidget):
         self.maybe_hide()
         assert tab.is_private == self._color_flags.private
 
-    @pyqtSlot(bool)
-    def on_caret_selection_toggled(self, selection):
+    @pyqtSlot(browsertab.SelectionState)
+    def on_caret_selection_toggled(self, selection_state):
         """Update the statusbar when entering/leaving caret selection mode."""
-        log.statusbar.debug("Setting caret selection {}".format(selection))
-        if selection:
+        log.statusbar.debug("Setting caret selection {}"
+                            .format(selection_state))
+        if selection_state is browsertab.SelectionState.normal:
             self._set_mode_text("caret selection")
+            self._color_flags.caret = ColorFlags.CaretMode.selection
+        elif selection_state is browsertab.SelectionState.line:
+            self._set_mode_text("caret line selection")
             self._color_flags.caret = ColorFlags.CaretMode.selection
         else:
             self._set_mode_text("caret")
             self._color_flags.caret = ColorFlags.CaretMode.on
-        config.set_register_stylesheet(self, update=False)
+        stylesheet.set_register(self, update=False)
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -141,8 +141,8 @@ class Command:
         Args:
             win_id: The window ID the command is run in.
         """
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=win_id)
+        from qutebrowser.keyinput import modeman
+        mode_manager = modeman.instance(win_id)
         self.validate_mode(mode_manager.mode)
 
         if self.backend is not None and objects.backend != self.backend:
@@ -246,7 +246,7 @@ class Command:
             args = self._param_to_argparse_args(param, is_bool)
             callsig = debug_utils.format_call(self.parser.add_argument, args,
                                               kwargs, full=False)
-            log.commands.vdebug(  # type: ignore
+            log.commands.vdebug(  # type: ignore[attr-defined]
                 'Adding arg {} of type {} -> {}'
                 .format(param.name, typ, callsig))
             self.parser.add_argument(*args, **kwargs)
@@ -411,7 +411,8 @@ class Command:
         if hasattr(typing, 'UnionMeta'):
             # Python 3.5.2
             # pylint: disable=no-member,useless-suppression
-            is_union = isinstance(typ, typing.UnionMeta)  # type: ignore
+            is_union = isinstance(
+                typ, typing.UnionMeta)  # type: ignore[attr-defined]
         else:
             is_union = getattr(typ, '__origin__', None) is typing.Union
 
@@ -577,7 +578,7 @@ class Command:
 
     def register(self):
         """Register this command in objects.commands."""
-        log.commands.vdebug(  # type: ignore
+        log.commands.vdebug(  # type: ignore[attr-defined]
             "Registering command {} (from {}:{})".format(
                 self.name, self.handler.__module__, self.handler.__qualname__))
         if self.name in objects.commands:

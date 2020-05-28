@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2017-2018 Michal Siedlaczek <michal.siedlaczek@gmail.com>
 
 # This file is part of qutebrowser.
@@ -38,6 +38,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from qutebrowser.browser.webengine import spell
 from qutebrowser.config import configdata
 from qutebrowser.utils import standarddir, utils
+from scripts import utils as scriptutils
 
 
 API_URL = 'https://chromium.googlesource.com/chromium/deps/hunspell_dictionaries.git/+/master/'
@@ -219,7 +220,13 @@ def install(languages):
             print('Installing {}: {}'.format(lang.code, lang.name))
             install_lang(lang)
         except PermissionError as e:
-            sys.exit(str(e))
+            msg = ("\n{}\n\nWith Qt < 5.10, you will need to run this script "
+                   "as root, as dictionaries need to be installed "
+                   "system-wide. If your qutebrowser uses a newer Qt version "
+                   "via a virtualenv, make sure you start this script with "
+                   "the virtualenv's Python.".format(e))
+            scriptutils.print_error(msg)
+            sys.exit(1)
 
 
 def update(languages):

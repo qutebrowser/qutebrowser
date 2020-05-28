@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -37,10 +37,11 @@ from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QDialogButtonBox, QApplication, QMessageBox)
 
 import qutebrowser
-from qutebrowser.utils import version, log, utils, objreg
+from qutebrowser.utils import version, log, utils
 from qutebrowser.misc import (miscwidgets, autoupdate, msgbox, httpclient,
                               pastebin)
 from qutebrowser.config import config, configfiles
+from qutebrowser.browser import history
 
 
 class Result(enum.IntEnum):
@@ -344,7 +345,7 @@ class _CrashDialog(QDialog):
             text: The paste text to show.
         """
         error_dlg = ReportErrorDialog(text, self._paste_text, self)
-        error_dlg.finished.connect(self.finish)  # type: ignore
+        error_dlg.finished.connect(self.finish)
         error_dlg.show()
 
     @pyqtSlot(str)
@@ -506,7 +507,7 @@ class FatalCrashDialog(_CrashDialog):
         text = ("<b>qutebrowser was restarted after a fatal crash.</b><br/>"
                 "<br/>Note: Crash reports for fatal crashes sometimes don't "
                 "contain the information necessary to fix an issue. Please "
-                "follow the steps in <a href='https://github.com/The-Compiler/"
+                "follow the steps in <a href='https://github.com/qutebrowser/"
                 "qutebrowser/blob/master/doc/stacktrace.asciidoc'>"
                 "stacktrace.asciidoc</a> to submit a stacktrace.<br/>")
         self._lbl.setText(text)
@@ -530,11 +531,14 @@ class FatalCrashDialog(_CrashDialog):
         super()._gather_crash_info()
         if self._chk_history.isChecked():
             try:
-                history = objreg.get('web-history').get_recent()
-                self._crash_info.append(("History",
-                                         '\n'.join(str(e) for e in history)))
+                if history.web_history is None:
+                    history_data = '<unavailable>'  # type: ignore[unreachable]
+                else:
+                    history_data = '\n'.join(str(e) for e in
+                                             history.web_history.get_recent())
             except Exception:
-                self._crash_info.append(("History", traceback.format_exc()))
+                history_data = traceback.format_exc()
+            self._crash_info.append(("History", history_data))
 
     @pyqtSlot()
     def on_report_clicked(self):
@@ -625,7 +629,7 @@ class ReportErrorDialog(QDialog):
         hbox = QHBoxLayout()
         hbox.addStretch()
         btn = QPushButton("Close")
-        btn.clicked.connect(self.close)  # type: ignore
+        btn.clicked.connect(self.close)  # type: ignore[arg-type]
         hbox.addWidget(btn)
         vbox.addLayout(hbox)
 

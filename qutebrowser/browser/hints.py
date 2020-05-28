@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -33,8 +33,8 @@ from PyQt5.QtCore import pyqtSlot, QObject, Qt, QUrl
 from PyQt5.QtWidgets import QLabel
 
 from qutebrowser.config import config, configexc
-from qutebrowser.keyinput import modeman, modeparsers
-from qutebrowser.browser import webelem
+from qutebrowser.keyinput import modeman, modeparsers, basekeyparser
+from qutebrowser.browser import webelem, history
 from qutebrowser.commands import userscripts, runners
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
@@ -235,7 +235,7 @@ class HintActions:
         flags = QUrl.FullyEncoded | QUrl.RemovePassword
         if url.scheme() == 'mailto':
             flags |= QUrl.RemoveScheme
-        urlstr = url.toString(flags)  # type: ignore
+        urlstr = url.toString(flags)  # type: ignore[arg-type]
 
         new_content = urlstr
 
@@ -256,14 +256,15 @@ class HintActions:
 
     def run_cmd(self, url: QUrl, context: HintContext) -> None:
         """Run the command based on a hint URL."""
-        urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore
+        urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely(' '.join(args))
 
     def preset_cmd_text(self, url: QUrl, context: HintContext) -> None:
         """Preset a commandline text based on a hint URL."""
-        urlstr = url.toDisplayString(QUrl.FullyEncoded)  # type: ignore
+        flags = QUrl.FullyEncoded
+        urlstr = url.toDisplayString(flags)  # type: ignore[arg-type]
         args = context.get_args(urlstr)
         text = ' '.join(args)
         if text[0] not in modeparsers.STARTCHARS:
@@ -286,12 +287,10 @@ class HintActions:
 
         prompt = False if context.rapid else None
         qnam = context.tab.private_api.networkaccessmanager()
-        user_agent = context.tab.private_api.user_agent()
 
         # FIXME:qtwebengine do this with QtWebEngine downloads?
         download_manager = objreg.get('qtnetwork-download-manager')
-        download_manager.get(url, qnam=qnam, user_agent=user_agent,
-                             prompt_download_directory=prompt)
+        download_manager.get(url, qnam=qnam, prompt_download_directory=prompt)
 
     def call_userscript(self, elem: webelem.AbstractWebElement,
                         context: HintContext) -> None:
@@ -310,7 +309,8 @@ class HintActions:
         }
         url = elem.resolve_url(context.baseurl)
         if url is not None:
-            env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)  # type: ignore
+            flags = QUrl.FullyEncoded
+            env['QUTE_URL'] = url.toString(flags)  # type: ignore[arg-type]
 
         try:
             userscripts.run_async(context.tab, cmd, *args, win_id=self._win_id,
@@ -330,7 +330,7 @@ class HintActions:
             context: The HintContext to use.
         """
         urlstr = url.toString(
-            QUrl.FullyEncoded | QUrl.RemovePassword)  # type: ignore
+            QUrl.FullyEncoded | QUrl.RemovePassword)  # type: ignore[arg-type]
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely('spawn ' + ' '.join(args))
@@ -384,8 +384,7 @@ class HintManager(QObject):
 
         self._actions = HintActions(win_id)
 
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=win_id)
+        mode_manager = modeman.instance(self._win_id)
         mode_manager.left.connect(self.on_mode_left)
 
     def _get_text(self) -> str:
@@ -595,6 +594,11 @@ class HintManager(QObject):
         elemstr = elemstr.casefold()
         return filterstr == elemstr
 
+    def _get_keyparser(self,
+                       mode: usertypes.KeyMode) -> basekeyparser.BaseKeyParser:
+        mode_manager = modeman.instance(self._win_id)
+        return mode_manager.parsers[mode]
+
     def _start_cb(self, elems: _ElemsType) -> None:
         """Initialize the elements and labels based on the context set."""
         if self._context is None:
@@ -626,9 +630,7 @@ class HintManager(QObject):
             self._context.all_labels.append(label)
             self._context.labels[string] = label
 
-        keyparsers = objreg.get('keyparsers', scope='window',
-                                window=self._win_id)
-        keyparser = keyparsers[usertypes.KeyMode.hint]
+        keyparser = self._get_keyparser(usertypes.KeyMode.hint)
         keyparser.update_bindings(strings)
 
         message_bridge = objreg.get('message-bridge', scope='window',
@@ -724,8 +726,7 @@ class HintManager(QObject):
         if tab is None:
             raise cmdutils.CommandError("No WebView available yet!")
 
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=self._win_id)
+        mode_manager = modeman.instance(self._win_id)
         if mode_manager.mode == usertypes.KeyMode.hint:
             modeman.leave(self._win_id, usertypes.KeyMode.hint, 're-hinting')
 
@@ -824,9 +825,7 @@ class HintManager(QObject):
         if follow:
             # apply auto_follow_timeout
             timeout = config.val.hints.auto_follow_timeout
-            keyparsers = objreg.get('keyparsers', scope='window',
-                                    window=self._win_id)
-            normal_parser = keyparsers[usertypes.KeyMode.normal]
+            normal_parser = self._get_keyparser(usertypes.KeyMode.normal)
             normal_parser.set_inhibited_timeout(timeout)
             # unpacking gets us the first (and only) key in the dict.
             self._fire(*visible)
@@ -896,14 +895,13 @@ class HintManager(QObject):
 
         if self._context.hint_mode == 'number':
             # renumber filtered hints
-            strings = self._hint_strings(visible)
+            strings = self._hint_strings([label.elem for label in visible])
             self._context.labels = {}
             for label, string in zip(visible, strings):
                 label.update_text('', string)
                 self._context.labels[string] = label
-            keyparsers = objreg.get('keyparsers', scope='window',
-                                    window=self._win_id)
-            keyparser = keyparsers[usertypes.KeyMode.hint]
+
+            keyparser = self._get_keyparser(usertypes.KeyMode.hint)
             keyparser.update_bindings(strings, preserve_filter=True)
 
             # Note: filter_hints can be called with non-None filterstr only
@@ -960,7 +958,7 @@ class HintManager(QObject):
             handler = functools.partial(url_handlers[self._context.target],
                                         url, self._context)
             if self._context.add_history:
-                objreg.get('web-history').add_url(url, "")
+                history.web_history.add_url(url, "")
         else:
             raise ValueError("No suitable handler found!")
 

@@ -241,7 +241,7 @@ function timeRange() {
             }
             break;
         default:
-          throw 'timeRange: bad number of arguments'
+          throw 'timeRange: bad number of arguments';
         }
     }
 

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,7 +20,7 @@
 """Mode manager singleton which handles the current keyboard mode."""
 
 import functools
-import typing
+from typing import Mapping, Callable, MutableMapping, Union, Set, cast
 
 import attr
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
@@ -37,8 +37,7 @@ from qutebrowser.browser import hints
 INPUT_MODES = [usertypes.KeyMode.insert, usertypes.KeyMode.passthrough]
 PROMPT_MODES = [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]
 
-_ParserDictType = typing.MutableMapping[
-    usertypes.KeyMode, basekeyparser.BaseKeyParser]
+ParserDictType = MutableMapping[usertypes.KeyMode, basekeyparser.BaseKeyParser]
 
 
 @attr.s(frozen=True)
@@ -161,13 +160,7 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
                 mode=usertypes.KeyMode.run_macro,
                 commandrunner=commandrunner,
                 parent=modeman),
-    }  # type: _ParserDictType
-
-    objreg.register('keyparsers', keyparsers, scope='window', window=win_id)
-
-    modeman.destroyed.connect(  # type: ignore
-        functools.partial(objreg.delete, 'keyparsers', scope='window',
-                          window=win_id))
+    }  # type: ParserDictType
 
     for mode, parser in keyparsers.items():
         modeman.register(mode, parser)
@@ -175,7 +168,7 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
     return modeman
 
 
-def instance(win_id: int) -> 'ModeManager':
+def instance(win_id: Union[int, str]) -> 'ModeManager':
     """Get a modemanager object."""
     return objreg.get('mode-manager', scope='window', window=win_id)
 
@@ -204,7 +197,7 @@ class ModeManager(QObject):
         mode: The mode we're currently in.
         _win_id: The window ID of this ModeManager
         _prev_mode: Mode before a prompt popped up
-        _parsers: A dictionary of modes and their keyparsers.
+        parsers: A dictionary of modes and their keyparsers.
         _forward_unbound_keys: If we should forward unbound keys.
         _releaseevents_to_pass: A set of KeyEvents where the keyPressEvent was
                                 passed through, so the release event should as
@@ -226,10 +219,10 @@ class ModeManager(QObject):
     def __init__(self, win_id: int, parent: QObject = None) -> None:
         super().__init__(parent)
         self._win_id = win_id
-        self._parsers = {}  # type: _ParserDictType
+        self.parsers = {}  # type: ParserDictType
         self._prev_mode = usertypes.KeyMode.normal
         self.mode = usertypes.KeyMode.normal
-        self._releaseevents_to_pass = set()  # type: typing.Set[KeyEvent]
+        self._releaseevents_to_pass = set()  # type: Set[KeyEvent]
 
     def __repr__(self) -> str:
         return utils.get_repr(self, mode=self.mode)
@@ -246,15 +239,17 @@ class ModeManager(QObject):
             True if event should be filtered, False otherwise.
         """
         curmode = self.mode
-        parser = self._parsers[curmode]
+        parser = self.parsers[curmode]
         if curmode != usertypes.KeyMode.insert:
             log.modes.debug("got keypress in mode {} - delegating to "
                             "{}".format(curmode, utils.qualname(parser)))
         match = parser.handle(event, dry_run=dry_run)
 
-        is_non_alnum = (
-            event.modifiers() not in [Qt.NoModifier, Qt.ShiftModifier] or
-            not event.text().strip())
+        has_modifier = event.modifiers() not in [
+            Qt.NoModifier,
+            Qt.ShiftModifier,
+        ]  # type: ignore[comparison-overlap]
+        is_non_alnum = has_modifier or not event.text().strip()
 
         forward_unbound_keys = config.cache['input.forward_unbound_keys']
 
@@ -303,7 +298,7 @@ class ModeManager(QObject):
                  parser: basekeyparser.BaseKeyParser) -> None:
         """Register a new mode."""
         assert parser is not None
-        self._parsers[mode] = parser
+        self.parsers[mode] = parser
         parser.request_leave.connect(self.leave)
 
     def enter(self, mode: usertypes.KeyMode,
@@ -322,7 +317,7 @@ class ModeManager(QObject):
 
         log.modes.debug("Entering mode {}{}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
-        if mode not in self._parsers:
+        if mode not in self.parsers:
             raise ValueError("No keyparser for mode {}".format(mode))
         if self.mode == mode or (self.mode in PROMPT_MODES and
                                  mode in PROMPT_MODES):
@@ -422,11 +417,11 @@ class ModeManager(QObject):
             QEvent.KeyRelease: self._handle_keyrelease,
             QEvent.ShortcutOverride:
                 functools.partial(self._handle_keypress, dry_run=True),
-        }  # type: typing.Mapping[QEvent.Type, typing.Callable[[QEvent], bool]]
+        }  # type: Mapping[QEvent.Type, Callable[[QKeyEvent], bool]]
         handler = handlers[event.type()]
-        return handler(event)
+        return handler(cast(QKeyEvent, event))
 
     @cmdutils.register(instance='mode-manager', scope='window')
     def clear_keychain(self) -> None:
         """Clear the currently entered key chain."""
-        self._parsers[self.mode].clear_keystring()
+        self.parsers[self.mode].clear_keystring()

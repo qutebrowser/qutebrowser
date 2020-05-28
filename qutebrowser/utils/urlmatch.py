@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -49,6 +49,7 @@ class UrlPattern:
         _SCHEMES_WITHOUT_HOST: Schemes which don't need a host.
 
     Attributes:
+        host: The host to match to, or None for any host.
         _pattern: The given pattern as string.
         _match_all: Whether the pattern should match all URLs.
         _match_subdomains: Whether the pattern should match subdomains of the
@@ -57,7 +58,6 @@ class UrlPattern:
                  Note that with Chromium, '*'/None only matches http/https and
                  not file/ftp. We deviate from that as per-URL settings aren't
                  security relevant.
-        _host: The host to match to, or None for any host.
         _path: The path to match to, or None for any path.
         _port: The port to match to as integer, or None for any port.
     """
@@ -69,9 +69,9 @@ class UrlPattern:
         # Make sure all attributes are initialized if we exit early.
         self._pattern = pattern
         self._match_all = False
-        self._match_subdomains = False
+        self._match_subdomains = False  # type: bool
         self._scheme = None  # type: typing.Optional[str]
-        self._host = None  # type: typing.Optional[str]
+        self.host = None  # type: typing.Optional[str]
         self._path = None  # type: typing.Optional[str]
         self._port = None  # type: typing.Optional[int]
 
@@ -103,7 +103,7 @@ class UrlPattern:
     def _to_tuple(self) -> typing.Tuple:
         """Get a pattern with information used for __eq__/__hash__."""
         return (self._match_all, self._match_subdomains, self._scheme,
-                self._host, self._path, self._port)
+                self.host, self._path, self._port)
 
     def __hash__(self) -> int:
         return hash(self._to_tuple())
@@ -178,7 +178,7 @@ class UrlPattern:
         if parsed.hostname is None or not parsed.hostname.strip():
             if self._scheme not in self._SCHEMES_WITHOUT_HOST:
                 raise ParseError("Pattern without host")
-            assert self._host is None
+            assert self.host is None
             return
 
         if parsed.netloc.startswith('['):
@@ -187,7 +187,7 @@ class UrlPattern:
             url.setHost(parsed.hostname)
             if not url.isValid():
                 raise ParseError(url.errorString())
-            self._host = url.host()
+            self.host = url.host()
             return
 
         # FIXME what about multiple dots?
@@ -197,15 +197,15 @@ class UrlPattern:
             self._match_subdomains = True
 
         if not host_parts:
-            self._host = None
+            self.host = None
             return
 
-        self._host = '.'.join(host_parts)
+        self.host = '.'.join(host_parts)
 
-        if self._host.endswith('.*'):
+        if self.host.endswith('.*'):
             # Special case to have a nicer error
             raise ParseError("TLD wildcards are not implemented yet")
-        if '*' in self._host:
+        if '*' in self.host:
             # Only * or *.foo is allowed as host.
             raise ParseError("Invalid host wildcard")
 
@@ -245,11 +245,11 @@ class UrlPattern:
         # Contrary to Chromium, we don't need to check for
         # self._match_subdomains, as we want to return True here for e.g.
         # file:// as well.
-        if self._host is None:
+        if self.host is None:
             return True
 
         # If the hosts are exactly equal, we have a match.
-        if host == self._host:
+        if host == self.host:
             return True
 
         # Otherwise, we can only match if our match pattern matches subdomains.
@@ -262,13 +262,13 @@ class UrlPattern:
             return False
 
         # Check if the test host is a subdomain of our host.
-        if len(host) <= (len(self._host) + 1):
+        if len(host) <= (len(self.host) + 1):
             return False
 
-        if not host.endswith(self._host):
+        if not host.endswith(self.host):
             return False
 
-        return host[len(host) - len(self._host) - 1] == '.'
+        return host[len(host) - len(self.host) - 1] == '.'
 
     def _matches_port(self, scheme: str, port: int) -> bool:
         if port == -1 and scheme in self._DEFAULT_PORTS:

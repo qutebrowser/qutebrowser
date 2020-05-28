@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015-2018 Antoni Boucher <bouanto@zoho.com>
 #
 # This file is part of qutebrowser.
@@ -83,8 +83,8 @@ class UrlMarkManager(QObject):
 
         self._init_lineparser()
         for line in self._lineparser:
-            if not line.strip():
-                # Ignore empty or whitespace-only lines.
+            if not line.strip() or line.startswith('#'):
+                # Ignore empty or whitespace-only lines and comments.
                 continue
             self._parse_line(line)
         self._init_savemanager(objreg.get('save-manager'))

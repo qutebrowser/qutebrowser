@@ -3,12 +3,15 @@ version: '{branch}-{build}'
 cache:
   - C:\projects\qutebrowser\.cache
 build: off
+
+image:
+  - Visual Studio 2015  # Windows Server 2012 R2 / Windows 8
+  - Visual Studio 2019  # Windows Server 2019 / Windows 10
+
 environment:
     PYTHONUNBUFFERED: 1
     PYTHON: C:\Python37-x64\python.exe
-    matrix:
-    - TESTENV: py37-pyqt512
-    # - TESTENV: pylint
+    TESTENV: py37-pyqt514
 
 install:
   - '%PYTHON% --version'

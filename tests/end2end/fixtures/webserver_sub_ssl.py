@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -38,6 +38,11 @@ app = flask.Flask(__name__)
 @app.route('/')
 def hello_world():
     return "Hello World via SSL!"
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return webserver_sub.favicon()
 
 
 @app.after_request

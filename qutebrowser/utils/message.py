@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -88,7 +88,7 @@ def _build_question(title: str,
                     mode: usertypes.PromptMode,
                     default: typing.Union[None, bool, str] = None,
                     abort_on: typing.Iterable[pyqtSignal] = (),
-                    url: QUrl = None,
+                    url: str = None,
                     option: bool = None) -> usertypes.Question:
     """Common function for ask/ask_async."""
     question = usertypes.Question()

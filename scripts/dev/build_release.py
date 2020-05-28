@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -44,7 +44,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 
 import qutebrowser
 from scripts import utils
-from scripts.dev import update_3rdparty
+from scripts.dev import update_3rdparty, misc_checks
 
 
 def call_script(name, *args, python=sys.executable):
@@ -229,20 +229,6 @@ def build_mac():
     return [(dmg_name, 'application/x-apple-diskimage', 'macOS .dmg')]
 
 
-def patch_windows(out_dir, x64):
-    """Copy missing DLLs for windows into the given output."""
-    dll_dir = os.path.join('.tox', 'pyinstaller', 'lib', 'site-packages',
-                           'PyQt5', 'Qt', 'bin')
-    # https://github.com/pyinstaller/pyinstaller/issues/4322
-    dlls = ['libEGL.dll', 'd3dcompiler_47.dll']
-    # https://github.com/pyinstaller/pyinstaller/issues/4321
-    if x64:
-        dlls += ['libssl-1_1-x64.dll', 'libcrypto-1_1-x64.dll']
-
-    for dll in dlls:
-        shutil.copy(os.path.join(dll_dir, dll), out_dir)
-
-
 def _get_windows_python_path(x64):
     """Get the path to Python.exe on Windows."""
     parts = str(sys.version_info.major), str(sys.version_info.minor)
@@ -289,15 +275,13 @@ def build_windows():
 
     utils.print_title("Running pyinstaller 32bit")
     _maybe_remove(out_32)
-    call_tox('pyinstaller', '-r', python=python_x86)
+    call_tox('pyinstaller32', '-r', python=python_x86)
     shutil.move(out_pyinstaller, out_32)
-    patch_windows(out_32, x64=False)
 
     utils.print_title("Running pyinstaller 64bit")
     _maybe_remove(out_64)
     call_tox('pyinstaller', '-r', python=python_x64)
     shutil.move(out_pyinstaller, out_64)
-    patch_windows(out_64, x64=True)
 
     utils.print_title("Running 32bit smoke test")
     smoke_test(os.path.join(out_32, 'qutebrowser.exe'))
@@ -424,15 +408,23 @@ def github_upload(artifacts, tag):
         raise Exception("No release found for {!r}!".format(tag))
 
     for filename, mimetype, description in artifacts:
-        print("Uploading {}".format(filename))
         while True:
+            print("Uploading {}".format(filename))
+
+            basename = os.path.basename(filename)
+            assets = [asset for asset in release.assets()
+                      if asset.name == basename]
+            if assets:
+                print("Assets already exist: {}".format(assets))
+                print("Press enter to continue anyways or Ctrl-C to abort.")
+                input()
+
             try:
                 with open(filename, 'rb') as f:
-                    basename = os.path.basename(filename)
                     release.upload_asset(mimetype, basename, f, description)
             except github3.exceptions.ConnectionError as e:
-                utils.print_col('Failed to upload: {}'.format(e), 'red')
-                print("Press Enter to retry...")
+                utils.print_error('Failed to upload: {}'.format(e))
+                print("Press Enter to retry...", file=sys.stderr)
                 input()
                 print("Retrying!")
 
@@ -481,6 +473,10 @@ def main():
         import github3  # pylint: disable=unused-import
         read_github_token()
 
+    if not misc_checks.check_git():
+        utils.print_error("Refusing to do a release with a dirty git tree")
+        sys.exit(1)
+
     if args.no_asciidoc:
         os.makedirs(os.path.join('qutebrowser', 'html', 'doc'), exist_ok=True)
     else:
@@ -497,10 +493,9 @@ def main():
         upload_to_pypi = True
 
     if args.upload:
-        utils.print_title("Press enter to release...")
-        input()
-
         version_tag = "v" + qutebrowser.__version__
+        utils.print_title("Press enter to release {}...".format(version_tag))
+        input()
 
         github_upload(artifacts, version_tag)
         if upload_to_pypi:

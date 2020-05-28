@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -165,7 +165,7 @@ class CommandDispatcher:
         else:
             return None
 
-    def _tab_focus_stack(self, mode: str, *, show_error=True):
+    def _tab_focus_stack(self, mode: str, *, show_error: bool = True) -> None:
         """Select the tab which was last focused."""
         tab_deque = self._tabbed_browser.tab_deque
         cur_tab = self._cntwidget()
@@ -342,8 +342,9 @@ class CommandDispatcher:
             urls = self._parse_url_input(url)
 
         for i, cur_url in enumerate(urls):
-            if secure:
+            if secure and cur_url.scheme() == 'http':
                 cur_url.setScheme('https')
+
             if not window and i > 0:
                 tab = False
                 bg = True
@@ -468,6 +469,10 @@ class CommandDispatcher:
                    in which case the closest match will be taken.
             keep: If given, keep the old tab around.
         """
+        if config.val.tabs.tabs_are_windows:
+            raise cmdutils.CommandError("Can't take tabs when using "
+                                        "windows as tabs")
+
         tabbed_browser, tab = self._resolve_buffer_index(index)
 
         if tabbed_browser is self._tabbed_browser:
@@ -509,7 +514,8 @@ class CommandDispatcher:
     @cmdutils.argument('win_id', completion=miscmodels.window)
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_give(self, win_id: int = None, keep: bool = False,
-                 recursive: bool = False, count: int = None) -> None:
+                 recursive: bool = False, count: int = None,
+                 private: bool = False) -> None:
         """Give the current tab to a new or existing window if win_id given.
 
         If no win_id is given, the tab will get detached into a new window.
@@ -519,7 +525,12 @@ class CommandDispatcher:
             keep: If given, keep the old tab around.
             count: Overrides win_id (index starts at 1 for win_id=0).
             recursive: Whether to move the entire subtree starting at the tab.
+            private: If the tab should be detached into a private instance.
         """
+        if config.val.tabs.tabs_are_windows:
+            raise cmdutils.CommandError("Can't give tabs when using "
+                                        "windows as tabs")
+
         if count is not None:
             win_id = count - 1
 
@@ -532,7 +543,7 @@ class CommandDispatcher:
                                             "only one tab")
 
             tabbed_browser = self._new_tabbed_browser(
-                private=self._tabbed_browser.is_private)
+                private=private or self._tabbed_browser.is_private)
         else:
             if win_id not in objreg.window_registry:
                 raise cmdutils.CommandError(
@@ -541,6 +552,10 @@ class CommandDispatcher:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
 
+            if private and not tabbed_browser.is_private:
+                raise cmdutils.CommandError(
+                    "The window with id {} is not private".format(win_id))
+
         if recursive and tabbed_browser.is_treetabbedbrowser:
             self._tree_tab_give(tabbed_browser, keep)
         else:
@@ -548,6 +563,10 @@ class CommandDispatcher:
             if not keep:
                 self._tabbed_browser.close_tab(self._current_widget(),
                                                add_undo=False)
+        tabbed_browser.tabopen(self._current_url())
+        if not keep:
+            self._tabbed_browser.close_tab(self._current_widget(),
+                                           add_undo=False)
 
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
@@ -702,12 +721,13 @@ class CommandDispatcher:
 
     def _yank_url(self, what):
         """Helper method for yank() to get the URL to copy."""
-        assert what in ['url', 'pretty-url', 'markdown'], what
-        flags = QUrl.RemovePassword
+        assert what in ['url', 'pretty-url'], what
+
         if what == 'pretty-url':
-            flags |= QUrl.DecodeReserved  # type: ignore
+            flags = QUrl.RemovePassword | QUrl.DecodeReserved
         else:
-            flags |= QUrl.FullyEncoded  # type: ignore
+            flags = QUrl.RemovePassword | QUrl.FullyEncoded
+
         url = QUrl(self._current_url())
         url_query = QUrlQuery()
         url_query_str = urlutils.query_string(url)
@@ -718,12 +738,11 @@ class CommandDispatcher:
             if key in config.val.url.yank_ignored_parameters:
                 url_query.removeQueryItem(key)
         url.setQuery(url_query)
-        return url.toString(flags)  # type: ignore
+        return url.toString(flags)  # type: ignore[arg-type]
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('what', choices=['selection', 'url', 'pretty-url',
-                                        'title', 'domain', 'markdown',
-                                        'inline'])
+                                        'title', 'domain', 'inline'])
     def yank(self, what='url', inline=None,
              sel=False, keep=False, quiet=False):
         """Yank (copy) something to the clipboard or primary selection.
@@ -736,8 +755,6 @@ class CommandDispatcher:
                 - `title`: The current page's title.
                 - `domain`: The current scheme, domain, and port number.
                 - `selection`: The selection under the cursor.
-                - `markdown`: Yank title and URL in markdown format
-                  (deprecated, use `:yank inline [{title}]({url})` instead).
                 - `inline`: Yank the text contained in the 'inline' argument.
 
             sel: Use the primary selection instead of the clipboard.
@@ -769,14 +786,6 @@ class CommandDispatcher:
             caret = self._current_widget().caret
             caret.selection(callback=_selection_callback)
             return
-        elif what == 'markdown':
-            message.warning(":yank markdown is deprecated, use `:yank inline "
-                            "[{title}]({url})` instead.")
-            idx = self._current_index()
-            title = self._tabbed_browser.widget.page_title(idx)
-            url = self._yank_url(what)
-            s = '[{}]({})'.format(title, url)
-            what = 'markdown URL'  # For printing
         else:  # pragma: no cover
             raise ValueError("Invalid value {!r} for `what'.".format(what))
 
@@ -1003,7 +1012,8 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', choices=['last', 'parent',
-                                         'stack-next', 'stack-prev'])
+                                         'stack-next', 'stack-prev'],
+                       completion=miscmodels.tab_focus)
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_focus(self, index: typing.Union[str, int] = None,
                   count: int = None, no_last: bool = False) -> None:
@@ -1157,9 +1167,13 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)
     @cmdutils.argument('count', value=cmdutils.Value.count)
+    @cmdutils.argument('output_messages', flag='m')
     def spawn(self, cmdline, userscript=False, verbose=False,
-              output=False, detach=False, count=None):
-        """Spawn a command in a shell.
+              output=False, output_messages=False, detach=False, count=None):
+        """Spawn an external command.
+
+        Note that the command is *not* run in a shell, so things like `$VAR` or
+        `> output` won't have the desired effect.
 
         Args:
             userscript: Run the command as a userscript. You can use an
@@ -1169,7 +1183,8 @@ class CommandDispatcher:
                               (or `$XDG_DATA_HOME`)
                             - `/usr/share/qutebrowser/userscripts`
             verbose: Show notifications when the command started/exited.
-            output: Whether the output should be shown in a new tab.
+            output: Show the output in a new tab.
+            output_messages: Show the output as messages.
             detach: Whether the command should be detached from qutebrowser.
             cmdline: The commandline to execute.
             count: Given to userscripts as $QUTE_COUNT.
@@ -1196,7 +1211,8 @@ class CommandDispatcher:
         if userscript:
             def _selection_callback(s):
                 try:
-                    runner = self._run_userscript(s, cmd, args, verbose, count)
+                    runner = self._run_userscript(
+                        s, cmd, args, verbose, output_messages, count)
                     runner.finished.connect(_on_proc_finished)
                 except cmdutils.CommandError as e:
                     message.error(str(e))
@@ -1211,6 +1227,7 @@ class CommandDispatcher:
         else:
             cmd = os.path.expanduser(cmd)
             proc = guiprocess.GUIProcess(what='command', verbose=verbose,
+                                         output_messages=output_messages,
                                          parent=self._tabbed_browser)
             if detach:
                 ok = proc.start_detached(cmd, args)
@@ -1221,13 +1238,15 @@ class CommandDispatcher:
                 proc.start(cmd, args)
             proc.finished.connect(_on_proc_finished)
 
-    def _run_userscript(self, selection, cmd, args, verbose, count):
+    def _run_userscript(self, selection, cmd, args, verbose, output_messages,
+                        count):
         """Run a userscript given as argument.
 
         Args:
             cmd: The userscript to run.
             args: Arguments to pass to the userscript.
             verbose: Show notifications when the command started/exited.
+            output_messages: Show the output as messages.
             count: Exposed to the userscript.
         """
         env = {
@@ -1254,7 +1273,8 @@ class CommandDispatcher:
 
         try:
             runner = userscripts.run_async(
-                tab, cmd, *args, win_id=self._win_id, env=env, verbose=verbose)
+                tab, cmd, *args, win_id=self._win_id, env=env, verbose=verbose,
+                output_messages=output_messages)
         except userscripts.Error as e:
             raise cmdutils.CommandError(e)
         return runner
@@ -1393,7 +1413,7 @@ class CommandDispatcher:
     def toggle_inspector(self):
         """Toggle the web inspector.
 
-        Note: Due a bug in Qt, the inspector will show incorrect request
+        Note: Due to a bug in Qt, the inspector will show incorrect request
         headers in the network tab.
         """
         tab = self._current_widget()
@@ -1429,7 +1449,6 @@ class CommandDispatcher:
             target = downloads.FileDownloadTarget(dest)
 
         tab = self._current_widget()
-        user_agent = tab.private_api.user_agent()
 
         if url:
             if mhtml_:
@@ -1437,7 +1456,7 @@ class CommandDispatcher:
                                             "page as mhtml.")
             url = urlutils.qurl_from_user_input(url)
             urlutils.raise_cmdexc_if_invalid(url)
-            download_manager.get(url, user_agent=user_agent, target=target)
+            download_manager.get(url, target=target)
         elif mhtml_:
             tab = self._current_widget()
             if tab.backend == usertypes.Backend.QtWebEngine:
@@ -1458,7 +1477,6 @@ class CommandDispatcher:
 
             download_manager.get(
                 self._current_url(),
-                user_agent=user_agent,
                 qnam=qnam,
                 target=target,
                 suggested_fn=suggested_fn
@@ -1654,6 +1672,7 @@ class CommandDispatcher:
         options = {
             'ignore_case': config.val.search.ignore_case,
             'reverse': reverse,
+            'wrap': config.val.search.wrap,
         }
 
         self._tabbed_browser.search_text = text

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -249,7 +249,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         o = self._opt
         o.rect = self._style.subElementRect(
             self._style.SE_ItemViewItemFocusRect, self._opt, self._opt.widget)
-        o.state |= QStyle.State_KeyboardFocusChange | QStyle.State_Item
+        o.state |= int(QStyle.State_KeyboardFocusChange | QStyle.State_Item)
         qtutils.ensure_valid(o.rect)
         if state & QStyle.State_Enabled:
             cg = QPalette.Normal
@@ -290,7 +290,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         size = self._style.sizeFromContents(QStyle.CT_ItemViewItem, self._opt,
                                             docsize, self._opt.widget)
         qtutils.ensure_valid(size)
-        return size + QSize(10, 3)
+        return size + QSize(10, 3)  # type: ignore[operator]
 
     def paint(self, painter, option, index):
         """Override the QStyledItemDelegate paint function.

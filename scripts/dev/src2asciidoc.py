@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -58,6 +58,11 @@ class UsageFormatter(argparse.HelpFormatter):
     This does some horrible things, but the alternative would be to reimplement
     argparse.HelpFormatter while copying 99% of the code :-/
     """
+
+    def __init__(self, prog, indent_increment=2, max_help_position=24,
+                 width=200):
+        """Override __init__ to set a fixed width as default."""
+        super().__init__(prog, indent_increment, max_help_position, width)
 
     def _format_usage(self, usage, actions, groups, _prefix):
         """Override _format_usage to not add the 'usage:' prefix."""
@@ -162,7 +167,7 @@ def _get_configtypes():
         inspect.isclass(e) and
         # pylint: disable=protected-access
         e not in [configtypes.BaseType, configtypes.MappingType,
-                  configtypes._Numeric] and
+                  configtypes._Numeric, configtypes.FontBase] and
         # pylint: enable=protected-access
         issubclass(e, configtypes.BaseType))
     yield from inspect.getmembers(configtypes, predicate)
@@ -545,6 +550,7 @@ def regenerate_cheatsheet():
         subprocess.run(['inkscape', '-e', filename, '-b', 'white',
                         '-w', str(x), '-h', str(y),
                         'misc/cheatsheet.svg'], check=True)
+        subprocess.run(['optipng', filename], check=True)
 
 
 def main():

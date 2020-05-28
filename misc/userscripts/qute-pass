@@ -27,6 +27,8 @@ USAGE = """The domain of the site has to appear as a segment in the pass path, f
 login information is inserted by emulating key events using qutebrowser's fake-key command in this manner:
 [USERNAME]<Tab>[PASSWORD], which is compatible with almost all login forms.
 
+If you use gopass with multiple mounts, use the CLI switch --mode gopass to switch to gopass mode.
+
 Suggested bindings similar to Uzbl's `formfiller` script:
 
     config.bind('<z><l>', 'spawn --userscript qute-pass')
@@ -57,7 +59,9 @@ argument_parser = argparse.ArgumentParser(description=__doc__, usage=USAGE, epil
 argument_parser.add_argument('url', nargs='?', default=os.getenv('QUTE_URL'))
 argument_parser.add_argument('--password-store', '-p',
                              default=os.getenv('PASSWORD_STORE_DIR', default=os.path.expanduser('~/.password-store')),
-                             help='Path to your pass password-store')
+                             help='Path to your pass password-store (only used in pass-mode)')
+argument_parser.add_argument('--mode', '-M', choices=['pass', 'gopass'], default="pass",
+                             help='Select mode [gopass] to use gopass instead of the standard pass.')
 argument_parser.add_argument('--username-pattern', '-u', default=r'.*/(.+)',
                              help='Regular expression that matches the username')
 argument_parser.add_argument('--username-target', '-U', choices=['path', 'secret'], default='path',
@@ -99,34 +103,44 @@ def qute_command(command):
 
 def find_pass_candidates(domain, password_store_path):
     candidates = []
-    for path, directories, file_names in os.walk(password_store_path, followlinks=True):
-        secrets = fnmatch.filter(file_names, '*.gpg')
-        if not secrets:
-            continue
 
-        # Strip password store path prefix to get the relative pass path
-        pass_path = path[len(password_store_path) + 1:]
-        split_path = pass_path.split(os.path.sep)
-        for secret in secrets:
-            secret_base = os.path.splitext(secret)[0]
-            if domain not in (split_path + [secret_base]):
+    if arguments.mode == "gopass":
+        all_passwords = subprocess.run(["gopass", "list", "--flat" ], stdout=subprocess.PIPE).stdout.decode("UTF-8").splitlines()
+
+        for password in all_passwords:
+            if domain in password:
+                candidates.append(password)
+    else:
+        for path, directories, file_names in os.walk(password_store_path, followlinks=True):
+            secrets = fnmatch.filter(file_names, '*.gpg')
+            if not secrets:
                 continue
 
-            candidates.append(os.path.join(pass_path, secret_base))
+            # Strip password store path prefix to get the relative pass path
+            pass_path = path[len(password_store_path):]
+            split_path = pass_path.split(os.path.sep)
+            for secret in secrets:
+                secret_base = os.path.splitext(secret)[0]
+                if domain not in (split_path + [secret_base]):
+                    continue
+
+                candidates.append(os.path.join(pass_path, secret_base))
     return candidates
 
 
-def _run_pass(command, encoding):
-    process = subprocess.run(command, stdout=subprocess.PIPE)
+def _run_pass(pass_arguments, encoding):
+    # The executable is conveniently named after it's mode [pass|gopass].
+    pass_command = [arguments.mode]
+    process = subprocess.run(pass_command + pass_arguments, stdout=subprocess.PIPE)
     return process.stdout.decode(encoding).strip()
 
 
 def pass_(path, encoding):
-    return _run_pass(['pass', path], encoding)
+    return _run_pass([path], encoding)
 
 
 def pass_otp(path, encoding):
-    return _run_pass(['pass', 'otp', path], encoding)
+    return _run_pass(['otp', path], encoding)
 
 
 def dmenu(items, invocation, encoding):
@@ -152,6 +166,8 @@ def main(arguments):
 
     # Expand potential ~ in paths, since this script won't be called from a shell that does it for us
     password_store_path = os.path.expanduser(arguments.password_store)
+    # Add trailing slash if not present
+    password_store_path = os.path.join(password_store_path, '')
 
     # Try to find candidates using targets in the following order: fully-qualified domain name (includes subdomains),
     # the registered domain name, the IPv4 address if that's what the URL represents and finally the private domain

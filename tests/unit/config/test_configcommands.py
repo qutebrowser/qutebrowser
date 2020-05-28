@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -25,7 +25,7 @@ import unittest.mock
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.config import configcommands, configutils
+from qutebrowser.config import configcommands
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import usertypes, urlmatch
 from qutebrowser.keyinput import keyutils
@@ -92,7 +92,7 @@ class TestSet:
         commands.set(0, option, inp, temp=temp)
 
         assert config_stub.get(option) == new_value
-        assert yaml_value(option) == (configutils.UNSET if temp else new_value)
+        assert yaml_value(option) == (usertypes.UNSET if temp else new_value)
 
     def test_set_with_pattern(self, monkeypatch, commands, config_stub):
         monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
@@ -212,6 +212,16 @@ class TestSet:
             commands.set(win_id=0, option='foo?')
 
 
+@pytest.mark.parametrize('old', [True, False])
+def test_diff(commands, tabbed_browser_stubs, old):
+    """Run ':config-diff'.
+
+    Should open qute://configdiff."""
+    commands.config_diff(win_id=0, old=old)
+    url = QUrl('qute://configdiff/old') if old else QUrl('qute://configdiff')
+    assert tabbed_browser_stubs[0].loaded_url == url
+
+
 class TestCycle:
 
     """Test :config-cycle."""
@@ -295,7 +305,7 @@ class TestAdd:
 
         assert str(config_stub.get(name)[-1]) == value
         if temp:
-            assert yaml_value(name) == configutils.UNSET
+            assert yaml_value(name) == usertypes.UNSET
         else:
             assert yaml_value(name)[-1] == value
 
@@ -328,7 +338,7 @@ class TestAdd:
 
         assert str(config_stub.get(name)[key]) == value
         if temp:
-            assert yaml_value(name) == configutils.UNSET
+            assert yaml_value(name) == usertypes.UNSET
         else:
             assert yaml_value(name)[key] == value
 
@@ -379,7 +389,7 @@ class TestRemove:
 
         assert value not in config_stub.get(name)
         if temp:
-            assert yaml_value(name) == configutils.UNSET
+            assert yaml_value(name) == usertypes.UNSET
         else:
             assert value not in yaml_value(name)
 
@@ -410,7 +420,7 @@ class TestRemove:
 
         assert key not in config_stub.get(name)
         if temp:
-            assert yaml_value(name) == configutils.UNSET
+            assert yaml_value(name) == usertypes.UNSET
         else:
             assert key not in yaml_value(name)
 
@@ -446,7 +456,7 @@ class TestUnsetAndClear:
         commands.config_unset(name, temp=temp)
 
         assert config_stub.get(name) == 'always'
-        assert yaml_value(name) == ('never' if temp else configutils.UNSET)
+        assert yaml_value(name) == ('never' if temp else usertypes.UNSET)
 
     def test_unset_unknown_option(self, commands):
         with pytest.raises(cmdutils.CommandError, match="No option 'tabs'"):
@@ -460,7 +470,7 @@ class TestUnsetAndClear:
         commands.config_clear(save=save)
 
         assert config_stub.get(name) == 'always'
-        assert yaml_value(name) == (configutils.UNSET if save else 'never')
+        assert yaml_value(name) == (usertypes.UNSET if save else 'never')
 
 
 class TestSource:

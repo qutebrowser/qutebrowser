@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -435,8 +435,9 @@ class AbstractDownloadItem(QObject):
                arg: The error message as string.
         remove_requested: Emitted when the removal of this download was
                           requested.
-        pdfjs_requested: Emitted when PDF.js should be opened with the given
-                         filename.
+        pdfjs_requested: Emitted when PDF.js should be opened.
+                         arg 1: The filename of the PDF download.
+                         arg 2: The original download URL.
     """
 
     data_changed = pyqtSignal()
@@ -444,7 +445,7 @@ class AbstractDownloadItem(QObject):
     error = pyqtSignal(str)
     cancelled = pyqtSignal()
     remove_requested = pyqtSignal()
-    pdfjs_requested = pyqtSignal(str)
+    pdfjs_requested = pyqtSignal(str, QUrl)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -460,7 +461,7 @@ class AbstractDownloadItem(QObject):
         self.raw_headers = UnsupportedAttribute(
         )  # type: typing.Union[UnsupportedAttribute, typing.Dict[bytes,bytes]]
 
-        self._filename = None
+        self._filename = None  # type: typing.Optional[str]
         self._dead = False
 
     def __repr__(self):
@@ -605,6 +606,10 @@ class AbstractDownloadItem(QObject):
             self.retry()
         except UnsupportedOperationError as e:
             message.error(str(e))
+
+    def url(self) -> QUrl:
+        """Get the download's origin URL."""
+        raise NotImplementedError
 
     def _get_open_filename(self):
         """Get the filename to open a download.
@@ -777,7 +782,8 @@ class AbstractDownloadItem(QObject):
         if filename is None:  # pragma: no cover
             log.downloads.error("No filename to open the download!")
             return
-        self.pdfjs_requested.emit(os.path.basename(filename))
+        self.pdfjs_requested.emit(os.path.basename(filename),
+                                  self.url())
 
     def set_target(self, target):
         """Set the target for a given download.
@@ -853,12 +859,13 @@ class AbstractDownloadManager(QObject):
             dl.stats.update_speed()
         self.data_changed.emit(-1)
 
-    @pyqtSlot(str)
-    def _on_pdfjs_requested(self, filename):
+    @pyqtSlot(str, QUrl)
+    def _on_pdfjs_requested(self, filename: str, original_url: QUrl) -> None:
         """Open PDF.js when a download requests it."""
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')
-        tabbed_browser.tabopen(pdfjs.get_main_url(filename), background=False)
+        tabbed_browser.tabopen(pdfjs.get_main_url(filename, original_url),
+                               background=False)
 
     def _init_item(self, download, auto_remove, suggested_filename):
         """Initialize a newly created DownloadItem."""

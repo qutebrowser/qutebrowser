@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,6 +24,8 @@ import os.path
 import itertools
 import urllib
 import typing
+import glob
+import shutil
 
 from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer, pyqtSlot
 from PyQt5.QtWidgets import QApplication
@@ -59,6 +61,16 @@ def init(parent=None):
         parent: The parent to use for the SessionManager.
     """
     base_path = os.path.join(standarddir.data(), 'sessions')
+
+    # WORKAROUND for https://github.com/qutebrowser/qutebrowser/issues/5359
+    backup_path = os.path.join(base_path, 'before-qt-515')
+    if (os.path.exists(base_path) and
+            not os.path.exists(backup_path) and
+            qtutils.version_check('5.15', compiled=False)):
+        os.mkdir(backup_path)
+        for filename in glob.glob(os.path.join(base_path, '*.yml')):
+            shutil.copy(filename, backup_path)
+
     try:
         os.mkdir(base_path)
     except FileExistsError:
@@ -66,7 +78,6 @@ def init(parent=None):
 
     global session_manager
     session_manager = SessionManager(base_path, parent)
-    objreg.register('session-manager', session_manager, command_only=True)
 
 
 @pyqtSlot()
@@ -121,13 +132,13 @@ class SessionManager(QObject):
         _base_path: The path to store sessions under.
         _last_window_session: The session data of the last window which was
                               closed.
-        _current: The name of the currently loaded session, or None.
+        current: The name of the currently loaded session, or None.
         did_load: Set when a session was loaded.
     """
 
     def __init__(self, base_path, parent=None):
         super().__init__(parent)
-        self._current = None  # type: typing.Optional[str]
+        self.current = None  # type: typing.Optional[str]
         self._base_path = base_path
         self._last_window_session = None
         self.did_load = False
@@ -297,8 +308,8 @@ class SessionManager(QObject):
         if name is default:
             name = config.val.session.default_name
             if name is None:
-                if self._current is not None:
-                    name = self._current
+                if self.current is not None:
+                    name = self.current
                 else:
                     name = 'default'
         return name
@@ -331,10 +342,11 @@ class SessionManager(QObject):
         else:
             data = self._save_all(only_window=only_window,
                                   with_private=with_private)
-        log.sessions.vdebug("Saving data: {}".format(data))  # type: ignore
+        log.sessions.vdebug(  # type: ignore[attr-defined]
+            "Saving data: {}".format(data))
         try:
             with qtutils.savefile_open(path) as f:
-                utils.yaml_dump(data, f)  # type: ignore
+                utils.yaml_dump(data, f)
         except (OSError, UnicodeEncodeError, yaml.YAMLError) as e:
             raise SessionError(e)
 
@@ -541,7 +553,7 @@ class SessionManager(QObject):
         if data['windows']:
             self.did_load = True
         if not name.startswith('_') and not temp:
-            self._current = name
+            self.current = name
 
     def delete(self, name):
         """Delete a session."""
@@ -560,116 +572,144 @@ class SessionManager(QObject):
                 sessions.append(base)
         return sorted(sessions)
 
-    @cmdutils.register(instance='session-manager')
-    @cmdutils.argument('name', completion=miscmodels.session)
-    def session_load(self, name, clear=False, temp=False, force=False,
-                     delete=False):
-        """Load a session.
 
-        Args:
-            name: The name of the session.
-            clear: Close all existing windows.
-            temp: Don't set the current session for :session-save.
-            force: Force loading internal sessions (starting with an
-                   underline).
-            delete: Delete the saved session once it has loaded.
-        """
-        if name.startswith('_') and not force:
-            raise cmdutils.CommandError("{} is an internal session, use "
-                                        "--force to load anyways."
-                                        .format(name))
-        old_windows = list(objreg.window_registry.values())
-        try:
-            self.load(name, temp=temp)
-        except SessionNotFoundError:
-            raise cmdutils.CommandError("Session {} not found!".format(name))
-        except SessionError as e:
-            raise cmdutils.CommandError("Error while loading session: {}"
-                                        .format(e))
-        else:
-            if clear:
-                for win in old_windows:
-                    win.close()
-            if delete:
-                try:
-                    self.delete(name)
-                except SessionError as e:
-                    log.sessions.exception("Error while deleting session!")
-                    raise cmdutils.CommandError("Error while deleting "
-                                                "session: {}".format(e))
-                else:
-                    log.sessions.debug(
-                        "Loaded & deleted session {}.".format(name))
+@cmdutils.register()
+@cmdutils.argument('name', completion=miscmodels.session)
+def session_load(name: str, *,
+                 clear: bool = False,
+                 temp: bool = False,
+                 force: bool = False,
+                 delete: bool = False) -> None:
+    """Load a session.
 
-    @cmdutils.register(instance='session-manager')
-    @cmdutils.argument('name', completion=miscmodels.session)
-    @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
-    @cmdutils.argument('with_private', flag='p')
-    def session_save(self, name: ArgType = default,
-                     current: bool = False,
-                     quiet: bool = False,
-                     force: bool = False,
-                     only_active_window: bool = False,
-                     with_private: bool = False,
-                     win_id: int = None) -> None:
-        """Save a session.
-
-        Args:
-            name: The name of the session. If not given, the session configured
-                  in session.default_name is saved.
-            current: Save the current session instead of the default.
-            quiet: Don't show confirmation message.
-            force: Force saving internal sessions (starting with an underline).
-            only_active_window: Saves only tabs of the currently active window.
-            with_private: Include private windows.
-        """
-        if (not isinstance(name, Sentinel) and
-                name.startswith('_') and
-                not force):
-            raise cmdutils.CommandError("{} is an internal session, use "
-                                        "--force to save anyways."
-                                        .format(name))
-        if current:
-            if self._current is None:
-                raise cmdutils.CommandError("No session loaded currently!")
-            name = self._current
-            assert not name.startswith('_')
-        try:
-            if only_active_window:
-                name = self.save(name, only_window=win_id,
-                                 with_private=True)
+    Args:
+        name: The name of the session.
+        clear: Close all existing windows.
+        temp: Don't set the current session for :session-save.
+        force: Force loading internal sessions (starting with an underline).
+        delete: Delete the saved session once it has loaded.
+    """
+    if name.startswith('_') and not force:
+        raise cmdutils.CommandError("{} is an internal session, use --force "
+                                    "to load anyways.".format(name))
+    old_windows = list(objreg.window_registry.values())
+    try:
+        session_manager.load(name, temp=temp)
+    except SessionNotFoundError:
+        raise cmdutils.CommandError("Session {} not found!".format(name))
+    except SessionError as e:
+        raise cmdutils.CommandError("Error while loading session: {}"
+                                    .format(e))
+    else:
+        if clear:
+            for win in old_windows:
+                win.close()
+        if delete:
+            try:
+                session_manager.delete(name)
+            except SessionError as e:
+                log.sessions.exception("Error while deleting session!")
+                raise cmdutils.CommandError("Error while deleting session: {}"
+                                            .format(e))
             else:
-                name = self.save(name, with_private=with_private)
-        except SessionError as e:
-            raise cmdutils.CommandError("Error while saving session: {}"
-                                        .format(e))
+                log.sessions.debug("Loaded & deleted session {}.".format(name))
+
+
+@cmdutils.register()
+@cmdutils.argument('name', completion=miscmodels.session)
+@cmdutils.argument('win_id', value=cmdutils.Value.win_id)
+@cmdutils.argument('with_private', flag='p')
+def session_save(name: ArgType = default, *,
+                 current: bool = False,
+                 quiet: bool = False,
+                 force: bool = False,
+                 only_active_window: bool = False,
+                 with_private: bool = False,
+                 win_id: int = None) -> None:
+    """Save a session.
+
+    Args:
+        name: The name of the session. If not given, the session configured in
+              session.default_name is saved.
+        current: Save the current session instead of the default.
+        quiet: Don't show confirmation message.
+        force: Force saving internal sessions (starting with an underline).
+        only_active_window: Saves only tabs of the currently active window.
+        with_private: Include private windows.
+    """
+    if not isinstance(name, Sentinel) and name.startswith('_') and not force:
+        raise cmdutils.CommandError("{} is an internal session, use --force "
+                                    "to save anyways.".format(name))
+    if current:
+        if session_manager.current is None:
+            raise cmdutils.CommandError("No session loaded currently!")
+        name = session_manager.current
+        assert not name.startswith('_')
+    try:
+        if only_active_window:
+            name = session_manager.save(name, only_window=win_id,
+                                        with_private=True)
         else:
-            if quiet:
-                log.sessions.debug("Saved session {}.".format(name))
-            else:
-                message.info("Saved session {}.".format(name))
+            name = session_manager.save(name, with_private=with_private)
+    except SessionError as e:
+        raise cmdutils.CommandError("Error while saving session: {}".format(e))
+    else:
+        if quiet:
+            log.sessions.debug("Saved session {}.".format(name))
+        else:
+            message.info("Saved session {}.".format(name))
 
-    @cmdutils.register(instance='session-manager')
-    @cmdutils.argument('name', completion=miscmodels.session)
-    def session_delete(self, name, force=False):
-        """Delete a session.
 
-        Args:
-            name: The name of the session.
-            force: Force deleting internal sessions (starting with an
-                   underline).
-        """
-        if name.startswith('_') and not force:
-            raise cmdutils.CommandError("{} is an internal session, use "
-                                        "--force to delete anyways."
-                                        .format(name))
+@cmdutils.register()
+@cmdutils.argument('name', completion=miscmodels.session)
+def session_delete(name: str, *, force: bool = False) -> None:
+    """Delete a session.
+
+    Args:
+        name: The name of the session.
+        force: Force deleting internal sessions (starting with an underline).
+    """
+    if name.startswith('_') and not force:
+        raise cmdutils.CommandError("{} is an internal session, use --force "
+                                    "to delete anyways.".format(name))
+    try:
+        session_manager.delete(name)
+    except SessionNotFoundError:
+        raise cmdutils.CommandError("Session {} not found!".format(name))
+    except SessionError as e:
+        log.sessions.exception("Error while deleting session!")
+        raise cmdutils.CommandError("Error while deleting session: {}"
+                                    .format(e))
+    else:
+        log.sessions.debug("Deleted session {}.".format(name))
+
+
+def load_default(name):
+    """Load the default session.
+
+    Args:
+        name: The name of the session to load, or None to read state file.
+    """
+    if name is None and session_manager.exists('_autosave'):
+        name = '_autosave'
+    elif name is None:
         try:
-            self.delete(name)
-        except SessionNotFoundError:
-            raise cmdutils.CommandError("Session {} not found!".format(name))
-        except SessionError as e:
-            log.sessions.exception("Error while deleting session!")
-            raise cmdutils.CommandError("Error while deleting session: {}"
-                                        .format(e))
-        else:
-            log.sessions.debug("Deleted session {}.".format(name))
+            name = configfiles.state['general']['session']
+        except KeyError:
+            # No session given as argument and none in the session file ->
+            # start without loading a session
+            return
+
+    try:
+        session_manager.load(name)
+    except SessionNotFoundError:
+        message.error("Session {} not found!".format(name))
+    except SessionError as e:
+        message.error("Failed to load session {}: {}".format(name, e))
+    try:
+        del configfiles.state['general']['session']
+    except KeyError:
+        pass
+    # If this was a _restart session, delete it.
+    if name == '_restart':
+        session_manager.delete('_restart')

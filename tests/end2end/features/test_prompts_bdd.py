@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import time
+import logging
 
 import pytest_bdd as bdd
 bdd.scenarios('prompts.feature')
@@ -53,10 +53,15 @@ def no_prompt_shown(quteproc):
 def ssl_error_page(request, quteproc):
     if request.config.webengine and qtutils.version_check('5.9'):
         quteproc.wait_for(message="Certificate error: *")
-        time.sleep(0.5)  # Wait for error page to appear
-        content = quteproc.get_content().strip()
-        assert ("ERR_INSECURE_RESPONSE" in content or  # Qt <= 5.10
-                "ERR_CERT_AUTHORITY_INVALID" in content)  # Qt 5.11
+
+        msg = quteproc.wait_for(message="Load error: *")
+        msg.expected = True
+
+        expected_messages = [
+            'Load error: ERR_INSECURE_RESPONSE',  # Qt <= 5.10
+            'Load error: ERR_CERT_AUTHORITY_INVALID',  # Qt 5.11
+        ]
+        assert msg.message in expected_messages
     else:
         if not request.config.webengine:
             line = quteproc.wait_for(message='Error while loading *: SSL '
@@ -68,18 +73,17 @@ def ssl_error_page(request, quteproc):
         assert "Unable to load page" in content
 
 
-class AbstractCertificateErrorWrapper:
+def test_certificate_error_load_status(request, quteproc, ssl_server):
+    """If we load the same page twice, we should get a 'warn' status twice."""
+    quteproc.set_setting('content.ssl_strict', 'false')
 
-    """A wrapper over an SSL/certificate error."""
-
-    def __init__(self, error):
-        self._error = error
-
-    def __str__(self):
-        raise NotImplementedError
-
-    def __repr__(self):
-        raise NotImplementedError
-
-    def is_overridable(self):
-        raise NotImplementedError
+    for i in range(2):
+        quteproc.open_path('/', port=ssl_server.port, https=True, wait=False,
+                           new_tab=True)
+        if i == 0 or not request.config.webengine:
+            # Error is only logged on the first error with QtWebEngine
+            quteproc.mark_expected(category='message',
+                                   loglevel=logging.ERROR,
+                                   message="Certificate error: *")
+        quteproc.wait_for_load_finished('/', port=ssl_server.port, https=True,
+                                        load_status='warn')

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -216,8 +216,7 @@ class WebEnginePage(QWebEnginePage):
                                                           self.shutting_down],
                                                 escape_msg=escape_msg)
             except shared.CallSuper:
-                return super().javaScriptPrompt(  # type: ignore
-                    url, js_msg, default)
+                return super().javaScriptPrompt(url, js_msg, default)
 
     def javaScriptAlert(self, url, js_msg):
         """Override javaScriptAlert to use qutebrowser prompts."""

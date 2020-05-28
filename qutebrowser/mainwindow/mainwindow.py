@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -31,7 +31,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
-from qutebrowser.config import config, configfiles
+from qutebrowser.config import config, configfiles, stylesheet
 from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
                                jinja, debug)
 from qutebrowser.mainwindow import messageview, prompt
@@ -102,7 +102,7 @@ def raise_window(window, alert=True):
     window.setWindowState(window.windowState() | Qt.WindowActive)
     window.raise_()
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-69568
-    QCoreApplication.processEvents(  # type: ignore
+    QCoreApplication.processEvents(  # type: ignore[call-overload]
         QEventLoop.ExcludeUserInputEvents | QEventLoop.ExcludeSocketNotifiers)
     window.activateWindow()
 
@@ -157,8 +157,41 @@ class MainWindow(QWidget):
             color: {{ conf.colors.hints.fg }};
             font: {{ conf.fonts.hints }};
             border: {{ conf.hints.border }};
-            padding-left: 3px;
-            padding-right: 3px;
+            border-radius: {{ conf.hints.radius }}px;
+            padding-top: {{ conf.hints.padding['top'] }}px;
+            padding-left: {{ conf.hints.padding['left'] }}px;
+            padding-right: {{ conf.hints.padding['right'] }}px;
+            padding-bottom: {{ conf.hints.padding['bottom'] }}px;
+        }
+
+        QMenu {
+            {% if conf.fonts.contextmenu %}
+                font: {{ conf.fonts.contextmenu }};
+            {% endif %}
+            {% if conf.colors.contextmenu.menu.bg %}
+                background-color: {{ conf.colors.contextmenu.menu.bg }};
+            {% endif %}
+            {% if conf.colors.contextmenu.menu.fg %}
+                color: {{ conf.colors.contextmenu.menu.fg }};
+            {% endif %}
+        }
+
+        QMenu::item:selected {
+            {% if conf.colors.contextmenu.selected.bg %}
+                background-color: {{ conf.colors.contextmenu.selected.bg }};
+            {% endif %}
+            {% if conf.colors.contextmenu.selected.fg %}
+                color: {{ conf.colors.contextmenu.selected.fg }};
+            {% endif %}
+        }
+
+        QMenu::item:disabled {
+            {% if conf.colors.contextmenu.disabled.bg %}
+                background-color: {{ conf.colors.contextmenu.disabled.bg }};
+            {% endif %}
+            {% if conf.colors.contextmenu.disabled.fg %}
+                color: {{ conf.colors.contextmenu.disabled.fg }};
+            {% endif %}
         }
     """
 
@@ -260,7 +293,7 @@ class MainWindow(QWidget):
         self._set_decoration(config.val.window.hide_decoration)
 
         self.state_before_fullscreen = self.windowState()
-        config.set_register_stylesheet(self)
+        stylesheet.set_register(self)
 
     def _init_geometry(self, geometry):
         """Initialize the window geometry or load it from disk."""
@@ -363,7 +396,9 @@ class MainWindow(QWidget):
                         self._command_dispatcher,
                         command_only=True,
                         scope='window', window=self.win_id)
-        self.tabbed_browser.widget.destroyed.connect(  # type: ignore
+
+        widget = self.tabbed_browser.widget
+        widget.destroyed.connect(
             functools.partial(objreg.delete, 'command-dispatcher',
                               scope='window', window=self.win_id))
 
@@ -388,7 +423,7 @@ class MainWindow(QWidget):
         self._vbox.removeWidget(self.tabbed_browser.widget)
         self._vbox.removeWidget(self._downloadview)
         self._vbox.removeWidget(self.status)
-        widgets = [self.tabbed_browser.widget]
+        widgets = [self.tabbed_browser.widget]  # type: typing.List[QWidget]
 
         downloads_position = config.val.downloads.position
         if downloads_position == 'top':
@@ -425,7 +460,7 @@ class MainWindow(QWidget):
 
     def _save_geometry(self):
         """Save the window geometry to the state config."""
-        data = bytes(self.saveGeometry())
+        data = self.saveGeometry().data()
         geom = base64.b64encode(data).decode('ASCII')
         configfiles.state['geometry']['mainwindow'] = geom
 
@@ -458,9 +493,8 @@ class MainWindow(QWidget):
 
     def _connect_signals(self):
         """Connect all mainwindow signals."""
-        keyparsers = self._get_object('keyparsers')
         message_bridge = self._get_object('message-bridge')
-        mode_manager = self._get_object('mode-manager')
+        mode_manager = modeman.instance(self.win_id)
 
         # misc
         self.tabbed_browser.close_window.connect(self.close)
@@ -470,14 +504,16 @@ class MainWindow(QWidget):
         mode_manager.entered.connect(self.status.on_mode_entered)
         mode_manager.left.connect(self.status.on_mode_left)
         mode_manager.left.connect(self.status.cmd.on_mode_left)
-        mode_manager.left.connect(message.global_bridge.mode_left)
+        mode_manager.left.connect(
+            message.global_bridge.mode_left)  # type: ignore[arg-type]
 
         # commands
-        keyparsers[usertypes.KeyMode.normal].keystring_updated.connect(
+        normal_parser = mode_manager.parsers[usertypes.KeyMode.normal]
+        normal_parser.keystring_updated.connect(
             self.status.keystring.setText)
-        self.status.cmd.got_cmd[str].connect(  # type: ignore
+        self.status.cmd.got_cmd[str].connect(  # type: ignore[index]
             self._commandrunner.run_safely)
-        self.status.cmd.got_cmd[str, int].connect(  # type: ignore
+        self.status.cmd.got_cmd[str, int].connect(  # type: ignore[index]
             self._commandrunner.run_safely)
         self.status.cmd.returnPressed.connect(
             self.tabbed_browser.on_cmd_return_pressed)
@@ -485,7 +521,7 @@ class MainWindow(QWidget):
             self._command_dispatcher.search)
 
         # key hint popup
-        for mode, parser in keyparsers.items():
+        for mode, parser in mode_manager.parsers.items():
             parser.keystring_updated.connect(functools.partial(
                 self._keyhint.update_keyhint, mode.name))
 
@@ -552,17 +588,18 @@ class MainWindow(QWidget):
         refresh_window = self.isVisible()
         if hidden:
             window_flags |= Qt.CustomizeWindowHint | Qt.NoDropShadowWindowHint
-        self.setWindowFlags(window_flags)
+        self.setWindowFlags(typing.cast(Qt.WindowFlags, window_flags))
         if refresh_window:
             self.show()
 
     @pyqtSlot(bool)
     def _on_fullscreen_requested(self, on):
-        if not config.val.content.windowed_fullscreen:
+        if not config.val.content.fullscreen.window:
             if on:
                 self.state_before_fullscreen = self.windowState()
-                self.setWindowState(Qt.WindowFullScreen |  # type: ignore
-                                    self.state_before_fullscreen)
+                self.setWindowState(
+                    Qt.WindowFullScreen |  # type: ignore[arg-type]
+                    self.state_before_fullscreen)  # type: ignore[operator]
             elif self.isFullScreen():
                 self.setWindowState(self.state_before_fullscreen)
         log.misc.debug('on: {}, state before fullscreen: {}'.format(
@@ -599,24 +636,12 @@ class MainWindow(QWidget):
         super().showEvent(e)
         objreg.register('last-visible-main-window', self, update=True)
 
-    def _do_close(self):
-        """Helper function for closeEvent."""
-        try:
-            last_visible = objreg.get('last-visible-main-window')
-            if self is last_visible:
-                objreg.delete('last-visible-main-window')
-        except KeyError:
-            pass
-        sessions.session_manager.save_last_window_session()
-        self._save_geometry()
-        log.destroy.debug("Closing window {}".format(self.win_id))
-        self.tabbed_browser.shutdown()
+    def _confirm_quit(self):
+        """Confirm that this window should be closed.
 
-    def closeEvent(self, e):
-        """Override closeEvent to display a confirmation if needed."""
-        if crashsignal.is_crashing:
-            e.accept()
-            return
+        Return:
+            True if closing is okay, False if a closeEvent should be ignored.
+        """
         tab_count = self.tabbed_browser.widget.count()
         download_count = self._download_model.running_downloads()
         quit_texts = []
@@ -645,7 +670,29 @@ class MainWindow(QWidget):
             if not confirmed:
                 log.destroy.debug("Cancelling closing of window {}".format(
                     self.win_id))
-                e.ignore()
-                return
+                return False
+
+        return True
+
+    def closeEvent(self, e):
+        """Override closeEvent to display a confirmation if needed."""
+        if crashsignal.crash_handler.is_crashing:
+            e.accept()
+            return
+
+        if not self._confirm_quit():
+            e.ignore()
+            return
+
         e.accept()
-        self._do_close()
+
+        try:
+            last_visible = objreg.get('last-visible-main-window')
+            if self is last_visible:
+                objreg.delete('last-visible-main-window')
+        except KeyError:
+            pass
+
+        sessions.session_manager.save_last_window_session()
+        self._save_geometry()
+        log.destroy.debug("Closing window {}".format(self.win_id))

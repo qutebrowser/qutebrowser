@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -43,13 +43,14 @@ from PyQt5.QtNetwork import QNetworkCookieJar
 
 import helpers.stubs as stubsmod
 from qutebrowser.config import (config, configdata, configtypes, configexc,
-                                configfiles, configcache)
+                                configfiles, configcache, stylesheet)
 from qutebrowser.api import config as configapi
-from qutebrowser.utils import objreg, standarddir, utils, usertypes
+from qutebrowser.utils import objreg, standarddir, utils, usertypes, qtutils
 from qutebrowser.browser import greasemonkey, history, qutescheme
 from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.misc import savemanager, sql, objects, sessions
 from qutebrowser.keyinput import modeman
+from qutebrowser.qt import sip
 
 
 _qute_scheme_handler = None
@@ -64,14 +65,17 @@ class WidgetContainer(QWidget):
         self._qtbot = qtbot
         self.vbox = QVBoxLayout(self)
         qtbot.add_widget(self)
+        self._widget = None
 
     def set_widget(self, widget):
         self.vbox.addWidget(widget)
         widget.container = self
+        self._widget = widget
 
     def expose(self):
         with self._qtbot.waitExposed(self):
             self.show()
+        self._widget.setFocus()
 
 
 @pytest.fixture
@@ -158,11 +162,9 @@ def fake_web_tab(stubs, tab_registry, mode_manager, qapp):
 
 
 @pytest.fixture
-def greasemonkey_manager(data_tmpdir):
+def greasemonkey_manager(monkeypatch, data_tmpdir):
     gm_manager = greasemonkey.GreasemonkeyManager()
-    objreg.register('greasemonkey', gm_manager)
-    yield
-    objreg.delete('greasemonkey')
+    monkeypatch.setattr(greasemonkey, 'gm_manager', gm_manager)
 
 
 @pytest.fixture(scope='session')
@@ -206,18 +208,23 @@ def web_tab_setup(qtbot, tab_registry, session_manager_stub,
 
 @pytest.fixture
 def webkit_tab(web_tab_setup, qtbot, cookiejar_and_cache, mode_manager,
-               widget_container):
+               widget_container, download_stub, webpage):
     webkittab = pytest.importorskip('qutebrowser.browser.webkit.webkittab')
 
     tab = webkittab.WebKitTab(win_id=0, mode_manager=mode_manager,
                               private=False)
     widget_container.set_widget(tab)
-    return tab
+
+    yield tab
+
+    # Make sure the tab shuts itself down properly
+    tab.private_api.shutdown()
 
 
 @pytest.fixture
 def webengine_tab(web_tab_setup, qtbot, redirect_webengine_data,
-                  tabbed_browser_stubs, mode_manager, widget_container):
+                  tabbed_browser_stubs, mode_manager, widget_container,
+                  monkeypatch):
     tabwidget = tabbed_browser_stubs[0].widget
     tabwidget.current_index = 0
     tabwidget.index_of = 0
@@ -228,18 +235,34 @@ def webengine_tab(web_tab_setup, qtbot, redirect_webengine_data,
     tab = webenginetab.WebEngineTab(win_id=0, mode_manager=mode_manager,
                                     private=False)
     widget_container.set_widget(tab)
+
     yield tab
+
     # If a page is still loading here, _on_load_finished could get called
     # during teardown when session_manager_stub is already deleted.
     tab.stop()
+
+    # Make sure the tab shuts itself down properly
+    tab.private_api.shutdown()
+
+    # If we wait for the GC to clean things up, there's a segfault inside
+    # QtWebEngine sometimes (e.g. if we only run
+    # tests/unit/browser/test_caret.py).
+    # However, with Qt < 5.12, doing this here will lead to an immediate
+    # segfault...
+    monkeypatch.undo()  # version_check could be patched
+    if qtutils.version_check('5.12'):
+        sip.delete(tab._widget)
 
 
 @pytest.fixture(params=['webkit', 'webengine'])
 def web_tab(request):
     """A WebKitTab/WebEngineTab."""
     if request.param == 'webkit':
+        pytest.importorskip('qutebrowser.browser.webkit.webkittab')
         return request.getfixturevalue('webkit_tab')
     elif request.param == 'webengine':
+        pytest.importorskip('qutebrowser.browser.webengine.webenginetab')
         return request.getfixturevalue('webengine_tab')
     else:
         raise utils.Unreachable
@@ -301,7 +324,7 @@ def yaml_config_stub(config_tmpdir):
 
 
 @pytest.fixture
-def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub):
+def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub, qapp):
     """Fixture which provides a fake config object."""
     conf = config.Config(yaml_config=yaml_config_stub)
     monkeypatch.setattr(config, 'instance', conf)
@@ -314,12 +337,16 @@ def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub):
     monkeypatch.setattr(config, 'cache', cache)
 
     try:
-        configtypes.Font.monospace_fonts = container.fonts.monospace
+        configtypes.FontBase.set_defaults(None, '10pt')
     except configexc.NoOptionError:
-        # Completion tests patch configdata so fonts.monospace is unavailable.
+        # Completion tests patch configdata so fonts.default_family is
+        # unavailable.
         pass
 
     conf.val = container  # For easier use in tests
+
+    stylesheet.init()
+
     return conf
 
 
@@ -418,6 +445,7 @@ def webengineview(qtbot, monkeypatch, web_tab_setup):
 def webpage(qnam):
     """Get a new QWebPage object."""
     QtWebKitWidgets = pytest.importorskip('PyQt5.QtWebKitWidgets')
+
     class WebPageStub(QtWebKitWidgets.QWebPage):
 
         """QWebPage with default error pages disabled."""
@@ -427,8 +455,13 @@ def webpage(qnam):
             return False
 
     page = WebPageStub()
+
     page.networkAccessManager().deleteLater()
     page.setNetworkAccessManager(qnam)
+
+    from qutebrowser.browser.webkit import webkitsettings
+    webkitsettings._init_user_agent()
+
     return page
 
 
@@ -635,11 +668,11 @@ def download_stub(win_registry, tmpdir, stubs):
 
 
 @pytest.fixture
-def web_history(fake_save_manager, tmpdir, init_sql, config_stub, stubs):
-    """Create a web history and register it into objreg."""
+def web_history(fake_save_manager, tmpdir, init_sql, config_stub, stubs,
+                monkeypatch):
+    """Create a WebHistory object."""
     config_stub.val.completion.timestamp_format = '%Y-%m-%d'
     config_stub.val.completion.web_history.max_items = -1
     web_history = history.WebHistory(stubs.FakeHistoryProgress())
-    objreg.register('web-history', web_history)
-    yield web_history
-    objreg.delete('web-history')
+    monkeypatch.setattr(history, 'web_history', web_history)
+    return web_history

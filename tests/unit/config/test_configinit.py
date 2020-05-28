@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -28,7 +28,7 @@ import pytest
 from qutebrowser import qutebrowser
 from qutebrowser.config import (config, configexc, configfiles, configinit,
                                 configdata, configtypes)
-from qutebrowser.utils import objreg, usertypes
+from qutebrowser.utils import objreg, usertypes, version
 from helpers import utils
 
 
@@ -40,7 +40,8 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
     monkeypatch.setattr(config, 'key_instance', None)
     monkeypatch.setattr(config, 'change_filters', [])
     monkeypatch.setattr(configinit, '_init_errors', None)
-    monkeypatch.setattr(configtypes.Font, 'monospace_fonts', None)
+    monkeypatch.setattr(configtypes.FontBase, 'default_family', None)
+    monkeypatch.setattr(configtypes.FontBase, 'default_size', None)
     yield
     try:
         objreg.delete('config-commands')
@@ -205,9 +206,13 @@ class TestEarlyInit:
 
         assert dump == '\n'.join(expected)
 
-    def test_state_init_errors(self, init_patch, args, data_tmpdir):
+    @pytest.mark.parametrize('byte', [
+        b'\x00',  # configparser.Error
+        b'\xda',  # UnicodeDecodeError
+    ])
+    def test_state_init_errors(self, init_patch, args, data_tmpdir, byte):
         state_file = data_tmpdir / 'state'
-        state_file.write_binary(b'\x00')
+        state_file.write_binary(byte)
         configinit.early_init(args)
         assert configinit._init_errors.errors
 
@@ -233,73 +238,6 @@ class TestEarlyInit:
         assert msg.level == usertypes.MessageLevel.error
         assert msg.text == "set: NoOptionError - No option 'foo'"
 
-    @pytest.mark.parametrize('settings, size, family', [
-        # Only fonts.monospace customized
-        ([('fonts.monospace', '"Comic Sans MS"')], 10, 'Comic Sans MS'),
-        # fonts.monospace and font settings customized
-        # https://github.com/qutebrowser/qutebrowser/issues/3096
-        ([('fonts.monospace', '"Comic Sans MS"'),
-          ('fonts.tabs', '12pt monospace'),
-          ('fonts.keyhint', '12pt monospace')], 12, 'Comic Sans MS'),
-    ])
-    @pytest.mark.parametrize('method', ['temp', 'auto', 'py'])
-    def test_monospace_fonts_init(self, init_patch, args, config_tmpdir,
-                                  method, settings, size, family):
-        """Ensure setting fonts.monospace at init works properly.
-
-        See https://github.com/qutebrowser/qutebrowser/issues/2973
-        """
-        if method == 'temp':
-            args.temp_settings = settings
-        elif method == 'auto':
-            autoconfig_file = config_tmpdir / 'autoconfig.yml'
-            lines = (["config_version: 2", "settings:"] +
-                     ["  {}:\n    global:\n      '{}'".format(k, v)
-                      for k, v in settings])
-            autoconfig_file.write_text('\n'.join(lines), 'utf-8', ensure=True)
-        elif method == 'py':
-            config_py_file = config_tmpdir / 'config.py'
-            lines = ["c.{} = '{}'".format(k, v) for k, v in settings]
-            config_py_file.write_text('\n'.join(lines), 'utf-8', ensure=True)
-
-        configinit.early_init(args)
-
-        # Font
-        expected = '{}pt "{}"'.format(size, family)
-        assert config.instance.get('fonts.keyhint') == expected
-        # QtFont
-        font = config.instance.get('fonts.tabs')
-        assert font.pointSize() == size
-        assert font.family() == family
-
-    def test_monospace_fonts_later(self, init_patch, args):
-        """Ensure setting fonts.monospace after init works properly.
-
-        See https://github.com/qutebrowser/qutebrowser/issues/2973
-        """
-        configinit.early_init(args)
-        changed_options = []
-        config.instance.changed.connect(changed_options.append)
-
-        config.instance.set_obj('fonts.monospace', '"Comic Sans MS"')
-
-        assert 'fonts.keyhint' in changed_options  # Font
-        assert config.instance.get('fonts.keyhint') == '10pt "Comic Sans MS"'
-        assert 'fonts.tabs' in changed_options  # QtFont
-        assert config.instance.get('fonts.tabs').family() == 'Comic Sans MS'
-
-        # Font subclass, but doesn't end with "monospace"
-        assert 'fonts.web.family.standard' not in changed_options
-
-    def test_setting_monospace_fonts_family(self, init_patch, args):
-        """Make sure setting fonts.monospace after a family works.
-
-        See https://github.com/qutebrowser/qutebrowser/issues/3130
-        """
-        configinit.early_init(args)
-        config.instance.set_str('fonts.web.family.standard', '')
-        config.instance.set_str('fonts.monospace', 'Terminus')
-
     @pytest.mark.parametrize('config_opt, config_val, envvar, expected', [
         ('qt.force_software_rendering', 'software-opengl',
          'QT_XCB_FORCE_SOFTWARE_OPENGL', '1'),
@@ -308,7 +246,7 @@ class TestEarlyInit:
         ('qt.force_software_rendering', 'chromium',
          'QT_WEBENGINE_DISABLE_NOUVEAU_WORKAROUND', '1'),
         ('qt.force_platform', 'toaster', 'QT_QPA_PLATFORM', 'toaster'),
-        ('qt.highdpi', True, 'QT_AUTO_SCREEN_SCALE_FACTOR', '1'),
+        ('qt.force_platformtheme', 'lxde', 'QT_QPA_PLATFORMTHEME', 'lxde'),
         ('window.hide_decoration', True,
          'QT_WAYLAND_DISABLE_WINDOWDECORATION', '1')
     ])
@@ -325,47 +263,183 @@ class TestEarlyInit:
 
         assert os.environ[envvar] == expected
 
+    @pytest.mark.parametrize('new_qt', [True, False])
+    def test_highdpi(self, monkeypatch, config_stub, new_qt):
+        """Test HighDPI environment variables.
+
+        Depending on the Qt version, there's a different variable which should
+        be set...
+        """
+        new_var = 'QT_ENABLE_HIGHDPI_SCALING'
+        old_var = 'QT_AUTO_SCREEN_SCALE_FACTOR'
+
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+        monkeypatch.setattr(configinit.qtutils, 'version_check',
+                            lambda version, exact=False, compiled=True:
+                            new_qt)
+
+        for envvar in [new_var, old_var]:
+            monkeypatch.setenv(envvar, '')  # to make sure it gets restored
+            monkeypatch.delenv(envvar)
+
+        config_stub.set_obj('qt.highdpi', True)
+        configinit._init_envvars()
+
+        envvar = new_var if new_qt else old_var
+
+        assert os.environ[envvar] == '1'
+
     def test_env_vars_webkit(self, monkeypatch, config_stub):
         monkeypatch.setattr(configinit.objects, 'backend',
                             usertypes.Backend.QtWebKit)
         configinit._init_envvars()
 
 
-@pytest.mark.parametrize('errors', [True, 'fatal', False])
-def test_late_init(init_patch, monkeypatch, fake_save_manager, args,
-                   mocker, errors):
-    configinit.early_init(args)
+class TestLateInit:
 
-    if errors:
-        err = configexc.ConfigErrorDesc("Error text", Exception("Exception"))
-        errs = configexc.ConfigFileErrors("config.py", [err])
-        if errors == 'fatal':
-            errs.fatal = True
+    @pytest.mark.parametrize('errors', [True, 'fatal', False])
+    def test_late_init(self, init_patch, monkeypatch, fake_save_manager, args,
+                       mocker, errors):
+        configinit.early_init(args)
 
-        monkeypatch.setattr(configinit, '_init_errors', errs)
+        if errors:
+            err = configexc.ConfigErrorDesc("Error text",
+                                            Exception("Exception"))
+            errs = configexc.ConfigFileErrors("config.py", [err])
+            if errors == 'fatal':
+                errs.fatal = True
 
-    msgbox_mock = mocker.patch('qutebrowser.config.configinit.msgbox.msgbox',
-                               autospec=True)
-    exit_mock = mocker.patch('qutebrowser.config.configinit.sys.exit',
-                             autospec=True)
+            monkeypatch.setattr(configinit, '_init_errors', errs)
 
-    configinit.late_init(fake_save_manager)
+        msgbox_mock = mocker.patch(
+            'qutebrowser.config.configinit.msgbox.msgbox', autospec=True)
+        exit_mock = mocker.patch(
+            'qutebrowser.config.configinit.sys.exit', autospec=True)
 
-    fake_save_manager.add_saveable.assert_any_call(
-        'state-config', unittest.mock.ANY)
-    fake_save_manager.add_saveable.assert_any_call(
-        'yaml-config', unittest.mock.ANY, unittest.mock.ANY)
+        configinit.late_init(fake_save_manager)
 
-    if errors:
-        assert len(msgbox_mock.call_args_list) == 1
-        _call_posargs, call_kwargs = msgbox_mock.call_args_list[0]
-        text = call_kwargs['text'].strip()
-        assert text.startswith('Errors occurred while reading config.py:')
-        assert '<b>Error text</b>: Exception' in text
+        fake_save_manager.add_saveable.assert_any_call(
+            'state-config', unittest.mock.ANY)
+        fake_save_manager.add_saveable.assert_any_call(
+            'yaml-config', unittest.mock.ANY, unittest.mock.ANY)
 
-        assert exit_mock.called == (errors == 'fatal')
-    else:
-        assert not msgbox_mock.called
+        if errors:
+            assert len(msgbox_mock.call_args_list) == 1
+            _call_posargs, call_kwargs = msgbox_mock.call_args_list[0]
+            text = call_kwargs['text'].strip()
+            assert text.startswith('Errors occurred while reading config.py:')
+            assert '<b>Error text</b>: Exception' in text
+
+            assert exit_mock.called == (errors == 'fatal')
+        else:
+            assert not msgbox_mock.called
+
+    @pytest.mark.parametrize('settings, size, family', [
+        # Only fonts.default_family customized
+        ([('fonts.default_family', 'Comic Sans MS')], 10, 'Comic Sans MS'),
+        # default_family and default_size
+        ([('fonts.default_family', 'Comic Sans MS'),
+          ('fonts.default_size', '23pt')], 23, 'Comic Sans MS'),
+        # fonts.default_family and font settings customized
+        # https://github.com/qutebrowser/qutebrowser/issues/3096
+        ([('fonts.default_family', 'Comic Sans MS'),
+          ('fonts.tabs', '12pt default_family'),
+          ('fonts.keyhint', '12pt default_family')], 12, 'Comic Sans MS'),
+        # as above, but with default_size
+        ([('fonts.default_family', 'Comic Sans MS'),
+          ('fonts.default_size', '23pt'),
+          ('fonts.tabs', 'default_size default_family'),
+          ('fonts.keyhint', 'default_size default_family')],
+         23, 'Comic Sans MS'),
+    ])
+    @pytest.mark.parametrize('method', ['temp', 'auto', 'py'])
+    def test_fonts_defaults_init(self, init_patch, args, config_tmpdir,
+                                 fake_save_manager, method,
+                                 settings, size, family):
+        """Ensure setting fonts.default_family at init works properly.
+
+        See https://github.com/qutebrowser/qutebrowser/issues/2973
+        and https://github.com/qutebrowser/qutebrowser/issues/5223
+        """
+        if method == 'temp':
+            args.temp_settings = settings
+        elif method == 'auto':
+            autoconfig_file = config_tmpdir / 'autoconfig.yml'
+            lines = (["config_version: 2", "settings:"] +
+                     ["  {}:\n    global:\n      '{}'".format(k, v)
+                      for k, v in settings])
+            autoconfig_file.write_text('\n'.join(lines), 'utf-8', ensure=True)
+        elif method == 'py':
+            config_py_file = config_tmpdir / 'config.py'
+            lines = ["c.{} = '{}'".format(k, v) for k, v in settings]
+            config_py_file.write_text('\n'.join(lines), 'utf-8', ensure=True)
+
+        configinit.early_init(args)
+        configinit.late_init(fake_save_manager)
+
+        # Font
+        expected = '{}pt "{}"'.format(size, family)
+        assert config.instance.get('fonts.keyhint') == expected
+        # QtFont
+        font = config.instance.get('fonts.tabs')
+        assert font.pointSize() == size
+        assert font.family() == family
+
+    @pytest.fixture
+    def run_configinit(self, init_patch, fake_save_manager, args):
+        """Run configinit.early_init() and .late_init()."""
+        configinit.early_init(args)
+        configinit.late_init(fake_save_manager)
+
+    def test_fonts_defaults_later(self, run_configinit):
+        """Ensure setting fonts.default_family/size after init works properly.
+
+        See https://github.com/qutebrowser/qutebrowser/issues/2973
+        """
+        changed_options = []
+        config.instance.changed.connect(changed_options.append)
+
+        config.instance.set_obj('fonts.default_family', 'Comic Sans MS')
+        config.instance.set_obj('fonts.default_size', '23pt')
+
+        assert 'fonts.keyhint' in changed_options  # Font
+        assert config.instance.get('fonts.keyhint') == '23pt "Comic Sans MS"'
+        assert 'fonts.tabs' in changed_options  # QtFont
+        tabs_font = config.instance.get('fonts.tabs')
+        assert tabs_font.family() == 'Comic Sans MS'
+        assert tabs_font.pointSize() == 23
+
+        # Font subclass, but doesn't end with "default_family"
+        assert 'fonts.web.family.standard' not in changed_options
+
+    def test_setting_fonts_defaults_family(self, run_configinit):
+        """Make sure setting fonts.default_family/size after a family works.
+
+        See https://github.com/qutebrowser/qutebrowser/issues/3130
+        """
+        config.instance.set_str('fonts.web.family.standard', '')
+        config.instance.set_str('fonts.default_family', 'Terminus')
+        config.instance.set_str('fonts.default_size', '10pt')
+
+    def test_default_size_hints(self, run_configinit):
+        """Make sure default_size applies to the hints font.
+
+        See https://github.com/qutebrowser/qutebrowser/issues/5214
+        """
+        config.instance.set_obj('fonts.default_family', 'SomeFamily')
+        config.instance.set_obj('fonts.default_size', '23pt')
+        assert config.instance.get('fonts.hints') == 'bold 23pt SomeFamily'
+
+    def test_default_size_hints_changed(self, run_configinit):
+        config.instance.set_obj('fonts.hints', 'bold default_size SomeFamily')
+
+        changed_options = []
+        config.instance.changed.connect(changed_options.append)
+        config.instance.set_obj('fonts.default_size', '23pt')
+
+        assert config.instance.get('fonts.hints') == 'bold 23pt SomeFamily'
+        assert 'fonts.hints' in changed_options
 
 
 class TestQtArgs:
@@ -608,6 +682,148 @@ class TestQtArgs:
             assert '--reduced-referrer-granularity' not in args
         else:
             assert arg in args
+
+    @pytest.mark.parametrize('dark, new_qt, added', [
+        (True, True, True),
+        (True, False, False),
+        (False, True, False),
+        (False, False, False),
+    ])
+    @utils.qt514
+    def test_prefers_color_scheme_dark(self, config_stub, monkeypatch, parser,
+                                       dark, new_qt, added):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+        monkeypatch.setattr(configinit.qtutils, 'version_check',
+                            lambda version, exact=False, compiled=True:
+                            new_qt)
+
+        config_stub.val.colors.webpage.prefers_color_scheme_dark = dark
+
+        parsed = parser.parse_args([])
+        args = configinit.qt_args(parsed)
+
+        assert ('--force-dark-mode' in args) == added
+
+    @utils.qt514
+    def test_blink_settings(self, config_stub, monkeypatch, parser):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+        monkeypatch.setattr(configinit.qtutils, 'version_check',
+                            lambda version, exact=False, compiled=True:
+                            True)
+
+        config_stub.val.colors.webpage.darkmode.enabled = True
+
+        parsed = parser.parse_args([])
+        args = configinit.qt_args(parsed)
+
+        assert '--blink-settings=darkModeEnabled=true' in args
+
+
+class TestDarkMode:
+
+    pytestmark = utils.qt514
+
+    @pytest.fixture(autouse=True)
+    def patch_backend(self, monkeypatch):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+
+    @pytest.mark.parametrize('settings, new_qt, expected', [
+        # Disabled
+        ({}, True, []),
+        ({}, False, []),
+
+        # Enabled without customization
+        (
+            {'enabled': True},
+            True,
+            [('darkModeEnabled', 'true')]
+        ),
+        (
+            {'enabled': True},
+            False,
+            [('darkMode', '4')]
+        ),
+
+        # Algorithm
+        (
+            {'enabled': True, 'algorithm': 'brightness-rgb'},
+            True,
+            [('darkModeEnabled', 'true'),
+             ('darkModeInversionAlgorithm', '2')],
+        ),
+        (
+            {'enabled': True, 'algorithm': 'brightness-rgb'},
+            False,
+            [('darkMode', '2')],
+        ),
+
+    ])
+    def test_basics(self, config_stub, monkeypatch,
+                    settings, new_qt, expected):
+        for k, v in settings.items():
+            config_stub.set_obj('colors.webpage.darkmode.' + k, v)
+        monkeypatch.setattr(configinit.qtutils, 'version_check',
+                            lambda version, exact=False, compiled=True:
+                            new_qt)
+
+        assert list(configinit._darkmode_settings()) == expected
+
+    @pytest.mark.parametrize('setting, value, exp_key, exp_val', [
+        ('contrast', -0.5,
+         'darkModeContrast', '-0.5'),
+        ('policy.page', 'smart',
+         'darkModePagePolicy', '1'),
+        ('policy.images', 'smart',
+         'darkModeImagePolicy', '2'),
+        ('threshold.text', 100,
+         'darkModeTextBrightnessThreshold', '100'),
+        ('threshold.background', 100,
+         'darkModeBackgroundBrightnessThreshold', '100'),
+        ('grayscale.all', True,
+         'darkModeGrayscale', 'true'),
+        ('grayscale.images', 0.5,
+         'darkModeImageGrayscale', '0.5'),
+    ])
+    def test_customization(self, config_stub, monkeypatch,
+                           setting, value, exp_key, exp_val):
+        config_stub.val.colors.webpage.darkmode.enabled = True
+        config_stub.set_obj('colors.webpage.darkmode.' + setting, value)
+        monkeypatch.setattr(configinit.qtutils, 'version_check',
+                            lambda version, exact=False, compiled=True:
+                            True)
+
+        expected = [('darkModeEnabled', 'true'), (exp_key, exp_val)]
+        assert list(configinit._darkmode_settings()) == expected
+
+    def test_new_chromium(self):
+        """Fail if we encounter an unknown Chromium version.
+
+        Dark mode in Chromium currently is undergoing various changes (as it's
+        relatively recent), and Qt 5.15 is supposed to update the underlying
+        Chromium at some point.
+
+        Make this test fail deliberately with newer Chromium versions, so that
+        we can test whether dark mode still works manually, and adjust if not.
+        """
+        assert version._chromium_version() in [
+            'unavailable',  # QtWebKit
+            '77.0.3865.129',  # Qt 5.14
+            '80.0.3987.163',  # Qt 5.15
+        ]
+
+    def test_options(self, configdata_init):
+        """Make sure all darkmode options have the right attributes set."""
+        for name, opt in configdata.DATA.items():
+            if not name.startswith('colors.webpage.darkmode.'):
+                continue
+
+            backends = {'QtWebEngine': 'Qt 5.14', 'QtWebKit': False}
+            assert not opt.supports_pattern, name
+            assert opt.restart, name
+            assert opt.raw_backends == backends, name
 
 
 @pytest.mark.parametrize('arg, confval, used', [

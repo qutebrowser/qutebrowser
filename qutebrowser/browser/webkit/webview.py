@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
-from qutebrowser.config import config
+from qutebrowser.config import config, stylesheet
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import log, usertypes, utils, objreg, debug
 from qutebrowser.browser.webkit import webpage
@@ -84,10 +84,11 @@ class WebView(QWebView):
 
         self.setPage(page)
 
-        config.set_register_stylesheet(self)
+        stylesheet.set_register(self)
 
     def __repr__(self):
-        urlstr = self.url().toDisplayString(QUrl.EncodeUnicode)  # type: ignore
+        flags = QUrl.EncodeUnicode
+        urlstr = self.url().toDisplayString(flags)  # type: ignore[arg-type]
         url = utils.elide(urlstr, 100)
         return utils.get_repr(self, tab_id=self._tab_id, url=url)
 
@@ -97,7 +98,7 @@ class WebView(QWebView):
         # Copied from:
         # https://code.google.com/p/webscraping/source/browse/webkit.py#325
         try:
-            self.setPage(None)  # type: ignore
+            self.setPage(None)  # type: ignore[arg-type]
         except RuntimeError:
             # It seems sometimes Qt has already deleted the QWebView and we
             # get: RuntimeError: wrapped C/C++ object of type WebView has been
@@ -180,9 +181,9 @@ class WebView(QWebView):
         This is not needed for QtWebEngine, so it's in here.
         """
         menu = self.page().createStandardContextMenu()
-        self.shutting_down.connect(menu.close)  # type: ignore
+        self.shutting_down.connect(menu.close)  # type: ignore[arg-type]
         mm = modeman.instance(self.win_id)
-        mm.entered.connect(menu.close)  # type: ignore
+        mm.entered.connect(menu.close)  # type: ignore[arg-type]
         menu.exec_(e.globalPos())
 
     def showEvent(self, e):

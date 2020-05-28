@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -63,6 +63,7 @@ def test_start(proc, qtbot, message_mock, py_proc):
                                   stdout="test", stderr="")
     assert not message_mock.messages
     assert qutescheme.spawn_output == expected
+    assert proc.exit_status() == QProcess.NormalExit
 
 
 def test_start_verbose(proc, qtbot, message_mock, py_proc):
@@ -82,6 +83,53 @@ def test_start_verbose(proc, qtbot, message_mock, py_proc):
     assert msgs[0].text.startswith("Executing:")
     assert msgs[1].text == "Testprocess exited successfully."
     assert qutescheme.spawn_output == expected
+
+
+@pytest.mark.parametrize('stdout', [True, False])
+@pytest.mark.parametrize('stderr', [True, False])
+def test_start_output_message(proc, qtbot, caplog, message_mock, py_proc,
+                              stdout, stderr):
+    proc._output_messages = True
+
+    code = ['import sys']
+    if stdout:
+        code.append('print("stdout text")')
+    if stderr:
+        code.append(r'sys.stderr.write("stderr text\n")')
+    code.append("sys.exit(0)")
+
+    with caplog.at_level(logging.ERROR, 'message'):
+        with qtbot.waitSignals([proc.started, proc.finished],
+                               timeout=10000,
+                               order='strict'):
+            argv = py_proc(';'.join(code))
+            proc.start(*argv)
+
+    if stdout and stderr:
+        stdout_msg = message_mock.messages[0]
+        stderr_msg = message_mock.messages[1]
+        msg_count = 2
+    elif stdout:
+        stdout_msg = message_mock.messages[0]
+        stderr_msg = None
+        msg_count = 1
+    elif stderr:
+        stdout_msg = None
+        stderr_msg = message_mock.messages[0]
+        msg_count = 1
+    else:
+        stdout_msg = None
+        stderr_msg = None
+        msg_count = 0
+
+    assert len(message_mock.messages) == msg_count
+
+    if stdout_msg is not None:
+        assert stdout_msg.level == usertypes.MessageLevel.info
+        assert stdout_msg.text == 'stdout text'
+    if stderr_msg is not None:
+        assert stderr_msg.level == usertypes.MessageLevel.error
+        assert stderr_msg.text == 'stderr text'
 
 
 def test_start_env(monkeypatch, qtbot, py_proc):

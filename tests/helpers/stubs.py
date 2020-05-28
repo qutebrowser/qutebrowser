@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -115,8 +115,8 @@ class FakeQApplication:
 
     UNSET = object()
 
-    def __init__(self, style=None, all_widgets=None, active_window=None,
-                 instance=UNSET, arguments=None):
+    def __init__(self, *, style=None, all_widgets=None, active_window=None,
+                 instance=UNSET, arguments=None, platform_name=None):
 
         if instance is self.UNSET:
             self.instance = mock.Mock(return_value=self)
@@ -129,6 +129,7 @@ class FakeQApplication:
         self.allWidgets = lambda: all_widgets
         self.activeWindow = lambda: active_window
         self.arguments = lambda: arguments
+        self.platformName = lambda: platform_name
 
 
 class FakeNetworkReply:
@@ -256,7 +257,7 @@ class FakeWebTab(browsertab.AbstractTab):
                  scroll_pos_perc=(0, 0),
                  load_status=usertypes.LoadStatus.success,
                  progress=0, can_go_back=None, can_go_forward=None):
-        super().__init__(win_id=0, private=False)
+        super().__init__(win_id=0, mode_manager=None, private=False)
         self._load_status = load_status
         self._title = title
         self._url = url
@@ -615,6 +616,10 @@ class FakeDownloadManager:
         self.downloads.append(download_item)
         return download_item
 
+    def has_downloads_with_nam(self, _nam):
+        """Needed during WebView.shutdown()."""
+        return False
+
 
 class FakeHistoryProgress:
 
@@ -652,3 +657,18 @@ class FakeHintManager:
 
     def handle_partial_key(self, keystr):
         self.keystr = keystr
+
+
+class FakeWebEngineProfile:
+
+    def __init__(self, cookie_store):
+        self.cookieStore = lambda: cookie_store
+
+
+class FakeCookieStore:
+
+    def __init__(self, has_cookie_filter):
+        self.cookie_filter = None
+        if has_cookie_filter:
+            self.setCookieFilter = (
+                lambda func: setattr(self, 'cookie_filter', func))  # noqa

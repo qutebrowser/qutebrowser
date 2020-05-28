@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -39,9 +39,7 @@ from PyQt5.QtNetwork import QSslSocket
 from qutebrowser.config import config, configfiles
 from qutebrowser.utils import (usertypes, version, qtutils, log, utils,
                                standarddir)
-from qutebrowser.misc import objects, msgbox, savemanager
-if typing.TYPE_CHECKING:
-    from qutebrowser import app
+from qutebrowser.misc import objects, msgbox, savemanager, quitter
 
 
 class _Result(enum.IntEnum):
@@ -170,10 +168,8 @@ class _BackendProblemChecker:
     """Check for various backend-specific issues."""
 
     def __init__(self, *,
-                 quitter: 'app.Quitter',
                  no_err_windows: bool,
                  save_manager: savemanager.SaveManager) -> None:
-        self._quitter = quitter
         self._save_manager = save_manager
         self._no_err_windows = no_err_windows
 
@@ -192,11 +188,11 @@ class _BackendProblemChecker:
         if status in [_Result.quit, QDialog.Rejected]:
             pass
         elif status == _Result.restart_webkit:
-            self._quitter.restart(override_args={'backend': 'webkit'})
+            quitter.instance.restart(override_args={'backend': 'webkit'})
         elif status == _Result.restart_webengine:
-            self._quitter.restart(override_args={'backend': 'webengine'})
+            quitter.instance.restart(override_args={'backend': 'webengine'})
         elif status == _Result.restart:
-            self._quitter.restart()
+            quitter.instance.restart()
         else:
             raise utils.Unreachable(status)
 
@@ -357,13 +353,22 @@ class _BackendProblemChecker:
 
         If "fatal" is given, show an error and exit.
         """
-        text = ("Could not initialize QtNetwork SSL support. If you use "
-                "OpenSSL 1.1 with a PyQt package from PyPI (e.g. on Archlinux "
-                "or Debian Stretch), you need to set LD_LIBRARY_PATH to the "
-                "path of OpenSSL 1.0. This only affects downloads.")
-
         if QSslSocket.supportsSsl():
             return
+
+        if qtutils.version_check('5.12.4'):
+            version_text = ("If you use OpenSSL 1.0 with a PyQt package from "
+                            "PyPI (e.g. on Ubuntu 16.04), you will need to "
+                            "build OpenSSL 1.1 from sources and set "
+                            "LD_LIBRARY_PATH accordingly.")
+        else:
+            version_text = ("If you use OpenSSL 1.1 with a PyQt package from "
+                            "PyPI (e.g. on Archlinux or Debian Stretch), you "
+                            "need to set LD_LIBRARY_PATH to the path of "
+                            "OpenSSL 1.0 or use Qt >= 5.12.4.")
+
+        text = ("Could not initialize QtNetwork SSL support. {} This only "
+                "affects downloads and :adblock-update.".format(version_text))
 
         if fatal:
             errbox = msgbox.msgbox(parent=None,
@@ -444,6 +449,41 @@ class _BackendProblemChecker:
         if os.path.exists(cache_dir):
             shutil.rmtree(cache_dir)
 
+    def _handle_serviceworker_nuking(self) -> None:
+        """Nuke the service workers directory if the Qt version changed.
+
+        WORKAROUND for:
+        https://bugreports.qt.io/browse/QTBUG-72532
+        https://bugreports.qt.io/browse/QTBUG-82105
+        """
+        if ('serviceworker_workaround' not in configfiles.state['general'] and
+                qtutils.version_check('5.14', compiled=False)):
+            # Nuke the service worker directory once for every install with Qt
+            # 5.14, given that it seems to cause a variety of segfaults.
+            configfiles.state['general']['serviceworker_workaround'] = '514'
+            affected = True
+        else:
+            # Otherwise, just nuke it when the Qt version changed.
+            affected = configfiles.state.qt_version_changed
+
+        if not affected:
+            return
+
+        service_worker_dir = os.path.join(standarddir.data(), 'webengine',
+                                          'Service Worker')
+        bak_dir = service_worker_dir + '-bak'
+        if not os.path.exists(service_worker_dir):
+            return
+
+        log.init.info("Qt version changed, removing service workers")
+
+        # Keep one backup around - we're not 100% sure what persistent data
+        # could be in there, but this folder can grow to ~300 MB.
+        if os.path.exists(bak_dir):
+            shutil.rmtree(bak_dir)
+
+        shutil.move(service_worker_dir, bak_dir)
+
     def _assert_backend(self, backend: usertypes.Backend) -> None:
         assert objects.backend == backend, objects.backend
 
@@ -456,16 +496,15 @@ class _BackendProblemChecker:
             self._nvidia_shader_workaround()
             self._handle_nouveau_graphics()
             self._handle_cache_nuking()
+            self._handle_serviceworker_nuking()
         else:
             self._assert_backend(usertypes.Backend.QtWebKit)
             self._handle_ssl_support(fatal=True)
 
 
-def init(*, quitter: 'app.Quitter',
-         args: argparse.Namespace,
+def init(*, args: argparse.Namespace,
          save_manager: savemanager.SaveManager) -> None:
     """Run all checks."""
-    checker = _BackendProblemChecker(quitter=quitter,
-                                     no_err_windows=args.no_err_windows,
+    checker = _BackendProblemChecker(no_err_windows=args.no_err_windows,
                                      save_manager=save_manager)
     checker.check()

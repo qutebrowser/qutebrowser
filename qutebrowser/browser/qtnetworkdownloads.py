@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -26,10 +26,10 @@ import functools
 import typing
 
 import attr
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, QUrl
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
-from qutebrowser.config import config
+from qutebrowser.config import config, websettings
 from qutebrowser.utils import message, usertypes, log, urlutils, utils, debug
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import http
@@ -103,6 +103,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         self._read_timer.setInterval(500)
         self._read_timer.timeout.connect(self._on_read_timer_timeout)
         self._redirects = 0
+        self._url = reply.url()
         self._init_reply(reply)
 
     def _create_fileobj(self):
@@ -191,6 +192,10 @@ class DownloadItem(downloads.AbstractDownloadItem):
         if filename is None:
             filename = getattr(self.fileobj, 'name', None)
         return filename
+
+    def url(self) -> QUrl:
+        # Note: self._reply is deleted when the download finishes
+        return self._url
 
     def _ensure_can_set_filename(self, filename):
         if self.fileobj is not None:  # pragma: no cover
@@ -409,12 +414,11 @@ class DownloadManager(downloads.AbstractDownloadManager):
             private=config.val.content.private_browsing, parent=self)
 
     @pyqtSlot('QUrl')
-    def get(self, url, *, user_agent=None, **kwargs):
+    def get(self, url, **kwargs):
         """Start a download with a link URL.
 
         Args:
             url: The URL to get, as QUrl
-            user_agent: The UA to set for the request, or None.
             **kwargs: passed to get_request().
 
         Return:
@@ -423,9 +427,11 @@ class DownloadManager(downloads.AbstractDownloadManager):
         if not url.isValid():
             urlutils.invalid_url_error(url, "start download")
             return None
+
         req = QNetworkRequest(url)
-        if user_agent is not None:
-            req.setHeader(QNetworkRequest.UserAgentHeader, user_agent)
+        user_agent = websettings.user_agent(url)
+        req.setHeader(QNetworkRequest.UserAgentHeader, user_agent)
+
         return self.get_request(req, **kwargs)
 
     def get_mhtml(self, tab, target):

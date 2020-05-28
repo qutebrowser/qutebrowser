@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,7 +25,7 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import history
-from qutebrowser.utils import objreg, urlutils, usertypes
+from qutebrowser.utils import urlutils, usertypes
 from qutebrowser.api import cmdutils
 from qutebrowser.misc import sql, objects
 
@@ -107,13 +107,13 @@ class TestDelete:
 
         m = mocker.patch('qutebrowser.browser.history.message.confirm_async',
                          new=mocker.Mock, spec=[])
-        web_history.clear()
+        history.history_clear()
         assert m.called
 
     def test_clear_force(self, qtbot, tmpdir, web_history):
         web_history.add_url(QUrl('http://example.com/'))
         web_history.add_url(QUrl('http://www.qutebrowser.org/'))
-        web_history.clear(force=True)
+        history.history_clear(force=True)
         assert not len(web_history)
         assert not len(web_history.completion)
 
@@ -254,7 +254,7 @@ class TestAdd:
         web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
         hist = list(web_history)
         assert hist
-        web_history.clear(force=True)
+        history.history_clear(force=True)
         assert len(web_history) == 0
         web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
         assert list(web_history) == hist
@@ -289,10 +289,9 @@ class TestInit:
     def cleanup_init(self):
         # prevent test_init from leaking state
         yield
-        web_history = objreg.get('web-history', None)
-        if web_history is not None:
-            web_history.setParent(None)
-            objreg.delete('web-history')
+        if history.web_history is not None:
+            history.web_history.setParent(None)
+            history.web_history = None
         try:
             from PyQt5.QtWebKit import QWebHistoryInterface
             QWebHistoryInterface.setDefaultInterface(None)
@@ -309,8 +308,7 @@ class TestInit:
 
         monkeypatch.setattr(history.objects, 'backend', backend)
         history.init(qapp)
-        hist = objreg.get('web-history')
-        assert hist.parent() is qapp
+        assert history.web_history.parent() is qapp
 
         try:
             from PyQt5.QtWebKit import QWebHistoryInterface
@@ -319,7 +317,7 @@ class TestInit:
 
         if backend == usertypes.Backend.QtWebKit:
             default_interface = QWebHistoryInterface.defaultInterface()
-            assert default_interface._history is hist
+            assert default_interface._history is history.web_history
         else:
             assert backend == usertypes.Backend.QtWebEngine
             if QWebHistoryInterface is None:
@@ -344,7 +342,7 @@ class TestDump:
         web_history.add_url(QUrl('http://example.com/4'),
                             title="Title4", atime=12348, redirect=True)
         histfile = tmpdir / 'history'
-        web_history.debug_dump_history(str(histfile))
+        history.debug_dump_history(str(histfile))
         expected = ['12345 http://example.com/1 Title1',
                     '12346 http://example.com/2 Title2',
                     '12347 http://example.com/3 Title3',
@@ -354,7 +352,7 @@ class TestDump:
     def test_nonexistent(self, web_history, tmpdir):
         histfile = tmpdir / 'nonexistent' / 'history'
         with pytest.raises(cmdutils.CommandError):
-            web_history.debug_dump_history(str(histfile))
+            history.debug_dump_history(str(histfile))
 
 
 class TestRebuild:

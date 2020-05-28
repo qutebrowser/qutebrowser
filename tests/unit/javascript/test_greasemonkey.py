@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -309,9 +309,61 @@ class TestWindowIsolation:
         callback.assert_called_with(setup.expected)
 
     # The JSCore in 602.1 doesn't fully support Proxy.
-    @pytest.mark.qtwebkit6021_skip
+    @pytest.mark.qtwebkit6021_xfail
     def test_webkit(self, webview, setup):
         elem = webview.page().mainFrame().documentElement()
         elem.evaluateJavaScript(setup.setup_script)
         result = elem.evaluateJavaScript(setup.test_script)
+        assert result == setup.expected
+
+
+class TestSharedWindowProxy:
+    """Check that all scripts have access to the same window proxy."""
+
+    @pytest.fixture
+    def setup(self):
+        # pylint: disable=attribute-defined-outside-init
+        class SetupData:
+            pass
+        ret = SetupData()
+
+        # Greasemonkey script to add a property to the window proxy.
+        ret.test_script_a = greasemonkey.GreasemonkeyScript.parse(
+            textwrap.dedent("""
+                // ==UserScript==
+                // @name a
+                // ==/UserScript==
+                // Set a value from script a
+                window.$ = 'test';
+            """)
+        ).code()
+
+        # Greasemonkey script to retrieve a property from the window proxy.
+        ret.test_script_b = greasemonkey.GreasemonkeyScript.parse(
+            textwrap.dedent("""
+                // ==UserScript==
+                // @name b
+                // ==/UserScript==
+                // Check that the value is accessible from script b
+                return [window.$, $];
+            """)
+        ).code()
+
+        # What we expect the script to report back.
+        ret.expected = ["test", "test"]
+        return ret
+
+    def test_webengine(self, qtbot, webengineview, setup):
+        page = webengineview.page()
+
+        with qtbot.wait_callback() as callback:
+            page.runJavaScript(setup.test_script_a, callback)
+        with qtbot.wait_callback() as callback:
+            page.runJavaScript(setup.test_script_b, callback)
+        callback.assert_called_with(setup.expected)
+
+    def test_webkit(self, webview, setup):
+        elem = webview.page().mainFrame().documentElement()
+        elem.evaluateJavaScript(setup.test_script_a)
+        result = elem.evaluateJavaScript(setup.test_script_b)
         assert result == setup.expected

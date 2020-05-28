@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2020 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -758,6 +758,34 @@ def test_tab_completion_not_sorted(qtmodeltester, fake_web_tab, win_registry,
     })
 
 
+def test_tab_completion_tabs_are_windows(qtmodeltester, fake_web_tab,
+                                         win_registry, tabbed_browser_stubs,
+                                         config_stub):
+    """Verify tabs across all windows are listed under a single category."""
+    tabbed_browser_stubs[0].widget.tabs = [
+        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
+        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
+    ]
+    tabbed_browser_stubs[1].widget.tabs = [
+        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
+    ]
+
+    config_stub.val.tabs.tabs_are_windows = True
+    model = miscmodels.buffer()
+    model.set_pattern('')
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        'Windows': [
+            ('0/1', 'https://github.com', 'GitHub'),
+            ('0/2', 'https://wikipedia.org', 'Wikipedia'),
+            ('0/3', 'https://duckduckgo.com', 'DuckDuckGo'),
+            ('1/1', 'https://wiki.archlinux.org', 'ArchWiki'),
+        ]
+    })
+
+
 def test_other_buffer_completion(qtmodeltester, fake_web_tab, win_registry,
                                  tabbed_browser_stubs, info):
     tabbed_browser_stubs[0].widget.tabs = [
@@ -801,6 +829,41 @@ def test_other_buffer_completion_id0(qtmodeltester, fake_web_tab,
         '1': [
             ('1/1', 'https://wiki.archlinux.org', 'ArchWiki'),
         ],
+    })
+
+
+def test_tab_focus_completion(qtmodeltester, fake_web_tab, win_registry,
+                              tabbed_browser_stubs, info):
+    tabbed_browser_stubs[0].widget.tabs = [
+        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
+        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
+    ]
+    tabbed_browser_stubs[1].widget.tabs = [
+        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
+    ]
+    info.win_id = 1
+    model = miscmodels.tab_focus(info=info)
+    model.set_pattern('')
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        'Tabs': [
+            ('1', 'https://wiki.archlinux.org', 'ArchWiki'),
+        ],
+        'Special': [
+            ("last",
+             "Focus the last-focused tab",
+             None),
+
+            ("stack-next",
+             "Go forward through a stack of focused tabs",
+             None),
+
+            ("stack-prev",
+             "Go backward through a stack of focused tabs",
+             None),
+        ]
     })
 
 

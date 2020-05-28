@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -36,7 +36,7 @@ def view(qtbot, config_stub):
                                    usertypes.MessageLevel.warning,
                                    usertypes.MessageLevel.error])
 def test_single_message(qtbot, view, level):
-    with qtbot.waitExposed(view):
+    with qtbot.waitExposed(view, timeout=5000):
         view.show_message(level, 'test')
     assert view._messages[0].isVisible()
 

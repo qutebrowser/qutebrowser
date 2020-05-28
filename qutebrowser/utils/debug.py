@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -31,6 +31,7 @@ from PyQt5.QtCore import Qt, QEvent, QMetaMethod, QObject, pyqtSignal
 from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.utils import log, utils, qtutils, objreg
+from qutebrowser.qt import sip
 
 
 def log_events(klass: typing.Type) -> typing.Type:
@@ -69,7 +70,7 @@ def log_signals(obj: QObject) -> QObject:
             meta_method = metaobj.method(i)
             qtutils.ensure_valid(meta_method)
             if meta_method.methodType() == QMetaMethod.Signal:
-                name = bytes(meta_method.name()).decode('ascii')
+                name = meta_method.name().data().decode('ascii')
                 if name != 'destroyed':
                     signal = getattr(obj, name)
                     try:
@@ -79,7 +80,7 @@ def log_signals(obj: QObject) -> QObject:
                         pass
 
     if inspect.isclass(obj):
-        old_init = obj.__init__  # type: ignore
+        old_init = obj.__init__  # type: ignore[misc]
 
         @functools.wraps(old_init)
         def new_init(self: typing.Any,
@@ -89,7 +90,7 @@ def log_signals(obj: QObject) -> QObject:
             old_init(self, *args, **kwargs)
             connect_log_slot(self)
 
-        obj.__init__ = new_init  # type: ignore
+        obj.__init__ = new_init  # type: ignore[misc]
     else:
         connect_log_slot(obj)
 
@@ -97,7 +98,7 @@ def log_signals(obj: QObject) -> QObject:
 
 
 def qenum_key(base: typing.Type,
-              value: int,
+              value: typing.Union[int, sip.simplewrapper],
               add_base: bool = False,
               klass: typing.Type = None) -> str:
     """Convert a Qt Enum value to its key as a string.
@@ -120,7 +121,8 @@ def qenum_key(base: typing.Type,
 
     try:
         idx = base.staticMetaObject.indexOfEnumerator(klass.__name__)
-        ret = base.staticMetaObject.enumerator(idx).valueToKey(value)
+        meta_enum = base.staticMetaObject.enumerator(idx)
+        ret = meta_enum.valueToKey(int(value))  # type: ignore[arg-type]
     except AttributeError:
         ret = None
 
@@ -130,7 +132,7 @@ def qenum_key(base: typing.Type,
                 ret = name
                 break
         else:
-            ret = '0x{:04x}'.format(int(value))
+            ret = '0x{:04x}'.format(int(value))  # type: ignore[arg-type]
 
     if add_base and hasattr(base, '__name__'):
         return '.'.join([base.__name__, ret])
@@ -139,7 +141,7 @@ def qenum_key(base: typing.Type,
 
 
 def qflags_key(base: typing.Type,
-               value: int,
+               value: typing.Union[int, sip.simplewrapper],
                add_base: bool = False,
                klass: typing.Type = None) -> str:
     """Convert a Qt QFlags value to its keys as string.
@@ -173,7 +175,7 @@ def qflags_key(base: typing.Type,
     bits = []
     names = []
     mask = 0x01
-    value = int(value)
+    value = int(value)  # type: ignore[arg-type]
     while mask <= value:
         if value & mask:
             bits.append(mask)
@@ -181,12 +183,20 @@ def qflags_key(base: typing.Type,
     for bit in bits:
         # We have to re-convert to an enum type here or we'll sometimes get an
         # empty string back.
-        names.append(qenum_key(base, klass(bit), add_base))
+        enum_value = klass(bit)  # type: ignore[call-arg]
+        names.append(qenum_key(base, enum_value, add_base))
     return '|'.join(names)
 
 
 def signal_name(sig: pyqtSignal) -> str:
     """Get a cleaned up name of a signal.
+
+    Unfortunately, the way to get the name of a signal differs based on:
+    - PyQt versions (5.11 added .signatures for unbound signals)
+    - Bound vs. unbound signals
+
+    Here, we try to get the name from .signal or .signatures, or if all else
+    fails, extract it from the repr().
 
     Args:
         sig: The pyqtSignal
@@ -194,9 +204,38 @@ def signal_name(sig: pyqtSignal) -> str:
     Return:
         The cleaned up signal name.
     """
-    m = re.fullmatch(r'[0-9]+(.*)\(.*\)', sig.signal)  # type: ignore
-    assert m is not None
-    return m.group(1)
+    if hasattr(sig, 'signal'):
+        # Bound signal
+        # Examples:
+        # sig.signal == '2signal1'
+        # sig.signal == '2signal2(QString,QString)'
+        m = re.fullmatch(r'[0-9]+(?P<name>.*)\(.*\)',
+                         sig.signal)  # type: ignore[attr-defined]
+    elif hasattr(sig, 'signatures'):
+        # Unbound signal, PyQt >= 5.11
+        # Examples:
+        # sig.signatures == ('signal1()',)
+        # sig.signatures == ('signal2(QString,QString)',)
+        m = re.fullmatch(r'(?P<name>.*)\(.*\)',
+                         sig.signatures[0])  # type: ignore[attr-defined]
+    else:  # pragma: no cover
+        # Unbound signal, PyQt < 5.11
+        # Examples:
+        # repr(sig) == "<unbound PYQT_SIGNAL SignalObject.signal1[]>"
+        # repr(sig) == "<unbound PYQT_SIGNAL SignalObject.signal2[str, str]>"
+        # repr(sig) == "<unbound PYQT_SIGNAL timeout()>"
+        # repr(sig) == "<unbound PYQT_SIGNAL valueChanged(int)>"
+        patterns = [
+            r'<unbound PYQT_SIGNAL [^.]*\.(?P<name>[^[]*)\[.*>',
+            r'<unbound PYQT_SIGNAL (?P<name>[^(]*)\(.*>',
+        ]
+        for pattern in patterns:
+            m = re.fullmatch(pattern, repr(sig))
+            if m is not None:
+                break
+
+    assert m is not None, sig
+    return m.group('name')
 
 
 def format_args(args: typing.Sequence = None,

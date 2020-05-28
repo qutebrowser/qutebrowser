@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -60,7 +60,7 @@ def msgbox(parent, title, text, *, icon, buttons=QMessageBox.Ok,
     box.setIcon(icon)
     box.setStandardButtons(buttons)
     if on_finished is not None:
-        box.finished.connect(on_finished)  # type: ignore
+        box.finished.connect(on_finished)
     if plain_text:
         box.setTextFormat(Qt.PlainText)
     elif plain_text is not None:
