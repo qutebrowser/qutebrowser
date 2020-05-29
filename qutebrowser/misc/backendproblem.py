@@ -165,6 +165,14 @@ class _BackendProblemChecker:
 
     """Check for various backend-specific issues."""
 
+    SOFTWARE_RENDERING_TEXT = (
+        "<p><b>Forcing software rendering</b></p>"
+        "<p>This allows you to use the newer QtWebEngine backend (based on "
+        "Chromium) but could have noticeable performance impact (depending on "
+        "your hardware). This sets the <i>qt.force_software_rendering = "
+        "'chromium'</i> option (if you have a <i>config.py</i> file, you'll "
+        "need to set this manually).</p>")
+
     def __init__(self, *,
                  no_err_windows: bool,
                  save_manager: savemanager.SaveManager) -> None:
@@ -238,14 +246,8 @@ class _BackendProblemChecker:
         self._show_dialog(
             backend=usertypes.Backend.QtWebEngine,
             because="you're using Nouveau graphics",
-            text=("<p>There are two ways to fix this:</p>"
-                  "<p><b>Forcing software rendering</b></p>"
-                  "<p>This allows you to use the newer QtWebEngine backend "
-                  "(based on Chromium) but could have noticeable performance "
-                  "impact (depending on your hardware). This sets the "
-                  "<i>qt.force_software_rendering = 'chromium'</i> option "
-                  "(if you have a <i>config.py</i> file, you'll need to set "
-                  "this manually).</p>"),
+            text=("<p>There are two ways to fix this:</p>" +
+                  self.SOFTWARE_RENDERING_TEXT),
             buttons=[button],
         )
 
@@ -290,13 +292,7 @@ class _BackendProblemChecker:
             buttons.append(_Button("Force software rendering",
                                    'qt.force_software_rendering',
                                    'chromium'))
-            text += ("<p><b>Forcing software rendering</b></p>"
-                     "<p>This allows you to use the newer QtWebEngine backend "
-                     "(based on Chromium) but could have noticeable "
-                     "performance impact (depending on your hardware). This "
-                     "sets the <i>qt.force_software_rendering = "
-                     "'chromium'</i> option (if you have a <i>config.py</i> "
-                     "file, you'll need to set this manually).</p>")
+            text += self.SOFTWARE_RENDERING_TEXT
 
         self._show_dialog(backend=usertypes.Backend.QtWebEngine,
                           because="you're using Wayland",
