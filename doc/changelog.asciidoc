@@ -72,6 +72,9 @@ Fixed
 - The workaround for session loading with Qt 5.15 now handles
   `sessions.lazy_restore` so that the saved page is loaded instead of the
   "stub" page with no possibility to get to the web page.
+- A site specific quirk to allow typing accented characters on Google
+  Docs was active for docs.google.com, but not drive.google.com. It is
+  now applied for both subdomains.
 
 v1.11.1 (2020-05-07)
 --------------------

@@ -403,6 +403,7 @@ def _init_site_specific_quirks():
         'https://accounts.google.com/*': firefox_ua,
         'https://*.slack.com/*': new_chrome_ua,
         'https://docs.google.com/*': firefox_ua,
+        'https://drive.google.com/*': firefox_ua,
     }
 
     if not qtutils.version_check('5.9'):
