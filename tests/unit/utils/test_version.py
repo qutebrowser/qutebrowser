@@ -35,6 +35,8 @@ import datetime
 import attr
 import pkg_resources
 import pytest
+import hypothesis
+import hypothesis.strategies
 
 import qutebrowser
 from qutebrowser.config import config
@@ -956,11 +958,15 @@ def test_version_output(params, stubs, monkeypatch, config_stub):
         'config.instance.yaml_loaded': params.autoconfig_loaded,
     }
 
+    version.opengl_info.cache_clear()
+    monkeypatch.setenv('QUTE_FAKE_OPENGL', 'VENDOR, 1.0 VERSION')
+
     substitutions = {
         'git_commit': '\nGit commit: GIT COMMIT' if params.git_commit else '',
         'style': '\nStyle: STYLE' if params.qapp else '',
         'platform_plugin': ('\nPlatform plugin: PLATFORM' if params.qapp
                             else ''),
+        'opengl': '\nOpenGL: VENDOR, 1.0 VERSION' if params.qapp else '',
         'qt': 'QT VERSION',
         'frozen': str(params.frozen),
         'import_path': import_path,
@@ -1026,7 +1032,7 @@ def test_version_output(params, stubs, monkeypatch, config_stub):
         pdf.js: PDFJS VERSION
         sqlite: SQLITE VERSION
         QtNetwork SSL: {ssl}
-        {style}{platform_plugin}
+        {style}{platform_plugin}{opengl}
         Platform: PLATFORM, ARCHITECTURE{linuxdist}
         Frozen: {frozen}
         Imported from {import_path}
@@ -1045,10 +1051,76 @@ def test_version_output(params, stubs, monkeypatch, config_stub):
     assert version.version() == expected
 
 
-def test_opengl_vendor(qapp):
-    """Simply call version.opengl_vendor() and see if it doesn't crash."""
-    pytest.importorskip("PyQt5.QtOpenGL")
-    return version.opengl_vendor()
+class TestOpenGLInfo:
+
+    @pytest.fixture(autouse=True)
+    def cache_clear(self):
+        """Clear the lru_cache between tests."""
+        version.opengl_info.cache_clear()
+
+    def test_func(self, qapp):
+        """Simply call version.opengl_info() and see if it doesn't crash."""
+        pytest.importorskip("PyQt5.QtOpenGL")
+        version.opengl_info()
+
+    def test_func_fake(self, qapp, monkeypatch):
+        monkeypatch.setenv('QUTE_FAKE_OPENGL', 'Outtel Inc., 3.0 Messiah 20.0')
+        info = version.opengl_info()
+        assert info.vendor == 'Outtel Inc.'
+        assert info.version_str == '3.0 Messiah 20.0'
+        assert info.version == (3, 0)
+        assert info.vendor_specific == 'Messiah 20.0'
+
+    @pytest.mark.parametrize('version_str, reason', [
+        ('blah', 'missing space'),
+        ('2,x blah', 'parsing int'),
+    ])
+    def test_parse_invalid(self, caplog, version_str, reason):
+        with caplog.at_level(logging.WARNING):
+            info = version.OpenGLInfo.parse(vendor="vendor",
+                                            version=version_str)
+
+        assert info.version is None
+        assert info.vendor_specific is None
+        assert info.vendor == 'vendor'
+        assert info.version_str == version_str
+
+        msg = "Failed to parse OpenGL version ({}): {}".format(
+            reason, version_str)
+        assert caplog.messages == [msg]
+
+    @hypothesis.given(vendor=hypothesis.strategies.text(),
+                      version_str=hypothesis.strategies.text())
+    def test_parse_hypothesis(self, caplog, vendor, version_str):
+        with caplog.at_level(logging.WARNING):
+            info = version.OpenGLInfo.parse(vendor=vendor, version=version_str)
+
+        assert info.vendor == vendor
+        assert info.version_str == version_str
+        assert vendor in str(info)
+        assert version_str in str(info)
+
+        if info.version is not None:
+            reconstructed = ' '.join(['.'.join(str(part)
+                                               for part in info.version),
+                                      info.vendor_specific])
+            assert reconstructed == info.version_str
+
+    @pytest.mark.parametrize('version_str, expected', [
+        ("2.1 INTEL-10.36.26", (2, 1)),
+        ("4.6 (Compatibility Profile) Mesa 20.0.7", (4, 6)),
+        ("3.0 Mesa 20.0.7", (3, 0)),
+        ("3.0 Mesa 20.0.6", (3, 0)),
+        # Not from the wild, but can happen according to standards
+        ("3.0.2 Mesa 20.0.6", (3, 0, 2)),
+    ])
+    def test_version(self, version_str, expected):
+        info = version.OpenGLInfo.parse(vendor='vendor', version=version_str)
+        assert info.version == expected
+
+    def test_str_gles(self):
+        info = version.OpenGLInfo(gles=True)
+        assert str(info) == 'OpenGL ES'
 
 
 @pytest.fixture

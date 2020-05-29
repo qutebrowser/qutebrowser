@@ -23,8 +23,6 @@ import os
 import sys
 import functools
 import html
-import ctypes
-import ctypes.util
 import enum
 import shutil
 import typing
@@ -201,19 +199,10 @@ class _BackendProblemChecker:
     def _nvidia_shader_workaround(self) -> None:
         """Work around QOpenGLShaderProgram issues.
 
-        NOTE: This needs to be called before _handle_nouveau_graphics, or some
-        setups will segfault in version.opengl_vendor().
-
         See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/941826
         """
         self._assert_backend(usertypes.Backend.QtWebEngine)
-
-        if os.environ.get('QUTE_SKIP_LIBGL_WORKAROUND'):
-            return
-
-        libgl = ctypes.util.find_library("GL")
-        if libgl is not None:
-            ctypes.CDLL(libgl, mode=ctypes.RTLD_GLOBAL)
+        utils.libgl_workaround()
 
     def _handle_nouveau_graphics(self) -> None:
         """Force software rendering when using the Nouveau driver.
@@ -231,7 +220,8 @@ class _BackendProblemChecker:
         if qtutils.version_check('5.10', compiled=False):
             return
 
-        if version.opengl_vendor() != 'nouveau':
+        opengl_info = version.opengl_info()
+        if opengl_info is None or opengl_info.vendor != 'nouveau':
             return
 
         if (os.environ.get('LIBGL_ALWAYS_SOFTWARE') == '1' or
