@@ -255,13 +255,12 @@ class TestInitLog:
         with pytest.raises(PendingDeprecationWarning):
             warnings.warn("test warning", PendingDeprecationWarning)
 
-    @pytest.mark.parametrize('cli, conf, expected',
-        [
-            (None, 'info', logging.INFO),
-            (None, 'warning', logging.WARNING),
-            ('info', 'warning', logging.INFO),
-            ('warning', 'info', logging.WARNING),
-        ])
+    @pytest.mark.parametrize('cli, conf, expected', [
+        (None, 'info', logging.INFO),
+        (None, 'warning', logging.WARNING),
+        ('info', 'warning', logging.INFO),
+        ('warning', 'info', logging.WARNING),
+    ])
     def test_init_from_config_console(self, cli, conf, expected, args,
                                       config_stub):
         args.debug = False
@@ -272,13 +271,12 @@ class TestInitLog:
         log.init_from_config(config_stub.val)
         assert log.console_handler.level == expected
 
-    @pytest.mark.parametrize('conf, expected',
-        [
-            ('vdebug', logging.VDEBUG),
-            ('debug', logging.DEBUG),
-            ('info', logging.INFO),
-            ('critical', logging.CRITICAL),
-        ])
+    @pytest.mark.parametrize('conf, expected', [
+        ('vdebug', logging.VDEBUG),
+        ('debug', logging.DEBUG),
+        ('info', logging.INFO),
+        ('critical', logging.CRITICAL),
+    ])
     def test_init_from_config_ram(self, conf, expected, args, config_stub):
         args.debug = False
         log.init_log(args)
@@ -288,7 +286,7 @@ class TestInitLog:
         assert log.ram_handler.level == expected
 
     def test_init_from_config_consistent_default(self, config_stub):
-        """Ensure config defaults are consistent with the builtin defaults"""
+        """Ensure config defaults are consistent with the builtin defaults."""
         args = qutebrowser.get_argparser().parse_args([])
         log.init_log(args)
 
