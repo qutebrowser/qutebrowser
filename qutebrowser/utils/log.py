@@ -541,6 +541,9 @@ def init_from_config(conf: 'configmodule.ConfigContainer') -> None:
               cyclic import.
     """
     assert _args is not None
+    if _args.debug:
+        init.info("--debug flag overrides log configs")
+        return
     if ram_handler:
         ramlevel = conf.logging.level.ram
         init.info("Configuring RAM loglevel to %s", ramlevel)
