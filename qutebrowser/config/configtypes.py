@@ -2021,7 +2021,7 @@ class LogLevel(String):
     def __init__(self, none_ok: bool = False) -> None:
         super().__init__(none_ok=none_ok)
         self.valid_values = ValidValues(*[level.lower()
-                                        for level in log.LOG_LEVELS])
+                                          for level in log.LOG_LEVELS])
 
 
 class Key(BaseType):
