@@ -3210,4 +3210,4 @@ logging.level.console:
     name: LogLevel
   desc:  >-
     Level for console (stdout/stderr) logs.
-    Ignored if the --loglevel or --debug CLI flags are used.
+    Ignored if the `--loglevel` or `--debug` CLI flags are used.
