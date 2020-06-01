@@ -927,8 +927,8 @@ class VersionParams:
     VersionParams('no-autoconfig-loaded', autoconfig_loaded=False),
     VersionParams('no-config-py-loaded', config_py_loaded=False),
 ], ids=lambda param: param.name)
-def test_version_output(params, stubs, monkeypatch, config_stub):
-    """Test version.version()."""
+def test_version_info(params, stubs, monkeypatch, config_stub):
+    """Test version.version_info()."""
     config.instance.config_py_loaded = params.config_py_loaded
     import_path = os.path.abspath('/IMPORTPATH')
 
@@ -1048,7 +1048,7 @@ def test_version_output(params, stubs, monkeypatch, config_stub):
     """.lstrip('\n'))
 
     expected = template.rstrip('\n').format(**substitutions)
-    assert version.version() == expected
+    assert version.version_info() == expected
 
 
 class TestOpenGLInfo:
@@ -1133,7 +1133,7 @@ def pbclient(stubs):
 
 def test_pastebin_version(pbclient, message_mock, monkeypatch, qtbot):
     """Test version.pastebin_version() sets the url."""
-    monkeypatch.setattr('qutebrowser.utils.version.version',
+    monkeypatch.setattr('qutebrowser.utils.version.version_info',
                         lambda: "dummy")
     monkeypatch.setattr('qutebrowser.utils.utils.log_clipboard', True)
 
@@ -1148,7 +1148,7 @@ def test_pastebin_version(pbclient, message_mock, monkeypatch, qtbot):
 
 def test_pastebin_version_twice(pbclient, monkeypatch):
     """Test whether calling pastebin_version twice sends no data."""
-    monkeypatch.setattr('qutebrowser.utils.version.version',
+    monkeypatch.setattr('qutebrowser.utils.version.version_info',
                         lambda: "dummy")
 
     version.pastebin_version(pbclient)
@@ -1166,7 +1166,7 @@ def test_pastebin_version_twice(pbclient, monkeypatch):
 
 def test_pastebin_version_error(pbclient, caplog, message_mock, monkeypatch):
     """Test version.pastebin_version() with errors."""
-    monkeypatch.setattr('qutebrowser.utils.version.version',
+    monkeypatch.setattr('qutebrowser.utils.version.version_info',
                         lambda: "dummy")
 
     version.pastebin_url = None

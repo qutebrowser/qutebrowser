@@ -246,7 +246,7 @@ class _CrashDialog(QDialog):
         except Exception:
             self._crash_info.append(("Launch time", traceback.format_exc()))
         try:
-            self._crash_info.append(("Version info", version.version()))
+            self._crash_info.append(("Version info", version.version_info()))
         except Exception:
             self._crash_info.append(("Version info", traceback.format_exc()))
         try:
@@ -650,7 +650,7 @@ def dump_exception_info(exc, pages, cmdhist, qobjects):
     print(''.join(traceback.format_exception(*exc)), file=sys.stderr)
     print("\n---- Version info ----", file=sys.stderr)
     try:
-        print(version.version(), file=sys.stderr)
+        print(version.version_info(), file=sys.stderr)
     except Exception:
         traceback.print_exc()
     print("\n---- Config ----", file=sys.stderr)

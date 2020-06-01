@@ -412,7 +412,7 @@ def _config_py_loaded() -> str:
         return "no config.py was loaded"
 
 
-def version() -> str:
+def version_info() -> str:
     """Return a string with various version information."""
     lines = ["qutebrowser v{}".format(qutebrowser.__version__)]
     gitver = _git_str()
@@ -646,5 +646,5 @@ def pastebin_version(pbclient: pastebin.PastebinClient = None) -> None:
 
     pbclient.paste(getpass.getuser(),
                    "qute version info {}".format(qutebrowser.__version__),
-                   version(),
+                   version_info(),
                    private=True)

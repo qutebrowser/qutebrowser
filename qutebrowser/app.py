@@ -96,7 +96,7 @@ def run(args):
     q_app.setApplicationVersion(qutebrowser.__version__)
 
     if args.version:
-        print(version.version())
+        print(version.version_info())
         sys.exit(usertypes.Exit.ok)
 
     quitter.init(args)

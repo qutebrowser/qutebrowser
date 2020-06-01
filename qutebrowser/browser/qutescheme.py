@@ -302,7 +302,7 @@ def qute_spawn_output(_url: QUrl) -> _HandlerRet:
 def qute_version(_url):
     """Handler for qute://version."""
     src = jinja.render('version.html', title='Version info',
-                       version=version.version(),
+                       version=version.version_info(),
                        copyright=qutebrowser.__copyright__)
     return 'text/html', src
 
