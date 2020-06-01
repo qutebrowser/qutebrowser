@@ -36,8 +36,7 @@ Added
   Previously, that was only available as a separate application via `python3 -m
   scripts.keytester`.
 - New `:config-diff` command which opens the `qute://configdiff` page.
-- New `--debug-flag log-cookies` to log cokies to the debug log for
-  debugging.
+- New `--debug-flag log-cookies` to log cookies to the debug log.
 - New `colors.contextmenu.disabled.{fg,bg}` settings to customize colors for
   disabled items in the context menu.
 - New line selection mode (`:toggle-selection --line`), bound to `Shift-V` in caret mode.
