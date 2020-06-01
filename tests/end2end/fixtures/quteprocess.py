@@ -285,6 +285,11 @@ def is_ignored_chromium_message(line):
         # [5306:5324:0417/151739.362362:ERROR:address_tracker_linux.cc(171)]
         # Could not bind NETLINK socket: Address already in use (98)
         'Could not bind NETLINK socket: Address already in use (98)',
+
+        # Qt 5.15 with AppVeyor
+        # [2968:3108:0601/123442.125:ERROR:mf_helpers.cc(14)] Error in
+        # dxva_video_decode_accelerator_win.cc on line 517
+        'Error in dxva_video_decode_accelerator_win.cc on line 517',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
