@@ -282,6 +282,7 @@ Feature: Saving and loading sessions
     Then "Saved session quiet_session." should be logged with level debug
     And the session quiet_session should exist
 
+  @flaky
   Scenario: Saving session with --only-active-window
     When I open data/numbers/1.txt
     And I open data/numbers/2.txt in a new tab
