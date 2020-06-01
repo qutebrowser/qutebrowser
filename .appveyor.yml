@@ -11,7 +11,7 @@ image:
 environment:
     PYTHONUNBUFFERED: 1
     PYTHON: C:\Python38-x64\python.exe
-    TESTENV: py38-pyqt514
+    TESTENV: py38-pyqt515
 
 install:
   - '%PYTHON% --version'
