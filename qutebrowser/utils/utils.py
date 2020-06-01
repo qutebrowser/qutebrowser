@@ -780,7 +780,7 @@ def ceil_log(number: int, base: int) -> int:
     return result
 
 
-def libgl_workaround():
+def libgl_workaround() -> None:
     """Work around QOpenGLShaderProgram issues, especially for Nvidia.
 
     See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/941826

@@ -517,6 +517,16 @@ class OpenGLInfo:
 
     @classmethod
     def parse(cls, *, vendor: str, version: str) -> 'OpenGLInfo':
+        """Parse OpenGL version info from a string.
+
+        The arguments should be the strings returned by OpenGL for GL_VENDOR
+        and GL_VERSION, respectively.
+
+        According to the OpenGL reference, the version string should have the
+        following format:
+
+        <major>.<minor>[.<release>] <vendor-specific info>
+        """
         if ' ' not in version:
             log.misc.warning("Failed to parse OpenGL version (missing space): "
                              "{}".format(version))

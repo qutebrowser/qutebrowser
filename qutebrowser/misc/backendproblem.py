@@ -57,7 +57,7 @@ class _Button:
 
     text = attr.ib()  # type: str
     setting = attr.ib()  # type: str
-    value = attr.ib()  # type: str
+    value = attr.ib()  # type: typing.Any
     default = attr.ib(default=False)  # type: bool
 
 
@@ -255,7 +255,7 @@ class _BackendProblemChecker:
 
         raise utils.Unreachable
 
-    def _xwayland_options(self) -> typing.Tuple[typing.List[_Button], str]:
+    def _xwayland_options(self) -> typing.Tuple[str, typing.List[_Button]]:
         """Get buttons/text for a possible XWayland solution."""
         buttons = []
         text = "<p>You can work around this in one of the following ways:</p>"
