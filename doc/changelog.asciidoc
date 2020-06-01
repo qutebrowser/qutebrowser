@@ -48,6 +48,8 @@ Added
 Changed
 ~~~~~~~
 
+- Windows and macOS releases now ship Qt 5.15, which is based on Chromium
+  80.0.3987.163 with security fixes up to 81.0.4044.138.
 - The `content.cookies.accept` setting now accepts URL patterns.
 - Tests are now included in release tarballs. Note that only running them with
   the exact dependencies listed in
