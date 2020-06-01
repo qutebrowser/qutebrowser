@@ -75,6 +75,9 @@ Fixed
 - A site specific quirk to allow typing accented characters on Google
   Docs was active for docs.google.com, but not drive.google.com. It is
   now applied for both subdomains.
+- With older graphics hardware (OpenGL < 4.3) with Qt 5.14 on Wayland, WebGL
+  causes segfaults. Now qutebrowser detects that combination and suggests to
+  disable WebGL or use XWayland.
 
 v1.11.1 (2020-05-07)
 --------------------

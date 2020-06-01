@@ -79,19 +79,21 @@ def _error_text(because: str, text: str, backend: usertypes.Backend) -> str:
     if other_backend == usertypes.Backend.QtWebKit:
         warning = ("<i>Note that QtWebKit hasn't been updated since "
                    "July 2017 (including security updates).</i>")
+        suffix = " (not recommended)"
     else:
         warning = ""
+        suffix = ""
     return ("<b>Failed to start with the {backend} backend!</b>"
             "<p>qutebrowser tried to start with the {backend} backend but "
             "failed because {because}.</p>{text}"
-            "<p><b>Forcing the {other_backend.name} backend</b></p>"
+            "<p><b>Forcing the {other_backend.name} backend{suffix}</b></p>"
             "<p>This forces usage of the {other_backend.name} backend by "
             "setting the <i>backend = '{other_setting}'</i> option "
             "(if you have a <i>config.py</i> file, you'll need to set "
             "this manually). {warning}</p>".format(
                 backend=backend.name, because=because, text=text,
                 other_backend=other_backend, other_setting=other_setting,
-                warning=warning))
+                warning=warning, suffix=suffix))
 
 
 class _Dialog(QDialog):
@@ -253,23 +255,8 @@ class _BackendProblemChecker:
 
         raise utils.Unreachable
 
-    def _handle_wayland(self) -> None:
-        self._assert_backend(usertypes.Backend.QtWebEngine)
-
-        if os.environ.get('QUTE_SKIP_WAYLAND_CHECK'):
-            return
-
-        platform = QApplication.instance().platformName()
-        if platform not in ['wayland', 'wayland-egl']:
-            return
-
-        has_qt511 = qtutils.version_check('5.11', compiled=False)
-        if has_qt511 and config.val.qt.force_software_rendering == 'chromium':
-            return
-
-        if qtutils.version_check('5.11.2', compiled=False):
-            return
-
+    def _xwayland_options(self) -> typing.Tuple[typing.List[_Button], str]:
+        """Get buttons/text for a possible XWayland solution."""
         buttons = []
         text = "<p>You can work around this in one of the following ways:</p>"
 
@@ -288,6 +275,27 @@ class _BackendProblemChecker:
                      "<p>This allows you to use the newer QtWebEngine backend "
                      "(based on Chromium). ")
 
+        return text, buttons
+
+    def _handle_wayland(self) -> None:
+        self._assert_backend(usertypes.Backend.QtWebEngine)
+
+        if os.environ.get('QUTE_SKIP_WAYLAND_CHECK'):
+            return
+
+        platform = QApplication.instance().platformName()
+        if platform not in ['wayland', 'wayland-egl']:
+            return
+
+        has_qt511 = qtutils.version_check('5.11', compiled=False)
+        if has_qt511 and config.val.qt.force_software_rendering == 'chromium':
+            return
+
+        if qtutils.version_check('5.11.2', compiled=False):
+            return
+
+        text, buttons = self._xwayland_options()
+
         if has_qt511:
             buttons.append(_Button("Force software rendering",
                                    'qt.force_software_rendering',
@@ -296,6 +304,54 @@ class _BackendProblemChecker:
 
         self._show_dialog(backend=usertypes.Backend.QtWebEngine,
                           because="you're using Wayland",
+                          text=text,
+                          buttons=buttons)
+
+    def _handle_wayland_webgl(self) -> None:
+        """On older graphic hardware, WebGL on Wayland causes segfaults.
+
+        See https://github.com/qutebrowser/qutebrowser/issues/5313
+        """
+        self._assert_backend(usertypes.Backend.QtWebEngine)
+
+        if os.environ.get('QUTE_SKIP_WAYLAND_WEBGL_CHECK'):
+            return
+
+        platform = QApplication.instance().platformName()
+        if platform not in ['wayland', 'wayland-egl']:
+            return
+
+        # Only Qt 5.14 should be affected
+        if not qtutils.version_check('5.14', compiled=False):
+            return
+        if qtutils.version_check('5.15', compiled=False):
+            return
+
+        # Newer graphic hardware isn't affected
+        opengl_info = version.opengl_info()
+        if (opengl_info is None or
+                opengl_info.gles or
+                opengl_info.version is None or
+                opengl_info.version >= (4, 3)):
+            return
+
+        # If WebGL is turned off, we're fine
+        if not config.val.content.webgl:
+            return
+
+        text, buttons = self._xwayland_options()
+
+        buttons.append(_Button("Turn off WebGL (recommended)",
+                               'content.webgl',
+                               False))
+        text += ("<p><b>Disable WebGL (recommended)</b></p>"
+                 "This sets the <i>content.webgl = False</i> option "
+                 "(if you have a <i>config.py</i> file, you'll need to "
+                 "set this manually).</p>")
+
+        self._show_dialog(backend=usertypes.Backend.QtWebEngine,
+                          because=("of frequent crashes with Qt 5.14 on "
+                                   "Wayland with older graphics hardware"),
                           text=text,
                           buttons=buttons)
 
@@ -480,6 +536,7 @@ class _BackendProblemChecker:
             self._handle_ssl_support()
             self._handle_wayland()
             self._nvidia_shader_workaround()
+            self._handle_wayland_webgl()
             self._handle_nouveau_graphics()
             self._handle_cache_nuking()
             self._handle_serviceworker_nuking()
