@@ -789,5 +789,5 @@ def libgl_workaround() -> None:
         return
 
     libgl = ctypes.util.find_library("GL")
-    if libgl is not None:
+    if libgl is not None:  # pragma: no branch
         ctypes.CDLL(libgl, mode=ctypes.RTLD_GLOBAL)
