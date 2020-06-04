@@ -94,8 +94,8 @@ class DBusNotificationPresenter(QObject):
     def _present(self, qt_notification: QWebEngineNotification) -> None:
         """Shows a notification over DBus.
 
-        This should *not* be directly passed to setNotificationPresenter
-        because of a bug in the PyQtWebEngine bindings.
+        This should *not* be directly passed to setNotificationPresenter on
+        PyQtWebEngine < 5.15 because of a bug in the PyQtWebEngine bindings.
         """
         # notification id 0 means 'assign us the ID'. We can't just pass 0
         # because it won't get sent as the right type.

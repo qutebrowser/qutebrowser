@@ -376,6 +376,7 @@ def _init_profiles():
         private_profile.setter = ProfileSetter(  # type: ignore[attr-defined]
             private_profile)
         assert private_profile.isOffTheRecord()
+        private_profile.setter.init_profile()
 
 
 def _init_site_specific_quirks():
