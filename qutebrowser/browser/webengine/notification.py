@@ -37,15 +37,20 @@ class DBusException(Exception):
 class DBusNotificationPresenter:
     """Manages notifications that are sent over DBus."""
 
-    def __init__(self):
+    SERVICE = "org.freedesktop.Notifications"
+    TEST_SERVICE = "org.qutebrowser.TestNotifications"
+    PATH = "/org/freedesktop/Notifications"
+    INTERFACE = "org.freedesktop.Notifications"
+
+    def __init__(self, test_service: bool = False):
         bus = QDBusConnection.sessionBus()
         if not bus.isConnected():
             raise DBusException("Failed to connect to DBus session bus")
 
         self.interface = QDBusInterface(
-            "org.freedesktop.Notifications",  # service
-            "/org/freedesktop/Notifications",  # path
-            "org.freedesktop.Notifications",  # interface
+            self.TEST_SERVICE if test_service else self.SERVICE,
+            self.PATH,
+            self.INTERFACE,
             bus,
         )
 
