@@ -27,3 +27,7 @@ from qutebrowser.utils import qtutils
 @bdd.then(bdd.parsers.cfparse('a notification with id {id_:d} is presented'))
 def notification_presented(notification_server, id_):
     assert id_ in notification_server.messages
+
+@bdd.when(bdd.parsers.cfparse('I close the notification with id {id_:d}'))
+def close_notification(notification_server, id_):
+    notification_server.close(id_)

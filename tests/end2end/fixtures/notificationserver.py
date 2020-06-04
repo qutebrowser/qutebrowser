@@ -23,6 +23,7 @@ class TestNotificationServer(QObject):
         super().__init__()
         self._service = service
         self._bus = QDBusConnection.sessionBus()
+        assert self._bus.isConnected()
         self._message_id = 0
         # A dict mapping notification IDs to currently-displayed notifications.
         self.messages = {}  # type: typing.Dict[int, QDBusMessage]
@@ -35,6 +36,7 @@ class TestNotificationServer(QObject):
                             QDBusConnection.ExportAllSlots)
 
     def unregister(self) -> None:
+        self._bus.unregisterObject(DBusNotificationPresenter.PATH)
         assert self._bus.unregisterService(self._service)
 
     @pyqtSlot(QDBusMessage, result="uint")
@@ -58,9 +60,11 @@ class TestNotificationServer(QObject):
 @pytest.fixture
 def notification_server(qapp):
     server = TestNotificationServer(DBusNotificationPresenter.TEST_SERVICE)
-    server.register()
-    yield server
-    server.unregister()
+    try:
+        server.register()
+        yield server
+    finally:
+        server.unregister()
 
 
 def _as_uint32(x: int) -> QVariant:

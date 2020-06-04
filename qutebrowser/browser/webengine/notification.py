@@ -24,8 +24,9 @@ import typing
 from qutebrowser.utils import log
 
 from PyQt5.QtGui import QImage
-from PyQt5.QtCore import QVariant, QMetaType, QByteArray, PYQT_VERSION
-from PyQt5.QtDBus import QDBusConnection, QDBusInterface, QDBus, QDBusArgument
+from PyQt5.QtCore import QObject, QVariant, QMetaType, QByteArray, pyqtSlot, PYQT_VERSION
+from PyQt5.QtDBus import QDBusConnection, QDBusInterface, QDBus, QDBusArgument, QDBusMessage
+from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
 from PyQt5.QtWebEngineCore import QWebEngineNotification
 from PyQt5.QtWebEngineWidgets import QWebEngineProfile
 
@@ -34,7 +35,7 @@ class DBusException(Exception):
     """Raised when something goes wrong with talking to DBus."""
 
 
-class DBusNotificationPresenter:
+class DBusNotificationPresenter(QObject):
     """Manages notifications that are sent over DBus."""
 
     SERVICE = "org.freedesktop.Notifications"
@@ -43,15 +44,27 @@ class DBusNotificationPresenter:
     INTERFACE = "org.freedesktop.Notifications"
 
     def __init__(self, test_service: bool = False):
+        super().__init__()
+        self._active_notifications = {}  # type: typing.Dict[int, QWebEngineNotification]
         bus = QDBusConnection.sessionBus()
         if not bus.isConnected():
             raise DBusException("Failed to connect to DBus session bus")
 
+        service = self.TEST_SERVICE if test_service else self.SERVICE
+
         self.interface = QDBusInterface(
-            self.TEST_SERVICE if test_service else self.SERVICE,
+            service,
             self.PATH,
             self.INTERFACE,
             bus,
+        )
+
+        bus.connect(
+            service,
+            self.PATH,
+            self.INTERFACE,
+            "NotificationClosed",
+            self._handle_close
         )
 
         if not self.interface:
@@ -114,6 +127,7 @@ class DBusNotificationPresenter:
             )
 
         notification_id = reply.arguments()[0]
+        self._active_notifications[notification_id] = qt_notification
         log.webview.debug("Sent out notification {}".format(notification_id))
 
     def _convert_image(self, qimage: QImage) -> QDBusArgument:
@@ -141,3 +155,13 @@ class DBusNotificationPresenter:
         image_data.add(QByteArray(bits))
         image_data.endStructure()
         return image_data
+
+    @pyqtSlot(QDBusMessage)
+    def _handle_close(self, message: QDBusMessage) -> None:
+        notification_id = message.arguments()[0]
+        if notification_id in self._active_notifications:
+            try:
+                self._active_notifications[notification_id].close()
+            except RuntimeError:
+                # WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
+                pass

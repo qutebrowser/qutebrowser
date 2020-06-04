@@ -112,6 +112,7 @@ def _get_backend_tag(tag):
         'qtwebengine_todo': pytest.mark.qtwebengine_todo,
         'qtwebengine_skip': pytest.mark.qtwebengine_skip,
         'qtwebengine_notifications': pytest.mark.qtwebengine_notifications,
+        'qtwebengine_py_5_15': pytest.mark.qtwebengine_py_5_15,
         'qtwebkit_skip': pytest.mark.qtwebkit_skip,
     }
     if not any(tag.startswith(t + ':') for t in pytest_marks):
@@ -136,6 +137,13 @@ if not getattr(sys, 'frozen', False):
         return None
 
 
+def _pyqt_webengine_at_least_5_15() -> bool:
+    try:
+        from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
+        return PYQT_WEBENGINE_VERSION >= 0x050F00
+    except ImportError:
+        return False
+
 def pytest_collection_modifyitems(config, items):
     """Apply @qtwebengine_* markers; skip unittests with QUTE_BDD_WEBENGINE."""
     markers = [
@@ -153,6 +161,10 @@ def pytest_collection_modifyitems(config, items):
          config.webengine),
         ('qtwebengine_mac_xfail', 'Fails on macOS with QtWebEngine',
          pytest.mark.xfail, config.webengine and utils.is_mac),
+        # WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
+        ('qtwebengine_py_5_15', 'Skipped with PyQtWebEngine < 5.15',
+         pytest.mark.skipif,
+         config.webengine and not _pyqt_webengine_at_least_5_15())
     ]
 
     for item in items:
