@@ -27,8 +27,12 @@ from PyQt5.QtCore import (QObject, QVariant, QMetaType, QByteArray, pyqtSlot,
                           PYQT_VERSION)
 from PyQt5.QtDBus import (QDBusConnection, QDBusInterface, QDBus,
                           QDBusArgument, QDBusMessage)
-from PyQt5.QtWebEngineCore import QWebEngineNotification
-from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+
+if typing.TYPE_CHECKING:
+    # putting these behind TYPE_CHECKING also means this module is importable
+    # on installs that don't have these
+    from PyQt5.QtWebEngineCore import QWebEngineNotification
+    from PyQt5.QtWebEngineWidgets import QWebEngineProfile
 
 from qutebrowser.utils import log
 
@@ -73,7 +77,7 @@ class DBusNotificationPresenter(QObject):
         if not self.interface:
             raise DBusException("Could not construct a DBus interface")
 
-    def install(self, profile: QWebEngineProfile) -> None:
+    def install(self, profile: "QWebEngineProfile") -> None:
         """Sets the profile to use the manager as the presenter."""
         # WORKAROUND for
         # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042916.html
@@ -83,7 +87,7 @@ class DBusNotificationPresenter(QObject):
             # its refcount to prevent it from getting GC'd. Otherwise, random
             # methods start getting called with the notification as `self`, or
             # segfaults happen, or other badness.
-            def _present_and_reset(qt_notification: QWebEngineNotification) \
+            def _present_and_reset(qt_notification: "QWebEngineNotification") \
                     -> None:
                 profile.setNotificationPresenter(_present_and_reset)
                 self._present(qt_notification)
@@ -91,7 +95,7 @@ class DBusNotificationPresenter(QObject):
         else:
             profile.setNotificationPresenter(self._present)
 
-    def _present(self, qt_notification: QWebEngineNotification) -> None:
+    def _present(self, qt_notification: "QWebEngineNotification") -> None:
         """Shows a notification over DBus.
 
         This should *not* be directly passed to setNotificationPresenter on
@@ -99,8 +103,8 @@ class DBusNotificationPresenter(QObject):
         """
         # notification id 0 means 'assign us the ID'. We can't just pass 0
         # because it won't get sent as the right type.
-        notification_id = QVariant(0)
-        notification_id.convert(QVariant.UInt)
+        zero = QVariant(0)
+        zero.convert(QVariant.UInt)
 
         actions_list = QDBusArgument([], QMetaType.QStringList)
 
@@ -117,7 +121,7 @@ class DBusNotificationPresenter(QObject):
             QDBus.BlockWithGui,
             "Notify",
             "qutebrowser",  # application name
-            notification_id,
+            zero,  # notification id
             "qutebrowser",  # icon
             qt_notification.title(),
             qt_notification.message(),
