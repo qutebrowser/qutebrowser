@@ -34,7 +34,46 @@ if typing.TYPE_CHECKING:
     from PyQt5.QtWebEngineCore import QWebEngineNotification
     from PyQt5.QtWebEngineWidgets import QWebEngineProfile
 
-from qutebrowser.utils import log
+from qutebrowser.browser.webengine import webenginesettings
+from qutebrowser.config import config
+from qutebrowser.misc import objects
+from qutebrowser.utils import qtutils, log, utils
+
+
+def init() -> None:
+    """Initialize the DBus notification presenter, if applicable.
+
+    If the user doesn't want a notification presenter or it's not supported,
+    this method does nothing.
+
+    Always succeeds, but might log an error.
+    """
+    should_use_dbus = (
+        qtutils.version_check("5.13") and
+        config.val.content.notification_presenter == "libnotify" and
+        # Don't even try to use DBus notifications on platforms that won't have
+        # it supported.
+        not utils.is_windows and
+        not utils.is_mac
+    )
+    if not should_use_dbus:
+        return
+
+    log.init.debug("Setting up DBus notification presenter...")
+    try:
+        testing = 'test-notification-service' in objects.debug_flags
+        presenter = DBusNotificationPresenter(testing)
+        for p in [webenginesettings.default_profile,
+                  webenginesettings.private_profile]:
+            if not p:
+                continue
+            presenter.install(p)
+    except DBusException as e:
+        log.init.error(
+            "Failed to initialize DBus notification presenter: {}"
+            .format(e)
+        )
+
 
 
 class DBusException(Exception):

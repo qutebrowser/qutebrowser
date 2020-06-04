@@ -37,7 +37,8 @@ from qutebrowser.browser import (browsertab, eventfilter, shared, webelem,
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            cookies, webenginedownloads,
-                                           webenginesettings, certificateerror)
+                                           webenginesettings, certificateerror,
+                                           notification)
 from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, objreg, jinja, debug)
@@ -62,32 +63,7 @@ def init():
     if webenginesettings.private_profile:
         _qute_scheme_handler.install(webenginesettings.private_profile)
 
-    should_use_dbus = (
-        qtutils.version_check("5.13") and
-        config.val.content.notification_presenter == "libnotify" and
-        # Don't even try to use DBus notifications on platforms that won't have
-        # it supported.
-        not utils.is_windows and
-        not utils.is_mac
-    )
-    if should_use_dbus:
-        # Import here because some of the classes it uses don't even exist
-        # prior to 5.13.
-        from qutebrowser.browser.webengine import notification
-        log.init.debug("Setting up DBus notification presenter...")
-        try:
-            testing = 'test-notification-service' in objects.debug_flags
-            presenter = notification.DBusNotificationPresenter(testing)
-            for p in [webenginesettings.default_profile,
-                      webenginesettings.private_profile]:
-                if not p:
-                    continue
-                presenter.install(p)
-        except notification.DBusException as e:
-            log.init.error(
-                "Failed to initialize DBus notification presenter: {}"
-                .format(e)
-            )
+    notification.init()
 
     log.init.debug("Initializing request interceptor...")
     req_interceptor = interceptor.RequestInterceptor(parent=app)
@@ -952,9 +928,9 @@ class _WebEnginePermissions(QObject):
         if on:
             timeout = config.val.content.fullscreen.overlay_timeout
             if timeout != 0:
-                notification = miscwidgets.FullscreenNotification(self._widget)
-                notification.set_timeout(timeout)
-                notification.show()
+                notif = miscwidgets.FullscreenNotification(self._widget)
+                notif.set_timeout(timeout)
+                notif.show()
 
     @pyqtSlot(QUrl, 'QWebEnginePage::Feature')
     def _on_feature_permission_requested(self, url, feature):
