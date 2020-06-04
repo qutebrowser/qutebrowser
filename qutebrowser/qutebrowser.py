@@ -172,11 +172,12 @@ def debug_flag_error(flag):
         stack: Enable Chromium stack logging.
         chromium: Enable Chromium logging.
         werror: Turn Python warnings into errors.
+        test-notification-service: Use the testing libnotify service.
     """
     valid_flags = ['debug-exit', 'pdb-postmortem', 'no-sql-history',
                    'no-scroll-filtering', 'log-requests', 'log-cookies',
                    'lost-focusproxy', 'log-scroll-pos', 'stack', 'chromium',
-                   'werror']
+                   'werror', 'test-notification-service']
 
     if flag in valid_flags:
         return flag

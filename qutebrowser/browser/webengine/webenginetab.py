@@ -76,7 +76,8 @@ def init():
         from qutebrowser.browser.webengine import notification
         log.init.debug("Setting up DBus notification presenter...")
         try:
-            presenter = notification.DBusNotificationPresenter()
+            testing = 'test-notification-service' in objects.debug_flags
+            presenter = notification.DBusNotificationPresenter(testing)
             for p in [webenginesettings.default_profile, webenginesettings.private_profile]:
                 if not p:
                     continue

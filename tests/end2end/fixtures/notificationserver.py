@@ -21,24 +21,28 @@ class TestNotificationServer(QObject):
     def __init__(self, service: str):
         # Note that external users should call get() instead.
         super().__init__()
-        self.service = service
-        self.bus = QDBusConnection.sessionBus()
+        self._service = service
+        self._bus = QDBusConnection.sessionBus()
+        self._message_id = 0
+        # A list of all the messages that we've received. Test code should
+        # inspect this to make sure messages get delivered.
         self.messages = []  # type: typing.List[QDBusMessage]
 
     def register(self) -> None:
-        assert self.bus.registerService(self.service)
-        assert self.registerObject(DBusNotificationPresenter.PATH,
+        assert self._bus.registerService(self._service)
+        assert self._bus.registerObject(DBusNotificationPresenter.PATH,
                             DBusNotificationPresenter.INTERFACE,
                             self,
                             QDBusConnection.ExportAllSlots)
 
     def unregister(self) -> None:
-        assert self.bus.unregisterService(self.service)
-        self.messages = []
+        assert self._bus.unregisterService(self._service)
 
-    @pyqtSlot(QDBusMessage)
-    def Notify(self, message: QDBusMessage) -> None:
+    @pyqtSlot(QDBusMessage, result="uint")
+    def Notify(self, message: QDBusMessage) -> QDBusArgument:
+        self._message_id += 1
         self.messages.append(message)
+        return self._message_id
 
     def close(self, notification_id: int) -> None:
         """Sends a close notification for the given ID."""
@@ -46,8 +50,10 @@ class TestNotificationServer(QObject):
             DBusNotificationPresenter.PATH,
             DBusNotificationPresenter.INTERFACE,
             "NotificationClosed")
+        # the 2 here is the notification removal reason; it's effectively
+        # arbitrary
         message.setArguments([_as_uint32(notification_id), _as_uint32(2)])
-        if not self.bus.send(message):
+        if not self._bus.send(message):
             raise IOError("Could not send close notification")
 
 @pytest.fixture
@@ -60,6 +66,6 @@ def notification_server(qapp):
 
 def _as_uint32(x: int) -> QVariant:
     variant = QVariant(x)
-    variant.convert(QVariant.UInt)
+    assert variant.convert(QVariant.UInt)
     return variant
 

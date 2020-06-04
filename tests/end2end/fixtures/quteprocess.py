@@ -526,7 +526,8 @@ class QuteProc(testprocess.Process):
         args = ['--debug', '--no-err-windows', '--temp-basedir',
                 '--json-logging', '--loglevel', 'vdebug',
                 '--backend', backend, '--debug-flag', 'no-sql-history',
-                '--debug-flag', 'werror']
+                '--debug-flag', 'werror', '--debug-flag',
+                'test-notification-service']
         if qVersion() == '5.7.1':
             # https://github.com/qutebrowser/qutebrowser/issues/3163
             args += ['--qt-flag', 'disable-seccomp-filter-sandbox']
@@ -983,7 +984,7 @@ def quteproc_process(qapp, server, request):
 
 
 @pytest.fixture
-def quteproc(quteproc_process, server, request):
+def quteproc(quteproc_process, server, request, notification_server):
     """Per-test qutebrowser fixture which uses the per-file process."""
     request.node._quteproc_log = quteproc_process.captured_log
     quteproc_process.before_test()
