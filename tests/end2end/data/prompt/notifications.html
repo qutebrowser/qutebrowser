@@ -31,9 +31,20 @@
                     console.log("[FAIL] notifications unavailable");
                 }
             }
+
+            // Not currently used in automated tests, only manual testing.
+            function show_notification() {
+		let notification = new Notification("notification title", {
+		    body: "notification body"
+		});
+		notification.onclick = function() { console.log("notification clicked"); };
+		notification.onclose = function() { console.log("notification closed"); };
+		notification.onshow = function() { console.log("notification shown"); };
+	    }
         </script>
     </head>
     <body>
         <input type="button" onclick="get_notification_permission()" value="Get notification permission" id="button">
+        <input type="button" onclick="show_notification()" value="Show notification" id="show-button">
     </body>
 </html>

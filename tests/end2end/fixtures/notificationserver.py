@@ -24,9 +24,8 @@ class TestNotificationServer(QObject):
         self._service = service
         self._bus = QDBusConnection.sessionBus()
         self._message_id = 0
-        # A list of all the messages that we've received. Test code should
-        # inspect this to make sure messages get delivered.
-        self.messages = []  # type: typing.List[QDBusMessage]
+        # A dict mapping notification IDs to currently-displayed notifications.
+        self.messages = {}  # type: typing.Dict[int, QDBusMessage]
 
     def register(self) -> None:
         assert self._bus.registerService(self._service)
@@ -41,7 +40,7 @@ class TestNotificationServer(QObject):
     @pyqtSlot(QDBusMessage, result="uint")
     def Notify(self, message: QDBusMessage) -> QDBusArgument:
         self._message_id += 1
-        self.messages.append(message)
+        self.messages[self._message_id] = message
         return self._message_id
 
     def close(self, notification_id: int) -> None:
