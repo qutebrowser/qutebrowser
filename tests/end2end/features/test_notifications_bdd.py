@@ -17,16 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
-
 import pytest_bdd as bdd
 bdd.scenarios('notifications.feature')
 
-from qutebrowser.utils import qtutils
 
 @bdd.then(bdd.parsers.cfparse('a notification with id {id_:d} is presented'))
 def notification_presented(notification_server, id_):
     assert id_ in notification_server.messages
+
 
 @bdd.when(bdd.parsers.cfparse('I close the notification with id {id_:d}'))
 def close_notification(notification_server, id_):

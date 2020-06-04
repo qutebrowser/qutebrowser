@@ -144,6 +144,7 @@ def _pyqt_webengine_at_least_5_15() -> bool:
     except ImportError:
         return False
 
+
 def pytest_collection_modifyitems(config, items):
     """Apply @qtwebengine_* markers; skip unittests with QUTE_BDD_WEBENGINE."""
     markers = [
