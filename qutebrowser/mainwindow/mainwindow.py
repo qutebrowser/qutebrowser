@@ -206,7 +206,7 @@ class MainWindow(QWidget):
         super().__init__(parent)
         # Late import to avoid a circular dependency
         # - browsertab -> hints -> webelem -> mainwindow -> bar -> browsertab
-        from qutebrowser.mainwindow import tabbedbrowser
+        from qutebrowser.mainwindow import treetabbedbrowser, tabbedbrowser
         from qutebrowser.mainwindow.statusbar import bar
 
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -239,9 +239,12 @@ class MainWindow(QWidget):
         else:
             private = bool(private)
         self._private = private
-        self.tabbed_browser = tabbedbrowser.TabbedBrowser(win_id=self.win_id,
-                                                          private=private,
-                                                          parent=self)
+        if config.val.tabs.tree_tabs:
+            self.tabbed_browser = treetabbedbrowser.TreeTabbedBrowser(
+                win_id=self.win_id, private=private, parent=self)
+        else:
+            self.tabbed_browser = tabbedbrowser.TabbedBrowser(
+                win_id=self.win_id, private=private, parent=self)
         objreg.register('tabbed-browser', self.tabbed_browser, scope='window',
                         window=self.win_id)
         self._init_command_dispatcher()

@@ -1686,6 +1686,40 @@ tabs.new_position.stacking:
     Only applies for `next` and `prev` values of `tabs.new_position.related`
     and `tabs.new_position.unrelated`.
 
+tabs.new_position.tree.new_child:
+  default: first
+  type: NewChildPosition
+  desc: >-
+    Position of new children among siblings, e.g. after calling `:open
+    --relative ...` or following a link.
+
+tabs.new_position.tree.new_sibling:
+  default: first
+  type: NewTabPosition
+  desc: >-
+    Position of siblings, e.g. after calling `:open --sibling ...`.
+
+tabs.new_position.tree.new_toplevel:
+  default: last
+  type: NewTabPosition
+  desc: >-
+    Position of new top-level tabs related to the topmost ancestor of current
+    tab, e.g. when calling `:open ...` without `--relative` or `--sibling`.
+
+tabs.new_position.tree.promote:
+  default: next
+  type: NewTabPosition
+  desc: >-
+    Position at which a tab is placed among its new siblings after being
+    promoted with `:tree-tab-promote`
+
+tabs.new_position.tree.demote:
+  default: last
+  type: NewChildPosition
+  desc: >-
+    Position at which a tab is placed among its new siblings after being
+    demoted with `:tree-tab-demote`
+
 tabs.padding:
   default:
     top: 0
@@ -1746,7 +1780,7 @@ tabs.title.alignment:
   desc: Alignment of the text inside of tabs.
 
 tabs.title.format:
-  default: '{audio}{index}: {current_title}'
+  default: '{tree}{collapsed}{audio}{index}: {current_title}'
   type:
     name: FormatString
     fields:
@@ -1762,12 +1796,16 @@ tabs.title.format:
       - current_url
       - protocol
       - audio
+      - collapsed
+      - tree
     none_ok: true
   desc: |
     Format to use for the tab title.
     The following placeholders are defined:
 
     * `{perc}`: Percentage as a string like `[10%]`.
+    * `{collapsed}`: If children tabs are hidden, the string `[...]`, empty otherwise
+    * `{tree}`: The ASCII tree prefix of current tab.
     * `{perc_raw}`: Raw percentage, e.g. `10`.
     * `{current_title}`: Title of the current web page.
     * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
@@ -1798,6 +1836,8 @@ tabs.title.format_pinned:
       - current_url
       - protocol
       - audio
+      - collapsed
+      - tree
     none_ok: true
   desc: Format to use for the tab title for pinned tabs. The same placeholders
     like for `tabs.title.format` are defined.
@@ -1892,6 +1932,12 @@ tabs.wrap:
   default: true
   type: Bool
   desc: Wrap when changing tabs.
+
+tabs.tree_tabs:
+  default: false
+  type: Bool
+  desc: Enable tree-tabs mode.
+  restart: true
 
 tabs.focus_stack_size:
   default: 10
@@ -3168,6 +3214,17 @@ bindings.default:
       tIH: config-cycle -p -u *://*.{url:host}/* content.images ;; reload
       tiu: config-cycle -p -t -u {url} content.images ;; reload
       tIu: config-cycle -p -u {url} content.images ;; reload
+      zH: tree-tab-promote
+      zL: tree-tab-demote
+      zJ: tab-next -s
+      zK: tab-prev -s
+      zd: tab-close -r
+      zg: set-cmd-text -s :tree-tab-create-group -r
+      zG: set-cmd-text -s :tree-tab-create-group
+      za: tree-tab-toggle-hide
+      zp: tab-focus parent
+      zo: set-cmd-text --space :open -tr
+      zO: set-cmd-text --space :open -tS
     insert:
       <Ctrl-E>: open-editor
       <Shift-Ins>: insert-text -- {primary}

@@ -229,6 +229,9 @@ class SessionManager(QObject):
             tab: The WebView to save.
             active: Whether the tab is currently active.
         """
+        # FIXME understand why this happens
+        if tab is None:
+            return {}
         data = {'history': []}  # type: _JsonType
         if active:
             data['active'] = True
@@ -270,12 +273,28 @@ class SessionManager(QObject):
             if getattr(active_window, 'win_id', None) == win_id:
                 win_data['active'] = True
             win_data['geometry'] = bytes(main_window.saveGeometry())
-            win_data['tabs'] = []
             if tabbed_browser.is_private:
                 win_data['private'] = True
-            for i, tab in enumerate(tabbed_browser.widgets()):
-                active = i == tabbed_browser.widget.currentIndex()
-                win_data['tabs'].append(self._save_tab(tab, active))
+
+            if tabbed_browser.is_treetabbedbrowser:
+                # a dict where keys are node UIDs, and values are dicts
+                # with tab data (the result of _save_tab) and a list of
+                # children UIDs
+                tree_data = {}
+                root_node = tabbed_browser.widget.tree_root
+                for i, node in enumerate(root_node.traverse(), -1):
+                    node_data = {}
+                    active = i == tabbed_browser.widget.currentIndex()
+                    node_data['tab'] = self._save_tab(node.value, active)
+                    node_data['children'] = [c.uid for c in node.children]
+                    node_data['collapsed'] = node.collapsed
+                    tree_data[node.uid] = node_data
+                win_data['tree'] = tree_data
+            else:
+                win_data['tabs'] = []
+                for i, tab in enumerate(tabbed_browser.widgets()):
+                    active = i == tabbed_browser.widget.currentIndex()
+                    win_data['tabs'].append(self._save_tab(tab, active))
             data['windows'].append(win_data)
         return data
 
@@ -428,6 +447,45 @@ class SessionManager(QObject):
         except ValueError as e:
             raise SessionError(e)
 
+    def _load_tree(self, tabbed_browser, tree_data):
+        tree_keys = list(tree_data.keys())
+        if not tree_keys:
+            return
+
+        root_data = tree_data.get(tree_keys[0])
+        if root_data is None:
+            return
+
+        root_node = tabbed_browser.widget.tree_root
+        tab_to_focus = None
+        index = -1
+
+        def recursive_load_node(uid):
+            nonlocal tab_to_focus
+            nonlocal index
+            index += 1
+            node_data = tree_data[uid]
+            children_uids = node_data['children']
+
+            if tree_data[uid]['tab'].get('active'):
+                tab_to_focus = index
+
+            tab_data = node_data['tab']
+            new_tab = tabbed_browser.tabopen(background=False)
+            self._load_tab(new_tab, tab_data)
+
+            new_tab.node.parent = root_node
+            children = [recursive_load_node(uid) for uid in children_uids]
+            new_tab.node.children = children
+            new_tab.node.collapsed = node_data['collapsed']
+            return new_tab.node
+
+        for child_uid in root_data['children']:
+            child = recursive_load_node(child_uid)
+            child.parent = root_node
+
+        return tab_to_focus
+
     def _load_window(self, win):
         """Turn yaml data into windows."""
         window = mainwindow.MainWindow(geometry=win['geometry'],
@@ -436,16 +494,33 @@ class SessionManager(QObject):
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=window.win_id)
         tab_to_focus = None
-        for i, tab in enumerate(win['tabs']):
-            new_tab = tabbed_browser.tabopen(background=False)
-            self._load_tab(new_tab, tab)
-            if tab.get('active', False):
-                tab_to_focus = i
-            if new_tab.data.pinned:
-                tabbed_browser.widget.set_tab_pinned(new_tab,
-                                                     new_tab.data.pinned)
+
+        # plain_tabs is used in case the saved session contains a tree and
+        # tree-tabs is not enabled, or if the saved session contains normal
+        # tabs
+        plain_tabs = win.get('tabs', None)
+        if win.get('tree'):
+            if tabbed_browser.is_treetabbedbrowser:
+                tree_data = win.get('tree')
+                tab_to_focus = self._load_tree(tabbed_browser, tree_data)
+                tabbed_browser.widget.tree_tab_update()
+            else:
+                tree = win.get('tree')
+                plain_tabs = [tree[i]['tab'] for i in tree if
+                              tree[i]['tab']]
+        if plain_tabs:
+            for i, tab in enumerate(plain_tabs):
+                new_tab = tabbed_browser.tabopen(background=False)
+                self._load_tab(new_tab, tab)
+                if tab.get('active', False):
+                    tab_to_focus = i
+                if new_tab.data.pinned:
+                    tabbed_browser.widget.set_tab_pinned(
+                        new_tab, new_tab.data.pinned)
+
         if tab_to_focus is not None:
             tabbed_browser.widget.setCurrentIndex(tab_to_focus)
+
         if win.get('active', False):
             QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
 

@@ -126,6 +126,12 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<tab-pin,tab-pin>>|Pin/Unpin the current/[count]th tab.
 |<<tab-prev,tab-prev>>|Switch to the previous tab, or switch [count] tabs back.
 |<<tab-take,tab-take>>|Take a tab from another window.
+|<<tree-tab-create-group,tree-tab-create-group>>|Wrapper around :open qute://treegroup/name. Correctly escapes names.
+|<<tree-tab-cycle-hide,tree-tab-cycle-hide>>|Hides levels of descendents: children, grandchildren, and so on.
+|<<tree-tab-demote,tree-tab-demote>>|Demote a tab making it children of its previous adjacent sibling.
+|<<tree-tab-promote,tree-tab-promote>>|Promote a tab so it becomes next sibling of its parent.
+|<<tree-tab-suspend-children,tree-tab-suspend-children>>|Suspends all descendent of a tab to reduce memory usage.
+|<<tree-tab-toggle-hide,tree-tab-toggle-hide>>|If the current tab's children are shown hide them, and vice-versa.
 |<<unbind,unbind>>|Unbind a keychain.
 |<<undo,undo>>|Re-open the last closed tab or tabs.
 |<<version,version>>|Show version information.
@@ -864,7 +870,9 @@ Do nothing.
 
 [[open]]
 === open
-Syntax: +:open [*--related*] [*--bg*] [*--tab*] [*--window*] [*--secure*] [*--private*] ['url']+
+Syntax: +:open [*--related*] [*--sibling*] [*--bg*] [*--tab*] [*--window*] [*--secure*]
+     [*--private*]
+     ['url']+
 
 Open a URL in the current/[count]th tab.
 
@@ -875,6 +883,8 @@ If the URL contains newlines, each line gets opened in its own tab.
 
 ==== optional arguments
 * +*-r*+, +*--related*+: If opening a new tab, position the tab as related to the current one (like clicking on a link).
+
+* +*-S*+, +*--sibling*+: If opening a new tab, position the as a sibling of the current one.
 
 * +*-b*+, +*--bg*+: Open in a new background tab.
 * +*-t*+, +*--tab*+: Open in a new tab.
@@ -1194,7 +1204,9 @@ Load a session.
 
 [[session-save]]
 === session-save
-Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-window*] [*--with-private*] ['name']+
+Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-window*]
+             [*--with-private*]
+             ['name']+
 
 Save a session.
 
@@ -1304,7 +1316,7 @@ Duplicate the current tab.
 
 [[tab-close]]
 === tab-close
-Syntax: +:tab-close [*--prev*] [*--next*] [*--opposite*] [*--force*]+
+Syntax: +:tab-close [*--prev*] [*--next*] [*--opposite*] [*--force*] [*--recursive*]+
 
 Close the current/[count]th tab.
 
@@ -1314,6 +1326,7 @@ Close the current/[count]th tab.
 * +*-o*+, +*--opposite*+: Force selecting the tab in the opposite direction of what's configured in 'tabs.select_on_remove'.
 
 * +*-f*+, +*--force*+: Avoid confirmation for pinned tabs.
+* +*-r*+, +*--recursive*+: Close all descendents (tree-tabs) as well as current tab
 
 ==== count
 The tab index to close
@@ -1327,10 +1340,14 @@ Select the tab given as argument/[count].
 If neither count nor index are given, it behaves like tab-next. If both are given, use count.
 
 ==== positional arguments
-* +'index'+: The tab index to focus, starting with 1. The special value `last` focuses the last focused tab (regardless of count),
- and `stack-prev`/`stack-next` traverse a stack of visited
- tabs. Negative indices count from the end, such that -1 is
- the last tab.
+* +'index'+: The tab index to focus, starting with 1. Negative indices count from the end, such that -1 is the last tab. Special
+ values are:
+ - `last` focuses the last focused tab (regardless of
+ count).
+ - `parent` focuses the parent tab in the tree hierarchy,
+ if `tabs.tree_tabs` is enabled.
+ - `stack-prev`/`stack-next` traverse a stack of visited
+ tabs.
 
 
 ==== optional arguments
@@ -1341,7 +1358,7 @@ The tab index to focus, starting with 1.
 
 [[tab-give]]
 === tab-give
-Syntax: +:tab-give [*--keep*] [*--private*] ['win-id']+
+Syntax: +:tab-give [*--keep*] [*--private*] [*--recursive*] ['win-id']+
 
 Give the current tab to a new or existing window if win_id given.
 
@@ -1353,6 +1370,7 @@ If no win_id is given, the tab will get detached into a new window.
 ==== optional arguments
 * +*-k*+, +*--keep*+: If given, keep the old tab around.
 * +*-p*+, +*--private*+: If the tab should be detached into a private instance.
+* +*-r*+, +*--recursive*+: Whether to move the entire subtree starting at the tab.
 
 ==== count
 Overrides win_id (index starts at 1 for win_id=0).
@@ -1384,7 +1402,12 @@ The tab index to mute or unmute
 
 [[tab-next]]
 === tab-next
+Syntax: +:tab-next [*--sibling*]+
+
 Switch to the next tab, or switch [count] tabs forward.
+
+==== optional arguments
+* +*-s*+, +*--sibling*+: Whether to focus the next tree sibling.
 
 ==== count
 How many tabs to switch forward.
@@ -1411,7 +1434,12 @@ The tab index to pin or unpin
 
 [[tab-prev]]
 === tab-prev
+Syntax: +:tab-prev [*--sibling*]+
+
 Switch to the previous tab, or switch [count] tabs back.
+
+==== optional arguments
+* +*-s*+, +*--sibling*+: Whether to focus the previous tree sibling.
 
 ==== count
 How many tabs to switch back.
@@ -1431,6 +1459,59 @@ Take a tab from another window.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
+
+[[tree-tab-create-group]]
+=== tree-tab-create-group
+Syntax: +:tree-tab-create-group [*--related*] [*--background*] 'name' ['name' ...]+
+
+Wrapper around :open qute://treegroup/name. Correctly escapes names.
+
+Example: `:tree-tab-create-group Foo Bar` calls `:open qute://treegroup/Foo%20Bar`
+
+==== positional arguments
+* +'name'+: Name of the group to create
+
+==== optional arguments
+* +*-r*+, +*--related*+: whether to open as a child of current tab or under root
+* +*-b*+, +*--background*+: whether to open in a background tab
+
+[[tree-tab-cycle-hide]]
+=== tree-tab-cycle-hide
+Hides levels of descendents: children, grandchildren, and so on.
+
+==== count
+How many levels to hide.
+
+[[tree-tab-demote]]
+=== tree-tab-demote
+Demote a tab making it children of its previous adjacent sibling.
+
+Observes tabs.new_position.tree.demote in positioning the tab among new siblings.
+
+[[tree-tab-promote]]
+=== tree-tab-promote
+Promote a tab so it becomes next sibling of its parent.
+
+Observes tabs.new_position.tree.promote in positioning the tab among new siblings.
+
+==== count
+How many levels the tabs should be promoted to
+
+[[tree-tab-suspend-children]]
+=== tree-tab-suspend-children
+Suspends all descendent of a tab to reduce memory usage.
+
+==== count
+Target tab.
+
+[[tree-tab-toggle-hide]]
+=== tree-tab-toggle-hide
+If the current tab's children are shown hide them, and vice-versa.
+
+This toggles the current tab's node's `collapsed` attribute.
+
+==== count
+Which tab to collapse
 
 [[unbind]]
 === unbind

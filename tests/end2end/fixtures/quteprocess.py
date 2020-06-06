@@ -771,16 +771,17 @@ class QuteProc(testprocess.Process):
         self.set_setting(opt, old_value)
 
     def open_path(self, path, *, new_tab=False, new_bg_tab=False,
-                  new_window=False, private=False, as_url=False, port=None,
-                  https=False, wait=True):
+                  related_tab=False, new_window=False, private=False,
+                  as_url=False, port=None, https=False, wait=True):
         """Open the given path on the local webserver in qutebrowser."""
         url = self.path_to_url(path, port=port, https=https)
         self.open_url(url, new_tab=new_tab, new_bg_tab=new_bg_tab,
-                      new_window=new_window, private=private, as_url=as_url,
-                      wait=wait)
+                      related_tab=related_tab, new_window=new_window,
+                      private=private, as_url=as_url, wait=wait)
 
     def open_url(self, url, *, new_tab=False, new_bg_tab=False,
-                 new_window=False, private=False, as_url=False, wait=True):
+                 related_tab=False, new_window=False, private=False,
+                 as_url=False, wait=True):
         """Open the given url in qutebrowser."""
         if sum(1 for opt in [new_tab, new_bg_tab, new_window, private, as_url]
                if opt) > 1:
@@ -790,9 +791,15 @@ class QuteProc(testprocess.Process):
             self.send_cmd(url, invalid=True)
             line = None
         elif new_tab:
-            line = self.send_cmd(':open -t ' + url)
+            if related_tab:
+                line = self.send_cmd(':open -t -r ' + url)
+            else:
+                line = self.send_cmd(':open -t ' + url)
         elif new_bg_tab:
-            line = self.send_cmd(':open -b ' + url)
+            if related_tab:
+                line = self.send_cmd(':open -b -r ' + url)
+            else:
+                line = self.send_cmd(':open -b ' + url)
         elif new_window:
             line = self.send_cmd(':open -w ' + url)
         elif private:

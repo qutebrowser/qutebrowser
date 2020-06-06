@@ -202,12 +202,15 @@ def open_path(quteproc, server, path):
     path = path.replace('(port)', str(server.port))
 
     new_tab = False
+    related_tab = False
     new_bg_tab = False
     new_window = False
     private = False
     as_url = False
     wait = True
 
+    related_tab_suffix = ' in a new related tab'
+    related_background_tab_suffix = ' in a new related background tab'
     new_tab_suffix = ' in a new tab'
     new_bg_tab_suffix = ' in a new background tab'
     new_window_suffix = ' in a new window'
@@ -219,6 +222,14 @@ def open_path(quteproc, server, path):
         if path.endswith(new_tab_suffix):
             path = path[:-len(new_tab_suffix)]
             new_tab = True
+        elif path.endswith(related_tab_suffix):
+            path = path[:-len(related_tab_suffix)]
+            new_tab = True
+            related_tab = True
+        elif path.endswith(related_background_tab_suffix):
+            path = path[:-len(related_background_tab_suffix)]
+            new_bg_tab = True
+            related_tab = True
         elif path.endswith(new_bg_tab_suffix):
             path = path[:-len(new_bg_tab_suffix)]
             new_bg_tab = True
@@ -237,9 +248,9 @@ def open_path(quteproc, server, path):
         else:
             break
 
-    quteproc.open_path(path, new_tab=new_tab, new_bg_tab=new_bg_tab,
-                       new_window=new_window, private=private, as_url=as_url,
-                       wait=wait)
+    quteproc.open_path(path, related_tab=related_tab, new_tab=new_tab,
+                       new_bg_tab=new_bg_tab, new_window=new_window,
+                       private=private, as_url=as_url, wait=wait)
 
 
 @bdd.when(bdd.parsers.parse("I set {opt} to {value}"))

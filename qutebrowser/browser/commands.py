@@ -23,6 +23,7 @@ import os.path
 import shlex
 import functools
 import typing
+import urllib.parse
 
 from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QEvent, QUrlQuery
@@ -36,7 +37,7 @@ from qutebrowser.keyinput import modeman, keyutils
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils, standarddir, debug)
 from qutebrowser.utils.usertypes import KeyMode
-from qutebrowser.misc import editor, guiprocess, objects
+from qutebrowser.misc import editor, guiprocess, objects, notree
 from qutebrowser.completion.models import urlmodel, miscmodels
 from qutebrowser.mainwindow import mainwindow
 
@@ -110,7 +111,7 @@ class CommandDispatcher:
         return widget
 
     def _open(self, url, tab=False, background=False, window=False,
-              related=False, private=None):
+              related=False, sibling=False, private=None):
         """Helper function to open a page.
 
         Args:
@@ -120,6 +121,7 @@ class CommandDispatcher:
             window: Whether to open in a new window
             private: If opening a new window, open it in private browsing mode.
                      If not given, inherit the current window's mode.
+            sibling: Open tab in a sibling node of the currently focused tab.
         """
         urlutils.raise_cmdexc_if_invalid(url)
         tabbed_browser = self._tabbed_browser
@@ -130,10 +132,16 @@ class CommandDispatcher:
         if window or private:
             tabbed_browser = self._new_tabbed_browser(private)
             tabbed_browser.tabopen(url)
-        elif tab:
-            tabbed_browser.tabopen(url, background=False, related=related)
-        elif background:
-            tabbed_browser.tabopen(url, background=True, related=related)
+        elif tab or background:
+            if tabbed_browser.is_treetabbedbrowser:
+                tabbed_browser.tabopen(url, background=background,
+                                       related=related, sibling=sibling)
+            elif sibling:
+                raise cmdutils.CommandError("--sibling flag only works with \
+                                            tree-tab enabled")
+            else:
+                tabbed_browser.tabopen(url, background=background,
+                                       related=related)
         else:
             widget = self._current_widget()
             widget.load_url(url)
@@ -215,7 +223,8 @@ class CommandDispatcher:
                                  "{!r}!".format(conf_selection))
         return None
 
-    def _tab_close(self, tab, prev=False, next_=False, opposite=False):
+    def _tab_close(self, tab, prev=False, next_=False,
+                   opposite=False, new_undo=True):
         """Helper function for tab_close be able to handle message.async.
 
         Args:
@@ -231,17 +240,17 @@ class CommandDispatcher:
                                                           opposite)
 
         if selection_override is None:
-            self._tabbed_browser.close_tab(tab)
+            self._tabbed_browser.close_tab(tab, new_undo=new_undo)
         else:
             old_selection_behavior = tabbar.selectionBehaviorOnRemove()
             tabbar.setSelectionBehaviorOnRemove(selection_override)
-            self._tabbed_browser.close_tab(tab)
+            self._tabbed_browser.close_tab(tab, new_undo=new_undo)
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_close(self, prev=False, next_=False, opposite=False,
-                  force=False, count=None):
+                  force=False, count=None, recursive=False):
         """Close the current/[count]th tab.
 
         Args:
@@ -250,15 +259,37 @@ class CommandDispatcher:
             opposite: Force selecting the tab in the opposite direction of
                       what's configured in 'tabs.select_on_remove'.
             force: Avoid confirmation for pinned tabs.
+            recursive: Close all descendents (tree-tabs) as well as current tab
             count: The tab index to close, or None
         """
         tab = self._cntwidget(count)
+        tabbed_browser = self._tabbed_browser
         if tab is None:
             return
-        close = functools.partial(self._tab_close, tab, prev,
-                                  next_, opposite)
-
-        self._tabbed_browser.tab_close_prompt_if_pinned(tab, force, close)
+        if (tabbed_browser.is_treetabbedbrowser and recursive and not
+                tab.node.collapsed):
+            # if collapsed, recursive is the same as normal close
+            new_undo = True  # only for first one
+            for descendent in tab.node.traverse(notree.TraverseOrder.POST_R,
+                                                True):
+                if self._tabbed_browser.widget.indexOf(descendent.value) > -1:
+                    close = functools.partial(self._tab_close,
+                                              descendent.value, prev, next_,
+                                              opposite, new_undo)
+                    tabbed_browser.tab_close_prompt_if_pinned(tab, force,
+                                                              close)
+                    new_undo = False
+                else:
+                    tab = descendent.value
+                    tab.private_api.shutdown()
+                    tab.deleteLater()
+                    tab.layout().unwrap()
+        else:
+            # this also applied to closing collapsed tabs
+            # logic for that is in TreeTabbedBrowser
+            close = functools.partial(self._tab_close, tab, prev,
+                                      next_, opposite)
+            tabbed_browser.tab_close_prompt_if_pinned(tab, force, close)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        name='tab-pin')
@@ -283,8 +314,9 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', name='open',
                        maxsplit=0, scope='window')
     @cmdutils.argument('url', completion=urlmodel.url)
+    @cmdutils.argument('sibling', flag='S')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def openurl(self, url=None, related=False,
+    def openurl(self, url=None, related=False, sibling=False,
                 bg=False, tab=False, window=False, count=None, secure=False,
                 private=False):
         """Open a URL in the current/[count]th tab.
@@ -298,6 +330,8 @@ class CommandDispatcher:
             window: Open in a new window.
             related: If opening a new tab, position the tab as related to the
                      current one (like clicking on a link).
+            sibling: If opening a new tab, position the as a sibling of the
+                     current one.
             count: The tab index to open the URL in, or None.
             secure: Force HTTPS.
             private: Open a new window in private browsing mode.
@@ -316,8 +350,8 @@ class CommandDispatcher:
                 bg = True
 
             if tab or bg or window or private:
-                self._open(cur_url, tab, bg, window, related=related,
-                           private=private)
+                self._open(cur_url, tab, bg, window, private=private,
+                           related=related, sibling=sibling)
             else:
                 curtab = self._cntwidget(count)
                 if curtab is None:
@@ -449,11 +483,39 @@ class CommandDispatcher:
         if not keep:
             tabbed_browser.close_tab(tab, add_undo=False)
 
+    def _tree_tab_give(self, tabbed_browser, keep):
+        """Helper function to simplify tab-give."""
+        uid_map = {1: 1}
+        traversed = list(self._current_widget().node.traverse())
+        # first pass: open tabs
+        for node in traversed:
+            tab = tabbed_browser.tabopen(node.value.url())
+
+            uid_map[node.uid] = tab.node.uid
+
+        # second pass: copy tree structure over
+        newroot = tabbed_browser.widget.tree_root
+        oldroot = self._tabbed_browser.widget.tree_root
+        for node in traversed:
+            if node.parent is not oldroot:
+                uid = uid_map[node.uid]
+                new_node = newroot.get_descendent_by_uid(uid)
+                parent_uid = uid_map[node.parent.uid]
+                new_parent = newroot.get_descendent_by_uid(parent_uid)
+                new_node.parent = new_parent
+
+        # third pass: remove tabs from old window
+        if not keep:
+            for _node in traversed:
+                self._tabbed_browser.close_tab(self._current_widget(),
+                                               add_undo=False)
+
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('win_id', completion=miscmodels.window)
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_give(self, win_id: int = None, keep: bool = False,
-                 count: int = None, private: bool = False) -> None:
+                 count: int = None, private: bool = False,
+                 recursive: bool = False) -> None:
         """Give the current tab to a new or existing window if win_id given.
 
         If no win_id is given, the tab will get detached into a new window.
@@ -463,6 +525,7 @@ class CommandDispatcher:
             keep: If given, keep the old tab around.
             count: Overrides win_id (index starts at 1 for win_id=0).
             private: If the tab should be detached into a private instance.
+            recursive: Whether to move the entire subtree starting at the tab.
         """
         if config.val.tabs.tabs_are_windows:
             raise cmdutils.CommandError("Can't give tabs when using "
@@ -493,10 +556,13 @@ class CommandDispatcher:
                 raise cmdutils.CommandError(
                     "The window with id {} is not private".format(win_id))
 
-        tabbed_browser.tabopen(self._current_url())
-        if not keep:
-            self._tabbed_browser.close_tab(self._current_widget(),
-                                           add_undo=False)
+        if recursive and tabbed_browser.is_treetabbedbrowser:
+            self._tree_tab_give(tabbed_browser, keep)
+        else:
+            tabbed_browser.tabopen(self._current_url())
+            if not keep:
+                self._tabbed_browser.close_tab(self._current_widget(),
+                                               add_undo=False)
 
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
@@ -789,43 +855,79 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def tab_prev(self, count=1):
+    def tab_prev(self, count=1, sibling=False):
         """Switch to the previous tab, or switch [count] tabs back.
 
         Args:
             count: How many tabs to switch back.
+            sibling: Whether to focus the previous tree sibling.
         """
         if self._count() == 0:
             # Running :tab-prev after last tab was closed
             # See https://github.com/qutebrowser/qutebrowser/issues/1448
             return
-        newidx = self._current_index() - count
-        if newidx >= 0:
-            self._set_current_index(newidx)
-        elif config.val.tabs.wrap:
-            self._set_current_index(newidx % self._count())
+        if sibling and self._tabbed_browser.is_treetabbedbrowser:
+            cur_node = self._current_widget().node
+            siblings = list(cur_node.parent.children)
+
+            if siblings and len(siblings) > 1:
+                node_idx = siblings.index(cur_node)
+                new_idx = node_idx - count
+                if new_idx >= 0 or config.val.tabs.wrap:
+                    target_node = siblings[(node_idx-count) % len(siblings)]
+                    idx = self._tabbed_browser.widget.indexOf(
+                        target_node.value)
+                    self._set_current_index(idx)
+                else:
+                    log.webview.debug("First sibling")
+            else:
+                log.webview.debug("No siblings")
         else:
-            log.webview.debug("First tab")
+            newidx = self._current_index() - count
+            if newidx >= 0:
+                self._set_current_index(newidx)
+            elif config.val.tabs.wrap:
+                self._set_current_index(newidx % self._count())
+            else:
+                log.webview.debug("First tab")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def tab_next(self, count=1):
+    def tab_next(self, count=1, sibling=False):
         """Switch to the next tab, or switch [count] tabs forward.
 
         Args:
             count: How many tabs to switch forward.
+            sibling: Whether to focus the next tree sibling.
         """
         if self._count() == 0:
             # Running :tab-next after last tab was closed
             # See https://github.com/qutebrowser/qutebrowser/issues/1448
             return
-        newidx = self._current_index() + count
-        if newidx < self._count():
-            self._set_current_index(newidx)
-        elif config.val.tabs.wrap:
-            self._set_current_index(newidx % self._count())
+        if sibling and self._tabbed_browser.is_treetabbedbrowser:
+            cur_node = self._current_widget().node
+            siblings = list(cur_node.parent.children)
+
+            if siblings and len(siblings) > 1:
+                node_idx = siblings.index(cur_node)
+                new_idx = node_idx + count
+                if new_idx < len(siblings) or config.val.tabs.wrap:
+                    target_node = siblings[new_idx % len(siblings)]
+                    idx = self._tabbed_browser.widget.indexOf(
+                        target_node.value)
+                    self._set_current_index(idx)
+                else:
+                    log.webview.debug("Last sibling")
+            else:
+                log.webview.debug("No siblings")
         else:
-            log.webview.debug("Last tab")
+            newidx = self._current_index() + count
+            if newidx < self._count():
+                self._set_current_index(newidx)
+            elif config.val.tabs.wrap:
+                self._set_current_index(newidx % self._count())
+            else:
+                log.webview.debug("Last tab")
 
     def _resolve_buffer_index(self, index):
         """Resolve a buffer index to the tabbedbrowser and tab.
@@ -905,7 +1007,8 @@ class CommandDispatcher:
         tabbed_browser.widget.setCurrentWidget(tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('index', choices=['last', 'stack-next', 'stack-prev'],
+    @cmdutils.argument('index', choices=['last', 'parent', 
+                                         'stack-next', 'stack-prev'],
                        completion=miscmodels.tab_focus)
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_focus(self, index: typing.Union[str, int] = None,
@@ -916,11 +1019,15 @@ class CommandDispatcher:
         If both are given, use count.
 
         Args:
-            index: The tab index to focus, starting with 1. The special value
-                   `last` focuses the last focused tab (regardless of count),
-                   and `stack-prev`/`stack-next` traverse a stack of visited
-                   tabs. Negative indices count from the end, such that -1 is
-                   the last tab.
+            index: The tab index to focus, starting with 1. Negative indices
+                   count from the end, such that -1 is the last tab. Special
+                   values are:
+                       - `last` focuses the last focused tab (regardless of
+                         count).
+                       - `parent` focuses the parent tab in the tree hierarchy,
+                         if `tabs.tree_tabs` is enabled.
+                       - `stack-prev`/`stack-next` traverse a stack of visited
+                         tabs.
             count: The tab index to focus, starting with 1.
             no_last: Whether to avoid focusing last tab if already focused.
         """
@@ -930,6 +1037,22 @@ class CommandDispatcher:
             assert isinstance(index, str)
             self._tab_focus_stack(index)
             return
+        elif index == 'parent' and self._tabbed_browser.is_treetabbedbrowser:
+            node = self._current_widget().node
+            path = node.path
+            if count:
+                if count < len(path):
+                    path_idx = 0 - count - 1  # path[-1] is node, so shift by 1
+                else:
+                    path_idx = 1  # first non-root node
+            else:
+                path_idx = -2  # immediate parent (path[-1] is node)
+
+            target_node = path[path_idx]
+            if node is target_node or target_node.value is None:
+                raise cmdutils.CommandError("Tab has no parent! ")
+            target_tab = target_node.value
+            index = self._tabbed_browser.widget.indexOf(target_tab) + 1
         elif index is None:
             self.tab_next()
             return
@@ -966,17 +1089,31 @@ class CommandDispatcher:
                    If moving absolutely: New position (default: 0). This
                    overrides the index argument, if given.
         """
+        # pylint: disable=invalid-unary-operand-type
+        # https://github.com/PyCQA/pylint/issues/1472
         if index in ['+', '-']:
             # relative moving
             new_idx = self._current_index()
             delta = 1 if count is None else count
-            if index == '-':
-                new_idx -= delta
-            elif index == '+':  # pragma: no branch
-                new_idx += delta
 
-            if config.val.tabs.wrap:
-                new_idx %= self._count()
+            if self._tabbed_browser.is_treetabbedbrowser:
+                node = self._current_widget().node
+                parent = node.parent
+                siblings = list(parent.children)
+
+                if len(siblings) <= 1:
+                    return
+                rel_idx = siblings.index(node)
+                rel_idx += delta if index == '+' else - delta
+                rel_idx %= len(siblings)
+                new_idx = self._tabbed_browser.widget.indexOf(
+                    siblings[rel_idx].value)
+
+            else:
+                new_idx += delta if index == '+' else - delta
+
+                if config.val.tabs.wrap:
+                    new_idx %= self._count()
         else:
             # absolute moving
             if count is not None:
@@ -994,7 +1131,34 @@ class CommandDispatcher:
         cur_idx = self._current_index()
         cmdutils.check_overflow(cur_idx, 'int')
         cmdutils.check_overflow(new_idx, 'int')
-        self._tabbed_browser.widget.tabBar().moveTab(cur_idx, new_idx)
+
+        if self._tabbed_browser.is_treetabbedbrowser:
+            # self._tree_tab_move(new_idx)
+            new_idx += 1  # tree-tabs indexes start at 1 (0 is hidden root tab)
+            tab = self._current_widget()
+
+            # traverse order is the same as display order
+            # so indexing works correctly
+            tree_root = self._tabbed_browser.widget.tree_root
+            tabs = list(tree_root.traverse(render_collapsed=False))
+            target_node = tabs[new_idx]
+            if tab.node in target_node.path:
+                raise cmdutils.CommandError("Can't move tab to a descendent"
+                                            " of itself")
+
+            new_parent = target_node.parent
+            # we need index relative to parent for correct placement
+            dest_tab = tabs[new_idx]
+            new_idx_relative = new_parent.children.index(dest_tab)
+
+            tab.node.parent = None  # avoid duplicate errors
+            siblings = list(new_parent.children)
+            siblings.insert(new_idx_relative, tab.node)
+            new_parent.children = siblings
+
+            self._tabbed_browser.widget.tree_tab_update()
+        else:
+            self._tabbed_browser.widget.tabBar().moveTab(cur_idx, new_idx)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)
@@ -1775,3 +1939,123 @@ class CommandDispatcher:
 
         log.misc.debug('state before fullscreen: {}'.format(
             debug.qflags_key(Qt, window.state_before_fullscreen)))
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       tree_tab=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
+    def tree_tab_promote(self, count=1):
+        """Promote a tab so it becomes next sibling of its parent.
+
+        Observes tabs.new_position.tree.promote in positioning the tab among
+        new siblings.
+
+        Args:
+            count: How many levels the tabs should be promoted to
+        """
+        if not self._tabbed_browser.is_treetabbedbrowser:
+            raise cmdutils.CommandError('Tree-tabs are disabled')
+        config_position = config.val.tabs.new_position.tree.promote
+        try:
+            self._current_widget().node.promote(count, config_position)
+        except notree.TreeError:
+            raise cmdutils.CommandError('Tab has no parent!')
+        finally:
+            self._tabbed_browser.widget.tree_tab_update()
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       tree_tab=True)
+    def tree_tab_demote(self):
+        """Demote a tab making it children of its previous adjacent sibling.
+
+        Observes tabs.new_position.tree.demote in positioning the tab among new
+        siblings.
+        """
+        if not self._tabbed_browser.is_treetabbedbrowser:
+            raise cmdutils.CommandError('Tree-tabs are disabled')
+        cur_node = self._current_widget().node
+
+        config_position = config.val.tabs.new_position.tree.demote
+        try:
+            cur_node.demote(config_position)
+        except notree.TreeError:
+            raise cmdutils.CommandError('Tab has no previous sibling!')
+        finally:
+            self._tabbed_browser.widget.tree_tab_update()
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       tree_tab=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
+    def tree_tab_toggle_hide(self, count=None):
+        """If the current tab's children are shown hide them, and vice-versa.
+
+        This toggles the current tab's node's `collapsed` attribute.
+
+        Args:
+            count: Which tab to collapse
+        """
+        if not self._tabbed_browser.is_treetabbedbrowser:
+            raise cmdutils.CommandError('Tree-tabs are disabled')
+        tab = self._cntwidget(count)
+        if not tab.node.children:
+            return
+        tab.node.collapsed = not tab.node.collapsed
+
+        self._tabbed_browser.widget.tree_tab_update()
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       tree_tab=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
+    def tree_tab_cycle_hide(self, count=1):
+        """Hides levels of descendents: children, grandchildren, and so on.
+
+        Args:
+            count: How many levels to hide.
+        """
+        if not self._tabbed_browser.is_treetabbedbrowser:
+            raise cmdutils.CommandError('Tree-tabs are disabled')
+        while count > 0:
+            tab = self._current_widget()
+            self._tabbed_browser.cycle_hide_tab(tab.node)
+            count -= 1
+
+        self._tabbed_browser.widget.tree_tab_update()
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       tree_tab=True)
+    def tree_tab_create_group(self, *name: str, related=False,
+                              background=False):
+        """Wrapper around :open qute://treegroup/name. Correctly escapes names.
+
+        Example: `:tree-tab-create-group Foo Bar` calls
+            `:open qute://treegroup/Foo%20Bar`
+
+        Args:
+            name: Name of the group to create
+            related: whether to open as a child of current tab or under root
+            background: whether to open in a background tab
+        """
+        title = ' '.join(name)
+        path = urllib.parse.quote(title)
+        if background:
+            self.openurl('qute://treegroup/' + path, related=related, bg=True)
+        else:
+            self.openurl('qute://treegroup/' + path, related=related, tab=True)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       tree_tab=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
+    def tree_tab_suspend_children(self, count=None):
+        """Suspends all descendent of a tab to reduce memory usage.
+
+        Args:
+            count: Target tab.
+        """
+        tab = self._cntwidget(count)
+        for descendent in tab.node.traverse():
+            cur_tab = descendent.value
+            if cur_tab and cur_tab is not tab:
+                cur_url = cur_tab.url().url()
+                if not cur_url.startswith("qute://"):
+                    new_url = self._parse_url(
+                        "qute://back/#" + cur_tab.title())
+                    cur_tab.load_url(new_url)

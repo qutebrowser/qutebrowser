@@ -296,6 +296,11 @@
 |<<tabs.mousewheel_switching,tabs.mousewheel_switching>>|Switch between tabs using the mouse wheel.
 |<<tabs.new_position.related,tabs.new_position.related>>|Position of new tabs opened from another tab.
 |<<tabs.new_position.stacking,tabs.new_position.stacking>>|Stack related tabs on top of each other when opened consecutively.
+|<<tabs.new_position.tree.demote,tabs.new_position.tree.demote>>|Position at which a tab is placed among its new siblings after being demoted with `:tree-tab-demote`
+|<<tabs.new_position.tree.new_child,tabs.new_position.tree.new_child>>|Position of new children among siblings, e.g. after calling `:open --relative ...` or following a link.
+|<<tabs.new_position.tree.new_sibling,tabs.new_position.tree.new_sibling>>|Position of siblings, e.g. after calling `:open --sibling ...`.
+|<<tabs.new_position.tree.new_toplevel,tabs.new_position.tree.new_toplevel>>|Position of new top-level tabs related to the topmost ancestor of current tab, e.g. when calling `:open ...` without `--relative` or `--sibling`.
+|<<tabs.new_position.tree.promote,tabs.new_position.tree.promote>>|Position at which a tab is placed among its new siblings after being promoted with `:tree-tab-promote`
 |<<tabs.new_position.unrelated,tabs.new_position.unrelated>>|Position of new tabs which are not opened from another tab.
 |<<tabs.padding,tabs.padding>>|Padding (in pixels) around text for tabs.
 |<<tabs.pinned.frozen,tabs.pinned.frozen>>|Force pinned tabs to stay at fixed URL.
@@ -309,6 +314,7 @@
 |<<tabs.title.format,tabs.title.format>>|Format to use for the tab title.
 |<<tabs.title.format_pinned,tabs.title.format_pinned>>|Format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
 |<<tabs.tooltips,tabs.tooltips>>|Show tooltips on tabs.
+|<<tabs.tree_tabs,tabs.tree_tabs>>|Enable tree-tabs mode.
 |<<tabs.undo_stack_size,tabs.undo_stack_size>>|Number of close tab actions to remember, per window (-1 for no maximum).
 |<<tabs.width,tabs.width>>|Width (in pixels or as percentage of the window) of the tab bar if it's vertical.
 |<<tabs.wrap,tabs.wrap>>|Wrap when changing tabs.
@@ -692,6 +698,17 @@ Default:
 * +pass:[yp]+: +pass:[yank pretty-url]+
 * +pass:[yt]+: +pass:[yank title]+
 * +pass:[yy]+: +pass:[yank]+
+* +pass:[zG]+: +pass:[set-cmd-text -s :tree-tab-create-group]+
+* +pass:[zH]+: +pass:[tree-tab-promote]+
+* +pass:[zJ]+: +pass:[tab-next -s]+
+* +pass:[zK]+: +pass:[tab-prev -s]+
+* +pass:[zL]+: +pass:[tree-tab-demote]+
+* +pass:[zO]+: +pass:[set-cmd-text --space :open -tS]+
+* +pass:[za]+: +pass:[tree-tab-toggle-hide]+
+* +pass:[zd]+: +pass:[tab-close -r]+
+* +pass:[zg]+: +pass:[set-cmd-text -s :tree-tab-create-group -r]+
+* +pass:[zo]+: +pass:[set-cmd-text --space :open -tr]+
+* +pass:[zp]+: +pass:[tab-focus parent]+
 * +pass:[{{]+: +pass:[navigate prev -t]+
 * +pass:[}}]+: +pass:[navigate next -t]+
 - +pass:[passthrough]+:
@@ -3772,6 +3789,77 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
+[[tabs.new_position.tree.demote]]
+=== tabs.new_position.tree.demote
+Position at which a tab is placed among its new siblings after being demoted with `:tree-tab-demote`
+
+Type: <<types,NewChildPosition>>
+
+Valid values:
+
+ * +first+: At the beginning.
+ * +last+: At the end.
+
+Default: +pass:[last]+
+
+[[tabs.new_position.tree.new_child]]
+=== tabs.new_position.tree.new_child
+Position of new children among siblings, e.g. after calling `:open --relative ...` or following a link.
+
+Type: <<types,NewChildPosition>>
+
+Valid values:
+
+ * +first+: At the beginning.
+ * +last+: At the end.
+
+Default: +pass:[first]+
+
+[[tabs.new_position.tree.new_sibling]]
+=== tabs.new_position.tree.new_sibling
+Position of siblings, e.g. after calling `:open --sibling ...`.
+
+Type: <<types,NewTabPosition>>
+
+Valid values:
+
+ * +prev+: Before the current tab.
+ * +next+: After the current tab.
+ * +first+: At the beginning.
+ * +last+: At the end.
+
+Default: +pass:[first]+
+
+[[tabs.new_position.tree.new_toplevel]]
+=== tabs.new_position.tree.new_toplevel
+Position of new top-level tabs related to the topmost ancestor of current tab, e.g. when calling `:open ...` without `--relative` or `--sibling`.
+
+Type: <<types,NewTabPosition>>
+
+Valid values:
+
+ * +prev+: Before the current tab.
+ * +next+: After the current tab.
+ * +first+: At the beginning.
+ * +last+: At the end.
+
+Default: +pass:[last]+
+
+[[tabs.new_position.tree.promote]]
+=== tabs.new_position.tree.promote
+Position at which a tab is placed among its new siblings after being promoted with `:tree-tab-promote`
+
+Type: <<types,NewTabPosition>>
+
+Valid values:
+
+ * +prev+: Before the current tab.
+ * +next+: After the current tab.
+ * +first+: At the beginning.
+ * +last+: At the end.
+
+Default: +pass:[next]+
+
 [[tabs.new_position.unrelated]]
 === tabs.new_position.unrelated
 Position of new tabs which are not opened from another tab.
@@ -3897,6 +3985,8 @@ Format to use for the tab title.
 The following placeholders are defined:
 
 * `{perc}`: Percentage as a string like `[10%]`.
+* `{collapsed}`: If children tabs are hidden, the string `[...]`, empty otherwise
+* `{tree}`: The ASCII tree prefix of current tab.
 * `{perc_raw}`: Raw percentage, e.g. `10`.
 * `{current_title}`: Title of the current web page.
 * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
@@ -3913,7 +4003,7 @@ The following placeholders are defined:
 
 Type: <<types,FormatString>>
 
-Default: +pass:[{audio}{index}: {current_title}]+
+Default: +pass:[{tree}{collapsed}{audio}{index}: {current_title}]+
 
 [[tabs.title.format_pinned]]
 === tabs.title.format_pinned
@@ -3931,6 +4021,15 @@ Note this setting only affects windows opened after it has been set.
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
+
+[[tabs.tree_tabs]]
+=== tabs.tree_tabs
+Enable tree-tabs mode.
+This setting requires a restart.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[tabs.undo_stack_size]]
 === tabs.undo_stack_size
@@ -4170,6 +4269,7 @@ Lists with duplicate flags are invalid. Each item is checked against the valid v
 
 When setting from a string, pass a json-like list, e.g. `["one", "two"]`.
 |ListOrValue|A list of values, or a single value.
+|NewChildPosition|How new children are positioned.
 |NewTabPosition|How new tabs are positioned.
 |Padding|Setting for paddings around elements.
 |Perc|A percentage.

@@ -23,6 +23,7 @@ import typing
 
 from qutebrowser.utils import usertypes
 from qutebrowser.misc import objects
+from qutebrowser.config import config
 
 
 DeleteFuncType = typing.Callable[[typing.Sequence[str]], None]
@@ -46,7 +47,8 @@ def get_cmd_completions(info, include_hidden, include_aliases, prefix=''):
         hide_debug = obj.debug and not objects.args.debug
         hide_mode = (usertypes.KeyMode.normal not in obj.modes and
                      not include_hidden)
-        if not (hide_debug or hide_mode or obj.deprecated):
+        hide_tree = obj.tree_tab and not config.cache['tabs.tree_tabs']
+        if not (hide_tree or hide_debug or hide_mode or obj.deprecated):
             bindings = ', '.join(cmd_to_keys.get(obj.name, []))
             cmdlist.append((prefix + obj.name, obj.desc, bindings))
 

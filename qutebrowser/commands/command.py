@@ -65,6 +65,7 @@ class Command:
                  both)
         no_replace_variables: Don't replace variables like {url}
         modes: The modes the command can be executed in.
+        tree_tab: Whether the command is a tree-tabs command
         _qute_args: The saved data from @cmdutils.argument
         _count: The count set for the command.
         _instance: The object to bind 'self' to.
@@ -78,7 +79,7 @@ class Command:
     def __init__(self, *, handler, name, instance=None, maxsplit=None,
                  modes=None, not_modes=None, debug=False, deprecated=False,
                  no_cmd_split=False, star_args_optional=False, scope='global',
-                 backend=None, no_replace_variables=False):
+                 backend=None, no_replace_variables=False, tree_tab=False):
         if modes is not None and not_modes is not None:
             raise ValueError("Only modes or not_modes can be given!")
         if modes is not None:
@@ -107,6 +108,7 @@ class Command:
         self.handler = handler
         self.no_cmd_split = no_cmd_split
         self.backend = backend
+        self.tree_tab = tree_tab
         self.no_replace_variables = no_replace_variables
 
         self.docparser = docutils.DocstringParser(handler)
