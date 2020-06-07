@@ -35,6 +35,8 @@ class TreeTabWidget(TabWidget):
         # root of the tab tree, common for all tabs in the window
         self.tree_root = Node(None)
         super().__init__(win_id, parent)
+        self.tabBar().tabMoved.disconnect(  # type: ignore
+            self.update_tab_titles)
 
     def _init_config(self):
         super()._init_config()
