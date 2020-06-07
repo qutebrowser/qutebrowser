@@ -54,6 +54,16 @@ OKAY_URLS = [
         "https://www.ruv.is/frett/2020/04/23/today-is-the-first-day-of-summer",
         ResourceType.image,
     ),
+    (
+        "https://easylist.to/easylist/easylist.txt",
+        None,
+        ResourceType.main_frame
+    ),
+    (
+        "https://easylist.to/easylist/easyprivacy.txt",
+        None,
+        ResourceType.main_frame
+    )
 ]
 
 NOT_OKAY_URLS = [

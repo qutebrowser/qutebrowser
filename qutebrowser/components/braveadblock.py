@@ -147,6 +147,9 @@ class BraveAdBlocker:
         if first_party_url is not None and not first_party_url.isValid():
             first_party_url = None
 
+        if not first_party_url:
+            return False
+
         qtutils.ensure_valid(request_url)
 
         if not config.get("content.blocking.adblock.enabled", url=first_party_url):
@@ -155,7 +158,7 @@ class BraveAdBlocker:
 
         result = self._engine.check_network_urls(
             request_url.toString(),
-            first_party_url.toString() if first_party_url else "",
+            first_party_url.toString(),
             resource_type_to_string(resource_type),
         )
 
