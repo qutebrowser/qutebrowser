@@ -276,6 +276,11 @@ class TabEventFilter(QObject):
         Return:
             True if the event should be filtered, False otherwise.
         """
+        if (not config.val.input.mouse_backforward and
+                e.button() in [Qt.XButton1, Qt.XButton2]):
+            # Back and forward on mice are disabled
+            return
+
         if e.button() in [Qt.XButton1, Qt.LeftButton]:
             # Back button on mice which have it, or rocker gesture
             if self._tab.history.can_go_back():

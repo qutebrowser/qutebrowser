@@ -1399,6 +1399,11 @@ input.rocker_gestures:
 
     This disables the context menu.
 
+input.mouse_backforward:
+  default: true
+  type: Bool
+  desc: Enable back and forward buttons on the mouse.
+
 input.spatial_navigation:
   default: false
   type: Bool
