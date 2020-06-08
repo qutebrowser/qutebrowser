@@ -15,6 +15,15 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v1.13.0 (unreleased)
+--------------------
+
+Fixed
+~~~~~
+
+- Crash when `tabs.focus_stack_size` is set to -1.
+- Crash when a `pdf.js` file for PDF.js exists, but `viewer.html` does not.
+
 v1.12.0 (2020-06-01)
 --------------------
 
