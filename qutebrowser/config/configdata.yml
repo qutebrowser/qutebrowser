@@ -1379,6 +1379,11 @@ input.links_included_in_focus_chain:
   supports_pattern: true
   desc: Include hyperlinks in the keyboard focus chain when tabbing.
 
+input.mouse_backforward:
+  default: true
+  type: Bool
+  desc: Enable back and forward buttons on the mouse.
+
 input.partial_timeout:
   default: 5000
   type:
@@ -1398,11 +1403,6 @@ input.rocker_gestures:
     Enable Opera-like mouse rocker gestures.
 
     This disables the context menu.
-
-input.mouse_backforward:
-  default: true
-  type: Bool
-  desc: Enable back and forward buttons on the mouse.
 
 input.spatial_navigation:
   default: false
