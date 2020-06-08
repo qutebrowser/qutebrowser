@@ -228,6 +228,7 @@ def is_available():
     """Return true if a pdfjs installation is available."""
     try:
         get_pdfjs_res('build/pdf.js')
+        get_pdfjs_res('web/viewer.html')
     except PDFJSNotFound:
         return False
     else:
