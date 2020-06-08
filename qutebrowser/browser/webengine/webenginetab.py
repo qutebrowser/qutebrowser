@@ -1237,19 +1237,31 @@ class _WebEngineScripts(QObject):
         """Add site-specific quirk scripts.
 
         NOTE: This isn't implemented for Qt 5.7 because of different UserScript
-        semantics there. We only have a quirk for WhatsApp Web right now. It
-        looks like that quirk isn't needed for Qt < 5.13.
+        semantics there. The WhatsApp Web quirk isn't needed for Qt < 5.13.
+        The globalthis_quirk would be, but let's not keep such old QtWebEngine
+        versions on life support.
         """
         if not config.val.content.site_specific_quirks:
             return
 
         page_scripts = self._widget.page().scripts()
+        quirks = [
+            (
+                'whatsapp_web_quirk',
+                QWebEngineScript.DocumentReady,
+                QWebEngineScript.ApplicationWorld,
+            ),
+        ]
+        if not qtutils.version_check('5.13'):
+            quirks.append(('globalthis_quirk',
+                           QWebEngineScript.DocumentCreation,
+                           QWebEngineScript.MainWorld))
 
-        for filename in ['whatsapp_web_quirk']:
+        for filename, injection_point, world in quirks:
             script = QWebEngineScript()
             script.setName(filename)
-            script.setWorldId(QWebEngineScript.ApplicationWorld)
-            script.setInjectionPoint(QWebEngineScript.DocumentReady)
+            script.setWorldId(world)
+            script.setInjectionPoint(injection_point)
             src = utils.read_file("javascript/{}.user.js".format(filename))
             script.setSourceCode(src)
             page_scripts.insert(script)
