@@ -39,7 +39,7 @@ pytest-travis-fold==1.3.0
 pytest-xvfb==1.2.0
 PyVirtualDisplay==0.2.5  # rq.filter: < 1.0
 six==1.15.0
-sortedcontainers==2.1.0
+sortedcontainers==2.2.2
 soupsieve==2.0.1
 vulture==1.5
 wcwidth==0.2.2
