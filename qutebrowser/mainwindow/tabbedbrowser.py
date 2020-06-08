@@ -64,8 +64,11 @@ class TabDeque:
     """
 
     def __init__(self) -> None:
+        size = config.val.tabs.focus_stack_size
+        if size < 0:
+            size = None
         self._stack = collections.deque(
-            maxlen=config.val.tabs.focus_stack_size
+            maxlen=size
         )  # type: typing.Deque[weakref.ReferenceType[QWidget]]
         # Items that have been removed from the primary stack.
         self._stack_deleted = [
