@@ -257,7 +257,6 @@ class StatusBar(QWidget):
         hide = config.val.statusbar.hide
         smarthide = config.val.statusbar.smarthide
         tab = self._current_tab()
-        # smarthide is done on mode change.
         if tab is not None and tab.data.fullscreen:
             self.hide()
         elif hide and not smarthide:
@@ -268,7 +267,7 @@ class StatusBar(QWidget):
                 if mode_manager.mode == usertypes.KeyMode.normal:
                     self.hide()
             except KeyError:
-                # If modeman hasn't been initialised, hide the bar.
+                # If modeman hasn't been initialized, hide the bar.
                 self.hide()
         else:
             self.show()
