@@ -1564,6 +1564,13 @@ statusbar.hide:
   default: false
   desc: Hide the statusbar unless a message is shown.
 
+statusbar.smarthide:
+  type: Bool
+  default: false
+  desc: >-
+    If statusbar.hide is true, only hide the statusbar in normal mode, and show
+    it in other modes.
+
 statusbar.padding:
   type: Padding
   default:

@@ -254,10 +254,22 @@ class StatusBar(QWidget):
     @pyqtSlot()
     def maybe_hide(self):
         """Hide the statusbar if it's configured to do so."""
-        tab = self._current_tab()
         hide = config.val.statusbar.hide
-        if hide or (tab is not None and tab.data.fullscreen):
+        smarthide = config.val.statusbar.smarthide
+        tab = self._current_tab()
+        # smarthide is done on mode change.
+        if tab is not None and tab.data.fullscreen:
             self.hide()
+        elif hide and not smarthide:
+            self.hide()
+        elif hide and smarthide:
+            try:
+                mode_manager = modeman.instance(self._win_id)
+                if mode_manager.mode == usertypes.KeyMode.normal:
+                    self.hide()
+            except KeyError:
+                # If modeman hasn't been initialised, hide the bar.
+                self.hide()
         else:
             self.show()
 
@@ -336,6 +348,8 @@ class StatusBar(QWidget):
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
         mode_manager = modeman.instance(self._win_id)
+        if config.val.statusbar.smarthide and config.val.statusbar.hide:
+            self.show()
         if mode_manager.parsers[mode].passthrough:
             self._set_mode_text(mode.name)
         if mode in [usertypes.KeyMode.insert,
@@ -350,6 +364,8 @@ class StatusBar(QWidget):
     def on_mode_left(self, old_mode, new_mode):
         """Clear marked mode."""
         mode_manager = modeman.instance(self._win_id)
+        if config.val.statusbar.smarthide and config.val.statusbar.hide:
+            self.hide()
         if mode_manager.parsers[old_mode].passthrough:
             if mode_manager.parsers[new_mode].passthrough:
                 self._set_mode_text(new_mode.name)
