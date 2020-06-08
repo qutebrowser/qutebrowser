@@ -26,7 +26,7 @@ py==1.8.1
 py-cpuinfo==5.0.0
 Pygments==2.6.1
 pyparsing==2.4.7
-pytest==5.4.2
+pytest==5.4.3
 pytest-bdd==3.3.0
 pytest-benchmark==3.2.3
 pytest-cov==2.9.0
