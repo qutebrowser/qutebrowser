@@ -257,6 +257,8 @@
 |<<keyhint.blacklist,keyhint.blacklist>>|Keychains that shouldn't be shown in the keyhint dialog.
 |<<keyhint.delay,keyhint.delay>>|Time (in milliseconds) from pressing a key to seeing the keyhint dialog.
 |<<keyhint.radius,keyhint.radius>>|Rounding radius (in pixels) for the edges of the keyhint dialog.
+|<<logging.level.console,logging.level.console>>|Level for console (stdout/stderr) logs. Ignored if the `--loglevel` or `--debug` CLI flags are used.
+|<<logging.level.ram,logging.level.ram>>|Level for in-memory logs.
 |<<messages.timeout,messages.timeout>>|Duration (in milliseconds) to show messages in the statusbar for.
 |<<new_instance_open_target,new_instance_open_target>>|How to open links in an existing instance if a new one is launched.
 |<<new_instance_open_target_window,new_instance_open_target_window>>|Which window to choose when opening links as new tabs.
@@ -3248,6 +3250,40 @@ Type: <<types,Int>>
 
 Default: +pass:[6]+
 
+[[logging.level.console]]
+=== logging.level.console
+Level for console (stdout/stderr) logs. Ignored if the `--loglevel` or `--debug` CLI flags are used.
+
+Type: <<types,LogLevel>>
+
+Valid values:
+
+ * +vdebug+
+ * +debug+
+ * +info+
+ * +warning+
+ * +error+
+ * +critical+
+
+Default: +pass:[info]+
+
+[[logging.level.ram]]
+=== logging.level.ram
+Level for in-memory logs.
+
+Type: <<types,LogLevel>>
+
+Valid values:
+
+ * +vdebug+
+ * +debug+
+ * +info+
+ * +warning+
+ * +error+
+ * +critical+
+
+Default: +pass:[debug]+
+
 [[messages.timeout]]
 === messages.timeout
 Duration (in milliseconds) to show messages in the statusbar for.
@@ -4170,6 +4206,7 @@ Lists with duplicate flags are invalid. Each item is checked against the valid v
 
 When setting from a string, pass a json-like list, e.g. `["one", "two"]`.
 |ListOrValue|A list of values, or a single value.
+|LogLevel|A logging level.
 |NewTabPosition|How new tabs are positioned.
 |Padding|Setting for paddings around elements.
 |Perc|A percentage.

@@ -67,7 +67,7 @@ show it.
 
 === debug arguments
 *-l* '{critical,error,warning,info,debug,vdebug}', *--loglevel* '{critical,error,warning,info,debug,vdebug}'::
-    Set loglevel
+    Override the configured console loglevel
 
 *--logfilter* 'LOGFILTER'::
     Comma-separated list of things to be logged to the debug log on stdout.

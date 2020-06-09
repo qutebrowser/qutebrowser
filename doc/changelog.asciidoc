@@ -24,6 +24,13 @@ Changed
 - The `tor_identity` userscript now takes the password via a `-p` flag and has
   a new `-c` flag to customize the Tor control port.
 
+Added
+~~~~~
+
+- New settings:
+  * `logging.level.ram` and `logging.level.console` to configure the default
+    logging levels via the config.
+
 Fixed
 ~~~~~
 
