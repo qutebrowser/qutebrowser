@@ -272,6 +272,8 @@ class StatusBar(QWidget):
                     self.show()
         elif strategy == 'always':
             self.show()
+        else:
+            raise utils.Unreachable
 
     def _set_hbox_padding(self):
         padding = config.val.statusbar.padding
