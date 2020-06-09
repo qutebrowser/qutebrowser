@@ -305,13 +305,13 @@ If you ever need to renew any of these certificates, you can take a look
 at the currently imported certificates using:
 +
 ----
-certutil -D "sql:${HOME}/.pki/nssdb" -L
+certutil -d "sql:${HOME}/.pki/nssdb" -L
 ----
 +
 Then remove the expired certificates using:
 +
 ----
-certutil -D "sql:${HOME}/.pki/nssdb" -D -n "My Fancy Certificate Nickname"
+certutil -d "sql:${HOME}/.pki/nssdb" -D -n "My Fancy Certificate Nickname"
 ----
 +
 And then import the new and valid certificates using the procedure
