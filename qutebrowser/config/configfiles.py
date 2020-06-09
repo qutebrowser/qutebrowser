@@ -450,7 +450,8 @@ class YamlMigrations(QObject):
                 self._settings[name][scope] = value
                 self.changed.emit()
 
-    def _migrate_to_multiple(self, old_name: str, new_names: typing.Iterator[str]) -> None:
+    def _migrate_to_multiple(self, old_name: str,
+                             new_names: typing.Iterator[str]) -> None:
         if old_name not in self._settings:
             return
 
