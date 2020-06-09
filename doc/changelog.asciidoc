@@ -25,6 +25,8 @@ Changed
   a new `-c` flag to customize the Tor control port.
 - `:config-write-py` now adds a note about `config.py` files being targeted at
   advanced users.
+- `:report` now takes two optional arguments for bug/contact information, so
+  that it can be used without the report window popping up.
 
 Added
 ~~~~~

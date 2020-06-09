@@ -1015,7 +1015,14 @@ Which count to pass the command.
 
 [[report]]
 === report
+Syntax: +:report ['info'] ['contact']+
+
 Report a bug in qutebrowser.
+
+==== positional arguments
+* +'info'+: Information about the bug report. If given, no report dialog shows up.
+
+* +'contact'+: Contact information for the report.
 
 [[restart]]
 === restart

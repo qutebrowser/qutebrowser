@@ -162,14 +162,25 @@ class CrashHandler(QObject):
             earlyinit.init_faulthandler(self._crash_log_file)
 
     @cmdutils.register(instance='crash-handler')
-    def report(self):
-        """Report a bug in qutebrowser."""
+    def report(self, info=None, contact=None):
+        """Report a bug in qutebrowser.
+
+        Args:
+            info: Information about the bug report. If given, no report dialog
+                  shows up.
+            contact: Contact information for the report.
+        """
         pages = self._recover_pages()
         cmd_history = objreg.get('command-history')[-5:]
         all_objects = debug.get_all_objects()
+
         self._crash_dialog = crashdialog.ReportDialog(pages, cmd_history,
                                                       all_objects)
-        self._crash_dialog.show()
+
+        if info is None:
+            self._crash_dialog.show()
+        else:
+            self._crash_dialog.report(info=info, contact=contact)
 
     @pyqtSlot()
     def shutdown(self):
