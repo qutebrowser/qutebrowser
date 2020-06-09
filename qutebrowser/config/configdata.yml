@@ -1566,7 +1566,7 @@ statusbar.show:
     valid_values:
     - always: Always show the statusbar.
     - never: Always hide the statusbar unless a message is shown.
-    - in_mode: >- 
+    - in-mode: >- 
         Only show the statusbar when in modes other than normal mode or
         when a message is shown.
   desc: When to show the statusbar.
