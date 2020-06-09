@@ -23,6 +23,8 @@ Changed
 
 - The `tor_identity` userscript now takes the password via a `-p` flag and has
   a new `-c` flag to customize the Tor control port.
+- `:config-write-py` now adds a note about `config.py` files being targeted at
+  advanced users.
 
 Added
 ~~~~~
@@ -36,6 +38,7 @@ Fixed
 
 - Crash when `tabs.focus_stack_size` is set to -1.
 - Crash when a `pdf.js` file for PDF.js exists, but `viewer.html` does not.
+- `:config-write-py` now works with paths starting with `~/...` again.
 - New site-specific quirk for a missing `globalThis` in Qt <= 5.12 on Reddit and Spotify
 
 v1.12.0 (2020-06-01)
