@@ -3389,15 +3389,13 @@ bindings.commands:
 
 logging.level.ram:
   default: debug
-  type:
-    name: LogLevel
+  type: LogLevel
   desc:
     Level for in-memory logs.
 
 logging.level.console:
   default: info
-  type:
-    name: LogLevel
+  type: LogLevel
   desc:  >-
     Level for console (stdout/stderr) logs.
     Ignored if the `--loglevel` or `--debug` CLI flags are used.
