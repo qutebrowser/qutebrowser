@@ -260,7 +260,7 @@ class StatusBar(QWidget):
             self.hide()
         elif strategy == 'never':
             self.hide()
-        elif strategy == 'in_mode':
+        elif strategy == 'in-mode':
             try:
                 mode_manager = modeman.instance(self._win_id)
             except modeman.UnavailableError:
@@ -350,7 +350,7 @@ class StatusBar(QWidget):
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
         mode_manager = modeman.instance(self._win_id)
-        if config.val.statusbar.show == 'in_mode':
+        if config.val.statusbar.show == 'in-mode':
             self.show()
         if mode_manager.parsers[mode].passthrough:
             self._set_mode_text(mode.name)
@@ -366,7 +366,7 @@ class StatusBar(QWidget):
     def on_mode_left(self, old_mode, new_mode):
         """Clear marked mode."""
         mode_manager = modeman.instance(self._win_id)
-        if config.val.statusbar.show == 'in_mode':
+        if config.val.statusbar.show == 'in-mode':
             self.hide()
         if mode_manager.parsers[old_mode].passthrough:
             if mode_manager.parsers[new_mode].passthrough:
