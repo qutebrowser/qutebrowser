@@ -379,6 +379,8 @@ def _init_modules(*, args):
     Args:
         args: The argparse namespace.
     """
+    log.init.debug("Initializing logging from config...")
+    log.init_from_config(config.val)
     log.init.debug("Initializing save manager...")
     save_manager = savemanager.SaveManager(q_app)
     objreg.register('save-manager', save_manager)

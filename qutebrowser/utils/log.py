@@ -41,6 +41,9 @@ try:
 except ImportError:
     colorama = None
 
+if typing.TYPE_CHECKING:
+    from qutebrowser.config import config as configmodule
+
 _log_inited = False
 _args = None
 
@@ -176,7 +179,7 @@ def stub(suffix: str = '') -> None:
 
 def init_log(args: argparse.Namespace) -> None:
     """Init loggers based on the argparse namespace passed."""
-    level = args.loglevel.upper()
+    level = (args.loglevel or "info").upper()
     try:
         numeric_level = getattr(logging, level)
     except AttributeError:
@@ -293,7 +296,7 @@ def _init_handlers(
         ram_handler = None
     else:
         ram_handler = RAMHandler(capacity=ram_capacity)
-        ram_handler.setLevel(logging.NOTSET)
+        ram_handler.setLevel(logging.DEBUG)
         ram_handler.setFormatter(ram_fmt)
         ram_handler.html_formatter = html_fmt
 
@@ -526,6 +529,34 @@ def hide_qt_warning(pattern: str, logger: str = 'qt') -> typing.Iterator[None]:
         logger_obj.removeFilter(log_filter)
 
 
+def init_from_config(conf: 'configmodule.ConfigContainer') -> None:
+    """Initialize logging settings from the config.
+
+    init_log is called before the config module is initialized, so config-based
+    initialization cannot be performed there.
+
+    Args:
+        conf: The global ConfigContainer.
+              This is passed rather than accessed via the module to avoid a
+              cyclic import.
+    """
+    assert _args is not None
+    if _args.debug:
+        init.info("--debug flag overrides log configs")
+        return
+    if ram_handler:
+        ramlevel = conf.logging.level.ram
+        init.info("Configuring RAM loglevel to %s", ramlevel)
+        ram_handler.setLevel(LOG_LEVELS[ramlevel.upper()])
+    if console_handler:
+        consolelevel = conf.logging.level.console
+        if _args.loglevel:
+            init.info("--loglevel flag overrides logging.level.console")
+        else:
+            init.info("Configuring console loglevel to %s", consolelevel)
+            console_handler.setLevel(LOG_LEVELS[consolelevel.upper()])
+
+
 class QtWarningFilter(logging.Filter):
 
     """Filter to filter Qt warnings.
@@ -601,9 +632,7 @@ class RAMHandler(logging.Handler):
             self._data = collections.deque()
 
     def emit(self, record: logging.LogRecord) -> None:
-        if record.levelno >= logging.DEBUG:
-            # We don't log VDEBUG to RAM.
-            self._data.append(record)
+        self._data.append(record)
 
     def dump_log(self, html: bool = False, level: str = 'vdebug') -> str:
         """Dump the complete formatted log data as string.
