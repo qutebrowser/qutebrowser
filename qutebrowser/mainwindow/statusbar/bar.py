@@ -203,7 +203,7 @@ class StatusBar(QWidget):
 
     @pyqtSlot(str)
     def _on_config_changed(self, option):
-        if option == 'statusbar.hide':
+        if option == 'statusbar.show':
             self.maybe_hide()
         elif option == 'statusbar.padding':
             self._set_hbox_padding()
@@ -254,14 +254,13 @@ class StatusBar(QWidget):
     @pyqtSlot()
     def maybe_hide(self):
         """Hide the statusbar if it's configured to do so."""
-        hide = config.val.statusbar.hide
-        smarthide = config.val.statusbar.smarthide
+        strategy = config.val.statusbar.show
         tab = self._current_tab()
         if tab is not None and tab.data.fullscreen:
             self.hide()
-        elif hide and not smarthide:
+        elif strategy == 'never':
             self.hide()
-        elif hide and smarthide:
+        elif strategy == 'in_mode':
             try:
                 mode_manager = modeman.instance(self._win_id)
                 if mode_manager.mode == usertypes.KeyMode.normal:
@@ -269,7 +268,7 @@ class StatusBar(QWidget):
             except KeyError:
                 # If modeman hasn't been initialized, hide the bar.
                 self.hide()
-        else:
+        elif strategy == 'always':
             self.show()
 
     def _set_hbox_padding(self):
@@ -347,7 +346,7 @@ class StatusBar(QWidget):
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
         mode_manager = modeman.instance(self._win_id)
-        if config.val.statusbar.smarthide and config.val.statusbar.hide:
+        if config.val.statusbar.show == 'in_mode':
             self.show()
         if mode_manager.parsers[mode].passthrough:
             self._set_mode_text(mode.name)
@@ -363,7 +362,7 @@ class StatusBar(QWidget):
     def on_mode_left(self, old_mode, new_mode):
         """Clear marked mode."""
         mode_manager = modeman.instance(self._win_id)
-        if config.val.statusbar.smarthide and config.val.statusbar.hide:
+        if config.val.statusbar.show == 'in_mode':
             self.hide()
         if mode_manager.parsers[old_mode].passthrough:
             if mode_manager.parsers[new_mode].passthrough:
