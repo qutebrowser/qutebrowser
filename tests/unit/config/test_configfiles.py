@@ -588,6 +588,17 @@ class TestYamlMigrations:
     def test_font_replacements(self, migration_test, setting, old, new):
         migration_test(setting, old, new)
 
+    def test_migrate_multiple(self, yaml, autoconfig):
+        val = '10pt default_family'
+        autoconfig.write({'fonts.tabs': {'global': val}})
+
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        assert data['fonts.tabs.unselected']['global'] == val
+        assert data['fonts.tabs.selected']['global'] == val
+
 
 class ConfPy:
 
