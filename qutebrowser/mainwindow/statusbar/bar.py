@@ -265,6 +265,8 @@ class StatusBar(QWidget):
                 mode_manager = modeman.instance(self._win_id)
                 if mode_manager.mode == usertypes.KeyMode.normal:
                     self.hide()
+                else:
+                    self.show()
             except KeyError:
                 # If modeman hasn't been initialized, hide the bar.
                 self.hide()
