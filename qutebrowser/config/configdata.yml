@@ -2875,12 +2875,12 @@ fonts.statusbar:
 fonts.tabs.selected:
   default: default_size default_family
   type: Font
-  desc: Font used in the tab bar for selected tabs.
+  desc: Font used for selected tabs.
 
 fonts.tabs.unselected:
   default: default_size default_family
   type: Font
-  desc: Font used in the tab bar for unselected tabs.
+  desc: Font used for unselected tabs.
 
 fonts.web.family.standard:
   default: ''
