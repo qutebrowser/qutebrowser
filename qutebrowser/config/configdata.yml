@@ -1559,10 +1559,17 @@ spellcheck.languages:
 
 ## statusbar
 
-statusbar.hide:
-  type: Bool
-  default: false
-  desc: Hide the statusbar unless a message is shown.
+statusbar.show:
+  default: always
+  type:
+    name: String
+    valid_values:
+    - always: Always show the statusbar.
+    - never: Always hide the statusbar unless a message is shown.
+    - in-mode: >- 
+        Only show the statusbar when in modes other than normal mode or
+        when a message is shown.
+  desc: When to show the statusbar.
 
 statusbar.padding:
   type: Padding

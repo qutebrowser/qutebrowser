@@ -332,6 +332,11 @@ class YamlMigrations(QObject):
             new_name='tabs.mode_on_change',
             true_value='persist',
             false_value='normal')
+        self._migrate_renamed_bool(
+            old_name='statusbar.hide',
+            new_name='statusbar.show',
+            true_value='never',
+            false_value='always')
 
         for setting in ['tabs.title.format',
                         'tabs.title.format_pinned',
