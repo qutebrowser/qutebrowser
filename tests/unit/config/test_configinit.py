@@ -344,12 +344,12 @@ class TestLateInit:
         # fonts.default_family and font settings customized
         # https://github.com/qutebrowser/qutebrowser/issues/3096
         ([('fonts.default_family', 'Comic Sans MS'),
-          ('fonts.tabs', '12pt default_family'),
+          ('fonts.debug_console', '12pt default_family'),
           ('fonts.keyhint', '12pt default_family')], 12, 'Comic Sans MS'),
         # as above, but with default_size
         ([('fonts.default_family', 'Comic Sans MS'),
           ('fonts.default_size', '23pt'),
-          ('fonts.tabs', 'default_size default_family'),
+          ('fonts.debug_console', 'default_size default_family'),
           ('fonts.keyhint', 'default_size default_family')],
          23, 'Comic Sans MS'),
     ])
@@ -382,7 +382,7 @@ class TestLateInit:
         expected = '{}pt "{}"'.format(size, family)
         assert config.instance.get('fonts.keyhint') == expected
         # QtFont
-        font = config.instance.get('fonts.tabs')
+        font = config.instance.get('fonts.debug_console')
         assert font.pointSize() == size
         assert font.family() == family
 
@@ -405,10 +405,10 @@ class TestLateInit:
 
         assert 'fonts.keyhint' in changed_options  # Font
         assert config.instance.get('fonts.keyhint') == '23pt "Comic Sans MS"'
-        assert 'fonts.tabs' in changed_options  # QtFont
-        tabs_font = config.instance.get('fonts.tabs')
-        assert tabs_font.family() == 'Comic Sans MS'
-        assert tabs_font.pointSize() == 23
+        assert 'fonts.debug_console' in changed_options  # QtFont
+        debug_console_font = config.instance.get('fonts.debug_console')
+        assert debug_console_font.family() == 'Comic Sans MS'
+        assert debug_console_font.pointSize() == 23
 
         # Font subclass, but doesn't end with "default_family"
         assert 'fonts.web.family.standard' not in changed_options
