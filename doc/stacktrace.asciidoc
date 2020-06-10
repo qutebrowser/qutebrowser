@@ -35,7 +35,7 @@ is available in the repositories:
 ----
 
 Fedora
-^^^^^^^^^^^^^^^^^
+^^^^^^
 
 For Fedora you first need to install the dnf/yum-utils:
 
