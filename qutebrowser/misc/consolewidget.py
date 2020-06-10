@@ -27,7 +27,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 from PyQt5.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QApplication
 from PyQt5.QtGui import QTextCursor
 
-from qutebrowser.config import config
+from qutebrowser.config import config, stylesheet
 from qutebrowser.misc import cmdhistory, miscwidgets
 from qutebrowser.utils import utils, objreg
 
@@ -48,6 +48,12 @@ class ConsoleLineEdit(miscwidgets.CommandLineEdit):
 
     execute = pyqtSignal(str)
 
+    STYLESHEET = """
+        ConsoleLineEdit {
+            font: {{ conf.fonts.debug_console }};
+        }
+    """
+
     def __init__(self, _namespace, parent):
         """Constructor.
 
@@ -55,8 +61,7 @@ class ConsoleLineEdit(miscwidgets.CommandLineEdit):
             _namespace: The local namespace of the interpreter.
         """
         super().__init__(parent=parent)
-        self._update_font()
-        config.instance.changed.connect(self._update_font)
+        stylesheet.set_register(self)
         self._history = cmdhistory.History(parent=self)
         self.returnPressed.connect(self.on_return_pressed)
 
@@ -106,31 +111,26 @@ class ConsoleLineEdit(miscwidgets.CommandLineEdit):
         else:
             super().keyPressEvent(e)
 
-    @config.change_filter('fonts.debug_console')
-    def _update_font(self):
-        """Set the correct font."""
-        self.setFont(config.val.fonts.debug_console)
-
 
 class ConsoleTextEdit(QTextEdit):
 
     """Custom QTextEdit for console output."""
 
+    STYLESHEET = """
+        ConsoleTextEdit {
+            font: {{ conf.fonts.debug_console }};
+        }
+    """
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAcceptRichText(False)
         self.setReadOnly(True)
-        config.instance.changed.connect(self._update_font)
-        self._update_font()
+        stylesheet.set_register(self)
         self.setFocusPolicy(Qt.ClickFocus)
 
     def __repr__(self):
         return utils.get_repr(self)
-
-    @config.change_filter('fonts.debug_console')
-    def _update_font(self):
-        """Update font when config changed."""
-        self.setFont(config.val.fonts.debug_console)
 
     def append_text(self, text):
         """Append new text and scroll output to bottom.
