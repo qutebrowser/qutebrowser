@@ -542,18 +542,18 @@ def init_from_config(conf: 'configmodule.ConfigContainer') -> None:
     """
     assert _args is not None
     if _args.debug:
-        init.info("--debug flag overrides log configs")
+        init.debug("--debug flag overrides log configs")
         return
     if ram_handler:
         ramlevel = conf.logging.level.ram
-        init.info("Configuring RAM loglevel to %s", ramlevel)
+        init.debug("Configuring RAM loglevel to %s", ramlevel)
         ram_handler.setLevel(LOG_LEVELS[ramlevel.upper()])
     if console_handler:
         consolelevel = conf.logging.level.console
         if _args.loglevel:
-            init.info("--loglevel flag overrides logging.level.console")
+            init.debug("--loglevel flag overrides logging.level.console")
         else:
-            init.info("Configuring console loglevel to %s", consolelevel)
+            init.debug("Configuring console loglevel to %s", consolelevel)
             console_handler.setLevel(LOG_LEVELS[consolelevel.upper()])
 
 
