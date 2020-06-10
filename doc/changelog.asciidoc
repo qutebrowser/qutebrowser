@@ -33,6 +33,10 @@ Changed
   * `statusbar.hide` has been renamed to `statusbar.show` with the possible
     values being `always` (`hide = False`), `never` (`hide = True`) or
     `in-mode` (new, only show statusbar outside of normal mode.
+  * The `QtFont` config type formerly used for `fonts.tabs` and
+    `fonts.debug_console` is now removed and entirely replaced by `Font`. The
+    former distinction was mainly an implementation detail, and the accepted
+    values shouldn't have changed.
 
 Added
 ~~~~~
