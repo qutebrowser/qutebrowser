@@ -1381,8 +1381,6 @@ class FontDesc:
 
 class TestFont:
 
-    """Test Font."""
-
     TESTS = {
         # (style, weight, pointsize, pixelsize, family
         '"Foobar Neue"':
@@ -1440,8 +1438,7 @@ class TestFont:
 
     @pytest.mark.parametrize('val, desc', sorted(TESTS.items()))
     def test_to_py_valid(self, klass, val, desc):
-        expected = val
-        assert klass().to_py(val) == expected
+        assert klass().to_py(val) == val
 
     @pytest.mark.parametrize('val', [
         pytest.param('green "Foobar Neue"', marks=font_xfail),
@@ -1461,8 +1458,7 @@ class TestFont:
 
     def test_defaults_replacement(self, klass, monkeypatch):
         configtypes.FontBase.set_defaults(['Terminus'], '23pt')
-        expected = '23pt Terminus'
-        assert klass().to_py('23pt default_family') == expected
+        assert klass().to_py('23pt default_family') == '23pt Terminus'
 
 
 class TestFontFamily:
