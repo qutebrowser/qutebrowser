@@ -56,7 +56,7 @@ import typing
 import attr
 import yaml
 from PyQt5.QtCore import QUrl, Qt
-from PyQt5.QtGui import QColor, QFont, QFontDatabase
+from PyQt5.QtGui import QColor, QFontDatabase
 from PyQt5.QtWidgets import QTabWidget, QTabBar, QApplication
 from PyQt5.QtNetwork import QNetworkProxy
 

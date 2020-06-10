@@ -27,7 +27,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 from PyQt5.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QApplication
 from PyQt5.QtGui import QTextCursor
 
-from qutebrowser.config import config, stylesheet
+from qutebrowser.config import stylesheet
 from qutebrowser.misc import cmdhistory, miscwidgets
 from qutebrowser.utils import utils, objreg
 
