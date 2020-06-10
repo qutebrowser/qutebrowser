@@ -48,12 +48,6 @@ class ConsoleLineEdit(miscwidgets.CommandLineEdit):
 
     execute = pyqtSignal(str)
 
-    STYLESHEET = """
-        ConsoleLineEdit {
-            font: {{ conf.fonts.debug_console }};
-        }
-    """
-
     def __init__(self, _namespace, parent):
         """Constructor.
 
@@ -61,7 +55,6 @@ class ConsoleLineEdit(miscwidgets.CommandLineEdit):
             _namespace: The local namespace of the interpreter.
         """
         super().__init__(parent=parent)
-        stylesheet.set_register(self)
         self._history = cmdhistory.History(parent=self)
         self.returnPressed.connect(self.on_return_pressed)
 
@@ -116,17 +109,10 @@ class ConsoleTextEdit(QTextEdit):
 
     """Custom QTextEdit for console output."""
 
-    STYLESHEET = """
-        ConsoleTextEdit {
-            font: {{ conf.fonts.debug_console }};
-        }
-    """
-
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAcceptRichText(False)
         self.setReadOnly(True)
-        stylesheet.set_register(self)
         self.setFocusPolicy(Qt.ClickFocus)
 
     def __repr__(self):
@@ -157,6 +143,12 @@ class ConsoleWidget(QWidget):
         _interpreter: The InteractiveInterpreter to execute code with.
     """
 
+    STYLESHEET = """
+        ConsoleWidget > ConsoleTextEdit, ConsoleWidget > ConsoleLineEdit {
+            font: {{ conf.fonts.debug_console }};
+        }
+    """
+
     def __init__(self, parent=None):
         super().__init__(parent)
         if not hasattr(sys, 'ps1'):
@@ -182,6 +174,7 @@ class ConsoleWidget(QWidget):
         self._vbox.setSpacing(0)
         self._vbox.addWidget(self._output)
         self._vbox.addWidget(self._lineedit)
+        stylesheet.set_register(self)
         self.setLayout(self._vbox)
         self._lineedit.setFocus()
         self._interpreter = code.InteractiveInterpreter(namespace)
