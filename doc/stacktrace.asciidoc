@@ -40,13 +40,13 @@ Fedora
 For Fedora you first need to install the dnf/yum-utils:
 
 ----
-# sudo dnf install dnf-utils
+# dnf install dnf-utils
 ----
 
 Or:
 
 ----
-# sudo yum install yum-utils
+# yum install yum-utils
 ----
 
 Then install the needed debuginfo packages:
