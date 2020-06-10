@@ -1430,9 +1430,9 @@ class TestFont:
 
     font_xfail = pytest.mark.xfail(reason='FIXME: #103')
 
-    @pytest.fixture(params=[configtypes.Font])
+    @pytest.fixture
     def klass(self, request):
-        return request.param
+        return configtypes.Font
 
     @pytest.fixture
     def font_class(self):
@@ -1440,7 +1440,6 @@ class TestFont:
 
     @pytest.mark.parametrize('val, desc', sorted(TESTS.items()))
     def test_to_py_valid(self, klass, val, desc):
-        assert klass is configtypes.Font
         expected = val
         assert klass().to_py(val) == expected
 
@@ -1462,7 +1461,6 @@ class TestFont:
 
     def test_defaults_replacement(self, klass, monkeypatch):
         configtypes.FontBase.set_defaults(['Terminus'], '23pt')
-        assert klass is configtypes.Font
         expected = '23pt Terminus'
         assert klass().to_py('23pt default_family') == expected
 
