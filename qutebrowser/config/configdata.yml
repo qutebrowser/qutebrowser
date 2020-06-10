@@ -2872,10 +2872,15 @@ fonts.statusbar:
   type: Font
   desc: Font used in the statusbar.
 
-fonts.tabs:
+fonts.tabs.selected:
   default: default_size default_family
-  type: QtFont
-  desc: Font used in the tab bar.
+  type: Font
+  desc: Font used for selected tabs.
+
+fonts.tabs.unselected:
+  default: default_size default_family
+  type: Font
+  desc: Font used for unselected tabs.
 
 fonts.web.family.standard:
   default: ''

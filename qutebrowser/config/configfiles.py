@@ -340,6 +340,10 @@ class YamlMigrations(QObject):
                                        r'(?<!{)\{title\}(?!})',
                                        r'{current_title}')
 
+        self._migrate_to_multiple('fonts.tabs',
+                                  ('fonts.tabs.selected',
+                                   'fonts.tabs.unselected'))
+
         # content.headers.user_agent can't be empty to get the default anymore.
         setting = 'content.headers.user_agent'
         self._migrate_none(setting, configdata.DATA[setting].default)
@@ -445,6 +449,19 @@ class YamlMigrations(QObject):
             if val is None:
                 self._settings[name][scope] = value
                 self.changed.emit()
+
+    def _migrate_to_multiple(self, old_name: str,
+                             new_names: typing.Iterator[str]) -> None:
+        if old_name not in self._settings:
+            return
+
+        for new_name in new_names:
+            self._settings[new_name] = {}
+            for scope, val in self._settings[old_name].items():
+                self._settings[new_name][scope] = val
+
+        del self._settings[old_name]
+        self.changed.emit()
 
     def _migrate_string_value(self, name: str,
                               source: str,
