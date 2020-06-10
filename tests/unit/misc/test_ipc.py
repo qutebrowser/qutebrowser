@@ -36,7 +36,7 @@ from PyQt5.QtTest import QSignalSpy
 import qutebrowser
 from qutebrowser.misc import ipc
 from qutebrowser.utils import standarddir, utils
-from helpers import stubs
+from helpers import stubs, utils as testutils
 
 
 pytestmark = pytest.mark.usefixtures('qapp')
@@ -513,14 +513,12 @@ class TestSendToRunningInstance:
                                   timeout=5000) as blocker:
                 with qtbot.waitSignal(ipc_server.got_raw,
                                       timeout=5000) as raw_blocker:
-                    old_cwd = pathlib.Path.cwd()
-                    os.chdir(str(tmp_path))
-                    if not has_cwd:
-                        m = mocker.patch('qutebrowser.misc.ipc.os')
-                        m.getcwd.side_effect = OSError
-                    sent = ipc.send_to_running_instance(
-                        'qute-test', ['foo'], None)
-                    os.chdir(str(old_cwd))
+                    with testutils.change_cwd(tmp_path):
+                        if not has_cwd:
+                            m = mocker.patch('qutebrowser.misc.ipc.os')
+                            m.getcwd.side_effect = OSError
+                        sent = ipc.send_to_running_instance(
+                            'qute-test', ['foo'], None)
 
         assert sent
 
