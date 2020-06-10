@@ -226,6 +226,5 @@ def _generate_files():
 
 @pytest.mark.parametrize('filename', list(_generate_files()))
 def test_files_exist(filename):
-    basedir = (pathlib.Path(check_coverage.__file__).parent /
-               os.pardir / os.pardir)
+    basedir = pathlib.Path(check_coverage.__file__).parents[2]
     assert (basedir / filename).exists()

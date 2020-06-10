@@ -25,6 +25,8 @@ import textwrap
 
 import pytest
 
+from tests.helpers import utils
+
 try:
     from scripts.dev import run_vulture
 except ImportError:
@@ -51,14 +53,10 @@ class VultureDir:
 
     def run(self):
         """Run vulture over all generated files and return the output."""
-        #files = self._tmp_path.listdir()
-        files = list(self._tmp_path.glob('*'))
-        assert files
-        old_cwd = pathlib.Path.cwd()
-        os.chdir(str(self._tmp_path))
-        return_value = run_vulture.run([e.name for e in files])
-        os.chdir(str(old_cwd))
-        return return_value
+        names = [p.name for p in self._tmp_path.glob('*')]
+        assert names
+        with utils.change_cwd(self._tmp_path):
+            return run_vulture.run(names)
 
     def makepyfile(self, **kwargs):
         """Create a python file, similar to TestDir.makepyfile."""
