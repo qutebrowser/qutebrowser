@@ -27,8 +27,12 @@ Changed
   advanced users.
 - `:report` now takes two optional arguments for bug/contact information, so
   that it can be used without the report window popping up.
-- The `fonts.tabs` setting has been split into
-  `fonts.tabs.{selected,unselected}` (see below).
+- Changes to settings:
+  * `fonts.tabs` has been split into `fonts.tabs.{selected,unselected}` (see
+    below).
+  * `statusbar.hide` has been renamed to `statusbar.show` with the possible
+    values being `always` (`hide = False`), `never` (`hide = True`) or
+    `in-mode` (new, only show statusbar outside of normal mode.
 
 Added
 ~~~~~
