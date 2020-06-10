@@ -1429,7 +1429,7 @@ class TestFont:
     font_xfail = pytest.mark.xfail(reason='FIXME: #103')
 
     @pytest.fixture
-    def klass(self, request):
+    def klass(self):
         return configtypes.Font
 
     @pytest.fixture
