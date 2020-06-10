@@ -52,7 +52,7 @@ Or:
 Then install the needed debuginfo packages:
 
 ----
-# sudo debuginfo-install python3 qt5-qtwebkit python3-qt5-webkit python3-qt5-base python-qt5 python3-qt5
+# debuginfo-install python3 qt5-qtwebengine python3-qt5-webengine python3-qt5-base python-qt5 python3-qt5 python3-qt5-webkit-debuginfo
 ----
 
 Archlinux
