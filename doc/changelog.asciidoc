@@ -27,6 +27,8 @@ Changed
   advanced users.
 - `:report` now takes two optional arguments for bug/contact information, so
   that it can be used without the report window popping up.
+- The `fonts.tabs` setting has been split into
+  `fonts.tabs.{selected,unselected}` (see below).
 
 Added
 ~~~~~
@@ -34,6 +36,8 @@ Added
 - New settings:
   * `logging.level.ram` and `logging.level.console` to configure the default
     logging levels via the config.
+  * `fonts.tabs.selected` and `fonts.tabs.unselected` to set the font of the
+    selected tab independently from unselected tabs (e.g. to make it bold).
 
 Fixed
 ~~~~~

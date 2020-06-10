@@ -214,8 +214,8 @@
 |<<fonts.messages.warning,fonts.messages.warning>>|Font used for warning messages.
 |<<fonts.prompts,fonts.prompts>>|Font used for prompts.
 |<<fonts.statusbar,fonts.statusbar>>|Font used in the statusbar.
-|<<fonts.tabs.selected,fonts.tabs.selected>>|Font used in the tab bar for selected tabs.
-|<<fonts.tabs.unselected,fonts.tabs.unselected>>|Font used in the tab bar for unselected tabs.
+|<<fonts.tabs.selected,fonts.tabs.selected>>|Font used for selected tabs.
+|<<fonts.tabs.unselected,fonts.tabs.unselected>>|Font used for unselected tabs.
 |<<fonts.web.family.cursive,fonts.web.family.cursive>>|Font family for cursive fonts.
 |<<fonts.web.family.fantasy,fonts.web.family.fantasy>>|Font family for fantasy fonts.
 |<<fonts.web.family.fixed,fonts.web.family.fixed>>|Font family for fixed fonts.
@@ -2790,7 +2790,7 @@ Default: +pass:[default_size default_family]+
 
 [[fonts.tabs.selected]]
 === fonts.tabs.selected
-Font used in the tab bar for selected tabs.
+Font used for selected tabs.
 
 Type: <<types,Font>>
 
@@ -2798,7 +2798,7 @@ Default: +pass:[default_size default_family]+
 
 [[fonts.tabs.unselected]]
 === fonts.tabs.unselected
-Font used in the tab bar for unselected tabs.
+Font used for unselected tabs.
 
 Type: <<types,Font>>
 
