@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+import pathlib
 import sys
 import textwrap
 
@@ -41,29 +43,33 @@ class VultureDir:
     """Fixture similar to pytest's testdir fixture for vulture.
 
     Attributes:
-        _tmpdir: The pytest tmpdir fixture.
+        _tmp_path: The pytest tmp_path fixture.
     """
 
-    def __init__(self, tmpdir):
-        self._tmpdir = tmpdir
+    def __init__(self, tmp_path):
+        self._tmp_path = tmp_path
 
     def run(self):
         """Run vulture over all generated files and return the output."""
-        files = self._tmpdir.listdir()
+        #files = self._tmp_path.listdir()
+        files = list(self._tmp_path.glob('*'))
         assert files
-        with self._tmpdir.as_cwd():
-            return run_vulture.run([str(e.basename) for e in files])
+        old_cwd = pathlib.Path.cwd()
+        os.chdir(str(self._tmp_path))
+        return_value = run_vulture.run([e.name for e in files])
+        os.chdir(str(old_cwd))
+        return return_value
 
     def makepyfile(self, **kwargs):
         """Create a python file, similar to TestDir.makepyfile."""
         for filename, data in kwargs.items():
             text = textwrap.dedent(data)
-            (self._tmpdir / filename + '.py').write_text(text, 'utf-8')
+            (self._tmp_path / (filename + '.py')).write_text(text, 'utf-8')
 
 
 @pytest.fixture
-def vultdir(tmpdir):
-    return VultureDir(tmpdir)
+def vultdir(tmp_path):
+    return VultureDir(tmp_path)
 
 
 def test_used(vultdir):
