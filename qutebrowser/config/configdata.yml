@@ -2834,7 +2834,7 @@ fonts.contextmenu:
 
 fonts.debug_console:
   default: default_size default_family
-  type: QtFont
+  type: Font
   desc: Font used for the debugging console.
 
 fonts.downloads:

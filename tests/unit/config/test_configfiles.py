@@ -578,8 +578,6 @@ class TestYamlMigrations:
     @pytest.mark.parametrize('setting, old, new', [
         # Font
         ('fonts.hints', '10pt monospace', '10pt default_family'),
-        # QtFont
-        ('fonts.debug_console', '10pt monospace', '10pt default_family'),
         # String
         ('content.headers.accept_language', 'x monospace', 'x monospace'),
         # Not at end of string
