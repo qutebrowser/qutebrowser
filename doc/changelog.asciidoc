@@ -27,6 +27,8 @@ Changed
   advanced users.
 - `:report` now takes two optional arguments for bug/contact information, so
   that it can be used without the report window popping up.
+- New `t[Cc][Hh]` default bindings which work similarly to the `t[Ss][Hh]`
+  bindings for JavaScript but toggle cookie permissions.
 - Changes to settings:
   * `fonts.tabs` has been split into `fonts.tabs.{selected,unselected}` (see
     below).
