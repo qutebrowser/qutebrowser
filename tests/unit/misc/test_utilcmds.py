@@ -19,8 +19,6 @@
 
 """Tests for qutebrowser.misc.utilcmds."""
 
-import logging
-
 import pytest
 from PyQt5.QtCore import QUrl
 
