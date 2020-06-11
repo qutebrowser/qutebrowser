@@ -639,7 +639,7 @@ class RAMHandler(logging.Handler):
     def dump_log(self, html: bool = False, level: str = 'vdebug') -> str:
         """Dump the complete formatted log data as string.
 
-        FIXME: We should do all the HTML formatter via jinja2.
+        FIXME: We should do all the HTML formatting via jinja2.
         (probably obsolete when moving to a widget for logging,
         https://github.com/qutebrowser/qutebrowser/issues/34
         """
