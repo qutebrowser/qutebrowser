@@ -307,43 +307,34 @@ def qute_version(_url):
     return 'text/html', src
 
 
-@add_handler('plainlog')
-def qute_plainlog(url: QUrl) -> _HandlerRet:
-    """Handler for qute://plainlog.
+def _qute_log(url: QUrl, *, html: bool) -> _HandlerRet:
+    """Shared code between qute://log and qute://plainlog.
 
     An optional query parameter specifies the minimum log level to print.
     For example, qute://log?level=warning prints warnings and errors.
     Level can be one of: vdebug, debug, info, warning, error, critical.
     """
     if log.ram_handler is None:
-        text = "Log output was disabled."
+        content = None if html else "Log output was disabled."
     else:
         level = QUrlQuery(url).queryItemValue('level')
         if not level:
             level = 'vdebug'
-        text = log.ram_handler.dump_log(html=False, level=level)
-    src = jinja.render('pre.html', title='log', content=text)
+        content = log.ram_handler.dump_log(html=html, level=level)
+
+    template = 'log.html' if html else 'pre.html'
+    src = jinja.render(template, title='log', content=content)
     return 'text/html', src
+
+
+@add_handler('plainlog')
+def qute_plainlog(url: QUrl) -> _HandlerRet:
+    return _qute_log(url, html=False)
 
 
 @add_handler('log')
 def qute_log(url: QUrl) -> _HandlerRet:
-    """Handler for qute://log.
-
-    An optional query parameter specifies the minimum log level to print.
-    For example, qute://log?level=warning prints warnings and errors.
-    Level can be one of: vdebug, debug, info, warning, error, critical.
-    """
-    if log.ram_handler is None:
-        html_log = None
-    else:
-        level = QUrlQuery(url).queryItemValue('level')
-        if not level:
-            level = 'vdebug'
-        html_log = log.ram_handler.dump_log(html=True, level=level)
-
-    src = jinja.render('log.html', title='log', content=html_log)
-    return 'text/html', src
+    return _qute_log(url, html=True)
 
 
 @add_handler('gpl')
