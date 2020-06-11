@@ -236,7 +236,7 @@ class NetworkManager(QNetworkAccessManager):
             errors: A list of errors.
         """
         errors = [certificateerror.CertificateErrorWrapper(e) for e in errors]
-        log.webview.debug("Certificate errors: {!r}".format(
+        log.network.debug("Certificate errors: {!r}".format(
             ' / '.join(str(err) for err in errors)))
         try:
             host_tpl = urlutils.host_tuple(
@@ -252,7 +252,7 @@ class NetworkManager(QNetworkAccessManager):
             is_rejected = set(errors).issubset(
                 self._rejected_ssl_errors[host_tpl])
 
-        log.webview.debug("Already accepted: {} / "
+        log.network.debug("Already accepted: {} / "
                           "rejected {}".format(is_accepted, is_rejected))
 
         if is_rejected:
@@ -425,7 +425,7 @@ class NetworkManager(QNetworkAccessManager):
         if 'log-requests' in objects.debug_flags:
             operation = debug.qenum_key(QNetworkAccessManager, op)
             operation = operation.replace('Operation', '').upper()
-            log.webview.debug("{} {}, first-party {}".format(
+            log.network.debug("{} {}, first-party {}".format(
                 operation,
                 req.url().toDisplayString(),
                 current_url.toDisplayString()))

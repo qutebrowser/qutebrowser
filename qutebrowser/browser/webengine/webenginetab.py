@@ -1619,16 +1619,16 @@ class WebEngineTab(browsertab.AbstractTab):
         url = error.url()
         self._insecure_hosts.add(url.host())
 
-        log.webview.debug("Certificate error: {}".format(error))
+        log.network.debug("Certificate error: {}".format(error))
 
         if error.is_overridable():
             error.ignore = shared.ignore_certificate_errors(
                 url, [error], abort_on=[self.abort_questions])
         else:
-            log.webview.error("Non-overridable certificate error: "
+            log.network.error("Non-overridable certificate error: "
                               "{}".format(error))
 
-        log.webview.debug("ignore {}, URL {}, requested {}".format(
+        log.network.debug("ignore {}, URL {}, requested {}".format(
             error.ignore, url, self.url(requested=True)))
 
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-56207

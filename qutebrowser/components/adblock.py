@@ -33,7 +33,7 @@ from qutebrowser.api import (cmdutils, hook, config, message, downloads,
                              interceptor, apitypes, qtutils)
 
 
-logger = logging.getLogger('misc')
+logger = logging.getLogger('network')
 _host_blocker = typing.cast('HostBlocker', None)
 
 
