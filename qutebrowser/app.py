@@ -373,6 +373,13 @@ def open_desktopservices_url(url):
     tabbed_browser.tabopen(url)
 
 
+# This is effectively a @config.change_filter
+# Howerver, logging is initialized too early to use that annotation
+def _on_config_changed(name: str) -> None:
+    if name.startswith('logging.'):
+        log.init_from_config(config.val)
+
+
 def _init_modules(*, args):
     """Initialize all 'modules' which need to be initialized.
 
@@ -381,6 +388,8 @@ def _init_modules(*, args):
     """
     log.init.debug("Initializing logging from config...")
     log.init_from_config(config.val)
+    config.instance.changed.connect(_on_config_changed)
+
     log.init.debug("Initializing save manager...")
     save_manager = savemanager.SaveManager(q_app)
     objreg.register('save-manager', save_manager)

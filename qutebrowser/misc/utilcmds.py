@@ -224,7 +224,7 @@ def log_capacity(capacity: int) -> None:
     log.ram_handler.change_log_capacity(capacity)
 
 
-@cmdutils.register(debug=True)
+@cmdutils.register(debug=True, deprecated="Use `:set log.level.console`")
 @cmdutils.argument('level', choices=sorted(
     (level.lower() for level in log.LOG_LEVELS),
     key=lambda e: log.LOG_LEVELS[e.upper()]))
