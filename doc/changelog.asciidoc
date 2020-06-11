@@ -67,6 +67,8 @@ Fixed
 
 - Crash when `tabs.focus_stack_size` is set to -1.
 - Crash when a `pdf.js` file for PDF.js exists, but `viewer.html` does not.
+- Crash when `:completion-item-yank --sel` is used on a platform without
+  primary selection support (e.g. Windows/macOS).
 - `:config-write-py` now works with paths starting with `~/...` again.
 - New site-specific quirk for a missing `globalThis` in Qt <= 5.12 on Reddit and Spotify
 
