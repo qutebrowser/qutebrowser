@@ -269,10 +269,6 @@ Feature: Special qute:// pages
         And I wait for "Changing title for idx * to 'log'" in the log
         Then no crash should happen
 
-    Scenario: Using qute://plainlog directly
-        When I open qute://plainlog
-        Then no crash should happen
-
     # :version
 
     Scenario: Open qute://version

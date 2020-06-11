@@ -23,6 +23,9 @@ Removed
 
 - The `:debug-log-level` command was removed as it's replaced by the new
   `logging.level.console` setting.
+- The `qute://plainlog` special page got replaced by `qute://log?plain` - the
+  names of those pages is considered an implementation detail, and
+  `:messages --plain` should be used instead.
 
 Changed
 ~~~~~~~

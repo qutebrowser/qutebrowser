@@ -1398,10 +1398,15 @@ class CommandDispatcher:
         """
         if level.upper() not in log.LOG_LEVELS:
             raise cmdutils.CommandError("Invalid log level {}!".format(level))
+
+        query = QUrlQuery()
+        query.addQueryItem('level', level)
         if plain:
-            url = QUrl('qute://plainlog?level={}'.format(level))
-        else:
-            url = QUrl('qute://log?level={}'.format(level))
+            query.addQueryItem('plain', None)
+
+        url = QUrl('qute://log')
+        url.setQuery(query)
+
         self._open(url, tab, bg, window)
 
     def _open_editor_cb(self, elem):
