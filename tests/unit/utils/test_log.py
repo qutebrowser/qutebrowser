@@ -216,6 +216,11 @@ class TestInitLog:
         """Fixture providing an argparse namespace for init_log."""
         return self._get_default_args()
 
+    @pytest.fixture
+    def empty_args(self):
+        """Logging commandline arguments without any customization."""
+        return qutebrowser.get_argparser().parse_args([])
+
     def test_stderr_none(self, args):
         """Test init_log with sys.stderr = None."""
         old_stderr = sys.stderr
@@ -285,10 +290,9 @@ class TestInitLog:
         log.init_from_config(config_stub.val)
         assert log.ram_handler.level == expected
 
-    def test_init_from_config_consistent_default(self, config_stub):
+    def test_init_from_config_consistent_default(self, config_stub, empty_args):
         """Ensure config defaults are consistent with the builtin defaults."""
-        args = qutebrowser.get_argparser().parse_args([])
-        log.init_log(args)
+        log.init_log(empty_args)
 
         assert log.ram_handler.level == logging.DEBUG
         assert log.console_handler.level == logging.INFO
@@ -297,6 +301,15 @@ class TestInitLog:
 
         assert log.ram_handler.level == logging.DEBUG
         assert log.console_handler.level == logging.INFO
+
+    def test_init_from_config_format(self, config_stub, empty_args):
+        """If we change to the debug level, make sure the format changes."""
+        log.init_log(empty_args)
+        assert log.console_handler.formatter._fmt == log.SIMPLE_FMT
+
+        config_stub.val.logging.level.console = 'debug'
+        log.init_from_config(config_stub.val)
+        assert log.console_handler.formatter._fmt == log.EXTENDED_FMT
 
 
 class TestHideQtWarning:

@@ -554,7 +554,9 @@ def init_from_config(conf: 'configmodule.ConfigContainer') -> None:
             init.debug("--loglevel flag overrides logging.level.console")
         else:
             init.debug("Configuring console loglevel to %s", consolelevel)
-            console_handler.setLevel(LOG_LEVELS[consolelevel.upper()])
+            level = LOG_LEVELS[consolelevel.upper()]
+            console_handler.setLevel(level)
+            change_console_formatter(level)
 
 
 class QtWarningFilter(logging.Filter):
