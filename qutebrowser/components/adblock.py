@@ -128,7 +128,7 @@ class HostBlocker:
         """Block the given request if necessary."""
         if self._is_blocked(request_url=info.request_url,
                             first_party_url=info.first_party_url):
-            logger.info("Request to {} blocked by host blocker."
+            logger.debug("Request to {} blocked by host blocker."
                         .format(info.request_url.host()))
             info.block()
 
