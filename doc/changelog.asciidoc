@@ -38,6 +38,9 @@ Changed
   that it can be used without the report window popping up.
 - New `t[Cc][Hh]` default bindings which work similarly to the `t[Ss][Hh]`
   bindings for JavaScript but toggle cookie permissions.
+- The `:message` command now takes a `--logfilter` / `-f` argument, which is a
+  list of logging categories to show.
+- The `:debug-log-filter` command now understands the full logfilter syntax.
 - Changes to settings:
   * `fonts.tabs` has been split into `fonts.tabs.{selected,unselected}` (see
     below).
@@ -48,6 +51,7 @@ Changed
     `fonts.debug_console` is now removed and entirely replaced by `Font`. The
     former distinction was mainly an implementation detail, and the accepted
     values shouldn't have changed.
+- Small performance improvements.
 
 Added
 ~~~~~
