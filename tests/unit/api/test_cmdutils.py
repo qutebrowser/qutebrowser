@@ -163,7 +163,6 @@ class TestRegister:
             @cmdutils.register()
             def fun(*args: int):
                 """Blah."""
-                pass
 
     def test_star_args_optional(self):
         """Check handling of *args withstar_args_optional."""

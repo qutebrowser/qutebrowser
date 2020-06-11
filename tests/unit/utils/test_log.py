@@ -159,12 +159,14 @@ class TestLogFilter:
         record = self._make_record(logger, 'bacon', level=logging.INFO)
         assert logfilter.filter(record) == only_debug
 
-    @pytest.mark.parametrize('category, filter_str, logged_before, logged_after', [
-        ('init', 'url,js', True, False),
-        ('url', 'url,js', False, True),
-        ('js', 'url,js', False, True),
-        ('js', 'none', False, True),
-    ])
+    @pytest.mark.parametrize(
+        'category, filter_str, logged_before, logged_after', [
+            ('init', 'url,js', True, False),
+            ('url', 'url,js', False, True),
+            ('js', 'url,js', False, True),
+            ('js', 'none', False, True),
+        ]
+    )
     def test_debug_log_filter_cmd(self, monkeypatch, logger, category,
                                   filter_str, logged_before, logged_after):
         """Test the :debug-log-filter command handler."""
@@ -236,8 +238,9 @@ class TestInitLog:
 
     def _get_default_args(self):
         return argparse.Namespace(debug=True, loglevel='debug', color=True,
-                                  loglines=10, logfilter=None, force_color=False,
-                                  json_logging=False, debug_flags=set())
+                                  loglines=10, logfilter=None,
+                                  force_color=False, json_logging=False,
+                                  debug_flags=set())
 
     @pytest.fixture(autouse=True)
     def setup(self, mocker):

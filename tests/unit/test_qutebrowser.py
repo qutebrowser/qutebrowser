@@ -22,8 +22,6 @@
 (Mainly commandline flag parsing)
 """
 
-import argparse
-
 import pytest
 
 from qutebrowser import qutebrowser
@@ -37,7 +35,8 @@ def parser():
 class TestDebugFlag:
 
     def test_valid(self, parser):
-        args = parser.parse_args(['--debug-flag', 'chromium', '--debug-flag', 'stack'])
+        args = parser.parse_args(['--debug-flag', 'chromium',
+                                  '--debug-flag', 'stack'])
         assert args.debug_flags == ['chromium', 'stack']
 
     def test_invalid(self, parser, capsys):

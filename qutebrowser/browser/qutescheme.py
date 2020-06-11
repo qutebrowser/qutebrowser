@@ -337,7 +337,7 @@ def qute_log(url: QUrl) -> _HandlerRet:
 
         try:
             logfilter = (log.LogFilter.parse(filter_str, only_debug=False)
-                        if filter_str else None)
+                         if filter_str else None)
         except log.InvalidLogFilterError as e:
             raise UrlInvalidError(e)
 
