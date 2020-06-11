@@ -1929,7 +1929,6 @@ These commands are mainly intended for debugging. They are hidden if qutebrowser
 |<<debug-keytester,debug-keytester>>|Show a keytester widget.
 |<<debug-log-capacity,debug-log-capacity>>|Change the number of log lines to be stored in RAM.
 |<<debug-log-filter,debug-log-filter>>|Change the log filter for console logging.
-|<<debug-log-level,debug-log-level>>|Change the log level for console logging.
 |<<debug-pyeval,debug-pyeval>>|Evaluate a python string and display the results as a web page.
 |<<debug-set-fake-clipboard,debug-set-fake-clipboard>>|Put data into the fake clipboard and enable logging, used for tests.
 |<<debug-trace,debug-trace>>|Trace executed code via hunter.
@@ -2003,15 +2002,6 @@ Change the log filter for console logging.
 ==== positional arguments
 * +'filters'+: A comma separated list of logger names. Can also be "none" to clear any existing filters.
 
-
-[[debug-log-level]]
-=== debug-log-level
-Syntax: +:debug-log-level 'level'+
-
-Change the log level for console logging.
-
-==== positional arguments
-* +'level'+: The log level to set.
 
 [[debug-pyeval]]
 === debug-pyeval

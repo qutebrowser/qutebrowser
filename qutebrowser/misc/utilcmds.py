@@ -224,24 +224,6 @@ def log_capacity(capacity: int) -> None:
     log.ram_handler.change_log_capacity(capacity)
 
 
-@cmdutils.register(debug=True, deprecated="Use `:set log.level.console`")
-@cmdutils.argument('level', choices=sorted(
-    (level.lower() for level in log.LOG_LEVELS),
-    key=lambda e: log.LOG_LEVELS[e.upper()]))
-def debug_log_level(level: str) -> None:
-    """Change the log level for console logging.
-
-    Args:
-        level: The log level to set.
-    """
-    if log.console_handler is None:
-        raise cmdutils.CommandError("No log.console_handler. Not attached "
-                                    "to a console?")
-
-    log.change_console_formatter(log.LOG_LEVELS[level.upper()])
-    log.console_handler.setLevel(log.LOG_LEVELS[level.upper()])
-
-
 @cmdutils.register(debug=True)
 def debug_log_filter(filters: str) -> None:
     """Change the log filter for console logging.
