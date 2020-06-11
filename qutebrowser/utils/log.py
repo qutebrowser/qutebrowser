@@ -193,16 +193,7 @@ def init_log(args: argparse.Namespace) -> None:
     root = logging.getLogger()
     global console_filter
     if console is not None:
-        if not args.logfilter:
-            negate = False
-            names = None
-        elif args.logfilter.startswith('!'):
-            negate = True
-            names = args.logfilter[1:].split(',')
-        else:
-            negate = False
-            names = args.logfilter.split(',')
-        console_filter = LogFilter(names, negate)
+        console_filter = LogFilter.parse(args.logfilter)
         console.addFilter(console_filter)
         root.addHandler(console)
     if ram is not None:
@@ -577,6 +568,17 @@ class QtWarningFilter(logging.Filter):
         return do_log
 
 
+class InvalidLogFilterError(Exception):
+
+    """Raised when an invalid filter string is passed to LogFilter.parse()."""
+
+    def __init__(self, names: typing.Set[str]):
+        invalid = names - set(LOGGER_NAMES)
+        super().__init__("Invalid log category {} - valid categories: {}"
+                         .format(', '.join(sorted(invalid)),
+                                 ', '.join(LOGGER_NAMES)))
+
+
 class LogFilter(logging.Filter):
 
     """Filter to filter log records based on the commandline argument.
@@ -585,30 +587,52 @@ class LogFilter(logging.Filter):
     comma-separated list instead.
 
     Attributes:
-        names: A list of record names to filter.
-        negated: Whether names is a list of records to log or to suppress.
+        names: A set of logging names to allow.
+        negated: Whether names is a set of names to log or to suppress.
     """
 
-    def __init__(self, names: typing.Optional[typing.Iterable[str]],
-                 negate: bool = False) -> None:
+    def __init__(self, names: typing.Set[str], negated: bool = False) -> None:
         super().__init__()
         self.names = names
-        self.negated = negate
+        self.negated = negated
+
+    @classmethod
+    def parse(cls, filter_str: typing.Optional[str]) -> 'LogFilter':
+        """Parse a log filter from a string."""
+        if filter_str is None or filter_str == 'none':
+            names = set()
+            negated = False
+        else:
+            filter_str = filter_str.lower()
+
+            if filter_str.startswith('!'):
+                negated = True
+                filter_str = filter_str[1:]
+            else:
+                negated = False
+
+            names = {e.strip() for e in filter_str.split(',')}
+
+        if not names.issubset(LOGGER_NAMES):
+            raise InvalidLogFilterError(names)
+
+        return cls(names=names, negated=negated)
+
+    def update_from(self, other: 'LogFilter') -> None:
+        """Update this filter's properties from another filter."""
+        self.names = other.names
+        self.negated = other.negated
 
     def filter(self, record: logging.LogRecord) -> bool:
         """Determine if the specified record is to be logged."""
-        if self.names is None:
+        if not self.names:
+            # No filter
             return True
-        if record.levelno > logging.DEBUG:
+        elif record.levelno > logging.DEBUG:
             # More important than DEBUG, so we won't filter at all
             return True
-        for name in self.names:
-            if record.name == name:
-                return not self.negated
-            elif not record.name.startswith(name):
-                continue
-            elif record.name[len(name)] == '.':
-                return not self.negated
+        elif record.name.split('.')[0] in self.names:
+            return not self.negated
         return self.negated
 
 

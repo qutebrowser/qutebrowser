@@ -236,16 +236,12 @@ def debug_log_filter(filters: str) -> None:
         raise cmdutils.CommandError("No log.console_filter. Not attached "
                                     "to a console?")
 
-    if filters.strip().lower() == 'none':
-        log.console_filter.names = None
-        return
+    try:
+        new_filter = log.LogFilter.parse(filters)
+    except log.InvalidLogFilterError as e:
+        raise cmdutils.CommandError(e)
 
-    if not set(filters.split(',')).issubset(log.LOGGER_NAMES):
-        raise cmdutils.CommandError("filters: Invalid value {} - expected one "
-                                    "of: {}".format(
-                                        filters, ', '.join(log.LOGGER_NAMES)))
-
-    log.console_filter.names = filters.split(',')
+    log.console_filter.update_from(new_filter)
 
 
 @cmdutils.register()

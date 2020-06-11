@@ -33,6 +33,7 @@ from PyQt5 import QtCore
 from qutebrowser import qutebrowser
 from qutebrowser.utils import log
 from qutebrowser.misc import utilcmds
+from qutebrowser.api import cmdutils
 
 
 @pytest.fixture(autouse=True)
@@ -118,28 +119,23 @@ class TestLogFilter:
 
     @pytest.mark.parametrize('filters, negated, category, logged', [
         # Filter letting all messages through
-        (None, False, 'eggs.bacon.spam', True),
-        (None, False, 'eggs', True),
-        (None, True, 'ham', True),
+        (set(), False, 'eggs.bacon.spam', True),
+        (set(), False, 'eggs', True),
+        (set(), True, 'ham', True),
         # Matching records
-        (['eggs', 'bacon'], False, 'eggs', True),
-        (['eggs', 'bacon'], False, 'bacon', True),
-        (['eggs.bacon'], False, 'eggs.bacon', True),
+        ({'eggs', 'bacon'}, False, 'eggs', True),
+        ({'eggs', 'bacon'}, False, 'bacon', True),
+        ({'eggs'}, False, 'eggs.fried', True),
         # Non-matching records
-        (['eggs', 'bacon'], False, 'spam', False),
-        (['eggs'], False, 'eggsauce', False),
-        (['eggs.bacon'], False, 'eggs.baconstrips', False),
-        # Child loggers
-        (['eggs.bacon', 'spam.ham'], False, 'eggs.bacon.spam', True),
-        (['eggs.bacon', 'spam.ham'], False, 'spam.ham.salami', True),
+        ({'eggs', 'bacon'}, False, 'spam', False),
+        ({'eggs'}, False, 'eggsauce', False),
+        ({'fried'}, False, 'eggs.fried', False),
         # Suppressed records
-        (['eggs', 'bacon'], True, 'eggs', False),
-        (['eggs', 'bacon'], True, 'bacon', False),
-        (['eggs.bacon'], True, 'eggs.bacon', False),
+        ({'eggs', 'bacon'}, True, 'eggs', False),
+        ({'eggs', 'bacon'}, True, 'bacon', False),
         # Non-suppressed records
-        (['eggs', 'bacon'], True, 'spam', True),
-        (['eggs'], True, 'eggsauce', True),
-        (['eggs.bacon'], True, 'eggs.baconstrips', True),
+        ({'eggs', 'bacon'}, True, 'spam', True),
+        ({'eggs'}, True, 'eggsauce', True),
     ])
     def test_logfilter(self, logger, filters, negated, category, logged):
         """Ensure the multi-record filtering filterer filters multiple records.
@@ -150,19 +146,29 @@ class TestLogFilter:
         record = self._make_record(logger, category)
         assert logfilter.filter(record) == logged
 
+    def test_logfilter_benchmark(self, logger, benchmark):
+        record = self._make_record(logger, 'unfiltered')
+        filters = set(log.LOGGER_NAMES)  # Extreme case
+        logfilter = log.LogFilter(filters, negated=False)
+        benchmark(lambda: logfilter.filter(record))
+
     @pytest.mark.parametrize('category', ['eggs', 'bacon'])
     def test_debug(self, logger, category):
         """Test if messages more important than debug are never filtered."""
-        logfilter = log.LogFilter(['eggs'])
+        logfilter = log.LogFilter({'eggs'})
         record = self._make_record(logger, category, level=logging.INFO)
         assert logfilter.filter(record)
 
-    @pytest.mark.parametrize('category, logged_before, logged_after', [
-        ('init', True, False), ('url', False, True), ('js', False, True)])
+    @pytest.mark.parametrize('category, filter_str, logged_before, logged_after', [
+        ('init', 'url,js', True, False),
+        ('url', 'url,js', False, True),
+        ('js', 'url,js', False, True),
+        ('js', 'none', False, True),
+    ])
     def test_debug_log_filter_cmd(self, monkeypatch, logger, category,
-                                  logged_before, logged_after):
+                                  filter_str, logged_before, logged_after):
         """Test the :debug-log-filter command handler."""
-        logfilter = log.LogFilter(["init"])
+        logfilter = log.LogFilter({"init"})
         monkeypatch.setattr(log, 'console_filter', logfilter)
 
         record = self._make_record(logger, category)
@@ -170,6 +176,37 @@ class TestLogFilter:
         assert logfilter.filter(record) == logged_before
         utilcmds.debug_log_filter('url,js')
         assert logfilter.filter(record) == logged_after
+
+    def test_debug_log_filter_cmd_invalid(self, monkeypatch):
+        logfilter = log.LogFilter(set())
+        monkeypatch.setattr(log, 'console_filter', logfilter)
+        with pytest.raises(cmdutils.CommandError,
+                           match='Invalid log category blabla'):
+            utilcmds.debug_log_filter('blabla')
+
+    @pytest.mark.parametrize('filter_str, expected_names, negated', [
+        ('!js,misc', {'js', 'misc'}, True),
+        ('js,misc', {'js', 'misc'}, False),
+        ('js, misc', {'js', 'misc'}, False),
+        ('JS, Misc', {'js', 'misc'}, False),
+        (None, set(), False),
+        ('none', set(), False),
+    ])
+    def test_parsing(self, filter_str, expected_names, negated):
+        logfilter = log.LogFilter.parse(filter_str)
+        assert logfilter.names == expected_names
+        assert logfilter.negated == negated
+
+    @pytest.mark.parametrize('filter_str, invalid', [
+        ('js,!misc', '!misc'),
+        ('blabla,js,blablub', 'blabla, blablub'),
+    ])
+    def test_parsing_invalid(self, filter_str, invalid):
+        with pytest.raises(
+                log.InvalidLogFilterError,
+                match='Invalid log category {} - '
+                'valid categories: statusbar, .*'.format(invalid)):
+            log.LogFilter.parse(filter_str)
 
 
 @pytest.mark.parametrize('data, expected', [
@@ -199,7 +236,7 @@ class TestInitLog:
 
     def _get_default_args(self):
         return argparse.Namespace(debug=True, loglevel='debug', color=True,
-                                  loglines=10, logfilter="", force_color=False,
+                                  loglines=10, logfilter=None, force_color=False,
                                   json_logging=False, debug_flags=set())
 
     @pytest.fixture(autouse=True)
@@ -217,9 +254,13 @@ class TestInitLog:
         return self._get_default_args()
 
     @pytest.fixture
-    def empty_args(self):
+    def parser(self):
+        return qutebrowser.get_argparser()
+
+    @pytest.fixture
+    def empty_args(self, parser):
         """Logging commandline arguments without any customization."""
-        return qutebrowser.get_argparser().parse_args([])
+        return parser.parse_args([])
 
     def test_stderr_none(self, args):
         """Test init_log with sys.stderr = None."""
@@ -227,22 +268,6 @@ class TestInitLog:
         sys.stderr = None
         log.init_log(args)
         sys.stderr = old_stderr
-
-    @pytest.mark.parametrize('logfilter, expected_names, negated', [
-        ('!one,two', ['one', 'two'], True),
-        ('one,two', ['one', 'two'], False),
-        ('one,!two', ['one', '!two'], False),
-        (None, None, False),
-    ])
-    def test_negation_parser(self, args, mocker,
-                             logfilter, expected_names, negated):
-        """Test parsing the --logfilter argument."""
-        filter_mock = mocker.patch('qutebrowser.utils.log.LogFilter',
-                                   autospec=True)
-        args.logfilter = logfilter
-        log.init_log(args)
-        assert filter_mock.called
-        assert filter_mock.call_args[0] == (expected_names, negated)
 
     def test_python_warnings(self, args, caplog):
         log.init_log(args)
@@ -310,6 +335,11 @@ class TestInitLog:
         config_stub.val.logging.level.console = 'debug'
         log.init_from_config(config_stub.val)
         assert log.console_handler.formatter._fmt == log.EXTENDED_FMT
+
+    def test_logfilter(self, parser):
+        args = parser.parse_args(['--logfilter', 'misc'])
+        log.init_log(args)
+        assert log.console_filter.names == {'misc'}
 
 
 class TestHideQtWarning:
