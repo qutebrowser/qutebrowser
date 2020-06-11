@@ -809,7 +809,7 @@ Show a warning message in the statusbar.
 
 [[messages]]
 === messages
-Syntax: +:messages [*--plain*] [*--tab*] [*--bg*] [*--window*] ['level']+
+Syntax: +:messages [*--plain*] [*--tab*] [*--bg*] [*--window*] [*--logfilter* 'logfilter'] ['level']+
 
 Show a log of past messages.
 
@@ -822,6 +822,9 @@ Show a log of past messages.
 * +*-t*+, +*--tab*+: Open in a new tab.
 * +*-b*+, +*--bg*+: Open in a background tab.
 * +*-w*+, +*--window*+: Open in a new window.
+* +*-f*+, +*--logfilter*+: A comma-separated filter string of logging categories. If the filter string starts with an exclamation mark, it
+ is negated.
+
 
 [[navigate]]
 === navigate

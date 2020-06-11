@@ -589,15 +589,20 @@ class LogFilter(logging.Filter):
     Attributes:
         names: A set of logging names to allow.
         negated: Whether names is a set of names to log or to suppress.
+        only_debug: Only filter debug logs, always show anything more important
+                    than debug.
     """
 
-    def __init__(self, names: typing.Set[str], negated: bool = False) -> None:
+    def __init__(self, names: typing.Set[str], *, negated: bool = False,
+                 only_debug: bool = True) -> None:
         super().__init__()
         self.names = names
         self.negated = negated
+        self.only_debug = only_debug
 
     @classmethod
-    def parse(cls, filter_str: typing.Optional[str]) -> 'LogFilter':
+    def parse(cls, filter_str: typing.Optional[str], *,
+              only_debug: bool = True) -> 'LogFilter':
         """Parse a log filter from a string."""
         if filter_str is None or filter_str == 'none':
             names = set()
@@ -616,19 +621,20 @@ class LogFilter(logging.Filter):
         if not names.issubset(LOGGER_NAMES):
             raise InvalidLogFilterError(names)
 
-        return cls(names=names, negated=negated)
+        return cls(names=names, negated=negated, only_debug=only_debug)
 
     def update_from(self, other: 'LogFilter') -> None:
         """Update this filter's properties from another filter."""
         self.names = other.names
         self.negated = other.negated
+        self.only_debug = other.only_debug
 
     def filter(self, record: logging.LogRecord) -> bool:
         """Determine if the specified record is to be logged."""
         if not self.names:
             # No filter
             return True
-        elif record.levelno > logging.DEBUG:
+        elif record.levelno > logging.DEBUG and self.only_debug:
             # More important than DEBUG, so we won't filter at all
             return True
         elif record.name.split('.')[0] in self.names:
@@ -660,14 +666,23 @@ class RAMHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:
         self._data.append(record)
 
-    def dump_log(self, html: bool = False, level: str = 'vdebug') -> str:
+    def dump_log(self, html: bool = False, level: str = 'vdebug',
+                 logfilter: LogFilter = None) -> str:
         """Dump the complete formatted log data as string.
 
         FIXME: We should do all the HTML formatting via jinja2.
         (probably obsolete when moving to a widget for logging,
         https://github.com/qutebrowser/qutebrowser/issues/34
+
+        Args:
+            html: Produce HTML rather than plaintext output.
+            level: The minimal loglevel to show.
+            logfilter: A LogFilter instance used to filter log lines.
         """
         minlevel = LOG_LEVELS.get(level.upper(), VDEBUG_LEVEL)
+
+        if logfilter is None:
+            logfilter = LogFilter(set())
 
         if html:
             assert self.html_formatter is not None
@@ -679,7 +694,8 @@ class RAMHandler(logging.Handler):
         try:
             lines = [fmt(record)
                      for record in self._data
-                     if record.levelno >= minlevel]
+                     if record.levelno >= minlevel and
+                     logfilter.filter(record)]
         finally:
             self.release()
         return '\n'.join(lines)

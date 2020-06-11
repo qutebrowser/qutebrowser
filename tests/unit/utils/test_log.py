@@ -142,7 +142,7 @@ class TestLogFilter:
 
         (Blame @toofar for this comment)
         """
-        logfilter = log.LogFilter(filters, negated)
+        logfilter = log.LogFilter(filters, negated=negated)
         record = self._make_record(logger, category)
         assert logfilter.filter(record) == logged
 
@@ -152,12 +152,12 @@ class TestLogFilter:
         logfilter = log.LogFilter(filters, negated=False)
         benchmark(lambda: logfilter.filter(record))
 
-    @pytest.mark.parametrize('category', ['eggs', 'bacon'])
-    def test_debug(self, logger, category):
+    @pytest.mark.parametrize('only_debug', [True, False])
+    def test_debug(self, logger, only_debug):
         """Test if messages more important than debug are never filtered."""
-        logfilter = log.LogFilter({'eggs'})
-        record = self._make_record(logger, category, level=logging.INFO)
-        assert logfilter.filter(record)
+        logfilter = log.LogFilter({'eggs'}, only_debug=only_debug)
+        record = self._make_record(logger, 'bacon', level=logging.INFO)
+        assert logfilter.filter(record) == only_debug
 
     @pytest.mark.parametrize('category, filter_str, logged_before, logged_after', [
         ('init', 'url,js', True, False),

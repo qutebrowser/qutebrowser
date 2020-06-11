@@ -168,7 +168,7 @@ Feature: Miscellaneous utility commands exposed to the user.
 
     Scenario: Using debug-log-filter with invalid filter
         When I run :debug-log-filter blah
-        Then the error "filters: Invalid value blah - expected one of: statusbar, *" should be shown
+        Then the error "Invalid log category blah - valid categories: statusbar, *" should be shown
 
     Scenario: Using debug-log-filter
         When I run :debug-log-filter commands,ipc,webview
