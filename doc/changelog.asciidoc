@@ -18,6 +18,12 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v1.13.0 (unreleased)
 --------------------
 
+Removed
+~~~~~~~
+
+- The `:debug-log-level` command was removed as it's replaced by the new
+  `logging.level.console` setting.
+
 Changed
 ~~~~~~~
 
