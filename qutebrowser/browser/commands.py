@@ -1402,7 +1402,7 @@ class CommandDispatcher:
         query = QUrlQuery()
         query.addQueryItem('level', level)
         if plain:
-            query.addQueryItem('plain', None)
+            query.addQueryItem('plain', typing.cast(str, None))
 
         url = QUrl('qute://log')
         url.setQuery(query)
