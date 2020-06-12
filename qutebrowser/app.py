@@ -485,7 +485,9 @@ class Application(QApplication):
         self._last_focus_object = None
 
         qt_args = configinit.qt_args(args)
-        log.init.debug("Qt arguments: {}, based on {}".format(qt_args, args))
+        log.init.debug("Commandline args: {}".format(sys.argv[1:]))
+        log.init.debug("Parsed: {}".format(args))
+        log.init.debug("Qt arguments: {}".format(qt_args[1:]))
         super().__init__(qt_args)
 
         objects.args = args

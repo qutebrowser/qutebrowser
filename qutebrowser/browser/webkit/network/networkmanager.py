@@ -105,7 +105,7 @@ def _is_secure_cipher(cipher):
 def init():
     """Disable insecure SSL ciphers on old Qt versions."""
     default_ciphers = QSslSocket.defaultCiphers()
-    log.init.debug("Default Qt ciphers: {}".format(
+    log.init.vdebug("Default Qt ciphers: {}".format(
         ', '.join(c.name() for c in default_ciphers)))
 
     good_ciphers = []
@@ -116,9 +116,10 @@ def init():
         else:
             bad_ciphers.append(cipher)
 
-    log.init.debug("Disabling bad ciphers: {}".format(
-        ', '.join(c.name() for c in bad_ciphers)))
-    QSslSocket.setDefaultCiphers(good_ciphers)
+    if bad_ciphers:
+        log.init.debug("Disabling bad ciphers: {}".format(
+            ', '.join(c.name() for c in bad_ciphers)))
+        QSslSocket.setDefaultCiphers(good_ciphers)
 
 
 _SavedErrorsType = typing.MutableMapping[urlutils.HostTupleType,
