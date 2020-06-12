@@ -2619,11 +2619,6 @@ colors.webpage.prefers_color_scheme_dark:
 
 ## dark mode
 
-# darkModeClassifierType is not exposed, as the icon classifier isn't actually
-# implemented in Chromium:
-#
-# https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/platform/graphics/dark_mode_icon_classifier.cc
-
 colors.webpage.darkmode.enabled:
   default: false
   type: Bool
