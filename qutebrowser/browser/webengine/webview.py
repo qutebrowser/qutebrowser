@@ -19,6 +19,8 @@
 
 """The main browser widget for QtWebEngine."""
 
+import typing
+
 from PyQt5.QtCore import pyqtSignal, QUrl, PYQT_VERSION
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QWidget
@@ -68,7 +70,7 @@ class WebEngineView(QWebEngineView):
 
         The above bug got introduced in Qt 5.11.0 and fixed in 5.12.0.
         """
-        proxy = self.focusProxy()
+        proxy = self.focusProxy()  # type: typing.Optional[QWidget]
 
         if 'lost-focusproxy' in objects.debug_flags:
             proxy = None
@@ -85,7 +87,7 @@ class WebEngineView(QWebEngineView):
 
         if children:
             log.webview.debug("Found possibly lost focusProxy: {}"
-                            .format(children))
+                              .format(children))
 
         return children[-1] if children else None
 

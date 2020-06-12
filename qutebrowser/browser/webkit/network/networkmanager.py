@@ -105,8 +105,9 @@ def _is_secure_cipher(cipher):
 def init():
     """Disable insecure SSL ciphers on old Qt versions."""
     default_ciphers = QSslSocket.defaultCiphers()
-    log.init.vdebug("Default Qt ciphers: {}".format(
-        ', '.join(c.name() for c in default_ciphers)))
+    log.init.vdebug(  # type: ignore[attr-defined]
+        "Default Qt ciphers: {}".format(
+            ', '.join(c.name() for c in default_ciphers)))
 
     good_ciphers = []
     bad_ciphers = []
