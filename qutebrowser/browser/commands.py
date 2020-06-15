@@ -1384,24 +1384,40 @@ class CommandDispatcher:
         self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def messages(self, level='info', plain=False, tab=False, bg=False,
-                 window=False):
+    @cmdutils.argument('logfilter', flag='f')
+    def messages(self, level='info', *, plain=False, tab=False, bg=False,
+                 window=False, logfilter=None):
         """Show a log of past messages.
 
         Args:
             level: Include messages with `level` or higher severity.
                    Valid values: vdebug, debug, info, warning, error, critical.
             plain: Whether to show plaintext (as opposed to html).
+            logfilter: A comma-separated filter string of logging categories.
+                       If the filter string starts with an exclamation mark, it
+                       is negated.
             tab: Open in a new tab.
             bg: Open in a background tab.
             window: Open in a new window.
         """
         if level.upper() not in log.LOG_LEVELS:
             raise cmdutils.CommandError("Invalid log level {}!".format(level))
+
+        query = QUrlQuery()
+        query.addQueryItem('level', level)
         if plain:
-            url = QUrl('qute://plainlog?level={}'.format(level))
-        else:
-            url = QUrl('qute://log?level={}'.format(level))
+            query.addQueryItem('plain', typing.cast(str, None))
+
+        if logfilter:
+            try:
+                log.LogFilter.parse(logfilter)
+            except log.InvalidLogFilterError as e:
+                raise cmdutils.CommandError(e)
+            query.addQueryItem('logfilter', logfilter)
+
+        url = QUrl('qute://log')
+        url.setQuery(query)
+
         self._open(url, tab, bg, window)
 
     def _open_editor_cb(self, elem):

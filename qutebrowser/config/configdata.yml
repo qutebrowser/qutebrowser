@@ -1564,10 +1564,15 @@ spellcheck.languages:
 
 ## statusbar
 
-statusbar.hide:
-  type: Bool
-  default: false
-  desc: Hide the statusbar unless a message is shown.
+statusbar.show:
+  default: always
+  type:
+    name: String
+    valid_values:
+    - always: Always show the statusbar.
+    - never: Always hide the statusbar.
+    - in-mode: Show the statusbar when in modes other than normal mode.
+  desc: When to show the statusbar.
 
 statusbar.padding:
   type: Padding
@@ -2619,11 +2624,6 @@ colors.webpage.prefers_color_scheme_dark:
 
 ## dark mode
 
-# darkModeClassifierType is not exposed, as the icon classifier isn't actually
-# implemented in Chromium:
-#
-# https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/platform/graphics/dark_mode_icon_classifier.cc
-
 colors.webpage.darkmode.enabled:
   default: false
   type: Bool
@@ -2695,7 +2695,12 @@ colors.webpage.darkmode.policy.images:
       - always: Apply dark mode filter to all images.
       - never: Never apply dark mode filter to any images.
       - smart: Apply dark mode based on image content.
-  desc: Which images to apply dark mode to.
+  desc: >-
+      Which images to apply dark mode to.
+
+      WARNING: On Qt 5.15.0, this setting can cause frequent renderer process
+      crashes due to a
+      https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug in Qt].
   restart: true
   backend:
     QtWebEngine: Qt 5.14
@@ -2834,7 +2839,7 @@ fonts.contextmenu:
 
 fonts.debug_console:
   default: default_size default_family
-  type: QtFont
+  type: Font
   desc: Font used for the debugging console.
 
 fonts.downloads:
@@ -2877,10 +2882,15 @@ fonts.statusbar:
   type: Font
   desc: Font used in the statusbar.
 
-fonts.tabs:
+fonts.tabs.selected:
   default: default_size default_family
-  type: QtFont
-  desc: Font used in the tab bar.
+  type: Font
+  desc: Font used for selected tabs.
+
+fonts.tabs.unselected:
+  default: default_size default_family
+  type: Font
+  desc: Font used for unselected tabs.
 
 fonts.web.family.standard:
   default: ''
@@ -3173,6 +3183,12 @@ bindings.default:
       tIH: config-cycle -p -u *://*.{url:host}/* content.images ;; reload
       tiu: config-cycle -p -t -u {url} content.images ;; reload
       tIu: config-cycle -p -u {url} content.images ;; reload
+      tch: config-cycle -p -t -u *://{url:host}/* content.cookies.accept all no-3rdparty never ;; reload
+      tCh: config-cycle -p -u *://{url:host}/* content.cookies.accept all no-3rdparty never ;; reload
+      tcH: config-cycle -p -t -u *://*.{url:host}/* content.cookies.accept all no-3rdparty never ;; reload
+      tCH: config-cycle -p -u *://*.{url:host}/* content.cookies.accept all no-3rdparty never ;; reload
+      tcu: config-cycle -p -t -u {url} content.cookies.accept all no-3rdparty never ;; reload
+      tCu: config-cycle -p -u {url} content.cookies.accept all no-3rdparty never ;; reload
     insert:
       <Ctrl-E>: open-editor
       <Shift-Ins>: insert-text -- {primary}
@@ -3389,3 +3405,18 @@ bindings.commands:
 
     * register: Entered when qutebrowser is waiting for a register name/key for
       commands like `:set-mark`.
+
+## logging
+
+logging.level.ram:
+  default: debug
+  type: LogLevel
+  desc:
+    Level for in-memory logs.
+
+logging.level.console:
+  default: info
+  type: LogLevel
+  desc:  >-
+    Level for console (stdout/stderr) logs.
+    Ignored if the `--loglevel` or `--debug` CLI flags are used.

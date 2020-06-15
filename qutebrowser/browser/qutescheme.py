@@ -307,42 +307,45 @@ def qute_version(_url):
     return 'text/html', src
 
 
-@add_handler('plainlog')
-def qute_plainlog(url: QUrl) -> _HandlerRet:
-    """Handler for qute://plainlog.
-
-    An optional query parameter specifies the minimum log level to print.
-    For example, qute://log?level=warning prints warnings and errors.
-    Level can be one of: vdebug, debug, info, warning, error, critical.
-    """
-    if log.ram_handler is None:
-        text = "Log output was disabled."
-    else:
-        level = QUrlQuery(url).queryItemValue('level')
-        if not level:
-            level = 'vdebug'
-        text = log.ram_handler.dump_log(html=False, level=level)
-    src = jinja.render('pre.html', title='log', content=text)
-    return 'text/html', src
-
-
 @add_handler('log')
 def qute_log(url: QUrl) -> _HandlerRet:
     """Handler for qute://log.
 
-    An optional query parameter specifies the minimum log level to print.
+    There are three query parameters:
+
+    - level: The minimum log level to print.
     For example, qute://log?level=warning prints warnings and errors.
     Level can be one of: vdebug, debug, info, warning, error, critical.
+
+    - plain: If given (and not 'false'), plaintext is shown.
+
+    - logfilter: A filter string like the --logfilter commandline argument
+      accepts.
     """
+    query = QUrlQuery(url)
+    plain = (query.hasQueryItem('plain') and
+             query.queryItemValue('plain').lower() != 'false')
+
     if log.ram_handler is None:
-        html_log = None
+        content = "Log output was disabled." if plain else None
     else:
-        level = QUrlQuery(url).queryItemValue('level')
+        level = query.queryItemValue('level')
         if not level:
             level = 'vdebug'
-        html_log = log.ram_handler.dump_log(html=True, level=level)
 
-    src = jinja.render('log.html', title='log', content=html_log)
+        filter_str = query.queryItemValue('logfilter')
+
+        try:
+            logfilter = (log.LogFilter.parse(filter_str, only_debug=False)
+                         if filter_str else None)
+        except log.InvalidLogFilterError as e:
+            raise UrlInvalidError(e)
+
+        content = log.ram_handler.dump_log(html=not plain,
+                                           level=level, logfilter=logfilter)
+
+    template = 'pre.html' if plain else 'log.html'
+    src = jinja.render(template, title='log', content=content)
     return 'text/html', src
 
 

@@ -373,12 +373,23 @@ def open_desktopservices_url(url):
     tabbed_browser.tabopen(url)
 
 
+# This is effectively a @config.change_filter
+# Howerver, logging is initialized too early to use that annotation
+def _on_config_changed(name: str) -> None:
+    if name.startswith('logging.'):
+        log.init_from_config(config.val)
+
+
 def _init_modules(*, args):
     """Initialize all 'modules' which need to be initialized.
 
     Args:
         args: The argparse namespace.
     """
+    log.init.debug("Initializing logging from config...")
+    log.init_from_config(config.val)
+    config.instance.changed.connect(_on_config_changed)
+
     log.init.debug("Initializing save manager...")
     save_manager = savemanager.SaveManager(q_app)
     objreg.register('save-manager', save_manager)
@@ -474,7 +485,9 @@ class Application(QApplication):
         self._last_focus_object = None
 
         qt_args = configinit.qt_args(args)
-        log.init.debug("Qt arguments: {}, based on {}".format(qt_args, args))
+        log.init.debug("Commandline args: {}".format(sys.argv[1:]))
+        log.init.debug("Parsed: {}".format(args))
+        log.init.debug("Qt arguments: {}".format(qt_args[1:]))
         super().__init__(qt_args)
 
         objects.args = args

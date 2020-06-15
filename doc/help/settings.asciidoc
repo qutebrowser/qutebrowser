@@ -214,7 +214,8 @@
 |<<fonts.messages.warning,fonts.messages.warning>>|Font used for warning messages.
 |<<fonts.prompts,fonts.prompts>>|Font used for prompts.
 |<<fonts.statusbar,fonts.statusbar>>|Font used in the statusbar.
-|<<fonts.tabs,fonts.tabs>>|Font used in the tab bar.
+|<<fonts.tabs.selected,fonts.tabs.selected>>|Font used for selected tabs.
+|<<fonts.tabs.unselected,fonts.tabs.unselected>>|Font used for unselected tabs.
 |<<fonts.web.family.cursive,fonts.web.family.cursive>>|Font family for cursive fonts.
 |<<fonts.web.family.fantasy,fonts.web.family.fantasy>>|Font family for fantasy fonts.
 |<<fonts.web.family.fixed,fonts.web.family.fixed>>|Font family for fixed fonts.
@@ -258,6 +259,8 @@
 |<<keyhint.blacklist,keyhint.blacklist>>|Keychains that shouldn't be shown in the keyhint dialog.
 |<<keyhint.delay,keyhint.delay>>|Time (in milliseconds) from pressing a key to seeing the keyhint dialog.
 |<<keyhint.radius,keyhint.radius>>|Rounding radius (in pixels) for the edges of the keyhint dialog.
+|<<logging.level.console,logging.level.console>>|Level for console (stdout/stderr) logs. Ignored if the `--loglevel` or `--debug` CLI flags are used.
+|<<logging.level.ram,logging.level.ram>>|Level for in-memory logs.
 |<<messages.timeout,messages.timeout>>|Duration (in milliseconds) to show messages in the statusbar for.
 |<<new_instance_open_target,new_instance_open_target>>|How to open links in an existing instance if a new one is launched.
 |<<new_instance_open_target_window,new_instance_open_target_window>>|Which window to choose when opening links as new tabs.
@@ -278,9 +281,9 @@
 |<<session.default_name,session.default_name>>|Name of the session to save by default.
 |<<session.lazy_restore,session.lazy_restore>>|Load a restored tab as soon as it takes focus.
 |<<spellcheck.languages,spellcheck.languages>>|Languages to use for spell checking.
-|<<statusbar.hide,statusbar.hide>>|Hide the statusbar unless a message is shown.
 |<<statusbar.padding,statusbar.padding>>|Padding (in pixels) for the statusbar.
 |<<statusbar.position,statusbar.position>>|Position of the status bar.
+|<<statusbar.show,statusbar.show>>|When to show the statusbar.
 |<<statusbar.widgets,statusbar.widgets>>|List of widgets displayed in the statusbar.
 |<<tabs.background,tabs.background>>|Open new tabs (middleclick/ctrl+click) in the background.
 |<<tabs.close_mouse_button,tabs.close_mouse_button>>|Mouse button with which to close tabs.
@@ -649,6 +652,9 @@ Default:
 * +pass:[sk]+: +pass:[set-cmd-text -s :bind]+
 * +pass:[sl]+: +pass:[set-cmd-text -s :set -t]+
 * +pass:[ss]+: +pass:[set-cmd-text -s :set]+
+* +pass:[tCH]+: +pass:[config-cycle -p -u *://*.{url:host}/* content.cookies.accept all no-3rdparty never ;; reload]+
+* +pass:[tCh]+: +pass:[config-cycle -p -u *://{url:host}/* content.cookies.accept all no-3rdparty never ;; reload]+
+* +pass:[tCu]+: +pass:[config-cycle -p -u {url} content.cookies.accept all no-3rdparty never ;; reload]+
 * +pass:[tIH]+: +pass:[config-cycle -p -u *://*.{url:host}/* content.images ;; reload]+
 * +pass:[tIh]+: +pass:[config-cycle -p -u *://{url:host}/* content.images ;; reload]+
 * +pass:[tIu]+: +pass:[config-cycle -p -u {url} content.images ;; reload]+
@@ -658,6 +664,9 @@ Default:
 * +pass:[tSH]+: +pass:[config-cycle -p -u *://*.{url:host}/* content.javascript.enabled ;; reload]+
 * +pass:[tSh]+: +pass:[config-cycle -p -u *://{url:host}/* content.javascript.enabled ;; reload]+
 * +pass:[tSu]+: +pass:[config-cycle -p -u {url} content.javascript.enabled ;; reload]+
+* +pass:[tcH]+: +pass:[config-cycle -p -t -u *://*.{url:host}/* content.cookies.accept all no-3rdparty never ;; reload]+
+* +pass:[tch]+: +pass:[config-cycle -p -t -u *://{url:host}/* content.cookies.accept all no-3rdparty never ;; reload]+
+* +pass:[tcu]+: +pass:[config-cycle -p -t -u {url} content.cookies.accept all no-3rdparty never ;; reload]+
 * +pass:[th]+: +pass:[back -t]+
 * +pass:[tiH]+: +pass:[config-cycle -p -t -u *://*.{url:host}/* content.images ;; reload]+
 * +pass:[tih]+: +pass:[config-cycle -p -t -u *://{url:host}/* content.images ;; reload]+
@@ -1635,6 +1644,7 @@ On QtWebKit, this setting is unavailable.
 [[colors.webpage.darkmode.policy.images]]
 === colors.webpage.darkmode.policy.images
 Which images to apply dark mode to.
+WARNING: On Qt 5.15.0, this setting can cause frequent renderer process crashes due to a https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug in Qt].
 This setting requires a restart.
 
 Type: <<types,String>>
@@ -2698,7 +2708,7 @@ Default: empty
 === fonts.debug_console
 Font used for the debugging console.
 
-Type: <<types,QtFont>>
+Type: <<types,Font>>
 
 Default: +pass:[default_size default_family]+
 
@@ -2786,11 +2796,19 @@ Type: <<types,Font>>
 
 Default: +pass:[default_size default_family]+
 
-[[fonts.tabs]]
-=== fonts.tabs
-Font used in the tab bar.
+[[fonts.tabs.selected]]
+=== fonts.tabs.selected
+Font used for selected tabs.
 
-Type: <<types,QtFont>>
+Type: <<types,Font>>
+
+Default: +pass:[default_size default_family]+
+
+[[fonts.tabs.unselected]]
+=== fonts.tabs.unselected
+Font used for unselected tabs.
+
+Type: <<types,Font>>
 
 Default: +pass:[default_size default_family]+
 
@@ -3257,6 +3275,40 @@ Type: <<types,Int>>
 
 Default: +pass:[6]+
 
+[[logging.level.console]]
+=== logging.level.console
+Level for console (stdout/stderr) logs. Ignored if the `--loglevel` or `--debug` CLI flags are used.
+
+Type: <<types,LogLevel>>
+
+Valid values:
+
+ * +vdebug+
+ * +debug+
+ * +info+
+ * +warning+
+ * +error+
+ * +critical+
+
+Default: +pass:[info]+
+
+[[logging.level.ram]]
+=== logging.level.ram
+Level for in-memory logs.
+
+Type: <<types,LogLevel>>
+
+Valid values:
+
+ * +vdebug+
+ * +debug+
+ * +info+
+ * +warning+
+ * +error+
+ * +critical+
+
+Default: +pass:[debug]+
+
 [[messages.timeout]]
 === messages.timeout
 Duration (in milliseconds) to show messages in the statusbar for.
@@ -3549,14 +3601,6 @@ On QtWebEngine, this setting requires Qt 5.8 or newer.
 
 On QtWebKit, this setting is unavailable.
 
-[[statusbar.hide]]
-=== statusbar.hide
-Hide the statusbar unless a message is shown.
-
-Type: <<types,Bool>>
-
-Default: +pass:[false]+
-
 [[statusbar.padding]]
 === statusbar.padding
 Padding (in pixels) for the statusbar.
@@ -3582,6 +3626,20 @@ Valid values:
  * +bottom+
 
 Default: +pass:[bottom]+
+
+[[statusbar.show]]
+=== statusbar.show
+When to show the statusbar.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +always+: Always show the statusbar.
+ * +never+: Always hide the statusbar.
+ * +in-mode+: Show the statusbar when in modes other than normal mode.
+
+Default: +pass:[always]+
 
 [[statusbar.widgets]]
 === statusbar.widgets
@@ -4179,6 +4237,7 @@ Lists with duplicate flags are invalid. Each item is checked against the valid v
 
 When setting from a string, pass a json-like list, e.g. `["one", "two"]`.
 |ListOrValue|A list of values, or a single value.
+|LogLevel|A logging level.
 |NewTabPosition|How new tabs are positioned.
 |Padding|Setting for paddings around elements.
 |Perc|A percentage.
@@ -4191,9 +4250,6 @@ A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/
 |QtColor|A color value.
 
 A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
-|QtFont|A font family, with optional style/weight/size.
-
-* Style: `normal`/`italic`/`oblique` * Weight: `normal`, `bold`, `100`..`900` * Size: _number_ `px`/`pt`
 |Regex|A regular expression.
 
 When setting from `config.py`, both a string or a `re.compile(...)` object are valid.

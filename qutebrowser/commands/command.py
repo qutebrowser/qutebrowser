@@ -334,8 +334,8 @@ class Command:
         Args:
             param: The inspect.Parameter to look at.
         """
-        arginfo = self.get_arg_info(param)
-        if arginfo.value:
+        arg_info = self.get_arg_info(param)
+        if arg_info.value:
             # Filled values are passed 1:1
             return None
         elif param.kind in [inspect.Parameter.VAR_POSITIONAL,

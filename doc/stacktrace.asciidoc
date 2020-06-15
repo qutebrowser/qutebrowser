@@ -34,6 +34,27 @@ is available in the repositories:
 # apt-get install python3-pyqt5-dbg python3-pyqt5.qtwebkit-dbg python3-dbg libqt5webkit5-dbg
 ----
 
+Fedora
+^^^^^^
+
+For Fedora you first need to install the dnf/yum-utils:
+
+----
+# dnf install dnf-utils
+----
+
+Or:
+
+----
+# yum install yum-utils
+----
+
+Then install the needed debuginfo packages:
+
+----
+# debuginfo-install python3 qt5-qtwebengine python3-qt5-webengine python3-qt5-base python-qt5 python3-qt5 python3-qt5-webkit
+----
+
 Archlinux
 ^^^^^^^^^
 

@@ -40,9 +40,9 @@ webengine_refactoring_xfail = pytest.mark.xfail(
 
 
 @pytest.fixture
-def sess_man(tmpdir):
+def sess_man(tmp_path):
     """Fixture providing a SessionManager."""
-    return sessions.SessionManager(base_path=str(tmpdir))
+    return sessions.SessionManager(base_path=str(tmp_path))
 
 
 class TestInit:
@@ -57,11 +57,12 @@ class TestInit:
             pass
 
     @pytest.mark.parametrize('create_dir', [True, False])
-    def test_with_standarddir(self, tmpdir, monkeypatch, create_dir):
-        monkeypatch.setattr(sessions.standarddir, 'data', lambda: str(tmpdir))
-        session_dir = tmpdir / 'sessions'
+    def test_with_standarddir(self, tmp_path, monkeypatch, create_dir):
+        monkeypatch.setattr(sessions.standarddir, 'data',
+                            lambda: str(tmp_path))
+        session_dir = tmp_path / 'sessions'
         if create_dir:
-            session_dir.ensure(dir=True)
+            session_dir.mkdir()
 
         sessions.init()
 
@@ -76,14 +77,14 @@ def test_did_not_load(sess_man):
 class TestExists:
 
     @pytest.mark.parametrize('absolute', [True, False])
-    def test_existent(self, tmpdir, absolute):
-        session_dir = tmpdir / 'sessions'
-        abs_session = tmpdir / 'foo.yml'
+    def test_existent(self, tmp_path, absolute):
+        session_dir = tmp_path / 'sessions'
+        abs_session = tmp_path / 'foo.yml'
         rel_session = session_dir / 'foo.yml'
 
-        session_dir.ensure(dir=True)
-        abs_session.ensure()
-        rel_session.ensure()
+        session_dir.mkdir()
+        abs_session.touch()
+        rel_session.touch()
 
         man = sessions.SessionManager(str(session_dir))
 
@@ -95,11 +96,11 @@ class TestExists:
         assert man.exists(name)
 
     @pytest.mark.parametrize('absolute', [True, False])
-    def test_inexistent(self, tmpdir, absolute):
-        man = sessions.SessionManager(str(tmpdir))
+    def test_inexistent(self, tmp_path, absolute):
+        man = sessions.SessionManager(str(tmp_path))
 
         if absolute:
-            name = str(tmpdir / 'foo')
+            name = str(tmp_path / 'foo')
         else:
             name = 'foo'
 
@@ -208,13 +209,13 @@ class TestSave:
         objreg.delete('main-window', scope='window', window=0)
         objreg.delete('tabbed-browser', scope='window', window=0)
 
-    def test_no_state_config(self, sess_man, tmpdir, state_config):
-        session_path = tmpdir / 'foo.yml'
+    def test_no_state_config(self, sess_man, tmp_path, state_config):
+        session_path = tmp_path / 'foo.yml'
         sess_man.save(str(session_path))
         assert 'session' not in state_config['general']
 
-    def test_last_window_session_none(self, caplog, sess_man, tmpdir):
-        session_path = tmpdir / 'foo.yml'
+    def test_last_window_session_none(self, caplog, sess_man, tmp_path):
+        session_path = tmp_path / 'foo.yml'
         with caplog.at_level(logging.ERROR):
             sess_man.save(str(session_path), last_window=True)
 
@@ -222,9 +223,9 @@ class TestSave:
         assert caplog.messages == [msg]
         assert not session_path.exists()
 
-    def test_last_window_session(self, sess_man, tmpdir):
+    def test_last_window_session(self, sess_man, tmp_path):
         sess_man.save_last_window_session()
-        session_path = tmpdir / 'foo.yml'
+        session_path = tmp_path / 'foo.yml'
         sess_man.save(str(session_path), last_window=True)
         data = session_path.read_text('utf-8')
         assert data == 'windows: []\n'
@@ -232,24 +233,24 @@ class TestSave:
     @pytest.mark.parametrize('exception', [
         OSError('foo'), UnicodeEncodeError('ascii', '', 0, 2, 'foo'),
         yaml.YAMLError('foo')])
-    def test_fake_exception(self, mocker, sess_man, tmpdir, exception):
+    def test_fake_exception(self, mocker, sess_man, tmp_path, exception):
         mocker.patch('qutebrowser.misc.sessions.yaml.dump',
                      side_effect=exception)
 
         with pytest.raises(sessions.SessionError, match=str(exception)):
-            sess_man.save(str(tmpdir / 'foo.yml'))
+            sess_man.save(str(tmp_path / 'foo.yml'))
 
-        assert not tmpdir.listdir()
+        assert not list(tmp_path.glob('*'))
 
-    def test_load_next_time(self, tmpdir, state_config, sess_man):
-        session_path = tmpdir / 'foo.yml'
+    def test_load_next_time(self, tmp_path, state_config, sess_man):
+        session_path = tmp_path / 'foo.yml'
         sess_man.save(str(session_path), load_next_time=True)
         assert state_config['general']['session'] == str(session_path)
 
     @webengine_refactoring_xfail
-    def test_utf_8_invalid(self, tmpdir, sess_man, fake_history):
+    def test_utf_8_invalid(self, tmp_path, sess_man, fake_history):
         """Make sure data containing invalid UTF8 raises SessionError."""
-        session_path = tmpdir / 'foo.yml'
+        session_path = tmp_path / 'foo.yml'
         fake_history([Item(QUrl('http://www.qutebrowser.org/'), '\ud800',
                            active=True)])
 
@@ -356,18 +357,18 @@ class TestLoadTab:
 
 class TestListSessions:
 
-    def test_no_sessions(self, tmpdir):
-        sess_man = sessions.SessionManager(str(tmpdir))
+    def test_no_sessions(self, tmp_path):
+        sess_man = sessions.SessionManager(str(tmp_path))
         assert not sess_man.list_sessions()
 
-    def test_with_sessions(self, tmpdir):
-        (tmpdir / 'foo.yml').ensure()
-        (tmpdir / 'bar.yml').ensure()
-        sess_man = sessions.SessionManager(str(tmpdir))
+    def test_with_sessions(self, tmp_path):
+        (tmp_path / 'foo.yml').touch()
+        (tmp_path / 'bar.yml').touch()
+        sess_man = sessions.SessionManager(str(tmp_path))
         assert sess_man.list_sessions() == ['bar', 'foo']
 
-    def test_with_other_files(self, tmpdir):
-        (tmpdir / 'foo.yml').ensure()
-        (tmpdir / 'bar.html').ensure()
-        sess_man = sessions.SessionManager(str(tmpdir))
+    def test_with_other_files(self, tmp_path):
+        (tmp_path / 'foo.yml').touch()
+        (tmp_path / 'bar.html').touch()
+        sess_man = sessions.SessionManager(str(tmp_path))
         assert sess_man.list_sessions() == ['foo']

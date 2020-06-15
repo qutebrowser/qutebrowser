@@ -20,6 +20,7 @@
 """Tests for qutebrowser.misc.ipc."""
 
 import os
+import pathlib
 import getpass
 import logging
 import json
@@ -35,7 +36,7 @@ from PyQt5.QtTest import QSignalSpy
 import qutebrowser
 from qutebrowser.misc import ipc
 from qutebrowser.utils import standarddir, utils
-from helpers import stubs
+from helpers import stubs, utils as testutils
 
 
 pytestmark = pytest.mark.usefixtures('qapp')
@@ -297,10 +298,10 @@ class TestListen:
     def test_permissions_posix(self, ipc_server):
         ipc_server.listen()
         sockfile = ipc_server._server.fullServerName()
-        sockdir = os.path.dirname(sockfile)
+        sockdir = pathlib.Path(sockfile).parent
 
         file_stat = os.stat(sockfile)
-        dir_stat = os.stat(sockdir)
+        dir_stat = sockdir.stat()
 
         # pylint: disable=no-member,useless-suppression
         file_owner_ok = file_stat.st_uid == os.getuid()
@@ -504,7 +505,7 @@ class TestSendToRunningInstance:
 
     @pytest.mark.parametrize('has_cwd', [True, False])
     @pytest.mark.linux(reason="Causes random trouble on Windows and macOS")
-    def test_normal(self, qtbot, tmpdir, ipc_server, mocker, has_cwd):
+    def test_normal(self, qtbot, tmp_path, ipc_server, mocker, has_cwd):
         ipc_server.listen()
 
         with qtbot.assertNotEmitted(ipc_server.got_invalid_data):
@@ -512,7 +513,7 @@ class TestSendToRunningInstance:
                                   timeout=5000) as blocker:
                 with qtbot.waitSignal(ipc_server.got_raw,
                                       timeout=5000) as raw_blocker:
-                    with tmpdir.as_cwd():
+                    with testutils.change_cwd(tmp_path):
                         if not has_cwd:
                             m = mocker.patch('qutebrowser.misc.ipc.os')
                             m.getcwd.side_effect = OSError
@@ -521,7 +522,7 @@ class TestSendToRunningInstance:
 
         assert sent
 
-        expected_cwd = str(tmpdir) if has_cwd else ''
+        expected_cwd = str(tmp_path) if has_cwd else ''
 
         assert blocker.args == [['foo'], '', expected_cwd]
 
@@ -529,7 +530,7 @@ class TestSendToRunningInstance:
                         'version': qutebrowser.__version__,
                         'protocol_version': ipc.PROTOCOL_VERSION}
         if has_cwd:
-            raw_expected['cwd'] = str(tmpdir)
+            raw_expected['cwd'] = str(tmp_path)
 
         assert len(raw_blocker.args) == 1
         parsed = json.loads(raw_blocker.args[0].decode('utf-8'))

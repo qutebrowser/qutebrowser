@@ -140,8 +140,29 @@ class TestRegister:
         @cmdutils.register()
         def fun(*args):
             """Blah."""
+            assert args == ['one', 'two']
+
+        objects.commands['fun'].parser.parse_args(['one', 'two'])
+
+    def test_star_args_empty(self):
+        """Check handling of *args without any value."""
+        @cmdutils.register()
+        def fun(*args):
+            """Blah."""
+            assert not args
+
         with pytest.raises(argparser.ArgumentParserError):
             objects.commands['fun'].parser.parse_args([])
+
+    def test_star_args_type(self):
+        """Check handling of *args with a type.
+
+        This isn't implemented, so be sure we catch it.
+        """
+        with pytest.raises(AssertionError):
+            @cmdutils.register()
+            def fun(*args: int):
+                """Blah."""
 
     def test_star_args_optional(self):
         """Check handling of *args withstar_args_optional."""

@@ -68,6 +68,14 @@ class NotInModeError(Exception):
     """Exception raised when we want to leave a mode we're not in."""
 
 
+class UnavailableError(Exception):
+
+    """Exception raised when trying to access modeman before initialization.
+
+    Thrown by instance() if modeman has not been initialized yet.
+    """
+
+
 def init(win_id: int, parent: QObject) -> 'ModeManager':
     """Initialize the mode manager and the keyparsers for the given win_id."""
     modeman = ModeManager(win_id, parent)
@@ -169,8 +177,16 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
 
 
 def instance(win_id: Union[int, str]) -> 'ModeManager':
-    """Get a modemanager object."""
-    return objreg.get('mode-manager', scope='window', window=win_id)
+    """Get a modemanager object.
+
+    Raises UnavailableError if there is no instance available yet.
+    """
+    mode_manager = objreg.get('mode-manager', scope='window', window=win_id,
+                              default=None)
+    if mode_manager is not None:
+        return mode_manager
+    else:
+        raise UnavailableError("ModeManager is not initialized yet.")
 
 
 def enter(win_id: int,
