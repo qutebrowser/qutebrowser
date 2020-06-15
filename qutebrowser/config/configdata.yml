@@ -2690,7 +2690,12 @@ colors.webpage.darkmode.policy.images:
       - always: Apply dark mode filter to all images.
       - never: Never apply dark mode filter to any images.
       - smart: Apply dark mode based on image content.
-  desc: Which images to apply dark mode to.
+  desc: >-
+      Which images to apply dark mode to.
+
+      WARNING: On Qt 5.15.0, this setting can cause frequent renderer process
+      crashes due to a
+      https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug in Qt].
   restart: true
   backend:
     QtWebEngine: Qt 5.14
