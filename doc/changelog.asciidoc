@@ -69,6 +69,8 @@ Fixed
 - Crash when a `pdf.js` file for PDF.js exists, but `viewer.html` does not.
 - Crash when `:completion-item-yank --sel` is used on a platform without
   primary selection support (e.g. Windows/macOS).
+- Crash when there's a feature permission request from Qt with an invalid URL
+  (which seems to happen with Qt 5.15 sometimes).
 - `:config-write-py` now works with paths starting with `~/...` again.
 - New site-specific quirk for a missing `globalThis` in Qt <= 5.12 on Reddit and Spotify
 

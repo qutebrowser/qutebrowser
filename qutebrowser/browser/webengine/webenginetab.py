@@ -969,9 +969,17 @@ class _WebEnginePermissions(QObject):
             page.setFeaturePermission, url, feature,
             QWebEnginePage.PermissionDeniedByUser)
 
+        permission_str = debug.qenum_key(QWebEnginePage, feature)
+
+        if not url.isValid():
+            log.webview.warning("Ignoring feature permission {} for invalid "
+                                "URL {}".format(permission_str, url))
+            deny_permission()
+            return
+
         if feature not in self._options:
             log.webview.error("Unhandled feature permission {}".format(
-                debug.qenum_key(QWebEnginePage, feature)))
+                permission_str))
             deny_permission()
             return
 
