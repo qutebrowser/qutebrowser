@@ -116,7 +116,7 @@ class TabEventFilter(QObject):
         Return:
             True if the event should be filtered, False otherwise.
         """
-        is_rocker_gesture = (config.val.input.rocker_gestures and
+        is_rocker_gesture = (config.val.input.mouse.rocker_gestures and
                              e.buttons() == Qt.LeftButton | Qt.RightButton)
 
         if e.button() in [Qt.XButton1, Qt.XButton2] or is_rocker_gesture:
@@ -204,7 +204,7 @@ class TabEventFilter(QObject):
         Return:
             True if the event should be filtered, False otherwise.
         """
-        return config.val.input.rocker_gestures
+        return config.val.input.mouse.rocker_gestures
 
     def _handle_key_release(self, e):
         """Ignore repeated key release events going to the website.
@@ -276,7 +276,7 @@ class TabEventFilter(QObject):
         Return:
             True if the event should be filtered, False otherwise.
         """
-        if (not config.val.input.mouse_backforward and
+        if (not config.val.input.mouse.back_forward_buttons and
                 e.button() in [Qt.XButton1, Qt.XButton2]):
             # Back and forward on mice are disabled
             return

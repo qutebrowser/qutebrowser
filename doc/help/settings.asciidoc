@@ -252,9 +252,9 @@
 |<<input.insert_mode.leave_on_load,input.insert_mode.leave_on_load>>|Leave insert mode when starting a new page load.
 |<<input.insert_mode.plugins,input.insert_mode.plugins>>|Switch to insert mode when clicking flash and other plugins.
 |<<input.links_included_in_focus_chain,input.links_included_in_focus_chain>>|Include hyperlinks in the keyboard focus chain when tabbing.
-|<<input.mouse_backforward,input.mouse_backforward>>|Enable back and forward buttons on the mouse.
+|<<input.mouse.back_forward_buttons,input.mouse.back_forward_buttons>>|Enable back and forward buttons on the mouse.
+|<<input.mouse.rocker_gestures,input.mouse.rocker_gestures>>|Enable Opera-like mouse rocker gestures.
 |<<input.partial_timeout,input.partial_timeout>>|Timeout (in milliseconds) for partially typed key bindings.
-|<<input.rocker_gestures,input.rocker_gestures>>|Enable Opera-like mouse rocker gestures.
 |<<input.spatial_navigation,input.spatial_navigation>>|Enable spatial navigation.
 |<<keyhint.blacklist,keyhint.blacklist>>|Keychains that shouldn't be shown in the keyhint dialog.
 |<<keyhint.delay,keyhint.delay>>|Time (in milliseconds) from pressing a key to seeing the keyhint dialog.
@@ -3213,13 +3213,22 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-[[input.mouse_backforward]]
-=== input.mouse_backforward
+[[input.mouse.back_forward_buttons]]
+=== input.mouse.back_forward_buttons
 Enable back and forward buttons on the mouse.
 
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
+
+[[input.mouse.rocker_gestures]]
+=== input.mouse.rocker_gestures
+Enable Opera-like mouse rocker gestures.
+This disables the context menu.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[input.partial_timeout]]
 === input.partial_timeout
@@ -3229,15 +3238,6 @@ If the current input forms only partial matches, the keystring will be cleared a
 Type: <<types,Int>>
 
 Default: +pass:[5000]+
-
-[[input.rocker_gestures]]
-=== input.rocker_gestures
-Enable Opera-like mouse rocker gestures.
-This disables the context menu.
-
-Type: <<types,Bool>>
-
-Default: +pass:[false]+
 
 [[input.spatial_navigation]]
 === input.spatial_navigation
