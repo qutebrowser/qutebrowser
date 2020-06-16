@@ -362,8 +362,9 @@ class _BackendProblemChecker:
 
         try:
             from PyQt5 import QtWebKit
+            from PyQt5.QtWebKit import qWebKitVersion
             from PyQt5 import QtWebKitWidgets
-        except ImportError as e:
+        except (ImportError, ValueError) as e:
             results.webkit_available = False
             results.webkit_error = str(e)
         else:
@@ -375,7 +376,7 @@ class _BackendProblemChecker:
 
         try:
             from PyQt5 import QtWebEngineWidgets
-        except ImportError as e:
+        except (ImportError, ValueError) as e:
             results.webengine_available = False
             results.webengine_error = str(e)
         else:

@@ -234,7 +234,7 @@ def _module_versions() -> typing.Sequence[str]:
     for modname, attributes in modules.items():
         try:
             module = importlib.import_module(modname)
-        except ImportError:
+        except (ImportError, ValueError):
             text = '{}: no'.format(modname)
         else:
             for name in attributes:
