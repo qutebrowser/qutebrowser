@@ -382,7 +382,8 @@ def test_qute_settings_persistence(short_tmpdir, request, quteproc_new):
                           'cset("search.ignore_case", "always")')
     quteproc_new.wait_for(message='No output or error')
     quteproc_new.wait_for(category='config',
-                          message='Config option changed: *')
+                          message='Config option changed: '
+                                  'search.ignore_case = always')
 
     assert quteproc_new.get_setting('search.ignore_case') == 'always'
 
