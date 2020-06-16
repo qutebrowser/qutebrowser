@@ -262,6 +262,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
             os.mkfifo(self._filepath)
             # pylint: enable=no-member,useless-suppression
         except OSError as e:
+            self._filepath = None  # Make sure it's not used
             message.error("Error while creating FIFO: {}".format(e))
             return
 
