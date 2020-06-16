@@ -51,6 +51,7 @@ Changed
     `fonts.debug_console` is now removed and entirely replaced by `Font`. The
     former distinction was mainly an implementation detail, and the accepted
     values shouldn't have changed.
+  * `input.rocker_gestures` has been renamed to `input.mouse.rocker_gestures`.
 - Small performance improvements.
 
 Added
@@ -61,6 +62,8 @@ Added
     logging levels via the config.
   * `fonts.tabs.selected` and `fonts.tabs.unselected` to set the font of the
     selected tab independently from unselected tabs (e.g. to make it bold).
+  * `input.mouse.back_forward_buttons` which can be set to `false` to disable
+    back/forward mouse buttons.
 
 Fixed
 ~~~~~
