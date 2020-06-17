@@ -54,6 +54,7 @@ Changed
     former distinction was mainly an implementation detail, and the accepted
     values shouldn't have changed.
   * `input.rocker_gestures` has been renamed to `input.mouse.rocker_gestures`.
+- The statusbar now shows partial keychains in all modes (e.g. while hinting)
 - Small performance improvements.
 
 Added

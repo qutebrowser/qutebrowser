@@ -243,10 +243,15 @@ class ModeManager(QObject):
                  arg1: The mode which has been left.
                  arg2: The new current mode.
                  arg3: The window ID of this mode manager.
+         keystring_updated: Emitted when the keystring was updated in any mode.
+                            arg 1: The mode in which the keystring has been
+                                   updated.
+                            arg 2: The new key string.
     """
 
     entered = pyqtSignal(usertypes.KeyMode, int)
     left = pyqtSignal(usertypes.KeyMode, usertypes.KeyMode, int)
+    keystring_updated = pyqtSignal(usertypes.KeyMode, str)
 
     def __init__(self, win_id: int, parent: QObject = None) -> None:
         super().__init__(parent)
@@ -332,6 +337,8 @@ class ModeManager(QObject):
         assert parser is not None
         self.parsers[mode] = parser
         parser.request_leave.connect(self.leave)
+        parser.keystring_updated.connect(
+            functools.partial(self.keystring_updated.emit, mode))
 
     def enter(self, mode: usertypes.KeyMode,
               reason: str = None,

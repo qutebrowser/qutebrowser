@@ -505,9 +505,8 @@ class MainWindow(QWidget):
             message.global_bridge.mode_left)  # type: ignore[arg-type]
 
         # commands
-        normal_parser = mode_manager.parsers[usertypes.KeyMode.normal]
-        normal_parser.keystring_updated.connect(
-            self.status.keystring.setText)
+        mode_manager.keystring_updated.connect(
+            self.status.keystring.on_keystring_updated)
         self.status.cmd.got_cmd[str].connect(  # type: ignore[index]
             self._commandrunner.run_safely)
         self.status.cmd.got_cmd[str, int].connect(  # type: ignore[index]
@@ -518,9 +517,7 @@ class MainWindow(QWidget):
             self._command_dispatcher.search)
 
         # key hint popup
-        for mode, parser in mode_manager.parsers.items():
-            parser.keystring_updated.connect(functools.partial(
-                self._keyhint.update_keyhint, mode.name))
+        mode_manager.keystring_updated.connect(self._keyhint.update_keyhint)
 
         # messages
         message.global_bridge.show_message.connect(
