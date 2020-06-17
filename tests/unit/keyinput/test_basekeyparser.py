@@ -64,7 +64,7 @@ class TestDebugLog:
 
     def test_log(self, keyparser, caplog):
         keyparser._debug_log('foo')
-        assert caplog.messages == ['foo']
+        assert caplog.messages == ['BaseKeyParser for mode normal: foo']
 
     def test_no_log(self, keyparser, caplog):
         keyparser._do_log = False

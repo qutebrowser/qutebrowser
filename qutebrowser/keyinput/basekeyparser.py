@@ -195,7 +195,9 @@ class BaseKeyParser(QObject):
             message: The message to log.
         """
         if self._do_log:
-            log.keyboard.debug(message)
+            prefix = '{} for mode {}: '.format(self.__class__.__name__,
+                                               self._mode.name)
+            log.keyboard.debug(prefix + message)
 
     def _match_key(self, sequence: keyutils.KeySequence) -> MatchResult:
         """Try to match a given keystring with any bound keychain.
