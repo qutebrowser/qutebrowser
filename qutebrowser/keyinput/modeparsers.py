@@ -51,10 +51,16 @@ class CommandKeyParser(basekeyparser.BaseKeyParser):
         _commandrunner: CommandRunner instance.
     """
 
-    def __init__(self, win_id: int,
+    def __init__(self, *, mode: usertypes.KeyMode,
+                 win_id: int,
                  commandrunner: 'runners.CommandRunner',
-                 parent: QObject = None) -> None:
-        super().__init__(win_id, parent)
+                 parent: QObject = None,
+                 do_log: bool = True,
+                 passthrough: bool = False,
+                 supports_count: bool = True) -> None:
+        super().__init__(mode=mode, win_id=win_id, parent=parent,
+                         do_log=do_log, passthrough=passthrough,
+                         supports_count=supports_count)
         self._commandrunner = commandrunner
 
     def execute(self, cmdstr: str, count: int = None) -> None:
@@ -72,11 +78,11 @@ class NormalKeyParser(CommandKeyParser):
         _partial_timer: Timer to clear partial keypresses.
     """
 
-    def __init__(self, win_id: int,
+    def __init__(self, *, win_id: int,
                  commandrunner: 'runners.CommandRunner',
                  parent: QObject = None) -> None:
-        super().__init__(win_id, commandrunner, parent)
-        self._read_config('normal')
+        super().__init__(mode=usertypes.KeyMode.normal, win_id=win_id,
+                         commandrunner=commandrunner, parent=parent)
         self._partial_timer = usertypes.Timer(self, 'partial-match')
         self._partial_timer.setSingleShot(True)
         self._partial_timer.timeout.connect(self._clear_partial_match)
@@ -130,55 +136,6 @@ class NormalKeyParser(CommandKeyParser):
         self._inhibited = False
 
 
-class PassthroughKeyParser(CommandKeyParser):
-
-    """KeyChainParser which passes through normal keys.
-
-    Used for insert/passthrough modes.
-
-    Attributes:
-        _mode: The mode this keyparser is for.
-    """
-
-    do_log = False
-    passthrough = True
-    supports_count = False
-
-    def __init__(self, win_id: int,
-                 mode: usertypes.KeyMode,
-                 commandrunner: 'runners.CommandRunner',
-                 parent: QObject = None) -> None:
-        """Constructor.
-
-        Args:
-            mode: The mode this keyparser is for.
-            parent: Qt parent.
-            warn: Whether to warn if an ignored key was bound.
-        """
-        super().__init__(win_id, commandrunner, parent)
-        self._read_config(mode.name)
-        self._mode = mode
-
-    def __repr__(self) -> str:
-        return utils.get_repr(self, mode=self._mode)
-
-
-class PromptKeyParser(CommandKeyParser):
-
-    """KeyParser for yes/no prompts."""
-
-    supports_count = False
-
-    def __init__(self, win_id: int,
-                 commandrunner: 'runners.CommandRunner',
-                 parent: QObject = None) -> None:
-        super().__init__(win_id, commandrunner, parent)
-        self._read_config('yesno')
-
-    def __repr__(self) -> str:
-        return utils.get_repr(self)
-
-
 class HintKeyParser(CommandKeyParser):
 
     """KeyChainParser for hints.
@@ -189,17 +146,16 @@ class HintKeyParser(CommandKeyParser):
         _last_press: The nature of the last keypress, a LastPress member.
     """
 
-    supports_count = False
-
-    def __init__(self, win_id: int,
+    def __init__(self, *, win_id: int,
                  commandrunner: 'runners.CommandRunner',
                  hintmanager: hints.HintManager,
                  parent: QObject = None) -> None:
-        super().__init__(win_id, commandrunner, parent)
+        super().__init__(mode=usertypes.KeyMode.hint, win_id=win_id,
+                         commandrunner=commandrunner, parent=parent,
+                         supports_count=False)
         self._hintmanager = hintmanager
         self._filtertext = ''
         self._last_press = LastPress.none
-        self._read_config('hint')
         self.keystring_updated.connect(self._hintmanager.handle_partial_key)
 
     def _handle_filter_key(self, e: QKeyEvent) -> QKeySequence.SequenceMatch:
@@ -277,37 +233,23 @@ class HintKeyParser(CommandKeyParser):
             self._filtertext = ''
 
 
-class CaretKeyParser(CommandKeyParser):
-
-    """KeyParser for caret mode."""
-
-    passthrough = True
-
-    def __init__(self, win_id: int,
-                 commandrunner: 'runners.CommandRunner',
-                 parent: QObject = None) -> None:
-        super().__init__(win_id, commandrunner, parent)
-        self._read_config('caret')
-
-
 class RegisterKeyParser(CommandKeyParser):
 
     """KeyParser for modes that record a register key.
 
     Attributes:
-        _mode: One of KeyMode.set_mark, KeyMode.jump_mark, KeyMode.record_macro
-        and KeyMode.run_macro.
+        _register_mode: One of KeyMode.set_mark, KeyMode.jump_mark,
+                        KeyMode.record_macro and KeyMode.run_macro.
     """
 
-    supports_count = False
-
-    def __init__(self, win_id: int,
+    def __init__(self, *, win_id: int,
                  mode: usertypes.KeyMode,
                  commandrunner: 'runners.CommandRunner',
                  parent: QObject = None) -> None:
-        super().__init__(win_id, commandrunner, parent)
-        self._mode = mode
-        self._read_config('register')
+        super().__init__(mode=usertypes.KeyMode.register, win_id=win_id,
+                         commandrunner=commandrunner, parent=parent,
+                         supports_count=False)
+        self._register_mode = mode
 
     def handle(self, e: QKeyEvent, *,
                dry_run: bool = False) -> QKeySequence.SequenceMatch:
@@ -326,19 +268,20 @@ class RegisterKeyParser(CommandKeyParser):
                                     window=self._win_id)
 
         try:
-            if self._mode == usertypes.KeyMode.set_mark:
+            if self._register_mode == usertypes.KeyMode.set_mark:
                 tabbed_browser.set_mark(key)
-            elif self._mode == usertypes.KeyMode.jump_mark:
+            elif self._register_mode == usertypes.KeyMode.jump_mark:
                 tabbed_browser.jump_mark(key)
-            elif self._mode == usertypes.KeyMode.record_macro:
+            elif self._register_mode == usertypes.KeyMode.record_macro:
                 macros.macro_recorder.record_macro(key)
-            elif self._mode == usertypes.KeyMode.run_macro:
+            elif self._register_mode == usertypes.KeyMode.run_macro:
                 macros.macro_recorder.run_macro(self._win_id, key)
             else:
-                raise ValueError(
-                    "{} is not a valid register mode".format(self._mode))
+                raise ValueError("{} is not a valid register mode".format(
+                    self._register_mode))
         except cmdexc.Error as err:
             message.error(str(err), stack=traceback.format_exc())
 
-        self.request_leave.emit(self._mode, "valid register key", True)
+        self.request_leave.emit(
+            self._register_mode, "valid register key", True)
         return QKeySequence.ExactMatch
