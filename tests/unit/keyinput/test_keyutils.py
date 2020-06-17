@@ -585,28 +585,6 @@ def test_is_printable(key, printable):
     (Qt.Key_Escape, Qt.ControlModifier, True),
     (Qt.Key_X, Qt.ControlModifier, True),
     (Qt.Key_X, Qt.NoModifier, False),
-    (Qt.Key_2, Qt.NoModifier, False),
-
-    # Keypad should not reset hint keychain - see #3735
-    (Qt.Key_2, Qt.KeypadModifier, False),
-
-    # Modifiers should not reset hint keychain - see #4264
-    (Qt.Key_Shift, Qt.ShiftModifier, False),
-    (Qt.Key_Control, Qt.ControlModifier, False),
-    (Qt.Key_Alt, Qt.AltModifier, False),
-    (Qt.Key_Meta, Qt.MetaModifier, False),
-    (Qt.Key_Mode_switch, Qt.GroupSwitchModifier, False),
-])
-def test_is_special_hint_mode(key, modifiers, special):
-    assert keyutils.is_special_hint_mode(key, modifiers) == special
-
-
-@pytest.mark.parametrize('key, modifiers, special', [
-    (Qt.Key_Escape, Qt.NoModifier, True),
-    (Qt.Key_Escape, Qt.ShiftModifier, True),
-    (Qt.Key_Escape, Qt.ControlModifier, True),
-    (Qt.Key_X, Qt.ControlModifier, True),
-    (Qt.Key_X, Qt.NoModifier, False),
     (Qt.Key_2, Qt.KeypadModifier, True),
     (Qt.Key_2, Qt.NoModifier, False),
     (Qt.Key_Shift, Qt.ShiftModifier, True),

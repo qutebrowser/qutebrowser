@@ -136,7 +136,7 @@ class NormalKeyParser(CommandKeyParser):
         self._inhibited = False
 
 
-class HintKeyParser(CommandKeyParser):
+class HintKeyParser(basekeyparser.BaseKeyParser):
 
     """KeyChainParser for hints.
 
@@ -151,8 +151,12 @@ class HintKeyParser(CommandKeyParser):
                  hintmanager: hints.HintManager,
                  parent: QObject = None) -> None:
         super().__init__(mode=usertypes.KeyMode.hint, win_id=win_id,
-                         commandrunner=commandrunner, parent=parent,
-                         supports_count=False)
+                         parent=parent, supports_count=False)
+        self._command_parser = CommandKeyParser(mode=usertypes.KeyMode.hint,
+                                                win_id=win_id,
+                                                commandrunner=commandrunner,
+                                                parent=self,
+                                                supports_count=False)
         self._hintmanager = hintmanager
         self._filtertext = ''
         self._last_press = LastPress.none
@@ -198,11 +202,14 @@ class HintKeyParser(CommandKeyParser):
         if dry_run:
             return super().handle(e, dry_run=True)
 
-        if keyutils.is_special_hint_mode(Qt.Key(e.key()), e.modifiers()):
-            log.keyboard.debug("Got special key, clearing keychain")
-            self.clear_keystring()
-
         assert not dry_run
+
+        if (self._command_parser.handle(e, dry_run=True) !=
+                QKeySequence.NoMatch):
+            log.keyboard.debug("Handling key via command parser")
+            self.clear_keystring()
+            return self._command_parser.handle(e)
+
         match = super().handle(e)
 
         if match == QKeySequence.PartialMatch:
@@ -227,10 +234,14 @@ class HintKeyParser(CommandKeyParser):
                              `self._filtertext`.
         """
         self._read_config()
-        self.bindings.update({keyutils.KeySequence.parse(s):
-                              'follow-hint -s ' + s for s in strings})
+        self.bindings.update({keyutils.KeySequence.parse(s): s
+                              for s in strings})
         if not preserve_filter:
             self._filtertext = ''
+
+    def execute(self, cmdstr: str, count: int = None) -> None:
+        assert count is None
+        self._hintmanager.handle_partial_key(cmdstr)
 
 
 class RegisterKeyParser(CommandKeyParser):
