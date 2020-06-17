@@ -96,10 +96,12 @@ class BindingTrie:
         return utils.get_repr(self, children=self.children,
                               command=self.command)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '\n'.join(self.string_lines(blank=True))
 
-    def string_lines(self, indent=0, blank=False):
+    def string_lines(self, indent: int = 0,
+                     blank: bool = False) -> typing.Sequence[str]:
+        """Get a list of strings for a pretty-printed version of this trie."""
         lines = []
         if self.command is not None:
             lines.append('{}=> {}'.format('  ' * indent, self.command))

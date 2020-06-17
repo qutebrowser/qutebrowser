@@ -402,7 +402,7 @@ class IPCServer(QObject):
 
         try:
             os.utime(path)
-        except OSError as e:
+        except OSError:
             log.ipc.exception("Failed to update IPC socket, trying to "
                               "re-listen...")
             self._server.close()

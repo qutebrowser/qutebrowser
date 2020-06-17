@@ -357,7 +357,8 @@ class TestListen:
         sockfile.unlink()
 
         with caplog.at_level(logging.ERROR):
-            with qtbot.waitSignal(ipc_server._atime_timer.timeout, timeout=2000):
+            with qtbot.waitSignal(ipc_server._atime_timer.timeout,
+                                  timeout=2000):
                 pass
 
         msg = 'Failed to update IPC socket, trying to re-listen...'
