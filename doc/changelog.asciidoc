@@ -30,6 +30,8 @@ Removed
 Changed
 ~~~~~~~
 
+- New handling of bindings in hint mode which fixes various bugs and allows for
+  single-letter keybindings in hint mode.
 - The `tor_identity` userscript now takes the password via a `-p` flag and has
   a new `-c` flag to customize the Tor control port.
 - `:config-write-py` now adds a note about `config.py` files being targeted at
@@ -77,7 +79,13 @@ Fixed
 - Crash in rare cases where QtWebKit/QtWebEngine imports fail in unexpected
   ways.
 - `:config-write-py` now works with paths starting with `~/...` again.
-- New site-specific quirk for a missing `globalThis` in Qt <= 5.12 on Reddit and Spotify
+- New site-specific quirk for a missing `globalThis` in Qt <= 5.12 on Reddit
+  and Spotify.
+- When `;` is added to `hints.chars`, using hint labels containing `;;` now
+  works properly.
+- Hint letters outside of ASCII should now work.
+- When `bindings.key_mappings` is used with hints, it now works properly with
+  letters outside of ASCII as well.
 
 v1.12.0 (2020-06-01)
 --------------------
