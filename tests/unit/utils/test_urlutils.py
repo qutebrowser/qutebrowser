@@ -358,65 +358,69 @@ class UrlParams:
     url = attr.ib()
     is_url = attr.ib(True)
     is_url_no_autosearch = attr.ib(True)
-    uses_dns = attr.ib(True)
+    use_dns = attr.ib(True)
     is_url_in_schemeless = attr.ib(False)
 
 
-@pytest.mark.parametrize('auto_search', ['dns', 'naive', 'schemeless', 'never'])
+@pytest.mark.parametrize('auto_search',
+                         ['dns', 'naive', 'schemeless', 'never'])
 @pytest.mark.parametrize('url_params', [
     # Normal hosts
-    UrlParams('http://foobar', uses_dns=False, is_url_in_schemeless=True),
-    UrlParams('localhost:8080', uses_dns=False, is_url_in_schemeless=True),
+    UrlParams('http://foobar', use_dns=False, is_url_in_schemeless=True),
+    UrlParams('localhost:8080', use_dns=False, is_url_in_schemeless=True),
     UrlParams('qutebrowser.org'),
     UrlParams(' qutebrowser.org '),
-    UrlParams('http://user:password@example.com/foo?bar=baz#fish', uses_dns=False, is_url_in_schemeless=True),
+    UrlParams('http://user:password@example.com/foo?bar=baz#fish',
+              use_dns=False, is_url_in_schemeless=True),
     UrlParams('existing-tld.domains'),
     # Internationalized domain names
     UrlParams('\u4E2D\u56FD.\u4E2D\u56FD'),  # Chinese TLD
     UrlParams('xn--fiqs8s.xn--fiqs8s'),  # Chinese TLD
     # Encoded space in explicit url
-    UrlParams('http://sharepoint/sites/it/IT%20Documentation/Forms/AllItems.aspx', uses_dns=False, is_url_in_schemeless=True),
+    UrlParams('http://sharepoint/sites/it/IT%20Documentation/Forms/AllItems.aspx', use_dns=False, is_url_in_schemeless=True),
     # IPs
-    UrlParams('127.0.0.1', uses_dns=False),
-    UrlParams('::1', uses_dns=False),
+    UrlParams('127.0.0.1', use_dns=False),
+    UrlParams('::1', use_dns=False),
     UrlParams('2001:41d0:2:6c11::1'),
     UrlParams('[2001:41d0:2:6c11::1]:8000'),
     UrlParams('94.23.233.17'),
     UrlParams('94.23.233.17:8000'),
     # Special URLs
-    UrlParams('file:///tmp/foo', uses_dns=False, is_url_in_schemeless=True),
-    UrlParams('about:blank', uses_dns=False, is_url_in_schemeless=True),
-    UrlParams('qute:version', uses_dns=False, is_url_in_schemeless=True),
-    UrlParams('qute://version', uses_dns=False, is_url_in_schemeless=True),
-    UrlParams('localhost', uses_dns=False),
+    UrlParams('file:///tmp/foo', use_dns=False, is_url_in_schemeless=True),
+    UrlParams('about:blank', use_dns=False, is_url_in_schemeless=True),
+    UrlParams('qute:version', use_dns=False, is_url_in_schemeless=True),
+    UrlParams('qute://version', use_dns=False, is_url_in_schemeless=True),
+    UrlParams('localhost', use_dns=False),
     # _has_explicit_scheme False, special_url True
-    UrlParams('qute::foo', uses_dns=False),
-    UrlParams('qute:://foo', uses_dns=False),
+    UrlParams('qute::foo', use_dns=False),
+    UrlParams('qute:://foo', use_dns=False),
     # Invalid URLs
-    UrlParams('', is_url=False, is_url_no_autosearch=False, uses_dns=False),
-    UrlParams('onlyscheme:', is_url=False, uses_dns=False),
-    UrlParams('http:foo:0', is_url=False, uses_dns=False),
+    UrlParams('', is_url=False, is_url_no_autosearch=False, use_dns=False),
+    UrlParams('onlyscheme:', is_url=False, use_dns=False),
+    UrlParams('http:foo:0', is_url=False, use_dns=False),
     # Not URLs
-    UrlParams('foo bar', is_url=False, uses_dns=False),  # no DNS because of space
-    UrlParams('localhost test', is_url=False, uses_dns=False),  # no DNS because of space
-    UrlParams('another . test', is_url=False, uses_dns=False),  # no DNS because of space
+    UrlParams('foo bar', is_url=False, use_dns=False),  # no DNS b/c of space
+    UrlParams('localhost test', is_url=False, use_dns=False),  # no DNS b/c spc
+    UrlParams('another . test', is_url=False, use_dns=False),  # no DNS b/c spc
     UrlParams('foo', is_url=False),
-    UrlParams('this is: not a URL', is_url=False, uses_dns=False),  # no DNS because of space
-    UrlParams('foo user@host.tld', is_url=False, uses_dns=False),  # no DNS because of space
-    UrlParams('23.42', is_url=False, uses_dns=False),  # no DNS because bogus-IP
-    UrlParams('1337', is_url=False, uses_dns=False),  # no DNS because bogus-IP
+    UrlParams('this is: not a URL', is_url=False, use_dns=False),  # no DNS spc
+    UrlParams('foo user@host.tld', is_url=False, use_dns=False),  # no DNS, spc
+    UrlParams('23.42', is_url=False, use_dns=False),  # no DNS b/c bogus-IP
+    UrlParams('1337', is_url=False, use_dns=False),  # no DNS b/c bogus-IP
     UrlParams('deadbeef', is_url=False),
     UrlParams('hello.', is_url=False),
-    UrlParams('site:cookies.com oatmeal raisin', is_url=False, uses_dns=False),
+    UrlParams('site:cookies.com oatmeal raisin', is_url=False, use_dns=False),
     UrlParams('example.search_string', is_url=False),
     UrlParams('example_search.string', is_url=False),
     # no DNS because there is no host
-    UrlParams('foo::bar', is_url=False, uses_dns=False),
+    UrlParams('foo::bar', is_url=False, use_dns=False),
     # Valid search term with autosearch
-    UrlParams('test foo', is_url=False, is_url_no_autosearch=False, uses_dns=False),
-    UrlParams('test user@host.tld', is_url=False, is_url_no_autosearch=False, uses_dns=False),
+    UrlParams('test foo', is_url=False,
+              is_url_no_autosearch=False, use_dns=False),
+    UrlParams('test user@host.tld', is_url=False,
+              is_url_no_autosearch=False, use_dns=False),
     # autosearch = False
-    UrlParams('This is a URL without autosearch', is_url=False, uses_dns=False),
+    UrlParams('This is a URL without autosearch', is_url=False, use_dns=False),
 ], ids=lambda param: 'URL: ' + param.url)
 def test_is_url(config_stub, fake_dns, auto_search, url_params):
     """Test is_url().
@@ -428,20 +432,20 @@ def test_is_url(config_stub, fake_dns, auto_search, url_params):
         * is_url: Whether the given string is a URL with auto_search dns/naive.
         * is_url_no_autosearch: Whether the given string is a URL with
                                 auto_search false.
-        * uses_dns: Whether the given string should fire a DNS request for the
-                    given URL.
+        * use_dns: Whether the given string should fire a DNS request for the
+                   given URL.
         * is_url_in_schemeless: Whether the given string is treated as a URL
                                 when auto_search=schemeless.
     """
     url = url_params.url
     is_url = url_params.is_url
     is_url_no_autosearch = url_params.is_url_no_autosearch
-    uses_dns = url_params.uses_dns
+    use_dns = url_params.use_dns
     is_url_in_schemeless = url_params.is_url_in_schemeless
 
     config_stub.val.url.auto_search = auto_search
     if auto_search == 'dns':
-        if uses_dns:
+        if use_dns:
             fake_dns.answer = True
             result = urlutils.is_url(url)
             assert fake_dns.used
