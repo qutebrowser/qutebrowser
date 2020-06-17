@@ -320,7 +320,7 @@ class TestListen:
 
     @pytest.mark.posix
     def test_atime_update(self, qtbot, ipc_server):
-        ipc_server._atime_timer.setInterval(500)  # We don't want to wait 6h
+        ipc_server._atime_timer.setInterval(500)  # We don't want to wait
         ipc_server.listen()
         old_atime = os.stat(ipc_server._server.fullServerName()).st_atime_ns
 
@@ -347,6 +347,24 @@ class TestListen:
         """This should never happen, but let's handle it gracefully."""
         ipc_server._atime_timer.timeout.disconnect(ipc_server.update_atime)
         ipc_server.shutdown()
+
+    @pytest.mark.posix
+    def test_vanished_runtime_file(self, qtbot, caplog, ipc_server):
+        ipc_server._atime_timer.setInterval(500)  # We don't want to wait
+        ipc_server.listen()
+
+        sockfile = pathlib.Path(ipc_server._server.fullServerName())
+        sockfile.unlink()
+
+        with caplog.at_level(logging.ERROR):
+            with qtbot.waitSignal(ipc_server._atime_timer.timeout, timeout=2000):
+                pass
+
+        msg = 'Failed to update IPC socket, trying to re-listen...'
+        assert caplog.messages[-1] == msg
+
+        assert ipc_server._server.isListening()
+        assert sockfile.exists()
 
 
 class TestOnError:

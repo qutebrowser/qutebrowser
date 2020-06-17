@@ -79,6 +79,8 @@ Fixed
   (which seems to happen with Qt 5.15 sometimes).
 - Crash in rare cases where QtWebKit/QtWebEngine imports fail in unexpected
   ways.
+- Crash when something removed qutebrowser's IPC socket file and it's been
+  running for 6 hours.
 - `:config-write-py` now works with paths starting with `~/...` again.
 - New site-specific quirk for a missing `globalThis` in Qt <= 5.12 on Reddit
   and Spotify.
