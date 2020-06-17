@@ -38,7 +38,7 @@ BASEDIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                        os.path.pardir)
 
 
-def _call_git(gitpath: str, *args: str):
+def _call_git(gitpath, *args):
     """Call a git subprocess."""
     return subprocess.run(
         ['git'] + list(args),

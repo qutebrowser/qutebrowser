@@ -161,7 +161,7 @@ def _git_str() -> typing.Optional[str]:
         return None
 
 
-def _call_git(gitpath: str, *args: str):
+def _call_git(gitpath: str, *args: str) -> str:
     """Call a git subprocess."""
     return subprocess.run(
         ['git'] + list(args),
@@ -187,7 +187,7 @@ def _git_str_subprocess(gitpath: str) -> typing.Optional[str]:
         date = _call_git(gitpath, 'show', '-s', '--format=%ci', 'HEAD')
         branch = _call_git(gitpath, 'rev-parse', '--abbrev-ref', 'HEAD')
         return '{} on {} ({})'.format(commit_hash, branch, date)
-    except (subprocess.CalledProcessError, OSError) as e:
+    except (subprocess.CalledProcessError, OSError):
         return None
 
 
