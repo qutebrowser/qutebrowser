@@ -322,9 +322,6 @@ class BaseKeyParser(QObject):
     def _read_config(self, modename: str = None) -> None:
         """Read the configuration.
 
-        Config format: key = command, e.g.:
-            <Ctrl+Q> = quit
-
         Args:
             modename: Name of the mode to use.
         """
