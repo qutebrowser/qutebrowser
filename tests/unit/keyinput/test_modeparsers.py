@@ -46,18 +46,18 @@ class TestsNormalKeyParser:
         kp = modeparsers.NormalKeyParser(win_id=0, commandrunner=commandrunner)
         return kp
 
-    def test_keychain(self, keyparser, fake_keyevent, commandrunner):
+    def test_keychain(self, keyparser, commandrunner):
         """Test valid keychain."""
         # Press 'z' which is ignored because of no match
-        keyparser.handle(fake_keyevent(Qt.Key_Z))
         # Then start the real chain
-        keyparser.handle(fake_keyevent(Qt.Key_B))
-        keyparser.handle(fake_keyevent(Qt.Key_A))
+        chain = keyutils.KeySequence.parse('zba')
+        for info in chain:
+            keyparser.handle(info.to_event())
         assert commandrunner.commands == [('message-info ba', None)]
         assert not keyparser._sequence
 
     def test_partial_keychain_timeout(self, keyparser, config_stub,
-                                      fake_keyevent, qtbot, commandrunner):
+                                      qtbot, commandrunner):
         """Test partial keychain timeout."""
         config_stub.val.input.partial_timeout = 100
         timer = keyparser._partial_timer
@@ -65,7 +65,7 @@ class TestsNormalKeyParser:
 
         # Press 'b' for a partial match.
         # Then we check if the timer has been set up correctly
-        keyparser.handle(fake_keyevent(Qt.Key_B))
+        keyparser.handle(keyutils.KeyInfo(Qt.Key_B, Qt.NoModifier).to_event())
         assert timer.isSingleShot()
         assert timer.interval() == 100
         assert timer.isActive()
@@ -95,63 +95,63 @@ class TestHintKeyParser:
                                          hintmanager=hintmanager,
                                          commandrunner=commandrunner)
 
-    @pytest.mark.parametrize('bindings, event1, event2, prefix, hint', [
+    @pytest.mark.parametrize('bindings, keychain, prefix, hint', [
         (
             ['aa', 'as'],
-            [Qt.Key_A],
-            [Qt.Key_S],
+            'as',
             'a',
             'as'
         ),
         (
             ['21', '22'],
-            [Qt.Key_2, Qt.KeypadModifier],
-            [Qt.Key_2, Qt.KeypadModifier],
+            '<Num+2><Num+2>',
             '2',
             '22'
         ),
         (
             ['äa', 'äs'],
-            [QKeySequence('ä')[0]],
-            [Qt.Key_S],
+            'äs',
             'ä',
             'äs'
         ),
         (
             ['не', 'на'],
-            [QKeySequence('н')[0]],
-            [QKeySequence('е')[0]],
+            'не',
             '<Н>',
             'не',
         ),
     ])
-    def test_match(self, keyparser, fake_keyevent, hintmanager,
-                   bindings, event1, event2, prefix, hint):
+    def test_match(self, keyparser, hintmanager,
+                   bindings, keychain, prefix, hint):
         keyparser.update_bindings(bindings)
 
-        match = keyparser.handle(fake_keyevent(*event1))
+        seq = keyutils.KeySequence.parse(keychain)
+        assert len(seq) == 2
+
+        match = keyparser.handle(seq[0].to_event())
         assert match == QKeySequence.PartialMatch
         assert hintmanager.keystr == prefix
 
-        match = keyparser.handle(fake_keyevent(*event2))
+        match = keyparser.handle(seq[1].to_event())
         assert match == QKeySequence.ExactMatch
         assert hintmanager.keystr == hint
 
-    def test_match_key_mappings(self, config_stub, keyparser, fake_keyevent,
-                                hintmanager):
+    def test_match_key_mappings(self, config_stub, keyparser, hintmanager):
         config_stub.val.bindings.key_mappings = {'α': 'a', 'σ': 's'}
         keyparser.update_bindings(['aa', 'as'])
 
-        match = keyparser.handle(fake_keyevent(QKeySequence('α')[0]))
+        seq = keyutils.KeySequence.parse('ασ')
+        assert len(seq) == 2
+
+        match = keyparser.handle(seq[0].to_event())
         assert match == QKeySequence.PartialMatch
         assert hintmanager.keystr == 'a'
 
-        match = keyparser.handle(fake_keyevent(QKeySequence('σ')[0]))
+        match = keyparser.handle(seq[1].to_event())
         assert match == QKeySequence.ExactMatch
         assert hintmanager.keystr == 'as'
 
-    def test_command(self, keyparser, config_stub, fake_keyevent, hintmanager,
-                     commandrunner):
+    def test_command(self, keyparser, config_stub, hintmanager, commandrunner):
         config_stub.val.bindings.commands = {
             'hint': {'abc': 'message-info abc'}
         }
@@ -165,7 +165,8 @@ class TestHintKeyParser:
             (Qt.Key_C, QKeySequence.ExactMatch, ''),
         ]
         for key, expected_match, keystr in steps:
-            match = keyparser.handle(fake_keyevent(key))
+            info = keyutils.KeyInfo(key, Qt.NoModifier)
+            match = keyparser.handle(info.to_event())
             assert match == expected_match
             assert hintmanager.keystr == keystr
             if key != Qt.Key_C:

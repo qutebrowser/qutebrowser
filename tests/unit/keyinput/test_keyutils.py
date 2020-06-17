@@ -458,11 +458,11 @@ class TestKeySequence:
          Qt.ControlModifier | Qt.ShiftModifier),
         (Qt.ShiftModifier, Qt.ShiftModifier),
     ])
-    def test_fake_mac(self, fake_keyevent, modifiers, expected):
+    def test_fake_mac(self, modifiers, expected):
         """Make sure Control/Meta are swapped with a simulated Mac."""
         seq = keyutils.KeySequence()
-        event = fake_keyevent(key=Qt.Key_A, modifiers=modifiers)
-        new = seq.append_event(event)
+        info = keyutils.KeyInfo(key=Qt.Key_A, modifiers=modifiers)
+        new = seq.append_event(info.to_event())
         assert new[0] == keyutils.KeyInfo(Qt.Key_A, expected)
 
     @pytest.mark.parametrize('key', [Qt.Key_unknown, 0x0])

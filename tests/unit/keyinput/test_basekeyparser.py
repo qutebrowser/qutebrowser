@@ -50,11 +50,12 @@ def prompt_keyparser(key_config_stub, keyinput_bindings):
 
 
 @pytest.fixture
-def handle_text(fake_keyevent):
+def handle_text():
     """Helper function to handle multiple fake keypresses."""
     def func(kp, *args):
-        for enumval in args:
-            kp.handle(fake_keyevent(enumval))
+        for key in args:
+            info = keyutils.KeyInfo(key, Qt.NoModifier)
+            kp.handle(info.to_event())
     return func
 
 
@@ -117,18 +118,29 @@ def test_read_config(keyparser, key_config_stub, changed_mode, expected):
 
 class TestHandle:
 
-    def test_valid_key(self, fake_keyevent, prompt_keyparser):
+    def test_valid_key(self, prompt_keyparser, handle_text):
         modifier = Qt.MetaModifier if utils.is_mac else Qt.ControlModifier
-        prompt_keyparser.handle(fake_keyevent(Qt.Key_A, modifier))
-        prompt_keyparser.handle(fake_keyevent(Qt.Key_X, modifier))
+
+        infos = [
+            keyutils.KeyInfo(Qt.Key_A, modifier),
+            keyutils.KeyInfo(Qt.Key_X, modifier),
+        ]
+        for info in infos:
+            prompt_keyparser.handle(info.to_event())
+
         prompt_keyparser.execute.assert_called_once_with(
             'message-info ctrla', None)
         assert not prompt_keyparser._sequence
 
-    def test_valid_key_count(self, fake_keyevent, prompt_keyparser):
+    def test_valid_key_count(self, prompt_keyparser):
         modifier = Qt.MetaModifier if utils.is_mac else Qt.ControlModifier
-        prompt_keyparser.handle(fake_keyevent(Qt.Key_5))
-        prompt_keyparser.handle(fake_keyevent(Qt.Key_A, modifier))
+
+        infos = [
+            keyutils.KeyInfo(Qt.Key_5, Qt.NoModifier),
+            keyutils.KeyInfo(Qt.Key_A, modifier),
+        ]
+        for info in infos:
+            prompt_keyparser.handle(info.to_event())
         prompt_keyparser.execute.assert_called_once_with(
             'message-info ctrla', 5)
 
@@ -138,25 +150,33 @@ class TestHandle:
         # Only modifier
         [(Qt.Key_Shift, Qt.ShiftModifier)],
     ])
-    def test_invalid_keys(self, fake_keyevent, prompt_keyparser, keys):
+    def test_invalid_keys(self, prompt_keyparser, keys):
         for key, modifiers in keys:
-            prompt_keyparser.handle(fake_keyevent(key, modifiers))
+            info = keyutils.KeyInfo(key, modifiers)
+            prompt_keyparser.handle(info.to_event())
         assert not prompt_keyparser.execute.called
         assert not prompt_keyparser._sequence
 
-    def test_dry_run(self, fake_keyevent, prompt_keyparser):
-        prompt_keyparser.handle(fake_keyevent(Qt.Key_B))
-        prompt_keyparser.handle(fake_keyevent(Qt.Key_A), dry_run=True)
+    def test_dry_run(self, prompt_keyparser):
+        b_info = keyutils.KeyInfo(Qt.Key_B, Qt.NoModifier)
+        prompt_keyparser.handle(b_info.to_event())
+
+        a_info = keyutils.KeyInfo(Qt.Key_A, Qt.NoModifier)
+        prompt_keyparser.handle(a_info.to_event(), dry_run=True)
+
         assert not prompt_keyparser.execute.called
         assert prompt_keyparser._sequence
 
-    def test_dry_run_count(self, fake_keyevent, prompt_keyparser):
-        prompt_keyparser.handle(fake_keyevent(Qt.Key_9), dry_run=True)
+    def test_dry_run_count(self, prompt_keyparser):
+        info = keyutils.KeyInfo(Qt.Key_9, Qt.NoModifier)
+        prompt_keyparser.handle(info.to_event(), dry_run=True)
         assert not prompt_keyparser._count
 
-    def test_invalid_key(self, fake_keyevent, prompt_keyparser):
-        prompt_keyparser.handle(fake_keyevent(Qt.Key_B))
-        prompt_keyparser.handle(fake_keyevent(0x0))
+    def test_invalid_key(self, prompt_keyparser):
+        keys = [Qt.Key_B, 0x0]
+        for key in keys:
+            info = keyutils.KeyInfo(key, Qt.NoModifier)
+            prompt_keyparser.handle(info.to_event())
         assert not prompt_keyparser._sequence
 
     def test_valid_keychain(self, handle_text, prompt_keyparser):
@@ -173,9 +193,9 @@ class TestHandle:
         (Qt.Key_1, Qt.NoModifier, 1),
         (Qt.Key_1, Qt.KeypadModifier, 1),
     ])
-    def test_number_press(self, fake_keyevent, prompt_keyparser,
+    def test_number_press(self, prompt_keyparser,
                           key, modifiers, number):
-        prompt_keyparser.handle(fake_keyevent(key, modifiers))
+        prompt_keyparser.handle(keyutils.KeyInfo(key, modifiers).to_event())
         command = 'message-info {}'.format(number)
         prompt_keyparser.execute.assert_called_once_with(command, None)
         assert not prompt_keyparser._sequence
@@ -184,13 +204,13 @@ class TestHandle:
         (Qt.NoModifier, '2'),
         (Qt.KeypadModifier, 'num-2'),
     ])
-    def test_number_press_keypad(self, fake_keyevent, keyparser, config_stub,
+    def test_number_press_keypad(self, keyparser, config_stub,
                                  modifiers, text):
         """Make sure a <Num+2> binding overrides the 2 binding."""
         config_stub.val.bindings.commands = {'normal': {
             '2': 'message-info 2',
             '<Num+2>': 'message-info num-2'}}
-        keyparser.handle(fake_keyevent(Qt.Key_2, modifiers))
+        keyparser.handle(keyutils.KeyInfo(Qt.Key_2, modifiers).to_event())
         command = 'message-info {}'.format(text)
         keyparser.execute.assert_called_once_with(command, None)
         assert not keyparser._sequence
@@ -205,12 +225,13 @@ class TestHandle:
         prompt_keyparser.execute.assert_called_once_with(
             'message-info a', None)
 
-    def test_mapping_keypad(self, config_stub, fake_keyevent, keyparser):
+    def test_mapping_keypad(self, config_stub, keyparser):
         """Make sure falling back to non-numpad keys works with mappings."""
         config_stub.val.bindings.commands = {'normal': {'a': 'nop'}}
         config_stub.val.bindings.key_mappings = {'1': 'a'}
 
-        keyparser.handle(fake_keyevent(Qt.Key_1, Qt.KeypadModifier))
+        info = keyutils.KeyInfo(Qt.Key_1, Qt.KeypadModifier)
+        keyparser.handle(info.to_event())
         keyparser.execute.assert_called_once_with('nop', None)
 
     def test_binding_and_mapping(self, config_stub, handle_text, prompt_keyparser):
@@ -225,17 +246,17 @@ class TestHandle:
         handle_text(keyparser, Qt.Key_A, Qt.Key_X)
         keyparser.execute.assert_called_once_with('message-info aa', None)
 
-    def test_binding_with_shift(self, prompt_keyparser, fake_keyevent):
+    def test_binding_with_shift(self, prompt_keyparser):
         """Simulate a binding which involves shift."""
         for key, modifiers in [(Qt.Key_Y, Qt.NoModifier),
                                (Qt.Key_Shift, Qt.ShiftModifier),
                                (Qt.Key_Y, Qt.ShiftModifier)]:
-            prompt_keyparser.handle(fake_keyevent(key, modifiers))
+            info = keyutils.KeyInfo(key, modifiers)
+            prompt_keyparser.handle(info.to_event())
 
         prompt_keyparser.execute.assert_called_once_with('yank -s', None)
 
-    def test_partial_before_full_match(self, keyparser, fake_keyevent,
-                                       config_stub):
+    def test_partial_before_full_match(self, keyparser, config_stub):
         """Make sure full matches always take precedence over partial ones."""
         config_stub.val.bindings.commands = {
             'normal': {
@@ -243,7 +264,8 @@ class TestHandle:
                 'a': 'message-info foo'
             }
         }
-        keyparser.handle(fake_keyevent(Qt.Key_A))
+        info = keyutils.KeyInfo(Qt.Key_A, Qt.NoModifier)
+        keyparser.handle(info.to_event())
         keyparser.execute.assert_called_once_with('message-info foo', None)
 
 
@@ -298,13 +320,14 @@ class TestCount:
         assert sig1.args == ('4',)
         assert sig2.args == ('42',)
 
-    def test_numpad(self, fake_keyevent, prompt_keyparser):
+    def test_numpad(self, prompt_keyparser):
         """Make sure we can enter a count via numpad."""
         for key, modifiers in [(Qt.Key_4, Qt.KeypadModifier),
                                (Qt.Key_2, Qt.KeypadModifier),
                                (Qt.Key_B, Qt.NoModifier),
                                (Qt.Key_A, Qt.NoModifier)]:
-            prompt_keyparser.handle(fake_keyevent(key, modifiers))
+            info = keyutils.KeyInfo(key, modifiers)
+            prompt_keyparser.handle(info.to_event())
         prompt_keyparser.execute.assert_called_once_with('message-info ba', 42)
 
 
