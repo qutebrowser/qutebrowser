@@ -96,6 +96,22 @@ class BindingTrie:
         return utils.get_repr(self, children=self.children,
                               command=self.command)
 
+    def __str__(self):
+        return '\n'.join(self.string_lines(blank=True))
+
+    def string_lines(self, indent=0, blank=False):
+        lines = []
+        if self.command is not None:
+            lines.append('{}=> {}'.format('  ' * indent, self.command))
+
+        for key, child in sorted(self.children.items()):
+            lines.append('{}{}:'.format('  ' * indent, key))
+            lines.extend(child.string_lines(indent=indent+1))
+            if blank:
+                lines.append('')
+
+        return lines
+
     def update(self, mapping: typing.Mapping) -> None:
         """Add data from the given mapping to the trie."""
         for key in mapping:
