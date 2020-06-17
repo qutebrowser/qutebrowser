@@ -403,7 +403,7 @@ class TestGitStrSubprocess:
     def test_real_git(self, git_repo):
         """Test with a real git repository."""
         ret = version._git_str_subprocess(str(git_repo))
-        assert ret == '6e4b65a (1970-01-01 01:00:00 +0100)'
+        assert ret == '6e4b65a on master (1970-01-01 01:00:00 +0100)'
 
     def test_missing_dir(self, tmpdir):
         """Test with a directory which doesn't exist."""

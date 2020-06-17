@@ -161,6 +161,14 @@ def _git_str() -> typing.Optional[str]:
         return None
 
 
+def _call_git(gitpath: str, *args: str):
+    """Call a git subprocess."""
+    return subprocess.run(
+        ['git'] + list(args),
+        cwd=gitpath, check=True,
+        stdout=subprocess.PIPE).stdout.decode('UTF-8').strip()
+
+
 def _git_str_subprocess(gitpath: str) -> typing.Optional[str]:
     """Try to get the git commit ID and timestamp by calling git.
 
@@ -174,16 +182,12 @@ def _git_str_subprocess(gitpath: str) -> typing.Optional[str]:
         return None
     try:
         # https://stackoverflow.com/questions/21017300/21017394#21017394
-        commit_hash = subprocess.run(
-            ['git', 'describe', '--match=NeVeRmAtCh', '--always', '--dirty'],
-            cwd=gitpath, check=True,
-            stdout=subprocess.PIPE).stdout.decode('UTF-8').strip()
-        date = subprocess.run(
-            ['git', 'show', '-s', '--format=%ci', 'HEAD'],
-            cwd=gitpath, check=True,
-            stdout=subprocess.PIPE).stdout.decode('UTF-8').strip()
-        return '{} ({})'.format(commit_hash, date)
-    except (subprocess.CalledProcessError, OSError):
+        commit_hash = _call_git(gitpath, 'describe', '--match=NeVeRmAtCh',
+                                '--always', '--dirty')
+        date = _call_git(gitpath, 'show', '-s', '--format=%ci', 'HEAD')
+        branch = _call_git(gitpath, 'rev-parse', '--abbrev-ref', 'HEAD')
+        return '{} on {} ({})'.format(commit_hash, branch, date)
+    except (subprocess.CalledProcessError, OSError) as e:
         return None
 
 
