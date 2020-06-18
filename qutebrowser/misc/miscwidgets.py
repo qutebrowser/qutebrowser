@@ -453,22 +453,23 @@ class InspectorSplitter(QSplitter):
         assert self._inspector_idx is not None
         assert self._preferred_size is not None
 
-        if (sizes[self._main_idx] < self._PROTECTED_MAIN_SIZE and
-                total >= self._SMALL_SIZE_THRESHOLD):
-            # Case 2 above
-            handle_size = self.handleWidth()
-            sizes[self._main_idx] = (self._PROTECTED_MAIN_SIZE -
-                                     handle_size // 2)
-            sizes[self._inspector_idx] = (total - self._PROTECTED_MAIN_SIZE +
-                                          handle_size // 2)
-            self.setSizes(sizes)
-        elif (total >= self._preferred_size + self._PROTECTED_MAIN_SIZE and
-              sizes[self._inspector_idx] != self._preferred_size):
+        if total >= self._preferred_size + self._PROTECTED_MAIN_SIZE:
             # Case 1 above
             sizes[self._inspector_idx] = self._preferred_size
             sizes[self._main_idx] = total - self._preferred_size
             self.setSizes(sizes)
-        # else: Case 3 above
+        elif (sizes[self._main_idx] < self._PROTECTED_MAIN_SIZE and
+              total >= self._SMALL_SIZE_THRESHOLD):
+            # Case 2 above
+            handle_size = self.handleWidth()
+            sizes[self._main_idx] = (
+                self._PROTECTED_MAIN_SIZE - handle_size // 2)
+            sizes[self._inspector_idx] = (
+                total - self._PROTECTED_MAIN_SIZE + handle_size // 2)
+            self.setSizes(sizes)
+        else:
+            # Case 3 above
+            pass
 
     @pyqtSlot()
     def _on_splitter_moved(self) -> None:
