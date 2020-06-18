@@ -415,8 +415,10 @@ class UrlParams:
     # no DNS because there is no host
     UrlParams('foo::bar', is_url=False, use_dns=False),
     # Valid search term with autosearch
-    UrlParams('test foo', is_url=False, is_url_no_autosearch=False, use_dns=False),
-    UrlParams('test user@host.tld', is_url=False, is_url_no_autosearch=False, use_dns=False),
+    UrlParams('test foo', is_url=False,
+              is_url_no_autosearch=False, use_dns=False),
+    UrlParams('test user@host.tld', is_url=False,
+              is_url_no_autosearch=False, use_dns=False),
     # autosearch = False
     UrlParams('This is a URL without autosearch', is_url=False, use_dns=False),
 ], ids=lambda param: 'URL: ' + param.url)
