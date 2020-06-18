@@ -81,6 +81,11 @@ get sent to the general qutebrowser@ list).
 If you're a reddit user, there's a
 https://www.reddit.com/r/qutebrowser/[/r/qutebrowser] subreddit there.
 
+Finally, qutebrowser is participating in the Beta for GitHub's new Discussions
+feature, so you can also use the
+https://github.com/qutebrowser/qutebrowser/discussions[discussions tab] on
+GitHub to get in touch.
+
 Contributions / Bugs
 --------------------
 
@@ -206,8 +211,8 @@ link:doc/backers.asciidoc[crowdfunding campaigns]!
 Similar projects
 ----------------
 
-Many projects with a similar goal as qutebrowser exist.
-Most of them were inspirations for qutebrowser in some way, thanks for that!
+Various projects with a similar goal like qutebrowser exist.
+Many of them were inspirations for qutebrowser in some way, thanks for that!
 
 Active
 ~~~~~~
@@ -215,8 +220,9 @@ Active
 * https://fanglingsu.github.io/vimb/[vimb] (C, GTK+ with WebKit2)
 * https://luakit.github.io/luakit/[luakit] (C/Lua, GTK+ with WebKit2)
 * https://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
-* https://next.atlas.engineer/[next] (Lisp, Emacs-like but also offers Vim bindings, various backends - note there was a http://jgkamat.gitlab.io/blog/next-rce.html[critical remote code execution] which was handled quite badly)
+* https://next.atlas.engineer/[next] (Lisp, Emacs-like but also offers Vim bindings, QtWebKit or GTK+/WebKit2 - note there was a http://jgkamat.gitlab.io/blog/next-rce.html[critical remote code execution] which was handled quite badly)
 * https://github.com/parkouss/webmacs/[webmacs] (Python, Emacs-like with QtWebEngine)
+* https://vieb.dev/[Vieb] (JavaScript, Electron)
 * Chrome/Chromium addons:
   https://vimium.github.io/[Vimium],
 * Firefox addons (based on WebExtensions):

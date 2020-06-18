@@ -30,6 +30,19 @@ from qutebrowser.misc import objects
 from qutebrowser.config import config
 
 
+_SYSTEM_PATHS = [
+    # Debian pdf.js-common
+    # Arch Linux pdfjs (AUR)
+    '/usr/share/pdf.js/',
+    # Flatpak (Flathub)
+    '/app/share/pdf.js/',
+    # Arch Linux pdf.js (AUR)
+    '/usr/share/javascript/pdf.js/',
+    # Debian libjs-pdf
+    '/usr/share/javascript/pdf/',
+]
+
+
 class PDFJSNotFound(Exception):
 
     """Raised when no pdf.js installation is found.
@@ -130,16 +143,7 @@ def get_pdfjs_res_and_path(path):
     content = None
     file_path = None
 
-    system_paths = [
-        # Debian pdf.js-common
-        # Arch Linux pdfjs (AUR)
-        '/usr/share/pdf.js/',
-        # Flatpak (Flathub)
-        '/app/share/pdf.js/',
-        # Arch Linux pdf.js (AUR)
-        '/usr/share/javascript/pdf.js/',
-        # Debian libjs-pdf
-        '/usr/share/javascript/pdf/',
+    system_paths = _SYSTEM_PATHS + [
         # fallback
         os.path.join(standarddir.data(), 'pdfjs'),
         # hardcoded fallback for --temp-basedir
@@ -224,6 +228,7 @@ def is_available():
     """Return true if a pdfjs installation is available."""
     try:
         get_pdfjs_res('build/pdf.js')
+        get_pdfjs_res('web/viewer.html')
     except PDFJSNotFound:
         return False
     else:

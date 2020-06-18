@@ -35,7 +35,7 @@ import typing
 
 import pkg_resources
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
-                          QIODevice, QSaveFile, QT_VERSION_STR,
+                          QIODevice, QFileDevice, QSaveFile, QT_VERSION_STR,
                           PYQT_VERSION_STR, QObject, QUrl)
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QApplication
@@ -43,9 +43,6 @@ try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
-
-if typing.TYPE_CHECKING:
-    from PyQt5.QtCore import QFileDevice
 
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes
@@ -74,13 +71,17 @@ class QtOSError(OSError):
         if msg is None:
             msg = dev.errorString()
 
+        self.qt_errno = None  # type: typing.Optional[QFileDevice.FileError]
+        if isinstance(dev, QFileDevice):
+            msg = self._init_filedev(dev, msg)
+
         super().__init__(msg)
 
-        self.qt_errno = None  # type: typing.Optional[QFileDevice.FileError]
-        try:
-            self.qt_errno = dev.error()
-        except AttributeError:
-            pass
+    def _init_filedev(self, dev: QFileDevice, msg: str) -> str:
+        self.qt_errno = dev.error()
+        filename = dev.fileName()
+        msg += ": {!r}".format(filename)
+        return msg
 
 
 def version_check(version: str,
@@ -229,7 +230,7 @@ def savefile_open(
         if not open_ok:
             raise QtOSError(f)
 
-        dev = typing.cast(typing.IO[bytes], PyQIODevice(f))
+        dev = typing.cast(typing.BinaryIO, PyQIODevice(f))
 
         if binary:
             new_f = dev  # type: typing.IO

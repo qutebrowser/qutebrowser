@@ -79,6 +79,7 @@ def test_unset_organization_no_qapp(monkeypatch):
 
 
 @pytest.mark.fake_os('mac')
+@pytest.mark.posix
 def test_fake_mac_config(tmpdir, monkeypatch):
     """Test standardir.config on a fake Mac."""
     monkeypatch.setenv('HOME', str(tmpdir))

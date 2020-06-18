@@ -31,6 +31,7 @@ import enum
 import datetime
 import getpass
 import typing
+import functools
 
 import attr
 import pkg_resources
@@ -160,6 +161,14 @@ def _git_str() -> typing.Optional[str]:
         return None
 
 
+def _call_git(gitpath: str, *args: str) -> str:
+    """Call a git subprocess."""
+    return subprocess.run(
+        ['git'] + list(args),
+        cwd=gitpath, check=True,
+        stdout=subprocess.PIPE).stdout.decode('UTF-8').strip()
+
+
 def _git_str_subprocess(gitpath: str) -> typing.Optional[str]:
     """Try to get the git commit ID and timestamp by calling git.
 
@@ -173,15 +182,11 @@ def _git_str_subprocess(gitpath: str) -> typing.Optional[str]:
         return None
     try:
         # https://stackoverflow.com/questions/21017300/21017394#21017394
-        commit_hash = subprocess.run(
-            ['git', 'describe', '--match=NeVeRmAtCh', '--always', '--dirty'],
-            cwd=gitpath, check=True,
-            stdout=subprocess.PIPE).stdout.decode('UTF-8').strip()
-        date = subprocess.run(
-            ['git', 'show', '-s', '--format=%ci', 'HEAD'],
-            cwd=gitpath, check=True,
-            stdout=subprocess.PIPE).stdout.decode('UTF-8').strip()
-        return '{} ({})'.format(commit_hash, date)
+        commit_hash = _call_git(gitpath, 'describe', '--match=NeVeRmAtCh',
+                                '--always', '--dirty')
+        date = _call_git(gitpath, 'show', '-s', '--format=%ci', 'HEAD')
+        branch = _call_git(gitpath, 'rev-parse', '--abbrev-ref', 'HEAD')
+        return '{} on {} ({})'.format(commit_hash, branch, date)
     except (subprocess.CalledProcessError, OSError):
         return None
 
@@ -233,7 +238,7 @@ def _module_versions() -> typing.Sequence[str]:
     for modname, attributes in modules.items():
         try:
             module = importlib.import_module(modname)
-        except ImportError:
+        except (ImportError, ValueError):
             text = '{}: no'.format(modname)
         else:
             for name in attributes:
@@ -411,7 +416,7 @@ def _config_py_loaded() -> str:
         return "no config.py was loaded"
 
 
-def version() -> str:
+def version_info() -> str:
     """Return a string with various version information."""
     lines = ["qutebrowser v{}".format(qutebrowser.__version__)]
     gitver = _git_str()
@@ -442,8 +447,8 @@ def version() -> str:
     if qapp:
         style = qapp.style()
         lines.append('Style: {}'.format(style.metaObject().className()))
-        platform_name = qapp.platformName()
-        lines.append('Platform plugin: {}'.format(platform_name))
+        lines.append('Platform plugin: {}'.format(qapp.platformName()))
+        lines.append('OpenGL: {}'.format(opengl_info()))
 
     importpath = os.path.dirname(os.path.abspath(qutebrowser.__file__))
 
@@ -487,7 +492,65 @@ def version() -> str:
     return '\n'.join(lines)
 
 
-def opengl_vendor() -> typing.Optional[str]:  # pragma: no cover
+@attr.s
+class OpenGLInfo:
+
+    """Information about the OpenGL setup in use."""
+
+    # If we're using OpenGL ES. If so, no further information is available.
+    gles = attr.ib(False)  # type: bool
+
+    # The name of the vendor. Examples:
+    # - nouveau
+    # - "Intel Open Source Technology Center", "Intel", "Intel Inc."
+    vendor = attr.ib(None)  # type: typing.Optional[str]
+
+    # The OpenGL version as a string. See tests for examples.
+    version_str = attr.ib(None)  # type: typing.Optional[str]
+
+    # The parsed version as a (major, minor) tuple of ints
+    version = attr.ib(None)  # type: typing.Optional[typing.Tuple[int, ...]]
+
+    # The vendor specific information following the version number
+    vendor_specific = attr.ib(None)  # type: typing.Optional[str]
+
+    def __str__(self) -> str:
+        if self.gles:
+            return 'OpenGL ES'
+        return '{}, {}'.format(self.vendor, self.version_str)
+
+    @classmethod
+    def parse(cls, *, vendor: str, version: str) -> 'OpenGLInfo':
+        """Parse OpenGL version info from a string.
+
+        The arguments should be the strings returned by OpenGL for GL_VENDOR
+        and GL_VERSION, respectively.
+
+        According to the OpenGL reference, the version string should have the
+        following format:
+
+        <major>.<minor>[.<release>] <vendor-specific info>
+        """
+        if ' ' not in version:
+            log.misc.warning("Failed to parse OpenGL version (missing space): "
+                             "{}".format(version))
+            return cls(vendor=vendor, version_str=version)
+
+        num_str, vendor_specific = version.split(' ', maxsplit=1)
+
+        try:
+            parsed_version = tuple(int(i) for i in num_str.split('.'))
+        except ValueError:
+            log.misc.warning("Failed to parse OpenGL version (parsing int): "
+                             "{}".format(version))
+            return cls(vendor=vendor, version_str=version)
+
+        return cls(vendor=vendor, version_str=version,
+                   version=parsed_version, vendor_specific=vendor_specific)
+
+
+@functools.lru_cache(maxsize=1)
+def opengl_info() -> typing.Optional[OpenGLInfo]:  # pragma: no cover
     """Get the OpenGL vendor used.
 
     This returns a string such as 'nouveau' or
@@ -496,10 +559,14 @@ def opengl_vendor() -> typing.Optional[str]:  # pragma: no cover
     """
     assert QApplication.instance()
 
-    override = os.environ.get('QUTE_FAKE_OPENGL_VENDOR')
+    # Some setups can segfault in here if we don't do this.
+    utils.libgl_workaround()
+
+    override = os.environ.get('QUTE_FAKE_OPENGL')
     if override is not None:
         log.init.debug("Using override {}".format(override))
-        return override
+        vendor, version = override.split(', ', maxsplit=1)
+        return OpenGLInfo.parse(vendor=vendor, version=version)
 
     old_context = typing.cast(typing.Optional[QOpenGLContext],
                               QOpenGLContext.currentContext())
@@ -522,7 +589,7 @@ def opengl_vendor() -> typing.Optional[str]:  # pragma: no cover
     try:
         if ctx.isOpenGLES():
             # Can't use versionFunctions there
-            return None
+            return OpenGLInfo(gles=True)
 
         vp = QOpenGLVersionProfile()
         vp.setVersion(2, 0)
@@ -537,7 +604,10 @@ def opengl_vendor() -> typing.Optional[str]:  # pragma: no cover
             log.init.debug("Getting version functions failed!")
             return None
 
-        return vf.glGetString(vf.GL_VENDOR)
+        vendor = vf.glGetString(vf.GL_VENDOR)
+        version = vf.glGetString(vf.GL_VERSION)
+
+        return OpenGLInfo.parse(vendor=vendor, version=version)
     finally:
         ctx.doneCurrent()
         if old_context and old_surface:
@@ -580,5 +650,5 @@ def pastebin_version(pbclient: pastebin.PastebinClient = None) -> None:
 
     pbclient.paste(getpass.getuser(),
                    "qute version info {}".format(qutebrowser.__version__),
-                   version(),
+                   version_info(),
                    private=True)

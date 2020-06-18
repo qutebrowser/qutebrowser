@@ -41,6 +41,9 @@ try:
 except ImportError:
     colorama = None
 
+if typing.TYPE_CHECKING:
+    from qutebrowser.config import config as configmodule
+
 _log_inited = False
 _args = None
 
@@ -176,7 +179,7 @@ def stub(suffix: str = '') -> None:
 
 def init_log(args: argparse.Namespace) -> None:
     """Init loggers based on the argparse namespace passed."""
-    level = args.loglevel.upper()
+    level = (args.loglevel or "info").upper()
     try:
         numeric_level = getattr(logging, level)
     except AttributeError:
@@ -190,16 +193,7 @@ def init_log(args: argparse.Namespace) -> None:
     root = logging.getLogger()
     global console_filter
     if console is not None:
-        if not args.logfilter:
-            negate = False
-            names = None
-        elif args.logfilter.startswith('!'):
-            negate = True
-            names = args.logfilter[1:].split(',')
-        else:
-            negate = False
-            names = args.logfilter.split(',')
-        console_filter = LogFilter(names, negate)
+        console_filter = LogFilter.parse(args.logfilter)
         console.addFilter(console_filter)
         root.addHandler(console)
     if ram is not None:
@@ -293,7 +287,7 @@ def _init_handlers(
         ram_handler = None
     else:
         ram_handler = RAMHandler(capacity=ram_capacity)
-        ram_handler.setLevel(logging.NOTSET)
+        ram_handler.setLevel(logging.DEBUG)
         ram_handler.setFormatter(ram_fmt)
         ram_handler.html_formatter = html_fmt
 
@@ -526,6 +520,36 @@ def hide_qt_warning(pattern: str, logger: str = 'qt') -> typing.Iterator[None]:
         logger_obj.removeFilter(log_filter)
 
 
+def init_from_config(conf: 'configmodule.ConfigContainer') -> None:
+    """Initialize logging settings from the config.
+
+    init_log is called before the config module is initialized, so config-based
+    initialization cannot be performed there.
+
+    Args:
+        conf: The global ConfigContainer.
+              This is passed rather than accessed via the module to avoid a
+              cyclic import.
+    """
+    assert _args is not None
+    if _args.debug:
+        init.debug("--debug flag overrides log configs")
+        return
+    if ram_handler:
+        ramlevel = conf.logging.level.ram
+        init.debug("Configuring RAM loglevel to %s", ramlevel)
+        ram_handler.setLevel(LOG_LEVELS[ramlevel.upper()])
+    if console_handler:
+        consolelevel = conf.logging.level.console
+        if _args.loglevel:
+            init.debug("--loglevel flag overrides logging.level.console")
+        else:
+            init.debug("Configuring console loglevel to %s", consolelevel)
+            level = LOG_LEVELS[consolelevel.upper()]
+            console_handler.setLevel(level)
+            change_console_formatter(level)
+
+
 class QtWarningFilter(logging.Filter):
 
     """Filter to filter Qt warnings.
@@ -544,6 +568,17 @@ class QtWarningFilter(logging.Filter):
         return do_log
 
 
+class InvalidLogFilterError(Exception):
+
+    """Raised when an invalid filter string is passed to LogFilter.parse()."""
+
+    def __init__(self, names: typing.Set[str]):
+        invalid = names - set(LOGGER_NAMES)
+        super().__init__("Invalid log category {} - valid categories: {}"
+                         .format(', '.join(sorted(invalid)),
+                                 ', '.join(LOGGER_NAMES)))
+
+
 class LogFilter(logging.Filter):
 
     """Filter to filter log records based on the commandline argument.
@@ -552,30 +587,58 @@ class LogFilter(logging.Filter):
     comma-separated list instead.
 
     Attributes:
-        names: A list of record names to filter.
-        negated: Whether names is a list of records to log or to suppress.
+        names: A set of logging names to allow.
+        negated: Whether names is a set of names to log or to suppress.
+        only_debug: Only filter debug logs, always show anything more important
+                    than debug.
     """
 
-    def __init__(self, names: typing.Optional[typing.Iterable[str]],
-                 negate: bool = False) -> None:
+    def __init__(self, names: typing.Set[str], *, negated: bool = False,
+                 only_debug: bool = True) -> None:
         super().__init__()
         self.names = names
-        self.negated = negate
+        self.negated = negated
+        self.only_debug = only_debug
+
+    @classmethod
+    def parse(cls, filter_str: typing.Optional[str], *,
+              only_debug: bool = True) -> 'LogFilter':
+        """Parse a log filter from a string."""
+        if filter_str is None or filter_str == 'none':
+            names = set()
+            negated = False
+        else:
+            filter_str = filter_str.lower()
+
+            if filter_str.startswith('!'):
+                negated = True
+                filter_str = filter_str[1:]
+            else:
+                negated = False
+
+            names = {e.strip() for e in filter_str.split(',')}
+
+        if not names.issubset(LOGGER_NAMES):
+            raise InvalidLogFilterError(names)
+
+        return cls(names=names, negated=negated, only_debug=only_debug)
+
+    def update_from(self, other: 'LogFilter') -> None:
+        """Update this filter's properties from another filter."""
+        self.names = other.names
+        self.negated = other.negated
+        self.only_debug = other.only_debug
 
     def filter(self, record: logging.LogRecord) -> bool:
         """Determine if the specified record is to be logged."""
-        if self.names is None:
+        if not self.names:
+            # No filter
             return True
-        if record.levelno > logging.DEBUG:
+        elif record.levelno > logging.DEBUG and self.only_debug:
             # More important than DEBUG, so we won't filter at all
             return True
-        for name in self.names:
-            if record.name == name:
-                return not self.negated
-            elif not record.name.startswith(name):
-                continue
-            elif record.name[len(name)] == '.':
-                return not self.negated
+        elif record.name.split('.')[0] in self.names:
+            return not self.negated
         return self.negated
 
 
@@ -601,18 +664,25 @@ class RAMHandler(logging.Handler):
             self._data = collections.deque()
 
     def emit(self, record: logging.LogRecord) -> None:
-        if record.levelno >= logging.DEBUG:
-            # We don't log VDEBUG to RAM.
-            self._data.append(record)
+        self._data.append(record)
 
-    def dump_log(self, html: bool = False, level: str = 'vdebug') -> str:
+    def dump_log(self, html: bool = False, level: str = 'vdebug',
+                 logfilter: LogFilter = None) -> str:
         """Dump the complete formatted log data as string.
 
-        FIXME: We should do all the HTML formatter via jinja2.
+        FIXME: We should do all the HTML formatting via jinja2.
         (probably obsolete when moving to a widget for logging,
         https://github.com/qutebrowser/qutebrowser/issues/34
+
+        Args:
+            html: Produce HTML rather than plaintext output.
+            level: The minimal loglevel to show.
+            logfilter: A LogFilter instance used to filter log lines.
         """
         minlevel = LOG_LEVELS.get(level.upper(), VDEBUG_LEVEL)
+
+        if logfilter is None:
+            logfilter = LogFilter(set())
 
         if html:
             assert self.html_formatter is not None
@@ -624,7 +694,8 @@ class RAMHandler(logging.Handler):
         try:
             lines = [fmt(record)
                      for record in self._data
-                     if record.levelno >= minlevel]
+                     if record.levelno >= minlevel and
+                     logfilter.filter(record)]
         finally:
             self.release()
         return '\n'.join(lines)

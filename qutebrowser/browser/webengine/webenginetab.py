@@ -183,9 +183,23 @@ class _WebEngineSearchWrapHandler:
         Args:
             page: The QtWebEnginePage to connect to this handler.
         """
-        if qtutils.version_check("5.14"):
-            page.findTextFinished.connect(self._store_match_data)
-            self._nowrap_available = True
+        if not qtutils.version_check("5.14"):
+            return
+
+        try:
+            # pylint: disable=unused-import
+            from PyQt5.QtWebEngineCore import QWebEngineFindTextResult
+        except ImportError:
+            # WORKAROUND for some odd PyQt/packaging bug where the
+            # findTextResult signal is available, but QWebEngineFindTextResult
+            # is not. Seems to happen on e.g. Gentoo.
+            log.webview.warning("Could not import QWebEngineFindTextResult "
+                                "despite running on Qt 5.14. You might need "
+                                "to rebuild PyQtWebEngine.")
+            return
+
+        page.findTextFinished.connect(self._store_match_data)
+        self._nowrap_available = True
 
     def _store_match_data(self, result):
         """Store information on the last match.
@@ -381,7 +395,10 @@ class WebEngineCaret(browsertab.AbstractCaret):
         if enabled is None:
             log.webview.debug("Ignoring selection status None")
             return
-        self.selection_toggled.emit(enabled)
+        if enabled:
+            self.selection_toggled.emit(browsertab.SelectionState.normal)
+        else:
+            self.selection_toggled.emit(browsertab.SelectionState.none)
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self, mode):
@@ -436,8 +453,9 @@ class WebEngineCaret(browsertab.AbstractCaret):
     def move_to_end_of_document(self):
         self._js_call('moveToEndOfDocument')
 
-    def toggle_selection(self):
-        self._js_call('toggleSelection', callback=self.selection_toggled.emit)
+    def toggle_selection(self, line=False):
+        self._js_call('toggleSelection', line,
+                      callback=self._toggle_sel_translate)
 
     def drop_selection(self):
         self._js_call('dropSelection')
@@ -511,6 +529,13 @@ class WebEngineCaret(browsertab.AbstractCaret):
     def _js_call(self, command, *args, callback=None):
         code = javascript.assemble('caret', command, *args)
         self._tab.run_js_async(code, callback)
+
+    def _toggle_sel_translate(self, state_str):
+        if state_str is None:
+            message.error("Error toggling caret selection")
+            return
+        state = browsertab.SelectionState[state_str]
+        self.selection_toggled.emit(state)
 
 
 class WebEngineScroller(browsertab.AbstractScroller):
@@ -660,7 +685,11 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
         if qtutils.version_check('5.15', compiled=False):
             # WORKAROUND for https://github.com/qutebrowser/qutebrowser/issues/5359
             if items:
-                self._tab.load_url(items[-1].url)
+                url = items[-1].url
+                if ((url.scheme(), url.host()) == ('qute', 'back') and
+                        len(items) >= 2):
+                    url = items[-2].url
+                self._tab.load_url(url)
             return
 
         if items:
@@ -817,10 +846,15 @@ class WebEngineAudio(browsertab.AbstractAudio):
         config.instance.changed.connect(self._on_config_changed)
 
     def set_muted(self, muted: bool, override: bool = False) -> None:
+        was_muted = self.is_muted()
         self._overridden = override
         assert self._widget is not None
         page = self._widget.page()
         page.setAudioMuted(muted)
+        if was_muted != muted and qtutils.version_check('5.15'):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-85118
+            # so that the tab title at least updates the muted indicator
+            self.muted_changed.emit(muted)
 
     def is_muted(self):
         page = self._widget.page()
@@ -940,9 +974,18 @@ class _WebEnginePermissions(QObject):
             page.setFeaturePermission, url, feature,
             QWebEnginePage.PermissionDeniedByUser)
 
+        permission_str = debug.qenum_key(QWebEnginePage, feature)
+
+        if not url.isValid():
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-85116
+            log.webview.warning("Ignoring feature permission {} for invalid "
+                                "URL {}".format(permission_str, url))
+            deny_permission()
+            return
+
         if feature not in self._options:
             log.webview.error("Unhandled feature permission {}".format(
-                debug.qenum_key(QWebEnginePage, feature)))
+                permission_str))
             deny_permission()
             return
 
@@ -1208,19 +1251,31 @@ class _WebEngineScripts(QObject):
         """Add site-specific quirk scripts.
 
         NOTE: This isn't implemented for Qt 5.7 because of different UserScript
-        semantics there. We only have a quirk for WhatsApp Web right now. It
-        looks like that quirk isn't needed for Qt < 5.13.
+        semantics there. The WhatsApp Web quirk isn't needed for Qt < 5.13.
+        The globalthis_quirk would be, but let's not keep such old QtWebEngine
+        versions on life support.
         """
         if not config.val.content.site_specific_quirks:
             return
 
         page_scripts = self._widget.page().scripts()
+        quirks = [
+            (
+                'whatsapp_web_quirk',
+                QWebEngineScript.DocumentReady,
+                QWebEngineScript.ApplicationWorld,
+            ),
+        ]
+        if not qtutils.version_check('5.13'):
+            quirks.append(('globalthis_quirk',
+                           QWebEngineScript.DocumentCreation,
+                           QWebEngineScript.MainWorld))
 
-        for filename in ['whatsapp_web_quirk']:
+        for filename, injection_point, world in quirks:
             script = QWebEngineScript()
             script.setName(filename)
-            script.setWorldId(QWebEngineScript.ApplicationWorld)
-            script.setInjectionPoint(QWebEngineScript.DocumentReady)
+            script.setWorldId(world)
+            script.setInjectionPoint(injection_point)
             src = utils.read_file("javascript/{}.user.js".format(filename))
             script.setSourceCode(src)
             page_scripts.insert(script)
@@ -1246,6 +1301,9 @@ class WebEngineTabPrivate(browsertab.AbstractTabPrivate):
         self._tab.shutting_down.emit()
         self._tab.action.exit_fullscreen()
         self._widget.shutdown()
+
+    def run_js_sync(self, code):
+        raise browsertab.UnsupportedOperationError
 
 
 class WebEngineTab(browsertab.AbstractTab):
@@ -1579,16 +1637,16 @@ class WebEngineTab(browsertab.AbstractTab):
         url = error.url()
         self._insecure_hosts.add(url.host())
 
-        log.webview.debug("Certificate error: {}".format(error))
+        log.network.debug("Certificate error: {}".format(error))
 
         if error.is_overridable():
             error.ignore = shared.ignore_certificate_errors(
                 url, [error], abort_on=[self.abort_questions])
         else:
-            log.webview.error("Non-overridable certificate error: "
+            log.network.error("Non-overridable certificate error: "
                               "{}".format(error))
 
-        log.webview.debug("ignore {}, URL {}, requested {}".format(
+        log.network.debug("ignore {}, URL {}, requested {}".format(
             error.ignore, url, self.url(requested=True)))
 
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-56207

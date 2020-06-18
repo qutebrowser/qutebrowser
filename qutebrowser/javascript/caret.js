@@ -706,6 +706,18 @@ window._qutebrowser.caret = (function() {
     CaretBrowsing.isCaretVisible = false;
 
     /**
+     * Selection modes.
+     * NOTE: Values need to line up with SelectionState in browsertab.py!
+     *
+     * @type {enum}
+     */
+    CaretBrowsing.SelectionState = {
+        "NONE": "none",
+        "NORMAL": "normal",
+        "LINE": "line",
+    };
+
+    /**
      * The actual caret element, an absolute-positioned flashing line.
      * @type {Element}
      */
@@ -887,7 +899,11 @@ window._qutebrowser.caret = (function() {
         CaretBrowsing.injectCaretStyles();
         CaretBrowsing.toggle();
         CaretBrowsing.initiated = true;
-        CaretBrowsing.selectionEnabled = selectionRange > 0;
+        if (selectionRange > 0) {
+            CaretBrowsing.selectionState = CaretBrowsing.SelectionState.NORMAL;
+        } else {
+            CaretBrowsing.selectionState = CaretBrowsing.SelectionState.NONE;
+        }
     };
 
     /**
@@ -1145,16 +1161,45 @@ window._qutebrowser.caret = (function() {
             }
         };
 
+    CaretBrowsing.reverseSelection = () => {
+        const sel = window.getSelection();
+        sel.setBaseAndExtent(
+            sel.extentNode, sel.extentOffset, sel.baseNode,
+            sel.baseOffset
+        );
+    };
+
+    CaretBrowsing.selectLine = function() {
+        const sel = window.getSelection();
+        sel.modify("extend", "right", "lineboundary");
+        CaretBrowsing.reverseSelection();
+        sel.modify("extend", "left", "lineboundary");
+        CaretBrowsing.reverseSelection();
+    };
+
+    CaretBrowsing.updateLineSelection = function(direction, granularity) {
+        if (granularity !== "character" && granularity !== "word") {
+            window.
+                getSelection().
+                modify("extend", direction, granularity);
+            CaretBrowsing.selectLine();
+        }
+    };
+
     CaretBrowsing.move = function(direction, granularity, count = 1) {
         let action = "move";
-        if (CaretBrowsing.selectionEnabled) {
+        if (CaretBrowsing.selectionState !== CaretBrowsing.SelectionState.NONE) {
             action = "extend";
         }
 
         for (let i = 0; i < count; i++) {
-            window.
-                getSelection().
-                modify(action, direction, granularity);
+            if (CaretBrowsing.selectionState === CaretBrowsing.SelectionState.LINE) {
+                CaretBrowsing.updateLineSelection(direction, granularity);
+            } else {
+                window.
+                    getSelection().
+                    modify(action, direction, granularity);
+            }
         }
 
         if (CaretBrowsing.isWindows &&
@@ -1174,7 +1219,7 @@ window._qutebrowser.caret = (function() {
 
     CaretBrowsing.moveToBlock = function(paragraph, boundary, count = 1) {
         let action = "move";
-        if (CaretBrowsing.selectionEnabled) {
+        if (CaretBrowsing.selectionState !== CaretBrowsing.SelectionState.NONE) {
             action = "extend";
         }
         for (let i = 0; i < count; i++) {
@@ -1185,6 +1230,10 @@ window._qutebrowser.caret = (function() {
             window.
                 getSelection().
                 modify(action, boundary, "paragraphboundary");
+
+            if (CaretBrowsing.selectionState === CaretBrowsing.SelectionState.LINE) {
+                CaretBrowsing.selectLine();
+            }
         }
     };
 
@@ -1294,14 +1343,14 @@ window._qutebrowser.caret = (function() {
     funcs.setInitialCursor = () => {
         if (!CaretBrowsing.initiated) {
             CaretBrowsing.setInitialCursor();
-            return CaretBrowsing.selectionEnabled;
+            return CaretBrowsing.selectionState !== CaretBrowsing.SelectionState.NONE;
         }
 
         if (window.getSelection().toString().length === 0) {
             positionCaret();
         }
         CaretBrowsing.toggle();
-        return CaretBrowsing.selectionEnabled;
+        return CaretBrowsing.selectionState !== CaretBrowsing.SelectionState.NONE;
     };
 
     funcs.setFlags = (flags) => {
@@ -1399,17 +1448,22 @@ window._qutebrowser.caret = (function() {
 
     funcs.getSelection = () => window.getSelection().toString();
 
-    funcs.toggleSelection = () => {
-        CaretBrowsing.selectionEnabled = !CaretBrowsing.selectionEnabled;
-        return CaretBrowsing.selectionEnabled;
+    funcs.toggleSelection = (line) => {
+        if (line) {
+            CaretBrowsing.selectionState =
+                CaretBrowsing.SelectionState.LINE;
+            CaretBrowsing.selectLine();
+            CaretBrowsing.finishMove();
+        } else if (CaretBrowsing.selectionState !== CaretBrowsing.SelectionState.NORMAL) {
+            CaretBrowsing.selectionState = CaretBrowsing.SelectionState.NORMAL;
+        } else {
+            CaretBrowsing.selectionState = CaretBrowsing.SelectionState.NONE;
+        }
+        return CaretBrowsing.selectionState;
     };
 
     funcs.reverseSelection = () => {
-        const sel = window.getSelection();
-        sel.setBaseAndExtent(
-            sel.extentNode, sel.extentOffset, sel.baseNode,
-            sel.baseOffset
-        );
+        CaretBrowsing.reverseSelection();
     };
 
     return funcs;

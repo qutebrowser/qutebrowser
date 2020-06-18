@@ -91,7 +91,7 @@ def check_spelling():
              '[Mm]ininum', '[Rr]esett?ed', '[Rr]ecieved', '[Rr]egularily',
              '[Uu]nderlaying', '[Ii]nexistant', '[Ee]lipsis', 'commiting',
              'existant', '[Rr]esetted', '[Ss]imilarily', '[Ii]nformations',
-             '[Aa]n [Uu][Rr][Ll]'}
+             '[Aa]n [Uu][Rr][Ll]', '[Tt]reshold'}
 
     # Words which look better when splitted, but might need some fine tuning.
     words |= {'[Ww]ebelements', '[Mm]ouseevent', '[Kk]eysequence',

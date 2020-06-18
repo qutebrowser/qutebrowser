@@ -25,7 +25,7 @@
 import traceback
 import typing
 
-from PyQt5.QtCore import pyqtSignal, QObject, QUrl
+from PyQt5.QtCore import pyqtSignal, QObject
 
 from qutebrowser.utils import usertypes, log, utils
 

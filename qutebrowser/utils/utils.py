@@ -36,6 +36,8 @@ import shlex
 import glob
 import mimetypes
 import typing
+import ctypes
+import ctypes.util
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QClipboard, QDesktopServices
@@ -776,3 +778,16 @@ def ceil_log(number: int, base: int) -> int:
         result += 1
         accum *= base
     return result
+
+
+def libgl_workaround() -> None:
+    """Work around QOpenGLShaderProgram issues, especially for Nvidia.
+
+    See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/941826
+    """
+    if os.environ.get('QUTE_SKIP_LIBGL_WORKAROUND'):
+        return
+
+    libgl = ctypes.util.find_library("GL")
+    if libgl is not None:  # pragma: no branch
+        ctypes.CDLL(libgl, mode=ctypes.RTLD_GLOBAL)

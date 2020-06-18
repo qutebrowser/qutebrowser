@@ -64,8 +64,11 @@ class TabDeque:
     """
 
     def __init__(self) -> None:
+        size = config.val.tabs.focus_stack_size
+        if size < 0:
+            size = None
         self._stack = collections.deque(
-            maxlen=config.val.tabs.focus_stack_size
+            maxlen=size
         )  # type: typing.Deque[weakref.ReferenceType[QWidget]]
         # Items that have been removed from the primary stack.
         self._stack_deleted = [
@@ -189,7 +192,7 @@ class TabbedBrowser(QWidget):
     cur_scroll_perc_changed = pyqtSignal(int, int)
     cur_load_status_changed = pyqtSignal(usertypes.LoadStatus)
     cur_fullscreen_requested = pyqtSignal(bool)
-    cur_caret_selection_toggled = pyqtSignal(bool)
+    cur_caret_selection_toggled = pyqtSignal(browsertab.SelectionState)
     close_window = pyqtSignal()
     resized = pyqtSignal('QRect')
     current_tab_changed = pyqtSignal(browsertab.AbstractTab)
