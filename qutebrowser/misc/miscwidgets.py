@@ -414,8 +414,8 @@ class InspectorSplitter(QSplitter):
         except KeyError:
             # First start
             pass
-        except:
-            log.misc.exception("Error while reading preferred size")
+        except ValueError as e:
+            log.misc.error("Could not read inspector size: {}".format(e))
 
     def _adjust_size(self) -> None:
         """Adjust the size of the inspector similarly to Chromium.
