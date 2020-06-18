@@ -415,10 +415,8 @@ class UrlParams:
     # no DNS because there is no host
     UrlParams('foo::bar', is_url=False, use_dns=False),
     # Valid search term with autosearch
-    UrlParams('test foo', is_url=False,
-              is_url_no_autosearch=False, use_dns=False),
-    UrlParams('test user@host.tld', is_url=False,
-              is_url_no_autosearch=False, use_dns=False),
+    UrlParams('test foo', is_url=False, is_url_no_autosearch=False, use_dns=False),
+    UrlParams('test user@host.tld', is_url=False, is_url_no_autosearch=False, use_dns=False),
     # autosearch = False
     UrlParams('This is a URL without autosearch', is_url=False, use_dns=False),
 ], ids=lambda param: 'URL: ' + param.url)
@@ -429,13 +427,14 @@ def test_is_url(config_stub, fake_dns, auto_search, url_params):
         auto_search: With which auto_search setting to test
         url_params: instance of UrlParams; each containing the following attrs
         * url: The URL to test, as a string.
-        * is_url: Whether the given string is a URL with auto_search dns/naive.
+        * is_url: Whether the given string is considered a URL when auto_search
+                  is either dns or naive. [default: True]
         * is_url_no_autosearch: Whether the given string is a URL with
-                                auto_search false.
+                                auto_search false. [default: True]
         * use_dns: Whether the given string should fire a DNS request for the
-                   given URL.
+                   given URL. [default: True]
         * is_url_in_schemeless: Whether the given string is treated as a URL
-                                when auto_search=schemeless.
+                                when auto_search=schemeless. [default: False]
     """
     url = url_params.url
     is_url = url_params.is_url
