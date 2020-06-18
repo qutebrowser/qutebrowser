@@ -585,7 +585,9 @@ content.headers.user_agent:
     The default value is equal to the unchanged user agent of
     QtWebKit/QtWebEngine.
 
-    Note that the value read from JavaScript is always the global value.
+    Note that the value read from JavaScript is always the global value. With
+    QtWebEngine between 5.12 and 5.14 (inclusive), changing the value exposed
+    to JavaScript requires a restart.
 
 content.host_blocking.enabled:
   default: true
