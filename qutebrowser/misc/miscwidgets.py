@@ -456,8 +456,11 @@ class InspectorSplitter(QSplitter):
         if (sizes[self._main_idx] < self._PROTECTED_MAIN_SIZE and
                 total >= self._SMALL_SIZE_THRESHOLD):
             # Case 2 above
-            sizes[self._main_idx] = self._PROTECTED_MAIN_SIZE
-            sizes[self._inspector_idx] = total - self._PROTECTED_MAIN_SIZE
+            handle_size = self.handleWidth()
+            sizes[self._main_idx] = (self._PROTECTED_MAIN_SIZE -
+                                     handle_size // 2)
+            sizes[self._inspector_idx] = (total - self._PROTECTED_MAIN_SIZE +
+                                          handle_size // 2)
             self.setSizes(sizes)
         elif (total >= self._preferred_size + self._PROTECTED_MAIN_SIZE and
               sizes[self._inspector_idx] != self._preferred_size):
