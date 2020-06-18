@@ -357,8 +357,8 @@ class InspectorSplitter(QSplitter):
         _preferred_size: the preferred size of the inpector widget in pixels
     """
 
-    def __init__(self, main_webview: QWidget) -> None:
-        super().__init__()
+    def __init__(self, main_webview: QWidget, parent: QWidget = None) -> None:
+        super().__init__(parent)
         self.addWidget(main_webview)
         self.setFocusProxy(main_webview)
         self.splitterMoved.connect(self._on_splitter_moved)  # type: ignore
