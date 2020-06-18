@@ -388,8 +388,6 @@ class InspectorSplitter(QSplitter):
             self._inspector_idx = 0
             self._main_idx = 1
 
-        self.setStretchFactor(self._main_idx, 1)
-        self.setStretchFactor(self._inspector_idx, 0)
         self.setOrientation(Qt.Horizontal
                             if position in [inspector.Position.left,
                                             inspector.Position.right]
