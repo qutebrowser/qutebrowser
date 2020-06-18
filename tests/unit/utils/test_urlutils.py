@@ -375,7 +375,7 @@ class UrlParams:
     UrlParams('existing-tld.domains'),
     # Internationalized domain names
     UrlParams('\u4E2D\u56FD.\u4E2D\u56FD'),  # Chinese TLD
-    UrlParams('xn--fiqs8s.xn--fiqs8s'),  # Chinese TLD
+    UrlParams('xn--fiqs8s.xn--fiqs8s'),  # The same in punycode
     # Encoded space in explicit url
     UrlParams('http://sharepoint/sites/it/IT%20Documentation/Forms/AllItems.aspx', use_dns=False, is_url_in_schemeless=True),
     # IPs
