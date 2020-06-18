@@ -288,7 +288,8 @@ def is_url(urlstr: str) -> bool:
         # URLs with explicit schemes are always URLs
         log.url.debug("Contains explicit scheme")
         url = True
-    elif autosearch == 'schemeless' and (not _has_explicit_scheme(qurl) or ' ' in urlstr):
+    elif (autosearch == 'schemeless' and
+          (not _has_explicit_scheme(qurl) or ' ' in urlstr)):
         # When autosearch=schemeless, URLs must contain schemes to be valid
         log.url.debug("No explicit scheme in given URL, treating as non-URL")
         url = False
