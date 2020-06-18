@@ -147,6 +147,7 @@ class AbstractWebInspector(QWidget):
                 self.closed.emit()
             elif position == Position.window:
                 self.hide()
+                self.setWindowTitle("Web Inspector")
                 self.setParent(None)  # type: ignore
                 self._load_state_geometry()
             else:
