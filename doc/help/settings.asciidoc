@@ -1998,7 +1998,7 @@ This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
-Default: +pass:[false]+
+Default: +pass:[true]+
 
 On QtWebEngine, this setting requires Qt 5.12 or newer.
 

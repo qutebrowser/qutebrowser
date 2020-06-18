@@ -444,7 +444,7 @@ content.developer_extras:
   deleted: true
 
 content.dns_prefetch:
-  default: false
+  default: true
   type: Bool
   backend:
     QtWebKit: true
