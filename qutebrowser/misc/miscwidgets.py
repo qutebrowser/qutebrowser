@@ -355,7 +355,16 @@ class InspectorSplitter(QSplitter):
         _main_idx: index of the main webview widget
         _position: position of the inspector (right/left/top/bottom)
         _preferred_size: the preferred size of the inpector widget in pixels
+
+    Class attributes:
+        _PROTECTED_MAIN_SIZE: How much space should be reserved for the main
+                              content (website).
+        _SMALL_SIZE_THRESHOLD: If the window size is under this threshold, we
+                               consider this a temporary "emergency" situation.
     """
+
+    _PROTECTED_MAIN_SIZE = 150
+    _SMALL_SIZE_THRESHOLD = 300
 
     def __init__(self, main_webview: QWidget, parent: QWidget = None) -> None:
         super().__init__(parent)
@@ -402,11 +411,11 @@ class InspectorSplitter(QSplitter):
         full = (self.width() if self.orientation() == Qt.Horizontal
                 else self.height())
 
-        # If we first open the inspector with a window size of <300px, we don't
-        # want to default to half of the window size as the small window is
-        # likely a temporary situation and the inspector isn't very usable in
-        # that state.
-        self._preferred_size = max(300, full // 2)
+        # If we first open the inspector with a window size of < 300px
+        # (self._SMALL_SIZE_THRESHOLD), we don't want to default to half of the
+        # window size as the small window is likely a temporary situation and
+        # the inspector isn't very usable in that state.
+        self._preferred_size = max(self._SMALL_SIZE_THRESHOLD, full // 2)
 
         try:
             key = 'inspector_' + self._position.name
@@ -430,25 +439,27 @@ class InspectorSplitter(QSplitter):
            size.
 
         2) We're slowly running out of space. Make sure the page still has
-           150px (protected_main_size) left, give the rest to the inspector.
+           150px (self._PROTECTED_MAIN_SIZE) left, give the rest to the
+           inspector.
 
-        3) The window is very small (< 300px). Keep Qt's behavior of keeping
-           the aspect ratio, as all hope is lost at this point.
+        3) The window is very small (< 300px, self._SMALL_SIZE_THRESHOLD).
+           Keep Qt's behavior of keeping the aspect ratio, as all hope is lost
+           at this point.
         """
         sizes = self.sizes()
         total = sizes[0] + sizes[1]
-        protected_main_size = 150
 
         assert self._main_idx is not None
         assert self._inspector_idx is not None
         assert self._preferred_size is not None
 
-        if sizes[self._main_idx] < protected_main_size and total >= 300:
+        if (sizes[self._main_idx] < self._PROTECTED_MAIN_SIZE and
+                total >= self._SMALL_SIZE_THRESHOLD):
             # Case 2 above
-            sizes[self._main_idx] = protected_main_size
-            sizes[self._inspector_idx] = total - protected_main_size
+            sizes[self._main_idx] = self._PROTECTED_MAIN_SIZE
+            sizes[self._inspector_idx] = total - self._PROTECTED_MAIN_SIZE
             self.setSizes(sizes)
-        elif (total >= self._preferred_size + protected_main_size and
+        elif (total >= self._preferred_size + self._PROTECTED_MAIN_SIZE and
               sizes[self._inspector_idx] != self._preferred_size):
             # Case 1 above
             sizes[self._inspector_idx] = self._preferred_size
