@@ -26,7 +26,7 @@ import enum
 
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import pyqtSignal, QObject, QEvent
-from PyQt5.QtGui import QCloseEvent, QMouseEvent
+from PyQt5.QtGui import QCloseEvent
 
 from qutebrowser.browser import eventfilter
 from qutebrowser.config import configfiles
@@ -90,7 +90,8 @@ class _EventFilter(QObject):
         super().__init__(parent)
         self._win_id = win_id
 
-    def eventFilter(self, obj: QObject, event: QEvent) -> bool:
+    def eventFilter(self, _obj: QObject, event: QEvent) -> bool:
+        """Enter insert mode if the inspector is clicked."""
         if event.type() == QEvent.MouseButtonPress:
             modeman.enter(self._win_id, usertypes.KeyMode.insert,
                           reason='Inspector clicked')
@@ -131,7 +132,9 @@ class AbstractWebInspector(QWidget):
         self._widget.installEventFilter(self._child_event_filter)
 
     def set_position(self, position: typing.Optional[Position]) -> None:
-        """Set the position of the inspector. Will close the inspector if position is None."""
+        """Set the position of the inspector.
+
+        Will close the inspector if position is None."""
         if position != self._position:
             if self._position == Position.window:
                 self._save_state_geometry()

@@ -370,7 +370,7 @@ class InspectorSplitter(QSplitter):
         super().__init__(parent)
         self.addWidget(main_webview)
         self.setFocusProxy(main_webview)
-        self.splitterMoved.connect(self._on_splitter_moved)  # type: ignore
+        self.splitterMoved.connect(self._on_splitter_moved)
         self._main_idx = None  # type: typing.Optional[int]
         self._inspector_idx = None  # type: typing.Optional[int]
         self._position = None  # type: typing.Optional[inspector.Position]

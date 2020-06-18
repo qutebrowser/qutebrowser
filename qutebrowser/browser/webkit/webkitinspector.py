@@ -38,7 +38,7 @@ class WebKitInspector(inspector.AbstractWebInspector):
         qwebinspector = QWebInspector()
         self._set_widget(qwebinspector)
 
-    def inspect(self, page: QWebPage) -> None:
+    def inspect(self, page: QWebPage) -> None:  # type: ignore[override]
         settings = QWebSettings.globalSettings()
         settings.setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
         self._widget.setPage(page)

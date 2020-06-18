@@ -33,8 +33,14 @@ from qutebrowser.misc import miscwidgets
 
 class WebEngineInspectorView(QWebEngineView):
 
+    """The QWebEngineView used for the inspector.
+
+    We don't use a qutebrowser WebEngineView because that has various
+    customization which doesn't apply to the inspector.
+    """
+
     def createWindow(self,
-                     wintype: QWebEnginePage.WebWindowType) -> QWebEnginePage:
+                     wintype: QWebEnginePage.WebWindowType) -> QWebEngineView:
         """Called by Qt when a page wants to create a new tab or window.
 
         In case the user wants to open a resource in a new tab, we use the
@@ -84,7 +90,7 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         inspector_page.setInspectedPage(page)
         self._settings.update_for_url(inspector_page.requestedUrl())
 
-    def inspect(self, page: QWebEnginePage) -> None:
+    def inspect(self, page: QWebEnginePage) -> None:  # type: ignore[override]
         try:
             self._inspect_new(page)
         except AttributeError:
