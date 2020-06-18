@@ -846,10 +846,15 @@ class WebEngineAudio(browsertab.AbstractAudio):
         config.instance.changed.connect(self._on_config_changed)
 
     def set_muted(self, muted: bool, override: bool = False) -> None:
+        was_muted = self.is_muted()
         self._overridden = override
         assert self._widget is not None
         page = self._widget.page()
         page.setAudioMuted(muted)
+        if was_muted != muted and qtutils.version_check('5.15'):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-85118
+            # so that the tab title at least updates the muted indicator
+            self.muted_changed.emit(muted)
 
     def is_muted(self):
         page = self._widget.page()
@@ -972,6 +977,7 @@ class _WebEnginePermissions(QObject):
         permission_str = debug.qenum_key(QWebEnginePage, feature)
 
         if not url.isValid():
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-85116
             log.webview.warning("Ignoring feature permission {} for invalid "
                                 "URL {}".format(permission_str, url))
             deny_permission()

@@ -89,6 +89,9 @@ Fixed
 - Hint letters outside of ASCII should now work.
 - When `bindings.key_mappings` is used with hints, it now works properly with
   letters outside of ASCII as well.
+- With Qt 5.15, the audible/muted indicators are not updated properly due to a
+  Qt bug. This release adds a workaround so that at least the muted indicator
+  is shown properly.
 
 v1.12.0 (2020-06-01)
 --------------------
