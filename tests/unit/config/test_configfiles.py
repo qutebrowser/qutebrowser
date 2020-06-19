@@ -501,7 +501,7 @@ class TestYamlMigrations:
         ('tabs.favicons.show', 'always', 'always'),
 
         ('scrolling.bar', True, 'always'),
-        ('scrolling.bar', False, 'when-searching'),
+        ('scrolling.bar', False, 'overlay'),
         ('scrolling.bar', 'always', 'always'),
 
         ('qt.force_software_rendering', True, 'software-opengl'),
