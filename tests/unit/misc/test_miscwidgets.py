@@ -17,8 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Test widgets in miscwidgets module."""
-
+import math
 import logging
 from unittest import mock
 
@@ -294,16 +293,17 @@ class TestInspectorSplitter:
         'old_window_size, preferred_size, new_window_size, '
         'exp_inspector_size', [
             # Plenty of space -> Keep inspector at configured absolute size
-            (1000, 500,  # 1/2 of window
-             800, 500),  # 500px -> 500px
+            (600, 300,  # 1/2 of window
+             500, 300),  # 300px of 600px -> 300px of 500px
 
             # Slowly running out of space -> Reserve space for website
-            (1000, 750,  # 3/4 of window
-             500, 350),  # 750px -> 350px (so website has 150px)
+            (600, 450,  # 3/4 of window
+             500, 350),  # 450px of 600px -> 350px of 500px
+                         # (so website has 150px)
 
             # Very small window -> Keep ratio distribution
-            (1000, 500,  # 1/2 of window
-             200, 100),  # 500px -> 100px (1/2)
+            (600, 300,  # 1/2 of window
+             200, 100),  # 300px of 600px -> 100px of 200px (1/2)
         ]
     )
     @pytest.mark.parametrize('position', [
@@ -312,13 +312,12 @@ class TestInspectorSplitter:
     def test_adjust_size(self, old_window_size, preferred_size,
                          new_window_size, exp_inspector_size,
                          position, splitter, fake_inspector, qtbot):
-        def resize(size):
-            if splitter.orientation() == Qt.Horizontal:
-                splitter.resize(size, 600)
-                assert splitter.size() == QSize(size, 600)
-            else:
-                splitter.resize(1024, size)
-                assert splitter.size() == QSize(1024, size)
+        def resize(dim):
+            size = (QSize(dim, 666) if splitter.orientation() == Qt.Horizontal
+                    else QSize(666, dim))
+            splitter.resize(size)
+            if splitter.size() != size:
+                pytest.skip("Resizing window failed")
 
         splitter.set_inspector(fake_inspector, position)
         splitter.show()
@@ -338,7 +337,7 @@ class TestInspectorSplitter:
         inspector_size = sizes[splitter._inspector_idx]
         main_size = sizes[splitter._main_idx]
         exp_main_size = new_window_size - exp_inspector_size - handle_width//2
-        exp_inspector_size -= handle_width//2
+        exp_inspector_size -= math.ceil(handle_width/2)
 
         assert (inspector_size, main_size) == (exp_inspector_size,
                                                exp_main_size)
