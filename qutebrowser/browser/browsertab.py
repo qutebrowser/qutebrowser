@@ -853,6 +853,7 @@ class AbstractTabPrivate:
             tabdata.inspector = inspector.create(
                 splitter=tabdata.splitter,
                 win_id=self._tab.win_id)
+            self._tab.shutting_down.connect(tabdata.inspector.shutdown)
             tabdata.inspector.inspect(self._widget.page())
         tabdata.inspector.set_position(position)
 

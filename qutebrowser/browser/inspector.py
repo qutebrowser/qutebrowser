@@ -25,7 +25,7 @@ import typing
 import enum
 
 from PyQt5.QtWidgets import QWidget
-from PyQt5.QtCore import pyqtSignal, QObject, QEvent
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
 from PyQt5.QtGui import QCloseEvent
 
 from qutebrowser.browser import eventfilter
@@ -188,3 +188,8 @@ class AbstractWebInspector(QWidget):
     def inspect(self, page: QWidget) -> None:
         """Inspect the given QWeb(Engine)Page."""
         raise NotImplementedError
+
+    @pyqtSlot()
+    def shutdown(self):
+        self.close()
+        self.deleteLater()
