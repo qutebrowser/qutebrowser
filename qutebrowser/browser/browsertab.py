@@ -45,7 +45,7 @@ from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message)
 from qutebrowser.misc import miscwidgets, objects, sessions
-from qutebrowser.browser import eventfilter
+from qutebrowser.browser import eventfilter, inspector
 from qutebrowser.qt import sip
 
 if typing.TYPE_CHECKING:
@@ -845,6 +845,16 @@ class AbstractTabPrivate:
         For QtWebEngine, always raises UnsupportedOperationError.
         """
         raise NotImplementedError
+
+    def toggle_inspector(self, position: inspector.Position) -> None:
+        """Show/hide (and if needed, create) the web inspector for this tab."""
+        tabdata = self._tab.data
+        if tabdata.inspector is None:
+            tabdata.inspector = inspector.create(
+                splitter=tabdata.splitter,
+                win_id=self._tab.win_id)
+            tabdata.inspector.inspect(self._widget.page())
+        tabdata.inspector.set_position(position)
 
 
 class AbstractTab(QWidget):

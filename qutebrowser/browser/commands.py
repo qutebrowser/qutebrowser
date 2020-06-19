@@ -1256,16 +1256,8 @@ class CommandDispatcher:
                       (right/left/top/bottom/window).
         """
         tab = self._current_widget()
-        # FIXME:qtwebengine have a proper API for this
-        page = tab._widget.page()  # pylint: disable=protected-access
-
         try:
-            if tab.data.inspector is None:
-                tab.data.inspector = inspector.create(
-                    splitter=tab.data.splitter,
-                    win_id=tab.win_id)
-                tab.data.inspector.inspect(page)
-            tab.data.inspector.set_position(position)
+            tab.private_api.toggle_inspector(position)
         except inspector.WebInspectorError as e:
             raise cmdutils.CommandError(e)
 
