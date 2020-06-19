@@ -126,18 +126,18 @@ class AbstractWebInspector(QWidget):
         self._layout.wrap(self, widget)
         self._widget.installEventFilter(self._child_event_filter)
 
-    def _last_position(self) -> Position:
+    def _load_position(self) -> Position:
         """Get the last position the inspector was in."""
         try:
-            pos = configfiles.state['general']['inspector_last_position']
+            pos = configfiles.state['inspector']['position']
         except KeyError:
             return Position.right
         else:
             return Position[pos]
 
-    def _save_last_position(self, position: Position) -> None:
+    def _save_position(self, position: Position) -> None:
         """Save the last position the inspector was in."""
-        configfiles.state['general']['inspector_last_position'] = position.name
+        configfiles.state['inspector']['position'] = position.name
 
     def set_position(self, position: typing.Optional[Position]) -> None:
         """Set the position of the inspector.
@@ -145,9 +145,9 @@ class AbstractWebInspector(QWidget):
         If the position is None, the last known position is used.
         """
         if position is None:
-            position = self._last_position()
+            position = self._load_position()
         else:
-            self._save_last_position(position)
+            self._save_position(position)
 
         if position == self._position:
             self.setVisible(not self.isVisible())
@@ -166,7 +166,7 @@ class AbstractWebInspector(QWidget):
     def _load_state_geometry(self) -> None:
         """Load the geometry from the state file."""
         try:
-            data = configfiles.state['geometry']['inspector']
+            data = configfiles.state['inspector']['window']
             geom = base64.b64decode(data, validate=True)
         except KeyError:
             # First start
@@ -183,7 +183,7 @@ class AbstractWebInspector(QWidget):
         """Save the geometry when closed."""
         data = self.saveGeometry().data()
         geom = base64.b64encode(data).decode('ASCII')
-        configfiles.state['geometry']['inspector'] = geom
+        configfiles.state['inspector']['window'] = geom
 
     def inspect(self, page: QWidget) -> None:
         """Inspect the given QWeb(Engine)Page."""

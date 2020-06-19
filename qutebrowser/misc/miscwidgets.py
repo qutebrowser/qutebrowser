@@ -400,8 +400,8 @@ class InspectorSplitter(QSplitter):
     def _save_preferred_size(self) -> None:
         """Save the preferred size of the inspector widget."""
         assert self._position is not None
-        key = 'inspector_' + self._position.name
-        configfiles.state['geometry'][key] = str(self._preferred_size)
+        size = str(self._preferred_size)
+        configfiles.state['inspector'][self._position.name] = size
 
     def _load_preferred_size(self) -> None:
         """Load the preferred size of the inspector widget."""
@@ -416,13 +416,14 @@ class InspectorSplitter(QSplitter):
         self._preferred_size = max(self._SMALL_SIZE_THRESHOLD, full // 2)
 
         try:
-            key = 'inspector_' + self._position.name
-            self._preferred_size = int(configfiles.state['geometry'][key])
+            size = int(configfiles.state['inspector'][self._position.name])
         except KeyError:
             # First start
             pass
         except ValueError as e:
             log.misc.error("Could not read inspector size: {}".format(e))
+        else:
+            self._preferred_size = int(size)
 
     def _adjust_size(self) -> None:
         """Adjust the size of the inspector similarly to Chromium.

@@ -68,15 +68,19 @@ class StateConfig(configparser.ConfigParser):
         else:
             self.qt_version_changed = False
 
-        for sect in ['general', 'geometry']:
+        for sect in ['general', 'geometry', 'inspector']:
             try:
                 self.add_section(sect)
             except configparser.DuplicateSectionError:
                 pass
 
-        deleted_keys = ['fooled', 'backend-warning-shown']
-        for key in deleted_keys:
-            self['general'].pop(key, None)
+        deleted_keys = [
+            ('general', 'fooled'),
+            ('general', 'backend-warning-shown'),
+            ('geometry', 'inspector'),
+        ]
+        for sect, key in deleted_keys:
+            self[sect].pop(key, None)
 
         self['general']['qt_version'] = qt_version
         self['general']['version'] = qutebrowser.__version__

@@ -170,7 +170,7 @@ class TestInspectorSplitter:
 
     @pytest.fixture(autouse=True)
     def state_config(self, monkeypatch):
-        state = {'geometry': {}}
+        state = {'inspector': {}}
         monkeypatch.setattr(miscwidgets.configfiles, 'state', state)
         return state
 
@@ -207,61 +207,21 @@ class TestInspectorSplitter:
     @pytest.mark.parametrize(
         'config, width, height, position, expected_size', [
             # No config but enough big window
-            (
-                {},
-                1024, 768,
-                inspector.Position.left,
-                512,
-            ),
-            (
-                {},
-                1024, 768,
-                inspector.Position.top,
-                384,
-            ),
-
+            (None, 1024, 768, inspector.Position.left, 512),
+            (None, 1024, 768, inspector.Position.top, 384),
             # No config and small window
-            (
-                {},
-                320, 240,
-                inspector.Position.left,
-                300,
-            ),
-            (
-                {},
-                320, 240,
-                inspector.Position.top,
-                300,
-            ),
-
+            (None, 320, 240, inspector.Position.left, 300),
+            (None, 320, 240, inspector.Position.top, 300),
             # Invalid config
-            (
-                {'inspector_left': 'verybig'},
-                1024, 768,
-                inspector.Position.left,
-                512,
-            ),
-
-            # Different config
-            (
-                {'inspector_right': '666'},
-                1024, 768,
-                inspector.Position.left,
-                512,
-            ),
-
+            ('verybig', 1024, 768, inspector.Position.left, 512),
             # Value from config
-            (
-                {'inspector_left': '666'},
-                1024, 768,
-                inspector.Position.left,
-                666,
-            ),
+            ('666', 1024, 768, inspector.Position.left, 666),
         ]
     )
     def test_read_size(self, config, width, height, position, expected_size,
                        state_config, splitter, fake_inspector, caplog):
-        state_config['geometry'] = config
+        if config is not None:
+            state_config['inspector'] = {position.name: config}
 
         splitter.resize(width, height)
         assert splitter.size() == QSize(width, height)
@@ -271,23 +231,22 @@ class TestInspectorSplitter:
 
         assert splitter._preferred_size == expected_size
 
-        if config == {'inspector_left': 'verybig'}:
+        if config == {'left': 'verybig'}:
             assert caplog.messages == ["Could not read inspector size: "
                                        "invalid literal for int() with "
                                        "base 10: 'verybig'"]
 
-    @pytest.mark.parametrize('position, key', [
-        (inspector.Position.left, 'inspector_left'),
-        (inspector.Position.right, 'inspector_right'),
-        (inspector.Position.top, 'inspector_top'),
-        (inspector.Position.bottom, 'inspector_bottom'),
+    @pytest.mark.parametrize('position', [
+        inspector.Position.left,
+        inspector.Position.right,
+        inspector.Position.top,
+        inspector.Position.bottom,
     ])
-    def test_save_size(self, position, key,
-                       state_config, splitter, fake_inspector):
+    def test_save_size(self, position, state_config, splitter, fake_inspector):
         splitter.set_inspector(fake_inspector, position)
         splitter._preferred_size = 1337
         splitter._save_preferred_size()
-        assert state_config['geometry'][key] == '1337'
+        assert state_config['inspector'][position.name] == '1337'
 
     @pytest.mark.parametrize(
         'old_window_size, preferred_size, new_window_size, '
