@@ -484,7 +484,10 @@ class TestQtArgs:
     def test_with_settings(self, config_stub, parser):
         parsed = parser.parse_args(['--qt-flag', 'foo'])
         config_stub.val.qt.args = ['bar']
-        assert configinit.qt_args(parsed) == [sys.argv[0], '--foo', '--bar']
+        args = configinit.qt_args(parsed)
+        assert args[0] == sys.argv[0]
+        for arg in ['--foo', '--bar']:
+            assert arg in args
 
     @pytest.mark.parametrize('backend, expected', [
         (usertypes.Backend.QtWebEngine, True),
@@ -531,23 +534,33 @@ class TestQtArgs:
             assert '--disable-in-process-stack-traces' in args
             assert '--enable-in-process-stack-traces' not in args
 
-    @pytest.mark.parametrize('flags, expected', [
-        ([], []),
-        (['--debug-flag', 'chromium'], ['--enable-logging', '--v=1']),
+    @pytest.mark.parametrize('flags, added', [
+        ([], False),
+        (['--debug-flag', 'chromium'], True),
     ])
-    def test_chromium_debug(self, monkeypatch, parser, flags, expected):
+    def test_chromium_debug(self, monkeypatch, parser, flags, added):
         monkeypatch.setattr(configinit.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
         parsed = parser.parse_args(flags)
-        assert configinit.qt_args(parsed) == [sys.argv[0]] + expected
+        args = configinit.qt_args(parsed)
 
-    def test_disable_gpu(self, config_stub, monkeypatch, parser):
+        for arg in ['--enable-logging', '--v=1']:
+            assert (arg in args) == added
+
+    @pytest.mark.parametrize('config, added', [
+        ('none', False),
+        ('qt-quick', False),
+        ('software-opengl', False),
+        ('chromium', True),
+    ])
+    def test_disable_gpu(self, config, added,
+                         config_stub, monkeypatch, parser):
         monkeypatch.setattr(configinit.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
-        config_stub.val.qt.force_software_rendering = 'chromium'
+        config_stub.val.qt.force_software_rendering = config
         parsed = parser.parse_args([])
-        expected = [sys.argv[0], '--disable-gpu']
-        assert configinit.qt_args(parsed) == expected
+        args = configinit.qt_args(parsed)
+        assert ('--disable-gpu' in args) == added
 
     @utils.qt510
     @pytest.mark.parametrize('new_version, autoplay, added', [
