@@ -1493,8 +1493,12 @@ scrolling.bar:
       - never: Never show the scrollbar.
       - when-searching: Show the scrollbar when searching for text in the
             webpage. With the QtWebKit backend, this is equal to `never`.
-  default: when-searching
-  desc: When to show the scrollbar.
+      - overlay: Show an overlay scrollbar. With Qt < 5.11 or on macOS, this is
+            unavailable and equal to `when-searching`; with the QtWebKit
+            backend, this is equal to `never`. Enabling/disabling overlay
+            scrollbars requires a restart.
+  default: overlay
+  desc: When/how to show the scrollbar.
 
 scrolling.smooth:
   type: Bool

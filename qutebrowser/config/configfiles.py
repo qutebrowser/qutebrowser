@@ -319,7 +319,7 @@ class YamlMigrations(QObject):
         self._migrate_font_replacements()
 
         self._migrate_bool('tabs.favicons.show', 'always', 'never')
-        self._migrate_bool('scrolling.bar', 'always', 'when-searching')
+        self._migrate_bool('scrolling.bar', 'always', 'overlay')
         self._migrate_bool('qt.force_software_rendering',
                            'software-opengl', 'none')
         self._migrate_renamed_bool(
