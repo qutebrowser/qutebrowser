@@ -124,7 +124,7 @@ class TabData:
         fullscreen: Whether the tab has a video shown fullscreen currently.
         netrc_used: Whether netrc authentication was performed.
         input_mode: current input mode for the tab.
-        splitter: InspectorSplitter used to show inspector inside the tab
+        splitter: InspectorSplitter used to show inspector inside the tab.
     """
 
     keep_icon = attr.ib(False)  # type: bool

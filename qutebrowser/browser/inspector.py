@@ -105,12 +105,7 @@ class AbstractWebInspector(QWidget):
     Attributes:
         _position: position of the inspector (right/left/top/bottom/window)
         _splitter: InspectorSplitter where the inspector can be placed.
-
-    Signals:
-        closed: Emitted when the inspector is closed.
     """
-
-    closed = pyqtSignal()
 
     def __init__(self, splitter: 'miscwidgets.InspectorSplitter',
                  win_id: int,
@@ -131,28 +126,42 @@ class AbstractWebInspector(QWidget):
         self._layout.wrap(self, widget)
         self._widget.installEventFilter(self._child_event_filter)
 
+    def _last_position(self) -> Position:
+        """Get the last position the inspector was in."""
+        try:
+            pos = configfiles.state['general']['inspector_last_position']
+        except KeyError:
+            return Position.right
+        else:
+            return Position[pos]
+
+    def _save_last_position(self, position: Position) -> None:
+        """Save the last position the inspector was in."""
+        configfiles.state['general']['inspector_last_position'] = position.name
+
     def set_position(self, position: typing.Optional[Position]) -> None:
         """Set the position of the inspector.
 
-        Will close the inspector if position is None."""
-        if position != self._position:
-            if self._position == Position.window:
-                self._save_state_geometry()
+        If the position is None, the last known position is used.
+        """
+        if position is None:
+            position = self._last_position()
+        else:
+            self._save_last_position(position)
 
-            self._position = position
+        if position == self._position:
+            self.setVisible(not self.isVisible())
+            return
 
-            if position is None:
-                self.hide()
-                self.deleteLater()
-                self.closed.emit()
-            elif position == Position.window:
-                self.hide()
-                self.setWindowTitle("Web Inspector")
-                self.setParent(None)  # type: ignore
-                self._load_state_geometry()
-            else:
-                self._splitter.set_inspector(self, position)
-            self.show()
+        self._position = position
+
+        if position == Position.window:
+            self.setParent(None)  # type: ignore
+            self.setWindowTitle("Web Inspector")
+            self._load_state_geometry()
+        else:
+            self._splitter.set_inspector(self, position)
+        self.show()
 
     def _load_state_geometry(self) -> None:
         """Load the geometry from the state file."""
@@ -170,16 +179,11 @@ class AbstractWebInspector(QWidget):
             if not ok:
                 log.init.warning("Error while loading geometry.")
 
-    def _save_state_geometry(self) -> None:
-        """Save the geometry to the state file."""
+    def closeEvent(self, e: QCloseEvent) -> None:
+        """Save the geometry when closed."""
         data = self.saveGeometry().data()
         geom = base64.b64encode(data).decode('ASCII')
         configfiles.state['geometry']['inspector'] = geom
-
-    def closeEvent(self, e: QCloseEvent) -> None:
-        """Save the window geometry when closed."""
-        self.set_position(None)
-        super().closeEvent(e)
 
     def inspect(self, page: QWidget) -> None:
         """Inspect the given QWeb(Engine)Page."""

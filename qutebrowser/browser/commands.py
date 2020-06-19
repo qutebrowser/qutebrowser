@@ -1259,31 +1259,13 @@ class CommandDispatcher:
         # FIXME:qtwebengine have a proper API for this
         page = tab._widget.page()  # pylint: disable=protected-access
 
-        @pyqtSlot()
-        def _on_inspector_closed():
-            tab.data.inspector = None
-
         try:
             if tab.data.inspector is None:
-                if position is None:
-                    try:
-                        position = inspector.Position[
-                            configfiles.state['general'][
-                                'inspector_last_position']]
-                    except KeyError:
-                        position = inspector.Position.right
-
                 tab.data.inspector = inspector.create(
-                    splitter=tab.data.splitter, win_id=tab.win_id)
+                    splitter=tab.data.splitter,
+                    win_id=tab.win_id)
                 tab.data.inspector.inspect(page)
-                tab.data.inspector.closed.connect(_on_inspector_closed)
-
             tab.data.inspector.set_position(position)
-
-            if position:
-                configfiles.state['general'][
-                    'inspector_last_position'] = position.name
-
         except inspector.WebInspectorError as e:
             raise cmdutils.CommandError(e)
 
