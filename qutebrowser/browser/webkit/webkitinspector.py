@@ -42,3 +42,6 @@ class WebKitInspector(inspector.AbstractWebInspector):
         settings = QWebSettings.globalSettings()
         settings.setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
         self._widget.setPage(page)
+
+    def detach(self) -> None:
+        self._widget.setPage(None)

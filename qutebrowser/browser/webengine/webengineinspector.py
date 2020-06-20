@@ -78,8 +78,6 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         self._settings.update_for_url(QUrl('chrome-devtools://devtools'))
 
         if page is None:
-            # FIXME can this ever happen?
-            # if so, shouldn't _inspect_new/inspect have typing.Optional too?
             self._widget.load(QUrl('about:blank'))
         else:
             self._widget.load(QUrl('http://localhost:{}/'.format(port)))
@@ -95,3 +93,11 @@ class WebEngineInspector(inspector.AbstractWebInspector):
             self._inspect_new(page)
         except AttributeError:
             self._inspect_old(page)
+
+    def detach(self) -> None:
+        inspector_page = self._widget.page()
+        try:
+            # Qt >= 5.11
+            inspector_page.setInspectedPage(None)
+        except AttributeError:
+            inspector_page.load(QUrl('about:blank'))
