@@ -256,6 +256,10 @@ class KeyMode(enum.Enum):
     jump_mark = 10
     record_macro = 11
     run_macro = 12
+    # 'register' is a bit of an oddball here: It's not really a "real" mode,
+    # but it's used in the config for common bindings for
+    # set_mark/jump_mark/record_macro/run_macro.
+    register = 13
 
 
 class Exit(enum.IntEnum):

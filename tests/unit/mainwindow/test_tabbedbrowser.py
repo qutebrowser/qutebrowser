@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,18 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Keychain string displayed in the statusbar."""
 
-from PyQt5.QtCore import pyqtSlot
+import pytest
 
-from qutebrowser.mainwindow.statusbar import textbase
-from qutebrowser.utils import usertypes
+from qutebrowser.mainwindow import tabbedbrowser
 
 
-class KeyString(textbase.TextBase):
+class TestTabDeque:
 
-    """Keychain string displayed in the statusbar."""
-
-    @pyqtSlot(usertypes.KeyMode, str)
-    def on_keystring_updated(self, _mode, keystr):
-        self.setText(keystr)
+    @pytest.mark.parametrize('size', [-1, 5])
+    def test_size_handling(self, size, config_stub):
+        config_stub.val.tabs.focus_stack_size = size
+        dq = tabbedbrowser.TabDeque()
+        dq.update_size()

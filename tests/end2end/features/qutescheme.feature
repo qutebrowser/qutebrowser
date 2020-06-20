@@ -258,10 +258,26 @@ Feature: Special qute:// pages
         And the page should contain the plaintext "the-warning-message"
         And the page should contain the plaintext "the-info-message"
 
+    Scenario: Showing messages of category 'message'
+        When I run :message-info the-info-message
+        And I run :messages -f message
+        Then qute://log/?level=info&logfilter=message should be loaded
+        And the page should contain the plaintext "the-info-message"
+
+    Scenario: Showing messages of category 'misc'
+        When I run :message-info the-info-message
+        And I run :messages -f misc
+        Then qute://log/?level=info&logfilter=misc should be loaded
+        And the page should not contain the plaintext "the-info-message"
+
     @qtwebengine_flaky
     Scenario: Showing messages of an invalid level
         When I run :messages cataclysmic
         Then the error "Invalid log level cataclysmic!" should be shown
+
+    Scenario: Showing messages with an invalid category
+        When I run :messages -f invalid
+        Then the error "Invalid log category invalid - *" should be shown
 
     Scenario: Using qute://log directly
         When I open qute://log without waiting
@@ -269,9 +285,10 @@ Feature: Special qute:// pages
         And I wait for "Changing title for idx * to 'log'" in the log
         Then no crash should happen
 
-    Scenario: Using qute://plainlog directly
-        When I open qute://plainlog
-        Then no crash should happen
+    # FIXME More possible tests:
+    # :message --plain
+    # Using qute://log directly with invalid category
+    # same with invalid level
 
     # :version
 

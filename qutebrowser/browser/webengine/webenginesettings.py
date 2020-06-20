@@ -326,8 +326,13 @@ def _update_settings(option):
     """Update global settings when qwebsettings changed."""
     global_settings.update_setting(option)
 
+    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-75884
+    # (note this isn't actually fixed properly before Qt 5.15)
+    header_bug_fixed = (not qtutils.version_check('5.12', compiled=False) or
+                        qtutils.version_check('5.15', compiled=False))
+
     if option in ['content.headers.user_agent',
-                  'content.headers.accept_language']:
+                  'content.headers.accept_language'] and header_bug_fixed:
         default_profile.setter.set_http_headers()
         if private_profile:
             private_profile.setter.set_http_headers()

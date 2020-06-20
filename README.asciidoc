@@ -81,6 +81,11 @@ get sent to the general qutebrowser@ list).
 If you're a reddit user, there's a
 https://www.reddit.com/r/qutebrowser/[/r/qutebrowser] subreddit there.
 
+Finally, qutebrowser is participating in the Beta for GitHub's new Discussions
+feature, so you can also use the
+https://github.com/qutebrowser/qutebrowser/discussions[discussions tab] on
+GitHub to get in touch.
+
 Contributions / Bugs
 --------------------
 

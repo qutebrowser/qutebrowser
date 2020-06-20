@@ -225,24 +225,6 @@ def log_capacity(capacity: int) -> None:
 
 
 @cmdutils.register(debug=True)
-@cmdutils.argument('level', choices=sorted(
-    (level.lower() for level in log.LOG_LEVELS),
-    key=lambda e: log.LOG_LEVELS[e.upper()]))
-def debug_log_level(level: str) -> None:
-    """Change the log level for console logging.
-
-    Args:
-        level: The log level to set.
-    """
-    if log.console_handler is None:
-        raise cmdutils.CommandError("No log.console_handler. Not attached "
-                                    "to a console?")
-
-    log.change_console_formatter(log.LOG_LEVELS[level.upper()])
-    log.console_handler.setLevel(log.LOG_LEVELS[level.upper()])
-
-
-@cmdutils.register(debug=True)
 def debug_log_filter(filters: str) -> None:
     """Change the log filter for console logging.
 
@@ -254,16 +236,12 @@ def debug_log_filter(filters: str) -> None:
         raise cmdutils.CommandError("No log.console_filter. Not attached "
                                     "to a console?")
 
-    if filters.strip().lower() == 'none':
-        log.console_filter.names = None
-        return
+    try:
+        new_filter = log.LogFilter.parse(filters)
+    except log.InvalidLogFilterError as e:
+        raise cmdutils.CommandError(e)
 
-    if not set(filters.split(',')).issubset(log.LOGGER_NAMES):
-        raise cmdutils.CommandError("filters: Invalid value {} - expected one "
-                                    "of: {}".format(
-                                        filters, ', '.join(log.LOGGER_NAMES)))
-
-    log.console_filter.names = filters.split(',')
+    log.console_filter.update_from(new_filter)
 
 
 @cmdutils.register()

@@ -68,6 +68,14 @@ class NotInModeError(Exception):
     """Exception raised when we want to leave a mode we're not in."""
 
 
+class UnavailableError(Exception):
+
+    """Exception raised when trying to access modeman before initialization.
+
+    Thrown by instance() if modeman has not been initialized yet.
+    """
+
+
 def init(win_id: int, parent: QObject) -> 'ModeManager':
     """Initialize the mode manager and the keyparsers for the given win_id."""
     modeman = ModeManager(win_id, parent)
@@ -94,70 +102,86 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
                 parent=modeman),
 
         usertypes.KeyMode.insert:
-            modeparsers.PassthroughKeyParser(
-                win_id=win_id,
+            modeparsers.CommandKeyParser(
                 mode=usertypes.KeyMode.insert,
+                win_id=win_id,
                 commandrunner=commandrunner,
-                parent=modeman),
+                parent=modeman,
+                passthrough=True,
+                do_log=False,
+                supports_count=False),
 
         usertypes.KeyMode.passthrough:
-            modeparsers.PassthroughKeyParser(
-                win_id=win_id,
+            modeparsers.CommandKeyParser(
                 mode=usertypes.KeyMode.passthrough,
+                win_id=win_id,
                 commandrunner=commandrunner,
-                parent=modeman),
+                parent=modeman,
+                passthrough=True,
+                do_log=False,
+                supports_count=False),
 
         usertypes.KeyMode.command:
-            modeparsers.PassthroughKeyParser(
-                win_id=win_id,
+            modeparsers.CommandKeyParser(
                 mode=usertypes.KeyMode.command,
+                win_id=win_id,
                 commandrunner=commandrunner,
-                parent=modeman),
+                parent=modeman,
+                passthrough=True,
+                do_log=False,
+                supports_count=False),
 
         usertypes.KeyMode.prompt:
-            modeparsers.PassthroughKeyParser(
-                win_id=win_id,
+            modeparsers.CommandKeyParser(
                 mode=usertypes.KeyMode.prompt,
+                win_id=win_id,
                 commandrunner=commandrunner,
-                parent=modeman),
+                parent=modeman,
+                passthrough=True,
+                do_log=False,
+                supports_count=False),
 
         usertypes.KeyMode.yesno:
-            modeparsers.PromptKeyParser(
+            modeparsers.CommandKeyParser(
+                mode=usertypes.KeyMode.yesno,
                 win_id=win_id,
                 commandrunner=commandrunner,
-                parent=modeman),
+                parent=modeman,
+                supports_count=False),
 
         usertypes.KeyMode.caret:
-            modeparsers.CaretKeyParser(
+            modeparsers.CommandKeyParser(
+                mode=usertypes.KeyMode.caret,
                 win_id=win_id,
                 commandrunner=commandrunner,
-                parent=modeman),
+                parent=modeman,
+                passthrough=True),
 
         usertypes.KeyMode.set_mark:
             modeparsers.RegisterKeyParser(
-                win_id=win_id,
                 mode=usertypes.KeyMode.set_mark,
+                win_id=win_id,
                 commandrunner=commandrunner,
                 parent=modeman),
 
         usertypes.KeyMode.jump_mark:
             modeparsers.RegisterKeyParser(
-                win_id=win_id,
                 mode=usertypes.KeyMode.jump_mark,
+                win_id=win_id,
                 commandrunner=commandrunner,
                 parent=modeman),
 
         usertypes.KeyMode.record_macro:
             modeparsers.RegisterKeyParser(
-                win_id=win_id,
                 mode=usertypes.KeyMode.record_macro,
+                win_id=win_id,
                 commandrunner=commandrunner,
                 parent=modeman),
 
         usertypes.KeyMode.run_macro:
             modeparsers.RegisterKeyParser(
-                win_id=win_id,
                 mode=usertypes.KeyMode.run_macro,
+                win_id=win_id,
                 commandrunner=commandrunner,
                 parent=modeman),
     }  # type: ParserDictType
@@ -169,8 +193,16 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
 
 
 def instance(win_id: Union[int, str]) -> 'ModeManager':
-    """Get a modemanager object."""
-    return objreg.get('mode-manager', scope='window', window=win_id)
+    """Get a modemanager object.
+
+    Raises UnavailableError if there is no instance available yet.
+    """
+    mode_manager = objreg.get('mode-manager', scope='window', window=win_id,
+                              default=None)
+    if mode_manager is not None:
+        return mode_manager
+    else:
+        raise UnavailableError("ModeManager is not initialized yet.")
 
 
 def enter(win_id: int,
@@ -211,10 +243,15 @@ class ModeManager(QObject):
                  arg1: The mode which has been left.
                  arg2: The new current mode.
                  arg3: The window ID of this mode manager.
+         keystring_updated: Emitted when the keystring was updated in any mode.
+                            arg 1: The mode in which the keystring has been
+                                   updated.
+                            arg 2: The new key string.
     """
 
     entered = pyqtSignal(usertypes.KeyMode, int)
     left = pyqtSignal(usertypes.KeyMode, usertypes.KeyMode, int)
+    keystring_updated = pyqtSignal(usertypes.KeyMode, str)
 
     def __init__(self, win_id: int, parent: QObject = None) -> None:
         super().__init__(parent)
@@ -300,6 +337,8 @@ class ModeManager(QObject):
         assert parser is not None
         self.parsers[mode] = parser
         parser.request_leave.connect(self.leave)
+        parser.keystring_updated.connect(
+            functools.partial(self.keystring_updated.emit, mode))
 
     def enter(self, mode: usertypes.KeyMode,
               reason: str = None,

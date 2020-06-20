@@ -21,6 +21,7 @@
 
 import string
 import itertools
+import textwrap
 
 import pytest
 
@@ -43,6 +44,39 @@ def test_matches_single(entered, configured, match_type):
                                        command=command,
                                        sequence=entered)
     assert trie.matches(entered) == result
+
+
+def test_str():
+    bindings = {
+        keyutils.KeySequence.parse('a'): 'cmd-a',
+        keyutils.KeySequence.parse('ba'): 'cmd-ba',
+        keyutils.KeySequence.parse('bb'): 'cmd-bb',
+        keyutils.KeySequence.parse('cax'): 'cmd-cax',
+        keyutils.KeySequence.parse('cby'): 'cmd-cby',
+    }
+    trie = basekeyparser.BindingTrie()
+    trie.update(bindings)
+
+    expected = """
+        a:
+          => cmd-a
+
+        b:
+          a:
+            => cmd-ba
+          b:
+            => cmd-bb
+
+        c:
+          a:
+            x:
+              => cmd-cax
+          b:
+            y:
+              => cmd-cby
+    """
+
+    assert str(trie) == textwrap.dedent(expected).lstrip('\n')
 
 
 @pytest.mark.parametrize('configured, expected', [

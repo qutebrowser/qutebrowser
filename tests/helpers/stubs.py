@@ -658,6 +658,9 @@ class FakeHintManager:
     def handle_partial_key(self, keystr):
         self.keystr = keystr
 
+    def current_mode(self):
+        return 'letter'
+
 
 class FakeWebEngineProfile:
 

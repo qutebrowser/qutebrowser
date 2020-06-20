@@ -15,6 +15,93 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v1.13.0 (unreleased)
+--------------------
+
+Removed
+~~~~~~~
+
+- The `:debug-log-level` command was removed as it's replaced by the new
+  `logging.level.console` setting.
+- The `qute://plainlog` special page got replaced by `qute://log?plain` - the
+  names of those pages is considered an implementation detail, and
+  `:messages --plain` should be used instead.
+
+Changed
+~~~~~~~
+
+- New handling of bindings in hint mode which fixes various bugs and allows for
+  single-letter keybindings in hint mode.
+- The `tor_identity` userscript now takes the password via a `-p` flag and has
+  a new `-c` flag to customize the Tor control port.
+- `:config-write-py` now adds a note about `config.py` files being targeted at
+  advanced users.
+- `:report` now takes two optional arguments for bug/contact information, so
+  that it can be used without the report window popping up.
+- New `t[Cc][Hh]` default bindings which work similarly to the `t[Ss][Hh]`
+  bindings for JavaScript but toggle cookie permissions.
+- The `:message` command now takes a `--logfilter` / `-f` argument, which is a
+  list of logging categories to show.
+- The `:debug-log-filter` command now understands the full logfilter syntax.
+- Changes to settings:
+  * `fonts.tabs` has been split into `fonts.tabs.{selected,unselected}` (see
+    below).
+  * `statusbar.hide` has been renamed to `statusbar.show` with the possible
+    values being `always` (`hide = False`), `never` (`hide = True`) or
+    `in-mode` (new, only show statusbar outside of normal mode.
+  * The `QtFont` config type formerly used for `fonts.tabs` and
+    `fonts.debug_console` is now removed and entirely replaced by `Font`. The
+    former distinction was mainly an implementation detail, and the accepted
+    values shouldn't have changed.
+  * `input.rocker_gestures` has been renamed to `input.mouse.rocker_gestures`.
+  * `content.dns_prefetch` is now enabled by default again, since the crashes
+    it caused are now fixed (Qt 5.15) or worked around.
+  * `scrolling.bar` supports a new `overlay` value to show an overlay
+    scrollbar, which is now the default. On unsupported configurations (on Qt <
+    5.11, with QtWebKit or on macOS), the value falls back to `when-searching`
+    or `never` (QtWebKit).
+- The statusbar now shows partial keychains in all modes (e.g. while hinting)
+- Small performance improvements.
+
+Added
+~~~~~
+
+- New settings:
+  * `logging.level.ram` and `logging.level.console` to configure the default
+    logging levels via the config.
+  * `fonts.tabs.selected` and `fonts.tabs.unselected` to set the font of the
+    selected tab independently from unselected tabs (e.g. to make it bold).
+  * `input.mouse.back_forward_buttons` which can be set to `false` to disable
+    back/forward mouse buttons.
+
+Fixed
+~~~~~
+
+- Crash when `tabs.focus_stack_size` is set to -1.
+- Crash when a `pdf.js` file for PDF.js exists, but `viewer.html` does not.
+- Crash when `:completion-item-yank --sel` is used on a platform without
+  primary selection support (e.g. Windows/macOS).
+- Crash when there's a feature permission request from Qt with an invalid URL
+  (which seems to happen with Qt 5.15 sometimes).
+- Crash in rare cases where QtWebKit/QtWebEngine imports fail in unexpected
+  ways.
+- Crash when something removed qutebrowser's IPC socket file and it's been
+  running for 6 hours.
+- `:config-write-py` now works with paths starting with `~/...` again.
+- New site-specific quirk for a missing `globalThis` in Qt <= 5.12 on Reddit
+  and Spotify.
+- When `;` is added to `hints.chars`, using hint labels containing `;;` now
+  works properly.
+- Hint letters outside of ASCII should now work.
+- When `bindings.key_mappings` is used with hints, it now works properly with
+  letters outside of ASCII as well.
+- With Qt 5.15, the audible/muted indicators are not updated properly due to a
+  Qt bug. This release adds a workaround so that at least the muted indicator
+  is shown properly.
+- As a workaround for crashes with QtWebEngine versions between 5.12 and 5.14
+  (inclusive), changing the user agent (`content.headers.user_agent`) exposed
+  to JS now requires a restart. The corresponding HTTP header is not affected.
+
 v1.12.0 (2020-06-01)
 --------------------
 

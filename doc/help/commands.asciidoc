@@ -815,7 +815,7 @@ Show a warning message in the statusbar.
 
 [[messages]]
 === messages
-Syntax: +:messages [*--plain*] [*--tab*] [*--bg*] [*--window*] ['level']+
+Syntax: +:messages [*--plain*] [*--tab*] [*--bg*] [*--window*] [*--logfilter* 'logfilter'] ['level']+
 
 Show a log of past messages.
 
@@ -828,6 +828,9 @@ Show a log of past messages.
 * +*-t*+, +*--tab*+: Open in a new tab.
 * +*-b*+, +*--bg*+: Open in a background tab.
 * +*-w*+, +*--window*+: Open in a new window.
+* +*-f*+, +*--logfilter*+: A comma-separated filter string of logging categories. If the filter string starts with an exclamation mark, it
+ is negated.
+
 
 [[navigate]]
 === navigate
@@ -1025,7 +1028,14 @@ Which count to pass the command.
 
 [[report]]
 === report
+Syntax: +:report ['info'] ['contact']+
+
 Report a bug in qutebrowser.
+
+==== positional arguments
+* +'info'+: Information about the bug report. If given, no report dialog shows up.
+
+* +'contact'+: Contact information for the report.
 
 [[restart]]
 === restart
@@ -2003,7 +2013,6 @@ These commands are mainly intended for debugging. They are hidden if qutebrowser
 |<<debug-keytester,debug-keytester>>|Show a keytester widget.
 |<<debug-log-capacity,debug-log-capacity>>|Change the number of log lines to be stored in RAM.
 |<<debug-log-filter,debug-log-filter>>|Change the log filter for console logging.
-|<<debug-log-level,debug-log-level>>|Change the log level for console logging.
 |<<debug-pyeval,debug-pyeval>>|Evaluate a python string and display the results as a web page.
 |<<debug-set-fake-clipboard,debug-set-fake-clipboard>>|Put data into the fake clipboard and enable logging, used for tests.
 |<<debug-trace,debug-trace>>|Trace executed code via hunter.
@@ -2077,15 +2086,6 @@ Change the log filter for console logging.
 ==== positional arguments
 * +'filters'+: A comma separated list of logger names. Can also be "none" to clear any existing filters.
 
-
-[[debug-log-level]]
-=== debug-log-level
-Syntax: +:debug-log-level 'level'+
-
-Change the log level for console logging.
-
-==== positional arguments
-* +'level'+: The log level to set.
 
 [[debug-pyeval]]
 === debug-pyeval

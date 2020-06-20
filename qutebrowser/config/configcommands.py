@@ -460,9 +460,9 @@ class ConfigCommands:
         if filename is None:
             filename = standarddir.config_py()
         else:
+            filename = os.path.expanduser(filename)
             if not os.path.isabs(filename):
                 filename = os.path.join(standarddir.config(), filename)
-            filename = os.path.expanduser(filename)
 
         if os.path.exists(filename) and not force:
             raise cmdutils.CommandError("{} already exists - use --force to "

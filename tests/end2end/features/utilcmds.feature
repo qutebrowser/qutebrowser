@@ -166,13 +166,9 @@ Feature: Miscellaneous utility commands exposed to the user.
     # Other :debug-log-{level,filter} features are tested in
     # unit/utils/test_log.py as using them would break end2end tests.
 
-    Scenario: Using debug-log-level with invalid level
-        When I run :debug-log-level hello
-        Then the error "level: Invalid value hello - expected one of: vdebug, debug, info, warning, error, critical" should be shown
-
     Scenario: Using debug-log-filter with invalid filter
         When I run :debug-log-filter blah
-        Then the error "filters: Invalid value blah - expected one of: statusbar, *" should be shown
+        Then the error "Invalid log category blah - valid categories: statusbar, *" should be shown
 
     Scenario: Using debug-log-filter
         When I run :debug-log-filter commands,ipc,webview

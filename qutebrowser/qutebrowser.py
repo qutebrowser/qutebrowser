@@ -96,7 +96,7 @@ def get_argparser():
 
     debug = parser.add_argument_group('debug arguments')
     debug.add_argument('-l', '--loglevel', dest='loglevel',
-                       help="Set loglevel", default='info',
+                       help="Override the configured console loglevel",
                        choices=['critical', 'error', 'warning', 'info',
                                 'debug', 'vdebug'])
     debug.add_argument('--logfilter', type=logfilter_error,
@@ -150,12 +150,11 @@ def logfilter_error(logfilter):
         logfilter: A comma separated list of logger names.
     """
     from qutebrowser.utils import log
-    if set(logfilter.lstrip('!').split(',')).issubset(log.LOGGER_NAMES):
-        return logfilter
-    else:
-        raise argparse.ArgumentTypeError(
-            "filters: Invalid value {} - expected a list of: {}".format(
-                logfilter, ', '.join(log.LOGGER_NAMES)))
+    try:
+        log.LogFilter.parse(logfilter)
+    except log.InvalidLogFilterError as e:
+        raise argparse.ArgumentTypeError(e)
+    return logfilter
 
 
 def debug_flag_error(flag):
