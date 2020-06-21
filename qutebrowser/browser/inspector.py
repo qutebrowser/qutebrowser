@@ -24,7 +24,7 @@ import binascii
 import typing
 import enum
 
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QVBoxLayout
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
 from PyQt5.QtGui import QCloseEvent
 
@@ -123,7 +123,7 @@ class AbstractWebInspector(QWidget):
 
     def _set_widget(self, widget: QWidget) -> None:
         self._widget = widget
-        self._layout.wrap(self, widget)
+        self._widget.setWindowTitle("Web Inspector")
         self._widget.installEventFilter(self._child_event_filter)
 
     def _load_position(self) -> Position:
@@ -150,22 +150,30 @@ class AbstractWebInspector(QWidget):
             self._save_position(position)
 
         if position == self._position:
-            if self.isVisible():
-                self.detach()
-                self.hide()
-            else:
-                self.show()
+            self.toggle()
             return
 
         self._position = position
 
         if position == Position.window:
-            self.setParent(None)  # type: ignore
-            self.setWindowTitle("Web Inspector")
+            self.hide()
+            self._layout.unwrap()
             self._load_state_geometry()
+            self._widget.show()
         else:
+            self._layout.wrap(self, self._widget)
             self._splitter.set_inspector(self, position)
-        self.show()
+            self._widget.show()
+            self.show()
+
+    def toggle(self) -> None:
+        """Toggle visibility of the inspector."""
+        target = self._widget if self._position == Position.window else self
+        if target.isVisible():
+            self.detach()
+            target.hide()
+        else:
+            target.show()
 
     def _load_state_geometry(self) -> None:
         """Load the geometry from the state file."""
@@ -179,13 +187,13 @@ class AbstractWebInspector(QWidget):
             log.misc.exception("Error while reading geometry")
         else:
             log.init.debug("Loading geometry from {!r}".format(geom))
-            ok = self.restoreGeometry(geom)
+            ok = self._widget.restoreGeometry(geom)
             if not ok:
                 log.init.warning("Error while loading geometry.")
 
     def closeEvent(self, _e: QCloseEvent) -> None:
         """Save the geometry and detach the inspector when closed."""
-        data = self.saveGeometry().data()
+        data = self._widget.saveGeometry().data()
         geom = base64.b64encode(data).decode('ASCII')
         configfiles.state['inspector']['window'] = geom
         self.detach()
