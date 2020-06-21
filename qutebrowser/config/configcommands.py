@@ -262,6 +262,23 @@ class ConfigCommands:
             self._config.unset(option, save_yaml=not temp)
 
     @cmdutils.register(instance='config-commands')
+    @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
+    def config_diff(self, win_id: int, old: bool = False) -> None:
+        """Show all customized options.
+
+        Args:
+            old: Show difference for the pre-v1.0 files
+                 (qutebrowser.conf/keys.conf).
+        """
+        url = QUrl('qute://configdiff')
+        if old:
+            url.setPath('/old')
+
+        tabbed_browser = objreg.get('tabbed-browser',
+                                    scope='window', window=win_id)
+        tabbed_browser.load_url(url, newtab=False)
+
+    @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.list_option)
     def config_list_add(self, option: str, value: str,
                         temp: bool = False) -> None:
@@ -443,9 +460,9 @@ class ConfigCommands:
         if filename is None:
             filename = standarddir.config_py()
         else:
+            filename = os.path.expanduser(filename)
             if not os.path.isabs(filename):
                 filename = os.path.join(standarddir.config(), filename)
-            filename = os.path.expanduser(filename)
 
         if os.path.exists(filename) and not force:
             raise cmdutils.CommandError("{} already exists - use --force to "

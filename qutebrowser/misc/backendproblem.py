@@ -23,8 +23,6 @@ import os
 import sys
 import functools
 import html
-import ctypes
-import ctypes.util
 import enum
 import shutil
 import typing
@@ -59,7 +57,7 @@ class _Button:
 
     text = attr.ib()  # type: str
     setting = attr.ib()  # type: str
-    value = attr.ib()  # type: str
+    value = attr.ib()  # type: typing.Any
     default = attr.ib(default=False)  # type: bool
 
 
@@ -81,19 +79,21 @@ def _error_text(because: str, text: str, backend: usertypes.Backend) -> str:
     if other_backend == usertypes.Backend.QtWebKit:
         warning = ("<i>Note that QtWebKit hasn't been updated since "
                    "July 2017 (including security updates).</i>")
+        suffix = " (not recommended)"
     else:
         warning = ""
+        suffix = ""
     return ("<b>Failed to start with the {backend} backend!</b>"
             "<p>qutebrowser tried to start with the {backend} backend but "
             "failed because {because}.</p>{text}"
-            "<p><b>Forcing the {other_backend.name} backend</b></p>"
+            "<p><b>Forcing the {other_backend.name} backend{suffix}</b></p>"
             "<p>This forces usage of the {other_backend.name} backend by "
             "setting the <i>backend = '{other_setting}'</i> option "
             "(if you have a <i>config.py</i> file, you'll need to set "
             "this manually). {warning}</p>".format(
                 backend=backend.name, because=because, text=text,
                 other_backend=other_backend, other_setting=other_setting,
-                warning=warning))
+                warning=warning, suffix=suffix))
 
 
 class _Dialog(QDialog):
@@ -167,6 +167,14 @@ class _BackendProblemChecker:
 
     """Check for various backend-specific issues."""
 
+    SOFTWARE_RENDERING_TEXT = (
+        "<p><b>Forcing software rendering</b></p>"
+        "<p>This allows you to use the newer QtWebEngine backend (based on "
+        "Chromium) but could have noticeable performance impact (depending on "
+        "your hardware). This sets the <i>qt.force_software_rendering = "
+        "'chromium'</i> option (if you have a <i>config.py</i> file, you'll "
+        "need to set this manually).</p>")
+
     def __init__(self, *,
                  no_err_windows: bool,
                  save_manager: savemanager.SaveManager) -> None:
@@ -201,19 +209,10 @@ class _BackendProblemChecker:
     def _nvidia_shader_workaround(self) -> None:
         """Work around QOpenGLShaderProgram issues.
 
-        NOTE: This needs to be called before _handle_nouveau_graphics, or some
-        setups will segfault in version.opengl_vendor().
-
         See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/941826
         """
         self._assert_backend(usertypes.Backend.QtWebEngine)
-
-        if os.environ.get('QUTE_SKIP_LIBGL_WORKAROUND'):
-            return
-
-        libgl = ctypes.util.find_library("GL")
-        if libgl is not None:
-            ctypes.CDLL(libgl, mode=ctypes.RTLD_GLOBAL)
+        utils.libgl_workaround()
 
     def _handle_nouveau_graphics(self) -> None:
         """Force software rendering when using the Nouveau driver.
@@ -231,7 +230,8 @@ class _BackendProblemChecker:
         if qtutils.version_check('5.10', compiled=False):
             return
 
-        if version.opengl_vendor() != 'nouveau':
+        opengl_info = version.opengl_info()
+        if opengl_info is None or opengl_info.vendor != 'nouveau':
             return
 
         if (os.environ.get('LIBGL_ALWAYS_SOFTWARE') == '1' or
@@ -248,36 +248,15 @@ class _BackendProblemChecker:
         self._show_dialog(
             backend=usertypes.Backend.QtWebEngine,
             because="you're using Nouveau graphics",
-            text=("<p>There are two ways to fix this:</p>"
-                  "<p><b>Forcing software rendering</b></p>"
-                  "<p>This allows you to use the newer QtWebEngine backend "
-                  "(based on Chromium) but could have noticeable performance "
-                  "impact (depending on your hardware). This sets the "
-                  "<i>qt.force_software_rendering = 'chromium'</i> option "
-                  "(if you have a <i>config.py</i> file, you'll need to set "
-                  "this manually).</p>"),
+            text=("<p>There are two ways to fix this:</p>" +
+                  self.SOFTWARE_RENDERING_TEXT),
             buttons=[button],
         )
 
         raise utils.Unreachable
 
-    def _handle_wayland(self) -> None:
-        self._assert_backend(usertypes.Backend.QtWebEngine)
-
-        if os.environ.get('QUTE_SKIP_WAYLAND_CHECK'):
-            return
-
-        platform = QApplication.instance().platformName()
-        if platform not in ['wayland', 'wayland-egl']:
-            return
-
-        has_qt511 = qtutils.version_check('5.11', compiled=False)
-        if has_qt511 and config.val.qt.force_software_rendering == 'chromium':
-            return
-
-        if qtutils.version_check('5.11.2', compiled=False):
-            return
-
+    def _xwayland_options(self) -> typing.Tuple[str, typing.List[_Button]]:
+        """Get buttons/text for a possible XWayland solution."""
         buttons = []
         text = "<p>You can work around this in one of the following ways:</p>"
 
@@ -296,20 +275,83 @@ class _BackendProblemChecker:
                      "<p>This allows you to use the newer QtWebEngine backend "
                      "(based on Chromium). ")
 
+        return text, buttons
+
+    def _handle_wayland(self) -> None:
+        self._assert_backend(usertypes.Backend.QtWebEngine)
+
+        if os.environ.get('QUTE_SKIP_WAYLAND_CHECK'):
+            return
+
+        platform = QApplication.instance().platformName()
+        if platform not in ['wayland', 'wayland-egl']:
+            return
+
+        has_qt511 = qtutils.version_check('5.11', compiled=False)
+        if has_qt511 and config.val.qt.force_software_rendering == 'chromium':
+            return
+
+        if qtutils.version_check('5.11.2', compiled=False):
+            return
+
+        text, buttons = self._xwayland_options()
+
         if has_qt511:
             buttons.append(_Button("Force software rendering",
                                    'qt.force_software_rendering',
                                    'chromium'))
-            text += ("<p><b>Forcing software rendering</b></p>"
-                     "<p>This allows you to use the newer QtWebEngine backend "
-                     "(based on Chromium) but could have noticeable "
-                     "performance impact (depending on your hardware). This "
-                     "sets the <i>qt.force_software_rendering = "
-                     "'chromium'</i> option (if you have a <i>config.py</i> "
-                     "file, you'll need to set this manually).</p>")
+            text += self.SOFTWARE_RENDERING_TEXT
 
         self._show_dialog(backend=usertypes.Backend.QtWebEngine,
                           because="you're using Wayland",
+                          text=text,
+                          buttons=buttons)
+
+    def _handle_wayland_webgl(self) -> None:
+        """On older graphic hardware, WebGL on Wayland causes segfaults.
+
+        See https://github.com/qutebrowser/qutebrowser/issues/5313
+        """
+        self._assert_backend(usertypes.Backend.QtWebEngine)
+
+        if os.environ.get('QUTE_SKIP_WAYLAND_WEBGL_CHECK'):
+            return
+
+        platform = QApplication.instance().platformName()
+        if platform not in ['wayland', 'wayland-egl']:
+            return
+
+        # Only Qt 5.14 should be affected
+        if not qtutils.version_check('5.14', compiled=False):
+            return
+        if qtutils.version_check('5.15', compiled=False):
+            return
+
+        # Newer graphic hardware isn't affected
+        opengl_info = version.opengl_info()
+        if (opengl_info is None or
+                opengl_info.gles or
+                opengl_info.version is None or
+                opengl_info.version >= (4, 3)):
+            return
+
+        # If WebGL is turned off, we're fine
+        if not config.val.content.webgl:
+            return
+
+        text, buttons = self._xwayland_options()
+
+        buttons.append(_Button("Turn off WebGL (recommended)",
+                               'content.webgl',
+                               False))
+        text += ("<p><b>Disable WebGL (recommended)</b></p>"
+                 "This sets the <i>content.webgl = False</i> option "
+                 "(if you have a <i>config.py</i> file, you'll need to "
+                 "set this manually).</p>")
+
+        self._show_dialog(backend=usertypes.Backend.QtWebEngine,
+                          because=("of frequent crashes with Qt 5.14 on "
+                                   "Wayland with older graphics hardware"),
                           text=text,
                           buttons=buttons)
 
@@ -320,8 +362,9 @@ class _BackendProblemChecker:
 
         try:
             from PyQt5 import QtWebKit
+            from PyQt5.QtWebKit import qWebKitVersion
             from PyQt5 import QtWebKitWidgets
-        except ImportError as e:
+        except (ImportError, ValueError) as e:
             results.webkit_available = False
             results.webkit_error = str(e)
         else:
@@ -333,7 +376,7 @@ class _BackendProblemChecker:
 
         try:
             from PyQt5 import QtWebEngineWidgets
-        except ImportError as e:
+        except (ImportError, ValueError) as e:
             results.webengine_available = False
             results.webengine_error = str(e)
         else:
@@ -353,13 +396,22 @@ class _BackendProblemChecker:
 
         If "fatal" is given, show an error and exit.
         """
-        text = ("Could not initialize QtNetwork SSL support. If you use "
-                "OpenSSL 1.1 with a PyQt package from PyPI (e.g. on Archlinux "
-                "or Debian Stretch), you need to set LD_LIBRARY_PATH to the "
-                "path of OpenSSL 1.0. This only affects downloads.")
-
         if QSslSocket.supportsSsl():
             return
+
+        if qtutils.version_check('5.12.4'):
+            version_text = ("If you use OpenSSL 1.0 with a PyQt package from "
+                            "PyPI (e.g. on Ubuntu 16.04), you will need to "
+                            "build OpenSSL 1.1 from sources and set "
+                            "LD_LIBRARY_PATH accordingly.")
+        else:
+            version_text = ("If you use OpenSSL 1.1 with a PyQt package from "
+                            "PyPI (e.g. on Archlinux or Debian Stretch), you "
+                            "need to set LD_LIBRARY_PATH to the path of "
+                            "OpenSSL 1.0 or use Qt >= 5.12.4.")
+
+        text = ("Could not initialize QtNetwork SSL support. {} This only "
+                "affects downloads and :adblock-update.".format(version_text))
 
         if fatal:
             errbox = msgbox.msgbox(parent=None,
@@ -485,6 +537,7 @@ class _BackendProblemChecker:
             self._handle_ssl_support()
             self._handle_wayland()
             self._nvidia_shader_workaround()
+            self._handle_wayland_webgl()
             self._handle_nouveau_graphics()
             self._handle_cache_nuking()
             self._handle_serviceworker_nuking()

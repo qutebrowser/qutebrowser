@@ -73,10 +73,11 @@ def test_no_err_windows(caplog, exc, name, exc_text):
     ('foo', 'bar', 'foo: exception\n\nbar'),
     ('', 'bar', 'exception\n\nbar'),
 ], ids=repr)
-def test_err_windows(qtbot, qapp, pre_text, post_text, expected):
+def test_err_windows(qtbot, qapp, pre_text, post_text, expected, caplog):
 
     def err_window_check():
         w = qapp.activeModalWidget()
+        assert w is not None
         try:
             qtbot.add_widget(w)
             if not utils.is_mac:
@@ -87,7 +88,9 @@ def test_err_windows(qtbot, qapp, pre_text, post_text, expected):
         finally:
             w.close()
 
-    QTimer.singleShot(0, err_window_check)
-    error.handle_fatal_exc(ValueError("exception"), 'title',
-                           pre_text=pre_text, post_text=post_text,
-                           no_err_windows=False)
+    QTimer.singleShot(10, err_window_check)
+
+    with caplog.at_level(logging.ERROR):
+        error.handle_fatal_exc(ValueError("exception"), 'title',
+                               pre_text=pre_text, post_text=post_text,
+                               no_err_windows=False)

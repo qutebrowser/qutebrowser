@@ -20,20 +20,23 @@
 
 """Generate the html documentation based on the asciidoc files."""
 
+from typing import List, Optional
 import re
 import os
 import os.path
 import sys
 import subprocess
-import glob
 import shutil
 import tempfile
 import argparse
 import io
+import pathlib
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 
 from scripts import utils
+
+DOC_DIR = pathlib.Path("qutebrowser/html/doc")
 
 
 class AsciiDoc:
@@ -42,31 +45,32 @@ class AsciiDoc:
 
     FILES = ['faq', 'changelog', 'contributing', 'quickstart', 'userscripts']
 
-    def __init__(self, asciidoc, website):
-        self._cmd = None
+    def __init__(self,
+                 asciidoc: Optional[List[str]],
+                 website: Optional[str]) -> None:
+        self._cmd = None        # type: Optional[List[str]]
         self._asciidoc = asciidoc
         self._website = website
-        self._homedir = None
-        self._themedir = None
-        self._tempdir = None
+        self._homedir = None    # type: Optional[pathlib.Path]
+        self._themedir = None   # type: Optional[pathlib.Path]
+        self._tempdir = None    # type: Optional[pathlib.Path]
         self._failed = False
 
-    def prepare(self):
+    def prepare(self) -> None:
         """Get the asciidoc command and create the homedir to use."""
         self._cmd = self._get_asciidoc_cmd()
-        self._homedir = tempfile.mkdtemp()
-        self._themedir = os.path.join(
-            self._homedir, '.asciidoc', 'themes', 'qute')
-        self._tempdir = os.path.join(self._homedir, 'tmp')
-        os.makedirs(self._tempdir)
-        os.makedirs(self._themedir)
+        self._homedir = pathlib.Path(tempfile.mkdtemp())
+        self._themedir = self._homedir / '.asciidoc' / 'themes' / 'qute'
+        self._tempdir = self._homedir / 'tmp'
+        self._tempdir.mkdir(parents=True)
+        self._themedir.mkdir(parents=True)
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Clean up the temporary home directory for asciidoc."""
         if self._homedir is not None and not self._failed:
             shutil.rmtree(self._homedir)
 
-    def build(self):
+    def build(self) -> None:
         """Build either the website or the docs."""
         if self._website:
             self._build_website()
@@ -74,14 +78,12 @@ class AsciiDoc:
             self._build_docs()
             self._copy_images()
 
-    def _build_docs(self):
+    def _build_docs(self) -> None:
         """Render .asciidoc files to .html sites."""
-        files = [('doc/{}.asciidoc'.format(f),
-                  'qutebrowser/html/doc/{}.html'.format(f))
-                 for f in self.FILES]
-        for src in glob.glob('doc/help/*.asciidoc'):
-            name, _ext = os.path.splitext(os.path.basename(src))
-            dst = 'qutebrowser/html/doc/{}.html'.format(name)
+        files = [(pathlib.Path('doc/{}.asciidoc'.format(f)),
+                  DOC_DIR / (f + ".html")) for f in self.FILES]
+        for src in pathlib.Path('doc/help/').glob('*.asciidoc'):
+            dst = DOC_DIR / (src.stem + ".html")
             files.append((src, dst))
 
         # patch image links to use local copy
@@ -94,8 +96,8 @@ class AsciiDoc:
         asciidoc_args = ['-a', 'source-highlighter=pygments']
 
         for src, dst in files:
-            src_basename = os.path.basename(src)
-            modified_src = os.path.join(self._tempdir, src_basename)
+            assert self._tempdir is not None    # for mypy
+            modified_src = self._tempdir / src.name
             with open(modified_src, 'w', encoding='utf-8') as modified_f, \
                     open(src, 'r', encoding='utf-8') as f:
                 for line in f:
@@ -104,34 +106,26 @@ class AsciiDoc:
                     modified_f.write(line)
             self.call(modified_src, dst, *asciidoc_args)
 
-    def _copy_images(self):
+    def _copy_images(self) -> None:
         """Copy image files to qutebrowser/html/doc."""
         print("Copying files...")
-        dst_path = os.path.join('qutebrowser', 'html', 'doc', 'img')
-        try:
-            os.mkdir(dst_path)
-        except FileExistsError:
-            pass
+        dst_path = DOC_DIR / 'img'
+        dst_path.mkdir(exist_ok=True)
         for filename in ['cheatsheet-big.png', 'cheatsheet-small.png']:
-            src = os.path.join('doc', 'img', filename)
-            dst = os.path.join(dst_path, filename)
+            src = pathlib.Path('doc') / 'img' / filename
+            dst = dst_path / filename
             shutil.copy(src, dst)
 
-    def _build_website_file(self, root, filename):
+    def _build_website_file(self, root: pathlib.Path, filename: str) -> None:
         """Build a single website file."""
-        src = os.path.join(root, filename)
-        src_basename = os.path.basename(src)
-        parts = [self._website[0]]
-        dirname = os.path.dirname(src)
-        if dirname:
-            parts.append(os.path.relpath(os.path.dirname(src)))
-        parts.append(
-            os.extsep.join((os.path.splitext(src_basename)[0],
-                            'html')))
-        dst = os.path.join(*parts)
-        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        src = root / filename
+        assert self._website is not None    # for mypy
+        dst = pathlib.Path(self._website)
+        dst = dst / src.parent.relative_to('.') / (src.stem + ".html")
+        dst.parent.mkdir(exist_ok=True)
 
-        modified_src = os.path.join(self._tempdir, src_basename)
+        assert self._tempdir is not None    # for mypy
+        modified_src = self._tempdir / src.name
         shutil.copy('www/header.asciidoc', modified_src)
 
         outfp = io.StringIO()
@@ -187,25 +181,24 @@ class AsciiDoc:
                          '-a', 'source-highlighter=pygments']
         self.call(modified_src, dst, *asciidoc_args)
 
-    def _build_website(self):
+    def _build_website(self) -> None:
         """Prepare and build the website."""
-        theme_file = os.path.abspath(os.path.join('www', 'qute.css'))
+        theme_file = (pathlib.Path('www') / 'qute.css').resolve()
+        assert self._themedir is not None   # for mypy
         shutil.copy(theme_file, self._themedir)
 
-        outdir = self._website[0]
+        assert self._website is not None    # for mypy
+        outdir = pathlib.Path(self._website)
 
-        for root, _dirs, files in os.walk(os.getcwd()):
-            for filename in files:
-                basename, ext = os.path.splitext(filename)
-                if (ext != '.asciidoc' or
-                        basename in ['header', 'OpenSans-License']):
-                    continue
-                self._build_website_file(root, filename)
+        for item_path in pathlib.Path().rglob('*.asciidoc'):
+            if item_path.stem in ['header', 'OpenSans-License']:
+                continue
+            self._build_website_file(item_path.parent, item_path.name)
 
         copy = {'icons': 'icons', 'doc/img': 'doc/img', 'www/media': 'media/'}
 
         for src, dest in copy.items():
-            full_dest = os.path.join(outdir, dest)
+            full_dest = outdir / dest
             try:
                 shutil.rmtree(full_dest)
             except FileNotFoundError:
@@ -214,13 +207,15 @@ class AsciiDoc:
 
         for dst, link_name in [
                 ('README.html', 'index.html'),
-                (os.path.join('doc', 'quickstart.html'), 'quickstart.html')]:
+                ((pathlib.Path('doc') / 'quickstart.html'),
+                 'quickstart.html')]:
+            assert isinstance(dst, (str, pathlib.Path))    # for mypy
             try:
-                os.symlink(dst, os.path.join(outdir, link_name))
+                (outdir / link_name).symlink_to(dst)
             except FileExistsError:
                 pass
 
-    def _get_asciidoc_cmd(self):
+    def _get_asciidoc_cmd(self) -> List[str]:
         """Try to find out what commandline to use to invoke asciidoc."""
         if self._asciidoc is not None:
             return self._asciidoc
@@ -243,7 +238,7 @@ class AsciiDoc:
 
         raise FileNotFoundError
 
-    def call(self, src, dst, *args):
+    def call(self, src: pathlib.Path, dst: pathlib.Path, *args):
         """Call asciidoc for the given files.
 
         Args:
@@ -251,28 +246,30 @@ class AsciiDoc:
             dst: The destination .html file, or None to auto-guess.
             *args: Additional arguments passed to asciidoc.
         """
-        print("Calling asciidoc for {}...".format(os.path.basename(src)))
+        print("Calling asciidoc for {}...".format(src.name))
+        assert self._cmd is not None    # for mypy
         cmdline = self._cmd[:]
         if dst is not None:
-            cmdline += ['--out-file', dst]
+            cmdline += ['--out-file', str(dst)]
         cmdline += args
-        cmdline.append(src)
+        cmdline.append(str(src))
         try:
             env = os.environ.copy()
-            env['HOME'] = self._homedir
+            env['HOME'] = str(self._homedir)
             subprocess.run(cmdline, check=True, env=env)
         except (subprocess.CalledProcessError, OSError) as e:
             self._failed = True
-            utils.print_col(str(e), 'red')
-            print("Keeping modified sources in {}.".format(self._homedir))
+            utils.print_error(str(e))
+            print("Keeping modified sources in {}.".format(self._homedir),
+                  file=sys.stderr)
             sys.exit(1)
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument('--website', help="Build website into a given "
-                        "directory.", nargs=1)
+                        "directory.")
     parser.add_argument('--asciidoc', help="Full path to python and "
                         "asciidoc.py. If not given, it's searched in PATH.",
                         nargs=2, required=False,
@@ -280,20 +277,17 @@ def parse_args():
     return parser.parse_args()
 
 
-def run(**kwargs):
+def run(**kwargs) -> None:
     """Regenerate documentation."""
-    try:
-        os.mkdir('qutebrowser/html/doc')
-    except FileExistsError:
-        pass
+    DOC_DIR.mkdir(exist_ok=True)
 
     asciidoc = AsciiDoc(**kwargs)
     try:
         asciidoc.prepare()
     except FileNotFoundError:
-        utils.print_col("Could not find asciidoc! Please install it, or use "
-                        "the --asciidoc argument to point this script to the "
-                        "correct python/asciidoc.py location!", 'red')
+        utils.print_error("Could not find asciidoc! Please install it, or use "
+                          "the --asciidoc argument to point this script to "
+                          "the correct python/asciidoc.py location!")
         sys.exit(1)
 
     try:
@@ -302,7 +296,7 @@ def run(**kwargs):
         asciidoc.cleanup()
 
 
-def main(colors=False):
+def main(colors: bool = False) -> None:
     """Generate html files for the online documentation."""
     utils.change_cwd()
     utils.use_color = colors

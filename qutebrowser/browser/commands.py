@@ -157,7 +157,7 @@ class CommandDispatcher:
         else:
             return None
 
-    def _tab_focus_stack(self, mode: str, *, show_error=True):
+    def _tab_focus_stack(self, mode: str, *, show_error: bool = True) -> None:
         """Select the tab which was last focused."""
         tab_deque = self._tabbed_browser.tab_deque
         cur_tab = self._cntwidget()
@@ -308,8 +308,9 @@ class CommandDispatcher:
             urls = self._parse_url_input(url)
 
         for i, cur_url in enumerate(urls):
-            if secure:
+            if secure and cur_url.scheme() == 'http':
                 cur_url.setScheme('https')
+
             if not window and i > 0:
                 tab = False
                 bg = True
@@ -452,7 +453,7 @@ class CommandDispatcher:
     @cmdutils.argument('win_id', completion=miscmodels.window)
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_give(self, win_id: int = None, keep: bool = False,
-                 count: int = None) -> None:
+                 count: int = None, private: bool = False) -> None:
         """Give the current tab to a new or existing window if win_id given.
 
         If no win_id is given, the tab will get detached into a new window.
@@ -461,6 +462,7 @@ class CommandDispatcher:
             win_id: The window ID of the window to give the current tab to.
             keep: If given, keep the old tab around.
             count: Overrides win_id (index starts at 1 for win_id=0).
+            private: If the tab should be detached into a private instance.
         """
         if config.val.tabs.tabs_are_windows:
             raise cmdutils.CommandError("Can't give tabs when using "
@@ -478,7 +480,7 @@ class CommandDispatcher:
                                             "only one tab")
 
             tabbed_browser = self._new_tabbed_browser(
-                private=self._tabbed_browser.is_private)
+                private=private or self._tabbed_browser.is_private)
         else:
             if win_id not in objreg.window_registry:
                 raise cmdutils.CommandError(
@@ -486,6 +488,10 @@ class CommandDispatcher:
 
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
+
+            if private and not tabbed_browser.is_private:
+                raise cmdutils.CommandError(
+                    "The window with id {} is not private".format(win_id))
 
         tabbed_browser.tabopen(self._current_url())
         if not keep:
@@ -645,12 +651,13 @@ class CommandDispatcher:
 
     def _yank_url(self, what):
         """Helper method for yank() to get the URL to copy."""
-        assert what in ['url', 'pretty-url', 'markdown'], what
-        flags = QUrl.RemovePassword
+        assert what in ['url', 'pretty-url'], what
+
         if what == 'pretty-url':
-            flags |= QUrl.DecodeReserved  # type: ignore
+            flags = QUrl.RemovePassword | QUrl.DecodeReserved
         else:
-            flags |= QUrl.FullyEncoded  # type: ignore
+            flags = QUrl.RemovePassword | QUrl.FullyEncoded
+
         url = QUrl(self._current_url())
         url_query = QUrlQuery()
         url_query_str = urlutils.query_string(url)
@@ -661,12 +668,11 @@ class CommandDispatcher:
             if key in config.val.url.yank_ignored_parameters:
                 url_query.removeQueryItem(key)
         url.setQuery(url_query)
-        return url.toString(flags)  # type: ignore
+        return url.toString(flags)  # type: ignore[arg-type]
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('what', choices=['selection', 'url', 'pretty-url',
-                                        'title', 'domain', 'markdown',
-                                        'inline'])
+                                        'title', 'domain', 'inline'])
     def yank(self, what='url', inline=None,
              sel=False, keep=False, quiet=False):
         """Yank (copy) something to the clipboard or primary selection.
@@ -679,8 +685,6 @@ class CommandDispatcher:
                 - `title`: The current page's title.
                 - `domain`: The current scheme, domain, and port number.
                 - `selection`: The selection under the cursor.
-                - `markdown`: Yank title and URL in markdown format
-                  (deprecated, use `:yank inline [{title}]({url})` instead).
                 - `inline`: Yank the text contained in the 'inline' argument.
 
             sel: Use the primary selection instead of the clipboard.
@@ -712,14 +716,6 @@ class CommandDispatcher:
             caret = self._current_widget().caret
             caret.selection(callback=_selection_callback)
             return
-        elif what == 'markdown':
-            message.warning(":yank markdown is deprecated, use `:yank inline "
-                            "[{title}]({url})` instead.")
-            idx = self._current_index()
-            title = self._tabbed_browser.widget.page_title(idx)
-            url = self._yank_url(what)
-            s = '[{}]({})'.format(title, url)
-            what = 'markdown URL'  # For printing
         else:  # pragma: no cover
             raise ValueError("Invalid value {!r} for `what'.".format(what))
 
@@ -909,7 +905,8 @@ class CommandDispatcher:
         tabbed_browser.widget.setCurrentWidget(tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('index', choices=['last', 'stack-next', 'stack-prev'])
+    @cmdutils.argument('index', choices=['last', 'stack-next', 'stack-prev'],
+                       completion=miscmodels.tab_focus)
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_focus(self, index: typing.Union[str, int] = None,
                   count: int = None, no_last: bool = False) -> None:
@@ -1046,7 +1043,8 @@ class CommandDispatcher:
         if userscript:
             def _selection_callback(s):
                 try:
-                    runner = self._run_userscript(s, cmd, args, verbose, count)
+                    runner = self._run_userscript(
+                        s, cmd, args, verbose, output_messages, count)
                     runner.finished.connect(_on_proc_finished)
                 except cmdutils.CommandError as e:
                     message.error(str(e))
@@ -1072,13 +1070,15 @@ class CommandDispatcher:
                 proc.start(cmd, args)
             proc.finished.connect(_on_proc_finished)
 
-    def _run_userscript(self, selection, cmd, args, verbose, count):
+    def _run_userscript(self, selection, cmd, args, verbose, output_messages,
+                        count):
         """Run a userscript given as argument.
 
         Args:
             cmd: The userscript to run.
             args: Arguments to pass to the userscript.
             verbose: Show notifications when the command started/exited.
+            output_messages: Show the output as messages.
             count: Exposed to the userscript.
         """
         env = {
@@ -1105,7 +1105,8 @@ class CommandDispatcher:
 
         try:
             runner = userscripts.run_async(
-                tab, cmd, *args, win_id=self._win_id, env=env, verbose=verbose)
+                tab, cmd, *args, win_id=self._win_id, env=env, verbose=verbose,
+                output_messages=output_messages)
         except userscripts.Error as e:
             raise cmdutils.CommandError(e)
         return runner
@@ -1383,24 +1384,40 @@ class CommandDispatcher:
         self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def messages(self, level='info', plain=False, tab=False, bg=False,
-                 window=False):
+    @cmdutils.argument('logfilter', flag='f')
+    def messages(self, level='info', *, plain=False, tab=False, bg=False,
+                 window=False, logfilter=None):
         """Show a log of past messages.
 
         Args:
             level: Include messages with `level` or higher severity.
                    Valid values: vdebug, debug, info, warning, error, critical.
             plain: Whether to show plaintext (as opposed to html).
+            logfilter: A comma-separated filter string of logging categories.
+                       If the filter string starts with an exclamation mark, it
+                       is negated.
             tab: Open in a new tab.
             bg: Open in a background tab.
             window: Open in a new window.
         """
         if level.upper() not in log.LOG_LEVELS:
             raise cmdutils.CommandError("Invalid log level {}!".format(level))
+
+        query = QUrlQuery()
+        query.addQueryItem('level', level)
         if plain:
-            url = QUrl('qute://plainlog?level={}'.format(level))
-        else:
-            url = QUrl('qute://log?level={}'.format(level))
+            query.addQueryItem('plain', typing.cast(str, None))
+
+        if logfilter:
+            try:
+                log.LogFilter.parse(logfilter)
+            except log.InvalidLogFilterError as e:
+                raise cmdutils.CommandError(e)
+            query.addQueryItem('logfilter', logfilter)
+
+        url = QUrl('qute://log')
+        url.setQuery(query)
+
         self._open(url, tab, bg, window)
 
     def _open_editor_cb(self, elem):
@@ -1503,6 +1520,7 @@ class CommandDispatcher:
         options = {
             'ignore_case': config.val.search.ignore_case,
             'reverse': reverse,
+            'wrap': config.val.search.wrap,
         }
 
         self._tabbed_browser.search_text = text

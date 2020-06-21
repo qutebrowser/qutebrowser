@@ -29,6 +29,7 @@ import logging
 import collections
 import textwrap
 import subprocess
+import shutil
 
 import pytest
 import pytest_bdd as bdd
@@ -49,7 +50,7 @@ def _get_echo_exe_path():
         return os.path.join(testutils.abs_datapath(), 'userscripts',
                             'echo.bat')
     else:
-        return 'echo'
+        return shutil.which("echo")
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -147,6 +148,17 @@ def run_command_given(quteproc, command):
     """Run a qutebrowser command.
 
     This is available as "Given:" step so it can be used as "Background:".
+    """
+    quteproc.send_cmd(command)
+
+
+@bdd.given(bdd.parsers.parse("I also run {command}"))
+def run_command_given_2(quteproc, command):
+    """Run a qutebrowser command.
+
+    Separate from the above as a hack to run two commands in a Background
+    without having to use ";;". This is needed because pytest-bdd doesn't allow
+    re-using a Given step...
     """
     quteproc.send_cmd(command)
 

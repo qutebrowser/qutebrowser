@@ -57,7 +57,7 @@ class HistoryProgress:
         self._progress.setMinimumDuration(500)
         self._progress.setLabelText(text)
         self._progress.setMaximum(maximum)
-        self._progress.setCancelButton(None)  # type: ignore
+        self._progress.setCancelButton(None)
         self._progress.show()
         QApplication.processEvents()
 

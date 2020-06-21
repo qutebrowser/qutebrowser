@@ -21,7 +21,7 @@ Why another browser?::
 Read the next few questions to find out why I was unhappy with existing
 software.
 
-What's wrong with link:https://bitbucket.org/portix/dwb/[dwb]/link:https://sourceforge.net/projects/vimprobable/[vimprobable]/link:https://mason-larobina.github.io/luakit/[luakit]/jumanji/... (projects based on WebKitGTK)?::
+What's wrong with link:https://bitbucket.org/portix/dwb/[dwb]/link:https://sourceforge.net/projects/vimprobable/[vimprobable]/link:https://luakit.github.io/[luakit]/jumanji/... (projects based on WebKitGTK)?::
     Most of them are based on the https://webkitgtk.org/[WebKitGTK+]
     https://webkitgtk.org/reference/webkitgtk/stable/index.html[WebKit1] API,
     which causes a lot of crashes. As the GTK API using WebKit1 is
@@ -305,13 +305,13 @@ If you ever need to renew any of these certificates, you can take a look
 at the currently imported certificates using:
 +
 ----
-certutil -D "sql:${HOME}/.pki/nssdb" -L
+certutil -d "sql:${HOME}/.pki/nssdb" -L
 ----
 +
 Then remove the expired certificates using:
 +
 ----
-certutil -D "sql:${HOME}/.pki/nssdb" -D -n "My Fancy Certificate Nickname"
+certutil -d "sql:${HOME}/.pki/nssdb" -D -n "My Fancy Certificate Nickname"
 ----
 +
 And then import the new and valid certificates using the procedure
@@ -367,14 +367,15 @@ up for a monthly donation to The-Compiler (qutebrowser's main developer),
 allowing him to work part-time on qutebrowser. If you keep your donation level
 for long enough, you can get some qutebrowser stickers!
 
-Why GitHub Sponsors? What is the GitHub Matching Fund?::
-    Thanks to the
-    https://help.github.com/en/github/supporting-the-open-source-community-with-github-sponsors/about-github-sponsors#about-the-github-sponsors-matching-fund[GitHub Sponsors Matching Fund],
-    all donations are doubled by GitHub in the first year, up to a $5000 total limit.
+Why GitHub Sponsors?::
+    GitHub Sponsors is a crowdfundign platform nicely integrated with
+    qutebrowser's existing GitHub page and a better offering than alternatives such
+    as Patreon or Liberapay.
 +
-Even outside of the matching fund, GitHub Sponsors is nicely integrated with
-qutebrowser's existing GitHub page and a better offering than alternatives such
-as Patreon or Liberapay.
+It also offers a
+https://help.github.com/en/github/supporting-the-open-source-community-with-github-sponsors/about-github-sponsors#about-the-github-sponsors-matching-fund[Matching Fund]
+which matches all donations until a cap of $5000, which has already been
+reached by qutebrowser.
 
 Is it possible to contribute via a one-time donation instead?::
    If you prefer a one-time donation, there are various possibilities:
@@ -382,8 +383,7 @@ Is it possible to contribute via a one-time donation instead?::
 - Select a tier which covers the total amount you'd like to donate (note that
   payments are prorated based on the current date). After the payment is
   processed, cancel your GitHub sponsors subscription again. This has a big
-  benefit: Thanks to GitHub's matching fund, your donation will be doubled (and
-  nothing will be lost to fees).
+  benefit: There are no fees deducted from your amount.
 +
 - Sign up for a lower recurring donation instead.
 +

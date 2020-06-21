@@ -105,7 +105,7 @@ class DownloadView(QListView):
     def __repr__(self):
         model = self.model()
         if model is None:
-            count = 'None'  # type: ignore
+            count = 'None'  # type: ignore[unreachable]
         else:
             count = model.rowCount()
         return utils.get_repr(self, count=count)
@@ -132,7 +132,10 @@ class DownloadView(QListView):
             item.open_file()
             item.remove()
 
-    def _get_menu_actions(self, item) -> _ActionListType:
+    def _get_menu_actions(
+            self,
+            item: downloads.AbstractDownloadItem
+    ) -> _ActionListType:
         """Get the available context menu actions for a given DownloadItem.
 
         Args:

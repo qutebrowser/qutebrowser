@@ -21,6 +21,7 @@
 
 import os
 import os.path
+import sys
 
 
 # Import side-effects are an evil thing, but here it's okay so scripts using
@@ -58,14 +59,18 @@ def _esc(code):
     return '\033[{}m'.format(code)
 
 
-def print_col(text, color):
+def print_col(text, color, file=sys.stdout):
     """Print a colorized text."""
     if use_color:
         fg = _esc(fg_colors[color.lower()])
         reset = _esc(fg_colors['reset'])
-        print(''.join([fg, text, reset]))
+        print(''.join([fg, text, reset]), file=file)
     else:
-        print(text)
+        print(text, file=file)
+
+
+def print_error(text):
+    print_col(text, 'red', file=sys.stderr)
 
 
 def print_title(text):

@@ -27,7 +27,8 @@ import typing
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, message, log, objreg, jinja, utils
+from qutebrowser.utils import (usertypes, message, log, objreg, jinja, utils,
+                               qtutils)
 from qutebrowser.mainwindow import mainwindow
 
 
@@ -160,7 +161,7 @@ def ignore_certificate_errors(url, errors, abort_on):
         True if the error should be ignored, False otherwise.
     """
     ssl_strict = config.instance.get('content.ssl_strict', url=url)
-    log.webview.debug("Certificate errors {!r}, strict {}".format(
+    log.network.debug("Certificate errors {!r}, strict {}".format(
         errors, ssl_strict))
 
     for error in errors:
@@ -186,7 +187,7 @@ def ignore_certificate_errors(url, errors, abort_on):
             ignore = False
         return ignore
     elif ssl_strict is False:
-        log.webview.debug("ssl_strict is False, only warning about errors")
+        log.network.debug("ssl_strict is False, only warning about errors")
         for err in errors:
             # FIXME we might want to use warn here (non-fatal error)
             # https://github.com/qutebrowser/qutebrowser/issues/114
@@ -285,8 +286,13 @@ def get_user_stylesheet(searching=False):
         with open(filename, 'r', encoding='utf-8') as f:
             css += f.read()
 
-    if (config.val.scrolling.bar == 'never' or
-            config.val.scrolling.bar == 'when-searching' and not searching):
+    setting = config.val.scrolling.bar
+    overlay_bar_available = (qtutils.version_check('5.11', compiled=False) and
+                             not utils.is_mac)
+    if setting == 'overlay' and not overlay_bar_available:
+        setting = 'when-searching'
+
+    if setting == 'never' or setting == 'when-searching' and not searching:
         css += '\nhtml > ::-webkit-scrollbar { width: 0px; height: 0px; }'
 
     return css

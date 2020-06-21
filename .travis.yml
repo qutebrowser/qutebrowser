@@ -19,8 +19,8 @@ matrix:
       services: docker
 
     ### Archlinux QtWebEngine with testing/KDE-Unstable
-    # - env: DOCKER=archlinux-webengine-unstable QUTE_BDD_WEBENGINE=true
-    #   services: docker
+    - env: DOCKER=archlinux-webengine-unstable QUTE_BDD_WEBENGINE=true
+      services: docker
 
     ### PyQt 5.7.1 (Python 3.5)
     - python: 3.5
@@ -45,7 +45,6 @@ matrix:
 
     ### PyQt 5.12 (Python 3.8)
     - env: TESTENV=py38-pyqt512
-      # http://code.qt.io/cgit/qt/qtbase.git/commit/?id=c3a963da1f9e7b1d37e63eedded61da4fbdaaf9a
       addons:
         apt:
           packages:
@@ -53,19 +52,30 @@ matrix:
 
     ### PyQt 5.13 (Python 3.8)
     - env: TESTENV=py38-pyqt513
-      # http://code.qt.io/cgit/qt/qtbase.git/commit/?id=c3a963da1f9e7b1d37e63eedded61da4fbdaaf9a
       addons:
         apt:
           packages:
           - libxkbcommon-x11-0
 
-    ### PyQt 5.14 (Python 3.8, with coverage)
-    - env: TESTENV=py38-pyqt514-cov
-      # http://code.qt.io/cgit/qt/qtbase.git/commit/?id=c3a963da1f9e7b1d37e63eedded61da4fbdaaf9a
+    ### PyQt 5.14 (Python 3.8)
+    - env: TESTENV=py38-pyqt514
       addons:
         apt:
           packages:
           - libxkbcommon-x11-0
+
+    ### PyQt 5.15 (Python 3.8, with coverage)
+    - env: TESTENV=py38-pyqt515-cov
+      addons:
+        apt:
+          packages:
+          - libxkbcommon-x11-0
+          - libxcb-icccm4
+          - libxcb-image0
+          - libxcb-keysyms1
+          - libxcb-randr0
+          - libxcb-render-util0
+          - libxcb-xinerama0
 
     ### macOS Mojave (10.14)
     - os: osx

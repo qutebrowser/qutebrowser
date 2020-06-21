@@ -213,6 +213,56 @@ Feature: Searching on a page
     # TODO: wrapping message with scrolling
     # TODO: wrapping message without scrolling
 
+    ## wrapping prevented
+
+    @qtwebkit_skip @qt>=5.14
+    Scenario: Preventing wrapping at the top of the page with QtWebEngine
+        When I set search.ignore_case to always
+        And I set search.wrap to false
+        And I run :search --reverse foo
+        And I wait for "search found foo with flags FindBackward" in the log
+        And I run :search-next
+        And I wait for "next_result found foo with flags FindBackward" in the log
+        And I run :search-next
+        And I wait for "Search hit TOP" in the log
+        Then "foo" should be found
+
+    @qtwebkit_skip @qt>=5.14
+    Scenario: Preventing wrapping at the bottom of the page with QtWebEngine
+        When I set search.ignore_case to always
+        And I set search.wrap to false
+        And I run :search foo
+        And I wait for "search found foo" in the log
+        And I run :search-next
+        And I wait for "next_result found foo" in the log
+        And I run :search-next
+        And I wait for "Search hit BOTTOM" in the log
+        Then "Foo" should be found
+
+    @qtwebengine_skip
+    Scenario: Preventing wrapping at the top of the page with QtWebKit
+        When I set search.ignore_case to always
+        And I set search.wrap to false
+        And I run :search --reverse foo
+        And I wait for "search found foo with flags FindBackward" in the log
+        And I run :search-next
+        And I wait for "next_result found foo with flags FindBackward" in the log
+        And I run :search-next
+        And I wait for "next_result didn't find foo with flags FindBackward" in the log
+        Then the warning "Text 'foo' not found on page!" should be shown
+
+    @qtwebengine_skip
+    Scenario: Preventing wrapping at the bottom of the page with QtWebKit
+        When I set search.ignore_case to always
+        And I set search.wrap to false
+        And I run :search foo
+        And I wait for "search found foo" in the log
+        And I run :search-next
+        And I wait for "next_result found foo" in the log
+        And I run :search-next
+        And I wait for "next_result didn't find foo" in the log
+        Then the warning "Text 'foo' not found on page!" should be shown
+
     ## follow searched links
     @skip  # Too flaky
     Scenario: Follow a searched link

@@ -60,7 +60,7 @@ def msgbox(parent, title, text, *, icon, buttons=QMessageBox.Ok,
     box.setIcon(icon)
     box.setStandardButtons(buttons)
     if on_finished is not None:
-        box.finished.connect(on_finished)  # type: ignore
+        box.finished.connect(on_finished)
     if plain_text:
         box.setTextFormat(Qt.PlainText)
     elif plain_text is not None:

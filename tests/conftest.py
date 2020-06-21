@@ -25,8 +25,6 @@ import os
 import sys
 import warnings
 import pathlib
-import ctypes
-import ctypes.util
 
 import pytest
 import hypothesis
@@ -110,7 +108,7 @@ def _apply_platform_markers(config, item):
          "https://bugreports.qt.io/browse/QTBUG-60673"),
         ('qtwebkit6021_xfail',
          pytest.mark.xfail,
-         version.qWebKitVersion and  # type: ignore
+         version.qWebKitVersion and  # type: ignore[unreachable]
          version.qWebKitVersion() == '602.1',
          "Broken on WebKit 602.1")
     ]
@@ -255,12 +253,10 @@ def set_backend(monkeypatch, request):
     monkeypatch.setattr(objects, 'backend', backend)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True, scope='session')
 def apply_libgl_workaround():
     """Make sure we load libGL early so QtWebEngine tests run properly."""
-    libgl = ctypes.util.find_library("GL")
-    if libgl is not None:
-        ctypes.CDLL(libgl, mode=ctypes.RTLD_GLOBAL)
+    utils.libgl_workaround()
 
 
 @pytest.fixture(autouse=True)

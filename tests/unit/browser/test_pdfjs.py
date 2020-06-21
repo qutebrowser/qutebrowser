@@ -52,6 +52,15 @@ def test_generate_pdfjs_page(available, snippet, monkeypatch):
     assert snippet in content
 
 
+def test_broken_installation(data_tmpdir, monkeypatch):
+    """Make sure we don't crash with a broken local installation."""
+    monkeypatch.setattr(pdfjs, '_SYSTEM_PATHS', [])
+    (data_tmpdir / 'pdfjs' / 'pdf.js').ensure()  # But no viewer.html
+
+    content = pdfjs.generate_pdfjs_page('example.pdf', QUrl())
+    assert '<h1>No pdf.js installation found</h1>' in content
+
+
 # Note that we got double protection, once because we use QUrl.FullyEncoded and
 # because we use qutebrowser.utils.javascript.to_js. Characters like " are
 # already replaced by QUrl.

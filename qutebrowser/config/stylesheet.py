@@ -109,7 +109,7 @@ class _StyleSheetObserver(QObject):
     def register(self) -> None:
         """Do a first update and listen for more."""
         qss = self._get_stylesheet()
-        log.config.vdebug(  # type: ignore
+        log.config.vdebug(  # type: ignore[attr-defined]
             "stylesheet for {}: {}".format(self._obj.__class__.__name__, qss))
         self._obj.setStyleSheet(qss)
         if self._update:

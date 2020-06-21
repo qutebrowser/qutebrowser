@@ -35,6 +35,8 @@ import datetime
 import attr
 import pkg_resources
 import pytest
+import hypothesis
+import hypothesis.strategies
 
 import qutebrowser
 from qutebrowser.config import config
@@ -196,6 +198,15 @@ from qutebrowser.browser import pdfjs
      version.DistributionInfo(
          id='tux', parsed=version.Distribution.unknown,
          version=None, pretty='Tux')),
+    # Invalid multi-line value
+    ("""
+        ID=tux
+        PRETTY_NAME="Multiline
+        Text"
+     """,
+     version.DistributionInfo(
+         id='tux', parsed=version.Distribution.unknown,
+         version=None, pretty='Multiline')),
 ])
 def test_distribution(tmpdir, monkeypatch, os_release, expected):
     os_release_file = tmpdir / 'os-release'
@@ -392,7 +403,7 @@ class TestGitStrSubprocess:
     def test_real_git(self, git_repo):
         """Test with a real git repository."""
         ret = version._git_str_subprocess(str(git_repo))
-        assert ret == '6e4b65a (1970-01-01 01:00:00 +0100)'
+        assert ret == '6e4b65a on master (1970-01-01 01:00:00 +0100)'
 
     def test_missing_dir(self, tmpdir):
         """Test with a directory which doesn't exist."""
@@ -900,7 +911,7 @@ class VersionParams:
     name = attr.ib()
     git_commit = attr.ib(True)
     frozen = attr.ib(False)
-    style = attr.ib(True)
+    qapp = attr.ib(True)
     with_webkit = attr.ib(True)
     known_distribution = attr.ib(True)
     ssl_support = attr.ib(True)
@@ -912,15 +923,15 @@ class VersionParams:
     VersionParams('normal'),
     VersionParams('no-git-commit', git_commit=False),
     VersionParams('frozen', frozen=True),
-    VersionParams('no-style', style=False),
+    VersionParams('no-qapp', qapp=False),
     VersionParams('no-webkit', with_webkit=False),
     VersionParams('unknown-dist', known_distribution=False),
     VersionParams('no-ssl', ssl_support=False),
     VersionParams('no-autoconfig-loaded', autoconfig_loaded=False),
     VersionParams('no-config-py-loaded', config_py_loaded=False),
 ], ids=lambda param: param.name)
-def test_version_output(params, stubs, monkeypatch, config_stub):
-    """Test version.version()."""
+def test_version_info(params, stubs, monkeypatch, config_stub):
+    """Test version.version_info()."""
     config.instance.config_py_loaded = params.config_py_loaded
     import_path = os.path.abspath('/IMPORTPATH')
 
@@ -940,8 +951,9 @@ def test_version_output(params, stubs, monkeypatch, config_stub):
         'platform.architecture': lambda: ('ARCHITECTURE', ''),
         '_os_info': lambda: ['OS INFO 1', 'OS INFO 2'],
         '_path_info': lambda: {'PATH DESC': 'PATH NAME'},
-        'QApplication': (stubs.FakeQApplication(style='STYLE')
-                         if params.style else
+        'QApplication': (stubs.FakeQApplication(style='STYLE',
+                                                platform_name='PLATFORM')
+                         if params.qapp else
                          stubs.FakeQApplication(instance=None)),
         'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
         'sql.version': lambda: 'SQLITE VERSION',
@@ -949,9 +961,15 @@ def test_version_output(params, stubs, monkeypatch, config_stub):
         'config.instance.yaml_loaded': params.autoconfig_loaded,
     }
 
+    version.opengl_info.cache_clear()
+    monkeypatch.setenv('QUTE_FAKE_OPENGL', 'VENDOR, 1.0 VERSION')
+
     substitutions = {
         'git_commit': '\nGit commit: GIT COMMIT' if params.git_commit else '',
-        'style': '\nStyle: STYLE' if params.style else '',
+        'style': '\nStyle: STYLE' if params.qapp else '',
+        'platform_plugin': ('\nPlatform plugin: PLATFORM' if params.qapp
+                            else ''),
+        'opengl': '\nOpenGL: VENDOR, 1.0 VERSION' if params.qapp else '',
         'qt': 'QT VERSION',
         'frozen': str(params.frozen),
         'import_path': import_path,
@@ -1017,7 +1035,7 @@ def test_version_output(params, stubs, monkeypatch, config_stub):
         pdf.js: PDFJS VERSION
         sqlite: SQLITE VERSION
         QtNetwork SSL: {ssl}
-        {style}
+        {style}{platform_plugin}{opengl}
         Platform: PLATFORM, ARCHITECTURE{linuxdist}
         Frozen: {frozen}
         Imported from {import_path}
@@ -1033,13 +1051,79 @@ def test_version_output(params, stubs, monkeypatch, config_stub):
     """.lstrip('\n'))
 
     expected = template.rstrip('\n').format(**substitutions)
-    assert version.version() == expected
+    assert version.version_info() == expected
 
 
-def test_opengl_vendor(qapp):
-    """Simply call version.opengl_vendor() and see if it doesn't crash."""
-    pytest.importorskip("PyQt5.QtOpenGL")
-    return version.opengl_vendor()
+class TestOpenGLInfo:
+
+    @pytest.fixture(autouse=True)
+    def cache_clear(self):
+        """Clear the lru_cache between tests."""
+        version.opengl_info.cache_clear()
+
+    def test_func(self, qapp):
+        """Simply call version.opengl_info() and see if it doesn't crash."""
+        pytest.importorskip("PyQt5.QtOpenGL")
+        version.opengl_info()
+
+    def test_func_fake(self, qapp, monkeypatch):
+        monkeypatch.setenv('QUTE_FAKE_OPENGL', 'Outtel Inc., 3.0 Messiah 20.0')
+        info = version.opengl_info()
+        assert info.vendor == 'Outtel Inc.'
+        assert info.version_str == '3.0 Messiah 20.0'
+        assert info.version == (3, 0)
+        assert info.vendor_specific == 'Messiah 20.0'
+
+    @pytest.mark.parametrize('version_str, reason', [
+        ('blah', 'missing space'),
+        ('2,x blah', 'parsing int'),
+    ])
+    def test_parse_invalid(self, caplog, version_str, reason):
+        with caplog.at_level(logging.WARNING):
+            info = version.OpenGLInfo.parse(vendor="vendor",
+                                            version=version_str)
+
+        assert info.version is None
+        assert info.vendor_specific is None
+        assert info.vendor == 'vendor'
+        assert info.version_str == version_str
+
+        msg = "Failed to parse OpenGL version ({}): {}".format(
+            reason, version_str)
+        assert caplog.messages == [msg]
+
+    @hypothesis.given(vendor=hypothesis.strategies.text(),
+                      version_str=hypothesis.strategies.text())
+    def test_parse_hypothesis(self, caplog, vendor, version_str):
+        with caplog.at_level(logging.WARNING):
+            info = version.OpenGLInfo.parse(vendor=vendor, version=version_str)
+
+        assert info.vendor == vendor
+        assert info.version_str == version_str
+        assert vendor in str(info)
+        assert version_str in str(info)
+
+        if info.version is not None:
+            reconstructed = ' '.join(['.'.join(str(part)
+                                               for part in info.version),
+                                      info.vendor_specific])
+            assert reconstructed == info.version_str
+
+    @pytest.mark.parametrize('version_str, expected', [
+        ("2.1 INTEL-10.36.26", (2, 1)),
+        ("4.6 (Compatibility Profile) Mesa 20.0.7", (4, 6)),
+        ("3.0 Mesa 20.0.7", (3, 0)),
+        ("3.0 Mesa 20.0.6", (3, 0)),
+        # Not from the wild, but can happen according to standards
+        ("3.0.2 Mesa 20.0.6", (3, 0, 2)),
+    ])
+    def test_version(self, version_str, expected):
+        info = version.OpenGLInfo.parse(vendor='vendor', version=version_str)
+        assert info.version == expected
+
+    def test_str_gles(self):
+        info = version.OpenGLInfo(gles=True)
+        assert str(info) == 'OpenGL ES'
 
 
 @pytest.fixture
@@ -1052,7 +1136,7 @@ def pbclient(stubs):
 
 def test_pastebin_version(pbclient, message_mock, monkeypatch, qtbot):
     """Test version.pastebin_version() sets the url."""
-    monkeypatch.setattr('qutebrowser.utils.version.version',
+    monkeypatch.setattr('qutebrowser.utils.version.version_info',
                         lambda: "dummy")
     monkeypatch.setattr('qutebrowser.utils.utils.log_clipboard', True)
 
@@ -1067,7 +1151,7 @@ def test_pastebin_version(pbclient, message_mock, monkeypatch, qtbot):
 
 def test_pastebin_version_twice(pbclient, monkeypatch):
     """Test whether calling pastebin_version twice sends no data."""
-    monkeypatch.setattr('qutebrowser.utils.version.version',
+    monkeypatch.setattr('qutebrowser.utils.version.version_info',
                         lambda: "dummy")
 
     version.pastebin_version(pbclient)
@@ -1085,7 +1169,7 @@ def test_pastebin_version_twice(pbclient, monkeypatch):
 
 def test_pastebin_version_error(pbclient, caplog, message_mock, monkeypatch):
     """Test version.pastebin_version() with errors."""
-    monkeypatch.setattr('qutebrowser.utils.version.version',
+    monkeypatch.setattr('qutebrowser.utils.version.version_info',
                         lambda: "dummy")
 
     version.pastebin_url = None

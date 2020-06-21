@@ -60,10 +60,11 @@ class TabWidget(QTabWidget):
         bar = TabBar(win_id, self)
         self.setStyle(TabBarStyle())
         self.setTabBar(bar)
-        bar.tabCloseRequested.connect(self.tabCloseRequested)  # type: ignore
-        bar.tabMoved.connect(functools.partial(  # type: ignore
+        bar.tabCloseRequested.connect(
+            self.tabCloseRequested)  # type: ignore[arg-type]
+        bar.tabMoved.connect(functools.partial(
             QTimer.singleShot, 0, self.update_tab_titles))
-        bar.currentChanged.connect(self._on_current_changed)  # type: ignore
+        bar.currentChanged.connect(self._on_current_changed)
         bar.new_tab_requested.connect(self._on_new_tab_requested)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setDocumentMode(True)
@@ -82,7 +83,8 @@ class TabWidget(QTabWidget):
         position = config.val.tabs.position
         selection_behavior = config.val.tabs.select_on_remove
         self.setTabPosition(position)
-        tabbar.vertical = position in [QTabWidget.West, QTabWidget.East]
+        tabbar.vertical = position in [  # type: ignore[attr-defined]
+            QTabWidget.West, QTabWidget.East]
         tabbar.setSelectionBehaviorOnRemove(selection_behavior)
         tabbar.refresh()
 
@@ -163,7 +165,7 @@ class TabWidget(QTabWidget):
         """Get the tab field data."""
         tab = self.widget(idx)
         if tab is None:
-            log.misc.debug(  # type: ignore
+            log.misc.debug(  # type: ignore[unreachable]
                 "Got None-tab in get_tab_fields!")
 
         page_title = self.page_title(idx)
@@ -330,7 +332,7 @@ class TabWidget(QTabWidget):
         """
         tab = self.widget(idx)
         if tab is None:
-            url = QUrl()  # type: ignore
+            url = QUrl()  # type: ignore[unreachable]
         else:
             url = tab.url()
         # It's possible for url to be invalid, but the caller will handle that.
@@ -350,7 +352,7 @@ class TabWidget(QTabWidget):
             if config.val.tabs.tabs_are_windows:
                 self.window().setWindowIcon(self.window().windowIcon())
 
-    def setTabIcon(self, idx: int, icon: QIcon):
+    def setTabIcon(self, idx: int, icon: QIcon) -> None:
         """Always show tab icons for pinned tabs in some circumstances."""
         tab = typing.cast(typing.Optional[browsertab.AbstractTab],
                           self.widget(idx))
@@ -383,7 +385,12 @@ class TabBar(QTabBar):
 
     STYLESHEET = """
         TabBar {
+            font: {{ conf.fonts.tabs.unselected }};
             background-color: {{ conf.colors.tabs.bar.bg }};
+        }
+
+        TabBar::tab:selected {
+            font: {{ conf.fonts.tabs.selected }};
         }
     """
 
@@ -393,8 +400,6 @@ class TabBar(QTabBar):
         super().__init__(parent)
         self._win_id = win_id
         self.setStyle(TabBarStyle())
-        self._set_font()
-        config.instance.changed.connect(self._on_config_changed)
         self.vertical = False
         self._auto_hide_timer = QTimer()
         self._auto_hide_timer.setSingleShot(True)
@@ -403,6 +408,9 @@ class TabBar(QTabBar):
         self.setAutoFillBackground(True)
         self.drag_in_progress = False
         stylesheet.set_register(self)
+        self.ensurePolished()
+        config.instance.changed.connect(self._on_config_changed)
+        self._set_icon_size()
         QTimer.singleShot(0, self.maybe_hide)
 
     def __repr__(self):
@@ -414,8 +422,9 @@ class TabBar(QTabBar):
 
     @pyqtSlot(str)
     def _on_config_changed(self, option: str) -> None:
-        if option == 'fonts.tabs':
-            self._set_font()
+        if option.startswith('fonts.tabs.'):
+            self.ensurePolished()
+            self._set_icon_size()
         elif option == 'tabs.favicons.scale':
             self._set_icon_size()
         elif option == 'tabs.show_switching_delay':
@@ -431,7 +440,9 @@ class TabBar(QTabBar):
                       "tabs.padding",
                       "tabs.indicator.width",
                       "tabs.min_width",
-                      "tabs.pinned.shrink"]:
+                      "tabs.pinned.shrink",
+                      "fonts.tabs.selected",
+                      "fonts.tabs.unselected"]:
             self._minimum_tab_size_hint_helper.cache_clear()
             self._minimum_tab_height.cache_clear()
 
@@ -504,14 +515,6 @@ class TabBar(QTabBar):
         # code sets layoutDirty so it actually relayouts the tabs.
         self.setIconSize(self.iconSize())
 
-    def _set_font(self):
-        """Set the tab bar font."""
-        self.setFont(config.val.fonts.tabs)
-        self._set_icon_size()
-        # clear tab size cache
-        self._minimum_tab_size_hint_helper.cache_clear()
-        self._minimum_tab_height.cache_clear()
-
     def _set_icon_size(self):
         """Set the tab bar favicon size."""
         size = self.fontMetrics().height() - 2
@@ -544,7 +547,7 @@ class TabBar(QTabBar):
                     idx = self.currentIndex()
                 elif action == 'close-last':
                     idx = self.count() - 1
-            self.tabCloseRequested.emit(idx)  # type: ignore
+            self.tabCloseRequested.emit(idx)
             return
         super().mousePressEvent(e)
 

@@ -79,6 +79,7 @@ def test_unset_organization_no_qapp(monkeypatch):
 
 
 @pytest.mark.fake_os('mac')
+@pytest.mark.posix
 def test_fake_mac_config(tmpdir, monkeypatch):
     """Test standardir.config on a fake Mac."""
     monkeypatch.setenv('HOME', str(tmpdir))
@@ -142,26 +143,29 @@ class TestWritableLocation:
 
 class TestStandardDir:
 
-    @pytest.mark.parametrize('func, varname', [
-        (standarddir.data, 'XDG_DATA_HOME'),
-        (standarddir.config, 'XDG_CONFIG_HOME'),
-        (lambda: standarddir.config(auto=True), 'XDG_CONFIG_HOME'),
-        (standarddir.cache, 'XDG_CACHE_HOME'),
-        (standarddir.runtime, 'XDG_RUNTIME_DIR'),
+    @pytest.mark.parametrize('func, init_func, varname', [
+        (standarddir.data, standarddir._init_data, 'XDG_DATA_HOME'),
+        (standarddir.config, standarddir._init_config, 'XDG_CONFIG_HOME'),
+        (lambda: standarddir.config(auto=True),
+         standarddir._init_config, 'XDG_CONFIG_HOME'),
+        (standarddir.cache, standarddir._init_cache, 'XDG_CACHE_HOME'),
+        (standarddir.runtime, standarddir._init_runtime, 'XDG_RUNTIME_DIR'),
     ])
     @pytest.mark.linux
-    def test_linux_explicit(self, monkeypatch, tmpdir, func, varname):
+    def test_linux_explicit(self, monkeypatch, tmpdir,
+                            func, init_func, varname):
         """Test dirs with XDG environment variables explicitly set.
 
         Args:
             func: The function to test.
+            init_func: The initialization function to call.
             varname: The environment variable which should be set.
         """
         monkeypatch.setenv(varname, str(tmpdir))
         if varname == 'XDG_RUNTIME_DIR':
             tmpdir.chmod(0o0700)
 
-        standarddir._init_dirs()
+        init_func(args=None)
         assert func() == str(tmpdir / APPNAME)
 
     @pytest.mark.parametrize('func, subdirs', [
@@ -192,7 +196,7 @@ class TestStandardDir:
         monkeypatch.setenv('XDG_RUNTIME_DIR', str(tmpdir / 'does-not-exist'))
         monkeypatch.setenv('TMPDIR', str(tmpdir_env))
 
-        standarddir._init_dirs()
+        standarddir._init_runtime(args=None)
         assert standarddir.runtime() == str(tmpdir_env / APPNAME)
 
     @pytest.mark.fake_os('windows')
@@ -370,10 +374,11 @@ class TestSystemData:
     """Test system data path."""
 
     @pytest.mark.linux
-    def test_system_datadir_exist_linux(self, monkeypatch):
+    def test_system_datadir_exist_linux(self, monkeypatch, tmpdir):
         """Test that /usr/share/qute_test is used if path exists."""
+        monkeypatch.setenv('XDG_DATA_HOME', str(tmpdir))
         monkeypatch.setattr(os.path, 'exists', lambda path: True)
-        standarddir._init_dirs()
+        standarddir._init_data(args=None)
         assert standarddir.data(system=True) == "/usr/share/qute_test"
 
     @pytest.mark.linux
@@ -382,7 +387,7 @@ class TestSystemData:
         """Test that system-wide path isn't used on linux if path not exist."""
         fake_args.basedir = str(tmpdir)
         monkeypatch.setattr(os.path, 'exists', lambda path: False)
-        standarddir._init_dirs(fake_args)
+        standarddir._init_data(args=fake_args)
         assert standarddir.data(system=True) == standarddir.data()
 
     def test_system_datadir_unsupportedos(self, monkeypatch, tmpdir,
@@ -390,7 +395,7 @@ class TestSystemData:
         """Test that system-wide path is not used on non-Linux OS."""
         fake_args.basedir = str(tmpdir)
         monkeypatch.setattr('sys.platform', "potato")
-        standarddir._init_dirs(fake_args)
+        standarddir._init_data(args=fake_args)
         assert standarddir.data(system=True) == standarddir.data()
 
 
@@ -515,12 +520,14 @@ class TestMove:
 
 
 @pytest.mark.parametrize('args_kind', ['basedir', 'normal', 'none'])
-def test_init(mocker, tmpdir, args_kind):
+def test_init(mocker, tmpdir, monkeypatch, args_kind):
     """Do some sanity checks for standarddir.init().
 
     Things like _init_cachedir_tag() are tested in more detail in other tests.
     """
     assert standarddir._locations == {}
+
+    monkeypatch.setenv('HOME', str(tmpdir))
 
     m_windows = mocker.patch('qutebrowser.utils.standarddir._move_windows')
     m_mac = mocker.patch('qutebrowser.utils.standarddir._move_macos')
@@ -562,11 +569,12 @@ def test_downloads_dir_not_created(monkeypatch, tmpdir):
     assert not download_dir.exists()
 
 
-def test_no_qapplication(qapp, tmpdir):
+def test_no_qapplication(qapp, tmpdir, monkeypatch):
     """Make sure directories with/without QApplication are equal."""
     sub_code = """
         import sys
         import json
+
         sys.path = sys.argv[1:]  # make sure we have the same python path
 
         from PyQt5.QtWidgets import QApplication
@@ -583,11 +591,25 @@ def test_no_qapplication(qapp, tmpdir):
     pyfile = tmpdir / 'sub.py'
     pyfile.write_text(textwrap.dedent(sub_code), encoding='ascii')
 
-    output = subprocess.run([sys.executable, str(pyfile)] + sys.path,
-                            universal_newlines=True,
-                            check=True, stdout=subprocess.PIPE).stdout
-    sub_locations = json.loads(output)
+    for name in ['CONFIG', 'DATA', 'CACHE']:
+        monkeypatch.delenv('XDG_{}_HOME'.format(name), raising=False)
+
+    runtime_dir = tmpdir / 'runtime'
+    runtime_dir.ensure(dir=True)
+    runtime_dir.chmod(0o0700)
+    monkeypatch.setenv('XDG_RUNTIME_DIR', str(runtime_dir))
+
+    home_dir = tmpdir / 'home'
+    home_dir.ensure(dir=True)
+    monkeypatch.setenv('HOME', str(home_dir))
+
+    proc = subprocess.run([sys.executable, str(pyfile)] + sys.path,
+                          universal_newlines=True,
+                          check=True,
+                          stdout=subprocess.PIPE)
+    sub_locations = json.loads(proc.stdout)
 
     standarddir._init_dirs()
     locations = {k.name: v for k, v in standarddir._locations.items()}
+
     assert sub_locations == locations

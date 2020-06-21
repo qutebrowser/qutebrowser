@@ -154,7 +154,7 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
                                                 info.resourceType())
             navigation_type_str = debug.qenum_key(QWebEngineUrlRequestInfo,
                                                   info.navigationType())
-            log.webview.debug("{} {}, first-party {}, resource {}, "
+            log.network.debug("{} {}, first-party {}, resource {}, "
                               "navigation {}".format(
                                   bytes(info.requestMethod()).decode('ascii'),
                                   info.requestUrl().toDisplayString(),
@@ -164,7 +164,7 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         url = info.requestUrl()
         first_party = info.firstPartyUrl()
         if not url.isValid():
-            log.webview.debug("Ignoring invalid intercepted URL: {}".format(
+            log.network.debug("Ignoring invalid intercepted URL: {}".format(
                 url.errorString()))
             return
 
@@ -173,7 +173,7 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         try:
             resource_type = self._resource_types[info.resourceType()]
         except KeyError:
-            log.webview.warning(
+            log.network.warning(
                 "Resource type {} not found in RequestInterceptor dict."
                 .format(debug.qenum_key(QWebEngineUrlRequestInfo,
                                         info.resourceType())))
@@ -184,7 +184,7 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
             if (first_party != QUrl('qute://settings/') or
                     info.resourceType() !=
                     QWebEngineUrlRequestInfo.ResourceTypeXhr):
-                log.webview.warning("Blocking malicious request from {} to {}"
+                log.network.warning("Blocking malicious request from {} to {}"
                                     .format(first_party.toDisplayString(),
                                             url.toDisplayString()))
                 info.block(True)

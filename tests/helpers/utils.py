@@ -25,6 +25,7 @@ import gzip
 import pprint
 import os.path
 import contextlib
+import pathlib
 
 import pytest
 
@@ -184,6 +185,17 @@ def abs_datapath():
 @contextlib.contextmanager
 def nop_contextmanager():
     yield
+
+
+@contextlib.contextmanager
+def change_cwd(path):
+    """Use a path as current working directory."""
+    old_cwd = pathlib.Path.cwd()
+    os.chdir(str(path))
+    try:
+        yield
+    finally:
+        os.chdir(str(old_cwd))
 
 
 @contextlib.contextmanager

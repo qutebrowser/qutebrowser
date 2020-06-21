@@ -39,7 +39,7 @@ try:
     import secrets
 except ImportError:
     # New in Python 3.6
-    secrets = None  # type: ignore
+    secrets = None  # type: ignore[assignment]
 
 from PyQt5.QtCore import QUrlQuery, QUrl, qVersion
 
@@ -47,7 +47,7 @@ import qutebrowser
 from qutebrowser.browser import pdfjs, downloads, history
 from qutebrowser.config import config, configdata, configexc, configdiff
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
-                               objreg, urlutils)
+                               objreg, urlutils, standarddir)
 from qutebrowser.qt import sip
 
 
@@ -98,8 +98,8 @@ class Redirect(Exception):
 
 
 # Return value: (mimetype, data) (encoded as utf-8 if a str is returned)
-_Handler = TypeVar('_Handler',
-                   bound=Callable[[QUrl], Tuple[str, Union[str, bytes]]])
+_HandlerRet = Tuple[str, Union[str, bytes]]
+_Handler = TypeVar('_Handler', bound=Callable[[QUrl], _HandlerRet])
 
 
 class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
@@ -125,7 +125,7 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
         return self._function(*args, **kwargs)
 
 
-def data_for_url(url):
+def data_for_url(url: QUrl) -> typing.Tuple[str, bytes]:
     """Get the data to show for the given URL.
 
     Args:
@@ -134,8 +134,9 @@ def data_for_url(url):
     Return:
         A (mimetype, data) tuple.
     """
-    norm_url = url.adjusted(QUrl.NormalizePathSegments |
-                            QUrl.StripTrailingSlash)
+    norm_url = url.adjusted(
+        QUrl.NormalizePathSegments |  # type: ignore[arg-type]
+        QUrl.StripTrailingSlash)
     if norm_url != url:
         raise Redirect(norm_url)
 
@@ -181,7 +182,7 @@ def data_for_url(url):
 
 
 @add_handler('bookmarks')
-def qute_bookmarks(_url):
+def qute_bookmarks(_url: QUrl) -> _HandlerRet:
     """Handler for qute://bookmarks. Display all quickmarks / bookmarks."""
     bookmarks = sorted(objreg.get('bookmark-manager').marks.items(),
                        key=lambda x: x[1])  # Sort by title
@@ -196,7 +197,7 @@ def qute_bookmarks(_url):
 
 
 @add_handler('tabs')
-def qute_tabs(_url):
+def qute_tabs(_url: QUrl) -> _HandlerRet:
     """Handler for qute://tabs. Display information about all open tabs."""
     tabs = collections.defaultdict(
         list)  # type: typing.Dict[str, typing.List[typing.Tuple[str, str]]]
@@ -217,7 +218,10 @@ def qute_tabs(_url):
     return 'text/html', src
 
 
-def history_data(start_time, offset=None):
+def history_data(
+        start_time: float,
+        offset: int = None
+) -> typing.Sequence[typing.Dict[str, typing.Union[str, int]]]:
     """Return history data.
 
     Arguments:
@@ -240,7 +244,7 @@ def history_data(start_time, offset=None):
 
 
 @add_handler('history')
-def qute_history(url):
+def qute_history(url: QUrl) -> _HandlerRet:
     """Handler for qute://history. Display and serve history."""
     if url.path() == '/data':
         q_offset = QUrlQuery(url).queryItemValue("offset")
@@ -266,7 +270,7 @@ def qute_history(url):
 
 
 @add_handler('javascript')
-def qute_javascript(url):
+def qute_javascript(url: QUrl) -> _HandlerRet:
     """Handler for qute://javascript.
 
     Return content of file given as query parameter.
@@ -280,14 +284,14 @@ def qute_javascript(url):
 
 
 @add_handler('pyeval')
-def qute_pyeval(_url):
+def qute_pyeval(_url: QUrl) -> _HandlerRet:
     """Handler for qute://pyeval."""
     src = jinja.render('pre.html', title='pyeval', content=pyeval_output)
     return 'text/html', src
 
 
 @add_handler('spawn-output')
-def qute_spawn_output(_url):
+def qute_spawn_output(_url: QUrl) -> _HandlerRet:
     """Handler for qute://spawn-output."""
     src = jinja.render('pre.html', title='spawn output', content=spawn_output)
     return 'text/html', src
@@ -298,57 +302,60 @@ def qute_spawn_output(_url):
 def qute_version(_url):
     """Handler for qute://version."""
     src = jinja.render('version.html', title='Version info',
-                       version=version.version(),
+                       version=version.version_info(),
                        copyright=qutebrowser.__copyright__)
     return 'text/html', src
 
 
-@add_handler('plainlog')
-def qute_plainlog(url):
-    """Handler for qute://plainlog.
-
-    An optional query parameter specifies the minimum log level to print.
-    For example, qute://log?level=warning prints warnings and errors.
-    Level can be one of: vdebug, debug, info, warning, error, critical.
-    """
-    if log.ram_handler is None:
-        text = "Log output was disabled."
-    else:
-        level = QUrlQuery(url).queryItemValue('level')
-        if not level:
-            level = 'vdebug'
-        text = log.ram_handler.dump_log(html=False, level=level)
-    src = jinja.render('pre.html', title='log', content=text)
-    return 'text/html', src
-
-
 @add_handler('log')
-def qute_log(url):
+def qute_log(url: QUrl) -> _HandlerRet:
     """Handler for qute://log.
 
-    An optional query parameter specifies the minimum log level to print.
+    There are three query parameters:
+
+    - level: The minimum log level to print.
     For example, qute://log?level=warning prints warnings and errors.
     Level can be one of: vdebug, debug, info, warning, error, critical.
+
+    - plain: If given (and not 'false'), plaintext is shown.
+
+    - logfilter: A filter string like the --logfilter commandline argument
+      accepts.
     """
+    query = QUrlQuery(url)
+    plain = (query.hasQueryItem('plain') and
+             query.queryItemValue('plain').lower() != 'false')
+
     if log.ram_handler is None:
-        html_log = None
+        content = "Log output was disabled." if plain else None
     else:
-        level = QUrlQuery(url).queryItemValue('level')
+        level = query.queryItemValue('level')
         if not level:
             level = 'vdebug'
-        html_log = log.ram_handler.dump_log(html=True, level=level)
 
-    src = jinja.render('log.html', title='log', content=html_log)
+        filter_str = query.queryItemValue('logfilter')
+
+        try:
+            logfilter = (log.LogFilter.parse(filter_str, only_debug=False)
+                         if filter_str else None)
+        except log.InvalidLogFilterError as e:
+            raise UrlInvalidError(e)
+
+        content = log.ram_handler.dump_log(html=not plain,
+                                           level=level, logfilter=logfilter)
+
+    template = 'pre.html' if plain else 'log.html'
+    src = jinja.render(template, title='log', content=content)
     return 'text/html', src
 
 
 @add_handler('gpl')
-def qute_gpl(_url):
+def qute_gpl(_url: QUrl) -> _HandlerRet:
     """Handler for qute://gpl. Return HTML content as string."""
     return 'text/html', utils.read_file('html/license.html')
 
 
-def _asciidoc_fallback_path(html_path):
+def _asciidoc_fallback_path(html_path: str) -> typing.Optional[str]:
     """Fall back to plaintext asciidoc if the HTML is unavailable."""
     path = html_path.replace('.html', '.asciidoc')
     try:
@@ -358,7 +365,7 @@ def _asciidoc_fallback_path(html_path):
 
 
 @add_handler('help')
-def qute_help(url):
+def qute_help(url: QUrl) -> _HandlerRet:
     """Handler for qute://help."""
     urlpath = url.path()
     if not urlpath or urlpath == '/':
@@ -407,7 +414,7 @@ def qute_help(url):
         return 'text/html', data
 
 
-def _qute_settings_set(url):
+def _qute_settings_set(url: QUrl) -> _HandlerRet:
     """Handler for qute://settings/set."""
     query = QUrlQuery(url)
     option = query.queryItemValue('option', QUrl.FullyDecoded)
@@ -429,7 +436,7 @@ def _qute_settings_set(url):
 
 
 @add_handler('settings')
-def qute_settings(url):
+def qute_settings(url: QUrl) -> _HandlerRet:
     """Handler for qute://settings. View/change qute configuration."""
     global csrf_token
 
@@ -457,7 +464,7 @@ def qute_settings(url):
 
 
 @add_handler('bindings')
-def qute_bindings(_url):
+def qute_bindings(_url: QUrl) -> _HandlerRet:
     """Handler for qute://bindings. View keybindings."""
     bindings = {}
     defaults = config.val.bindings.default
@@ -475,7 +482,7 @@ def qute_bindings(_url):
 
 
 @add_handler('back')
-def qute_back(url):
+def qute_back(url: QUrl) -> _HandlerRet:
     """Handler for qute://back.
 
     Simple page to free ram / lazy load a site, goes back on focusing the tab.
@@ -487,7 +494,7 @@ def qute_back(url):
 
 
 @add_handler('configdiff')
-def qute_configdiff(url):
+def qute_configdiff(url: QUrl) -> _HandlerRet:
     """Handler for qute://configdiff."""
     if url.path() == '/old':
         try:
@@ -502,7 +509,7 @@ def qute_configdiff(url):
 
 
 @add_handler('pastebin-version')
-def qute_pastebin_version(_url):
+def qute_pastebin_version(_url: QUrl) -> _HandlerRet:
     """Handler that pastebins the version string."""
     version.pastebin_version()
     return 'text/plain', b'Paste called.'
@@ -515,7 +522,7 @@ def _pdf_path(filename: str) -> str:
 
 
 @add_handler('pdfjs')
-def qute_pdfjs(url: QUrl):
+def qute_pdfjs(url: QUrl) -> _HandlerRet:
     """Handler for qute://pdfjs.
 
     Return the pdf.js viewer or redirect to original URL if the file does not
@@ -566,7 +573,7 @@ def qute_pdfjs(url: QUrl):
 
 
 @add_handler('warning')
-def qute_warning(url):
+def qute_warning(url: QUrl) -> _HandlerRet:
     """Handler for qute://warning."""
     path = url.path()
     if path == '/old-qt':
@@ -576,6 +583,11 @@ def qute_warning(url):
     elif path == '/webkit':
         src = jinja.render('warning-webkit.html',
                            title='QtWebKit backend warning')
+    elif path == '/sessions':
+        src = jinja.render('warning-sessions.html',
+                           title='Qt 5.15 sessions warning',
+                           datadir=standarddir.data(),
+                           sep=os.sep)
     else:
         raise NotFoundError("Invalid warning page {}".format(path))
     return 'text/html', src

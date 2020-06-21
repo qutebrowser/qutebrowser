@@ -91,7 +91,7 @@ class NeighborList(typing.Sequence[_T]):
         self._mode = mode
         self.fuzzyval = None  # type: typing.Optional[int]
 
-    def __getitem__(self, key: int) -> _T:  # type: ignore
+    def __getitem__(self, key: int) -> _T:  # type: ignore[override]
         return self._items[key]
 
     def __len__(self) -> int:
@@ -120,7 +120,8 @@ class NeighborList(typing.Sequence[_T]):
         if items:
             item = min(
                 items,
-                key=lambda tpl: abs(self.fuzzyval - tpl[1]))  # type: ignore
+                key=lambda tpl:
+                abs(self.fuzzyval - tpl[1]))  # type: ignore[operator]
         else:
             sorted_items = sorted(enumerate(self.items), key=lambda e: e[1])
             idx = 0 if offset < 0 else -1
@@ -255,6 +256,10 @@ class KeyMode(enum.Enum):
     jump_mark = 10
     record_macro = 11
     run_macro = 12
+    # 'register' is a bit of an oddball here: It's not really a "real" mode,
+    # but it's used in the config for common bindings for
+    # set_mark/jump_mark/record_macro/run_macro.
+    register = 13
 
 
 class Exit(enum.IntEnum):

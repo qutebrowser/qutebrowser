@@ -1,0 +1,22 @@
+{% extends "styled.html" %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+<span class="note">Note this warning will only appear once. Use <span class="mono">:open
+qute://warning/sessions</span> to show it again at a later time.</span>
+
+<p>You're using qutebrowser with Qt 5.15.</p>
+
+<p>Since Qt doesn't provide an API to load the history of a tab, qutebrowser relies on a reverse-engineered binary serialization format to load tab history from session files. With Qt 5.15, unfortunately that format changed (due to the underlying Chromium upgrade), in a way which makes it impossible for qutebrowser to load tab history from existing session data.</p>
+
+<p>At the time of writing (April 2020), a new session format which stores part of the needed binary data in saved sessions is <a href="https://github.com/qutebrowser/qutebrowser/issues/5359">in development</a> and is expected to be released with qutebrowser v1.13.0.</p>
+
+<p>As a stop-gap measure:</p>
+
+<ul>
+    <li>Loading a session with this release will <b>only load the most recently opened page</b> for every tab. As a result, the back/forward-history of every tab <b>will be lost</b> as soon as the session is saved again.</li>
+    <li>Due to that, the <span class="mono">session.lazy_restore</span> setting does not have any effect.</li>
+    <li>A one-time backup of the session folder has been created at <span class="mono">{{ datadir }}{{ sep }}sessions{{ sep }}before-qt-515</span>.</li>
+</ul>
+
+{% endblock %}

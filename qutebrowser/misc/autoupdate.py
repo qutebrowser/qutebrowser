@@ -55,7 +55,7 @@ class PyPIVersionClient(QObject):
             self._client = httpclient.HTTPClient(self)
         else:
             self._client = client
-        self._client.error.connect(self.error)  # type: ignore
+        self._client.error.connect(self.error)  # type: ignore[arg-type]
         self._client.success.connect(self.on_client_success)
 
     def get_version(self, package='qutebrowser'):

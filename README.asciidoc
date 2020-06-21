@@ -28,9 +28,6 @@ time, your help is needed! See the
 https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] for more
 information. Depending on your sign-up date and how long you keep a certain
 level, you can get qutebrowser t-shirts, stickers and more!
-
-Thanks to the GitHub Sponsors Matching Fund, all donations done via GitHub
-Sponsors (up to a $5000 total) will be doubled until October 2020.
 // QUTE_WEB_HIDE_END
 
 Screenshots
@@ -84,6 +81,11 @@ get sent to the general qutebrowser@ list).
 If you're a reddit user, there's a
 https://www.reddit.com/r/qutebrowser/[/r/qutebrowser] subreddit there.
 
+Finally, qutebrowser is participating in the Beta for GitHub's new Discussions
+feature, so you can also use the
+https://github.com/qutebrowser/qutebrowser/discussions[discussions tab] on
+GitHub to get in touch.
+
 Contributions / Bugs
 --------------------
 
@@ -108,9 +110,10 @@ Requirements
 
 The following software and libraries are required to run qutebrowser:
 
-* https://www.python.org/[Python] 3.5.2 or newer (3.6 recommended)
-* https://www.qt.io/[Qt] 5.7.1 or newer (5.14 recommended; support for < 5.9
-  will be dropped soon) with the following modules:
+* https://www.python.org/[Python] 3.5.2 or newer (3.6 - 3.8 recommended;
+  support for 3.5 will be dropped with qutebrowser v2.0.0)
+* https://www.qt.io/[Qt] 5.7.1 or newer (5.14 recommended; support for < 5.11
+  will be dropped with qutebrowser v2.0.0) with the following modules:
   - QtCore / qtbase
   - QtQuick (part of qtbase in some distributions)
   - QtSQL (part of qtbase in some distributions)
@@ -123,7 +126,7 @@ The following software and libraries are required to run qutebrowser:
     avoid visiting untrusted websites and using it for transmission of
     sensitive data.**
 * https://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.7.0 or newer
-  (5.14 recommended, support for < 5.9 will be dropped soon) for Python 3
+  (5.14 recommended, support for < 5.11 will be dropped soon) for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
 * https://fdik.org/pyPEG/[pyPEG2]
 * http://jinja.pocoo.org/[jinja2]
@@ -153,9 +156,6 @@ time, your help is needed! See the
 https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] for more
 information. Depending on your sign-up date and how long you keep a certain
 level, you can get qutebrowser t-shirts, stickers and more!
-
-Thanks to the GitHub Sponsors Matching Fund, all donations done via GitHub
-Sponsors (up to a $5000 total) will be doubled until October 2020!
 
 Alternatively, the following donation methods are available -- note that
 eligibility for swag (shirts/stickers/etc.) is handled on a case-by-case basis
@@ -212,8 +212,8 @@ link:doc/backers.asciidoc[crowdfunding campaigns]!
 Similar projects
 ----------------
 
-Many projects with a similar goal as qutebrowser exist.
-Most of them were inspirations for qutebrowser in some way, thanks for that!
+Various projects with a similar goal like qutebrowser exist.
+Many of them were inspirations for qutebrowser in some way, thanks for that!
 
 Active
 ~~~~~~
@@ -221,8 +221,9 @@ Active
 * https://fanglingsu.github.io/vimb/[vimb] (C, GTK+ with WebKit2)
 * https://luakit.github.io/luakit/[luakit] (C/Lua, GTK+ with WebKit2)
 * https://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
-* https://github.com/next-browser/next/[next] (Lisp, Emacs-like but also offers Vim bindings, various backends - note there was a http://jgkamat.gitlab.io/blog/next-rce.html[critical remote code execution] which was handled quite badly)
+* https://next.atlas.engineer/[next] (Lisp, Emacs-like but also offers Vim bindings, QtWebKit or GTK+/WebKit2 - note there was a http://jgkamat.gitlab.io/blog/next-rce.html[critical remote code execution] which was handled quite badly)
 * https://github.com/parkouss/webmacs/[webmacs] (Python, Emacs-like with QtWebEngine)
+* https://vieb.dev/[Vieb] (JavaScript, Electron)
 * Chrome/Chromium addons:
   https://vimium.github.io/[Vimium],
 * Firefox addons (based on WebExtensions):

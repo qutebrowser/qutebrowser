@@ -15,8 +15,225 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v1.11.0 (unreleased)
+v1.13.0 (unreleased)
 --------------------
+
+Removed
+~~~~~~~
+
+- The `:debug-log-level` command was removed as it's replaced by the new
+  `logging.level.console` setting.
+- The `qute://plainlog` special page got replaced by `qute://log?plain` - the
+  names of those pages is considered an implementation detail, and
+  `:messages --plain` should be used instead.
+
+Changed
+~~~~~~~
+
+- New handling of bindings in hint mode which fixes various bugs and allows for
+  single-letter keybindings in hint mode.
+- The `tor_identity` userscript now takes the password via a `-p` flag and has
+  a new `-c` flag to customize the Tor control port.
+- `:config-write-py` now adds a note about `config.py` files being targeted at
+  advanced users.
+- `:report` now takes two optional arguments for bug/contact information, so
+  that it can be used without the report window popping up.
+- New `t[Cc][Hh]` default bindings which work similarly to the `t[Ss][Hh]`
+  bindings for JavaScript but toggle cookie permissions.
+- The `:message` command now takes a `--logfilter` / `-f` argument, which is a
+  list of logging categories to show.
+- The `:debug-log-filter` command now understands the full logfilter syntax.
+- Changes to settings:
+  * `fonts.tabs` has been split into `fonts.tabs.{selected,unselected}` (see
+    below).
+  * `statusbar.hide` has been renamed to `statusbar.show` with the possible
+    values being `always` (`hide = False`), `never` (`hide = True`) or
+    `in-mode` (new, only show statusbar outside of normal mode.
+  * The `QtFont` config type formerly used for `fonts.tabs` and
+    `fonts.debug_console` is now removed and entirely replaced by `Font`. The
+    former distinction was mainly an implementation detail, and the accepted
+    values shouldn't have changed.
+  * `input.rocker_gestures` has been renamed to `input.mouse.rocker_gestures`.
+  * `content.dns_prefetch` is now enabled by default again, since the crashes
+    it caused are now fixed (Qt 5.15) or worked around.
+  * `scrolling.bar` supports a new `overlay` value to show an overlay
+    scrollbar, which is now the default. On unsupported configurations (on Qt <
+    5.11, with QtWebKit or on macOS), the value falls back to `when-searching`
+    or `never` (QtWebKit).
+- The statusbar now shows partial keychains in all modes (e.g. while hinting)
+- Small performance improvements.
+
+Added
+~~~~~
+
+- New settings:
+  * `logging.level.ram` and `logging.level.console` to configure the default
+    logging levels via the config.
+  * `fonts.tabs.selected` and `fonts.tabs.unselected` to set the font of the
+    selected tab independently from unselected tabs (e.g. to make it bold).
+  * `input.mouse.back_forward_buttons` which can be set to `false` to disable
+    back/forward mouse buttons.
+
+Fixed
+~~~~~
+
+- Crash when `tabs.focus_stack_size` is set to -1.
+- Crash when a `pdf.js` file for PDF.js exists, but `viewer.html` does not.
+- Crash when `:completion-item-yank --sel` is used on a platform without
+  primary selection support (e.g. Windows/macOS).
+- Crash when there's a feature permission request from Qt with an invalid URL
+  (which seems to happen with Qt 5.15 sometimes).
+- Crash in rare cases where QtWebKit/QtWebEngine imports fail in unexpected
+  ways.
+- Crash when something removed qutebrowser's IPC socket file and it's been
+  running for 6 hours.
+- `:config-write-py` now works with paths starting with `~/...` again.
+- New site-specific quirk for a missing `globalThis` in Qt <= 5.12 on Reddit
+  and Spotify.
+- When `;` is added to `hints.chars`, using hint labels containing `;;` now
+  works properly.
+- Hint letters outside of ASCII should now work.
+- When `bindings.key_mappings` is used with hints, it now works properly with
+  letters outside of ASCII as well.
+- With Qt 5.15, the audible/muted indicators are not updated properly due to a
+  Qt bug. This release adds a workaround so that at least the muted indicator
+  is shown properly.
+- As a workaround for crashes with QtWebEngine versions between 5.12 and 5.14
+  (inclusive), changing the user agent (`content.headers.user_agent`) exposed
+  to JS now requires a restart. The corresponding HTTP header is not affected.
+
+v1.12.0 (2020-06-01)
+--------------------
+
+Removed
+~~~~~~~
+
+- `tox -e mkvenv` which was deprecated in qutebrowser v1.10.0 is now
+  removed. Use the `mkvenv.py` script instead.
+- Support for using `config.bind(key, None)` in `config.py` to unbind a
+  key was deprecated in v1.8.2 and is now removed. Use
+  `config.unbind(key)` instead.
+- `:yank markdown` was deprecated in v1.7.0 and is now removed. Use
+  `:yank inline [{title}]({url})` instead.
+
+Added
+~~~~~
+
+- New `:debug-keytester` command, which shows a "key tester" widget.
+  Previously, that was only available as a separate application via `python3 -m
+  scripts.keytester`.
+- New `:config-diff` command which opens the `qute://configdiff` page.
+- New `--debug-flag log-cookies` to log cookies to the debug log.
+- New `colors.contextmenu.disabled.{fg,bg}` settings to customize colors for
+  disabled items in the context menu.
+- New line selection mode (`:toggle-selection --line`), bound to `Shift-V` in caret mode.
+- New `colors.webpage.darkmode.*` settings to control Chromium's dark mode.
+  Note that those settings only work with QtWebEngine on Qt >= 5.14 and require
+  a restart of qutebrowser.
+
+Changed
+~~~~~~~
+
+- Windows and macOS releases now ship Qt 5.15, which is based on Chromium
+  80.0.3987.163 with security fixes up to 81.0.4044.138.
+- The `content.cookies.accept` setting now accepts URL patterns.
+- Tests are now included in release tarballs. Note that only running them with
+  the exact dependencies listed in
+  `misc/requirements/requirements-tests.txt{,-raw}` is supported.
+- The `:tab-focus` command now has completion for tabs in the current window.
+- The `bindings.key_mappings` setting now maps `<Ctrl+I>` to the tab key by default.
+- `:tab-give --private` now detaches a tab into a new private window.
+
+Fixed
+~~~~~
+
+- Using `:open -s` now only rewrites `http://` in URLs to `https://`, not other
+  schemes like `qute://`.
+- When an unhandled exception happens in certain parts of the code (outside of
+  the main thread), qutebrowser did crash or freeze when trying to show its
+  exception handler. This is now fixed.
+- `:inspector` now works correctly when cookies are disabled globally.
+- Added workaround for a (Gentoo?) PyQt/packaging issue related to the
+  `QWebEngineFindTextResult` handling added in v1.11.0.
+- When entering caret selection mode (`v, v`) very early before a page is
+  loaded, an error is now shown instead of a crash happening.
+- The workaround for session loading with Qt 5.15 now handles
+  `sessions.lazy_restore` so that the saved page is loaded instead of the
+  "stub" page with no possibility to get to the web page.
+- A site specific quirk to allow typing accented characters on Google
+  Docs was active for docs.google.com, but not drive.google.com. It is
+  now applied for both subdomains.
+- With older graphics hardware (OpenGL < 4.3) with Qt 5.14 on Wayland, WebGL
+  causes segfaults. Now qutebrowser detects that combination and suggests to
+  disable WebGL or use XWayland.
+
+v1.11.1 (2020-05-07)
+--------------------
+
+Security
+~~~~~~~~
+
+- CVE-2020-11054: After a certificate error was overridden by the user,
+  qutebrowser displays the URL as yellow (`colors.statusbar.url.warn.fg`).
+  However, when the affected website was subsequently loaded again, the URL was
+  mistakenly displayed as green (`colors.statusbar.url.success_https`). While
+  the user already has seen a certificate error prompt at this point (or set
+  `content.ssl_strict` to `false` which is not recommended), this could still
+  provide a false sense of security. This is now fixed.
+
+v1.11.0 (2020-04-27)
+--------------------
+
+Added
+~~~~~
+
+- New settings:
+  * `search.wrap` which can be set to false to prevent wrapping around the page
+    when searching. With QtWebEngine, Qt 5.14 or newer is required.
+  * `content.unknown_url_scheme_policy` which allows controlling when an
+    external application is opened for external links (never, from user
+    interaction, always).
+  * `content.fullscreen.overlay_timeout` to configure how long the fullscreen
+    overlay should be displayed. If set to `0`, no overlay is displayed.
+  * `hints.padding` to add additional padding for hints.
+  * `hints.radius` to set a border radius for hints (set to `3` by default).
+- New placeholders for `url.searchengines` values:
+  * `{unquoted}` inserts the search term without any quoting.
+  * `{semiquoted}` (same as `{}`) quotes most special characters, but slashes
+    remain unquoted.
+  * `{quoted}` (same as `{}` in earlier releases) also quotes slashes.
+
+Changed
+~~~~~~~
+
+- First adaptions to Qt 5.15, including a stop-gap measure for session loading
+  not working properly with it.
+- Searching now wraps around the page by default with QtWebKit (where it didn't
+  before). Set `search.wrap` to `false` to restore the old behavior.
+- The `{}` placeholder for search engines (the `url.searchengines` setting) now
+  does not quote slashes anymore, but other characters typically encoded in
+  URLs still get encoded. This matches the behavior of search engines in
+  Chromium. To revert to the old behavior, use `{quoted}` instead.
+- The `content.windowed_fullscreen` setting got renamed to
+  `content.fullscreen.window`.
+- Mouse-wheel scrolling is now prevented while hints are active.
+- Changes to userscripts:
+  * `qute-bitwarden` now has an optional `--totp` flag which can be used
+    to copy TOTP codes to clipboard (requires the `pyperclip` module).
+  * `readability-js` now opens readability tabs next to the original
+    tab (using the `:open --related` flag).
+  * `readability-js` now displays a favicon for readability tabs.
+  * `password_fill` now triggers a `change` JavaScript event after filling the
+    data.
+- The `dictcli.py` script now shows better error messages.
+- Various improvements to the `mkvenv.py` script (mainly useful for development).
+- Minor performance improvements.
+
+Deprecated
+~~~~~~~~~~
+
+- A warning about old Qt versions is now also shown with Qt 5.9 and 5.10, as
+  support for Qt < 5.11 will be dropped in qutebrowser v2.0.
 
 Fixed
 ~~~~~
@@ -25,6 +242,25 @@ Fixed
 - The proxied `window` global is now shared between different
   Greasemonkey scripts (but still separate from the page's `window`), to
   match the original Greasemonkey implementation.
+- The `--output-messages` (`-m`) flag added in v1.9.0 now also works correctly
+  when using `:spawn --userscript`.
+- `:version` and `--version` now don't crash if there's an (invalid)
+  `/etc/os-release` file which has non-comment lines without a `=` character.
+- Scripts in `scripts/` now report errors to `stderr` correctly, instead of
+  using `stdout`.
+
+v1.10.2 (2020-04-17)
+--------------------
+
+Changed
+~~~~~~~
+
+- Windows and macOS releases now bundle Qt 5.14.2, including security fixes up
+  to Chromium 80.0.3987.132.
+
+Fixed
+~~~~~
+
 - The WhatsApp workaround now also works when using WhatsApp in languages other
   than English.
 - The `mkvenv.py` script now also works properly on Windows.

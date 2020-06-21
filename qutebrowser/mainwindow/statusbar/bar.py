@@ -21,7 +21,8 @@
 
 import enum
 import attr
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QSize, QTimer
+from PyQt5.QtCore import (pyqtSignal, pyqtSlot,  # type: ignore[attr-defined]
+                          pyqtProperty, Qt, QSize, QTimer)
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 from qutebrowser.browser import browsertab
@@ -202,7 +203,7 @@ class StatusBar(QWidget):
 
     @pyqtSlot(str)
     def _on_config_changed(self, option):
-        if option == 'statusbar.hide':
+        if option == 'statusbar.show':
             self.maybe_hide()
         elif option == 'statusbar.padding':
             self._set_hbox_padding()
@@ -253,12 +254,26 @@ class StatusBar(QWidget):
     @pyqtSlot()
     def maybe_hide(self):
         """Hide the statusbar if it's configured to do so."""
+        strategy = config.val.statusbar.show
         tab = self._current_tab()
-        hide = config.val.statusbar.hide
-        if hide or (tab is not None and tab.data.fullscreen):
+        if tab is not None and tab.data.fullscreen:
             self.hide()
-        else:
+        elif strategy == 'never':
+            self.hide()
+        elif strategy == 'in-mode':
+            try:
+                mode_manager = modeman.instance(self._win_id)
+            except modeman.UnavailableError:
+                self.hide()
+            else:
+                if mode_manager.mode == usertypes.KeyMode.normal:
+                    self.hide()
+                else:
+                    self.show()
+        elif strategy == 'always':
             self.show()
+        else:
+            raise utils.Unreachable
 
     def _set_hbox_padding(self):
         padding = config.val.statusbar.padding
@@ -335,6 +350,8 @@ class StatusBar(QWidget):
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
         mode_manager = modeman.instance(self._win_id)
+        if config.val.statusbar.show == 'in-mode':
+            self.show()
         if mode_manager.parsers[mode].passthrough:
             self._set_mode_text(mode.name)
         if mode in [usertypes.KeyMode.insert,
@@ -349,6 +366,8 @@ class StatusBar(QWidget):
     def on_mode_left(self, old_mode, new_mode):
         """Clear marked mode."""
         mode_manager = modeman.instance(self._win_id)
+        if config.val.statusbar.show == 'in-mode':
+            self.hide()
         if mode_manager.parsers[old_mode].passthrough:
             if mode_manager.parsers[new_mode].passthrough:
                 self._set_mode_text(new_mode.name)
@@ -372,12 +391,16 @@ class StatusBar(QWidget):
         self.maybe_hide()
         assert tab.is_private == self._color_flags.private
 
-    @pyqtSlot(bool)
-    def on_caret_selection_toggled(self, selection):
+    @pyqtSlot(browsertab.SelectionState)
+    def on_caret_selection_toggled(self, selection_state):
         """Update the statusbar when entering/leaving caret selection mode."""
-        log.statusbar.debug("Setting caret selection {}".format(selection))
-        if selection:
+        log.statusbar.debug("Setting caret selection {}"
+                            .format(selection_state))
+        if selection_state is browsertab.SelectionState.normal:
             self._set_mode_text("caret selection")
+            self._color_flags.caret = ColorFlags.CaretMode.selection
+        elif selection_state is browsertab.SelectionState.line:
+            self._set_mode_text("caret line selection")
             self._color_flags.caret = ColorFlags.CaretMode.selection
         else:
             self._set_mode_text("caret")

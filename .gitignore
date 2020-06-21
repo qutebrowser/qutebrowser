@@ -27,7 +27,7 @@ __pycache__
 /.pytest_cache
 /.testmondata
 /.hypothesis
-/.mypy_cache
+.mypy_cache
 /prof
 /venv
 TODO
@@ -44,3 +44,4 @@ TODO
 /doc/extapi/_build
 /misc/nsis/include
 /misc/nsis/plugins
+/wheels

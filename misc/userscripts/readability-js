@@ -46,10 +46,20 @@ const HEADER = `
             line-height: 1.2;
         }
     </style>
+    <!-- This icon is licensed under the Mozilla Public License 2.0 (available at: https://www.mozilla.org/en-US/MPL/2.0/).
+    The original icon can be found here: https://dxr.mozilla.org/mozilla-central/source/browser/themes/shared/reader/readerMode.svg -->
+    <link rel="shortcut icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjRweCIgaGVpZ2h0PSI2NHB4IiB2ZXJzaW9uPSIxLjEiI
+    HZpZXdCb3g9IjAgMCA2NCA2NCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGcgZmlsbD0iI2ZmZiI+CjxwYXRoIGQ9Im01MiAwaC00
+    MGMtNC40MiAwLTggMy41OC04IDh2NDhjMCA0LjQyIDMuNTggOCA4IDhoNDBjNC40MiAwIDgtMy41OCA4LTh2LTQ4YzAtNC40Mi0zLjU4LTgtOC04em0wIDU
+    yYzAgMi4yMS0xLjc5IDQtNCA0aC0zMmMtMi4yMSAwLTQtMS43OS00LTR2LTQwYzAtMi4yMSAxLjc5LTQgNC00aDMyYzIuMjEgMCA0IDEuNzkgNCA0em0tMT
+    AtMzZoLTIwYy0xLjExIDAtMiAwLjg5NS0yIDJzMC44OTUgMiAyIDJoMjBjMS4xMSAwIDItMC44OTUgMi0ycy0wLjg5NS0yLTItMnptMCA4aC0yMGMtMS4xM
+    SAwLTIgMC44OTUtMiAyczAuODk1IDIgMiAyaDIwYzEuMTEgMCAyLTAuODk1IDItMnMtMC44OTUtMi0yLTJ6bTAgOGgtMjBjLTEuMTEgMC0yIDAuODk1LTIg
+    MnMwLjg5NSAyIDIgMmgyMGMxLjExIDAgMi0wLjg5NSAyLTJzLTAuODk1LTItMi0yem0tMTIgOGgtOGMtMS4xMSAwLTIgMC44OTUtMiAyczAuODk1IDIgMiA
+    yaDhjMS4xMSAwIDItMC44OTUgMi0ycy0wLjg5NS0yLTItMnoiIGZpbGw9IiNmZmYiLz4KPC9nPgo8L3N2Zz4K"/>
 </head>`;
 const scriptsDir = path.join(process.env.QUTE_DATA_DIR, 'userscripts');
 const tmpFile = path.join(scriptsDir, '/readability.html');
-const domOpts = {url: process.env.QUTE_URL, contentType: "text/html; charset=utf-8"}
+const domOpts = {url: process.env.QUTE_URL, contentType: "text/html; charset=utf-8"};
 
 if (!fs.existsSync(scriptsDir)){
     fs.mkdirSync(scriptsDir);
@@ -66,6 +76,6 @@ JSDOM.fromFile(process.env.QUTE_HTML, domOpts).then(dom => {
             return 1;
         }
         // Success
-        qute.open(['-t', tmpFile]);
+        qute.open(['-t', '-r', tmpFile]);
     })
 });

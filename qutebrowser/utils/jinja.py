@@ -112,7 +112,7 @@ class Environment(jinja2.Environment):
         """
         image = utils.resource_filename(path)
         url = QUrl.fromLocalFile(image)
-        urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore
+        urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
         return urlstr
 
     def _data_url(self, path: str) -> str:
@@ -156,11 +156,11 @@ def template_config_variables(template: str) -> typing.FrozenSet[str]:
         # For example it's ['ab', 'c', 'd'] for 'conf.d.c.ab'.
         attrlist = []  # type: typing.List[str]
         while isinstance(node, jinja2.nodes.Getattr):
-            attrlist.append(node.attr)  # type: ignore
-            node = node.node  # type: ignore
+            attrlist.append(node.attr)  # type: ignore[attr-defined]
+            node = node.node  # type: ignore[attr-defined]
 
         if isinstance(node, jinja2.nodes.Name):
-            if node.name == 'conf':  # type: ignore
+            if node.name == 'conf':  # type: ignore[attr-defined]
                 result.add('.'.join(reversed(attrlist)))
             # otherwise, the node is a Name node so it doesn't have any
             # child nodes

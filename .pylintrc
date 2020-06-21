@@ -60,7 +60,7 @@ no-docstring-rgx=(^_|^main$)
 
 [FORMAT]
 max-line-length=79
-ignore-long-lines=(<?https?://|^# Copyright 201\d|link:)
+ignore-long-lines=(<?https?://|file://|^# Copyright 201\d|link:)
 expected-line-ending-format=LF
 
 [VARIABLES]

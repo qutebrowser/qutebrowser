@@ -467,9 +467,9 @@ class TestSavefileOpen:
         with pytest.raises(OSError) as excinfo:
             with qtutils.savefile_open(str(filename)):
                 pass
-        errors = ["Filename refers to a directory",  # Qt >= 5.4
-                  "Commit failed!"]  # older Qt versions
-        assert str(excinfo.value) in errors
+
+        msg = "Filename refers to a directory: {!r}".format(str(filename))
+        assert str(excinfo.value) == msg
         assert tmpdir.listdir() == [filename]
 
     def test_failing_flush(self, tmpdir):

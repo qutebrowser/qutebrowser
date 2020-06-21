@@ -323,8 +323,8 @@ Feature: Using hints
         And I wait until data/hello.txt is loaded
         And I press the key ","
         # Waiting here so we don't affect the next test
-        And I wait for "Releasing inhibition state of normal mode." in the log
-        Then "Ignoring key ',', because the normal mode is currently inhibited." should be logged
+        And I wait for "NormalKeyParser for mode normal: Releasing inhibition state of normal mode." in the log
+        Then "NormalKeyParser for mode normal: Ignoring key ',', because the normal mode is currently inhibited." should be logged
 
     Scenario: Turning off auto_follow_timeout
         When I set hints.auto_follow_timeout to 0

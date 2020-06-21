@@ -5,7 +5,8 @@ Feature: Caret mode
 
     Background:
         Given I open data/caret.html
-        And I run :tab-only ;; enter-mode caret
+        And I run :tab-only
+        And I also run :enter-mode caret
 
     # :yank selection
 

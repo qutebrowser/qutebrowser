@@ -108,8 +108,15 @@ class TabEventFilter(QObject):
         self._check_insertmode_on_release = False
 
     def _handle_mouse_press(self, e):
-        """Handle pressing of a mouse button."""
-        is_rocker_gesture = (config.val.input.rocker_gestures and
+        """Handle pressing of a mouse button.
+
+        Args:
+            e: The QMouseEvent.
+
+        Return:
+            True if the event should be filtered, False otherwise.
+        """
+        is_rocker_gesture = (config.val.input.mouse.rocker_gestures and
                              e.buttons() == Qt.LeftButton | Qt.RightButton)
 
         if e.button() in [Qt.XButton1, Qt.XButton2] or is_rocker_gesture:
@@ -129,7 +136,14 @@ class TabEventFilter(QObject):
         return False
 
     def _handle_mouse_release(self, _e):
-        """Handle releasing of a mouse button."""
+        """Handle releasing of a mouse button.
+
+        Args:
+            e: The QMouseEvent.
+
+        Return:
+            True if the event should be filtered, False otherwise.
+        """
         # We want to make sure we check the focus element after the WebView is
         # updated completely.
         QTimer.singleShot(0, self._mouserelease_insertmode)
@@ -140,27 +154,39 @@ class TabEventFilter(QObject):
 
         Args:
             e: The QWheelEvent.
+
+        Return:
+            True if the event should be filtered, False otherwise.
         """
         if self._ignore_wheel_event:
             # See https://github.com/qutebrowser/qutebrowser/issues/395
             self._ignore_wheel_event = False
             return True
 
-        if e.modifiers() & Qt.ControlModifier:
-            mode = modeman.instance(self._tab.win_id).mode
+        # Don't allow scrolling while hinting
+        mode = modeman.instance(self._tab.win_id).mode
+        if mode == usertypes.KeyMode.hint:
+            return True
+
+        elif e.modifiers() & Qt.ControlModifier:
             if mode == usertypes.KeyMode.passthrough:
                 return False
 
             divider = config.val.zoom.mouse_divider
             if divider == 0:
-                return False
+                # Disable mouse zooming
+                return True
+
             factor = self._tab.zoom.factor() + (e.angleDelta().y() / divider)
             if factor < 0:
-                return False
+                return True
+
             perc = int(100 * factor)
             message.info("Zoom level: {}%".format(perc), replace=True)
             self._tab.zoom.set_factor(factor)
-        elif e.modifiers() & Qt.ShiftModifier:
+            return True
+        elif (e.modifiers() & Qt.ShiftModifier and
+              not qtutils.version_check('5.9', compiled=False)):
             if e.angleDelta().y() > 0:
                 self._tab.scroller.left()
             else:
@@ -170,16 +196,30 @@ class TabEventFilter(QObject):
         return False
 
     def _handle_context_menu(self, _e):
-        """Suppress context menus if rocker gestures are turned on."""
-        return config.val.input.rocker_gestures
+        """Suppress context menus if rocker gestures are turned on.
+
+        Args:
+            e: The QContextMenuEvent.
+
+        Return:
+            True if the event should be filtered, False otherwise.
+        """
+        return config.val.input.mouse.rocker_gestures
 
     def _handle_key_release(self, e):
         """Ignore repeated key release events going to the website.
 
         WORKAROUND for https://bugreports.qt.io/browse/QTBUG-77208
+
+        Args:
+            e: The QKeyEvent.
+
+        Return:
+            True if the event should be filtered, False otherwise.
         """
         return (e.isAutoRepeat() and
-                qtutils.version_check('5.10') and
+                qtutils.version_check('5.10', compiled=False) and
+                not qtutils.version_check('5.14', compiled=False) and
                 objects.backend == usertypes.Backend.QtWebEngine)
 
     def _mousepress_insertmode_cb(self, elem):
@@ -232,7 +272,15 @@ class TabEventFilter(QObject):
 
         Args:
             e: The QMouseEvent.
+
+        Return:
+            True if the event should be filtered, False otherwise.
         """
+        if (not config.val.input.mouse.back_forward_buttons and
+                e.button() in [Qt.XButton1, Qt.XButton2]):
+            # Back and forward on mice are disabled
+            return
+
         if e.button() in [Qt.XButton1, Qt.LeftButton]:
             # Back button on mice which have it, or rocker gesture
             if self._tab.history.can_go_back():
@@ -247,7 +295,11 @@ class TabEventFilter(QObject):
                 message.error("At end of history.")
 
     def eventFilter(self, obj, event):
-        """Filter events going to a QWeb(Engine)View."""
+        """Filter events going to a QWeb(Engine)View.
+
+        Return:
+            True if the event should be filtered, False otherwise.
+        """
         evtype = event.type()
         if evtype not in self._handlers:
             return False

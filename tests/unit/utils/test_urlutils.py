@@ -98,6 +98,8 @@ def init_config(config_stub):
         'test': 'http://www.qutebrowser.org/?q={}',
         'test-with-dash': 'http://www.example.org/?q={}',
         'path-search': 'http://www.example.org/{}',
+        'quoted-path': 'http://www.example.org/{quoted}',
+        'unquoted': 'http://www.example.org/?{unquoted}',
         'DEFAULT': 'http://www.example.com/?q={}',
     }
 
@@ -286,8 +288,10 @@ def test_special_urls(url, special):
     ('blub testfoo', 'www.example.com', 'q=blub testfoo'),
     ('stripped ', 'www.example.com', 'q=stripped'),
     ('test-with-dash testfoo', 'www.example.org', 'q=testfoo'),
-    ('test/with/slashes', 'www.example.com', 'q=test%2Fwith%2Fslashes'),
+    ('test/with/slashes', 'www.example.com', 'q=test/with/slashes'),
     ('test path-search', 'www.qutebrowser.org', 'q=path-search'),
+    ('slash/and&amp', 'www.example.com', 'q=slash/and%26amp'),
+    ('unquoted one=1&two=2', 'www.example.org', 'one=1&two=2'),
 ])
 def test_get_search_url(config_stub, url, host, query, open_base_url):
     """Test _get_search_url().
@@ -301,6 +305,25 @@ def test_get_search_url(config_stub, url, host, query, open_base_url):
     url = urlutils._get_search_url(url)
     assert url.host() == host
     assert url.query() == query
+
+
+@pytest.mark.parametrize('open_base_url', [True, False])
+@pytest.mark.parametrize('url, host, path', [
+    ('path-search t/w/s', 'www.example.org', 't/w/s'),
+    ('quoted-path t/w/s', 'www.example.org', 't%2Fw%2Fs'),
+])
+def test_get_search_url_for_path_search(config_stub, url, host, path, open_base_url):
+    """Test _get_search_url_for_path_search().
+
+    Args:
+        url: The "URL" to enter.
+        host: The expected search machine host.
+        path: The expected path on that host that is requested.
+    """
+    config_stub.val.url.open_base_url = open_base_url
+    url = urlutils._get_search_url(url)
+    assert url.host() == host
+    assert url.path(options=QUrl.PrettyDecoded) == '/' + path
 
 
 @pytest.mark.parametrize('url, host', [
@@ -693,6 +716,9 @@ class TestProxyFromUrl:
     def test_proxy_from_url_valid(self, url, expected):
         assert urlutils.proxy_from_url(QUrl(url)) == expected
 
+    @pytest.mark.qt_log_ignore(
+        r'^QHttpNetworkConnectionPrivate::_q_hostLookupFinished could not '
+        r'de-queue request, failed to report HostNotFoundError')
     @pytest.mark.parametrize('scheme', ['pac+http', 'pac+https'])
     def test_proxy_from_url_pac(self, scheme, qapp):
         fetcher = urlutils.proxy_from_url(QUrl('{}://foo'.format(scheme)))

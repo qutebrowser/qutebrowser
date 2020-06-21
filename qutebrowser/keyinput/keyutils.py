@@ -53,6 +53,8 @@ _MODIFIER_MAP = {
 
 _NIL_KEY = Qt.Key(0)
 
+_ModifierType = typing.Union[Qt.KeyboardModifier, Qt.KeyboardModifiers]
+
 
 def _build_special_names() -> typing.Mapping[Qt.Key, str]:
     """Build _SPECIAL_NAMES dict from the special_names_str mapping below.
@@ -167,9 +169,10 @@ def _assert_plain_key(key: Qt.Key) -> None:
     assert not key & Qt.KeyboardModifierMask, hex(key)
 
 
-def _assert_plain_modifier(key: Qt.KeyboardModifier) -> None:
+def _assert_plain_modifier(key: _ModifierType) -> None:
     """Make sure this is a modifier without a key mixed in."""
-    assert not key & ~Qt.KeyboardModifierMask, hex(key)
+    mask = Qt.KeyboardModifierMask
+    assert not key & ~mask, hex(key)  # type: ignore[operator]
 
 
 def _is_printable(key: Qt.Key) -> bool:
@@ -177,22 +180,7 @@ def _is_printable(key: Qt.Key) -> bool:
     return key <= 0xff and key not in [Qt.Key_Space, _NIL_KEY]
 
 
-def is_special_hint_mode(key: Qt.Key, modifiers: Qt.KeyboardModifier) -> bool:
-    """Check whether this key should clear the keychain in hint mode.
-
-    When we press "s<Escape>", we don't want <Escape> to be handled as part of
-    a key chain in hint mode.
-    """
-    _assert_plain_key(key)
-    _assert_plain_modifier(modifiers)
-    if is_modifier_key(key):
-        return False
-    return not (_is_printable(key) and
-                modifiers in [Qt.ShiftModifier, Qt.NoModifier,
-                              Qt.KeypadModifier])
-
-
-def is_special(key: Qt.Key, modifiers: Qt.KeyboardModifier) -> bool:
+def is_special(key: Qt.Key, modifiers: _ModifierType) -> bool:
     """Check whether this key requires special key syntax."""
     _assert_plain_key(key)
     _assert_plain_modifier(modifiers)
@@ -244,7 +232,7 @@ def _remap_unicode(key: Qt.Key, text: str) -> Qt.Key:
 
 
 def _check_valid_utf8(s: str,
-                      data: typing.Union[Qt.Key, Qt.KeyboardModifier]) -> None:
+                      data: typing.Union[Qt.Key, _ModifierType]) -> None:
     """Make sure the given string is valid UTF-8.
 
     Makes sure there are no chars where Qt did fall back to weird UTF-16
@@ -254,7 +242,7 @@ def _check_valid_utf8(s: str,
         s.encode('utf-8')
     except UnicodeEncodeError as e:  # pragma: no cover
         raise ValueError("Invalid encoding in 0x{:x} -> {}: {}"
-                         .format(data, s, e))
+                         .format(int(data), s, e))
 
 
 def _key_to_string(key: Qt.Key) -> str:
@@ -276,15 +264,16 @@ def _key_to_string(key: Qt.Key) -> str:
     return result
 
 
-def _modifiers_to_string(modifiers: Qt.KeyboardModifier) -> str:
+def _modifiers_to_string(modifiers: _ModifierType) -> str:
     """Convert the given Qt::KeyboardModifiers to a string.
 
     Handles Qt.GroupSwitchModifier because Qt doesn't handle that as a
     modifier.
     """
     _assert_plain_modifier(modifiers)
-    if modifiers & Qt.GroupSwitchModifier:
-        modifiers &= ~Qt.GroupSwitchModifier  # type: ignore
+    altgr = Qt.GroupSwitchModifier
+    if modifiers & altgr:  # type: ignore[operator]
+        modifiers &= ~altgr  # type: ignore[operator, assignment]
         result = 'AltGr+'
     else:
         result = ''
@@ -375,7 +364,7 @@ class KeyInfo:
     """
 
     key = attr.ib()  # type: Qt.Key
-    modifiers = attr.ib()  # type: Qt.KeyboardModifier
+    modifiers = attr.ib()  # type: _ModifierType
 
     @classmethod
     def from_event(cls, e: QKeyEvent) -> 'KeyInfo':
@@ -388,7 +377,7 @@ class KeyInfo:
         modifiers = e.modifiers()
         _assert_plain_key(key)
         _assert_plain_modifier(modifiers)
-        return cls(key, modifiers)
+        return cls(key, typing.cast(Qt.KeyboardModifier, modifiers))
 
     def __hash__(self) -> int:
         """Convert KeyInfo to int before hashing.
@@ -451,7 +440,7 @@ class KeyInfo:
             return ''
 
         text = QKeySequence(self.key).toString()
-        if not self.modifiers & Qt.ShiftModifier:
+        if not self.modifiers & Qt.ShiftModifier:  # type: ignore[operator]
             text = text.lower()
         return text
 
@@ -508,7 +497,7 @@ class KeySequence:
         """Iterate over KeyInfo objects."""
         for key_and_modifiers in self._iter_keys():
             key = Qt.Key(int(key_and_modifiers) & ~Qt.KeyboardModifierMask)
-            modifiers = Qt.KeyboardModifiers(  # type: ignore
+            modifiers = Qt.KeyboardModifiers(  # type: ignore[call-overload]
                 int(key_and_modifiers) & Qt.KeyboardModifierMask)
             yield KeyInfo(key=key, modifiers=modifiers)
 
@@ -565,7 +554,9 @@ class KeySequence:
             return infos[item]
 
     def _iter_keys(self) -> typing.Iterator[int]:
-        return itertools.chain.from_iterable(self._sequences)
+        sequences = typing.cast(typing.Iterable[typing.Iterable[int]],
+                                self._sequences)
+        return itertools.chain.from_iterable(sequences)
 
     def _validate(self, keystr: str = None) -> None:
         for info in self:
@@ -646,7 +637,7 @@ class KeySequence:
         if (modifiers == Qt.ShiftModifier and
                 _is_printable(key) and
                 not ev.text().isupper()):
-            modifiers = Qt.KeyboardModifiers()
+            modifiers = Qt.KeyboardModifiers()  # type: ignore[assignment]
 
         # On macOS, swap Ctrl and Meta back
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-51293

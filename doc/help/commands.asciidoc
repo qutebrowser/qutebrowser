@@ -45,6 +45,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<config-cycle,config-cycle>>|Cycle an option between multiple values.
 |<<config-dict-add,config-dict-add>>|Add a key/value pair to a dictionary option.
 |<<config-dict-remove,config-dict-remove>>|Remove a key from a dict.
+|<<config-diff,config-diff>>|Show all customized options.
 |<<config-edit,config-edit>>|Open the config.py file in the editor.
 |<<config-list-add,config-list-add>>|Append a value to a config option that is a list.
 |<<config-list-remove,config-list-remove>>|Remove a value from a list.
@@ -333,6 +334,16 @@ Remove a key from a dict.
 
 ==== optional arguments
 * +*-t*+, +*--temp*+: Remove value temporarily until qutebrowser is closed.
+
+[[config-diff]]
+=== config-diff
+Syntax: +:config-diff [*--old*]+
+
+Show all customized options.
+
+==== optional arguments
+* +*-o*+, +*--old*+: Show difference for the pre-v1.0 files (qutebrowser.conf/keys.conf).
+
 
 [[config-edit]]
 === config-edit
@@ -805,7 +816,7 @@ Show a warning message in the statusbar.
 
 [[messages]]
 === messages
-Syntax: +:messages [*--plain*] [*--tab*] [*--bg*] [*--window*] ['level']+
+Syntax: +:messages [*--plain*] [*--tab*] [*--bg*] [*--window*] [*--logfilter* 'logfilter'] ['level']+
 
 Show a log of past messages.
 
@@ -818,6 +829,9 @@ Show a log of past messages.
 * +*-t*+, +*--tab*+: Open in a new tab.
 * +*-b*+, +*--bg*+: Open in a background tab.
 * +*-w*+, +*--window*+: Open in a new window.
+* +*-f*+, +*--logfilter*+: A comma-separated filter string of logging categories. If the filter string starts with an exclamation mark, it
+ is negated.
+
 
 [[navigate]]
 === navigate
@@ -1011,7 +1025,14 @@ Which count to pass the command.
 
 [[report]]
 === report
+Syntax: +:report ['info'] ['contact']+
+
 Report a bug in qutebrowser.
+
+==== positional arguments
+* +'info'+: Information about the bug report. If given, no report dialog shows up.
+
+* +'contact'+: Contact information for the report.
 
 [[restart]]
 === restart
@@ -1337,7 +1358,7 @@ The tab index to focus, starting with 1.
 
 [[tab-give]]
 === tab-give
-Syntax: +:tab-give [*--keep*] ['win-id']+
+Syntax: +:tab-give [*--keep*] [*--private*] ['win-id']+
 
 Give the current tab to a new or existing window if win_id given.
 
@@ -1348,6 +1369,7 @@ If no win_id is given, the tab will get detached into a new window.
 
 ==== optional arguments
 * +*-k*+, +*--keep*+: If given, keep the old tab around.
+* +*-p*+, +*--private*+: If the tab should be detached into a private instance.
 
 ==== count
 Overrides win_id (index starts at 1 for win_id=0).
@@ -1485,8 +1507,6 @@ Yank (copy) something to the clipboard or primary selection.
  - `title`: The current page's title.
  - `domain`: The current scheme, domain, and port number.
  - `selection`: The selection under the cursor.
- - `markdown`: Yank title and URL in markdown format
- (deprecated, use `:yank inline [{title}]({url})` instead).
  - `inline`: Yank the text contained in the 'inline' argument.
  
 
@@ -1894,7 +1914,12 @@ This acts like readline's yank.
 
 [[toggle-selection]]
 === toggle-selection
+Syntax: +:toggle-selection [*--line*]+
+
 Toggle caret selection mode.
+
+==== optional arguments
+* +*-l*+, +*--line*+: Enables line-selection.
 
 
 == Debugging commands
@@ -1911,9 +1936,9 @@ These commands are mainly intended for debugging. They are hidden if qutebrowser
 |<<debug-crash,debug-crash>>|Crash for debugging purposes.
 |<<debug-dump-history,debug-dump-history>>|Dump the history to a file in the old pre-SQL format.
 |<<debug-dump-page,debug-dump-page>>|Dump the current page's content to a file.
+|<<debug-keytester,debug-keytester>>|Show a keytester widget.
 |<<debug-log-capacity,debug-log-capacity>>|Change the number of log lines to be stored in RAM.
 |<<debug-log-filter,debug-log-filter>>|Change the log filter for console logging.
-|<<debug-log-level,debug-log-level>>|Change the log level for console logging.
 |<<debug-pyeval,debug-pyeval>>|Evaluate a python string and display the results as a web page.
 |<<debug-set-fake-clipboard,debug-set-fake-clipboard>>|Put data into the fake clipboard and enable logging, used for tests.
 |<<debug-trace,debug-trace>>|Trace executed code via hunter.
@@ -1965,6 +1990,10 @@ Dump the current page's content to a file.
 ==== optional arguments
 * +*-p*+, +*--plain*+: Write plain text instead of HTML.
 
+[[debug-keytester]]
+=== debug-keytester
+Show a keytester widget.
+
 [[debug-log-capacity]]
 === debug-log-capacity
 Syntax: +:debug-log-capacity 'capacity'+
@@ -1983,15 +2012,6 @@ Change the log filter for console logging.
 ==== positional arguments
 * +'filters'+: A comma separated list of logger names. Can also be "none" to clear any existing filters.
 
-
-[[debug-log-level]]
-=== debug-log-level
-Syntax: +:debug-log-level 'level'+
-
-Change the log level for console logging.
-
-==== positional arguments
-* +'level'+: The log level to set.
 
 [[debug-pyeval]]
 === debug-pyeval

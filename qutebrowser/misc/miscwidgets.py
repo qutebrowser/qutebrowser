@@ -29,6 +29,7 @@ from PyQt5.QtGui import QValidator, QPainter
 from qutebrowser.config import config
 from qutebrowser.utils import utils
 from qutebrowser.misc import cmdhistory
+from qutebrowser.keyinput import keyutils
 
 
 class MinimalLineEditMixin:
@@ -36,7 +37,7 @@ class MinimalLineEditMixin:
     """A mixin to give a QLineEdit a minimal look and nicer repr()."""
 
     def __init__(self):
-        self.setStyleSheet(  # type: ignore
+        self.setStyleSheet(  # type: ignore[attr-defined]
             """
             QLineEdit {
                 border: 0px;
@@ -45,7 +46,8 @@ class MinimalLineEditMixin:
             }
             """
         )
-        self.setAttribute(Qt.WA_MacShowFocusRect, False)  # type: ignore
+        self.setAttribute(  # type: ignore[attr-defined]
+            Qt.WA_MacShowFocusRect, False)
 
     def keyPressEvent(self, e):
         """Override keyPressEvent to paste primary selection on Shift + Ins."""
@@ -56,9 +58,9 @@ class MinimalLineEditMixin:
                 e.ignore()
             else:
                 e.accept()
-                self.insert(text)  # type: ignore
+                self.insert(text)  # type: ignore[attr-defined]
             return
-        super().keyPressEvent(e)  # type: ignore
+        super().keyPressEvent(e)  # type: ignore[misc]
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -259,7 +261,7 @@ class WrapperLayout(QLayout):
         widget.setParent(container)
 
     def unwrap(self):
-        self._widget.setParent(None)  # type: ignore
+        self._widget.setParent(None)  # type: ignore[call-overload]
         self._widget.deleteLater()
 
 
@@ -326,7 +328,7 @@ class FullscreenNotification(QLabel):
             self.setText("Page is now fullscreen.")
 
         self.resize(self.sizeHint())
-        if config.val.content.windowed_fullscreen:
+        if config.val.content.fullscreen.window:
             geom = self.parentWidget().geometry()
         else:
             geom = QApplication.desktop().screenGeometry(self)
@@ -341,3 +343,26 @@ class FullscreenNotification(QLabel):
         """Hide and delete the widget."""
         self.hide()
         self.deleteLater()
+
+
+class KeyTesterWidget(QWidget):
+
+    """Widget displaying key presses."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
+        self._layout = QHBoxLayout(self)
+        self._label = QLabel(text="Waiting for keypress...")
+        self._layout.addWidget(self._label)
+
+    def keyPressEvent(self, e):
+        """Show pressed keys."""
+        lines = [
+            str(keyutils.KeyInfo.from_event(e)),
+            '',
+            'key: 0x{:x}'.format(int(e.key())),
+            'modifiers: 0x{:x}'.format(int(e.modifiers())),
+            'text: {!r}'.format(e.text()),
+        ]
+        self._label.setText('\n'.join(lines))

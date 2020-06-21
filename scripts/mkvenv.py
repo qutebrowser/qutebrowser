@@ -52,9 +52,12 @@ def parse_args() -> argparse.Namespace:
                         default='auto',
                         help="PyQt version to install.")
     parser.add_argument('--pyqt-type',
-                        choices=['binary', 'source', 'link', 'skip'],
+                        choices=['binary', 'source', 'link', 'wheels', 'skip'],
                         default='binary',
                         help="How to install PyQt/Qt.")
+    parser.add_argument('--pyqt-wheels-dir',
+                        default='wheels',
+                        help="Directory to get PyQt wheels from.")
     parser.add_argument('--virtualenv',
                         action='store_true',
                         help="Use virtualenv instead of venv.")
@@ -65,6 +68,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--dev',
                         action='store_true',
                         help="Also install dev/test dependencies.")
+    parser.add_argument('--skip-docs',
+                        action='store_true',
+                        help="Skip doc generation.")
     parser.add_argument('--tox-error',
                         action='store_true',
                         help=argparse.SUPPRESS)
@@ -95,7 +101,7 @@ def run_venv(venv_dir: pathlib.Path, executable, *args: str) -> None:
         subprocess.run([str(venv_dir / subdir / executable)] +
                        [str(arg) for arg in args], check=True)
     except subprocess.CalledProcessError as e:
-        utils.print_col("Subprocess failed, exiting", 'red')
+        utils.print_error("Subprocess failed, exiting")
         sys.exit(e.returncode)
 
 
@@ -104,24 +110,6 @@ def pip_install(venv_dir: pathlib.Path, *args: str) -> None:
     arg_str = ' '.join(str(arg) for arg in args)
     utils.print_col('venv$ pip install {}'.format(arg_str), 'blue')
     run_venv(venv_dir, 'python', '-m', 'pip', 'install', *args)
-
-
-def show_tox_error(pyqt_type: str) -> None:
-    """DIsplay an error when invoked from tox."""
-    if pyqt_type == 'link':
-        env = 'mkvenv'
-        args = ' --pyqt-type link'
-    elif pyqt_type == 'binary':
-        env = 'mkvenv-pypi'
-        args = ''
-    else:
-        raise AssertionError
-
-    print()
-    utils.print_col('tox -e {} is deprecated. '
-                    'Please use "python3 scripts/mkvenv.py{}" instead.'
-                    .format(env, args), 'red')
-    print()
 
 
 def delete_old_venv(venv_dir: pathlib.Path) -> None:
@@ -137,9 +125,8 @@ def delete_old_venv(venv_dir: pathlib.Path) -> None:
     ]
 
     if not any(m.exists() for m in markers):
-        utils.print_col('{} does not look like a virtualenv, '
-                        'cowardly refusing to remove it.'.format(venv_dir),
-                        'red')
+        utils.print_error('{} does not look like a virtualenv, '
+                          'cowardly refusing to remove it.'.format(venv_dir))
         sys.exit(1)
 
     utils.print_col('$ rm -r {}'.format(venv_dir), 'blue')
@@ -154,7 +141,7 @@ def create_venv(venv_dir: pathlib.Path, use_virtualenv: bool = False) -> None:
             subprocess.run([sys.executable, '-m', 'virtualenv', venv_dir],
                            check=True)
         except subprocess.CalledProcessError as e:
-            utils.print_col("virtualenv failed, exiting", 'red')
+            utils.print_error("virtualenv failed, exiting")
             sys.exit(e.returncode)
     else:
         utils.print_col('$ python3 -m venv {}'.format(venv_dir), 'blue')
@@ -207,6 +194,14 @@ def install_pyqt_link(venv_dir: pathlib.Path) -> None:
     link_pyqt.link_pyqt(sys.executable, lib_path)
 
 
+def install_pyqt_wheels(venv_dir: pathlib.Path,
+                        wheels_dir: pathlib.Path) -> None:
+    """Install PyQt from the wheels/ directory."""
+    utils.print_title("Installing PyQt wheels")
+    wheels = [str(wheel) for wheel in wheels_dir.glob('*.whl')]
+    pip_install(venv_dir, *wheels)
+
+
 def install_requirements(venv_dir: pathlib.Path) -> None:
     """Install qutebrowser's requirement.txt."""
     utils.print_title("Installing other qutebrowser dependencies")
@@ -247,14 +242,17 @@ def main() -> None:
     """Install qutebrowser in a virtualenv.."""
     args = parse_args()
     venv_dir = pathlib.Path(args.venv_dir)
+    wheels_dir = pathlib.Path(args.pyqt_wheels_dir)
     utils.change_cwd()
 
-    if args.tox_error:
-        show_tox_error(args.pyqt_type)
+    if (args.pyqt_version != 'auto' and
+            args.pyqt_type not in ['binary', 'source']):
+        utils.print_error('The --pyqt-version option is only available when '
+                          'installing PyQt from binary or source')
         sys.exit(1)
-    elif args.pyqt_type == 'link' and args.pyqt_version != 'auto':
-        utils.print_col('The --pyqt-version option is not available when '
-                        'linking a system-wide install.', 'red')
+    elif args.pyqt_wheels_dir != 'wheels' and args.pyqt_type != 'wheels':
+        utils.print_error('The --pyqt-wheels-dir option is only available '
+                          'when installing PyQt from wheels')
         sys.exit(1)
 
     if not args.keep:
@@ -270,6 +268,8 @@ def main() -> None:
         install_pyqt_source(venv_dir, args.pyqt_version)
     elif args.pyqt_type == 'link':
         install_pyqt_link(venv_dir)
+    elif args.pyqt_type == 'wheels':
+        install_pyqt_wheels(venv_dir, wheels_dir)
     elif args.pyqt_type == 'skip':
         pass
     else:
@@ -280,7 +280,8 @@ def main() -> None:
     if args.dev:
         install_dev_requirements(venv_dir)
 
-    regenerate_docs(venv_dir, args.asciidoc)
+    if not args.skip_docs:
+        regenerate_docs(venv_dir, args.asciidoc)
 
 
 if __name__ == '__main__':

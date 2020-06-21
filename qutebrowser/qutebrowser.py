@@ -96,7 +96,7 @@ def get_argparser():
 
     debug = parser.add_argument_group('debug arguments')
     debug.add_argument('-l', '--loglevel', dest='loglevel',
-                       help="Set loglevel", default='info',
+                       help="Override the configured console loglevel",
                        choices=['critical', 'error', 'warning', 'info',
                                 'debug', 'vdebug'])
     debug.add_argument('--logfilter', type=logfilter_error,
@@ -150,12 +150,11 @@ def logfilter_error(logfilter):
         logfilter: A comma separated list of logger names.
     """
     from qutebrowser.utils import log
-    if set(logfilter.lstrip('!').split(',')).issubset(log.LOGGER_NAMES):
-        return logfilter
-    else:
-        raise argparse.ArgumentTypeError(
-            "filters: Invalid value {} - expected a list of: {}".format(
-                logfilter, ', '.join(log.LOGGER_NAMES)))
+    try:
+        log.LogFilter.parse(logfilter)
+    except log.InvalidLogFilterError as e:
+        raise argparse.ArgumentTypeError(e)
+    return logfilter
 
 
 def debug_flag_error(flag):
@@ -167,14 +166,16 @@ def debug_flag_error(flag):
         no-sql-history: Don't store history items.
         no-scroll-filtering: Process all scrolling updates.
         log-requests: Log all network requests.
+        log-cookies: Log cookies in cookie filter.
         log-scroll-pos: Log all scrolling changes.
         stack: Enable Chromium stack logging.
         chromium: Enable Chromium logging.
         werror: Turn Python warnings into errors.
     """
     valid_flags = ['debug-exit', 'pdb-postmortem', 'no-sql-history',
-                   'no-scroll-filtering', 'log-requests', 'lost-focusproxy',
-                   'log-scroll-pos', 'stack', 'chromium', 'werror']
+                   'no-scroll-filtering', 'log-requests', 'log-cookies',
+                   'lost-focusproxy', 'log-scroll-pos', 'stack', 'chromium',
+                   'werror']
 
     if flag in valid_flags:
         return flag

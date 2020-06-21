@@ -105,8 +105,9 @@ def _is_secure_cipher(cipher):
 def init():
     """Disable insecure SSL ciphers on old Qt versions."""
     default_ciphers = QSslSocket.defaultCiphers()
-    log.init.debug("Default Qt ciphers: {}".format(
-        ', '.join(c.name() for c in default_ciphers)))
+    log.init.vdebug(  # type: ignore[attr-defined]
+        "Default Qt ciphers: {}".format(
+            ', '.join(c.name() for c in default_ciphers)))
 
     good_ciphers = []
     bad_ciphers = []
@@ -116,9 +117,10 @@ def init():
         else:
             bad_ciphers.append(cipher)
 
-    log.init.debug("Disabling bad ciphers: {}".format(
-        ', '.join(c.name() for c in bad_ciphers)))
-    QSslSocket.setDefaultCiphers(good_ciphers)
+    if bad_ciphers:
+        log.init.debug("Disabling bad ciphers: {}".format(
+            ', '.join(c.name() for c in bad_ciphers)))
+        QSslSocket.setDefaultCiphers(good_ciphers)
 
 
 _SavedErrorsType = typing.MutableMapping[urlutils.HostTupleType,
@@ -169,14 +171,15 @@ class NetworkManager(QNetworkAccessManager):
         }
         self._set_cookiejar()
         self._set_cache()
-        self.sslErrors.connect(self.on_ssl_errors)  # type: ignore
+        self.sslErrors.connect(  # type: ignore[attr-defined]
+            self.on_ssl_errors)
         self._rejected_ssl_errors = collections.defaultdict(
             list)  # type: _SavedErrorsType
         self._accepted_ssl_errors = collections.defaultdict(
             list)  # type: _SavedErrorsType
-        self.authenticationRequired.connect(  # type: ignore
+        self.authenticationRequired.connect(  # type: ignore[attr-defined]
             self.on_authentication_required)
-        self.proxyAuthenticationRequired.connect(  # type: ignore
+        self.proxyAuthenticationRequired.connect(  # type: ignore[attr-defined]
             self.on_proxy_authentication_required)
         self.netrc_used = False
 
@@ -235,7 +238,7 @@ class NetworkManager(QNetworkAccessManager):
             errors: A list of errors.
         """
         errors = [certificateerror.CertificateErrorWrapper(e) for e in errors]
-        log.webview.debug("Certificate errors: {!r}".format(
+        log.network.debug("Certificate errors: {!r}".format(
             ' / '.join(str(err) for err in errors)))
         try:
             host_tpl = urlutils.host_tuple(
@@ -251,7 +254,7 @@ class NetworkManager(QNetworkAccessManager):
             is_rejected = set(errors).issubset(
                 self._rejected_ssl_errors[host_tpl])
 
-        log.webview.debug("Already accepted: {} / "
+        log.network.debug("Already accepted: {} / "
                           "rejected {}".format(is_accepted, is_rejected))
 
         if is_rejected:
@@ -424,7 +427,7 @@ class NetworkManager(QNetworkAccessManager):
         if 'log-requests' in objects.debug_flags:
             operation = debug.qenum_key(QNetworkAccessManager, op)
             operation = operation.replace('Operation', '').upper()
-            log.webview.debug("{} {}, first-party {}".format(
+            log.network.debug("{} {}, first-party {}".format(
                 operation,
                 req.url().toDisplayString(),
                 current_url.toDisplayString()))

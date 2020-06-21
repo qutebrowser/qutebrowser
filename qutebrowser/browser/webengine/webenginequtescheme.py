@@ -23,10 +23,10 @@ from PyQt5.QtCore import QBuffer, QIODevice, QUrl
 from PyQt5.QtWebEngineCore import (QWebEngineUrlSchemeHandler,
                                    QWebEngineUrlRequestJob)
 try:
-    from PyQt5.QtWebEngineCore import QWebEngineUrlScheme  # type: ignore
+    from PyQt5.QtWebEngineCore import QWebEngineUrlScheme
 except ImportError:
     # Added in Qt 5.12
-    QWebEngineUrlScheme = None
+    QWebEngineUrlScheme = None  # type: ignore[misc, assignment]
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, qtutils
@@ -86,9 +86,9 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             return True
 
         if initiator.isValid() and initiator.scheme() != 'qute':
-            log.misc.warning("Blocking malicious request from {} to {}".format(
-                initiator.toDisplayString(),
-                request_url.toDisplayString()))
+            log.network.warning("Blocking malicious request from {} to {}"
+                                .format(initiator.toDisplayString(),
+                                        request_url.toDisplayString()))
             job.fail(QWebEngineUrlRequestJob.RequestDenied)
             return False
 
@@ -119,7 +119,7 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
 
         assert url.scheme() == 'qute'
 
-        log.misc.debug("Got request for {}".format(url.toDisplayString()))
+        log.network.debug("Got request for {}".format(url.toDisplayString()))
         try:
             mimetype, data = qutescheme.data_for_url(url)
         except qutescheme.Error as e:
@@ -136,14 +136,14 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
                     QWebEngineUrlRequestJob.RequestFailed,
             }
             exctype = type(e)
-            log.misc.error("{} while handling qute://* URL".format(
+            log.network.error("{} while handling qute://* URL".format(
                 exctype.__name__))
             job.fail(errors[exctype])
         except qutescheme.Redirect as e:
             qtutils.ensure_valid(e.url)
             job.redirect(e.url)
         else:
-            log.misc.debug("Returning {} data".format(mimetype))
+            log.network.debug("Returning {} data".format(mimetype))
 
             # We can't just use the QBuffer constructor taking a QByteArray,
             # because that somehow segfaults...
@@ -165,6 +165,7 @@ def init():
     if QWebEngineUrlScheme is not None:
         assert not QWebEngineUrlScheme.schemeByName(b'qute').name()
         scheme = QWebEngineUrlScheme(b'qute')
-        scheme.setFlags(QWebEngineUrlScheme.LocalScheme |
-                        QWebEngineUrlScheme.LocalAccessAllowed)
+        scheme.setFlags(
+            QWebEngineUrlScheme.LocalScheme |  # type: ignore[arg-type]
+            QWebEngineUrlScheme.LocalAccessAllowed)
         QWebEngineUrlScheme.registerScheme(scheme)

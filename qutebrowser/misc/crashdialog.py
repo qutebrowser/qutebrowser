@@ -125,9 +125,13 @@ class _CrashDialog(QDialog):
         self.setWindowTitle("Whoops!")
         self.resize(QSize(640, 600))
         self._vbox = QVBoxLayout(self)
+
         http_client = httpclient.HTTPClient()
         self._paste_client = pastebin.PastebinClient(http_client, self)
         self._pypi_client = autoupdate.PyPIVersionClient(self)
+        self._paste_client.success.connect(self.on_paste_success)
+        self._paste_client.error.connect(self.show_error)
+
         self._init_text()
 
         self._init_contact_input()
@@ -246,7 +250,7 @@ class _CrashDialog(QDialog):
         except Exception:
             self._crash_info.append(("Launch time", traceback.format_exc()))
         try:
-            self._crash_info.append(("Version info", version.version()))
+            self._crash_info.append(("Version info", version.version_info()))
         except Exception:
             self._crash_info.append(("Version info", traceback.format_exc()))
         try:
@@ -296,13 +300,17 @@ class _CrashDialog(QDialog):
         except Exception:
             log.misc.exception("Failed to save contact information!")
 
-    def report(self):
-        """Paste the crash info into the pastebin."""
+    def report(self, *, info=None, contact=None):
+        """Paste the crash info into the pastebin.
+
+        If info/contact are given as arguments, they override the values
+        entered in the dialog.
+        """
         lines = []
         lines.append("========== Report ==========")
-        lines.append(self._info.toPlainText())
+        lines.append(info or self._info.toPlainText())
         lines.append("========== Contact ==========")
-        lines.append(self._contact.toPlainText())
+        lines.append(contact or self._contact.toPlainText())
         lines.append("========== Debug log ==========")
         lines.append(self._debug_log.toPlainText())
         self._paste_text = '\n\n'.join(lines)
@@ -326,8 +334,6 @@ class _CrashDialog(QDialog):
         self._btn_report.setEnabled(False)
         self._btn_cancel.setEnabled(False)
         self._btn_report.setText("Reporting...")
-        self._paste_client.success.connect(self.on_paste_success)
-        self._paste_client.error.connect(self.show_error)
         self.report()
 
     @pyqtSlot()
@@ -345,7 +351,7 @@ class _CrashDialog(QDialog):
             text: The paste text to show.
         """
         error_dlg = ReportErrorDialog(text, self._paste_text, self)
-        error_dlg.finished.connect(self.finish)  # type: ignore
+        error_dlg.finished.connect(self.finish)
         error_dlg.show()
 
     @pyqtSlot(str)
@@ -532,7 +538,7 @@ class FatalCrashDialog(_CrashDialog):
         if self._chk_history.isChecked():
             try:
                 if history.web_history is None:
-                    history_data = '<unavailable>'  # type: ignore
+                    history_data = '<unavailable>'  # type: ignore[unreachable]
                 else:
                     history_data = '\n'.join(str(e) for e in
                                              history.web_history.get_recent())
@@ -629,7 +635,7 @@ class ReportErrorDialog(QDialog):
         hbox = QHBoxLayout()
         hbox.addStretch()
         btn = QPushButton("Close")
-        btn.clicked.connect(self.close)  # type: ignore
+        btn.clicked.connect(self.close)  # type: ignore[arg-type]
         hbox.addWidget(btn)
         vbox.addLayout(hbox)
 
@@ -650,7 +656,7 @@ def dump_exception_info(exc, pages, cmdhist, qobjects):
     print(''.join(traceback.format_exception(*exc)), file=sys.stderr)
     print("\n---- Version info ----", file=sys.stderr)
     try:
-        print(version.version(), file=sys.stderr)
+        print(version.version_info(), file=sys.stderr)
     except Exception:
         traceback.print_exc()
     print("\n---- Config ----", file=sys.stderr)

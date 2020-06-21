@@ -19,7 +19,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-import os.path
+import pathlib
 
 import pytest
 
@@ -216,15 +216,14 @@ def test_skipped_non_linux(covtest):
 def _generate_files():
     """Get filenames from WHITELISTED_/PERFECT_FILES."""
     for src_file in check_coverage.WHITELISTED_FILES:
-        yield os.path.join('qutebrowser', src_file)
+        yield pathlib.Path('qutebrowser') / src_file
     for test_file, src_file in check_coverage.PERFECT_FILES:
         if test_file is not None:
-            yield test_file
-        yield os.path.join('qutebrowser', src_file)
+            yield pathlib.Path(test_file)
+        yield pathlib.Path('qutebrowser') / src_file
 
 
 @pytest.mark.parametrize('filename', list(_generate_files()))
 def test_files_exist(filename):
-    basedir = os.path.join(os.path.dirname(check_coverage.__file__),
-                           os.pardir, os.pardir)
-    assert os.path.exists(os.path.join(basedir, filename))
+    basedir = pathlib.Path(check_coverage.__file__).parents[2]
+    assert (basedir / filename).exists()

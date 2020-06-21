@@ -59,6 +59,11 @@ class UsageFormatter(argparse.HelpFormatter):
     argparse.HelpFormatter while copying 99% of the code :-/
     """
 
+    def __init__(self, prog, indent_increment=2, max_help_position=24,
+                 width=200):
+        """Override __init__ to set a fixed width as default."""
+        super().__init__(prog, indent_increment, max_help_position, width)
+
     def _format_usage(self, usage, actions, groups, _prefix):
         """Override _format_usage to not add the 'usage:' prefix."""
         return super()._format_usage(usage, actions, groups, '')
@@ -162,7 +167,7 @@ def _get_configtypes():
         inspect.isclass(e) and
         # pylint: disable=protected-access
         e not in [configtypes.BaseType, configtypes.MappingType,
-                  configtypes._Numeric] and
+                  configtypes._Numeric, configtypes.FontBase] and
         # pylint: enable=protected-access
         issubclass(e, configtypes.BaseType))
     yield from inspect.getmembers(configtypes, predicate)

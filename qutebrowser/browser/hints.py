@@ -235,7 +235,7 @@ class HintActions:
         flags = QUrl.FullyEncoded | QUrl.RemovePassword
         if url.scheme() == 'mailto':
             flags |= QUrl.RemoveScheme
-        urlstr = url.toString(flags)  # type: ignore
+        urlstr = url.toString(flags)  # type: ignore[arg-type]
 
         new_content = urlstr
 
@@ -256,14 +256,15 @@ class HintActions:
 
     def run_cmd(self, url: QUrl, context: HintContext) -> None:
         """Run the command based on a hint URL."""
-        urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore
+        urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely(' '.join(args))
 
     def preset_cmd_text(self, url: QUrl, context: HintContext) -> None:
         """Preset a commandline text based on a hint URL."""
-        urlstr = url.toDisplayString(QUrl.FullyEncoded)  # type: ignore
+        flags = QUrl.FullyEncoded
+        urlstr = url.toDisplayString(flags)  # type: ignore[arg-type]
         args = context.get_args(urlstr)
         text = ' '.join(args)
         if text[0] not in modeparsers.STARTCHARS:
@@ -308,7 +309,8 @@ class HintActions:
         }
         url = elem.resolve_url(context.baseurl)
         if url is not None:
-            env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)  # type: ignore
+            flags = QUrl.FullyEncoded
+            env['QUTE_URL'] = url.toString(flags)  # type: ignore[arg-type]
 
         try:
             userscripts.run_async(context.tab, cmd, *args, win_id=self._win_id,
@@ -328,7 +330,7 @@ class HintActions:
             context: The HintContext to use.
         """
         urlstr = url.toString(
-            QUrl.FullyEncoded | QUrl.RemovePassword)  # type: ignore
+            QUrl.FullyEncoded | QUrl.RemovePassword)  # type: ignore[arg-type]
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely('spawn ' + ' '.join(args))
@@ -893,7 +895,7 @@ class HintManager(QObject):
 
         if self._context.hint_mode == 'number':
             # renumber filtered hints
-            strings = self._hint_strings(visible)
+            strings = self._hint_strings([label.elem for label in visible])
             self._context.labels = {}
             for label, string in zip(visible, strings):
                 label.update_text('', string)

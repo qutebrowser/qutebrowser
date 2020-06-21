@@ -48,6 +48,16 @@ search.incremental:
   default: True
   desc: Find text on a page incrementally, renewing the search for each typed character.
 
+search.wrap:
+  type: Bool
+  default: True
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: true
+  desc: >-
+    Wrap around at the top and bottom of the page when advancing through text matches
+    using `:search-next` and `:search-prev`.
+
 new_instance_open_target:
   type:
     name: String
@@ -341,6 +351,7 @@ content.cookies.accept:
   backend:
     QtWebKit: true
     QtWebEngine: Qt 5.11
+  supports_pattern: true
   type:
     name: String
     valid_values:
@@ -351,7 +362,16 @@ content.cookies.accept:
           a cookie is already set for the domain. On QtWebEngine, this is the
           same as no-3rdparty."
       - never: "Don't accept cookies at all."
-  desc: Which cookies to accept.
+  desc: >-
+    Which cookies to accept.
+
+    With QtWebEngine, this setting also controls other features with tracking
+    capabilities similar to those of cookies; including IndexedDB, DOM storage,
+    filesystem API, service workers, and AppCache.
+
+    Note that with QtWebKit, only `all` and `never` are supported as per-domain
+    values. Setting `no-3rdparty` or `no-unknown-3rdparty` per-domain on
+    QtWebKit will have the same effect as `all`.
 
 content.cookies.store:
   default: true
@@ -370,11 +390,45 @@ content.default_encoding:
     The encoding must be a string describing an encoding such as _utf-8_,
     _iso-8859-1_, etc.
 
+content.unknown_url_scheme_policy:
+  type:
+    name: String
+    valid_values:
+      - disallow: "Disallows all navigation requests to URLs with unknown
+          schemes."
+      - allow-from-user-interaction: "Allows navigation requests to URLs with
+          unknown schemes that are issued from user-interaction (like a
+          mouse-click), whereas other navigation requests (for example from
+          JavaScript) are suppressed."
+      - allow-all: "Allows all navigation requests to URLs with unknown
+          schemes."
+  default: allow-from-user-interaction
+  backend:
+    QtWebEngine: Qt 5.11
+    QtWebKit: false
+  supports_pattern: true
+  desc: >-
+    How navigation requests to URLs with unknown schemes are handled.
+
 content.windowed_fullscreen:
+  renamed: content.fullscreen.window
+
+content.fullscreen.window:
   type: Bool
   default: false
   desc: >-
     Limit fullscreen to the browser window (does not expand to fill the screen).
+
+content.fullscreen.overlay_timeout:
+  type:
+    name: Int
+    minval: 0
+    maxval: maxint
+  default: 3000
+  desc: >-
+    Set fullscreen notification overlay timeout in milliseconds.
+
+    If set to 0, no overlay will be displayed.
 
 content.desktop_capture:
   type: BoolAsk
@@ -390,7 +444,7 @@ content.developer_extras:
   deleted: true
 
 content.dns_prefetch:
-  default: false
+  default: true
   type: Bool
   backend:
     QtWebKit: true
@@ -508,11 +562,11 @@ content.headers.user_agent:
     completions:
       # See https://techblog.willshouse.com/2012/01/03/most-common-user-agents/
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/79.0.3945.117 Safari/537.36"
-        - Chrome 79 Win10
+          like Gecko) Chrome/81.0.4044.129 Safari/537.36"
+        - Chrome 80 Win10
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/79.0.3945.117 Safari/537.36"
-        - Chrome 79 Linux
+          Gecko) Chrome/81.0.4044.138 Safari/537.36"
+        - Chrome 80 Linux
   supports_pattern: true
   desc: |
     User agent to send.
@@ -531,7 +585,9 @@ content.headers.user_agent:
     The default value is equal to the unchanged user agent of
     QtWebKit/QtWebEngine.
 
-    Note that the value read from JavaScript is always the global value.
+    Note that the value read from JavaScript is always the global value. With
+    QtWebEngine between 5.12 and 5.14 (inclusive), changing the value exposed
+    to JavaScript requires a restart.
 
 content.host_blocking.enabled:
   renamed: content.blocking.hosts.enabled
@@ -1120,6 +1176,22 @@ hints.border:
   type: String
   desc: CSS border value for hints.
 
+hints.padding:
+  default:
+    top: 0
+    bottom: 0
+    left: 3
+    right: 3
+  type: Padding
+  desc: Padding (in pixels) for hints.
+
+hints.radius:
+  default: 3
+  type:
+    name: Int
+    minval: 0
+  desc: Rounding radius (in pixels) for the edges of hints.
+
 hints.chars:
   default: asdfghjkl
   type:
@@ -1338,6 +1410,19 @@ input.links_included_in_focus_chain:
   supports_pattern: true
   desc: Include hyperlinks in the keyboard focus chain when tabbing.
 
+input.mouse.back_forward_buttons:
+  default: true
+  type: Bool
+  desc: Enable back and forward buttons on the mouse.
+
+input.mouse.rocker_gestures:
+  default: false
+  type: Bool
+  desc: >-
+    Enable Opera-like mouse rocker gestures.
+
+    This disables the context menu.
+
 input.partial_timeout:
   default: 5000
   type:
@@ -1351,12 +1436,7 @@ input.partial_timeout:
     cleared after this time.
 
 input.rocker_gestures:
-  default: false
-  type: Bool
-  desc: >-
-    Enable Opera-like mouse rocker gestures.
-
-    This disables the context menu.
+  renamed: input.mouse.rocker_gestures
 
 input.spatial_navigation:
   default: false
@@ -1423,7 +1503,7 @@ messages.unfocused:
 prompt.filebrowser:
   type: Bool
   default: true
-  desc: Show a filebrowser in upload/download prompts.
+  desc: Show a filebrowser in download prompts.
 
 prompt.radius:
   type:
@@ -1442,8 +1522,12 @@ scrolling.bar:
       - never: Never show the scrollbar.
       - when-searching: Show the scrollbar when searching for text in the
             webpage. With the QtWebKit backend, this is equal to `never`.
-  default: when-searching
-  desc: When to show the scrollbar.
+      - overlay: Show an overlay scrollbar. With Qt < 5.11 or on macOS, this is
+            unavailable and equal to `when-searching`; with the QtWebKit
+            backend, this is equal to `never`. Enabling/disabling overlay
+            scrollbars requires a restart.
+  default: overlay
+  desc: When/how to show the scrollbar.
 
 scrolling.smooth:
   type: Bool
@@ -1518,10 +1602,15 @@ spellcheck.languages:
 
 ## statusbar
 
-statusbar.hide:
-  type: Bool
-  default: false
-  desc: Hide the statusbar unless a message is shown.
+statusbar.show:
+  default: always
+  type:
+    name: String
+    valid_values:
+    - always: Always show the statusbar.
+    - never: Always hide the statusbar.
+    - in-mode: Show the statusbar when in modes other than normal mode.
+  desc: When to show the statusbar.
 
 statusbar.padding:
   type: Padding
@@ -1912,17 +2001,29 @@ url.searchengines:
       name: String
       forbidden: ' '
     valtype: SearchEngineUrl
-  desc: >-
+  desc: |
     Search engines which can be used via the address bar.
 
     Maps a search engine name (such as `DEFAULT`, or `ddg`) to a URL with a
     `{}` placeholder. The placeholder will be replaced by the search term, use
-    `{{` and `}}` for literal `{`/`}` signs.
+    `{{` and `}}` for literal `{`/`}` braces.
+
+    The following further placeholds are defined to configure how special
+    characters in the search terms are replaced by safe characters (called
+    'quoting'):
+
+    * `{}` and `{semiquoted}` quote everything except slashes; this is the most
+      sensible choice for almost all search engines (for the search term
+      `slash/and&amp` this placeholder expands to `slash/and%26amp`).
+    * `{quoted}` quotes all characters (for `slash/and&amp` this placeholder
+      expands to `slash%2Fand%26amp`).
+    * `{unquoted}` quotes nothing (for `slash/and&amp` this placeholder
+      expands to `slash/and&amp`).
 
     The search engine named `DEFAULT` is used when `url.auto_search` is turned
     on and something else than a URL was entered to be opened. Other search
     engines can be used by prepending the search engine name to the search
-    term, e.g.  `:open google qutebrowser`.
+    term, e.g. `:open google qutebrowser`.
 
 url.start_pages:
   type:
@@ -2152,6 +2253,26 @@ colors.contextmenu.selected.fg:
   default: null
   desc: >-
     Foreground color of the context menu's selected item.
+
+    If set to null, the Qt default is used.
+
+colors.contextmenu.disabled.bg:
+  type:
+    name: QssColor
+    none_ok: true
+  default: null
+  desc: >-
+    Background color of disabled items in the context menu.
+
+    If set to null, the Qt default is used.
+
+colors.contextmenu.disabled.fg:
+  type:
+    name: QssColor
+    none_ok: true
+  default: null
+  desc: >-
+    Foreground color of disabled items in the context menu.
 
     If set to null, the Qt default is used.
 
@@ -2539,6 +2660,169 @@ colors.webpage.prefers_color_scheme_dark:
     QtWebEngine: Qt 5.14
     QtWebKit: false
 
+## dark mode
+
+colors.webpage.darkmode.enabled:
+  default: false
+  type: Bool
+  desc: >-
+    Render all web contents using a dark theme.
+
+    Example configurations from Chromium's `chrome://flags`:
+
+
+    - "With simple HSL/CIELAB/RGB-based inversion": Set
+      `colors.webpage.darkmode.algorithm` accordingly.
+
+    - "With selective image inversion": Set
+      `colors.webpage.darkmode.policy.images` to `smart`.
+
+    - "With selective inversion of non-image elements": Set
+      `colors.webpage.darkmode.threshold.text` to 150 and
+      `colors.webpage.darkmode.threshold.background` to 205.
+
+    - "With selective inversion of everything": Combines the two variants
+      above.
+  restart: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+
+colors.webpage.darkmode.algorithm:
+  default: lightness-cielab
+  desc: "Which algorithm to use for modifying how colors are rendered with
+    darkmode."
+  type:
+    name: String
+    valid_values:
+      - lightness-cielab: Modify colors by converting them to CIELAB color
+            space and inverting the L value.
+      - lightness-hsl: Modify colors by converting them to the HSL color space
+            and inverting the lightness (i.e. the "L" in HSL).
+      - brightness-rgb: Modify colors by subtracting each of r, g, and b from
+            their maximum value.
+      # kSimpleInvertForTesting is not exposed, as it's equivalent to
+      # kInvertBrightness without gamma correction, and only available for
+      # Chromium's automated tests
+  restart: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+
+colors.webpage.darkmode.contrast:
+  default: 0.0
+  type:
+    name: Float
+    minval: -1.0
+    maxval: 1.0
+  desc: >-
+    Contrast for dark mode.
+
+    This only has an effect when `colors.webpage.darkmode.algorithm` is set to
+    `lightness-hsl` or `brightness-rgb`.
+  restart: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+
+colors.webpage.darkmode.policy.images:
+  default: never
+  type:
+    name: String
+    valid_values:
+      - always: Apply dark mode filter to all images.
+      - never: Never apply dark mode filter to any images.
+      - smart: Apply dark mode based on image content.
+  desc: >-
+      Which images to apply dark mode to.
+
+      WARNING: On Qt 5.15.0, this setting can cause frequent renderer process
+      crashes due to a
+      https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug in Qt].
+  restart: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+
+colors.webpage.darkmode.policy.page:
+  default: smart
+  type:
+    name: String
+    valid_values:
+      - always: Apply dark mode filter to all frames, regardless of content.
+      - smart: Apply dark mode filter to frames based on background color.
+  desc: Which pages to apply dark mode to.
+  restart: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+
+colors.webpage.darkmode.threshold.text:
+  default: 256
+  type:
+    name: Int
+    minval: 0
+    maxval: 256
+  desc: >-
+      Threshold for inverting text with dark mode.
+
+      Text colors with brightness below this threshold will be inverted, and
+      above it will be left as in the original, non-dark-mode page. Set to 256
+      to always invert text color or to 0 to never invert text color.
+  restart: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+
+colors.webpage.darkmode.threshold.background:
+  default: 0
+  type:
+    name: Int
+    minval: 0
+    maxval: 256
+  desc: >-
+      Threshold for inverting background elements with dark mode.
+
+      Background elements with brightness above this threshold will be inverted,
+      and below it will be left as in the original, non-dark-mode page. Set to
+      256 to never invert the color or to 0 to always invert it.
+
+      Note: This behavior is the opposite of
+      `colors.webpage.darkmode.threshold.text`!
+  restart: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+
+colors.webpage.darkmode.grayscale.all:
+  default: false
+  type: Bool
+  desc: >-
+    Render all colors as grayscale.
+
+    This only has an effect when `colors.webpage.darkmode.algorithm` is set to
+    `lightness-hsl` or `brightness-rgb`.
+  restart: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+
+colors.webpage.darkmode.grayscale.images:
+  default: 0.0
+  type:
+    name: Float
+    minval: 0.0
+    maxval: 1.0
+  desc: >-
+    Desaturation factor for images in dark mode.
+
+    If set to 0, images are left as-is. If set to 1, images are completely
+    grayscale. Values between 0 and 1 desaturate the colors accordingly.
+  restart: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+
 # emacs: '
 
 ## fonts
@@ -2593,7 +2877,7 @@ fonts.contextmenu:
 
 fonts.debug_console:
   default: default_size default_family
-  type: QtFont
+  type: Font
   desc: Font used for the debugging console.
 
 fonts.downloads:
@@ -2636,10 +2920,15 @@ fonts.statusbar:
   type: Font
   desc: Font used in the statusbar.
 
-fonts.tabs:
+fonts.tabs.selected:
   default: default_size default_family
-  type: QtFont
-  desc: Font used in the tab bar.
+  type: Font
+  desc: Font used for selected tabs.
+
+fonts.tabs.unselected:
+  default: default_size default_family
+  type: Font
+  desc: Font used for unselected tabs.
 
 fonts.web.family.standard:
   default: ''
@@ -2730,6 +3019,7 @@ bindings.key_mappings:
     <Ctrl-6>: <Ctrl-^>
     <Ctrl-M>: <Return>
     <Ctrl-J>: <Return>
+    <Ctrl-I>: <Tab>
     <Shift-Return>: <Return>
     <Enter>: <Return>
     <Shift-Enter>: <Return>
@@ -2827,6 +3117,7 @@ bindings.default:
       N: search-prev
       i: enter-mode insert
       v: enter-mode caret
+      V: enter-mode caret ;; toggle-selection --line
       "`": enter-mode set_mark
       "'": enter-mode jump_mark
       yy: yank
@@ -2930,6 +3221,12 @@ bindings.default:
       tIH: config-cycle -p -u *://*.{url:host}/* content.images ;; reload
       tiu: config-cycle -p -t -u {url} content.images ;; reload
       tIu: config-cycle -p -u {url} content.images ;; reload
+      tch: config-cycle -p -t -u *://{url:host}/* content.cookies.accept all no-3rdparty never ;; reload
+      tCh: config-cycle -p -u *://{url:host}/* content.cookies.accept all no-3rdparty never ;; reload
+      tcH: config-cycle -p -t -u *://*.{url:host}/* content.cookies.accept all no-3rdparty never ;; reload
+      tCH: config-cycle -p -u *://*.{url:host}/* content.cookies.accept all no-3rdparty never ;; reload
+      tcu: config-cycle -p -t -u {url} content.cookies.accept all no-3rdparty never ;; reload
+      tCu: config-cycle -p -u {url} content.cookies.accept all no-3rdparty never ;; reload
     insert:
       <Ctrl-E>: open-editor
       <Shift-Ins>: insert-text -- {primary}
@@ -3008,6 +3305,7 @@ bindings.default:
       <Escape>: leave-mode
     caret:
       v: toggle-selection
+      V: toggle-selection --line
       <Space>: toggle-selection
       <Ctrl-Space>: drop-selection
       c: enter-mode normal
@@ -3145,3 +3443,18 @@ bindings.commands:
 
     * register: Entered when qutebrowser is waiting for a register name/key for
       commands like `:set-mark`.
+
+## logging
+
+logging.level.ram:
+  default: debug
+  type: LogLevel
+  desc:
+    Level for in-memory logs.
+
+logging.level.console:
+  default: info
+  type: LogLevel
+  desc:  >-
+    Level for console (stdout/stderr) logs.
+    Ignored if the `--loglevel` or `--debug` CLI flags are used.

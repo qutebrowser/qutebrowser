@@ -26,7 +26,6 @@ import typing
 import attr
 from PyQt5.QtCore import pyqtSignal, QObject, Qt
 from PyQt5.QtGui import QKeySequence, QKeyEvent
-from PyQt5.QtWidgets import QWidget
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, utils
@@ -97,6 +96,24 @@ class BindingTrie:
         return utils.get_repr(self, children=self.children,
                               command=self.command)
 
+    def __str__(self) -> str:
+        return '\n'.join(self.string_lines(blank=True))
+
+    def string_lines(self, indent: int = 0,
+                     blank: bool = False) -> typing.Sequence[str]:
+        """Get a list of strings for a pretty-printed version of this trie."""
+        lines = []
+        if self.command is not None:
+            lines.append('{}=> {}'.format('  ' * indent, self.command))
+
+        for key, child in sorted(self.children.items()):
+            lines.append('{}{}:'.format('  ' * indent, key))
+            lines.extend(child.string_lines(indent=indent+1))
+            if blank:
+                lines.append('')
+
+        return lines
+
     def update(self, mapping: typing.Mapping) -> None:
         """Add data from the given mapping to the trie."""
         for key in mapping:
@@ -141,23 +158,16 @@ class BaseKeyParser(QObject):
     Not intended to be instantiated directly. Subclasses have to override
     execute() to do whatever they want to.
 
-    Class Attributes:
-        Match: types of a match between a binding and the keystring.
-            partial: No keychain matched yet, but it's still possible in the
-                     future.
-            definitive: Keychain matches exactly.
-            none: No more matches possible.
-
-        do_log: Whether to log keypresses or not.
-        passthrough: Whether unbound keys should be passed through with this
-                     handler.
-        supports_count: Whether count is supported.
-
     Attributes:
+        mode_name: The name of the mode in the config.
         bindings: Bound key bindings
+        _mode: The usertypes.KeyMode associated with this keyparser.
         _win_id: The window ID this keyparser is associated with.
         _sequence: The currently entered key sequence
-        _modename: The name of the input mode associated with this keyparser.
+        _do_log: Whether to log keypresses or not.
+        passthrough: Whether unbound keys should be passed through with this
+                     handler.
+        _supports_count: Whether count is supported.
 
     Signals:
         keystring_updated: Emitted when the keystring is updated.
@@ -170,21 +180,31 @@ class BaseKeyParser(QObject):
 
     keystring_updated = pyqtSignal(str)
     request_leave = pyqtSignal(usertypes.KeyMode, str, bool)
-    do_log = True
-    passthrough = False
-    supports_count = True
 
-    def __init__(self, win_id: int, parent: QWidget = None) -> None:
+    def __init__(self, *, mode: usertypes.KeyMode,
+                 win_id: int,
+                 parent: QObject = None,
+                 do_log: bool = True,
+                 passthrough: bool = False,
+                 supports_count: bool = True) -> None:
         super().__init__(parent)
         self._win_id = win_id
-        self._modename = None
         self._sequence = keyutils.KeySequence()
         self._count = ''
+        self._mode = mode
+        self._do_log = do_log
+        self.passthrough = passthrough
+        self._supports_count = supports_count
         self.bindings = BindingTrie()
+        self._read_config()
         config.instance.changed.connect(self._on_config_changed)
 
     def __repr__(self) -> str:
-        return utils.get_repr(self)
+        return utils.get_repr(self, mode=self._mode,
+                              win_id=self._win_id,
+                              do_log=self._do_log,
+                              passthrough=self.passthrough,
+                              supports_count=self._supports_count)
 
     def _debug_log(self, message: str) -> None:
         """Log a message to the debug log if logging is active.
@@ -192,8 +212,10 @@ class BaseKeyParser(QObject):
         Args:
             message: The message to log.
         """
-        if self.do_log:
-            log.keyboard.debug(message)
+        if self._do_log:
+            prefix = '{} for mode {}: '.format(self.__class__.__name__,
+                                               self._mode.name)
+            log.keyboard.debug(prefix + message)
 
     def _match_key(self, sequence: keyutils.KeySequence) -> MatchResult:
         """Try to match a given keystring with any bound keychain.
@@ -235,7 +257,7 @@ class BaseKeyParser(QObject):
                      dry_run: bool) -> bool:
         """Try to match a key as count."""
         txt = str(sequence[-1])  # To account for sequences changed above.
-        if (txt in string.digits and self.supports_count and
+        if (txt in string.digits and self._supports_count and
                 not (not self._count and txt == '0')):
             self._debug_log("Trying match as count")
             assert len(txt) == 1, txt
@@ -320,25 +342,12 @@ class BaseKeyParser(QObject):
     def _on_config_changed(self) -> None:
         self._read_config()
 
-    def _read_config(self, modename: str = None) -> None:
-        """Read the configuration.
-
-        Config format: key = command, e.g.:
-            <Ctrl+Q> = quit
-
-        Args:
-            modename: Name of the mode to use.
-        """
-        if modename is None:
-            if self._modename is None:
-                raise ValueError("read_config called with no mode given, but "
-                                 "None defined so far!")
-            modename = self._modename
-        else:
-            self._modename = modename
+    def _read_config(self) -> None:
+        """Read the configuration."""
         self.bindings = BindingTrie()
+        config_bindings = config.key_instance.get_bindings_for(self._mode.name)
 
-        for key, cmd in config.key_instance.get_bindings_for(modename).items():
+        for key, cmd in config_bindings.items():
             assert cmd
             self.bindings[key] = cmd
 

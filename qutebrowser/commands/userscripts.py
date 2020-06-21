@@ -31,6 +31,7 @@ from qutebrowser.commands import runners
 from qutebrowser.config import websettings
 from qutebrowser.misc import guiprocess
 from qutebrowser.browser import downloads
+from qutebrowser.qt import sip
 
 
 class _QtFIFOReader(QObject):
@@ -59,8 +60,10 @@ class _QtFIFOReader(QObject):
         fd = os.open(filepath, os.O_RDWR | os.O_NONBLOCK)
         # pylint: enable=no-member,useless-suppression
         self._fifo = os.fdopen(fd, 'r')
-        self._notifier = QSocketNotifier(fd, QSocketNotifier.Read, self)
-        self._notifier.activated.connect(self.read_line)  # type: ignore
+        self._notifier = QSocketNotifier(typing.cast(sip.voidptr, fd),
+                                         QSocketNotifier.Read, self)
+        self._notifier.activated.connect(  # type: ignore[attr-defined]
+            self.read_line)
 
     @pyqtSlot()
     def read_line(self):
@@ -148,7 +151,8 @@ class _BaseUserscriptRunner(QObject):
             log.procs.debug("Both text/HTML stored, kicking off userscript!")
             self._run_process(*self._args, **self._kwargs)
 
-    def _run_process(self, cmd, *args, env=None, verbose=False):
+    def _run_process(self, cmd, *args, env=None, verbose=False,
+                     output_messages=False):
         """Start the given command.
 
         Args:
@@ -156,15 +160,16 @@ class _BaseUserscriptRunner(QObject):
             *args: The arguments to hand to the command
             env: A dictionary of environment variables to add.
             verbose: Show notifications when the command started/exited.
+            output_messages: Show the output as messages.
         """
         assert self._filepath is not None
         self._env['QUTE_FIFO'] = self._filepath
         if env is not None:
             self._env.update(env)
 
-        self._proc = guiprocess.GUIProcess('userscript',
-                                           additional_env=self._env,
-                                           verbose=verbose, parent=self)
+        self._proc = guiprocess.GUIProcess(
+            'userscript', additional_env=self._env,
+            output_messages=output_messages, verbose=verbose, parent=self)
         self._proc.finished.connect(self.on_proc_finished)
         self._proc.error.connect(self.on_proc_error)
         self._proc.start(cmd, args)
@@ -254,14 +259,15 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
             self._filepath = tempfile.mktemp(prefix='qutebrowser-userscript-',
                                              dir=standarddir.runtime())
             # pylint: disable=no-member,useless-suppression
-            os.mkfifo(self._filepath)
+            os.mkfifo(self._filepath, mode=0o600)
             # pylint: enable=no-member,useless-suppression
         except OSError as e:
+            self._filepath = None  # Make sure it's not used
             message.error("Error while creating FIFO: {}".format(e))
             return
 
         self._reader = _QtFIFOReader(self._filepath)
-        self._reader.got_line.connect(self.got_cmd)  # type: ignore
+        self._reader.got_line.connect(self.got_cmd)  # type: ignore[arg-type]
 
     @pyqtSlot()
     def on_proc_finished(self):
@@ -398,7 +404,8 @@ def _lookup_path(cmd):
     raise NotFoundError(cmd, directories)
 
 
-def run_async(tab, cmd, *args, win_id, env, verbose=False):
+def run_async(tab, cmd, *args, win_id, env, verbose=False,
+              output_messages=False):
     """Run a userscript after dumping page html/source.
 
     Raises:
@@ -413,15 +420,15 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
         win_id: The window id the userscript is executed in.
         env: A dictionary of variables to add to the process environment.
         verbose: Show notifications when the command started/exited.
+        output_messages: Show the output as messages.
     """
-    tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                window=win_id)
-    commandrunner = runners.CommandRunner(win_id, parent=tabbed_browser)
+    tb = objreg.get('tabbed-browser', scope='window', window=win_id)
+    commandrunner = runners.CommandRunner(win_id, parent=tb)
 
     if utils.is_posix:
-        runner = _POSIXUserscriptRunner(tabbed_browser)
+        runner = _POSIXUserscriptRunner(tb)  # type: _BaseUserscriptRunner
     elif utils.is_windows:  # pragma: no cover
-        runner = _WindowsUserscriptRunner(tabbed_browser)
+        runner = _WindowsUserscriptRunner(tb)
     else:  # pragma: no cover
         raise UnsupportedError
 
@@ -451,7 +458,8 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
     runner.finished.connect(commandrunner.deleteLater)
     runner.finished.connect(runner.deleteLater)
 
-    runner.prepare_run(cmd_path, *args, env=env, verbose=verbose)
+    runner.prepare_run(cmd_path, *args, env=env, verbose=verbose,
+                       output_messages=output_messages)
     tab.dump_async(runner.store_html)
     tab.dump_async(runner.store_text, plain=True)
     return runner

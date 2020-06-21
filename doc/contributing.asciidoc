@@ -707,6 +707,9 @@ qutebrowser release
 * Make sure there are no unstaged changes and the tests are green.
 * Make sure all issues with the related milestone are closed.
 * Consider updating the completions for `content.headers.user_agent` in `configdata.yml`.
+* Minor release: Consider updating some files from master:
+  - `misc/requirements/` and `requirements.txt`
+  - `scripts/`
 * Make sure Python is up-to-date on build machines.
 * Mark the milestone at https://github.com/qutebrowser/qutebrowser/milestones as closed.
 * Update changelog in master branch

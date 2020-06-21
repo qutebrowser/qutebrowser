@@ -278,7 +278,7 @@ class CompletionView(QTreeView):
 
         selmodel.setCurrentIndex(
             idx,
-            QItemSelectionModel.ClearAndSelect |  # type: ignore
+            QItemSelectionModel.ClearAndSelect |  # type: ignore[arg-type]
             QItemSelectionModel.Rows)
 
         # if the last item is focused, try to fetch more
@@ -424,4 +424,8 @@ class CompletionView(QTreeView):
             if not index.isValid():
                 raise cmdutils.CommandError("No item selected!")
             text = self.model().data(index)
+
+        if not utils.supports_selection():
+            sel = False
+
         utils.set_clipboard(text, selection=sel)

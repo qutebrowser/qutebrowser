@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# FIXME:typing Can we have less "# type: ignore" in here?
-
 """Misc. utilities related to Qt.
 
 Module attributes:
@@ -37,14 +35,14 @@ import typing
 
 import pkg_resources
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
-                          QIODevice, QSaveFile, QT_VERSION_STR,
-                          PYQT_VERSION_STR, QFileDevice, QObject)
+                          QIODevice, QFileDevice, QSaveFile, QT_VERSION_STR,
+                          PYQT_VERSION_STR, QObject, QUrl)
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QApplication
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
-    qWebKitVersion = None  # type: ignore  # noqa: N816
+    qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
 
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes
@@ -63,23 +61,27 @@ MINVALS = {
 
 class QtOSError(OSError):
 
-    """An OSError triggered by a QFileDevice.
+    """An OSError triggered by a QIODevice.
 
     Attributes:
         qt_errno: The error attribute of the given QFileDevice, if applicable.
     """
 
-    def __init__(self, dev: QFileDevice, msg: str = None) -> None:
+    def __init__(self, dev: QIODevice, msg: str = None) -> None:
         if msg is None:
             msg = dev.errorString()
 
+        self.qt_errno = None  # type: typing.Optional[QFileDevice.FileError]
+        if isinstance(dev, QFileDevice):
+            msg = self._init_filedev(dev, msg)
+
         super().__init__(msg)
 
-        self.qt_errno = None  # type: typing.Optional[QFileDevice.FileError]
-        try:
-            self.qt_errno = dev.error()
-        except AttributeError:
-            pass
+    def _init_filedev(self, dev: QFileDevice, msg: str) -> str:
+        self.qt_errno = dev.error()
+        filename = dev.fileName()
+        msg += ": {!r}".format(filename)
+        return msg
 
 
 def version_check(version: str,
@@ -152,7 +154,16 @@ def check_overflow(arg: int, ctype: str, fatal: bool = True) -> int:
         return arg
 
 
-def ensure_valid(obj: QObject) -> None:
+if typing.TYPE_CHECKING:
+    class Validatable(typing.Protocol):
+
+        """An object with an isValid() method (e.g. QUrl)."""
+
+        def isValid(self) -> bool:
+            ...
+
+
+def ensure_valid(obj: 'Validatable') -> None:
     """Ensure a Qt object with an .isValid() method is valid."""
     if not obj.isValid():
         raise QtValueError(obj)
@@ -172,7 +183,10 @@ def check_qdatastream(stream: QDataStream) -> None:
         raise OSError(status_to_str[stream.status()])
 
 
-def serialize(obj: QObject) -> QByteArray:
+_QtSerializableType = typing.Union[QObject, QByteArray, QUrl]
+
+
+def serialize(obj: _QtSerializableType) -> QByteArray:
     """Serialize an object into a QByteArray."""
     data = QByteArray()
     stream = QDataStream(data, QIODevice.WriteOnly)
@@ -180,23 +194,25 @@ def serialize(obj: QObject) -> QByteArray:
     return data
 
 
-def deserialize(data: QByteArray, obj: QObject) -> None:
+def deserialize(data: QByteArray, obj: _QtSerializableType) -> None:
     """Deserialize an object from a QByteArray."""
     stream = QDataStream(data, QIODevice.ReadOnly)
     deserialize_stream(stream, obj)
 
 
-def serialize_stream(stream: QDataStream, obj: QObject) -> None:
+def serialize_stream(stream: QDataStream, obj: _QtSerializableType) -> None:
     """Serialize an object into a QDataStream."""
+    # pylint: disable=pointless-statement
     check_qdatastream(stream)
-    stream << obj  # pylint: disable=pointless-statement
+    stream << obj  # type: ignore[operator]
     check_qdatastream(stream)
 
 
-def deserialize_stream(stream: QDataStream, obj: QObject) -> None:
+def deserialize_stream(stream: QDataStream, obj: _QtSerializableType) -> None:
     """Deserialize a QDataStream into an object."""
+    # pylint: disable=pointless-statement
     check_qdatastream(stream)
-    stream >> obj  # pylint: disable=pointless-statement
+    stream >> obj  # type: ignore[operator]
     check_qdatastream(stream)
 
 
@@ -205,7 +221,7 @@ def savefile_open(
         filename: str,
         binary: bool = False,
         encoding: str = 'utf-8'
-) -> typing.Iterator[typing.Union['PyQIODevice', io.TextIOWrapper]]:
+) -> typing.Iterator[typing.IO]:
     """Context manager to easily use a QSaveFile."""
     f = QSaveFile(filename)
     cancelled = False
@@ -214,12 +230,12 @@ def savefile_open(
         if not open_ok:
             raise QtOSError(f)
 
+        dev = typing.cast(typing.BinaryIO, PyQIODevice(f))
+
         if binary:
-            new_f = PyQIODevice(
-                f)  # type: typing.Union[PyQIODevice, io.TextIOWrapper]
+            new_f = dev  # type: typing.IO
         else:
-            new_f = io.TextIOWrapper(PyQIODevice(f),  # type: ignore
-                                     encoding=encoding)
+            new_f = io.TextIOWrapper(dev, encoding=encoding)
 
         yield new_f
 
@@ -335,28 +351,34 @@ class PyQIODevice(io.BufferedIOBase):
     def readable(self) -> bool:
         return self.dev.isReadable()
 
-    def readline(self, size: int = -1) -> QByteArray:
+    def readline(self, size: int = -1) -> bytes:
         self._check_open()
         self._check_readable()
 
         if size < 0:
             qt_size = 0  # no maximum size
         elif size == 0:
-            return QByteArray()
+            return b''
         else:
             qt_size = size + 1  # Qt also counts the NUL byte
 
+        buf = None  # type: typing.Union[QByteArray, bytes, None]
         if self.dev.canReadLine():
             buf = self.dev.readLine(qt_size)
+        elif size < 0:
+            buf = self.dev.readAll()
         else:
-            if size < 0:
-                buf = self.dev.readAll()
-            else:
-                buf = self.dev.read(size)
+            buf = self.dev.read(size)
 
         if buf is None:
             raise QtOSError(self.dev)
-        return buf  # type: ignore
+
+        if isinstance(buf, QByteArray):
+            # The type (bytes or QByteArray) seems to depend on what data we
+            # feed in...
+            buf = buf.data()
+
+        return buf
 
     def seekable(self) -> bool:
         return not self.dev.isSequential()
@@ -369,25 +391,32 @@ class PyQIODevice(io.BufferedIOBase):
     def writable(self) -> bool:
         return self.dev.isWritable()
 
-    def write(self, data: str) -> int:  # type: ignore
+    def write(self, data: typing.Union[bytes, bytearray]) -> int:
         self._check_open()
         self._check_writable()
-        num = self.dev.write(data)  # type: ignore
+        num = self.dev.write(data)
         if num == -1 or num < len(data):
             raise QtOSError(self.dev)
         return num
 
-    def read(self, size: typing.Optional[int] = None) -> QByteArray:
+    def read(self, size: typing.Optional[int] = None) -> bytes:
         self._check_open()
         self._check_readable()
 
+        buf = None  # type: typing.Union[QByteArray, bytes, None]
         if size in [None, -1]:
             buf = self.dev.readAll()
         else:
-            buf = self.dev.read(size)  # type: ignore
+            assert size is not None
+            buf = self.dev.read(size)
 
         if buf is None:
             raise QtOSError(self.dev)
+
+        if isinstance(buf, QByteArray):
+            # The type (bytes or QByteArray) seems to depend on what data we
+            # feed in...
+            buf = buf.data()
 
         return buf
 
@@ -396,9 +425,9 @@ class QtValueError(ValueError):
 
     """Exception which gets raised by ensure_valid."""
 
-    def __init__(self, obj: QObject) -> None:
+    def __init__(self, obj: 'Validatable') -> None:
         try:
-            self.reason = obj.errorString()
+            self.reason = obj.errorString()  # type: ignore[attr-defined]
         except AttributeError:
             self.reason = None
         err = "{} is not valid".format(obj)
@@ -420,12 +449,13 @@ class EventLoop(QEventLoop):
 
     def exec_(
             self,
-            flags: QEventLoop.ProcessEventsFlag = QEventLoop.AllEvents
+            flags: QEventLoop.ProcessEventsFlags =
+            typing.cast(QEventLoop.ProcessEventsFlags, QEventLoop.AllEvents)
     ) -> int:
         """Override exec_ to raise an exception when re-running."""
         if self._executing:
             raise AssertionError("Eventloop is already running!")
         self._executing = True
-        status = super().exec_(flags)  # type: ignore
+        status = super().exec_(flags)
         self._executing = False
         return status

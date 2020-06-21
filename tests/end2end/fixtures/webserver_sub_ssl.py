@@ -40,6 +40,11 @@ def hello_world():
     return "Hello World via SSL!"
 
 
+@app.route('/favicon.ico')
+def favicon():
+    return webserver_sub.favicon()
+
+
 @app.after_request
 def log_request(response):
     return webserver_sub.log_request(response)

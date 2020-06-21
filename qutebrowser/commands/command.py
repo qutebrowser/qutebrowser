@@ -244,7 +244,7 @@ class Command:
             args = self._param_to_argparse_args(param, is_bool)
             callsig = debug_utils.format_call(self.parser.add_argument, args,
                                               kwargs, full=False)
-            log.commands.vdebug(  # type: ignore
+            log.commands.vdebug(  # type: ignore[attr-defined]
                 'Adding arg {} of type {} -> {}'
                 .format(param.name, typ, callsig))
             self.parser.add_argument(*args, **kwargs)
@@ -334,8 +334,8 @@ class Command:
         Args:
             param: The inspect.Parameter to look at.
         """
-        arginfo = self.get_arg_info(param)
-        if arginfo.value:
+        arg_info = self.get_arg_info(param)
+        if arg_info.value:
             # Filled values are passed 1:1
             return None
         elif param.kind in [inspect.Parameter.VAR_POSITIONAL,
@@ -409,7 +409,8 @@ class Command:
         if hasattr(typing, 'UnionMeta'):
             # Python 3.5.2
             # pylint: disable=no-member,useless-suppression
-            is_union = isinstance(typ, typing.UnionMeta)  # type: ignore
+            is_union = isinstance(
+                typ, typing.UnionMeta)  # type: ignore[attr-defined]
         else:
             is_union = getattr(typ, '__origin__', None) is typing.Union
 
@@ -575,7 +576,7 @@ class Command:
 
     def register(self):
         """Register this command in objects.commands."""
-        log.commands.vdebug(  # type: ignore
+        log.commands.vdebug(  # type: ignore[attr-defined]
             "Registering command {} (from {}:{})".format(
                 self.name, self.handler.__module__, self.handler.__qualname__))
         if self.name in objects.commands:

@@ -25,4 +25,4 @@
 try:
     from PyQt5 import sip
 except ImportError:
-    import sip  # type: ignore
+    import sip  # type: ignore[import, no-redef]

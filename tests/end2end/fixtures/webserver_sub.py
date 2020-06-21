@@ -272,6 +272,15 @@ def view_user_agent():
     return flask.jsonify({'user-agent': flask.request.headers['user-agent']})
 
 
+@app.route('/favicon.ico')
+def favicon():
+    basedir = os.path.join(os.path.realpath(os.path.dirname(__file__)),
+                           '..', '..', '..')
+    return flask.send_from_directory(os.path.join(basedir, 'icons'),
+                                     'qutebrowser.ico',
+                                     mimetype='image/vnd.microsoft.icon')
+
+
 @app.after_request
 def log_request(response):
     """Log a webserver request."""

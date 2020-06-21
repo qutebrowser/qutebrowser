@@ -28,9 +28,5 @@ time, your help is needed! See the
 information. Depending on your sign-up date and how long you keep a certain
 level, you can get qutebrowser t-shirts, stickers and more!
 </p>
-<p>
-Thanks to the GitHub Sponsors Matching Fund, all donations done via GitHub
-Sponsors (up to a $5000 total) will be doubled until October 2020.
-</p>
 </div>
 +++

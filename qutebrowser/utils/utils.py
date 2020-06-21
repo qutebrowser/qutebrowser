@@ -36,6 +36,8 @@ import shlex
 import glob
 import mimetypes
 import typing
+import ctypes
+import ctypes.util
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QClipboard, QDesktopServices
@@ -47,7 +49,7 @@ try:
                       CSafeDumper as YamlDumper)
     YAML_C_EXT = True
 except ImportError:  # pragma: no cover
-    from yaml import (SafeLoader as YamlLoader,  # type: ignore
+    from yaml import (SafeLoader as YamlLoader,  # type: ignore[misc]
                       SafeDumper as YamlDumper)
     YAML_C_EXT = False
 
@@ -324,7 +326,7 @@ class FakeIOStream(io.TextIOBase):
 
     def __init__(self, write_func: typing.Callable[[str], int]) -> None:
         super().__init__()
-        self.write = write_func  # type: ignore
+        self.write = write_func  # type: ignore[assignment]
 
 
 @contextlib.contextmanager
@@ -338,16 +340,16 @@ def fake_io(write_func: typing.Callable[[str], int]) -> typing.Iterator[None]:
     old_stderr = sys.stderr
     fake_stderr = FakeIOStream(write_func)
     fake_stdout = FakeIOStream(write_func)
-    sys.stderr = fake_stderr  # type: ignore
-    sys.stdout = fake_stdout  # type: ignore
+    sys.stderr = fake_stderr  # type: ignore[assignment]
+    sys.stdout = fake_stdout  # type: ignore[assignment]
     try:
         yield
     finally:
         # If the code we did run did change sys.stdout/sys.stderr, we leave it
         # unchanged. Otherwise, we reset it.
-        if sys.stdout is fake_stdout:  # type: ignore
+        if sys.stdout is fake_stdout:  # type: ignore[comparison-overlap]
             sys.stdout = old_stdout
-        if sys.stderr is fake_stderr:  # type: ignore
+        if sys.stderr is fake_stderr:  # type: ignore[comparison-overlap]
             sys.stderr = old_stderr
 
 
@@ -776,3 +778,16 @@ def ceil_log(number: int, base: int) -> int:
         result += 1
         accum *= base
     return result
+
+
+def libgl_workaround() -> None:
+    """Work around QOpenGLShaderProgram issues, especially for Nvidia.
+
+    See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/941826
+    """
+    if os.environ.get('QUTE_SKIP_LIBGL_WORKAROUND'):
+        return
+
+    libgl = ctypes.util.find_library("GL")
+    if libgl is not None:  # pragma: no branch
+        ctypes.CDLL(libgl, mode=ctypes.RTLD_GLOBAL)

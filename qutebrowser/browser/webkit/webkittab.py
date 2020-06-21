@@ -25,6 +25,7 @@ import xml.etree.ElementTree
 
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
 from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
@@ -33,6 +34,7 @@ from qutebrowser.browser import browsertab, shared
 from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
                                         webkitsettings)
 from qutebrowser.utils import qtutils, usertypes, utils, log, debug
+from qutebrowser.keyinput import modeman
 from qutebrowser.qt import sip
 
 
@@ -85,7 +87,10 @@ class WebKitSearch(browsertab.AbstractSearch):
 
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
-        self._flags = QWebPage.FindFlags(0)  # type: ignore
+        self._flags = self._empty_flags()
+
+    def _empty_flags(self):
+        return QWebPage.FindFlags(0)  # type: ignore[call-overload]
 
     def _call_cb(self, callback, found, text, flags, caller):
         """Call the given callback if it's non-None.
@@ -125,7 +130,7 @@ class WebKitSearch(browsertab.AbstractSearch):
         self._widget.findText('', QWebPage.HighlightAllOccurrences)
 
     def search(self, text, *, ignore_case=usertypes.IgnoreCase.never,
-               reverse=False, result_cb=None):
+               reverse=False, wrap=True, result_cb=None):
         # Don't go to next entry on duplicate search
         if self.text == text and self.search_displayed:
             log.webview.debug("Ignoring duplicate search request"
@@ -137,11 +142,13 @@ class WebKitSearch(browsertab.AbstractSearch):
 
         self.text = text
         self.search_displayed = True
-        self._flags = QWebPage.FindWrapsAroundDocument
+        self._flags = self._empty_flags()
         if self._is_case_sensitive(ignore_case):
             self._flags |= QWebPage.FindCaseSensitively
         if reverse:
             self._flags |= QWebPage.FindBackward
+        if wrap:
+            self._flags |= QWebPage.FindWrapsAroundDocument
         # We actually search *twice* - once to highlight everything, then again
         # to get a mark so we can navigate.
         found = self._widget.findText(text, self._flags)
@@ -157,7 +164,8 @@ class WebKitSearch(browsertab.AbstractSearch):
     def prev_result(self, *, result_cb=None):
         self.search_displayed = True
         # The int() here makes sure we get a copy of the flags.
-        flags = QWebPage.FindFlags(int(self._flags))  # type: ignore
+        flags = QWebPage.FindFlags(
+            int(self._flags))  # type: ignore[call-overload]
         if flags & QWebPage.FindBackward:
             flags &= ~QWebPage.FindBackward
         else:
@@ -170,13 +178,24 @@ class WebKitCaret(browsertab.AbstractCaret):
 
     """QtWebKit implementations related to moving the cursor/selection."""
 
+    def __init__(self,
+                 tab: 'WebKitTab',
+                 mode_manager: modeman.ModeManager,
+                 parent: QWidget = None) -> None:
+        super().__init__(mode_manager, parent)
+        self._tab = tab
+        self._selection_state = browsertab.SelectionState.none
+
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_entered(self, mode):
         if mode != usertypes.KeyMode.caret:
             return
 
-        self.selection_enabled = self._widget.hasSelection()
-        self.selection_toggled.emit(self.selection_enabled)
+        if self._widget.hasSelection():
+            self._selection_state = browsertab.SelectionState.normal
+        else:
+            self._selection_state = browsertab.SelectionState.none
+        self.selection_toggled.emit(self._selection_state)
         settings = self._widget.settings()
         settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
 
@@ -191,7 +210,7 @@ class WebKitCaret(browsertab.AbstractCaret):
             #
             # Note: We can't use hasSelection() here, as that's always
             # true in caret mode.
-            if not self.selection_enabled:
+            if self._selection_state is browsertab.SelectionState.none:
                 self._widget.page().currentFrame().evaluateJavaScript(
                     utils.read_file('javascript/position_caret.js'))
 
@@ -199,151 +218,189 @@ class WebKitCaret(browsertab.AbstractCaret):
     def _on_mode_left(self, _mode):
         settings = self._widget.settings()
         if settings.testAttribute(QWebSettings.CaretBrowsingEnabled):
-            if self.selection_enabled and self._widget.hasSelection():
+            if (self._selection_state is not browsertab.SelectionState.none and
+                    self._widget.hasSelection()):
                 # Remove selection if it exists
                 self._widget.triggerPageAction(QWebPage.MoveToNextChar)
             settings.setAttribute(QWebSettings.CaretBrowsingEnabled, False)
-            self.selection_enabled = False
+            self._selection_state = browsertab.SelectionState.none
 
     def move_to_next_line(self, count=1):
-        if not self.selection_enabled:
-            act = QWebPage.MoveToNextLine
-        else:
+        if self._selection_state is not browsertab.SelectionState.none:
             act = QWebPage.SelectNextLine
+        else:
+            act = QWebPage.MoveToNextLine
         for _ in range(count):
             self._widget.triggerPageAction(act)
+        if self._selection_state is browsertab.SelectionState.line:
+            self._select_line_to_end()
 
     def move_to_prev_line(self, count=1):
-        if not self.selection_enabled:
-            act = QWebPage.MoveToPreviousLine
-        else:
+        if self._selection_state is not browsertab.SelectionState.none:
             act = QWebPage.SelectPreviousLine
+        else:
+            act = QWebPage.MoveToPreviousLine
         for _ in range(count):
             self._widget.triggerPageAction(act)
+        if self._selection_state is browsertab.SelectionState.line:
+            self._select_line_to_start()
 
     def move_to_next_char(self, count=1):
-        if not self.selection_enabled:
-            act = QWebPage.MoveToNextChar
-        else:
+        if self._selection_state is browsertab.SelectionState.normal:
             act = QWebPage.SelectNextChar
+        elif self._selection_state is browsertab.SelectionState.line:
+            return
+        else:
+            act = QWebPage.MoveToNextChar
         for _ in range(count):
             self._widget.triggerPageAction(act)
 
     def move_to_prev_char(self, count=1):
-        if not self.selection_enabled:
-            act = QWebPage.MoveToPreviousChar
-        else:
+        if self._selection_state is browsertab.SelectionState.normal:
             act = QWebPage.SelectPreviousChar
+        elif self._selection_state is browsertab.SelectionState.line:
+            return
+        else:
+            act = QWebPage.MoveToPreviousChar
         for _ in range(count):
             self._widget.triggerPageAction(act)
 
     def move_to_end_of_word(self, count=1):
-        if not self.selection_enabled:
-            act = [QWebPage.MoveToNextWord]
-            if utils.is_windows:  # pragma: no cover
-                act.append(QWebPage.MoveToPreviousChar)
-        else:
+        if self._selection_state is browsertab.SelectionState.normal:
             act = [QWebPage.SelectNextWord]
             if utils.is_windows:  # pragma: no cover
                 act.append(QWebPage.SelectPreviousChar)
+        elif self._selection_state is browsertab.SelectionState.line:
+            return
+        else:
+            act = [QWebPage.MoveToNextWord]
+            if utils.is_windows:  # pragma: no cover
+                act.append(QWebPage.MoveToPreviousChar)
         for _ in range(count):
             for a in act:
                 self._widget.triggerPageAction(a)
 
     def move_to_next_word(self, count=1):
-        if not self.selection_enabled:
-            act = [QWebPage.MoveToNextWord]
-            if not utils.is_windows:  # pragma: no branch
-                act.append(QWebPage.MoveToNextChar)
-        else:
+        if self._selection_state is browsertab.SelectionState.normal:
             act = [QWebPage.SelectNextWord]
             if not utils.is_windows:  # pragma: no branch
                 act.append(QWebPage.SelectNextChar)
+        elif self._selection_state is browsertab.SelectionState.line:
+            return
+        else:
+            act = [QWebPage.MoveToNextWord]
+            if not utils.is_windows:  # pragma: no branch
+                act.append(QWebPage.MoveToNextChar)
         for _ in range(count):
             for a in act:
                 self._widget.triggerPageAction(a)
 
     def move_to_prev_word(self, count=1):
-        if not self.selection_enabled:
-            act = QWebPage.MoveToPreviousWord
-        else:
+        if self._selection_state is browsertab.SelectionState.normal:
             act = QWebPage.SelectPreviousWord
+        elif self._selection_state is browsertab.SelectionState.line:
+            return
+        else:
+            act = QWebPage.MoveToPreviousWord
         for _ in range(count):
             self._widget.triggerPageAction(act)
 
     def move_to_start_of_line(self):
-        if not self.selection_enabled:
-            act = QWebPage.MoveToStartOfLine
-        else:
+        if self._selection_state is browsertab.SelectionState.normal:
             act = QWebPage.SelectStartOfLine
+        elif self._selection_state is browsertab.SelectionState.line:
+            return
+        else:
+            act = QWebPage.MoveToStartOfLine
         self._widget.triggerPageAction(act)
 
     def move_to_end_of_line(self):
-        if not self.selection_enabled:
-            act = QWebPage.MoveToEndOfLine
-        else:
+        if self._selection_state is browsertab.SelectionState.normal:
             act = QWebPage.SelectEndOfLine
+        elif self._selection_state is browsertab.SelectionState.line:
+            return
+        else:
+            act = QWebPage.MoveToEndOfLine
         self._widget.triggerPageAction(act)
 
     def move_to_start_of_next_block(self, count=1):
-        if not self.selection_enabled:
-            act = [QWebPage.MoveToNextLine,
-                   QWebPage.MoveToStartOfBlock]
-        else:
+        if self._selection_state is not browsertab.SelectionState.none:
             act = [QWebPage.SelectNextLine,
                    QWebPage.SelectStartOfBlock]
+        else:
+            act = [QWebPage.MoveToNextLine,
+                   QWebPage.MoveToStartOfBlock]
         for _ in range(count):
             for a in act:
                 self._widget.triggerPageAction(a)
+        if self._selection_state is browsertab.SelectionState.line:
+            self._select_line_to_end()
 
     def move_to_start_of_prev_block(self, count=1):
-        if not self.selection_enabled:
-            act = [QWebPage.MoveToPreviousLine,
-                   QWebPage.MoveToStartOfBlock]
-        else:
+        if self._selection_state is not browsertab.SelectionState.none:
             act = [QWebPage.SelectPreviousLine,
                    QWebPage.SelectStartOfBlock]
+        else:
+            act = [QWebPage.MoveToPreviousLine,
+                   QWebPage.MoveToStartOfBlock]
         for _ in range(count):
             for a in act:
                 self._widget.triggerPageAction(a)
+        if self._selection_state is browsertab.SelectionState.line:
+            self._select_line_to_start()
 
     def move_to_end_of_next_block(self, count=1):
-        if not self.selection_enabled:
-            act = [QWebPage.MoveToNextLine,
-                   QWebPage.MoveToEndOfBlock]
-        else:
+        if self._selection_state is not browsertab.SelectionState.none:
             act = [QWebPage.SelectNextLine,
                    QWebPage.SelectEndOfBlock]
+        else:
+            act = [QWebPage.MoveToNextLine,
+                   QWebPage.MoveToEndOfBlock]
         for _ in range(count):
             for a in act:
                 self._widget.triggerPageAction(a)
+        if self._selection_state is browsertab.SelectionState.line:
+            self._select_line_to_end()
 
     def move_to_end_of_prev_block(self, count=1):
-        if not self.selection_enabled:
-            act = [QWebPage.MoveToPreviousLine, QWebPage.MoveToEndOfBlock]
-        else:
+        if self._selection_state is not browsertab.SelectionState.none:
             act = [QWebPage.SelectPreviousLine, QWebPage.SelectEndOfBlock]
+        else:
+            act = [QWebPage.MoveToPreviousLine, QWebPage.MoveToEndOfBlock]
         for _ in range(count):
             for a in act:
                 self._widget.triggerPageAction(a)
+        if self._selection_state is browsertab.SelectionState.line:
+            self._select_line_to_start()
 
     def move_to_start_of_document(self):
-        if not self.selection_enabled:
-            act = QWebPage.MoveToStartOfDocument
-        else:
+        if self._selection_state is not browsertab.SelectionState.none:
             act = QWebPage.SelectStartOfDocument
+        else:
+            act = QWebPage.MoveToStartOfDocument
         self._widget.triggerPageAction(act)
+        if self._selection_state is browsertab.SelectionState.line:
+            self._select_line()
 
     def move_to_end_of_document(self):
-        if not self.selection_enabled:
-            act = QWebPage.MoveToEndOfDocument
-        else:
+        if self._selection_state is not browsertab.SelectionState.none:
             act = QWebPage.SelectEndOfDocument
+        else:
+            act = QWebPage.MoveToEndOfDocument
         self._widget.triggerPageAction(act)
 
-    def toggle_selection(self):
-        self.selection_enabled = not self.selection_enabled
-        self.selection_toggled.emit(self.selection_enabled)
+    def toggle_selection(self, line=False):
+        if line:
+            self._selection_state = browsertab.SelectionState.line
+            self._select_line()
+            self.reverse_selection()
+            self._select_line()
+            self.reverse_selection()
+        elif self._selection_state is not browsertab.SelectionState.normal:
+            self._selection_state = browsertab.SelectionState.normal
+        else:
+            self._selection_state = browsertab.SelectionState.none
+        self.selection_toggled.emit(self._selection_state)
 
     def drop_selection(self):
         self._widget.triggerPageAction(QWebPage.MoveToNextChar)
@@ -359,6 +416,32 @@ class WebKitCaret(browsertab.AbstractCaret):
                 sel.baseOffset
             );
         }""")
+
+    def _select_line(self):
+        self._widget.triggerPageAction(QWebPage.SelectStartOfLine)
+        self.reverse_selection()
+        self._widget.triggerPageAction(QWebPage.SelectEndOfLine)
+        self.reverse_selection()
+
+    def _select_line_to_end(self):
+        # direction of selection (if anchor is to the left or right
+        # of focus) has to be checked before moving selection
+        # to the end of line
+        if self._js_selection_left_to_right():
+            self._widget.triggerPageAction(QWebPage.SelectEndOfLine)
+
+    def _select_line_to_start(self):
+        if not self._js_selection_left_to_right():
+            self._widget.triggerPageAction(QWebPage.SelectStartOfLine)
+
+    def _js_selection_left_to_right(self):
+        """Return True iff the selection's direction is left to right."""
+        return self._tab.private_api.run_js_sync("""
+            var sel = window.getSelection();
+            var position = sel.anchorNode.compareDocumentPosition(sel.focusNode);
+            (!position && sel.anchorOffset < sel.focusOffset ||
+                position === Node.DOCUMENT_POSITION_FOLLOWING);
+        """)
 
     def _follow_selected(self, *, tab=False):
         if QWebSettings.globalSettings().testAttribute(
@@ -391,11 +474,11 @@ class WebKitCaret(browsertab.AbstractCaret):
 
             if selected_element is not None:
                 try:
-                    url = selected_element.attrib['href']
+                    href = selected_element.attrib['href']
                 except KeyError:
                     raise browsertab.WebTabError('Anchor element without '
                                                  'href!')
-                url = self._tab.url().resolved(QUrl(url))
+                url = self._tab.url().resolved(QUrl(href))
                 if tab:
                     self._tab.new_tab_requested.emit(url)
                 else:
@@ -580,6 +663,10 @@ class WebKitElements(browsertab.AbstractElements):
 
     """QtWebKit implemementations related to elements on the page."""
 
+    def __init__(self, tab: 'WebKitTab') -> None:
+        super().__init__()
+        self._tab = tab
+
     def find_css(self, selector, callback, error_cb, *, only_visible=False):
         utils.unused(error_cb)
         mainframe = self._widget.page().mainFrame()
@@ -691,13 +778,21 @@ class WebKitTabPrivate(browsertab.AbstractTabPrivate):
     def shutdown(self):
         self._widget.shutdown()
 
+    def run_js_sync(self, code):
+        document_element = self._widget.page().mainFrame().documentElement()
+        result = document_element.evaluateJavaScript(code)
+        return result
+
 
 class WebKitTab(browsertab.AbstractTab):
 
     """A QtWebKit tab in the browser."""
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
-        super().__init__(win_id=win_id, private=private, parent=parent)
+        super().__init__(win_id=win_id,
+                         mode_manager=mode_manager,
+                         private=private,
+                         parent=parent)
         widget = webview.WebView(win_id=win_id, tab_id=self.tab_id,
                                  private=private, tab=self)
         if private:
@@ -749,8 +844,7 @@ class WebKitTab(browsertab.AbstractTab):
     def run_js_async(self, code, callback=None, *, world=None):
         if world is not None and world != usertypes.JsWorld.jseval:
             log.webview.warning("Ignoring world ID {}".format(world))
-        document_element = self._widget.page().mainFrame().documentElement()
-        result = document_element.evaluateJavaScript(code)
+        result = self.private_api.run_js_sync(code)
         if callback is not None:
             callback(result)
 
@@ -847,9 +941,9 @@ class WebKitTab(browsertab.AbstractTab):
         if navigation.is_main_frame:
             self.settings.update_for_url(navigation.url)
 
-    @pyqtSlot()
-    def _on_ssl_errors(self):
-        self._has_ssl_errors = True
+    @pyqtSlot('QNetworkReply*')
+    def _on_ssl_errors(self, reply):
+        self._insecure_hosts.add(reply.url().host())
 
     def _connect_signals(self):
         view = self._widget

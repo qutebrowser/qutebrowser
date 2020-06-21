@@ -192,12 +192,13 @@ class PromptQueue(QObject):
         if blocking:
             loop = qtutils.EventLoop()
             self._loops.append(loop)
-            loop.destroyed.connect(  # type: ignore
-                lambda: self._loops.remove(loop))
+            loop.destroyed.connect(lambda: self._loops.remove(loop))
             question.completed.connect(loop.quit)
             question.completed.connect(loop.deleteLater)
             log.prompt.debug("Starting loop.exec_() for {}".format(question))
-            loop.exec_(QEventLoop.ExcludeSocketNotifiers)
+            flags = typing.cast(QEventLoop.ProcessEventsFlags,
+                                QEventLoop.ExcludeSocketNotifiers)
+            loop.exec_(flags)
             log.prompt.debug("Ending loop.exec_() for {}".format(question))
 
             log.prompt.debug("Restoring old question {}".format(old_question))
@@ -329,7 +330,7 @@ class PromptContainer(QWidget):
             usertypes.PromptMode.alert: AlertPrompt,
         }
         klass = classes[question.mode]
-        prompt = typing.cast(_BasePrompt, klass(question))
+        prompt = klass(question)
 
         log.prompt.debug("Displaying prompt {}".format(prompt))
         self._prompt = prompt
@@ -707,7 +708,7 @@ class FilenamePrompt(_BasePrompt):
         # Nothing selected initially
         self._file_view.setCurrentIndex(QModelIndex())
         # The model needs to be sorted so we get the correct first/last index
-        self._file_model.directoryLoaded.connect(  # type: ignore
+        self._file_model.directoryLoaded.connect(
             lambda: self._file_model.sort(0))
 
     def accept(self, value=None, save=False):
@@ -755,7 +756,7 @@ class FilenamePrompt(_BasePrompt):
 
         selmodel.setCurrentIndex(
             idx,
-            QItemSelectionModel.ClearAndSelect |  # type: ignore
+            QItemSelectionModel.ClearAndSelect |  # type: ignore[arg-type]
             QItemSelectionModel.Rows)
         self._insert_path(idx, clicked=False)
 
@@ -782,7 +783,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
         self._file_model.setFilter(
-            QDir.AllDirs | QDir.Drives | QDir.NoDot)  # type: ignore
+            QDir.AllDirs | QDir.Drives | QDir.NoDot)  # type: ignore[arg-type]
 
     def accept(self, value=None, save=False):
         done = super().accept(value, save)
@@ -960,5 +961,5 @@ def init():
     """Initialize global prompt objects."""
     global prompt_queue
     prompt_queue = PromptQueue()
-    message.global_bridge.ask_question.connect(  # type: ignore
+    message.global_bridge.ask_question.connect(  # type: ignore[call-arg]
         prompt_queue.ask_question, Qt.DirectConnection)

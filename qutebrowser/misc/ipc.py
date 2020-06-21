@@ -36,7 +36,7 @@ from qutebrowser.utils import log, usertypes, error, standarddir, utils
 CONNECT_TIMEOUT = 100  # timeout for connecting/disconnecting
 WRITE_TIMEOUT = 1000
 READ_TIMEOUT = 5000
-ATIME_INTERVAL = 60 * 60 * 3 * 1000  # 3 hours
+ATIME_INTERVAL = 5000 * 60  # 5 minutes
 PROTOCOL_VERSION = 1
 
 
@@ -178,7 +178,7 @@ class IPCServer(QObject):
             self._atime_timer.setTimerType(Qt.VeryCoarseTimer)
 
         self._server = QLocalServer(self)
-        self._server.newConnection.connect(  # type: ignore
+        self._server.newConnection.connect(  # type: ignore[attr-defined]
             self.handle_connection)
 
         self._socket = None
@@ -252,21 +252,24 @@ class IPCServer(QObject):
             return
         socket = self._server.nextPendingConnection()
         if socket is None:
-            log.ipc.debug("No new connection to handle.")  # type: ignore
+            log.ipc.debug(  # type: ignore[unreachable]
+                "No new connection to handle.")
             return
         log.ipc.debug("Client connected (socket 0x{:x}).".format(id(socket)))
         self._timer.start()
         self._socket = socket
-        socket.readyRead.connect(self.on_ready_read)  # type: ignore
+        socket.readyRead.connect(  # type: ignore[attr-defined]
+            self.on_ready_read)
         if socket.canReadLine():
             log.ipc.debug("We can read a line immediately.")
             self.on_ready_read()
-        socket.error.connect(self.on_error)  # type: ignore
+        socket.error.connect(self.on_error)  # type: ignore[attr-defined]
         if socket.error() not in [QLocalSocket.UnknownSocketError,
                                   QLocalSocket.PeerClosedError]:
             log.ipc.debug("We got an error immediately.")
             self.on_error(socket.error())
-        socket.disconnected.connect(self.on_disconnected)  # type: ignore
+        socket.disconnected.connect(  # type: ignore[attr-defined]
+            self.on_disconnected)
         if socket.state() == QLocalSocket.UnconnectedState:
             log.ipc.debug("Socket was disconnected immediately.")
             self.on_disconnected()
@@ -394,8 +397,16 @@ class IPCServer(QObject):
         if not path:
             log.ipc.error("In update_atime with no server path!")
             return
+
         log.ipc.debug("Touching {}".format(path))
-        os.utime(path)
+
+        try:
+            os.utime(path)
+        except OSError:
+            log.ipc.exception("Failed to update IPC socket, trying to "
+                              "re-listen...")
+            self._server.close()
+            self.listen()
 
     @pyqtSlot()
     def shutdown(self):
