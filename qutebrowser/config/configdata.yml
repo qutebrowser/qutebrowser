@@ -574,7 +574,11 @@ content.blocking.adblock.enabled:
   default: true
   supports_pattern: true
   type: Bool
-  desc: Enable Brave AdBlock.
+  desc: >-
+    Enable Adblock Plus syntax adblock lists using Brave Browsers's adblocking
+    library. This feature requires the "adblock" Python package, which is an
+    optional dependency of qutebrowser. It can be installed using the command
+    `pip install --user adblock`.
 
 content.blocking.adblock.lists:
   default:
@@ -596,6 +600,12 @@ content.blocking.whitelist:
   desc: >-
     A list of patterns that should always be loaded, despite being ad-blocked.
     Local domains are always exempt from adblocking.
+
+    Note this whitelists otherwise blocked requests, not first-party URLs. As
+    an example, if `example.org` loads an ad from `ads.example.org`, the
+    whitelist entry could be `https://ads.example.org/*`. If you want to disable the
+    adblocker on a given page, use the `content.host_blocking.enabled` setting
+    with a URL pattern instead.
 
 content.hyperlink_auditing:
   default: false
