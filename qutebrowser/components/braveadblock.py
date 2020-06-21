@@ -40,6 +40,9 @@ from qutebrowser.api import (
 )
 from qutebrowser.api.interceptor import ResourceType
 
+if typing.TYPE_CHECKING:
+    import adblock
+
 
 logger = logging.getLogger("misc")
 _ad_blocker = typing.cast(typing.Optional["BraveAdBlocker"], None)
@@ -123,17 +126,14 @@ class BraveAdBlocker:
     def __init__(
         self,
         *,
-        # FIXME: This type should be `adblock.Engine`. I don't know how to
-        # annotate it in such a way that mypy doesn't complain about it being
-        # undefined, since `adblock` is an optional dependency.
-        engine_factory: typing.Callable[[], typing.Any],
+        engine_factory: typing.Callable[[], "adblock.Engine"],
         data_dir: pathlib.Path,
         has_basedir: bool = False
     ) -> None:
         self._has_basedir = has_basedir
         self._in_progress = []  # type: typing.List[downloads.TempDownload]
         self._done_count = 0
-        self._cache_path = str(data_dir / "adblock-cache.dat")
+        self._cache_path = data_dir / "adblock-cache.dat"
         self._engine_factory = engine_factory
         self._engine = engine_factory()
 
@@ -191,9 +191,9 @@ class BraveAdBlocker:
             info.block()
 
     def read_cache(self) -> None:
-        if os.path.isfile(self._cache_path):
+        if self._cache_path.is_file():
             logger.info("Loading cached adblock data: {}".format(self._cache_path))
-            self._engine.deserialize_from_file(self._cache_path)
+            self._engine.deserialize_from_file(str(self._cache_path))
         else:
             if (
                 config.val.content.blocking.adblock.lists
@@ -244,7 +244,7 @@ class BraveAdBlocker:
 
     def _on_lists_downloaded(self) -> None:
         """Install block lists after files have been downloaded."""
-        self._engine.serialize_to_file(self._cache_path)
+        self._engine.serialize_to_file(str(self._cache_path))
         logger.info("Block lists have been successfully imported")
 
     def update_files(self) -> None:
