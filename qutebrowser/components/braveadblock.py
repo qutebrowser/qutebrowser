@@ -44,7 +44,7 @@ if typing.TYPE_CHECKING:
     import adblock
 
 
-logger = logging.getLogger("misc")
+logger = logging.getLogger("network")
 _ad_blocker = typing.cast(typing.Optional["BraveAdBlocker"], None)
 
 
@@ -183,7 +183,7 @@ class BraveAdBlocker:
     def filter_request(self, info: interceptor.Request) -> None:
         """Block the given request if necessary."""
         if self._is_blocked(info.request_url, info.first_party_url, info.resource_type):
-            logger.info(
+            logger.debug(
                 "Request to {} blocked by ad blocker.".format(
                     info.request_url.toDisplayString()
                 )
@@ -192,7 +192,7 @@ class BraveAdBlocker:
 
     def read_cache(self) -> None:
         if self._cache_path.is_file():
-            logger.info("Loading cached adblock data: {}".format(self._cache_path))
+            logger.debug("Loading cached adblock data: {}".format(self._cache_path))
             self._engine.deserialize_from_file(str(self._cache_path))
         else:
             if (
