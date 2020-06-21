@@ -68,7 +68,7 @@ class AsciiDoc:
     def cleanup(self) -> None:
         """Clean up the temporary home directory for asciidoc."""
         if self._homedir is not None and not self._failed:
-            shutil.rmtree(self._homedir)
+            shutil.rmtree(str(self._homedir))
 
     def build(self) -> None:
         """Build either the website or the docs."""
@@ -98,12 +98,12 @@ class AsciiDoc:
         for src, dst in files:
             assert self._tempdir is not None    # for mypy
             modified_src = self._tempdir / src.name
-            with open(modified_src, 'w', encoding='utf-8') as modified_f, \
-                    open(src, 'r', encoding='utf-8') as f:
+            with open(str(modified_src), 'w', encoding='utf-8') as moded_f, \
+                    open(str(src), 'r', encoding='utf-8') as f:
                 for line in f:
                     for orig, repl in replacements:
                         line = line.replace(orig, repl)
-                    modified_f.write(line)
+                    moded_f.write(line)
             self.call(modified_src, dst, *asciidoc_args)
 
     def _copy_images(self) -> None:
@@ -114,7 +114,7 @@ class AsciiDoc:
         for filename in ['cheatsheet-big.png', 'cheatsheet-small.png']:
             src = pathlib.Path('doc') / 'img' / filename
             dst = dst_path / filename
-            shutil.copy(src, dst)
+            shutil.copy(str(src), str(dst))
 
     def _build_website_file(self, root: pathlib.Path, filename: str) -> None:
         """Build a single website file."""
@@ -130,11 +130,11 @@ class AsciiDoc:
 
         outfp = io.StringIO()
 
-        with open(modified_src, 'r', encoding='utf-8') as header_file:
+        with open(str(modified_src), 'r', encoding='utf-8') as header_file:
             header = header_file.read()
             header += "\n\n"
 
-        with open(src, 'r', encoding='utf-8') as infp:
+        with open(str(src), 'r', encoding='utf-8') as infp:
             outfp.write("\n\n")
             hidden = False
             found_title = False
@@ -259,8 +259,9 @@ class AsciiDoc:
             subprocess.run(cmdline, check=True, env=env)
         except (subprocess.CalledProcessError, OSError) as e:
             self._failed = True
-            utils.print_col(str(e), 'red')
-            print("Keeping modified sources in {}.".format(self._homedir))
+            utils.print_error(str(e))
+            print("Keeping modified sources in {}.".format(self._homedir),
+                  file=sys.stderr)
             sys.exit(1)
 
 
@@ -284,9 +285,9 @@ def run(**kwargs) -> None:
     try:
         asciidoc.prepare()
     except FileNotFoundError:
-        utils.print_col("Could not find asciidoc! Please install it, or use "
-                        "the --asciidoc argument to point this script to the "
-                        "correct python/asciidoc.py location!", 'red')
+        utils.print_error("Could not find asciidoc! Please install it, or use "
+                          "the --asciidoc argument to point this script to "
+                          "the correct python/asciidoc.py location!")
         sys.exit(1)
 
     try:
