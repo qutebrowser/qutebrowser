@@ -23,7 +23,6 @@
 from typing import List, Optional
 import re
 import os
-import os.path
 import sys
 import subprocess
 import shutil
@@ -32,7 +31,7 @@ import argparse
 import io
 import pathlib
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
+sys.path.insert(0, str(pathlib.Path(__file__).parents[1]))
 
 from scripts import utils
 
@@ -98,8 +97,8 @@ class AsciiDoc:
         for src, dst in files:
             assert self._tempdir is not None    # for mypy
             modified_src = self._tempdir / src.name
-            with open(str(modified_src), 'w', encoding='utf-8') as moded_f, \
-                    open(str(src), 'r', encoding='utf-8') as f:
+            with modified_src.open('w', encoding='utf-8') as moded_f, \
+                    src.open('r', encoding='utf-8') as f:
                 for line in f:
                     for orig, repl in replacements:
                         line = line.replace(orig, repl)
@@ -130,11 +129,10 @@ class AsciiDoc:
 
         outfp = io.StringIO()
 
-        with open(str(modified_src), 'r', encoding='utf-8') as header_file:
-            header = header_file.read()
-            header += "\n\n"
+        header = modified_src.read_text(encoding='utf-8')
+        header += "\n\n"
 
-        with open(str(src), 'r', encoding='utf-8') as infp:
+        with src.open('r', encoding='utf-8') as infp:
             outfp.write("\n\n")
             hidden = False
             found_title = False
@@ -174,8 +172,8 @@ class AsciiDoc:
         current_lines = outfp.getvalue()
         outfp.close()
 
-        with open(modified_src, 'w+', encoding='utf-8') as final_version:
-            final_version.write(title + "\n\n" + header + current_lines)
+        modified_str = title + "\n\n" + header + current_lines
+        modified_src.write_text(modified_str, encoding='utf-8')
 
         asciidoc_args = ['--theme=qute', '-a toc', '-a toc-placement=manual',
                          '-a', 'source-highlighter=pygments']
