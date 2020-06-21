@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import pathlib
 import logging
 import csv
 import os.path
@@ -28,7 +29,7 @@ import pytest
 import adblock
 
 from qutebrowser.api.interceptor import ResourceType
-from qutebrowser.components.braveadblock import BraveAdBlocker, _is_whitelisted_url
+from qutebrowser.components import braveadblock
 from helpers import utils
 
 pytestmark = pytest.mark.usefixtures("qapp")
@@ -54,16 +55,8 @@ OKAY_URLS = [
         "https://www.ruv.is/frett/2020/04/23/today-is-the-first-day-of-summer",
         ResourceType.image,
     ),
-    (
-        "https://easylist.to/easylist/easylist.txt",
-        None,
-        ResourceType.main_frame
-    ),
-    (
-        "https://easylist.to/easylist/easyprivacy.txt",
-        None,
-        ResourceType.main_frame
-    )
+    ("https://easylist.to/easylist/easylist.txt", None, ResourceType.main_frame),
+    ("https://easylist.to/easylist/easyprivacy.txt", None, ResourceType.main_frame),
 ]
 
 NOT_OKAY_URLS = [
@@ -171,13 +164,13 @@ def easylist_easyprivacy(tmpdir):
 
 @pytest.fixture
 def ad_blocker(data_tmpdir):
-    return BraveAdBlocker(
-        engine_factory=lambda: adblock.Engine([]), data_dir=data_tmpdir
+    return braveadblock.BraveAdBlocker(
+        engine_factory=lambda: adblock.Engine([]), data_dir=pathlib.Path(data_tmpdir)
     )
 
 
 def assert_urls(
-    ad_blocker: BraveAdBlocker,
+    ad_blocker: braveadblock.BraveAdBlocker,
     urls: typing.Iterable[typing.Tuple[str, str, ResourceType]],
     should_be_blocked: bool,
 ) -> None:
@@ -309,12 +302,12 @@ def test_whitelist_on_dataset(config_stub, easylist_easyprivacy):
 
     def assert_whitelisted(url, source_url, resource_type):
         config_stub.val.content.blocking.whitelist = None
-        assert not _is_whitelisted_url(url)
+        assert not braveadblock._is_whitelisted_url(url)
         config_stub.val.content.blocking.whitelist = []
-        assert not _is_whitelisted_url(url)
+        assert not braveadblock._is_whitelisted_url(url)
         whitelist_url = url.toString(QUrl.RemovePath) + "/*"
         config_stub.val.content.blocking.whitelist = [whitelist_url]
-        assert _is_whitelisted_url(url)
+        assert braveadblock._is_whitelisted_url(url)
 
     run_function_on_dataset(assert_whitelisted)
 
@@ -328,4 +321,4 @@ def test_blocklists_are_whitelisted(config_stub, easylist_easyprivacy):
     config_stub.val.content.blocking.whitelist = None
 
     for url in blocklist_urls:
-        assert _is_whitelisted_url(QUrl(url))
+        assert braveadblock._is_whitelisted_url(QUrl(url))
