@@ -239,12 +239,15 @@ class WrapperLayout(QLayout):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._widget = typing.cast(QWidget, None)
+        self._widget = None  # type: typing.Optional[QWidget]
+        self._container = None  # type: typing.Optional[QWidget]
 
     def addItem(self, _widget):
         raise utils.Unreachable
 
     def sizeHint(self):
+        if self._widget is None:
+            return QSize()
         return self._widget.sizeHint()
 
     def itemAt(self, _index):
@@ -254,10 +257,13 @@ class WrapperLayout(QLayout):
         raise utils.Unreachable
 
     def setGeometry(self, rect):
+        if self._widget is None:
+            return
         self._widget.setGeometry(rect)
 
     def wrap(self, container, widget):
         """Wrap the given widget in the given container."""
+        self._container = container
         self._widget = widget
         container.setFocusProxy(widget)
         widget.setParent(container)
@@ -272,7 +278,8 @@ class WrapperLayout(QLayout):
         assert self._container is not None
 
         self._widget.setParent(None)  # type: ignore[call-overload]
-        self._widget.deleteLater()
+        self._widget = None
+        self._container.setFocusProxy(None)
 
 
 class PseudoLayout(QLayout):
