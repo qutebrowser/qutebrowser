@@ -263,6 +263,14 @@ class WrapperLayout(QLayout):
         widget.setParent(container)
 
     def unwrap(self):
+        """Remove the widget from this layout.
+
+        Does nothing if it nothing was wrapped before.
+        """
+        if self._widget is None:
+            return
+        assert self._container is not None
+
         self._widget.setParent(None)  # type: ignore[call-overload]
         self._widget.deleteLater()
 
