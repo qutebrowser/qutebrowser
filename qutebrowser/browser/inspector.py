@@ -134,12 +134,8 @@ class AbstractWebInspector(QWidget):
 
     def _load_position(self) -> Position:
         """Get the last position the inspector was in."""
-        try:
-            pos = configfiles.state['inspector']['position']
-        except KeyError:
-            return Position.right
-        else:
-            return Position[pos]
+        pos = configfiles.state['inspector'].get('position', 'right')
+        return Position[pos]
 
     def _save_position(self, position: Position) -> None:
         """Save the last position the inspector was in."""
