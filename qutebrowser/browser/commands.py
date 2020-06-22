@@ -1248,9 +1248,6 @@ class CommandDispatcher:
     ) -> None:
         """Toggle the web inspector.
 
-        Note: Due to a bug in Qt, the inspector will show incorrect request
-        headers in the network tab.
-
         Args:
             position: Where to open the inspector
                       (right/left/top/bottom/window).
