@@ -18,7 +18,7 @@ Pympler==0.8
 pyparsing==2.4.7
 PyQt-builder==1.4.0
 python-dateutil==2.8.1
-requests==2.23.0
+requests==2.24.0
 sip==5.3.0
 six==1.15.0
 toml==0.10.1
