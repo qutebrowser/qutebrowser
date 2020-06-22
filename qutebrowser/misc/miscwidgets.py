@@ -23,8 +23,8 @@ import typing
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QTimer
 from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
-                             QStyleOption, QStyle, QLayout, QVBoxLayout,
-                             QApplication, QSplitter)
+                             QStyleOption, QStyle, QLayout, QApplication,
+                             QSplitter)
 from PyQt5.QtGui import QValidator, QPainter, QResizeEvent
 
 from qutebrowser.config import config, configfiles
@@ -229,7 +229,7 @@ class _FoldArrow(QWidget):
         return QSize(8, 8)
 
 
-class WrapperLayout(QVBoxLayout):
+class WrapperLayout(QLayout):
 
     """A Qt layout which simply wraps a single widget.
 
@@ -239,13 +239,27 @@ class WrapperLayout(QVBoxLayout):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setContentsMargins(0, 0, 0, 0)
         self._widget = None  # type: typing.Optional[QWidget]
         self._container = None  # type: typing.Optional[QWidget]
 
-    def addWidget(self, widget):
-        super().addWidget(widget)
-        assert self.count() == 1
+    def addItem(self, _widget):
+        raise utils.Unreachable
+
+    def sizeHint(self):
+        if self._widget is None:
+            return QSize()
+        return self._widget.sizeHint()
+
+    def itemAt(self, _index):
+        return None
+
+    def takeAt(self, _index):
+        raise utils.Unreachable
+
+    def setGeometry(self, rect):
+        if self._widget is None:
+            return
+        self._widget.setGeometry(rect)
 
     def wrap(self, container, widget):
         """Wrap the given widget in the given container."""
@@ -253,7 +267,6 @@ class WrapperLayout(QVBoxLayout):
         self._widget = widget
         container.setFocusProxy(widget)
         widget.setParent(container)
-        self.addWidget(widget)
 
     def unwrap(self):
         """Remove the widget from this layout.
@@ -263,12 +276,9 @@ class WrapperLayout(QVBoxLayout):
         if self._widget is None:
             return
         assert self._container is not None
-
-        self.takeAt(0)
         self._widget.setParent(None)  # type: ignore[call-overload]
         self._widget = None
         self._container.setFocusProxy(None)  # type: ignore[arg-type]
-        assert self.count() == 0
 
 
 class PseudoLayout(QLayout):
