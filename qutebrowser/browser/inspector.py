@@ -188,7 +188,6 @@ class AbstractWebInspector(QWidget):
         """Toggle visibility of the inspector."""
         target = self._widget if self._position == Position.window else self
         if target.isVisible():
-            self.detach()
             target.hide()
         else:
             target.show()
@@ -210,18 +209,13 @@ class AbstractWebInspector(QWidget):
                 log.init.warning("Error while loading geometry.")
 
     def closeEvent(self, _e: QCloseEvent) -> None:
-        """Save the geometry and detach the inspector when closed."""
+        """Save the geometry when closed."""
         data = self._widget.saveGeometry().data()
         geom = base64.b64encode(data).decode('ASCII')
         configfiles.state['inspector']['window'] = geom
-        self.detach()
 
     def inspect(self, page: QWidget) -> None:
         """Inspect the given QWeb(Engine)Page."""
-        raise NotImplementedError
-
-    def detach(self) -> None:
-        """Detach the inspector from the currently attached page."""
         raise NotImplementedError
 
     @pyqtSlot()

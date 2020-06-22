@@ -87,9 +87,6 @@ class LegacyWebEngineInspector(inspector.AbstractWebInspector):
         port = int(os.environ['QTWEBENGINE_REMOTE_DEBUGGING'])
         self._widget.load(QUrl('http://localhost:{}/'.format(port)))
 
-    def detach(self) -> None:
-        self._widget.load(QUrl('about:blank'))
-
 
 class WebEngineInspector(inspector.AbstractWebInspector):
 
@@ -128,6 +125,3 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         inspector_page = self._widget.page()
         inspector_page.setInspectedPage(page)
         self._settings.update_for_url(inspector_page.requestedUrl())
-
-    def detach(self) -> None:
-        self._widget.page().setInspectedPage(None)
