@@ -53,20 +53,61 @@ class WebEngineInspectorView(QWebEngineView):
         return self.page().inspectedPage().view().createWindow(wintype)
 
 
-class WebEngineInspector(inspector.AbstractWebInspector):
+def supports_new() -> bool:
+    """Check whether a new-style inspector is supported."""
+    return hasattr(QWebEnginePage, 'setInspectedPage')
 
-    """A web inspector for QtWebEngine."""
+
+class LegacyWebEngineInspector(inspector.AbstractWebInspector):
+
+    """A web inspector for QtWebEngine without Qt API support.
+
+    Only needed with Qt <= 5.10.
+    """
 
     def __init__(self, splitter: miscwidgets.InspectorSplitter,
                  win_id: int,
                  parent: QWidget = None) -> None:
         super().__init__(splitter, win_id, parent)
-        self.port = None
+        self._ensure_enabled()
         view = WebEngineInspectorView()
         self._settings = webenginesettings.WebEngineSettings(view.settings())
         self._set_widget(view)
 
-    def _check_devtools_resources(self):
+    def _ensure_enabled(self) -> None:
+        if 'QTWEBENGINE_REMOTE_DEBUGGING' not in os.environ:
+            raise inspector.Error(
+                "QtWebEngine inspector is not enabled. See "
+                "'qutebrowser --help' for details.")
+
+    def inspect(self, page: QWebEnginePage) -> None:  # type: ignore[override]
+        # We're lying about the URL here a bit, but this way, URL patterns for
+        # Qt 5.11/5.12/5.13 also work in this case.
+        self._settings.update_for_url(QUrl('chrome-devtools://devtools'))
+        port = int(os.environ['QTWEBENGINE_REMOTE_DEBUGGING'])
+        self._widget.load(QUrl('http://localhost:{}/'.format(port)))
+
+    def detach(self) -> None:
+        self._widget.load(QUrl('about:blank'))
+
+
+class WebEngineInspector(inspector.AbstractWebInspector):
+
+    """A web inspector for QtWebEngine with Qt API support.
+
+    Available since Qt 5.11.
+    """
+
+    def __init__(self, splitter: miscwidgets.InspectorSplitter,
+                 win_id: int,
+                 parent: QWidget = None) -> None:
+        super().__init__(splitter, win_id, parent)
+        self._check_devtools_resources()
+        view = WebEngineInspectorView()
+        self._settings = webenginesettings.WebEngineSettings(view.settings())
+        self._set_widget(view)
+
+    def _check_devtools_resources(self) -> None:
         """Make sure that the devtools resources are available on Fedora.
 
         Fedora packages devtools resources into its own package. If it's not
@@ -83,41 +124,10 @@ class WebEngineInspector(inspector.AbstractWebInspector):
                                   "please install the qt5-webengine-devtools "
                                   "Fedora package.")
 
-    def _inspect_old(self, page: typing.Optional[QWebEnginePage]) -> None:
-        """Set up the inspector for Qt < 5.11."""
-        try:
-            port = int(os.environ['QTWEBENGINE_REMOTE_DEBUGGING'])
-        except KeyError:
-            raise inspector.Error(
-                "QtWebEngine inspector is not enabled. See "
-                "'qutebrowser --help' for details.")
-
-        # We're lying about the URL here a bit, but this way, URL patterns for
-        # Qt 5.11/5.12/5.13 also work in this case.
-        self._settings.update_for_url(QUrl('chrome-devtools://devtools'))
-
-        if page is None:
-            self._widget.load(QUrl('about:blank'))
-        else:
-            self._widget.load(QUrl('http://localhost:{}/'.format(port)))
-
-    def _inspect_new(self, page: QWebEnginePage) -> None:
-        """Set up the inspector for Qt >= 5.11."""
+    def inspect(self, page: QWebEnginePage) -> None:  # type: ignore[override]
         inspector_page = self._widget.page()
         inspector_page.setInspectedPage(page)
         self._settings.update_for_url(inspector_page.requestedUrl())
 
-    def inspect(self, page: QWebEnginePage) -> None:  # type: ignore[override]
-        self._check_devtools_resources()
-        try:
-            self._inspect_new(page)
-        except AttributeError:
-            self._inspect_old(page)
-
     def detach(self) -> None:
-        inspector_page = self._widget.page()
-        try:
-            # Qt >= 5.11
-            inspector_page.setInspectedPage(None)
-        except AttributeError:
-            inspector_page.load(QUrl('about:blank'))
+        self._widget.page().setInspectedPage(None)
