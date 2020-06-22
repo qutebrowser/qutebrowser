@@ -106,7 +106,7 @@ class _EventFilter(QObject):
 
 class AbstractWebInspector(QWidget):
 
-    """A customized WebInspector which stores its geometry.
+    """Base class for QtWebKit/QtWebEngine inspectors.
 
     Attributes:
         _position: position of the inspector (right/left/top/bottom/window)
