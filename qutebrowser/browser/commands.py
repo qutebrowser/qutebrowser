@@ -1240,24 +1240,6 @@ class CommandDispatcher:
             raise cmdutils.CommandError("Bookmark '{}' not found!".format(url))
         message.info("Removed bookmark {}".format(url))
 
-    @cmdutils.register(instance='command-dispatcher', name='inspector',
-                       scope='window')
-    def toggle_inspector(
-            self,
-            position: inspector.Position = None
-    ) -> None:
-        """Toggle the web inspector.
-
-        Args:
-            position: Where to open the inspector
-                      (right/left/top/bottom/window).
-        """
-        tab = self._current_widget()
-        try:
-            tab.private_api.toggle_inspector(position)
-        except inspector.WebInspectorError as e:
-            raise cmdutils.CommandError(e)
-
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def download(self, url=None, *, mhtml_=False, dest=None):
         """Download a given URL, or current page if no URL given.

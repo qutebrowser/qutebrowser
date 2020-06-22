@@ -69,7 +69,7 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         try:
             port = int(os.environ['QTWEBENGINE_REMOTE_DEBUGGING'])
         except KeyError:
-            raise inspector.WebInspectorError(
+            raise inspector.Error(
                 "QtWebEngine inspector is not enabled. See "
                 "'qutebrowser --help' for details.")
 

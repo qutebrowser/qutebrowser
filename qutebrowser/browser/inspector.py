@@ -33,6 +33,7 @@ from qutebrowser.config import configfiles
 from qutebrowser.utils import log, usertypes
 from qutebrowser.keyinput import modeman
 from qutebrowser.misc import miscwidgets, objects
+from qutebrowser.api import cmdutils
 
 
 def create(*, splitter: 'miscwidgets.InspectorSplitter',
@@ -66,7 +67,7 @@ class Position(enum.Enum):
     window = 5
 
 
-class WebInspectorError(Exception):
+class Error(Exception):
 
     """Raised when the inspector could not be initialized."""
 

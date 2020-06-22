@@ -313,3 +313,19 @@ def debug_trace(expr: str = "") -> None:
         eval('hunter.trace({})'.format(expr))
     except Exception as e:
         raise cmdutils.CommandError("{}: {}".format(e.__class__.__name__, e))
+
+
+@cmdutils.register()
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
+def inspector(tab: apitypes.Tab,
+              position: apitypes.InspectorPosition = None) -> None:
+    """Toggle the web inspector.
+
+    Args:
+        position: Where to open the inspector
+                  (right/left/top/bottom/window).
+    """
+    try:
+        tab.private_api.toggle_inspector(position)
+    except apitypes.InspectorError as e:
+        raise cmdutils.CommandError(e)
