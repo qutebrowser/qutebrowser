@@ -267,7 +267,7 @@ class WrapperLayout(QVBoxLayout):
         self.takeAt(0)
         self._widget.setParent(None)  # type: ignore[call-overload]
         self._widget = None
-        self._container.setFocusProxy(None)
+        self._container.setFocusProxy(None)  # type: ignore[arg-type]
         assert self.count() == 0
 
 

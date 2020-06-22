@@ -203,11 +203,11 @@ class AbstractWebInspector(QWidget):
         """Inspect the given QWeb(Engine)Page."""
         raise NotImplementedError
 
-    def detach(self):
+    def detach(self) -> None:
         """Detach the inspector from the currently attached page."""
         raise NotImplementedError
 
     @pyqtSlot()
-    def shutdown(self):
+    def shutdown(self) -> None:
         self.close()
         self.deleteLater()
