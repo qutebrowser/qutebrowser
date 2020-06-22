@@ -21,14 +21,16 @@
 
 import os
 import typing
+import pathlib
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QLibraryInfo
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from PyQt5.QtWidgets import QWidget
 
 from qutebrowser.browser import inspector
 from qutebrowser.browser.webengine import webenginesettings
 from qutebrowser.misc import miscwidgets
+from qutebrowser.utils import version
 
 
 class WebEngineInspectorView(QWebEngineView):
@@ -64,6 +66,23 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         self._settings = webenginesettings.WebEngineSettings(view.settings())
         self._set_widget(view)
 
+    def _check_devtools_resources(self):
+        """Make sure that the devtools resources are available on Fedora.
+
+        Fedora packages devtools resources into its own package. If it's not
+        installed, we show a nice error instead of a blank inspector.
+        """
+        dist = version.distribution()
+        if dist is None or dist.parsed != version.Distribution.fedora:
+            return
+
+        data_path = pathlib.Path(QLibraryInfo.location(QLibraryInfo.DataPath))
+        pak = data_path / 'resources' / 'qtwebengine_devtools_resources.pak'
+        if not pak.exists():
+            raise inspector.Error("QtWebEngine devtools resources not found, "
+                                  "please install the qt5-webengine-devtools "
+                                  "Fedora package.")
+
     def _inspect_old(self, page: typing.Optional[QWebEnginePage]) -> None:
         """Set up the inspector for Qt < 5.11."""
         try:
@@ -89,6 +108,7 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         self._settings.update_for_url(inspector_page.requestedUrl())
 
     def inspect(self, page: QWebEnginePage) -> None:  # type: ignore[override]
+        self._check_devtools_resources()
         try:
             self._inspect_new(page)
         except AttributeError:
