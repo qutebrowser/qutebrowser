@@ -154,7 +154,7 @@ def easylist_easyprivacy(tmpdir):
         (utils.easylist_txt(), "easylist.txt"),
         (utils.easyprivacy_txt(), "easyprivacy.txt"),
     ]:
-        bl_dst_path = os.path.join(tmpdir, filename)
+        bl_dst_path = os.path.join(str(tmpdir), filename)
         with open(bl_dst_path, "w", encoding="utf-8") as f:
             f.write("\n".join(list(blocklist)))
         assert os.path.isfile(bl_dst_path)
