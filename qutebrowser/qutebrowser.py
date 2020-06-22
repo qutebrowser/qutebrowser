@@ -87,8 +87,8 @@ def get_argparser():
                         "QtWebEngine. Note that this is a SECURITY RISK and "
                         "you should not visit untrusted websites with the "
                         "inspector turned on. See "
-                        "https://bugreports.qt.io/browse/QTBUG-50725 for more"
-                        "details. This is not needed anymore since Qt 5.11"
+                        "https://bugreports.qt.io/browse/QTBUG-50725 for more "
+                        "details. This is not needed anymore since Qt 5.11 "
                         "where the inspector is always enabled and secure.")
 
     parser.add_argument('--json-args', help=argparse.SUPPRESS)

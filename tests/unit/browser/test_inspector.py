@@ -19,12 +19,10 @@
 
 import pytest
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QWidget, QApplication
+from PyQt5.QtWidgets import QWidget
 
 from qutebrowser.browser import inspector
 from qutebrowser.misc import miscwidgets
-from qutebrowser.utils import usertypes
 
 
 class FakeInspector(inspector.AbstractWebInspector):

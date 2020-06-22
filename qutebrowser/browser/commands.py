@@ -29,9 +29,9 @@ from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QEvent, QUrlQuery
 
 from qutebrowser.commands import userscripts, runners
 from qutebrowser.api import cmdutils
-from qutebrowser.config import config, configdata, configfiles
-from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
-                                 webelem, downloads)
+from qutebrowser.config import config, configdata
+from qutebrowser.browser import (urlmarks, browsertab, navigate, webelem,
+                                 downloads)
 from qutebrowser.keyinput import modeman, keyutils
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils, standarddir, debug)

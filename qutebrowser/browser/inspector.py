@@ -24,8 +24,8 @@ import binascii
 import typing
 import enum
 
-from PyQt5.QtWidgets import QWidget, QVBoxLayout
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
+from PyQt5.QtWidgets import QWidget
+from PyQt5.QtCore import pyqtSlot, QObject, QEvent
 from PyQt5.QtGui import QCloseEvent
 
 from qutebrowser.browser import eventfilter
@@ -33,7 +33,6 @@ from qutebrowser.config import configfiles
 from qutebrowser.utils import log, usertypes
 from qutebrowser.keyinput import modeman
 from qutebrowser.misc import miscwidgets, objects
-from qutebrowser.api import cmdutils
 
 
 def create(*, splitter: 'miscwidgets.InspectorSplitter',
@@ -220,5 +219,6 @@ class AbstractWebInspector(QWidget):
 
     @pyqtSlot()
     def shutdown(self) -> None:
+        """Clean up the inspector."""
         self.close()
         self.deleteLater()

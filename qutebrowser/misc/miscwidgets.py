@@ -246,6 +246,7 @@ class WrapperLayout(QLayout):
         raise utils.Unreachable
 
     def sizeHint(self):
+        """Get the size of the underlying widget."""
         if self._widget is None:
             return QSize()
         return self._widget.sizeHint()
@@ -257,6 +258,7 @@ class WrapperLayout(QLayout):
         raise utils.Unreachable
 
     def setGeometry(self, rect):
+        """Pass through setGeometry calls to the underlying widget."""
         if self._widget is None:
             return
         self._widget.setGeometry(rect)
