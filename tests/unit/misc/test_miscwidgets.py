@@ -146,33 +146,22 @@ class TestFullscreenNotification:
             w.set_timeout(1)
 
 
+@pytest.mark.usefixtures('state_config')
 class TestInspectorSplitter:
 
     @pytest.fixture
-    def fake_webview(self, qtbot):
-        webview = QWidget()
-        webview.setStyleSheet('background-color: blue;')
-        qtbot.add_widget(webview)
-        return webview
+    def fake_webview(self, blue_widget):
+        return blue_widget
 
     @pytest.fixture
-    def fake_inspector(self, qtbot):
-        inspector = QWidget()
-        inspector.setStyleSheet('background-color: red;')
-        qtbot.add_widget(inspector)
-        return inspector
+    def fake_inspector(self, red_widget):
+        return red_widget
 
     @pytest.fixture
     def splitter(self, qtbot, fake_webview):
         inspector_splitter = miscwidgets.InspectorSplitter(fake_webview)
         qtbot.add_widget(inspector_splitter)
         return inspector_splitter
-
-    @pytest.fixture(autouse=True)
-    def state_config(self, monkeypatch):
-        state = {'inspector': {}}
-        monkeypatch.setattr(miscwidgets.configfiles, 'state', state)
-        return state
 
     def test_no_inspector(self, splitter, fake_webview):
         assert splitter.count() == 1
