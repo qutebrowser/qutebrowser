@@ -162,15 +162,31 @@ class AbstractWebInspector(QWidget):
         self._position = position
 
         if position == Position.window:
-            self.hide()
-            self._layout.unwrap()
-            self._load_state_geometry()
-            self._widget.show()
+            self._show_window()
         else:
-            self._layout.wrap(self, self._widget)
-            self._splitter.set_inspector(self, position)
-            self._widget.show()
-            self.show()
+            self._show_docked(position)
+
+    def _show_window(self) -> None:
+        """Show the inspector in a separate window.
+
+        In theory, we should be able to do self.setParent(None) to remove
+        ourselves from the InspectorSplitter and show up as window instead.
+
+        In practice, that approach doesn't work for some odd reason. Thus, we
+        instead remove ourselves from the InspectorSplitter, and then show the
+        actual inspector widget without a WrapperLayout involved.
+        """
+        self.hide()
+        self._layout.unwrap()
+        self._load_state_geometry()
+        self._widget.show()
+
+    def _show_docked(self, position: Position) -> None:
+        """Show the inspector docked inside the main window."""
+        self._layout.wrap(self, self._widget)
+        self._splitter.set_inspector(self, position)
+        self._widget.show()
+        self.show()
 
     def toggle(self) -> None:
         """Toggle visibility of the inspector."""
