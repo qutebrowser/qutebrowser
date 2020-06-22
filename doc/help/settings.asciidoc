@@ -686,7 +686,7 @@ Default:
 * +pass:[wb]+: +pass:[set-cmd-text -s :quickmark-load -w]+
 * +pass:[wf]+: +pass:[hint all window]+
 * +pass:[wh]+: +pass:[back -w]+
-* +pass:[wi]+: +pass:[inspector]+
+* +pass:[wi]+: +pass:[devtools]+
 * +pass:[wl]+: +pass:[forward -w]+
 * +pass:[wo]+: +pass:[set-cmd-text -s :open -w]+
 * +pass:[wp]+: +pass:[open -w -- {clipboard}]+
@@ -2570,7 +2570,7 @@ On QtWebKit, this setting is unavailable.
 [[content.xss_auditing]]
 === content.xss_auditing
 Monitor load requests for cross-site scripting attempts.
-Suspicious scripts will be blocked and reported in the inspector's JavaScript console.
+Suspicious scripts will be blocked and reported in the devtools JavaScript console.
 Note that bypasses for the XSS auditor are widely known and it can be abused for cross-site info leaks in some scenarios, see: https://www.chromium.org/developers/design-documents/xss-auditor
 
 This setting supports URL patterns.

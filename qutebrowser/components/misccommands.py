@@ -317,15 +317,22 @@ def debug_trace(expr: str = "") -> None:
 
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-def inspector(tab: apitypes.Tab,
-              position: apitypes.InspectorPosition = None) -> None:
-    """Toggle the web inspector.
+def devtools(tab: apitypes.Tab,
+             position: apitypes.InspectorPosition = None) -> None:
+    """Toggle the developer tools (web inspector).
 
     Args:
-        position: Where to open the inspector
+        position: Where to open the devtools
                   (right/left/top/bottom/window).
     """
     try:
         tab.private_api.toggle_inspector(position)
     except apitypes.InspectorError as e:
         raise cmdutils.CommandError(e)
+
+
+@cmdutils.register(deprecated='Use :devtools instead')
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
+def inspector(tab: apitypes.Tab) -> None:
+    """Toggle the web inspector."""
+    devtools(tab)
