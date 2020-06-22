@@ -24,6 +24,7 @@ import typing
 from qutebrowser.config import config, configdata
 from qutebrowser.utils import objreg, log
 from qutebrowser.completion.models import completionmodel, listcategory, util
+from qutebrowser.browser import inspector
 
 
 def command(*, info):
@@ -200,4 +201,12 @@ def window(*, info):
 
     model.add_category(listcategory.ListCategory("Windows", windows))
 
+    return model
+
+
+def inspector_position(*, info):
+    """A model for possible inspector positions."""
+    model = completionmodel.CompletionModel(column_widths=(100, 0, 0))
+    positions = [(e.name,) for e in inspector.Position]
+    model.add_category(listcategory.ListCategory("Position (optional)", positions))
     return model

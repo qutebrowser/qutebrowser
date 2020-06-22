@@ -35,6 +35,9 @@ from PyQt5.QtPrintSupport import QPrintPreviewDialog
 
 from qutebrowser.api import cmdutils, apitypes, message, config
 
+# FIXME should be part of qutebrowser.api?
+from qutebrowser.completion.models import miscmodels
+
 
 @cmdutils.register(name='reload')
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
@@ -317,6 +320,7 @@ def debug_trace(expr: str = "") -> None:
 
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
+@cmdutils.argument('position', completion=miscmodels.inspector_position)
 def devtools(tab: apitypes.Tab,
              position: apitypes.InspectorPosition = None) -> None:
     """Toggle the developer tools (web inspector).
