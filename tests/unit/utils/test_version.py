@@ -1019,7 +1019,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
     else:
         monkeypatch.delattr(sys, 'frozen', raising=False)
 
-    template = textwrap.dedent("""
+    template = version._LOGO.lstrip('\n') + textwrap.dedent("""
         qutebrowser vVERSION{git_commit}
         Backend: {backend}
         Qt: {qt}

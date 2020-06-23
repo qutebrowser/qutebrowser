@@ -58,6 +58,25 @@ except ImportError:  # pragma: no cover
     webenginesettings = None  # type: ignore[assignment]
 
 
+_LOGO = r'''
+         ______     ,,
+    ,.-"`      | ,-` |
+  .^           ||    |
+ /    ,-*^|    ||    |
+;    /    |    ||    ;-*```^*.
+;   ;     |    |;,-*`         \
+|   |     |  ,-*`    ,-"""\    \
+|    \   ,-"`    ,-^`|     \    |
+ \    `^^    ,-;|    |     ;    |
+  *;     ,-*`  ||    |     /   ;;
+    `^^`` |    ||    |   ,^    /
+          |    ||    `^^`    ,^
+          |  _,"|        _,-"
+          -*`   ****"""``
+
+'''
+
+
 @attr.s
 class DistributionInfo:
 
@@ -418,7 +437,9 @@ def _config_py_loaded() -> str:
 
 def version_info() -> str:
     """Return a string with various version information."""
-    lines = ["qutebrowser v{}".format(qutebrowser.__version__)]
+    lines = _LOGO.lstrip('\n').splitlines()
+
+    lines.append("qutebrowser v{}".format(qutebrowser.__version__))
     gitver = _git_str()
     if gitver is not None:
         lines.append("Git commit: {}".format(gitver))
