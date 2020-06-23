@@ -73,18 +73,18 @@ def fake_inspector(qtbot, splitter, inspector_widget,
     (inspector.Position.top, 2, False),
 ])
 def test_set_position(position, splitter_count, window_visible,
-                      fake_inspector, splitter, inspector_widget):
+                      fake_inspector, splitter):
     fake_inspector.set_position(position)
     assert splitter.count() == splitter_count
-    assert (inspector_widget.isWindow() and
-            inspector_widget.isVisible()) == window_visible
+    assert (fake_inspector.isWindow() and
+            fake_inspector.isVisible()) == window_visible
 
 
-def test_toggle_window(fake_inspector, inspector_widget):
+def test_toggle_window(fake_inspector):
     fake_inspector.set_position(inspector.Position.window)
     for visible in [True, False, True]:
-        assert (inspector_widget.isWindow() and
-                inspector_widget.isVisible()) == visible
+        assert (fake_inspector.isWindow() and
+                fake_inspector.isVisible()) == visible
         fake_inspector.toggle()
 
 
@@ -139,5 +139,4 @@ def test_detach_after_toggling(hidden_again, fake_inspector, inspector_widget,
 
     fake_inspector.set_position(inspector.Position.window)
 
-    assert not fake_inspector.isVisible()
-    assert inspector_widget.isWindow() and inspector_widget.isVisible()
+    assert fake_inspector.isVisible() and fake_inspector.isWindow()
