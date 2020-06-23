@@ -284,8 +284,10 @@ class TestInspectorSplitter:
         sizes = splitter.sizes()
         inspector_size = sizes[splitter._inspector_idx]
         main_size = sizes[splitter._main_idx]
-        exp_main_size = new_window_size - exp_inspector_size - handle_width//2
-        exp_inspector_size -= math.ceil(handle_width/2)
+        exp_main_size = (new_window_size -
+                         exp_inspector_size -
+                         math.ceil(handle_width/2))
+        exp_inspector_size -= handle_width // 2
 
         assert (inspector_size, main_size) == (exp_inspector_size,
                                                exp_main_size)
