@@ -884,7 +884,7 @@ content.xss_auditing:
   desc: >-
     Monitor load requests for cross-site scripting attempts.
 
-    Suspicious scripts will be blocked and reported in the inspector's
+    Suspicious scripts will be blocked and reported in the devtools
     JavaScript console.
 
     Note that bypasses for the XSS auditor are widely known and it can be
@@ -3130,7 +3130,12 @@ bindings.default:
       gU: navigate up -t
       <Ctrl-A>: navigate increment
       <Ctrl-X>: navigate decrement
-      wi: inspector
+      wi: devtools
+      wIh: devtools left
+      wIj: devtools bottom
+      wIk: devtools top
+      wIl: devtools right
+      wIw: devtools window
       gd: download
       ad: download-cancel
       cd: download-clear

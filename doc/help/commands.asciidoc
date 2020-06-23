@@ -51,6 +51,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<config-source,config-source>>|Read a config.py file.
 |<<config-unset,config-unset>>|Unset an option.
 |<<config-write-py,config-write-py>>|Write the current configuration to a config.py file.
+|<<devtools,devtools>>|Toggle the developer tools (web inspector).
 |<<download,download>>|Download a given URL, or current page if no URL given.
 |<<download-cancel,download-cancel>>|Cancel the last/[count]th download.
 |<<download-clear,download-clear>>|Remove all finished downloads from the list.
@@ -72,7 +73,6 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<history-clear,history-clear>>|Clear all browsing history.
 |<<home,home>>|Open main startpage in current tab.
 |<<insert-text,insert-text>>|Insert text at cursor position.
-|<<inspector,inspector>>|Toggle the web inspector.
 |<<jseval,jseval>>|Evaluate a JavaScript string.
 |<<jump-mark,jump-mark>>|Jump to the mark named by `key`.
 |<<later,later>>|Execute a command after some time.
@@ -413,6 +413,16 @@ Write the current configuration to a config.py file.
 * +*-f*+, +*--force*+: Force overwriting existing files.
 * +*-d*+, +*--defaults*+: Write the defaults instead of values configured via :set.
 
+[[devtools]]
+=== devtools
+Syntax: +:devtools ['position']+
+
+Toggle the developer tools (web inspector).
+
+==== positional arguments
+* +'position'+: Where to open the devtools (right/left/top/bottom/window).
+
+
 [[download]]
 === download
 Syntax: +:download [*--mhtml*] [*--dest* 'dest'] ['url']+
@@ -724,12 +734,6 @@ Insert text at cursor position.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
-
-[[inspector]]
-=== inspector
-Toggle the web inspector.
-
-Note: Due to a bug in Qt, the inspector will show incorrect request headers in the network tab.
 
 [[jseval]]
 === jseval

@@ -1359,8 +1359,12 @@ class WebEngineTab(browsertab.AbstractTab):
         if fp is not None:
             fp.installEventFilter(self._tab_event_filter)
         self._child_event_filter = eventfilter.ChildEventFilter(
-            eventfilter=self._tab_event_filter, widget=self._widget,
-            win_id=self.win_id, parent=self)
+            eventfilter=self._tab_event_filter,
+            widget=self._widget,
+            win_id=self.win_id,
+            focus_workaround=qtutils.version_check(
+                '5.11', compiled=False, exact=True),
+            parent=self)
         self._widget.installEventFilter(self._child_event_filter)
 
     @pyqtSlot()
