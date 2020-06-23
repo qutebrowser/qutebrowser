@@ -846,6 +846,16 @@ class AbstractTabPrivate:
         """
         raise NotImplementedError
 
+    def _recreate_inspector(self) -> None:
+        """Recreate the inspector when detached to a window.
+
+        This is needed to circumvent a QtWebEngine bug (which wasn't
+        investigated further) which sometimes results in the window not
+        appearing anymore.
+        """
+        self._tab.data.inspector = None
+        self.toggle_inspector(inspector.Position.window)
+
     def toggle_inspector(self, position: inspector.Position) -> None:
         """Show/hide (and if needed, create) the web inspector for this tab."""
         tabdata = self._tab.data
@@ -854,6 +864,7 @@ class AbstractTabPrivate:
                 splitter=tabdata.splitter,
                 win_id=self._tab.win_id)
             self._tab.shutting_down.connect(tabdata.inspector.shutdown)
+            tabdata.inspector.recreate.connect(self._recreate_inspector)
             tabdata.inspector.inspect(self._widget.page())
         tabdata.inspector.set_position(position)
 

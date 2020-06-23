@@ -35,9 +35,13 @@ class FakeInspector(inspector.AbstractWebInspector):
         super().__init__(splitter, win_id, parent)
         self._set_widget(inspector_widget)
         self._inspected_page = None
+        self.needs_recreate = False
 
     def inspect(self, page):
         self._inspected_page = page
+
+    def _needs_recreate(self):
+        return self.needs_recreate
 
 
 @pytest.fixture
@@ -126,8 +130,10 @@ def test_position_loading(config_value, expected,
 
 
 @pytest.mark.parametrize('hidden_again', [True, False])
-def test_detach_after_toggling(hidden_again, fake_inspector, inspector_widget,
-                               splitter, qtbot):
+@pytest.mark.parametrize('needs_recreate', [True, False])
+def test_detach_after_toggling(hidden_again, needs_recreate,
+                               fake_inspector, inspector_widget, splitter,
+                               qtbot):
     """Make sure we can still detach into a window after showing inline."""
     fake_inspector.set_position(inspector.Position.right)
     splitter.show()
@@ -137,6 +143,11 @@ def test_detach_after_toggling(hidden_again, fake_inspector, inspector_widget,
         fake_inspector.toggle()
         assert not inspector_widget.isVisible()
 
-    fake_inspector.set_position(inspector.Position.window)
-
-    assert fake_inspector.isVisible() and fake_inspector.isWindow()
+    if needs_recreate:
+        fake_inspector.needs_recreate = True
+        with qtbot.waitSignal(fake_inspector.recreate):
+            fake_inspector.set_position(inspector.Position.window)
+    else:
+        with qtbot.assertNotEmitted(fake_inspector.recreate):
+            fake_inspector.set_position(inspector.Position.window)
+        assert fake_inspector.isVisible() and fake_inspector.isWindow()

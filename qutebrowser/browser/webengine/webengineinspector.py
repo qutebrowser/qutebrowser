@@ -30,7 +30,7 @@ from PyQt5.QtWidgets import QWidget
 from qutebrowser.browser import inspector
 from qutebrowser.browser.webengine import webenginesettings
 from qutebrowser.misc import miscwidgets
-from qutebrowser.utils import version
+from qutebrowser.utils import version, qtutils
 
 
 class WebEngineInspectorView(QWebEngineView):
@@ -125,3 +125,10 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         inspector_page = self._widget.page()
         inspector_page.setInspectedPage(page)
         self._settings.update_for_url(inspector_page.requestedUrl())
+
+    def _needs_recreate(self) -> bool:
+        """Recreate the inspector when detaching to a window.
+
+        WORKAROUND for what's likely an unknown Qt bug.
+        """
+        return qtutils.version_check('5.12')

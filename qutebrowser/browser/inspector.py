@@ -25,7 +25,7 @@ import typing
 import enum
 
 from PyQt5.QtWidgets import QWidget
-from PyQt5.QtCore import pyqtSlot, QObject, QEvent
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
 from PyQt5.QtGui import QCloseEvent
 
 from qutebrowser.browser import eventfilter
@@ -110,7 +110,12 @@ class AbstractWebInspector(QWidget):
     Attributes:
         _position: position of the inspector (right/left/top/bottom/window)
         _splitter: InspectorSplitter where the inspector can be placed.
+
+    Signals:
+        recreate: Emitted when the inspector should be recreated.
     """
+
+    recreate = pyqtSignal()
 
     def __init__(self, splitter: 'miscwidgets.InspectorSplitter',
                  win_id: int,
@@ -141,6 +146,16 @@ class AbstractWebInspector(QWidget):
         """Save the last position the inspector was in."""
         configfiles.state['inspector']['position'] = position.name
 
+    def _needs_recreate(self) -> bool:
+        """Whether the inspector needs recreation when detaching to a window.
+
+        This is done due to an unknown QtWebEngine bug which sometimes prevents
+        inspector windows from showing up.
+
+        Needs to be overridden by subclasses.
+        """
+        return False
+
     def set_position(self, position: typing.Optional[Position]) -> None:
         """Set the position of the inspector.
 
@@ -155,13 +170,20 @@ class AbstractWebInspector(QWidget):
             self.toggle()
             return
 
-        self._position = position
-
-        if position == Position.window:
-            self.setParent(None)
+        if (position == Position.window and
+                self._position is not None and
+                self._needs_recreate()):
+            # Detaching to window
+            self.recreate.emit()
+            self.shutdown()
+            return
+        elif position == Position.window:
+            self.setParent(None)  # type: ignore[call-overload]
             self._load_state_geometry()
         else:
             self._splitter.set_inspector(self, position)
+
+        self._position = position
 
         self._widget.show()
         self.show()
