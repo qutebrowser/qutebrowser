@@ -12,8 +12,7 @@ pytest-mock
 pytest-qt
 pytest-rerunfailures
 pytest-xvfb
-# https://github.com/The-Compiler/pytest-xvfb/issues/22
-PyVirtualDisplay < 1.0
+PyVirtualDisplay
 
 ## optional:
 # To test :debug-trace, gets skipped if hunter is not installed
@@ -30,4 +29,3 @@ pytest-repeat
 #@ markers: jaraco.functools python_version>="3.6"
 #@ add: jaraco.functools==2.0; python_version<"3.6"  # rq.filter: <= 2.0
 #@ ignore: Jinja2, MarkupSafe, colorama
-#@ filter: PyVirtualDisplay < 1.0
