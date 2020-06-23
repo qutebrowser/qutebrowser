@@ -431,16 +431,19 @@ class TabbedBrowser(QWidget):
             elif last_close == 'default-page':
                 self.load_url(config.val.url.default_page, newtab=True)
 
-    def _remove_tab(self, tab, *, add_undo=True, new_undo=True):
+    def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
         """Remove a tab from the tab list and delete it properly.
 
         Args:
             tab: The QWebView to be closed.
             add_undo: Whether the tab close can be undone.
             new_undo: Whether the undo entry should be a new item in the stack.
+            crashed: Whether we're closing a tab with crashed renderer process.
         """
         idx = self.widget.indexOf(tab)
         if idx == -1:
+            if crashed:
+                return
             raise TabDeletedError("tab {} is not contained in "
                                   "TabbedWidget!".format(tab))
         if tab is self._now_focused:
@@ -475,12 +478,16 @@ class TabbedBrowser(QWidget):
         tab.private_api.shutdown()
         self.widget.removeTab(idx)
 
-        if not qtutils.version_check('5.12'):
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58982
-            # Seems to affect Qt 5.7-5.11 as well.
-            tab.layout().unwrap()
+        if not crashed:
+            # WORKAROUND for a segfault when we delete the crashed tab.
+            # see https://bugreports.qt.io/browse/QTBUG-58698
 
-        tab.deleteLater()
+            if not qtutils.version_check('5.12'):
+                # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58982
+                # Seems to affect Qt 5.7-5.11 as well.
+                tab.layout().unwrap()
+
+            tab.deleteLater()
 
     def undo(self):
         """Undo removing of a tab or tabs."""
@@ -934,11 +941,18 @@ class TabbedBrowser(QWidget):
             tab.set_html(html)
             log.webview.error(msg)
 
-        url_string = tab.url(requested=True).toDisplayString()
-        error_page = jinja.render(
-            'error.html', title="Error loading {}".format(url_string),
-            url=url_string, error=msg)
-        QTimer.singleShot(100, lambda: show_error_page(error_page))
+        if qtutils.version_check('5.9', compiled=False):
+            url_string = tab.url(requested=True).toDisplayString()
+            error_page = jinja.render(
+                'error.html', title="Error loading {}".format(url_string),
+                url=url_string, error=msg)
+            QTimer.singleShot(100, lambda: show_error_page(error_page))
+        else:
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58698
+            message.error(msg)
+            self._remove_tab(tab, crashed=True)
+            if self.widget.count() == 0:
+                self.tabopen(QUrl('about:blank'))
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
