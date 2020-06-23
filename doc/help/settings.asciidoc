@@ -4042,6 +4042,7 @@ Valid values:
  * +naive+: Use simple/naive check.
  * +dns+: Use DNS requests (might be slow!).
  * +never+: Never search automatically.
+ * +schemeless+: Always search automatically unless URL explicitly contains a scheme.
 
 Default: +pass:[naive]+
 

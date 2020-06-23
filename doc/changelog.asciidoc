@@ -66,6 +66,8 @@ Changed
     scrollbar, which is now the default. On unsupported configurations (on Qt <
     5.11, with QtWebKit or on macOS), the value falls back to `when-searching`
     or `never` (QtWebKit).
+  * `url.auto_search` supports a new `schemeless` value which always opens a
+    search unless the given URL includes an explicit scheme.
 - The statusbar now shows partial keychains in all modes (e.g. while hinting)
 - Small performance improvements.
 
