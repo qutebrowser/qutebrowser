@@ -3131,6 +3131,11 @@ bindings.default:
       <Ctrl-A>: navigate increment
       <Ctrl-X>: navigate decrement
       wi: devtools
+      wIh: devtools left
+      wIj: devtools bottom
+      wIk: devtools top
+      wIl: devtools right
+      wIw: devtools window
       gd: download
       ad: download-cancel
       cd: download-clear
