@@ -5,11 +5,11 @@ distlib==0.3.0
 filelock==3.0.12
 packaging==20.4
 pluggy==0.13.1
-py==1.8.1
+py==1.8.2
 pyparsing==2.4.7
 six==1.15.0
 toml==0.10.1
 tox==3.15.2
 tox-pip-version==0.0.7
 tox-venv==0.4.0
-virtualenv==20.0.21
+virtualenv==20.0.24

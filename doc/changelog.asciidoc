@@ -18,6 +18,12 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v1.13.0 (unreleased)
 --------------------
 
+Deprecated
+~~~~~~~~~~
+
+- The `:inspector` command is deprecated and has been replaced by a new
+  `:devtools` command (see below).
+
 Removed
 ~~~~~~~
 
@@ -60,6 +66,8 @@ Changed
     scrollbar, which is now the default. On unsupported configurations (on Qt <
     5.11, with QtWebKit or on macOS), the value falls back to `when-searching`
     or `never` (QtWebKit).
+  * `url.auto_search` supports a new `schemeless` value which always opens a
+    search unless the given URL includes an explicit scheme.
 - The statusbar now shows partial keychains in all modes (e.g. while hinting)
 - Small performance improvements.
 
@@ -73,6 +81,20 @@ Added
     selected tab independently from unselected tabs (e.g. to make it bold).
   * `input.mouse.back_forward_buttons` which can be set to `false` to disable
     back/forward mouse buttons.
+- New `:devtools` command (replacing `:inspector`) with various improved
+  functionality:
+  * The devtools can now be docked to the main window, by running
+    `:devtools left` (`wIh`), `bottom` (`wIj`), `top` (`wIk`) or `right`
+    (`wIl`). To show them in a new window, use `:devtools window` (`wIw`).
+    Using `:devtools` (`wi`) will open them at the last used position.
+  * The devtool window now has a "qutebrowser developer tools" window title.
+  * When a resource is opened from the devtools, it now opens in a proper
+    qutebrowser tab.
+  * On Fedora, when the `qt5-webengine-devtools` package is missing, an error
+    is now shown instead of a blank inspector window.
+  * If opened as a window, the devtools are now closed properly when the
+    associated tab is closed.
+  * When the devtools are clicked, insert mode is entered automatically.
 
 Fixed
 ~~~~~

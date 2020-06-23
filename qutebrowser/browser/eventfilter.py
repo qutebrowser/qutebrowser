@@ -39,42 +39,57 @@ class ChildEventFilter(QObject):
     Attributes:
         _filter: The event filter to install.
         _widget: The widget expected to send out childEvents.
+        _win_id: The window this ChildEventFilter lives in.
+        _focus_workaround: Whether to enable a workaround for QTBUG-68076.
     """
 
-    def __init__(self, eventfilter, widget, win_id, parent=None):
+    def __init__(self, *, eventfilter, win_id, focus_workaround=False,
+                 widget=None, parent=None):
         super().__init__(parent)
         self._filter = eventfilter
-        assert widget is not None
         self._widget = widget
         self._win_id = win_id
+        self._focus_workaround = focus_workaround
+        if focus_workaround:
+            assert widget is not None
+
+    def _do_focus_workaround(self):
+        """WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076."""
+        if not self._focus_workaround:
+            return
+
+        assert self._widget is not None
+
+        pass_modes = [usertypes.KeyMode.command,
+                      usertypes.KeyMode.prompt,
+                      usertypes.KeyMode.yesno]
+
+        if modeman.instance(self._win_id).mode in pass_modes:
+            return
+
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=self._win_id)
+        current_index = tabbed_browser.widget.currentIndex()
+        try:
+            widget_index = tabbed_browser.widget.indexOf(self._widget.parent())
+        except RuntimeError:
+            widget_index = -1
+        if current_index == widget_index:
+            QTimer.singleShot(0, self._widget.setFocus)
 
     def eventFilter(self, obj, event):
         """Act on ChildAdded events."""
         if event.type() == QEvent.ChildAdded:
             child = event.child()
-            log.misc.debug("{} got new child {}, installing filter".format(
-                obj, child))
-            assert obj is self._widget
+            log.misc.debug("{} got new child {}, installing filter"
+                           .format(obj, child))
+
+            # Additional sanity check, but optional
+            if self._widget is not None:
+                assert obj is self._widget
+
             child.installEventFilter(self._filter)
-
-            if qtutils.version_check('5.11', compiled=False, exact=True):
-                # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
-                pass_modes = [usertypes.KeyMode.command,
-                              usertypes.KeyMode.prompt,
-                              usertypes.KeyMode.yesno]
-                if modeman.instance(self._win_id).mode not in pass_modes:
-                    tabbed_browser = objreg.get('tabbed-browser',
-                                                scope='window',
-                                                window=self._win_id)
-                    current_index = tabbed_browser.widget.currentIndex()
-                    try:
-                        widget_index = tabbed_browser.widget.indexOf(
-                            self._widget.parent())
-                    except RuntimeError:
-                        widget_index = -1
-                    if current_index == widget_index:
-                        QTimer.singleShot(0, self._widget.setFocus)
-
+            self._do_focus_workaround()
         elif event.type() == QEvent.ChildRemoved:
             child = event.child()
             log.misc.debug("{}: removed child {}".format(obj, child))

@@ -162,13 +162,13 @@ class CompletionView(QTreeView):
         pixel_widths = [(width * perc // 100) for perc in column_widths]
 
         delta = self.verticalScrollBar().sizeHint().width()
-        if pixel_widths[-1] > delta:
-            pixel_widths[-1] -= delta
-        else:
-            pixel_widths[-2] -= delta
+        for i, width in reversed(list(enumerate(pixel_widths))):
+            if width > delta:
+                pixel_widths[i] -= delta
+                break
 
         for i, w in enumerate(pixel_widths):
-            assert w >= 0, i
+            assert w >= 0, (i, w)
             self.setColumnWidth(i, w)
 
     def _next_idx(self, upwards):

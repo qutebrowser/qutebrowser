@@ -83,6 +83,8 @@ def autoconfig(config_tmpdir):
      'version = 1.2.3\n'
      '\n'
      '[geometry]\n'
+     '\n'
+     '[inspector]\n'
      '\n'),
     ('[general]\n'
      'fooled = true',
@@ -92,6 +94,8 @@ def autoconfig(config_tmpdir):
      'version = 1.2.3\n'
      '\n'
      '[geometry]\n'
+     '\n'
+     '[inspector]\n'
      '\n'),
     ('[general]\n'
      'foobar = 42',
@@ -102,6 +106,8 @@ def autoconfig(config_tmpdir):
      'version = 1.2.3\n'
      '\n'
      '[geometry]\n'
+     '\n'
+     '[inspector]\n'
      '\n'),
     (None,
      True,
@@ -111,6 +117,8 @@ def autoconfig(config_tmpdir):
      'newval = 23\n'
      '\n'
      '[geometry]\n'
+     '\n'
+     '[inspector]\n'
      '\n'),
 ])
 def test_state_config(fake_save_manager, data_tmpdir, monkeypatch,

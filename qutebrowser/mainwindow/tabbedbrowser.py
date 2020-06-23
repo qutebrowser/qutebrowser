@@ -493,7 +493,12 @@ class TabbedBrowser(QWidget):
         if not crashed:
             # WORKAROUND for a segfault when we delete the crashed tab.
             # see https://bugreports.qt.io/browse/QTBUG-58698
-            tab.layout().unwrap()
+
+            if not qtutils.version_check('5.12'):
+                # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58982
+                # Seems to affect Qt 5.7-5.11 as well.
+                tab.layout().unwrap()
+
             tab.deleteLater()
 
     def undo(self):

@@ -107,11 +107,14 @@ How can I get No-Script-like behavior?::
 :set content.javascript.enabled false
 ----
 +
-The basic command for enabling JavaScript for the current host is `tsh`.
+The basic keybinding for enabling JavaScript for the current host is `tsh`.
 This will allow JavaScript execution for the current session.
 Use `S` instead of `s` to make the exception permanent.
 With `H` instead of `h`, subdomains are included.
-With `u` instead of `h`, only the current URL is whitelisted (not the whole host).
+With `u` instead of `h`, JavaScript is allowed for the current URL only (not the whole host).
+
+The list of domains that have been permanently granted permission to execute
+JavaScript will be written to `autoconfig.yml`.
 
 How do I play Youtube videos with mpv?::
     You can easily add a key binding to play youtube videos inside a real video

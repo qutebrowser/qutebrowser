@@ -248,7 +248,8 @@ def test_version(request):
     assert ok
     assert proc.exitStatus() == QProcess.NormalExit
 
-    assert re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout) is not None
+    match = re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout, re.MULTILINE)
+    assert match is not None
 
 
 def test_qt_arg(request, quteproc_new, tmpdir):

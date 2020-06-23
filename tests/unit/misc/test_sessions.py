@@ -182,12 +182,6 @@ def test_get_session_name(config_stub, sess_man, arg, config, current,
 class TestSave:
 
     @pytest.fixture
-    def state_config(self, monkeypatch):
-        state = {'general': {}}
-        monkeypatch.setattr(sessions.configfiles, 'state', state)
-        return state
-
-    @pytest.fixture
     def fake_history(self, stubs, tabbed_browser_stubs, monkeypatch, webview):
         """Fixture which provides a window with a fake history."""
         win = FakeMainWindow(b'fake-geometry-0', win_id=0)

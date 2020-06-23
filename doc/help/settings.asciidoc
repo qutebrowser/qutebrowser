@@ -687,12 +687,17 @@ Default:
 * +pass:[u]+: +pass:[undo]+
 * +pass:[v]+: +pass:[enter-mode caret]+
 * +pass:[wB]+: +pass:[set-cmd-text -s :bookmark-load -w]+
+* +pass:[wIh]+: +pass:[devtools left]+
+* +pass:[wIj]+: +pass:[devtools bottom]+
+* +pass:[wIk]+: +pass:[devtools top]+
+* +pass:[wIl]+: +pass:[devtools right]+
+* +pass:[wIw]+: +pass:[devtools window]+
 * +pass:[wO]+: +pass:[set-cmd-text :open -w {url:pretty}]+
 * +pass:[wP]+: +pass:[open -w -- {primary}]+
 * +pass:[wb]+: +pass:[set-cmd-text -s :quickmark-load -w]+
 * +pass:[wf]+: +pass:[hint all window]+
 * +pass:[wh]+: +pass:[back -w]+
-* +pass:[wi]+: +pass:[inspector]+
+* +pass:[wi]+: +pass:[devtools]+
 * +pass:[wl]+: +pass:[forward -w]+
 * +pass:[wo]+: +pass:[set-cmd-text -s :open -w]+
 * +pass:[wp]+: +pass:[open -w -- {clipboard}]+
@@ -2587,7 +2592,7 @@ On QtWebKit, this setting is unavailable.
 [[content.xss_auditing]]
 === content.xss_auditing
 Monitor load requests for cross-site scripting attempts.
-Suspicious scripts will be blocked and reported in the inspector's JavaScript console.
+Suspicious scripts will be blocked and reported in the devtools JavaScript console.
 Note that bypasses for the XSS auditor are widely known and it can be abused for cross-site info leaks in some scenarios, see: https://www.chromium.org/developers/design-documents/xss-auditor
 
 This setting supports URL patterns.
@@ -3498,7 +3503,7 @@ Valid values:
  * +always+: Always show the scrollbar.
  * +never+: Never show the scrollbar.
  * +when-searching+: Show the scrollbar when searching for text in the webpage. With the QtWebKit backend, this is equal to `never`.
- * +overlay+: Show an overlay scrollbar. With Qt < 5.11, this is equal to `when-searching`; with the QtWebKit backend, this is equal to `never`. Enabling/disabling overlay scrollbars requires a restart.
+ * +overlay+: Show an overlay scrollbar. With Qt < 5.11 or on macOS, this is unavailable and equal to `when-searching`; with the QtWebKit backend, this is equal to `never`. Enabling/disabling overlay scrollbars requires a restart.
 
 Default: +pass:[overlay]+
 
@@ -4136,6 +4141,7 @@ Valid values:
  * +naive+: Use simple/naive check.
  * +dns+: Use DNS requests (might be slow!).
  * +never+: Never search automatically.
+ * +schemeless+: Always search automatically unless URL explicitly contains a scheme.
 
 Default: +pass:[naive]+
 
