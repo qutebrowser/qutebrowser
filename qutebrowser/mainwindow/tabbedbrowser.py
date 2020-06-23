@@ -474,6 +474,12 @@ class TabbedBrowser(QWidget):
 
         tab.private_api.shutdown()
         self.widget.removeTab(idx)
+
+        if not qtutils.version_check('5.12'):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58982
+            # Seems to affect Qt 5.7-5.11 as well.
+            tab.layout().unwrap()
+
         tab.deleteLater()
 
     def undo(self):
