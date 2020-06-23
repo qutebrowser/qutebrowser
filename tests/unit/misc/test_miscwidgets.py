@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import math
 import logging
 from unittest import mock
 
@@ -271,7 +270,9 @@ class TestInspectorSplitter:
         splitter.show()
         resize(old_window_size)
 
-        handle_width = splitter.handleWidth()
+        handle_width = 4
+        splitter.setHandleWidth(handle_width)
+
         splitter_idx = 1
         if position in [inspector.Position.left, inspector.Position.top]:
             splitter_pos = preferred_size - handle_width//2
@@ -284,9 +285,9 @@ class TestInspectorSplitter:
         sizes = splitter.sizes()
         inspector_size = sizes[splitter._inspector_idx]
         main_size = sizes[splitter._main_idx]
-        exp_main_size = (new_window_size -
-                         exp_inspector_size -
-                         math.ceil(handle_width/2))
+        exp_main_size = new_window_size - exp_inspector_size
+
+        exp_main_size -= handle_width // 2
         exp_inspector_size -= handle_width // 2
 
         assert (inspector_size, main_size) == (exp_inspector_size,
