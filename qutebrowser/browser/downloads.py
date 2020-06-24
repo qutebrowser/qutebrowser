@@ -232,13 +232,13 @@ def suggested_fn_from_title(url_path, title=None):
     if ext.lower() in ext_whitelist and title:
         suggested_fn = utils.sanitize_filename(
             title,
-            optional_suffix=".download"
+            max_bytes=(255 - len("(123).download"))
         )
         if not suggested_fn.lower().endswith((".html", ".htm")):
             suggested_fn += ".html"
             suggested_fn = utils.sanitize_filename(
                 suggested_fn,
-                optional_suffix=".download"
+                max_bytes=(255 - len("(123).download"))
             )
 
     return suggested_fn
