@@ -120,7 +120,7 @@ class AsciiDoc:
         src = root / filename
         assert self._website is not None    # for mypy
         dst = pathlib.Path(self._website)
-        dst = src.parent.relative_to('.') / (src.stem + ".html")
+        dst = dst / src.parent.relative_to('.') / (src.stem + ".html")
         dst.parent.mkdir(exist_ok=True)
 
         assert self._tempdir is not None    # for mypy
