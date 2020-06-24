@@ -294,8 +294,8 @@ def apply_fake_os(monkeypatch, request):
 
 @pytest.fixture(scope='session', autouse=True)
 def check_yaml_c_exts():
-    """Make sure PyYAML C extensions are available on Travis."""
-    if 'TRAVIS' in os.environ:
+    """Make sure PyYAML C extensions are available on CI."""
+    if 'CI' in os.environ:
         from yaml import CLoader
 
 

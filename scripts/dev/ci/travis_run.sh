@@ -7,7 +7,6 @@ if [[ -n $DOCKER ]]; then
            -e "QUTE_BDD_WEBENGINE=$QUTE_BDD_WEBENGINE" \
            -e "DOCKER=$DOCKER" \
            -e "CI=$CI" \
-           -e "TRAVIS=$TRAVIS" \
            "qutebrowser/ci:$DOCKER"
 elif [[ $TESTENV == eslint ]]; then
     # Can't run this via tox as we can't easily install tox in the javascript
