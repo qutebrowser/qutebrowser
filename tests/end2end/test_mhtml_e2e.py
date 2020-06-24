@@ -66,9 +66,7 @@ class DownloadDir:
     def read_file(self):
         files = self._tmpdir.listdir()
         assert len(files) == 1
-
-        with open(str(files[0]), 'r', encoding='utf-8') as f:
-            return f.readlines()
+        return files[0].read_text(encoding='utf-8').splitlines()
 
     def sanity_check_mhtml(self):
         assert 'Content-Type: multipart/related' in '\n'.join(self.read_file())

@@ -230,8 +230,7 @@ def test_required_scripts_are_included(download_stub, tmpdir):
         console.log("Script is running.");
     """)
     _save_script(test_require_script, 'requiring.user.js')
-    with open(str(tmpdir / 'test.js'), 'w', encoding='UTF-8') as f:
-        f.write("REQUIRED SCRIPT")
+    (tmpdir / 'test.js').write_text('REQUIRED SCRIPT', encoding='UTF-8')
 
     gm_manager = greasemonkey.GreasemonkeyManager()
     assert len(gm_manager._in_progress_dls) == 1
