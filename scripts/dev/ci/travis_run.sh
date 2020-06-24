@@ -8,7 +8,7 @@ if [[ -n $DOCKER ]]; then
            -e "DOCKER=$DOCKER" \
            -e "CI=$CI" \
            -e "TRAVIS=$TRAVIS" \
-           "qutebrowser/travis:$DOCKER"
+           "qutebrowser/ci:$DOCKER"
 elif [[ $TESTENV == eslint ]]; then
     # Can't run this via tox as we can't easily install tox in the javascript
     # travis env
