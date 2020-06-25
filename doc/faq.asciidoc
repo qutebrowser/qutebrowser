@@ -112,7 +112,7 @@ This will allow JavaScript execution for the current session.
 Use `S` instead of `s` to make the exception permanent.
 With `H` instead of `h`, subdomains are included.
 With `u` instead of `h`, JavaScript is allowed for the current URL only (not the whole host).
-
++
 The list of domains that have been permanently granted permission to execute
 JavaScript will be written to `autoconfig.yml`.
 
@@ -186,7 +186,6 @@ For QtWebKit:
   (also see the README file for `qtwebkit-plugins`).
 . Remember to install the hunspell dictionaries if you don't have them already
   (most distros should have packages for this).
-
 +
 For QtWebEngine:
 
