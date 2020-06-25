@@ -143,6 +143,10 @@ def test_open_with_ascii_locale(request, server, tmpdir, quteproc_new, url):
     quteproc_new.wait_for(message="load status for <* tab_id=* "
                           "url='*/f%C3%B6%C3%B6.html'>: LoadStatus.error")
 
+    if request.config.webengine:
+        line = quteproc_new.wait_for(message='Load error: ERR_FILE_NOT_FOUND')
+        line.expected = True
+
 
 @pytest.mark.linux
 @ascii_locale
