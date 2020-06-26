@@ -28,6 +28,7 @@ import typing
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QRect, QPoint, QTimer, Qt,
                           QCoreApplication, QEventLoop)
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
+from PyQt5.QtGui import QPalette
 
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
@@ -210,6 +211,8 @@ class MainWindow(QWidget):
         from qutebrowser.mainwindow.statusbar import bar
 
         self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.palette().setColor(QPalette.Window, Qt.transparent)
         self._overlays = []  # type: typing.MutableSequence[_OverlayInfoType]
         self.win_id = next(win_id_gen)
         self.registry = objreg.ObjectRegistry()
