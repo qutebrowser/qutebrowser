@@ -40,7 +40,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            webenginesettings, certificateerror)
 from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               message, objreg, jinja, debug, qtutils)
+                               message, objreg, jinja, debug)
 from qutebrowser.keyinput import modeman
 from qutebrowser.qt import sip
 
