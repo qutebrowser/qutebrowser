@@ -711,7 +711,7 @@ class QuteProc(testprocess.Process):
             is_dl_inconsistency = str(self.captured_log[-1]).endswith(
                 "_dl_allocate_tls_init: Assertion "
                 "`listp->slotinfo[cnt].gen <= GL(dl_tls_generation)' failed!")
-            if 'TRAVIS' in os.environ and is_dl_inconsistency:
+            if 'CI' in os.environ and is_dl_inconsistency:
                 # WORKAROUND for https://sourceware.org/bugzilla/show_bug.cgi?id=19329
                 self.captured_log = []
                 self._log("NOTE: Restarted after libc DL inconsistency!")

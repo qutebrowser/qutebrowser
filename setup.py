@@ -83,7 +83,7 @@ try:
         author_email=_get_constant('email'),
         license=_get_constant('license'),
         classifiers=[
-            'Development Status :: 4 - Beta',
+            'Development Status :: 5 - Production/Stable',
             'Environment :: X11 Applications :: Qt',
             'Intended Audience :: End Users/Desktop',
             'License :: OSI Approved :: GNU General Public License v3 or later '

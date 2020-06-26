@@ -275,7 +275,15 @@ auto_save.interval:
 auto_save.session:
   type: Bool
   default: false
-  desc: Always restore open sites when qutebrowser is reopened.
+  desc: >-
+    Always restore open sites when qutebrowser is reopened.
+
+    Without this option set, `:wq` (`:quit --save`) needs to be used to save
+    open tabs (and restore them), while quitting qutebrowser in any other way
+    will not save/restore the session.
+
+    By default, this will save to the session which was last loaded. This
+    behavior can be customized via the `session.default_name` setting.
 
 ## content
 
@@ -562,11 +570,11 @@ content.headers.user_agent:
     completions:
       # See https://techblog.willshouse.com/2012/01/03/most-common-user-agents/
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/81.0.4044.129 Safari/537.36"
-        - Chrome 80 Win10
+          like Gecko) Chrome/83.0.4103.61 Safari/537.36"
+        - Chrome 83 Win10
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/81.0.4044.138 Safari/537.36"
-        - Chrome 80 Linux
+          Gecko) Chrome/83.0.4103.61 Safari/537.36"
+        - Chrome 83 Linux
   supports_pattern: true
   desc: |
     User agent to send.

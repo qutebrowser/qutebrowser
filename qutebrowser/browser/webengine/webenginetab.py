@@ -978,8 +978,14 @@ class _WebEnginePermissions(QObject):
 
         if not url.isValid():
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-85116
-            log.webview.warning("Ignoring feature permission {} for invalid "
-                                "URL {}".format(permission_str, url))
+            is_qtbug = (qtutils.version_check('5.15.0',
+                                              compiled=False,
+                                              exact=True) and
+                        self._tab.is_private and
+                        feature == QWebEnginePage.Notifications)
+            logger = log.webview.debug if is_qtbug else log.webview.warning
+            logger("Ignoring feature permission {} for invalid URL {}".format(
+                permission_str, url))
             deny_permission()
             return
 

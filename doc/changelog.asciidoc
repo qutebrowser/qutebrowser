@@ -15,7 +15,17 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v1.13.0 (unreleased)
+v1.14.0 (unreleased)
+--------------------
+
+Changed
+~~~~~~~
+
+- The main window's (invisible) background color is now set to transparent.
+  This allows using the alpha channel in statusbar/tabbar colors to get a
+  partially transparent qutebrowser window on a setup which supports doing so.
+
+v1.13.0 (2020-06-26)
 --------------------
 
 Deprecated
@@ -36,19 +46,14 @@ Removed
 Changed
 ~~~~~~~
 
-- New handling of bindings in hint mode which fixes various bugs and allows for
-  single-letter keybindings in hint mode.
-- The `tor_identity` userscript now takes the password via a `-p` flag and has
-  a new `-c` flag to customize the Tor control port.
-- `:config-write-py` now adds a note about `config.py` files being targeted at
-  advanced users.
-- `:report` now takes two optional arguments for bug/contact information, so
-  that it can be used without the report window popping up.
-- New `t[Cc][Hh]` default bindings which work similarly to the `t[Ss][Hh]`
-  bindings for JavaScript but toggle cookie permissions.
-- The `:message` command now takes a `--logfilter` / `-f` argument, which is a
-  list of logging categories to show.
-- The `:debug-log-filter` command now understands the full logfilter syntax.
+- Changes to commands:
+  * `:config-write-py` now adds a note about `config.py` files being targeted at
+    advanced users.
+  * `:report` now takes two optional arguments for bug/contact information, so
+    that it can be used without the report window popping up.
+  * `:message` now takes a `--logfilter` / `-f` argument, which is a list of
+    logging categories to show.
+  * `:debug-log-filter` now understands the full logfilter syntax.
 - Changes to settings:
   * `fonts.tabs` has been split into `fonts.tabs.{selected,unselected}` (see
     below).
@@ -68,7 +73,13 @@ Changed
     or `never` (QtWebKit).
   * `url.auto_search` supports a new `schemeless` value which always opens a
     search unless the given URL includes an explicit scheme.
-- The statusbar now shows partial keychains in all modes (e.g. while hinting)
+- New handling of bindings in hint mode which fixes various bugs and allows for
+  single-letter keybindings in hint mode.
+- The statusbar now shows partial keychains in all modes (e.g. while hinting).
+- New `t[Cc][Hh]` default bindings which work similarly to the `t[Ss][Hh]`
+  bindings for JavaScript but toggle cookie permissions.
+- The `tor_identity` userscript now takes the password via a `-p` flag and has
+  a new `-c` flag to customize the Tor control port.
 - Small performance improvements.
 
 Added
@@ -104,7 +115,7 @@ Fixed
 - Crash when `:completion-item-yank --sel` is used on a platform without
   primary selection support (e.g. Windows/macOS).
 - Crash when there's a feature permission request from Qt with an invalid URL
-  (which seems to happen with Qt 5.15 sometimes).
+  (which happens due to a Qt bug with Qt 5.15 in private browsing mode).
 - Crash in rare cases where QtWebKit/QtWebEngine imports fail in unexpected
   ways.
 - Crash when something removed qutebrowser's IPC socket file and it's been
