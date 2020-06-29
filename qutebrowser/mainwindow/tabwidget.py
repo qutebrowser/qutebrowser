@@ -152,6 +152,7 @@ class TabWidget(QTabWidget):
         fields = self.get_tab_fields(idx)
         fields['current_title'] = fields['current_title'].replace('&', '&&')
         fields['index'] = idx + 1
+        fields['aligned_index'] = str(idx + 1).rjust(len(str(self.count())))
 
         title = '' if fmt is None else fmt.format(**fields)
         tabbar = self.tabBar()

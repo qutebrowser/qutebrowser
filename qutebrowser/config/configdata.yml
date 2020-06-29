@@ -1782,6 +1782,7 @@ tabs.title.format:
       - current_title
       - title_sep
       - index
+      - aligned_index
       - id
       - scroll_pos
       - host
@@ -1799,6 +1800,7 @@ tabs.title.format:
     * `{current_title}`: Title of the current web page.
     * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
     * `{index}`: Index of this tab.
+    * `{aligned_index}`: Index of this tab padded with spaces to have the same width.
     * `{id}`: Internal tab ID of this tab.
     * `{scroll_pos}`: Page scroll position.
     * `{host}`: Host of the current web page.
@@ -1818,6 +1820,7 @@ tabs.title.format_pinned:
       - current_title
       - title_sep
       - index
+      - aligned_index
       - id
       - scroll_pos
       - host
