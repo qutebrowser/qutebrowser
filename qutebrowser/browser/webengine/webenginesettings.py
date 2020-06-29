@@ -402,10 +402,15 @@ def _init_site_specific_quirks():
                      "AppleWebKit/537.36 (KHTML, like Gecko) "
                      "Chrome/99 "
                      "Safari/537.36")
+    edge_ua = ("Mozilla/5.0 ({os_info}) "
+               "AppleWebKit/{webkit_version} (KHTML, like Gecko) "
+               "{upstream_browser_key}/{upstream_browser_version} "
+               "Safari/{webkit_version} "
+               "Edg/{upstream_browser_version}")
 
     user_agents = {
         'https://web.whatsapp.com/': no_qtwe_ua,
-        'https://accounts.google.com/*': firefox_ua,
+        'https://accounts.google.com/*': edge_ua,
         'https://*.slack.com/*': new_chrome_ua,
         'https://docs.google.com/*': firefox_ua,
         'https://drive.google.com/*': firefox_ua,
