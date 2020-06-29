@@ -42,6 +42,6 @@ six==1.15.0
 sortedcontainers==2.2.2
 soupsieve==2.0.1
 vulture==1.5
-wcwidth==0.2.4
+wcwidth==0.2.5
 Werkzeug==1.0.1
 jaraco.functools==2.0; python_version<"3.6"  # rq.filter: <= 2.0
