@@ -25,6 +25,24 @@ Changed
   This allows using the alpha channel in statusbar/tabbar colors to get a
   partially transparent qutebrowser window on a setup which supports doing so.
 
+Added
+~~~~~
+
+- New replacement `{aligned_index}` for `tabs.title.format` and `format_pinned`
+  which behaves like `{index}`, but space-pads the index based on the total
+  numbers of tabs. This can be used to get aligned tab texts with vertical
+  tabs.
+
+v1.13.1 (unreleased)
+--------------------
+
+Fixed
+~~~~~
+
+- With Qt 5.14, shared workers are now disabled. This works around a crash in
+  QtWebEngine on certain sites (like the Epic Games Store or the Unreal Engine
+  page).
+
 v1.13.0 (2020-06-26)
 --------------------
 
