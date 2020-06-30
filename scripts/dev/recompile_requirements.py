@@ -121,20 +121,24 @@ def get_all_names():
         yield basename[len('requirements-'):-len('.txt-raw')]
 
 
+def run_pip(venv_dir, *args, **kwargs):
+    """Run pip inside the virtualenv."""
+    venv_python = os.path.join(venv_dir, 'bin', 'python')
+    return subprocess.run([venv_python, '-m', 'pip'] + list(args),
+                          check=True, **kwargs)
+
+
 def init_venv(host_python, venv_dir, requirements, pre=False):
     """Initialize a new virtualenv and install the given packages."""
     subprocess.run([host_python, '-m', 'venv', venv_dir], check=True)
 
-    venv_python = os.path.join(venv_dir, 'bin', 'python')
-    subprocess.run([venv_python, '-m', 'pip',
-                    'install', '-U', 'pip'], check=True)
+    run_pip(venv_dir, 'install', '-U', 'pip')
 
-    install_command = [venv_python, '-m', 'pip', 'install', '-r', requirements]
+    install_command = ['install', '-r', requirements]
     if pre:
         install_command.append('--pre')
-    subprocess.run(install_command, check=True)
-    subprocess.run([venv_python, '-m', 'pip', 'check'], check=True)
-    return venv_python
+    run_pip(venv_dir, *install_command)
+    run_pip(venv_dir, 'check')
 
 
 def main():
@@ -166,12 +170,11 @@ def main():
             comments = read_comments(f)
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            venv_python = init_venv(host_python=host_python,
-                                    venv_dir=tmpdir,
-                                    requirements=filename,
-                                    pre=comments['pre'])
-            proc = subprocess.run([venv_python, '-m', 'pip', 'freeze'],
-                                  check=True, stdout=subprocess.PIPE)
+            init_venv(host_python=host_python,
+                      venv_dir=tmpdir,
+                      requirements=filename,
+                      pre=comments['pre'])
+            proc = run_pip(tmpdir, 'freeze', stdout=subprocess.PIPE)
             reqs = proc.stdout.decode('utf-8')
 
         with open(outfile, 'w', encoding='utf-8') as f:
