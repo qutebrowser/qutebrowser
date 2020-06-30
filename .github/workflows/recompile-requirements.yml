@@ -16,6 +16,7 @@ jobs:
           python-version: '3.x'
       - name: Recompile requirements
         run: python3 scripts/dev/recompile_requirements.py
+        id: requirements
       - name: Create pull request
         uses: peter-evans/create-pull-request@v2
         with:
@@ -24,5 +25,10 @@ jobs:
           token: ${{ secrets.QUTEBROWSER_BOT_TOKEN }}
           commit-message: Update dependencies
           title: Update dependencies
-          body: "I'm a bot, bleep, bloop. :robot:"
+          body: |
+            I'm a bot, bleep, bloop. :robot:
+
+            ---
+
+            ${{ steps.requirements.outputs.changed }}
           branch: update-dependencies

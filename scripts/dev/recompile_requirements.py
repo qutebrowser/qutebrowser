@@ -163,6 +163,30 @@ def parse_args():
     return parser.parse_args()
 
 
+def print_changed_files():
+    changed = set()
+    proc = subprocess.run(['git', '--no-pager', 'diff', '--name-only'],
+                          stdout=subprocess.PIPE, encoding='utf-8', check=True)
+    lines = proc.stdout.splitlines()
+    for line in lines:
+        line = line.strip()
+        if not (line.startswith('misc/requirements/') or
+                line == 'requirements.txt'):
+            continue
+        line = line.replace('misc/requirements/requirements-', '')
+        line = line.replace('.txt', '')
+        changed.add(line)
+
+    utils.print_title('Changed files')
+    text = '\n'.join('- ' + line for line in sorted(changed))
+    print(text)
+
+    if 'CI' in os.environ:
+        text = '## Changed requirement files:\n\n' + text
+        print()
+        print('::set-output name=changed::' + text.replace('\n', '%0A'))
+
+
 def main():
     """Re-compile the given (or all) requirement files."""
     args = parse_args()
@@ -216,6 +240,8 @@ def main():
         utils.print_subtitle("Testing")
         with tempfile.TemporaryDirectory() as tmpdir:
             init_venv(host_python, tmpdir, outfile)
+
+    print_changed_files()
 
 
 if __name__ == '__main__':
