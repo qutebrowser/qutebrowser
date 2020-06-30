@@ -164,9 +164,7 @@ def easylist_easyprivacy(tmpdir):
 
 @pytest.fixture
 def ad_blocker(data_tmpdir):
-    return braveadblock.BraveAdBlocker(
-        engine_factory=lambda: adblock.Engine([]), data_dir=pathlib.Path(data_tmpdir)
-    )
+    return braveadblock.BraveAdBlocker(data_dir=pathlib.Path(data_tmpdir))
 
 
 def assert_urls(

@@ -40,8 +40,10 @@ from qutebrowser.api import (
 )
 from qutebrowser.api.interceptor import ResourceType
 
-if typing.TYPE_CHECKING:
+try:
     import adblock
+except ImportError:
+    adblock = None  # type: ignore[assignment]
 
 
 logger = logging.getLogger("network")
@@ -118,24 +120,15 @@ class BraveAdBlocker:
         _done_count: How many files have been read successfully.
         _has_basedir: Whether a custom --basedir is set.
         _cache_path: The path of the adblock engine cache file
-        _engine_factory: A function that can be called to create an empty
-                         adblocking engine.
         _engine: Brave ad-blocking engine.
     """
 
-    def __init__(
-        self,
-        *,
-        engine_factory: typing.Callable[[], "adblock.Engine"],
-        data_dir: pathlib.Path,
-        has_basedir: bool = False
-    ) -> None:
+    def __init__(self, *, data_dir: pathlib.Path, has_basedir: bool = False) -> None:
         self._has_basedir = has_basedir
         self._in_progress = []  # type: typing.List[downloads.TempDownload]
         self._done_count = 0
         self._cache_path = data_dir / "adblock-cache.dat"
-        self._engine_factory = engine_factory
-        self._engine = engine_factory()
+        self._engine = adblock.Engine()
 
     def _is_blocked(
         self,
@@ -205,7 +198,7 @@ class BraveAdBlocker:
     def adblock_update(self) -> None:
         """Update the adblock block lists."""
         self._done_count = 0
-        self._engine = self._engine_factory()
+        self._engine = adblock.Engine()
         logger.info("Downloading adblock filter lists...")
         for url in config.val.content.blocking.adblock.lists:
             if url.scheme() == "file":
@@ -307,9 +300,7 @@ def init(context: apitypes.InitContext) -> None:
     """Initialize the Brave ad blocker."""
     global _ad_blocker
 
-    try:
-        import adblock
-    except ImportError:
+    if adblock is None:
         # We want 'adblock' to be an optional dependency. If the module is
         # not found, we simply set the `_ad_blocker` global to `None`. Always
         # remember to check the case where `_ad_blocker` is `None`!
@@ -317,9 +308,7 @@ def init(context: apitypes.InitContext) -> None:
         return
 
     _ad_blocker = BraveAdBlocker(
-        engine_factory=lambda: adblock.Engine([]),
-        data_dir=context.data_dir,
-        has_basedir=context.args.basedir is not None,
+        data_dir=context.data_dir, has_basedir=context.args.basedir is not None,
     )
     _ad_blocker.read_cache()
     interceptor.register(_ad_blocker.filter_request)
