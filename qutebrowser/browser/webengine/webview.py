@@ -156,7 +156,7 @@ class WebEngineView(QWebEngineView):
         if config.val.input.mouse.rocker_gestures:
             ev.ignore()
             return
-        return super().contextMenuEvent(ev)
+        super().contextMenuEvent(ev)
 
 
 class WebEnginePage(QWebEnginePage):
