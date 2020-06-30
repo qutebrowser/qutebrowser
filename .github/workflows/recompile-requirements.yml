@@ -1,0 +1,27 @@
+name: Recompile requirements
+
+on:
+  schedule:
+    # Every Tuesday at 16:05 UTC
+    # https://crontab.guru/#05_16_*_*_2
+    - cron: '05 16 * * 2'
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Run recompile_requirements.py
+        run: python3 scripts/dev/recompile_requirements.py
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v2
+        with:
+          comitter: qutebrowser bot <bot@qutebrowser.org>
+          author: qutebrowser bot <bot@qutebrowser.org>
+          token: ${{ secrets.QUTEBROWSER_BOT_TOKEN }}
+          commit-message: Update dependencies
+          title: Update dependencies
+          branch: update-dependencies
