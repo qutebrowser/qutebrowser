@@ -38,6 +38,9 @@ Fixed
 
 - Generating docs with `asciidoc2html.py` (e.g. via `mkvenv.py`) now works
   correctly without Pygments being installed system-wide.
+- Ever since Qt 5.9, when `input.mouse.rocker_gestures` was enabled, the
+  context menu still was shown when clicking the right mouse button, thus
+  preventing the rocker gestures. This is now fixed.
 
 v1.13.1 (unreleased)
 --------------------
