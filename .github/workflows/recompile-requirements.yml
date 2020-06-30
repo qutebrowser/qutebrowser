@@ -2,9 +2,9 @@ name: Update dependencies
 
 on:
   schedule:
-    # Every Tuesday at 16:05 UTC
-    # https://crontab.guru/#05_16_*_*_2
-    - cron: '05 16 * * 2'
+    # Every Monday at 05:05 UTC
+    # https://crontab.guru/#05_05_*_*_1
+    - cron: '05 05 * * 1'
 
 jobs:
   update:
