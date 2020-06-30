@@ -4,7 +4,7 @@ on:
   schedule:
     # Every Monday at 05:05 UTC
     # https://crontab.guru/#05_05_*_*_1
-    - cron: '37 16 * * 2'
+    - cron: '42 16 * * 2'
 
 jobs:
   update:
