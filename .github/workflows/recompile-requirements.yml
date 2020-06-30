@@ -26,10 +26,6 @@ jobs:
           commit-message: Update dependencies
           title: Update dependencies
           body: |
-            I'm a bot, bleep, bloop. :robot:
-
-            ---
-
             ## Changed files
 
             ${{ steps.requirements.outputs.changed }}
@@ -37,5 +33,9 @@ jobs:
             ## Version updates
 
             ${{ steps.requirements.outputs.diff }}
+
+            ---
+
+            I'm a bot, bleep, bloop. :robot:
 
           branch: update-dependencies

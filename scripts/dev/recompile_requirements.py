@@ -27,7 +27,6 @@ import glob
 import subprocess
 import tempfile
 import argparse
-import collections
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
@@ -174,17 +173,26 @@ def git_diff(*args):
 
 class Change:
 
-    def __init__(self):
+    def __init__(self, name):
+        self.name = name
         self.old = None
         self.new = None
 
     def __str__(self):
         if self.old is None:
-            return 'new: {}'.format(self.new)
-        elif self.old is None:
-            return 'old: {}'.format(self.old)
+            return '- {} new: {}'.format(self.name, self.new)
+        elif self.new is None:
+            return '- {} removed: {}'.format(self.name, self.old)
         else:
-            return '{} -> {}'.format(self.old, self.new)
+            return '- {} {} -> {}'.format(self.name, self.old, self.new)
+
+    def table_str(self):
+        if self.old is None:
+            return '| {} | -- | {} |'.format(self.name, self.new)
+        elif self.new is None:
+            return '| {} | {} | -- |'.format(self.name, self.old)
+        else:
+            return '| {} | {} | {} |'.format(self.name, self.old, self.new)
 
 
 def print_changed_files():
@@ -197,20 +205,26 @@ def print_changed_files():
         changed_files.add(filename)
     files_text = '\n'.join('- ' + line for line in sorted(changed_files))
 
-    changes = collections.defaultdict(Change)
+    changes_dict = {}
     diff = git_diff()
     for line in diff:
+        if not line.startswith('-') and not line.startswith('+'):
+            continue
         if line.startswith('+++ ') or line.startswith('--- '):
             continue
-        if line.startswith('-'):
-            name, version = line[1:].split('==')
-            changes[name].old = version
-        elif line.startswith('+'):
-            name, version = line[1:].split('==')
-            changes[name].new = version
 
-    diff_text = '\n'.join('- {}: {}'.format(name, change)
-                          for name, change in sorted(changes.items()))
+        name, version = line[1:].split('==')
+
+        if name not in changes_dict:
+            changes_dict[name] = Change(name)
+
+        if line.startswith('-'):
+            changes_dict[name].old = version
+        elif line.startswith('+'):
+            changes_dict[name].new = version
+
+    changes = [change for _name, change in sorted(changes_dict.items())]
+    diff_text = '\n'.join(str(change) for change in changes)
 
     utils.print_title('Changed')
     utils.print_subtitle('Files')
@@ -223,8 +237,13 @@ def print_changed_files():
         print()
         print('::set-output name=changed::' +
               files_text.replace('\n', '%0A'))
-        print('::set-output name=diff::' +
-              diff_text.replace('\n', '%0A'))
+        table_header = [
+            '| Requirement | old | new |',
+            '|-------------|-----|-----|',
+        ]
+        diff_table = '%0A'.join(table_header +
+                                [change.table_str() for change in changes])
+        print('::set-output name=diff::' + diff_table)
 
 
 def main():
