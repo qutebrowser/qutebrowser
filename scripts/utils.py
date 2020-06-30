@@ -59,14 +59,14 @@ def _esc(code):
     return '\033[{}m'.format(code)
 
 
-def print_col(text, color, file=sys.stdout):
+def print_col(text, color, file=sys.stdout, flush=False):
     """Print a colorized text."""
     if use_color:
         fg = _esc(fg_colors[color.lower()])
         reset = _esc(fg_colors['reset'])
-        print(''.join([fg, text, reset]), file=file)
+        print(''.join([fg, text, reset]), file=file, flush=flush)
     else:
-        print(text, file=file)
+        print(text, file=file, flush=flush)
 
 
 def print_error(text):
@@ -77,12 +77,12 @@ def print_title(text):
     """Print a title."""
     print()
     print_col("==================== {} ====================".format(text),
-              'yellow')
+              'yellow', flush=True)
 
 
 def print_subtitle(text):
     """Print a subtitle."""
-    print_col("------ {} ------".format(text), 'cyan')
+    print_col("------ {} ------".format(text), 'cyan', flush=True)
 
 
 def change_cwd():
