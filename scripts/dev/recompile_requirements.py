@@ -37,6 +37,9 @@ REPO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                         '..', '..')  # /scripts/dev -> /scripts -> /
 REQ_DIR = os.path.join(REPO_DIR, 'misc', 'requirements')
 
+# PyQt versions which need SIP v4
+OLD_PYQT = {'pyqt-5.7', 'pyqt-5.9', 'pyqt-5.10', 'pyqt-5.11'}
+
 
 def convert_line(line, comments):
     """Convert the given requirement line to place into the output."""
@@ -124,24 +127,10 @@ def get_all_names():
 
 def filter_names(names, old_pyqt=False):
     """Filter requirement names."""
-    names = sorted(names)
     if old_pyqt:
-        return names
-
-    pyqt_versions = []
-    for name in names:
-        if name.startswith('pyqt-'):
-            version = tuple(int(part) for part in
-                            name.replace('pyqt-', '').split('.'))
-            pyqt_versions.append(version)
-    newest_pyqt = sorted(pyqt_versions)[-1]
-    newest_pyqt_name = 'pyqt-' + '.'.join(str(part) for part in newest_pyqt)
-
-    filtered = []
-    for name in names:
-        if not name.startswith('pyqt-') or name == newest_pyqt_name:
-            filtered.append(name)
-    return filtered
+        return sorted(names)
+    else:
+        return sorted(set(names) - OLD_PYQT)
 
 
 def run_pip(venv_dir, *args, **kwargs):
@@ -192,12 +181,9 @@ def main():
         else:
             outfile = os.path.join(REQ_DIR, 'requirements-{}.txt'.format(name))
 
-        if name in [
-                # Need sip v4 which doesn't work on Python 3.8
-                'pyqt-5.7', 'pyqt-5.9', 'pyqt-5.10', 'pyqt-5.11', 'pyqt-5.12',
-                # Installs typed_ast on < 3.8 only
-                'pylint',
-        ]:
+        # Old PyQt versions need sip v4 which doesn't work on Python 3.8
+        # pylint installs typed_ast on < 3.8 only
+        if name in OLD_PYQT or name == 'pylint':
             host_python = 'python3.7'
         else:
             host_python = sys.executable
