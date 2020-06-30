@@ -163,28 +163,61 @@ def parse_args():
     return parser.parse_args()
 
 
-def print_changed_files():
-    changed = set()
-    proc = subprocess.run(['git', '--no-pager', 'diff', '--name-only'],
+def git_diff(*args):
+    """Run a git diff command."""
+    proc = subprocess.run(['git', '--no-pager', 'diff'] + list(args) +
+                          ['--', 'requirements.txt', 'misc/requirements'],
                           stdout=subprocess.PIPE, encoding='utf-8', check=True)
-    lines = proc.stdout.splitlines()
-    for line in lines:
-        line = line.strip()
-        if not (line.startswith('misc/requirements/') or
-                line == 'requirements.txt'):
-            continue
-        line = line.replace('misc/requirements/requirements-', '')
-        line = line.replace('.txt', '')
-        changed.add(line)
+    return proc.stdout.splitlines()
 
-    utils.print_title('Changed files')
-    text = '\n'.join('- ' + line for line in sorted(changed))
-    print(text)
+
+def diff_sort_key(line):
+    """Get a sort key for a changed requirement."""
+    name = line[1:].split('==')[0]
+    diffchar = 0 if line[0] == '-' else 1
+    return (name, diffchar)
+
+
+def print_changed_files():
+    changed_files = set()
+    filenames = git_diff('--name-only')
+    for filename in filenames:
+        filename = filename.strip()
+        filename = filename.replace('misc/requirements/requirements-', '')
+        filename = filename.replace('.txt', '')
+        changed_files.add(filename)
+    files_text = '\n'.join('- ' + line for line in sorted(changed_files))
+
+    changed_lines = set()
+    diff = git_diff()
+    for line in diff:
+        if not (line.startswith('-') or line.startswith('+')):
+            continue
+        if line.startswith('+++ ') or line.startswith('--- '):
+            continue
+        changed_lines.add(line)
+    changed_lines = sorted(changed_lines, key=diff_sort_key)
+    diff_text = '\n'.join(changed_lines)
+
+    utils.print_title('Changed')
+    utils.print_subtitle('Files')
+    print(files_text)
+    print()
+    utils.print_subtitle('Diff')
+    for line in changed_lines:
+        if line.startswith('-'):
+            utils.print_col(line, 'red')
+        elif line.startswith('+'):
+            utils.print_col(line, 'green')
+        else:
+            print(line)
 
     if 'CI' in os.environ:
-        text = '## Changed requirement files:\n\n' + text
         print()
-        print('::set-output name=changed::' + text.replace('\n', '%0A'))
+        print('::set-output name=changed::' +
+              files_text.replace('\n', '%0A'))
+        print('::set-output name=diff::' +
+              diff_text.replace('\n', '%0A'))
 
 
 def main():
