@@ -122,6 +122,28 @@ def get_all_names():
         yield basename[len('requirements-'):-len('.txt-raw')]
 
 
+def filter_names(names, old_pyqt=False):
+    """Filter requirement names."""
+    names = sorted(names)
+    if old_pyqt:
+        return names
+
+    pyqt_versions = []
+    for name in names:
+        if name.startswith('pyqt-'):
+            version = tuple(int(part) for part in
+                            name.replace('pyqt-', '').split('.'))
+            pyqt_versions.append(version)
+    newest_pyqt = sorted(pyqt_versions)[-1]
+    newest_pyqt_name = 'pyqt-' + '.'.join(str(part) for part in newest_pyqt)
+
+    filtered = []
+    for name in names:
+        if not name.startswith('pyqt-') or name == newest_pyqt_name:
+            filtered.append(name)
+    return filtered
+
+
 def run_pip(venv_dir, *args, **kwargs):
     """Run pip inside the virtualenv."""
     venv_python = os.path.join(venv_dir, 'bin', 'python')
@@ -145,6 +167,9 @@ def init_venv(host_python, venv_dir, requirements, pre=False):
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--old-pyqt',
+                        action='store_true',
+                        help='Also include old PyQt requirements.')
     parser.add_argument('names', nargs='*')
     return parser.parse_args()
 
@@ -155,8 +180,9 @@ def main():
     if args.names:
         names = args.names
     else:
-        names = sorted(get_all_names())
+        names = filter_names(get_all_names(), old_pyqt=args.old_pyqt)
 
+    utils.print_col('Rebuilding requirements: ' + ', '.join(names), 'green')
     for name in names:
         utils.print_title(name)
         filename = os.path.join(REQ_DIR,
