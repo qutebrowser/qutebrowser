@@ -158,6 +158,7 @@ def init_venv(host_python, venv_dir, requirements, pre=False):
 
 
 def parse_args():
+    """Parse commandline arguments via argparse."""
     parser = argparse.ArgumentParser()
     parser.add_argument('--old-pyqt',
                         action='store_true',
@@ -176,6 +177,8 @@ def git_diff(*args):
 
 class Change:
 
+    """A single requirements change from a git diff output."""
+
     def __init__(self, name):
         self.name = name
         self.old = None
@@ -190,6 +193,7 @@ class Change:
             return '- {} {} -> {}'.format(self.name, self.old, self.new)
 
     def table_str(self):
+        """Generate a markdown table."""
         if self.old is None:
             return '| {} | -- | {} |'.format(self.name, self.new)
         elif self.new is None:
@@ -199,6 +203,7 @@ class Change:
 
 
 def print_changed_files():
+    """Output all changed files from this run."""
     changed_files = set()
     filenames = git_diff('--name-only')
     for filename in filenames:
