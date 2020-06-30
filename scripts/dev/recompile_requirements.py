@@ -133,6 +133,7 @@ def init_venv(host_python, venv_dir, requirements, pre=False):
     subprocess.run([host_python, '-m', 'venv', venv_dir], check=True)
 
     run_pip(venv_dir, 'install', '-U', 'pip')
+    run_pip(venv_dir, 'install', '-U', 'setuptools', 'wheel')
 
     install_command = ['install', '-r', requirements]
     if pre:
