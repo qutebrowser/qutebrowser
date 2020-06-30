@@ -56,16 +56,6 @@ def _is_whitelisted_url(url: QUrl) -> bool:
         if pattern.matches(url):
             return True
 
-    # Prevent a block-list from being able to block itself, otherwise you
-    # couldn't update it.
-    blocklists = (
-        config.val.content.blocking.adblock.lists
-        + config.val.content.blocking.hosts.lists
-    )
-    if blocklists is not None:
-        if url in blocklists:
-            return True
-
     return False
 
 
