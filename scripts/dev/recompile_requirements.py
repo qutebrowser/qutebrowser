@@ -27,6 +27,7 @@ import glob
 import subprocess
 import tempfile
 import argparse
+import collections
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
@@ -171,11 +172,19 @@ def git_diff(*args):
     return proc.stdout.splitlines()
 
 
-def diff_sort_key(line):
-    """Get a sort key for a changed requirement."""
-    name = line[1:].split('==')[0]
-    diffchar = 0 if line[0] == '-' else 1
-    return (name, diffchar)
+class Change:
+
+    def __init__(self):
+        self.old = None
+        self.new = None
+
+    def __str__(self):
+        if self.old is None:
+            return 'new: {}'.format(self.new)
+        elif self.old is None:
+            return 'old: {}'.format(self.old)
+        else:
+            return '{} -> {}'.format(self.old, self.new)
 
 
 def print_changed_files():
@@ -188,29 +197,27 @@ def print_changed_files():
         changed_files.add(filename)
     files_text = '\n'.join('- ' + line for line in sorted(changed_files))
 
-    changed_lines = set()
+    changes = collections.defaultdict(Change)
     diff = git_diff()
     for line in diff:
-        if not (line.startswith('-') or line.startswith('+')):
-            continue
         if line.startswith('+++ ') or line.startswith('--- '):
             continue
-        changed_lines.add(line)
-    changed_lines = sorted(changed_lines, key=diff_sort_key)
-    diff_text = '\n'.join(changed_lines)
+        if line.startswith('-'):
+            name, version = line[1:].split('==')
+            changes[name].old = version
+        elif line.startswith('+'):
+            name, version = line[1:].split('==')
+            changes[name].new = version
+
+    diff_text = '\n'.join('- {}: {}'.format(name, change)
+                          for name, change in sorted(changes.items()))
 
     utils.print_title('Changed')
     utils.print_subtitle('Files')
     print(files_text)
     print()
     utils.print_subtitle('Diff')
-    for line in changed_lines:
-        if line.startswith('-'):
-            utils.print_col(line, 'red')
-        elif line.startswith('+'):
-            utils.print_col(line, 'green')
-        else:
-            print(line)
+    print(diff_text)
 
     if 'CI' in os.environ:
         print()

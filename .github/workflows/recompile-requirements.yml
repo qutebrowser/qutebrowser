@@ -30,13 +30,12 @@ jobs:
 
             ---
 
-            \#\# Changed files
+            ## Changed files
 
             ${{ steps.requirements.outputs.changed }}
 
-            \#\# Compacted diff
+            ## Version updates
 
-            ```diff
             ${{ steps.requirements.outputs.diff }}
-            ```
+
           branch: update-dependencies
