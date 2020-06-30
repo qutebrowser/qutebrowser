@@ -26,6 +26,7 @@ import os.path
 import glob
 import subprocess
 import tempfile
+import argparse
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
@@ -142,9 +143,19 @@ def init_venv(host_python, venv_dir, requirements, pre=False):
     run_pip(venv_dir, 'check')
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('names', nargs='*')
+    return parser.parse_args()
+
+
 def main():
     """Re-compile the given (or all) requirement files."""
-    names = sys.argv[1:] if len(sys.argv) > 1 else sorted(get_all_names())
+    args = parse_args()
+    if args.names:
+        names = args.names
+    else:
+        names = sorted(get_all_names())
 
     for name in names:
         utils.print_title(name)
