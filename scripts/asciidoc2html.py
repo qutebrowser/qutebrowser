@@ -251,9 +251,14 @@ class AsciiDoc:
             cmdline += ['--out-file', str(dst)]
         cmdline += args
         cmdline.append(str(src))
+
+        # So the virtualenv's Pygments is found
+        bin_path = pathlib.Path(sys.executable).parent
+
         try:
             env = os.environ.copy()
             env['HOME'] = str(self._homedir)
+            env['PATH'] = str(bin_path) + os.pathsep + env['PATH']
             subprocess.run(cmdline, check=True, env=env)
         except (subprocess.CalledProcessError, OSError) as e:
             self._failed = True
