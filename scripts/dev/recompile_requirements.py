@@ -135,6 +135,8 @@ def filter_names(names, old_pyqt=False):
 
 def run_pip(venv_dir, *args, **kwargs):
     """Run pip inside the virtualenv."""
+    arg_str = ' '.join(str(arg) for arg in args)
+    utils.print_col('venv$ pip {}'.format(arg_str), 'blue')
     venv_python = os.path.join(venv_dir, 'bin', 'python')
     return subprocess.run([venv_python, '-m', 'pip'] + list(args),
                           check=True, **kwargs)
@@ -142,6 +144,7 @@ def run_pip(venv_dir, *args, **kwargs):
 
 def init_venv(host_python, venv_dir, requirements, pre=False):
     """Initialize a new virtualenv and install the given packages."""
+    utils.print_col('$ python3 -m venv {}'.format(venv_dir), 'blue')
     subprocess.run([host_python, '-m', 'venv', venv_dir], check=True)
 
     run_pip(venv_dir, 'install', '-U', 'pip')
@@ -272,7 +275,6 @@ def main():
             host_python = sys.executable
 
         utils.print_subtitle("Building")
-
         with open(filename, 'r', encoding='utf-8') as f:
             comments = read_comments(f)
 
@@ -296,6 +298,7 @@ def main():
                 f.write(line + '\n')
 
         # Test resulting file
+        print()
         utils.print_subtitle("Testing")
         with tempfile.TemporaryDirectory() as tmpdir:
             init_venv(host_python, tmpdir, outfile)
