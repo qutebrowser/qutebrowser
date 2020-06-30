@@ -151,6 +151,13 @@ class WebEngineView(QWebEngineView):
         tab = shared.get_tab(self._win_id, target)
         return tab._widget  # pylint: disable=protected-access
 
+    def contextMenuEvent(self, ev):
+        """Prevent context menus when rocker gestures are enabled."""
+        if config.val.input.mouse.rocker_gestures:
+            ev.ignore()
+            return
+        super().contextMenuEvent(ev)
+
 
 class WebEnginePage(QWebEnginePage):
 

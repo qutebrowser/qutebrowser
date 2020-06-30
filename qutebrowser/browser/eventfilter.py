@@ -116,7 +116,6 @@ class TabEventFilter(QObject):
             QEvent.MouseButtonPress: self._handle_mouse_press,
             QEvent.MouseButtonRelease: self._handle_mouse_release,
             QEvent.Wheel: self._handle_wheel,
-            QEvent.ContextMenu: self._handle_context_menu,
             QEvent.KeyRelease: self._handle_key_release,
         }
         self._ignore_wheel_event = False
@@ -209,17 +208,6 @@ class TabEventFilter(QObject):
             return True
 
         return False
-
-    def _handle_context_menu(self, _e):
-        """Suppress context menus if rocker gestures are turned on.
-
-        Args:
-            e: The QContextMenuEvent.
-
-        Return:
-            True if the event should be filtered, False otherwise.
-        """
-        return config.val.input.mouse.rocker_gestures
 
     def _handle_key_release(self, e):
         """Ignore repeated key release events going to the website.
