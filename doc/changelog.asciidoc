@@ -33,6 +33,12 @@ Added
   numbers of tabs. This can be used to get aligned tab texts with vertical
   tabs.
 
+Fixed
+~~~~~
+
+- Generating docs with `asciidoc2html.py` (e.g. via `mkvenv.py`) now works
+  correctly without Pygments being installed system-wide.
+
 v1.13.1 (unreleased)
 --------------------
 
