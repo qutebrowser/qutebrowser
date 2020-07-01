@@ -27,9 +27,6 @@ Currently not tested:
 - Nested filesystem:// URLs as we don't have those.
 - Unicode matching because QUrl doesn't like those URLs.
 - Any other features we don't need, such as .GetAsString() or set operations.
-
-Based on the following commit in Chromium (plus a couple of newer changes):
-https://chromium.googlesource.com/chromium/src/+/d82b894ef50199f91fc3a83307b709b13062e5f8
 """
 
 import sys
@@ -44,33 +41,53 @@ from qutebrowser.utils import urlmatch
 
 
 @pytest.mark.parametrize('pattern, error', [
-    # Chromium: PARSE_ERROR_MISSING_SCHEME_SEPARATOR
+    ### Chromium: kMissingSchemeSeparator
+    ## TEST(ExtensionURLPatternTest, ParseInvalid)
     # ("http", "No scheme given"),
     ("http:", "Invalid port: Port is empty"),
     ("http:/", "Invalid port: Port is empty"),
     ("about://", "Pattern without path"),
     ("http:/bar", "Invalid port: Port is empty"),
 
-    # Chromium: PARSE_ERROR_EMPTY_HOST
+    ### Chromium: kEmptyHost
+    ## TEST(ExtensionURLPatternTest, ParseInvalid)
     ("http://", "Pattern without host"),
     ("http:///", "Pattern without host"),
-    ("http:// /", "Pattern without host"),
     ("http://:1234/", "Pattern without host"),
+    ## Other
+    ("http:// /", "Pattern without host"),
+    ## TEST(ExtensionURLPatternTest, IPv6Patterns)
+    ("http://[]:8888/*", "Pattern without host"),
 
-    # Chromium: PARSE_ERROR_EMPTY_PATH
+    ### Chromium: kEmptyPath
+    ## TEST(ExtensionURLPatternTest, ParseInvalid)
     # We deviate from Chromium and allow this for ease of use
     # ("http://bar", "..."),
 
-    # Chromium: PARSE_ERROR_INVALID_HOST
+    ### Chromium: kInvalidHost
+    ## TEST(ExtensionURLPatternTest, ParseInvalid)
     ("http://\0www/", "May not contain NUL byte"),
+    ## TEST(ExtensionURLPatternTest, IPv6Patterns)
+    # No closing bracket (`]`).
+    ("http://[2607:f8b0:4005:805::200e/*", "Invalid IPv6 URL"),
+    # Two closing brackets (`]]`).
+    pytest.param("http://[2607:f8b0:4005:805::200e]]/*", "Invalid IPv6 URL", marks=pytest.mark.xfail(reason="https://bugs.python.org/issue34360")),
+    # Two open brackets (`[[`).
+    ("http://[[2607:f8b0:4005:805::200e]/*", r"""Expected '\]' to match '\[' in hostname; source was "\[2607:f8b0:4005:805::200e"; host = """""),
+    # Too few colons in the last chunk.
+    ("http://[2607:f8b0:4005:805:200e]/*", 'Invalid IPv6 address; source was "2607:f8b0:4005:805:200e"; host = ""'),
+    # Non-hex piece.
+    ("http://[2607:f8b0:4005:805:200e:12:bogus]/*", 'Invalid IPv6 address; source was "2607:f8b0:4005:805:200e:12:bogus"; host = ""'),
 
-    # Chromium: PARSE_ERROR_INVALID_HOST_WILDCARD
+    ### Chromium: kInvalidHostWildcard
+    ## TEST(ExtensionURLPatternTest, ParseInvalid)
     ("http://*foo/bar", "Invalid host wildcard"),
     ("http://foo.*.bar/baz", "Invalid host wildcard"),
     ("http://fo.*.ba:123/baz", "Invalid host wildcard"),
     ("http://foo.*/bar", "TLD wildcards are not implemented yet"),
 
-    # Chromium: PARSE_ERROR_INVALID_PORT
+    ### Chromium: kInvalidPort
+    ## TEST(ExtensionURLPatternTest, Ports)
     ("http://foo:/", "Invalid port: Port is empty"),
     ("http://*.foo:/", "Invalid port: Port is empty"),
     ("http://foo:com/", "Invalid port: .* 'com'"),
@@ -81,18 +98,16 @@ from qutebrowser.utils import urlmatch
                      reason="Doesn't show an error on Python 3.5")),
     ("http://foo:80:80/monkey", "Invalid port: .* '80:80'"),
     ("chrome://foo:1234/bar", "Ports are unsupported with chrome scheme"),
+    # No port specified, but port separator.
+    ("http://[2607:f8b0:4005:805::200e]:/*", "Invalid port: Port is empty"),
 
-    # Additional tests
+    ### Additional tests
     ("http://[", "Invalid IPv6 URL"),
-    ("http://[fc2e:bb88::edac]:", "Invalid port: Port is empty"),
     ("http://[fc2e::bb88::edac]", 'Invalid IPv6 address; source was "fc2e::bb88::edac"; host = ""'),
     ("http://[fc2e:0e35:bb88::edac:fc2e:0e35:bb88:edac]", 'Invalid IPv6 address; source was "fc2e:0e35:bb88::edac:fc2e:0e35:bb88:edac"; host = ""'),
     ("http://[fc2e:0e35:bb88:af:edac:fc2e:0e35:bb88:edac]", 'Invalid IPv6 address; source was "fc2e:0e35:bb88:af:edac:fc2e:0e35:bb88:edac"; host = ""'),
     ("http://[127.0.0.1:fc2e::bb88:edac]", r'Invalid IPv6 address; source was "127\.0\.0\.1:fc2e::bb88:edac'),
-    ("http://[]:20", "Pattern without host"),
     ("http://[fc2e::bb88", "Invalid IPv6 URL"),
-    ("http://[[fc2e::bb88:edac]", r"""Expected '\]' to match '\[' in hostname; source was "\[fc2e::bb88:edac"; host = """""),
-    pytest.param("http://[fc2e::bb88:edac]]", "Invalid IPv6 URL", marks=pytest.mark.xfail(reason="https://bugs.python.org/issue34360")),
     ("http://[fc2e:bb88:edac]", 'Invalid IPv6 address; source was "fc2e:bb88:edac"; host = ""'),
     ("http://[fc2e:bb88:edac::z]", 'Invalid IPv6 address; source was "fc2e:bb88:edac::z"; host = ""'),
     ("http://[fc2e:bb88:edac::2]:2a2", "Invalid port: .* '2a2'"),
@@ -104,6 +119,7 @@ def test_invalid_patterns(pattern, error):
 
 
 @pytest.mark.parametrize('pattern, port', [
+    ## TEST(ExtensionURLPatternTest, Ports)
     ("http://foo:1234/", 1234),
     ("http://foo:1234/bar", 1234),
     ("http://*.foo:1234/", 1234),
@@ -112,7 +128,6 @@ def test_invalid_patterns(pattern, error):
     ("http://*:*/", None),
     ("http://foo:*/", None),
     ("file://foo:1234/bar", None),
-
     # Port-like strings in the path should not trigger a warning.
     ("http://*/:1234", None),
     ("http://*.foo/bar:1234", None),
@@ -154,6 +169,8 @@ def test_lightweight_patterns(pattern, scheme, host, path):
 
 class TestMatchAllPagesForGivenScheme:
 
+    """Based on TEST(ExtensionURLPatternTest, Match1)."""
+
     @pytest.fixture
     def up(self):
         return urlmatch.UrlPattern("http://*/*")
@@ -167,12 +184,13 @@ class TestMatchAllPagesForGivenScheme:
 
     @pytest.mark.parametrize('url, expected', [
         ("http://google.com", True),
-        ("http://google.com:80", True),
-        ("http://google.com.", True),
         ("http://yahoo.com", True),
         ("http://google.com/foo", True),
         ("https://google.com", False),
         ("http://74.125.127.100/search", True),
+        # Additional tests
+        ("http://google.com:80", True),
+        ("http://google.com.", True),
         ("http://[fc2e:0e35:bb88::edac]", True),
         ("http://[fc2e:e35:bb88::edac]", True),
         ("http://[fc2e:e35:bb88::127.0.0.1]", True),
@@ -183,6 +201,8 @@ class TestMatchAllPagesForGivenScheme:
 
 
 class TestMatchAllDomains:
+
+    """Based on TEST(ExtensionURLPatternTest, Match2)."""
 
     @pytest.fixture
     def up(self):
@@ -206,6 +226,8 @@ class TestMatchAllDomains:
 
 
 class TestMatchSubdomains:
+
+    """Based on TEST(ExtensionURLPatternTest, Match3)."""
 
     @pytest.fixture
     def up(self):
@@ -232,6 +254,8 @@ class TestMatchSubdomains:
 
 class TestMatchGlobEscaping:
 
+    """Based on TEST(ExtensionURLPatternTest, Match5)."""
+
     @pytest.fixture
     def up(self):
         return urlmatch.UrlPattern(r"file:///foo-bar\*baz")
@@ -244,6 +268,7 @@ class TestMatchGlobEscaping:
         assert up._path == r'/foo-bar\*baz'
 
     @pytest.mark.parametrize('url, expected', [
+        ## TEST(ExtensionURLPatternTest, Match5)
         # We use - instead of ? so it doesn't get treated as query
         (r"file:///foo-bar\hellobaz", True),
         (r"file:///fooXbar\hellobaz", False),
@@ -254,9 +279,12 @@ class TestMatchGlobEscaping:
 
 class TestMatchIpAddresses:
 
+    """Based on TEST(ExtensionURLPatternTest, Match6/7)."""
+
     @pytest.mark.parametrize('pattern, host, match_subdomains', [
         ("http://127.0.0.1/*", "127.0.0.1", False),
         ("http://*.0.0.1/*", "0.0.1", True),
+        ## Others
         ("http://[::1]/*", "::1", False),
         ("http://[0::1]/*", "::1", False),
         ("http://[::01]/*", "::1", False),
@@ -280,7 +308,12 @@ class TestMatchIpAddresses:
         assert up.matches(QUrl("http://127.0.0.1")) == expected
 
 
+## FIXME Missing TEST(ExtensionURLPatternTest, Match8) (unicode)?
+
+
 class TestMatchChromeUrls:
+
+    """Based on TEST(ExtensionURLPatternTest, Match9/10)."""
 
     @pytest.fixture
     def up(self):
@@ -303,6 +336,8 @@ class TestMatchChromeUrls:
 
 
 class TestMatchAnything:
+
+    """Based on TEST(ExtensionURLPatternTest, Match10/11)."""
 
     @pytest.fixture(params=['*://*/*', '*://*:*/*', '<all_urls>', '*://*'])
     def up(self, request):
@@ -346,10 +381,13 @@ class TestMatchAnything:
     ("data:*", "about:blank", False),
 ])
 def test_special_schemes(pattern, url, expected):
+    """Based on TEST(ExtensionURLPatternTest, Match13)."""
     assert urlmatch.UrlPattern(pattern).matches(QUrl(url)) == expected
 
 
 class TestFileScheme:
+
+    """Based on TEST(ExtensionURLPatternTest, Match14/15/16)."""
 
     @pytest.fixture(params=[
         'file:///foo*',
@@ -381,6 +419,8 @@ class TestFileScheme:
 
 class TestMatchSpecificPort:
 
+    """Based on TEST(ExtensionURLPatternTest, Match17)."""
+
     @pytest.fixture
     def up(self):
         return urlmatch.UrlPattern("http://www.example.com:80/foo")
@@ -404,6 +444,8 @@ class TestMatchSpecificPort:
 
 class TestExplicitPortWildcard:
 
+    """Based on TEST(ExtensionURLPatternTest, Match18)."""
+
     @pytest.fixture
     def up(self):
         return urlmatch.UrlPattern("http://www.example.com:*/foo")
@@ -426,6 +468,7 @@ class TestExplicitPortWildcard:
 
 
 def test_ignore_missing_slashes():
+    """Based on TEST(ExtensionURLPatternTest, IgnoreMissingBackslashes)."""
     pattern1 = urlmatch.UrlPattern("http://www.example.com/example")
     pattern2 = urlmatch.UrlPattern("http://www.example.com/example/*")
     url1 = QUrl('http://www.example.com/example')

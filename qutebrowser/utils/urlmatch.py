@@ -23,6 +23,9 @@ See:
 https://developer.chrome.com/apps/match_patterns
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern.cc
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern.h
+
+Based on the following commit in Chromium (plus a couple of newer changes):
+https://chromium.googlesource.com/chromium/src/+/7f1c5bab0ec483e811e0689d2b47e2f3b7b9498d
 """
 
 import ipaddress
