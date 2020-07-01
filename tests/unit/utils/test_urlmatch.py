@@ -27,6 +27,9 @@ Currently not tested:
 - Nested filesystem:// URLs as we don't have those.
 - Unicode matching because QUrl doesn't like those URLs.
 - Any other features we don't need, such as .GetAsString() or set operations.
+
+Based on the following commit in Chromium (plus a couple of newer changes):
+https://chromium.googlesource.com/chromium/src/+/d82b894ef50199f91fc3a83307b709b13062e5f8
 """
 
 import sys
@@ -466,6 +469,70 @@ def test_trailing_dot_domain(pattern, url):
     [2] http://www.ietf.org/rfc/rfc1738.txt
     """
     assert urlmatch.UrlPattern(pattern).matches(QUrl(url))
+
+
+class TestUncanonicalizedUrl:
+
+    """Test that URLPattern properly canonicalizes uncanonicalized hosts.
+
+    Equivalent to Chromium's TEST(ExtensionURLPatternTest, UncanonicalizedUrl).
+    """
+
+    @pytest.mark.parametrize('url', [
+        'https://google.com',
+        'https://maps.google.com',
+    ])
+    def test_lowercase(self, url):
+        """Simple case: canonicalization should lowercase the host.
+
+        This is important, since gOoGle.com would never be matched in
+        practice.
+        """
+        pattern = urlmatch.UrlPattern('*://*.gOoGle.com/*')
+        assert pattern.matches(QUrl(url))
+
+    @pytest.mark.parametrize('url', [
+        'https://ɡoogle.com',
+        'https://xn--oogle-qmc.com/',
+    ])
+    def test_punycode(self, url):
+        """Trickier case: internationalization with UTF8 characters.
+
+        The first 'g' isn't actually a 'g'.
+        """
+        pattern = urlmatch.UrlPattern('https://*.ɡoogle.com/*')
+        assert pattern.matches(QUrl(url))
+
+    @pytest.mark.xfail(reason="Gets accepted by urllib.parse")
+    def test_failing_canonicalization(self):
+        """Sometimes, canonicalization can fail.
+
+        Such as here, where we have invalid unicode characters. In that case,
+        URLPattern parsing should also fail.
+
+        This fails in Chromium, but Python's urllib.parse.urlparse happily
+        tries to parse it...
+        """
+        with pytest.raises(urlmatch.ParseError):
+            urlmatch.UrlPattern('https://\xef\xb7\x90zyx.com/*')
+
+    @pytest.mark.xfail(reason="We return the original string")
+    @pytest.mark.parametrize('pattern_str, string, host', [
+        ('*://*.gOoGle.com/*',
+         '*://*.google.com/*',
+         'google.com'),
+        ('https://*.ɡoogle.com/*',
+         'https://*.xn--oogle-qmc.com/*',
+         'xn--oogle-qmc.com'),
+    ])
+    def test_str(self, pattern_str, string, host):
+        """Test that str() and .host get the canonicalized string.
+
+        Contrary to Chromium, we return the original values here.
+        """
+        pattern = urlmatch.UrlPattern(pattern_str)
+        assert str(pattern) == string
+        assert pattern.host == host
 
 
 def test_urlpattern_benchmark(benchmark):
