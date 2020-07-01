@@ -25,7 +25,7 @@ https://cs.chromium.org/chromium/src/extensions/common/url_pattern.cc
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern.h
 
 Based on the following commit in Chromium (plus a couple of newer changes):
-https://chromium.googlesource.com/chromium/src/+/7f1c5bab0ec483e811e0689d2b47e2f3b7b9498d
+https://chromium.googlesource.com/chromium/src/+/35f8e3712967bb475b8afbac870168c302713ab0
 """
 
 import ipaddress
@@ -205,9 +205,6 @@ class UrlPattern:
 
         self.host = '.'.join(host_parts)
 
-        if self.host.endswith('.*'):
-            # Special case to have a nicer error
-            raise ParseError("TLD wildcards are not implemented yet")
         if '*' in self.host:
             # Only * or *.foo is allowed as host.
             raise ParseError("Invalid host wildcard")

@@ -23,7 +23,6 @@ The tests are mostly inspired by Chromium's:
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern_unittest.cc
 
 Currently not tested:
-- The match_effective_tld attribute as it doesn't exist yet.
 - Nested filesystem:// URLs as we don't have those.
 - Unicode matching because QUrl doesn't like those URLs.
 - Any other features we don't need, such as .GetAsString() or set operations.
@@ -84,7 +83,7 @@ from qutebrowser.utils import urlmatch
     ("http://*foo/bar", "Invalid host wildcard"),
     ("http://foo.*.bar/baz", "Invalid host wildcard"),
     ("http://fo.*.ba:123/baz", "Invalid host wildcard"),
-    ("http://foo.*/bar", "TLD wildcards are not implemented yet"),
+    ("http://foo.*/bar", "Invalid host wildcard"),
 
     ### Chromium: kInvalidPort
     ## TEST(ExtensionURLPatternTest, Ports)
@@ -132,8 +131,6 @@ def test_invalid_patterns(pattern, error):
     ("http://*/:1234", None),
     ("http://*.foo/bar:1234", None),
     ("http://foo/bar:1234/path", None),
-    # We don't implement ALLOW_WILDCARD_FOR_EFFECTIVE_TLD yet.
-    # ("http://*.foo.*/:1234", None),
 ])
 def test_port(pattern, port):
     up = urlmatch.UrlPattern(pattern)
