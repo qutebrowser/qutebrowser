@@ -330,6 +330,18 @@ class TestYaml:
         assert str(error.exception).splitlines()[0] == exception
         assert error.traceback is None
 
+    @pytest.mark.parametrize('value', [
+        42,  # value is not a dict
+        {'https://': True},  # Invalid pattern
+        {True: True},  # No string pattern
+    ])
+    def test_invalid_in_migrations(self, value, yaml, autoconfig):
+        """Make sure migrations work fine with an invalid structure."""
+        config = {key: value for key in configdata.DATA}
+        autoconfig.write(config)
+        with pytest.raises(configexc.ConfigFileErrors):
+            yaml.load()
+
     def test_legacy_migration(self, yaml, autoconfig, qtbot):
         autoconfig.write_toplevel({
             'config_version': 1,
