@@ -378,6 +378,7 @@ class TestMatchAnything:
         "qute://version",
         "about:blank",
         "data:text/html;charset=utf-8,<html>asdf</html>",
+        "javascript:",
     ])
     def test_urls(self, up, url):
         assert up.matches(QUrl(url))

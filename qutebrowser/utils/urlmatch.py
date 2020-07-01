@@ -24,8 +24,9 @@ https://developer.chrome.com/apps/match_patterns
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern.cc
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern.h
 
-Based on the following commit in Chromium (plus a couple of newer changes):
-https://chromium.googlesource.com/chromium/src/+/e5ead0f9034ffbce864a23f06f9e93d2cfda3e7f
+Based on the following commit in Chromium:
+https://chromium.googlesource.com/chromium/src/+/757854e199e159523e7789de5cb2f6ba49b79b63
+(February 4 2020, newest commit as per July 1st 2020)
 """
 
 import ipaddress
@@ -284,6 +285,12 @@ class UrlPattern:
         return self._port is None or self._port == port
 
     def _matches_path(self, path: str) -> bool:
+        """Match the URL's path.
+
+        Deviations from Chromium:
+        - Chromium only matches <all_urls> with "javascript:" (pathless); but
+          we also match *://*/* and friends.
+        """
         if self._path is None:
             return True
 
