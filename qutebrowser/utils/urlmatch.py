@@ -193,21 +193,25 @@ class UrlPattern:
             self.host = url.host()
             return
 
-        # FIXME what about multiple dots?
-        host_parts = parsed.hostname.rstrip('.').split('.')
-        if host_parts[0] == '*':
-            host_parts = host_parts[1:]
+        if parsed.hostname == '*':
             self._match_subdomains = True
+            hostname = None
+        elif parsed.hostname.startswith('*.'):
+            if len(parsed.hostname) == 2:
+                # We don't allow just '*.' as a host.
+                raise ParseError("Pattern without host")
+            self._match_subdomains = True
+            hostname = parsed.hostname[2:]
+        else:
+            hostname = parsed.hostname
 
-        if not host_parts:
+        if hostname is None:
             self.host = None
-            return
-
-        self.host = '.'.join(host_parts)
-
-        if '*' in self.host:
+        elif '*' in hostname:
             # Only * or *.foo is allowed as host.
             raise ParseError("Invalid host wildcard")
+        else:
+            self.host = hostname.rstrip('.')
 
     def _init_port(self, parsed: urllib.parse.ParseResult) -> None:
         """Parse the port from the given URL.

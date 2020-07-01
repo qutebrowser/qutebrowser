@@ -53,8 +53,7 @@ from qutebrowser.utils import urlmatch
     ("http://", "Pattern without host"),
     ("http:///", "Pattern without host"),
     ("http://:1234/", "Pattern without host"),
-    ## Other
-    ("http:// /", "Pattern without host"),
+    ("http://*./", "Pattern without host"),
     ## TEST(ExtensionURLPatternTest, IPv6Patterns)
     ("http://[]:8888/*", "Pattern without host"),
 
