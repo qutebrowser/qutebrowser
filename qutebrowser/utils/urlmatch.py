@@ -25,7 +25,7 @@ https://cs.chromium.org/chromium/src/extensions/common/url_pattern.cc
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern.h
 
 Based on the following commit in Chromium (plus a couple of newer changes):
-https://chromium.googlesource.com/chromium/src/+/35f8e3712967bb475b8afbac870168c302713ab0
+https://chromium.googlesource.com/chromium/src/+/e5ead0f9034ffbce864a23f06f9e93d2cfda3e7f
 """
 
 import ipaddress
@@ -177,6 +177,8 @@ class UrlPattern:
 
         Deviation from Chromium:
         - http://:1234/ is not a valid URL because it has no host.
+        - We don't allow patterns for dot/space hosts which QUrl considers
+          invalid.
         """
         if parsed.hostname is None or not parsed.hostname.strip():
             if self._scheme not in self._SCHEMES_WITHOUT_HOST:
@@ -202,6 +204,8 @@ class UrlPattern:
                 raise ParseError("Pattern without host")
             self._match_subdomains = True
             hostname = parsed.hostname[2:]
+        elif set(parsed.hostname) in {frozenset('.'), frozenset('. ')}:
+            raise ParseError("Invalid host")
         else:
             hostname = parsed.hostname
 

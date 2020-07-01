@@ -116,6 +116,21 @@ def test_invalid_patterns(pattern, error):
         urlmatch.UrlPattern(pattern)
 
 
+@pytest.mark.parametrize('host', ['.', ' ', ' .', '. ', '. .', '. . .', ' . '])
+def test_whitespace_hosts(host):
+    """Test that whitespace dot hosts are invalid.
+
+    This is a deviation from Chromium.
+    """
+    template = 'https://{}/*'
+    url = QUrl(template.format(host))
+    assert not url.isValid()
+
+    with pytest.raises(urlmatch.ParseError,
+                       match='Invalid host|Pattern without host'):
+        urlmatch.UrlPattern(template.format(host))
+
+
 @pytest.mark.parametrize('pattern, port', [
     ## TEST(ExtensionURLPatternTest, Ports)
     ("http://foo:1234/", 1234),
