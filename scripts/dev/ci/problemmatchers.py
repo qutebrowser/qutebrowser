@@ -45,6 +45,17 @@ MATCHERS = {
             },
         ],
     },
+    "vulture": {
+        "severity": "warning",
+        "pattern": [
+            {
+                "regexp": r"([^:]*):([^:]*): ([^(]* \(\d+% confidence\))$",
+                "file": 1,
+                "line": 2,
+                "message": 3,
+            }
+        ]
+    }
 }
 
 
