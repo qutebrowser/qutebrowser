@@ -52,6 +52,8 @@ Fixed
 - Clicking the inspector switched from existing modes (such as passthrough) to
   normal mode since v1.13.0. Now insert mode is only entered when the inspector
   is clicked in normal mode.
+- Pulseaudio now shows qutebrowser's audio streams as qutebrowser correctly,
+  rather than showing them as Chromium (depending on the Qt version).
 
 v1.13.1 (unreleased)
 --------------------
