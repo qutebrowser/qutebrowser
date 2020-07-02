@@ -92,11 +92,14 @@ MATCHERS = {
         ],
     },
 
+    # For some reason, ANSI color escape codes end up as part of the message
+    # GitHub gets with colored pylint output - so we have those escape codes
+    # (e.g. "\033[35m...\033[0m") as part of the regex patterns...
     "pylint": {
         # filename.py:80:10: E0602: Undefined variable 'foo' (undefined-variable)
         "pattern-error": [
             {
-                "regexp": r"^([^:]+):(\d+):(\d+): (E\d+): (.*)",
+                "regexp": r"^([^:]+):(\d+):(\d+): (E\d+): \033\[[\d;]+m([^\033]+).*$",
                 "file": 1,
                 "line": 2,
                 "column": 3,
@@ -108,7 +111,7 @@ MATCHERS = {
         # filename.py:78:14: W0613: Unused argument 'unused' (unused-argument)
         "pattern-warning": [
             {
-                "regexp": r"^([^:]+):(\d+):(\d+): ([A-DF-Z]\d+): (.*)",
+                "regexp": r"^([^:]+):(\d+):(\d+): ([A-DF-Z]\d+): \033\[[\d;]+m([^\033]+).*$",
                 "file": 1,
                 "line": 2,
                 "column": 3,
