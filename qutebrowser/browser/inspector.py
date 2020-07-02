@@ -99,7 +99,7 @@ class _EventFilter(QObject):
         """Enter insert mode if the inspector is clicked."""
         if event.type() == QEvent.MouseButtonPress:
             modeman.enter(self._win_id, usertypes.KeyMode.insert,
-                          reason='Inspector clicked')
+                          reason='Inspector clicked', only_if_normal=True)
         return False
 
 
