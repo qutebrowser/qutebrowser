@@ -55,7 +55,23 @@ MATCHERS = {
                 "message": 3,
             }
         ]
-    }
+    },
+    "flake8": {
+        # "undefined name" is FXXX (i.e. not an error), but e.g. multiple
+        # spaces before an operator is EXXX (i.e. an error) - that makes little
+        # sense, so let's just treat everything as a warning instead.
+        "severity": "warning",
+        "pattern": [
+            {
+                "regexp": r"^([^:]+):(\d+):(\d+): ([A-Z]\d{3}) (.*)$",
+                "file": 1,
+                "line": 2,
+                "column": 3,
+                "code": 4,
+                "message": 5,
+            }
+        ]
+    },
 }
 
 
