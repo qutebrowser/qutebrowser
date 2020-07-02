@@ -1,0 +1,33 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  linters:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        testenv:
+          - pylint
+          - flake8
+          - mypy
+          - docs
+          - vulture
+          - misc
+          - pyroma
+          - check-manifest
+          - eslint
+          - shellcheck
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+        if: "matrix.testenv == 'eslint'"
+      - name: Install dependencies
+        run: "bash scripts/dev/ci/install.sh ${{ matrix.testenv }}"
+      - name: "Run ${{ matrix.testenv }}"
+        run: "bash scripts/dev/ci/run.sh ${{ matrix.testenv }}"
