@@ -1,7 +1,7 @@
 #!/bin/bash
 # vim: ft=sh fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -20,19 +20,13 @@
 
 set -e
 
-pip_install() {
-    python3 -m pip install "$@"
-}
+script_list=$(mktemp)
+find scripts/dev/ -name '*.sh' > "$script_list"
+find misc/userscripts/ -type f -exec grep -lE '[/ ][bd]ash$|[/ ]sh$|[/ ]ksh$' {} + >> "$script_list"
+mapfile -t scripts < "$script_list"
+rm -f "$script_list"
 
-testenv=$1
-
-[[ -n $DOCKER ]] && exit 0
-
-[[ $testenv == eslint ]] && npm install -g eslint
-
-pip_install -U pip
-pip_install -U -r misc/requirements/requirements-tox.txt
-
-[[ $testenv == docs ]] && sudo apt install asciidoc
-[[ $testenv == *-cov ]] && pip_install -U -r misc/requirements/requirements-codecov.txt
-exit 0
+docker run \
+        -v "$PWD:/outside" \
+        -w /outside \
+        koalaman/shellcheck:stable "$@" "${scripts[@]}"
