@@ -26,8 +26,6 @@ pip_install() {
 
 testenv=$1
 
-[[ -n $DOCKER ]] && exit 0
-
 [[ $testenv == eslint ]] && npm install -g eslint
 
 pip_install -U pip
