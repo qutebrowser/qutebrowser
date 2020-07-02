@@ -49,6 +49,9 @@ Fixed
   from `autoconfig.yml`.
 - Certain `autoconfig.yml` with an invalid structure could lead to crashes,
   which are now fixed.
+- Clicking the inspector switched from existing modes (such as passthrough) to
+  normal mode since v1.13.0. Now insert mode is only entered when the inspector
+  is clicked in normal mode.
 
 v1.13.1 (unreleased)
 --------------------
