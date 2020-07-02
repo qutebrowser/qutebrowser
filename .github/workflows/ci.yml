@@ -27,6 +27,8 @@ jobs:
         with:
           node-version: '12.x'
         if: "matrix.testenv == 'eslint'"
+      - name: Set up problem matchers
+        run: "python3 scripts/dev/ci/problemmatchers.py ${{ matrix.testenv }}"
       - name: Install dependencies
         run: "bash scripts/dev/ci/install.sh ${{ matrix.testenv }}"
       - name: "Run ${{ matrix.testenv }}"
