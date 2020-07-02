@@ -39,7 +39,9 @@ case $testenv in
     *)
         pip_install -U pip
         pip_install -U -r misc/requirements/requirements-tox.txt
-        if [[ $testenv == *-cov ]]; then
+        if [[ $testenv == docs ]]; then
+            sudo apt install asciidoc
+        elif [[ $testenv == *-cov ]]; then
             pip_install -U -r misc/requirements/requirements-codecov.txt
         fi
         ;;
