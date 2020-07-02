@@ -66,8 +66,7 @@ MATCHERS = {
         # "undefined name" is FXXX (i.e. not an error), but e.g. multiple
         # spaces before an operator is EXXX (i.e. an error) - that makes little
         # sense, so let's just treat everything as a warning instead.
-        "severity": "warning",
-        "pattern": [
+        "pattern-warning": [
             {
                 "regexp": r"^([^:]+):(\d+):(\d+): ([A-Z]\d{3}) (.*)$",
                 "file": 1,
@@ -81,6 +80,23 @@ MATCHERS = {
 }
 
 
+def add_matcher(output_dir, owner, pattern, severity=None):
+    output = {
+        'owner': owner,
+        'pattern': pattern,
+    }
+    if severity is not None:
+        output['severity'] = severity
+
+    data = {'problemMatcher': [output]}
+
+    output_file = output_dir / '{}.json'.format(owner)
+    with output_file.open('w', encoding='utf-8') as f:
+        json.dump(data, f)
+
+    print("::add-matcher::{}".format(output_file))
+
+
 def main():
     testenv = sys.argv[1]
     if testenv not in MATCHERS:
@@ -92,14 +108,15 @@ def main():
     output_dir = pathlib.Path(tempfile.mkdtemp(suffix='-ghmatchers'))
 
     matcher_data = MATCHERS[testenv]
-    matcher_data['owner'] = testenv
-    data = {'problemMatcher': [matcher_data]}
 
-    output_file = output_dir / '{}.json'.format(testenv)
-    with output_file.open('w', encoding='utf-8') as f:
-        json.dump(data, f)
-
-    print("::add-matcher::{}".format(output_file))
+    for key, severity in [('pattern', None),
+                          ('pattern-warning', 'warning'),
+                          ('pattern-error', 'error')]:
+        if key in matcher_data:
+            add_matcher(output_dir=output_dir,
+                        owner=testenv,
+                        pattern=matcher_data[key],
+                        severity=severity)
 
 
 if __name__ == '__main__':
