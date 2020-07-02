@@ -32,6 +32,8 @@ import json
 
 
 MATCHERS = {
+    # scripts/dev/ci/run.sh:41:39: error: Double quote array expansions to
+    # avoid re-splitting elements. [SC2068]
     "shellcheck": {
         "pattern": [
             {
@@ -45,6 +47,8 @@ MATCHERS = {
             },
         ],
     },
+
+    # filename.py:313: unused function 'i_am_never_used' (60% confidence)
     "vulture": {
         "severity": "warning",
         "pattern": [
@@ -56,6 +60,8 @@ MATCHERS = {
             }
         ]
     },
+
+    # filename.py:1:1: D100 Missing docstring in public module
     "flake8": {
         # "undefined name" is FXXX (i.e. not an error), but e.g. multiple
         # spaces before an operator is EXXX (i.e. an error) - that makes little
