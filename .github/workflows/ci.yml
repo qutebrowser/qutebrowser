@@ -108,4 +108,6 @@ jobs:
       - name: Install dependencies
         run: "bash scripts/dev/ci/install.sh ${{ matrix.testenv }}"
       - name: "Run ${{ matrix.testenv }}"
+        env:
+          PYTEST_ADDOPTS: "--color=yes"
         run: "bash scripts/dev/ci/run.sh ${{ matrix.testenv }}"
