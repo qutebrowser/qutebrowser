@@ -29,4 +29,5 @@ rm -f "$script_list"
 docker run \
         -v "$PWD:/outside" \
         -w /outside \
+        -t \
         koalaman/shellcheck:stable "$@" "${scripts[@]}"
