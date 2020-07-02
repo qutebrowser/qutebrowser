@@ -120,7 +120,10 @@ MATCHERS = {
 }
 
 
-def add_matcher(output_dir, owner, pattern, severity=None):
+def add_matcher(output_dir, testenv, pattern, severity=None):
+    owner = (testenv if severity is None
+             else '{}-{}'.format(testenv, severity))
+
     output = {
         'owner': owner,
         'pattern': pattern,
@@ -154,7 +157,7 @@ def main():
                           ('pattern-error', 'error')]:
         if key in matcher_data:
             add_matcher(output_dir=output_dir,
-                        owner=testenv,
+                        testenv=testenv,
                         pattern=matcher_data[key],
                         severity=severity)
 
