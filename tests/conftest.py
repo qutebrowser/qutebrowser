@@ -224,8 +224,8 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     webengine_arg = config.getoption('--qute-bdd-webengine')
-    webengine_env = os.environ.get('QUTE_BDD_WEBENGINE', '')
-    config.webengine = bool(webengine_arg or webengine_env)
+    webengine_env = os.environ.get('QUTE_BDD_WEBENGINE', 'false')
+    config.webengine = webengine_arg or webengine_env == 'true'
     # Fail early if QtWebEngine is not available
     if config.webengine:
         import PyQt5.QtWebEngineWidgets
