@@ -33,3 +33,32 @@ jobs:
         run: "bash scripts/dev/ci/install.sh ${{ matrix.testenv }}"
       - name: "Run ${{ matrix.testenv }}"
         run: "bash scripts/dev/ci/run.sh ${{ matrix.testenv }}"
+
+  tests-docker:
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - archlinux-webkit
+          - archlinux-webengine
+          # - archlinux-webengine-unstable
+    container:
+      image: "qutebrowser/ci:${{ matrix.image }}"
+      env:
+        QUTE_BDD_WEBENGINE: "${{ matrix.image != 'archlinux-webkit' }}"
+        DOCKER: "${{ matrix.image }}"
+        CI: true
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v2
+      - run: tox -e py38
+
+
+  # tests:
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         ### PyQt 5.7.1 (Python 3.5)
+  #         - os: ubuntu-16.04
