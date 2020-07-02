@@ -3,7 +3,6 @@ on: [push, pull_request]
 
 jobs:
   linters:
-    if: false  # FIXME
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -36,7 +35,6 @@ jobs:
         run: "bash scripts/dev/ci/run.sh ${{ matrix.testenv }}"
 
   tests-docker:
-    if: false  # FIXME
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
@@ -63,9 +61,10 @@ jobs:
       matrix:
         include:
           ### PyQt 5.7.1 (Python 3.5)
-          - testenv: py35-pyqt57
-            os: ubuntu-16.04
-            python: 3.5
+          # FIXME: Flaky tests / segfault on exit?
+          # - testenv: py35-pyqt57
+          #   os: ubuntu-16.04
+          #   python: 3.5
           ### PyQt 5.9 (Python 3.6)
           - testenv: py36-pyqt59
             os: ubuntu-20.04
@@ -75,9 +74,10 @@ jobs:
             os: ubuntu-20.04
             python: 3.6
           ### PyQt 5.11 (Python 3.7)
-          - testenv: py37-pyqt511
-            os: ubuntu-20.04
-            python: 3.7
+          # FIXME: seccomp-bpf failure in syscall 0230
+          # - testenv: py37-pyqt511
+          #   os: ubuntu-20.04
+          #   python: 3.7
           ### PyQt 5.12 (Python 3.8)
           - testenv: py38-pyqt512
             os: ubuntu-20.04
