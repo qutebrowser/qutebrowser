@@ -63,37 +63,37 @@ jobs:
       matrix:
         include:
           ### PyQt 5.7.1 (Python 3.5)
-          - os: ubuntu-16.04
+          - testenv: py35-pyqt57
+            os: ubuntu-16.04
             python: 3.5
-            testenv: py35-pyqt57
           ### PyQt 5.9 (Python 3.6)
-          - os: ubuntu-20.04
+          - testenv: py36-pyqt59
+            os: ubuntu-20.04
             python: 3.6
-            testenv: py36-pyqt59
           ### PyQt 5.10 (Python 3.6)
-          - os: ubuntu-20.04
+          - testenv: py36-pyqt510
+            os: ubuntu-20.04
             python: 3.6
-            testenv: py36-pyqt510
           ### PyQt 5.11 (Python 3.7)
-          - os: ubuntu-20.04
+          - testenv: py37-pyqt511
+            os: ubuntu-20.04
             python: 3.7
-            testenv: py37-pyqt511
           ### PyQt 5.12 (Python 3.8)
-          - os: ubuntu-20.04
+          - testenv: py38-pyqt512
+            os: ubuntu-20.04
             python: 3.8
-            testenv: py38-pyqt512
           ### PyQt 5.13 (Python 3.8)
-          - os: ubuntu-20.04
+          - testenv: py38-pyqt513
+            os: ubuntu-20.04
             python: 3.8
-            testenv: py38-pyqt513
           ### PyQt 5.14 (Python 3.8)
-          - os: ubuntu-20.04
+          - testenv: py38-pyqt514
+            os: ubuntu-20.04
             python: 3.8
-            testenv: py38-pyqt514
           ### PyQt 5.15 (Python 3.8)
-          - os: ubuntu-20.04
+          - testenv: py38-pyqt515
+            os: ubuntu-20.04
             python: 3.8
-            testenv: py38-pyqt515
           ### TODO: macOS
           ### TODO: Windows
           ### TODO: coverage
