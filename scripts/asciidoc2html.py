@@ -36,7 +36,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from scripts import utils
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent
-DOC_DIR = pathlib.Path(REPO_ROOT, "qutebrowser/html/doc")
+DOC_DIR = REPO_ROOT / 'qutebrowser' / 'html' / 'doc'
 
 
 class AsciiDoc:
