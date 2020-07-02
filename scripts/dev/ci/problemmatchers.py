@@ -74,8 +74,48 @@ MATCHERS = {
                 "column": 3,
                 "code": 4,
                 "message": 5,
-            }
-        ]
+            },
+        ],
+    },
+
+    # filename.py:80: error: Name 'foo' is not defined  [name-defined]
+    "mypy": {
+        "pattern": [
+            {
+                "regexp": r"^([^:]+):(\d+): ([^:]+): (.*)  \[(.*)\]$",
+                "file": 1,
+                "line": 2,
+                "severity": 3,
+                "message": 4,
+                "code": 5,
+            },
+        ],
+    },
+
+    "pylint": {
+        # filename.py:80:10: E0602: Undefined variable 'foo' (undefined-variable)
+        "pattern-error": [
+            {
+                "regexp": r"^([^:]+):(\d+):(\d+): (E\d+): (.*)",
+                "file": 1,
+                "line": 2,
+                "column": 3,
+                "code": 4,
+                "message": 5,
+            },
+        ],
+
+        # filename.py:78:14: W0613: Unused argument 'unused' (unused-argument)
+        "pattern-warning": [
+            {
+                "regexp": r"^([^:]+):(\d+):(\d+): ([A-DF-Z]\d+): (.*)",
+                "file": 1,
+                "line": 2,
+                "column": 3,
+                "code": 4,
+                "message": 5,
+            },
+        ],
     },
 }
 
