@@ -24,25 +24,15 @@ pip_install() {
     python3 -m pip install "$@"
 }
 
-if [[ -n $DOCKER ]]; then
-    exit 0
-fi
-
 testenv=$1
 
-case $testenv in
-    eslint)
-        npm install -g eslint
-        ;;
-    shellcheck)
-        ;;
-    *)
-        pip_install -U pip
-        pip_install -U -r misc/requirements/requirements-tox.txt
-        if [[ $testenv == docs ]]; then
-            sudo apt install asciidoc
-        elif [[ $testenv == *-cov ]]; then
-            pip_install -U -r misc/requirements/requirements-codecov.txt
-        fi
-        ;;
-esac
+[[ -n $DOCKER || $testenv == shellcheck ]] && exit 0
+
+[[ $testenv == eslint ]] && npm install -g eslint
+
+pip_install -U pip
+pip_install -U -r misc/requirements/requirements-tox.txt
+
+[[ $testenv == docs ]] && sudo apt install asciidoc
+[[ $testenv == *-cov ]] && pip_install -U -r misc/requirements/requirements-codecov.txt
+exit 0
