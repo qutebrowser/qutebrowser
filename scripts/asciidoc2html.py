@@ -218,21 +218,16 @@ class AsciiDoc:
         if self._asciidoc is not None:
             return self._asciidoc
 
-        try:
-            subprocess.run(['asciidoc'], stdout=subprocess.DEVNULL,
-                           stderr=subprocess.DEVNULL, check=True)
-        except OSError:
-            pass
-        else:
-            return ['asciidoc']
-
-        try:
-            subprocess.run(['asciidoc.py'], stdout=subprocess.DEVNULL,
-                           stderr=subprocess.DEVNULL, check=True)
-        except OSError:
-            pass
-        else:
-            return ['asciidoc.py']
+        for executable in ['asciidoc', 'asciidoc.py']:
+            try:
+                subprocess.run([executable, '--version'],
+                               stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL,
+                               check=True)
+            except OSError:
+                pass
+            else:
+                return [executable]
 
         raise FileNotFoundError
 
