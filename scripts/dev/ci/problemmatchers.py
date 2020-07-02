@@ -32,17 +32,19 @@ import json
 
 
 MATCHERS = {
-    "shellcheck": [
-        {
-            "regexp": r"^(.+):(\d+):(\d+):\s(note|warning|error):\s(.*)\s\[(SC\d+)\]$",
-            "file": 1,
-            "line": 2,
-            "column": 3,
-            "severity": 4,
-            "message": 5,
-            "code": 6,
-        },
-    ],
+    "shellcheck": {
+        "pattern": [
+            {
+                "regexp": r"^(.+):(\d+):(\d+):\s(note|warning|error):\s(.*)\s\[(SC\d+)\]$",
+                "file": 1,
+                "line": 2,
+                "column": 3,
+                "severity": 4,
+                "message": 5,
+                "code": 6,
+            },
+        ],
+    },
 }
 
 
@@ -56,14 +58,9 @@ def main():
     # at the point this script exits.
     output_dir = pathlib.Path(tempfile.mkdtemp(suffix='-ghmatchers'))
 
-    data = {
-        'problemMatcher': [
-            {
-                'owner': testenv,
-                'pattern': MATCHERS[testenv],
-            },
-        ],
-    }
+    matcher_data = MATCHERS[testenv]
+    matcher_data['owner'] = testenv
+    data = {'problemMatcher': [matcher_data]}
 
     output_file = output_dir / '{}.json'.format(testenv)
     with output_file.open('w', encoding='utf-8') as f:
