@@ -49,7 +49,7 @@ MATCHERS = {
         "severity": "warning",
         "pattern": [
             {
-                "regexp": r"([^:]*):([^:]*): ([^(]* \(\d+% confidence\))$",
+                "regexp": r"^([^:]+):(\d+): ([^(]+ \(\d+% confidence\))$",
                 "file": 1,
                 "line": 2,
                 "message": 3,
