@@ -83,9 +83,10 @@ jobs:
             os: ubuntu-20.04
             python: 3.8
           ### PyQt 5.13 (Python 3.8)
-          - testenv: py38-pyqt513
-            os: ubuntu-20.04
-            python: 3.8
+          # FIXME: seccomp-bpf failure in syscall 0230
+          # - testenv: py38-pyqt513
+          #   os: ubuntu-20.04
+          #   python: 3.8
           ### PyQt 5.14 (Python 3.8)
           - testenv: py38-pyqt514
             os: ubuntu-20.04

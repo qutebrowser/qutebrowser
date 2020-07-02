@@ -16,6 +16,13 @@ matrix:
     - python: 3.7
       env: TESTENV=py37-pyqt511
 
+    ### PyQt 5.13 (Python 3.8)
+    - env: TESTENV=py38-pyqt513
+      addons:
+        apt:
+          packages:
+          - libxkbcommon-x11-0
+
     ### PyQt 5.15 (Python 3.8, with coverage)
     - env: TESTENV=py38-pyqt515-cov
       addons:
