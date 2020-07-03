@@ -1,37 +1,15 @@
-dist: bionic
+dist: xenial
 language: python
-group: edge
-python: 3.8
+python: 3.5
 os: linux
-
-matrix:
-  fast_finish: true
-  include:
-    ### macOS Mojave (10.14)
-    - os: osx
-      env: TESTENV=py37-pyqt514 OSX=mojave
-      osx_image: xcode11.3
-      language: generic
-      python: 3.7
-
-    ### macOS High Sierra (10.13)
-    - os: osx
-      env: TESTENV=py37-pyqt514 OSX=highsierra
-      osx_image: xcode10.1
-      language: generic
-      python: 3.7
-
-cache:
-  directories:
-    - $HOME/.cache/pip
-    - $HOME/build/qutebrowser/qutebrowser/.cache
+env: TESTENV=py35-pyqt57
 
 install:
   - bash scripts/dev/ci/install.sh "$TESTENV"
   - ulimit -c unlimited
 
 script:
-  - bash scripts/dev/ci/run.sh "$TESTENV"
+  - tox -e "$TESTENV"
 
 after_failure:
   - bash scripts/dev/ci/travis_backtrace.sh

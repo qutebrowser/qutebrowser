@@ -64,6 +64,7 @@ jobs:
       - run: tox -e py38
 
   tests:
+    continue-on-error: "${{ matrix.experimental == true }}"
     strategy:
       fail-fast: false
       matrix:
@@ -72,6 +73,7 @@ jobs:
           - testenv: py35-pyqt57
             os: ubuntu-16.04
             python: 3.5
+            experimental: true
           ### PyQt 5.9 (Python 3.6)
           - testenv: py36-pyqt59
             os: ubuntu-18.04
