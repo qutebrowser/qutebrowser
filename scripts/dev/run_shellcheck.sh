@@ -26,8 +26,14 @@ find misc/userscripts/ -type f -exec grep -lE '[/ ][bd]ash$|[/ ]sh$|[/ ]ksh$' {}
 mapfile -t scripts < "$script_list"
 rm -f "$script_list"
 
-docker run \
-        -v "$PWD:/outside" \
-        -w /outside \
-        -t \
-        koalaman/shellcheck:stable "$@" "${scripts[@]}"
+if [[ $1 == --docker ]]; then
+    shift 1
+    docker run \
+            -v "$PWD:/outside" \
+            -w /outside \
+            -t \
+            koalaman/shellcheck:stable "$@" "${scripts[@]}"
+else
+    shellcheck --version
+    shellcheck "$@" "${scripts[@]}"
+fi
