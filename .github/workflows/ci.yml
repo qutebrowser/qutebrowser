@@ -36,7 +36,7 @@ jobs:
           node-version: '12.x'
         if: "matrix.testenv == 'eslint'"
       - name: Set up problem matchers
-        run: "python3 scripts/dev/ci/problemmatchers.py ${{ matrix.testenv }} ${{ runner.temp }}"
+        run: "python scripts/dev/ci/problemmatchers.py ${{ matrix.testenv }} ${{ runner.temp }}"
       - name: Install dependencies
         run: |
             [[ ${{ matrix.testenv }} == eslint ]] && npm install -g eslint
@@ -69,7 +69,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up problem matchers
-        run: "python3 scripts/dev/ci/problemmatchers.py py38 ${{ runner.temp }}"
+        run: "python scripts/dev/ci/problemmatchers.py py38 ${{ runner.temp }}"
       - run: tox -e py38
 
   tests:
@@ -145,7 +145,7 @@ jobs:
         with:
           python-version: "${{ matrix.python }}"
       - name: Set up problem matchers
-        run: "python3 scripts/dev/ci/problemmatchers.py ${{ matrix.testenv }} ${{ runner.temp }}"
+        run: "python scripts/dev/ci/problemmatchers.py ${{ matrix.testenv }} ${{ runner.temp }}"
       - name: Install apt dependencies
         run: sudo apt-get install --no-install-recommends libyaml-dev libegl1-mesa libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0
         if: "startsWith(matrix.os, 'ubuntu-')"
