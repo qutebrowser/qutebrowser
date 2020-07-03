@@ -29,6 +29,7 @@ import pytest
 from PyQt5.QtCore import QProcess
 
 from helpers import utils
+from qutebrowser.utils import qtutils
 
 
 ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,
@@ -251,7 +252,10 @@ def test_version(request):
     print(stderr)
 
     assert ok
-    assert proc.exitStatus() == QProcess.NormalExit
+
+    if qtutils.version_check('5.9'):
+        # Segfaults on exit with Qt 5.7
+        assert proc.exitStatus() == QProcess.NormalExit
 
     match = re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout, re.MULTILINE)
     assert match is not None
