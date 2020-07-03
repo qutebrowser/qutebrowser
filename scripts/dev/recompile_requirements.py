@@ -169,9 +169,12 @@ def parse_args():
 
 def git_diff(*args):
     """Run a git diff command."""
-    proc = subprocess.run(['git', '--no-pager', 'diff'] + list(args) +
-                          ['--', 'requirements.txt', 'misc/requirements'],
-                          stdout=subprocess.PIPE, encoding='utf-8', check=True)
+    command = (['git', '--no-pager', 'diff'] + list(args) + [
+        '--', 'requirements.txt', 'misc/requirements/requirements-*.txt'])
+    proc = subprocess.run(command,
+                          stdout=subprocess.PIPE,
+                          encoding='utf-8',
+                          check=True)
     return proc.stdout.splitlines()
 
 
@@ -221,7 +224,11 @@ def print_changed_files():
         if line.startswith('+++ ') or line.startswith('--- '):
             continue
 
-        name, version = line[1:].split('==')
+        if '==' in line:
+            name, version = line[1:].split('==')
+        else:
+            name = line[1:]
+            version = '?'
 
         if name not in changes_dict:
             changes_dict[name] = Change(name)
