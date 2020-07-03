@@ -12,4 +12,4 @@ script:
   - tox -e "$TESTENV"
 
 after_failure:
-  - bash scripts/dev/ci/travis_backtrace.sh
+  - bash scripts/dev/ci/backtrace.sh

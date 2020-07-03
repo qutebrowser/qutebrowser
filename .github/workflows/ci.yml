@@ -144,6 +144,9 @@ jobs:
         env:
           PYTEST_ADDOPTS: "--color=yes"
         run: "tox -e ${{ matrix.testenv}} -- ${{ matrix.args }}"
+      - name: Analyze backtraces
+        run: "bash scripts/dev/ci/backtrace.sh ${{ matrix.testenv }}"
+        if: "failure()"
       - name: Upload coverage
         if: "endsWith(matrix.testenv, '-cov')"
         uses: codecov/codecov-action@v1

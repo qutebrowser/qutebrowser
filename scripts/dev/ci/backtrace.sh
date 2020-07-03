@@ -4,13 +4,15 @@
 #  to determine exe using file(1) and dump stack trace with gdb.
 #
 
-case $TESTENV in
+testenv=$1
+
+case $testenv in
     py3*-pyqt*)
-        exe=$(readlink -f ".tox/$TESTENV/bin/python")
+        exe=$(readlink -f ".tox/$testenv/bin/python")
         full=
         ;;
     *)
-        echo "Skipping coredump analysis in testenv $TESTENV!"
+        echo "Skipping coredump analysis in testenv $testenv!"
         exit 0
         ;;
 esac
