@@ -89,13 +89,12 @@ jobs:
           - testenv: py38-pyqt514
             os: ubuntu-20.04
             python: 3.8
-          ### PyQt 5.15 (Python 3.8)
-          - testenv: py38-pyqt515
+          ### PyQt 5.15 (Python 3.8, with coverage)
+          - testenv: py38-pyqt515-cov
             os: ubuntu-20.04
             python: 3.8
           ### TODO: macOS
           ### TODO: Windows
-          ### TODO: coverage
     runs-on: "${{ matrix.os }}"
     steps:
       - uses: actions/checkout@v2
@@ -110,3 +109,9 @@ jobs:
         env:
           PYTEST_ADDOPTS: "--color=yes"
         run: "bash scripts/dev/ci/run.sh ${{ matrix.testenv }}"
+      - name: Upload coverage
+        if: "endsWith(matrix.testenv, '-cov')"
+        uses: codecov/codecov-action@v1
+        with:
+          name: "${{ matrix.testenv }}"
+          fail_ci_if_error: true

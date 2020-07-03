@@ -12,19 +12,6 @@ matrix:
       env: TESTENV=py35-pyqt57
       dist: xenial
 
-    ### PyQt 5.15 (Python 3.8, with coverage)
-    - env: TESTENV=py38-pyqt515-cov
-      addons:
-        apt:
-          packages:
-          - libxkbcommon-x11-0
-          - libxcb-icccm4
-          - libxcb-image0
-          - libxcb-keysyms1
-          - libxcb-randr0
-          - libxcb-render-util0
-          - libxcb-xinerama0
-
     ### macOS Mojave (10.14)
     - os: osx
       env: TESTENV=py37-pyqt514 OSX=mojave
@@ -50,9 +37,6 @@ install:
 
 script:
   - bash scripts/dev/ci/run.sh "$TESTENV"
-
-after_success:
-  - '[[ $TESTENV == *-cov ]] && codecov -e TESTENV -X gcov'
 
 after_failure:
   - bash scripts/dev/ci/travis_backtrace.sh
