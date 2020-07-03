@@ -134,6 +134,38 @@ MATCHERS = {
             ],
         },
     ],
+
+    "tests": [
+        {
+            # BDD tests / normal Python exceptions
+            "severity": "error",
+            "pattern": [
+                {
+                    "regexp": r'^E?\s*File "(.*)", line (\d+), in .*$',
+                    "file": 1,
+                    "line": 2,
+                },
+                {
+                    "regexp": r"E?\s*\w+Error: (.*)",
+                    "message": 1,
+                }
+            ],
+        },
+        {
+            # pytest stacktraces
+            # qutebrowser/utils/utils.py:773: AssertionError
+            # tests/unit/utils/test_utils.py:887:
+            "severity": "error",
+            "pattern": [
+                {
+                    "regexp": r'^([^ ]*):(\d+): ?(.*)',
+                    "file": 1,
+                    "line": 2,
+                    "message": 3,
+                }
+            ],
+        },
+    ]
 }
 
 
@@ -152,6 +184,9 @@ def add_matcher(output_dir, testenv, data):
 
 def main():
     testenv = sys.argv[1]
+    if testenv.startswith('py3'):
+        testenv = 'tests'
+
     if testenv not in MATCHERS:
         return
 

@@ -65,6 +65,8 @@ jobs:
       options: --privileged --tty
     steps:
       - uses: actions/checkout@v2
+      - name: Set up problem matchers
+        run: "python3 scripts/dev/ci/problemmatchers.py py38"
       - run: tox -e py38
 
   tests:
@@ -139,6 +141,8 @@ jobs:
         if: "endsWith(matrix.python, '-dev')"
         with:
           python-version: "${{ matrix.python }}"
+      - name: Set up problem matchers
+        run: "python3 scripts/dev/ci/problemmatchers.py ${{ matrix.testenv }}"
       - name: Install apt dependencies
         run: sudo apt-get install --no-install-recommends libyaml-dev libegl1-mesa libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0
         if: "startsWith(matrix.os, 'ubuntu-')"
