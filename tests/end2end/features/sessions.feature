@@ -382,6 +382,7 @@ Feature: Saving and loading sessions
 
   # Test load/save of pinned tabs
 
+  @qtwebengine_flaky
   Scenario: Saving/Loading a session with pinned tabs
       When I open data/numbers/1.txt
       And I open data/numbers/2.txt in a new tab
