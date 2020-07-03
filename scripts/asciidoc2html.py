@@ -35,7 +35,8 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 from scripts import utils
 
-DOC_DIR = pathlib.Path("qutebrowser/html/doc")
+REPO_ROOT = pathlib.Path(__file__).parent.parent
+DOC_DIR = REPO_ROOT / 'qutebrowser' / 'html' / 'doc'
 
 
 class AsciiDoc:
@@ -79,9 +80,9 @@ class AsciiDoc:
 
     def _build_docs(self) -> None:
         """Render .asciidoc files to .html sites."""
-        files = [(pathlib.Path('doc/{}.asciidoc'.format(f)),
+        files = [(REPO_ROOT / 'doc' / '{}.asciidoc'.format(f)),
                   DOC_DIR / (f + ".html")) for f in self.FILES]
-        for src in pathlib.Path('doc/help/').glob('*.asciidoc'):
+        for src in (REPO_ROOT / 'doc' / 'help').glob('*.asciidoc'):
             dst = DOC_DIR / (src.stem + ".html")
             files.append((src, dst))
 
@@ -111,7 +112,7 @@ class AsciiDoc:
         dst_path = DOC_DIR / 'img'
         dst_path.mkdir(exist_ok=True)
         for filename in ['cheatsheet-big.png', 'cheatsheet-small.png']:
-            src = pathlib.Path('doc') / 'img' / filename
+            src = REPO_ROOT / 'doc' / 'img' / filename
             dst = dst_path / filename
             shutil.copy(str(src), str(dst))
 
@@ -125,7 +126,7 @@ class AsciiDoc:
 
         assert self._tempdir is not None    # for mypy
         modified_src = self._tempdir / src.name
-        shutil.copy('www/header.asciidoc', modified_src)
+        shutil.copy(str(REPO_ROOT / 'www' / 'header.asciidoc'), modified_src)
 
         outfp = io.StringIO()
 
@@ -181,7 +182,7 @@ class AsciiDoc:
 
     def _build_website(self) -> None:
         """Prepare and build the website."""
-        theme_file = (pathlib.Path('www') / 'qute.css').resolve()
+        theme_file = REPO_ROOT / 'www' / 'qute.css'
         assert self._themedir is not None   # for mypy
         shutil.copy(theme_file, self._themedir)
 
@@ -205,7 +206,7 @@ class AsciiDoc:
 
         for dst, link_name in [
                 ('README.html', 'index.html'),
-                ((pathlib.Path('doc') / 'quickstart.html'),
+                ((REPO_ROOT / 'doc' / 'quickstart.html'),
                  'quickstart.html')]:
             assert isinstance(dst, (str, pathlib.Path))    # for mypy
             try:
