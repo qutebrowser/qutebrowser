@@ -21,7 +21,7 @@
 set -e
 
 pip_install() {
-    python3 -m pip install "$@"
+    python -m pip install "$@"
 }
 
 testenv=$1
