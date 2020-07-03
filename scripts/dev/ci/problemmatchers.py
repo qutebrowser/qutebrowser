@@ -26,7 +26,6 @@ https://github.com/actions/toolkit/blob/master/docs/commands.md#problem-matchers
 """
 
 import sys
-import tempfile
 import pathlib
 import json
 
@@ -182,7 +181,7 @@ def add_matcher(output_dir, testenv, data):
     print("::add-matcher::{}".format(output_file))
 
 
-def main():
+def main(testenv, tempdir):
     testenv = sys.argv[1]
     if testenv.startswith('py3'):
         testenv = 'tests'
@@ -190,10 +189,7 @@ def main():
     if testenv not in MATCHERS:
         return
 
-    # We're not deleting the temporary file because this is only running on CI
-    # anyways, and we're not sure if GitHub has already read the file contents
-    # at the point this script exits.
-    output_dir = pathlib.Path(tempfile.mkdtemp(suffix='-ghmatchers'))
+    output_dir = pathlib.Path(tempdir)
 
     add_matcher(output_dir=output_dir,
                 testenv=testenv,
@@ -201,4 +197,4 @@ def main():
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    sys.exit(main(*sys.argv[1:]))
