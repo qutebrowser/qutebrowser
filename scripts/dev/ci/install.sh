@@ -31,6 +31,6 @@ testenv=$1
 pip_install -U pip
 pip_install -U -r misc/requirements/requirements-tox.txt
 
-[[ $testenv == docs ]] && sudo apt install asciidoc
+[[ $testenv == docs ]] && sudo apt install --no-install-recommends asciidoc
 [[ $testenv == *-cov ]] && pip_install -U -r misc/requirements/requirements-codecov.txt
 exit 0
