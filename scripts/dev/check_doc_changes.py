@@ -27,7 +27,7 @@ import os
 code = subprocess.run(['git', '--no-pager', 'diff',
                        '--exit-code', '--stat'], check=False).returncode
 
-if os.environ.get('TRAVIS_PULL_REQUEST', 'false') != 'false':
+if os.environ.get('GITHUB_REF', 'refs/heads/master') != 'refs/heads/master':
     if code != 0:
         print("Docs changed but ignoring change as we're building a PR")
     sys.exit(0)
@@ -42,7 +42,5 @@ if code != 0:
           'this.)')
     if 'CI' in os.environ:
         print()
-        # print("travis_fold:start:gitdiff")
         subprocess.run(['git', '--no-pager', 'diff'], check=True)
-        # print("travis_fold:end:gitdiff")
 sys.exit(code)

@@ -103,8 +103,6 @@ Feature: Setting positional marks
         And I wait until the scroll position changed to 20/15
         Then the page should be scrolled to 20 15
 
-    # FIXME:qtwebengine
-    @qtwebengine_skip: Does not find Grail on Travis for some reason?
     Scenario: Jumping back after search-next
         When I run :search Grail
         And I run :search-next

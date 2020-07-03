@@ -121,8 +121,6 @@ Feature: Downloading things from a website.
         And I wait 0.5s
         Then no crash should happen
 
-    # This sometimes hangs on exit for some reason on Travis...
-    @windows
     Scenario: Quitting with finished downloads and confirm_quit=downloads (issue 846)
         Given I have a fresh instance
         When I set downloads.location.prompt to false

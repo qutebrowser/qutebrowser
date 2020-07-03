@@ -493,8 +493,8 @@ indefinitely. It's planned to change this soon by migrating qutebrowser.org to
 a different server.
 
 Note that some services related to qutebrowser are stored on third-party
-services such as GitHub, Travis CI or AppVeyor. By using their websites, you're
-subject to their privacy policies.
+services such as GitHub. By using their websites, you're subject to their
+privacy policies.
 
 === Crash reports
 

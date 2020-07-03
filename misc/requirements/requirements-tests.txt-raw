@@ -21,8 +21,6 @@ hunter
 vulture
 # For colored pytest output (though also a direct qutebrowser dependency))
 pygments
-# Output folding on Travis
-pytest-travis-fold
 # --repeat switch (used to manually repeat tests)
 pytest-repeat
 
