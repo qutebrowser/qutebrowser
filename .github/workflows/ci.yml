@@ -158,7 +158,6 @@ jobs:
         uses: codecov/codecov-action@v1
         with:
           name: "${{ matrix.testenv }}"
-          fail_ci_if_error: true
 
   codeql:
     runs-on: ubuntu-latest
