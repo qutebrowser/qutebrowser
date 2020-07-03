@@ -31,5 +31,5 @@ testenv=$1
 pip_install -U pip
 pip_install -U -r misc/requirements/requirements-tox.txt
 
-[[ $testenv == docs ]] && sudo apt install --no-install-recommends asciidoc
+[[ $testenv == docs ]] && sudo apt-get install --no-install-recommends asciidoc
 exit 0
