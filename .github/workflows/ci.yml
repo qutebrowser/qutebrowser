@@ -107,8 +107,14 @@ jobs:
           - testenv: py38-pyqt515-cov
             os: ubuntu-20.04
             python: 3.8
-          ### TODO: macOS
-          ### TODO: Windows
+          ### macOS: PyQt 5.14 (Python 3.7)
+          - testenv: py37-pyqt514
+            os: macos-10.15
+            python: 3.7
+          ### Windows: PyQt 5.14 (Python 3.7)
+          - testenv: py37-pyqt514
+            os: windows-2019
+            python: 3.7
     runs-on: "${{ matrix.os }}"
     steps:
       - uses: actions/checkout@v2
@@ -131,6 +137,7 @@ jobs:
           python-version: "${{ matrix.python }}"
       - name: Install apt dependencies
         run: sudo apt install libyaml-dev libegl1-mesa libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0
+        if: "startsWith(matrix.os, 'ubuntu-')"
       - name: Install dependencies
         run: "bash scripts/dev/ci/install.sh ${{ matrix.testenv }}"
       - name: "Run ${{ matrix.testenv }}"
