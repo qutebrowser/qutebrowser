@@ -141,13 +141,13 @@ MATCHERS = {
             "severity": "error",
             "pattern": [
                 {
-                    "regexp": r'^E?\s*File "(.*)", line (\d+), in .*$',
+                    "regexp": r'^.*\s+File "(.*)", line (\d+), in .*$',
                     "file": 1,
                     "line": 2,
                 },
                 {
-                    "regexp": r"E?\s*\w+Error: (.*)",
-                    "message": 1,
+                    "regexp": r"^(\033\[[\d;]+m)*E?\s*(INVALID:)?\s+(\w*Error[^\033]*|\w*Exception[^\033]*)(\033\[0m)?",
+                    "message": 3,
                 }
             ],
         },
@@ -158,7 +158,7 @@ MATCHERS = {
             "severity": "error",
             "pattern": [
                 {
-                    "regexp": r'^([^ ]*):(\d+): ?(.*)',
+                    "regexp": r'^\033\[1m\033\[31m([^\033]*)\033\[0m:(\d+): ?(.*)',
                     "file": 1,
                     "line": 2,
                     "message": 3,
