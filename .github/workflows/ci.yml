@@ -7,17 +7,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        testenv:
-          - pylint
-          - flake8
-          - mypy
-          - docs
-          - vulture
-          - misc
-          - pyroma
-          - check-manifest
-          - eslint
-          - shellcheck
+        include:
+          - testenv: pylint
+          - testenv: flake8
+          - testenv: mypy
+          - testenv: docs
+          - testenv: vulture
+          - testenv: misc
+          - testenv: pyroma
+          - testenv: check-manifest
+          - testenv: eslint
+          - testenv: shellcheck
+            args: "-f gcc"  # For problem matchers
     steps:
       - uses: actions/checkout@v2
       - uses: actions/cache@v2
@@ -39,7 +40,7 @@ jobs:
       - name: Install dependencies
         run: "bash scripts/dev/ci/install.sh ${{ matrix.testenv }}"
       - name: "Run ${{ matrix.testenv }}"
-        run: "bash scripts/dev/ci/run.sh ${{ matrix.testenv }}"
+        run: "tox -e ${{ matrix.testenv}} -- ${{ matrix.args }}"
 
   tests-docker:
     runs-on: ubuntu-20.04
@@ -107,6 +108,7 @@ jobs:
           - testenv: py37-pyqt514
             os: macos-10.15
             python: 3.7
+            args: "tests/unit"  # Only run unit tests on macOS
           ### Windows: PyQt 5.14 (Python 3.7)
           - testenv: py37-pyqt514
             os: windows-2019
@@ -139,7 +141,7 @@ jobs:
       - name: "Run ${{ matrix.testenv }}"
         env:
           PYTEST_ADDOPTS: "--color=yes"
-        run: "bash scripts/dev/ci/run.sh ${{ matrix.testenv }}"
+        run: "tox -e ${{ matrix.testenv}} -- ${{ matrix.args }}"
       - name: Upload coverage
         if: "endsWith(matrix.testenv, '-cov')"
         uses: codecov/codecov-action@v1
