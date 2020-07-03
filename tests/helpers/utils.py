@@ -29,6 +29,12 @@ import pathlib
 
 import pytest
 
+from PyQt5.QtCore import qVersion
+try:
+    from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION_STR
+except ImportError:
+    PYQT_WEBENGINE_VERSION_STR = None
+
 from qutebrowser.utils import qtutils, log
 
 ON_CI = 'CI' in os.environ
@@ -211,3 +217,43 @@ def ignore_bs4_warning():
 def blocked_hosts():
     path = os.path.join(abs_datapath(), 'blocked-hosts.gz')
     yield from io.TextIOWrapper(gzip.open(path), encoding='utf-8')
+
+
+def seccomp_args(qt_flag):
+    """Get necessary flags to disable the seccomp BPF sandbox.
+
+    This is needed for some QtWebEngine setups, with older Qt versions but
+    newer kernels.
+
+    Args:
+        qt_flag: Add a '--qt-flag' argument.
+    """
+    affected_versions = set()
+    for base, patch_range in [
+            ## seccomp-bpf failure in syscall 0281
+            ## https://github.com/qutebrowser/qutebrowser/issues/3163
+            # 5.7.1
+            ('5.7', [1]),
+
+            ## seccomp-bpf failure in syscall 0281 (clock_nanosleep)
+            ## https://bugreports.qt.io/browse/QTBUG-81313
+            # 5.11.0 to 5.11.3 (inclusive)
+            ('5.11', range(0, 4)),
+            # 5.12.0 to 5.12.7 (inclusive)
+            ('5.12', range(0, 8)),
+            # 5.13.0 to 5.13.2 (inclusive)
+            ('5.13', range(0, 3)),
+            # 5.14.0
+            ('5.14', [0]),
+    ]:
+        for patch in patch_range:
+            affected_versions.add('{}.{}'.format(base, patch))
+
+    version = (PYQT_WEBENGINE_VERSION_STR
+               if PYQT_WEBENGINE_VERSION_STR is not None
+               else qVersion())
+    if version in affected_versions:
+        disable_arg = 'disable-seccomp-filter-sandbox'
+        return ['--qt-flag', disable_arg] if qt_flag else ['--' + disable_arg]
+
+    return []

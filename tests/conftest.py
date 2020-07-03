@@ -28,7 +28,7 @@ import pathlib
 
 import pytest
 import hypothesis
-from PyQt5.QtCore import qVersion, PYQT_VERSION
+from PyQt5.QtCore import PYQT_VERSION
 
 pytest.register_assert_rewrite('helpers')
 
@@ -197,12 +197,10 @@ def pytest_ignore_collect(path):
 
 @pytest.fixture(scope='session')
 def qapp_args():
-    """Make QtWebEngine unit tests run on Qt 5.7.1.
-
-    See https://github.com/qutebrowser/qutebrowser/issues/3163
-    """
-    if qVersion() == '5.7.1':
-        return [sys.argv[0], '--disable-seccomp-filter-sandbox']
+    """Make QtWebEngine unit tests run on older Qt versions + newer kernels."""
+    seccomp_args = testutils.seccomp_args(qt_flag=False)
+    if seccomp_args:
+        return [sys.argv[0]] + seccomp_args
     return []
 
 

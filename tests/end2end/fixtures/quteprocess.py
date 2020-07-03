@@ -33,7 +33,7 @@ import json
 
 import yaml
 import pytest
-from PyQt5.QtCore import pyqtSignal, QUrl, qVersion
+from PyQt5.QtCore import pyqtSignal, QUrl
 
 from qutebrowser.misc import ipc
 from qutebrowser.utils import log, utils, javascript, qtutils
@@ -544,9 +544,10 @@ class QuteProc(testprocess.Process):
                 '--json-logging', '--loglevel', 'vdebug',
                 '--backend', backend, '--debug-flag', 'no-sql-history',
                 '--debug-flag', 'werror']
-        if qVersion() == '5.7.1':
-            # https://github.com/qutebrowser/qutebrowser/issues/3163
-            args += ['--qt-flag', 'disable-seccomp-filter-sandbox']
+
+        if self.request.config.webengine:
+            args += testutils.seccomp_args(qt_flag=True)
+
         args.append('about:blank')
         return args
 
