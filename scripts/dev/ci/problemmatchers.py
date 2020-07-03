@@ -168,13 +168,10 @@ MATCHERS = {
 }
 
 
-def add_matcher(output_dir, testenv, data):
-
-    for idx, sub_data in enumerate(data):
-        sub_data['owner'] = '{}-{}'.format(testenv, idx)
-    out_data = {'problemMatcher': data}
-
-    output_file = output_dir / '{}.json'.format(testenv)
+def add_matcher(output_dir, owner, data):
+    data['owner'] = owner
+    out_data = {'problemMatcher': [data]}
+    output_file = output_dir / '{}.json'.format(owner)
     with output_file.open('w', encoding='utf-8') as f:
         json.dump(out_data, f)
 
@@ -191,9 +188,9 @@ def main(testenv, tempdir):
 
     output_dir = pathlib.Path(tempdir)
 
-    add_matcher(output_dir=output_dir,
-                testenv=testenv,
-                data=MATCHERS[testenv])
+    for idx, data in enumerate(MATCHERS[testenv]):
+        owner = '{}-{}'.format(testenv, idx)
+        add_matcher(output_dir=output_dir, owner=owner, data=data)
 
 
 if __name__ == '__main__':
