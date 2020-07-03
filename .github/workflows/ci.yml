@@ -89,6 +89,10 @@ jobs:
           - testenv: py38-pyqt514
             os: ubuntu-20.04
             python: 3.8
+          ### PyQt 5.15 (Python nightly)
+          - testenv: py3-pyqt515
+            os: ubuntu-20.04
+            python: 3.10-dev
           ### PyQt 5.15 (Python 3.8, with coverage)
           - testenv: py38-pyqt515-cov
             os: ubuntu-20.04
@@ -98,7 +102,14 @@ jobs:
     runs-on: "${{ matrix.os }}"
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        if: "!endsWith(matrix.python, '-dev')"
+        with:
+          python-version: "${{ matrix.python }}"
+      - name: Set up development Python
+        uses: deadsnakes/action@v1.0.0
+        if: "endsWith(matrix.python, '-dev')"
         with:
           python-version: "${{ matrix.python }}"
       - name: Install apt dependencies
