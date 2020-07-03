@@ -62,9 +62,12 @@ jobs:
         include:
           ### PyQt 5.7.1 (Python 3.5)
           # FIXME: Flaky tests / segfault on exit?
-          # - testenv: py35-pyqt57
-          #   os: ubuntu-16.04
-          #   python: 3.5
+          - testenv: py35-pyqt57
+            os: ubuntu-16.04
+            python: 3.5
+          - testenv: py35-pyqt57
+            os: ubuntu-18.04
+            python: 3.5
           ### PyQt 5.9 (Python 3.6)
           - testenv: py36-pyqt59
             os: ubuntu-20.04

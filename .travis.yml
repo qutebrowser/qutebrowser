@@ -7,11 +7,6 @@ os: linux
 matrix:
   fast_finish: true
   include:
-    ### PyQt 5.7.1 (Python 3.5)
-    - python: 3.5
-      env: TESTENV=py35-pyqt57
-      dist: xenial
-
     ### macOS Mojave (10.14)
     - os: osx
       env: TESTENV=py37-pyqt514 OSX=mojave
