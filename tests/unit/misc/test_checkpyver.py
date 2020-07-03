@@ -29,7 +29,7 @@ from qutebrowser.misc import checkpyver
 
 
 TEXT = (r"At least Python 3.5.2 is required to run qutebrowser, but it's "
-        r"running with \d+\.\d+\.\d+.\n")
+        r"running with \d+\.\d+\.\d+.")
 
 
 @pytest.mark.not_frozen
@@ -44,7 +44,7 @@ def test_python2():
     except FileNotFoundError:
         pytest.skip("python2 not found")
     assert not proc.stdout
-    stderr = proc.stderr.decode('utf-8')
+    stderr = proc.stderr.decode('utf-8').rstrip()
     assert re.fullmatch(TEXT, stderr), stderr
     assert proc.returncode == 1
 
@@ -63,7 +63,9 @@ def test_patched_no_errwindow(capfd, monkeypatch):
     monkeypatch.setattr(checkpyver.sys, 'hexversion', 0x03040000)
     monkeypatch.setattr(checkpyver.sys, 'exit', lambda status: None)
     checkpyver.check_python_version()
+
     stdout, stderr = capfd.readouterr()
+    stderr = stderr.rstrip()
     assert not stdout
     assert re.fullmatch(TEXT, stderr), stderr
 
