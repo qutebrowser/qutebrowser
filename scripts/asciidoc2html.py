@@ -31,12 +31,12 @@ import argparse
 import io
 import pathlib
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
+DOC_DIR = REPO_ROOT / 'qutebrowser' / 'html' / 'doc'
+
+sys.path.insert(0, str(REPO_ROOT))
 
 from scripts import utils
-
-REPO_ROOT = pathlib.Path(__file__).parent.parent
-DOC_DIR = REPO_ROOT / 'qutebrowser' / 'html' / 'doc'
 
 
 class AsciiDoc:
@@ -80,7 +80,7 @@ class AsciiDoc:
 
     def _build_docs(self) -> None:
         """Render .asciidoc files to .html sites."""
-        files = [(REPO_ROOT / 'doc' / '{}.asciidoc'.format(f)),
+        files = [((REPO_ROOT / 'doc' / '{}.asciidoc'.format(f)),
                   DOC_DIR / (f + ".html")) for f in self.FILES]
         for src in (REPO_ROOT / 'doc' / 'help').glob('*.asciidoc'):
             dst = DOC_DIR / (src.stem + ".html")
