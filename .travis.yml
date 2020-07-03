@@ -5,7 +5,8 @@ os: linux
 env: TESTENV=py35-pyqt57
 
 install:
-  - bash scripts/dev/ci/install.sh "$TESTENV"
+  - python -m pip install -U pip
+  - python -m pip install -U -r misc/requirements/requirements-tox.txt
   - ulimit -c unlimited
 
 script:
