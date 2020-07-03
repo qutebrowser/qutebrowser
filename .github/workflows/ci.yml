@@ -20,6 +20,13 @@ jobs:
           - shellcheck
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: |
+            .mypy_cache
+            .tox
+            ~/.cache/pip
+          key: "${{ matrix.testenv }}-${{ hashFiles('misc/requirements/requirements-*.txt') }}-${{ hashFiles('requirements.txt') }}"
       - uses: actions/setup-python@v2
         with:
           python-version: '3.8'
@@ -105,6 +112,13 @@ jobs:
     runs-on: "${{ matrix.os }}"
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: |
+            .mypy_cache
+            .tox
+            ~/.cache/pip
+          key: "${{ matrix.testenv }}-${{ matrix.os }}-${{ matrix.python }}-${{ hashFiles('misc/requirements/requirements-*.txt') }}-${{ hashFiles('requirements.txt') }}"
       - name: Set up Python
         uses: actions/setup-python@v2
         if: "!endsWith(matrix.python, '-dev')"
