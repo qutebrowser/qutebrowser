@@ -39,6 +39,7 @@ from qutebrowser.api import (
     qtutils,
 )
 from qutebrowser.api.interceptor import ResourceType
+from qutebrowser.components.utils import blockutils
 
 try:
     import adblock
@@ -87,18 +88,6 @@ _RESOURCE_TYPE_STRINGS = {
 
 def resource_type_to_string(resource_type: typing.Optional[ResourceType]) -> str:
     return _RESOURCE_TYPE_STRINGS.get(resource_type, "other")
-
-
-# TODO: Move this code somewhere so that `adblock.py` can make use of it too.
-class _FakeDownload(downloads.TempDownload):
-
-    """A download stub to use on_download_finished with local files."""
-
-    def __init__(
-        self, fileobj: typing.IO[bytes]  # pylint: disable=super-init-not-called
-    ) -> None:
-        self.fileobj = fileobj
-        self.successful = True
 
 
 class BraveAdBlocker:
@@ -191,39 +180,9 @@ class BraveAdBlocker:
         self._engine = adblock.Engine()
         logger.info("Downloading adblock filter lists...")
         for url in config.val.content.blocking.adblock.lists:
-            if url.scheme() == "file":
-                # The URL describes a local file on disk if the url scheme is
-                # "file://". We handle those as a special case.
-                filename = url.toLocalFile()
-                if os.path.isdir(filename):
-                    for entry in os.scandir(filename):
-                        if entry.is_file():
-                            self._import_local(entry.path)
-                else:
-                    self._import_local(filename)
-            else:
-                download = downloads.download_temp(url)
-                self._in_progress.append(download)
-                download.finished.connect(
-                    functools.partial(self._on_download_finished, download)
-                )
-
-    def _import_local(self, filename: str) -> None:
-        """Adds the contents of a file to the blocklist.
-
-        Args:
-            filename: path to a local file to import.
-        """
-        try:
-            fileobj = open(filename, "rb")
-        except OSError as e:
-            message.error(
-                "adblock: Error while reading {}: {}".format(filename, e.strerror)
+            blockutils.download_blocklist_url(
+                url, self._on_download_finished, self._in_progress
             )
-            return
-        download = _FakeDownload(fileobj)
-        self._in_progress.append(download)
-        self._on_download_finished(download)
 
     def _on_lists_downloaded(self) -> None:
         """Install block lists after files have been downloaded."""

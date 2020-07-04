@@ -31,6 +31,7 @@ from PyQt5.QtCore import QUrl
 
 from qutebrowser.api import (cmdutils, hook, config, message, downloads,
                              interceptor, apitypes, qtutils)
+from qutebrowser.components.utils import blockutils
 
 
 logger = logging.getLogger('network')
@@ -69,16 +70,6 @@ def _is_whitelisted_url(url: QUrl) -> bool:
             return True
 
     return False
-
-
-class _FakeDownload(downloads.TempDownload):
-
-    """A download stub to use on_download_finished with local files."""
-
-    def __init__(self,  # pylint: disable=super-init-not-called
-                 fileobj: typing.IO[bytes]) -> None:
-        self.fileobj = fileobj
-        self.successful = True
 
 
 class HostBlocker:
@@ -217,35 +208,9 @@ class HostBlocker:
         self._blocked_hosts = set()
         self._done_count = 0
         for url in config.val.content.blocking.hosts.lists:
-            if url.scheme() == 'file':
-                filename = url.toLocalFile()
-                if os.path.isdir(filename):
-                    for entry in os.scandir(filename):
-                        if entry.is_file():
-                            self._import_local(entry.path)
-                else:
-                    self._import_local(filename)
-            else:
-                download = downloads.download_temp(url)
-                self._in_progress.append(download)
-                download.finished.connect(
-                    functools.partial(self._on_download_finished, download))
-
-    def _import_local(self, filename: str) -> None:
-        """Adds the contents of a file to the blocklist.
-
-        Args:
-            filename: path to a local file to import.
-        """
-        try:
-            fileobj = open(filename, 'rb')
-        except OSError as e:
-            message.error("adblock: Error while reading {}: {}".format(
-                filename, e.strerror))
-            return
-        download = _FakeDownload(fileobj)
-        self._in_progress.append(download)
-        self._on_download_finished(download)
+            blockutils.download_blocklist_url(
+                url, self._on_download_finished, self._in_progress
+            )
 
     def _merge_file(self, byte_io: typing.IO[bytes]) -> None:
         """Read and merge host files.
