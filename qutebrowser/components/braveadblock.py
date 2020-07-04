@@ -48,7 +48,7 @@ except ImportError:
 
 
 logger = logging.getLogger("network")
-_ad_blocker = typing.cast(typing.Optional["BraveAdBlocker"], None)
+ad_blocker = typing.cast(typing.Optional["BraveAdBlocker"], None)
 
 
 def _is_whitelisted_url(url: QUrl) -> bool:
@@ -226,38 +226,26 @@ class BraveAdBlocker:
                 logger.exception("Failed to write host block list!")
 
 
-@cmdutils.register()
-def brave_adblock_update() -> None:
-    """Update the adblock block lists."""
-
-    if _ad_blocker is not None:
-        _ad_blocker.adblock_update()
-    else:
-        message.warning(
-            "The 'adblock' dependency is not installed. Please install it to continue."
-        )
-
-
 @hook.config_changed("content.blocking.adblock.lists")
 def on_config_changed() -> None:
-    if _ad_blocker is not None:
-        _ad_blocker.update_files()
+    if ad_blocker is not None:
+        ad_blocker.update_files()
 
 
 @hook.init()
 def init(context: apitypes.InitContext) -> None:
     """Initialize the Brave ad blocker."""
-    global _ad_blocker
+    global ad_blocker
 
     if adblock is None:
         # We want 'adblock' to be an optional dependency. If the module is
         # not found, we simply set the `_ad_blocker` global to `None`. Always
         # remember to check the case where `_ad_blocker` is `None`!
-        _ad_blocker = None
+        ad_blocker = None
         return
 
-    _ad_blocker = BraveAdBlocker(
+    ad_blocker = BraveAdBlocker(
         data_dir=context.data_dir, has_basedir=context.args.basedir is not None,
     )
-    _ad_blocker.read_cache()
-    interceptor.register(_ad_blocker.filter_request)
+    ad_blocker.read_cache()
+    interceptor.register(ad_blocker.filter_request)

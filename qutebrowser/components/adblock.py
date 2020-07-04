@@ -20,7 +20,6 @@
 """Functions related to ad blocking."""
 
 import os.path
-import functools
 import posixpath
 import zipfile
 import logging
@@ -29,13 +28,20 @@ import pathlib
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.api import (cmdutils, hook, config, message, downloads,
-                             interceptor, apitypes, qtutils)
+from qutebrowser.api import (
+    hook,
+    config,
+    message,
+    downloads,
+    interceptor,
+    apitypes,
+    qtutils,
+)
 from qutebrowser.components.utils import blockutils
 
 
-logger = logging.getLogger('network')
-_host_blocker = typing.cast('HostBlocker', None)
+logger = logging.getLogger("network")
+host_blocker = typing.cast("HostBlocker", None)
 
 
 def _guess_zip_filename(zf: zipfile.ZipFile) -> str:
@@ -45,7 +51,7 @@ def _guess_zip_filename(zf: zipfile.ZipFile) -> str:
         return files[0]
     else:
         for e in files:
-            if posixpath.splitext(e)[0].lower() == 'hosts':
+            if posixpath.splitext(e)[0].lower() == "hosts":
                 return e
     raise FileNotFoundError("No hosts file found in zip")
 
@@ -57,7 +63,7 @@ def get_fileobj(byte_io: typing.IO[bytes]) -> typing.IO[bytes]:
         byte_io.seek(0)  # rewind what zipfile.is_zipfile did
         zf = zipfile.ZipFile(byte_io)
         filename = _guess_zip_filename(zf)
-        byte_io = zf.open(filename, mode='r')
+        byte_io = zf.open(filename, mode="r")
     else:
         byte_io.seek(0)  # rewind what zipfile.is_zipfile did
     return byte_io
@@ -86,42 +92,47 @@ class HostBlocker:
         _has_basedir: Whether a custom --basedir is set.
     """
 
-    def __init__(self, *, data_dir: pathlib.Path, config_dir: pathlib.Path,
-                 has_basedir: bool = False) -> None:
+    def __init__(
+        self,
+        *,
+        data_dir: pathlib.Path,
+        config_dir: pathlib.Path,
+        has_basedir: bool = False
+    ) -> None:
         self._has_basedir = has_basedir
         self._blocked_hosts = set()  # type: typing.Set[str]
         self._config_blocked_hosts = set()  # type: typing.Set[str]
         self._in_progress = []  # type: typing.List[downloads.TempDownload]
         self._done_count = 0
 
-        self._local_hosts_file = str(data_dir / 'blocked-hosts')
+        self._local_hosts_file = str(data_dir / "blocked-hosts")
         self.update_files()
 
-        self._config_hosts_file = str(config_dir / 'blocked-hosts')
+        self._config_hosts_file = str(config_dir / "blocked-hosts")
 
-    def _is_blocked(self, request_url: QUrl,
-                    first_party_url: QUrl = None) -> bool:
+    def _is_blocked(self, request_url: QUrl, first_party_url: QUrl = None) -> bool:
         """Check whether the given request is blocked."""
         if first_party_url is not None and not first_party_url.isValid():
             first_party_url = None
 
         qtutils.ensure_valid(request_url)
 
-        if not config.get('content.blocking.hosts.enabled',
-                          url=first_party_url):
+        if not config.get("content.blocking.hosts.enabled", url=first_party_url):
             return False
 
         host = request_url.host()
-        return ((host in self._blocked_hosts or
-                 host in self._config_blocked_hosts) and
-                not _is_whitelisted_url(request_url))
+        return (
+            host in self._blocked_hosts or host in self._config_blocked_hosts
+        ) and not _is_whitelisted_url(request_url)
 
     def filter_request(self, info: interceptor.Request) -> None:
         """Block the given request if necessary."""
-        if self._is_blocked(request_url=info.request_url,
-                            first_party_url=info.first_party_url):
-            logger.debug("Request to {} blocked by host blocker."
-                         .format(info.request_url.host()))
+        if self._is_blocked(
+            request_url=info.request_url, first_party_url=info.first_party_url
+        ):
+            logger.debug(
+                "Request to {} blocked by host blocker.".format(info.request_url.host())
+            )
             info.block()
 
     def _read_hosts_line(self, raw_line: bytes) -> typing.Set[str]:
@@ -134,15 +145,15 @@ class HostBlocker:
             A set containing valid hosts found
             in the line.
         """
-        if raw_line.startswith(b'#'):
+        if raw_line.startswith(b"#"):
             # Ignoring comments early so we don't have to care about
             # encoding errors in them
             return set()
 
-        line = raw_line.decode('utf-8')
+        line = raw_line.decode("utf-8")
 
         # Remove comments
-        hash_idx = line.find('#')
+        hash_idx = line.find("#")
         line = line if hash_idx == -1 else line[:hash_idx]
 
         parts = line.strip().split()
@@ -155,9 +166,7 @@ class HostBlocker:
 
         filtered_hosts = set()
         for host in hosts:
-            if ('.' in host and
-                    not host.endswith('.localdomain') and
-                    host != '0.0.0.0'):
+            if "." in host and not host.endswith(".localdomain") and host != "0.0.0.0":
                 filtered_hosts.update([host])
 
         return filtered_hosts
@@ -176,7 +185,7 @@ class HostBlocker:
             return False
 
         try:
-            with open(filename, 'rb') as f:
+            with open(filename, "rb") as f:
                 for line in f:
                     target |= self._read_hosts_line(line)
 
@@ -189,22 +198,21 @@ class HostBlocker:
         """Read hosts from the existing blocked-hosts file."""
         self._blocked_hosts = set()
 
-        self._read_hosts_file(self._config_hosts_file,
-                              self._config_blocked_hosts)
+        self._read_hosts_file(self._config_hosts_file, self._config_blocked_hosts)
 
-        found = self._read_hosts_file(self._local_hosts_file,
-                                      self._blocked_hosts)
+        found = self._read_hosts_file(self._local_hosts_file, self._blocked_hosts)
 
         if not found:
-            if (config.val.content.blocking.hosts.lists and
-                    not self._has_basedir and
-                    config.val.content.blocking.hosts.enabled):
+            if (
+                config.val.content.blocking.hosts.lists
+                and not self._has_basedir
+                and config.val.content.blocking.hosts.enabled
+            ):
                 message.info("Run :adblock-update to get adblock lists.")
 
     def adblock_update(self) -> None:
         """Update the adblock block lists."""
-        self._read_hosts_file(self._config_hosts_file,
-                              self._config_blocked_hosts)
+        self._read_hosts_file(self._config_hosts_file, self._config_blocked_hosts)
         self._blocked_hosts = set()
         self._done_count = 0
         for url in config.val.content.blocking.hosts.lists:
@@ -222,10 +230,12 @@ class HostBlocker:
         line_count = 0
         try:
             f = get_fileobj(byte_io)
-        except (OSError, zipfile.BadZipFile, zipfile.LargeZipFile,
-                LookupError) as e:
-            message.error("adblock: Error while reading {}: {} - {}".format(
-                byte_io.name, e.__class__.__name__, e))
+        except (OSError, zipfile.BadZipFile, zipfile.LargeZipFile, LookupError) as e:
+            message.error(
+                "adblock: Error while reading {}: {} - {}".format(
+                    byte_io.name, e.__class__.__name__, e
+                )
+            )
             return
 
         for line in f:
@@ -238,16 +248,20 @@ class HostBlocker:
 
         logger.debug("{}: read {} lines".format(byte_io.name, line_count))
         if error_count > 0:
-            message.error("adblock: {} read errors for {}".format(
-                error_count, byte_io.name))
+            message.error(
+                "adblock: {} read errors for {}".format(error_count, byte_io.name)
+            )
 
     def _on_lists_downloaded(self) -> None:
         """Install block lists after files have been downloaded."""
-        with open(self._local_hosts_file, 'w', encoding='utf-8') as f:
+        with open(self._local_hosts_file, "w", encoding="utf-8") as f:
             for host in sorted(self._blocked_hosts):
-                f.write(host + '\n')
-            message.info("adblock: Read {} hosts from {} sources.".format(
-                len(self._blocked_hosts), self._done_count))
+                f.write(host + "\n")
+            message.info(
+                "adblock: Read {} hosts from {} sources.".format(
+                    len(self._blocked_hosts), self._done_count
+                )
+            )
 
     def update_files(self) -> None:
         """Update files when the config changed."""
@@ -268,8 +282,7 @@ class HostBlocker:
         self._in_progress.remove(download)
         if download.successful:
             self._done_count += 1
-            assert not isinstance(download.fileobj,
-                                  downloads.UnsupportedAttribute)
+            assert not isinstance(download.fileobj, downloads.UnsupportedAttribute)
             assert download.fileobj is not None
             try:
                 self._merge_file(download.fileobj)
@@ -282,29 +295,19 @@ class HostBlocker:
                 logger.exception("Failed to write host block list!")
 
 
-@cmdutils.register()
-def adblock_update() -> None:
-    """Update the adblock block lists.
-
-    This updates `~/.local/share/qutebrowser/blocked-hosts` with downloaded
-    host lists and re-reads `~/.config/qutebrowser/blocked-hosts`.
-    """
-    # FIXME: As soon as we can register instances again, we should move this
-    # back to the class.
-    _host_blocker.adblock_update()
-
-
-@hook.config_changed('content.blocking.hosts.lists')
+@hook.config_changed("content.blocking.hosts.lists")
 def on_config_changed() -> None:
-    _host_blocker.update_files()
+    host_blocker.update_files()
 
 
 @hook.init()
 def init(context: apitypes.InitContext) -> None:
     """Initialize the host blocker."""
-    global _host_blocker
-    _host_blocker = HostBlocker(data_dir=context.data_dir,
-                                config_dir=context.config_dir,
-                                has_basedir=context.args.basedir is not None)
-    _host_blocker.read_hosts()
-    interceptor.register(_host_blocker.filter_request)
+    global host_blocker
+    host_blocker = HostBlocker(
+        data_dir=context.data_dir,
+        config_dir=context.config_dir,
+        has_basedir=context.args.basedir is not None,
+    )
+    host_blocker.read_hosts()
+    interceptor.register(host_blocker.filter_request)
