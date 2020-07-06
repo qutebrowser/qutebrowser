@@ -47,6 +47,9 @@ else:
     icon = None
 
 
+DEBUG = os.environ.get('PYINSTALLER_DEBUG', '').lower() in ['1', 'true']
+
+
 a = Analysis(['../qutebrowser/__main__.py'],
              pathex=['misc'],
              binaries=None,
@@ -65,10 +68,10 @@ exe = EXE(pyz,
           exclude_binaries=True,
           name='qutebrowser',
           icon=icon,
-          debug=False,
+          debug=DEBUG,
           strip=False,
           upx=False,
-          console=False,
+          console=DEBUG,
           version='../misc/file_version_info.txt')
 coll = COLLECT(exe,
                a.binaries,
