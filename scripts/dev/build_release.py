@@ -310,16 +310,17 @@ def build_windows():
     ]
 
     utils.print_title("Zipping 32bit standalone...")
-    name = 'qutebrowser-{}-windows-standalone-win32'.format(
-        qutebrowser.__version__)
+    template = 'qutebrowser-{}-windows-standalone-{}'
+    name = os.path.join('dist',
+                        template.format(qutebrowser.__version__, 'win32'))
     shutil.make_archive(name, 'zip', 'dist', os.path.basename(out_32))
     artifacts.append(('{}.zip'.format(name),
                       'application/zip',
                       'Windows 32bit standalone'))
 
     utils.print_title("Zipping 64bit standalone...")
-    name = 'qutebrowser-{}-windows-standalone-amd64'.format(
-        qutebrowser.__version__)
+    name = os.path.join('dist',
+                        template.format(qutebrowser.__version__, 'amd64'))
     shutil.make_archive(name, 'zip', 'dist', os.path.basename(out_64))
     artifacts.append(('{}.zip'.format(name),
                       'application/zip',
