@@ -264,7 +264,8 @@ class Change:
         if self.old is None:
             return '- {} new: {}    {}'.format(self.name, self.new, self.url)
         elif self.new is None:
-            return '- {} removed: {}    {}'.format(self.name, self.old, self.url)
+            return '- {} removed: {}    {}'.format(self.name, self.old,
+                                                   self.url)
         else:
             return '- {} {} -> {}    {}'.format(self.name, self.old, self.new,
                                                 self.url)
