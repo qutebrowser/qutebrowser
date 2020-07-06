@@ -23,7 +23,7 @@ parse==1.15.0
 parse-type==0.5.2
 pluggy==0.13.1
 py==1.9.0
-py-cpuinfo==6.0.0
+py-cpuinfo==7.0.0
 Pygments==2.6.1
 pyparsing==2.4.7
 pytest==5.4.3
