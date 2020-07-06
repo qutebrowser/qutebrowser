@@ -41,6 +41,13 @@ jobs:
         run: |
             [[ ${{ matrix.testenv }} == eslint ]] && npm install -g eslint
             [[ ${{ matrix.testenv }} == docs ]] && sudo apt-get install --no-install-recommends asciidoc
+            if [[ ${{ matrix.testenv }} == shellcheck ]]; then
+                scversion="stable"
+                bindir="$HOME/.local/bin"
+                mkdir -p "$bindir"
+                wget -qO- "https://github.com/koalaman/shellcheck/releases/download/$scversion/shellcheck-$scversion.linux.x86_64.tar.xz" | tar -xJv --strip-components 1 -C "$bindir" shellcheck-$scversion/shellcheck
+                echo "::add-path::$bindir"
+            fi
             python -m pip install -U pip
             python -m pip install -U -r misc/requirements/requirements-tox.txt
       - name: "Run ${{ matrix.testenv }}"
