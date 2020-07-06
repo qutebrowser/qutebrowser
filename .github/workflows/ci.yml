@@ -206,7 +206,7 @@ jobs:
         channel: '#qutebrowser-dev'
         nickname: qutebrowser-bot
         message: |-
-          [${{ github.workflow }}] Success: ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} triggered by ${{ github.actor }}
+          \u00033[${{ github.workflow }}] Success: ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} triggered by ${{ github.actor }}\u0003
     - name: Send non-success IRC notification
       uses: Gottox/irc-message-action@v1
       if: "needs.linters.result != 'success' || needs.tests.result != 'success' || needs.tests-docker.result != 'success' || needs.codeql.result != 'success'"
@@ -215,5 +215,5 @@ jobs:
         channel: '#qutebrowser-dev'
         nickname: qutebrowser-bot
         message: |-
-          [${{ github.workflow }}] FAIL: ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} triggered by ${{ github.actor }}
+          \u00034[${{ github.workflow }}] FAIL: ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} triggered by ${{ github.actor }}\u0003
           linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}
