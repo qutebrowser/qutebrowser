@@ -199,7 +199,7 @@ jobs:
         channel: '#qutebrowser-dev'
         nickname: qutebrowser-bot
         message: |-
-          \0033[${{ github.workflow }}] Success: ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} triggered by ${{ github.actor }}\003
+          [${{ github.workflow }}] Success: ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} triggered by ${{ github.actor }}
           linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}
     - name: Send non-success IRC notification
       uses: Gottox/irc-message-action@v1
@@ -209,5 +209,5 @@ jobs:
         channel: '#qutebrowser-dev'
         nickname: qutebrowser-bot
         message: |-
-          \0034[${{ github.workflow }}] ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} triggered by ${{ github.actor }}\003
+          [${{ github.workflow }}] FAIL: ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} triggered by ${{ github.actor }}
           linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}
