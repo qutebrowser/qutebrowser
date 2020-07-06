@@ -47,7 +47,7 @@ else:
     icon = None
 
 
-DEBUG = os.environ.get('PYINSTALLER_DEBUG').lower() in ['1', 'true']
+DEBUG = os.environ.get('PYINSTALLER_DEBUG', '').lower() in ['1', 'true']
 
 
 a = Analysis(['../qutebrowser/__main__.py'],
