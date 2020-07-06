@@ -157,10 +157,21 @@ MATCHERS = {
             "severity": "error",
             "pattern": [
                 {
-                    "regexp": r'^\033\[1m\033\[31m([^\033]*)\033\[0m:(\d+): ?(.*)',
+                    "regexp": r'^\033\[1m\033\[31m([^\033]*)\033\[0m:(\d+): .*',
                     "file": 1,
                     "line": 2,
-                    "message": 3,
+                }
+            ],
+        },
+        {
+            # pytest error lines
+            # E       end2end.fixtures.testprocess.WaitForTimeout: Timed out
+            #         after 15000ms waiting for [...]
+            "severity": "error",
+            "pattern": [
+                {
+                    "regexp": r'^\033\[1m\033\[31mE\s+([^\033]*)\033\[0m$',
+                    "message": 1,
                 }
             ],
         },
