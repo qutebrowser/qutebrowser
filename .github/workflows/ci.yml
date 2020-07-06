@@ -191,12 +191,23 @@ jobs:
     needs: [linters, tests, tests-docker, codeql]
     if: always()
     steps:
-    - name: Send IRC notification
+    - name: Send success IRC notification
       uses: Gottox/irc-message-action@v1
+      if: "needs.linters.result == 'success' && needs.tests.result == 'success' && needs.tests-docker.result == 'success' && needs.codeql.result == 'success'"
       with:
         server: chat.freenode.net
         channel: '#qutebrowser-dev'
         nickname: qutebrowser-bot
         message: |-
-          [${{ github.workflow }}] ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} triggered by ${{ github.actor }}
+          \0033[${{ github.workflow }}] Success: ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} triggered by ${{ github.actor }}\003
+          linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}
+    - name: Send non-success IRC notification
+      uses: Gottox/irc-message-action@v1
+      if: "needs.linters.result != 'success' || needs.tests.result != 'success' || needs.tests-docker.result != 'success' || needs.codeql.result != 'success'"
+      with:
+        server: chat.freenode.net
+        channel: '#qutebrowser-dev'
+        nickname: qutebrowser-bot
+        message: |-
+          \0034[${{ github.workflow }}] ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} triggered by ${{ github.actor }}\003
           linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}
