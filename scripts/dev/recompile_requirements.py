@@ -37,6 +37,73 @@ REPO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                         '..', '..')  # /scripts/dev -> /scripts -> /
 REQ_DIR = os.path.join(REPO_DIR, 'misc', 'requirements')
 
+CHANGELOG_URLS = {
+    'pyparsing': 'https://github.com/pyparsing/pyparsing/blob/master/CHANGES',
+    'cherrypy': 'https://github.com/cherrypy/cherrypy/blob/master/CHANGES.rst',
+    'pylint': 'http://pylint.pycqa.org/en/latest/whatsnew/changelog.html',
+    'setuptools': 'https://github.com/pypa/setuptools/blob/master/CHANGES.rst',
+    'pytest-cov': 'https://github.com/pytest-dev/pytest-cov',
+    'requests': 'https://github.com/psf/requests/blob/master/HISTORY.md',
+    'werkzeug': 'https://github.com/pallets/werkzeug/blob/master/CHANGES.rst',
+    'hypothesis': 'https://hypothesis.readthedocs.io/en/latest/changes.html',
+    'mypy': 'https://mypy-lang.blogspot.com/',
+    'pytest': 'https://docs.pytest.org/en/latest/changelog.html',
+    'tox': 'https://tox.readthedocs.io/en/latest/changelog.html',
+    'pyyaml': 'https://github.com/yaml/pyyaml/blob/master/CHANGES',
+    'pytest-bdd': 'https://github.com/pytest-dev/pytest-bdd/blob/master/CHANGES.rst',
+    'snowballstemmer': 'https://github.com/snowballstem/snowball/blob/master/NEWS',
+    'virtualenv': 'https://virtualenv.pypa.io/en/latest/changelog.html',
+    'pip': 'https://pip.pypa.io/en/stable/news/',
+    'packaging': 'https://pypi.org/project/packaging/',
+    'flake8-docstrings': 'https://pypi.org/project/flake8-docstrings/',
+    'attrs': 'http://www.attrs.org/en/stable/changelog.html',
+    'jinja2': 'https://github.com/pallets/jinja/blob/master/CHANGES.rst',
+    'flake8': 'https://gitlab.com/pycqa/flake8/tree/master/docs/source/release-notes',
+    'cffi': 'https://cffi.readthedocs.io/en/latest/whatsnew.html',
+    'flake8-debugger': 'https://github.com/JBKahn/flake8-debugger/',
+    'astroid': 'https://github.com/PyCQA/astroid/blob/2.4/ChangeLog',
+    'pytest-instafail': 'https://github.com/pytest-dev/pytest-instafail/blob/master/CHANGES.rst',
+    'coverage': 'https://github.com/nedbat/coveragepy/blob/master/CHANGES.rst',
+    'colorama': 'https://github.com/tartley/colorama/blob/master/CHANGELOG.rst',
+    'hunter': 'https://github.com/ionelmc/python-hunter/blob/master/CHANGELOG.rst',
+    'uritemplate': 'https://pypi.org/project/uritemplate/',
+    'flake8-builtins': 'https://github.com/gforcada/flake8-builtins/blob/master/CHANGES.rst',
+    'flake8-bugbear': 'https://github.com/PyCQA/flake8-bugbear',
+    'flake8-tidy-imports': 'https://github.com/adamchainz/flake8-tidy-imports/blob/master/HISTORY.rst',
+    'flake8-tuple': 'https://github.com/ar4s/flake8_tuple/blob/master/HISTORY.rst',
+    'more-itertools': 'https://github.com/erikrose/more-itertools/blob/master/docs/versions.rst',
+    'pydocstyle': 'http://www.pydocstyle.org/en/latest/release_notes.html',
+    'sphinx': 'https://www.sphinx-doc.org/en/master/changes.html',
+    'jaraco.functools': 'https://github.com/jaraco/jaraco.functools/blob/master/CHANGES.rst',
+    'parse': 'https://github.com/r1chardj0n3s/parse#potential-gotchas',
+    'py': 'https://py.readthedocs.io/en/latest/changelog.html#changelog',
+    'pytest-mock': 'https://github.com/pytest-dev/pytest-mock/blob/master/CHANGELOG.rst',
+    'pytest-qt': 'https://github.com/pytest-dev/pytest-qt/blob/master/CHANGELOG.rst',
+    'wcwidth': 'https://github.com/jquast/wcwidth#history',
+    'pyinstaller': 'https://pyinstaller.readthedocs.io/en/stable/CHANGES.html',
+    'pytest-benchmark': 'https://pytest-benchmark.readthedocs.io/en/stable/changelog.html',
+    'typed-ast': 'https://github.com/python/typed_ast/commits/master',
+    'docutils': 'https://docutils.sourceforge.io/RELEASE-NOTES.html',
+    'bump2version': 'https://github.com/c4urself/bump2version/blob/master/CHANGELOG.md',
+    'six': 'https://github.com/benjaminp/six/blob/master/CHANGES',
+    'flake8-comprehensions': 'https://github.com/adamchainz/flake8-comprehensions/blob/master/HISTORY.rst',
+    'altgraph': 'https://github.com/ronaldoussoren/altgraph/blob/master/doc/changelog.rst',
+    'urllib3': 'https://github.com/urllib3/urllib3/blob/master/CHANGES.rst',
+    'wheel': 'https://github.com/pypa/wheel/blob/master/docs/news.rst',
+    'mako': 'https://docs.makotemplates.org/en/latest/changelog.html',
+    'lxml': 'https://lxml.de/4.5/changes-4.5.0.html',
+    'jwcrypto': 'https://github.com/latchset/jwcrypto/commits/master',
+    'tox-pip-version': 'https://github.com/pglass/tox-pip-version/commits/master',
+    'wrapt': 'https://github.com/GrahamDumpleton/wrapt/blob/develop/docs/changes.rst',
+    'pep517': 'https://github.com/pypa/pep517/commits/master',
+    'cryptography': 'https://cryptography.io/en/latest/changelog/',
+    'toml': 'https://github.com/uiri/toml/releases',
+    'pyqt': 'https://www.riverbankcomputing.com/',
+    'vulture': 'https://github.com/jendrikseipp/vulture/blob/master/CHANGELOG.md',
+    'distlib': 'https://bitbucket.org/pypa/distlib/src/master/CHANGES.rst',
+    'py-cpuinfo': 'https://github.com/workhorsy/py-cpuinfo/blob/master/ChangeLog',
+}
+
 # PyQt versions which need SIP v4
 OLD_PYQT = {'pyqt-5.7', 'pyqt-5.9', 'pyqt-5.10', 'pyqt-5.11'}
 
@@ -186,23 +253,30 @@ class Change:
         self.name = name
         self.old = None
         self.new = None
+        if name.lower() in CHANGELOG_URLS:
+            self.url = CHANGELOG_URLS[name.lower()]
+            self.link = '[{}]({})'.format(self.name, self.url)
+        else:
+            self.url = '(no changelog)'
+            self.link = '{} (no changelog)'.format(self.name)
 
     def __str__(self):
         if self.old is None:
-            return '- {} new: {}'.format(self.name, self.new)
+            return '- {} new: {}    {}'.format(self.name, self.new, self.url)
         elif self.new is None:
-            return '- {} removed: {}'.format(self.name, self.old)
+            return '- {} removed: {}    {}'.format(self.name, self.old, self.url)
         else:
-            return '- {} {} -> {}'.format(self.name, self.old, self.new)
+            return '- {} {} -> {}    {}'.format(self.name, self.old, self.new,
+                                                self.url)
 
     def table_str(self):
         """Generate a markdown table."""
         if self.old is None:
-            return '| {} | -- | {} |'.format(self.name, self.new)
+            return '| {} | -- | {} |'.format(self.link, self.new)
         elif self.new is None:
-            return '| {} | {} | -- |'.format(self.name, self.old)
+            return '| {} | {} | -- |'.format(self.link, self.old)
         else:
-            return '| {} | {} | {} |'.format(self.name, self.old, self.new)
+            return '| {} | {} | {} |'.format(self.link, self.old, self.new)
 
 
 def print_changed_files():
