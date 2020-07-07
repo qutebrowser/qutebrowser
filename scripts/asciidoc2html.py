@@ -121,7 +121,7 @@ class AsciiDoc:
         src = root / filename
         assert self._website is not None    # for mypy
         dst = pathlib.Path(self._website)
-        dst = dst / src.parent.relative_to('.') / (src.stem + ".html")
+        dst = dst / src.parent.relative_to(REPO_ROOT) / (src.stem + ".html")
         dst.parent.mkdir(exist_ok=True)
 
         assert self._tempdir is not None    # for mypy
@@ -189,7 +189,7 @@ class AsciiDoc:
         assert self._website is not None    # for mypy
         outdir = pathlib.Path(self._website)
 
-        for item_path in pathlib.Path().rglob('*.asciidoc'):
+        for item_path in pathlib.Path(REPO_ROOT).rglob('*.asciidoc'):
             if item_path.stem in ['header', 'OpenSans-License']:
                 continue
             self._build_website_file(item_path.parent, item_path.name)
@@ -197,12 +197,13 @@ class AsciiDoc:
         copy = {'icons': 'icons', 'doc/img': 'doc/img', 'www/media': 'media/'}
 
         for src, dest in copy.items():
+            full_src = REPO_ROOT / src
             full_dest = outdir / dest
             try:
                 shutil.rmtree(full_dest)
             except FileNotFoundError:
                 pass
-            shutil.copytree(src, full_dest)
+            shutil.copytree(full_src, full_dest)
 
         for dst, link_name in [
                 ('README.html', 'index.html'),
