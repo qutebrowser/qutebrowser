@@ -488,10 +488,6 @@ For any privacy questions, please contact mailto:privacy@qutebrowser.org[].
 
 The qutebrowser.org website does not use any cookies or trackers.
 
-However, IP addresses are currently (October 2019) logged and stored
-indefinitely. It's planned to change this soon by migrating qutebrowser.org to
-a different server.
-
 Note that some services related to qutebrowser are stored on third-party
 services such as GitHub. By using their websites, you're subject to their
 privacy policies.
