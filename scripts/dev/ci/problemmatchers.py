@@ -136,49 +136,28 @@ MATCHERS = {
 
     "tests": [
         {
-            # BDD tests / normal Python exceptions
+            # pytest test summary output
             "severity": "error",
             "pattern": [
                 {
-                    "regexp": r'^.*\s+File "(.*)", line (\d+), in .*$',
-                    "file": 1,
-                    "line": 2,
+                    "regexp": r'^=+ short test summary info =+$',
                 },
                 {
-                    "regexp": r"^(\033\[[\d;]+m)*E?\s*(INVALID:)?\s+(\w*Error[^\033]*|\w*Exception[^\033]*)(\033\[0m)?",
-                    "message": 3,
-                }
-            ],
-        },
-        {
-            # pytest stacktraces
-            # qutebrowser/utils/utils.py:773: AssertionError
-            # tests/unit/utils/test_utils.py:887:
-            "severity": "error",
-            "pattern": [
-                {
-                    "regexp": r'^\033\[1m\033\[31m([^\033]*)\033\[0m:(\d+): .*',
-                    "file": 1,
-                    "line": 2,
-                },
-                {
-                    "regexp": r'^\033\[1m\033\[31mE\s+([^\033]*)\033\[0m$',
+                    "regexp": r"^((ERROR|FAILED) .*)",
                     "message": 1,
                 }
             ],
-        },
-        {
+
             # pytest error lines
             # E       end2end.fixtures.testprocess.WaitForTimeout: Timed out
             #         after 15000ms waiting for [...]
             "severity": "error",
             "pattern": [
                 {
-                    "regexp": r'^\033\[1m\033\[31mE\s+([^\033]*)\033\[0m$',
+                    "regexp": r'^\033\[1m\033\[31mE       [a-zA-Z0-9.]+: ([^\033]*)\033\[0m$',
                     "message": 1,
-                }
+                },
             ],
-        },
     ]
 }
 
