@@ -1,5 +1,7 @@
 name: CI
 on: [push, pull_request]
+env:
+  PY_COLORS: "1"
 
 jobs:
   linters:
@@ -161,8 +163,6 @@ jobs:
             python -m pip install -U pip
             python -m pip install -U -r misc/requirements/requirements-tox.txt
       - name: "Run ${{ matrix.testenv }}"
-        env:
-          PYTEST_ADDOPTS: "--color=yes"
         run: "tox -e ${{ matrix.testenv}} -- ${{ matrix.args }}"
       - name: Analyze backtraces
         run: "bash scripts/dev/ci/backtrace.sh ${{ matrix.testenv }}"
