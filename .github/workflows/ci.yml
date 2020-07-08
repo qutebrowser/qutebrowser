@@ -196,7 +196,7 @@ jobs:
   irc:
     runs-on: ubuntu-latest
     needs: [linters, tests, tests-docker, codeql]
-    if: always()
+    if: "always() && github.repository_owner == 'qutebrowser'"
     steps:
     - name: Send success IRC notification
       uses: Gottox/irc-message-action@v1
