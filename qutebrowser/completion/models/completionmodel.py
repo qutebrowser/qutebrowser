@@ -232,8 +232,7 @@ class CompletionModel(QAbstractItemModel):
         if not cat.delete_func:
             raise cmdutils.CommandError("Cannot delete this item.")
 
-        data = [cat.data(cat.index(index.row(), i))
-                for i in range(cat.columnCount())]
+        data = ["{}/{}".format(parent.row(), index.row()+1)]
         cat.delete_func(data)
 
         self.beginRemoveRows(parent, index.row(), index.row())

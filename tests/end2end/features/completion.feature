@@ -84,6 +84,20 @@ Feature: Using completion
         Then the following tabs should be open:
             - data/hello.txt (active)
 
+    Scenario: Deleting muliple open tabs via the completion
+        Given I have a fresh instance
+        When I open data/hello.txt
+        And I open data/hello2.txt in a new tab
+        And I open data/hello3.txt in a new tab
+        And I run :set-cmd-text -s :buffer
+        And I wait for "Setting completion pattern ''" in the log
+        And I run :completion-item-focus next
+        And I wait for "setting text = ':buffer 0/1', *" in the log
+        And I run :completion-item-del
+        And I run :completion-item-del
+        Then the following tabs should be open:
+            - data/hello3.txt (active)
+
     Scenario: Go to tab after moving a tab
         Given I have a fresh instance
         When I open data/hello.txt
