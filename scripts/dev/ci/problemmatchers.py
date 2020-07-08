@@ -147,7 +147,8 @@ MATCHERS = {
                     "message": 1,
                 }
             ],
-
+        },
+        {
             # pytest error lines
             # E       end2end.fixtures.testprocess.WaitForTimeout: Timed out
             #         after 15000ms waiting for [...]
@@ -158,6 +159,7 @@ MATCHERS = {
                     "message": 1,
                 },
             ],
+        },
     ]
 }
 
