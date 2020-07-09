@@ -163,12 +163,11 @@ jobs:
             python -m pip install -U pip
             python -m pip install -U -r misc/requirements/requirements-tox.txt
       - name: "Run ${{ matrix.testenv }}"
-        run: |
-            if [[ ${{ matrix.os }} == ubuntu* ]]; then
-                dbus-run-session -- tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}
-            else
-                tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}
-            fi
+        run: "dbus-run-session -- tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}"
+        if: "startsWith(matrix.os, 'ubuntu-')"
+      - name: "Run ${{ matrix.testenv }}"
+        run: "tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}"
+        if: "!startsWith(matrix.os, 'ubuntu-')"
       - name: Analyze backtraces
         run: "bash scripts/dev/ci/backtrace.sh ${{ matrix.testenv }}"
         if: "failure()"
