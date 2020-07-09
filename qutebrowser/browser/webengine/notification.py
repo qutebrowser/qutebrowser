@@ -75,7 +75,6 @@ def init() -> None:
         )
 
 
-
 class DBusException(Exception):
     """Raised when something goes wrong with talking to DBus."""
 
