@@ -155,7 +155,7 @@ MATCHERS = {
             "severity": "error",
             "pattern": [
                 {
-                    "regexp": r'^\033\[1m\033\[31mE       [a-zA-Z0-9.]+: ([^\033]*)\033\[0m$',
+                    "regexp": r'^\033\[1m\033\[31mE       ([a-zA-Z0-9.]+: [^\033]*)\033\[0m$',
                     "message": 1,
                 },
             ],
