@@ -6,6 +6,8 @@ from PyQt5.QtCore import QObject, QVariant, pyqtSlot
 from PyQt5.QtDBus import QDBusConnection, QDBusArgument, QDBusMessage
 import pytest
 
+from qutebrowser.utils import utils
+
 
 class TestNotificationServer(QObject):
     """A libnotify notification server used for testing."""
