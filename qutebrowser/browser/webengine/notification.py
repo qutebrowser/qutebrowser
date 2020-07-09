@@ -83,6 +83,8 @@ class DBusNotificationPresenter(QObject):
     """Manages notifications that are sent over DBus."""
 
     SERVICE = "org.freedesktop.Notifications"
+    # If you change the test service, make sure to also change the one in the
+    # test fixture.
     TEST_SERVICE = "org.qutebrowser.TestNotifications"
     PATH = "/org/freedesktop/Notifications"
     INTERFACE = "org.freedesktop.Notifications"

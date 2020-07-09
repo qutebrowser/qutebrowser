@@ -6,12 +6,16 @@ from PyQt5.QtCore import QObject, QVariant, pyqtSlot
 from PyQt5.QtDBus import QDBusConnection, QDBusArgument, QDBusMessage
 import pytest
 
-from qutebrowser.browser.webengine.notification import \
-    DBusNotificationPresenter
-
 
 class TestNotificationServer(QObject):
     """A libnotify notification server used for testing."""
+
+    # These are the same as in DBusNotificationPresenter. We don't import that
+    # because it relies on Qt 5.13, and this fixture is *always* instantiated.
+    SERVICE = "org.freedesktop.Notifications"
+    TEST_SERVICE = "org.qutebrowser.TestNotifications"
+    PATH = "/org/freedesktop/Notifications"
+    INTERFACE = "org.freedesktop.Notifications"
 
     def __init__(self, service: str):
         # Note that external users should call get() instead.
@@ -25,13 +29,13 @@ class TestNotificationServer(QObject):
 
     def register(self) -> None:
         assert self._bus.registerService(self._service)
-        assert self._bus.registerObject(DBusNotificationPresenter.PATH,
-                                        DBusNotificationPresenter.INTERFACE,
+        assert self._bus.registerObject(TestNotificationServer.PATH,
+                                        TestNotificationServer.INTERFACE,
                                         self,
                                         QDBusConnection.ExportAllSlots)
 
     def unregister(self) -> None:
-        self._bus.unregisterObject(DBusNotificationPresenter.PATH)
+        self._bus.unregisterObject(TestNotificationServer.PATH)
         assert self._bus.unregisterService(self._service)
 
     @pyqtSlot(QDBusMessage, result="uint")
@@ -43,8 +47,8 @@ class TestNotificationServer(QObject):
     def close(self, notification_id: int) -> None:
         """Sends a close notification for the given ID."""
         message = QDBusMessage.createSignal(
-            DBusNotificationPresenter.PATH,
-            DBusNotificationPresenter.INTERFACE,
+            TestNotificationServer.PATH,
+            TestNotificationServer.INTERFACE,
             "NotificationClosed")
         # the 2 here is the notification removal reason; it's effectively
         # arbitrary
@@ -55,7 +59,7 @@ class TestNotificationServer(QObject):
 
 @pytest.fixture
 def notification_server(qapp):
-    server = TestNotificationServer(DBusNotificationPresenter.TEST_SERVICE)
+    server = TestNotificationServer(TestNotificationServer.TEST_SERVICE)
     try:
         server.register()
         yield server
