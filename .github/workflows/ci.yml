@@ -53,7 +53,7 @@ jobs:
             python -m pip install -U pip
             python -m pip install -U -r misc/requirements/requirements-tox.txt
       - name: "Run ${{ matrix.testenv }}"
-        run: "tox -e ${{ matrix.testenv}} -- ${{ matrix.args }}"
+        run: "dbus-run-session -- tox -e ${{ matrix.testenv}} -- ${{ matrix.args }}"
 
   tests-docker:
     runs-on: ubuntu-20.04
@@ -79,7 +79,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py py38 ${{ runner.temp }}"
-      - run: tox -e py38
+      - run: dbus-run-session tox -e py38
 
   tests:
     continue-on-error: "${{ matrix.experimental == true }}"
@@ -163,7 +163,12 @@ jobs:
             python -m pip install -U pip
             python -m pip install -U -r misc/requirements/requirements-tox.txt
       - name: "Run ${{ matrix.testenv }}"
-        run: "tox -e ${{ matrix.testenv}} -- ${{ matrix.args }}"
+        run: |
+            if [[ ${{ matrix.os }} == ubuntu* ]]; then
+                dbus-run-session -- tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}
+            else
+                tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}
+            fi
       - name: Analyze backtraces
         run: "bash scripts/dev/ci/backtrace.sh ${{ matrix.testenv }}"
         if: "failure()"
