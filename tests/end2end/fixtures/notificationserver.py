@@ -18,16 +18,22 @@ class TestNotificationServer(QObject):
     INTERFACE = "org.freedesktop.Notifications"
 
     def __init__(self, service: str):
+        """Constructs a new server.
+
+        This is safe even if there is no DBus daemon; we don't check whether
+        the connection is successful until register().
+        """
         # Note that external users should call get() instead.
         super().__init__()
         self._service = service
+        # Trying to connect to the bus doesn't fail if there's no bus.
         self._bus = QDBusConnection.sessionBus()
-        assert self._bus.isConnected()
         self._message_id = 0
         # A dict mapping notification IDs to currently-displayed notifications.
         self.messages = {}  # type: typing.Dict[int, QDBusMessage]
 
     def register(self) -> None:
+        assert self._bus.isConnected()
         assert self._bus.registerService(self._service)
         assert self._bus.registerObject(TestNotificationServer.PATH,
                                         TestNotificationServer.INTERFACE,
@@ -60,11 +66,14 @@ class TestNotificationServer(QObject):
 @pytest.fixture
 def notification_server(qapp):
     server = TestNotificationServer(TestNotificationServer.TEST_SERVICE)
-    try:
-        server.register()
+    if utils.is_windows or utils.is_mac:
         yield server
-    finally:
-        server.unregister()
+    else:
+        try:
+            server.register()
+            yield server
+        finally:
+            server.unregister()
 
 
 def _as_uint32(x: int) -> QVariant:
