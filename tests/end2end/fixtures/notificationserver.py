@@ -33,6 +33,7 @@ class TestNotificationServer(QObject):
         self._message_id = 0
         # A dict mapping notification IDs to currently-displayed notifications.
         self.messages = {}  # type: typing.Dict[int, QDBusMessage]
+        self.supports_body_markup = True
 
     def register(self) -> None:
         assert self._bus.isConnected()
@@ -49,8 +50,19 @@ class TestNotificationServer(QObject):
     @pyqtSlot(QDBusMessage, result="uint")
     def Notify(self, message: QDBusMessage) -> QDBusArgument:  # pylint: disable=invalid-name
         self._message_id += 1
-        self.messages[self._message_id] = message
+        args = message.arguments()
+        self.messages[self._message_id] = {
+            "title": args[3],
+            "body": args[4]
+        }
         return self._message_id
+
+    @pyqtSlot(QDBusMessage, result="QStringList")
+    def GetCapabilities(self, message: QDBusMessage) -> typing.List[str]:  # pylint: disable=invalid-name
+        if self.supports_body_markup:
+            return ["body-markup"]
+        else:
+            return []
 
     def close(self, notification_id: int) -> None:
         """Sends a close notification for the given ID."""

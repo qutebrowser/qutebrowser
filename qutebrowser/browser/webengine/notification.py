@@ -117,6 +117,9 @@ class DBusNotificationPresenter(QObject):
         if not self.interface:
             raise DBusException("Could not construct a DBus interface")
 
+        # None means we don't know yet.
+        self._needs_escaping = None  # type: typing.Optional[bool]
+
     def install(self, profile: "QWebEngineProfile") -> None:
         """Sets the profile to use the manager as the presenter."""
         # WORKAROUND for
@@ -141,6 +144,11 @@ class DBusNotificationPresenter(QObject):
         This should *not* be directly passed to setNotificationPresenter on
         PyQtWebEngine < 5.15 because of a bug in the PyQtWebEngine bindings.
         """
+        # Deferring this check to the first presentation means we can tweak
+        # whether the test notification server supports body markup.
+        if self._needs_escaping is None:
+            self._needs_escaping = self._check_needs_escaping()
+
         # notification id 0 means 'assign us the ID'. We can't just pass 0
         # because it won't get sent as the right type.
         zero = QVariant(0)
@@ -163,8 +171,9 @@ class DBusNotificationPresenter(QObject):
             "qutebrowser",  # application name
             zero,  # notification id
             "qutebrowser",  # icon
+            # Titles don't support markup, so no need to escape them.
             qt_notification.title(),
-            qt_notification.message(),
+            self._format_body(qt_notification.message()),
             actions_list,
             hints,
             -1,  # timeout; -1 means 'use default'
@@ -217,3 +226,23 @@ class DBusNotificationPresenter(QObject):
                 # WORKAROUND for
                 # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
                 pass
+
+    def _check_needs_escaping(self) -> bool:
+        """Checks whether we need to escape body messages we send."""
+        reply = self.interface.call(
+            QDBus.BlockWithGui,
+            "GetCapabilities",
+        )
+        if reply.signature() != "as":
+            raise DBusException(
+                "Got an unexpected reply {} when checking capabilities"
+                .format(reply.arguments())
+            )
+        return "body-markup" in reply.arguments()[0]
+
+    def _format_body(self, message: str) -> str:
+        if self._needs_escaping:
+            message = message.replace("&", "&amp;")
+            message = message.replace("<", "&lt;")
+            message = message.replace(">", "&gt;")
+        return message

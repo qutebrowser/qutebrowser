@@ -21,9 +21,29 @@ import pytest_bdd as bdd
 bdd.scenarios('notifications.feature')
 
 
+@bdd.given("the notification server supports body markup")
+def supports_body_markup(notification_server):
+    notification_server.supports_body_markup = True
+
+
+@bdd.given("the notification server doesn't support body markup")
+def doesnt_support_body_markup(notification_server):
+    notification_server.supports_body_markup = False
+
+
 @bdd.then(bdd.parsers.cfparse('a notification with id {id_:d} is presented'))
 def notification_presented(notification_server, id_):
     assert id_ in notification_server.messages
+
+
+@bdd.then(bdd.parsers.cfparse('notification {id_:d} has body "{body}"'))
+def notification_body(notification_server, id_, body):
+    assert notification_server.messages[id_]["body"] == body
+
+
+@bdd.then(bdd.parsers.cfparse('notification {id_:d} has title "{title}"'))
+def notification_title(notification_server, id_, title):
+    assert notification_server.messages[id_]["title"] == title
 
 
 @bdd.when(bdd.parsers.cfparse('I close the notification with id {id_:d}'))

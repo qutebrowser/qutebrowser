@@ -15,6 +15,22 @@ Feature: Notifications
         Then the javascript message "notification shown" should be logged
         And a notification with id 1 is presented
 
+    @qtwebengine_notifications
+    Scenario: Notification containing escaped characters
+        Given the notification server supports body markup
+        When I run :click-element id show-symbols-button
+        Then the javascript message "notification shown" should be logged
+        And notification 1 has body "&lt;&lt; &amp;&amp; &gt;&gt;"
+        And notification 1 has title "<< && >>"
+
+    @qtwebengine_notifications
+    Scenario: Notification containing escaped characters with no body markup
+        Given the notification server doesn't support body markup
+        When I run :click-element id show-symbols-button
+        Then the javascript message "notification shown" should be logged
+        And notification 1 has body "<< && >>"
+        And notification 1 has title "<< && >>"
+
     @qtwebengine_notifications @qtwebengine_py_5_15
     Scenario: User closes presented notification
         When I run :click-element id show-button

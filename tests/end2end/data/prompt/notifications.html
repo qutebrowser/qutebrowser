@@ -32,7 +32,6 @@
                 }
             }
 
-            // Not currently used in automated tests, only manual testing.
             function show_notification() {
 		let notification = new Notification("notification title", {
 		    body: "notification body"
@@ -41,10 +40,17 @@
 		notification.onclose = function() { console.log("notification closed"); };
 		notification.onshow = function() { console.log("notification shown"); };
 	    }
+
+            function show_symbol_notification() {
+	        let str = "<< && >>";
+		let notification = new Notification(str, { body: str });
+		notification.onshow = function() { console.log("notification shown"); };
+	    }
         </script>
     </head>
     <body>
         <input type="button" onclick="get_notification_permission()" value="Get notification permission" id="button">
         <input type="button" onclick="show_notification()" value="Show notification" id="show-button">
+        <input type="button" onclick="show_symbol_notification()" value="Show notification with symbols" id="show-symbols-button">
     </body>
 </html>
