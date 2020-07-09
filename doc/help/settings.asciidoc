@@ -32,6 +32,8 @@
 |<<colors.completion.odd.bg,colors.completion.odd.bg>>|Background color of the completion widget for odd rows.
 |<<colors.completion.scrollbar.bg,colors.completion.scrollbar.bg>>|Color of the scrollbar in the completion view.
 |<<colors.completion.scrollbar.fg,colors.completion.scrollbar.fg>>|Color of the scrollbar handle in the completion view.
+|<<colors.contextmenu.disabled.bg,colors.contextmenu.disabled.bg>>|Background color of disabled items in the context menu.
+|<<colors.contextmenu.disabled.fg,colors.contextmenu.disabled.fg>>|Foreground color of disabled items in the context menu.
 |<<colors.contextmenu.menu.bg,colors.contextmenu.menu.bg>>|Background color of the context menu.
 |<<colors.contextmenu.menu.fg,colors.contextmenu.menu.fg>>|Foreground color of the context menu.
 |<<colors.contextmenu.selected.bg,colors.contextmenu.selected.bg>>|Background color of the context menu's selected item.
@@ -109,6 +111,15 @@
 |<<colors.tabs.selected.odd.bg,colors.tabs.selected.odd.bg>>|Background color of selected odd tabs.
 |<<colors.tabs.selected.odd.fg,colors.tabs.selected.odd.fg>>|Foreground color of selected odd tabs.
 |<<colors.webpage.bg,colors.webpage.bg>>|Background color for webpages if unset (or empty to use the theme's color).
+|<<colors.webpage.darkmode.algorithm,colors.webpage.darkmode.algorithm>>|Which algorithm to use for modifying how colors are rendered with darkmode.
+|<<colors.webpage.darkmode.contrast,colors.webpage.darkmode.contrast>>|Contrast for dark mode.
+|<<colors.webpage.darkmode.enabled,colors.webpage.darkmode.enabled>>|Render all web contents using a dark theme.
+|<<colors.webpage.darkmode.grayscale.all,colors.webpage.darkmode.grayscale.all>>|Render all colors as grayscale.
+|<<colors.webpage.darkmode.grayscale.images,colors.webpage.darkmode.grayscale.images>>|Desaturation factor for images in dark mode.
+|<<colors.webpage.darkmode.policy.images,colors.webpage.darkmode.policy.images>>|Which images to apply dark mode to.
+|<<colors.webpage.darkmode.policy.page,colors.webpage.darkmode.policy.page>>|Which pages to apply dark mode to.
+|<<colors.webpage.darkmode.threshold.background,colors.webpage.darkmode.threshold.background>>|Threshold for inverting background elements with dark mode.
+|<<colors.webpage.darkmode.threshold.text,colors.webpage.darkmode.threshold.text>>|Threshold for inverting text with dark mode.
 |<<colors.webpage.prefers_color_scheme_dark,colors.webpage.prefers_color_scheme_dark>>|Force `prefers-color-scheme: dark` colors for websites.
 |<<completion.cmd_history_max_items,completion.cmd_history_max_items>>|Number of commands to save in the command history.
 |<<completion.delay,completion.delay>>|Delay (in milliseconds) before updating completions after typing a character.
@@ -203,7 +214,8 @@
 |<<fonts.messages.warning,fonts.messages.warning>>|Font used for warning messages.
 |<<fonts.prompts,fonts.prompts>>|Font used for prompts.
 |<<fonts.statusbar,fonts.statusbar>>|Font used in the statusbar.
-|<<fonts.tabs,fonts.tabs>>|Font used in the tab bar.
+|<<fonts.tabs.selected,fonts.tabs.selected>>|Font used for selected tabs.
+|<<fonts.tabs.unselected,fonts.tabs.unselected>>|Font used for unselected tabs.
 |<<fonts.web.family.cursive,fonts.web.family.cursive>>|Font family for cursive fonts.
 |<<fonts.web.family.fantasy,fonts.web.family.fantasy>>|Font family for fantasy fonts.
 |<<fonts.web.family.fixed,fonts.web.family.fixed>>|Font family for fixed fonts.
@@ -240,12 +252,15 @@
 |<<input.insert_mode.leave_on_load,input.insert_mode.leave_on_load>>|Leave insert mode when starting a new page load.
 |<<input.insert_mode.plugins,input.insert_mode.plugins>>|Switch to insert mode when clicking flash and other plugins.
 |<<input.links_included_in_focus_chain,input.links_included_in_focus_chain>>|Include hyperlinks in the keyboard focus chain when tabbing.
+|<<input.mouse.back_forward_buttons,input.mouse.back_forward_buttons>>|Enable back and forward buttons on the mouse.
+|<<input.mouse.rocker_gestures,input.mouse.rocker_gestures>>|Enable Opera-like mouse rocker gestures.
 |<<input.partial_timeout,input.partial_timeout>>|Timeout (in milliseconds) for partially typed key bindings.
-|<<input.rocker_gestures,input.rocker_gestures>>|Enable Opera-like mouse rocker gestures.
 |<<input.spatial_navigation,input.spatial_navigation>>|Enable spatial navigation.
 |<<keyhint.blacklist,keyhint.blacklist>>|Keychains that shouldn't be shown in the keyhint dialog.
 |<<keyhint.delay,keyhint.delay>>|Time (in milliseconds) from pressing a key to seeing the keyhint dialog.
 |<<keyhint.radius,keyhint.radius>>|Rounding radius (in pixels) for the edges of the keyhint dialog.
+|<<logging.level.console,logging.level.console>>|Level for console (stdout/stderr) logs. Ignored if the `--loglevel` or `--debug` CLI flags are used.
+|<<logging.level.ram,logging.level.ram>>|Level for in-memory logs.
 |<<messages.timeout,messages.timeout>>|Duration (in milliseconds) to show messages in the statusbar for.
 |<<new_instance_open_target,new_instance_open_target>>|How to open links in an existing instance if a new one is launched.
 |<<new_instance_open_target_window,new_instance_open_target_window>>|Which window to choose when opening links as new tabs.
@@ -258,7 +273,7 @@
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
 |<<qt.low_end_device_mode,qt.low_end_device_mode>>|When to use Chromium's low-end device mode.
 |<<qt.process_model,qt.process_model>>|Which Chromium process model to use.
-|<<scrolling.bar,scrolling.bar>>|When to show the scrollbar.
+|<<scrolling.bar,scrolling.bar>>|When/how to show the scrollbar.
 |<<scrolling.smooth,scrolling.smooth>>|Enable smooth scrolling for web pages.
 |<<search.ignore_case,search.ignore_case>>|When to find text on a page case-insensitively.
 |<<search.incremental,search.incremental>>|Find text on a page incrementally, renewing the search for each typed character.
@@ -266,9 +281,9 @@
 |<<session.default_name,session.default_name>>|Name of the session to save by default.
 |<<session.lazy_restore,session.lazy_restore>>|Load a restored tab as soon as it takes focus.
 |<<spellcheck.languages,spellcheck.languages>>|Languages to use for spell checking.
-|<<statusbar.hide,statusbar.hide>>|Hide the statusbar unless a message is shown.
 |<<statusbar.padding,statusbar.padding>>|Padding (in pixels) for the statusbar.
 |<<statusbar.position,statusbar.position>>|Position of the status bar.
+|<<statusbar.show,statusbar.show>>|When to show the statusbar.
 |<<statusbar.widgets,statusbar.widgets>>|List of widgets displayed in the statusbar.
 |<<tabs.background,tabs.background>>|Open new tabs (middleclick/ctrl+click) in the background.
 |<<tabs.close_mouse_button,tabs.close_mouse_button>>|Mouse button with which to close tabs.
@@ -342,6 +357,8 @@ Default: +pass:[15000]+
 [[auto_save.session]]
 === auto_save.session
 Always restore open sites when qutebrowser is reopened.
+Without this option set, `:wq` (`:quit --save`) needs to be used to save open tabs (and restore them), while quitting qutebrowser in any other way will not save/restore the session.
+By default, this will save to the session which was last loaded. This behavior can be customized via the `session.default_name` setting.
 
 Type: <<types,Bool>>
 
@@ -444,6 +461,7 @@ Default:
 * +pass:[J]+: +pass:[scroll down]+
 * +pass:[K]+: +pass:[scroll up]+
 * +pass:[L]+: +pass:[scroll right]+
+* +pass:[V]+: +pass:[toggle-selection --line]+
 * +pass:[Y]+: +pass:[yank selection -s]+
 * +pass:[[]+: +pass:[move-to-start-of-prev-block]+
 * +pass:[]]+: +pass:[move-to-start-of-next-block]+
@@ -588,6 +606,7 @@ Default:
 * +pass:[Sq]+: +pass:[open qute://bookmarks]+
 * +pass:[Ss]+: +pass:[open qute://settings]+
 * +pass:[T]+: +pass:[tab-focus]+
+* +pass:[V]+: +pass:[enter-mode caret ;; toggle-selection --line]+
 * +pass:[ZQ]+: +pass:[quit]+
 * +pass:[ZZ]+: +pass:[quit --save]+
 * +pass:[[[]+: +pass:[navigate prev]+
@@ -635,6 +654,9 @@ Default:
 * +pass:[sk]+: +pass:[set-cmd-text -s :bind]+
 * +pass:[sl]+: +pass:[set-cmd-text -s :set -t]+
 * +pass:[ss]+: +pass:[set-cmd-text -s :set]+
+* +pass:[tCH]+: +pass:[config-cycle -p -u *://*.{url:host}/* content.cookies.accept all no-3rdparty never ;; reload]+
+* +pass:[tCh]+: +pass:[config-cycle -p -u *://{url:host}/* content.cookies.accept all no-3rdparty never ;; reload]+
+* +pass:[tCu]+: +pass:[config-cycle -p -u {url} content.cookies.accept all no-3rdparty never ;; reload]+
 * +pass:[tIH]+: +pass:[config-cycle -p -u *://*.{url:host}/* content.images ;; reload]+
 * +pass:[tIh]+: +pass:[config-cycle -p -u *://{url:host}/* content.images ;; reload]+
 * +pass:[tIu]+: +pass:[config-cycle -p -u {url} content.images ;; reload]+
@@ -644,6 +666,9 @@ Default:
 * +pass:[tSH]+: +pass:[config-cycle -p -u *://*.{url:host}/* content.javascript.enabled ;; reload]+
 * +pass:[tSh]+: +pass:[config-cycle -p -u *://{url:host}/* content.javascript.enabled ;; reload]+
 * +pass:[tSu]+: +pass:[config-cycle -p -u {url} content.javascript.enabled ;; reload]+
+* +pass:[tcH]+: +pass:[config-cycle -p -t -u *://*.{url:host}/* content.cookies.accept all no-3rdparty never ;; reload]+
+* +pass:[tch]+: +pass:[config-cycle -p -t -u *://{url:host}/* content.cookies.accept all no-3rdparty never ;; reload]+
+* +pass:[tcu]+: +pass:[config-cycle -p -t -u {url} content.cookies.accept all no-3rdparty never ;; reload]+
 * +pass:[th]+: +pass:[back -t]+
 * +pass:[tiH]+: +pass:[config-cycle -p -t -u *://*.{url:host}/* content.images ;; reload]+
 * +pass:[tih]+: +pass:[config-cycle -p -t -u *://{url:host}/* content.images ;; reload]+
@@ -658,12 +683,17 @@ Default:
 * +pass:[u]+: +pass:[undo]+
 * +pass:[v]+: +pass:[enter-mode caret]+
 * +pass:[wB]+: +pass:[set-cmd-text -s :bookmark-load -w]+
+* +pass:[wIh]+: +pass:[devtools left]+
+* +pass:[wIj]+: +pass:[devtools bottom]+
+* +pass:[wIk]+: +pass:[devtools top]+
+* +pass:[wIl]+: +pass:[devtools right]+
+* +pass:[wIw]+: +pass:[devtools window]+
 * +pass:[wO]+: +pass:[set-cmd-text :open -w {url:pretty}]+
 * +pass:[wP]+: +pass:[open -w -- {primary}]+
 * +pass:[wb]+: +pass:[set-cmd-text -s :quickmark-load -w]+
 * +pass:[wf]+: +pass:[hint all window]+
 * +pass:[wh]+: +pass:[back -w]+
-* +pass:[wi]+: +pass:[inspector]+
+* +pass:[wi]+: +pass:[devtools]+
 * +pass:[wl]+: +pass:[forward -w]+
 * +pass:[wo]+: +pass:[set-cmd-text -s :open -w]+
 * +pass:[wp]+: +pass:[open -w -- {clipboard}]+
@@ -737,6 +767,7 @@ Default:
 
 - +pass:[&lt;Ctrl-6&gt;]+: +pass:[&lt;Ctrl-^&gt;]+
 - +pass:[&lt;Ctrl-Enter&gt;]+: +pass:[&lt;Ctrl-Return&gt;]+
+- +pass:[&lt;Ctrl-I&gt;]+: +pass:[&lt;Tab&gt;]+
 - +pass:[&lt;Ctrl-J&gt;]+: +pass:[&lt;Return&gt;]+
 - +pass:[&lt;Ctrl-M&gt;]+: +pass:[&lt;Return&gt;]+
 - +pass:[&lt;Ctrl-[&gt;]+: +pass:[&lt;Escape&gt;]+
@@ -868,6 +899,24 @@ Color of the scrollbar handle in the completion view.
 Type: <<types,QssColor>>
 
 Default: +pass:[white]+
+
+[[colors.contextmenu.disabled.bg]]
+=== colors.contextmenu.disabled.bg
+Background color of disabled items in the context menu.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
+
+[[colors.contextmenu.disabled.fg]]
+=== colors.contextmenu.disabled.fg
+Foreground color of disabled items in the context menu.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
 
 [[colors.contextmenu.menu.bg]]
 === colors.contextmenu.menu.bg
@@ -1511,6 +1560,161 @@ Type: <<types,QtColor>>
 
 Default: +pass:[white]+
 
+[[colors.webpage.darkmode.algorithm]]
+=== colors.webpage.darkmode.algorithm
+Which algorithm to use for modifying how colors are rendered with darkmode.
+This setting requires a restart.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +lightness-cielab+: Modify colors by converting them to CIELAB color space and inverting the L value.
+ * +lightness-hsl+: Modify colors by converting them to the HSL color space and inverting the lightness (i.e. the "L" in HSL).
+ * +brightness-rgb+: Modify colors by subtracting each of r, g, and b from their maximum value.
+
+Default: +pass:[lightness-cielab]+
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+[[colors.webpage.darkmode.contrast]]
+=== colors.webpage.darkmode.contrast
+Contrast for dark mode.
+This only has an effect when `colors.webpage.darkmode.algorithm` is set to `lightness-hsl` or `brightness-rgb`.
+This setting requires a restart.
+
+Type: <<types,Float>>
+
+Default: +pass:[0.0]+
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+[[colors.webpage.darkmode.enabled]]
+=== colors.webpage.darkmode.enabled
+Render all web contents using a dark theme.
+Example configurations from Chromium's `chrome://flags`:
+
+- "With simple HSL/CIELAB/RGB-based inversion": Set
+  `colors.webpage.darkmode.algorithm` accordingly.
+
+- "With selective image inversion": Set
+  `colors.webpage.darkmode.policy.images` to `smart`.
+
+- "With selective inversion of non-image elements": Set
+  `colors.webpage.darkmode.threshold.text` to 150 and
+  `colors.webpage.darkmode.threshold.background` to 205.
+
+- "With selective inversion of everything": Combines the two variants
+  above.
+This setting requires a restart.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+[[colors.webpage.darkmode.grayscale.all]]
+=== colors.webpage.darkmode.grayscale.all
+Render all colors as grayscale.
+This only has an effect when `colors.webpage.darkmode.algorithm` is set to `lightness-hsl` or `brightness-rgb`.
+This setting requires a restart.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+[[colors.webpage.darkmode.grayscale.images]]
+=== colors.webpage.darkmode.grayscale.images
+Desaturation factor for images in dark mode.
+If set to 0, images are left as-is. If set to 1, images are completely grayscale. Values between 0 and 1 desaturate the colors accordingly.
+This setting requires a restart.
+
+Type: <<types,Float>>
+
+Default: +pass:[0.0]+
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+[[colors.webpage.darkmode.policy.images]]
+=== colors.webpage.darkmode.policy.images
+Which images to apply dark mode to.
+WARNING: On Qt 5.15.0, this setting can cause frequent renderer process crashes due to a https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug in Qt].
+This setting requires a restart.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +always+: Apply dark mode filter to all images.
+ * +never+: Never apply dark mode filter to any images.
+ * +smart+: Apply dark mode based on image content.
+
+Default: +pass:[never]+
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+[[colors.webpage.darkmode.policy.page]]
+=== colors.webpage.darkmode.policy.page
+Which pages to apply dark mode to.
+This setting requires a restart.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +always+: Apply dark mode filter to all frames, regardless of content.
+ * +smart+: Apply dark mode filter to frames based on background color.
+
+Default: +pass:[smart]+
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+[[colors.webpage.darkmode.threshold.background]]
+=== colors.webpage.darkmode.threshold.background
+Threshold for inverting background elements with dark mode.
+Background elements with brightness above this threshold will be inverted, and below it will be left as in the original, non-dark-mode page. Set to 256 to never invert the color or to 0 to always invert it.
+Note: This behavior is the opposite of `colors.webpage.darkmode.threshold.text`!
+This setting requires a restart.
+
+Type: <<types,Int>>
+
+Default: +pass:[0]+
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+[[colors.webpage.darkmode.threshold.text]]
+=== colors.webpage.darkmode.threshold.text
+Threshold for inverting text with dark mode.
+Text colors with brightness below this threshold will be inverted, and above it will be left as in the original, non-dark-mode page. Set to 256 to always invert text color or to 0 to never invert text color.
+This setting requires a restart.
+
+Type: <<types,Int>>
+
+Default: +pass:[256]+
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
 [[colors.webpage.prefers_color_scheme_dark]]
 === colors.webpage.prefers_color_scheme_dark
 Force `prefers-color-scheme: dark` colors for websites.
@@ -1740,6 +1944,7 @@ This setting is only available with the QtWebEngine backend.
 [[content.cookies.accept]]
 === content.cookies.accept
 Which cookies to accept.
+With QtWebEngine, this setting also controls other features with tracking capabilities similar to those of cookies; including IndexedDB, DOM storage, filesystem API, service workers, and AppCache.
 Note that with QtWebKit, only `all` and `never` are supported as per-domain values. Setting `no-3rdparty` or `no-unknown-3rdparty` per-domain on QtWebKit will have the same effect as `all`.
 
 This setting supports URL patterns.
@@ -1800,7 +2005,7 @@ This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
-Default: +pass:[false]+
+Default: +pass:[true]+
 
 On QtWebEngine, this setting requires Qt 5.12 or newer.
 
@@ -1917,7 +2122,9 @@ The following placeholders are defined:
 The default value is equal to the unchanged user agent of
 QtWebKit/QtWebEngine.
 
-Note that the value read from JavaScript is always the global value.
+Note that the value read from JavaScript is always the global value. With
+QtWebEngine between 5.12 and 5.14 (inclusive), changing the value exposed
+to JavaScript requires a restart.
 
 
 This setting supports URL patterns.
@@ -2243,6 +2450,7 @@ Default: +pass:[false]+
 === content.proxy
 Proxy to use.
 In addition to the listed values, you can use a `socks://...` or `http://...` URL.
+Note that with QtWebEngine, it will take a couple of seconds until the change is applied, if this value is changed at runtime.
 
 Type: <<types,Proxy>>
 
@@ -2370,7 +2578,7 @@ On QtWebKit, this setting is unavailable.
 [[content.xss_auditing]]
 === content.xss_auditing
 Monitor load requests for cross-site scripting attempts.
-Suspicious scripts will be blocked and reported in the inspector's JavaScript console.
+Suspicious scripts will be blocked and reported in the devtools JavaScript console.
 Note that bypasses for the XSS auditor are widely known and it can be abused for cross-site info leaks in some scenarios, see: https://www.chromium.org/developers/design-documents/xss-auditor
 
 This setting supports URL patterns.
@@ -2510,7 +2718,7 @@ Default: empty
 === fonts.debug_console
 Font used for the debugging console.
 
-Type: <<types,QtFont>>
+Type: <<types,Font>>
 
 Default: +pass:[default_size default_family]+
 
@@ -2598,11 +2806,19 @@ Type: <<types,Font>>
 
 Default: +pass:[default_size default_family]+
 
-[[fonts.tabs]]
-=== fonts.tabs
-Font used in the tab bar.
+[[fonts.tabs.selected]]
+=== fonts.tabs.selected
+Font used for selected tabs.
 
-Type: <<types,QtFont>>
+Type: <<types,Font>>
+
+Default: +pass:[default_size default_family]+
+
+[[fonts.tabs.unselected]]
+=== fonts.tabs.unselected
+Font used for unselected tabs.
+
+Type: <<types,Font>>
 
 Default: +pass:[default_size default_family]+
 
@@ -3007,6 +3223,23 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
+[[input.mouse.back_forward_buttons]]
+=== input.mouse.back_forward_buttons
+Enable back and forward buttons on the mouse.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
+[[input.mouse.rocker_gestures]]
+=== input.mouse.rocker_gestures
+Enable Opera-like mouse rocker gestures.
+This disables the context menu.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
 [[input.partial_timeout]]
 === input.partial_timeout
 Timeout (in milliseconds) for partially typed key bindings.
@@ -3015,15 +3248,6 @@ If the current input forms only partial matches, the keystring will be cleared a
 Type: <<types,Int>>
 
 Default: +pass:[5000]+
-
-[[input.rocker_gestures]]
-=== input.rocker_gestures
-Enable Opera-like mouse rocker gestures.
-This disables the context menu.
-
-Type: <<types,Bool>>
-
-Default: +pass:[false]+
 
 [[input.spatial_navigation]]
 === input.spatial_navigation
@@ -3060,6 +3284,40 @@ Rounding radius (in pixels) for the edges of the keyhint dialog.
 Type: <<types,Int>>
 
 Default: +pass:[6]+
+
+[[logging.level.console]]
+=== logging.level.console
+Level for console (stdout/stderr) logs. Ignored if the `--loglevel` or `--debug` CLI flags are used.
+
+Type: <<types,LogLevel>>
+
+Valid values:
+
+ * +vdebug+
+ * +debug+
+ * +info+
+ * +warning+
+ * +error+
+ * +critical+
+
+Default: +pass:[info]+
+
+[[logging.level.ram]]
+=== logging.level.ram
+Level for in-memory logs.
+
+Type: <<types,LogLevel>>
+
+Valid values:
+
+ * +vdebug+
+ * +debug+
+ * +info+
+ * +warning+
+ * +error+
+ * +critical+
+
+Default: +pass:[debug]+
 
 [[messages.timeout]]
 === messages.timeout
@@ -3222,7 +3480,7 @@ This setting is only available with the QtWebEngine backend.
 
 [[scrolling.bar]]
 === scrolling.bar
-When to show the scrollbar.
+When/how to show the scrollbar.
 
 Type: <<types,String>>
 
@@ -3231,8 +3489,9 @@ Valid values:
  * +always+: Always show the scrollbar.
  * +never+: Never show the scrollbar.
  * +when-searching+: Show the scrollbar when searching for text in the webpage. With the QtWebKit backend, this is equal to `never`.
+ * +overlay+: Show an overlay scrollbar. With Qt < 5.11 or on macOS, this is unavailable and equal to `when-searching`; with the QtWebKit backend, this is equal to `never`. Enabling/disabling overlay scrollbars requires a restart.
 
-Default: +pass:[when-searching]+
+Default: +pass:[overlay]+
 
 [[scrolling.smooth]]
 === scrolling.smooth
@@ -3353,14 +3612,6 @@ On QtWebEngine, this setting requires Qt 5.8 or newer.
 
 On QtWebKit, this setting is unavailable.
 
-[[statusbar.hide]]
-=== statusbar.hide
-Hide the statusbar unless a message is shown.
-
-Type: <<types,Bool>>
-
-Default: +pass:[false]+
-
 [[statusbar.padding]]
 === statusbar.padding
 Padding (in pixels) for the statusbar.
@@ -3386,6 +3637,20 @@ Valid values:
  * +bottom+
 
 Default: +pass:[bottom]+
+
+[[statusbar.show]]
+=== statusbar.show
+When to show the statusbar.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +always+: Always show the statusbar.
+ * +never+: Always hide the statusbar.
+ * +in-mode+: Show the statusbar when in modes other than normal mode.
+
+Default: +pass:[always]+
 
 [[statusbar.widgets]]
 === statusbar.widgets
@@ -3714,6 +3979,7 @@ The following placeholders are defined:
 * `{current_title}`: Title of the current web page.
 * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
 * `{index}`: Index of this tab.
+* `{aligned_index}`: Index of this tab padded with spaces to have the same width.
 * `{id}`: Internal tab ID of this tab.
 * `{scroll_pos}`: Page scroll position.
 * `{host}`: Host of the current web page.
@@ -3780,6 +4046,7 @@ Valid values:
  * +naive+: Use simple/naive check.
  * +dns+: Use DNS requests (might be slow!).
  * +never+: Never search automatically.
+ * +schemeless+: Always search automatically unless URL explicitly contains a scheme.
 
 Default: +pass:[naive]+
 
@@ -3842,7 +4109,7 @@ characters in the search terms are replaced by safe characters (called
 The search engine named `DEFAULT` is used when `url.auto_search` is turned
 on and something else than a URL was entered to be opened. Other search
 engines can be used by prepending the search engine name to the search
-term, e.g.  `:open google qutebrowser`.
+term, e.g. `:open google qutebrowser`.
 
 
 Type: <<types,Dict>>
@@ -3983,6 +4250,7 @@ Lists with duplicate flags are invalid. Each item is checked against the valid v
 
 When setting from a string, pass a json-like list, e.g. `["one", "two"]`.
 |ListOrValue|A list of values, or a single value.
+|LogLevel|A logging level.
 |NewTabPosition|How new tabs are positioned.
 |Padding|Setting for paddings around elements.
 |Perc|A percentage.
@@ -3995,9 +4263,6 @@ A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/
 |QtColor|A color value.
 
 A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
-|QtFont|A font family, with optional style/weight/size.
-
-* Style: `normal`/`italic`/`oblique` * Weight: `normal`, `bold`, `100`..`900` * Size: _number_ `px`/`pt`
 |Regex|A regular expression.
 
 When setting from `config.py`, both a string or a `re.compile(...)` object are valid.

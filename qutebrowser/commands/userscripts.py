@@ -259,9 +259,10 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
             self._filepath = tempfile.mktemp(prefix='qutebrowser-userscript-',
                                              dir=standarddir.runtime())
             # pylint: disable=no-member,useless-suppression
-            os.mkfifo(self._filepath)
+            os.mkfifo(self._filepath, mode=0o600)
             # pylint: enable=no-member,useless-suppression
         except OSError as e:
+            self._filepath = None  # Make sure it's not used
             message.error("Error while creating FIFO: {}".format(e))
             return
 

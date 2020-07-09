@@ -63,11 +63,11 @@ show it.
     Which backend to use.
 
 *--enable-webengine-inspector*::
-    Enable the web inspector for QtWebEngine. Note that this is a SECURITY RISK and you should not visit untrusted websites with the inspector turned on. See https://bugreports.qt.io/browse/QTBUG-50725 for more details. This is not needed anymore since Qt 5.11 where the inspector is always enabled and secure.
+    Enable the web inspector / devtools for QtWebEngine. Note that this is a SECURITY RISK and you should not visit untrusted websites with the inspector turned on. See https://bugreports.qt.io/browse/QTBUG-50725 for more details. This is not needed anymore since Qt 5.11 where the inspector is always enabled and secure.
 
 === debug arguments
 *-l* '{critical,error,warning,info,debug,vdebug}', *--loglevel* '{critical,error,warning,info,debug,vdebug}'::
-    Set loglevel
+    Override the configured console loglevel
 
 *--logfilter* 'LOGFILTER'::
     Comma-separated list of things to be logged to the debug log on stdout.

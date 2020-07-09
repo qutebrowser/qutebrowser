@@ -74,7 +74,10 @@ def _render_log(data, *, verbose, threshold=100):
     data = [str(d) for d in data]
     is_exception = any('Traceback (most recent call last):' in line or
                        'Uncaught exception' in line for line in data)
-    if len(data) > threshold and not verbose and not is_exception:
+    if (len(data) > threshold and
+            not verbose and
+            not is_exception and
+            not utils.ON_CI):
         msg = '[{} lines suppressed, use -v to show]'.format(
             len(data) - threshold)
         data = [msg] + data[-threshold:]

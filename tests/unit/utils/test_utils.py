@@ -885,3 +885,10 @@ def test_ceil_log_invalid(number, base):
         math.log(number, base)
     with pytest.raises(ValueError):
         utils.ceil_log(number, base)
+
+
+@pytest.mark.parametrize('skip', [True, False])
+def test_libgl_workaround(monkeypatch, skip):
+    if skip:
+        monkeypatch.setenv('QUTE_SKIP_LIBGL_WORKAROUND', '1')
+    utils.libgl_workaround()  # Just make sure it doesn't crash.

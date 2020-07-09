@@ -45,7 +45,7 @@ from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message)
 from qutebrowser.misc import miscwidgets, objects, sessions
-from qutebrowser.browser import eventfilter
+from qutebrowser.browser import eventfilter, inspector
 from qutebrowser.qt import sip
 
 if typing.TYPE_CHECKING:
@@ -124,6 +124,7 @@ class TabData:
         fullscreen: Whether the tab has a video shown fullscreen currently.
         netrc_used: Whether netrc authentication was performed.
         input_mode: current input mode for the tab.
+        splitter: InspectorSplitter used to show inspector inside the tab.
     """
 
     keep_icon = attr.ib(False)  # type: bool
@@ -138,6 +139,7 @@ class TabData:
     netrc_used = attr.ib(False)  # type: bool
     input_mode = attr.ib(usertypes.KeyMode.normal)  # type: usertypes.KeyMode
     last_navigation = attr.ib(None)  # type: usertypes.NavigationRequest
+    splitter = attr.ib(None)  # type: miscwidgets.InspectorSplitter
 
     def should_show_icon(self) -> bool:
         return (config.val.tabs.favicons.show == 'always' or
@@ -427,13 +429,24 @@ class AbstractZoom(QObject):
         self._set_factor_internal(self._zoom_factor)
 
 
+class SelectionState(enum.Enum):
+
+    """Possible states of selection in caret mode.
+
+    NOTE: Names need to line up with SelectionState in caret.js!
+    """
+
+    none = 1
+    normal = 2
+    line = 3
+
+
 class AbstractCaret(QObject):
 
     """Attribute ``caret`` of AbstractTab for caret browsing."""
 
     #: Signal emitted when the selection was toggled.
-    #: (argument - whether the selection is now active)
-    selection_toggled = pyqtSignal(bool)
+    selection_toggled = pyqtSignal(SelectionState)
     #: Emitted when a ``follow_selection`` action is done.
     follow_selected_done = pyqtSignal()
 
@@ -442,7 +455,6 @@ class AbstractCaret(QObject):
                  parent: QWidget = None) -> None:
         super().__init__(parent)
         self._widget = typing.cast(QWidget, None)
-        self.selection_enabled = False
         self._mode_manager = mode_manager
         mode_manager.entered.connect(self._on_mode_entered)
         mode_manager.left.connect(self._on_mode_left)
@@ -499,7 +511,7 @@ class AbstractCaret(QObject):
     def move_to_end_of_document(self) -> None:
         raise NotImplementedError
 
-    def toggle_selection(self) -> None:
+    def toggle_selection(self, line: bool = False) -> None:
         raise NotImplementedError
 
     def drop_selection(self) -> None:
@@ -825,6 +837,37 @@ class AbstractTabPrivate:
     def shutdown(self) -> None:
         raise NotImplementedError
 
+    def run_js_sync(self, code: str) -> None:
+        """Run javascript sync.
+
+        Result will be returned when running JS is complete.
+        This is only implemented for QtWebKit.
+        For QtWebEngine, always raises UnsupportedOperationError.
+        """
+        raise NotImplementedError
+
+    def _recreate_inspector(self) -> None:
+        """Recreate the inspector when detached to a window.
+
+        This is needed to circumvent a QtWebEngine bug (which wasn't
+        investigated further) which sometimes results in the window not
+        appearing anymore.
+        """
+        self._tab.data.inspector = None
+        self.toggle_inspector(inspector.Position.window)
+
+    def toggle_inspector(self, position: inspector.Position) -> None:
+        """Show/hide (and if needed, create) the web inspector for this tab."""
+        tabdata = self._tab.data
+        if tabdata.inspector is None:
+            tabdata.inspector = inspector.create(
+                splitter=tabdata.splitter,
+                win_id=self._tab.win_id)
+            self._tab.shutting_down.connect(tabdata.inspector.shutdown)
+            tabdata.inspector.recreate.connect(self._recreate_inspector)
+            tabdata.inspector.inspect(self._widget.page())
+        tabdata.inspector.set_position(position)
+
 
 class AbstractTab(QWidget):
 
@@ -910,7 +953,8 @@ class AbstractTab(QWidget):
     def _set_widget(self, widget: QWidget) -> None:
         # pylint: disable=protected-access
         self._widget = widget
-        self._layout.wrap(self, widget)
+        self.data.splitter = miscwidgets.InspectorSplitter(widget)
+        self._layout.wrap(self, self.data.splitter)
         self.history._history = widget.history()
         self.history.private_api._history = widget.history()
         self.scroller._init_widget(widget)

@@ -20,8 +20,8 @@
 """Tests for qutebrowser.misc.editor."""
 
 import time
+import pathlib
 import os
-import os.path
 import logging
 
 from PyQt5.QtCore import QProcess
@@ -76,16 +76,16 @@ class TestFileHandling:
     def test_ok(self, editor):
         """Test file handling when closing with an exit status == 0."""
         editor.edit("")
-        filename = editor._filename
-        assert os.path.exists(filename)
-        assert os.path.basename(filename).startswith('qutebrowser-editor-')
+        filename = pathlib.Path(editor._filename)
+        assert filename.exists()
+        assert filename.name.startswith('qutebrowser-editor-')
         editor._proc.finished.emit(0, QProcess.NormalExit)
-        assert not os.path.exists(filename)
+        assert not filename.exists()
 
-    def test_existing_file(self, editor, tmpdir):
+    def test_existing_file(self, editor, tmp_path):
         """Test editing an existing file."""
-        path = tmpdir / 'foo.txt'
-        path.ensure()
+        path = tmp_path / 'foo.txt'
+        path.touch()
 
         editor.edit_file(str(path))
         editor._proc.finished.emit(0, QProcess.NormalExit)
@@ -95,62 +95,62 @@ class TestFileHandling:
     def test_error(self, editor):
         """Test file handling when closing with an exit status != 0."""
         editor.edit("")
-        filename = editor._filename
-        assert os.path.exists(filename)
+        filename = pathlib.Path(editor._filename)
+        assert filename.exists()
 
         editor._proc._proc.exitStatus = lambda: QProcess.CrashExit
         editor._proc.finished.emit(1, QProcess.NormalExit)
 
-        assert os.path.exists(filename)
+        assert filename.exists()
 
-        os.remove(filename)
+        filename.unlink()
 
     def test_crash(self, editor):
         """Test file handling when closing with a crash."""
         editor.edit("")
-        filename = editor._filename
-        assert os.path.exists(filename)
+        filename = pathlib.Path(editor._filename)
+        assert filename.exists()
 
         editor._proc._proc.exitStatus = lambda: QProcess.CrashExit
         editor._proc.error.emit(QProcess.Crashed)
 
         editor._proc.finished.emit(0, QProcess.CrashExit)
-        assert os.path.exists(filename)
+        assert filename.exists()
 
-        os.remove(filename)
+        filename.unlink()
 
     def test_unreadable(self, message_mock, editor, caplog, qtbot):
         """Test file handling when closing with an unreadable file."""
         editor.edit("")
-        filename = editor._filename
-        assert os.path.exists(filename)
-        os.chmod(filename, 0o277)
-        if os.access(filename, os.R_OK):
+        filename = pathlib.Path(editor._filename)
+        assert filename.exists()
+        filename.chmod(0o277)
+        if os.access(str(filename), os.R_OK):
             # Docker container or similar
             pytest.skip("File was still readable")
 
         with caplog.at_level(logging.ERROR):
             editor._proc.finished.emit(0, QProcess.NormalExit)
-        assert not os.path.exists(filename)
+        assert not filename.exists()
         msg = message_mock.getmsg(usertypes.MessageLevel.error)
         assert msg.text.startswith("Failed to read back edited file: ")
 
     @pytest.fixture
-    def unwritable_tmpdir(self, tmpdir):
-        tmpdir.chmod(0)
-        if os.access(str(tmpdir), os.W_OK):
+    def unwritable_tmp_path(self, tmp_path):
+        tmp_path.chmod(0)
+        if os.access(str(tmp_path), os.W_OK):
             # Docker container or similar
             pytest.skip("File was still writable")
 
-        yield tmpdir
+        yield tmp_path
 
-        tmpdir.chmod(0o755)
+        tmp_path.chmod(0o755)
 
     def test_unwritable(self, monkeypatch, message_mock, editor,
-                        unwritable_tmpdir, caplog):
+                        unwritable_tmp_path, caplog):
         """Test file handling when the initial file is not writable."""
         monkeypatch.setattr(editormod.tempfile, 'tempdir',
-                            str(unwritable_tmpdir))
+                            str(unwritable_tmp_path))
 
         with caplog.at_level(logging.ERROR):
             editor.edit("")
@@ -167,7 +167,7 @@ class TestFileHandling:
     def test_backup(self, qtbot, message_mock):
         editor = editormod.ExternalEditor(watch=True)
         editor.edit('foo')
-        with qtbot.wait_signal(editor.file_updated):
+        with qtbot.wait_signal(editor.file_updated, timeout=5000):
             _update_file(editor._filename, 'bar')
 
         editor.backup()

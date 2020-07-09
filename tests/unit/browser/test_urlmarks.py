@@ -17,7 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for the global page history."""
+"""Tests for bookmarks/quickmarks."""
+
+import unittest.mock
 
 import pytest
 from PyQt5.QtCore import QUrl
@@ -44,8 +46,8 @@ def test_init(bm_file, fake_save_manager):
     bm = urlmarks.BookmarkManager()
     fake_save_manager.add_saveable.assert_called_once_with(
         'bookmark-manager',
-        bm.save,
-        bm.changed,
+        unittest.mock.ANY,
+        unittest.mock.ANY,
         filename=str(bm_file),
     )
 

@@ -19,7 +19,7 @@
 
 """Tests for qutebrowser.misc.lineparser."""
 
-import os
+import pathlib
 from unittest import mock
 
 import pytest
@@ -66,7 +66,7 @@ class TestBaseLineParser:
             lineparser._write(f, [testdata])
 
         open_mock.assert_called_once_with(
-            os.path.join(self.CONFDIR, self.FILENAME), 'rb')
+            str(pathlib.Path(self.CONFDIR) / self.FILENAME), 'rb')
 
         open_mock().write.assert_has_calls([
             mock.call(testdata),
@@ -77,30 +77,31 @@ class TestBaseLineParser:
 class TestLineParser:
 
     @pytest.fixture
-    def lineparser(self, tmpdir):
+    def lineparser(self, tmp_path):
         """Fixture to get a LineParser for tests."""
-        lp = lineparsermod.LineParser(str(tmpdir), 'file')
+        lp = lineparsermod.LineParser(str(tmp_path), 'file')
         lp.save()
         return lp
 
-    def test_init(self, tmpdir):
+    def test_init(self, tmp_path):
         """Test if creating a line parser correctly reads its file."""
-        (tmpdir / 'file').write('one\ntwo\n')
-        lineparser = lineparsermod.LineParser(str(tmpdir), 'file')
+        (tmp_path / 'file').write_text('one\ntwo\n')
+        lineparser = lineparsermod.LineParser(str(tmp_path), 'file')
         assert lineparser.data == ['one', 'two']
 
-        (tmpdir / 'file').write_binary(b'\xfe\n\xff\n')
-        lineparser = lineparsermod.LineParser(str(tmpdir), 'file', binary=True)
+        (tmp_path / 'file').write_bytes(b'\xfe\n\xff\n')
+        lineparser = lineparsermod.LineParser(str(tmp_path), 'file',
+                                              binary=True)
         assert lineparser.data == [b'\xfe', b'\xff']
 
-    def test_clear(self, tmpdir, lineparser):
+    def test_clear(self, tmp_path, lineparser):
         """Test if clear() empties its file."""
         lineparser.data = ['one', 'two']
         lineparser.save()
-        assert (tmpdir / 'file').read() == 'one\ntwo\n'
+        assert (tmp_path / 'file').read_text() == 'one\ntwo\n'
         lineparser.clear()
         assert not lineparser.data
-        assert (tmpdir / 'file').read() == ''
+        assert (tmp_path / 'file').read_text() == ''
 
     def test_double_open(self, lineparser):
         """Test if save() bails on an already open file."""
@@ -109,10 +110,10 @@ class TestLineParser:
                                match="Refusing to double-open LineParser."):
                 lineparser.save()
 
-    def test_prepare_save(self, tmpdir, lineparser):
+    def test_prepare_save(self, tmp_path, lineparser):
         """Test if save() bails when _prepare_save() returns False."""
-        (tmpdir / 'file').write('pristine\n')
+        (tmp_path / 'file').write_text('pristine\n')
         lineparser.data = ['changed']
         lineparser._prepare_save = lambda: False
         lineparser.save()
-        assert (tmpdir / 'file').read() == 'pristine\n'
+        assert (tmp_path / 'file').read_text() == 'pristine\n'

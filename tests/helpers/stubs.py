@@ -615,6 +615,10 @@ class FakeDownloadManager:
         self.downloads.append(download_item)
         return download_item
 
+    def has_downloads_with_nam(self, _nam):
+        """Needed during WebView.shutdown()."""
+        return False
+
 
 class FakeHistoryProgress:
 
@@ -652,6 +656,9 @@ class FakeHintManager:
 
     def handle_partial_key(self, keystr):
         self.keystr = keystr
+
+    def current_mode(self):
+        return 'letter'
 
 
 class FakeWebEngineProfile:

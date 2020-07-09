@@ -147,6 +147,11 @@ def _pyqt_webengine_at_least_5_15() -> bool:
 
 def pytest_collection_modifyitems(config, items):
     """Apply @qtwebengine_* markers; skip unittests with QUTE_BDD_WEBENGINE."""
+    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-75884
+    # (note this isn't actually fixed properly before Qt 5.15)
+    header_bug_fixed = (not qtutils.version_check('5.12', compiled=False) or
+                        qtutils.version_check('5.15', compiled=False))
+
     markers = [
         ('qtwebengine_todo', 'QtWebEngine TODO', pytest.mark.xfail,
          config.webengine),
@@ -162,10 +167,13 @@ def pytest_collection_modifyitems(config, items):
          config.webengine),
         ('qtwebengine_mac_xfail', 'Fails on macOS with QtWebEngine',
          pytest.mark.xfail, config.webengine and utils.is_mac),
+        ('js_headers', 'Sets headers dynamically via JS',
+         pytest.mark.skipif,
+         config.webengine and not header_bug_fixed),
         # WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
         ('qtwebengine_py_5_15', 'Skipped with PyQtWebEngine < 5.15',
          pytest.mark.skipif,
-         config.webengine and not _pyqt_webengine_at_least_5_15())
+         config.webengine and not _pyqt_webengine_at_least_5_15()),
     ]
 
     for item in items:

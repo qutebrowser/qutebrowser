@@ -22,12 +22,14 @@ import pytest
 from PyQt5.QtCore import Qt, QObject, pyqtSignal
 
 from qutebrowser.utils import usertypes
+from qutebrowser.keyinput import keyutils
 
 
 class FakeKeyparser(QObject):
 
     """A fake BaseKeyParser which doesn't handle anything."""
 
+    keystring_updated = pyqtSignal(str)
     request_leave = pyqtSignal(usertypes.KeyMode, str, bool)
 
     def __init__(self):
@@ -51,7 +53,7 @@ def modeman(mode_manager):
     (Qt.Key_A, Qt.ShiftModifier, True),
     (Qt.Key_A, Qt.ShiftModifier | Qt.ControlModifier, False),
 ])
-def test_non_alphanumeric(key, modifiers, filtered, fake_keyevent, modeman):
+def test_non_alphanumeric(key, modifiers, filtered, modeman):
     """Make sure non-alphanumeric keys are passed through correctly."""
-    evt = fake_keyevent(key=key, modifiers=modifiers)
+    evt = keyutils.KeyInfo(key=key, modifiers=modifiers).to_event()
     assert modeman.handle_event(evt) == filtered

@@ -45,11 +45,12 @@ import helpers.stubs as stubsmod
 from qutebrowser.config import (config, configdata, configtypes, configexc,
                                 configfiles, configcache, stylesheet)
 from qutebrowser.api import config as configapi
-from qutebrowser.utils import objreg, standarddir, utils, usertypes
+from qutebrowser.utils import objreg, standarddir, utils, usertypes, qtutils
 from qutebrowser.browser import greasemonkey, history, qutescheme
 from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.misc import savemanager, sql, objects, sessions
 from qutebrowser.keyinput import modeman
+from qutebrowser.qt import sip
 
 
 _qute_scheme_handler = None
@@ -64,14 +65,17 @@ class WidgetContainer(QWidget):
         self._qtbot = qtbot
         self.vbox = QVBoxLayout(self)
         qtbot.add_widget(self)
+        self._widget = None
 
     def set_widget(self, widget):
         self.vbox.addWidget(widget)
         widget.container = self
+        self._widget = widget
 
     def expose(self):
         with self._qtbot.waitExposed(self):
             self.show()
+        self._widget.setFocus()
 
 
 @pytest.fixture
@@ -204,19 +208,23 @@ def web_tab_setup(qtbot, tab_registry, session_manager_stub,
 
 @pytest.fixture
 def webkit_tab(web_tab_setup, qtbot, cookiejar_and_cache, mode_manager,
-               widget_container, webpage):
+               widget_container, download_stub, webpage):
     webkittab = pytest.importorskip('qutebrowser.browser.webkit.webkittab')
 
     tab = webkittab.WebKitTab(win_id=0, mode_manager=mode_manager,
                               private=False)
     widget_container.set_widget(tab)
 
-    return tab
+    yield tab
+
+    # Make sure the tab shuts itself down properly
+    tab.private_api.shutdown()
 
 
 @pytest.fixture
 def webengine_tab(web_tab_setup, qtbot, redirect_webengine_data,
-                  tabbed_browser_stubs, mode_manager, widget_container):
+                  tabbed_browser_stubs, mode_manager, widget_container,
+                  monkeypatch):
     tabwidget = tabbed_browser_stubs[0].widget
     tabwidget.current_index = 0
     tabwidget.index_of = 0
@@ -227,10 +235,24 @@ def webengine_tab(web_tab_setup, qtbot, redirect_webengine_data,
     tab = webenginetab.WebEngineTab(win_id=0, mode_manager=mode_manager,
                                     private=False)
     widget_container.set_widget(tab)
+
     yield tab
+
     # If a page is still loading here, _on_load_finished could get called
     # during teardown when session_manager_stub is already deleted.
     tab.stop()
+
+    # Make sure the tab shuts itself down properly
+    tab.private_api.shutdown()
+
+    # If we wait for the GC to clean things up, there's a segfault inside
+    # QtWebEngine sometimes (e.g. if we only run
+    # tests/unit/browser/test_caret.py).
+    # However, with Qt < 5.12, doing this here will lead to an immediate
+    # segfault...
+    monkeypatch.undo()  # version_check could be patched
+    if qtutils.version_check('5.12'):
+        sip.delete(tab._widget)
 
 
 @pytest.fixture(params=['webkit', 'webengine'])
@@ -654,3 +676,26 @@ def web_history(fake_save_manager, tmpdir, init_sql, config_stub, stubs,
     web_history = history.WebHistory(stubs.FakeHistoryProgress())
     monkeypatch.setattr(history, 'web_history', web_history)
     return web_history
+
+
+@pytest.fixture
+def blue_widget(qtbot):
+    widget = QWidget()
+    widget.setStyleSheet('background-color: blue;')
+    qtbot.add_widget(widget)
+    return widget
+
+
+@pytest.fixture
+def red_widget(qtbot):
+    widget = QWidget()
+    widget.setStyleSheet('background-color: red;')
+    qtbot.add_widget(widget)
+    return widget
+
+
+@pytest.fixture
+def state_config(data_tmpdir, monkeypatch):
+    state = configfiles.StateConfig()
+    monkeypatch.setattr(configfiles, 'state', state)
+    return state

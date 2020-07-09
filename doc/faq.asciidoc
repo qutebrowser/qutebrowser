@@ -107,11 +107,14 @@ How can I get No-Script-like behavior?::
 :set content.javascript.enabled false
 ----
 +
-The basic command for enabling JavaScript for the current host is `tsh`.
+The basic keybinding for enabling JavaScript for the current host is `tsh`.
 This will allow JavaScript execution for the current session.
 Use `S` instead of `s` to make the exception permanent.
 With `H` instead of `h`, subdomains are included.
-With `u` instead of `h`, only the current URL is whitelisted (not the whole host).
+With `u` instead of `h`, JavaScript is allowed for the current URL only (not the whole host).
++
+The list of domains that have been permanently granted permission to execute
+JavaScript will be written to `autoconfig.yml`.
 
 How do I play Youtube videos with mpv?::
     You can easily add a key binding to play youtube videos inside a real video
@@ -183,7 +186,6 @@ For QtWebKit:
   (also see the README file for `qtwebkit-plugins`).
 . Remember to install the hunspell dictionaries if you don't have them already
   (most distros should have packages for this).
-
 +
 For QtWebEngine:
 
@@ -305,13 +307,13 @@ If you ever need to renew any of these certificates, you can take a look
 at the currently imported certificates using:
 +
 ----
-certutil -D "sql:${HOME}/.pki/nssdb" -L
+certutil -d "sql:${HOME}/.pki/nssdb" -L
 ----
 +
 Then remove the expired certificates using:
 +
 ----
-certutil -D "sql:${HOME}/.pki/nssdb" -D -n "My Fancy Certificate Nickname"
+certutil -d "sql:${HOME}/.pki/nssdb" -D -n "My Fancy Certificate Nickname"
 ----
 +
 And then import the new and valid certificates using the procedure
@@ -486,13 +488,9 @@ For any privacy questions, please contact mailto:privacy@qutebrowser.org[].
 
 The qutebrowser.org website does not use any cookies or trackers.
 
-However, IP addresses are currently (October 2019) logged and stored
-indefinitely. It's planned to change this soon by migrating qutebrowser.org to
-a different server.
-
 Note that some services related to qutebrowser are stored on third-party
-services such as GitHub, Travis CI or AppVeyor. By using their websites, you're
-subject to their privacy policies.
+services such as GitHub. By using their websites, you're subject to their
+privacy policies.
 
 === Crash reports
 

@@ -216,13 +216,21 @@ class TestAll:
                 pass
             elif (member is configtypes.List or
                   member is configtypes.ListOrValue):
-                yield functools.partial(member, valtype=configtypes.Int())
-                yield functools.partial(member, valtype=configtypes.Url())
+                yield pytest.param(
+                    functools.partial(member, valtype=configtypes.Int()),
+                    id=member.__name__ + '-Int')
+                yield pytest.param(
+                    functools.partial(member, valtype=configtypes.Url()),
+                    id=member.__name__ + '-Url')
             elif member is configtypes.Dict:
-                yield functools.partial(member, keytype=configtypes.String(),
-                                        valtype=configtypes.String())
+                yield pytest.param(
+                    functools.partial(member, keytype=configtypes.String(),
+                                      valtype=configtypes.String()),
+                    id=member.__name__)
             elif member is configtypes.FormatString:
-                yield functools.partial(member, fields=['a', 'b'])
+                yield pytest.param(
+                    functools.partial(member, fields=['a', 'b']),
+                    id=member.__name__)
             elif issubclass(member, configtypes.BaseType):
                 yield member
 
@@ -247,8 +255,8 @@ class TestAll:
 
         # For some types, we don't actually get the internal (YAML-like) value
         # back from from_str(), so we can't convert it back.
-        if klass in [configtypes.FuzzyUrl, configtypes.QtFont,
-                     configtypes.ShellCommand, configtypes.Url]:
+        if klass in [configtypes.FuzzyUrl, configtypes.ShellCommand,
+                     configtypes.Url]:
             return
 
         converted = typ.to_str(val)
@@ -263,8 +271,10 @@ class TestAll:
         ]:
             return
         elif (isinstance(typ, functools.partial) and
-              isinstance(typ.func, configtypes.ListOrValue)):
-            # "- /" -> "/"
+              isinstance(typ.func, (configtypes.ListOrValue,
+                                    configtypes.List))):
+            # ListOrValue: "- /" -> "/"
+            # List: "- /" -> ["/"]
             return
         elif (isinstance(typ, configtypes.ListOrValue) and
               isinstance(typ.valtype, configtypes.Int)):
@@ -1037,6 +1047,10 @@ class TestInt:
         converted = typ.from_str(text)
         assert typ.to_str(converted) == text
 
+    def test_bounds_handling_unset(self, klass):
+        typ = klass(minval=1, maxval=2)
+        assert typ.to_py(usertypes.UNSET) is usertypes.UNSET
+
 
 class TestFloat:
 
@@ -1367,8 +1381,6 @@ class FontDesc:
 
 class TestFont:
 
-    """Test Font/QtFont."""
-
     TESTS = {
         # (style, weight, pointsize, pixelsize, family
         '"Foobar Neue"':
@@ -1416,52 +1428,17 @@ class TestFont:
 
     font_xfail = pytest.mark.xfail(reason='FIXME: #103')
 
-    @pytest.fixture(params=[configtypes.Font, configtypes.QtFont])
-    def klass(self, request):
-        return request.param
+    @pytest.fixture
+    def klass(self):
+        return configtypes.Font
 
     @pytest.fixture
     def font_class(self):
         return configtypes.Font
 
-    @pytest.fixture
-    def qtfont_class(self):
-        return configtypes.QtFont
-
     @pytest.mark.parametrize('val, desc', sorted(TESTS.items()))
     def test_to_py_valid(self, klass, val, desc):
-        if klass is configtypes.Font:
-            expected = val
-        elif klass is configtypes.QtFont:
-            expected = Font.fromdesc(desc)
-        assert klass().to_py(val) == expected
-
-    def test_qtfont(self, qtfont_class):
-        """Test QtFont's to_py."""
-        value = Font(qtfont_class().to_py('10pt "Foobar Neue", Fubar'))
-
-        if hasattr(value, 'families'):
-            # Added in Qt 5.13
-            assert value.family() == 'Foobar Neue'
-            assert value.families() == ['Foobar Neue', 'Fubar']
-        else:
-            assert value.family() == 'Foobar Neue, Fubar'
-
-        assert value.weight() == QFont.Normal
-        assert value.style() == QFont.StyleNormal
-
-        assert value.pointSize() == 10
-
-    def test_qtfont_float(self, qtfont_class):
-        """Test QtFont's to_py with a float as point size.
-
-        We can't test the point size for equality as Qt seems to do some
-        rounding as appropriate.
-        """
-        value = Font(qtfont_class().to_py('10.5pt Test'))
-        assert value.family() == 'Test'
-        assert value.pointSize() >= 10
-        assert value.pointSize() <= 11
+        assert klass().to_py(val) == val
 
     @pytest.mark.parametrize('val', [
         pytest.param('green "Foobar Neue"', marks=font_xfail),
@@ -1481,13 +1458,7 @@ class TestFont:
 
     def test_defaults_replacement(self, klass, monkeypatch):
         configtypes.FontBase.set_defaults(['Terminus'], '23pt')
-        if klass is configtypes.Font:
-            expected = '23pt Terminus'
-        elif klass is configtypes.QtFont:
-            desc = FontDesc(QFont.StyleNormal, QFont.Normal, 23, None,
-                            'Terminus')
-            expected = Font.fromdesc(desc)
-        assert klass().to_py('23pt default_family') == expected
+        assert klass().to_py('23pt default_family') == '23pt Terminus'
 
 
 class TestFontFamily:

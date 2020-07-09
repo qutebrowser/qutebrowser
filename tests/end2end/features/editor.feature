@@ -101,7 +101,6 @@ Feature: Opening external editors
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :open-editor
         And I wait for "Read back: foobar" in the log
-        And I run :click-element id qute-button
         Then the javascript message "text: foobar" should be logged
 
     Scenario: Spawning an editor in normal mode
@@ -113,7 +112,6 @@ Feature: Opening external editors
         And I wait for "Leaving mode KeyMode.insert (reason: leave current)" in the log
         And I run :open-editor
         And I wait for "Read back: foobar" in the log
-        And I run :click-element id qute-button
         Then the javascript message "text: foobar" should be logged
 
     # Could not get signals working on Windows
@@ -143,7 +141,6 @@ Feature: Opening external editors
         And I wait until the editor has started
         And I save without exiting the editor
         And I wait for "Read back: foobar" in the log
-        And I run :click-element id qute-button
         Then the javascript message "text: foobar" should be logged
 
     Scenario: Spawning an editor in caret mode
@@ -157,7 +154,6 @@ Feature: Opening external editors
         And I wait for "Entering mode KeyMode.caret (reason: command)" in the log
         And I run :open-editor
         And I wait for "Read back: foobar" in the log
-        And I run :click-element id qute-button
         Then the javascript message "text: foobar" should be logged
 
     Scenario: Spawning an editor with existing text
@@ -169,7 +165,6 @@ Feature: Opening external editors
         And I wait for "Inserting text into element *" in the log
         And I run :open-editor
         And I wait for "Read back: bar" in the log
-        And I run :click-element id qute-button
         Then the javascript message "text: bar" should be logged
 
     ## :edit-command

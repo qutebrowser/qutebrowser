@@ -64,9 +64,9 @@ def print_col(text, color, file=sys.stdout):
     if use_color:
         fg = _esc(fg_colors[color.lower()])
         reset = _esc(fg_colors['reset'])
-        print(''.join([fg, text, reset]), file=file)
+        print(''.join([fg, text, reset]), file=file, flush=True)
     else:
-        print(text, file=file)
+        print(text, file=file, flush=True)
 
 
 def print_error(text):

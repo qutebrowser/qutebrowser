@@ -699,7 +699,7 @@ New PyQt release
 ~~~~~~~~~~~~~~~~
 
 * See above.
-* Update `tox.ini`/`.travis.yml`/`.appveyor.yml` to test new versions.
+* Update `tox.ini`/`.github/workflows/ci.yml` to test new versions.
 
 qutebrowser release
 ~~~~~~~~~~~~~~~~~~~

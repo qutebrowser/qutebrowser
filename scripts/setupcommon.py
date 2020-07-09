@@ -38,6 +38,14 @@ BASEDIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                        os.path.pardir)
 
 
+def _call_git(gitpath, *args):
+    """Call a git subprocess."""
+    return subprocess.run(
+        ['git'] + list(args),
+        cwd=gitpath, check=True,
+        stdout=subprocess.PIPE).stdout.decode('UTF-8').strip()
+
+
 def _git_str():
     """Try to find out git version.
 
@@ -51,15 +59,11 @@ def _git_str():
         return None
     try:
         # https://stackoverflow.com/questions/21017300/21017394#21017394
-        commit_hash = subprocess.run(
-            ['git', 'describe', '--match=NeVeRmAtCh', '--always', '--dirty'],
-            cwd=BASEDIR, check=True,
-            stdout=subprocess.PIPE).stdout.decode('UTF-8').strip()
-        date = subprocess.run(
-            ['git', 'show', '-s', '--format=%ci', 'HEAD'],
-            cwd=BASEDIR, check=True,
-            stdout=subprocess.PIPE).stdout.decode('UTF-8').strip()
-        return '{} ({})'.format(commit_hash, date)
+        commit_hash = _call_git(BASEDIR, 'describe', '--match=NeVeRmAtCh',
+                                '--always', '--dirty')
+        date = _call_git(BASEDIR, 'show', '-s', '--format=%ci', 'HEAD')
+        branch = _call_git(BASEDIR, 'rev-parse', '--abbrev-ref', 'HEAD')
+        return '{} on {} ({})'.format(commit_hash, branch, date)
     except (subprocess.CalledProcessError, OSError):
         return None
 

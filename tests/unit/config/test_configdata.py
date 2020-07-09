@@ -47,10 +47,20 @@ def test_data(config_stub):
         # https://github.com/qutebrowser/qutebrowser/issues/3104
         # For lists/dicts, don't use None as default
         if isinstance(option.typ, (configtypes.Dict, configtypes.List)):
-            assert option.default is not None
+            assert option.default is not None, option
         # For ListOrValue, use a list as default
         if isinstance(option.typ, configtypes.ListOrValue):
-            assert isinstance(option.default, list)
+            assert isinstance(option.default, list), option
+
+        # Make sure floats also have floats for defaults/bounds
+        if isinstance(option.typ, configtypes.Float):
+            for value in [option.default,
+                          option.typ.minval,
+                          option.typ.maxval]:
+                assert value is None or isinstance(value, float), option
+
+        # No double spaces after dots
+        assert '.  ' not in option.description, option
 
 
 def test_init_benchmark(benchmark):

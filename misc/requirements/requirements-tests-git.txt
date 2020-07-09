@@ -18,7 +18,6 @@ git+https://github.com/pytest-dev/pytest-mock.git
 git+https://github.com/pytest-dev/pytest-qt.git
 git+https://github.com/pytest-dev/pytest-repeat.git
 git+https://github.com/pytest-dev/pytest-rerunfailures.git
-git+https://github.com/abusalimov/pytest-travis-fold.git
 git+https://github.com/The-Compiler/pytest-xvfb.git
 hg+https://bitbucket.org/gutworth/six
 hg+https://bitbucket.org/jendrikseipp/vulture
