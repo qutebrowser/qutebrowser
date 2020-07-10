@@ -62,6 +62,8 @@ Fixed
   internally override any `enable-features=...` flags passed via `qt.args` or
   `--qt-flag`. It now correctly combines existing `enable-feature` flags with
   internal ones.
+- The `qute-lastpass` userscript now filters out duplicate entries with
+  `--merge-candidates`.
 
 v1.13.1 (unreleased)
 --------------------
