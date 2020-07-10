@@ -51,7 +51,8 @@ from PyQt5.QtCore import pyqtSlot, QUrl, QObject, QEvent, pyqtSignal, Qt
 import qutebrowser
 import qutebrowser.resources
 from qutebrowser.commands import runners
-from qutebrowser.config import config, websettings, configfiles, configinit
+from qutebrowser.config import (config, websettings, configfiles, configinit,
+                                qtargs)
 from qutebrowser.browser import (urlmarks, history, browsertab,
                                  qtnetworkdownloads, downloads, greasemonkey)
 from qutebrowser.browser.network import proxy
@@ -491,7 +492,7 @@ class Application(QApplication):
         """
         self._last_focus_object = None
 
-        qt_args = configinit.qt_args(args)
+        qt_args = qtargs.qt_args(args)
         log.init.debug("Commandline args: {}".format(sys.argv[1:]))
         log.init.debug("Parsed: {}".format(args))
         log.init.debug("Qt arguments: {}".format(qt_args[1:]))

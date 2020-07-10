@@ -159,6 +159,8 @@ PERFECT_FILES = [
      'config/configtypes.py'),
     ('tests/unit/config/test_configinit.py',
      'config/configinit.py'),
+    ('tests/unit/config/test_qtargs.py',
+     'config/qtargs.py'),
     ('tests/unit/config/test_configcommands.py',
      'config/configcommands.py'),
     ('tests/unit/config/test_configutils.py',
