@@ -478,7 +478,7 @@ def qt_message_handler(msg_type: QtCore.QtMsgType,
         level = qt_to_logging[msg_type]
 
     if context.line is None:
-        lineno = -1
+        lineno = -1  # type: ignore[unreachable]
     else:
         lineno = context.line
 
