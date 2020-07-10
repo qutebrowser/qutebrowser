@@ -1063,7 +1063,7 @@ class QtColor(BaseType):
 
     def _parse_value(self, kind: str, val: str) -> int:
         try:
-            return int(val)
+            return int(val, base=0)
         except ValueError:
             pass
 
