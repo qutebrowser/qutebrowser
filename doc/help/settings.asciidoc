@@ -1944,6 +1944,7 @@ This setting is only available with the QtWebEngine backend.
 Which cookies to accept.
 With QtWebEngine, this setting also controls other features with tracking capabilities similar to those of cookies; including IndexedDB, DOM storage, filesystem API, service workers, and AppCache.
 Note that with QtWebKit, only `all` and `never` are supported as per-domain values. Setting `no-3rdparty` or `no-unknown-3rdparty` per-domain on QtWebKit will have the same effect as `all`.
+If this setting is used with URL patterns, the pattern gets applied to the origin/first party URL of the page making the request, not the request URL.
 
 This setting supports URL patterns.
 

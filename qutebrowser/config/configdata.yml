@@ -373,6 +373,9 @@ content.cookies.accept:
     values. Setting `no-3rdparty` or `no-unknown-3rdparty` per-domain on
     QtWebKit will have the same effect as `all`.
 
+    If this setting is used with URL patterns, the pattern gets applied to the
+    origin/first party URL of the page making the request, not the request URL.
+
 content.cookies.store:
   default: true
   type: Bool
