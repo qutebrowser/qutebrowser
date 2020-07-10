@@ -24,6 +24,10 @@ Changed
 - The main window's (invisible) background color is now set to transparent.
   This allows using the alpha channel in statusbar/tabbar colors to get a
   partially transparent qutebrowser window on a setup which supports doing so.
+- If QtWebEngine is compiled with PipeWire support and libpipewire is
+  installed, qutebrowser will now support screen sharing on Wayland. Note that
+  QtWebEngine 5.15.1 (planned for August 2020) is needed, though the Archlinux
+  qt5-webengine package backports the patch.
 
 Added
 ~~~~~
@@ -54,6 +58,10 @@ Fixed
   is clicked in normal mode.
 - Pulseaudio now shows qutebrowser's audio streams as qutebrowser correctly,
   rather than showing them as Chromium (depending on the Qt version).
+- When `scrolling.bar` was set to `overlay` (the default), qutebrowser would
+  internally override any `enable-features=...` flags passed via `qt.args` or
+  `--qt-flag`. It now correctly combines existing `enable-feature` flags with
+  internal ones.
 
 v1.13.1 (unreleased)
 --------------------
