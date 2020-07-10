@@ -40,30 +40,16 @@ Added
 Fixed
 ~~~~~
 
-- Generating docs with `asciidoc2html.py` (e.g. via `mkvenv.py`) now works
-  correctly without Pygments being installed system-wide.
-- Ever since Qt 5.9, when `input.mouse.rocker_gestures` was enabled, the
-  context menu still was shown when clicking the right mouse button, thus
-  preventing the rocker gestures. This is now fixed.
 - A URL pattern with a `*.` host was considered valid and matched all hosts.
   Due to keybindings like `tsH` toggling scripts for `*://*.{url:host}/*`,
   invoking them on pages without a host (e.g. `about:blank`) could result in
   accidentally allowing/blocking JavaScript for all pages. Such patterns are
   now considered invalid, with existing patterns being automatically removed
   from `autoconfig.yml`.
-- Certain `autoconfig.yml` with an invalid structure could lead to crashes,
-  which are now fixed.
-- Clicking the inspector switched from existing modes (such as passthrough) to
-  normal mode since v1.13.0. Now insert mode is only entered when the inspector
-  is clicked in normal mode.
-- Pulseaudio now shows qutebrowser's audio streams as qutebrowser correctly,
-  rather than showing them as Chromium (depending on the Qt version).
 - When `scrolling.bar` was set to `overlay` (the default), qutebrowser would
   internally override any `enable-features=...` flags passed via `qt.args` or
   `--qt-flag`. It now correctly combines existing `enable-feature` flags with
   internal ones.
-- The `qute-lastpass` userscript now filters out duplicate entries with
-  `--merge-candidates`.
 
 v1.13.1 (unreleased)
 --------------------
@@ -74,6 +60,20 @@ Fixed
 - With Qt 5.14, shared workers are now disabled. This works around a crash in
   QtWebEngine on certain sites (like the Epic Games Store or the Unreal Engine
   page).
+- Generating docs with `asciidoc2html.py` (e.g. via `mkvenv.py`) now works
+  correctly without Pygments being installed system-wide.
+- Ever since Qt 5.9, when `input.mouse.rocker_gestures` was enabled, the
+  context menu still was shown when clicking the right mouse button, thus
+  preventing the rocker gestures. This is now fixed.
+- Certain `autoconfig.yml` with an invalid structure could lead to crashes,
+  which are now fixed.
+- Clicking the inspector switched from existing modes (such as passthrough) to
+  normal mode since v1.13.0. Now insert mode is only entered when the inspector
+  is clicked in normal mode.
+- Pulseaudio now shows qutebrowser's audio streams as qutebrowser correctly,
+  rather than showing them as Chromium (depending on the Qt version).
+- The `qute-lastpass` userscript now filters out duplicate entries with
+  `--merge-candidates`.
 
 v1.13.0 (2020-06-26)
 --------------------
