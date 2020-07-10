@@ -138,6 +138,9 @@ def partial_compare(val1, val2, *, indent=0):
 
     This happens recursively.
     """
+    if ON_CI and indent == 0:
+        print('::group::Comparison')
+
     print_i("Comparing", indent)
     print_i(pprint.pformat(val1), indent + 1)
     print_i("|---- to ----", indent)
@@ -169,6 +172,10 @@ def partial_compare(val1, val2, *, indent=0):
         print_i("|======= Comparing via ==", indent)
         outcome = _partial_compare_eq(val1, val2, indent=indent)
     print_i("---> {}".format(outcome), indent)
+
+    if ON_CI and indent == 0:
+        print('::endgroup::')
+
     return outcome
 
 
