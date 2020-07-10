@@ -73,7 +73,7 @@ def pytest_runtest_makereport(item, call):
         # non-BDD ones.
         return
 
-    if ((sys.stdout.isatty() or utils.ON_CI) and
+    if ((sys.stdout.isatty() or testutils.ON_CI) and
             item.config.getoption('--color') != 'no'):
         colors = {
             'failed': log.COLOR_ESCAPES['red'],
@@ -90,7 +90,7 @@ def pytest_runtest_makereport(item, call):
         }
 
     output = []
-    if utils.ON_CI:
+    if testutils.ON_CI:
         output.append('::group::Scenario')
 
     output.append("{kw_color}Feature:{reset} {name}".format(
@@ -118,7 +118,7 @@ def pytest_runtest_makereport(item, call):
                 reset=colors['reset'])
         )
 
-    if utils.ON_CI:
+    if testutils.ON_CI:
         output.append('::endgroup::')
 
     report.longrepr.addsection("BDD scenario", '\n'.join(output))
