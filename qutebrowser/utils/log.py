@@ -477,6 +477,11 @@ def qt_message_handler(msg_type: QtCore.QtMsgType,
     else:
         level = qt_to_logging[msg_type]
 
+    if context.line is None:
+        lineno = -1  # type: ignore[unreachable]
+    else:
+        lineno = context.line
+
     if context.function is None:
         func = 'none'  # type: ignore[unreachable]
     elif ':' in context.function:
@@ -503,7 +508,7 @@ def qt_message_handler(msg_type: QtCore.QtMsgType,
     else:
         stack = None
 
-    record = qt.makeRecord(name, level, context.file, context.line, msg, (),
+    record = qt.makeRecord(name, level, context.file, lineno, msg, (),
                            None, func, sinfo=stack)
     qt.handle(record)
 
