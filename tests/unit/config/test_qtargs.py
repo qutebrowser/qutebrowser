@@ -61,10 +61,12 @@ class TestQtArgs:
         (['--qt-flag', 'foo', '--qt-flag', 'bar'],
          [sys.argv[0], '--foo', '--bar']),
     ])
-    def test_qt_args(self, config_stub, args, expected, parser):
+    def test_qt_args(self, monkeypatch, config_stub, args, expected, parser):
         """Test commandline with no Qt arguments given."""
         # Avoid scrollbar overlay argument
         config_stub.val.scrolling.bar = 'never'
+        # Avoid WebRTC pipewire feature
+        monkeypatch.setattr(qtargs.utils, 'is_linux', False)
 
         parsed = parser.parse_args(args)
         assert qtargs.qt_args(parsed) == expected
@@ -327,6 +329,8 @@ class TestQtArgs:
                             lambda version, exact=False, compiled=True:
                             new_qt)
         monkeypatch.setattr(qtargs.utils, 'is_mac', is_mac)
+        # Avoid WebRTC pipewire feature
+        monkeypatch.setattr(qtargs.utils, 'is_linux', False)
 
         config_stub.val.scrolling.bar = bar
 
@@ -357,6 +361,8 @@ class TestQtArgs:
                             lambda version, exact=False, compiled=True:
                             True)
         monkeypatch.setattr(qtargs.utils, 'is_mac', False)
+        # Avoid WebRTC pipewire feature
+        monkeypatch.setattr(qtargs.utils, 'is_linux', False)
 
         stripped_prefix = 'enable-features='
         config_flag = stripped_prefix + passed_features

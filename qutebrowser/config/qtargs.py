@@ -158,7 +158,29 @@ def _qtwebengine_enabled_features(
         flag = flag[len(prefix):]
         yield from iter(flag.split(','))
 
+    if qtutils.version_check('5.15', compiled=False) and utils.is_linux:
+        # Enable WebRTC PipeWire for screen capturing on Wayland.
+        #
+        # This is disabled in Chromium by default because of the "dialog hell":
+        # https://bugs.chromium.org/p/chromium/issues/detail?id=682122#c50
+        # https://github.com/flatpak/xdg-desktop-portal-gtk/issues/204
+        #
+        # However, we don't have Chromium's confirmation dialog in qutebrowser,
+        # so we should only get qutebrowser's permission dialog.
+        #
+        # In theory this would be supported with Qt 5.13 already, but
+        # QtWebEngine only started picking up PipeWire correctly with Qt
+        # 5.15.1. Checking for 5.15 here to pick up Archlinux' patched package
+        # as well.
+        #
+        # This only should be enabled on Wayland, but it's too early to check
+        # that, as we don't have a QApplication available at this point. Thus,
+        # just turn it on unconditionally on Linux, which shouldn't hurt.
+        yield 'WebRTCPipeWireCapturer'
+
     if qtutils.version_check('5.11', compiled=False) and not utils.is_mac:
+        # Enable overlay scrollbars.
+        #
         # There are two additional flags in Chromium:
         #
         # - OverlayScrollbarFlashAfterAnyScrollUpdate
