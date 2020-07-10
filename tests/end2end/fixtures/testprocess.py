@@ -81,6 +81,11 @@ def _render_log(data, *, verbose, threshold=100):
         msg = '[{} lines suppressed, use -v to show]'.format(
             len(data) - threshold)
         data = [msg] + data[-threshold:]
+
+    if utils.ON_CI:
+        # Add group markers for GitHub Actions
+        data = ['::group::Log'] + data + ['::endgroup::']
+
     return '\n'.join(data)
 
 
