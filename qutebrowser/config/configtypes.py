@@ -1057,8 +1057,8 @@ class QtColor(BaseType):
     * An SVG color name as specified in
       http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification].
     * transparent (no color)
-    * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages)
-    * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
+    * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255, 0x0-0xff, or percentages)
+    * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, 0x0-0xff, hue 0-359)
     """
 
     def _parse_value(self, kind: str, val: str) -> int:
