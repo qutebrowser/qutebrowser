@@ -115,6 +115,7 @@ def main(arguments):
     # the registered domain name and finally: the IPv4 address if that's what
     # the URL represents
     candidates = []
+    seen_id = set()
     for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.subdomain + extract_result.domain, extract_result.domain, extract_result.ipv4]):
         target_candidates, err = pass_(target, arguments.io_encoding)
         if err:
@@ -124,7 +125,10 @@ def main(arguments):
         if not target_candidates:
             continue
 
-        candidates = candidates + target_candidates
+        for candidate in target_candidates:
+            if candidate["id"] not in seen_id:
+                seen_id.add(candidate["id"])
+                candidates.append(candidate)
         if not arguments.merge_candidates:
             break
     else:
