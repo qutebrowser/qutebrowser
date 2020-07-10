@@ -508,8 +508,9 @@ def qt_message_handler(msg_type: QtCore.QtMsgType,
     else:
         stack = None
 
-    record = qt.makeRecord(name, level, context.file, lineno, msg, (),
-                           None, func, sinfo=stack)
+    record = qt.makeRecord(name=name, level=level, fn=context.file, lno=lineno,
+                           msg=msg, args=(), exc_info=None, func=func,
+                           sinfo=stack)
     qt.handle(record)
 
 
