@@ -1295,6 +1295,7 @@ class TestQtColor:
         ('rgb(0,0,0)', QColor.fromRgb(0, 0, 0)),
 
         ('rgba(255, 255, 255, 1.0)', QColor.fromRgb(255, 255, 255, 255)),
+        ('rgba(0xff, 0xff, 0xFF, 1.0)', QColor.fromRgb(255, 255, 255, 255)),
 
         ('hsv(10%,10%,10%)', QColor.fromHsv(35, 25, 25)),
         ('hsva(10%,20%,30%,40%)', QColor.fromHsv(35, 51, 76, 102)),
