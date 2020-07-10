@@ -310,3 +310,14 @@ def pytest_runtest_makereport(item, call):
     outcome = yield
     rep = outcome.get_result()
     setattr(item, "rep_" + rep.when, rep)
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_terminal_summary(terminalreporter):
+    """Group benchmark results on CI."""
+    if testutils.ON_CI:
+        terminalreporter.write_line("::group::Benchmark results")
+        yield
+        terminalreporter.write_line("::endgroup")
+    else:
+        yield
