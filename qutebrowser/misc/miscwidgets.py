@@ -396,9 +396,11 @@ class InspectorSplitter(QSplitter):
 
     def cycle_focus(self):
         """Cycle keyboard focus between the main/inspector widget."""
-        breakpoint()
         if self.count() == 1:
             raise inspector.Error("No inspector inside main window")
+
+        assert self._main_idx is not None
+        assert self._inspector_idx is not None
 
         main_widget = self.widget(self._main_idx)
         inspector_widget = self.widget(self._inspector_idx)
