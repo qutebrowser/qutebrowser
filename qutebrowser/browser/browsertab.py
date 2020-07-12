@@ -953,7 +953,8 @@ class AbstractTab(QWidget):
     def _set_widget(self, widget: QWidget) -> None:
         # pylint: disable=protected-access
         self._widget = widget
-        self.data.splitter = miscwidgets.InspectorSplitter(widget)
+        self.data.splitter = miscwidgets.InspectorSplitter(
+            win_id=self.win_id, main_webview=widget)
         self._layout.wrap(self, self.data.splitter)
         self.history._history = widget.history()
         self.history.private_api._history = widget.history()

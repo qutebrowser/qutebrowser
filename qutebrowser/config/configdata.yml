@@ -3154,6 +3154,7 @@ bindings.default:
       wIk: devtools top
       wIl: devtools right
       wIw: devtools window
+      wIf: devtools-focus
       gd: download
       ad: download-cancel
       cd: download-clear

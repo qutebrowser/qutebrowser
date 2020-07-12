@@ -52,6 +52,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<config-unset,config-unset>>|Unset an option.
 |<<config-write-py,config-write-py>>|Write the current configuration to a config.py file.
 |<<devtools,devtools>>|Toggle the developer tools (web inspector).
+|<<devtools-focus,devtools-focus>>|Toggle focus between the devtools/tab.
 |<<download,download>>|Download a given URL, or current page if no URL given.
 |<<download-cancel,download-cancel>>|Cancel the last/[count]th download.
 |<<download-clear,download-clear>>|Remove all finished downloads from the list.
@@ -422,6 +423,10 @@ Toggle the developer tools (web inspector).
 ==== positional arguments
 * +'position'+: Where to open the devtools (right/left/top/bottom/window).
 
+
+[[devtools-focus]]
+=== devtools-focus
+Toggle focus between the devtools/tab.
 
 [[download]]
 === download

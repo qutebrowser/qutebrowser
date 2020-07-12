@@ -36,6 +36,8 @@ Added
   which behaves like `{index}`, but space-pads the index based on the total
   numbers of tabs. This can be used to get aligned tab texts with vertical
   tabs.
+- New command `:devtools-focus` (bound to `wIf`) to toggle keyboard focus
+  between the devtools and web page.
 
 Fixed
 ~~~~~

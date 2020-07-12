@@ -158,7 +158,8 @@ class TestInspectorSplitter:
 
     @pytest.fixture
     def splitter(self, qtbot, fake_webview):
-        inspector_splitter = miscwidgets.InspectorSplitter(fake_webview)
+        inspector_splitter = miscwidgets.InspectorSplitter(
+            win_id=0, main_webview=fake_webview)
         qtbot.add_widget(inspector_splitter)
         return inspector_splitter
 
@@ -170,6 +171,11 @@ class TestInspectorSplitter:
     def test_no_inspector_resize(self, splitter):
         splitter.show()
         splitter.resize(800, 600)
+
+    def test_cycle_focus_no_inspector(self, splitter):
+        with pytest.raises(inspector.Error,
+                           match='No inspector inside main window'):
+            splitter.cycle_focus()
 
     @pytest.mark.parametrize(
         'position, orientation, inspector_idx, webview_idx', [
@@ -191,6 +197,14 @@ class TestInspectorSplitter:
         assert splitter._main_idx == webview_idx
 
         assert splitter.orientation() == orientation
+
+    def test_cycle_focus_hidden_inspector(self, splitter, fake_inspector):
+        splitter.set_inspector(fake_inspector, inspector.Position.right)
+        splitter.show()
+        fake_inspector.hide()
+        with pytest.raises(inspector.Error,
+                           match='No inspector inside main window'):
+            splitter.cycle_focus()
 
     @pytest.mark.parametrize(
         'config, width, height, position, expected_size', [
