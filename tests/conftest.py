@@ -318,6 +318,6 @@ def pytest_terminal_summary(terminalreporter):
     if testutils.ON_CI:
         terminalreporter.write_line("::group::Benchmark results")
         yield
-        terminalreporter.write_line("::endgroup")
+        terminalreporter.write_line("::endgroup::")
     else:
         yield
