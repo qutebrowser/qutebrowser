@@ -316,8 +316,9 @@ def pytest_runtest_makereport(item, call):
 def pytest_terminal_summary(terminalreporter):
     """Group benchmark results on CI."""
     if testutils.ON_CI:
-        terminalreporter.write_line("::group::Benchmark results")
+        terminalreporter.write_line(
+            testutils.gha_group_begin('Benchmark results'))
         yield
-        terminalreporter.write_line("::endgroup::")
+        terminalreporter.write_line(testutils.gha_group_end())
     else:
         yield

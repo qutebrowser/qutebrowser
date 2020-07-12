@@ -91,7 +91,7 @@ def pytest_runtest_makereport(item, call):
 
     output = []
     if testutils.ON_CI:
-        output.append('::group::Scenario')
+        output.append(testutils.gha_group_begin('Scenario'))
 
     output.append("{kw_color}Feature:{reset} {name}".format(
         kw_color=colors['keyword'],
@@ -119,7 +119,7 @@ def pytest_runtest_makereport(item, call):
         )
 
     if testutils.ON_CI:
-        output.append('::endgroup::')
+        output.append(testutils.gha_group_end())
 
     report.longrepr.addsection("BDD scenario", '\n'.join(output))
 

@@ -83,8 +83,7 @@ def _render_log(data, *, verbose, threshold=100):
         data = [msg] + data[-threshold:]
 
     if utils.ON_CI:
-        # Add group markers for GitHub Actions
-        data = ['::group::Log'] + data + ['::endgroup::']
+        data = [utils.gha_group_begin('Log')] + data + [utils.gha_group_end()]
 
     return '\n'.join(data)
 
