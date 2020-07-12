@@ -382,11 +382,11 @@ class TabbedBrowser(QWidget):
     def shutdown(self):
         """Try to shut down all tabs cleanly."""
         self.shutting_down = True
-        # Reverse tabs so we don't have to recacluate tab titles over and over
+        # Reverse tabs so we don't have to recalculate tab titles over and over
         # Removing first causes [2..-1] to be recomputed
         # Removing the last causes nothing to be recomputed
         for tab in reversed(self.widgets()):
-            self._remove_tab(tab)
+            self._remove_tab(tab, add_undo=False)
 
     def tab_close_prompt_if_pinned(
             self, tab, force, yes_action,
