@@ -690,9 +690,15 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
         if not items:
             return
 
-        url = items[-1].url
-        if (url.scheme(), url.host()) == ('qute', 'back') and len(items) >= 2:
-            url = items[-2].url
+        for i, item in enumerate(items):
+            if item.active:
+                cur_idx = i
+                break
+
+        url = items[cur_idx].url
+        if (url.scheme(), url.host()) == ('qute', 'back') and cur_idx >= 1:
+            url = items[cur_idx - 1].url
+
         self._tab.load_url(url)
 
     def load_items(self, items):
