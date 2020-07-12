@@ -79,6 +79,10 @@ Fixed
 - If `:help` was called with a deprecated command (e.g. `:help :inspector`),
   the help page would show despite deprecated commands not being documented.
   This now shows an error instead.
+- When a window is closed, the tab it contains are now correctly shut down
+  (closing e.g. any dialogs which are still open for those tabs).
+- The Qt 5.15 session workaround now loads the correct (rather than the latest)
+  page when `:back` was used before saving a session.
 
 v1.13.0 (2020-06-26)
 --------------------
