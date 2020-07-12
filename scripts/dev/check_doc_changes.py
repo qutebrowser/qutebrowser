@@ -30,8 +30,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 
 from scripts import utils
 
-code = subprocess.run(['git', '--no-pager', 'diff',
-                       '--exit-code', '--stat'], check=False).returncode
+code = subprocess.run(['git', '--no-pager', 'diff', '--exit-code', '--stat',
+                       '--', 'doc'], check=False).returncode
 
 if os.environ.get('GITHUB_REF', 'refs/heads/master') != 'refs/heads/master':
     if code != 0:
