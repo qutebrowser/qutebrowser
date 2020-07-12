@@ -1353,6 +1353,12 @@ class CommandDispatcher:
             if command not in objects.commands:
                 raise cmdutils.CommandError("Invalid command {}!".format(
                     command))
+
+            deprecated = objects.commands[command].deprecated
+            if deprecated:
+                raise cmdutils.CommandError(
+                    "{} is deprecated - {}".format(command, deprecated))
+
             path = 'commands.html#{}'.format(command)
         elif topic in configdata.DATA:
             path = 'settings.html#{}'.format(topic)
