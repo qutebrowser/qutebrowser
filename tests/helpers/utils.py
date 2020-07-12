@@ -138,7 +138,7 @@ def gha_group_begin(name):
     return '::group::' + name
 
 
-def gha_group_end(name):
+def gha_group_end():
     """Get a string to end a GitHub Actions group.
 
     Should only be called on CI.
