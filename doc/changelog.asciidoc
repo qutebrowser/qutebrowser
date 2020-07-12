@@ -76,6 +76,9 @@ Fixed
   rather than showing them as Chromium (depending on the Qt version).
 - The `qute-lastpass` userscript now filters out duplicate entries with
   `--merge-candidates`.
+- If `:help` was called with a deprecated command (e.g. `:help :inspector`),
+  the help page would show despite deprecated commands not being documented.
+  This now shows an error instead.
 
 v1.13.0 (2020-06-26)
 --------------------
