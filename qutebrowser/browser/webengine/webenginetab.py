@@ -681,15 +681,23 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
     def deserialize(self, data):
         qtutils.deserialize(data, self._history)
 
+    def _load_items_workaround(self, items):
+        """WORKAROUND for session loading not working on Qt 5.15.
+
+        Just load the current URL, see
+        https://github.com/qutebrowser/qutebrowser/issues/5359
+        """
+        if not items:
+            return
+
+        url = items[-1].url
+        if (url.scheme(), url.host()) == ('qute', 'back') and len(items) >= 2:
+            url = items[-2].url
+        self._tab.load_url(url)
+
     def load_items(self, items):
         if qtutils.version_check('5.15', compiled=False):
-            # WORKAROUND for https://github.com/qutebrowser/qutebrowser/issues/5359
-            if items:
-                url = items[-1].url
-                if ((url.scheme(), url.host()) == ('qute', 'back') and
-                        len(items) >= 2):
-                    url = items[-2].url
-                self._tab.load_url(url)
+            self._load_items_workaround(items)
             return
 
         if items:
