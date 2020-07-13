@@ -2,6 +2,8 @@ name: CI
 on: [push, pull_request]
 env:
   PY_COLORS: "1"
+  MYPY_FORCE_TERMINAL_WIDTH: "180"
+  MYPY_FORCE_COLOR: "1"
 
 jobs:
   linters:
