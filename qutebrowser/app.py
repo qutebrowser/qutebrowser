@@ -63,7 +63,7 @@ from qutebrowser.keyinput import macros, eventfilter
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (ipc, savemanager, sessions, crashsignal,
                               earlyinit, sql, cmdhistory, backendproblem,
-                              objects, quitter)
+                              objects, quitter, suspender)
 from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
                                usertypes, standarddir, error, qtutils)
 # pylint: disable=unused-import
@@ -447,6 +447,9 @@ def _init_modules(*, args):
     cmdhistory.init()
     log.init.debug("Initializing sessions...")
     sessions.init(q_app)
+    log.init.debug("Initializing suspender...")
+    suspender.init()
+
     quitter.instance.shutting_down.connect(sessions.shutdown)
 
     log.init.debug("Initializing websettings...")

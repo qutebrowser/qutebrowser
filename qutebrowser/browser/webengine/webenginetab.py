@@ -1367,6 +1367,58 @@ class WebEngineTab(browsertab.AbstractTab):
         self._saved_zoom = None
         self._reload_url = None  # type: typing.Optional[QUrl]
         self._scripts.init()
+        self.background_time = 0
+        self.indicator_color_restore = None
+
+    def get_tabwidget(self):
+        """get TabWidget instance."""
+        # somehow the parent became PyQt5.QtWidgets.QStackedWidget
+        tabwidget = self.parent().parent()
+        return tabwidget
+
+    def get_indicator_color(self):
+        """get tab's current indicator color."""
+        tabwidget = self.get_tabwidget()
+        idx = tabwidget.indexOf(self)
+        return tabwidget.tab_indicator_color(idx)
+
+    def set_indicator_color(self, color):
+        """change tab's indicator color."""
+        tabwidget = self.get_tabwidget()
+        idx = tabwidget.indexOf(self)
+        tabwidget.set_tab_indicator_color(idx, color)
+
+    def activate(self):
+        """restore indicator state and reset background_time."""
+        self.background_time = 0
+        if self.indicator_color_restore:
+            self.set_indicator_color(self.indicator_color_restore)
+
+    def get_page(self):
+        return self._widget.page()
+
+    def discard(self) -> None:
+        """Try to discard a tab.
+
+        Sometimes we can't discard a tab, e.g. when
+          - the tab is visible
+          - the inspector (DevTools) is open
+
+        Return False is the tab is not discarded.
+
+        If the tab isn't discarded, the suspender will try to
+        discard the tab next time.
+        """
+        page = self.get_page()
+        page.setLifecycleState(page.LifecycleState.Discarded)
+        success = page.lifecycleState() == page.LifecycleState.Discarded
+        if success:
+            # change tab indicator color
+            self.indicator_color_restore = self.get_indicator_color()
+            self.set_indicator_color(config.instance.get(
+                "colors.suspender.discarded"))
+            log.webview.debug("Tab #{} discarded".format(repr(self.tab_id)))
+        return success
 
     def _set_widget(self, widget):
         # pylint: disable=protected-access
@@ -1414,7 +1466,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self._widget.load(url)
 
     def url(self, *, requested=False):
-        page = self._widget.page()
+        page = self.get_page()
         if requested:
             return page.requestedUrl()
         else:

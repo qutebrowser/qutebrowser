@@ -35,7 +35,7 @@ from qutebrowser.mainwindow import tabwidget, mainwindow
 from qutebrowser.browser import signalfilter, browsertab, history
 from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message, jinja)
-from qutebrowser.misc import quitter
+from qutebrowser.misc import quitter, suspender
 
 
 @attr.s
@@ -850,8 +850,13 @@ class TabbedBrowser(QWidget):
             modeman.enter(self._win_id, tab.data.input_mode, 'restore')
         if self._now_focused is not None:
             self.tab_deque.on_switch(self._now_focused)
+
         log.modes.debug("Mode after tab change: {} (mode_on_change = {})"
                         .format(current_mode.name, mode_on_change))
+
+        if suspender.suspender:
+            tab.activate()
+
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
         QTimer.singleShot(0, self._update_window_title)

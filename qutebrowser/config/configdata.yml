@@ -645,6 +645,40 @@ content.host_blocking.whitelist:
 
     Local domains are always exempt from hostblocking.
 
+content.suspender.enabled:
+  default: false
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: true
+  type: Bool
+  desc: Enable automatically suspending tabs to reduce memory consumption.
+
+content.suspender.timeout:
+  default: 600
+  type:
+    name: Int
+    minval: 10
+    maxval: maxint
+  desc: Timeout (in seconds) for discarding inactive tabs.
+
+content.suspender.max_active_tabs:
+  default: 6
+  type:
+    name: Int
+    minval: 1
+    maxval: maxint
+  desc: Max number of active tabs.
+
+content.suspender.whitelist:
+  default: []
+  type:
+    name: List
+    valtype: UrlPattern
+    none_ok: true
+  desc: >-
+    A list of patterns that exempt a tab from being automatically
+    discarded by the suspender.
+
 content.hyperlink_auditing:
   default: false
   type: Bool
@@ -2637,6 +2671,11 @@ colors.webpage.bg:
     none_ok: true
   desc: "Background color for webpages if unset (or empty to use the theme's
     color)."
+
+colors.suspender.discarded:
+  default: black
+  type: QtColor
+  desc: Color for the indicator of discarded tab.
 
 colors.webpage.force_dark_color_scheme:
   renamed: colors.webpage.prefers_color_scheme_dark
