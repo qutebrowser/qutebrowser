@@ -46,7 +46,19 @@ server = None
 
 def _get_socketname_windows(basedir):
     """Get a socketname to use for Windows."""
-    parts = ['qutebrowser', getpass.getuser()]
+    try:
+        username = getpass.getuser()
+    except ImportError:
+        # getpass.getuser() first tries a couple of environment variables. If
+        # none of those are set (i.e., USERNAME is missing), it tries to import
+        # the "pwd" module which is unavailable on Windows.
+        raise Error("Could not find username. This should only happen if "
+                    "there is a bug in the application launching qutebrowser, "
+                    "preventing the USERNAME environment variable from being "
+                    "passed. If you know more about when this happens, please "
+                    "report this to mail@qutebrowser.org.")
+
+    parts = ['qutebrowser', username]
     if basedir is not None:
         md5 = hashlib.md5(basedir.encode('utf-8')).hexdigest()
         parts.append(md5)
@@ -484,7 +496,6 @@ def display_error(exc, args):
     """Display a message box with an IPC error."""
     error.handle_fatal_exc(
         exc, "Error while connecting to running instance!",
-        post_text="Maybe another instance is running but frozen?",
         no_err_windows=args.no_err_windows)
 
 
@@ -499,8 +510,8 @@ def send_or_listen(args):
         None if an instance was running and received our request.
     """
     global server
-    socketname = _get_socketname(args.basedir)
     try:
+        socketname = _get_socketname(args.basedir)
         try:
             sent = send_to_running_instance(socketname, args.command,
                                             args.target)
