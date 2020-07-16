@@ -625,9 +625,10 @@ class TestYamlMigrations:
         yaml._save()
 
         data = autoconfig.read()
-        assert data['content.media.audio_capture']['global'] == val
-        assert data['content.media.audio_video_capture']['global'] == val
-        assert data['content.media.video_capture']['global'] == val
+        for setting in ['content.media.audio_capture',
+                        'content.media.audio_video_capture',
+                        'content.media.video_capture']:
+            assert data[setting]['global'] == val
 
     def test_empty_pattern(self, yaml, autoconfig):
         valid_pattern = 'https://example.com/*'
