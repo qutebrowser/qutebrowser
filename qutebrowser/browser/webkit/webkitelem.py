@@ -277,8 +277,9 @@ class WebKitElement(webelem.AbstractWebElement):
         none_display = attr_values['display'] == 'none'
         zero_opacity = attr_values['opacity'] == '0'
 
-        is_ace = 'ace_text-input' in self.classes()
-        return invisible or none_display or (zero_opacity and not is_ace)
+        is_framework = ('ace_text-input' in self.classes() or
+                        'custom-control-input' in self.classes())
+        return invisible or none_display or (zero_opacity and not is_framework)
 
     def _is_visible(self, mainframe: QWebFrame) -> bool:
         """Check if the given element is visible in the given frame.

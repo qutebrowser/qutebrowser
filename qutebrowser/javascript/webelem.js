@@ -169,9 +169,15 @@ window._qutebrowser.webelem = (function() {
         const invisible = style.getPropertyValue("visibility") !== "visible";
         const none_display = style.getPropertyValue("display") === "none";
         const zero_opacity = style.getPropertyValue("opacity") === "0";
-        const is_ace = elem.classList.contains("ace_text-input");
 
-        return (invisible || none_display || (zero_opacity && !is_ace));
+        const is_framework = (
+            // ACE editor
+            elem.classList.contains("ace_text-input") ||
+            // bootstrap CSS
+            elem.classList.contains("custom-control-input")
+        );
+
+        return (invisible || none_display || (zero_opacity && !is_framework));
     }
 
     function is_visible(elem, frame = null) {

@@ -247,6 +247,12 @@ Feature: Using hints
         # The actual check is already done above
         Then no crash should happen
 
+    Scenario: Hinting Twitter bootstrap checkbox
+        When I open data/hints/bootstrap/checkbox.html
+        And I hint with args "all" and follow a
+        # The actual check is already done above
+        Then "No elements found." should not be logged
+
     Scenario: Hinting invisible elements
         When I open data/hints/invisible.html
         And I run :hint
