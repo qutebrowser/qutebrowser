@@ -3088,6 +3088,7 @@ Default:
 * +pass:[img]+
 * +pass:[link]+
 * +pass:[summary]+
+* +pass:[[contenteditable]:not([contenteditable=&quot;false&quot;])]+
 * +pass:[[onclick]]+
 * +pass:[[onmousedown]]+
 * +pass:[[role=&quot;link&quot;]]+
@@ -3116,6 +3117,7 @@ Default:
 * +pass:[input[type=&quot;url&quot;]]+
 * +pass:[input[type=&quot;week&quot;]]+
 * +pass:[input:not([type])]+
+* +pass:[[contenteditable]:not([contenteditable=&quot;false&quot;])]+
 * +pass:[textarea]+
 - +pass:[links]+:
 
