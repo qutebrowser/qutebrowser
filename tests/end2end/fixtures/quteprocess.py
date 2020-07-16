@@ -709,7 +709,8 @@ class QuteProc(testprocess.Process):
         except testprocess.WaitForTimeout:
             # Sometimes IPC messages seem to get lost on Windows CI?
             # Retry a second time as this shouldn't make tests fail.
-            ipc.send_to_running_instance(self._ipc_socket, commands, target_arg)
+            ipc.send_to_running_instance(self._ipc_socket, commands,
+                                         target_arg)
             self._wait_for_ipc()
 
     def start(self, *args, wait_focus=True,
