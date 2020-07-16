@@ -783,13 +783,6 @@ class TestIsEditable:
 
     """Tests for is_editable."""
 
-    @pytest.fixture(autouse=True)
-    def not_is_contenteditable_prop(self, mocker):
-        """Short-circut is_contenteditable_prop for TestIsEditable."""
-        with mocker.patch('qutebrowser.browser.webkit.webkitelem.WebKitElement'
-                          '.is_content_editable_prop', return_value=False):
-            yield
-
     @pytest.mark.parametrize('tagname, attributes, editable', [
         ('input', {}, True),
         ('input', {'type': 'text'}, True),
@@ -825,6 +818,7 @@ class TestIsEditable:
     ])
     def test_is_editable(self, tagname, attributes, editable):
         elem = get_webelem(tagname=tagname, attributes=attributes)
+        elem._elem.evaluateJavaScript.return_value = False
         assert elem.is_editable() == editable
 
     @pytest.mark.parametrize('classes, editable', [
@@ -836,6 +830,7 @@ class TestIsEditable:
     ])
     def test_is_editable_div(self, classes, editable):
         elem = get_webelem(tagname='div', classes=classes)
+        elem._elem.evaluateJavaScript.return_value = False
         assert elem.is_editable() == editable
 
     @pytest.mark.parametrize('setting, tagname, attributes, editable', [
@@ -854,6 +849,7 @@ class TestIsEditable:
                                 setting, tagname, attributes, editable):
         config_stub.val.input.insert_mode.plugins = setting
         elem = get_webelem(tagname=tagname, attributes=attributes)
+        elem._elem.evaluateJavaScript.return_value = False
         assert elem.is_editable() == editable
 
 
