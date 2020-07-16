@@ -53,6 +53,7 @@ class WebEngineElement(webelem.AbstractWebElement):
             'class_name': str,
             'rects': list,
             'attributes': dict,
+            'is_content_editable': bool,
             'caret_position': (int, type(None)),
         }  # type: typing.Dict[str, typing.Union[type, typing.Tuple[type,...]]]
         assert set(js_dict.keys()).issubset(js_dict_types.keys())
@@ -77,6 +78,7 @@ class WebEngineElement(webelem.AbstractWebElement):
                                     "{}".format(value, type(value), js_dict))
 
         self._id = js_dict['id']
+        self._is_content_editable = js_dict['is_content_editable']
         self._js_dict = js_dict
 
     def __str__(self) -> str:
@@ -135,6 +137,9 @@ class WebEngineElement(webelem.AbstractWebElement):
     def outer_xml(self) -> str:
         """Get the full HTML representation of this element."""
         return self._js_dict['outer_xml']
+
+    def is_content_editable_prop(self) -> bool:
+        return self._is_content_editable
 
     def value(self) -> webelem.JsValueType:
         return self._js_dict.get('value', None)

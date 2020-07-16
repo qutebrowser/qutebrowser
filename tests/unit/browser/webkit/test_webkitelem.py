@@ -781,6 +781,13 @@ class TestIsEditable:
 
     """Tests for is_editable."""
 
+    @pytest.fixture(autouse=True)
+    def not_is_contenteditable_prop(self, mocker):
+        """Short-circut is_contenteditable_prop for TestIsEditable."""
+        with mocker.patch('qutebrowser.browser.webkit.webkitelem.WebKitElement'
+                          '.is_content_editable_prop', return_value=False):
+            yield
+
     @pytest.mark.parametrize('tagname, attributes, editable', [
         ('input', {}, True),
         ('input', {'type': 'text'}, True),
