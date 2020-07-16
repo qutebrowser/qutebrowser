@@ -267,6 +267,19 @@ class WebKitElement(webelem.AbstractWebElement):
         # No suitable rects found via JS, try via the QWebElement API
         return self._rect_on_view_python(elem_geometry)
 
+    def _is_hidden_css(self) -> bool:
+        """Check if the given element is hidden via CSS."""
+        attr_values = {
+            attr: self._elem.styleProperty(attr, QWebElement.ComputedStyle)
+            for attr in ['visibility', 'display', 'opacity']
+        }
+        invisible = attr_values['visibility'] == 'hidden'
+        none_display = attr_values['display'] == 'none'
+        zero_opacity = attr_values['opacity'] == '0'
+
+        is_ace = 'ace_text-input' in self.classes()
+        return invisible or none_display or (zero_opacity and not is_ace)
+
     def _is_visible(self, mainframe: QWebFrame) -> bool:
         """Check if the given element is visible in the given frame.
 
@@ -275,16 +288,8 @@ class WebKitElement(webelem.AbstractWebElement):
         the tab API.
         """
         self._check_vanished()
-        # CSS attributes which hide an element
-        hidden_attributes = {
-            'visibility': 'hidden',
-            'display': 'none',
-            'opacity': '0',
-        }
-        for k, v in hidden_attributes.items():
-            if (self._elem.styleProperty(k, QWebElement.ComputedStyle) == v and
-                    'ace_text-input' not in self.classes()):
-                return False
+        if self._is_hidden_css():
+            return False
 
         elem_geometry = self._elem.geometry()
         if not elem_geometry.isValid() and elem_geometry.x() == 0:

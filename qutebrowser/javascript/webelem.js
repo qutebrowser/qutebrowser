@@ -161,6 +161,19 @@ window._qutebrowser.webelem = (function() {
         return out;
     }
 
+    function is_hidden_css(elem) {
+        // Check if the element is hidden via CSS
+        const win = elem.ownerDocument.defaultView;
+        const style = win.getComputedStyle(elem, null);
+
+        const invisible = style.getPropertyValue("visibility") !== "visible";
+        const none_display = style.getPropertyValue("display") === "none";
+        const zero_opacity = style.getPropertyValue("opacity") === "0";
+        const is_ace = elem.classList.contains("ace_text-input");
+
+        return (invisible || none_display || (zero_opacity && !is_ace));
+    }
+
     function is_visible(elem, frame = null) {
         // Adopted from vimperator:
         // https://github.com/vimperator/vimperator-labs/blob/vimperator-3.14.0/common/content/hints.js#L259-L285
@@ -168,7 +181,10 @@ window._qutebrowser.webelem = (function() {
         // the cVim implementation here?
         // https://github.com/1995eaton/chromium-vim/blob/1.2.85/content_scripts/dom.js#L74-L134
 
-        const win = elem.ownerDocument.defaultView;
+        if (is_hidden_css(elem)) {
+            return false;
+        }
+
         const offset_rect = get_frame_offset(frame);
         let rect = add_offset_rect(elem.getBoundingClientRect(), offset_rect);
 
@@ -181,25 +197,7 @@ window._qutebrowser.webelem = (function() {
         }
 
         rect = elem.getClientRects()[0];
-        if (!rect) {
-            return false;
-        }
-
-        const style = win.getComputedStyle(elem, null);
-        if (style.getPropertyValue("visibility") !== "visible" ||
-                style.getPropertyValue("display") === "none" ||
-                style.getPropertyValue("opacity") === "0") {
-            // FIXME:qtwebengine do we need this <area> handling?
-            // visibility and display style are misleading for area tags and
-            // they get "display: none" by default.
-            // See https://github.com/vimperator/vimperator-labs/issues/236
-            if (elem.nodeName.toLowerCase() !== "area" &&
-                    !elem.classList.contains("ace_text-input")) {
-                return false;
-            }
-        }
-
-        return true;
+        return Boolean(rect);
     }
 
     // Returns true if the iframe is accessible without
