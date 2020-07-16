@@ -173,7 +173,15 @@ class AbstractWebElement(collections.abc.MutableMapping):
             return False
 
     def is_content_editable_prop(self) -> bool:
-        """Get the value of this element's isContentEditable property."""
+        """Get the value of this element's isContentEditable property.
+
+        The is_content_editable() method above checks for the "contenteditable"
+        HTML attribute, which does not handle inheritance. However, the actual
+        attribute value is still needed for certain cases (like strict=True).
+
+        This instead gets the isContentEditable JS property, which handles
+        inheritance.
+        """
         raise NotImplementedError
 
     def _is_editable_object(self) -> bool:
