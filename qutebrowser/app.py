@@ -447,7 +447,6 @@ def _init_modules(*, args):
     cmdhistory.init()
     log.init.debug("Initializing sessions...")
     sessions.init(q_app)
-    quitter.instance.shutting_down.connect(sessions.shutdown)
 
     log.init.debug("Initializing websettings...")
     websettings.init(args)

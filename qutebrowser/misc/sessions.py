@@ -27,7 +27,7 @@ import typing
 import glob
 import shutil
 
-from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer, pyqtSlot
+from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer
 from PyQt5.QtWidgets import QApplication
 import yaml
 
@@ -80,8 +80,18 @@ def init(parent=None):
     session_manager = SessionManager(base_path, parent)
 
 
-@pyqtSlot()
-def shutdown():
+def shutdown(session: typing.Optional[ArgType], last_window: bool) -> None:
+    """Handle a shutdown by saving sessions and removing the autosave file."""
+    if session_manager is None:
+        return
+
+    if session is not None:
+        session_manager.save(session, last_window=last_window,
+                             load_next_time=True)
+    elif config.val.auto_save.session:
+        session_manager.save(default, last_window=last_window,
+                             load_next_time=True)
+
     session_manager.delete_autosave()
 
 
