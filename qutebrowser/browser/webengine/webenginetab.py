@@ -902,7 +902,8 @@ class _WebEnginePermissions(QObject):
         QWebEnginePage.Geolocation: 'content.geolocation',
         QWebEnginePage.MediaAudioCapture: 'content.media.audio_capture',
         QWebEnginePage.MediaVideoCapture: 'content.media.video_capture',
-        QWebEnginePage.MediaAudioVideoCapture: 'content.media.audio_video_capture',
+        QWebEnginePage.MediaAudioVideoCapture:
+            'content.media.audio_video_capture',
     }
 
     _messages = {
