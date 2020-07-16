@@ -68,23 +68,6 @@ Fixed
 - With Qt 5.14, shared workers are now disabled. This works around a crash in
   QtWebEngine on certain sites (like the Epic Games Store or the Unreal Engine
   page).
-- Generating docs with `asciidoc2html.py` (e.g. via `mkvenv.py`) now works
-  correctly without Pygments being installed system-wide.
-- Ever since Qt 5.9, when `input.mouse.rocker_gestures` was enabled, the
-  context menu still was shown when clicking the right mouse button, thus
-  preventing the rocker gestures. This is now fixed.
-- Certain `autoconfig.yml` with an invalid structure could lead to crashes,
-  which are now fixed.
-- Clicking the inspector switched from existing modes (such as passthrough) to
-  normal mode since v1.13.0. Now insert mode is only entered when the inspector
-  is clicked in normal mode.
-- Pulseaudio now shows qutebrowser's audio streams as qutebrowser correctly,
-  rather than showing them as Chromium (depending on the Qt version).
-- The `qute-lastpass` userscript now filters out duplicate entries with
-  `--merge-candidates`.
-- If `:help` was called with a deprecated command (e.g. `:help :inspector`),
-  the help page would show despite deprecated commands not being documented.
-  This now shows an error instead.
 - When a window is closed, the tab it contains are now correctly shut down
   (closing e.g. any dialogs which are still open for those tabs).
 - The Qt 5.15 session workaround now loads the correct (rather than the latest)
@@ -93,6 +76,23 @@ Fixed
   the user launching qutebrowser (most likely due to a bug in the application
   launching it). When this happens, an error is now displayed instead of
   crashing.
+- Certain `autoconfig.yml` with an invalid structure could lead to crashes,
+  which are now fixed.
+- Generating docs with `asciidoc2html.py` (e.g. via `mkvenv.py`) now works
+  correctly without Pygments being installed system-wide.
+- Ever since Qt 5.9, when `input.mouse.rocker_gestures` was enabled, the
+  context menu still was shown when clicking the right mouse button, thus
+  preventing the rocker gestures. This is now fixed.
+- Clicking the inspector switched from existing modes (such as passthrough) to
+  normal mode since v1.13.0. Now insert mode is only entered when the inspector
+  is clicked in normal mode.
+- Pulseaudio now shows qutebrowser's audio streams as qutebrowser correctly,
+  rather than showing them as Chromium with some Qt versions.
+- If `:help` was called with a deprecated command (e.g. `:help :inspector`),
+  the help page would show despite deprecated commands not being documented.
+  This now shows an error instead.
+- The `qute-lastpass` userscript now filters out duplicate entries with
+  `--merge-candidates`.
 
 v1.13.0 (2020-06-26)
 --------------------

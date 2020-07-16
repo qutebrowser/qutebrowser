@@ -40,7 +40,6 @@ except ImportError:
 
 import qutebrowser
 from qutebrowser.api import cmdutils
-from qutebrowser.config import config
 from qutebrowser.utils import log
 from qutebrowser.misc import sessions, ipc, objects
 from qutebrowser.mainwindow import prompt

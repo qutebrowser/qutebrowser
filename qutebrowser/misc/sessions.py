@@ -83,15 +83,15 @@ def init(parent=None):
 def shutdown(session: typing.Optional[ArgType], last_window: bool) -> None:
     """Handle a shutdown by saving sessions and removing the autosave file."""
     if session_manager is None:
-        return
+        return  # type: ignore
 
     try:
         if session is not None:
             session_manager.save(session, last_window=last_window,
-                                load_next_time=True)
+                                 load_next_time=True)
         elif config.val.auto_save.session:
             session_manager.save(default, last_window=last_window,
-                                load_next_time=True)
+                                 load_next_time=True)
     except SessionError as e:
         log.sessions.error("Failed to save session: {}".format(e))
 
