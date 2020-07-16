@@ -691,6 +691,11 @@ class QuteProc(testprocess.Process):
         finally:
             super().after_test()
 
+    def _wait_for_ipc(self):
+        """Wait for an IPC message to arrive."""
+        self.wait_for(category='ipc', module='ipc', function='on_ready_read',
+                      message='Read from socket *')
+
     def send_ipc(self, commands, target_arg=''):
         """Send a raw command to the running IPC socket."""
         delay = self.request.config.getoption('--qute-delay')
@@ -698,8 +703,14 @@ class QuteProc(testprocess.Process):
 
         assert self._ipc_socket is not None
         ipc.send_to_running_instance(self._ipc_socket, commands, target_arg)
-        self.wait_for(category='ipc', module='ipc', function='on_ready_read',
-                      message='Read from socket *')
+
+        try:
+            self._wait_for_ipc()
+        except testprocess.WaitForTimeout:
+            # Sometimes IPC messages seem to get lost on Windows CI?
+            # Retry a second time as this shouldn't make tests fail.
+            ipc.send_to_running_instance(self._ipc_socket, commands, target_arg)
+            self._wait_for_ipc()
 
     def start(self, *args, wait_focus=True,
               **kwargs):  # pylint: disable=arguments-differ
