@@ -821,6 +821,17 @@ class TestIsEditable:
         elem._elem.evaluateJavaScript.return_value = False
         assert elem.is_editable() == editable
 
+    @pytest.mark.parametrize('strict, attributes, expected', [
+        (False, {}, True),
+        (False, {'disabled': 'true'}, False),
+        (False, {'readonly': 'true'}, False),
+        (True, {}, False),
+    ])
+    def test_is_editable_contenteditable(self, strict, attributes, expected):
+        elem = get_webelem(tagname='foobar', attributes=attributes)
+        elem._elem.evaluateJavaScript.return_value = True
+        assert elem.is_editable(strict=strict) == expected
+
     @pytest.mark.parametrize('classes, editable', [
         (None, False),
         ('foo-kix-bar', False),
