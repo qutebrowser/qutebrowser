@@ -97,13 +97,13 @@ window._qutebrowser.webelem = (function() {
         const caret_position = get_caret_position(elem, frame);
 
         // isContentEditable occasionally returns undefined.
-        const is_contenteditable = elem.isContentEditable || false;
+        const is_content_editable = elem.isContentEditable || false;
 
         const out = {
             "id": id,
             "rects": [],  // Gets filled up later
             "caret_position": caret_position,
-            "is_content_editable": is_contenteditable,
+            "is_content_editable": is_content_editable,
         };
 
         // Deal with various fun things which can happen in form elements

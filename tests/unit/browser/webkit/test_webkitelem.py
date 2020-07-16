@@ -827,7 +827,7 @@ class TestIsEditable:
         (False, {'readonly': 'true'}, False),
         (True, {}, False),
     ])
-    def test_is_editable_contenteditable(self, strict, attributes, expected):
+    def test_is_editable_content_editable(self, strict, attributes, expected):
         elem = get_webelem(tagname='foobar', attributes=attributes)
         elem._elem.evaluateJavaScript.return_value = True
         assert elem.is_editable(strict=strict) == expected
