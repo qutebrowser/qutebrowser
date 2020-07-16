@@ -85,12 +85,15 @@ def shutdown(session: typing.Optional[ArgType], last_window: bool) -> None:
     if session_manager is None:
         return
 
-    if session is not None:
-        session_manager.save(session, last_window=last_window,
-                             load_next_time=True)
-    elif config.val.auto_save.session:
-        session_manager.save(default, last_window=last_window,
-                             load_next_time=True)
+    try:
+        if session is not None:
+            session_manager.save(session, last_window=last_window,
+                                load_next_time=True)
+        elif config.val.auto_save.session:
+            session_manager.save(default, last_window=last_window,
+                                load_next_time=True)
+    except SessionError as e:
+        log.sessions.error("Failed to save session: {}".format(e))
 
     session_manager.delete_autosave()
 

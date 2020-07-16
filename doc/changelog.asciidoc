@@ -56,6 +56,8 @@ Fixed
   mode and get hints assigned correctly.
 - When checkmarks, radio buttons and some other elements are styled via the
   Bootstrap CSS framework, they now get hints correctly.
+- When the session file isn't writable when qutebrowser is quit, an error is
+  now logged instead of crashing.
 
 v1.13.1 (unreleased)
 --------------------
