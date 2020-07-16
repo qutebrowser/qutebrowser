@@ -52,6 +52,10 @@ Fixed
   internally override any `enable-features=...` flags passed via `qt.args` or
   `--qt-flag`. It now correctly combines existing `enable-feature` flags with
   internal ones.
+- Elements with an inherited "contenteditable" attribute now trigger insert
+  mode and get hints assigned correctly.
+- When checkmarks, radio buttons and some other elements are styled via the
+  Bootstrap CSS framework, they now get hints correctly.
 
 v1.13.1 (unreleased)
 --------------------
