@@ -116,6 +116,7 @@ class WebKitElement(webelem.AbstractWebElement):
         return self._elem.toOuterXml()
 
     def is_content_editable_prop(self) -> bool:
+        self._check_vanished()
         val = self._elem.evaluateJavaScript('this.isContentEditable || false')
         assert isinstance(val, bool)
         return val

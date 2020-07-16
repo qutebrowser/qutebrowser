@@ -263,6 +263,8 @@ class TestWebKitElement:
         pytest.param(lambda e: e.remove_blank_target(),
                      id='remove_blank_target'),
         pytest.param(lambda e: e.outer_xml(), id='outer_xml'),
+        pytest.param(lambda e: e.is_content_editable_prop(),
+                     id='is_content_editable_prop'),
         pytest.param(lambda e: e.tag_name(), id='tag_name'),
         pytest.param(lambda e: e.rect_on_view(), id='rect_on_view'),
         pytest.param(lambda e: e._is_visible(None), id='is_visible'),
