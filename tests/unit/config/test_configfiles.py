@@ -617,6 +617,18 @@ class TestYamlMigrations:
         assert data['fonts.tabs.unselected']['global'] == val
         assert data['fonts.tabs.selected']['global'] == val
 
+    def test_content_media_capture(self, yaml, autoconfig):
+        val = 'ask'
+        autoconfig.write({'content.media_capture': {'global': val}})
+
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        assert data['content.media.audio_capture']['global'] == val
+        assert data['content.media.audio_video_capture']['global'] == val
+        assert data['content.media.video_capture']['global'] == val
+
     def test_empty_pattern(self, yaml, autoconfig):
         valid_pattern = 'https://example.com/*'
         invalid_pattern = '*://*./*'
