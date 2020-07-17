@@ -69,7 +69,7 @@ Fixed
 - When the session file isn't writable when qutebrowser is quit, an error is
   now logged instead of crashing.
 
-v1.13.1 (unreleased)
+v1.13.1 (2020-07-17)
 --------------------
 
 Fixed
