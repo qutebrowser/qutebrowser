@@ -171,7 +171,9 @@
 |<<content.local_content_can_access_file_urls,content.local_content_can_access_file_urls>>|Allow locally loaded documents to access other local URLs.
 |<<content.local_content_can_access_remote_urls,content.local_content_can_access_remote_urls>>|Allow locally loaded documents to access remote URLs.
 |<<content.local_storage,content.local_storage>>|Enable support for HTML 5 local storage and Web SQL.
-|<<content.media_capture,content.media_capture>>|Allow websites to record audio/video.
+|<<content.media.audio_capture,content.media.audio_capture>>|Allow websites to record audio.
+|<<content.media.audio_video_capture,content.media.audio_video_capture>>|Allow websites to record audio and video.
+|<<content.media.video_capture,content.media.video_capture>>|Allow websites to record video.
 |<<content.mouse_lock,content.mouse_lock>>|Allow websites to lock your mouse pointer.
 |<<content.mute,content.mute>>|Automatically mute tabs.
 |<<content.netrc_file,content.netrc_file>>|Netrc-file for HTTP authentication.
@@ -2311,9 +2313,45 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-[[content.media_capture]]
-=== content.media_capture
-Allow websites to record audio/video.
+[[content.media.audio_capture]]
+=== content.media.audio_capture
+Allow websites to record audio.
+
+This setting supports URL patterns.
+
+Type: <<types,BoolAsk>>
+
+Valid values:
+
+ * +true+
+ * +false+
+ * +ask+
+
+Default: +pass:[ask]+
+
+This setting is only available with the QtWebEngine backend.
+
+[[content.media.audio_video_capture]]
+=== content.media.audio_video_capture
+Allow websites to record audio and video.
+
+This setting supports URL patterns.
+
+Type: <<types,BoolAsk>>
+
+Valid values:
+
+ * +true+
+ * +false+
+ * +ask+
+
+Default: +pass:[ask]+
+
+This setting is only available with the QtWebEngine backend.
+
+[[content.media.video_capture]]
+=== content.media.video_capture
+Allow websites to record video.
 
 This setting supports URL patterns.
 

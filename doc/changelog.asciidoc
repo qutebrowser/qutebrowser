@@ -28,6 +28,16 @@ Changed
   installed, qutebrowser will now support screen sharing on Wayland. Note that
   QtWebEngine 5.15.1 (planned for August 2020) is needed, though the Archlinux
   qt5-webengine package backports the patch.
+- The `content.media_capture` setting got split up into three more fine-grained
+  settings, `content.media.audio_capture`, `.video_capture` and
+  `.audio_video_capture`. Before this change, anwering "always" to a prompt
+  about e.g. audio capturing would set the `content.media_capture` setting,
+  which would also allow the same website to capture video on a future visit.
+  Now every prompt will set the appropriate setting, though existing
+  `content.media_capture` settings in `autoconfig.yml` will be migrated to set
+  all three settings. To review/change previously granted permissions, use
+  `:config-diff` and e.g.
+  `:config-unset -u example.org content.media.video_capture`.
 
 Added
 ~~~~~
