@@ -486,7 +486,11 @@ For any privacy questions, please contact mailto:privacy@qutebrowser.org[].
 
 === Website
 
-The qutebrowser.org website does not use any cookies or trackers.
+The qutebrowser.org website does not use any cookies or trackers. It does not
+store any logs, except in rare situations when those are explicitly (and
+temporarily) enabled to debug website issues. Even if enabled, IP addresses are
+partially redacted in the logs. As soon as debugging is finished, any logs
+are removed.
 
 Note that some services related to qutebrowser are stored on third-party
 services such as GitHub. By using their websites, you're subject to their

@@ -80,7 +80,7 @@ Fixed
   page).
 - When a window is closed, the tab it contains are now correctly shut down
   (closing e.g. any dialogs which are still open for those tabs).
-- The Qt 5.15 session workaround now loads the correct (rather than the latest)
+- The Qt 5.15 session workaround now loads the correct (rather than the last)
   page when `:back` was used before saving a session.
 - In certain situations on Windows, qutebrowser fails to find the username of
   the user launching qutebrowser (most likely due to a bug in the application
