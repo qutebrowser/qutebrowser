@@ -6,6 +6,7 @@ env:
 
 jobs:
   linters:
+    timeout-minutes: 5
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -57,6 +58,7 @@ jobs:
         run: "tox -e ${{ matrix.testenv}} -- ${{ matrix.args }}"
 
   tests-docker:
+    timeout-minutes: 30
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
@@ -83,6 +85,7 @@ jobs:
       - run: tox -e py38
 
   tests:
+    timeout-minutes: 45
     continue-on-error: "${{ matrix.experimental == true }}"
     strategy:
       fail-fast: false
@@ -177,6 +180,7 @@ jobs:
           name: "${{ matrix.testenv }}"
 
   codeql:
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -197,6 +201,8 @@ jobs:
       uses: github/codeql-action/analyze@v1
 
   irc:
+    timeout-minutes: 2
+    continue-on-error: true
     runs-on: ubuntu-latest
     needs: [linters, tests, tests-docker, codeql]
     if: "always() && github.repository_owner == 'qutebrowser'"
