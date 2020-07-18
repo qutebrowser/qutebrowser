@@ -207,8 +207,8 @@ class AsciiDoc:
 
         for dst, link_name in [
                 ('README.html', 'index.html'),
-                ((REPO_ROOT / 'doc' / 'quickstart.html'),
-                 'quickstart.html')]:
+                ((pathlib.Path('doc') / 'quickstart.html'), 'quickstart.html'),
+        ]:
             assert isinstance(dst, (str, pathlib.Path))    # for mypy
             try:
                 (outdir / link_name).symlink_to(dst)
