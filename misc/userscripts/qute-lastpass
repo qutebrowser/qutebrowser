@@ -90,6 +90,7 @@ def pass_(domain, encoding):
 
     return candidates, err
 
+
 def dmenu(items, invocation, encoding):
     command = shlex.split(invocation)
     process = subprocess.run(command, input='\n'.join(
@@ -98,10 +99,12 @@ def dmenu(items, invocation, encoding):
 
 
 def fake_key_raw(text):
+    sequence = ''
+
     for character in text:
         # Escape all characters by default, space requires special handling
-        sequence = '" "' if character == ' ' else '\{}'.format(character)
-        qute_command('fake-key {}'.format(sequence))
+        sequence = sequence + ('" "' if character == ' ' else '\\{}'.format(character))
+    qute_command('fake-key {}'.format(sequence))
 
 
 def main(arguments):
