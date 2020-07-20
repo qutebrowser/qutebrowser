@@ -45,6 +45,13 @@ class Message:
     filename = attr.ib()
     text = attr.ib()
 
+    def show(self):
+        """Print this message."""
+        if scriptutils.ON_CI:
+            scriptutils.gha_error(self.text)
+        else:
+            print(self.text)
+
 
 MsgType = enum.Enum('MsgType', 'insufficient_coverage, perfect_file')
 
@@ -311,7 +318,7 @@ def main_check():
         print()
         scriptutils.print_title("Coverage check failed")
         for msg in messages:
-            print(msg.text)
+            msg.show()
         print()
         filters = ','.join('qutebrowser/' + msg.filename for msg in messages)
         subprocess.run([sys.executable, '-m', 'coverage', 'report',
