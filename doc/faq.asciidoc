@@ -206,7 +206,9 @@ Why does J move to the next (right) tab, and K to the previous (left) one?::
     and qutebrowser's keybindings are designed to be compatible with dwb's.
     The rationale behind it is that J is "down" in vim, and K is "up", which
     corresponds nicely to "next"/"previous". It also makes much more sense with
-    vertical tabs (e.g. `:set tabs.position left`).
+    vertical tabs (e.g. `:set tabs.position left`). If you prefer swapped
+    bindings, you can run `:bind J tab-prev` and `:bind K tab-next` to swap
+    them.
 
 What's the difference between insert and passthrough mode?::
     They are quite similar, but insert mode has some bindings (like `Ctrl-e` to
