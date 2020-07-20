@@ -110,7 +110,7 @@ class TestQuteLastPassComponents:
         qute_lastpass.pass_('example.com', 'utf-8')
 
         subprocess.run.assert_called_once_with(
-            ['lpass', 'show', '-x', '-j', '-G', '.*example.com.*'],
+            ['lpass', 'show', '-x', '-j', '-G', '\\bexample\\.com'],
             stdout=mocker.ANY, stderr=mocker.ANY)
 
     def test_pass_returns_candidates(self, mocker):
@@ -261,7 +261,7 @@ class TestQuteLastPassMain:
         assert exit_code == qute_lastpass.ExitCodes.SUCCESS
 
         subprocess.run.assert_has_calls([
-            call(['lpass', 'show', '-x', '-j', '-G', '.*www.example.com.*'],
+            call(['lpass', 'show', '-x', '-j', '-G', '\\bwww\\.example\\.com'],
                  stdout=mocker.ANY, stderr=mocker.ANY),
             call(['rofi', '-dmenu'],
                  input=b'12345 | www.example.com | https://www.example.com | fake@fake.com\n23456 | Sites/www.example.com | https://www.example.com | john.doe@fake.com',
@@ -329,13 +329,13 @@ class TestQuteLastPassMain:
         assert exit_code == qute_lastpass.ExitCodes.SUCCESS
 
         subprocess.run.assert_has_calls([
-            call(['lpass', 'show', '-x', '-j', '-G', '.*www.example.com.*'],
+            call(['lpass', 'show', '-x', '-j', '-G', '\\bwww\\.example\\.com'],
                  stdout=mocker.ANY, stderr=mocker.ANY),
-            call(['lpass', 'show', '-x', '-j', '-G', '.*example.com.*'],
+            call(['lpass', 'show', '-x', '-j', '-G', '\\bexample\\.com'],
                  stdout=mocker.ANY, stderr=mocker.ANY),
-            call(['lpass', 'show', '-x', '-j', '-G', '.*wwwexample.*'],
+            call(['lpass', 'show', '-x', '-j', '-G', '\\bwwwexample'],
                  stdout=mocker.ANY, stderr=mocker.ANY),
-            call(['lpass', 'show', '-x', '-j', '-G', '.*example.*'],
+            call(['lpass', 'show', '-x', '-j', '-G', '\\bexample'],
                  stdout=mocker.ANY, stderr=mocker.ANY),
             call(['rofi', '-dmenu'],
                  input=b'12345 | www.example.com | https://www.example.com | fake@fake.com\n23456 | Sites/www.example.com | https://www.example.com | john.doe@fake.com\n345 | example.com | https://example.com | joe.doe@fake.com\n456 | Sites/example.com | http://example.com | jane.doe@fake.com',
