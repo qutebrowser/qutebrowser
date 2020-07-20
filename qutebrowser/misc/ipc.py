@@ -31,6 +31,7 @@ from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
 
 import qutebrowser
 from qutebrowser.utils import log, usertypes, error, standarddir, utils
+from qutebrowser.qt import sip
 
 
 CONNECT_TIMEOUT = 100  # timeout for connecting/disconnecting
@@ -370,6 +371,11 @@ class IPCServer(QObject):
             socket = self._old_socket
         else:
             socket = self._socket
+
+        if sip.isdeleted(socket):
+            log.ipc.warning("Ignoring deleted IPC socket")
+            return
+
         self._timer.stop()
         while socket is not None and socket.canReadLine():
             data = bytes(socket.readLine())
