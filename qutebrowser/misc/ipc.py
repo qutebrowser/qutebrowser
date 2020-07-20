@@ -372,7 +372,7 @@ class IPCServer(QObject):
         else:
             socket = self._socket
 
-        if sip.isdeleted(socket):
+        if sip.isdeleted(socket):  # pragma: no cover
             log.ipc.warning("Ignoring deleted IPC socket")
             return
 
