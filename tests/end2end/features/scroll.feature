@@ -192,6 +192,7 @@ Feature: Scrolling
         When I run :scroll-to-perc --horizontal 100
         Then the page should be scrolled horizontally
 
+    @flaky
     Scenario: Scrolling to right and to left with :scroll-to-perc
         When I run :scroll-to-perc --horizontal 100
         And I wait until the scroll position changed
