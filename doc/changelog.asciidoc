@@ -38,9 +38,6 @@ Changed
   all three settings. To review/change previously granted permissions, use
   `:config-diff` and e.g.
   `:config-unset -u example.org content.media.video_capture`.
-- When `input.insert_mode.leave_on_load` is enabled (the default), there are
-  now additional heuristics to avoid leaving insert mode if an editable element
-  is focused before the page finished loading.
 
 Added
 ~~~~~

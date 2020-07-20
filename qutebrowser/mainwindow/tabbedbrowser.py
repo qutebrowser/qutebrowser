@@ -35,7 +35,7 @@ from qutebrowser.mainwindow import tabwidget, mainwindow
 from qutebrowser.browser import signalfilter, browsertab, history
 from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message, jinja)
-from qutebrowser.misc import quitter, objects
+from qutebrowser.misc import quitter
 
 
 @attr.s
@@ -215,11 +215,7 @@ class TabbedBrowser(QWidget):
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
-        self._leave_modes_on_load_finished = (
-            qtutils.version_check('5.10', compiled=False) and
-            objects.backend == usertypes.Backend.QtWebEngine)
-
-        if self._leave_modes_on_load_finished:
+        if qtutils.version_check('5.10', compiled=False):
             self.cur_load_finished.connect(self._leave_modes_on_load)
         else:
             self.cur_load_started.connect(self._leave_modes_on_load)
@@ -720,32 +716,21 @@ class TabbedBrowser(QWidget):
     @pyqtSlot()
     def _leave_modes_on_load(self):
         """Leave insert/hint mode when loading started."""
-        tab = self.widget.currentWidget()
-        if tab is None:
-            return  # type: ignore[unreachable]
-
-        url = tab.url()
-        if not url.isValid():
+        try:
+            url = self.current_url()
+            if not url.isValid():
+                url = None
+        except qtutils.QtValueError:
             url = None
-
-        def _leave_mode_cb(elem):
-            """Leave insert mode if the current element isn't editable."""
-            if elem is None or not elem.is_editable():
-                modeman.leave(self._win_id, usertypes.KeyMode.insert,
-                              'new page loaded', maybe=True)
-
         if config.instance.get('input.insert_mode.leave_on_load',
                                url=url):
-            if self._leave_modes_on_load_finished:
-                tab.elements.find_focused(_leave_mode_cb)
-            else:
-                _leave_mode_cb(elem=None)
+            modeman.leave(self._win_id, usertypes.KeyMode.insert,
+                          'load started', maybe=True)
         else:
             log.modes.debug("Ignoring leave_on_load request due to setting.")
-
         if config.cache['hints.leave_on_load']:
             modeman.leave(self._win_id, usertypes.KeyMode.hint,
-                          'new page loaded', maybe=True)
+                          'load started', maybe=True)
         else:
             log.modes.debug("Ignoring leave_on_load request due to setting.")
 

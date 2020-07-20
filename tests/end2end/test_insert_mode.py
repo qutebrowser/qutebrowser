@@ -102,23 +102,3 @@ def test_auto_leave_insert_mode_reload(quteproc, leave_on_load):
     else:
         quteproc.wait_for(
             message='Ignoring leave_on_load request due to setting.')
-
-
-def test_auto_leave_insert_mode_delayed_load(quteproc):
-    """Test insert mode leave behavior with a delayed load.
-
-    If we finish loading after the user focused an insert field, we should not
-    exit insert mode.
-    """
-    quteproc.set_setting('input.insert_mode.leave_on_load', 'true')
-    quteproc.open_path('data/insert_mode_settings/html/delayed.html',
-                       wait=False)
-    quteproc.wait_for(message="Changing title for idx 0 to "
-                      "'Input with delayed load'")
-
-    quteproc.send_cmd(':click-element --force-event id qute-input')
-    quteproc.wait_for(message='Entering mode KeyMode.insert (reason: *)')
-
-    quteproc.open_path('delayed-image-continue', new_bg_tab=True)
-    quteproc.ensure_not_logged(message='Leaving mode KeyMode.insert '
-                               '(reason: new page loaded)')
