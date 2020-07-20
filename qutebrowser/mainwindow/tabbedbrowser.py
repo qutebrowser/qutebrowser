@@ -722,7 +722,7 @@ class TabbedBrowser(QWidget):
         """Leave insert/hint mode when loading started."""
         tab = self.widget.currentWidget()
         if tab is None:
-            return
+            return  # type: ignore[unreachable]
 
         url = tab.url()
         if not url.isValid():

@@ -111,7 +111,8 @@ def test_auto_leave_insert_mode_delayed_load(quteproc):
     exit insert mode.
     """
     quteproc.set_setting('input.insert_mode.leave_on_load', 'true')
-    quteproc.open_path('data/insert_mode_settings/html/delayed.html', wait=False)
+    quteproc.open_path('data/insert_mode_settings/html/delayed.html',
+                       wait=False)
     quteproc.wait_for(message="Changing title for idx 0 to "
                       "'Input with delayed load'")
 
