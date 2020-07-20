@@ -458,14 +458,14 @@ Feature: Using hints
         When I open data/hints/html/wrapped.html
         And I hint with args "all"
         And I run :reload
-        Then "Leaving mode KeyMode.hint (reason: load started)" should be logged
+        Then "Leaving mode KeyMode.hint (reason: new page loaded)" should be logged
 
     Scenario: Leaving hint mode on reload without leave_on_load
         When I set hints.leave_on_load to false
         And I open data/hints/html/simple.html
         And I hint with args "all"
         And I run :reload
-        Then "Leaving mode KeyMode.hint (reason: load started)" should not be logged
+        Then "Leaving mode KeyMode.hint (reason: new page loaded)" should not be logged
 
 
     ### hints.auto_follow option

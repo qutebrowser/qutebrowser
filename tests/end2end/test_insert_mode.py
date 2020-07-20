@@ -120,4 +120,4 @@ def test_auto_leave_insert_mode_delayed_load(quteproc):
 
     quteproc.open_path('delayed-image-continue', new_bg_tab=True)
     quteproc.ensure_not_logged(message='Leaving mode KeyMode.insert '
-                               '(reason: load started)')
+                               '(reason: new page loaded)')
