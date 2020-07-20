@@ -38,7 +38,7 @@ import cheroot.wsgi
 import flask
 
 app = flask.Flask(__name__)
-_redirect_later_event = None
+events = {'redirect-later': None, 'delayed-image': None}
 
 
 @app.route('/')
@@ -68,19 +68,32 @@ def send_data(path):
     return flask.send_from_directory(data_dir, path)
 
 
+def _delayed_wait(name):
+    """Shared code for redirect-later/delayed-image."""
+    events[name] = threading.Event()
+    ok = events[name].wait(timeout=30 * 1000)
+    assert ok
+    events[name] = None
+
+
+def _delayed_continue(name):
+    """Shared code for redirect_later_continue and delayed_image_continue."""
+    if events[name] is None:
+        return flask.Response(b'Timed out or no redirect pending.')
+    else:
+        events[name].set()
+        return flask.Response(b'Continued.')
+
+
 @app.route('/redirect-later')
 def redirect_later():
     """302 redirect to / after the given delay.
 
     If delay is -1, wait until a request on redirect-later-continue is done.
     """
-    global _redirect_later_event
     delay = float(flask.request.args.get('delay', '1'))
     if delay == -1:
-        _redirect_later_event = threading.Event()
-        ok = _redirect_later_event.wait(timeout=30 * 1000)
-        assert ok
-        _redirect_later_event = None
+        _delayed_wait('redirect-later')
     else:
         time.sleep(delay)
     x = flask.redirect('/')
@@ -90,11 +103,20 @@ def redirect_later():
 @app.route('/redirect-later-continue')
 def redirect_later_continue():
     """Continue a redirect-later request."""
-    if _redirect_later_event is None:
-        return flask.Response(b'Timed out or no redirect pending.')
-    else:
-        _redirect_later_event.set()
-        return flask.Response(b'Continued redirect.')
+    return _delayed_continue('redirect-later')
+
+
+@app.route('/delayed-image')
+def delayed_image():
+    """Serve an image after a request on delayed-image-continue."""
+    _delayed_wait('delayed-image')
+    return send_data('qutebrowser.png')
+
+
+@app.route('/delayed-image-continue')
+def delayed_image_continue():
+    """Continue a delayed-image request."""
+    return _delayed_continue('delayed-image')
 
 
 @app.route('/redirect-self')
