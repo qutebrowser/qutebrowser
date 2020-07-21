@@ -32,7 +32,7 @@ jobs:
             .tox
             ~/.cache/pip
           key: "${{ matrix.testenv }}-${{ hashFiles('misc/requirements/requirements-*.txt') }}-${{ hashFiles('requirements.txt') }}"
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v2.1.1
         with:
           python-version: '3.8'
       - uses: actions/setup-node@v2.1.0
@@ -148,7 +148,7 @@ jobs:
             ~/.cache/pip
           key: "${{ matrix.testenv }}-${{ matrix.os }}-${{ matrix.python }}-${{ hashFiles('misc/requirements/requirements-*.txt') }}-${{ hashFiles('requirements.txt') }}"
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v2.1.1
         if: "!endsWith(matrix.python, '-dev')"
         with:
           python-version: "${{ matrix.python }}"
