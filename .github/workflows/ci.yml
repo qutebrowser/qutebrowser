@@ -35,7 +35,7 @@ jobs:
       - uses: actions/setup-python@v2.1.1
         with:
           python-version: '3.8'
-      - uses: actions/setup-node@v2.1.0
+      - uses: actions/setup-node@v2.1.1
         with:
           node-version: '12.x'
         if: "matrix.testenv == 'eslint'"
