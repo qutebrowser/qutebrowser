@@ -90,7 +90,7 @@ window._qutebrowser.scroll = (function() {
         }
     }
 
-    function scroll_element(element, x, y, smooth = false) {
+    function scroll_element(element, x, y, smooth = false, restore = false) {
         const pre_y = element.scrollTop;
         const pre_x = element.scrollLeft;
         if (smooth_supported()) {
@@ -101,8 +101,16 @@ window._qutebrowser.scroll = (function() {
             element.scrollTop += y;
             element.scrollLeft += x;
         }
+
+        const changed = pre_x !== element.scrollLeft ||
+              pre_y !== element.scrollTop;
+
+        if (restore && changed) {
+            element.scrollTop = pre_y;
+            element.scrollLeft = pre_x;
+        }
         // Return true if we scrolled at all
-        return pre_x !== element.scrollLeft || pre_y !== element.scrollTop;
+        return changed;
     }
 
     // Scroll a provided window's element by x,y as a percent
@@ -121,10 +129,10 @@ window._qutebrowser.scroll = (function() {
     }
 
     function can_scroll(element, x, y) {
-        const x_sign = Math.sign(x);
-        const y_sign = Math.sign(y);
-        return (scroll_element(element, x_sign, y_sign) &&
-                scroll_element(element, -x_sign, -y_sign));
+        // Use +/-4 to handle negative zoom values.
+        const x_sign = Math.sign(x) * 4;
+        const y_sign = Math.sign(y) * 4;
+        return scroll_element(element, x_sign, y_sign, false, true);
     }
 
     // Fuzz allows checking both positive and negative scrolling in tests.
