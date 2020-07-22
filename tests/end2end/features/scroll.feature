@@ -238,6 +238,7 @@ Feature: Scrolling
         Then the page should be scrolled vertically
 
     # https://github.com/qutebrowser/qutebrowser/issues/1821
+    @flaky
     Scenario: :scroll-to-perc without doctype
         When I open data/scroll/no_doctype.html
         And I run :scroll-to-perc 100
