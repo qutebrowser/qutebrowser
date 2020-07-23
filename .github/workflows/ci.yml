@@ -23,6 +23,7 @@ jobs:
           - testenv: eslint
           - testenv: shellcheck
             args: "-f gcc"  # For problem matchers
+          - testenv: yamllint
     steps:
       - uses: actions/checkout@v2
       - uses: actions/cache@v2
@@ -183,22 +184,22 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-      with:
-        # We must fetch at least the immediate parents so that if this is
-        # a pull request then we can checkout the head.
-        fetch-depth: 2
-    # If this run was triggered by a pull request event, then checkout
-    # the head of the pull request instead of the merge commit.
-    - run: git checkout HEAD^2
-      if: ${{ github.event_name == 'pull_request' }}
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v1
-      with:
-        languages: javascript, python
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v1
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          # We must fetch at least the immediate parents so that if this is
+          # a pull request then we can checkout the head.
+          fetch-depth: 2
+      # If this run was triggered by a pull request event, then checkout
+      # the head of the pull request instead of the merge commit.
+      - run: git checkout HEAD^2
+        if: ${{ github.event_name == 'pull_request' }}
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+        with:
+          languages: javascript, python
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
 
   irc:
     timeout-minutes: 2
@@ -207,20 +208,20 @@ jobs:
     needs: [linters, tests, tests-docker, codeql]
     if: "always() && github.repository_owner == 'qutebrowser'"
     steps:
-    - name: Send success IRC notification
-      uses: Gottox/irc-message-action@v1
-      if: "needs.linters.result == 'success' && needs.tests.result == 'success' && needs.tests-docker.result == 'success' && needs.codeql.result == 'success'"
-      with:
-        server: chat.freenode.net
-        channel: '#qutebrowser-dev'
-        nickname: qutebrowser-bot
-        message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
-    - name: Send non-success IRC notification
-      uses: Gottox/irc-message-action@v1
-      if: "needs.linters.result != 'success' || needs.tests.result != 'success' || needs.tests-docker.result != 'success' || needs.codeql.result != 'success'"
-      with:
-        server: chat.freenode.net
-        channel: '#qutebrowser-dev'
-        nickname: qutebrowser-bot
-        message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
-          linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}"
+      - name: Send success IRC notification
+        uses: Gottox/irc-message-action@v1
+        if: "needs.linters.result == 'success' && needs.tests.result == 'success' && needs.tests-docker.result == 'success' && needs.codeql.result == 'success'"
+        with:
+          server: chat.freenode.net
+          channel: '#qutebrowser-dev'
+          nickname: qutebrowser-bot
+          message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
+      - name: Send non-success IRC notification
+        uses: Gottox/irc-message-action@v1
+        if: "needs.linters.result != 'success' || needs.tests.result != 'success' || needs.tests-docker.result != 'success' || needs.codeql.result != 'success'"
+        with:
+          server: chat.freenode.net
+          channel: '#qutebrowser-dev'
+          nickname: qutebrowser-bot
+          message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
+            linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}"

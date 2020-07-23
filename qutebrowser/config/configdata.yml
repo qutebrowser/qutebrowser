@@ -45,18 +45,20 @@ search.ignore_case:
 
 search.incremental:
   type: Bool
-  default: True
-  desc: Find text on a page incrementally, renewing the search for each typed character.
+  default: true
+  desc: >-
+    Find text on a page incrementally, renewing the search for each typed
+    character.
 
 search.wrap:
   type: Bool
-  default: True
+  default: true
   backend:
     QtWebEngine: Qt 5.14
     QtWebKit: true
   desc: >-
-    Wrap around at the top and bottom of the page when advancing through text matches
-    using `:search-next` and `:search-prev`.
+    Wrap around at the top and bottom of the page when advancing through text
+    matches using `:search-next` and `:search-prev`.
 
 new_instance_open_target:
   type:
@@ -589,7 +591,8 @@ content.headers.user_agent:
       with QtWebEngine).
     * `{qt_key}`: "Qt" for QtWebKit, "QtWebEngine" for QtWebEngine.
     * `{qt_version}`: The underlying Qt version.
-    * `{upstream_browser_key}`: "Version" for QtWebKit, "Chrome" for QtWebEngine.
+    * `{upstream_browser_key}`: "Version" for QtWebKit, "Chrome" for
+      QtWebEngine.
     * `{upstream_browser_version}`: The corresponding Safari/Chrome version.
     * `{qutebrowser_version}`: The currently running qutebrowser version.
 
@@ -869,7 +872,7 @@ content.user_stylesheets:
   type:
     name: ListOrValue
     valtype: File
-    none_ok: True
+    none_ok: true
   default: []
   desc: List of user stylesheet filenames to use.
 
@@ -880,7 +883,6 @@ content.webgl:
   desc: Enable WebGL.
 
 content.webrtc_ip_handling_policy:
-  default: all-interfaces
   type:
     name: String
     valid_values:
@@ -1215,8 +1217,8 @@ hints.find_implementation:
   type:
     name: String
     valid_values:
-    - javascript: Better but slower
-    - python: Slightly worse but faster
+      - javascript: Better but slower
+      - python: Slightly worse but faster
   desc: Which implementation to use to find elements to hint.
 
 hints.hide_unmatched_rapid_hints:
@@ -1361,7 +1363,7 @@ hints.leave_on_load:
 
 input.escape_quits_reporter:
   type: Bool
-  default: True
+  default: true
   desc: Allow Escape to quit the crash reporter.
 
 input.forward_unbound_keys:
@@ -1369,9 +1371,9 @@ input.forward_unbound_keys:
   type:
     name: String
     valid_values:
-    - all: "Forward all unbound keys."
-    - auto: "Forward unbound non-alphanumeric keys."
-    - none: "Don't forward any keys."
+      - all: "Forward all unbound keys."
+      - auto: "Forward unbound non-alphanumeric keys."
+      - none: "Don't forward any keys."
   desc: Which unbound keys to forward to the webview in normal mode.
 
 input.insert_mode.auto_load:
@@ -1608,9 +1610,9 @@ statusbar.show:
   type:
     name: String
     valid_values:
-    - always: Always show the statusbar.
-    - never: Always hide the statusbar.
-    - in-mode: Show the statusbar when in modes other than normal mode.
+      - always: Always show the statusbar.
+      - never: Always hide the statusbar.
+      - in-mode: Show the statusbar when in modes other than normal mode.
   desc: When to show the statusbar.
 
 statusbar.padding:
@@ -1636,7 +1638,8 @@ statusbar.widgets:
         - url: "Current page URL."
         - scroll: "Percentage of the current page position like `10%`."
         - scroll_raw: "Raw percentage of the current page position like `10`."
-        - history: "Display an arrow when possible to go back/forward in history."
+        - history: "Display an arrow when possible to go back/forward in
+          history."
         - tabs: "Current active tab, e.g. `2`."
         - keypress: "Display pressed keys when composing a vi command."
         - progress: "Progress bar for the current page loading."
@@ -1751,7 +1754,7 @@ tabs.mode_on_change:
     valid_values:
       - persist: "Retain the current mode."
       - restore: "Restore previously saved mode."
-      - normal:  "Always revert to normal mode."
+      - normal: "Always revert to normal mode."
   desc: When switching tabs, what input mode is applied.
 
 tabs.position:
@@ -1769,10 +1772,10 @@ tabs.show:
   type:
     name: String
     valid_values:
-    - always: Always show the tab bar.
-    - never: Always hide the tab bar.
-    - multiple: Hide the tab bar if only one tab is open.
-    - switching: Show the tab bar when switching tabs.
+      - always: Always show the tab bar.
+      - never: Always hide the tab bar.
+      - multiple: Hide the tab bar if only one tab is open.
+      - switching: Show the tab bar when switching tabs.
   desc: When to show the tab bar.
 
 tabs.show_switching_delay:
@@ -1822,7 +1825,8 @@ tabs.title.format:
     * `{current_title}`: Title of the current web page.
     * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
     * `{index}`: Index of this tab.
-    * `{aligned_index}`: Index of this tab padded with spaces to have the same width.
+    * `{aligned_index}`: Index of this tab padded with spaces to have the same
+      width.
     * `{id}`: Internal tab ID of this tab.
     * `{scroll_pos}`: Page scroll position.
     * `{host}`: Host of the current web page.
@@ -1874,11 +1878,13 @@ tabs.min_width:
     minval: -1
     maxval: maxint
   desc: >-
-    Minimum width (in pixels) of tabs (-1 for the default minimum size behavior).
+    Minimum width (in pixels) of tabs (-1 for the default minimum size
+    behavior).
 
     This setting only applies when tabs are horizontal.
 
-    This setting does not apply to pinned tabs, unless `tabs.pinned.shrink` is False.
+    This setting does not apply to pinned tabs, unless `tabs.pinned.shrink` is
+    False.
 
 tabs.max_width:
   default: -1
@@ -1928,9 +1934,9 @@ tabs.pinned.shrink:
   desc: Shrink pinned tabs down to their contents.
 
 tabs.pinned.frozen:
-    type: Bool
-    default: True
-    desc: Force pinned tabs to stay at fixed URL.
+  type: Bool
+  default: true
+  desc: Force pinned tabs to stay at fixed URL.
 
 tabs.undo_stack_size:
   default: 100
@@ -1971,7 +1977,8 @@ url.auto_search:
       - naive: Use simple/naive check.
       - dns: Use DNS requests (might be slow!).
       - never: Never search automatically.
-      - schemeless: Always search automatically unless URL explicitly contains a scheme.
+      - schemeless: Always search automatically unless URL explicitly contains
+          a scheme.
   default: naive
   desc: What search to start when something else than a URL is entered.
 
@@ -1994,7 +2001,8 @@ url.incdec_segments:
 url.open_base_url:
   type: Bool
   default: false
-  desc: Open base URL of the searchengine if a searchengine shortcut is invoked without parameters.
+  desc: Open base URL of the searchengine if a searchengine shortcut is invoked
+    without parameters.
 
 url.searchengines:
   default:
@@ -2743,7 +2751,8 @@ colors.webpage.darkmode.policy.images:
 
       WARNING: On Qt 5.15.0, this setting can cause frequent renderer process
       crashes due to a
-      https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug in Qt].
+      https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug
+      in Qt].
   restart: true
   backend:
     QtWebEngine: Qt 5.14
@@ -2837,7 +2846,7 @@ fonts.default_family:
   type:
     name: ListOrValue
     valtype: Font
-    none_ok: True
+    none_ok: true
   desc: >-
     Default font families to use.
 
@@ -3214,10 +3223,14 @@ bindings.default:
       gD: tab-give
       q: record-macro
       "@": run-macro
-      tsh: config-cycle -p -t -u *://{url:host}/* content.javascript.enabled ;; reload
-      tSh: config-cycle -p -u *://{url:host}/* content.javascript.enabled ;; reload
-      tsH: config-cycle -p -t -u *://*.{url:host}/* content.javascript.enabled ;; reload
-      tSH: config-cycle -p -u *://*.{url:host}/* content.javascript.enabled ;; reload
+      tsh: config-cycle -p -t -u *://{url:host}/* content.javascript.enabled
+        ;; reload
+      tSh: config-cycle -p -u *://{url:host}/* content.javascript.enabled
+        ;; reload
+      tsH: config-cycle -p -t -u *://*.{url:host}/* content.javascript.enabled
+        ;; reload
+      tSH: config-cycle -p -u *://*.{url:host}/* content.javascript.enabled
+        ;; reload
       tsu: config-cycle -p -t -u {url} content.javascript.enabled ;; reload
       tSu: config-cycle -p -u {url} content.javascript.enabled ;; reload
       tph: config-cycle -p -t -u *://{url:host}/* content.plugins ;; reload
@@ -3232,12 +3245,18 @@ bindings.default:
       tIH: config-cycle -p -u *://*.{url:host}/* content.images ;; reload
       tiu: config-cycle -p -t -u {url} content.images ;; reload
       tIu: config-cycle -p -u {url} content.images ;; reload
-      tch: config-cycle -p -t -u *://{url:host}/* content.cookies.accept all no-3rdparty never ;; reload
-      tCh: config-cycle -p -u *://{url:host}/* content.cookies.accept all no-3rdparty never ;; reload
-      tcH: config-cycle -p -t -u *://*.{url:host}/* content.cookies.accept all no-3rdparty never ;; reload
-      tCH: config-cycle -p -u *://*.{url:host}/* content.cookies.accept all no-3rdparty never ;; reload
-      tcu: config-cycle -p -t -u {url} content.cookies.accept all no-3rdparty never ;; reload
-      tCu: config-cycle -p -u {url} content.cookies.accept all no-3rdparty never ;; reload
+      tch: config-cycle -p -t -u *://{url:host}/* content.cookies.accept
+        all no-3rdparty never ;; reload
+      tCh: config-cycle -p -u *://{url:host}/* content.cookies.accept
+        all no-3rdparty never ;; reload
+      tcH: config-cycle -p -t -u *://*.{url:host}/* content.cookies.accept
+        all no-3rdparty never ;; reload
+      tCH: config-cycle -p -u *://*.{url:host}/* content.cookies.accept
+        all no-3rdparty never ;; reload
+      tcu: config-cycle -p -t -u {url} content.cookies.accept
+        all no-3rdparty never ;; reload
+      tCu: config-cycle -p -u {url} content.cookies.accept
+        all no-3rdparty never ;; reload
     insert:
       <Ctrl-E>: open-editor
       <Shift-Ins>: insert-text -- {primary}
@@ -3466,6 +3485,6 @@ logging.level.ram:
 logging.level.console:
   default: info
   type: LogLevel
-  desc:  >-
+  desc: >-
     Level for console (stdout/stderr) logs.
     Ignored if the `--loglevel` or `--debug` CLI flags are used.
