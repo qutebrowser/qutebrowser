@@ -90,7 +90,7 @@ class ExternalEditor(QObject):
 
         Callback for QProcess when the editor was closed.
         """
-        if sip.isdeleted(self):
+        if sip.isdeleted(self):  # pragma: no cover
             log.procs.debug("Ignoring _on_proc_closed for deleted editor")
             return
 
