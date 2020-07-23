@@ -28,6 +28,7 @@ from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QProcess,
 from qutebrowser.config import config
 from qutebrowser.utils import message, log
 from qutebrowser.misc import guiprocess
+from qutebrowser.qt import sip
 
 
 class ExternalEditor(QObject):
@@ -89,6 +90,10 @@ class ExternalEditor(QObject):
 
         Callback for QProcess when the editor was closed.
         """
+        if sip.isdeleted(self):
+            log.procs.debug("Ignoring _on_proc_closed for deleted editor")
+            return
+
         log.procs.debug("Editor closed")
         if exitstatus != QProcess.NormalExit:
             # No error/cleanup here, since we already handle this in
