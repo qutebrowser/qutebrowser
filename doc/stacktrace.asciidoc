@@ -204,11 +204,13 @@ qutebrowser is still running. There, use *Add Rule* -> *Crash* ->
 *A specific process* and select `qutebrowser.exe`. Accept the *Advanced
 Configuration* as-is and select a location to save dump files. Finally, tell
 DebugDiag to activate the rule and reproduce the crash. After a while, a log
-file and crash dump should appear in that directory.
+file (`.txt`) and crash dump should appear in that directory.
 
 Finally, run the *DebugDiag 2 Analysis* tool. There, check *CrashHangAnalysis*
 and add your crash dump via *Add Data files*. Then click *Start analysis*.
 
 Close the Internet Explorer which opens when it's done and use the
-folder-button at the top left to get to the reports. There find the report file
-and send it (as well as the .log, if any) to mail@qutebrowser.org.
+folder-button at the top left to get to the reports. There, find the report
+file (as well as the logfile, if any), zip them (important, as some mail
+providers like GMail corrupt the file otherwise) and send them to
+mail@qutebrowser.org.
