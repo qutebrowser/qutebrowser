@@ -4,7 +4,7 @@ import PyQt5.QtWidgets
 
 
 def test_this(qapp):
-    button = QtWidgets.QPushButton()
+    button = PyQt5.QtWidgets.QPushButton()
     before = time.monotonic()
     button.show()
     after = time.monotonic()
