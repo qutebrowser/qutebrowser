@@ -167,7 +167,7 @@ def pytest_collection_modifyitems(config, items):
             module_path = pathlib.Path(item.module.__file__)
             module_root_dir = module_path.relative_to(test_basedir).parts[0]
 
-            assert module_root_dir in ['end2end', 'unit', 'helpers',
+            assert module_root_dir in ['a', 'end2end', 'unit', 'helpers',
                                        'test_conftest.py']
             if module_root_dir == 'end2end':
                 item.add_marker(pytest.mark.end2end)
