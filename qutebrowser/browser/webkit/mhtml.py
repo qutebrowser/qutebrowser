@@ -562,7 +562,7 @@ def start_download_checked(target, tab):
         return
     # The default name is 'page title.mhtml'
     title = tab.title()
-    default_name = utils.sanitize_filename(title + '.mhtml')
+    default_name = utils.sanitize_filename(title + '.mhtml', shorten=True)
 
     # Remove characters which cannot be expressed in the file system encoding
     encoding = sys.getfilesystemencoding()
