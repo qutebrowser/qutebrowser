@@ -391,6 +391,32 @@ def build_requirements(name):
     return outfile
 
 
+def test_tox():
+    """Test requirements via tox."""
+    utils.print_title('Testing via tox')
+    host_python = get_host_python('tox')
+    req_path = os.path.join(REQ_DIR, 'requirements-tox.txt')
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        venv_dir = os.path.join(tmpdir, 'venv')
+        tox_workdir = os.path.join(tmpdir, 'tox-workdir')
+        venv_python = os.path.join(venv_dir, 'bin', 'python')
+        init_venv(host_python, venv_dir, req_path)
+        list_proc = subprocess.run([venv_python, '-m', 'tox', '--listenvs'],
+                                   check=True,
+                                   stdout=subprocess.PIPE,
+                                   universal_newlines=True)
+        environments = list_proc.stdout.strip().split('\n')
+        for env in environments:
+            utils.print_subtitle(env)
+            utils.print_col('venv$ tox -e {} --notest'.format(env), 'blue')
+            subprocess.run([venv_python, '-m', 'tox',
+                            '--workdir', tox_workdir,
+                            '-e', env,
+                            '--notest'],
+                           check=True)
+
+
 def test_requirements(name, outfile):
     """Test a resulting requirements file."""
     print()
@@ -414,6 +440,11 @@ def main():
         utils.print_title(name)
         outfile = build_requirements(name)
         test_requirements(name, outfile)
+
+    if not args.names:
+        # If we selected a subset, let's not go through the trouble of testing
+        # via tox.
+        test_tox()
 
     print_changed_files()
 
