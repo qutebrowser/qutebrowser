@@ -287,7 +287,7 @@ def seccomp_args(qt_flag):
 
 
 def import_userscript(name):
-    """Import an userscript via importlib.
+    """Import a userscript via importlib.
 
     This is needed because userscripts don't have a .py extension and violate
     Python's module naming convention.
