@@ -68,6 +68,8 @@ Fixed
   Bootstrap CSS framework, they now get hints correctly.
 - When the session file isn't writable when qutebrowser is quit, an error is
   now logged instead of crashing.
+- When using `-m` with the `qute-lastpass` userscript, it accidentally matched
+  URLs containing the match as substring. This is now fixed.
 
 v1.13.1 (2020-07-17)
 --------------------
