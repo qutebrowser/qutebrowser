@@ -81,6 +81,7 @@ CHANGELOG_URLS = {
     'pytest-qt': 'https://github.com/pytest-dev/pytest-qt/blob/master/CHANGELOG.rst',
     'wcwidth': 'https://github.com/jquast/wcwidth#history',
     'pyinstaller': 'https://pyinstaller.readthedocs.io/en/stable/CHANGES.html',
+    'pyinstaller-hooks-contrib': 'https://github.com/pyinstaller/pyinstaller-hooks-contrib/blob/master/CHANGELOG.rst',
     'pytest-benchmark': 'https://pytest-benchmark.readthedocs.io/en/stable/changelog.html',
     'typed-ast': 'https://github.com/python/typed_ast/commits/master',
     'docutils': 'https://docutils.sourceforge.io/RELEASE-NOTES.html',
@@ -259,7 +260,7 @@ class Change:
             self.link = '[{}]({})'.format(self.name, self.url)
         else:
             self.url = '(no changelog)'
-            self.link = '{} (no changelog)'.format(self.name)
+            self.link = self.name
 
     def __str__(self):
         if self.old is None:
