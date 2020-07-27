@@ -635,15 +635,15 @@ class TestSanitizeFilename:
 
     @pytest.mark.parametrize('inp, expected', [
         pytest.param('normal.txt', 'normal.txt',
-                    marks=pytest.mark.fake_os('windows')),
+                     marks=pytest.mark.fake_os('windows')),
         pytest.param('user/repo issues.mht', 'user_repo issues.mht',
-                    marks=pytest.mark.fake_os('windows')),
+                     marks=pytest.mark.fake_os('windows')),
         pytest.param('<Test\\File> - "*?:|', '_Test_File_ - _____',
-                    marks=pytest.mark.fake_os('windows')),
+                     marks=pytest.mark.fake_os('windows')),
         pytest.param('<Test\\File> - "*?:|', '<Test\\File> - "*?_|',
-                    marks=pytest.mark.fake_os('mac')),
+                     marks=pytest.mark.fake_os('mac')),
         pytest.param('<Test\\File> - "*?:|', '<Test\\File> - "*?:|',
-                    marks=pytest.mark.fake_os('posix')),
+                     marks=pytest.mark.fake_os('posix')),
         (LONG_FILENAME, LONG_FILENAME),  # no shortening
     ])
     def test_special_chars(self, inp, expected):
