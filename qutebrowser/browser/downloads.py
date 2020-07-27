@@ -230,9 +230,16 @@ def suggested_fn_from_title(url_path, title=None):
 
     suggested_fn = None  # type: typing.Optional[str]
     if ext.lower() in ext_whitelist and title:
-        suggested_fn = utils.sanitize_filename(title)
+        suggested_fn = utils.sanitize_filename(
+            title,
+            max_bytes=(255 - len("(123).download"))
+        )
         if not suggested_fn.lower().endswith((".html", ".htm")):
             suggested_fn += ".html"
+            suggested_fn = utils.sanitize_filename(
+                suggested_fn,
+                max_bytes=(255 - len("(123).download"))
+            )
 
     return suggested_fn
 

@@ -644,6 +644,13 @@ def test_sanitize_filename_empty_replacement():
     assert utils.sanitize_filename(name, replacement=None) == 'Bad File'
 
 
+@hypothesis.given(filename=strategies.text(min_size=100),
+                  max_bytes=strategies.integers(min_value=50))
+def test_sanitize_filename_invariants(filename, max_bytes):
+    sanitized = utils.sanitize_filename(filename, max_bytes=max_bytes)
+    assert len(os.fsencode(sanitized)) <= max_bytes
+
+
 class TestGetSetClipboard:
 
     @pytest.fixture(autouse=True)
