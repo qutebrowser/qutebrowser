@@ -24,6 +24,9 @@ pygments
 # --repeat switch (used to manually repeat tests)
 pytest-repeat
 
+# Needed to test misc/userscripts/qute-lastpass
+tldextract
+
 #@ markers: jaraco.functools python_version>="3.6"
 #@ add: jaraco.functools==2.0; python_version<"3.6"  # rq.filter: <= 2.0
 #@ ignore: Jinja2, MarkupSafe, colorama
