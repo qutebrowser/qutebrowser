@@ -218,17 +218,20 @@ def run_pip(venv_dir, *args, **kwargs):
 
 def init_venv(host_python, venv_dir, requirements, pre=False):
     """Initialize a new virtualenv and install the given packages."""
-    utils.print_col('$ python3 -m venv {}'.format(venv_dir), 'blue')
-    subprocess.run([host_python, '-m', 'venv', venv_dir], check=True)
+    with utils.gha_group('Creating virtualenv'):
+        utils.print_col('$ python3 -m venv {}'.format(venv_dir), 'blue')
+        subprocess.run([host_python, '-m', 'venv', venv_dir], check=True)
 
-    run_pip(venv_dir, 'install', '-U', 'pip')
-    run_pip(venv_dir, 'install', '-U', 'setuptools', 'wheel')
+        run_pip(venv_dir, 'install', '-U', 'pip')
+        run_pip(venv_dir, 'install', '-U', 'setuptools', 'wheel')
 
     install_command = ['install', '-r', requirements]
     if pre:
         install_command.append('--pre')
-    run_pip(venv_dir, *install_command)
-    run_pip(venv_dir, 'check')
+
+    with utils.gha_group('Installing requirements'):
+        run_pip(venv_dir, *install_command)
+        run_pip(venv_dir, 'check')
 
 
 def parse_args():
@@ -408,13 +411,14 @@ def test_tox():
                                    universal_newlines=True)
         environments = list_proc.stdout.strip().split('\n')
         for env in environments:
-            utils.print_subtitle(env)
-            utils.print_col('venv$ tox -e {} --notest'.format(env), 'blue')
-            subprocess.run([venv_python, '-m', 'tox',
-                            '--workdir', tox_workdir,
-                            '-e', env,
-                            '--notest'],
-                           check=True)
+            with utils.gha_group('tox for {}'.format(env)):
+                utils.print_subtitle(env)
+                utils.print_col('venv$ tox -e {} --notest'.format(env), 'blue')
+                subprocess.run([venv_python, '-m', 'tox',
+                                '--workdir', tox_workdir,
+                                '-e', env,
+                                '--notest'],
+                               check=True)
 
 
 def test_requirements(name, outfile):

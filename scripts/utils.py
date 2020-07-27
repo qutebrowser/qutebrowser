@@ -100,12 +100,14 @@ def change_cwd():
 def gha_group(name):
     """Print a GitHub Actions group.
 
-    Should only be called on CI.
+    Gets ignored if not on CI.
     """
-    assert ON_CI
-    print('::group::' + name)
-    yield
-    print('::endgroup::')
+    if ON_CI:
+        print('::group::' + name)
+        yield
+        print('::endgroup::')
+    else:
+        yield
 
 
 def gha_error(message):
