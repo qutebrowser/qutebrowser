@@ -44,6 +44,7 @@ CHANGELOG_URLS = {
     'setuptools': 'https://github.com/pypa/setuptools/blob/master/CHANGES.rst',
     'pytest-cov': 'https://github.com/pytest-dev/pytest-cov',
     'requests': 'https://github.com/psf/requests/blob/master/HISTORY.md',
+    'requests-file': 'https://github.com/dashea/requests-file/blob/master/CHANGES.rst',
     'werkzeug': 'https://github.com/pallets/werkzeug/blob/master/CHANGES.rst',
     'hypothesis': 'https://hypothesis.readthedocs.io/en/latest/changes.html',
     'mypy': 'https://mypy-lang.blogspot.com/',
@@ -104,6 +105,10 @@ CHANGELOG_URLS = {
     'distlib': 'https://bitbucket.org/pypa/distlib/src/master/CHANGES.rst',
     'py-cpuinfo': 'https://github.com/workhorsy/py-cpuinfo/blob/master/ChangeLog',
     'cheroot': 'https://cheroot.cherrypy.org/en/latest/history.html',
+    'certifi': 'https://ccadb-public.secure.force.com/mozilla/IncludedCACertificateReport',
+    'chardet': 'https://github.com/chardet/chardet/releases',
+    'idna': 'https://github.com/kjd/idna/blob/master/HISTORY.rst',
+    'tldextract': 'https://github.com/john-kurkowski/tldextract/blob/master/CHANGELOG.md',
 }
 
 # PyQt versions which need SIP v4
