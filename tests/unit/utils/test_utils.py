@@ -644,11 +644,10 @@ def test_sanitize_filename_empty_replacement():
     assert utils.sanitize_filename(name, replacement=None) == 'Bad File'
 
 
-@hypothesis.given(filename=strategies.text(min_size=100),
-                  max_bytes=strategies.integers(min_value=50))
-def test_sanitize_filename_invariants(filename, max_bytes):
-    sanitized = utils.sanitize_filename(filename, max_bytes=max_bytes)
-    assert len(os.fsencode(sanitized)) <= max_bytes
+@hypothesis.given(filename=strategies.text(min_size=100))
+def test_sanitize_filename_invariants(filename):
+    sanitized = utils.sanitize_filename(filename, shorten=True)
+    assert len(os.fsencode(sanitized)) <= 255 - len("(123).download")
 
 
 class TestGetSetClipboard:
