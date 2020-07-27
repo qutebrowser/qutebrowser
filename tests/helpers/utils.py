@@ -26,6 +26,8 @@ import pprint
 import os.path
 import contextlib
 import pathlib
+import importlib.util
+import importlib.machinery
 
 import pytest
 
@@ -282,3 +284,20 @@ def seccomp_args(qt_flag):
         return ['--qt-flag', disable_arg] if qt_flag else ['--' + disable_arg]
 
     return []
+
+
+def import_userscript(name):
+    """Import an userscript via importlib.
+
+    This is needed because userscripts don't have a .py extension and violate
+    Python's module naming convention.
+    """
+    repo_root = pathlib.Path(__file__).resolve().parents[2]
+    script_path = repo_root / 'misc' / 'userscripts' / name
+    module_name = name.replace('-', '_')
+    loader = importlib.machinery.SourceFileLoader(
+        module_name, str(script_path))
+    spec = importlib.util.spec_from_loader(module_name, loader)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module

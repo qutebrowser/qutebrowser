@@ -20,23 +20,15 @@
 """Tests for misc.userscripts.qute-lastpass."""
 
 import json
-import pathlib
-from importlib.machinery import SourceFileLoader
-from importlib.util import spec_from_loader, module_from_spec
 from types import SimpleNamespace
 from unittest.mock import ANY, call
 
 import attr
 import pytest
 
-# qute-lastpass violates naming convention and does not have .py extension
-repo_root = pathlib.Path(__file__).resolve().parents[4]
-script_path = str(repo_root / 'misc' / 'userscripts' / 'qute-lastpass')
-spec = spec_from_loader("qute_lastpass", SourceFileLoader(
-    "qute_lastpass",
-    script_path))
-qute_lastpass = module_from_spec(spec)
-spec.loader.exec_module(qute_lastpass)
+from helpers import utils
+
+qute_lastpass = utils.import_userscript('qute-lastpass')
 
 default_lpass_match = [
     {
