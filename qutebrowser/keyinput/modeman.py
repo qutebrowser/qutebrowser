@@ -395,7 +395,8 @@ class ModeManager(QObject):
             raise cmdutils.CommandError("Mode {} does not exist!".format(mode))
 
         if m in [usertypes.KeyMode.hint, usertypes.KeyMode.command,
-                 usertypes.KeyMode.yesno, usertypes.KeyMode.prompt]:
+                 usertypes.KeyMode.yesno, usertypes.KeyMode.prompt,
+                 usertypes.KeyMode.register]:
             raise cmdutils.CommandError(
                 "Mode {} can't be entered manually!".format(mode))
 

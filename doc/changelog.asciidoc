@@ -72,6 +72,8 @@ Fixed
   URLs containing the match as substring. This is now fixed.
 - When a filename is derived from a page's title, it's now shortened to the
   maximum filename length permitted by the filesystem.
+- `:enter-mode register` crashed since v1.13.0, it now displays an error
+  instead.
 
 v1.13.1 (2020-07-17)
 --------------------
