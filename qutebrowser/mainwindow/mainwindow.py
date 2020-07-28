@@ -47,13 +47,14 @@ win_id_gen = itertools.count(0)
 
 
 def get_window(*, via_ipc: bool,
-               force_target: typing.Optional[str] = None,
+               target: str,
                no_raise: bool = False) -> int:
     """Helper function for app.py to get a window id.
 
     Args:
         via_ipc: Whether the request was made via IPC.
-        force_target: Override the new_instance_open_target config
+        target: Where/how to open the window (via setting, command-line or
+                override).
         no_raise: suppress target window raising
 
     Return:
@@ -63,18 +64,15 @@ def get_window(*, via_ipc: bool,
         # Initial main window
         return 0
 
-    open_target = (force_target if force_target is not None
-                   else config.val.new_instance_open_target)
-
     window = None
     should_raise = False
 
     # Try to find the existing tab target if opening in a tab
-    if open_target not in {'window', 'private-window'}:
+    if target not in {'window', 'private-window'}:
         window = get_target_window()
-        should_raise = open_target not in {'tab-silent', 'tab-bg-silent'}
+        should_raise = target not in {'tab-silent', 'tab-bg-silent'}
 
-    is_private = open_target == 'private-window'
+    is_private = target == 'private-window'
 
     # Otherwise, or if no window was found, create a new one
     if window is None:

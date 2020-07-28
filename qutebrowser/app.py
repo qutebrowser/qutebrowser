@@ -258,7 +258,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
 
     if via_ipc and not args:
         win_id = mainwindow.get_window(via_ipc=via_ipc,
-                                       force_target=new_window_target)
+                                       target=new_window_target)
         _open_startpage(win_id)
         return
 
@@ -266,14 +266,14 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
         if cmd.startswith(':'):
             if win_id is None:
                 win_id = mainwindow.get_window(via_ipc=via_ipc,
-                                               force_target=command_target)
+                                               target=command_target)
             log.init.debug("Startup cmd {!r}".format(cmd))
             commandrunner = runners.CommandRunner(win_id)
             commandrunner.run_safely(cmd[1:])
         elif not cmd:
             log.init.debug("Empty argument")
             win_id = mainwindow.get_window(via_ipc=via_ipc,
-                                           force_target=new_window_target)
+                                           target=new_window_target)
         else:
             if via_ipc and target_arg and target_arg != 'auto':
                 open_target = target_arg
@@ -304,7 +304,7 @@ def open_url(url, target=None, no_raise=False, via_ipc=True):
     """
     target = target or config.val.new_instance_open_target
     background = target in {'tab-bg', 'tab-bg-silent'}
-    win_id = mainwindow.get_window(via_ipc=via_ipc, force_target=target,
+    win_id = mainwindow.get_window(via_ipc=via_ipc, target=target,
                                    no_raise=no_raise)
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
@@ -399,7 +399,8 @@ def on_focus_changed(_old, new):
 
 def open_desktopservices_url(url):
     """Handler to open a URL via QDesktopServices."""
-    win_id = mainwindow.get_window(via_ipc=True)
+    target = config.val.new_instance_open_target
+    win_id = mainwindow.get_window(via_ipc=True, target=target)
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
     tabbed_browser.tabopen(url)
