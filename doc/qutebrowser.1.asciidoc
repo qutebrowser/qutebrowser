@@ -56,7 +56,7 @@ show it.
 *-R*, *--override-restore*::
     Don't restore a session even if one would be restored.
 
-*--target* '{auto,tab,tab-bg,tab-silent,tab-bg-silent,window}'::
+*--target* '{auto,tab,tab-bg,tab-silent,tab-bg-silent,window,private-window}'::
     How URLs should be opened if there is already a qutebrowser instance running.
 
 *--backend* '{webkit,webengine}'::

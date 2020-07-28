@@ -3387,6 +3387,7 @@ Valid values:
  * +tab-silent+: Open a new tab in the existing window without activating the window.
  * +tab-bg-silent+: Open a new background tab in the existing window without activating the window.
  * +window+: Open in a new window.
+ * +private-window+: Open in a new private window.
 
 Default: +pass:[tab]+
 
