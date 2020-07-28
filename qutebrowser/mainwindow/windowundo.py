@@ -75,13 +75,13 @@ class WindowUndoManager(QObject):
 
         It will have the same tab and undo stack as when it was closed.
         """
-        event = self._undos.pop()
+        entry = self._undos.pop()
         window = mainwindow.MainWindow(
-            private=event.private,
-            geometry=event.geometry,
+            private=entry.private,
+            geometry=entry.geometry,
         )
         window.show()
-        window.tabbed_browser.restore_undo_stack(event.tab_stack)
+        window.tabbed_browser.restore_undo_stack(entry.tab_stack)
         window.tabbed_browser.undo()
 
 
