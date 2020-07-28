@@ -165,6 +165,7 @@ MATCHERS = {
                 {
                     "regexp": r"^((ERROR|FAILED) .*)",
                     "message": 1,
+                    "loop": True,
                 }
             ],
         },
