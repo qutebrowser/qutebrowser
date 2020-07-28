@@ -38,6 +38,8 @@ Changed
   all three settings. To review/change previously granted permissions, use
   `:config-diff` and e.g.
   `:config-unset -u example.org content.media.video_capture`.
+- `:undo` now has a new `-w` / `--window` argument, which can be used to
+  restore closed windows (rather than tabs). This is bound to `U` by default.
 
 Added
 ~~~~~
