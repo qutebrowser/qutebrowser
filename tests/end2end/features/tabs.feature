@@ -992,6 +992,25 @@ Feature: Tab management
                 history:
                 - url: http://localhost:*/data/numbers/2.txt
 
+    # :undo with count
+
+    Scenario: Undo the second to last closed tab
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-close
+        And I run :tab-close
+        And I run :undo with count 2
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+            - data/numbers/3.txt
+
+    Scenario: Undo with a too-high count
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-close
+        And I run :undo with count 2
+        Then the error "Nothing to undo" should be shown
 
     # tabs.last_close
 

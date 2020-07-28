@@ -494,7 +494,7 @@ class TabbedBrowser(QWidget):
 
             tab.deleteLater()
 
-    def undo(self):
+    def undo(self, count=1):
         """Undo removing of a tab or tabs."""
         # Remove unused tab which may be created after the last tab is closed
         last_close = config.val.tabs.last_close
@@ -517,7 +517,10 @@ class TabbedBrowser(QWidget):
             use_current_tab = (only_one_tab_open and no_history and
                                last_close_url_used)
 
-        for entry in reversed(self.undo_stack.pop()):
+        entries = self.undo_stack[-count]
+        del self.undo_stack[-count]
+
+        for entry in reversed(entries):
             if use_current_tab:
                 newtab = self.widget.widget(0)
                 use_current_tab = False

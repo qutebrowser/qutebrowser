@@ -780,17 +780,19 @@ class CommandDispatcher:
                 text="Are you sure you want to close pinned tabs?")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def undo(self, window: bool = False) -> None:
+    @cmdutils.argument('count', value=cmdutils.Value.count)
+    def undo(self, window: bool = False, count: int = 1) -> None:
         """Re-open the last closed tab(s) or window.
 
         Args:
             window: Re-open the last closed window (and its tabs).
+            count: How deep in the undo stack to find the tab or tabs to re-open.
         """
         try:
             if window:
                 windowundo.instance.undo_last_window_close()
             else:
-                self._tabbed_browser.undo()
+                self._tabbed_browser.undo(count)
         except IndexError:
             msg = "Nothing to undo"
             if not window:
