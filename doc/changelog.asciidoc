@@ -50,6 +50,8 @@ Added
   tabs.
 - New command `:devtools-focus` (bound to `wIf`) to toggle keyboard focus
   between the devtools and web page.
+- New `--target private-window` argument, which can be used to open a private
+  window in an existing instance from the commandline.
 
 Fixed
 ~~~~~
