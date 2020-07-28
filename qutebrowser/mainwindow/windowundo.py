@@ -34,7 +34,7 @@ instance = typing.cast('WindowUndoManager', None)
 
 
 @attr.s
-class WindowUndoEntry:
+class _WindowUndoEntry:
 
     """Information needed for :undo -w."""
 
@@ -51,7 +51,7 @@ class WindowUndoManager(QObject):
         super().__init__(parent)
         self._undos = (
             collections.deque()
-        )  # type: typing.MutableSequence[WindowUndoEntry]
+        )  # type: typing.MutableSequence[_WindowUndoEntry]
         QApplication.instance().window_closing.connect(self._on_window_closing)
         config.instance.changed.connect(self._on_config_changed)
 
@@ -60,7 +60,7 @@ class WindowUndoManager(QObject):
         self._update_undo_stack_size()
 
     def _on_window_closing(self, window):
-        self._undos.append(WindowUndoEntry(
+        self._undos.append(_WindowUndoEntry(
             geometry=window.saveGeometry(),
             private=window.tabbed_browser.is_private,
             tab_stack=window.tabbed_browser.undo_stack,

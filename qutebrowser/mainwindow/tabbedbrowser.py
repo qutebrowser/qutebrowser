@@ -39,7 +39,7 @@ from qutebrowser.misc import quitter
 
 
 @attr.s
-class UndoEntry:
+class _UndoEntry:
 
     """Information needed for :undo."""
 
@@ -159,7 +159,7 @@ class TabbedBrowser(QWidget):
         _tab_insert_idx_left: Where to insert a new tab with
                               tabs.new_tab_position set to 'prev'.
         _tab_insert_idx_right: Same as above, for 'next'.
-        undo_stack: List of lists of UndoEntry objects of closed tabs.
+        undo_stack: List of lists of _UndoEntry objects of closed tabs.
         is_shutting_down: Whether we're currently shutting down.
         _local_marks: Jump markers local to each page
         _global_marks: Jump markers used across all pages
@@ -226,7 +226,7 @@ class TabbedBrowser(QWidget):
         # line.
         self.undo_stack = (
             collections.deque()
-        )  # type: typing.MutableSequence[typing.MutableSequence[UndoEntry]]
+        )  # type: typing.MutableSequence[typing.MutableSequence[_UndoEntry]]
         self._update_stack_size()
         self._filter = signalfilter.SignalFilter(win_id, self)
         self._now_focused = None
@@ -471,8 +471,8 @@ class TabbedBrowser(QWidget):
             except browsertab.WebTabError:
                 pass  # special URL
             else:
-                entry = UndoEntry(tab.url(), history_data, idx,
-                                  tab.data.pinned)
+                entry = _UndoEntry(tab.url(), history_data, idx,
+                                   tab.data.pinned)
                 if new_undo or not self.undo_stack:
                     self.undo_stack.append([entry])
                 else:
