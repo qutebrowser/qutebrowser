@@ -47,39 +47,24 @@ win_id_gen = itertools.count(0)
 
 
 def get_window(*, via_ipc: bool,
-               force_window: bool = False,
-               force_tab: bool = False,
                force_target: typing.Optional[str] = None,
                no_raise: bool = False) -> int:
     """Helper function for app.py to get a window id.
 
     Args:
         via_ipc: Whether the request was made via IPC.
-        force_window: Whether to force opening in a window.
-        force_tab: Whether to force opening in a tab.
         force_target: Override the new_instance_open_target config
         no_raise: suppress target window raising
 
     Return:
         ID of a window that was used to open URL
     """
-    if force_window and force_tab:
-        raise ValueError("force_window and force_tab are mutually exclusive!")
-
     if not via_ipc:
         # Initial main window
         return 0
 
-    open_target = config.val.new_instance_open_target
-
-    # Apply any target overrides, ordered by precedence
-    if force_target is not None:
-        open_target = force_target
-    if force_window and open_target != 'private-window':
-        open_target = 'window'
-    if force_tab and open_target in {'window', 'private-window'}:
-        # Command sent via IPC
-        open_target = 'tab-silent'
+    open_target = (force_target if force_target is not None
+                   else config.val.new_instance_open_target)
 
     window = None
     should_raise = False
