@@ -62,9 +62,19 @@ class JSTester:
             **kwargs: Passed to jinja's template.render().
         """
         template = self._jinja_env.get_template(path)
-        with self.qtbot.waitSignal(self.tab.load_finished,
-                                   timeout=2000) as blocker:
-            self.tab.set_html(template.render(**kwargs))
+
+        try:
+            with self.qtbot.waitSignal(self.tab.load_finished,
+                                       timeout=2000) as blocker:
+                self.tab.set_html(template.render(**kwargs))
+        except self.qtbot.TimeoutError:
+            # Sometimes this fails for some odd reason on macOS, let's just try
+            # again.
+            print("Trying to load page again...")
+            with self.qtbot.waitSignal(self.tab.load_finished,
+                                       timeout=2000) as blocker:
+                self.tab.set_html(template.render(**kwargs))
+
         assert blocker.args == [True]
 
     def load_file(self, path: str, force: bool = False):
