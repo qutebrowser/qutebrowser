@@ -1474,6 +1474,10 @@ Re-open the last closed tab(s) or window.
 ==== optional arguments
 * +*-w*+, +*--window*+: Re-open the last closed window (and its tabs).
 
+==== count
+How deep in the undo stack to find the tab or tabs to re-open.
+
+
 [[version]]
 === version
 Syntax: +:version [*--paste*]+

@@ -786,7 +786,8 @@ class CommandDispatcher:
 
         Args:
             window: Re-open the last closed window (and its tabs).
-            count: How deep in the undo stack to find the tab or tabs to re-open.
+            count: How deep in the undo stack to find the tab or tabs to
+                   re-open.
         """
         try:
             if window:
