@@ -755,7 +755,7 @@ Feature: Tab management
     Scenario: Undo without any closed tabs
         Given I have a fresh instance
         When I run :undo
-        Then the error "Nothing to undo!" should be shown
+        Then the error "Nothing to undo (use :undo --window to reopen a closed window)" should be shown
 
     Scenario: Undo closing a tab
         When I open data/numbers/1.txt
@@ -833,8 +833,8 @@ Feature: Tab management
         And I set url.default_page to about:blank
         And I run :undo
         And I run :undo
-        Then the error "Nothing to undo!" should be shown
-        And the error "Nothing to undo!" should be shown
+        Then the error "Nothing to undo (use :undo --window to reopen a closed window)" should be shown
+        And the error "Nothing to undo (use :undo --window to reopen a closed window)" should be shown
 
     Scenario: Undo a tab closed by index
         When I open data/numbers/1.txt
