@@ -1012,6 +1012,10 @@ Feature: Tab management
         And I run :undo with count 100
         Then the error "Nothing to undo" should be shown
 
+    Scenario: Undo with --window and count
+        When I run :undo --window with count 2
+        Then the error ":undo --window does not support a count" should be shown
+
     # tabs.last_close
 
     # FIXME:qtwebengine

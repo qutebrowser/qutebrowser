@@ -791,6 +791,9 @@ class CommandDispatcher:
         """
         try:
             if window:
+                if count != 1:
+                    raise cmdutils.CommandError(
+                        ":undo --window does not support a count")
                 windowundo.instance.undo_last_window_close()
             else:
                 self._tabbed_browser.undo(count)
