@@ -1944,7 +1944,8 @@ tabs.undo_stack_size:
     name: Int
     minval: -1
     maxval: maxint
-  desc: Number of close tab actions to remember, per window (-1 for no maximum).
+  desc: Number of closed tabs (per window) and closed windows to remember for
+    :undo (-1 for no maximum).
 
 tabs.wrap:
   default: true
@@ -3124,6 +3125,7 @@ bindings.default:
       k: scroll up
       l: scroll right
       u: undo
+      U: undo -w
       <Ctrl-Shift-T>: undo
       gg: scroll-to-perc 0
       G: scroll-to-perc

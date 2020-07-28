@@ -39,10 +39,12 @@ blocks and spins the Qt mainloop.
 
 import os
 import sys
+import functools
 import tempfile
 import datetime
 import argparse
 import typing
+import collections
 
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
@@ -500,6 +502,7 @@ class Application(QApplication):
             Argument namespace from argparse.
         """
         self._last_focus_object = None
+        self._undos = collections.deque()
 
         qt_args = qtargs.qt_args(args)
         log.init.debug("Commandline args: {}".format(sys.argv[1:]))
@@ -515,6 +518,44 @@ class Application(QApplication):
         self.focusObjectChanged.connect(  # type: ignore[attr-defined]
             self.on_focus_object_changed)
         self.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+
+        self.new_window.connect(self._on_new_window)
+
+    @config.change_filter('tabs.undo_stack_size')
+    def _on_config_changed(self):
+        self._update_undo_stack_size()
+
+    def _on_new_window(self, window):
+        window.tabbed_browser.shutting_down.connect(
+            functools.partial(self._on_window_closing, window)
+        )
+
+    def _on_window_closing(self, window):
+        self._undos.append(mainwindow.WindowUndoEntry(
+            geometry=window.saveGeometry(),
+            private=window.tabbed_browser.is_private,
+            tab_stack=window.tabbed_browser.save_undo_stack(),
+        ))
+
+    def _update_undo_stack_size(self):
+        newsize = config.instance.get('tabs.undo_stack_size')
+        if newsize < 0:
+            newsize = None
+        self._undos = collections.deque(self._undos, maxlen=newsize)
+
+    def undo_last_window_close(self):
+        """Restore the last window to be closed.
+
+        It will have the same tab and undo stack as when it was closed.
+        """
+        event = self._undos.pop()
+        window = mainwindow.MainWindow(
+            private=event.private,
+            geometry=event.geometry,
+        )
+        window.show()
+        window.tabbed_browser.restore_undo_stack(event.tab_stack)
+        window.tabbed_browser.undo()
 
     @pyqtSlot(QObject)
     def on_focus_object_changed(self, obj):
