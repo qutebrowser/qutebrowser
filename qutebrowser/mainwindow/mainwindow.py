@@ -46,7 +46,7 @@ from qutebrowser.qt import sip
 win_id_gen = itertools.count(0)
 
 
-def get_window(via_ipc: bool,
+def get_window(*, via_ipc: bool,
                force_window: bool = False,
                force_tab: bool = False,
                force_target: typing.Optional[str] = None,

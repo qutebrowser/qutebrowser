@@ -253,7 +253,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
     win_id = None  # type: typing.Optional[int]
 
     if via_ipc and not args:
-        win_id = mainwindow.get_window(via_ipc, force_window=True,
+        win_id = mainwindow.get_window(via_ipc=via_ipc, force_window=True,
                                        force_target=is_private)
         _open_startpage(win_id)
         return
@@ -261,13 +261,13 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
     for cmd in args:
         if cmd.startswith(':'):
             if win_id is None:
-                win_id = mainwindow.get_window(via_ipc, force_tab=True)
+                win_id = mainwindow.get_window(via_ipc=via_ipc, force_tab=True)
             log.init.debug("Startup cmd {!r}".format(cmd))
             commandrunner = runners.CommandRunner(win_id)
             commandrunner.run_safely(cmd[1:])
         elif not cmd:
             log.init.debug("Empty argument")
-            win_id = mainwindow.get_window(via_ipc, force_window=True,
+            win_id = mainwindow.get_window(via_ipc=via_ipc, force_window=True,
                                            force_target=is_private)
         else:
             if via_ipc and target_arg and target_arg != 'auto':
@@ -299,7 +299,7 @@ def open_url(url, target=None, no_raise=False, via_ipc=True):
     """
     target = target or config.val.new_instance_open_target
     background = target in {'tab-bg', 'tab-bg-silent'}
-    win_id = mainwindow.get_window(via_ipc, force_target=target,
+    win_id = mainwindow.get_window(via_ipc=via_ipc, force_target=target,
                                    no_raise=no_raise)
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
