@@ -789,11 +789,12 @@ class CommandDispatcher:
             count: How deep in the undo stack to find the tab or tabs to
                    re-open.
         """
+        if window and count != 1:
+            raise cmdutils.CommandError(
+                ":undo --window does not support a count")
+
         try:
             if window:
-                if count != 1:
-                    raise cmdutils.CommandError(
-                        ":undo --window does not support a count")
                 windowundo.instance.undo_last_window_close()
             else:
                 self._tabbed_browser.undo(count)
