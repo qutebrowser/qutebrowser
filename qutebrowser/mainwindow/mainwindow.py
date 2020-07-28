@@ -142,6 +142,7 @@ _OverlayInfoType = typing.Tuple[QWidget, pyqtSignal, bool, str]
 
 
 class MainWindow(QWidget):
+
     """The main window of qutebrowser.
 
     Adds all needed components to a vbox, initializes sub-widgets and connects
@@ -224,7 +225,6 @@ class MainWindow(QWidget):
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.palette().setColor(QPalette.Window, Qt.transparent)
-        self._commandrunner = None
         self._overlays = []  # type: typing.MutableSequence[_OverlayInfoType]
         self.win_id = next(win_id_gen)
         self.registry = objreg.ObjectRegistry()
