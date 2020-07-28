@@ -250,6 +250,10 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
     """
     new_window_target = ('private-window' if target_arg == 'private-window'
                          else 'window')
+    command_target = config.val.new_instance_open_target
+    if command_target in {'window', 'private-window'}:
+        command_target = 'tab-silent'
+
     win_id = None  # type: typing.Optional[int]
 
     if via_ipc and not args:
@@ -262,7 +266,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
         if cmd.startswith(':'):
             if win_id is None:
                 win_id = mainwindow.get_window(via_ipc=via_ipc,
-                                               force_target='tab-silent')
+                                               force_target=command_target)
             log.init.debug("Startup cmd {!r}".format(cmd))
             commandrunner = runners.CommandRunner(win_id)
             commandrunner.run_safely(cmd[1:])
