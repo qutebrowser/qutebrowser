@@ -44,7 +44,6 @@ import tempfile
 import datetime
 import argparse
 import typing
-import collections
 
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
@@ -62,7 +61,7 @@ from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.extensions import loader
 from qutebrowser.keyinput import macros, eventfilter
-from qutebrowser.mainwindow import mainwindow, prompt
+from qutebrowser.mainwindow import mainwindow, prompt, windowundo
 from qutebrowser.misc import (ipc, savemanager, sessions, crashsignal,
                               earlyinit, sql, cmdhistory, backendproblem,
                               objects, quitter)
@@ -480,6 +479,7 @@ def _init_modules(*, args):
 
     log.init.debug("Misc initialization...")
     macros.init()
+    windowundo.init()
     # Init backend-specific stuff
     browsertab.init()
 
@@ -491,9 +491,14 @@ class Application(QApplication):
     Attributes:
         _args: ArgumentParser instance.
         _last_focus_object: The last focused object's repr.
+
+    Signals:
+        new_window: A new window was created.
+        window_closing: A window is being closed.
     """
 
     new_window = pyqtSignal(mainwindow.MainWindow)
+    window_closing = pyqtSignal(mainwindow.MainWindow)
 
     def __init__(self, args):
         """Constructor.
@@ -502,7 +507,6 @@ class Application(QApplication):
             Argument namespace from argparse.
         """
         self._last_focus_object = None
-        self._undos = collections.deque()
 
         qt_args = qtargs.qt_args(args)
         log.init.debug("Commandline args: {}".format(sys.argv[1:]))
@@ -521,41 +525,10 @@ class Application(QApplication):
 
         self.new_window.connect(self._on_new_window)
 
-    @config.change_filter('tabs.undo_stack_size')
-    def _on_config_changed(self):
-        self._update_undo_stack_size()
-
+    @pyqtSlot(mainwindow.MainWindow)
     def _on_new_window(self, window):
-        window.tabbed_browser.shutting_down.connect(
-            functools.partial(self._on_window_closing, window)
-        )
-
-    def _on_window_closing(self, window):
-        self._undos.append(mainwindow.WindowUndoEntry(
-            geometry=window.saveGeometry(),
-            private=window.tabbed_browser.is_private,
-            tab_stack=window.tabbed_browser.save_undo_stack(),
-        ))
-
-    def _update_undo_stack_size(self):
-        newsize = config.instance.get('tabs.undo_stack_size')
-        if newsize < 0:
-            newsize = None
-        self._undos = collections.deque(self._undos, maxlen=newsize)
-
-    def undo_last_window_close(self):
-        """Restore the last window to be closed.
-
-        It will have the same tab and undo stack as when it was closed.
-        """
-        event = self._undos.pop()
-        window = mainwindow.MainWindow(
-            private=event.private,
-            geometry=event.geometry,
-        )
-        window.show()
-        window.tabbed_browser.restore_undo_stack(event.tab_stack)
-        window.tabbed_browser.undo()
+        window.tabbed_browser.shutting_down.connect(functools.partial(
+            self.window_closing.emit, window))
 
     @pyqtSlot(QObject)
     def on_focus_object_changed(self, obj):

@@ -38,7 +38,7 @@ from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess, objects
 from qutebrowser.completion.models import urlmodel, miscmodels
-from qutebrowser.mainwindow import mainwindow
+from qutebrowser.mainwindow import mainwindow, windowundo
 
 
 class CommandDispatcher:
@@ -788,8 +788,7 @@ class CommandDispatcher:
         """
         try:
             if window:
-                app = QApplication.instance()
-                app.undo_last_window_close()
+                windowundo.instance.undo_last_window_close()
             else:
                 self._tabbed_browser.undo()
         except IndexError:
