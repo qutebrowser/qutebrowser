@@ -49,7 +49,9 @@ class WindowUndoManager(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._undos = collections.deque()
+        self._undos = (
+            collections.deque()
+        )  # type: typing.MutableSequence[WindowUndoEntry]
         QApplication.instance().window_closing.connect(self._on_window_closing)
         config.instance.changed.connect(self._on_config_changed)
 

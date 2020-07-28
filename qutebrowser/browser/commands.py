@@ -780,7 +780,7 @@ class CommandDispatcher:
                 text="Are you sure you want to close pinned tabs?")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def undo(self, window: bool = False):
+    def undo(self, window: bool = False) -> None:
         """Re-open the last closed tab(s) or window.
 
         Args:
