@@ -74,6 +74,7 @@ Fixed
   maximum filename length permitted by the filesystem.
 - `:enter-mode register` crashed since v1.13.0, it now displays an error
   instead.
+- Crash with certain invalid URLs in resources with the QtWebKit backend.
 
 v1.13.1 (2020-07-17)
 --------------------

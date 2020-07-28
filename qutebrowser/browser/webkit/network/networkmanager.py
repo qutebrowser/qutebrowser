@@ -396,6 +396,13 @@ class NetworkManager(QNetworkAccessManager):
                     req, proxy_error, QNetworkReply.UnknownProxyError,
                     self)
 
+        if not req.url().isValid():
+            log.network.debug("Ignoring invalid requested URL: {}".format(
+                req.url().errorString()))
+            return networkreply.ErrorNetworkReply(
+                req, "Invalid request URL", QNetworkReply.HostNotFoundError,
+                self)
+
         for header, value in shared.custom_headers(url=req.url()):
             req.setRawHeader(header, value)
 
