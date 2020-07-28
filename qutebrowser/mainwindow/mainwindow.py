@@ -233,14 +233,10 @@ class MainWindow(QWidget):
         self._downloadview = downloadview.DownloadView(
             model=self._download_model)
 
-        if config.val.content.private_browsing:
-            # This setting always trumps what's passed in.
-            private = True
-        else:
-            private = bool(private)
-        self._private = private
+        self._private = config.val.content.private_browsing or private
+
         self.tabbed_browser = tabbedbrowser.TabbedBrowser(
-            win_id=self.win_id, private=private, parent=self
+            win_id=self.win_id, private=self._private, parent=self
         )  # type: tabbedbrowser.TabbedBrowser
         objreg.register('tabbed-browser', self.tabbed_browser, scope='window',
                         window=self.win_id)
@@ -249,7 +245,7 @@ class MainWindow(QWidget):
         # We need to set an explicit parent for StatusBar because it does some
         # show/hide magic immediately which would mean it'd show up as a
         # window.
-        self.status = bar.StatusBar(win_id=self.win_id, private=private,
+        self.status = bar.StatusBar(win_id=self.win_id, private=self._private,
                                     parent=self)
 
         self._add_widgets()
