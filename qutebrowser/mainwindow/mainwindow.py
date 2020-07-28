@@ -26,7 +26,7 @@ import functools
 import typing
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QRect, QPoint, QTimer, Qt,
-                          QCoreApplication, QEventLoop, QByteArray, QObject)
+                          QCoreApplication, QEventLoop, QByteArray)
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 from PyQt5.QtGui import QPalette
 
@@ -49,8 +49,8 @@ win_id_gen = itertools.count(0)
 def get_window(via_ipc: bool,
                force_window: bool = False,
                force_tab: bool = False,
-               force_target: typing.Optional[bool] = None,
-               no_raise: bool = False):
+               force_target: typing.Optional[str] = None,
+               no_raise: bool = False) -> int:
     """Helper function for app.py to get a window id.
 
     Args:
@@ -208,7 +208,7 @@ class MainWindow(QWidget):
     def __init__(self, *,
                  private: bool,
                  geometry: typing.Optional[QByteArray] = None,
-                 parent: typing.Optional[QObject] = None) -> None:
+                 parent: typing.Optional[QWidget] = None) -> None:
         """Create a new main window.
 
         Args:

@@ -249,12 +249,15 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
                     will be an empty string.
     """
     is_private = 'private-window' if target_arg == 'private-window' else None
+
+    win_id = None  # type: typing.Optional[int]
+
     if via_ipc and not args:
         win_id = mainwindow.get_window(via_ipc, force_window=True,
                                        force_target=is_private)
         _open_startpage(win_id)
         return
-    win_id = None
+
     for cmd in args:
         if cmd.startswith(':'):
             if win_id is None:
