@@ -61,7 +61,7 @@ class WindowUndoManager(QObject):
         self._undos.append(WindowUndoEntry(
             geometry=window.saveGeometry(),
             private=window.tabbed_browser.is_private,
-            tab_stack=window.tabbed_browser.save_undo_stack(),
+            tab_stack=window.tabbed_browser.undo_stack,
         ))
 
     def _update_undo_stack_size(self):
@@ -81,7 +81,7 @@ class WindowUndoManager(QObject):
             geometry=entry.geometry,
         )
         window.show()
-        window.tabbed_browser.restore_undo_stack(entry.tab_stack)
+        window.tabbed_browser.undo_stack = entry.tab_stack
         window.tabbed_browser.undo()
 
 

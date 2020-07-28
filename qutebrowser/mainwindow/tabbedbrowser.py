@@ -159,7 +159,7 @@ class TabbedBrowser(QWidget):
         _tab_insert_idx_left: Where to insert a new tab with
                               tabs.new_tab_position set to 'prev'.
         _tab_insert_idx_right: Same as above, for 'next'.
-        _undo_stack: List of lists of UndoEntry objects of closed tabs.
+        undo_stack: List of lists of UndoEntry objects of closed tabs.
         is_shutting_down: Whether we're currently shutting down.
         _local_marks: Jump markers local to each page
         _global_marks: Jump markers used across all pages
@@ -224,7 +224,7 @@ class TabbedBrowser(QWidget):
 
         # This init is never used, it is immediately thrown away in the next
         # line.
-        self._undo_stack = (
+        self.undo_stack = (
             collections.deque()
         )  # type: typing.MutableSequence[typing.MutableSequence[UndoEntry]]
         self._update_stack_size()
@@ -247,7 +247,7 @@ class TabbedBrowser(QWidget):
         if newsize < 0:
             newsize = None
         # We can't resize a collections.deque so just recreate it >:(
-        self._undo_stack = collections.deque(self._undo_stack, maxlen=newsize)
+        self.undo_stack = collections.deque(self.undo_stack, maxlen=newsize)
 
     def __repr__(self):
         return utils.get_repr(self, count=self.widget.count())
@@ -473,10 +473,10 @@ class TabbedBrowser(QWidget):
             else:
                 entry = UndoEntry(tab.url(), history_data, idx,
                                   tab.data.pinned)
-                if new_undo or not self._undo_stack:
-                    self._undo_stack.append([entry])
+                if new_undo or not self.undo_stack:
+                    self.undo_stack.append([entry])
                 else:
-                    self._undo_stack[-1].append(entry)
+                    self.undo_stack[-1].append(entry)
 
         tab.private_api.shutdown()
         self.widget.removeTab(idx)
@@ -515,7 +515,7 @@ class TabbedBrowser(QWidget):
             use_current_tab = (only_one_tab_open and no_history and
                                last_close_url_used)
 
-        for entry in reversed(self._undo_stack.pop()):
+        for entry in reversed(self.undo_stack.pop()):
             if use_current_tab:
                 newtab = self.widget.widget(0)
                 use_current_tab = False
@@ -1043,11 +1043,3 @@ class TabbedBrowser(QWidget):
             tab.scroller.to_point(point)
         else:
             message.error("Mark {} is not set".format(key))
-
-    def save_undo_stack(self):
-        """Return the stack of UndoEntries."""
-        return self._undo_stack
-
-    def restore_undo_stack(self, stack):
-        """Set the stack of UndoEntries."""
-        self._undo_stack = stack
