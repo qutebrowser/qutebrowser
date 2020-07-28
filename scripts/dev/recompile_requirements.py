@@ -372,8 +372,11 @@ def build_requirements(name):
                   venv_dir=tmpdir,
                   requirements=filename,
                   pre=comments['pre'])
-        proc = run_pip(tmpdir, 'freeze', stdout=subprocess.PIPE)
-        reqs = proc.stdout.decode('utf-8')
+        with utils.gha_group('Freezing requirements'):
+            proc = run_pip(tmpdir, 'freeze', stdout=subprocess.PIPE)
+            reqs = proc.stdout.decode('utf-8')
+            if utils.ON_CI:
+                print(reqs.strip())
 
     if name == 'qutebrowser':
         outfile = os.path.join(REPO_DIR, 'requirements.txt')
