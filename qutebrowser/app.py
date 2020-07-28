@@ -214,13 +214,15 @@ def _process_args(args):
 
     if not sessions.session_manager.did_load:
         log.init.debug("Initializing main window...")
-        if config.val.content.private_browsing and qtutils.is_single_process():
+        private = args.target == 'private-window'
+        if (config.val.content.private_browsing or
+                private) and qtutils.is_single_process():
             err = Exception("Private windows are unavailable with "
                             "the single-process process model.")
             error.handle_fatal_exc(err, 'Cannot start in private mode',
                                    no_err_windows=args.no_err_windows)
             sys.exit(usertypes.Exit.err_init)
-        window = mainwindow.MainWindow(private=None)
+        window = mainwindow.MainWindow(private=private)
         if not args.nowindow:
             window.show()
         q_app.setActiveWindow(window)
@@ -246,8 +248,10 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
                     ipc. If the --target argument was not specified, target_arg
                     will be an empty string.
     """
+    is_private = 'private-window' if target_arg == 'private-window' else None
     if via_ipc and not args:
-        win_id = mainwindow.get_window(via_ipc, force_window=True)
+        win_id = mainwindow.get_window(via_ipc, force_window=True,
+                                       force_target=is_private)
         _open_startpage(win_id)
         return
     win_id = None
@@ -260,7 +264,8 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
             commandrunner.run_safely(cmd[1:])
         elif not cmd:
             log.init.debug("Empty argument")
-            win_id = mainwindow.get_window(via_ipc, force_window=True)
+            win_id = mainwindow.get_window(via_ipc, force_window=True,
+                                           force_target=is_private)
         else:
             if via_ipc and target_arg and target_arg != 'auto':
                 open_target = target_arg

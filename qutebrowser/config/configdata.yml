@@ -72,6 +72,7 @@ new_instance_open_target:
       - tab-bg-silent: Open a new background tab in the existing window without
           activating the window.
       - window: Open in a new window.
+      - private-window: Open in a new private window.
   default: tab
   desc: >-
     How to open links in an existing instance if a new one is launched.
