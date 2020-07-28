@@ -471,8 +471,10 @@ class TabbedBrowser(QWidget):
             except browsertab.WebTabError:
                 pass  # special URL
             else:
-                entry = _UndoEntry(tab.url(), history_data, idx,
-                                   tab.data.pinned)
+                entry = _UndoEntry(url=tab.url(),
+                                   history=history_data,
+                                   index=idx,
+                                   pinned=tab.data.pinned)
                 if new_undo or not self.undo_stack:
                     self.undo_stack.append([entry])
                 else:
