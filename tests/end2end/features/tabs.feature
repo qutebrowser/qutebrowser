@@ -1002,14 +1002,14 @@ Feature: Tab management
         And I run :tab-close
         And I run :undo with count 2
         Then the following tabs should be open:
-            - data/numbers/1.txt (active)
-            - data/numbers/3.txt
+            - data/numbers/1.txt
+            - data/numbers/3.txt (active)
 
     Scenario: Undo with a too-high count
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I run :tab-close
-        And I run :undo with count 2
+        And I run :undo with count 100
         Then the error "Nothing to undo" should be shown
 
     # tabs.last_close

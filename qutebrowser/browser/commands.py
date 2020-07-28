@@ -795,7 +795,7 @@ class CommandDispatcher:
                 self._tabbed_browser.undo(count)
         except IndexError:
             msg = "Nothing to undo"
-            if not window:
+            if not window and count == 1:
                 msg += " (use :undo --window to reopen a closed window)"
             raise cmdutils.CommandError(msg)
 
