@@ -274,3 +274,23 @@ def back(*, info):
     Used for the :back command.
     """
     return _back_forward(info, go_forward=False)
+
+
+def undo(*, info):
+    """A model to complete undo entries."""
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window=info.win_id)
+    model = completionmodel.CompletionModel(column_widths=(6, 94, 0))
+
+    entries = [
+        (
+            str(idx),
+            ', '.join(entry.url.toDisplayString() for entry in group)
+        )
+        for idx, group in
+        enumerate(reversed(tabbed_browser.undo_stack), start=1)
+    ]
+
+    cat = listcategory.ListCategory("Closed tabs", entries)
+    model.add_category(cat)
+    return model

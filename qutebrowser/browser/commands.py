@@ -795,26 +795,36 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def undo(self, window: bool = False, count: int = 1) -> None:
+    @cmdutils.argument('depth', completion=miscmodels.undo)
+    def undo(self, window: bool = False,
+             count: int = None, depth: int = None) -> None:
         """Re-open the last closed tab(s) or window.
 
         Args:
             window: Re-open the last closed window (and its tabs).
             count: How deep in the undo stack to find the tab or tabs to
                    re-open.
+            depth: Same as `count` but as argument for completion, `count`
+                   takes precedence.
         """
-        if window and count != 1:
+        has_depth = count is not None or depth is not None
+        if count is not None:
+            depth = count
+        elif depth is None:
+            depth = 1
+
+        if window and has_depth:
             raise cmdutils.CommandError(
-                ":undo --window does not support a count")
+                ":undo --window does not support a count/depth")
 
         try:
             if window:
                 windowundo.instance.undo_last_window_close()
             else:
-                self._tabbed_browser.undo(count)
+                self._tabbed_browser.undo(depth)
         except IndexError:
             msg = "Nothing to undo"
-            if not window and count == 1:
+            if not window and not has_depth:
                 msg += " (use :undo --window to reopen a closed window)"
             raise cmdutils.CommandError(msg)
 

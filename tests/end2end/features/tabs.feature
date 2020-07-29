@@ -1014,7 +1014,11 @@ Feature: Tab management
 
     Scenario: Undo with --window and count
         When I run :undo --window with count 2
-        Then the error ":undo --window does not support a count" should be shown
+        Then the error ":undo --window does not support a count/depth" should be shown
+
+    Scenario: Undo with --window and depth
+        When I run :undo --window 1
+        Then the error ":undo --window does not support a count/depth" should be shown
 
     # tabs.last_close
 

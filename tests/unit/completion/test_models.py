@@ -40,6 +40,7 @@ from qutebrowser.completion import completer
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.config import configdata, configtypes
 from qutebrowser.utils import usertypes
+from qutebrowser.mainwindow import tabbedbrowser
 
 
 def _check_completions(model, expected):
@@ -1261,5 +1262,33 @@ def test_forward_completion(tab_with_history, info):
         "History": [
             ("3", "http://example.com/thing3", "thing3 detail"),
             ("4", "http://example.com/thing4", "thing4 detail"),
+        ],
+    })
+
+
+def test_undo_completion(tabbed_browser_stubs, info):
+    """Test :undo completion."""
+    entry1 = tabbedbrowser._UndoEntry(url=QUrl('https://example.org/'),
+                                      history=None, index=None, pinned=None)
+    entry2 = tabbedbrowser._UndoEntry(url=QUrl('https://example.com/'),
+                                      history=None, index=None, pinned=None)
+    entry3 = tabbedbrowser._UndoEntry(url=QUrl('https://example.net/'),
+                                      history=None, index=None, pinned=None)
+
+    # Most recently closed is at the end
+    tabbed_browser_stubs[0].undo_stack = [
+        [entry1],
+        [entry2, entry3],
+    ]
+
+    model = miscmodels.undo(info=info)
+    model.set_pattern('')
+
+    # Most recently closed is at the top, indices are used like "-x" for the
+    # undo stack.
+    _check_completions(model, {
+        "Closed tabs": [
+            ("1", "https://example.com/, https://example.net/", None),
+            ("2", "https://example.org/", None),
         ],
     })
