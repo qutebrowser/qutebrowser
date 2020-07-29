@@ -54,7 +54,7 @@ class CovtestHelper:
         res = self._testdir.runpytest('--cov=module',
                                       '--cov-config={}'.format(coveragerc),
                                       '--cov-report=xml',
-                                      plugins=['no:faulthandler'])
+                                      plugins=['no:faulthandler', 'no:xvfb'])
         assert res.ret == 0
         return res
 
