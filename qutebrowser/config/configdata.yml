@@ -996,11 +996,14 @@ completion.timestamp_format:
   type:
     name: String
     none_ok: true
-  default: '%Y-%m-%d'
+  default: '%Y-%m-%d %H:%M'
   desc: >-
     Format of timestamps (e.g. for the history completion).
 
-    See https://sqlite.org/lang_datefunc.html for allowed substitutions.
+    See https://sqlite.org/lang_datefunc.html and
+    https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
+    for allowed substitutions, qutebrowser uses both sqlite and Python to
+    format its timestamps.
 
 completion.web_history.exclude:
   type:

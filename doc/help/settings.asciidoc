@@ -1833,11 +1833,11 @@ Default: +pass:[false]+
 [[completion.timestamp_format]]
 === completion.timestamp_format
 Format of timestamps (e.g. for the history completion).
-See https://sqlite.org/lang_datefunc.html for allowed substitutions.
+See https://sqlite.org/lang_datefunc.html and https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior for allowed substitutions, qutebrowser uses both sqlite and Python to format its timestamps.
 
 Type: <<types,String>>
 
-Default: +pass:[%Y-%m-%d]+
+Default: +pass:[%Y-%m-%d %H:%M]+
 
 [[completion.use_best_match]]
 === completion.use_best_match
