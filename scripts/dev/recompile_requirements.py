@@ -49,6 +49,7 @@ CHANGELOG_URLS = {
     'hypothesis': 'https://hypothesis.readthedocs.io/en/latest/changes.html',
     'mypy': 'https://mypy-lang.blogspot.com/',
     'pytest': 'https://docs.pytest.org/en/latest/changelog.html',
+    'iniconfig': 'https://github.com/RonnyPfannschmidt/iniconfig/blob/master/CHANGELOG',
     'tox': 'https://tox.readthedocs.io/en/latest/changelog.html',
     'pyyaml': 'https://github.com/yaml/pyyaml/blob/master/CHANGES',
     'pytest-bdd': 'https://github.com/pytest-dev/pytest-bdd/blob/master/CHANGES.rst',
