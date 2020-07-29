@@ -41,7 +41,8 @@ Changed
 - `:undo` now has a new `-w` / `--window` argument, which can be used to
   restore closed windows (rather than tabs). This is bound to `U` by default.
 - When `:undo` is used with a count, it now reopens the count-th to last tab
-  instead of the last one.
+  instead of the last one. The depth can instead be passed as an argument,
+  which is also completed.
 - The default `completion.timestamp_format` now also shows the time.
 - `:back` and `:forward` now take an optional index which is completed using
   the current tab's history.
