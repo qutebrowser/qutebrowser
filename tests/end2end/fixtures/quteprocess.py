@@ -683,9 +683,7 @@ class QuteProc(testprocess.Process):
             if bad_msgs:
                 text = 'Logged unexpected errors:\n\n' + '\n'.join(
                     str(e) for e in bad_msgs)
-                # We'd like to use pytrace=False here but don't as a WORKAROUND
-                # for https://github.com/pytest-dev/pytest/issues/1316
-                pytest.fail(text)
+                pytest.fail(text, pytrace=False)
             else:
                 self._maybe_skip()
         finally:
