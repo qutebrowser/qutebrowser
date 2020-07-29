@@ -51,10 +51,12 @@ class CovtestHelper:
         """Run pytest with coverage for the given module.py."""
         coveragerc = str(self._testdir.tmpdir / 'coveragerc')
         self._monkeypatch.delenv('PYTEST_ADDOPTS', raising=False)
-        return self._testdir.runpytest('--cov=module',
-                                       '--cov-config={}'.format(coveragerc),
-                                       '--cov-report=xml',
-                                       plugins=['no:faulthandler'])
+        res = self._testdir.runpytest('--cov=module',
+                                      '--cov-config={}'.format(coveragerc),
+                                      '--cov-report=xml',
+                                      plugins=['no:faulthandler', 'no:xvfb'])
+        assert res.ret == 0
+        return res
 
     def check(self, perfect_files=None):
         """Run check_coverage.py and run its return value."""
@@ -92,6 +94,15 @@ def covtest(testdir, monkeypatch):
         def test_module():
             func()
     """)
+
+    # Check if coverage plugin is available
+    res = testdir.runpytest('--version', '--version')
+    assert res.ret == 0
+    output = res.stderr.str()
+    assert 'This is pytest version' in output
+    if 'pytest-cov' not in output:
+        pytest.skip("cov plugin not available")
+
     return CovtestHelper(testdir, monkeypatch)
 
 

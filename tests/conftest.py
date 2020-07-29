@@ -234,11 +234,6 @@ def pytest_configure(config):
 
 @pytest.fixture(scope='session', autouse=True)
 def check_display(request):
-    if (not request.config.getoption('--no-xvfb') and
-            'QUTE_BUILDBOT' in os.environ and
-            request.config.xvfb is not None):
-        raise Exception("Xvfb is running on buildbot!")
-
     if utils.is_linux and not os.environ.get('DISPLAY', ''):
         raise Exception("No display and no Xvfb available!")
 
