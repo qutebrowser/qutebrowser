@@ -43,6 +43,9 @@ Changed
 - When `:undo` is used with a count, it now reopens the count-th to last tab
   instead of the last one.
 - The default `completion.timestamp_format` now also shows the time.
+- `:back` and `:forward` now take an optional index which is completed using
+  the current tab's history.
+- The time a website in a tab was visited is now saved/restored in sessions.
 
 Added
 ~~~~~
