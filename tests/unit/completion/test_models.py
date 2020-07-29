@@ -22,10 +22,18 @@
 import collections
 import random
 import string
+import time
 from datetime import datetime
+from unittest import mock
 
 import pytest
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QDateTime
+try:
+    from PyQt5.QtWebEngineWidgets import (
+        QWebEngineHistory, QWebEngineHistoryItem
+    )
+except ImportError:
+    pass
 
 from qutebrowser.misc import objects
 from qutebrowser.completion import completer
@@ -35,7 +43,7 @@ from qutebrowser.utils import usertypes
 
 
 def _check_completions(model, expected):
-    """Check that a model contains the expected items in any order.
+    """Check that a model contains the expected items in order.
 
     Args:
         expected: A dict of form
@@ -59,7 +67,6 @@ def _check_completions(model, expected):
             actual[catname].append((name, desc, misc))
     assert actual == expected
     # sanity-check the column_widths
-    assert len(model.column_widths) == 3
     assert sum(model.column_widths) == 100
 
 
@@ -1179,3 +1186,76 @@ def test_url_completion_benchmark(benchmark, info,
         model.set_pattern('ex 123')
 
     benchmark(bench)
+
+
+@pytest.fixture
+def tab_with_history(fake_web_tab, tabbed_browser_stubs, info, monkeypatch):
+    """Returns a fake tab with some fake history items."""
+    pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    tab = fake_web_tab(QUrl('https://github.com'), 'GitHub', 0)
+    current_idx = 2
+    monkeypatch.setattr(
+        tab.history, 'current_idx',
+        lambda: current_idx,
+    )
+
+    history = []
+    now = time.time()
+    for url, title, ts in [
+            ("http://example.com/index", "list of things", now),
+            ("http://example.com/thing1", "thing1 detail", now+5),
+            ("http://example.com/thing2", "thing2 detail", now+10),
+            ("http://example.com/thing3", "thing3 detail", now+15),
+            ("http://example.com/thing4", "thing4 detail", now+20),
+    ]:
+        entry = mock.Mock(spec=QWebEngineHistoryItem)
+        entry.url.return_value = QUrl(url)
+        entry.title.return_value = title
+        entry.lastVisited.return_value = QDateTime.fromSecsSinceEpoch(ts)
+        history.append(entry)
+    tab.history._history = mock.Mock(spec=QWebEngineHistory)
+    tab.history._history.items.return_value = history
+    monkeypatch.setattr(
+        tab.history, 'back_items',
+        lambda *_args: (
+            entry for idx, entry in enumerate(tab.history._history.items())
+            if idx < current_idx
+        ),
+    )
+    monkeypatch.setattr(
+        tab.history, 'forward_items',
+        lambda *_args: (
+            entry for idx, entry in enumerate(tab.history._history.items())
+            if idx > current_idx
+        ),
+    )
+
+    tabbed_browser_stubs[0].widget.tabs = [tab]
+    tabbed_browser_stubs[0].widget.current_index = 0
+    return tab
+
+
+def test_back_completion(tab_with_history, info):
+    """Test back tab history completion."""
+    model = miscmodels.back(info=info)
+    model.set_pattern('')
+
+    _check_completions(model, {
+        "History": [
+            ("1", "http://example.com/thing1", "thing1 detail"),
+            ("0", "http://example.com/index", "list of things"),
+        ],
+    })
+
+
+def test_forward_completion(tab_with_history, info):
+    """Test forward tab history completion."""
+    model = miscmodels.forward(info=info)
+    model.set_pattern('')
+
+    _check_completions(model, {
+        "History": [
+            ("3", "http://example.com/thing3", "thing3 detail"),
+            ("4", "http://example.com/thing4", "thing4 detail"),
+        ],
+    })

@@ -19,6 +19,7 @@
 
 """Functions that return miscellaneous completion models."""
 
+import datetime
 import typing
 
 from qutebrowser.config import config, configdata
@@ -216,3 +217,59 @@ def inspector_position(*, info):
     category = listcategory.ListCategory("Position (optional)", positions)
     model.add_category(category)
     return model
+
+
+def _qdatetime_to_completion_format(qdate):
+    if not qdate.isValid():
+        ts = 0
+    else:
+        ts = qdate.toSecsSinceEpoch()
+        if ts < 0:
+            ts = 0
+    pydate = datetime.datetime.fromtimestamp(ts)
+    return pydate.strftime(config.val.completion.timestamp_format)
+
+
+def _back_forward(info, go_forward):
+    tab = objreg.get('tab', scope='tab', window=info.win_id, tab='current')
+    history = tab.history
+    current_idx = history.current_idx()
+
+    model = completionmodel.CompletionModel(column_widths=(5, 36, 50, 9))
+    if go_forward:
+        start = current_idx + 1
+        items = history.forward_items()
+    else:
+        start = 0
+        items = history.back_items()
+    entries = [
+        (
+            str(idx),
+            entry.url().toDisplayString(),
+            entry.title(),
+            _qdatetime_to_completion_format(entry.lastVisited())
+        )
+        for idx, entry in enumerate(items, start)
+    ]
+    if not go_forward:
+        # make sure the most recent is at the top for :back
+        entries = reversed(entries)
+    cat = listcategory.ListCategory("History", entries, sort=False)
+    model.add_category(cat)
+    return model
+
+
+def forward(*, info):
+    """A model to complete on history of the current tab.
+
+    Used for the :forward command.
+    """
+    return _back_forward(info, go_forward=True)
+
+
+def back(*, info):
+    """A model to complete on history of the current tab.
+
+    Used for the :back command.
+    """
+    return _back_forward(info, go_forward=False)

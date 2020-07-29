@@ -658,6 +658,12 @@ class WebKitHistory(browsertab.AbstractHistory):
         self._tab.before_load_started.emit(item.url())
         self._history.goToItem(item)
 
+    def back_items(self):
+        return self._history.backItems(self._history.count())
+
+    def forward_items(self):
+        return self._history.forwardItems(self._history.count())
+
 
 class WebKitElements(browsertab.AbstractElements):
 

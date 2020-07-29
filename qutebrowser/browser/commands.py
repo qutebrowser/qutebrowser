@@ -498,7 +498,7 @@ class CommandDispatcher:
             self._tabbed_browser.close_tab(self._current_widget(),
                                            add_undo=False)
 
-    def _back_forward(self, tab, bg, window, count, forward):
+    def _back_forward(self, tab, bg, window, count, forward, index=None):
         """Helper function for :back/:forward."""
         history = self._current_widget().history
         # Catch common cases before e.g. cloning tab
@@ -512,6 +512,12 @@ class CommandDispatcher:
         else:
             widget = self._current_widget()
 
+        if count is None:
+            if index is None:
+                count = 1
+            else:
+                count = abs(history.current_idx() - index)
+
         try:
             if forward:
                 widget.history.forward(count)
@@ -522,7 +528,9 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def back(self, tab=False, bg=False, window=False, count=1):
+    @cmdutils.argument('index', completion=miscmodels.back)
+    def back(self, tab=False, bg=False, window=False,
+             count=None, index: int = None):
         """Go back in the history of the current tab.
 
         Args:
@@ -530,12 +538,15 @@ class CommandDispatcher:
             bg: Go back in a background tab.
             window: Go back in a new window.
             count: How many pages to go back.
+            index: Which page to go back to, count takes precedence.
         """
-        self._back_forward(tab, bg, window, count, forward=False)
+        self._back_forward(tab, bg, window, count, forward=False, index=index)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def forward(self, tab=False, bg=False, window=False, count=1):
+    @cmdutils.argument('index', completion=miscmodels.forward)
+    def forward(self, tab=False, bg=False, window=False,
+                count=None, index: int = None):
         """Go forward in the history of the current tab.
 
         Args:
@@ -543,8 +554,9 @@ class CommandDispatcher:
             bg: Go forward in a background tab.
             window: Go forward in a new window.
             count: How many pages to go forward.
+            index: Which page to go forward to, count takes precedence.
         """
-        self._back_forward(tab, bg, window, count, forward=True)
+        self._back_forward(tab, bg, window, count, forward=True, index=index)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('where', choices=['prev', 'next', 'up', 'increment',

@@ -145,9 +145,12 @@ This updates `~/.local/share/qutebrowser/blocked-hosts` with downloaded host lis
 
 [[back]]
 === back
-Syntax: +:back [*--tab*] [*--bg*] [*--window*]+
+Syntax: +:back [*--tab*] [*--bg*] [*--window*] ['index']+
 
 Go back in the history of the current tab.
+
+==== positional arguments
+* +'index'+: Which page to go back to, count takes precedence.
 
 ==== optional arguments
 * +*-t*+, +*--tab*+: Go back in a new tab.
@@ -567,9 +570,12 @@ Follow the selected text.
 
 [[forward]]
 === forward
-Syntax: +:forward [*--tab*] [*--bg*] [*--window*]+
+Syntax: +:forward [*--tab*] [*--bg*] [*--window*] ['index']+
 
 Go forward in the history of the current tab.
+
+==== positional arguments
+* +'index'+: Which page to go forward to, count takes precedence.
 
 ==== optional arguments
 * +*-t*+, +*--tab*+: Go forward in a new tab.
