@@ -25,7 +25,7 @@ from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 from qutebrowser.config import config
 from qutebrowser.commands import runners
 from qutebrowser.misc import objects
-from qutebrowser.utils import log, utils, debug
+from qutebrowser.utils import log, utils, debug, objreg
 from qutebrowser.completion.models import miscmodels
 
 
@@ -37,6 +37,7 @@ class CompletionInfo:
     config = attr.ib()
     keyconf = attr.ib()
     win_id = attr.ib()
+    cur_tab = attr.ib()
 
 
 class Completer(QObject):
@@ -254,12 +255,17 @@ class Completer(QObject):
             return
 
         self._last_before_cursor = before_cursor
+
         args = (x for x in before_cursor[1:] if not x.startswith('-'))
+        cur_tab = objreg.get('tab', scope='tab', window=self._win_id,
+                             tab='current')
+
         with debug.log_time(log.completion, 'Starting {} completion'
                             .format(func.__name__)):
             info = CompletionInfo(config=config.instance,
                                   keyconf=config.key_instance,
-                                  win_id=self._win_id)
+                                  win_id=self._win_id,
+                                  cur_tab=cur_tab)
             model = func(*args, info=info)
         with debug.log_time(log.completion, 'Set completion model'):
             completion.set_model(model)

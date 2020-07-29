@@ -231,8 +231,7 @@ def _qdatetime_to_completion_format(qdate):
 
 
 def _back_forward(info, go_forward):
-    tab = objreg.get('tab', scope='tab', window=info.win_id, tab='current')
-    history = tab.history
+    history = info.cur_tab.history
     current_idx = history.current_idx()
     model = completionmodel.CompletionModel(column_widths=(5, 36, 50, 9))
 

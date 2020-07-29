@@ -217,7 +217,8 @@ def web_history_populated(web_history):
 def info(config_stub, key_config_stub):
     return completer.CompletionInfo(config=config_stub,
                                     keyconf=key_config_stub,
-                                    win_id=0)
+                                    win_id=0,
+                                    cur_tab=None)
 
 
 def test_command_completion(qtmodeltester, cmdutils_stub, configdata_stub,
@@ -1233,6 +1234,8 @@ def tab_with_history(fake_web_tab, tabbed_browser_stubs, info, monkeypatch):
 
     tabbed_browser_stubs[0].widget.tabs = [tab]
     tabbed_browser_stubs[0].widget.current_index = 0
+
+    info.cur_tab = tab
     return tab
 
 

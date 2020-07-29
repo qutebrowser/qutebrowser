@@ -30,6 +30,13 @@ from qutebrowser.commands import command
 from qutebrowser.api import cmdutils
 
 
+@pytest.fixture(autouse=True)
+def setup_cur_tab(tabbed_browser_stubs, fake_web_tab):
+    # Make sure completions can access the current tab
+    tabbed_browser_stubs[0].widget.tabs = [fake_web_tab()]
+    tabbed_browser_stubs[0].widget.current_index = 0
+
+
 class FakeCompletionModel(QStandardItemModel):
 
     """Stub for a completion model."""
