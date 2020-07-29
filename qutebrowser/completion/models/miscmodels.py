@@ -280,12 +280,14 @@ def undo(*, info):
     """A model to complete undo entries."""
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=info.win_id)
-    model = completionmodel.CompletionModel(column_widths=(6, 94, 0))
+    model = completionmodel.CompletionModel(column_widths=(6, 84, 10))
+    timestamp_format = config.val.completion.timestamp_format
 
     entries = [
         (
             str(idx),
-            ', '.join(entry.url.toDisplayString() for entry in group)
+            ', '.join(entry.url.toDisplayString() for entry in group),
+            group[-1].created_at.strftime(timestamp_format)
         )
         for idx, group in
         enumerate(reversed(tabbed_browser.undo_stack), start=1)

@@ -1269,11 +1269,14 @@ def test_forward_completion(tab_with_history, info):
 def test_undo_completion(tabbed_browser_stubs, info):
     """Test :undo completion."""
     entry1 = tabbedbrowser._UndoEntry(url=QUrl('https://example.org/'),
-                                      history=None, index=None, pinned=None)
+                                      history=None, index=None, pinned=None,
+                                      created_at=datetime(2020, 1, 1))
     entry2 = tabbedbrowser._UndoEntry(url=QUrl('https://example.com/'),
-                                      history=None, index=None, pinned=None)
+                                      history=None, index=None, pinned=None,
+                                      created_at=datetime(2020, 1, 2))
     entry3 = tabbedbrowser._UndoEntry(url=QUrl('https://example.net/'),
-                                      history=None, index=None, pinned=None)
+                                      history=None, index=None, pinned=None,
+                                      created_at=datetime(2020, 1, 2))
 
     # Most recently closed is at the end
     tabbed_browser_stubs[0].undo_stack = [
@@ -1288,7 +1291,11 @@ def test_undo_completion(tabbed_browser_stubs, info):
     # undo stack.
     _check_completions(model, {
         "Closed tabs": [
-            ("1", "https://example.com/, https://example.net/", None),
-            ("2", "https://example.org/", None),
+            ("1",
+             "https://example.com/, https://example.net/",
+             "2020-01-02 00:00"),
+            ("2",
+             "https://example.org/",
+             "2020-01-01 00:00"),
         ],
     })

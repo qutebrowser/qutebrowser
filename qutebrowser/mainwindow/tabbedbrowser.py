@@ -23,6 +23,7 @@ import collections
 import functools
 import weakref
 import typing
+import datetime
 
 import attr
 from PyQt5.QtWidgets import QSizePolicy, QWidget, QApplication
@@ -47,6 +48,7 @@ class _UndoEntry:
     history = attr.ib()
     index = attr.ib()
     pinned = attr.ib()
+    created_at = attr.ib(attr.Factory(datetime.datetime.now))
 
 
 class TabDeque:
