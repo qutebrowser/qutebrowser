@@ -23,7 +23,7 @@ import typing
 
 from PyQt5.QtCore import Qt, QModelIndex, QAbstractItemModel
 
-from qutebrowser.utils import log, qtutils
+from qutebrowser.utils import log, qtutils, utils
 from qutebrowser.api import cmdutils
 
 
@@ -153,7 +153,7 @@ class CompletionModel(QAbstractItemModel):
 
     def columnCount(self, parent=QModelIndex()):
         """Override QAbstractItemModel::columnCount."""
-        # pylint: disable=unused-argument
+        utils.unused(parent)
         return len(self.column_widths)
 
     def canFetchMore(self, parent):
