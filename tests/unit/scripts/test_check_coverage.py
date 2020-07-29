@@ -94,6 +94,15 @@ def covtest(testdir, monkeypatch):
         def test_module():
             func()
     """)
+
+    # Check if coverage plugin is available
+    res = testdir.runpytest('--version', '--version')
+    assert res.ret == 0
+    output = res.stderr.str()
+    assert 'This is pytest version' in output
+    if 'pytest-cov' not in output:
+        pytest.skip("cov plugin not available")
+
     return CovtestHelper(testdir, monkeypatch)
 
 
