@@ -96,7 +96,6 @@ def _serialize_item(item, stream):
 
     ## static_cast<qint64>(entry->GetTimestamp().ToInternalValue());
     # \x00\x00\x00\x00^\x97$\xe7
-    stream.writeInt64(int(time.time()))
     if item.last_visited is None:
         unix_msecs = 0
     else:
