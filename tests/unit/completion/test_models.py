@@ -1211,7 +1211,8 @@ def tab_with_history(fake_web_tab, tabbed_browser_stubs, info, monkeypatch):
         entry = mock.Mock(spec=QWebEngineHistoryItem)
         entry.url.return_value = QUrl(url)
         entry.title.return_value = title
-        entry.lastVisited.return_value = QDateTime.fromSecsSinceEpoch(ts)
+        dt = QDateTime.fromMSecsSinceEpoch(int(ts * 1000))
+        entry.lastVisited.return_value = dt
         history.append(entry)
     tab.history._history = mock.Mock(spec=QWebEngineHistory)
     tab.history._history.items.return_value = history

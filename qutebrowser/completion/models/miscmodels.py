@@ -223,10 +223,10 @@ def _qdatetime_to_completion_format(qdate):
     if not qdate.isValid():
         ts = 0
     else:
-        ts = qdate.toSecsSinceEpoch()
+        ts = qdate.toMSecsSinceEpoch()
         if ts < 0:
             ts = 0
-    pydate = datetime.datetime.fromtimestamp(ts)
+    pydate = datetime.datetime.fromtimestamp(ts / 1000)
     return pydate.strftime(config.val.completion.timestamp_format)
 
 
