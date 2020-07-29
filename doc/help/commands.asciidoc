@@ -1473,9 +1473,13 @@ Unbind a keychain.
 
 [[undo]]
 === undo
-Syntax: +:undo [*--window*]+
+Syntax: +:undo [*--window*] ['depth']+
 
 Re-open the last closed tab(s) or window.
+
+==== positional arguments
+* +'depth'+: Same as `count` but as argument for completion, `count` takes precedence.
+
 
 ==== optional arguments
 * +*-w*+, +*--window*+: Re-open the last closed window (and its tabs).
