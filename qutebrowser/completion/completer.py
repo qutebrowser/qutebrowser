@@ -246,17 +246,23 @@ class Completer(QObject):
             self._last_before_cursor = None
             return
 
-        if before_cursor != self._last_before_cursor:
-            self._last_before_cursor = before_cursor
-            args = (x for x in before_cursor[1:] if not x.startswith('-'))
-            with debug.log_time(log.completion, 'Starting {} completion'
-                                .format(func.__name__)):
-                info = CompletionInfo(config=config.instance,
-                                      keyconf=config.key_instance,
-                                      win_id=self._win_id)
-                model = func(*args, info=info)
-            with debug.log_time(log.completion, 'Set completion model'):
-                completion.set_model(model)
+        if before_cursor == self._last_before_cursor:
+            # If the part before the cursor didn't change since the last
+            # completion, we only need to filter existing matches without
+            # having to regenerate completion results.
+            completion.set_pattern(pattern)
+            return
+
+        self._last_before_cursor = before_cursor
+        args = (x for x in before_cursor[1:] if not x.startswith('-'))
+        with debug.log_time(log.completion, 'Starting {} completion'
+                            .format(func.__name__)):
+            info = CompletionInfo(config=config.instance,
+                                  keyconf=config.key_instance,
+                                  win_id=self._win_id)
+            model = func(*args, info=info)
+        with debug.log_time(log.completion, 'Set completion model'):
+            completion.set_model(model)
 
         completion.set_pattern(pattern)
 
