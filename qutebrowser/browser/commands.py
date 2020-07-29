@@ -529,8 +529,9 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
     @cmdutils.argument('index', completion=miscmodels.back)
-    def back(self, tab=False, bg=False, window=False,
-             count=None, index: int = None):
+    def back(self, tab: bool = False, bg: bool = False,
+             window: bool = False, count: int = None,
+             index: int = None) -> None:
         """Go back in the history of the current tab.
 
         Args:
@@ -545,8 +546,9 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
     @cmdutils.argument('index', completion=miscmodels.forward)
-    def forward(self, tab=False, bg=False, window=False,
-                count=None, index: int = None):
+    def forward(self, tab: bool = False, bg: bool = False,
+                window: bool = False, count: int = None,
+                index: int = None) -> None:
         """Go forward in the history of the current tab.
 
         Args:

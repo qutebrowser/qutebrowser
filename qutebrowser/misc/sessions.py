@@ -374,7 +374,7 @@ class SessionManager(QObject):
         """Temporarily save the session for the last closed window."""
         self._last_window_session = self._save_all()
 
-    def _load_tab(self, new_tab, data):
+    def _load_tab(self, new_tab, data):  # noqa: C901
         """Load yaml data into a newly opened tab."""
         entries = []
         lazy_load = []  # type: typing.MutableSequence[_JsonType]
@@ -428,18 +428,21 @@ class SessionManager(QObject):
 
             active = histentry.get('active', False)
             url = QUrl.fromEncoded(histentry['url'].encode('ascii'))
+
             if 'original-url' in histentry:
                 orig_url = QUrl.fromEncoded(
                     histentry['original-url'].encode('ascii'))
             else:
                 orig_url = url
+
             if histentry.get("last_visited"):
                 last_visited = QDateTime.fromString(
                     histentry.get("last_visited"),
                     Qt.ISODate,
-                )
+                )  # type: typing.Optional[QDateTime]
             else:
                 last_visited = None
+
             entry = TabHistoryItem(url=url, original_url=orig_url,
                                    title=histentry['title'], active=active,
                                    user_data=user_data,
