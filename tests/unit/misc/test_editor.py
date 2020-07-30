@@ -37,9 +37,9 @@ def patch_things(config_stub, monkeypatch, stubs):
                         stubs.fake_qprocess())
 
 
-@pytest.fixture
-def editor(caplog, qtbot):
-    ed = editormod.ExternalEditor()
+@pytest.fixture(params=[True, False])
+def editor(caplog, qtbot, request):
+    ed = editormod.ExternalEditor(watch=request.param)
     yield ed
     with caplog.at_level(logging.ERROR):
         ed._remove_file = True
