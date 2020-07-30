@@ -60,8 +60,6 @@ def main():
         'compare-to-empty-string',
         # directories without __init__.py...
         'import-error',
-        # WORKAROUND for https://github.com/pytest-dev/pytest/issues/7558
-        'not-callable',
     ]
 
     toxinidir = sys.argv[1]
