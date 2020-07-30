@@ -628,7 +628,7 @@ class AbstractDownloadItem(QObject):
                      filename. None means to use the system's default
                      application or `downloads.open_dispatcher` if set. If no
                      `{}` is found, the filename is appended to the cmdline.
-            open_dir: Specify whether to open the file's directory instead
+            open_dir: Specify whether to open the file's directory instead.
         """
         assert self.successful
         filename = self._get_open_filename()
