@@ -1121,7 +1121,7 @@ class DownloadModel(QAbstractListModel):
                 count = len(self)
             raise cmdutils.CommandError("Download {} is not done!"
                                         .format(count))
-        download.open_file(cmdline, open_dir=True)
+        download.open_file(cmdline, open_dir=dir_)
 
     @cmdutils.register(instance='download-model', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
