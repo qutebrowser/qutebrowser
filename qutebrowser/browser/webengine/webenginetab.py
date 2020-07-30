@@ -531,6 +531,11 @@ class WebEngineCaret(browsertab.AbstractCaret):
         self._tab.run_js_async(code, callback)
 
     def _toggle_sel_translate(self, state_str):
+        if self._mode_manager.mode != usertypes.KeyMode.caret:
+            # This may happen if the user switches to another mode after
+            # `:toggle-selection` is executed and before this callback function
+            # is asynchronously called.
+            return
         if state_str is None:
             message.error("Error toggling caret selection")
             return
