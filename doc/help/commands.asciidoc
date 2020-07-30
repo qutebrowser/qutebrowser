@@ -480,8 +480,9 @@ If no specific command is given, this will use the system's default application 
  present, the filename is automatically appended to the
  cmdline.
 
+
 ==== optional arguments
-* +*-d*+, +*--dir*+: Open the file's directory instead
+* +*-d*+, +*--dir*+: Whether to open the file's directory instead.
 
 ==== count
 The index of the download to open.
