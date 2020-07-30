@@ -640,6 +640,27 @@ class AbstractDownloadItem(QObject):
         # (see issue #2296)
         QTimer.singleShot(0, lambda: utils.open_file(filename, cmdline))
 
+    @pyqtSlot()
+    def open_file_dir(self, cmdline=None):
+        """Open the downloaded file's directory.
+
+        Args:
+            cmdline: The command to use as string. A `{}` is expanded to the
+                     filename. None means to use the system's default
+                     application or `downloads.open_dispatcher` if set. If no
+                     `{}` is found, the filename is appended to the cmdline.
+        """
+        assert self.successful
+        filename = (os.path.sep).join(self._get_open_filename().split(os.path.sep)[0:-1])
+        if filename is None:  # pragma: no cover
+            log.downloads.error("No filename to open the download's directory!")
+            return
+        # By using a singleshot timer, we ensure that we return fast. This
+        # is important on systems where process creation takes long, as
+        # otherwise the prompt might hang around and cause bugs
+        # (see issue #2296)
+        QTimer.singleShot(0, lambda: utils.open_file(filename, cmdline))
+
     def _ensure_can_set_filename(self, filename):
         """Make sure we can still set a filename."""
         raise NotImplementedError
