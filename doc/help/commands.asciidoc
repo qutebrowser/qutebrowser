@@ -469,7 +469,7 @@ The index of the download to delete.
 
 [[download-open]]
 === download-open
-Syntax: +:download-open ['cmdline']+
+Syntax: +:download-open [*--dir*] ['cmdline']+
 
 Open the last/[count]th download.
 
@@ -480,6 +480,8 @@ If no specific command is given, this will use the system's default application 
  present, the filename is automatically appended to the
  cmdline.
 
+==== optional arguments
+* +*-d*+, +*--dir*+: Open the file's directory instead
 
 ==== count
 The index of the download to open.

@@ -1097,7 +1097,8 @@ class DownloadModel(QAbstractListModel):
 
     @cmdutils.register(instance='download-model', scope='window', maxsplit=0)
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def download_open(self, cmdline: str = None, count: int = 0) -> None:
+    @cmdutils.argument('dir', flag='d')
+    def download_open(self, cmdline: str = None, count: int = 0, dir: bool = False) -> None:
         """Open the last/[count]th download.
 
         If no specific command is given, this will use the system's default
@@ -1109,6 +1110,7 @@ class DownloadModel(QAbstractListModel):
                      present, the filename is automatically appended to the
                      cmdline.
             count: The index of the download to open.
+            dir: Whether to open the file's directory instead
         """
         try:
             download = self[count - 1]
@@ -1119,7 +1121,10 @@ class DownloadModel(QAbstractListModel):
                 count = len(self)
             raise cmdutils.CommandError("Download {} is not done!"
                                         .format(count))
-        download.open_file(cmdline)
+        if dir:
+            download.open_file(cmdline, open_dir=True)
+        else:
+            download.open_file(cmdline)
 
     @cmdutils.register(instance='download-model', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
