@@ -109,12 +109,12 @@ MATCHERS = {
         {
             "pattern": [
                 {
-                    "regexp": r"^([^:]+):(\d+): ([^:]+): (.*)  \[(.*)\]$",
-                    "file": 1,
-                    "line": 2,
-                    "severity": 3,
-                    "message": 4,
-                    "code": 5,
+                    "regexp": r"^(\033\[0m)?([^:]+):(\d+): ([^:]+): (.*)  \[(.*)\]$",
+                    "file": 2,
+                    "line": 3,
+                    "severity": 4,
+                    "message": 5,
+                    "code": 6,
                 },
             ],
         },
