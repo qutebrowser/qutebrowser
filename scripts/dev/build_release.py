@@ -275,12 +275,12 @@ def build_windows():
 
     utils.print_title("Running pyinstaller 32bit")
     _maybe_remove(out_32)
-    call_tox('pyinstaller32', '-r', python=python_x86)
+    call_tox('pyinstaller-32', '-r', python=python_x86)
     shutil.move(out_pyinstaller, out_32)
 
     utils.print_title("Running pyinstaller 64bit")
     _maybe_remove(out_64)
-    call_tox('pyinstaller', '-r', python=python_x64)
+    call_tox('pyinstaller-64', '-r', python=python_x64)
     shutil.move(out_pyinstaller, out_64)
 
     utils.print_title("Running 32bit smoke test")
