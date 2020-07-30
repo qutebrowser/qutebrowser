@@ -230,15 +230,16 @@ window._qutebrowser.webelem = (function() {
     function find_scrollable(only_visible) {
         let scrollable_elts = [];
         if (document.scrollingElement !== null &&
-            scroll.is_scrollable_y(document.scrollingElement)) {
+            scroll.is_scrollable_xy(document.scrollingElement)) {
             scrollable_elts.push(serialize_elem(
                 document.scrollingElement, null, "scrollable"));
         }
         scrollable_elts = scrollable_elts.concat(
-            Array.from(document.querySelectorAll("div,ol,ul")).
-                filter((elt) => elt.clientHeight < elt.scrollHeight &&
-                        scroll.is_scrollable_y(elt)).
-                filter((elt) => !only_visible || is_visible(elt)).
+            Array.from(document.querySelectorAll("div,ol,ul,nav,pre")).
+                filter((elt) => (elt.clientHeight < elt.scrollHeight ||
+                    elt.clientWidth < elt.scrollWidth) &&
+                    scroll.is_scrollable_xy(elt) &&
+                    (!only_visible || is_visible(elt))).
                 map((elt) => serialize_elem(elt, null, "scrollable")));
         run_frames((frame) => {
             const scroller = frame.window.document.scrollingElement;

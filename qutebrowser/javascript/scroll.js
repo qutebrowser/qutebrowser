@@ -145,6 +145,10 @@ window._qutebrowser.scroll = (function() {
         return is_scrollable(elt, 0, 1) || is_scrollable(elt, 0, -1);
     }
 
+    function is_scrollable_xy(elt) {
+        return is_scrollable(elt, 1, 1) || is_scrollable(elt, -1, -1);
+    }
+
     // Recurse up the DOM and get the first element which is scrollable.
     // We cannot use scrollHeight and clientHeight due to a chrome bug (110149)
     // Heavily inspired from Vimium's implementation:
@@ -262,6 +266,7 @@ window._qutebrowser.scroll = (function() {
     };
     funcs.is_scrollable = is_scrollable;
     funcs.is_scrollable_y = is_scrollable_y;
+    funcs.is_scrollable_xy = is_scrollable_xy;
 
     return funcs;
 })();
