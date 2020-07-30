@@ -651,15 +651,16 @@ class AbstractDownloadItem(QObject):
                      `{}` is found, the filename is appended to the cmdline.
         """
         assert self.successful
-        filename = (os.path.sep).join(self._get_open_filename().split(os.path.sep)[0:-1])
+        filename = self._get_open_filename()
         if filename is None:  # pragma: no cover
             log.downloads.error("No filename to open the download's directory!")
             return
+        dirname = os.path.dirname(filename)
         # By using a singleshot timer, we ensure that we return fast. This
         # is important on systems where process creation takes long, as
         # otherwise the prompt might hang around and cause bugs
         # (see issue #2296)
-        QTimer.singleShot(0, lambda: utils.open_file(filename, cmdline))
+        QTimer.singleShot(0, lambda: utils.open_file(dirname, cmdline))
 
     def _ensure_can_set_filename(self, filename):
         """Make sure we can still set a filename."""
