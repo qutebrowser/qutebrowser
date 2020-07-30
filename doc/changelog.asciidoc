@@ -86,6 +86,9 @@ Fixed
 - `:enter-mode register` crashed since v1.13.0, it now displays an error
   instead.
 - Crash with certain invalid URLs in resources with the QtWebKit backend.
+- When `:config-edit` is used but no `config.py` exists yet, the file is now
+  created (and watched for changes properly) before spawning the external
+  editor.
 
 v1.13.1 (2020-07-17)
 --------------------

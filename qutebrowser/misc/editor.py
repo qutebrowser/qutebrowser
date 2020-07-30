@@ -169,6 +169,9 @@ class ExternalEditor(QObject):
 
     def edit_file(self, filename):
         """Edit the file with the given filename."""
+        if not os.path.exists(filename):
+            with open(filename, 'w'):
+                pass
         self._filename = filename
         self._remove_file = False
         self._start_editor()
