@@ -45,8 +45,8 @@ class ExternalEditor(QObject):
         _watcher: A QFileSystemWatcher to watch the edited file for changes.
                   Only set if watch=True.
         _content: The last-saved text of the editor.
-        _fail_on_last_change: Whether qutebrowser failed to read the file
-                              on the last file modification.
+        _fail_on_last_reload: Whether qutebrowser failed to read the file
+                              on the last call to _try_reload_file.
 
     Signals:
         file_updated: The text in the edited file was updated.
@@ -66,7 +66,7 @@ class ExternalEditor(QObject):
         self._on_change_delayed = throttle.Delayed(
             self._on_change, 100, parent=self)
         self._content = None
-        self._fail_on_last_change = False  # type: bool
+        self._fail_on_last_reload = False  # type: bool
 
     def _cleanup(self):
         """Clean up temporary files after the editor closed."""
@@ -111,7 +111,7 @@ class ExternalEditor(QObject):
             return
         # do a final read to make sure we don't miss the last signal
         assert self._filename is not None
-        self._on_change(self._filename)
+        self._try_reload_file()
         self.editing_finished.emit()
         self._cleanup()
 
@@ -163,7 +163,7 @@ class ExternalEditor(QObject):
                 fobj.write(text)
             return fobj.name
 
-    def _on_change(self, _path: str) -> None:
+    def _try_reload_file(self) -> None:
         assert self._filename is not None
         try:
             with open(self._filename, 'r',
@@ -172,23 +172,29 @@ class ExternalEditor(QObject):
         except OSError as e:
             # NOTE: Do not replace this with "raise CommandError" as it's
             # executed async.
-            if not self._fail_on_last_change:
+            if not self._fail_on_last_reload:
                 # the error message should not be shown repeatedly
                 message.error("Failed to read back edited file: {}".format(e))
-                self._fail_on_last_change = True
+                self._fail_on_last_reload = True
             return
         log.procs.debug("Read back: {}".format(text))
-        self._fail_on_last_change = False
+        self._fail_on_last_reload = False
         if self._content != text:
             self._content = text
             self.file_updated.emit(text)
 
-        # self._watcher may be None if _on_change is called from _on_proc_error
-        if self._watcher is not None:
-            if (self._filename not in self._watcher.files() and
-                    not self._watcher.addPath(self._filename)):
-                log.procs.error("Failed to rewatch path: {}"
-                                .format(self._filename))
+    def _on_change(self, _path: str) -> None:
+        self._try_reload_file()
+
+        assert self._watcher is not None
+        # _try_reload_file() will set _fail_on_last_reload depends on whether
+        # the read success. If it isn't, it's likely that the file doesn't
+        # exist so it's not necessary to watch the path.
+        if (not self._fail_on_last_reload and
+                self._filename not in self._watcher.files() and
+                not self._watcher.addPath(self._filename)):
+            log.procs.error("Failed to rewatch path: {}"
+                            .format(self._filename))
 
     def edit_file(self, filename: str) -> None:
         """Edit the file with the given filename."""
