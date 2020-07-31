@@ -104,7 +104,7 @@ def version_check(version: str,
         # qVersion() ==/>= parsed, now check if QT_VERSION_STR ==/>= parsed.
         result = op(pkg_resources.parse_version(QT_VERSION_STR), parsed)
     if compiled and result:
-        # FInally, check PYQT_VERSION_STR as well.
+        # Finally, check PYQT_VERSION_STR as well.
         result = op(pkg_resources.parse_version(PYQT_VERSION_STR), parsed)
     return result
 
