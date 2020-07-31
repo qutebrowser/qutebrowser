@@ -94,6 +94,10 @@ Fixed
 - When `:config-edit` is used but no `config.py` exists yet, the file is now
   created (and watched for changes properly) before spawning the external
   editor.
+- When hint mode was entered from outside normal mode, the status bar was empty
+  instead of displaying the proper text. This is now fixed.
+- When entering different modes too quickly (e.g. pressing `fV`), the statusbar
+  could end up in a confusing state. This is now fixed.
 
 v1.13.1 (2020-07-17)
 --------------------
