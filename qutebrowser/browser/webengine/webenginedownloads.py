@@ -23,6 +23,7 @@ import re
 import os.path
 import urllib
 import functools
+import typing
 
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QObject
 from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem, QWebEngineScript
@@ -38,6 +39,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
     Attributes:
         _qt_item: The wrapped item.
+        _page_destroyed: Whether the page the download was requested on is
+                         destroyed. This is always None before Qt 5.12.
     """
 
     def __init__(self, qt_item: QWebEngineDownloadItem,
@@ -49,8 +52,10 @@ class DownloadItem(downloads.AbstractDownloadItem):
         qt_item.stateChanged.connect(  # type: ignore[attr-defined]
             self._on_state_changed)
 
-        self._page_destroyed = False  # type: bool
-        qt_item.page().destroyed.connect(self._set_page_destroyed)
+        self._page_destroyed = None  # type: typing.Optional[bool]
+        if qtutils.version_check('5.12'):
+            self._page_destroyed = False
+            qt_item.page().destroyed.connect(self._set_page_destroyed)
 
         # Ensure wrapped qt_item is deleted manually when the wrapper object
         # is deleted. See https://github.com/qutebrowser/qutebrowser/issues/3373
@@ -290,7 +295,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
     def _on_pdfjs_requested(self, filename: str, original_url: QUrl,
                             download: downloads.AbstractDownloadItem) -> None:
         """Open PDF.js when a download requests it."""
-        if not download._page_destroyed:
+        if download._page_destroyed is False:
             page = download._qt_item.page()
             # calling this after the page is closed causes segmentation fault
 
