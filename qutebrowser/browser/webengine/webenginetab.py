@@ -535,6 +535,8 @@ class WebEngineCaret(browsertab.AbstractCaret):
             # This may happen if the user switches to another mode after
             # `:toggle-selection` is executed and before this callback function
             # is asynchronously called.
+            log.misc.debug("Ignoring caret selection callback in {}".format(
+                self._mode_manager.mode))
             return
         if state_str is None:
             message.error("Error toggling caret selection")
