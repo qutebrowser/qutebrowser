@@ -598,6 +598,8 @@ Feature: Using hints
         And I press the key "<Enter>"
         Then data/hello.txt should be loaded
 
+    ## Other
+
     Scenario: Using --first with normal links
         When I open data/hints/html/simple.html
         And I hint with args "all --first"
@@ -620,7 +622,6 @@ Feature: Using hints
         # The actual check is already done above
         Then no crash should happen
 
-    # Delete hint target
     Scenario: Deleting a simple target
         When I open data/hints/html/simple.html
         And I hint with args "all delete" and follow a
