@@ -49,6 +49,26 @@ MATCHERS = {
         },
     ],
 
+    "yamllint": [
+        {
+            "pattern": [
+                {
+                    "regexp": r"^\033\[4m([^\033]+)\033\[0m$",
+                    "file": 1,
+                },
+                {
+                    "regexp": r"^  \033\[2m(\d+):(\d+)\033\[0m   \033\[3[13]m([^\033]+)\033\[0m +([^\033]*)\033\[2m\(([^)]+)\)\033\[0m$",
+                    "line": 1,
+                    "column": 2,
+                    "severity": 3,
+                    "message": 4,
+                    "code": 5,
+                    "loop": True,
+                },
+            ],
+        },
+    ],
+
     # filename.py:313: unused function 'i_am_never_used' (60% confidence)
     "vulture": [
         {
@@ -73,12 +93,12 @@ MATCHERS = {
             "severity": "warning",
             "pattern": [
                 {
-                    "regexp": r"^([^:]+):(\d+):(\d+): ([A-Z]\d{3}) (.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    "code": 4,
-                    "message": 5,
+                    "regexp": r"^(\033\[0m)?([^:]+):(\d+):(\d+): ([A-Z]\d{3}) (.*)$",
+                    "file": 2,
+                    "line": 3,
+                    "column": 4,
+                    "code": 5,
+                    "message": 6,
                 },
             ],
         },
@@ -89,12 +109,12 @@ MATCHERS = {
         {
             "pattern": [
                 {
-                    "regexp": r"^([^:]+):(\d+): ([^:]+): (.*)  \[(.*)\]$",
-                    "file": 1,
-                    "line": 2,
-                    "severity": 3,
-                    "message": 4,
-                    "code": 5,
+                    "regexp": r"^(\033\[0m)?([^:]+):(\d+): ([^:]+): (.*)  \[(.*)\]$",
+                    "file": 2,
+                    "line": 3,
+                    "severity": 4,
+                    "message": 5,
+                    "code": 6,
                 },
             ],
         },
@@ -145,6 +165,7 @@ MATCHERS = {
                 {
                     "regexp": r"^((ERROR|FAILED) .*)",
                     "message": 1,
+                    "loop": True,
                 }
             ],
         },
@@ -155,12 +176,12 @@ MATCHERS = {
             "severity": "error",
             "pattern": [
                 {
-                    "regexp": r'^\033\[1m\033\[31mE       [a-zA-Z0-9.]+: ([^\033]*)\033\[0m$',
+                    "regexp": r'^\033\[1m\033\[31mE       ([a-zA-Z0-9.]+: [^\033]*)\033\[0m$',
                     "message": 1,
                 },
             ],
         },
-    ]
+    ],
 }
 
 

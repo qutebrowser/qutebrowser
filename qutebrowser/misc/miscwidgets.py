@@ -28,10 +28,10 @@ from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
 from PyQt5.QtGui import QValidator, QPainter, QResizeEvent
 
 from qutebrowser.config import config, configfiles
-from qutebrowser.utils import utils, log
+from qutebrowser.utils import utils, log, usertypes
 from qutebrowser.misc import cmdhistory
 from qutebrowser.browser import inspector
-from qutebrowser.keyinput import keyutils
+from qutebrowser.keyinput import keyutils, modeman
 
 
 class MinimalLineEditMixin:
@@ -383,8 +383,10 @@ class InspectorSplitter(QSplitter):
     _PROTECTED_MAIN_SIZE = 150
     _SMALL_SIZE_THRESHOLD = 300
 
-    def __init__(self, main_webview: QWidget, parent: QWidget = None) -> None:
+    def __init__(self, win_id: int, main_webview: QWidget,
+                 parent: QWidget = None) -> None:
         super().__init__(parent)
+        self._win_id = win_id
         self.addWidget(main_webview)
         self.setFocusProxy(main_webview)
         self.splitterMoved.connect(self._on_splitter_moved)
@@ -392,6 +394,27 @@ class InspectorSplitter(QSplitter):
         self._inspector_idx = None  # type: typing.Optional[int]
         self._position = None  # type: typing.Optional[inspector.Position]
         self._preferred_size = None  # type: typing.Optional[int]
+
+    def cycle_focus(self):
+        """Cycle keyboard focus between the main/inspector widget."""
+        if self.count() == 1:
+            raise inspector.Error("No inspector inside main window")
+
+        assert self._main_idx is not None
+        assert self._inspector_idx is not None
+
+        main_widget = self.widget(self._main_idx)
+        inspector_widget = self.widget(self._inspector_idx)
+
+        if not inspector_widget.isVisible():
+            raise inspector.Error("No inspector inside main window")
+
+        if main_widget.hasFocus():
+            inspector_widget.setFocus()
+            modeman.enter(self._win_id, usertypes.KeyMode.insert,
+                          reason='Inspector focused', only_if_normal=True)
+        elif inspector_widget.hasFocus():
+            main_widget.setFocus()
 
     def set_inspector(self, inspector_widget: inspector.AbstractWebInspector,
                       position: inspector.Position) -> None:

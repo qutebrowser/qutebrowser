@@ -6,13 +6,10 @@ hypothesis
 pytest
 pytest-bdd
 pytest-benchmark
-pytest-cov
 pytest-instafail
 pytest-mock
 pytest-qt
 pytest-rerunfailures
-pytest-xvfb
-PyVirtualDisplay
 
 ## optional:
 # To test :debug-trace, gets skipped if hunter is not installed
@@ -23,6 +20,14 @@ vulture
 pygments
 # --repeat switch (used to manually repeat tests)
 pytest-repeat
+# For coverage tests
+pytest-cov
+# To avoid windows from popping up
+pytest-xvfb
+PyVirtualDisplay
+
+# Needed to test misc/userscripts/qute-lastpass
+tldextract
 
 #@ markers: jaraco.functools python_version>="3.6"
 #@ add: jaraco.functools==2.0; python_version<"3.6"  # rq.filter: <= 2.0

@@ -44,10 +44,12 @@ CHANGELOG_URLS = {
     'setuptools': 'https://github.com/pypa/setuptools/blob/master/CHANGES.rst',
     'pytest-cov': 'https://github.com/pytest-dev/pytest-cov',
     'requests': 'https://github.com/psf/requests/blob/master/HISTORY.md',
+    'requests-file': 'https://github.com/dashea/requests-file/blob/master/CHANGES.rst',
     'werkzeug': 'https://github.com/pallets/werkzeug/blob/master/CHANGES.rst',
     'hypothesis': 'https://hypothesis.readthedocs.io/en/latest/changes.html',
     'mypy': 'https://mypy-lang.blogspot.com/',
     'pytest': 'https://docs.pytest.org/en/latest/changelog.html',
+    'iniconfig': 'https://github.com/RonnyPfannschmidt/iniconfig/blob/master/CHANGELOG',
     'tox': 'https://tox.readthedocs.io/en/latest/changelog.html',
     'pyyaml': 'https://github.com/yaml/pyyaml/blob/master/CHANGES',
     'pytest-bdd': 'https://github.com/pytest-dev/pytest-bdd/blob/master/CHANGES.rst',
@@ -81,6 +83,7 @@ CHANGELOG_URLS = {
     'pytest-qt': 'https://github.com/pytest-dev/pytest-qt/blob/master/CHANGELOG.rst',
     'wcwidth': 'https://github.com/jquast/wcwidth#history',
     'pyinstaller': 'https://pyinstaller.readthedocs.io/en/stable/CHANGES.html',
+    'pyinstaller-hooks-contrib': 'https://github.com/pyinstaller/pyinstaller-hooks-contrib/blob/master/CHANGELOG.rst',
     'pytest-benchmark': 'https://pytest-benchmark.readthedocs.io/en/stable/changelog.html',
     'typed-ast': 'https://github.com/python/typed_ast/commits/master',
     'docutils': 'https://docutils.sourceforge.io/RELEASE-NOTES.html',
@@ -102,6 +105,11 @@ CHANGELOG_URLS = {
     'vulture': 'https://github.com/jendrikseipp/vulture/blob/master/CHANGELOG.md',
     'distlib': 'https://bitbucket.org/pypa/distlib/src/master/CHANGES.rst',
     'py-cpuinfo': 'https://github.com/workhorsy/py-cpuinfo/blob/master/ChangeLog',
+    'cheroot': 'https://cheroot.cherrypy.org/en/latest/history.html',
+    'certifi': 'https://ccadb-public.secure.force.com/mozilla/IncludedCACertificateReport',
+    'chardet': 'https://github.com/chardet/chardet/releases',
+    'idna': 'https://github.com/kjd/idna/blob/master/HISTORY.rst',
+    'tldextract': 'https://github.com/john-kurkowski/tldextract/blob/master/CHANGELOG.md',
 }
 
 # PyQt versions which need SIP v4
@@ -211,17 +219,20 @@ def run_pip(venv_dir, *args, **kwargs):
 
 def init_venv(host_python, venv_dir, requirements, pre=False):
     """Initialize a new virtualenv and install the given packages."""
-    utils.print_col('$ python3 -m venv {}'.format(venv_dir), 'blue')
-    subprocess.run([host_python, '-m', 'venv', venv_dir], check=True)
+    with utils.gha_group('Creating virtualenv'):
+        utils.print_col('$ python3 -m venv {}'.format(venv_dir), 'blue')
+        subprocess.run([host_python, '-m', 'venv', venv_dir], check=True)
 
-    run_pip(venv_dir, 'install', '-U', 'pip')
-    run_pip(venv_dir, 'install', '-U', 'setuptools', 'wheel')
+        run_pip(venv_dir, 'install', '-U', 'pip')
+        run_pip(venv_dir, 'install', '-U', 'setuptools', 'wheel')
 
     install_command = ['install', '-r', requirements]
     if pre:
         install_command.append('--pre')
-    run_pip(venv_dir, *install_command)
-    run_pip(venv_dir, 'check')
+
+    with utils.gha_group('Installing requirements'):
+        run_pip(venv_dir, *install_command)
+        run_pip(venv_dir, 'check')
 
 
 def parse_args():
@@ -258,7 +269,7 @@ class Change:
             self.link = '[{}]({})'.format(self.name, self.url)
         else:
             self.url = '(no changelog)'
-            self.link = '{} (no changelog)'.format(self.name)
+            self.link = self.name
 
     def __str__(self):
         if self.old is None:
@@ -362,8 +373,11 @@ def build_requirements(name):
                   venv_dir=tmpdir,
                   requirements=filename,
                   pre=comments['pre'])
-        proc = run_pip(tmpdir, 'freeze', stdout=subprocess.PIPE)
-        reqs = proc.stdout.decode('utf-8')
+        with utils.gha_group('Freezing requirements'):
+            proc = run_pip(tmpdir, 'freeze', stdout=subprocess.PIPE)
+            reqs = proc.stdout.decode('utf-8')
+            if utils.ON_CI:
+                print(reqs.strip())
 
     if name == 'qutebrowser':
         outfile = os.path.join(REPO_DIR, 'requirements.txt')
@@ -382,6 +396,33 @@ def build_requirements(name):
             f.write(line + '\n')
 
     return outfile
+
+
+def test_tox():
+    """Test requirements via tox."""
+    utils.print_title('Testing via tox')
+    host_python = get_host_python('tox')
+    req_path = os.path.join(REQ_DIR, 'requirements-tox.txt')
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        venv_dir = os.path.join(tmpdir, 'venv')
+        tox_workdir = os.path.join(tmpdir, 'tox-workdir')
+        venv_python = os.path.join(venv_dir, 'bin', 'python')
+        init_venv(host_python, venv_dir, req_path)
+        list_proc = subprocess.run([venv_python, '-m', 'tox', '--listenvs'],
+                                   check=True,
+                                   stdout=subprocess.PIPE,
+                                   universal_newlines=True)
+        environments = list_proc.stdout.strip().split('\n')
+        for env in environments:
+            with utils.gha_group('tox for {}'.format(env)):
+                utils.print_subtitle(env)
+                utils.print_col('venv$ tox -e {} --notest'.format(env), 'blue')
+                subprocess.run([venv_python, '-m', 'tox',
+                                '--workdir', tox_workdir,
+                                '-e', env,
+                                '--notest'],
+                               check=True)
 
 
 def test_requirements(name, outfile):
@@ -407,6 +448,11 @@ def main():
         utils.print_title(name)
         outfile = build_requirements(name)
         test_requirements(name, outfile)
+
+    if not args.names:
+        # If we selected a subset, let's not go through the trouble of testing
+        # via tox.
+        test_tox()
 
     print_changed_files()
 

@@ -520,7 +520,8 @@ def force_encoding(text: str, encoding: str) -> str:
 
 
 def sanitize_filename(name: str,
-                      replacement: typing.Optional[str] = '_') -> str:
+                      replacement: typing.Optional[str] = '_',
+                      shorten: bool = False) -> str:
     """Replace invalid filename characters.
 
     Note: This should be used for the basename, as it also removes the path
@@ -529,6 +530,7 @@ def sanitize_filename(name: str,
     Args:
         name: The filename.
         replacement: The replacement character (or None).
+        shorten: Shorten the filename if it's too long for the filesystem.
     """
     if replacement is None:
         replacement = ''
@@ -550,6 +552,40 @@ def sanitize_filename(name: str,
 
     for bad_char in bad_chars:
         name = name.replace(bad_char, replacement)
+
+    if not shorten:
+        return name
+
+    # Truncate the filename if it's too long.
+    # Most filesystems have a maximum filename length of 255 bytes:
+    # https://en.wikipedia.org/wiki/Comparison_of_file_systems#Limits
+    # We also want to keep some space for QtWebEngine's ".download" suffix, as
+    # well as deduplication counters.
+    max_bytes = 255 - len("(123).download")
+    root, ext = os.path.splitext(name)
+    root = root[:max_bytes - len(ext)]
+    excess = len(os.fsencode(root + ext)) - max_bytes
+
+    while excess > 0 and root:
+        # Max 4 bytes per character is assumed.
+        # Integer division floors to -∞, not to 0.
+        root = root[:(-excess // 4)]
+        excess = len(os.fsencode(root + ext)) - max_bytes
+
+    if not root:
+        # Trimming the root is not enough. We must trim the extension.
+        # We leave one character in the root, so that the filename
+        # doesn't start with a dot, which makes the file hidden.
+        root = name[0]
+        excess = len(os.fsencode(root + ext)) - max_bytes
+        while excess > 0 and ext:
+            ext = ext[:(-excess // 4)]
+            excess = len(os.fsencode(root + ext)) - max_bytes
+
+        assert ext, name
+
+    name = root + ext
+
     return name
 
 

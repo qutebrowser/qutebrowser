@@ -353,6 +353,11 @@ class YamlMigrations(QObject):
                                   ('fonts.tabs.selected',
                                    'fonts.tabs.unselected'))
 
+        self._migrate_to_multiple('content.media_capture',
+                                  ('content.media.audio_capture',
+                                   'content.media.audio_video_capture',
+                                   'content.media.video_capture'))
+
         # content.headers.user_agent can't be empty to get the default anymore.
         setting = 'content.headers.user_agent'
         self._migrate_none(setting, configdata.DATA[setting].default)

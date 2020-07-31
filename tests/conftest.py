@@ -48,10 +48,12 @@ _qute_scheme_handler = None
 
 
 # Set hypothesis settings
-hypothesis.settings.register_profile('default',
-                                     hypothesis.settings(deadline=600))
-hypothesis.settings.register_profile('ci',
-                                     hypothesis.settings(deadline=None))
+hypothesis.settings.register_profile(
+    'default', hypothesis.settings(deadline=600))
+hypothesis.settings.register_profile(
+    'ci', hypothesis.settings(
+        deadline=None,
+        suppress_health_check=[hypothesis.HealthCheck.too_slow]))
 hypothesis.settings.load_profile('ci' if testutils.ON_CI else 'default')
 
 
@@ -232,11 +234,6 @@ def pytest_configure(config):
 
 @pytest.fixture(scope='session', autouse=True)
 def check_display(request):
-    if (not request.config.getoption('--no-xvfb') and
-            'QUTE_BUILDBOT' in os.environ and
-            request.config.xvfb is not None):
-        raise Exception("Xvfb is running on buildbot!")
-
     if utils.is_linux and not os.environ.get('DISPLAY', ''):
         raise Exception("No display and no Xvfb available!")
 
@@ -310,3 +307,15 @@ def pytest_runtest_makereport(item, call):
     outcome = yield
     rep = outcome.get_result()
     setattr(item, "rep_" + rep.when, rep)
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_terminal_summary(terminalreporter):
+    """Group benchmark results on CI."""
+    if testutils.ON_CI:
+        terminalreporter.write_line(
+            testutils.gha_group_begin('Benchmark results'))
+        yield
+        terminalreporter.write_line(testutils.gha_group_end())
+    else:
+        yield

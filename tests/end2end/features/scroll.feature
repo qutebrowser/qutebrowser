@@ -192,6 +192,7 @@ Feature: Scrolling
         When I run :scroll-to-perc --horizontal 100
         Then the page should be scrolled horizontally
 
+    @flaky
     Scenario: Scrolling to right and to left with :scroll-to-perc
         When I run :scroll-to-perc --horizontal 100
         And I wait until the scroll position changed
@@ -237,6 +238,7 @@ Feature: Scrolling
         Then the page should be scrolled vertically
 
     # https://github.com/qutebrowser/qutebrowser/issues/1821
+    @flaky
     Scenario: :scroll-to-perc without doctype
         When I open data/scroll/no_doctype.html
         And I run :scroll-to-perc 100

@@ -1,0 +1,18 @@
+extends: default
+
+ignore: |
+  /.venv/
+  /.tox/
+  /build/
+  /dist/
+
+rules:
+  document-start: disable
+  line-length:
+    ignore: |
+      /.github/*.yml
+      /.github/workflows/*.yml
+  truthy:
+    # on: ...
+    ignore: |
+      /.github/workflows/*.yml

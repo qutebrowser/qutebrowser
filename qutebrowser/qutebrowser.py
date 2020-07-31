@@ -77,7 +77,7 @@ def get_argparser():
                         action='store_true')
     parser.add_argument('--target', choices=['auto', 'tab', 'tab-bg',
                                              'tab-silent', 'tab-bg-silent',
-                                             'window'],
+                                             'window', 'private-window'],
                         help="How URLs should be opened if there is already a "
                              "qutebrowser instance running.")
     parser.add_argument('--backend', choices=['webkit', 'webengine'],

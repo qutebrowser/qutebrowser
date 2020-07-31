@@ -247,6 +247,12 @@ Feature: Using hints
         # The actual check is already done above
         Then no crash should happen
 
+    Scenario: Hinting Twitter bootstrap checkbox
+        When I open data/hints/bootstrap/checkbox.html
+        And I hint with args "all" and follow a
+        # The actual check is already done above
+        Then "No elements found." should not be logged
+
     Scenario: Hinting invisible elements
         When I open data/hints/invisible.html
         And I run :hint
@@ -605,6 +611,14 @@ Feature: Using hints
         And I run :jseval console.log(document.activeElement.id == "qute-input");
         And I run :leave-mode
         Then the javascript message "true" should be logged
+
+    Scenario: Hinting contenteditable inputs
+        When I open data/hints/input.html
+        And I hint with args "inputs" and follow f
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
+        And I run :leave-mode
+        # The actual check is already done above
+        Then no crash should happen
 
     # Delete hint target
     Scenario: Deleting a simple target

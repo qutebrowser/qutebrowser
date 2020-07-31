@@ -407,6 +407,12 @@ class TestQtMessageHandler:
         file = attr.ib(default=None)
         line = attr.ib(default=None)
 
+    @pytest.fixture(autouse=True)
+    def init_args(self):
+        parser = qutebrowser.get_argparser()
+        args = parser.parse_args([])
+        log.init_log(args)
+
     def test_empty_message(self, caplog):
         """Make sure there's no crash with an empty message."""
         log.qt_message_handler(QtCore.QtDebugMsg, self.Context(), "")

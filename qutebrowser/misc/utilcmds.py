@@ -281,7 +281,9 @@ _keytester_widget = None  # type: typing.Optional[miscwidgets.KeyTesterWidget]
 def debug_keytester() -> None:
     """Show a keytester widget."""
     global _keytester_widget
-    if _keytester_widget and _keytester_widget.isVisible():
+    if (_keytester_widget and
+            not sip.isdeleted(_keytester_widget) and
+            _keytester_widget.isVisible()):
         _keytester_widget.close()
     else:
         _keytester_widget = miscwidgets.KeyTesterWidget()

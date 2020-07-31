@@ -26,6 +26,8 @@ import pprint
 import os.path
 import contextlib
 import pathlib
+import importlib.util
+import importlib.machinery
 
 import pytest
 
@@ -129,6 +131,24 @@ def _partial_compare_eq(val1, val2, *, indent):
     return PartialCompareOutcome("{!r} != {!r}".format(val1, val2))
 
 
+def gha_group_begin(name):
+    """Get a string to begin a GitHub Actions group.
+
+    Should only be called on CI.
+    """
+    assert ON_CI
+    return '::group::' + name
+
+
+def gha_group_end():
+    """Get a string to end a GitHub Actions group.
+
+    Should only be called on CI.
+    """
+    assert ON_CI
+    return '::endgroup::'
+
+
 def partial_compare(val1, val2, *, indent=0):
     """Do a partial comparison between the given values.
 
@@ -138,6 +158,9 @@ def partial_compare(val1, val2, *, indent=0):
 
     This happens recursively.
     """
+    if ON_CI and indent == 0:
+        print(gha_group_begin('Comparison'))
+
     print_i("Comparing", indent)
     print_i(pprint.pformat(val1), indent + 1)
     print_i("|---- to ----", indent)
@@ -169,6 +192,10 @@ def partial_compare(val1, val2, *, indent=0):
         print_i("|======= Comparing via ==", indent)
         outcome = _partial_compare_eq(val1, val2, indent=indent)
     print_i("---> {}".format(outcome), indent)
+
+    if ON_CI and indent == 0:
+        print(gha_group_end())
+
     return outcome
 
 
@@ -268,3 +295,20 @@ def sandbox_args(qt_flag):
         return []
     else:
         return ['--qt-flag', flag] if qt_flag else ['--' + flag]
+
+
+def import_userscript(name):
+    """Import a userscript via importlib.
+
+    This is needed because userscripts don't have a .py extension and violate
+    Python's module naming convention.
+    """
+    repo_root = pathlib.Path(__file__).resolve().parents[2]
+    script_path = repo_root / 'misc' / 'userscripts' / name
+    module_name = name.replace('-', '_')
+    loader = importlib.machinery.SourceFileLoader(
+        module_name, str(script_path))
+    spec = importlib.util.spec_from_loader(module_name, loader)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module

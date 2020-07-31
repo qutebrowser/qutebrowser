@@ -1,10 +1,18 @@
 name: CI
-on: [push, pull_request]
+on:
+  push:
+    branches-ignore:
+      - 'update-dependencies'
+      - 'dependabot/*'
+  pull_request:
 env:
   PY_COLORS: "1"
+  MYPY_FORCE_TERMINAL_WIDTH: "180"
 
 jobs:
   linters:
+    if: "!contains(github.event.head_commit.message, '[ci skip]')"
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -21,6 +29,7 @@ jobs:
           - testenv: eslint
           - testenv: shellcheck
             args: "-f gcc"  # For problem matchers
+          - testenv: yamllint
     steps:
       - uses: actions/checkout@v2
       - uses: actions/cache@v2
@@ -30,10 +39,10 @@ jobs:
             .tox
             ~/.cache/pip
           key: "${{ matrix.testenv }}-${{ hashFiles('misc/requirements/requirements-*.txt') }}-${{ hashFiles('requirements.txt') }}"
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v2.1.1
         with:
           python-version: '3.8'
-      - uses: actions/setup-node@v2.1.0
+      - uses: actions/setup-node@v2.1.1
         with:
           node-version: '12.x'
         if: "matrix.testenv == 'eslint'"
@@ -56,6 +65,8 @@ jobs:
         run: "dbus-run-session -- tox -e ${{ matrix.testenv}} -- ${{ matrix.args }}"
 
   tests-docker:
+    if: "!contains(github.event.head_commit.message, '[ci skip]')"
+    timeout-minutes: 30
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
@@ -82,6 +93,8 @@ jobs:
       - run: dbus-run-session tox -e py38
 
   tests:
+    if: "!contains(github.event.head_commit.message, '[ci skip]')"
+    timeout-minutes: 45
     continue-on-error: "${{ matrix.experimental == true }}"
     strategy:
       fail-fast: false
@@ -144,7 +157,7 @@ jobs:
             ~/.cache/pip
           key: "${{ matrix.testenv }}-${{ matrix.os }}-${{ matrix.python }}-${{ hashFiles('misc/requirements/requirements-*.txt') }}-${{ hashFiles('requirements.txt') }}"
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v2.1.1
         if: "!endsWith(matrix.python, '-dev')"
         with:
           python-version: "${{ matrix.python }}"
@@ -156,7 +169,9 @@ jobs:
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py ${{ matrix.testenv }} ${{ runner.temp }}"
       - name: Install apt dependencies
-        run: sudo apt-get install --no-install-recommends libyaml-dev libegl1-mesa libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0
+        run: |
+            sudo apt-get update
+            sudo apt-get install --no-install-recommends libyaml-dev libegl1-mesa libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0
         if: "startsWith(matrix.os, 'ubuntu-')"
       - name: Install dependencies
         run: |
@@ -173,49 +188,70 @@ jobs:
         if: "failure()"
       - name: Upload coverage
         if: "endsWith(matrix.testenv, '-cov')"
-        uses: codecov/codecov-action@v1.0.10
+        uses: codecov/codecov-action@v1.0.12
         with:
           name: "${{ matrix.testenv }}"
 
   codeql:
+    if: "!contains(github.event.head_commit.message, '[ci skip]')"
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-      with:
-        # We must fetch at least the immediate parents so that if this is
-        # a pull request then we can checkout the head.
-        fetch-depth: 2
-    # If this run was triggered by a pull request event, then checkout
-    # the head of the pull request instead of the merge commit.
-    - run: git checkout HEAD^2
-      if: ${{ github.event_name == 'pull_request' }}
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v1
-      with:
-        languages: javascript, python
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v1
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          # We must fetch at least the immediate parents so that if this is
+          # a pull request then we can checkout the head.
+          fetch-depth: 2
+      # If this run was triggered by a pull request event, then checkout
+      # the head of the pull request instead of the merge commit.
+      - run: git checkout HEAD^2
+        if: ${{ github.event_name == 'pull_request' }}
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+        with:
+          languages: javascript, python
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
 
   irc:
+    timeout-minutes: 2
+    continue-on-error: true
     runs-on: ubuntu-latest
     needs: [linters, tests, tests-docker, codeql]
     if: "always() && github.repository_owner == 'qutebrowser'"
     steps:
-    - name: Send success IRC notification
-      uses: Gottox/irc-message-action@v1
-      if: "needs.linters.result == 'success' && needs.tests.result == 'success' && needs.tests-docker.result == 'success' && needs.codeql.result == 'success'"
-      with:
-        server: chat.freenode.net
-        channel: '#qutebrowser-dev'
-        nickname: qutebrowser-bot
-        message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} triggered by ${{ github.actor }}"
-    - name: Send non-success IRC notification
-      uses: Gottox/irc-message-action@v1
-      if: "needs.linters.result != 'success' || needs.tests.result != 'success' || needs.tests-docker.result != 'success' || needs.codeql.result != 'success'"
-      with:
-        server: chat.freenode.net
-        channel: '#qutebrowser-dev'
-        nickname: qutebrowser-bot
-        message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} triggered by ${{ github.actor }}\n
-          linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}"
+      - name: Send success IRC notification
+        uses: Gottox/irc-message-action@v1
+        if: "needs.linters.result == 'success' && needs.tests.result == 'success' && needs.tests-docker.result == 'success' && needs.codeql.result == 'success'"
+        with:
+          server: chat.freenode.net
+          channel: '#qutebrowser-dev'
+          nickname: qutebrowser-bot
+          message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
+      - name: Send failure IRC notification
+        uses: Gottox/irc-message-action@v1
+        if: "needs.linters.result == 'failure' || needs.tests.result == 'failure' || needs.tests-docker.result == 'failure' || needs.codeql.result == 'failure'"
+        with:
+          server: chat.freenode.net
+          channel: '#qutebrowser-dev'
+          nickname: qutebrowser-bot
+          message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
+            linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}"
+      - name: Send skipped IRC notification
+        uses: Gottox/irc-message-action@v1
+        if: "needs.linters.result == 'skipped' || needs.tests.result == 'skipped' || needs.tests-docker.result == 'skipped' || needs.codeql.result == 'skipped'"
+        with:
+          server: chat.freenode.net
+          channel: '#qutebrowser-dev'
+          nickname: qutebrowser-bot
+          message: "[${{ github.workflow }}] \u00038Skipped:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
+      - name: Send cancelled IRC notification
+        uses: Gottox/irc-message-action@v1
+        if: "needs.linters.result == 'cancelled' || needs.tests.result == 'cancelled' || needs.tests-docker.result == 'cancelled' || needs.codeql.result == 'cancelled'"
+        with:
+          server: chat.freenode.net
+          channel: '#qutebrowser-dev'
+          nickname: qutebrowser-bot
+          message: "[${{ github.workflow }}] \u000314Cancelled:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
+            linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}"

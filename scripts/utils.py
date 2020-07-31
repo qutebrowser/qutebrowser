@@ -22,6 +22,7 @@
 import os
 import os.path
 import sys
+import contextlib
 
 
 # Import side-effects are an evil thing, but here it's okay so scripts using
@@ -52,6 +53,9 @@ fg_colors = {
 
 
 bg_colors = {name: col + 10 for name, col in fg_colors.items()}
+
+
+ON_CI = 'CI' in os.environ
 
 
 def _esc(code):
@@ -90,3 +94,26 @@ def change_cwd():
     cwd = os.getcwd()
     if os.path.split(cwd)[1] == 'scripts':
         os.chdir(os.path.join(cwd, os.pardir))
+
+
+@contextlib.contextmanager
+def gha_group(name):
+    """Print a GitHub Actions group.
+
+    Gets ignored if not on CI.
+    """
+    if ON_CI:
+        print('::group::' + name)
+        yield
+        print('::endgroup::')
+    else:
+        yield
+
+
+def gha_error(message):
+    """Print a GitHub Actions error.
+
+    Should only be called on CI.
+    """
+    assert ON_CI
+    print('::error::' + message)

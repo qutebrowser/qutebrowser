@@ -37,9 +37,9 @@ def patch_things(config_stub, monkeypatch, stubs):
                         stubs.fake_qprocess())
 
 
-@pytest.fixture
-def editor(caplog, qtbot):
-    ed = editormod.ExternalEditor()
+@pytest.fixture(params=[True, False])
+def editor(caplog, qtbot, request):
+    ed = editormod.ExternalEditor(watch=request.param)
     yield ed
     with caplog.at_level(logging.ERROR):
         ed._remove_file = True
@@ -82,10 +82,12 @@ class TestFileHandling:
         editor._proc.finished.emit(0, QProcess.NormalExit)
         assert not filename.exists()
 
-    def test_existing_file(self, editor, tmp_path):
-        """Test editing an existing file."""
+    @pytest.mark.parametrize('touch', [True, False])
+    def test_with_filename(self, editor, tmp_path, touch):
+        """Test editing a file with an explicit path."""
         path = tmp_path / 'foo.txt'
-        path.touch()
+        if touch:
+            path.touch()
 
         editor.edit_file(str(path))
         editor._proc.finished.emit(0, QProcess.NormalExit)

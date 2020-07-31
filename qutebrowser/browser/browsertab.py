@@ -689,6 +689,12 @@ class AbstractHistory:
     def _go_to_item(self, item: typing.Any) -> None:
         raise NotImplementedError
 
+    def back_items(self) -> typing.List[typing.Any]:
+        raise NotImplementedError
+
+    def forward_items(self) -> typing.List[typing.Any]:
+        raise NotImplementedError
+
 
 class AbstractElements:
 
@@ -953,7 +959,8 @@ class AbstractTab(QWidget):
     def _set_widget(self, widget: QWidget) -> None:
         # pylint: disable=protected-access
         self._widget = widget
-        self.data.splitter = miscwidgets.InspectorSplitter(widget)
+        self.data.splitter = miscwidgets.InspectorSplitter(
+            win_id=self.win_id, main_webview=widget)
         self._layout.wrap(self, self.data.splitter)
         self.history._history = widget.history()
         self.history.private_api._history = widget.history()

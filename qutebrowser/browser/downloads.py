@@ -230,9 +230,10 @@ def suggested_fn_from_title(url_path, title=None):
 
     suggested_fn = None  # type: typing.Optional[str]
     if ext.lower() in ext_whitelist and title:
-        suggested_fn = utils.sanitize_filename(title)
+        suggested_fn = utils.sanitize_filename(title, shorten=True)
         if not suggested_fn.lower().endswith((".html", ".htm")):
             suggested_fn += ".html"
+            suggested_fn = utils.sanitize_filename(suggested_fn, shorten=True)
 
     return suggested_fn
 
@@ -619,7 +620,7 @@ class AbstractDownloadItem(QObject):
         raise NotImplementedError
 
     @pyqtSlot()
-    def open_file(self, cmdline=None):
+    def open_file(self, cmdline=None, open_dir=False):
         """Open the downloaded file.
 
         Args:
@@ -627,12 +628,15 @@ class AbstractDownloadItem(QObject):
                      filename. None means to use the system's default
                      application or `downloads.open_dispatcher` if set. If no
                      `{}` is found, the filename is appended to the cmdline.
+            open_dir: Specify whether to open the file's directory instead.
         """
         assert self.successful
         filename = self._get_open_filename()
         if filename is None:  # pragma: no cover
             log.downloads.error("No filename to open the download!")
             return
+        if open_dir:
+            filename = os.path.dirname(filename)
         # By using a singleshot timer, we ensure that we return fast. This
         # is important on systems where process creation takes long, as
         # otherwise the prompt might hang around and cause bugs
@@ -1093,7 +1097,8 @@ class DownloadModel(QAbstractListModel):
 
     @cmdutils.register(instance='download-model', scope='window', maxsplit=0)
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def download_open(self, cmdline: str = None, count: int = 0) -> None:
+    def download_open(self, cmdline: str = None, count: int = 0,
+                      dir_: bool = False) -> None:
         """Open the last/[count]th download.
 
         If no specific command is given, this will use the system's default
@@ -1105,6 +1110,7 @@ class DownloadModel(QAbstractListModel):
                      present, the filename is automatically appended to the
                      cmdline.
             count: The index of the download to open.
+            dir_: Whether to open the file's directory instead.
         """
         try:
             download = self[count - 1]
@@ -1115,7 +1121,7 @@ class DownloadModel(QAbstractListModel):
                 count = len(self)
             raise cmdutils.CommandError("Download {} is not done!"
                                         .format(count))
-        download.open_file(cmdline)
+        download.open_file(cmdline, open_dir=dir_)
 
     @cmdutils.register(instance='download-model', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)

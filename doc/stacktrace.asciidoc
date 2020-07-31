@@ -190,17 +190,27 @@ happened.
 For Windows
 -----------
 
-When you see the _qutebrowser.exe has stopped working_ window, do not click
+First install
+https://www.microsoft.com/en-us/download/details.aspx?id=58210[DebugDiag] from
+Microsoft.
+
+If you see the _qutebrowser.exe has stopped working_ window, do not click
 "Close the program". Instead, open your task manager, there right-click on
 `qutebrowser.exe` and select "Create dump file". Remember the path of the dump
 file displayed there.
 
-Now install
-https://www.microsoft.com/en-us/download/details.aspx?id=49924[DebugDiag] from
-Microsoft, then run the *DebugDiag 2 Analysis* tool. There, check
-*CrashHangAnalysis* and add your crash dump via *Add Data files*. Then click
-*Start analysis*.
+If you do not see such a window, instead run *DebugDiag 2 Collection* while
+qutebrowser is still running. There, use *Add Rule* -> *Crash* ->
+*A specific process* and select `qutebrowser.exe`. Accept the *Advanced
+Configuration* as-is and select a location to save dump files. Finally, tell
+DebugDiag to activate the rule and reproduce the crash. After a while, a log
+file (`.txt`) and crash dump should appear in that directory.
+
+Finally, run the *DebugDiag 2 Analysis* tool. There, check *CrashHangAnalysis*
+and add your crash dump via *Add Data files*. Then click *Start analysis*.
 
 Close the Internet Explorer which opens when it's done and use the
-folder-button at the top left to get to the reports. There find the report file
-and send it to mail@qutebrowser.org.
+folder-button at the top left to get to the reports. There, find the report
+file (as well as the logfile, if any), zip them (important, as some mail
+providers like GMail corrupt the file otherwise) and send them to
+mail@qutebrowser.org.

@@ -3,6 +3,24 @@ Installing qutebrowser
 
 toc::[]
 
+Official vs. community-maintained
+---------------------------------
+
+Only the following releases are done by qutebrowser's maintainer directly:
+
+- Source packages in https://github.com/qutebrowser/qutebrowser/releases[this
+  GitHub repository] and on https://pypi.org/project/qutebrowser/#files[PyPI]
+- Windows and macOS prebuilt binaries in the GitHub Releases
+- The `qutebrowser-git` package in the
+  https://aur.archlinux.org/packages/qutebrowser-git/[Archlinux AUR]
+- Installing <<tox,in a virtualenv>> from the git repository.
+
+All other packaging is done by the community, so in case of outdated/broken
+packages, you will need to reach out to the respective maintainers. Note that
+some distributions (notably, Debian Stable and Ubuntu) do only update
+qutebrowser and the underlying QtWebEngine when there's a new release of the
+distribution, typically once all couple of months to years.
+
 On Debian / Ubuntu
 ------------------
 
@@ -222,6 +240,19 @@ PYTHON3=yes sbopkg -i qutebrowser
 ----
 
 If you use the dialog screen you can deselect any already-installed packages that you don't need/want to rebuild before starting the build process.
+
+Via Flatpak
+-----------
+
+qutebrowser is available
+https://flathub.org/apps/details/org.qutebrowser.qutebrowser[on Flathub]
+as `org.qutebrowser.qutebrowser`.
+
+WARNING: As of July 2020, the Flatpak package is severely outdated (qutebrowser
+v1.7.0 from July 2019) and, among other issues, misses fixes for a
+(low-severity) https://github.com/qutebrowser/qutebrowser/security/advisories/GHSA-4rcq-jv2f-898j[security issue].
+It's recommended to <<tox,install qutebrowser in a virtualenv>> instead, which
+is one of the officially maintained options and will always be up-to-date.
 
 On FreeBSD
 ----------

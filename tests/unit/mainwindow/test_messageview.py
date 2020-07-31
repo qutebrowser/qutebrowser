@@ -35,6 +35,7 @@ def view(qtbot, config_stub):
 @pytest.mark.parametrize('level', [usertypes.MessageLevel.info,
                                    usertypes.MessageLevel.warning,
                                    usertypes.MessageLevel.error])
+@pytest.mark.flaky  # on macOS
 def test_single_message(qtbot, view, level):
     with qtbot.waitExposed(view, timeout=5000):
         view.show_message(level, 'test')

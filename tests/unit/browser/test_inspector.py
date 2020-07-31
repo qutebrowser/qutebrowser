@@ -56,7 +56,8 @@ def inspector_widget(red_widget):
 
 @pytest.fixture
 def splitter(qtbot, webview_widget):
-    splitter = miscwidgets.InspectorSplitter(webview_widget)
+    splitter = miscwidgets.InspectorSplitter(
+        win_id=0, main_webview=webview_widget)
     qtbot.add_widget(splitter)
     return splitter
 

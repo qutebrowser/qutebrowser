@@ -21,41 +21,81 @@ v1.14.0 (unreleased)
 Changed
 ~~~~~~~
 
+- The `content.media_capture` setting got split up into three more fine-grained
+  settings, `content.media.audio_capture`, `.video_capture` and
+  `.audio_video_capture`. Before this change, anwering "always" to a prompt
+  about e.g. audio capturing would set the `content.media_capture` setting,
+  which would also allow the same website to capture video on a future visit.
+  Now every prompt will set the appropriate setting, though existing
+  `content.media_capture` settings in `autoconfig.yml` will be migrated to set
+  all three settings. To review/change previously granted permissions, use
+  `:config-diff` and e.g.
+  `:config-unset -u example.org content.media.video_capture`.
 - The main window's (invisible) background color is now set to transparent.
   This allows using the alpha channel in statusbar/tabbar colors to get a
   partially transparent qutebrowser window on a setup which supports doing so.
+- If QtWebEngine is compiled with PipeWire support and libpipewire is
+  installed, qutebrowser will now support screen sharing on Wayland. Note that
+  QtWebEngine 5.15.1 (planned for August 2020) is needed, though the Archlinux
+  qt5-webengine package backports the patch.
+- When `:undo` is used with a count, it now reopens the count-th to last tab
+  instead of the last one. The depth can instead be passed as an argument,
+  which is also completed.
+- The default `completion.timestamp_format` now also shows the time.
+- `:back` and `:forward` now take an optional index which is completed using
+  the current tab's history.
+- The time a website in a tab was visited is now saved/restored in sessions.
 
 Added
 ~~~~~
 
+- `:undo` now has a new `-w` / `--window` argument, which can be used to
+  restore closed windows (rather than tabs). This is bound to `U` by default.
 - New replacement `{aligned_index}` for `tabs.title.format` and `format_pinned`
   which behaves like `{index}`, but space-pads the index based on the total
   numbers of tabs. This can be used to get aligned tab texts with vertical
   tabs.
+- New command `:devtools-focus` (bound to `wIf`) to toggle keyboard focus
+  between the devtools and web page.
+- The `--target` argument to qutebrowser now understands a new `private-window`
+  value, which can be used to open a private window in an existing instance
+  from the commandline.
+- The `:download-open` command now has a new `--dir` flag, which can be used to
+  open the directory containing the downloaded file. An entry to do the same
+  was also added to the context menu.
 
 Fixed
 ~~~~~
 
-- Generating docs with `asciidoc2html.py` (e.g. via `mkvenv.py`) now works
-  correctly without Pygments being installed system-wide.
-- Ever since Qt 5.9, when `input.mouse.rocker_gestures` was enabled, the
-  context menu still was shown when clicking the right mouse button, thus
-  preventing the rocker gestures. This is now fixed.
 - A URL pattern with a `*.` host was considered valid and matched all hosts.
   Due to keybindings like `tsH` toggling scripts for `*://*.{url:host}/*`,
   invoking them on pages without a host (e.g. `about:blank`) could result in
   accidentally allowing/blocking JavaScript for all pages. Such patterns are
   now considered invalid, with existing patterns being automatically removed
   from `autoconfig.yml`.
-- Certain `autoconfig.yml` with an invalid structure could lead to crashes,
-  which are now fixed.
-- Clicking the inspector switched from existing modes (such as passthrough) to
-  normal mode since v1.13.0. Now insert mode is only entered when the inspector
-  is clicked in normal mode.
-- Pulseaudio now shows qutebrowser's audio streams as qutebrowser correctly,
-  rather than showing them as Chromium (depending on the Qt version).
+- When `scrolling.bar` was set to `overlay` (the default), qutebrowser would
+  internally override any `enable-features=...` flags passed via `qt.args` or
+  `--qt-flag`. It now correctly combines existing `enable-feature` flags with
+  internal ones.
+- Elements with an inherited `contenteditable` attribute now trigger insert
+  mode and get hints assigned correctly.
+- When checkmarks, radio buttons and some other elements are styled via the
+  Bootstrap CSS framework, they now get hints correctly.
+- When the session file isn't writable when qutebrowser exits, an error is now
+  logged instead of crashing.
+- When using `-m` with the `qute-lastpass` userscript, it accidentally matched
+  URLs containing the match as substring. This is now fixed.
+- When a filename is derived from a page's title, it's now shortened to the
+  maximum filename length permitted by the filesystem.
+- `:enter-mode register` crashed since v1.13.0, it now displays an error
+  instead.
+- With the QtWebKit backend, webpage resources loading certain invalid URLs
+  could cause a crash, which is now fixed.
+- When `:config-edit` is used but no `config.py` exists yet, the file is now
+  created (and watched for changes properly) before spawning the external
+  editor.
 
-v1.13.1 (unreleased)
+v1.13.1 (2020-07-17)
 --------------------
 
 Fixed
@@ -63,7 +103,34 @@ Fixed
 
 - With Qt 5.14, shared workers are now disabled. This works around a crash in
   QtWebEngine on certain sites (like the Epic Games Store or the Unreal Engine
-  page).
+  page). On older versions, you can get the same effect by doing
+  `:set qt.args "['disable-shared-workers']"` and `:restart` (or set the
+  setting in your `config.py`).
+- When a window is closed, the tab it contains are now correctly shut down
+  (closing e.g. any dialogs which are still open for those tabs).
+- The Qt 5.15 session workaround now loads the correct (rather than the last)
+  page when `:back` was used before saving a session.
+- In certain situations on Windows, qutebrowser fails to find the username of
+  the user launching qutebrowser (most likely due to a bug in the application
+  launching it). When this happens, an error is now displayed instead of
+  crashing.
+- Certain `autoconfig.yml` with an invalid structure could lead to crashes,
+  which are now fixed.
+- Generating docs with `asciidoc2html.py` (e.g. via `mkvenv.py`) now works
+  correctly without Pygments being installed system-wide.
+- Ever since Qt 5.9, when `input.mouse.rocker_gestures` was enabled, the
+  context menu still was shown when clicking the right mouse button, thus
+  preventing the rocker gestures. This is now fixed.
+- Clicking the inspector switched from existing modes (such as passthrough) to
+  normal mode since v1.13.0. Now insert mode is only entered when the inspector
+  is clicked in normal mode.
+- Pulseaudio now shows qutebrowser's audio streams as qutebrowser correctly,
+  rather than showing them as Chromium with some Qt versions.
+- If `:help` was called with a deprecated command (e.g. `:help :inspector`),
+  the help page would show despite deprecated commands not being documented.
+  This now shows an error instead.
+- The `qute-lastpass` userscript now filters out duplicate entries with
+  `--merge-candidates`.
 
 v1.13.0 (2020-06-26)
 --------------------

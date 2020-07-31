@@ -17,9 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# FIXME:qtwebengine remove this once the stubs are gone
-# pylint: disable=unused-argument
-
 """QtWebEngine specific part of the web element API."""
 
 import typing
@@ -29,7 +26,7 @@ from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEngineSettings
 
-from qutebrowser.utils import log, javascript, urlutils, usertypes
+from qutebrowser.utils import log, javascript, urlutils, usertypes, utils
 from qutebrowser.browser import webelem
 
 if typing.TYPE_CHECKING:
@@ -53,6 +50,7 @@ class WebEngineElement(webelem.AbstractWebElement):
             'class_name': str,
             'rects': list,
             'attributes': dict,
+            'is_content_editable': bool,
             'caret_position': (int, type(None)),
         }  # type: typing.Dict[str, typing.Union[type, typing.Tuple[type,...]]]
         assert set(js_dict.keys()).issubset(js_dict_types.keys())
@@ -96,6 +94,7 @@ class WebEngineElement(webelem.AbstractWebElement):
         self._js_call('set_attribute', key, val)
 
     def __delitem__(self, key: str) -> None:
+        utils.unused(key)
         log.stub()
 
     def __iter__(self) -> typing.Iterator[str]:
@@ -136,6 +135,9 @@ class WebEngineElement(webelem.AbstractWebElement):
         """Get the full HTML representation of this element."""
         return self._js_dict['outer_xml']
 
+    def is_content_editable_prop(self) -> bool:
+        return self._js_dict['is_content_editable']
+
     def value(self) -> webelem.JsValueType:
         return self._js_dict.get('value', None)
 
@@ -171,10 +173,12 @@ class WebEngineElement(webelem.AbstractWebElement):
 
         Args:
             elem_geometry: The geometry of the element, or None.
-                           Calling QWebElement::geometry is rather expensive so
-                           we want to avoid doing it twice.
-            no_js: Fall back to the Python implementation
+                           Ignored with QtWebEngine.
+            no_js: Fall back to the Python implementation.
+                   Ignored with QtWebEngine.
         """
+        utils.unused(elem_geometry)
+        utils.unused(no_js)
         rects = self._js_dict['rects']
         for rect in rects:
             # FIXME:qtwebengine

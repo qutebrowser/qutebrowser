@@ -335,6 +335,16 @@ def devtools(tab: apitypes.Tab,
         raise cmdutils.CommandError(e)
 
 
+@cmdutils.register()
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
+def devtools_focus(tab: apitypes.Tab) -> None:
+    """Toggle focus between the devtools/tab."""
+    try:
+        tab.data.splitter.cycle_focus()
+    except apitypes.InspectorError as e:
+        raise cmdutils.CommandError(e)
+
+
 @cmdutils.register(deprecated='Use :devtools instead')
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 def inspector(tab: apitypes.Tab) -> None:

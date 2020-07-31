@@ -111,6 +111,7 @@ Feature: Page history
         Then the page should contain the plaintext "3.txt"
         Then the page should contain the plaintext "4.txt"
 
+    @flaky
     Scenario: XSS in :history
         When I open data/issue4011.html
         And I open qute://history

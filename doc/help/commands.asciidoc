@@ -52,6 +52,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<config-unset,config-unset>>|Unset an option.
 |<<config-write-py,config-write-py>>|Write the current configuration to a config.py file.
 |<<devtools,devtools>>|Toggle the developer tools (web inspector).
+|<<devtools-focus,devtools-focus>>|Toggle focus between the devtools/tab.
 |<<download,download>>|Download a given URL, or current page if no URL given.
 |<<download-cancel,download-cancel>>|Cancel the last/[count]th download.
 |<<download-clear,download-clear>>|Remove all finished downloads from the list.
@@ -127,7 +128,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<tab-prev,tab-prev>>|Switch to the previous tab, or switch [count] tabs back.
 |<<tab-take,tab-take>>|Take a tab from another window.
 |<<unbind,unbind>>|Unbind a keychain.
-|<<undo,undo>>|Re-open the last closed tab or tabs.
+|<<undo,undo>>|Re-open the last closed tab(s) or window.
 |<<version,version>>|Show version information.
 |<<view-source,view-source>>|Show the source of the current page in a new tab.
 |<<window-only,window-only>>|Close all windows except for the current one.
@@ -144,9 +145,12 @@ This updates `~/.local/share/qutebrowser/blocked-hosts` with downloaded host lis
 
 [[back]]
 === back
-Syntax: +:back [*--tab*] [*--bg*] [*--window*]+
+Syntax: +:back [*--tab*] [*--bg*] [*--window*] ['index']+
 
 Go back in the history of the current tab.
+
+==== positional arguments
+* +'index'+: Which page to go back to, count takes precedence.
 
 ==== optional arguments
 * +*-t*+, +*--tab*+: Go back in a new tab.
@@ -423,6 +427,10 @@ Toggle the developer tools (web inspector).
 * +'position'+: Where to open the devtools (right/left/top/bottom/window).
 
 
+[[devtools-focus]]
+=== devtools-focus
+Toggle focus between the devtools/tab.
+
 [[download]]
 === download
 Syntax: +:download [*--mhtml*] [*--dest* 'dest'] ['url']+
@@ -461,7 +469,7 @@ The index of the download to delete.
 
 [[download-open]]
 === download-open
-Syntax: +:download-open ['cmdline']+
+Syntax: +:download-open [*--dir*] ['cmdline']+
 
 Open the last/[count]th download.
 
@@ -472,6 +480,9 @@ If no specific command is given, this will use the system's default application 
  present, the filename is automatically appended to the
  cmdline.
 
+
+==== optional arguments
+* +*-d*+, +*--dir*+: Whether to open the file's directory instead.
 
 ==== count
 The index of the download to open.
@@ -562,9 +573,12 @@ Follow the selected text.
 
 [[forward]]
 === forward
-Syntax: +:forward [*--tab*] [*--bg*] [*--window*]+
+Syntax: +:forward [*--tab*] [*--bg*] [*--window*] ['index']+
 
 Go forward in the history of the current tab.
+
+==== positional arguments
+* +'index'+: Which page to go forward to, count takes precedence.
 
 ==== optional arguments
 * +*-t*+, +*--tab*+: Go forward in a new tab.
@@ -1462,7 +1476,20 @@ Unbind a keychain.
 
 [[undo]]
 === undo
-Re-open the last closed tab or tabs.
+Syntax: +:undo [*--window*] ['depth']+
+
+Re-open the last closed tab(s) or window.
+
+==== positional arguments
+* +'depth'+: Same as `count` but as argument for completion, `count` takes precedence.
+
+
+==== optional arguments
+* +*-w*+, +*--window*+: Re-open the last closed window (and its tabs).
+
+==== count
+How deep in the undo stack to find the tab or tabs to re-open.
+
 
 [[version]]
 === version
