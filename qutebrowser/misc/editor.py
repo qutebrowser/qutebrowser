@@ -21,6 +21,7 @@
 
 import os
 import tempfile
+import typing
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QProcess,
                           QFileSystemWatcher)
@@ -58,7 +59,7 @@ class ExternalEditor(QObject):
 
     def __init__(self, parent=None, watch=False):
         super().__init__(parent)
-        self._filename = None
+        self._filename = None  # type: typing.Optional[str]
         self._proc = None
         self._remove_file = None
         self._watcher = QFileSystemWatcher(parent=self) if watch else None
@@ -179,12 +180,13 @@ class ExternalEditor(QObject):
             self._content = text
             self.file_updated.emit(text)
 
+        assert self._watcher is not None
         if (self._filename not in self._watcher.files() and
                 not self._watcher.addPath(self._filename)):
             log.procs.error("Failed to rewatch path: {}"
                             .format(self._filename))
 
-    def edit_file(self, filename):
+    def edit_file(self, filename: str):
         """Edit the file with the given filename."""
         if not os.path.exists(filename):
             with open(filename, 'w', encoding='utf-8'):
