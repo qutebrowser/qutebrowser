@@ -627,3 +627,12 @@ Feature: Using hints
         And I hint with args "all delete" and follow a
         And I run :hint
         Then the error "No elements found." should be shown
+
+    Scenario: Statusbar text when entering hint mode from other mode
+        When I open data/hints/html/simple.html
+        And I run :enter-mode insert
+        And I hint with args "all"
+        And I run :debug-pyeval objreg.get('main-window', window='current', scope='window').status.txt.text()
+        # Changing tabs will leave hint mode
+        And I wait until qute://pyeval/ is loaded
+        Then the page should contain the plaintext "'Follow hint...'"
