@@ -78,6 +78,7 @@ class ExternalEditor(QObject):
                 if failed:
                     log.procs.error("Failed to unwatch paths: {}".format(
                         failed))
+            self._on_change_delayed.cancel()
 
         if self._filename is None or not self._remove_file:
             # Could not create initial file.
@@ -182,11 +183,12 @@ class ExternalEditor(QObject):
             self._content = text
             self.file_updated.emit(text)
 
-        assert self._watcher is not None
-        if (self._filename not in self._watcher.files() and
-                not self._watcher.addPath(self._filename)):
-            log.procs.error("Failed to rewatch path: {}"
-                            .format(self._filename))
+        # self._watcher may be None if _on_change is called from _on_proc_error
+        if self._watcher is not None:
+            if (self._filename not in self._watcher.files() and
+                    not self._watcher.addPath(self._filename)):
+                log.procs.error("Failed to rewatch path: {}"
+                                .format(self._filename))
 
     def edit_file(self, filename: str) -> None:
         """Edit the file with the given filename."""
