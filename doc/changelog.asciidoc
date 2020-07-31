@@ -103,7 +103,9 @@ Fixed
 
 - With Qt 5.14, shared workers are now disabled. This works around a crash in
   QtWebEngine on certain sites (like the Epic Games Store or the Unreal Engine
-  page).
+  page). On older versions, you can get the same effect by doing
+  `:set qt.args "['disable-shared-workers']"` and `:restart` (or set the
+  setting in your `config.py`).
 - When a window is closed, the tab it contains are now correctly shut down
   (closing e.g. any dialogs which are still open for those tabs).
 - The Qt 5.15 session workaround now loads the correct (rather than the last)
