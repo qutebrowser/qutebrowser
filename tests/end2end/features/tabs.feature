@@ -986,8 +986,7 @@ Feature: Tab management
                 history:
                 - url: about:blank
                 - url: http://localhost:*/data/numbers/1.txt
-            - active: true
-              tabs:
+            - tabs:
               - active: true
                 history:
                 - url: http://localhost:*/data/numbers/2.txt
