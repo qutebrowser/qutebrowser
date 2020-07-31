@@ -31,14 +31,20 @@ Feature: Notifications
         And notification 1 has body "<< && >>"
         And notification 1 has title "<< && >>"
 
+    # For these tests, we need to wait for the notification to be shown before
+    # we try to close it, otherwise we wind up in race-condition-ish
+    # situations.
+
     @qtwebengine_notifications @qtwebengine_py_5_15
     Scenario: User closes presented notification
         When I run :click-element id show-button
+        And I wait for the javascript message "notification shown"
         And I close the notification with id 1
         Then the javascript message "notification closed" should be logged
 
     @qtwebengine_notifications @qtwebengine_py_5_15
     Scenario: User closes some other application's notification
         When I run :click-element id show-button
+        And I wait for the javascript message "notification shown"
         And I close the notification with id 1234
         Then the javascript message "notification closed" should not be logged
