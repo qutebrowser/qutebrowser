@@ -109,6 +109,7 @@ class ExternalEditor(QObject):
             # on_proc_error.
             return
         # do a final read to make sure we don't miss the last signal
+        assert self._filename is not None
         self._on_change(self._filename)
         self.editing_finished.emit()
         self._cleanup()
@@ -162,6 +163,7 @@ class ExternalEditor(QObject):
             return fobj.name
 
     def _on_change(self, _path: str) -> None:
+        assert self._filename is not None
         try:
             with open(self._filename, 'r',
                       encoding=config.val.editor.encoding) as f:
@@ -186,7 +188,7 @@ class ExternalEditor(QObject):
             log.procs.error("Failed to rewatch path: {}"
                             .format(self._filename))
 
-    def edit_file(self, filename: str):
+    def edit_file(self, filename: str) -> None:
         """Edit the file with the given filename."""
         if not os.path.exists(filename):
             with open(filename, 'w', encoding='utf-8'):
@@ -220,8 +222,7 @@ class ExternalEditor(QObject):
                                 .format(directory))
             self._watcher.fileChanged.connect(  # type: ignore[attr-defined]
                 self._on_change_delayed)
-            self._watcher.directoryChanged.connect(
-                # type: ignore[attr-defined]
+            self._watcher.directoryChanged.connect(  # type: ignore[attr-defined]
                 self._on_change_delayed)
 
         args = [self._sub_placeholder(arg, line, column) for arg in editor[1:]]
