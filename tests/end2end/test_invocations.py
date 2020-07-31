@@ -46,7 +46,7 @@ def _base_args(config):
         args += ['--backend', 'webkit']
 
     if config.webengine:
-        args += utils.seccomp_args(qt_flag=True)
+        args += utils.sandbox_args(qt_flag=True)
 
     args.append('about:blank')
     return args

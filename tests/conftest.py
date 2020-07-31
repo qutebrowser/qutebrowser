@@ -198,9 +198,9 @@ def pytest_ignore_collect(path):
 @pytest.fixture(scope='session')
 def qapp_args():
     """Make QtWebEngine unit tests run on older Qt versions + newer kernels."""
-    seccomp_args = testutils.seccomp_args(qt_flag=False)
-    if seccomp_args:
-        return [sys.argv[0]] + seccomp_args
+    sandbox_args = testutils.sandbox_args(qt_flag=False)
+    if sandbox_args:
+        return [sys.argv[0]] + sandbox_args
     return []
 
 

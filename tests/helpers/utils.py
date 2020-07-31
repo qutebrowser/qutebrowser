@@ -219,8 +219,8 @@ def blocked_hosts():
     yield from io.TextIOWrapper(gzip.open(path), encoding='utf-8')
 
 
-def seccomp_args(qt_flag):
-    """Get necessary flags to disable the seccomp BPF sandbox.
+def sandbox_args(qt_flag):
+    """Get necessary flags to disable sandboxing.
 
     This is needed for some QtWebEngine setups, with older Qt versions but
     newer kernels.
@@ -228,32 +228,43 @@ def seccomp_args(qt_flag):
     Args:
         qt_flag: Add a '--qt-flag' argument.
     """
-    affected_versions = set()
-    for base, patch_range in [
+    seccomp_flag = 'disable-seccomp-filter-sandbox'
+    namespace_flag = 'disable-namespace-sandbox'
+
+    version_flags = {}
+    for base, patch_range, flag in [
             ## seccomp-bpf failure in syscall 0281
             ## https://github.com/qutebrowser/qutebrowser/issues/3163
             # 5.7.1
-            ('5.7', [1]),
+            ('5.7', [1], seccomp_flag),
+
+            ## With Qt 5.10.x and `DBUS_SESSION_BUS_ADDRESS` set, for some
+            ## reason Qt doesn't find QWebEngineProcess when the namespace
+            ## sandbox is enabled.
+            # 5.10.0 to 5.11.3 (inclusive)
+            ('5.10', range(0, 4), namespace_flag),
 
             ## seccomp-bpf failure in syscall 0281 (clock_nanosleep)
             ## https://bugreports.qt.io/browse/QTBUG-81313
             # 5.11.0 to 5.11.3 (inclusive)
-            ('5.11', range(0, 4)),
+            ('5.11', range(0, 4), seccomp_flag),
             # 5.12.0 to 5.12.7 (inclusive)
-            ('5.12', range(0, 8)),
+            ('5.12', range(0, 8), seccomp_flag),
             # 5.13.0 to 5.13.2 (inclusive)
-            ('5.13', range(0, 3)),
+            ('5.13', range(0, 3), seccomp_flag),
             # 5.14.0
-            ('5.14', [0]),
+            ('5.14', [0], seccomp_flag),
     ]:
         for patch in patch_range:
-            affected_versions.add('{}.{}'.format(base, patch))
+            version_flags['{}.{}'.format(base, patch)] = flag
 
     version = (PYQT_WEBENGINE_VERSION_STR
                if PYQT_WEBENGINE_VERSION_STR is not None
                else qVersion())
-    if version in affected_versions:
-        disable_arg = 'disable-seccomp-filter-sandbox'
-        return ['--qt-flag', disable_arg] if qt_flag else ['--' + disable_arg]
 
-    return []
+    try:
+        flag = version_flags[version]
+    except KeyError:
+        return []
+    else:
+        return ['--qt-flag', flag] if qt_flag else ['--' + flag]
