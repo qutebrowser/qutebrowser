@@ -187,6 +187,7 @@ class ExternalEditor(QObject):
         self._try_reload_file()
 
         assert self._watcher is not None
+        assert self._filename is not None
         # _try_reload_file() will set _fail_on_last_reload depends on whether
         # the read success. If it isn't, it's likely that the file doesn't
         # exist so it's not necessary to watch the path.
