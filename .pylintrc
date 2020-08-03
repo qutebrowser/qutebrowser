@@ -59,7 +59,7 @@ docstring-min-length=3
 no-docstring-rgx=(^_|^main$)
 
 [FORMAT]
-max-line-length=79
+max-line-length=88
 ignore-long-lines=(<?https?://|file://|^# Copyright 201\d|link:)
 expected-line-ending-format=LF
 
