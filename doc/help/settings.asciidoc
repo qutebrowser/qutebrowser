@@ -627,7 +627,6 @@ Default:
 * +pass:[gC]+: +pass:[tab-clone]+
 * +pass:[gD]+: +pass:[tab-give]+
 * +pass:[gO]+: +pass:[set-cmd-text :open -t -r {url:pretty}]+
-* +pass:[gS]+: +pass:[navigate strip -t]+
 * +pass:[gU]+: +pass:[navigate up -t]+
 * +pass:[g^]+: +pass:[tab-focus 1]+
 * +pass:[ga]+: +pass:[open -t]+
@@ -640,7 +639,6 @@ Default:
 * +pass:[gm]+: +pass:[tab-move]+
 * +pass:[go]+: +pass:[set-cmd-text :open {url:pretty}]+
 * +pass:[gr]+: +pass:[tab-move +]+
-* +pass:[gs]+: +pass:[navigate strip]+
 * +pass:[gt]+: +pass:[set-cmd-text -s :buffer]+
 * +pass:[gu]+: +pass:[navigate up]+
 * +pass:[h]+: +pass:[scroll left]+
