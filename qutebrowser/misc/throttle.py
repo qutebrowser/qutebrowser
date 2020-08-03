@@ -101,3 +101,54 @@ class Throttle(QObject):
     def cancel(self) -> None:
         """Cancel any pending instance of this timer."""
         self._timer.stop()
+
+
+class Delayed(QObject):
+
+    """A throttle to throttle calls.
+
+    If a request comes in, it will be processed after a timeout ends.
+    If another request comes in, the timer will be reset and the previous
+    request will be canceled.
+    """
+
+    def __init__(self,
+                 func: typing.Callable,
+                 delay_ms: int,
+                 parent: QObject = None) -> None:
+        """Constructor.
+
+        Args:
+            delay_ms: The time to wait before calling the function.
+            func: The function/method to call on __call__.
+            parent: The parent object.
+        """
+        super().__init__(parent)
+        assert delay_ms > 0
+        self._delay_ms = delay_ms
+        self._func = func
+        self._pending_call = None  # type: typing.Optional[_CallArgs]
+        self._timer = usertypes.Timer(self, 'delay-timer')
+        self._timer.setSingleShot(True)
+        self._timer.timeout.connect(self._call_pending)
+
+    def _call_pending(self) -> None:
+        """Start a pending call."""
+        assert self._pending_call is not None
+        self._func(*self._pending_call.args, **self._pending_call.kwargs)
+        self._pending_call = None
+
+    def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        self._pending_call = _CallArgs(args=args, kwargs=kwargs)
+        self._timer.stop()
+        self._timer.setInterval(self._delay_ms)
+        self._timer.start()
+
+    def set_delay(self, delay_ms: int) -> None:
+        """Set the delay to wait between invocation of this function."""
+        assert delay_ms > 0
+        self._delay_ms = delay_ms
+
+    def cancel(self) -> None:
+        """Cancel any pending instance of this timer."""
+        self._timer.stop()

@@ -21,13 +21,14 @@
 
 import os
 import tempfile
+import typing
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QProcess,
                           QFileSystemWatcher)
 
 from qutebrowser.config import config
 from qutebrowser.utils import message, log
-from qutebrowser.misc import guiprocess
+from qutebrowser.misc import guiprocess, throttle
 from qutebrowser.qt import sip
 
 
@@ -44,6 +45,8 @@ class ExternalEditor(QObject):
         _watcher: A QFileSystemWatcher to watch the edited file for changes.
                   Only set if watch=True.
         _content: The last-saved text of the editor.
+        _fail_on_last_reload: Whether qutebrowser failed to read the file
+                              on the last call to _try_reload_file.
 
     Signals:
         file_updated: The text in the edited file was updated.
@@ -56,19 +59,26 @@ class ExternalEditor(QObject):
 
     def __init__(self, parent=None, watch=False):
         super().__init__(parent)
-        self._filename = None
+        self._filename = None  # type: typing.Optional[str]
         self._proc = None
         self._remove_file = None
         self._watcher = QFileSystemWatcher(parent=self) if watch else None
+        self._on_change_delayed = throttle.Delayed(
+            self._on_change, 100, parent=self)
         self._content = None
+        self._fail_on_last_reload = False  # type: bool
 
     def _cleanup(self):
         """Clean up temporary files after the editor closed."""
         assert self._remove_file is not None
-        if self._watcher is not None and self._watcher.files():
-            failed = self._watcher.removePaths(self._watcher.files())
-            if failed:
-                log.procs.error("Failed to unwatch paths: {}".format(failed))
+        if self._watcher is not None:
+            paths = self._watcher.files() + self._watcher.directories()
+            if paths:
+                failed = self._watcher.removePaths(paths)
+                if failed:
+                    log.procs.error("Failed to unwatch paths: {}".format(
+                        failed))
+            self._on_change_delayed.cancel()
 
         if self._filename is None or not self._remove_file:
             # Could not create initial file.
@@ -100,7 +110,8 @@ class ExternalEditor(QObject):
             # on_proc_error.
             return
         # do a final read to make sure we don't miss the last signal
-        self._on_file_changed(self._filename)
+        assert self._filename is not None
+        self._try_reload_file()
         self.editing_finished.emit()
         self._cleanup()
 
@@ -152,22 +163,41 @@ class ExternalEditor(QObject):
                 fobj.write(text)
             return fobj.name
 
-    @pyqtSlot(str)
-    def _on_file_changed(self, path):
+    def _try_reload_file(self) -> None:
+        assert self._filename is not None
         try:
-            with open(path, 'r', encoding=config.val.editor.encoding) as f:
+            with open(self._filename, 'r',
+                      encoding=config.val.editor.encoding) as f:
                 text = f.read()
         except OSError as e:
             # NOTE: Do not replace this with "raise CommandError" as it's
             # executed async.
-            message.error("Failed to read back edited file: {}".format(e))
+            if not self._fail_on_last_reload:
+                # the error message should not be shown repeatedly
+                message.error("Failed to read back edited file: {}".format(e))
+                self._fail_on_last_reload = True
             return
         log.procs.debug("Read back: {}".format(text))
+        self._fail_on_last_reload = False
         if self._content != text:
             self._content = text
             self.file_updated.emit(text)
 
-    def edit_file(self, filename):
+    def _on_change(self, _path: str) -> None:
+        self._try_reload_file()
+
+        assert self._watcher is not None
+        assert self._filename is not None
+        # _try_reload_file() will set _fail_on_last_reload depends on whether
+        # the read success. If it isn't, it's likely that the file doesn't
+        # exist so it's not necessary to watch the path.
+        if (not self._fail_on_last_reload and
+                self._filename not in self._watcher.files() and
+                not self._watcher.addPath(self._filename)):
+            log.procs.error("Failed to rewatch path: {}"
+                            .format(self._filename))
+
+    def edit_file(self, filename: str) -> None:
         """Edit the file with the given filename."""
         if not os.path.exists(filename):
             with open(filename, 'w', encoding='utf-8'):
@@ -195,8 +225,14 @@ class ExternalEditor(QObject):
             if not ok:
                 log.procs.error("Failed to watch path: {}"
                                 .format(self._filename))
+            directory = os.path.dirname(self._filename)
+            if not self._watcher.addPath(directory):
+                log.procs.error("Failed to watch path: {}"
+                                .format(directory))
             self._watcher.fileChanged.connect(  # type: ignore[attr-defined]
-                self._on_file_changed)
+                self._on_change_delayed)
+            self._watcher.directoryChanged.connect(  # type: ignore[attr-defined]
+                self._on_change_delayed)
 
         args = [self._sub_placeholder(arg, line, column) for arg in editor[1:]]
         log.procs.debug("Calling \"{}\" with args {}".format(executable, args))
