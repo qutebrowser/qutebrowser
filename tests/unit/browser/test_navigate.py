@@ -172,7 +172,7 @@ class TestIncDec:
 
     def test_invalid_url(self):
         with pytest.raises(urlutils.InvalidUrlError):
-            navigate.incdec(QUrl(""), 1, "increment")
+            navigate.incdec(QUrl(), 1, "increment")
 
     def test_wrong_mode(self):
         """Test if incdec rejects a wrong parameter for inc_or_dec."""
@@ -196,6 +196,10 @@ class TestUp:
         new = navigate.path_up(url, count)
         assert new == QUrl(url_base + expected_suffix)
 
+    def test_invalid_url(self):
+        with pytest.raises(urlutils.InvalidUrlError):
+            navigate.path_up(QUrl(), count=1)
+
 
 class TestStrip:
 
@@ -216,3 +220,7 @@ class TestStrip:
     def test_count(self):
         with pytest.raises(navigate.Error, match='Count is not supported'):
             navigate.strip(QUrl('https://example.com/'), count=2)
+
+    def test_invalid_url(self):
+        with pytest.raises(urlutils.InvalidUrlError):
+            navigate.strip(QUrl(), count=1)
