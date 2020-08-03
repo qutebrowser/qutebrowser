@@ -3177,6 +3177,8 @@ bindings.default:
       "}}": navigate next -t
       gu: navigate up
       gU: navigate up -t
+      gs: navigate strip
+      gS: navigate strip -t
       <Ctrl-A>: navigate increment
       <Ctrl-X>: navigate decrement
       wi: devtools

@@ -4,7 +4,7 @@ Feature: Using :navigate
 
     Scenario: :navigate with invalid argument
         When I run :navigate foo
-        Then the error "where: Invalid value foo - expected one of: prev, next, up, increment, decrement" should be shown
+        Then the error "where: Invalid value foo - expected one of: prev, next, up, increment, decrement, strip" should be shown
 
     # up
 
@@ -137,3 +137,20 @@ Feature: Using :navigate
         When I open data/navigate/multilinelinks.html
         And I run :navigate next
         Then data/numbers/5.txt should be loaded
+
+    # strip
+
+    Scenario: Stripping a query
+        When I open data/navigate?foo=bar
+        And I run :navigate strip
+        Then data/navigate should be loaded
+
+    Scenario: Stripping a label
+        When I open data/navigate#label
+        And I run :navigate strip
+        Then data/navigate should be loaded
+
+    Scenario: Stripping a query and a label
+        When I open data/navigate?foo=bar#label
+        And I run :navigate strip
+        Then data/navigate should be loaded

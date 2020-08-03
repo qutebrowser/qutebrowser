@@ -45,6 +45,8 @@ Changed
 - `:back` and `:forward` now take an optional index which is completed using
   the current tab's history.
 - The time a website in a tab was visited is now saved/restored in sessions.
+- New command `:navigate strip` which removes queries and parameters from the
+  current URL (bound to `gs`/`gS` by default).
 
 Added
 ~~~~~
