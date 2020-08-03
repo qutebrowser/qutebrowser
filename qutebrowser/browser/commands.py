@@ -614,14 +614,9 @@ class CommandDispatcher:
                 handler = handlers[where]
                 handler(browsertab=widget, win_id=self._win_id, baseurl=url,
                         tab=tab, background=bg, window=window)
-            elif where in ['up', 'increment', 'decrement']:
-                if where == 'up':
-                    url = url.adjusted(QUrl.RemoveFragment | QUrl.RemoveQuery)
+            elif where in ['up', 'increment', 'decrement', 'strip']:
                 new_url = handlers[where](url, count)
                 self._open(new_url, tab, bg, window, related=True)
-            elif where == 'strip':
-                url = url.adjusted(QUrl.RemoveFragment | QUrl.RemoveQuery)
-                self._open(url, tab, bg, window, related=True)
             else:  # pragma: no cover
                 raise ValueError("Got called with invalid value {} for "
                                  "`where'.".format(where))
