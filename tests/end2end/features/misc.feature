@@ -169,7 +169,7 @@ Feature: Various utility commands.
 
     @qtwebkit_skip @qt<5.11
     Scenario: Inspector without --enable-webengine-inspector
-        When I run :inspector
+        When I run :devtools
         Then the error "QtWebEngine inspector is not enabled. See 'qutebrowser --help' for details." should be shown
 
     @no_xvfb @posix @qtwebengine_skip
@@ -536,7 +536,14 @@ Feature: Various utility commands.
         And I open data/numbers/3.txt
         Then no crash should happen
 
+    ## Other
+
     Scenario: Simple adblock update
         When I set up "simple" as block lists
         And I run :adblock-update
         Then the message "adblock: Read 1 hosts from 1 sources." should be shown
+
+    Scenario: Resource with invalid URL
+        When I open data/invalid_resource.html
+        Then "Ignoring invalid * URL: Invalid hostname (contains invalid characters); *" should be logged
+        And no crash should happen

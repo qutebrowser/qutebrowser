@@ -1287,6 +1287,7 @@ class TestQtColor:
     @pytest.mark.parametrize('val, expected', [
         ('#123', QColor('#123')),
         ('#112233', QColor('#112233')),
+        ('#44112233', QColor('#44112233')),
         ('#111222333', QColor('#111222333')),
         ('#111122223333', QColor('#111122223333')),
         ('red', QColor('red')),
@@ -1333,6 +1334,7 @@ class TestQssColor:
     @pytest.mark.parametrize('val', [
         '#123',
         '#112233',
+        '#44112233',
         '#111222333',
         '#111122223333',
         'red',

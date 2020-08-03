@@ -23,6 +23,7 @@ import collections
 import functools
 import weakref
 import typing
+import datetime
 
 import attr
 from PyQt5.QtWidgets import QSizePolicy, QWidget, QApplication
@@ -39,7 +40,7 @@ from qutebrowser.misc import quitter
 
 
 @attr.s
-class UndoEntry:
+class _UndoEntry:
 
     """Information needed for :undo."""
 
@@ -47,6 +48,7 @@ class UndoEntry:
     history = attr.ib()
     index = attr.ib()
     pinned = attr.ib()
+    created_at = attr.ib(attr.Factory(datetime.datetime.now))
 
 
 class TabDeque:
@@ -159,8 +161,8 @@ class TabbedBrowser(QWidget):
         _tab_insert_idx_left: Where to insert a new tab with
                               tabs.new_tab_position set to 'prev'.
         _tab_insert_idx_right: Same as above, for 'next'.
-        _undo_stack: List of lists of UndoEntry objects of closed tabs.
-        shutting_down: Whether we're currently shutting down.
+        undo_stack: List of lists of _UndoEntry objects of closed tabs.
+        is_shutting_down: Whether we're currently shutting down.
         _local_marks: Jump markers local to each page
         _global_marks: Jump markers used across all pages
         default_window_icon: The qutebrowser window icon
@@ -182,6 +184,7 @@ class TabbedBrowser(QWidget):
                  arg: The new size.
         current_tab_changed: The current tab changed to the emitted tab.
         new_tab: Emits the new WebView and its index when a new tab is opened.
+        shutting_down: This TabbedBrowser will be deleted soon.
     """
 
     cur_progress = pyqtSignal(int)
@@ -197,6 +200,7 @@ class TabbedBrowser(QWidget):
     resized = pyqtSignal('QRect')
     current_tab_changed = pyqtSignal(browsertab.AbstractTab)
     new_tab = pyqtSignal(browsertab.AbstractTab, int)
+    shutting_down = pyqtSignal()
 
     def __init__(self, *, win_id, private, parent=None):
         if private:
@@ -206,7 +210,7 @@ class TabbedBrowser(QWidget):
         self._win_id = win_id
         self._tab_insert_idx_left = 0
         self._tab_insert_idx_right = -1
-        self.shutting_down = False
+        self.is_shutting_down = False
         self.widget.tabCloseRequested.connect(self.on_tab_close_requested)
         self.widget.new_tab_requested.connect(
             self.tabopen)  # type: ignore[arg-type]
@@ -222,9 +226,9 @@ class TabbedBrowser(QWidget):
 
         # This init is never used, it is immediately thrown away in the next
         # line.
-        self._undo_stack = (
+        self.undo_stack = (
             collections.deque()
-        )  # type: typing.MutableSequence[typing.MutableSequence[UndoEntry]]
+        )  # type: typing.MutableSequence[typing.MutableSequence[_UndoEntry]]
         self._update_stack_size()
         self._filter = signalfilter.SignalFilter(win_id, self)
         self._now_focused = None
@@ -245,7 +249,7 @@ class TabbedBrowser(QWidget):
         if newsize < 0:
             newsize = None
         # We can't resize a collections.deque so just recreate it >:(
-        self._undo_stack = collections.deque(self._undo_stack, maxlen=newsize)
+        self.undo_stack = collections.deque(self.undo_stack, maxlen=newsize)
 
     def __repr__(self):
         return utils.get_repr(self, count=self.widget.count())
@@ -381,12 +385,13 @@ class TabbedBrowser(QWidget):
 
     def shutdown(self):
         """Try to shut down all tabs cleanly."""
-        self.shutting_down = True
-        # Reverse tabs so we don't have to recacluate tab titles over and over
+        self.is_shutting_down = True
+        # Reverse tabs so we don't have to recalculate tab titles over and over
         # Removing first causes [2..-1] to be recomputed
         # Removing the last causes nothing to be recomputed
-        for tab in reversed(self.widgets()):
-            self._remove_tab(tab)
+        for idx, tab in enumerate(reversed(self.widgets())):
+            self._remove_tab(tab, new_undo=idx == 0)
+        self.shutting_down.emit()
 
     def tab_close_prompt_if_pinned(
             self, tab, force, yes_action,
@@ -468,28 +473,39 @@ class TabbedBrowser(QWidget):
             except browsertab.WebTabError:
                 pass  # special URL
             else:
-                entry = UndoEntry(tab.url(), history_data, idx,
-                                  tab.data.pinned)
-                if new_undo or not self._undo_stack:
-                    self._undo_stack.append([entry])
+                entry = _UndoEntry(url=tab.url(),
+                                   history=history_data,
+                                   index=idx,
+                                   pinned=tab.data.pinned)
+                if new_undo or not self.undo_stack:
+                    self.undo_stack.append([entry])
                 else:
-                    self._undo_stack[-1].append(entry)
+                    self.undo_stack[-1].append(entry)
 
         tab.private_api.shutdown()
         self.widget.removeTab(idx)
+
         if not crashed:
             # WORKAROUND for a segfault when we delete the crashed tab.
             # see https://bugreports.qt.io/browse/QTBUG-58698
-            tab.layout().unwrap()
+
+            if not qtutils.version_check('5.12'):
+                # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58982
+                # Seems to affect Qt 5.7-5.11 as well.
+                tab.layout().unwrap()
+
             tab.deleteLater()
 
-    def undo(self):
+    def undo(self, depth=1):
         """Undo removing of a tab or tabs."""
         # Remove unused tab which may be created after the last tab is closed
         last_close = config.val.tabs.last_close
         use_current_tab = False
-        if last_close in ['blank', 'startpage', 'default-page']:
-            only_one_tab_open = self.widget.count() == 1
+        last_close_replaces = last_close in [
+            'blank', 'startpage', 'default-page'
+        ]
+        only_one_tab_open = self.widget.count() == 1
+        if only_one_tab_open and last_close_replaces:
             no_history = len(self.widget.widget(0).history) == 1
             urls = {
                 'blank': QUrl('about:blank'),
@@ -503,7 +519,10 @@ class TabbedBrowser(QWidget):
             use_current_tab = (only_one_tab_open and no_history and
                                last_close_url_used)
 
-        for entry in reversed(self._undo_stack.pop()):
+        entries = self.undo_stack[-depth]
+        del self.undo_stack[-depth]
+
+        for entry in reversed(entries):
             if use_current_tab:
                 newtab = self.widget.widget(0)
                 use_current_tab = False
@@ -816,7 +835,7 @@ class TabbedBrowser(QWidget):
     def _on_current_changed(self, idx):
         """Add prev tab to stack and leave hinting mode when focus changed."""
         mode_on_change = config.val.tabs.mode_on_change
-        if idx == -1 or self.shutting_down:
+        if idx == -1 or self.is_shutting_down:
             # closing the last tab (before quitting) or shutting down
             return
         tab = self.widget.widget(idx)

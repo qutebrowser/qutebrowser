@@ -9,8 +9,7 @@ qutebrowser
 // QUTE_WEB_HIDE
 image:icons/qutebrowser-64x64.png[qutebrowser logo] *A keyboard-driven, vim-like browser based on PyQt5 and Qt.*
 
-image:https://travis-ci.org/qutebrowser/qutebrowser.svg?branch=master["Build Status", link="https://travis-ci.org/qutebrowser/qutebrowser"]
-image:https://ci.appveyor.com/api/projects/status/5pyauww2k68bbow2/branch/master?svg=true["AppVeyor build status", link="https://ci.appveyor.com/project/qutebrowser/qutebrowser"]
+image:https://github.com/qutebrowser/qutebrowser/workflows/CI/badge.svg["Build Status", link="https://github.com/qutebrowser/qutebrowser/actions?query=workflow%3ACI"]
 image:https://codecov.io/github/qutebrowser/qutebrowser/coverage.svg?branch=master["coverage badge",link="https://codecov.io/github/qutebrowser/qutebrowser?branch=master"]
 
 link:https://www.qutebrowser.org[website] | link:https://blog.qutebrowser.org[blog] | https://github.com/qutebrowser/qutebrowser/blob/master/doc/faq.asciidoc[FAQ] | https://www.qutebrowser.org/doc/contributing.html[contributing] | link:https://github.com/qutebrowser/qutebrowser/releases[releases] | https://github.com/qutebrowser/qutebrowser/blob/master/doc/install.asciidoc[installing]
@@ -221,8 +220,7 @@ Active
 * https://fanglingsu.github.io/vimb/[vimb] (C, GTK+ with WebKit2)
 * https://luakit.github.io/luakit/[luakit] (C/Lua, GTK+ with WebKit2)
 * https://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
-* https://next.atlas.engineer/[next] (Lisp, Emacs-like but also offers Vim bindings, QtWebKit or GTK+/WebKit2 - note there was a http://jgkamat.gitlab.io/blog/next-rce.html[critical remote code execution] which was handled quite badly)
-* https://github.com/parkouss/webmacs/[webmacs] (Python, Emacs-like with QtWebEngine)
+* https://nyxt.atlas.engineer/[Nyxt browser] (formerly "Next browser", Lisp, Emacs-like but also offers Vim bindings, QtWebKit or GTK+/WebKit2 - note there was a http://jgkamat.gitlab.io/blog/next-rce.html[critical remote code execution] which was handled quite badly)
 * https://vieb.dev/[Vieb] (JavaScript, Electron)
 * Chrome/Chromium addons:
   https://vimium.github.io/[Vimium],
@@ -245,6 +243,8 @@ Inactive
 * https://bitbucket.org/portix/dwb[dwb] (C, GTK+ with WebKit1,
 https://bitbucket.org/portix/dwb/pull-requests/22/several-cleanups-to-increase-portability/diff[unmaintained] -
 main inspiration for qutebrowser)
+* https://github.com/parkouss/webmacs/[webmacs] (Python, Emacs-like with
+  QtWebEngine, https://github.com/parkouss/webmacs/issues/137[unmaintained])
 * https://sourceforge.net/p/vimprobable/wiki/Home/[vimprobable] (C, GTK+ with
   WebKit1)
 * https://wiki.archlinux.org/index.php?title=Jumanji[jumanji] (C, GTK+ with WebKit1,
@@ -256,10 +256,11 @@ original site is gone but the Arch Linux wiki has some data)
 * Firefox addons (not based on WebExtensions or no recent activity):
   http://www.vimperator.org/[Vimperator],
   http://bug.5digits.org/pentadactyl/index[Pentadactyl],
-  https://github.com/akhodakivskiy/VimFx[VimFx],
+  https://github.com/akhodakivskiy/VimFx[VimFx] (seems to offer a
+  https://gir.st/blog/legacyfox.htm[hack] to run on modern Firefox releases),
   https://github.com/shinglyu/QuantumVim[QuantumVim]
 * Chrome/Chromium addons:
-  https://chrome.google.com/webstore/detail/vichrome/gghkfhpblkcmlkmpcpgaajbbiikbhpdi?hl=en[ViChrome],
+  https://github.com/k2nr/ViChrome/[ViChrome],
   https://github.com/jinzhu/vrome[Vrome],
   https://github.com/lusakasa/saka-key[Saka Key],
   https://github.com/1995eaton/chromium-vim[cVim],

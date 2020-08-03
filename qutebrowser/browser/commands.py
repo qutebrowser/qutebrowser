@@ -30,15 +30,15 @@ from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QEvent, QUrlQuery
 from qutebrowser.commands import userscripts, runners
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config, configdata
-from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
-                                 webelem, downloads)
+from qutebrowser.browser import (urlmarks, browsertab, navigate, webelem,
+                                 downloads)
 from qutebrowser.keyinput import modeman, keyutils
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils, standarddir, debug)
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess, objects
 from qutebrowser.completion.models import urlmodel, miscmodels
-from qutebrowser.mainwindow import mainwindow
+from qutebrowser.mainwindow import mainwindow, windowundo
 
 
 class CommandDispatcher:
@@ -498,7 +498,7 @@ class CommandDispatcher:
             self._tabbed_browser.close_tab(self._current_widget(),
                                            add_undo=False)
 
-    def _back_forward(self, tab, bg, window, count, forward):
+    def _back_forward(self, tab, bg, window, count, forward, index=None):
         """Helper function for :back/:forward."""
         history = self._current_widget().history
         # Catch common cases before e.g. cloning tab
@@ -512,6 +512,12 @@ class CommandDispatcher:
         else:
             widget = self._current_widget()
 
+        if count is None:
+            if index is None:
+                count = 1
+            else:
+                count = abs(history.current_idx() - index)
+
         try:
             if forward:
                 widget.history.forward(count)
@@ -522,7 +528,10 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def back(self, tab=False, bg=False, window=False, count=1):
+    @cmdutils.argument('index', completion=miscmodels.back)
+    def back(self, tab: bool = False, bg: bool = False,
+             window: bool = False, count: int = None,
+             index: int = None) -> None:
         """Go back in the history of the current tab.
 
         Args:
@@ -530,12 +539,16 @@ class CommandDispatcher:
             bg: Go back in a background tab.
             window: Go back in a new window.
             count: How many pages to go back.
+            index: Which page to go back to, count takes precedence.
         """
-        self._back_forward(tab, bg, window, count, forward=False)
+        self._back_forward(tab, bg, window, count, forward=False, index=index)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def forward(self, tab=False, bg=False, window=False, count=1):
+    @cmdutils.argument('index', completion=miscmodels.forward)
+    def forward(self, tab: bool = False, bg: bool = False,
+                window: bool = False, count: int = None,
+                index: int = None) -> None:
         """Go forward in the history of the current tab.
 
         Args:
@@ -543,8 +556,9 @@ class CommandDispatcher:
             bg: Go forward in a background tab.
             window: Go forward in a new window.
             count: How many pages to go forward.
+            index: Which page to go forward to, count takes precedence.
         """
-        self._back_forward(tab, bg, window, count, forward=True)
+        self._back_forward(tab, bg, window, count, forward=True, index=index)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('where', choices=['prev', 'next', 'up', 'increment',
@@ -780,12 +794,39 @@ class CommandDispatcher:
                 text="Are you sure you want to close pinned tabs?")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def undo(self):
-        """Re-open the last closed tab or tabs."""
+    @cmdutils.argument('count', value=cmdutils.Value.count)
+    @cmdutils.argument('depth', completion=miscmodels.undo)
+    def undo(self, window: bool = False,
+             count: int = None, depth: int = None) -> None:
+        """Re-open the last closed tab(s) or window.
+
+        Args:
+            window: Re-open the last closed window (and its tabs).
+            count: How deep in the undo stack to find the tab or tabs to
+                   re-open.
+            depth: Same as `count` but as argument for completion, `count`
+                   takes precedence.
+        """
+        has_depth = count is not None or depth is not None
+        if count is not None:
+            depth = count
+        elif depth is None:
+            depth = 1
+
+        if window and has_depth:
+            raise cmdutils.CommandError(
+                ":undo --window does not support a count/depth")
+
         try:
-            self._tabbed_browser.undo()
+            if window:
+                windowundo.instance.undo_last_window_close()
+            else:
+                self._tabbed_browser.undo(depth)
         except IndexError:
-            raise cmdutils.CommandError("Nothing to undo!")
+            msg = "Nothing to undo"
+            if not window and not has_depth:
+                msg += " (use :undo --window to reopen a closed window)"
+            raise cmdutils.CommandError(msg)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
@@ -1240,28 +1281,6 @@ class CommandDispatcher:
             raise cmdutils.CommandError("Bookmark '{}' not found!".format(url))
         message.info("Removed bookmark {}".format(url))
 
-    @cmdutils.register(instance='command-dispatcher', name='inspector',
-                       scope='window')
-    def toggle_inspector(self):
-        """Toggle the web inspector.
-
-        Note: Due to a bug in Qt, the inspector will show incorrect request
-        headers in the network tab.
-        """
-        tab = self._current_widget()
-        # FIXME:qtwebengine have a proper API for this
-        page = tab._widget.page()  # pylint: disable=protected-access
-
-        try:
-            if tab.data.inspector is None:
-                tab.data.inspector = inspector.create()
-                tab.data.inspector.inspect(page)
-                tab.data.inspector.show()
-            else:
-                tab.data.inspector.toggle(page)
-        except inspector.WebInspectorError as e:
-            raise cmdutils.CommandError(e)
-
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def download(self, url=None, *, mhtml_=False, dest=None):
         """Download a given URL, or current page if no URL given.
@@ -1375,6 +1394,12 @@ class CommandDispatcher:
             if command not in objects.commands:
                 raise cmdutils.CommandError("Invalid command {}!".format(
                     command))
+
+            deprecated = objects.commands[command].deprecated
+            if deprecated:
+                raise cmdutils.CommandError(
+                    "{} is deprecated - {}".format(command, deprecated))
+
             path = 'commands.html#{}'.format(command)
         elif topic in configdata.DATA:
             path = 'settings.html#{}'.format(topic)

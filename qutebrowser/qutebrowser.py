@@ -77,19 +77,19 @@ def get_argparser():
                         action='store_true')
     parser.add_argument('--target', choices=['auto', 'tab', 'tab-bg',
                                              'tab-silent', 'tab-bg-silent',
-                                             'window'],
+                                             'window', 'private-window'],
                         help="How URLs should be opened if there is already a "
                              "qutebrowser instance running.")
     parser.add_argument('--backend', choices=['webkit', 'webengine'],
                         help="Which backend to use.")
     parser.add_argument('--enable-webengine-inspector', action='store_true',
-                        help="Enable the web inspector for QtWebEngine. Note "
-                        "that this is a SECURITY RISK and you should not "
-                        "visit untrusted websites with the inspector turned "
-                        "on. See https://bugreports.qt.io/browse/QTBUG-50725 "
-                        "for more details. This is not needed anymore since "
-                        "Qt 5.11 where the inspector is always enabled and "
-                        "secure.")
+                        help="Enable the web inspector / devtools for "
+                        "QtWebEngine. Note that this is a SECURITY RISK and "
+                        "you should not visit untrusted websites with the "
+                        "inspector turned on. See "
+                        "https://bugreports.qt.io/browse/QTBUG-50725 for more "
+                        "details. This is not needed anymore since Qt 5.11 "
+                        "where the inspector is always enabled and secure.")
 
     parser.add_argument('--json-args', help=argparse.SUPPRESS)
     parser.add_argument('--temp-basedir-restarted', help=argparse.SUPPRESS)

@@ -2,3 +2,4 @@
 
 altgraph==0.17
 -e git+https://github.com/pyinstaller/pyinstaller.git@develop#egg=pyinstaller
+pyinstaller-hooks-contrib==2020.6

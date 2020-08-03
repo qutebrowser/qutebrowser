@@ -6,14 +6,10 @@ hypothesis
 pytest
 pytest-bdd
 pytest-benchmark
-pytest-cov
 pytest-instafail
 pytest-mock
 pytest-qt
 pytest-rerunfailures
-pytest-xvfb
-# https://github.com/The-Compiler/pytest-xvfb/issues/22
-PyVirtualDisplay < 1.0
 
 ## optional:
 # To test :debug-trace, gets skipped if hunter is not installed
@@ -22,12 +18,17 @@ hunter
 vulture
 # For colored pytest output (though also a direct qutebrowser dependency))
 pygments
-# Output folding on Travis
-pytest-travis-fold
 # --repeat switch (used to manually repeat tests)
 pytest-repeat
+# For coverage tests
+pytest-cov
+# To avoid windows from popping up
+pytest-xvfb
+PyVirtualDisplay
+
+# Needed to test misc/userscripts/qute-lastpass
+tldextract
 
 #@ markers: jaraco.functools python_version>="3.6"
 #@ add: jaraco.functools==2.0; python_version<"3.6"  # rq.filter: <= 2.0
 #@ ignore: Jinja2, MarkupSafe, colorama
-#@ filter: PyVirtualDisplay < 1.0

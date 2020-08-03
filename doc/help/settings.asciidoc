@@ -173,7 +173,9 @@
 |<<content.local_content_can_access_file_urls,content.local_content_can_access_file_urls>>|Allow locally loaded documents to access other local URLs.
 |<<content.local_content_can_access_remote_urls,content.local_content_can_access_remote_urls>>|Allow locally loaded documents to access remote URLs.
 |<<content.local_storage,content.local_storage>>|Enable support for HTML 5 local storage and Web SQL.
-|<<content.media_capture,content.media_capture>>|Allow websites to record audio/video.
+|<<content.media.audio_capture,content.media.audio_capture>>|Allow websites to record audio.
+|<<content.media.audio_video_capture,content.media.audio_video_capture>>|Allow websites to record audio and video.
+|<<content.media.video_capture,content.media.video_capture>>|Allow websites to record video.
 |<<content.mouse_lock,content.mouse_lock>>|Allow websites to lock your mouse pointer.
 |<<content.mute,content.mute>>|Automatically mute tabs.
 |<<content.netrc_file,content.netrc_file>>|Netrc-file for HTTP authentication.
@@ -315,7 +317,7 @@
 |<<tabs.title.format,tabs.title.format>>|Format to use for the tab title.
 |<<tabs.title.format_pinned,tabs.title.format_pinned>>|Format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
 |<<tabs.tooltips,tabs.tooltips>>|Show tooltips on tabs.
-|<<tabs.undo_stack_size,tabs.undo_stack_size>>|Number of close tab actions to remember, per window (-1 for no maximum).
+|<<tabs.undo_stack_size,tabs.undo_stack_size>>|Number of closed tabs (per window) and closed windows to remember for :undo (-1 for no maximum).
 |<<tabs.width,tabs.width>>|Width (in pixels or as percentage of the window) of the tab bar if it's vertical.
 |<<tabs.wrap,tabs.wrap>>|Wrap when changing tabs.
 |<<url.auto_search,url.auto_search>>|What search to start when something else than a URL is entered.
@@ -359,6 +361,8 @@ Default: +pass:[15000]+
 [[auto_save.session]]
 === auto_save.session
 Always restore open sites when qutebrowser is reopened.
+Without this option set, `:wq` (`:quit --save`) needs to be used to save open tabs (and restore them), while quitting qutebrowser in any other way will not save/restore the session.
+By default, this will save to the session which was last loaded. This behavior can be customized via the `session.default_name` setting.
 
 Type: <<types,Bool>>
 
@@ -606,6 +610,7 @@ Default:
 * +pass:[Sq]+: +pass:[open qute://bookmarks]+
 * +pass:[Ss]+: +pass:[open qute://settings]+
 * +pass:[T]+: +pass:[tab-focus]+
+* +pass:[U]+: +pass:[undo -w]+
 * +pass:[V]+: +pass:[enter-mode caret ;; toggle-selection --line]+
 * +pass:[ZQ]+: +pass:[quit]+
 * +pass:[ZZ]+: +pass:[quit --save]+
@@ -683,12 +688,18 @@ Default:
 * +pass:[u]+: +pass:[undo]+
 * +pass:[v]+: +pass:[enter-mode caret]+
 * +pass:[wB]+: +pass:[set-cmd-text -s :bookmark-load -w]+
+* +pass:[wIf]+: +pass:[devtools-focus]+
+* +pass:[wIh]+: +pass:[devtools left]+
+* +pass:[wIj]+: +pass:[devtools bottom]+
+* +pass:[wIk]+: +pass:[devtools top]+
+* +pass:[wIl]+: +pass:[devtools right]+
+* +pass:[wIw]+: +pass:[devtools window]+
 * +pass:[wO]+: +pass:[set-cmd-text :open -w {url:pretty}]+
 * +pass:[wP]+: +pass:[open -w -- {primary}]+
 * +pass:[wb]+: +pass:[set-cmd-text -s :quickmark-load -w]+
 * +pass:[wf]+: +pass:[hint all window]+
 * +pass:[wh]+: +pass:[back -w]+
-* +pass:[wi]+: +pass:[inspector]+
+* +pass:[wi]+: +pass:[devtools]+
 * +pass:[wl]+: +pass:[forward -w]+
 * +pass:[wo]+: +pass:[set-cmd-text -s :open -w]+
 * +pass:[wp]+: +pass:[open -w -- {clipboard}]+
@@ -1824,11 +1835,11 @@ Default: +pass:[false]+
 [[completion.timestamp_format]]
 === completion.timestamp_format
 Format of timestamps (e.g. for the history completion).
-See https://sqlite.org/lang_datefunc.html for allowed substitutions.
+See https://sqlite.org/lang_datefunc.html and https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior for allowed substitutions, qutebrowser uses both sqlite and Python to format its timestamps.
 
 Type: <<types,String>>
 
-Default: +pass:[%Y-%m-%d]+
+Default: +pass:[%Y-%m-%d %H:%M]+
 
 [[completion.use_best_match]]
 === completion.use_best_match
@@ -2004,6 +2015,7 @@ This setting is only available with the QtWebEngine backend.
 Which cookies to accept.
 With QtWebEngine, this setting also controls other features with tracking capabilities similar to those of cookies; including IndexedDB, DOM storage, filesystem API, service workers, and AppCache.
 Note that with QtWebKit, only `all` and `never` are supported as per-domain values. Setting `no-3rdparty` or `no-unknown-3rdparty` per-domain on QtWebKit will have the same effect as `all`.
+If this setting is used with URL patterns, the pattern gets applied to the origin/first party URL of the page making the request, not the request URL.
 
 This setting supports URL patterns.
 
@@ -2173,7 +2185,8 @@ The following placeholders are defined:
   with QtWebEngine).
 * `{qt_key}`: "Qt" for QtWebKit, "QtWebEngine" for QtWebEngine.
 * `{qt_version}`: The underlying Qt version.
-* `{upstream_browser_key}`: "Version" for QtWebKit, "Chrome" for QtWebEngine.
+* `{upstream_browser_key}`: "Version" for QtWebKit, "Chrome" for
+  QtWebEngine.
 * `{upstream_browser_version}`: The corresponding Safari/Chrome version.
 * `{qutebrowser_version}`: The currently running qutebrowser version.
 
@@ -2324,9 +2337,45 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-[[content.media_capture]]
-=== content.media_capture
-Allow websites to record audio/video.
+[[content.media.audio_capture]]
+=== content.media.audio_capture
+Allow websites to record audio.
+
+This setting supports URL patterns.
+
+Type: <<types,BoolAsk>>
+
+Valid values:
+
+ * +true+
+ * +false+
+ * +ask+
+
+Default: +pass:[ask]+
+
+This setting is only available with the QtWebEngine backend.
+
+[[content.media.audio_video_capture]]
+=== content.media.audio_video_capture
+Allow websites to record audio and video.
+
+This setting supports URL patterns.
+
+Type: <<types,BoolAsk>>
+
+Valid values:
+
+ * +true+
+ * +false+
+ * +ask+
+
+Default: +pass:[ask]+
+
+This setting is only available with the QtWebEngine backend.
+
+[[content.media.video_capture]]
+=== content.media.video_capture
+Allow websites to record video.
 
 This setting supports URL patterns.
 
@@ -2465,6 +2514,7 @@ Default: +pass:[false]+
 === content.proxy
 Proxy to use.
 In addition to the listed values, you can use a `socks://...` or `http://...` URL.
+Note that with QtWebEngine, it will take a couple of seconds until the change is applied, if this value is changed at runtime.
 
 Type: <<types,Proxy>>
 
@@ -2592,7 +2642,7 @@ On QtWebKit, this setting is unavailable.
 [[content.xss_auditing]]
 === content.xss_auditing
 Monitor load requests for cross-site scripting attempts.
-Suspicious scripts will be blocked and reported in the inspector's JavaScript console.
+Suspicious scripts will be blocked and reported in the devtools JavaScript console.
 Note that bypasses for the XSS auditor are widely known and it can be abused for cross-site info leaks in some scenarios, see: https://www.chromium.org/developers/design-documents/xss-auditor
 
 This setting supports URL patterns.
@@ -3100,6 +3150,7 @@ Default:
 * +pass:[img]+
 * +pass:[link]+
 * +pass:[summary]+
+* +pass:[[contenteditable]:not([contenteditable=&quot;false&quot;])]+
 * +pass:[[onclick]]+
 * +pass:[[onmousedown]]+
 * +pass:[[role=&quot;link&quot;]]+
@@ -3128,6 +3179,7 @@ Default:
 * +pass:[input[type=&quot;url&quot;]]+
 * +pass:[input[type=&quot;week&quot;]]+
 * +pass:[input:not([type])]+
+* +pass:[[contenteditable]:not([contenteditable=&quot;false&quot;])]+
 * +pass:[textarea]+
 - +pass:[links]+:
 
@@ -3357,6 +3409,7 @@ Valid values:
  * +tab-silent+: Open a new tab in the existing window without activating the window.
  * +tab-bg-silent+: Open a new background tab in the existing window without activating the window.
  * +window+: Open in a new window.
+ * +private-window+: Open in a new private window.
 
 Default: +pass:[tab]+
 
@@ -3503,7 +3556,7 @@ Valid values:
  * +always+: Always show the scrollbar.
  * +never+: Never show the scrollbar.
  * +when-searching+: Show the scrollbar when searching for text in the webpage. With the QtWebKit backend, this is equal to `never`.
- * +overlay+: Show an overlay scrollbar. With Qt < 5.11, this is equal to `when-searching`; with the QtWebKit backend, this is equal to `never`. Enabling/disabling overlay scrollbars requires a restart.
+ * +overlay+: Show an overlay scrollbar. With Qt < 5.11 or on macOS, this is unavailable and equal to `when-searching`; with the QtWebKit backend, this is equal to `never`. Enabling/disabling overlay scrollbars requires a restart.
 
 Default: +pass:[overlay]+
 
@@ -3993,6 +4046,8 @@ The following placeholders are defined:
 * `{current_title}`: Title of the current web page.
 * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
 * `{index}`: Index of this tab.
+* `{aligned_index}`: Index of this tab padded with spaces to have the same
+  width.
 * `{id}`: Internal tab ID of this tab.
 * `{scroll_pos}`: Page scroll position.
 * `{host}`: Host of the current web page.
@@ -4026,7 +4081,7 @@ Default: +pass:[true]+
 
 [[tabs.undo_stack_size]]
 === tabs.undo_stack_size
-Number of close tab actions to remember, per window (-1 for no maximum).
+Number of closed tabs (per window) and closed windows to remember for :undo (-1 for no maximum).
 
 Type: <<types,Int>>
 
@@ -4059,6 +4114,7 @@ Valid values:
  * +naive+: Use simple/naive check.
  * +dns+: Use DNS requests (might be slow!).
  * +never+: Never search automatically.
+ * +schemeless+: Always search automatically unless URL explicitly contains a scheme.
 
 Default: +pass:[naive]+
 
@@ -4271,10 +4327,10 @@ When setting from a string, pass a json-like list, e.g. `["one", "two"]`.
 |Proxy|A proxy URL, or `system`/`none`.
 |QssColor|A color value supporting gradients.
 
-A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359) * A gradient as explained in http://doc.qt.io/qt-5/stylesheet-reference.html#list-of-property-types[the Qt documentation] under ``Gradient''
+A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#AARRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359) * A gradient as explained in http://doc.qt.io/qt-5/stylesheet-reference.html#list-of-property-types[the Qt documentation] under ``Gradient''
 |QtColor|A color value.
 
-A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
+A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#AARRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
 |Regex|A regular expression.
 
 When setting from `config.py`, both a string or a `re.compile(...)` object are valid.

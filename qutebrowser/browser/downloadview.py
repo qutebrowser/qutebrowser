@@ -148,6 +148,8 @@ class DownloadView(QListView):
         elif item.done:
             if item.successful:
                 actions.append(("Open", item.open_file))
+                actions.append(("Open directory", functools.partial(
+                    item.open_file, open_dir=True, cmdline=None)))
             else:
                 actions.append(("Retry", item.try_retry))
             actions.append(("Remove", item.remove))

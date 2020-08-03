@@ -82,22 +82,20 @@ def check_git():
 def check_spelling():
     """Check commonly misspelled words."""
     # Words which I often misspell
-    words = {'[Bb]ehaviour', '[Qq]uitted', 'Ll]ikelyhood', '[Ss]ucessfully',
-             '[Oo]ccur[^rs .!]', '[Ss]eperator', '[Ee]xplicitely',
-             '[Aa]uxillary', '[Aa]ccidentaly', '[Aa]mbigious', '[Ll]oosly',
-             '[Ii]nitialis', '[Cc]onvienence', '[Ss]imiliar', '[Uu]ncommited',
-             '[Rr]eproducable', '[Aa]n [Uu]ser', '[Cc]onvienience',
-             '[Ww]ether', '[Pp]rogramatically', '[Ss]plitted', '[Ee]xitted',
-             '[Mm]ininum', '[Rr]esett?ed', '[Rr]ecieved', '[Rr]egularily',
-             '[Uu]nderlaying', '[Ii]nexistant', '[Ee]lipsis', 'commiting',
-             'existant', '[Rr]esetted', '[Ss]imilarily', '[Ii]nformations',
-             '[Aa]n [Uu][Rr][Ll]', '[Tt]reshold'}
+    words = {'behaviour', 'quitted', 'likelyhood', 'sucessfully',
+             'occur[^rs .!]', 'seperator', 'explicitely', 'auxillary',
+             'accidentaly', 'ambigious', 'loosly', 'initialis', 'convienence',
+             'similiar', 'uncommited', 'reproducable', 'an user',
+             'convienience', 'wether', 'programatically', 'splitted',
+             'exitted', 'mininum', 'resett?ed', 'recieved', 'regularily',
+             'underlaying', 'inexistant', 'elipsis', 'commiting', 'existant',
+             'resetted', 'similarily', 'informations', 'an url', 'treshold',
+             'artefact'}
 
     # Words which look better when splitted, but might need some fine tuning.
-    words |= {'[Ww]ebelements', '[Mm]ouseevent', '[Kk]eysequence',
-              '[Nn]ormalmode', '[Ee]ventloops', '[Ss]izehint',
-              '[Ss]tatemachine', '[Mm]etaobject', '[Ll]ogrecord',
-              '[Ff]iletype'}
+    words |= {'webelements', 'mouseevent', 'keysequence', 'normalmode',
+              'eventloops', 'sizehint', 'statemachine', 'metaobject',
+              'logrecord', 'filetype'}
 
     # Files which should be ignored, e.g. because they come from another
     # package
@@ -117,7 +115,8 @@ def check_spelling():
                     continue
                 for line in f:
                     for w in words:
-                        if (re.search(w, line) and
+                        pattern = '[{}{}]{}'.format(w[0], w[0].upper(), w[1:])
+                        if (re.search(pattern, line) and
                                 fn not in seen[w] and
                                 '# pragma: no spellcheck' not in line):
                             print('Found "{}" in {}!'.format(w, fn))

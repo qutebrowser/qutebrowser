@@ -100,6 +100,7 @@ Is there an ad blocker?::
     There is a simple host-based ad blocker that takes `/etc/hosts`-like lists.
 +
 More advanced ad blockers can have a big impact on browsing speed and https://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/[RAM usage], so implementing support for AdBlock Plus-like lists is not a priority.
+
 How can I get No-Script-like behavior?::
     To disable JavaScript by default:
 +
@@ -107,11 +108,14 @@ How can I get No-Script-like behavior?::
 :set content.javascript.enabled false
 ----
 +
-The basic command for enabling JavaScript for the current host is `tsh`.
+The basic keybinding for enabling JavaScript for the current host is `tsh`.
 This will allow JavaScript execution for the current session.
 Use `S` instead of `s` to make the exception permanent.
 With `H` instead of `h`, subdomains are included.
-With `u` instead of `h`, only the current URL is whitelisted (not the whole host).
+With `u` instead of `h`, JavaScript is allowed for the current URL only (not the whole host).
++
+The list of domains that have been permanently granted permission to execute
+JavaScript will be written to `autoconfig.yml`.
 
 How do I play Youtube videos with mpv?::
     You can easily add a key binding to play youtube videos inside a real video
@@ -183,7 +187,6 @@ For QtWebKit:
   (also see the README file for `qtwebkit-plugins`).
 . Remember to install the hunspell dictionaries if you don't have them already
   (most distros should have packages for this).
-
 +
 For QtWebEngine:
 
@@ -204,7 +207,9 @@ Why does J move to the next (right) tab, and K to the previous (left) one?::
     and qutebrowser's keybindings are designed to be compatible with dwb's.
     The rationale behind it is that J is "down" in vim, and K is "up", which
     corresponds nicely to "next"/"previous". It also makes much more sense with
-    vertical tabs (e.g. `:set tabs.position left`).
+    vertical tabs (e.g. `:set tabs.position left`). If you prefer swapped
+    bindings, you can run `:bind J tab-prev` and `:bind K tab-next` to swap
+    them.
 
 What's the difference between insert and passthrough mode?::
     They are quite similar, but insert mode has some bindings (like `Ctrl-e` to
@@ -484,15 +489,15 @@ For any privacy questions, please contact mailto:privacy@qutebrowser.org[].
 
 === Website
 
-The qutebrowser.org website does not use any cookies or trackers.
-
-However, IP addresses are currently (October 2019) logged and stored
-indefinitely. It's planned to change this soon by migrating qutebrowser.org to
-a different server.
+The qutebrowser.org website does not use any cookies or trackers. It does not
+store any logs, except in rare situations when those are explicitly (and
+temporarily) enabled to debug website issues. Even if enabled, IP addresses are
+partially redacted in the logs. As soon as debugging is finished, any logs
+are removed.
 
 Note that some services related to qutebrowser are stored on third-party
-services such as GitHub, Travis CI or AppVeyor. By using their websites, you're
-subject to their privacy policies.
+services such as GitHub. By using their websites, you're subject to their
+privacy policies.
 
 === Crash reports
 

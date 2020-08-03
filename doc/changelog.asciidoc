@@ -15,8 +15,135 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v1.13.0 (unreleased)
+v1.14.0 (unreleased)
 --------------------
+
+Changed
+~~~~~~~
+
+- The `content.media_capture` setting got split up into three more fine-grained
+  settings, `content.media.audio_capture`, `.video_capture` and
+  `.audio_video_capture`. Before this change, anwering "always" to a prompt
+  about e.g. audio capturing would set the `content.media_capture` setting,
+  which would also allow the same website to capture video on a future visit.
+  Now every prompt will set the appropriate setting, though existing
+  `content.media_capture` settings in `autoconfig.yml` will be migrated to set
+  all three settings. To review/change previously granted permissions, use
+  `:config-diff` and e.g.
+  `:config-unset -u example.org content.media.video_capture`.
+- The main window's (invisible) background color is now set to transparent.
+  This allows using the alpha channel in statusbar/tabbar colors to get a
+  partially transparent qutebrowser window on a setup which supports doing so.
+- If QtWebEngine is compiled with PipeWire support and libpipewire is
+  installed, qutebrowser will now support screen sharing on Wayland. Note that
+  QtWebEngine 5.15.1 (planned for August 2020) is needed, though the Archlinux
+  qt5-webengine package backports the patch.
+- When `:undo` is used with a count, it now reopens the count-th to last tab
+  instead of the last one. The depth can instead be passed as an argument,
+  which is also completed.
+- The default `completion.timestamp_format` now also shows the time.
+- `:back` and `:forward` now take an optional index which is completed using
+  the current tab's history.
+- The time a website in a tab was visited is now saved/restored in sessions.
+
+Added
+~~~~~
+
+- `:undo` now has a new `-w` / `--window` argument, which can be used to
+  restore closed windows (rather than tabs). This is bound to `U` by default.
+- New replacement `{aligned_index}` for `tabs.title.format` and `format_pinned`
+  which behaves like `{index}`, but space-pads the index based on the total
+  numbers of tabs. This can be used to get aligned tab texts with vertical
+  tabs.
+- New command `:devtools-focus` (bound to `wIf`) to toggle keyboard focus
+  between the devtools and web page.
+- The `--target` argument to qutebrowser now understands a new `private-window`
+  value, which can be used to open a private window in an existing instance
+  from the commandline.
+- The `:download-open` command now has a new `--dir` flag, which can be used to
+  open the directory containing the downloaded file. An entry to do the same
+  was also added to the context menu.
+
+Fixed
+~~~~~
+
+- A URL pattern with a `*.` host was considered valid and matched all hosts.
+  Due to keybindings like `tsH` toggling scripts for `*://*.{url:host}/*`,
+  invoking them on pages without a host (e.g. `about:blank`) could result in
+  accidentally allowing/blocking JavaScript for all pages. Such patterns are
+  now considered invalid, with existing patterns being automatically removed
+  from `autoconfig.yml`.
+- When `scrolling.bar` was set to `overlay` (the default), qutebrowser would
+  internally override any `enable-features=...` flags passed via `qt.args` or
+  `--qt-flag`. It now correctly combines existing `enable-feature` flags with
+  internal ones.
+- Elements with an inherited `contenteditable` attribute now trigger insert
+  mode and get hints assigned correctly.
+- When checkmarks, radio buttons and some other elements are styled via the
+  Bootstrap CSS framework, they now get hints correctly.
+- When the session file isn't writable when qutebrowser exits, an error is now
+  logged instead of crashing.
+- When using `-m` with the `qute-lastpass` userscript, it accidentally matched
+  URLs containing the match as substring. This is now fixed.
+- When a filename is derived from a page's title, it's now shortened to the
+  maximum filename length permitted by the filesystem.
+- `:enter-mode register` crashed since v1.13.0, it now displays an error
+  instead.
+- With the QtWebKit backend, webpage resources loading certain invalid URLs
+  could cause a crash, which is now fixed.
+- When `:config-edit` is used but no `config.py` exists yet, the file is now
+  created (and watched for changes properly) before spawning the external
+  editor.
+- When hint mode was entered from outside normal mode, the status bar was empty
+  instead of displaying the proper text. This is now fixed.
+- When entering different modes too quickly (e.g. pressing `fV`), the statusbar
+  could end up in a confusing state. This is now fixed.
+
+v1.13.1 (2020-07-17)
+--------------------
+
+Fixed
+~~~~~
+
+- With Qt 5.14, shared workers are now disabled. This works around a crash in
+  QtWebEngine on certain sites (like the Epic Games Store or the Unreal Engine
+  page). On older versions, you can get the same effect by doing
+  `:set qt.args "['disable-shared-workers']"` and `:restart` (or set the
+  setting in your `config.py`).
+- When a window is closed, the tab it contains are now correctly shut down
+  (closing e.g. any dialogs which are still open for those tabs).
+- The Qt 5.15 session workaround now loads the correct (rather than the last)
+  page when `:back` was used before saving a session.
+- In certain situations on Windows, qutebrowser fails to find the username of
+  the user launching qutebrowser (most likely due to a bug in the application
+  launching it). When this happens, an error is now displayed instead of
+  crashing.
+- Certain `autoconfig.yml` with an invalid structure could lead to crashes,
+  which are now fixed.
+- Generating docs with `asciidoc2html.py` (e.g. via `mkvenv.py`) now works
+  correctly without Pygments being installed system-wide.
+- Ever since Qt 5.9, when `input.mouse.rocker_gestures` was enabled, the
+  context menu still was shown when clicking the right mouse button, thus
+  preventing the rocker gestures. This is now fixed.
+- Clicking the inspector switched from existing modes (such as passthrough) to
+  normal mode since v1.13.0. Now insert mode is only entered when the inspector
+  is clicked in normal mode.
+- Pulseaudio now shows qutebrowser's audio streams as qutebrowser correctly,
+  rather than showing them as Chromium with some Qt versions.
+- If `:help` was called with a deprecated command (e.g. `:help :inspector`),
+  the help page would show despite deprecated commands not being documented.
+  This now shows an error instead.
+- The `qute-lastpass` userscript now filters out duplicate entries with
+  `--merge-candidates`.
+
+v1.13.0 (2020-06-26)
+--------------------
+
+Deprecated
+~~~~~~~~~~
+
+- The `:inspector` command is deprecated and has been replaced by a new
+  `:devtools` command (see below).
 
 Removed
 ~~~~~~~
@@ -30,19 +157,14 @@ Removed
 Changed
 ~~~~~~~
 
-- New handling of bindings in hint mode which fixes various bugs and allows for
-  single-letter keybindings in hint mode.
-- The `tor_identity` userscript now takes the password via a `-p` flag and has
-  a new `-c` flag to customize the Tor control port.
-- `:config-write-py` now adds a note about `config.py` files being targeted at
-  advanced users.
-- `:report` now takes two optional arguments for bug/contact information, so
-  that it can be used without the report window popping up.
-- New `t[Cc][Hh]` default bindings which work similarly to the `t[Ss][Hh]`
-  bindings for JavaScript but toggle cookie permissions.
-- The `:message` command now takes a `--logfilter` / `-f` argument, which is a
-  list of logging categories to show.
-- The `:debug-log-filter` command now understands the full logfilter syntax.
+- Changes to commands:
+  * `:config-write-py` now adds a note about `config.py` files being targeted at
+    advanced users.
+  * `:report` now takes two optional arguments for bug/contact information, so
+    that it can be used without the report window popping up.
+  * `:message` now takes a `--logfilter` / `-f` argument, which is a list of
+    logging categories to show.
+  * `:debug-log-filter` now understands the full logfilter syntax.
 - Changes to settings:
   * `fonts.tabs` has been split into `fonts.tabs.{selected,unselected}` (see
     below).
@@ -60,7 +182,15 @@ Changed
     scrollbar, which is now the default. On unsupported configurations (on Qt <
     5.11, with QtWebKit or on macOS), the value falls back to `when-searching`
     or `never` (QtWebKit).
-- The statusbar now shows partial keychains in all modes (e.g. while hinting)
+  * `url.auto_search` supports a new `schemeless` value which always opens a
+    search unless the given URL includes an explicit scheme.
+- New handling of bindings in hint mode which fixes various bugs and allows for
+  single-letter keybindings in hint mode.
+- The statusbar now shows partial keychains in all modes (e.g. while hinting).
+- New `t[Cc][Hh]` default bindings which work similarly to the `t[Ss][Hh]`
+  bindings for JavaScript but toggle cookie permissions.
+- The `tor_identity` userscript now takes the password via a `-p` flag and has
+  a new `-c` flag to customize the Tor control port.
 - Small performance improvements.
 
 Added
@@ -73,6 +203,20 @@ Added
     selected tab independently from unselected tabs (e.g. to make it bold).
   * `input.mouse.back_forward_buttons` which can be set to `false` to disable
     back/forward mouse buttons.
+- New `:devtools` command (replacing `:inspector`) with various improved
+  functionality:
+  * The devtools can now be docked to the main window, by running
+    `:devtools left` (`wIh`), `bottom` (`wIj`), `top` (`wIk`) or `right`
+    (`wIl`). To show them in a new window, use `:devtools window` (`wIw`).
+    Using `:devtools` (`wi`) will open them at the last used position.
+  * The devtool window now has a "qutebrowser developer tools" window title.
+  * When a resource is opened from the devtools, it now opens in a proper
+    qutebrowser tab.
+  * On Fedora, when the `qt5-webengine-devtools` package is missing, an error
+    is now shown instead of a blank inspector window.
+  * If opened as a window, the devtools are now closed properly when the
+    associated tab is closed.
+  * When the devtools are clicked, insert mode is entered automatically.
 
 Fixed
 ~~~~~
@@ -82,7 +226,7 @@ Fixed
 - Crash when `:completion-item-yank --sel` is used on a platform without
   primary selection support (e.g. Windows/macOS).
 - Crash when there's a feature permission request from Qt with an invalid URL
-  (which seems to happen with Qt 5.15 sometimes).
+  (which happens due to a Qt bug with Qt 5.15 in private browsing mode).
 - Crash in rare cases where QtWebKit/QtWebEngine imports fail in unexpected
   ways.
 - Crash when something removed qutebrowser's IPC socket file and it's been

@@ -22,10 +22,16 @@ Insert login information using pass and a dmenu-compatible application (e.g. dme
 demonstration can be seen here: https://i.imgur.com/KN3XuZP.gif.
 """
 
-USAGE = """The domain of the site has to appear as a segment in the pass path, for example: "github.com/cryzed" or
-"websites/github.com". How the username and password are determined is freely configurable using the CLI arguments. The
-login information is inserted by emulating key events using qutebrowser's fake-key command in this manner:
-[USERNAME]<Tab>[PASSWORD], which is compatible with almost all login forms.
+USAGE = """The domain of the site has to appear as a segment in the pass path,
+for example: "github.com/cryzed" or "websites/github.com". How the username and
+password are determined is freely configurable using the CLI arguments. As an
+example, if you instead store the username as part of the secret (and use a
+site's name as filename), instead of the default configuration, use
+`--username-target secret` and `--username-regex "username: (.+)"`.
+
+The login information is inserted by emulating key events using qutebrowser's
+fake-key command in this manner: [USERNAME]<Tab>[PASSWORD], which is compatible
+with almost all login forms.
 
 If you use gopass with multiple mounts, use the CLI switch --mode gopass to switch to gopass mode.
 

@@ -54,10 +54,10 @@ class WebEngineView(QWebEngineView):
                              parent=self)
         self.setPage(page)
 
-        if qtutils.version_check('5.11', compiled=False):
+        if qtutils.version_check('5.11.0', compiled=False, exact=True):
             # Set a PseudoLayout as a WORKAROUND for
             # https://bugreports.qt.io/browse/QTBUG-68224
-            # and other related issues.
+            # and other related issues. (Fixed in Qt 5.11.1)
             sip.delete(self.layout())
             self._layout = miscwidgets.PseudoLayout(self)
 
@@ -150,6 +150,13 @@ class WebEngineView(QWebEngineView):
 
         tab = shared.get_tab(self._win_id, target)
         return tab._widget  # pylint: disable=protected-access
+
+    def contextMenuEvent(self, ev):
+        """Prevent context menus when rocker gestures are enabled."""
+        if config.val.input.mouse.rocker_gestures:
+            ev.ignore()
+            return
+        super().contextMenuEvent(ev)
 
 
 class WebEnginePage(QWebEnginePage):

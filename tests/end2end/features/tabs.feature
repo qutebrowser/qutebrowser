@@ -755,7 +755,7 @@ Feature: Tab management
     Scenario: Undo without any closed tabs
         Given I have a fresh instance
         When I run :undo
-        Then the error "Nothing to undo!" should be shown
+        Then the error "Nothing to undo (use :undo --window to reopen a closed window)" should be shown
 
     Scenario: Undo closing a tab
         When I open data/numbers/1.txt
@@ -833,8 +833,8 @@ Feature: Tab management
         And I set url.default_page to about:blank
         And I run :undo
         And I run :undo
-        Then the error "Nothing to undo!" should be shown
-        And the error "Nothing to undo!" should be shown
+        Then the error "Nothing to undo (use :undo --window to reopen a closed window)" should be shown
+        And the error "Nothing to undo (use :undo --window to reopen a closed window)" should be shown
 
     Scenario: Undo a tab closed by index
         When I open data/numbers/1.txt
@@ -895,6 +895,129 @@ Feature: Tab management
             - data/numbers/1.txt (active)
             - data/numbers/2.txt
             - data/numbers/3.txt
+
+    # :undo --window
+
+    Scenario: Undo the closing of a window
+        Given I clear the log
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new window
+        And I run :close
+        And I wait for "removed: tabbed-browser" in the log
+        And I run :undo -w
+        And I wait for "Focus object changed: *" in the log
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+            - active: true
+              tabs:
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/2.txt
+
+    Scenario: Undo the closing of a window with multiple tabs
+        Given I clear the log
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new window
+        And I open data/numbers/3.txt in a new tab
+        And I run :close
+        And I wait for "removed: tabbed-browser" in the log
+        And I run :undo -w
+        And I wait for "Focus object changed: *" in the log
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+            - active: true
+              tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/3.txt
+
+    Scenario: Undo the closing of a window with multiple tabs with undo stack
+        Given I clear the log
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new window
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-close
+        And I run :close
+        And I wait for "removed: tabbed-browser" in the log
+        And I run :undo -w
+        And I run :undo
+        And I wait for "Focus object changed: *" in the log
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+            - active: true
+              tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/3.txt
+
+    Scenario: Undo the closing of a window with tabs are windows
+        Given I clear the log
+        When I set tabs.last_close to close
+        And I set tabs.tabs_are_windows to true
+        And I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-close
+        And I wait for "removed: tabbed-browser" in the log
+        And I run :undo -w
+        And I wait for "Focus object changed: *" in the log
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+            - tabs:
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/2.txt
+
+    # :undo with count
+
+    Scenario: Undo the second to last closed tab
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-close
+        And I run :tab-close
+        And I run :undo with count 2
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/3.txt (active)
+
+    Scenario: Undo with a too-high count
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-close
+        And I run :undo with count 100
+        Then the error "Nothing to undo" should be shown
+
+    Scenario: Undo with --window and count
+        When I run :undo --window with count 2
+        Then the error ":undo --window does not support a count/depth" should be shown
+
+    Scenario: Undo with --window and depth
+        When I run :undo --window 1
+        Then the error ":undo --window does not support a count/depth" should be shown
 
     # tabs.last_close
 

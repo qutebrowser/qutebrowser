@@ -56,14 +56,14 @@ show it.
 *-R*, *--override-restore*::
     Don't restore a session even if one would be restored.
 
-*--target* '{auto,tab,tab-bg,tab-silent,tab-bg-silent,window}'::
+*--target* '{auto,tab,tab-bg,tab-silent,tab-bg-silent,window,private-window}'::
     How URLs should be opened if there is already a qutebrowser instance running.
 
 *--backend* '{webkit,webengine}'::
     Which backend to use.
 
 *--enable-webengine-inspector*::
-    Enable the web inspector for QtWebEngine. Note that this is a SECURITY RISK and you should not visit untrusted websites with the inspector turned on. See https://bugreports.qt.io/browse/QTBUG-50725 for more details. This is not needed anymore since Qt 5.11 where the inspector is always enabled and secure.
+    Enable the web inspector / devtools for QtWebEngine. Note that this is a SECURITY RISK and you should not visit untrusted websites with the inspector turned on. See https://bugreports.qt.io/browse/QTBUG-50725 for more details. This is not needed anymore since Qt 5.11 where the inspector is always enabled and secure.
 
 === debug arguments
 *-l* '{critical,error,warning,info,debug,vdebug}', *--loglevel* '{critical,error,warning,info,debug,vdebug}'::

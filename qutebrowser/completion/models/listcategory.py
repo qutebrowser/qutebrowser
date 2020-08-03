@@ -30,18 +30,13 @@ from qutebrowser.completion.models import util
 from qutebrowser.utils import qtutils, log
 
 
-_ItemType = typing.Union[typing.Tuple[str],
-                         typing.Tuple[str, str],
-                         typing.Tuple[str, str, str]]
-
-
 class ListCategory(QSortFilterProxyModel):
 
     """Expose a list of items as a category for the CompletionModel."""
 
     def __init__(self,
                  name: str,
-                 items: typing.Iterable[_ItemType],
+                 items: typing.Iterable[typing.Tuple[str, ...]],
                  sort: bool = True,
                  delete_func: util.DeleteFuncType = None,
                  parent: QWidget = None):

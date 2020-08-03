@@ -23,6 +23,10 @@ See:
 https://developer.chrome.com/apps/match_patterns
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern.cc
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern.h
+
+Based on the following commit in Chromium:
+https://chromium.googlesource.com/chromium/src/+/757854e199e159523e7789de5cb2f6ba49b79b63
+(February 4 2020, newest commit as per July 1st 2020)
 """
 
 import ipaddress
@@ -174,6 +178,8 @@ class UrlPattern:
 
         Deviation from Chromium:
         - http://:1234/ is not a valid URL because it has no host.
+        - We don't allow patterns for dot/space hosts which QUrl considers
+          invalid.
         """
         if parsed.hostname is None or not parsed.hostname.strip():
             if self._scheme not in self._SCHEMES_WITHOUT_HOST:
@@ -190,24 +196,27 @@ class UrlPattern:
             self.host = url.host()
             return
 
-        # FIXME what about multiple dots?
-        host_parts = parsed.hostname.rstrip('.').split('.')
-        if host_parts[0] == '*':
-            host_parts = host_parts[1:]
+        if parsed.hostname == '*':
             self._match_subdomains = True
+            hostname = None
+        elif parsed.hostname.startswith('*.'):
+            if len(parsed.hostname) == 2:
+                # We don't allow just '*.' as a host.
+                raise ParseError("Pattern without host")
+            self._match_subdomains = True
+            hostname = parsed.hostname[2:]
+        elif set(parsed.hostname) in {frozenset('.'), frozenset('. ')}:
+            raise ParseError("Invalid host")
+        else:
+            hostname = parsed.hostname
 
-        if not host_parts:
+        if hostname is None:
             self.host = None
-            return
-
-        self.host = '.'.join(host_parts)
-
-        if self.host.endswith('.*'):
-            # Special case to have a nicer error
-            raise ParseError("TLD wildcards are not implemented yet")
-        if '*' in self.host:
+        elif '*' in hostname:
             # Only * or *.foo is allowed as host.
             raise ParseError("Invalid host wildcard")
+        else:
+            self.host = hostname.rstrip('.')
 
     def _init_port(self, parsed: urllib.parse.ParseResult) -> None:
         """Parse the port from the given URL.
@@ -276,6 +285,12 @@ class UrlPattern:
         return self._port is None or self._port == port
 
     def _matches_path(self, path: str) -> bool:
+        """Match the URL's path.
+
+        Deviations from Chromium:
+        - Chromium only matches <all_urls> with "javascript:" (pathless); but
+          we also match *://*/* and friends.
+        """
         if self._path is None:
             return True
 

@@ -622,26 +622,57 @@ def test_force_encoding(inp, enc, expected):
     assert utils.force_encoding(inp, enc) == expected
 
 
-@pytest.mark.parametrize('inp, expected', [
-    pytest.param('normal.txt', 'normal.txt',
-                 marks=pytest.mark.fake_os('windows')),
-    pytest.param('user/repo issues.mht', 'user_repo issues.mht',
-                 marks=pytest.mark.fake_os('windows')),
-    pytest.param('<Test\\File> - "*?:|', '_Test_File_ - _____',
-                 marks=pytest.mark.fake_os('windows')),
-    pytest.param('<Test\\File> - "*?:|', '<Test\\File> - "*?_|',
-                 marks=pytest.mark.fake_os('mac')),
-    pytest.param('<Test\\File> - "*?:|', '<Test\\File> - "*?:|',
-                 marks=pytest.mark.fake_os('posix')),
-])
-def test_sanitize_filename(inp, expected, monkeypatch):
-    assert utils.sanitize_filename(inp) == expected
+class TestSanitizeFilename:
 
+    LONG_FILENAME = ("this is a very long filename which is probably longer "
+                     "than 255 bytes if I continue typing some more nonsense "
+                     "I will find out that a lot of nonsense actually fits in "
+                     "those 255 bytes still not finished wow okay only about "
+                     "50 to go and 30 now finally enough.txt")
 
-@pytest.mark.fake_os('windows')
-def test_sanitize_filename_empty_replacement():
-    name = '/<Bad File>/'
-    assert utils.sanitize_filename(name, replacement=None) == 'Bad File'
+    LONG_EXTENSION = (LONG_FILENAME.replace("filename", ".extension")
+                      .replace(".txt", ""))
+
+    @pytest.mark.parametrize('inp, expected', [
+        pytest.param('normal.txt', 'normal.txt',
+                     marks=pytest.mark.fake_os('windows')),
+        pytest.param('user/repo issues.mht', 'user_repo issues.mht',
+                     marks=pytest.mark.fake_os('windows')),
+        pytest.param('<Test\\File> - "*?:|', '_Test_File_ - _____',
+                     marks=pytest.mark.fake_os('windows')),
+        pytest.param('<Test\\File> - "*?:|', '<Test\\File> - "*?_|',
+                     marks=pytest.mark.fake_os('mac')),
+        pytest.param('<Test\\File> - "*?:|', '<Test\\File> - "*?:|',
+                     marks=pytest.mark.fake_os('posix')),
+        (LONG_FILENAME, LONG_FILENAME),  # no shortening
+    ])
+    def test_special_chars(self, inp, expected):
+        assert utils.sanitize_filename(inp) == expected
+
+    @pytest.mark.parametrize('inp, expected', [
+        (
+            LONG_FILENAME,
+            LONG_FILENAME.replace("now finally enough.txt", "n.txt")
+        ),
+        (
+            LONG_EXTENSION,
+            LONG_EXTENSION.replace("this is a very long .extension",
+                                   "this .extension"),
+        ),
+    ])
+    @pytest.mark.linux
+    def test_shorten(self, inp, expected):
+        assert utils.sanitize_filename(inp, shorten=True) == expected
+
+    @pytest.mark.fake_os('windows')
+    def test_empty_replacement(self):
+        name = '/<Bad File>/'
+        assert utils.sanitize_filename(name, replacement=None) == 'Bad File'
+
+    @hypothesis.given(filename=strategies.text(min_size=100))
+    def test_invariants(self, filename):
+        sanitized = utils.sanitize_filename(filename, shorten=True)
+        assert len(os.fsencode(sanitized)) <= 255 - len("(123).download")
 
 
 class TestGetSetClipboard:

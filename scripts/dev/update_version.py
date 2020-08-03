@@ -88,9 +88,3 @@ if __name__ == "__main__":
     print("* macOS: git fetch && git checkout v{v} && "
           "python3 scripts/dev/build_release.py --upload"
           .format(v=version))
-
-    print("* On server:")
-    print("  - bash download_release.sh {v}"
-          .format(v=version))
-    print("  - git pull github master && sudo python3 "
-          "scripts/asciidoc2html.py --website /srv/http/qutebrowser")

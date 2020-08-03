@@ -27,7 +27,8 @@ import pytest
     ('textarea.html', 'qute-textarea', 'keypress', 'superqutebrowser'),
     ('input.html', 'qute-input', 'clipboard', 'amazingqutebrowser'),
     ('input.html', 'qute-input', 'keypress', 'awesomequtebrowser'),
-    ('autofocus.html', 'qute-input-autofocus', 'keypress', 'cutebrowser'),
+    pytest.param('autofocus.html', 'qute-input-autofocus', 'keypress',
+                 'cutebrowser', marks=pytest.mark.flaky),
 ])
 @pytest.mark.parametrize('zoom', [100, 125, 250])
 def test_insert_mode(file_name, elem_id, source, input_text, zoom,

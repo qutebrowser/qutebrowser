@@ -1,139 +1,16 @@
-dist: bionic
+dist: xenial
 language: python
-group: edge
-python: 3.8
+python: 3.5
 os: linux
-
-matrix:
-  fast_finish: true
-  # allow_failures:
-  #   - env: DOCKER=archlinux-webengine-unstable QUTE_BDD_WEBENGINE=true
-  #     services: docker
-  include:
-    ### Archlinux QtWebKit
-    - env: DOCKER=archlinux-webkit
-      services: docker
-
-    ### Archlinux QtWebEngine
-    - env: DOCKER=archlinux-webengine QUTE_BDD_WEBENGINE=true
-      services: docker
-
-    ### Archlinux QtWebEngine with testing/KDE-Unstable
-    - env: DOCKER=archlinux-webengine-unstable QUTE_BDD_WEBENGINE=true
-      services: docker
-
-    ### PyQt 5.7.1 (Python 3.5)
-    - python: 3.5
-      env: TESTENV=py35-pyqt57
-      dist: xenial
-
-    ### PyQt 5.9 (Python 3.6)
-    - python: 3.6
-      env: TESTENV=py36-pyqt59
-
-    ### PyQt 5.10 (Python 3.6)
-    - python: 3.6
-      env: TESTENV=py36-pyqt510
-      addons:
-        apt:
-          packages:
-          - xfonts-base
-
-    ### PyQt 5.11 (Python 3.7)
-    - python: 3.7
-      env: TESTENV=py37-pyqt511
-
-    ### PyQt 5.12 (Python 3.8)
-    - env: TESTENV=py38-pyqt512
-      addons:
-        apt:
-          packages:
-          - libxkbcommon-x11-0
-
-    ### PyQt 5.13 (Python 3.8)
-    - env: TESTENV=py38-pyqt513
-      addons:
-        apt:
-          packages:
-          - libxkbcommon-x11-0
-
-    ### PyQt 5.14 (Python 3.8)
-    - env: TESTENV=py38-pyqt514
-      addons:
-        apt:
-          packages:
-          - libxkbcommon-x11-0
-
-    ### PyQt 5.15 (Python 3.8, with coverage)
-    - env: TESTENV=py38-pyqt515-cov
-      addons:
-        apt:
-          packages:
-          - libxkbcommon-x11-0
-          - libxcb-icccm4
-          - libxcb-image0
-          - libxcb-keysyms1
-          - libxcb-randr0
-          - libxcb-render-util0
-          - libxcb-xinerama0
-
-    ### macOS Mojave (10.14)
-    - os: osx
-      env: TESTENV=py37-pyqt514 OSX=mojave
-      osx_image: xcode11.3
-      language: generic
-      python: 3.7
-
-    ### macOS High Sierra (10.13)
-    - os: osx
-      env: TESTENV=py37-pyqt514 OSX=highsierra
-      osx_image: xcode10.1
-      language: generic
-      python: 3.7
-
-    ### pylint/flake8/mypy
-    - env: TESTENV=pylint
-    - env: TESTENV=flake8
-    - env: TESTENV=mypy
-
-    ### docs
-    - env: TESTENV=docs
-      addons:
-         apt:
-           packages:
-           - asciidoc
-
-    ### vulture/misc/pyroma/check-manifest
-    - env: TESTENV=vulture
-    - env: TESTENV=misc
-    - env: TESTENV=pyroma
-    - env: TESTENV=check-manifest
-
-    ### eslint
-    - env: TESTENV=eslint
-      language: node_js
-      python: null
-      node_js: "lts/*"
-
-    ### shellcheck
-    - language: generic
-      env: TESTENV=shellcheck
-      services: docker
-
-cache:
-  directories:
-    - $HOME/.cache/pip
-    - $HOME/build/qutebrowser/qutebrowser/.cache
+env: TESTENV=py35-pyqt57
 
 install:
-  - bash scripts/dev/ci/travis_install.sh
+  - python -m pip install -U pip
+  - python -m pip install -U -r misc/requirements/requirements-tox.txt
   - ulimit -c unlimited
 
 script:
-  - bash scripts/dev/ci/travis_run.sh
-
-after_success:
-  - '[[ $TESTENV == *-cov ]] && codecov -e TESTENV -X gcov'
+  - tox -e "$TESTENV"
 
 after_failure:
-  - bash scripts/dev/ci/travis_backtrace.sh
+  - bash scripts/dev/ci/backtrace.sh

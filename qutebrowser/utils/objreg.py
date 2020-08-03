@@ -101,7 +101,7 @@ class ObjectRegistry(collections.UserDict):
         try:
             partial_objs = self._partial_objs
         except AttributeError:
-            # This sometimes seems to happen on Travis during
+            # This sometimes seems to happen on CI during
             # test_history.test_adding_item_during_async_read
             # and I have no idea why...
             return
@@ -129,7 +129,7 @@ class ObjectRegistry(collections.UserDict):
         """Remove a destroyed QObject."""
         log.destroy.debug("removed: {}".format(name))
         if not hasattr(self, 'data'):
-            # This sometimes seems to happen on Travis during
+            # This sometimes seems to happen on CI during
             # test_history.test_adding_item_during_async_read
             # and I have no idea why...
             return

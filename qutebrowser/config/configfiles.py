@@ -68,15 +68,19 @@ class StateConfig(configparser.ConfigParser):
         else:
             self.qt_version_changed = False
 
-        for sect in ['general', 'geometry']:
+        for sect in ['general', 'geometry', 'inspector']:
             try:
                 self.add_section(sect)
             except configparser.DuplicateSectionError:
                 pass
 
-        deleted_keys = ['fooled', 'backend-warning-shown']
-        for key in deleted_keys:
-            self['general'].pop(key, None)
+        deleted_keys = [
+            ('general', 'fooled'),
+            ('general', 'backend-warning-shown'),
+            ('geometry', 'inspector'),
+        ]
+        for sect, key in deleted_keys:
+            self[sect].pop(key, None)
 
         self['general']['qt_version'] = qt_version
         self['general']['version'] = qutebrowser.__version__
@@ -220,7 +224,7 @@ class YamlConfig(QObject):
         migrations.changed.connect(self._mark_changed)
         migrations.migrate()
 
-        self._validate(settings)
+        self._validate_names(settings)
         self._build_values(settings)
 
     def _load_settings_object(self, yaml_data: typing.Any) -> '_SettingsType':
@@ -268,7 +272,7 @@ class YamlConfig(QObject):
         if errors:
             raise configexc.ConfigFileErrors('autoconfig.yml', errors)
 
-    def _validate(self, settings: _SettingsType) -> None:
+    def _validate_names(self, settings: _SettingsType) -> None:
         """Make sure all settings exist."""
         unknown = []
         for name in settings:
@@ -349,9 +353,16 @@ class YamlMigrations(QObject):
                                   ('fonts.tabs.selected',
                                    'fonts.tabs.unselected'))
 
+        self._migrate_to_multiple('content.media_capture',
+                                  ('content.media.audio_capture',
+                                   'content.media.audio_video_capture',
+                                   'content.media.video_capture'))
+
         # content.headers.user_agent can't be empty to get the default anymore.
         setting = 'content.headers.user_agent'
         self._migrate_none(setting, configdata.DATA[setting].default)
+
+        self._remove_empty_patterns()
 
     def _migrate_configdata(self) -> None:
         """Migrate simple renamed/deleted options."""
@@ -403,7 +414,10 @@ class YamlMigrations(QObject):
 
     def _migrate_font_replacements(self) -> None:
         """Replace 'monospace' replacements by 'default_family'."""
-        for name in self._settings:
+        for name, values in self._settings.items():
+            if not isinstance(values, dict):
+                continue
+
             try:
                 opt = configdata.DATA[name]
             except KeyError:
@@ -412,7 +426,7 @@ class YamlMigrations(QObject):
             if not isinstance(opt.typ, configtypes.FontBase):
                 continue
 
-            for scope, val in self._settings[name].items():
+            for scope, val in values.items():
                 if isinstance(val, str) and val.endswith(' monospace'):
                     new_val = val.replace('monospace', 'default_family')
                     self._settings[name][scope] = new_val
@@ -424,7 +438,11 @@ class YamlMigrations(QObject):
         if name not in self._settings:
             return
 
-        for scope, val in self._settings[name].items():
+        values = self._settings[name]
+        if not isinstance(values, dict):
+            return
+
+        for scope, val in values.items():
             if isinstance(val, bool):
                 new_value = true_value if val else false_value
                 self._settings[name][scope] = new_value
@@ -450,7 +468,11 @@ class YamlMigrations(QObject):
         if name not in self._settings:
             return
 
-        for scope, val in self._settings[name].items():
+        values = self._settings[name]
+        if not isinstance(values, dict):
+            return
+
+        for scope, val in values.items():
             if val is None:
                 self._settings[name][scope] = value
                 self.changed.emit()
@@ -474,12 +496,30 @@ class YamlMigrations(QObject):
         if name not in self._settings:
             return
 
-        for scope, val in self._settings[name].items():
+        values = self._settings[name]
+        if not isinstance(values, dict):
+            return
+
+        for scope, val in values.items():
             if isinstance(val, str):
                 new_val = re.sub(source, target, val)
                 if new_val != val:
                     self._settings[name][scope] = new_val
                     self.changed.emit()
+
+    def _remove_empty_patterns(self) -> None:
+        """Remove *. host patterns from the config.
+
+        Those used to be valid (and could be accidentally produced by using tSH
+        on about:blank), but aren't anymore.
+        """
+        scope = '*://*./*'
+        for name, values in self._settings.items():
+            if not isinstance(values, dict):
+                continue
+            if scope in values:
+                del self._settings[name][scope]
+                self.changed.emit()
 
 
 class ConfigAPI:

@@ -23,7 +23,6 @@
 from typing import List, Optional
 import re
 import os
-import os.path
 import sys
 import subprocess
 import shutil
@@ -32,11 +31,12 @@ import argparse
 import io
 import pathlib
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
+DOC_DIR = REPO_ROOT / 'qutebrowser' / 'html' / 'doc'
+
+sys.path.insert(0, str(REPO_ROOT))
 
 from scripts import utils
-
-DOC_DIR = pathlib.Path("qutebrowser/html/doc")
 
 
 class AsciiDoc:
@@ -68,7 +68,7 @@ class AsciiDoc:
     def cleanup(self) -> None:
         """Clean up the temporary home directory for asciidoc."""
         if self._homedir is not None and not self._failed:
-            shutil.rmtree(self._homedir)
+            shutil.rmtree(str(self._homedir))
 
     def build(self) -> None:
         """Build either the website or the docs."""
@@ -80,9 +80,9 @@ class AsciiDoc:
 
     def _build_docs(self) -> None:
         """Render .asciidoc files to .html sites."""
-        files = [(pathlib.Path('doc/{}.asciidoc'.format(f)),
+        files = [((REPO_ROOT / 'doc' / '{}.asciidoc'.format(f)),
                   DOC_DIR / (f + ".html")) for f in self.FILES]
-        for src in pathlib.Path('doc/help/').glob('*.asciidoc'):
+        for src in (REPO_ROOT / 'doc' / 'help').glob('*.asciidoc'):
             dst = DOC_DIR / (src.stem + ".html")
             files.append((src, dst))
 
@@ -98,12 +98,12 @@ class AsciiDoc:
         for src, dst in files:
             assert self._tempdir is not None    # for mypy
             modified_src = self._tempdir / src.name
-            with open(modified_src, 'w', encoding='utf-8') as modified_f, \
-                    open(src, 'r', encoding='utf-8') as f:
+            with modified_src.open('w', encoding='utf-8') as moded_f, \
+                    src.open('r', encoding='utf-8') as f:
                 for line in f:
                     for orig, repl in replacements:
                         line = line.replace(orig, repl)
-                    modified_f.write(line)
+                    moded_f.write(line)
             self.call(modified_src, dst, *asciidoc_args)
 
     def _copy_images(self) -> None:
@@ -112,29 +112,28 @@ class AsciiDoc:
         dst_path = DOC_DIR / 'img'
         dst_path.mkdir(exist_ok=True)
         for filename in ['cheatsheet-big.png', 'cheatsheet-small.png']:
-            src = pathlib.Path('doc') / 'img' / filename
+            src = REPO_ROOT / 'doc' / 'img' / filename
             dst = dst_path / filename
-            shutil.copy(src, dst)
+            shutil.copy(str(src), str(dst))
 
     def _build_website_file(self, root: pathlib.Path, filename: str) -> None:
         """Build a single website file."""
         src = root / filename
         assert self._website is not None    # for mypy
         dst = pathlib.Path(self._website)
-        dst = dst / src.parent.relative_to('.') / (src.stem + ".html")
+        dst = dst / src.parent.relative_to(REPO_ROOT) / (src.stem + ".html")
         dst.parent.mkdir(exist_ok=True)
 
         assert self._tempdir is not None    # for mypy
         modified_src = self._tempdir / src.name
-        shutil.copy('www/header.asciidoc', modified_src)
+        shutil.copy(str(REPO_ROOT / 'www' / 'header.asciidoc'), modified_src)
 
         outfp = io.StringIO()
 
-        with open(modified_src, 'r', encoding='utf-8') as header_file:
-            header = header_file.read()
-            header += "\n\n"
+        header = modified_src.read_text(encoding='utf-8')
+        header += "\n\n"
 
-        with open(src, 'r', encoding='utf-8') as infp:
+        with src.open('r', encoding='utf-8') as infp:
             outfp.write("\n\n")
             hidden = False
             found_title = False
@@ -174,8 +173,8 @@ class AsciiDoc:
         current_lines = outfp.getvalue()
         outfp.close()
 
-        with open(modified_src, 'w+', encoding='utf-8') as final_version:
-            final_version.write(title + "\n\n" + header + current_lines)
+        modified_str = title + "\n\n" + header + current_lines
+        modified_src.write_text(modified_str, encoding='utf-8')
 
         asciidoc_args = ['--theme=qute', '-a toc', '-a toc-placement=manual',
                          '-a', 'source-highlighter=pygments']
@@ -183,14 +182,14 @@ class AsciiDoc:
 
     def _build_website(self) -> None:
         """Prepare and build the website."""
-        theme_file = (pathlib.Path('www') / 'qute.css').resolve()
+        theme_file = REPO_ROOT / 'www' / 'qute.css'
         assert self._themedir is not None   # for mypy
         shutil.copy(theme_file, self._themedir)
 
         assert self._website is not None    # for mypy
         outdir = pathlib.Path(self._website)
 
-        for item_path in pathlib.Path().rglob('*.asciidoc'):
+        for item_path in pathlib.Path(REPO_ROOT).rglob('*.asciidoc'):
             if item_path.stem in ['header', 'OpenSans-License']:
                 continue
             self._build_website_file(item_path.parent, item_path.name)
@@ -198,17 +197,18 @@ class AsciiDoc:
         copy = {'icons': 'icons', 'doc/img': 'doc/img', 'www/media': 'media/'}
 
         for src, dest in copy.items():
+            full_src = REPO_ROOT / src
             full_dest = outdir / dest
             try:
                 shutil.rmtree(full_dest)
             except FileNotFoundError:
                 pass
-            shutil.copytree(src, full_dest)
+            shutil.copytree(full_src, full_dest)
 
         for dst, link_name in [
                 ('README.html', 'index.html'),
-                ((pathlib.Path('doc') / 'quickstart.html'),
-                 'quickstart.html')]:
+                ((pathlib.Path('doc') / 'quickstart.html'), 'quickstart.html'),
+        ]:
             assert isinstance(dst, (str, pathlib.Path))    # for mypy
             try:
                 (outdir / link_name).symlink_to(dst)
@@ -220,21 +220,16 @@ class AsciiDoc:
         if self._asciidoc is not None:
             return self._asciidoc
 
-        try:
-            subprocess.run(['asciidoc'], stdout=subprocess.DEVNULL,
-                           stderr=subprocess.DEVNULL, check=True)
-        except OSError:
-            pass
-        else:
-            return ['asciidoc']
-
-        try:
-            subprocess.run(['asciidoc.py'], stdout=subprocess.DEVNULL,
-                           stderr=subprocess.DEVNULL, check=True)
-        except OSError:
-            pass
-        else:
-            return ['asciidoc.py']
+        for executable in ['asciidoc', 'asciidoc.py']:
+            try:
+                subprocess.run([executable, '--version'],
+                               stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL,
+                               check=True)
+            except OSError:
+                pass
+            else:
+                return [executable]
 
         raise FileNotFoundError
 
@@ -253,9 +248,14 @@ class AsciiDoc:
             cmdline += ['--out-file', str(dst)]
         cmdline += args
         cmdline.append(str(src))
+
+        # So the virtualenv's Pygments is found
+        bin_path = pathlib.Path(sys.executable).parent
+
         try:
             env = os.environ.copy()
             env['HOME'] = str(self._homedir)
+            env['PATH'] = str(bin_path) + os.pathsep + env['PATH']
             subprocess.run(cmdline, check=True, env=env)
         except (subprocess.CalledProcessError, OSError) as e:
             self._failed = True

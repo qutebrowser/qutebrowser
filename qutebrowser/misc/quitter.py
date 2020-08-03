@@ -40,7 +40,6 @@ except ImportError:
 
 import qutebrowser
 from qutebrowser.api import cmdutils
-from qutebrowser.config import config
 from qutebrowser.utils import log
 from qutebrowser.misc import sessions, ipc, objects
 from qutebrowser.mainwindow import prompt
@@ -221,15 +220,8 @@ class Quitter(QObject):
         self._is_shutting_down = True
         log.destroy.debug("Shutting down with status {}, session {}...".format(
             status, session))
-        if sessions.session_manager is not None:
-            if session is not None:
-                sessions.session_manager.save(session,
-                                              last_window=last_window,
-                                              load_next_time=True)
-            elif config.val.auto_save.session:
-                sessions.session_manager.save(sessions.default,
-                                              last_window=last_window,
-                                              load_next_time=True)
+
+        sessions.shutdown(session, last_window=last_window)
 
         if prompt.prompt_queue.shutdown():
             # If shutdown was called while we were asking a question, we're in

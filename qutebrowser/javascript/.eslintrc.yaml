@@ -20,46 +20,46 @@ extends:
     "eslint:all"
 
 rules:
-     strict: ["error", "global"]
-     one-var: "off"
-     padded-blocks: ["error", "never"]
-     space-before-function-paren: ["error", "never"]
-     no-underscore-dangle: "off"
-     camelcase: "off"
-     require-jsdoc: "off"
-     func-style: ["error", "declaration"]
-     init-declarations: "off"
-     no-plusplus: "off"
-     no-extra-parens: off
-     id-length: ["error", {"exceptions": ["i", "k", "x", "y"]}]
-     object-shorthand: "off"
-     max-statements: ["error", {"max": 40}]
-     quotes: ["error", "double", {"avoidEscape": true}]
-     object-property-newline: ["error", {"allowMultiplePropertiesPerLine": true}]
-     comma-dangle: ["error", "always-multiline"]
-     no-magic-numbers: "off"
-     no-undefined: "off"
-     wrap-iife: ["error", "inside"]
-     func-names: "off"
-     sort-keys: "off"
-     no-warning-comments: "off"
-     max-len: ["error", {"ignoreUrls": true}]
-     capitalized-comments: "off"
-     prefer-destructuring: "off"
-     line-comment-position: "off"
-     no-inline-comments: "off"
-     array-bracket-newline: "off"
-     array-element-newline: "off"
-     no-multi-spaces: ["error", {"ignoreEOLComments": true}]
-     function-paren-newline: "off"
-     multiline-comment-style: "off"
-     no-bitwise: "off"
-     no-ternary: "off"
-     max-lines: "off"
-     multiline-ternary: ["error", "always-multiline"]
-     max-lines-per-function: "off"
-     require-unicode-regexp: "off"
-     max-params: "off"
-     prefer-named-capture-group: "off"
-     function-call-argument-newline: "off"
-     no-negated-condition: "off"
+    strict: ["error", "global"]
+    one-var: "off"
+    padded-blocks: ["error", "never"]
+    space-before-function-paren: ["error", "never"]
+    no-underscore-dangle: "off"
+    camelcase: "off"
+    require-jsdoc: "off"
+    func-style: ["error", "declaration"]
+    init-declarations: "off"
+    no-plusplus: "off"
+    no-extra-parens: "off"
+    id-length: ["error", {"exceptions": ["i", "k", "x", "y"]}]
+    object-shorthand: "off"
+    max-statements: ["error", {"max": 40}]
+    quotes: ["error", "double", {"avoidEscape": true}]
+    object-property-newline: ["error", {"allowMultiplePropertiesPerLine": true}]
+    comma-dangle: ["error", "always-multiline"]
+    no-magic-numbers: "off"
+    no-undefined: "off"
+    wrap-iife: ["error", "inside"]
+    func-names: "off"
+    sort-keys: "off"
+    no-warning-comments: "off"
+    max-len: ["error", {"ignoreUrls": true}]
+    capitalized-comments: "off"
+    prefer-destructuring: "off"
+    line-comment-position: "off"
+    no-inline-comments: "off"
+    array-bracket-newline: "off"
+    array-element-newline: "off"
+    no-multi-spaces: ["error", {"ignoreEOLComments": true}]
+    function-paren-newline: "off"
+    multiline-comment-style: "off"
+    no-bitwise: "off"
+    no-ternary: "off"
+    max-lines: "off"
+    multiline-ternary: ["error", "always-multiline"]
+    max-lines-per-function: "off"
+    require-unicode-regexp: "off"
+    max-params: "off"
+    prefer-named-capture-group: "off"
+    function-call-argument-newline: "off"
+    no-negated-condition: "off"

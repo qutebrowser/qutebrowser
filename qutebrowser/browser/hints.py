@@ -633,11 +633,12 @@ class HintManager(QObject):
         keyparser = self._get_keyparser(usertypes.KeyMode.hint)
         keyparser.update_bindings(strings)
 
+        modeman.enter(self._win_id, usertypes.KeyMode.hint,
+                      'HintManager.start')
+
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
         message_bridge.set_text(self._get_text())
-        modeman.enter(self._win_id, usertypes.KeyMode.hint,
-                      'HintManager.start')
 
         if self._context.first:
             self._fire(strings[0])

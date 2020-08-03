@@ -96,7 +96,7 @@ def create_blocklist(directory, blocked_hosts=BLOCKLIST_HOSTS,
                     'not_correct'  -->  Not a correct hosts file format.
     """
     blocklist_file = directory / name
-    with open(str(blocklist_file), 'w', encoding='UTF-8') as blocklist:
+    with blocklist_file.open('w', encoding='UTF-8') as blocklist:
         # ensure comments are ignored when processing blocklist
         blocklist.write('# Blocked Hosts List #\n\n')
         if line_format == 'etc_hosts':  # /etc/hosts like format

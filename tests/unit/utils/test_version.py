@@ -1022,7 +1022,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
     else:
         monkeypatch.delattr(sys, 'frozen', raising=False)
 
-    template = textwrap.dedent("""
+    template = version._LOGO.lstrip('\n') + textwrap.dedent("""
         qutebrowser vVERSION{git_commit}
         Backend: {backend}
         Qt: {qt}
@@ -1102,12 +1102,6 @@ class TestOpenGLInfo:
         assert info.version_str == version_str
         assert vendor in str(info)
         assert version_str in str(info)
-
-        if info.version is not None:
-            reconstructed = ' '.join(['.'.join(str(part)
-                                               for part in info.version),
-                                      info.vendor_specific])
-            assert reconstructed == info.version_str
 
     @pytest.mark.parametrize('version_str, expected', [
         ("2.1 INTEL-10.36.26", (2, 1)),

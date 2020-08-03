@@ -81,6 +81,10 @@ def _render_log(data, *, verbose, threshold=100):
         msg = '[{} lines suppressed, use -v to show]'.format(
             len(data) - threshold)
         data = [msg] + data[-threshold:]
+
+    if utils.ON_CI:
+        data = [utils.gha_group_begin('Log')] + data + [utils.gha_group_end()]
+
     return '\n'.join(data)
 
 

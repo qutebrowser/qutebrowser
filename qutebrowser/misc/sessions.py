@@ -27,7 +27,7 @@ import typing
 import glob
 import shutil
 
-from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer, pyqtSlot
+from PyQt5.QtCore import Qt, QUrl, QObject, QPoint, QTimer, QDateTime
 from PyQt5.QtWidgets import QApplication
 import yaml
 
@@ -80,8 +80,21 @@ def init(parent=None):
     session_manager = SessionManager(base_path, parent)
 
 
-@pyqtSlot()
-def shutdown():
+def shutdown(session: typing.Optional[ArgType], last_window: bool) -> None:
+    """Handle a shutdown by saving sessions and removing the autosave file."""
+    if session_manager is None:
+        return  # type: ignore
+
+    try:
+        if session is not None:
+            session_manager.save(session, last_window=last_window,
+                                 load_next_time=True)
+        elif config.val.auto_save.session:
+            session_manager.save(default, last_window=last_window,
+                                 load_next_time=True)
+    except SessionError as e:
+        log.sessions.error("Failed to save session: {}".format(e))
+
     session_manager.delete_autosave()
 
 
@@ -108,7 +121,7 @@ class TabHistoryItem:
     """
 
     def __init__(self, url, title, *, original_url=None, active=False,
-                 user_data=None):
+                 user_data=None, last_visited=None):
         self.url = url
         if original_url is None:
             self.original_url = url
@@ -117,11 +130,13 @@ class TabHistoryItem:
         self.title = title
         self.active = active
         self.user_data = user_data
+        self.last_visited = last_visited
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True, url=self.url,
                               original_url=self.original_url, title=self.title,
-                              active=self.active, user_data=self.user_data)
+                              active=self.active, user_data=self.user_data,
+                              last_visited=self.last_visited)
 
 
 class SessionManager(QObject):
@@ -206,6 +221,8 @@ class SessionManager(QObject):
         except AttributeError:
             # QtWebEngine
             user_data = None
+
+        data['last_visited'] = item.lastVisited().toString(Qt.ISODate)
 
         if tab.history.current_idx() == idx:
             pos = tab.scroller.pos_px()
@@ -357,7 +374,7 @@ class SessionManager(QObject):
         """Temporarily save the session for the last closed window."""
         self._last_window_session = self._save_all()
 
-    def _load_tab(self, new_tab, data):
+    def _load_tab(self, new_tab, data):  # noqa: C901
         """Load yaml data into a newly opened tab."""
         entries = []
         lazy_load = []  # type: typing.MutableSequence[_JsonType]
@@ -411,14 +428,25 @@ class SessionManager(QObject):
 
             active = histentry.get('active', False)
             url = QUrl.fromEncoded(histentry['url'].encode('ascii'))
+
             if 'original-url' in histentry:
                 orig_url = QUrl.fromEncoded(
                     histentry['original-url'].encode('ascii'))
             else:
                 orig_url = url
+
+            if histentry.get("last_visited"):
+                last_visited = QDateTime.fromString(
+                    histentry.get("last_visited"),
+                    Qt.ISODate,
+                )  # type: typing.Optional[QDateTime]
+            else:
+                last_visited = None
+
             entry = TabHistoryItem(url=url, original_url=orig_url,
                                    title=histentry['title'], active=active,
-                                   user_data=user_data)
+                                   user_data=user_data,
+                                   last_visited=last_visited)
             entries.append(entry)
             if active:
                 new_tab.title_changed.emit(histentry['title'])

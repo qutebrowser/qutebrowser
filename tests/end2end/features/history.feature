@@ -51,8 +51,6 @@ Feature: Page history
         Then the history should contain:
             http://localhost:(port)/404 Error loading page: http://localhost:(port)/404
 
-    # Hangs a lot on AppVeyor
-    @posix
     Scenario: History with invalid URL
         When I run :tab-only
         And I open data/javascript/window_open.html
@@ -74,8 +72,6 @@ Feature: Page history
         Then the history should contain:
             http://localhost:(port)/data/title.html Test title
 
-    # Hangs a lot on AppVeyor
-    @posix
     Scenario: Clearing history
         When I run :tab-only
         And I open data/title.html
@@ -105,8 +101,7 @@ Feature: Page history
         Then the page should contain the plaintext "3.txt"
         Then the page should contain the plaintext "4.txt"
 
-    # Hangs a lot on AppVeyor
-    @posix @flaky
+    @flaky
     Scenario: Listing history with qute:history redirect
         When I open data/numbers/3.txt
         And I open data/numbers/4.txt
@@ -116,6 +111,7 @@ Feature: Page history
         Then the page should contain the plaintext "3.txt"
         Then the page should contain the plaintext "4.txt"
 
+    @flaky
     Scenario: XSS in :history
         When I open data/issue4011.html
         And I open qute://history

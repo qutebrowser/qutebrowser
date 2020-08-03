@@ -61,6 +61,8 @@ The following userscripts can be found on their own repositories.
   Emacs's org-mode to a read-later file.
 - [qute-code-hint](https://github.com/LaurenceWarne/qute-code-hint): Copy code
   snippets on web pages to the clipboard via hints.
+- [Qute-Translate](https://github.com/AckslD/Qute-Translate): Translate URLs or
+  selections via Google Translate.
 
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/

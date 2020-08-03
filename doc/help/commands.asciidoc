@@ -51,6 +51,8 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<config-source,config-source>>|Read a config.py file.
 |<<config-unset,config-unset>>|Unset an option.
 |<<config-write-py,config-write-py>>|Write the current configuration to a config.py file.
+|<<devtools,devtools>>|Toggle the developer tools (web inspector).
+|<<devtools-focus,devtools-focus>>|Toggle focus between the devtools/tab.
 |<<download,download>>|Download a given URL, or current page if no URL given.
 |<<download-cancel,download-cancel>>|Cancel the last/[count]th download.
 |<<download-clear,download-clear>>|Remove all finished downloads from the list.
@@ -72,7 +74,6 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<history-clear,history-clear>>|Clear all browsing history.
 |<<home,home>>|Open main startpage in current tab.
 |<<insert-text,insert-text>>|Insert text at cursor position.
-|<<inspector,inspector>>|Toggle the web inspector.
 |<<jseval,jseval>>|Evaluate a JavaScript string.
 |<<jump-mark,jump-mark>>|Jump to the mark named by `key`.
 |<<later,later>>|Execute a command after some time.
@@ -127,7 +128,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<tab-prev,tab-prev>>|Switch to the previous tab, or switch [count] tabs back.
 |<<tab-take,tab-take>>|Take a tab from another window.
 |<<unbind,unbind>>|Unbind a keychain.
-|<<undo,undo>>|Re-open the last closed tab or tabs.
+|<<undo,undo>>|Re-open the last closed tab(s) or window.
 |<<version,version>>|Show version information.
 |<<view-source,view-source>>|Show the source of the current page in a new tab.
 |<<window-only,window-only>>|Close all windows except for the current one.
@@ -142,9 +143,12 @@ Update the adblock block lists for both the host blocker and the brave adblocker
 
 [[back]]
 === back
-Syntax: +:back [*--tab*] [*--bg*] [*--window*]+
+Syntax: +:back [*--tab*] [*--bg*] [*--window*] ['index']+
 
 Go back in the history of the current tab.
+
+==== positional arguments
+* +'index'+: Which page to go back to, count takes precedence.
 
 ==== optional arguments
 * +*-t*+, +*--tab*+: Go back in a new tab.
@@ -411,6 +415,20 @@ Write the current configuration to a config.py file.
 * +*-f*+, +*--force*+: Force overwriting existing files.
 * +*-d*+, +*--defaults*+: Write the defaults instead of values configured via :set.
 
+[[devtools]]
+=== devtools
+Syntax: +:devtools ['position']+
+
+Toggle the developer tools (web inspector).
+
+==== positional arguments
+* +'position'+: Where to open the devtools (right/left/top/bottom/window).
+
+
+[[devtools-focus]]
+=== devtools-focus
+Toggle focus between the devtools/tab.
+
 [[download]]
 === download
 Syntax: +:download [*--mhtml*] [*--dest* 'dest'] ['url']+
@@ -449,7 +467,7 @@ The index of the download to delete.
 
 [[download-open]]
 === download-open
-Syntax: +:download-open ['cmdline']+
+Syntax: +:download-open [*--dir*] ['cmdline']+
 
 Open the last/[count]th download.
 
@@ -460,6 +478,9 @@ If no specific command is given, this will use the system's default application 
  present, the filename is automatically appended to the
  cmdline.
 
+
+==== optional arguments
+* +*-d*+, +*--dir*+: Whether to open the file's directory instead.
 
 ==== count
 The index of the download to open.
@@ -550,9 +571,12 @@ Follow the selected text.
 
 [[forward]]
 === forward
-Syntax: +:forward [*--tab*] [*--bg*] [*--window*]+
+Syntax: +:forward [*--tab*] [*--bg*] [*--window*] ['index']+
 
 Go forward in the history of the current tab.
+
+==== positional arguments
+* +'index'+: Which page to go forward to, count takes precedence.
 
 ==== optional arguments
 * +*-t*+, +*--tab*+: Go forward in a new tab.
@@ -722,12 +746,6 @@ Insert text at cursor position.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
-
-[[inspector]]
-=== inspector
-Toggle the web inspector.
-
-Note: Due to a bug in Qt, the inspector will show incorrect request headers in the network tab.
 
 [[jseval]]
 === jseval
@@ -1456,7 +1474,20 @@ Unbind a keychain.
 
 [[undo]]
 === undo
-Re-open the last closed tab or tabs.
+Syntax: +:undo [*--window*] ['depth']+
+
+Re-open the last closed tab(s) or window.
+
+==== positional arguments
+* +'depth'+: Same as `count` but as argument for completion, `count` takes precedence.
+
+
+==== optional arguments
+* +*-w*+, +*--window*+: Re-open the last closed window (and its tabs).
+
+==== count
+How deep in the undo stack to find the tab or tabs to re-open.
+
 
 [[version]]
 === version

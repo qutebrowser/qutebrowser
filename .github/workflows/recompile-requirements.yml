@@ -1,0 +1,78 @@
+name: Update dependencies
+
+on:
+  schedule:
+    # Every Monday at 04:05 UTC
+    # https://crontab.guru/#05_04_*_*_1
+    - cron: '05 04 * * 1'
+  workflow_dispatch:
+    inputs:
+      environment:
+        descriptions: 'Test environments to update'
+        required: false
+        default: ''
+
+jobs:
+  update:
+    if: "github.repository == 'qutebrowser/qutebrowser'"
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v2.1.1
+        with:
+          python-version: '3.7'
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2.1.1
+        with:
+          python-version: '3.8'
+      - name: Recompile requirements
+        run: "python3 scripts/dev/recompile_requirements.py ${{ github.events.input.environments }}"
+        id: requirements
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v2
+        with:
+          committer: qutebrowser bot <bot@qutebrowser.org>
+          author: qutebrowser bot <bot@qutebrowser.org>
+          token: ${{ secrets.QUTEBROWSER_BOT_TOKEN }}
+          commit-message: Update dependencies
+          title: Update dependencies
+          body: |
+            ## Changed files
+
+            ${{ steps.requirements.outputs.changed }}
+
+            ## Version updates
+
+            ${{ steps.requirements.outputs.diff }}
+
+            ---
+
+            I'm a bot, bleep, bloop. :robot:
+
+          branch: update-dependencies
+  irc:
+    timeout-minutes: 2
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    needs: [update]
+    if: "always() && github.repository == 'qutebrowser/qutebrowser'"
+    steps:
+      - name: Send success IRC notification
+        uses: Gottox/irc-message-action@v1
+        if: "needs.update.result == 'success'"
+        with:
+          server: chat.freenode.net
+          channel: '#qutebrowser-dev'
+          nickname: qutebrowser-bot
+          message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
+      - name: Send non-success IRC notification
+        uses: Gottox/irc-message-action@v1
+        if: "needs.update.result != 'success'"
+        with:
+          server: chat.freenode.net
+          channel: '#qutebrowser-dev'
+          nickname: qutebrowser-bot
+          message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
+            linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}"

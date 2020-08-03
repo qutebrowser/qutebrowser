@@ -263,6 +263,8 @@ class TestWebKitElement:
         pytest.param(lambda e: e.remove_blank_target(),
                      id='remove_blank_target'),
         pytest.param(lambda e: e.outer_xml(), id='outer_xml'),
+        pytest.param(lambda e: e.is_content_editable_prop(),
+                     id='is_content_editable_prop'),
         pytest.param(lambda e: e.tag_name(), id='tag_name'),
         pytest.param(lambda e: e.rect_on_view(), id='rect_on_view'),
         pytest.param(lambda e: e._is_visible(None), id='is_visible'),
@@ -816,7 +818,19 @@ class TestIsEditable:
     ])
     def test_is_editable(self, tagname, attributes, editable):
         elem = get_webelem(tagname=tagname, attributes=attributes)
+        elem._elem.evaluateJavaScript.return_value = False
         assert elem.is_editable() == editable
+
+    @pytest.mark.parametrize('strict, attributes, expected', [
+        (False, {}, True),
+        (False, {'disabled': 'true'}, False),
+        (False, {'readonly': 'true'}, False),
+        (True, {}, False),
+    ])
+    def test_is_editable_content_editable(self, strict, attributes, expected):
+        elem = get_webelem(tagname='foobar', attributes=attributes)
+        elem._elem.evaluateJavaScript.return_value = True
+        assert elem.is_editable(strict=strict) == expected
 
     @pytest.mark.parametrize('classes, editable', [
         (None, False),
@@ -827,6 +841,7 @@ class TestIsEditable:
     ])
     def test_is_editable_div(self, classes, editable):
         elem = get_webelem(tagname='div', classes=classes)
+        elem._elem.evaluateJavaScript.return_value = False
         assert elem.is_editable() == editable
 
     @pytest.mark.parametrize('setting, tagname, attributes, editable', [
@@ -845,6 +860,7 @@ class TestIsEditable:
                                 setting, tagname, attributes, editable):
         config_stub.val.input.insert_mode.plugins = setting
         elem = get_webelem(tagname=tagname, attributes=attributes)
+        elem._elem.evaluateJavaScript.return_value = False
         assert elem.is_editable() == editable
 
 

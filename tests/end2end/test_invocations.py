@@ -26,9 +26,10 @@ import logging
 import re
 
 import pytest
-from PyQt5.QtCore import QProcess, qVersion
+from PyQt5.QtCore import QProcess
 
 from helpers import utils
+from qutebrowser.utils import qtutils
 
 
 ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,
@@ -43,9 +44,10 @@ def _base_args(config):
         args += ['--backend', 'webengine']
     else:
         args += ['--backend', 'webkit']
-    if qVersion() == '5.7.1':
-        # https://github.com/qutebrowser/qutebrowser/issues/3163
-        args += ['--qt-flag', 'disable-seccomp-filter-sandbox']
+
+    if config.webengine:
+        args += utils.seccomp_args(qt_flag=True)
+
     args.append('about:blank')
     return args
 
@@ -142,6 +144,10 @@ def test_open_with_ascii_locale(request, server, tmpdir, quteproc_new, url):
 
     quteproc_new.wait_for(message="load status for <* tab_id=* "
                           "url='*/f%C3%B6%C3%B6.html'>: LoadStatus.error")
+
+    if request.config.webengine:
+        line = quteproc_new.wait_for(message='Load error: ERR_FILE_NOT_FOUND')
+        line.expected = True
 
 
 @pytest.mark.linux
@@ -246,9 +252,13 @@ def test_version(request):
     print(stderr)
 
     assert ok
-    assert proc.exitStatus() == QProcess.NormalExit
 
-    assert re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout) is not None
+    if qtutils.version_check('5.9'):
+        # Segfaults on exit with Qt 5.7
+        assert proc.exitStatus() == QProcess.NormalExit
+
+    match = re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout, re.MULTILINE)
+    assert match is not None
 
 
 def test_qt_arg(request, quteproc_new, tmpdir):
