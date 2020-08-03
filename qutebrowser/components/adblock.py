@@ -232,7 +232,7 @@ class HostBlocker:
             f = get_fileobj(byte_io)
         except (OSError, zipfile.BadZipFile, zipfile.LargeZipFile, LookupError) as e:
             message.error(
-                "adblock: Error while reading {}: {} - {}".format(
+                "hostblock: Error while reading {}: {} - {}".format(
                     byte_io.name, e.__class__.__name__, e
                 )
             )
@@ -249,7 +249,7 @@ class HostBlocker:
         logger.debug("{}: read {} lines".format(byte_io.name, line_count))
         if error_count > 0:
             message.error(
-                "adblock: {} read errors for {}".format(error_count, byte_io.name)
+                "hostblock: {} read errors for {}".format(error_count, byte_io.name)
             )
 
     def _on_lists_downloaded(self) -> None:
@@ -258,7 +258,7 @@ class HostBlocker:
             for host in sorted(self._blocked_hosts):
                 f.write(host + "\n")
             message.info(
-                "adblock: Read {} hosts from {} sources.".format(
+                "hostblock: Read {} hosts from {} sources.".format(
                     len(self._blocked_hosts), self._done_count
                 )
             )
