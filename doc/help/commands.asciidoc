@@ -866,7 +866,7 @@ This tries to automatically click on typical _Previous Page_ or _Next Page_ link
  Uses the
  link:settings{outsuffix}#url.incdec_segments[url.incdec_segments]
  config option.
- - `strip`: Strip parameters from the current URL.
+ - `strip`: Strip query and fragment from the current URL.
  
 
 

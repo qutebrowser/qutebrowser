@@ -587,7 +587,7 @@ class CommandDispatcher:
                   Uses the
                   link:settings{outsuffix}#url.incdec_segments[url.incdec_segments]
                   config option.
-                - `strip`: Strip parameters from the current URL.
+                - `strip`: Strip query and fragment from the current URL.
 
             tab: Open in a new tab.
             bg: Open in a background tab.
