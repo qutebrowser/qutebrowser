@@ -8,21 +8,6 @@ Feature: Using :navigate
 
     # up
 
-    Scenario: Navigating up
-        When I open data/navigate/sub
-        And I run :navigate up
-        Then data/navigate should be loaded
-
-    Scenario: Navigating up with a query
-        When I open data/navigate/sub?foo=bar
-        And I run :navigate up
-        Then data/navigate should be loaded
-
-    Scenario: Navigating up by count
-        When I open data/navigate/sub/index.html
-        And I run :navigate up with count 2
-        Then data/navigate should be loaded
-
     Scenario: Navigating up in qute://help/
         When the documentation is up to date
         And I open qute://help/commands.html
@@ -90,67 +75,8 @@ Feature: Using :navigate
 
     # increment/decrement
 
-    Scenario: Incrementing number in URL
-        When I open data/numbers/1.txt
-        And I run :navigate increment
-        Then data/numbers/2.txt should be loaded
-
-    Scenario: Decrementing number in URL
-        When I open data/numbers/4.txt
-        And I run :navigate decrement
-        Then data/numbers/3.txt should be loaded
-
-    Scenario: Decrementing with no number in URL
-        When I open data/navigate
-        And I run :navigate decrement
-        Then the error "No number found in URL!" should be shown
-
-    Scenario: Incrementing with no number in URL
-        When I open data/navigate
-        And I run :navigate increment
-        Then the error "No number found in URL!" should be shown
-
-    Scenario: Incrementing number in URL by count
-        When I open data/numbers/3.txt
-        And I run :navigate increment with count 3
-        Then data/numbers/6.txt should be loaded
-
-    Scenario: Decrementing number in URL by count
-        When I open data/numbers/8.txt
-        And I run :navigate decrement with count 5
-        Then data/numbers/3.txt should be loaded
-
-    Scenario: Setting url.incdec_segments
-        When I set url.incdec_segments to [anchor]
-        And I open data/numbers/1.txt
-        And I run :navigate increment
-        Then the error "No number found in URL!" should be shown
-
-    Scenario: Incrementing query
-        When I set url.incdec_segments to ["query"]
-        And I open data/numbers/1.txt?value=2
-        And I run :navigate increment
-        Then data/numbers/1.txt?value=3 should be loaded
-
     @qtwebengine_todo: Doesn't find any elements
     Scenario: Navigating multiline links
         When I open data/navigate/multilinelinks.html
         And I run :navigate next
         Then data/numbers/5.txt should be loaded
-
-    # strip
-
-    Scenario: Stripping a query
-        When I open data/navigate?foo=bar
-        And I run :navigate strip
-        Then data/navigate should be loaded
-
-    Scenario: Stripping a label
-        When I open data/navigate#label
-        And I run :navigate strip
-        Then data/navigate should be loaded
-
-    Scenario: Stripping a query and a label
-        When I open data/navigate?foo=bar#label
-        And I run :navigate strip
-        Then data/navigate should be loaded
