@@ -142,8 +142,9 @@ def test_completion_item_focus(which, tree, expected, completionview, qtbot):
                 assert sig.args == [entry]
 
 
-@pytest.mark.parametrize('which', ['next', 'prev', 'next-category',
-                                   'prev-category'])
+@pytest.mark.parametrize('which', ['next', 'prev',
+                                   'next-category', 'prev-category',
+                                   'next-page', 'prev-page'])
 def test_completion_item_focus_no_model(which, completionview, qtbot):
     """Test that selectionChanged is not fired when the model is None.
 
