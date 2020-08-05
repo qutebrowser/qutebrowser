@@ -427,6 +427,7 @@ class AbstractDownloadItem(QObject):
         raw_headers: The headers sent by the server.
         _filename: The filename of the download.
         _dead: Whether the Download has _die()'d.
+        _manager: The DownloadManager which started this download.
 
     Signals:
         data_changed: The downloads metadata changed.
@@ -447,9 +448,11 @@ class AbstractDownloadItem(QObject):
     cancelled = pyqtSignal()
     remove_requested = pyqtSignal()
     pdfjs_requested = pyqtSignal(str, QUrl)
+    _manager = None  # type: AbstractDownloadManager
 
-    def __init__(self, parent=None):
+    def __init__(self, manager, parent=None):
         super().__init__(parent)
+        self._manager = manager
         self.done = False
         self.stats = DownloadItemStats(self)
         self.index = 0
@@ -464,6 +467,9 @@ class AbstractDownloadItem(QObject):
 
         self._filename = None  # type: typing.Optional[str]
         self._dead = False
+
+    def get_filename(self):
+        return self._filename
 
     def __repr__(self):
         return utils.get_repr(self, basename=self.basename)
@@ -651,7 +657,7 @@ class AbstractDownloadItem(QObject):
         """Finish initialization based on self._filename."""
         raise NotImplementedError
 
-    def _ask_confirm_question(self, title, msg):
+    def _ask_confirm_question(self, title, msg, custom_yes_action=None):
         """Ask a confirmation question for the download."""
         raise NotImplementedError
 
@@ -746,7 +752,13 @@ class AbstractDownloadItem(QObject):
             last_used_directory = os.path.dirname(self._filename)
 
         log.downloads.debug("Setting filename to {}".format(self._filename))
-        if force_overwrite:
+        if self._get_conflicting_download():
+            txt = ("<b>{}</b> is already downloading. Cancel and "
+                   "re-download?".format(html.escape(self._filename)))
+            self._ask_confirm_question(
+                "Cancel other download(s)?", txt,
+                custom_yes_action=self._cancel_conflicting_download)
+        elif force_overwrite:
             self._after_set_filename()
         elif os.path.isfile(self._filename):
             # The file already exists, so ask the user if it should be
@@ -762,6 +774,24 @@ class AbstractDownloadItem(QObject):
             self._ask_confirm_question("Overwrite special file?", txt)
         else:
             self._after_set_filename()
+
+    def _get_conflicting_download(self):
+        """Return another potential active download with the same name."""
+        for download in self._manager.downloads:
+            if (
+                    download is not self and
+                    download.get_filename() == self._filename and
+                    not download.done
+            ):
+                return download
+        return None
+
+    def _cancel_conflicting_download(self):
+        """Cancel any conflicting download and call _after_set_filename."""
+        conflicting_download = self._get_conflicting_download()
+        if conflicting_download:
+            conflicting_download.cancel(remove_data=False)
+        self._after_set_filename()
 
     def _open_if_successful(self, cmdline):
         """Open the downloaded file, but only if it was successful.

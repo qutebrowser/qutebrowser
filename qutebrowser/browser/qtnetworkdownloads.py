@@ -70,7 +70,6 @@ class DownloadItem(downloads.AbstractDownloadItem):
                  target file.
         _read_timer: A Timer which reads the QNetworkReply into self._buffer
                      periodically.
-        _manager: The DownloadManager which started this download
         _reply: The QNetworkReply associated with this download.
         _autoclose: Whether to close the associated file when the download is
                     done.
@@ -90,12 +89,11 @@ class DownloadItem(downloads.AbstractDownloadItem):
         Args:
             reply: The QNetworkReply to download.
         """
-        super().__init__(parent=manager)
+        super().__init__(manager=manager, parent=manager)
         self.fileobj = None  # type: typing.Optional[typing.IO[bytes]]
         self.raw_headers = {}  # type: typing.Dict[bytes, bytes]
 
         self._autoclose = True
-        self._manager = manager
         self._retry_info = None
         self._reply = None
         self._buffer = io.BytesIO()
@@ -206,11 +204,11 @@ class DownloadItem(downloads.AbstractDownloadItem):
     def _after_set_filename(self):
         self._create_fileobj()
 
-    def _ask_confirm_question(self, title, msg):
+    def _ask_confirm_question(self, title, msg, custom_yes_action=None):
+        yes_action = custom_yes_action or self._after_set_filename
         no_action = functools.partial(self.cancel, remove_data=False)
         url = 'file://{}'.format(self._filename)
-        message.confirm_async(title=title, text=msg,
-                              yes_action=self._after_set_filename,
+        message.confirm_async(title=title, text=msg, yes_action=yes_action,
                               no_action=no_action, cancel_action=no_action,
                               abort_on=[self.cancelled, self.error], url=url)
 

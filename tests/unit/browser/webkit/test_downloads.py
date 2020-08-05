@@ -107,7 +107,7 @@ def test_sanitized_filenames(raw, expected,
                              config_stub, download_tmpdir, monkeypatch):
     manager = downloads.AbstractDownloadManager()
     target = downloads.FileDownloadTarget(str(download_tmpdir))
-    item = downloads.AbstractDownloadItem()
+    item = downloads.AbstractDownloadItem(manager=manager)
 
     # Don't try to start a timer outside of a QThread
     manager._update_timer.isActive = lambda: True
@@ -116,6 +116,77 @@ def test_sanitized_filenames(raw, expected,
     item._ensure_can_set_filename = lambda *args: True
     item._after_set_filename = lambda *args: True
 
+    # Don't try to get current window
+    monkeypatch.setattr(item, '_get_conflicting_download', list)
+
     manager._init_item(item, True, raw)
     item.set_target(target)
     assert item._filename.endswith(expected)
+
+
+class TestConflictingDownloads:
+
+    def test_no_downloads(self, qapp, qtmodeltester, config_stub,
+                          cookiejar_and_cache, fake_args, monkeypatch):
+        manager = qtnetworkdownloads.DownloadManager()
+        my_item = downloads.AbstractDownloadItem(manager=manager)
+        my_item._filename = 'download.txt'
+        assert my_item._get_conflicting_download() is None
+
+    def test_different_name(self, qapp, qtmodeltester, config_stub,
+                            cookiejar_and_cache, fake_args, monkeypatch):
+        manager = qtnetworkdownloads.DownloadManager()
+        my_item = downloads.AbstractDownloadItem(manager=manager)
+        my_item._filename = 'download.txt'
+        item2 = downloads.AbstractDownloadItem(manager=manager)
+        item2._filename = 'download2.txt'
+        item2.done = False
+        manager.downloads.append(my_item)
+        manager.downloads.append(item2)
+        assert my_item._get_conflicting_download() is None
+
+    def test_finished_download(self, qapp, qtmodeltester, config_stub,
+                               cookiejar_and_cache, fake_args, monkeypatch):
+        manager = qtnetworkdownloads.DownloadManager()
+        my_item = downloads.AbstractDownloadItem(manager=manager)
+        my_item._filename = 'download.txt'
+        item2 = downloads.AbstractDownloadItem(manager=manager)
+        item2._filename = 'download.txt'
+        item2.done = True
+        manager.downloads.append(my_item)
+        manager.downloads.append(item2)
+        assert my_item._get_conflicting_download() is None
+
+    def test_conflicting_downloads(self, qapp, qtmodeltester, config_stub,
+                                   cookiejar_and_cache, fake_args,
+                                   monkeypatch):
+        manager = qtnetworkdownloads.DownloadManager()
+        my_item = downloads.AbstractDownloadItem(manager=manager)
+        my_item._filename = 'download.txt'
+        item2 = downloads.AbstractDownloadItem(manager=manager)
+        item2._filename = 'download.txt'
+        item2.done = False
+        manager.downloads.append(my_item)
+        manager.downloads.append(item2)
+        assert my_item._get_conflicting_download() is item2
+
+    def test_cancel_conflicting_downloads(self, qapp, qtmodeltester,
+                                          config_stub, cookiejar_and_cache,
+                                          fake_args, monkeypatch):
+        manager = qtnetworkdownloads.DownloadManager()
+        my_item = downloads.AbstractDownloadItem(manager=manager)
+        my_item._filename = 'download.txt'
+        item2 = downloads.AbstractDownloadItem(manager=manager)
+        item2._filename = 'download.txt'
+        item2.done = False
+        manager.downloads.append(my_item)
+        manager.downloads.append(item2)
+
+        def patched_cancel(remove_data=True):
+            assert not remove_data
+            item2.done = True
+
+        monkeypatch.setattr(item2, 'cancel', patched_cancel)
+        monkeypatch.setattr(my_item, '_after_set_filename', lambda: None)
+        my_item._cancel_conflicting_download()
+        assert item2.done
