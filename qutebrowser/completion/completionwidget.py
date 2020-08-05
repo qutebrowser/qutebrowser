@@ -216,17 +216,15 @@ class CompletionView(QTreeView):
         """
         old_idx = self.selectionModel().currentIndex()
         idx = old_idx
+        model = self.model()
 
         if not idx.isValid():
             # No item selected yet
-            if upwards:
-                return self.model().last_item()
-            else:
-                return self.model().first_item()
+            return model.last_item() if upwards else model.first_item()
 
-        # Finds Height of each CompletionView elements
+        # Find height of each CompletionView element
         element_height = self.visualRect(idx).height()
-        page_length = int(self.height()/element_height)
+        page_length = self.height() // element_height
 
         # Skip one pageful, except leave one old line visible
         for _ in range(page_length-1):
@@ -239,18 +237,16 @@ class CompletionView(QTreeView):
         if idx.isValid():
             return idx
 
+        border_item = model.first_item() if upwards else model.last_item()
+
         # Wrap around if we were already at the beginning/end
-        if ((upwards and old_idx == self.model().first_item()) or
-            (not upwards and old_idx == self.model().last_item())):
+        if old_idx == border_item:
             return self._next_idx(upwards)
 
         # Select the first/last item before wrapping around
         if upwards:
-            idx = self.model().first_item()
-            self.scrollTo(idx.parent())
-            return idx
-        else:
-            return self.model().last_item()
+            self.scrollTo(border_item.parent())
+        return border_item
 
     def _next_category_idx(self, upwards):
         """Get the index of the previous/next category.
