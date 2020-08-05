@@ -448,7 +448,6 @@ class AbstractDownloadItem(QObject):
     cancelled = pyqtSignal()
     remove_requested = pyqtSignal()
     pdfjs_requested = pyqtSignal(str, QUrl)
-    _manager = None  # type: AbstractDownloadManager
 
     def __init__(self, manager, parent=None):
         super().__init__(parent)
