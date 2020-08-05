@@ -22,6 +22,7 @@
 from unittest import mock
 
 import pytest
+from PyQt5.QtCore import QRect
 
 from qutebrowser.completion import completionwidget
 from qutebrowser.completion.models import completionmodel, listcategory
@@ -189,6 +190,91 @@ def test_completion_item_focus_fetch(completionview, model, qtbot):
     # at end, fetchMore should be called
     completionview.completion_item_focus('next')
     assert cat.fetchMore.called
+
+
+class TestCompletionItemFocusPage:
+
+    """Test :completion-item-focus with prev-page/next-page."""
+
+    @pytest.fixture(autouse=True)
+    def patch_heights(self, monkeypatch, completionview):
+        """Patch the item/widget heights so that 10 items are always visible."""
+        monkeypatch.setattr(completionview, 'visualRect',
+                            lambda _idx: QRect(0, 0, 100, 20))
+        monkeypatch.setattr(completionview, 'height', lambda: 200)
+
+    @pytest.mark.parametrize('which, expected', [
+        ('prev-page', 'Last Item'),
+        ('next-page', 'First Item'),
+    ])
+    def test_no_selection(self, qtbot, completionview, model, which, expected):
+        """With no selection, the first/last item should be selected."""
+        items = [("First Item",), ("Middle Item",), ("Last Item",)]
+        cat = listcategory.ListCategory('Test', items)
+        model.add_category(cat)
+        completionview.set_model(model)
+        with qtbot.waitSignal(completionview.selection_changed) as blocker:
+            completionview.completion_item_focus(which)
+            assert blocker.args == [expected]
+
+    @pytest.mark.parametrize('steps', [
+        # Select first item and go down
+        [('next', 'Item 1'), ('next-page', 'Item 10')],
+        # Go down twice
+        [('next', 'Item 1'), ('next-page', 'Item 10'), ('next-page', 'Item 19')],
+        # Last item via Page Down
+        [('next', 'Item 1'),
+         ('next-page', 'Item 10'),
+         ('next-page', 'Item 19'),
+         ('next-page', 'Item 24')],
+        # Wrapping around via Page Down
+        [('next', 'Item 1'),
+         ('next-page', 'Item 10'),
+         ('next-page', 'Item 19'),
+         ('next-page', 'Item 24'),
+         ('next-page', 'Item 1')],
+
+        # Select last item and go up
+        [('prev', 'Item 24'), ('prev-page', 'Item 15')],
+        # Go up twice
+        [('prev', 'Item 24'), ('prev-page', 'Item 15'), ('prev-page', 'Item 6')],
+        # Last item via Page Up
+        [('prev', 'Item 24'),
+         ('prev-page', 'Item 15'),
+         ('prev-page', 'Item 6'),
+         ('prev-page', 'Item 1')],
+        # Wrapping around via Page Up
+        [('prev', 'Item 24'),
+         ('prev-page', 'Item 15'),
+         ('prev-page', 'Item 6'),
+         ('prev-page', 'Item 1'),
+         ('prev-page', 'Item 24')],
+    ])
+    def test_steps(self, completionview, qtbot, model, steps):
+        items = [("Item {}".format(i),) for i in range(1, 25)]
+        cat = listcategory.ListCategory('Test', items)
+        model.add_category(cat)
+        completionview.set_model(model)
+
+        for move, item in steps:
+            print('{:9} -> expecting {}'.format(move, item))
+            with qtbot.waitSignal(completionview.selection_changed) as blocker:
+                completionview.completion_item_focus(move)
+            assert blocker.args == [item]
+
+    def test_category_headers(self, completionview, qtbot, model):
+        for name, items in [
+                ("First", [("Item {}".format(i),) for i in range(1, 9)]),
+                ("Second", []),
+                ("Third", [("Target item",)])]:
+            cat = listcategory.ListCategory(name, items)
+            model.add_category(cat)
+        completionview.set_model(model)
+
+        for move, item in [('next', 'Item 1'), ('next-page', 'Target item')]:
+            with qtbot.waitSignal(completionview.selection_changed) as blocker:
+                completionview.completion_item_focus(move)
+            assert blocker.args == [item]
 
 
 @pytest.mark.parametrize('show', ['always', 'auto', 'never'])
