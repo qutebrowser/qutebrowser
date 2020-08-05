@@ -197,15 +197,15 @@ class DownloadItem(downloads.AbstractDownloadItem):
         This method can be safely removed once #2328 is fixed.
         """
         conflicting_download = super()._get_conflicting_download()
-        if not conflicting_download:
-            qtnetwork_download_manager = objreg.get(
-                'qtnetwork-download-manager')
-            for download in qtnetwork_download_manager.downloads:
-                if self._conflicts_with(download):
-                    return download
-            return None
-        else:
+        if conflicting_download:
             return conflicting_download
+
+        qtnetwork_download_manager = objreg.get(
+            'qtnetwork-download-manager')
+        for download in qtnetwork_download_manager.downloads:
+            if self._conflicts_with(download):
+                return download
+        return None
 
 
 def _get_suggested_filename(path):
