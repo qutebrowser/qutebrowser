@@ -467,9 +467,6 @@ class AbstractDownloadItem(QObject):
         self._filename = None  # type: typing.Optional[str]
         self._dead = False
 
-    def get_filename(self):
-        return self._filename
-
     def __repr__(self):
         return utils.get_repr(self, basename=self.basename)
 
@@ -774,14 +771,18 @@ class AbstractDownloadItem(QObject):
         else:
             self._after_set_filename()
 
+    def _conflicts_with(self, other: 'AbstractDownloadItem') -> bool:
+        """Check if this download conflicts with the other given one."""
+        return (
+            other is not self and
+            other._filename == self._filename and  # pylint: disable=protected-access
+            not other.done
+        )
+
     def _get_conflicting_download(self):
         """Return another potential active download with the same name."""
         for download in self._manager.downloads:
-            if (
-                    download is not self and
-                    download.get_filename() == self._filename and
-                    not download.done
-            ):
+            if self._conflicts_with(download):
                 return download
         return None
 

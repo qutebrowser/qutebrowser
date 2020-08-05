@@ -201,11 +201,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
             qtnetwork_download_manager = objreg.get(
                 'qtnetwork-download-manager')
             for download in qtnetwork_download_manager.downloads:
-                if (
-                        download is not self and
-                        download.get_filename() == self._filename and
-                        not download.done
-                ):
+                if self._conflicts_with(download):
                     return download
             return None
         else:
