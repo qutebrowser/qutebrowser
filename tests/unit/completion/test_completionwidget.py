@@ -42,9 +42,13 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
     return view
 
 
-def test_set_model(completionview):
+@pytest.fixture()
+def model():
+    return completionmodel.CompletionModel()
+
+
+def test_set_model(completionview, model):
     """Ensure set_model actually sets the model and expands all categories."""
-    model = completionmodel.CompletionModel()
     for _i in range(3):
         model.add_category(listcategory.ListCategory('', [('foo',)]))
     completionview.set_model(model)
@@ -53,8 +57,7 @@ def test_set_model(completionview):
         assert completionview.isExpanded(model.index(i, 0))
 
 
-def test_set_pattern(completionview):
-    model = completionmodel.CompletionModel()
+def test_set_pattern(completionview, model):
     model.set_pattern = mock.Mock(spec=[])
     completionview.set_model(model)
     completionview.set_pattern('foo')
@@ -116,7 +119,7 @@ def test_maybe_update_geometry(completionview, config_stub, qtbot):
     ('next-category', [[]], [None, None]),
     ('prev-category', [[]], [None, None]),
 ])
-def test_completion_item_focus(which, tree, expected, completionview, qtbot):
+def test_completion_item_focus(which, tree, expected, completionview, model, qtbot):
     """Test that on_next_prev_item moves the selection properly.
 
     Args:
@@ -127,7 +130,6 @@ def test_completion_item_focus(which, tree, expected, completionview, qtbot):
                   successive movement. None implies no signal should be
                   emitted.
     """
-    model = completionmodel.CompletionModel()
     for catdata in tree:
         cat = listcategory.ListCategory('', ((x,) for x in catdata))
         model.add_category(cat)
@@ -145,21 +147,20 @@ def test_completion_item_focus(which, tree, expected, completionview, qtbot):
 @pytest.mark.parametrize('which', ['next', 'prev',
                                    'next-category', 'prev-category',
                                    'next-page', 'prev-page'])
-def test_completion_item_focus_no_model(which, completionview, qtbot):
+def test_completion_item_focus_no_model(which, completionview, model, qtbot):
     """Test that selectionChanged is not fired when the model is None.
 
     Validates #1812: help completion repeatedly completes
     """
     with qtbot.assertNotEmitted(completionview.selection_changed):
         completionview.completion_item_focus(which)
-    model = completionmodel.CompletionModel()
     completionview.set_model(model)
     completionview.set_model(None)
     with qtbot.assertNotEmitted(completionview.selection_changed):
         completionview.completion_item_focus(which)
 
 
-def test_completion_item_focus_fetch(completionview, qtbot):
+def test_completion_item_focus_fetch(completionview, model, qtbot):
     """Test that on_next_prev_item moves the selection properly.
 
     Args:
@@ -170,7 +171,6 @@ def test_completion_item_focus_fetch(completionview, qtbot):
                   successive movement. None implies no signal should be
                   emitted.
     """
-    model = completionmodel.CompletionModel()
     cat = mock.Mock(spec=[
         'layoutChanged', 'layoutAboutToBeChanged', 'canFetchMore',
         'fetchMore', 'rowCount', 'index', 'data'])
@@ -194,7 +194,7 @@ def test_completion_item_focus_fetch(completionview, qtbot):
 @pytest.mark.parametrize('show', ['always', 'auto', 'never'])
 @pytest.mark.parametrize('rows', [[], ['Aa'], ['Aa', 'Bb']])
 @pytest.mark.parametrize('quick_complete', [True, False])
-def test_completion_show(show, rows, quick_complete, completionview,
+def test_completion_show(show, rows, quick_complete, completionview, model,
                          config_stub):
     """Test that the completion widget is shown at appropriate times.
 
@@ -206,7 +206,6 @@ def test_completion_show(show, rows, quick_complete, completionview,
     config_stub.val.completion.show = show
     config_stub.val.completion.quick = quick_complete
 
-    model = completionmodel.CompletionModel()
     for name in rows:
         cat = listcategory.ListCategory('', [(name,)])
         model.add_category(cat)
@@ -223,10 +222,9 @@ def test_completion_show(show, rows, quick_complete, completionview,
     assert not completionview.isVisible()
 
 
-def test_completion_item_del(completionview):
+def test_completion_item_del(completionview, model):
     """Test that completion_item_del invokes delete_cur_item in the model."""
     func = mock.Mock(spec=[])
-    model = completionmodel.CompletionModel()
     cat = listcategory.ListCategory('', [('foo', 'bar')], delete_func=func)
     model.add_category(cat)
     completionview.set_model(model)
@@ -235,10 +233,9 @@ def test_completion_item_del(completionview):
     func.assert_called_once_with(['foo', 'bar'])
 
 
-def test_completion_item_del_no_selection(completionview):
+def test_completion_item_del_no_selection(completionview, model):
     """Test that completion_item_del with an invalid index."""
     func = mock.Mock(spec=[])
-    model = completionmodel.CompletionModel()
     cat = listcategory.ListCategory('', [('foo',)], delete_func=func)
     model.add_category(cat)
     completionview.set_model(model)
@@ -248,12 +245,11 @@ def test_completion_item_del_no_selection(completionview):
 
 
 @pytest.mark.parametrize('sel', [True, False])
-def test_completion_item_yank(completionview, mocker, sel):
+def test_completion_item_yank(completionview, model, mocker, sel):
     """Test that completion_item_yank invokes delete_cur_item in the model."""
     m = mocker.patch(
         'qutebrowser.completion.completionwidget.utils',
         autospec=True)
-    model = completionmodel.CompletionModel()
     cat = listcategory.ListCategory('', [('foo', 'bar')])
     model.add_category(cat)
 
@@ -265,13 +261,12 @@ def test_completion_item_yank(completionview, mocker, sel):
 
 
 @pytest.mark.parametrize('sel', [True, False])
-def test_completion_item_yank_selected(completionview, status_command_stub,
-                                       mocker, sel):
+def test_completion_item_yank_selected(completionview, model,
+                                       status_command_stub, mocker, sel):
     """Test that completion_item_yank yanks selected text."""
     m = mocker.patch(
         'qutebrowser.completion.completionwidget.utils',
         autospec=True)
-    model = completionmodel.CompletionModel()
     cat = listcategory.ListCategory('', [('foo', 'bar')])
     model.add_category(cat)
 
