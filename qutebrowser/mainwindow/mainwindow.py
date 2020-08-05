@@ -310,12 +310,17 @@ class MainWindow(QWidget):
         if not widget.isVisible():
             return
 
-        size_hint = widget.sizeHint()
         if widget.sizePolicy().horizontalPolicy() == QSizePolicy.Expanding:
             width = self.width() - 2 * padding
+            if widget.hasHeightForWidth():
+                height = widget.heightForWidth(width)
+            else:
+                height = widget.sizeHint().height()
             left = padding
         else:
+            size_hint = widget.sizeHint()
             width = min(size_hint.width(), self.width() - 2 * padding)
+            height = size_hint.height()
             left = (self.width() - width) // 2 if centered else 0
 
         height_padding = 20
@@ -327,7 +332,7 @@ class MainWindow(QWidget):
             else:
                 status_height = 0
                 bottom = self.height()
-            top = self.height() - status_height - size_hint.height()
+            top = self.height() - status_height - height
             top = qtutils.check_overflow(top, 'int', fatal=False)
             topleft = QPoint(left, max(height_padding, top))
             bottomright = QPoint(left + width, bottom)
@@ -339,7 +344,7 @@ class MainWindow(QWidget):
                 status_height = 0
                 top = 0
             topleft = QPoint(left, top)
-            bottom = status_height + size_hint.height()
+            bottom = status_height + height
             bottom = qtutils.check_overflow(bottom, 'int', fatal=False)
             bottomright = QPoint(left + width,
                                  min(self.height() - height_padding, bottom))

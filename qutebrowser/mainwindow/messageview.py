@@ -21,7 +21,7 @@
 
 import typing
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt, QSize
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
 from qutebrowser.config import config, stylesheet
@@ -36,6 +36,7 @@ class Message(QLabel):
         super().__init__(text, parent)
         self.replace = replace
         self.setAttribute(Qt.WA_StyledBackground, True)
+        self.setWordWrap(True)
         qss = """
             padding-top: 2px;
             padding-bottom: 2px;
@@ -64,8 +65,6 @@ class Message(QLabel):
             """
         else:  # pragma: no cover
             raise ValueError("Invalid level {!r}".format(level))
-        # We don't bother with set_register_stylesheet here as it's short-lived
-        # anyways.
         stylesheet.set_register(self, qss, update=False)
 
 
@@ -88,12 +87,6 @@ class MessageView(QWidget):
         config.instance.changed.connect(self._set_clear_timer_interval)
 
         self._last_text = None
-
-    def sizeHint(self):
-        """Get the proposed height for the view."""
-        height = sum(label.sizeHint().height() for label in self._messages)
-        # The width isn't really relevant as we're expanding anyways.
-        return QSize(-1, height)
 
     @config.change_filter('messages.timeout')
     def _set_clear_timer_interval(self):
