@@ -653,7 +653,7 @@ class AbstractDownloadItem(QObject):
         """Finish initialization based on self._filename."""
         raise NotImplementedError
 
-    def _ask_confirm_question(self, title, msg, custom_yes_action=None):
+    def _ask_confirm_question(self, title, msg, *, custom_yes_action=None):
         """Ask a confirmation question for the download."""
         raise NotImplementedError
 
