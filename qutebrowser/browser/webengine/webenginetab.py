@@ -38,7 +38,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            cookies, webenginedownloads,
                                            webenginesettings, certificateerror)
-from qutebrowser.misc import miscwidgets, objects
+from qutebrowser.misc import miscwidgets, objects, quitter
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, objreg, jinja, debug)
 from qutebrowser.keyinput import modeman
@@ -74,6 +74,7 @@ def init():
     if webenginesettings.private_profile:
         download_manager.install(webenginesettings.private_profile)
     objreg.register('webengine-download-manager', download_manager)
+    quitter.instance.shutting_down.connect(download_manager.shutdown)
 
     log.init.debug("Initializing cookie filter...")
     cookies.install_filter(webenginesettings.default_profile)

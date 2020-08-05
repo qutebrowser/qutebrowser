@@ -977,6 +977,12 @@ class AbstractDownloadManager(QObject):
         download.cancelled.connect(question.abort)
         download.error.connect(question.abort)
 
+    @pyqtSlot()
+    def shutdown(self):
+        """Cancel all downloads when shutting down."""
+        for download in self.downloads:
+            download.cancel(remove_data=False)
+
 
 class DownloadModel(QAbstractListModel):
 

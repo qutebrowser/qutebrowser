@@ -27,10 +27,12 @@ import typing
 
 import attr
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, QUrl
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
 from qutebrowser.config import config, websettings
-from qutebrowser.utils import message, usertypes, log, urlutils, utils, debug
+from qutebrowser.utils import message, usertypes, log, urlutils, utils, debug, objreg
+from qutebrowser.misc import quitter
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
@@ -576,3 +578,10 @@ class DownloadManager(downloads.AbstractDownloadManager):
             if download._uses_nam(nam):  # pylint: disable=protected-access
                 nam.adopt_download(download)
         return nam.adopted_downloads
+
+
+def init():
+    """Initialize the global QtNetwork download manager."""
+    download_manager = DownloadManager(parent=QApplication.instance())
+    objreg.register('qtnetwork-download-manager', download_manager)
+    quitter.instance.shutting_down.connect(download_manager.shutdown)
