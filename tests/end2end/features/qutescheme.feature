@@ -177,6 +177,7 @@ Feature: Special qute:// pages
         And I open data/misc/test.pdf without waiting
         Then the javascript message "PDF * [*] (PDF.js: *)" should be logged
 
+    @qtwebkit_pdf_imageformat_skip
     Scenario: pdfjs is not used when disabled
         When I set content.pdfjs to false
         And I set downloads.location.prompt to false
