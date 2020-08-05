@@ -47,6 +47,8 @@ Changed
 - The time a website in a tab was visited is now saved/restored in sessions.
 - New argument `strip` for `:navigate` which removes queries and
   fragments from the current URL.
+- When attempting to download a file to a location for which there's already a
+  still-running download, a confirmation prompt is now displayed.
 
 Added
 ~~~~~
@@ -100,6 +102,7 @@ Fixed
   instead of displaying the proper text. This is now fixed.
 - When entering different modes too quickly (e.g. pressing `fV`), the statusbar
   could end up in a confusing state. This is now fixed.
+- When qutebrowser quits, running downloads are now cancelled properly.
 
 v1.13.1 (2020-07-17)
 --------------------
