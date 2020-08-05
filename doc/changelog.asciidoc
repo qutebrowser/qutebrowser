@@ -67,6 +67,7 @@ Added
 - The `:download-open` command now has a new `--dir` flag, which can be used to
   open the directory containing the downloaded file. An entry to do the same
   was also added to the context menu.
+- Messages are now wrapped when they are too long to be displayed on a single line.
 
 Fixed
 ~~~~~
