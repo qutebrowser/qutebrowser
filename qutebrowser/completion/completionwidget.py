@@ -227,8 +227,8 @@ class CompletionView(QTreeView):
         page_length = self.height() // element_height
 
         # Skip one pageful, except leave one old line visible
-        for _ in range(page_length-1):
-            idx = self.indexAbove(idx) if upwards else self.indexBelow(idx)
+        offset = -(page_length - 1) if upwards else page_length - 1
+        idx = model.sibling(old_idx.row() + offset, old_idx.column(), old_idx)
 
         # Skip category headers
         while idx.isValid() and not idx.parent().isValid():
