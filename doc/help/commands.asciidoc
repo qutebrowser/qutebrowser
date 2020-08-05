@@ -1665,7 +1665,9 @@ Syntax: +:completion-item-focus [*--history*] 'which'+
 Shift the focus of the completion menu to another item.
 
 ==== positional arguments
-* +'which'+: 'next', 'prev', 'next-category', or 'prev-category'.
+* +'which'+: 'next', 'prev', 'next-category', 'prev-category',
+ 'next-page', or 'prev-page'.
+
 
 ==== optional arguments
 * +*-H*+, +*--history*+: Navigate through command history if no text was typed.

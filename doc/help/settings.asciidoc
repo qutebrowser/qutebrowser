@@ -507,6 +507,8 @@ Default:
 * +pass:[&lt;Ctrl-Y&gt;]+: +pass:[rl-yank]+
 * +pass:[&lt;Down&gt;]+: +pass:[completion-item-focus --history next]+
 * +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;PgDown&gt;]+: +pass:[completion-item-focus next-page]+
+* +pass:[&lt;PgUp&gt;]+: +pass:[completion-item-focus prev-page]+
 * +pass:[&lt;Return&gt;]+: +pass:[command-accept]+
 * +pass:[&lt;Shift-Delete&gt;]+: +pass:[completion-item-del]+
 * +pass:[&lt;Shift-Tab&gt;]+: +pass:[completion-item-focus prev]+

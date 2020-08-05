@@ -49,6 +49,8 @@ Changed
   fragments from the current URL.
 - When attempting to download a file to a location for which there's already a
   still-running download, a confirmation prompt is now displayed.
+- `:completion-item-focus` now understands `next-page` and `prev-page` with
+  corresponding `<PgDown>` / `<PgUp>` default bindings.
 
 Added
 ~~~~~
