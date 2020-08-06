@@ -64,12 +64,11 @@ if (!fs.existsSync(scriptsDir)){
     fs.mkdirSync(scriptsDir);
 }
 
-
 JSDOM.fromFile(process.env.QUTE_HTML, domOpts).then(dom => {
     let reader = new Readability(dom.window.document);
     let article = reader.parse();
     let content = util.format(HEADER, article.title) + article.content;
-    
+
     fs.writeFile(tmpFile, content, (err) => {
         if (err) {
             qute.messageError([`"${err}"`])
