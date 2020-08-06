@@ -38,7 +38,6 @@ class _WindowUndoEntry:
 
     """Information needed for :undo -w."""
 
-    private = attr.ib()
     geometry = attr.ib()
     tab_stack = attr.ib()
 
@@ -60,9 +59,11 @@ class WindowUndoManager(QObject):
         self._update_undo_stack_size()
 
     def _on_window_closing(self, window):
+        if window.tabbed_browser.is_private:
+            return
+
         self._undos.append(_WindowUndoEntry(
             geometry=window.saveGeometry(),
-            private=window.tabbed_browser.is_private,
             tab_stack=window.tabbed_browser.undo_stack,
         ))
 
@@ -79,7 +80,7 @@ class WindowUndoManager(QObject):
         """
         entry = self._undos.pop()
         window = mainwindow.MainWindow(
-            private=entry.private,
+            private=False,
             geometry=entry.geometry,
         )
         window.show()
