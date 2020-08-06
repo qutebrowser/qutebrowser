@@ -429,7 +429,7 @@ def _generate_setting_option(f, opt):
     f.write("=== {}".format(opt.name) + "\n")
     f.write(opt.description + "\n")
     if opt.restart:
-        f.write("This setting requires a restart.\n")
+        f.write("\nThis setting requires a restart.\n")
     if opt.supports_pattern:
         f.write("\nThis setting supports URL patterns.\n")
     if opt.no_autoconfig:
