@@ -84,7 +84,6 @@ class TestQuteLastPassComponents:
         """Test if fake_key_raw properly escapes characters."""
         qute_lastpass.fake_key_raw('john.doe@example.com ')
 
-        # pylint: disable=line-too-long
         qutecommand_mock.assert_called_once_with(
             'fake-key \\j\\o\\h\\n\\.\\d\\o\\e\\@\\e\\x\\a\\m\\p\\l\\e\\.\\c\\o\\m" "'
         )
@@ -258,7 +257,6 @@ class TestQuteLastPassMain:
 
         assert exit_code == qute_lastpass.ExitCodes.SUCCESS
 
-        # pylint: disable=line-too-long
         subprocess_mock.assert_has_calls([
             call(['lpass', 'show', '-x', '-j', '-G', '\\bwww\\.example\\.com'],
                  stdout=ANY, stderr=ANY),
@@ -325,7 +323,6 @@ class TestQuteLastPassMain:
 
         assert exit_code == qute_lastpass.ExitCodes.SUCCESS
 
-        # pylint: disable=line-too-long
         subprocess_mock.assert_has_calls([
             call(['lpass', 'show', '-x', '-j', '-G', '\\bwww\\.example\\.com'],
                  stdout=ANY, stderr=ANY),

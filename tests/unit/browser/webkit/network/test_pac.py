@@ -87,7 +87,7 @@ def _pac_noexcept_test(call):
     _pac_common_test(test_str_f.format(call))
 
 
-# pylint: disable=line-too-long, invalid-name
+# pylint: disable=invalid-name
 
 
 @pytest.mark.parametrize("domain, expected", [
