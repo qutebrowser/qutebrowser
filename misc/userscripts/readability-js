@@ -7,10 +7,9 @@
 // 
 // # Prerequisites
 // 
-//   - NODE_PATH might be required to point to your global node libraries:
+//   - setting NODE_PATH might be required to point Qutebrowser to your global node libraries:
 //     export NODE_PATH=$NODE_PATH:$(npm root -g)
-//   - Mozilla's readability library (npm install -g https://github.com/mozilla/readability.git)
-//     NOTE: You might have to *login* as root for a system-wide installation to work (e.g. sudo -s)
+//   - Mozilla's readability library (npm install -g @mozilla/readability)
 //   - jsdom (npm install -g jsdom)
 //   - qutejs (npm install -g qutejs)
 // 
@@ -21,7 +20,7 @@
 // One may wish to define an easy to type command alias in Qutebrowser's configuration file:
 // c.aliases = {"readability" : "spawn --userscript readability-js", ...}
 
-const Readability = require('readability');
+const { Readability } = require('@mozilla/readability');
 const qute = require('qutejs');
 const JSDOM = require('jsdom').JSDOM;
 const fs = require('fs');
