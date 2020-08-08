@@ -163,7 +163,7 @@ def easylist_easyprivacy(tmpdir):
 
 
 @pytest.fixture
-def ad_blocker(data_tmpdir):
+def ad_blocker(config_stub, data_tmpdir):
     return braveadblock.BraveAdBlocker(data_dir=pathlib.Path(data_tmpdir))
 
 
@@ -182,7 +182,17 @@ def assert_urls(
 
 
 @pytest.mark.parametrize(
-    "blocking_enabled, should_be_blocked", [(True, True), (False, False)]
+    "blocking_enabled, method, should_be_blocked",
+    [
+        (True, "auto", True),
+        (True, "adblock", True),
+        (True, "both", True),
+        (True, "hosts", False),
+        (False, "auto", False),
+        (False, "adblock", False),
+        (False, "both", False),
+        (False, "hosts", False),
+    ],
 )
 def test_blocking_enabled(
     config_stub,
@@ -190,11 +200,13 @@ def test_blocking_enabled(
     caplog,
     ad_blocker,
     blocking_enabled,
+    method,
     should_be_blocked,
 ):
     """Tests that the ads are blocked when the adblocker is enabled, and vice versa."""
     config_stub.val.content.blocking.adblock.lists = easylist_easyprivacy
-    config_stub.val.content.blocking.adblock.enabled = blocking_enabled
+    config_stub.val.content.blocking.enabled = blocking_enabled
+    config_stub.val.content.blocking.method = method
 
     ad_blocker.adblock_update()
     while ad_blocker._in_progress:
@@ -208,7 +220,7 @@ def test_blocking_enabled(
 
 def test_adblock_cache(config_stub, easylist_easyprivacy, caplog, ad_blocker):
     config_stub.val.content.blocking.adblock.lists = easylist_easyprivacy
-    config_stub.val.content.blocking.adblock.enabled = True
+    config_stub.val.content.blocking.enabled = True
 
     for i in range(3):
         print("At cache test iteration {}".format(i))
@@ -250,7 +262,7 @@ def test_adblock_cache(config_stub, easylist_easyprivacy, caplog, ad_blocker):
 def test_invalid_utf8(ad_blocker, config_stub, blocklist_invalid_utf8, caplog):
     """Test that the adblocker handles invalid utf-8 correctly."""
     config_stub.val.content.blocking.adblock.lists = [blocklist_invalid_utf8]
-    config_stub.val.content.blocking.adblock.enabled = True
+    config_stub.val.content.blocking.enabled = True
 
     with caplog.at_level(logging.INFO):
         ad_blocker.adblock_update()
@@ -260,7 +272,7 @@ def test_invalid_utf8(ad_blocker, config_stub, blocklist_invalid_utf8, caplog):
 
 def test_config_changed(ad_blocker, config_stub, easylist_easyprivacy, caplog):
     """Ensure blocked-hosts resets if host-block-list is changed to None."""
-    config_stub.val.content.blocking.adblock.enabled = True
+    config_stub.val.content.blocking.enabled = True
     config_stub.val.content.blocking.whitelist = None
 
     for _ in range(2):
@@ -295,7 +307,7 @@ def test_config_changed(ad_blocker, config_stub, easylist_easyprivacy, caplog):
 
 def test_whitelist_on_dataset(config_stub, easylist_easyprivacy):
     config_stub.val.content.blocking.adblock.lists = easylist_easyprivacy
-    config_stub.val.content.blocking.adblock.enabled = True
+    config_stub.val.content.blocking.enabled = True
     config_stub.val.content.blocking.whitelist = None
 
     def assert_whitelisted(url, source_url, resource_type):

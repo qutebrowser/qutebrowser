@@ -38,6 +38,7 @@ from qutebrowser.api import (
     qtutils,
 )
 from qutebrowser.components.utils import blockutils
+from qutebrowser.components.braveadblock import ad_blocker
 
 
 logger = logging.getLogger("network")
@@ -78,11 +79,21 @@ def _is_whitelisted_url(url: QUrl) -> bool:
     return False
 
 
+def _should_be_used() -> bool:
+    """Whether the hostblocker should be used or not"""
+    method = config.val.content.blocking.method
+    adblock_dependency_satisfied = ad_blocker is None
+    return method in ("both", "hosts") or (
+        method == "auto" and not adblock_dependency_satisfied
+    )
+
+
 class HostBlocker:
 
     """Manage blocked hosts based from /etc/hosts-like files.
 
     Attributes:
+        enabled: Given the current blocking method, should the host blocker be enabled?
         _blocked_hosts: A set of blocked hosts.
         _config_blocked_hosts: A set of blocked hosts from ~/.config.
         _in_progress: The DownloadItems which are currently downloading.
@@ -99,6 +110,7 @@ class HostBlocker:
         config_dir: pathlib.Path,
         has_basedir: bool = False
     ) -> None:
+        self.enabled = _should_be_used()
         self._has_basedir = has_basedir
         self._blocked_hosts = set()  # type: typing.Set[str]
         self._config_blocked_hosts = set()  # type: typing.Set[str]
@@ -112,12 +124,15 @@ class HostBlocker:
 
     def _is_blocked(self, request_url: QUrl, first_party_url: QUrl = None) -> bool:
         """Check whether the given request is blocked."""
+        if not self.enabled:
+            return False
+
         if first_party_url is not None and not first_party_url.isValid():
             first_party_url = None
 
         qtutils.ensure_valid(request_url)
 
-        if not config.get("content.blocking.hosts.enabled", url=first_party_url):
+        if not config.get("content.blocking.enabled", url=first_party_url):
             return False
 
         host = request_url.host()
@@ -206,7 +221,8 @@ class HostBlocker:
             if (
                 config.val.content.blocking.hosts.lists
                 and not self._has_basedir
-                and config.val.content.blocking.hosts.enabled
+                and config.val.content.blocking.enabled
+                and self.enabled
             ):
                 message.info("Run :adblock-update to get adblock lists.")
 
@@ -298,6 +314,11 @@ class HostBlocker:
 @hook.config_changed("content.blocking.hosts.lists")
 def on_config_changed() -> None:
     host_blocker.update_files()
+
+
+@hook.config_changed("content.blocking.method")
+def on_method_changed():
+    host_blocker.enabled = _should_be_used()
 
 
 @hook.init()

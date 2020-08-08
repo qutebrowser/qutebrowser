@@ -60,6 +60,25 @@ def _is_whitelisted_url(url: QUrl) -> bool:
     return False
 
 
+def _should_be_used() -> bool:
+    """Whether the Brave adblocker should be used or not, assuming the
+    dependency is satisfied."""
+    method = config.val.content.blocking.method
+    return method in ("auto", "both", "adblock")
+
+
+def _possibly_show_missing_dependency_warning() -> None:
+    """If appropriate, show the user a message warning them that the 'adblock'
+    dependency is missing."""
+    method = config.val.content.blocking.method
+    if method in ("adblock", "both"):
+        message.warning(
+            "Ad blocking method is set to '{}' but 'adblock' dependency is not installed.".format(
+                method
+            )
+        )
+
+
 _RESOURCE_TYPE_STRINGS = {
     ResourceType.main_frame: "main_frame",
     ResourceType.sub_frame: "sub_frame",
@@ -95,6 +114,7 @@ class BraveAdBlocker:
     """Manage blocked hosts based from /etc/hosts-like files.
 
     Attributes:
+        enabled: Should we block ads or not
         _has_basedir: Whether a custom --basedir is set.
         _cache_path: The path of the adblock engine cache file
         _in_progress: The DownloadItems which are currently downloading.
@@ -111,6 +131,7 @@ class BraveAdBlocker:
     """
 
     def __init__(self, *, data_dir: pathlib.Path, has_basedir: bool = False) -> None:
+        self.enabled = _should_be_used()
         self._has_basedir = has_basedir
         self._cache_path = data_dir / "adblock-cache.dat"
         self._in_progress = []  # type: typing.List[downloads.TempDownload]
@@ -126,6 +147,9 @@ class BraveAdBlocker:
         resource_type: typing.Optional[interceptor.ResourceType] = None,
     ) -> bool:
         """Check whether the given request is blocked."""
+        if not self.enabled:
+            return False
+
         if first_party_url is not None and not first_party_url.isValid():
             first_party_url = None
 
@@ -134,7 +158,7 @@ class BraveAdBlocker:
 
         qtutils.ensure_valid(request_url)
 
-        if not config.get("content.blocking.adblock.enabled", url=first_party_url):
+        if not config.get("content.blocking.enabled", url=first_party_url):
             # Do nothing if adblocking is disabled.
             return False
 
@@ -180,7 +204,8 @@ class BraveAdBlocker:
             if (
                 config.val.content.blocking.adblock.lists
                 and not self._has_basedir
-                and config.val.content.blocking.adblock.enabled
+                and config.val.content.blocking.enabled
+                and self.enabled
             ):
                 message.info("Run :adblock-update to get adblock lists.")
 
@@ -254,9 +279,18 @@ class BraveAdBlocker:
 
 
 @hook.config_changed("content.blocking.adblock.lists")
-def on_config_changed() -> None:
+def on_lists_changed() -> None:
     if ad_blocker is not None:
         ad_blocker.update_files()
+
+
+@hook.config_changed("content.blocking.method")
+def on_method_changed():
+    if ad_blocker is not None:
+        # This implies the 'adblock' dependency is satisfied
+        ad_blocker.enabled = _should_be_used()
+    else:
+        _possibly_show_missing_dependency_warning()
 
 
 @hook.init()
@@ -266,9 +300,10 @@ def init(context: apitypes.InitContext) -> None:
 
     if adblock is None:
         # We want 'adblock' to be an optional dependency. If the module is
-        # not found, we simply set the `_ad_blocker` global to `None`. Always
-        # remember to check the case where `_ad_blocker` is `None`!
+        # not found, we simply set the `ad_blocker` global to `None`. Always
+        # remember to check the case where `ad_blocker` is `None`!
         ad_blocker = None
+        _possibly_show_missing_dependency_warning()
         return
 
     ad_blocker = BraveAdBlocker(

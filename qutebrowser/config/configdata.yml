@@ -605,7 +605,7 @@ content.headers.user_agent:
     to JavaScript requires a restart.
 
 content.host_blocking.enabled:
-  renamed: content.blocking.hosts.enabled
+  renamed: content.blocking.enabled
 
 content.host_blocking.lists:
   renamed: content.blocking.hosts.lists
@@ -613,11 +613,11 @@ content.host_blocking.lists:
 content.host_blocking.whitelist:
   renamed: content.blocking.whitelist
 
-content.blocking.hosts.enabled:
+content.blocking.enabled:
   default: true
   supports_pattern: true
   type: Bool
-  desc: Enable host blocking.
+  desc: Enable the ad blocker
 
 content.blocking.hosts.lists:
   default:
@@ -641,15 +641,22 @@ content.blocking.hosts.lists:
 
     The file `~/.config/qutebrowser/blocked-hosts` is always read if it exists.
 
-content.blocking.adblock.enabled:
-  default: true
-  supports_pattern: true
-  type: Bool
-  desc: >-
-    Enable Adblock Plus syntax adblock lists using Brave Browsers's adblocking
-    library. This feature requires the "adblock" Python package, which is an
-    optional dependency of qutebrowser. It can be installed using the command
-    `pip install --user adblock`.
+content.blocking.method:
+  default: auto
+  type:
+    name: String
+    valid_values:
+      - auto: Use Brave's ABP-style adblocker if available, host blocking otherwise
+      - adblock: Use Brave's ABP-style adblocker
+      - hosts: Use hosts blocking
+      - both: Use both hosts blocking and Brave's ABP-style adblocker
+  desc: |
+    Which method of blocking ads should be used.
+
+    Support for Adblock Plus syntax blocklists requires the `adblock` Python
+    package to be installed, which is an optional dependency of qutebrowser.
+    It can be installed using the command `pip install --user adblock`. This
+    is required when either `adblock` or `both` are selected.
 
 content.blocking.adblock.lists:
   default:
