@@ -55,6 +55,24 @@ class WebKitAction(browsertab.AbstractAction):
     def show_source(self, pygments=False):
         self._show_source_pygments()
 
+    def run_string(self, name: str) -> None:
+        """Add special cases for new API.
+
+        Those were added to QtWebKit 5.212 (which we enforce), but we don't get
+        the new API from PyQt. Thus, we'll need to use the raw numbers.
+        """
+        new_actions = {
+            # https://github.com/qtwebkit/qtwebkit/commit/a96d9ef5d24b02d996ad14ff050d0e485c9ddc97
+            'RequestClose': QWebPage.ToggleVideoFullscreen + 1,
+            # https://github.com/qtwebkit/qtwebkit/commit/96b9ba6269a5be44343635a7aaca4a153ea0366b
+            'Unselect': QWebPage.ToggleVideoFullscreen + 2,
+        }
+        if name in new_actions:
+            self._widget.triggerPageAction(new_actions[name])
+            return
+
+        super().run_string(name)
+
 
 class WebKitPrinting(browsertab.AbstractPrinting):
 
