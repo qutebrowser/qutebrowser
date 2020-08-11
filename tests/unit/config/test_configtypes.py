@@ -63,28 +63,6 @@ class Font(QFont):
 
         return utils.get_repr(self, **kwargs)
 
-    @classmethod
-    def fromdesc(cls, desc):
-        """Get a Font based on a font description."""
-        f = cls()
-
-        f.setStyle(desc.style)
-        f.setWeight(desc.weight)
-
-        if desc.pt is not None and desc.pt != -1:
-            f.setPointSize(desc.pt)
-        if desc.px is not None and desc.pt != -1:
-            f.setPixelSize(desc.px)
-
-        f.setFamily(desc.family)
-        try:
-            f.setFamilies([desc.family])
-        except AttributeError:
-            # Added in Qt 5.13
-            pass
-
-        return f
-
 
 class RegexEq:
 
@@ -1434,10 +1412,6 @@ class TestFont:
     def klass(self):
         return configtypes.Font
 
-    @pytest.fixture
-    def font_class(self):
-        return configtypes.Font
-
     @pytest.mark.parametrize('val, desc', sorted(TESTS.items()))
     def test_to_py_valid(self, klass, val, desc):
         assert klass().to_py(val) == val
@@ -1742,10 +1716,6 @@ class TestFile:
     @pytest.fixture(params=[configtypes.File, unrequired_class])
     def klass(self, request):
         return request.param
-
-    @pytest.fixture
-    def file_class(self):
-        return configtypes.File
 
     def test_to_py_does_not_exist_file(self, os_mock):
         """Test to_py with a file which does not exist (File)."""
