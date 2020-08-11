@@ -336,16 +336,14 @@ def _pdfjs_version() -> str:
     else:
         pdfjs_file = pdfjs_file.decode('utf-8')
         version_re = re.compile(
-            r"^ *(PDFJS\.version|var pdfjsVersion) = '([^']+)';$",
+            r"^ *(PDFJS\.version|(var|const) pdfjsVersion) = '(?P<version>[^']+)';$",
             re.MULTILINE)
 
         match = version_re.search(pdfjs_file)
-        if not match:
-            pdfjs_version = 'unknown'
-        else:
-            pdfjs_version = match.group(2)
+        pdfjs_version = 'unknown' if not match else match.group('version')
         if file_path is None:
             file_path = 'bundled'
+
         return '{} ({})'.format(pdfjs_version, file_path)
 
 
