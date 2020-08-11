@@ -1626,6 +1626,24 @@ class CommandDispatcher:
             tab.search.prev_result()
         tab.search.prev_result(result_cb=cb)
 
+    def _jseval_cb(self, out):
+        """Show the data returned from JS."""
+        if out is None:
+            # Getting the actual error (if any) seems to be difficult.
+            # The error does end up in
+            # BrowserPage.javaScriptConsoleMessage(), but
+            # distinguishing between :jseval errors and errors from the
+            # webpage is not trivial...
+            message.info('No output or error')
+        else:
+            # The output can be a string, number, dict, array, etc. But
+            # *don't* output too much data, as this will make
+            # qutebrowser hang
+            out = str(out)
+            if len(out) > 5000:
+                out = out[:5000] + ' [...trimmed...]'
+            message.info(out)
+
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_cmd_split=True)
     def jseval(self, js_code: str,
@@ -1647,31 +1665,11 @@ class CommandDispatcher:
             world: Ignored on QtWebKit. On QtWebEngine, a world ID or name to
                    run the snippet in.
         """
-        if world is None:
-            world = usertypes.JsWorld.jseval
-
         cmdutils.check_exclusive((file, url), 'fu')
 
-        if quiet:
-            jseval_cb = None
-        else:
-            def jseval_cb(out):
-                """Show the data returned from JS."""
-                if out is None:
-                    # Getting the actual error (if any) seems to be difficult.
-                    # The error does end up in
-                    # BrowserPage.javaScriptConsoleMessage(), but
-                    # distinguishing between :jseval errors and errors from the
-                    # webpage is not trivial...
-                    message.info('No output or error')
-                else:
-                    # The output can be a string, number, dict, array, etc. But
-                    # *don't* output too much data, as this will make
-                    # qutebrowser hang
-                    out = str(out)
-                    if len(out) > 5000:
-                        out = out[:5000] + ' [...trimmed...]'
-                    message.info(out)
+        if world is None:
+            world = usertypes.JsWorld.jseval
+        jseval_cb = None if quiet else self._jseval_cb
 
         if file:
             path = os.path.expanduser(js_code)
