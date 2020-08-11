@@ -41,19 +41,6 @@ class TestCommandLineEdit:
         assert cmd_edit.text() == ''
         yield cmd_edit
 
-    @pytest.fixture
-    def mock_clipboard(self, mocker):
-        """Fixture to mock QApplication.clipboard.
-
-        Return:
-            The mocked QClipboard object.
-        """
-        mocker.patch.object(QApplication, 'clipboard')
-        clipboard = mock.MagicMock()
-        clipboard.supportsSelection.return_value = True
-        QApplication.clipboard.return_value = clipboard
-        return clipboard
-
     def test_position(self, qtbot, cmd_edit):
         """Test cursor position based on the prompt."""
         qtbot.keyClicks(cmd_edit, ':hello')
