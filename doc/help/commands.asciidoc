@@ -751,7 +751,7 @@ Insert text at cursor position.
 
 [[jseval]]
 === jseval
-Syntax: +:jseval [*--file*] [*--quiet*] [*--world* 'world'] 'js-code'+
+Syntax: +:jseval [*--file*] [*--url*] [*--quiet*] [*--world* 'world'] 'js-code'+
 
 Evaluate a JavaScript string.
 
@@ -763,6 +763,7 @@ Evaluate a JavaScript string.
  in qutebrowser's data dir, e.g.
  `~/.local/share/qutebrowser/js`.
 
+* +*-u*+, +*--url*+: Interpret js-code as a `javascript:...` URL.
 * +*-q*+, +*--quiet*+: Don't show resulting JS object.
 * +*-w*+, +*--world*+: Ignored on QtWebKit. On QtWebEngine, a world ID or name to run the snippet in.
 
