@@ -18,10 +18,9 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-from unittest import mock
 
 from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import QWidget
 import pytest
 
 from qutebrowser.misc import miscwidgets
