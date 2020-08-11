@@ -219,6 +219,7 @@ Feature: Scrolling
         When I run :scroll-to-perc --horizontal
         Then the page should be scrolled horizontally
 
+    @flaky
     Scenario: :scroll-to-perc with count
         When I run :scroll-to-perc with count 50
         Then the page should be scrolled vertically
