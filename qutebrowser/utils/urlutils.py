@@ -55,7 +55,12 @@ WEBENGINE_SCHEMES = [
 ]
 
 
-class InvalidUrlError(Exception):
+class Error(Exception):
+
+    """Base class for errors in this module."""
+
+
+class InvalidUrlError(Error):
 
     """Error raised if a function got an invalid URL."""
 
@@ -624,3 +629,28 @@ def proxy_from_url(url: QUrl) -> typing.Union[QNetworkProxy, pac.PACFetcher]:
     if url.password():
         proxy.setPassword(url.password())
     return proxy
+
+
+def parse_javascript_url(url: QUrl) -> str:
+    """Get JavaScript source from the given URL.
+
+    See https://wiki.whatwg.org/wiki/URL_schemes#javascript:_URLs
+    and https://github.com/whatwg/url/issues/385
+    """
+    ensure_valid(url)
+    if url.scheme() != 'javascript':
+        raise Error("Expected a javascript:... URL")
+    if url.authority():
+        raise Error("URL contains unexpected components: {}"
+                    .format(url.authority()))
+
+    code = url.path(QUrl.FullyDecoded)
+    if url.hasQuery():
+        code += '?' + url.query(QUrl.FullyDecoded)
+    if url.hasFragment():
+        code += '#' + url.fragment(QUrl.FullyDecoded)
+
+    if not code:
+        raise Error("Resulted in empty JavaScript code")
+
+    return code

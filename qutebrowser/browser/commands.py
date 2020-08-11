@@ -1628,7 +1628,11 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_cmd_split=True)
-    def jseval(self, js_code: str, file: bool = False, quiet: bool = False, *,
+    def jseval(self, js_code: str,
+               file: bool = False,
+               url: bool = False,
+               quiet: bool = False,
+               *,
                world: typing.Union[usertypes.JsWorld, int] = None) -> None:
         """Evaluate a JavaScript string.
 
@@ -1638,12 +1642,15 @@ class CommandDispatcher:
                   If the path is relative, the file is searched in a js/ subdir
                   in qutebrowser's data dir, e.g.
                   `~/.local/share/qutebrowser/js`.
+            url: Interpret js-code as a `javascript:...` URL.
             quiet: Don't show resulting JS object.
             world: Ignored on QtWebKit. On QtWebEngine, a world ID or name to
                    run the snippet in.
         """
         if world is None:
             world = usertypes.JsWorld.jseval
+
+        cmdutils.check_exclusive((file, url), 'fu')
 
         if quiet:
             jseval_cb = None
@@ -1675,6 +1682,11 @@ class CommandDispatcher:
                 with open(path, 'r', encoding='utf-8') as f:
                     js_code = f.read()
             except OSError as e:
+                raise cmdutils.CommandError(str(e))
+        elif url:
+            try:
+                js_code = urlutils.parse_javascript_url(QUrl(js_code))
+            except urlutils.Error as e:
                 raise cmdutils.CommandError(str(e))
 
         widget = self._current_widget()
