@@ -114,6 +114,12 @@ def is_ignored_lowlevel_message(message):
         '*/QtWebEngineProcess: /lib/x86_64-linux-gnu/libdbus-1.so.3: no '
         'version information available (required by '
         '*/libQt5WebEngineCore.so.5)',
+
+        # hunter and Python 3.9
+        # https://github.com/ionelmc/python-hunter/issues/87
+        '<frozen importlib._bootstrap>:*: RuntimeWarning: builtins.type size changed, '
+        'may indicate binary incompatibility. Expected 872 from C header, got 880 from '
+        'PyObject',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
