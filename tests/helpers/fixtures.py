@@ -215,6 +215,7 @@ def webkit_tab(web_tab_setup, qtbot, cookiejar_and_cache, mode_manager,
 
     tab = webkittab.WebKitTab(win_id=0, mode_manager=mode_manager,
                               private=False)
+    tab.backend = usertypes.Backend.QtWebKit
     widget_container.set_widget(tab)
 
     yield tab
@@ -238,6 +239,7 @@ def webengine_tab(web_tab_setup, qtbot, redirect_webengine_data,
 
     tab = webenginetab.WebEngineTab(win_id=0, mode_manager=mode_manager,
                                     private=False)
+    tab.backend = usertypes.Backend.QtWebEngine
     widget_container.set_widget(tab)
 
     yield tab
