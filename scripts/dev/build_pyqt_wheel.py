@@ -86,7 +86,9 @@ def main():
     for wheel in input_files:
         utils.print_subtitle(wheel.stem.split('-')[0])
         subprocess.run([str(pyqt_bundle),
-                        '--qt-dir', args.qt_location, str(wheel)],
+                        '--qt-dir', args.qt_location,
+                        '--ignore-missing',
+                        str(wheel)],
                        check=True)
         wheel.unlink()
 
