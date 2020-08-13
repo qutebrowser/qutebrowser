@@ -9,7 +9,7 @@
 
 if (document.querySelector("a[href='https://support.google.com/chrome/answer/95414']")) {
     navigator.serviceWorker.getRegistration().then((registration) => {
-        registration.unregister();
+        if (registration) { registration.unregister(); }
         document.location.reload();
     });
 }

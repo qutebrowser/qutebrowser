@@ -107,6 +107,8 @@ Fixed
 - When entering different modes too quickly (e.g. pressing `fV`), the statusbar
   could end up in a confusing state. This is now fixed.
 - When qutebrowser quits, running downloads are now cancelled properly.
+- The site-specific quirk for `web.whatsapp.com` has been updated to work after recent
+  WhatsApp-changes.
 
 v1.13.1 (2020-07-17)
 --------------------
