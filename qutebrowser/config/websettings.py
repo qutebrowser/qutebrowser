@@ -29,7 +29,7 @@ from PyQt5.QtCore import QUrl, pyqtSlot, qVersion
 from PyQt5.QtGui import QFont
 
 import qutebrowser
-from qutebrowser.config import config, configutils
+from qutebrowser.config import config
 from qutebrowser.utils import log, usertypes, urlmatch, qtutils, objreg
 from qutebrowser.misc import objects, debugcachestats
 

@@ -363,7 +363,7 @@ def init_user_agent():
 
 def _init_default_profile():
     """Init the default QWebEngineProfile."""
-    global default_profile, default_user_agent
+    global default_profile
 
     default_profile = QWebEngineProfile.defaultProfile()
     init_user_agent()
