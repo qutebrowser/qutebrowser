@@ -56,10 +56,9 @@ class _SettingsWrapper:
     """
 
     def _settings(self):
+        yield default_profile.settings()
         if private_profile:
-            return (default_profile.settings(), private_profile.settings())
-        else:
-            return (default_profile.settings(),)
+            yield private_profile.settings()
 
     def setAttribute(self, attribute, on):
         for settings in self._settings():
@@ -82,19 +81,19 @@ class _SettingsWrapper:
             settings.setUnknownUrlSchemePolicy(policy)
 
     def testAttribute(self, attribute):
-        return self._settings()[0].testAttribute(attribute)
+        return default_profile.settings().testAttribute(attribute)
 
     def fontSize(self, fonttype):
-        return self._settings()[0].fontSize(fonttype)
+        return default_profile.settings().fontSize(fonttype)
 
     def fontFamily(self, which):
-        return self._settings()[0].fontFamily(which)
+        return default_profile.settings().fontFamily(which)
 
     def defaultTextEncoding(self):
-        return self._settings()[0].defaultTextEncoding()
+        return default_profile.settings().defaultTextEncoding()
 
     def unknownUrlSchemePolicy(self):
-        return self._settings()[0].unknownUrlSchemePolicy()
+        return default_profile.settings().unknownUrlSchemePolicy()
 
 
 class WebEngineSettings(websettings.AbstractSettings):
