@@ -401,3 +401,5 @@ def init(parent=None):
     if objects.backend == usertypes.Backend.QtWebKit:  # pragma: no cover
         from qutebrowser.browser.webkit import webkithistory
         webkithistory.init(web_history)
+        return
+    assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend

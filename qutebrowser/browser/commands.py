@@ -170,7 +170,7 @@ class CommandDispatcher:
             elif mode == "stack-next":
                 tab = tab_deque.next(cur_tab)
             else:
-                raise NotImplementedError(
+                raise utils.Unreachable(
                     "Missing implementation for stack mode!")
         except IndexError:
             if not show_error:

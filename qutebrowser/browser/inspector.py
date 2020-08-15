@@ -30,7 +30,7 @@ from PyQt5.QtGui import QCloseEvent
 
 from qutebrowser.browser import eventfilter
 from qutebrowser.config import configfiles
-from qutebrowser.utils import log, usertypes
+from qutebrowser.utils import log, usertypes, utils
 from qutebrowser.keyinput import modeman
 from qutebrowser.misc import miscwidgets, objects
 
@@ -55,9 +55,10 @@ def create(*, splitter: 'miscwidgets.InspectorSplitter',
         else:
             return webengineinspector.LegacyWebEngineInspector(
                 splitter, win_id, parent)
-    else:
+    elif objects.backend == usertypes.Backend.QtWebKit:
         from qutebrowser.browser.webkit import webkitinspector
         return webkitinspector.WebKitInspector(splitter, win_id, parent)
+    raise utils.Unreachable(objects.backend)
 
 
 class Position(enum.Enum):

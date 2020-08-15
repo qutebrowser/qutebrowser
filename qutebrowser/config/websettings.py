@@ -30,7 +30,7 @@ from PyQt5.QtGui import QFont
 
 import qutebrowser
 from qutebrowser.config import config
-from qutebrowser.utils import log, usertypes, urlmatch, qtutils
+from qutebrowser.utils import log, usertypes, urlmatch, qtutils, utils
 from qutebrowser.misc import objects, debugcachestats
 
 UNSET = object()
@@ -273,7 +273,7 @@ def init(args: argparse.Namespace) -> None:
         from qutebrowser.browser.webkit import webkitsettings
         webkitsettings.init(args)
     else:
-        raise NotImplementedError
+        raise utils.Unreachable(objects.backend)
 
     # Make sure special URLs always get JS support
     for pattern in ['chrome://*/*', 'qute://*/*']:
@@ -292,7 +292,7 @@ def clear_private_data() -> None:
         assert cookies.ram_cookie_jar is not None
         cookies.ram_cookie_jar.setAllCookies([])
     else:
-        raise NotImplementedError
+        raise utils.Unreachable(objects.backend)
 
 
 @pyqtSlot()
@@ -305,4 +305,4 @@ def shutdown() -> None:
         from qutebrowser.browser.webkit import webkitsettings
         webkitsettings.shutdown()
     else:
-        raise NotImplementedError
+        raise utils.Unreachable(objects.backend)

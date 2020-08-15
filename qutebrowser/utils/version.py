@@ -439,10 +439,11 @@ def _backend() -> str:
     """Get the backend line with relevant information."""
     if objects.backend == usertypes.Backend.QtWebKit:
         return 'new QtWebKit (WebKit {})'.format(qWebKitVersion())
-    else:
+    elif objects.backend == usertypes.Backend.QtWebEngine:
         webengine = usertypes.Backend.QtWebEngine
         assert objects.backend == webengine, objects.backend
         return 'QtWebEngine (Chromium {})'.format(_chromium_version())
+    raise utils.Unreachable(objects.backend)
 
 
 def _uptime() -> datetime.timedelta:
