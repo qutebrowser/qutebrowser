@@ -207,6 +207,9 @@ def test_blocking_enabled(
     config_stub.val.content.blocking.adblock.lists = easylist_easyprivacy
     config_stub.val.content.blocking.enabled = blocking_enabled
     config_stub.val.content.blocking.method = method
+    # Simulate the method-changed hook being run, since it doesn't execute
+    # with pytest.
+    ad_blocker.enabled = braveadblock._should_be_used()
 
     ad_blocker.adblock_update()
     while ad_blocker._in_progress:
