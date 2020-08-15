@@ -30,7 +30,7 @@ from PyQt5.QtGui import QFont
 
 import qutebrowser
 from qutebrowser.config import config
-from qutebrowser.utils import log, usertypes, urlmatch, qtutils, objreg
+from qutebrowser.utils import log, usertypes, urlmatch, qtutils
 from qutebrowser.misc import objects, debugcachestats
 
 UNSET = object()
@@ -288,7 +288,9 @@ def clear_private_data() -> None:
         from qutebrowser.browser.webengine import webenginesettings
         webenginesettings.init_private_profile()
     elif objects.backend == usertypes.Backend.QtWebKit:
-        objreg.get('ram-cookie-jar').setAllCookies([])
+        from qutebrowser.browser.webkit import cookies
+        assert cookies.ram_cookie_jar is not None
+        cookies.ram_cookie_jar.setAllCookies([])
     else:
         raise NotImplementedError
 
