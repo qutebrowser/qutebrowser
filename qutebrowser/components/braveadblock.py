@@ -61,15 +61,21 @@ def _is_whitelisted_url(url: QUrl) -> bool:
 
 
 def _should_be_used() -> bool:
-    """Whether the Brave adblocker should be used or not, assuming the
-    dependency is satisfied."""
+    """Whether the Brave adblocker should be used or not.
+
+    Here we assume the adblock dependency is satisfied.
+    """
     method = config.val.content.blocking.method
     return method in ("auto", "both", "adblock")
 
 
 def _possibly_show_missing_dependency_warning() -> None:
-    """If appropriate, show the user a message warning them that the 'adblock'
-    dependency is missing."""
+    """Show missing dependency warning, if appropriate.
+
+    If the adblocking method is configured such that the Brave adblocker
+    should be used, but the optional dependency is not satisfied, we show an
+    error message.
+    """
     method = config.val.content.blocking.method
     if method in ("adblock", "both"):
         message.warning(
@@ -137,7 +143,7 @@ class BraveAdBlocker:
         self._in_progress = []  # type: typing.List[downloads.TempDownload]
         self._done_count = 0
         self._finished_registering_downloads = False
-        self._wip_filter_set: Optional[adblock.FilterSet] = None
+        self._wip_filter_set: typing.Optional[adblock.FilterSet] = None
         self._engine = adblock.Engine(adblock.FilterSet())
 
     def _is_blocked(
@@ -170,7 +176,7 @@ class BraveAdBlocker:
 
         if not result.matched:
             return False
-        if result.exception is not None and result.important is None:
+        if result.exception is not None and not result.important:
             logger.debug(
                 "Excepting {} from being blocked by {} because of {}".format(
                     request_url.toDisplayString(), result.filter, result.exception
@@ -285,7 +291,7 @@ def on_lists_changed() -> None:
 
 
 @hook.config_changed("content.blocking.method")
-def on_method_changed():
+def on_method_changed() -> None:
     if ad_blocker is not None:
         # This implies the 'adblock' dependency is satisfied
         ad_blocker.enabled = _should_be_used()
@@ -302,7 +308,7 @@ def init(context: apitypes.InitContext) -> None:
         # We want 'adblock' to be an optional dependency. If the module is
         # not found, we simply set the `ad_blocker` global to `None`. Always
         # remember to check the case where `ad_blocker` is `None`!
-        ad_blocker = None
+        ad_blocker = None  # type: ignore[unreachable]
         _possibly_show_missing_dependency_warning()
         return
 

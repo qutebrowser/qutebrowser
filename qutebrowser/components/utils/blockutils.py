@@ -1,3 +1,5 @@
+"""Code that is shared between the host blocker and Brave ad blocker."""
+
 import typing
 import os
 import functools

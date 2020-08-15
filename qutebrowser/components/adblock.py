@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Functions related to ad blocking."""
+"""Functions related to host blocking."""
 
 import os.path
 import posixpath
@@ -80,7 +80,7 @@ def _is_whitelisted_url(url: QUrl) -> bool:
 
 
 def _should_be_used() -> bool:
-    """Whether the hostblocker should be used or not"""
+    """Whether the hostblocker should be used or not."""
     method = config.val.content.blocking.method
     adblock_dependency_satisfied = ad_blocker is None
     return method in ("both", "hosts") or (
@@ -317,7 +317,7 @@ def on_config_changed() -> None:
 
 
 @hook.config_changed("content.blocking.method")
-def on_method_changed():
+def on_method_changed() -> None:
     host_blocker.enabled = _should_be_used()
 
 
