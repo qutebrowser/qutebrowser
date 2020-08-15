@@ -51,6 +51,7 @@ Changed
   still-running download, a confirmation prompt is now displayed.
 - `:completion-item-focus` now understands `next-page` and `prev-page` with
   corresponding `<PgDown>` / `<PgUp>` default bindings.
+- When the last private window is closed, all private browsing data is now cleared.
 
 Added
 ~~~~~
