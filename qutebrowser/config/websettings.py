@@ -29,8 +29,8 @@ from PyQt5.QtCore import QUrl, pyqtSlot, qVersion
 from PyQt5.QtGui import QFont
 
 import qutebrowser
-from qutebrowser.config import config
-from qutebrowser.utils import log, usertypes, urlmatch, qtutils
+from qutebrowser.config import config, configutils
+from qutebrowser.utils import log, usertypes, urlmatch, qtutils, objreg
 from qutebrowser.misc import objects, debugcachestats
 
 UNSET = object()
@@ -269,9 +269,11 @@ def init(args: argparse.Namespace) -> None:
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginesettings
         webenginesettings.init(args)
-    else:
+    elif objects.backend == usertypes.Backend.QtWebKit:
         from qutebrowser.browser.webkit import webkitsettings
         webkitsettings.init(args)
+    else:
+        raise NotImplementedError
 
     # Make sure special URLs always get JS support
     for pattern in ['chrome://*/*', 'qute://*/*']:
@@ -280,12 +282,25 @@ def init(args: argparse.Namespace) -> None:
                                 hide_userconfig=True)
 
 
+def clear_private_data() -> None:
+    """Clear cookies, cache and related data for private browsing sessions."""
+    if objects.backend == usertypes.Backend.QtWebEngine:
+        from qutebrowser.browser.webengine import webenginesettings
+        webenginesettings.init_private_profile()
+    elif objects.backend == usertypes.Backend.QtWebKit:
+        objreg.get('ram-cookie-jar').setAllCookies([])
+    else:
+        raise NotImplementedError
+
+
 @pyqtSlot()
 def shutdown() -> None:
     """Shut down QWeb(Engine)Settings."""
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginesettings
         webenginesettings.shutdown()
-    else:
+    elif objects.backend == usertypes.Backend.QtWebKit:
         from qutebrowser.browser.webkit import webkitsettings
         webkitsettings.shutdown()
+    else:
+        raise NotImplementedError

@@ -42,6 +42,25 @@ Feature: Using private browsing
 
     ## https://github.com/qutebrowser/qutebrowser/issues/1219
 
+    Scenario: Make sure private data is cleared when closing last private window
+        When I open about:blank in a private window
+        And I open cookies/set?cookie-to-delete=1 without waiting in a new tab
+        And I wait until cookies is loaded
+        And I run :close
+        And I open about:blank in a private window
+        And I open cookies
+        Then the cookie cookie-to-delete should not be set
+
+    Scenario: Make sure private data is not cleared when closing a private window but another remains
+        When I open about:blank in a private window
+        And I open about:blank in a private window
+        And I open cookies/set?cookie-to-preserve=1 without waiting in a new tab
+        And I wait until cookies is loaded
+        And I run :close
+        And I open about:blank in a private window
+        And I open cookies
+        Then the cookie cookie-to-preserve should be set to 1
+
     Scenario: Sharing cookies with private browsing
         When I open cookies/set?qute-test=42 without waiting in a private window
         And I wait until cookies is loaded

@@ -32,7 +32,7 @@ from PyQt5.QtGui import QPalette
 
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
-from qutebrowser.config import config, configfiles, stylesheet
+from qutebrowser.config import config, configfiles, stylesheet, websettings
 from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
                                jinja, debug)
 from qutebrowser.mainwindow import messageview, prompt
@@ -231,7 +231,7 @@ class MainWindow(QWidget):
         self._downloadview = downloadview.DownloadView(
             model=self._download_model)
 
-        self._private = config.val.content.private_browsing or private
+        self.private = config.val.content.private_browsing or private
 
         self.tabbed_browser = tabbedbrowser.TabbedBrowser(
             win_id=self.win_id, private=self._private, parent=self
@@ -688,6 +688,18 @@ class MainWindow(QWidget):
 
         sessions.session_manager.save_last_window_session()
         self._save_geometry()
+
+        # Wipe private data if we close the last private window, but there are
+        # still other windows
+        if (
+                self.private and
+                len(objreg.window_registry) > 1 and
+                len([window for window in objreg.window_registry.values()
+                     if window.private]) == 1
+        ):
+            log.destroy.debug("Wiping private data before closing last "
+                              "private window")
+            websettings.clear_private_data()
 
         log.destroy.debug("Closing window {}".format(self.win_id))
         self.tabbed_browser.shutdown()
