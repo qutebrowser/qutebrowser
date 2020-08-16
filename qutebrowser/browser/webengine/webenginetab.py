@@ -1414,6 +1414,9 @@ class WebEngineTab(browsertab.AbstractTab):
             new_state  # type: QWebEnginePage.LifecycleState
     ) -> None:
         """Set the lifecycle state of the current tab."""
+        if sip.isdeleted(self._widget):
+            log.webview.debug("Ignoring page lifecycle update for deleted widget")
+            return
         if self._widget.page().isVisible():
             log.misc.debug("Skipped lifecycle update. Page is visible")
             return
@@ -1655,6 +1658,9 @@ class WebEngineTab(browsertab.AbstractTab):
             self._check_lifecycle_state_timer.start(1000)
 
     def _check_recommended_lifecycle_state(self) -> None:
+        if sip.isdeleted(self._widget):
+            log.webview.debug("Ignoring page lifecycle check for deleted widget")
+            return
         recommended_state = self.recommended_lifecycle_state()
         current_state = self.lifecycle_state()
 
