@@ -106,6 +106,7 @@ Feature: Scrolling
         When I run :scroll bottom
         Then the page should be scrolled vertically
 
+    @flaky
     Scenario: Scrolling to bottom and to top
         When I run :scroll bottom
         And I wait until the scroll position changed
