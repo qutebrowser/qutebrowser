@@ -34,7 +34,7 @@ from qutebrowser.completion import completiondelegate
     ('foo', 'barfoobaz', [(3, 3)]),
     ('foo', 'barfoobazfoo', [(3, 3), (9, 3)]),
     ('foo', 'foofoo', [(0, 3), (3, 3)]),
-    ('a|b', 'cadb', [(1, 1), (3, 1)]),
+    ('a b', 'cadb', [(1, 1), (3, 1)]),
     ('foo', '<foo>', [(1, 3)]),
     ('<a>', "<a>bc", [(0, 3)]),
 
