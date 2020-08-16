@@ -42,6 +42,10 @@ from qutebrowser.completion import completiondelegate
     ('foo', "'foo'", [(1, 3)]),
     ('x', "'x'", [(1, 1)]),
     ('lt', "<lt", [(1, 2)]),
+
+    # See https://github.com/qutebrowser/qutebrowser/pull/5111
+    ('bar', '\U0001d65b\U0001d664\U0001d664bar', [(6, 3)]),
+    ('an anomaly', 'an anomaly', [(0, 2), (3, 7)]),
 ])
 def test_highlight(pat, txt, segments):
     doc = QTextDocument(txt)
