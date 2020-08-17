@@ -49,6 +49,7 @@ soupsieve==2.0.1
 tldextract==2.2.3
 toml==0.10.1
 urllib3==1.25.10
-vulture==2.0
+vulture==2.0 ; python_version>="3.6"
 Werkzeug==1.0.1
-jaraco.functools==2.0; python_version<"3.6"  # rq.filter: <= 2.0
+jaraco.functools==2.0; python_version<"3.6"
+vulture==1.6; python_version<"3.6"

@@ -30,5 +30,9 @@ PyVirtualDisplay
 tldextract
 
 #@ markers: jaraco.functools python_version>="3.6"
-#@ add: jaraco.functools==2.0; python_version<"3.6"  # rq.filter: <= 2.0
+#@ add: jaraco.functools==2.0; python_version<"3.6"
+
+#@ markers: vulture python_version>="3.6"
+#@ add: vulture==1.6; python_version<"3.6"
+
 #@ ignore: Jinja2, MarkupSafe, colorama
