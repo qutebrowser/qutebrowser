@@ -397,6 +397,7 @@ Pre-built colorschemes
 - Two implementations of the https://github.com/arcticicestudio/nord[Nord] colorscheme for qutebrowser exist: https://github.com/Linuus/nord-qutebrowser[Linuus], https://github.com/KnownAsDon/QuteBrowser-Nord-Theme[KnownAsDon]
 - https://github.com/dracula/qutebrowser-dracula-theme[Dracula]
 - https://github.com/jjzmajic/qutewal[Pywal theme]
+- https://gitlab.com/lovetocode999/selenized-qutebrowser[Selenized]
 
 Avoiding flake8 errors
 ^^^^^^^^^^^^^^^^^^^^^^
