@@ -42,7 +42,7 @@ CHANGELOG_URLS = {
     'cherrypy': 'https://github.com/cherrypy/cherrypy/blob/master/CHANGES.rst',
     'pylint': 'http://pylint.pycqa.org/en/latest/whatsnew/changelog.html',
     'setuptools': 'https://github.com/pypa/setuptools/blob/master/CHANGES.rst',
-    'pytest-cov': 'https://github.com/pytest-dev/pytest-cov',
+    'pytest-cov': 'https://github.com/pytest-dev/pytest-cov/blob/master/CHANGELOG.rst',
     'requests': 'https://github.com/psf/requests/blob/master/HISTORY.md',
     'requests-file': 'https://github.com/dashea/requests-file/blob/master/CHANGES.rst',
     'werkzeug': 'https://github.com/pallets/werkzeug/blob/master/CHANGES.rst',
