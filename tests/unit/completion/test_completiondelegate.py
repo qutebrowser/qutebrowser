@@ -62,7 +62,6 @@ def test_benchmark_highlight(benchmark):
     pat = 'foo bar'
     doc = QTextDocument(txt)
 
-    @benchmark
     def bench():
         highlighter = completiondelegate._Highlighter(doc, pat, Qt.red)
         highlighter.highlightBlock(txt)
