@@ -92,15 +92,11 @@ class _EventFilter(QObject):
       the QWebInspector.
     """
 
-    def __init__(self, win_id: int, parent: QObject) -> None:
-        super().__init__(parent)
-        self._win_id = win_id
+    clicked = pyqtSignal()
 
     def eventFilter(self, _obj: QObject, event: QEvent) -> bool:
-        """Enter insert mode if the inspector is clicked."""
         if event.type() == QEvent.MouseButtonPress:
-            modeman.enter(self._win_id, usertypes.KeyMode.insert,
-                          reason='Inspector clicked', only_if_normal=True)
+            self.clicked.emit()
         return False
 
 
@@ -126,7 +122,10 @@ class AbstractWebInspector(QWidget):
         self._layout = miscwidgets.WrapperLayout(self)
         self._splitter = splitter
         self._position = None  # type: typing.Optional[Position]
-        self._event_filter = _EventFilter(win_id, parent=self)
+        self._win_id = win_id
+
+        self._event_filter = _EventFilter(parent=self)
+        self._event_filter.clicked.connect(self._on_clicked)
         self._child_event_filter = eventfilter.ChildEventFilter(
             eventfilter=self._event_filter,
             win_id=win_id,
@@ -156,6 +155,12 @@ class AbstractWebInspector(QWidget):
         Needs to be overridden by subclasses.
         """
         return False
+
+    @pyqtSlot()
+    def _on_clicked(self):
+        """Enter insert mode if the inspector was clicked."""
+        modeman.enter(self._win_id, usertypes.KeyMode.insert,
+                      reason='Inspector clicked', only_if_normal=True)
 
     def set_position(self, position: typing.Optional[Position]) -> None:
         """Set the position of the inspector.
