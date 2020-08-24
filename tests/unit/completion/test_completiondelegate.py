@@ -57,6 +57,17 @@ def test_highlight(pat, txt, segments):
     ])
 
 
+def test_benchmark_highlight(benchmark):
+    txt = 'boofoobar'
+    pat = 'foo bar'
+    doc = QTextDocument(txt)
+
+    @benchmark
+    def bench():
+        highlighter = completiondelegate._Highlighter(doc, pat, Qt.red)
+        highlighter.highlightBlock(txt)
+
+
 def test_highlighted(qtbot):
     """Make sure highlighting works.
 
