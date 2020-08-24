@@ -110,7 +110,8 @@ Fixed
 - When qutebrowser quits, running downloads are now cancelled properly.
 - The site-specific quirk for `web.whatsapp.com` has been updated to work after recent
   WhatsApp-changes.
-- Highlighting in the completion now works properly when UTF-16 surrogate pairs (such as emoji) are involved.
+- Highlighting in the completion now works properly when UTF-16 surrogate pairs (such as
+  emoji) are involved.
 
 v1.13.1 (2020-07-17)
 --------------------
