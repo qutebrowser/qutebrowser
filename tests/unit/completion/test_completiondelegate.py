@@ -67,6 +67,8 @@ def test_benchmark_highlight(benchmark):
         highlighter = completiondelegate._Highlighter(doc, pat, Qt.red)
         highlighter.highlightBlock(txt)
 
+    benchmark(bench)
+
 
 def test_highlighted(qtbot):
     """Make sure highlighting works.

@@ -39,7 +39,7 @@ class FocusWorkaroundEventFilter(QObject):
         self._win_id = win_id
         self._widget = widget
 
-    def eventFilter(self, obj, event):
+    def eventFilter(self, _obj, event):
         """Act on ChildAdded events."""
         if event.type() != QEvent.ChildAdded:
             return False
@@ -49,7 +49,7 @@ class FocusWorkaroundEventFilter(QObject):
                       usertypes.KeyMode.yesno]
 
         if modeman.instance(self._win_id).mode in pass_modes:
-            return
+            return False
 
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
