@@ -110,6 +110,7 @@ CHANGELOG_URLS = {
     'chardet': 'https://github.com/chardet/chardet/releases',
     'idna': 'https://github.com/kjd/idna/blob/master/HISTORY.rst',
     'tldextract': 'https://github.com/john-kurkowski/tldextract/blob/master/CHANGELOG.md',
+    'typing_extensions': 'https://github.com/python/typing/commits/master/typing_extensions',
 }
 
 # PyQt versions which need SIP v4
