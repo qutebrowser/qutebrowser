@@ -4,7 +4,7 @@ attrs==20.1.0
 beautifulsoup4==4.9.1
 certifi==2020.6.20
 chardet==3.0.4
-cheroot==8.4.3
+cheroot==8.4.5
 click==7.1.2
 # colorama==0.4.3
 coverage==5.2.1
@@ -12,7 +12,7 @@ EasyProcess==0.3
 Flask==1.1.2
 glob2==0.7
 hunter==3.2.1
-hypothesis==5.28.0
+hypothesis==5.29.0
 idna==2.10
 iniconfig==1.0.1
 itsdangerous==1.1.0
