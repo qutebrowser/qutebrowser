@@ -27,38 +27,22 @@ from qutebrowser.misc import objects
 from qutebrowser.keyinput import modeman
 
 
-class ChildEventFilter(QObject):
+class FocusWorkaroundEventFilter(QObject):
 
-    """An event filter re-adding TabEventFilter on ChildEvent.
+    """An event filter working Qt 5.11 keyboard focus issues.
 
-    This is needed because QtWebEngine likes to randomly change its
-    focusProxy...
-
-    FIXME:qtwebengine Add a test for this happening
-
-    Attributes:
-        _filter: The event filter to install.
-        _widget: The widget expected to send out childEvents.
-        _win_id: The window this ChildEventFilter lives in.
-        _focus_workaround: Whether to enable a workaround for QTBUG-68076.
+    WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
     """
 
-    def __init__(self, *, eventfilter, win_id, focus_workaround=False,
-                 widget=None, parent=None):
+    def __init__(self, win_id, widget, parent=None):
         super().__init__(parent)
-        self._filter = eventfilter
-        self._widget = widget
         self._win_id = win_id
-        self._focus_workaround = focus_workaround
-        if focus_workaround:
-            assert widget is not None
+        self._widget = widget
 
-    def _do_focus_workaround(self):
-        """WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076."""
-        if not self._focus_workaround:
-            return
-
-        assert self._widget is not None
+    def eventFilter(self, obj, event):
+        """Act on ChildAdded events."""
+        if event.type() != QEvent.ChildAdded:
+            return False
 
         pass_modes = [usertypes.KeyMode.command,
                       usertypes.KeyMode.prompt,
@@ -77,6 +61,28 @@ class ChildEventFilter(QObject):
         if current_index == widget_index:
             QTimer.singleShot(0, self._widget.setFocus)
 
+        return False
+
+
+class ChildEventFilter(QObject):
+
+    """An event filter re-adding TabEventFilter on ChildEvent.
+
+    This is needed because QtWebEngine likes to randomly change its
+    focusProxy...
+
+    FIXME:qtwebengine Add a test for this happening
+
+    Attributes:
+        _filter: The event filter to install.
+        _widget: The widget expected to send out childEvents.
+    """
+
+    def __init__(self, *, eventfilter, widget=None, parent=None):
+        super().__init__(parent)
+        self._filter = eventfilter
+        self._widget = widget
+
     def eventFilter(self, obj, event):
         """Act on ChildAdded events."""
         if event.type() == QEvent.ChildAdded:
@@ -89,7 +95,6 @@ class ChildEventFilter(QObject):
                 assert obj is self._widget
 
             child.installEventFilter(self._filter)
-            self._do_focus_workaround()
         elif event.type() == QEvent.ChildRemoved:
             child = event.child()
             log.misc.debug("{}: removed child {}".format(obj, child))

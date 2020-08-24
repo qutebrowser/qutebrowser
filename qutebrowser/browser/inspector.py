@@ -128,7 +128,6 @@ class AbstractWebInspector(QWidget):
         self._event_filter.clicked.connect(self._on_clicked)
         self._child_event_filter = eventfilter.ChildEventFilter(
             eventfilter=self._event_filter,
-            win_id=win_id,
             parent=self)
 
     def _set_widget(self, widget: QWidget) -> None:

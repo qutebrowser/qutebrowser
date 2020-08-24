@@ -1393,14 +1393,19 @@ class WebEngineTab(browsertab.AbstractTab):
         fp = self._widget.focusProxy()
         if fp is not None:
             fp.installEventFilter(self._tab_event_filter)
+
         self._child_event_filter = eventfilter.ChildEventFilter(
             eventfilter=self._tab_event_filter,
             widget=self._widget,
-            win_id=self.win_id,
-            focus_workaround=qtutils.version_check(
-                '5.11', compiled=False, exact=True),
             parent=self)
         self._widget.installEventFilter(self._child_event_filter)
+
+        if qtutils.version_check('5.11', compiled=False, exact=True):
+            focus_event_filter = eventfilter.FocusWorkaroundEventFilter(
+                win_id=self.win_id,
+                widget=self._widget,
+                parent=self)
+            self._widget.installEventFilter(focus_event_filter)
 
     @pyqtSlot()
     def _restore_zoom(self):
