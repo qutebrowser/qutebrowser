@@ -112,6 +112,7 @@ Fixed
   WhatsApp-changes.
 - Highlighting in the completion now works properly when UTF-16 surrogate pairs (such as
   emoji) are involved.
+- When a windowed inspector is clicked, insert mode now isn't entered anymore.
 
 v1.13.1 (2020-07-17)
 --------------------

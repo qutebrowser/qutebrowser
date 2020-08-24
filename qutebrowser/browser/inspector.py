@@ -158,9 +158,10 @@ class AbstractWebInspector(QWidget):
 
     @pyqtSlot()
     def _on_clicked(self):
-        """Enter insert mode if the inspector was clicked."""
-        modeman.enter(self._win_id, usertypes.KeyMode.insert,
-                      reason='Inspector clicked', only_if_normal=True)
+        """Enter insert mode if a docked inspector was clicked."""
+        if self._position != Position.window:
+            modeman.enter(self._win_id, usertypes.KeyMode.insert,
+                          reason='Inspector clicked', only_if_normal=True)
 
     def set_position(self, position: typing.Optional[Position]) -> None:
         """Set the position of the inspector.
