@@ -680,12 +680,13 @@ class MainWindow(QWidget):
 
         e.accept()
 
-        try:
-            last_visible = objreg.get('last-visible-main-window')
-            if self is last_visible:
-                objreg.delete('last-visible-main-window')
-        except KeyError:
-            pass
+        for key in ['last-visible-main-window', 'last-focused-main-window']:
+            try:
+                win = objreg.get(key)
+                if self is win:
+                    objreg.delete(key)
+            except KeyError:
+                pass
 
         sessions.session_manager.save_last_window_session()
         self._save_geometry()
