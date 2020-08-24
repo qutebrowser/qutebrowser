@@ -1,5 +1,5 @@
 beautifulsoup4
-cheroot!=8.4.4
+cheroot
 coverage
 Flask
 hypothesis
