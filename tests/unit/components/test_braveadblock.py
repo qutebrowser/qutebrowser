@@ -147,24 +147,57 @@ def blocklist_invalid_utf8(tmpdir):
 
 
 @pytest.fixture
-def easylist_easyprivacy(tmpdir):
-    """Copy the easyprivacy and easylist blocklists into the given dir."""
+def easylist_easyprivacy_both(tmpdir):
+    """Put easyprivacy and easylist blocklists into a tempdir
+
+    Copy the easyprivacy and easylist blocklists into a temporary directory,
+    then return both a list containing `file://` urls, and the residing dir.
+    """
+    bl_dst_dir = os.path.join(str(tmpdir), "blocklists")
+    os.mkdir(bl_dst_dir)
     urls = []
     for blocklist, filename in [
         (utils.easylist_txt(), "easylist.txt"),
         (utils.easyprivacy_txt(), "easyprivacy.txt"),
     ]:
-        bl_dst_path = os.path.join(str(tmpdir), filename)
+        bl_dst_path = os.path.join(bl_dst_dir, filename)
         with open(bl_dst_path, "w", encoding="utf-8") as f:
             f.write("\n".join(list(blocklist)))
         assert os.path.isfile(bl_dst_path)
         urls.append(QUrl.fromLocalFile(bl_dst_path).toString())
-    return urls
+    return urls, bl_dst_dir
+
+
+@pytest.fixture
+def empty_dir(tmpdir):
+    empty_dir_path = os.path.join(str(tmpdir), "empty_dir")
+    os.mkdir(empty_dir_path)
+    return empty_dir_path
+
+
+@pytest.fixture
+def easylist_easyprivacy(easylist_easyprivacy_both):
+    """The first return value of `easylist_easyprivacy_both`"""
+    return easylist_easyprivacy_both[0]
 
 
 @pytest.fixture
 def ad_blocker(config_stub, data_tmpdir):
     return braveadblock.BraveAdBlocker(data_dir=pathlib.Path(data_tmpdir))
+
+
+def assert_only_one_success_message(messages):
+    assert (
+        len(
+            list(
+                filter(
+                    lambda m: m.startswith("adblock: Filters successfully read"),
+                    messages,
+                )
+            )
+        )
+        == 1
+    )
 
 
 def assert_urls(
@@ -323,3 +356,46 @@ def test_whitelist_on_dataset(config_stub, easylist_easyprivacy):
         assert braveadblock._is_whitelisted_url(url)
 
     run_function_on_dataset(assert_whitelisted)
+
+
+def test_update_easylist_easyprivacy_directory(
+    ad_blocker, config_stub, easylist_easyprivacy_both, caplog
+):
+    # This directory should contain two text files, one for easylist, another
+    # for easyprivacy.
+    lists_directory = easylist_easyprivacy_both[1]
+
+    config_stub.val.content.blocking.adblock.lists = [
+        QUrl.fromLocalFile(lists_directory).toString()
+    ]
+    config_stub.val.content.blocking.enabled = True
+    config_stub.val.content.blocking.whitelist = None
+
+    with caplog.at_level(logging.INFO):
+        ad_blocker.adblock_update()
+        assert_only_one_success_message(caplog.messages)
+        assert (
+            caplog.messages[-1] == "adblock: Filters successfully read from 2 sources"
+        )
+    assert_urls(ad_blocker, NOT_OKAY_URLS, True)
+    assert_urls(ad_blocker, OKAY_URLS, False)
+
+
+def test_update_empty_directory_blocklist(ad_blocker, config_stub, empty_dir, caplog):
+    tmpdir_url = QUrl.fromLocalFile(empty_dir).toString()
+    config_stub.val.content.blocking.adblock.lists = [tmpdir_url]
+    config_stub.val.content.blocking.enabled = True
+    config_stub.val.content.blocking.whitelist = None
+
+    # The temporary directory we created should be empty
+    assert len(os.listdir(empty_dir)) == 0
+
+    with caplog.at_level(logging.INFO):
+        ad_blocker.adblock_update()
+        assert_only_one_success_message(caplog.messages)
+        assert (
+            caplog.messages[-1] == "adblock: Filters successfully read from 0 sources"
+        )
+
+    # There are no filters, so no ads should be blocked.
+    assert_none_blocked(ad_blocker)

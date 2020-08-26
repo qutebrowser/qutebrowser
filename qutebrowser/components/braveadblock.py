@@ -228,11 +228,12 @@ class BraveAdBlocker:
         else:
             self._finished_registering_downloads = False
             for i, url in enumerate(blocklists):
-                if i == len(blocklists) - 1:
-                    self._finished_registering_downloads = True
                 blockutils.download_blocklist_url(
                     url, self._on_download_finished, self._in_progress
                 )
+            self._finished_registering_downloads = True
+            if len(self._in_progress) == 0 and self._wip_filter_set is not None:
+                self._on_lists_downloaded()
 
     def _on_lists_downloaded(self) -> None:
         """Install block lists after files have been downloaded."""
