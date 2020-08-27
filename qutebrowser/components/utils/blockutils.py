@@ -1,3 +1,23 @@
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+
+# Copyright 2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# This file is part of qutebrowser.
+#
+# qutebrowser is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# qutebrowser is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+
 """Code that is shared between the host blocker and Brave ad blocker."""
 
 import typing
@@ -14,8 +34,9 @@ class FakeDownload(downloads.TempDownload):
     """A download stub to use on_download_finished with local files."""
 
     def __init__(
-        self, fileobj: typing.IO[bytes]  # pylint: disable=super-init-not-called
+        self, fileobj: typing.IO[bytes]
     ) -> None:
+        # pylint: disable=super-init-not-called
         self.fileobj = fileobj
         self.successful = True
 
@@ -25,8 +46,7 @@ def download_blocklist_url(
     on_download_finished: typing.Callable[[downloads.TempDownload], None],
     in_progress: typing.List[downloads.TempDownload],
 ) -> None:
-    """
-    Take a blocklist url and queue it for download.
+    """Take a blocklist url and queue it for download.
 
     Args:
         url: url to download
@@ -65,7 +85,7 @@ def _import_local(
         fileobj = open(filename, "rb")
     except OSError as e:
         message.error(
-            "adblock: Error while reading {}: {}".format(filename, e.strerror)
+            "blockutils: Error while reading {}: {}".format(filename, e.strerror)
         )
         return
     download = FakeDownload(fileobj)

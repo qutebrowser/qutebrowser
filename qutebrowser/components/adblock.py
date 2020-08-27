@@ -312,7 +312,7 @@ class HostBlocker:
 
 
 @hook.config_changed("content.blocking.hosts.lists")
-def on_config_changed() -> None:
+def on_lists_changed() -> None:
     host_blocker.update_files()
 
 

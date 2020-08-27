@@ -681,9 +681,9 @@ content.blocking.whitelist:
 
     Note this whitelists otherwise blocked requests, not first-party URLs. As
     an example, if `example.org` loads an ad from `ads.example.org`, the
-    whitelist entry could be `https://ads.example.org/*`. If you want to disable the
-    adblocker on a given page, use the `content.host_blocking.enabled` setting
-    with a URL pattern instead.
+    whitelist entry could be `https://ads.example.org/*`. If you want to
+    disable the adblocker on a given page, use the
+    `content.host_blocking.enabled` setting with a URL pattern instead.
 
 content.hyperlink_auditing:
   default: false

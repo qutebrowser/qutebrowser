@@ -21,7 +21,6 @@
 
 import io
 import os.path
-import functools
 import logging
 import typing
 import pathlib
@@ -29,7 +28,6 @@ import pathlib
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.api import (
-    cmdutils,
     hook,
     config,
     message,
@@ -79,9 +77,8 @@ def _possibly_show_missing_dependency_warning() -> None:
     method = config.val.content.blocking.method
     if method in ("adblock", "both"):
         message.warning(
-            "Ad blocking method is set to '{}' but 'adblock' dependency is not installed.".format(
-                method
-            )
+            "Ad blocking method is set to '{}' but 'adblock' dependency is"
+            " not installed.".format(method)
         )
 
 
@@ -178,16 +175,16 @@ class BraveAdBlocker:
             return False
         if result.exception is not None and not result.important:
             logger.debug(
-                "Excepting {} from being blocked by {} because of {}".format(
-                    request_url.toDisplayString(), result.filter, result.exception
-                )
+                "Excepting %s from being blocked by %s because of %s",
+                request_url.toDisplayString(),
+                result.filter,
+                result.exception,
             )
             return False
         if _is_whitelisted_url(request_url):
             logger.debug(
-                "Request to {} is whitelisted, thus not blocked".format(
-                    request_url.toDisplayString()
-                )
+                "Request to %s is whitelisted, thus not blocked",
+                request_url.toDisplayString(),
             )
             return False
         return True
@@ -196,15 +193,15 @@ class BraveAdBlocker:
         """Block the given request if necessary."""
         if self._is_blocked(info.request_url, info.first_party_url, info.resource_type):
             logger.debug(
-                "Request to {} blocked by ad blocker.".format(
-                    info.request_url.toDisplayString()
-                )
+                "Request to %s blocked by ad blocker.",
+                info.request_url.toDisplayString(),
             )
             info.block()
 
     def read_cache(self) -> None:
+        """Initialize the adblocking engine from cache file."""
         if self._cache_path.is_file():
-            logger.debug("Loading cached adblock data: {}".format(self._cache_path))
+            logger.debug("Loading cached adblock data: %s", self._cache_path)
             self._engine.deserialize_from_file(str(self._cache_path))
         else:
             if (
@@ -227,7 +224,7 @@ class BraveAdBlocker:
             self._on_lists_downloaded()
         else:
             self._finished_registering_downloads = False
-            for i, url in enumerate(blocklists):
+            for url in blocklists:
                 blockutils.download_blocklist_url(
                     url, self._on_download_finished, self._in_progress
                 )
@@ -287,12 +284,14 @@ class BraveAdBlocker:
 
 @hook.config_changed("content.blocking.adblock.lists")
 def on_lists_changed() -> None:
+    """Remove cached blocker from disk when blocklist changes."""
     if ad_blocker is not None:
         ad_blocker.update_files()
 
 
 @hook.config_changed("content.blocking.method")
 def on_method_changed() -> None:
+    """When the adblocking method changes, update blocker accordingly."""
     if ad_blocker is not None:
         # This implies the 'adblock' dependency is satisfied
         ad_blocker.enabled = _should_be_used()

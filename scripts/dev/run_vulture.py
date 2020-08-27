@@ -132,7 +132,10 @@ def whitelist_generator():  # noqa
     yield 'scripts.importer.import_moz_places.places.row_factory'
 
     # component hooks
-    yield 'qutebrowser.components.adblock.on_config_changed'
+    yield 'qutebrowser.components.adblock.on_lists_changed'
+    yield 'qutebrowser.components.braveadblock.on_lists_changed'
+    yield 'qutebrowser.components.adblock.on_method_changed'
+    yield 'qutebrowser.components.braveadblock.on_method_changed'
 
     # used in type comments
     yield 'pending_download_type'

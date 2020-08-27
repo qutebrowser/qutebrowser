@@ -26,7 +26,6 @@ import typing
 from PyQt5.QtCore import QUrl
 
 import pytest
-import adblock
 
 from qutebrowser.api.interceptor import ResourceType
 from qutebrowser.components import braveadblock
@@ -148,7 +147,7 @@ def blocklist_invalid_utf8(tmpdir):
 
 @pytest.fixture
 def easylist_easyprivacy_both(tmpdir):
-    """Put easyprivacy and easylist blocklists into a tempdir
+    """Put easyprivacy and easylist blocklists into a tempdir.
 
     Copy the easyprivacy and easylist blocklists into a temporary directory,
     then return both a list containing `file://` urls, and the residing dir.
@@ -177,7 +176,7 @@ def empty_dir(tmpdir):
 
 @pytest.fixture
 def easylist_easyprivacy(easylist_easyprivacy_both):
-    """The first return value of `easylist_easyprivacy_both`"""
+    """The first return value of `easylist_easyprivacy_both`."""
     return easylist_easyprivacy_both[0]
 
 
