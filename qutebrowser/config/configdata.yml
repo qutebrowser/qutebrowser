@@ -646,7 +646,8 @@ content.blocking.method:
   type:
     name: String
     valid_values:
-      - auto: Use Brave's ABP-style adblocker if available, host blocking otherwise
+      - auto: "Use Brave's ABP-style adblocker if available, host blocking
+        otherwise"
       - adblock: Use Brave's ABP-style adblocker
       - hosts: Use hosts blocking
       - both: Use both hosts blocking and Brave's ABP-style adblocker
