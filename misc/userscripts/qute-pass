@@ -142,7 +142,7 @@ def _run_pass(pass_arguments, encoding):
 
 
 def pass_(path, encoding):
-    return _run_pass([path], encoding)
+    return _run_pass(['show', path], encoding)
 
 
 def pass_otp(path, encoding):
