@@ -781,6 +781,8 @@ class TestParseJavascriptUrl:
 
     @pytest.mark.parametrize('url, source', [
         (QUrl('javascript:"hello" %0a "world"'), '"hello" \n "world"'),
+        (QUrl('javascript:/'), '/'),
+        (QUrl('javascript:///'), '///'),
         # https://github.com/web-platform-tests/wpt/blob/master/html/browsers/browsing-the-web/navigating-across-documents/javascript-url-query-fragment-components.html
         (QUrl('javascript:"nope" ? "yep" : "what";'), '"nope" ? "yep" : "what";'),
         (QUrl('javascript:"wrong"; // # %0a "ok";'), '"wrong"; // # \n "ok";'),
