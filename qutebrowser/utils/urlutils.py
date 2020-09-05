@@ -644,7 +644,7 @@ def parse_javascript_url(url: QUrl) -> str:
         raise Error("URL contains unexpected components: {}"
                     .format(url.authority()))
 
-    urlstr = url.toString(QUrl.FullyEncoded)
+    urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
     urlstr = urllib.parse.unquote(urlstr)
 
     code = urlstr[len('javascript:'):]
