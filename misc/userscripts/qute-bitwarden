@@ -281,7 +281,7 @@ def main(arguments):
         qute_command('enter-mode insert')
 
     # If it finds a TOTP code, it copies it to the clipboard,
-    # which is the same behaviour as the Firefox add-on.
+    # which is the same behavior as the Firefox add-on.
     if not arguments.totp_only and totp and arguments.totp:
         # The import is done here, to make pyperclip an optional dependency
         import pyperclip
