@@ -90,7 +90,7 @@ def check_spelling():
              'exitted', 'mininum', 'resett?ed', 'recieved', 'regularily',
              'underlaying', 'inexistant', 'elipsis', 'commiting', 'existant',
              'resetted', 'similarily', 'informations', 'an url', 'treshold',
-             'artefact'}
+             'artefact', 'an unix', 'an utf', 'an unicode'}
 
     # Words which look better when splitted, but might need some fine tuning.
     words |= {'webelements', 'mouseevent', 'keysequence', 'normalmode',

@@ -40,7 +40,7 @@ The following userscripts are included in the current directory.
 
 The following userscripts can be found on their own repositories.
 
-- [qurlshare](https://github.com/sim590/qurlshare): *secure* sharing of an URL between qutebrowser
+- [qurlshare](https://github.com/sim590/qurlshare): *secure* sharing of a URL between qutebrowser
   instances using a distributed hash table.
 - [qutebrowser-userscripts](https://github.com/cryzed/qutebrowser-userscripts):
   a small pack of userscripts.

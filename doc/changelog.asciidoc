@@ -1131,7 +1131,7 @@ Fixed
 
 - `qute://` pages now work properly on Qt 5.11.2
 - Error when passing a substring with spaces to `:tab-take`.
-- Greasemonkey scripts which start with an UTF-8 BOM are now handled correctly.
+- Greasemonkey scripts which start with a UTF-8 BOM are now handled correctly.
 - When no documentation has been generated, the plaintext documentation now can
   be shown for more files such as `qute://help/userscripts.html`.
 - Crash when doing initial run on Wayland without XWayland.
