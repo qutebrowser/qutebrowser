@@ -50,7 +50,8 @@ def _get_files(
     filenames = subprocess.run(
         ['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'],
         stdout=subprocess.PIPE,
-        universal_newlines=True
+        universal_newlines=True,
+        check=True,
     )
     all_ignored = ignored or []
     all_ignored.append(
@@ -68,7 +69,7 @@ def _get_files(
         yield path
 
 
-def check_git(_args: argparse.Namespace) -> bool:
+def check_git(_args: argparse.Namespace = None) -> bool:
     """Check for uncommitted git files.."""
     if not os.path.isdir(".git"):
         print("No .git dir, ignoring")
@@ -160,7 +161,7 @@ def check_vcs_conflict(args: argparse.Namespace) -> Optional[bool]:
         return None
 
 
-def check_userscripts_descriptions(_args: argparse.Namespace) -> bool:
+def check_userscripts_descriptions(_args: argparse.Namespace = None) -> bool:
     """Make sure all userscripts are described properly."""
     folder = pathlib.Path('misc/userscripts')
     readme = folder / 'README.md'
