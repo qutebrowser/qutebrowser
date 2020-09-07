@@ -52,6 +52,10 @@ Changed
 - `:completion-item-focus` now understands `next-page` and `prev-page` with
   corresponding `<PgDown>` / `<PgUp>` default bindings.
 - When the last private window is closed, all private browsing data is now cleared.
+- When `config.source(...)` is used with a `--config-py` argument given,
+  qutebrowser used to search relative files in the config basedir, leading to them
+  not being found when using a shared `config.py` for different basedirs. Instead,
+  they are now searched relative to the given `config.py` file.
 
 Added
 ~~~~~

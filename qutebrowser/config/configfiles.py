@@ -606,7 +606,9 @@ class ConfigAPI:
     def source(self, filename: str) -> None:
         """Read the given config file from disk."""
         if not os.path.isabs(filename):
-            filename = str(self.configdir / filename)
+            # We don't use self.configdir here so we get the proper file when starting
+            # with a --config-py argument given.
+            filename = os.path.join(os.path.dirname(standarddir.config_py()), filename)
 
         try:
             read_config_py(filename)
