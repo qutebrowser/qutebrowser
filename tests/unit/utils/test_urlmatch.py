@@ -606,7 +606,7 @@ URL_TEXT = hst.text(alphabet=string.ascii_letters)
 @hypothesis.given(pattern=hst.builds(
     lambda *a: ''.join(a),
     # Scheme
-    hst.sampled_from(['*', 'http','file']),
+    hst.sampled_from(['*', 'http', 'file']),
     # Separator
     hst.sampled_from([':', '://']),
     # Host
