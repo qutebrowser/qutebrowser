@@ -39,11 +39,11 @@ def command(*, info):
 
 def helptopic(*, info):
     """A CompletionModel filled with help topics."""
-    model = completionmodel.CompletionModel()
+    model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
 
     cmdlist = util.get_cmd_completions(info, include_aliases=False,
                                        include_hidden=True, prefix=':')
-    settings = ((opt.name, opt.description)
+    settings = ((opt.name, opt.description, info.config.get_str(opt.name))
                 for opt in configdata.DATA.values())
 
     model.add_category(listcategory.ListCategory("Commands", cmdlist))

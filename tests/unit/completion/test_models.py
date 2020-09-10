@@ -269,13 +269,38 @@ def test_help_completion(qtmodeltester, cmdutils_stub, key_config_stub,
             (':tab-close', 'Close the current tab.', ''),
         ],
         "Settings": [
-            ('aliases', 'Aliases for commands.', None),
-            ('bindings.commands', 'Default keybindings', None),
-            ('bindings.default', 'Default keybindings', None),
-            ('completion.open_categories', 'Which categories to show (in '
-             'which order) in the :open completion.', None),
-            ('content.javascript.enabled', 'Enable/Disable JavaScript', None),
-            ('url.searchengines', 'searchengines list', None),
+            (
+                'aliases',
+                'Aliases for commands.',
+                '{"q": "quit"}',
+            ),
+            (
+                'bindings.commands',
+                'Default keybindings',
+                ('{"normal": {"<Ctrl+q>": "quit", "I": "invalid", "ZQ": "quit", '
+                 '"d": "scroll down"}}'),
+            ),
+            (
+                'bindings.default',
+                'Default keybindings',
+                '{"normal": {"<Ctrl+q>": "quit", "d": "tab-close"}}',
+            ),
+            (
+                'completion.open_categories',
+                'Which categories to show (in which order) in the :open completion.',
+                '["searchengines", "quickmarks", "bookmarks", "history"]',
+            ),
+            (
+                'content.javascript.enabled',
+                'Enable/Disable JavaScript',
+                'true'
+            ),
+            (
+                'url.searchengines',
+                'searchengines list',
+                ('{"DEFAULT": "https://duckduckgo.com/?q={}", '
+                 '"google": "https://google.com/?q={}"}'),
+            ),
         ],
     })
 
