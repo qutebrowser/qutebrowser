@@ -38,7 +38,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 from scripts import utils
 
 BINARY_EXTS = {'.png', '.icns', '.ico', '.bmp', '.gz', '.bin', '.pdf',
-               '.sqlite', '.woff2'}
+               '.sqlite', '.woff2', '.whl'}
 
 
 def _get_files(
