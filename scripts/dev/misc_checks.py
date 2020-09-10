@@ -63,6 +63,15 @@ def _get_files(
         if not filename or path.suffix in BINARY_EXTS or is_ignored:
             continue
 
+        try:
+            with tokenize.open(str(path)):
+                pass
+        except SyntaxError as e:
+            # Could not find encoding
+            utils.print_col("{} - maybe {} should be added to BINARY_EXTS?".format(
+                str(e).capitalize(), path.suffix), 'yellow')
+            continue
+
         if verbose:
             print(path)
 
