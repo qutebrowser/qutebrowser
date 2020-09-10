@@ -164,7 +164,7 @@ def _find_prevnext(prev, elems):
         if 'rel' in e and set(e['rel'].split(' ')) & rel_values:
             log.hints.debug("Found {!r} with rel={}".format(e, e['rel']))
             return e
-        elif set(e.classes()) & classes:
+        elif e.classes() & classes:
             log.hints.debug("Found {!r} with class={}".format(e, e.classes()))
             return e
 

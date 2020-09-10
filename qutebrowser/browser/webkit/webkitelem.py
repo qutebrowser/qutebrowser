@@ -101,9 +101,9 @@ class WebKitElement(webelem.AbstractWebElement):
         self._check_vanished()
         return self._elem.geometry()
 
-    def classes(self) -> typing.List[str]:
+    def classes(self) -> typing.Set[str]:
         self._check_vanished()
-        return self._elem.classes()
+        return set(self._elem.classes())
 
     def tag_name(self) -> str:
         """Get the tag name for the current element."""
