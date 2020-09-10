@@ -56,6 +56,9 @@ Changed
   qutebrowser used to search relative files in the config basedir, leading to them
   not being found when using a shared `config.py` for different basedirs. Instead,
   they are now searched relative to the given `config.py` file.
+- `navigate prev` (`[[`) and `navigate next` (`]]`) now recognize links with
+  `nav-prev` and `nav-next` classes, such as those used by the Hugo static site
+  generator.
 
 Added
 ~~~~~
