@@ -124,7 +124,7 @@ def configdata_stub(config_stub, monkeypatch, configdata_init):
             no_autoconfig=True)),
         ('bindings.commands', configdata.Option(
             name='bindings.commands',
-            description='Default keybindings',
+            description='Custom keybindings',
             typ=configtypes.Dict(
                 keytype=configtypes.String(),
                 valtype=configtypes.Dict(
@@ -276,7 +276,7 @@ def test_help_completion(qtmodeltester, cmdutils_stub, key_config_stub,
             ),
             (
                 'bindings.commands',
-                'Default keybindings',
+                'Custom keybindings',
                 ('{"normal": {"<Ctrl+q>": "quit", "I": "invalid", "ZQ": "quit", '
                  '"d": "scroll down"}}'),
             ),
@@ -934,7 +934,7 @@ def test_setting_option_completion(qtmodeltester, config_stub,
     _check_completions(model, {
         "Options": [
             ('aliases', 'Aliases for commands.', '{"q": "quit"}'),
-            ('bindings.commands', 'Default keybindings', (
+            ('bindings.commands', 'Custom keybindings', (
                 '{"normal": {"<Ctrl+q>": "quit", "I": "invalid", '
                 '"ZQ": "quit", "d": "scroll down"}}')),
             ('completion.open_categories', 'Which categories to show (in '
@@ -958,7 +958,7 @@ def test_setting_dict_option_completion(qtmodeltester, config_stub,
     _check_completions(model, {
         "Dict options": [
             ('aliases', 'Aliases for commands.', '{"q": "quit"}'),
-            ('bindings.commands', 'Default keybindings', (
+            ('bindings.commands', 'Custom keybindings', (
                 '{"normal": {"<Ctrl+q>": "quit", "I": "invalid", '
                 '"ZQ": "quit", "d": "scroll down"}}')),
             ('url.searchengines', 'searchengines list',
