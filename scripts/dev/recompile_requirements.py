@@ -115,6 +115,7 @@ CHANGELOG_URLS = {
     'idna': 'https://github.com/kjd/idna/blob/master/HISTORY.rst',
     'tldextract': 'https://github.com/john-kurkowski/tldextract/blob/master/CHANGELOG.md',
     'typing_extensions': 'https://github.com/python/typing/commits/master/typing_extensions',
+    'diff_cover': 'https://github.com/Bachmann1234/diff_cover/blob/master/CHANGELOG',
 }
 
 # PyQt versions which need SIP v4
