@@ -9,7 +9,7 @@ py==1.9.0
 pyparsing==2.4.7
 six==1.15.0
 toml==0.10.1
-tox==3.19.0
+tox==3.20.0
 tox-pip-version==0.0.7
 tox-venv==0.4.0
 virtualenv==20.0.31
