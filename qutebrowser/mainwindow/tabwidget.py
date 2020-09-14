@@ -344,14 +344,11 @@ class TabWidget(QTabWidget):
         """Update favicon of the given tab."""
         idx = self.indexOf(tab)
 
-        if tab.data.should_show_icon():
-            self.setTabIcon(idx, tab.icon())
-            if config.val.tabs.tabs_are_windows:
-                self.window().setWindowIcon(tab.icon())
-        else:
-            self.setTabIcon(idx, QIcon())
-            if config.val.tabs.tabs_are_windows:
-                self.window().setWindowIcon(self.window().windowIcon())
+        icon = tab.icon() if tab.data.should_show_icon() else QIcon()
+        self.setTabIcon(idx, icon)
+
+        if config.val.tabs.tabs_are_windows:
+            self.window().setWindowIcon(tab.icon())
 
     def setTabIcon(self, idx: int, icon: QIcon) -> None:
         """Always show tab icons for pinned tabs in some circumstances."""
