@@ -59,6 +59,8 @@ Changed
 - `navigate prev` (`[[`) and `navigate next` (`]]`) now recognize links with
   `nav-prev` and `nav-next` classes, such as those used by the Hugo static site
   generator.
+- When `tabs.favicons` is disabled but `tabs.tabs_are_windows` is set, the
+  window icon is still set to the page's favicon now.
 
 Added
 ~~~~~
@@ -123,6 +125,8 @@ Fixed
 - The `qute-pass` userscript now works correctly with newer
   `gopass` versions again, instead of copying a deprecation notice
   as password.
+- When `:undo` to re-open a tab but `tabs.tabs_are_windows` was set between
+  closing and undoing the close, qutebrowser crashed. This is now fixed.
 
 v1.13.1 (2020-07-17)
 --------------------
