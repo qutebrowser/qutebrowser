@@ -35,4 +35,7 @@ tldextract
 #@ markers: vulture python_version>="3.6"
 #@ add: vulture==1.6; python_version<"3.6"
 
+#@ markers: hypothesis python_version>="3.6"
+#@ add: hypothesis<5.34.0; python_version<"3.6"
+
 #@ ignore: Jinja2, MarkupSafe, colorama

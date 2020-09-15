@@ -12,7 +12,7 @@ EasyProcess==0.3
 Flask==1.1.2
 glob2==0.7
 hunter==3.2.2
-hypothesis==5.35.1
+hypothesis==5.35.2 ; python_version>="3.6"
 idna==2.10
 iniconfig==1.0.1
 itsdangerous==1.1.0
@@ -53,3 +53,4 @@ vulture==2.1 ; python_version>="3.6"
 Werkzeug==1.0.1
 jaraco.functools==2.0; python_version<"3.6"
 vulture==1.6; python_version<"3.6"
+hypothesis<5.34.0; python_version<"3.6"
