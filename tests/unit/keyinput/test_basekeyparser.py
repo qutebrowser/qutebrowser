@@ -21,7 +21,7 @@
 
 from unittest import mock
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, PYQT_VERSION
 import pytest
 
 from qutebrowser.keyinput import basekeyparser, keyutils
@@ -309,6 +309,8 @@ class TestCount:
         # https://github.com/qutebrowser/qutebrowser/issues/3743
         handle_text(prompt_keyparser, Qt.Key_twosuperior, Qt.Key_B, Qt.Key_A)
 
+    @pytest.mark.skipif(PYQT_VERSION == 0x050F01,
+                        reason='waitSignals is broken in PyQt 5.15.1')
     def test_count_keystring_update(self, qtbot,
                                     handle_text, prompt_keyparser):
         """Make sure the keystring is updated correctly when entering count."""
