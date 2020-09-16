@@ -29,7 +29,7 @@ install: man
 	install -Dm644 icons/qutebrowser.svg \
 		"$(DESTDIR)$(DATADIR)/icons/hicolor/scalable/apps/qutebrowser.svg"
 	install -Dm755 -t "$(DESTDIR)$(DATADIR)/qutebrowser/userscripts/" \
-		$(wildcard misc/userscripts/*)
+		$(filter-out misc/userscripts/__pycache__,$(wildcard misc/userscripts/*))
 	install -Dm755 -t "$(DESTDIR)$(DATADIR)/qutebrowser/scripts/" \
 		$(filter-out scripts/__init__.py scripts/__pycache__ scripts/dev \
 		  scripts/testbrowser scripts/asciidoc2html.py scripts/setupcommon.py \
