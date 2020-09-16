@@ -201,7 +201,7 @@ def build_mac():
     utils.print_title("Updating 3rdparty content")
     update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False)
     utils.print_title("Building .app via pyinstaller")
-    call_tox('pyinstaller', '-r')
+    call_tox('pyinstaller-64', '-r')
     utils.print_title("Patching .app")
     patch_mac_app()
     utils.print_title("Building .dmg")
