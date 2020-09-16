@@ -60,6 +60,12 @@ Changed
   generator.
 - When `tabs.favicons` is disabled but `tabs.tabs_are_windows` is set, the
   window icon is still set to the page's favicon now.
+- The `--asciidoc` argument to `src2asciidoc.py` and `build_release.py` now
+  only takes the path to `asciidoc.py`, using the current Python interpreter by
+  default. To configure the Python interpreter as well, use
+  `--asciidoc-python path/to/python --asciidoc path/to/asciidoc.py`
+  instead of the former
+  `--asciidoc path/to/python path/to/asciidoc.py`.
 
 Added
 ~~~~~
