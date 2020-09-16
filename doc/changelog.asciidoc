@@ -36,8 +36,7 @@ Changed
   partially transparent qutebrowser window on a setup which supports doing so.
 - If QtWebEngine is compiled with PipeWire support and libpipewire is
   installed, qutebrowser will now support screen sharing on Wayland. Note that
-  QtWebEngine 5.15.1 (planned for August 2020) is needed, though the Archlinux
-  qt5-webengine package backports the patch.
+  QtWebEngine 5.15.1 is needed.
 - When `:undo` is used with a count, it now reopens the count-th to last tab
   instead of the last one. The depth can instead be passed as an argument,
   which is also completed.
