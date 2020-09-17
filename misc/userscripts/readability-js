@@ -44,6 +44,16 @@ const HEADER = `
         h1, h2, h3 {
             line-height: 1.2;
         }
+        img {
+            max-width:100%;
+            height:auto;
+        }
+        p > img:only-child,
+        p > a:only-child > img:only-child,
+        .wp-caption img,
+        figure img {
+            display: block;
+        }
     </style>
     <!-- This icon is licensed under the Mozilla Public License 2.0 (available at: https://www.mozilla.org/en-US/MPL/2.0/).
     The original icon can be found here: https://dxr.mozilla.org/mozilla-central/source/browser/themes/shared/reader/readerMode.svg -->
