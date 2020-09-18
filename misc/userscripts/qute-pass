@@ -137,7 +137,9 @@ def find_pass_candidates(domain, password_store_path):
 def _run_pass(pass_arguments, encoding, password_store):
     # The executable is conveniently named after it's mode [pass|gopass].
     pass_command = [arguments.mode]
-    process = subprocess.run(pass_command + pass_arguments, env={'PASSWORD_STORE_DIR': password_store}, stdout=subprocess.PIPE)
+    env = os.environ.copy()
+    env['PASSWORD_STORE_DIR'] = password_store
+    process = subprocess.run(pass_command + pass_arguments, env=env, stdout=subprocess.PIPE)
     return process.stdout.decode(encoding).strip()
 
 
