@@ -134,19 +134,19 @@ def find_pass_candidates(domain, password_store_path):
     return candidates
 
 
-def _run_pass(pass_arguments, encoding):
+def _run_pass(pass_arguments, encoding, password_store):
     # The executable is conveniently named after it's mode [pass|gopass].
     pass_command = [arguments.mode]
-    process = subprocess.run(pass_command + pass_arguments, stdout=subprocess.PIPE)
+    process = subprocess.run(pass_command + pass_arguments, env={'PASSWORD_STORE_DIR': password_store}, stdout=subprocess.PIPE)
     return process.stdout.decode(encoding).strip()
 
 
-def pass_(path, encoding):
-    return _run_pass(['show', path], encoding)
+def pass_(path, encoding, password_store):
+    return _run_pass(['show', path], encoding, password_store)
 
 
-def pass_otp(path, encoding):
-    return _run_pass(['otp', path], encoding)
+def pass_otp(path, encoding, password_store):
+    return _run_pass(['otp', path], encoding, password_store)
 
 
 def dmenu(items, invocation, encoding):
@@ -209,7 +209,7 @@ def main(arguments):
     # If username-target is path and user asked for username-only, we don't need to run pass
     secret = None
     if not (arguments.username_target == 'path' and arguments.username_only):
-        secret = pass_(selection, arguments.io_encoding)
+        secret = pass_(selection, arguments.io_encoding, arguments.password_store)
 
         # Match password
         match = re.match(arguments.password_pattern, secret)
