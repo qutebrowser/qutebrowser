@@ -276,8 +276,8 @@ class Change:
         self.name = name
         self.old = None
         self.new = None
-        if name.lower() in CHANGELOG_URLS:
-            self.url = CHANGELOG_URLS[name.lower()]
+        if name in CHANGELOG_URLS:
+            self.url = CHANGELOG_URLS[name]
             self.link = '[{}]({})'.format(self.name, self.url)
         else:
             self.url = '(no changelog)'
