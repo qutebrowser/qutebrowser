@@ -28,10 +28,20 @@ Debian/Ubuntu/...
 ^^^^^^^^^^^^^^^^^
 
 For Debian based systems (Debian, Ubuntu, Linux Mint, ...), debug information
-is available in the repositories:
+is for QtWebEngine is available in a dedicated repository. Enable that repository
+(https://wiki.debian.org/HowToGetABacktrace#Installing_the_debugging_symbols[Debian],
+https://wiki.ubuntu.com/Debug%20Symbol%20Packages[Ubuntu],
+https://www.linuxmint.com/rel_tessa_mate_whatsnew.php[Linux Mint]) and install
+the debug packages:
 
 ----
-# apt-get install python3-pyqt5-dbg python3-pyqt5.qtwebkit-dbg python3-dbg libqt5webkit5-dbg
+# apt install python3-dbg python3-pyqt5-dbg python3-pyqt5.qtwebengine-dbg libqt5webengine5-dbgsym
+----
+
+or with the QtWebKit backend:
+
+----
+# apt install python3-dbg python3-pyqt5-dbg python3-pyqt5.qtwebkit-dbg libqt5webkit5-dbg
 ----
 
 Fedora
@@ -116,7 +126,7 @@ First install `gdb` on your system if it's not installed already.
 Then run qutebrowser directly inside gdb like this:
 
 ----
-$ gdb $(readlink -f $(which python3)) -ex 'run -m qutebrowser --debug'
+$ gdb -ex r --args $(readlink -f $(which python3)) -m qutebrowser --debug --temp-basedir
 ----
 
 Note qutebrowser/gdb will take a long time to start. After you reproduce the
@@ -131,9 +141,10 @@ Program received signal SIGSEGV, Segmentation fault.
 Now enter these commands at the gdb prompt:
 
 ----
+(gdb) set pagination off
+(gdb) set logging overwrite on
 (gdb) set logging on
-(gdb) bt full
-# you might have to press enter a few times until you get the prompt back
+(gdb) bt
 (gdb) quit
 ----
 
@@ -176,9 +187,10 @@ Getting the stack trace
 Now enter these commands at the gdb prompt:
 
 ----
+(gdb) set pagination off
+(gdb) set logging overwrite on
 (gdb) set logging on
 (gdb) bt
-# you might have to press enter a few times until you get the prompt back
 (gdb) quit
 ----
 
