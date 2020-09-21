@@ -324,6 +324,8 @@ def print_changed_files():
 
         if '==' in line:
             name, version = line[1:].split('==')
+            if ';' in version:  # pip environment markers
+                version = version.split(';')[0].strip()
         else:
             name = line[1:]
             version = '?'
