@@ -35,7 +35,7 @@ https://www.linuxmint.com/rel_tessa_mate_whatsnew.php[Linux Mint]) and install
 the debug packages:
 
 ----
-# apt install python3-dbg python3-pyqt5-dbg python3-pyqt5.qtwebengine-dbg libqt5webengine5-dbgsym
+# apt install python3-dbg python3-pyqt5-dbg python3-pyqt5.qtwebengine-dbg libqt5webengine5-dbgsym libqt5webenginecore5-dbgsym
 ----
 
 or with the QtWebKit backend:
