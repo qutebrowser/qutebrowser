@@ -140,7 +140,7 @@ class BraveAdBlocker:
         self._in_progress = []  # type: typing.List[downloads.TempDownload]
         self._done_count = 0
         self._finished_registering_downloads = False
-        self._wip_filter_set: typing.Optional[adblock.FilterSet] = None
+        self._wip_filter_set = None  # type: typing.Optional[adblock.FilterSet]
         self._engine = adblock.Engine(adblock.FilterSet())
 
     def _is_blocked(
@@ -268,7 +268,9 @@ class BraveAdBlocker:
             assert self._wip_filter_set is not None
             try:
                 download.fileobj.seek(0)
-                text = io.TextIOWrapper(download.fileobj, encoding="utf-8")
+                # WORKAROUND for https://github.com/python/typeshed/pull/4145
+                fileobj = typing.cast(typing.BinaryIO, download.fileobj)
+                text = io.TextIOWrapper(fileobj, encoding="utf-8")
                 self._wip_filter_set.add_filter_list(text.read())
                 text.close()
             except UnicodeDecodeError:
