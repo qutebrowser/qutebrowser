@@ -1545,9 +1545,7 @@ class WebEngineTab(browsertab.AbstractTab):
             authenticator.setPassword(answer.password)
         else:
             try:
-                sip.assign(  # type: ignore[attr-defined]
-                    authenticator,
-                    QAuthenticator())
+                sip.assign(authenticator, QAuthenticator())
             except AttributeError:
                 self._show_error_page(url, "Proxy authentication required")
 
@@ -1568,8 +1566,7 @@ class WebEngineTab(browsertab.AbstractTab):
         if not netrc_success and answer is None:
             log.network.debug("Aborting auth")
             try:
-                sip.assign(  # type: ignore[attr-defined]
-                    authenticator, QAuthenticator())
+                sip.assign(authenticator, QAuthenticator())
             except AttributeError:
                 # WORKAROUND for
                 # https://www.riverbankcomputing.com/pipermail/pyqt/2016-December/038400.html

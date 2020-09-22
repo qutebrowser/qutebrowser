@@ -260,7 +260,7 @@ def configure_pyqt():
     from qutebrowser.qt import sip
     try:
         # Added in sip 4.19.4
-        sip.enableoverflowchecking(True)  # type: ignore[attr-defined]
+        sip.enableoverflowchecking(True)
     except AttributeError:
         pass
 
