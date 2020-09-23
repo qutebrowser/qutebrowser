@@ -2,6 +2,3 @@ mypy
 lxml  # For HTML reports
 diff-cover
 -e git+https://github.com/stlehmann/PyQt5-stubs.git@master#egg=PyQt5-stubs
-
-# remove @commit-id for scm installs
-#@ replace: @.*# @master#
