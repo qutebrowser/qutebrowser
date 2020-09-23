@@ -76,6 +76,13 @@ const HEADER = `
             margin: 0;
             background-color: ##dddddd;
         }
+        blockquote {
+            border-inline-start: 2px solid #333333 !important;
+            padding: 0;
+            padding-inline-start: 16px;
+            margin-inline-start: 24px;
+            border-radius: 5px;
+        }
     </style>
     <!-- This icon is licensed under the Mozilla Public License 2.0 (available at: https://www.mozilla.org/en-US/MPL/2.0/).
     The original icon can be found here: https://dxr.mozilla.org/mozilla-central/source/browser/themes/shared/reader/readerMode.svg -->
