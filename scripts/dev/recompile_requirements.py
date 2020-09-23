@@ -110,6 +110,7 @@ CHANGELOG_URLS = {
     'PyQtWebEngine': 'https://www.riverbankcomputing.com/news',
     'PyQt-builder': 'https://www.riverbankcomputing.com/news',
     'PyQt5-sip': 'https://www.riverbankcomputing.com/news',
+    'PyQt5_stubs': 'https://github.com/stlehmann/PyQt5-stubs/blob/master/CHANGELOG.md',
     'sip': 'https://www.riverbankcomputing.com/news',
     'Pygments': 'https://pygments.org/docs/changelog/',
     'vulture': 'https://github.com/jendrikseipp/vulture/blob/master/CHANGELOG.md',
@@ -326,6 +327,9 @@ def print_changed_files():
             name, version = line[1:].split('==')
             if ';' in version:  # pip environment markers
                 version = version.split(';')[0].strip()
+        elif line[1:].startswith('-e'):
+            rest, name = line.split('#egg=')
+            version = rest.split('@')[1][:7]
         else:
             name = line[1:]
             version = '?'
