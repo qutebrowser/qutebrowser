@@ -74,7 +74,7 @@ const HEADER = `
         code { 
             padding: .2em .4em;
             margin: 0;
-            background-color: ##dddddd;
+            background-color: #dddddd;
         }
         blockquote {
             border-inline-start: 2px solid #333333 !important;
