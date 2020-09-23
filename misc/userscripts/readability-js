@@ -54,6 +54,28 @@ const HEADER = `
         figure img {
             display: block;
         }
+        table,
+        th,
+        td {
+            border: 1px solid currentColor;
+            border-collapse: collapse;
+            padding: 6px;
+            vertical-align: top;
+        }
+        table {
+            margin: 5px;
+        }
+        pre {
+            padding: 16px;
+            overflow: auto;
+            line-height: 1.45;
+            background-color: #dddddd;
+        }
+        code { 
+            padding: .2em .4em;
+            margin: 0;
+            background-color: ##dddddd;
+        }
     </style>
     <!-- This icon is licensed under the Mozilla Public License 2.0 (available at: https://www.mozilla.org/en-US/MPL/2.0/).
     The original icon can be found here: https://dxr.mozilla.org/mozilla-central/source/browser/themes/shared/reader/readerMode.svg -->
