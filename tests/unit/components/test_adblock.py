@@ -251,7 +251,9 @@ def generic_blocklists(directory):
         (False, "hosts"),
     ],
 )
-def test_disabled_blocking_update(config_stub, tmpdir, caplog, host_blocker_factory, blocking_enabled, method):
+def test_disabled_blocking_update(
+    config_stub, tmpdir, caplog, host_blocker_factory, blocking_enabled, method
+):
     """Ensure no URL is blocked when host blocking should be disabled."""
     config_stub.val.content.blocking.hosts.lists = generic_blocklists(tmpdir)
     config_stub.val.content.blocking.enabled = blocking_enabled

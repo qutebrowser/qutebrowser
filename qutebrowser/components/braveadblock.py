@@ -20,7 +20,6 @@
 """Functions related to the Brave adblocker."""
 
 import io
-import os.path
 import logging
 import typing
 import pathlib
@@ -47,15 +46,6 @@ except ImportError:
 
 logger = logging.getLogger("network")
 ad_blocker = typing.cast(typing.Optional["BraveAdBlocker"], None)
-
-
-def _is_whitelisted_url(url: QUrl) -> bool:
-    """Check if the given URL is on the adblock whitelist."""
-    for pattern in config.val.content.blocking.whitelist:
-        if pattern.matches(url):
-            return True
-
-    return False
 
 
 def _should_be_used() -> bool:
@@ -181,7 +171,7 @@ class BraveAdBlocker:
                 result.exception,
             )
             return False
-        elif _is_whitelisted_url(request_url):
+        elif blockutils.is_whitelisted_url(request_url):
             logger.debug(
                 "Request to %s is whitelisted, thus not blocked",
                 request_url.toDisplayString(),
@@ -248,7 +238,7 @@ class BraveAdBlocker:
         """Update files when the config changed."""
         if not config.val.content.blocking.adblock.lists:
             try:
-                os.remove(self._cache_path)
+                self._cache_path.unlink()
             except FileNotFoundError:
                 pass
             except OSError as e:

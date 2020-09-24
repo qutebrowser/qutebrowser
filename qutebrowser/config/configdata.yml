@@ -656,8 +656,7 @@ content.blocking.method:
 
     Support for Adblock Plus syntax blocklists requires the `adblock` Python
     package to be installed, which is an optional dependency of qutebrowser.
-    It can be installed using the command `pip install --user adblock`. This
-    is required when either `adblock` or `both` are selected.
+    It is required when either `adblock` or `both` are selected.
 
 content.blocking.adblock.lists:
   default:

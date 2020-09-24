@@ -29,6 +29,7 @@ import pytest
 
 from qutebrowser.api.interceptor import ResourceType
 from qutebrowser.components import braveadblock
+from qutebrowser.components.utils import blockutils
 from helpers import utils
 
 pytestmark = pytest.mark.usefixtures("qapp")
@@ -139,10 +140,9 @@ def assert_none_blocked(ad_blocker):
 
 @pytest.fixture
 def blocklist_invalid_utf8(tmpdir):
-    dest_path = os.path.join(tmpdir, "invalid_utf8.txt")
-    with open(dest_path, "wb") as f:
-        f.write(b"invalidutf8\xa0")
-    return QUrl.fromLocalFile(dest_path).toString()
+    dest_path = tmpdir / "invalid_utf8.txt"
+    dest_path.write_binary(b"invalidutf8\xa0")
+    return QUrl.fromLocalFile(str(dest_path)).toString()
 
 
 @pytest.fixture
@@ -152,18 +152,18 @@ def easylist_easyprivacy_both(tmpdir):
     Copy the easyprivacy and easylist blocklists into a temporary directory,
     then return both a list containing `file://` urls, and the residing dir.
     """
-    bl_dst_dir = os.path.join(str(tmpdir), "blocklists")
-    os.mkdir(bl_dst_dir)
+    bl_dst_dir = tmpdir / "blocklists"
+    bl_dst_dir.mkdir()
     urls = []
     for blocklist, filename in [
         (utils.easylist_txt(), "easylist.txt"),
         (utils.easyprivacy_txt(), "easyprivacy.txt"),
     ]:
-        bl_dst_path = os.path.join(bl_dst_dir, filename)
+        bl_dst_path = bl_dst_dir / filename
         with open(bl_dst_path, "w", encoding="utf-8") as f:
             f.write("\n".join(list(blocklist)))
         assert os.path.isfile(bl_dst_path)
-        urls.append(QUrl.fromLocalFile(bl_dst_path).toString())
+        urls.append(QUrl.fromLocalFile(str(bl_dst_path)).toString())
     return urls, bl_dst_dir
 
 
@@ -291,7 +291,7 @@ def test_adblock_cache(config_stub, easylist_easyprivacy, caplog, ad_blocker):
         assert_urls(ad_blocker, OKAY_URLS, False)
 
         # Now we remove the cache file and try all over again...
-        os.remove(ad_blocker._cache_path)
+        ad_blocker._cache_path.unlink()
 
 
 def test_invalid_utf8(ad_blocker, config_stub, blocklist_invalid_utf8, caplog):
@@ -347,12 +347,12 @@ def test_whitelist_on_dataset(config_stub, easylist_easyprivacy):
 
     def assert_whitelisted(url, source_url, resource_type):
         config_stub.val.content.blocking.whitelist = None
-        assert not braveadblock._is_whitelisted_url(url)
+        assert not blockutils.is_whitelisted_url(url)
         config_stub.val.content.blocking.whitelist = []
-        assert not braveadblock._is_whitelisted_url(url)
+        assert not blockutils.is_whitelisted_url(url)
         whitelist_url = url.toString(QUrl.RemovePath) + "/*"
         config_stub.val.content.blocking.whitelist = [whitelist_url]
-        assert braveadblock._is_whitelisted_url(url)
+        assert blockutils.is_whitelisted_url(url)
 
     run_function_on_dataset(assert_whitelisted)
 
@@ -365,7 +365,7 @@ def test_update_easylist_easyprivacy_directory(
     lists_directory = easylist_easyprivacy_both[1]
 
     config_stub.val.content.blocking.adblock.lists = [
-        QUrl.fromLocalFile(lists_directory).toString()
+        QUrl.fromLocalFile(str(lists_directory)).toString()
     ]
     config_stub.val.content.blocking.enabled = True
     config_stub.val.content.blocking.whitelist = None

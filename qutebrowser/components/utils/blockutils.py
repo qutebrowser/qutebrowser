@@ -26,16 +26,14 @@ import functools
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.api import downloads, message
+from qutebrowser.api import downloads, message, config
 
 
 class FakeDownload(downloads.TempDownload):
 
     """A download stub to use on_download_finished with local files."""
 
-    def __init__(
-        self, fileobj: typing.IO[bytes]
-    ) -> None:
+    def __init__(self, fileobj: typing.IO[bytes]) -> None:
         # pylint: disable=super-init-not-called
         self.fileobj = fileobj
         self.successful = True
@@ -91,3 +89,12 @@ def _import_local(
     download = FakeDownload(fileobj)
     in_progress.append(download)
     on_download_finished(download)
+
+
+def is_whitelisted_url(url: QUrl) -> bool:
+    """Check if the given URL is on the adblock whitelist."""
+    for pattern in config.val.content.blocking.whitelist:
+        if pattern.matches(url):
+            return True
+
+    return False

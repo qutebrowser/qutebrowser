@@ -70,15 +70,6 @@ def get_fileobj(byte_io: typing.IO[bytes]) -> typing.IO[bytes]:
     return byte_io
 
 
-def _is_whitelisted_url(url: QUrl) -> bool:
-    """Check if the given URL is on the adblock whitelist."""
-    for pattern in config.val.content.blocking.whitelist:
-        if pattern.matches(url):
-            return True
-
-    return False
-
-
 def _should_be_used() -> bool:
     """Whether the hostblocker should be used or not."""
     method = config.val.content.blocking.method
@@ -138,7 +129,7 @@ class HostBlocker:
         host = request_url.host()
         return (
             host in self._blocked_hosts or host in self._config_blocked_hosts
-        ) and not _is_whitelisted_url(request_url)
+        ) and not blockutils.is_whitelisted_url(request_url)
 
     def filter_request(self, info: interceptor.Request) -> None:
         """Block the given request if necessary."""
