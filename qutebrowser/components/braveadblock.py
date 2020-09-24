@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Functions related to ad blocking."""
+"""Functions related to the Brave adblocker."""
 
 import io
 import os.path
@@ -114,7 +114,7 @@ def resource_type_to_string(resource_type: typing.Optional[ResourceType]) -> str
 
 class BraveAdBlocker:
 
-    """Manage blocked hosts based from /etc/hosts-like files.
+    """Manage blocked hosts based on Brave's adblocker.
 
     Attributes:
         enabled: Should we block ads or not
@@ -173,7 +173,7 @@ class BraveAdBlocker:
 
         if not result.matched:
             return False
-        if result.exception is not None and not result.important:
+        elif result.exception is not None and not result.important:
             logger.debug(
                 "Excepting %s from being blocked by %s because of %s",
                 request_url.toDisplayString(),
@@ -181,7 +181,7 @@ class BraveAdBlocker:
                 result.exception,
             )
             return False
-        if _is_whitelisted_url(request_url):
+        elif _is_whitelisted_url(request_url):
             logger.debug(
                 "Request to %s is whitelisted, thus not blocked",
                 request_url.toDisplayString(),
@@ -229,7 +229,7 @@ class BraveAdBlocker:
                     url, self._on_download_finished, self._in_progress
                 )
             self._finished_registering_downloads = True
-            if len(self._in_progress) == 0 and self._wip_filter_set is not None:
+            if not self._in_progress and self._wip_filter_set is not None:
                 self._on_lists_downloaded()
 
     def _on_lists_downloaded(self) -> None:

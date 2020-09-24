@@ -135,7 +135,7 @@ The following software and libraries are required to run qutebrowser:
 
 The following libraries are optional:
 
-* https://pypi.org/project/adblock/[adblock] (for Ad-blocking using ABP syntax)
+* https://pypi.org/project/adblock/[adblock] (for improved adblocking using ABP syntax)
 * http://cthedot.de/cssutils/[cssutils] (for an improved `:download --mhtml`
   with QtWebKit).
 * On Windows, https://pypi.python.org/pypi/colorama/[colorama] for colored log

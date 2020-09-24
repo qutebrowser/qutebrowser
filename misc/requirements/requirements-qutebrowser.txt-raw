@@ -5,4 +5,4 @@ PyYAML
 colorama
 cssutils
 attrs
-adblock
+adblock  # Optional, for improved adblocking

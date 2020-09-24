@@ -668,7 +668,7 @@ content.blocking.adblock.lists:
     valtype: Url
     none_ok: true
   desc: |
-    List of URLs of lists which contain adblock rules.
+    List of URLs to ABP-style adblocking rulesets.
 
 content.blocking.whitelist:
   default: []
