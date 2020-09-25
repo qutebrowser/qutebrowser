@@ -37,6 +37,7 @@ from PyQt5.QtGui import QColor, QClipboard
 import pytest
 import hypothesis
 from hypothesis import strategies
+import yaml
 
 import qutebrowser
 import qutebrowser.utils  # for test_qualname
@@ -851,6 +852,10 @@ class TestYaml:
 
     def test_load(self):
         assert utils.yaml_load("[1, 2]") == [1, 2]
+
+    def test_load_float_bug(self):
+        with pytest.raises(yaml.YAMLError):
+            utils.yaml_load("._")
 
     def test_load_file(self, tmpdir):
         tmpfile = tmpdir / 'foo.yml'

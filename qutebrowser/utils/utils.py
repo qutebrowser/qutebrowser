@@ -739,7 +739,13 @@ def yaml_load(f: typing.Union[str, typing.IO[str]]) -> typing.Any:
             category=DeprecationWarning,
             message=r"Using or importing the ABCs from 'collections' instead "
             r"of from 'collections\.abc' is deprecated.*"):
-        data = yaml.load(f, Loader=YamlLoader)
+        try:
+            data = yaml.load(f, Loader=YamlLoader)
+        except ValueError as e:
+            if str(e).startswith('could not convert string to float'):
+                # WORKAROUND for https://github.com/yaml/pyyaml/issues/168
+                raise yaml.YAMLError(e)
+            raise
 
     end = datetime.datetime.now()
 
