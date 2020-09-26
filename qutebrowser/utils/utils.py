@@ -745,7 +745,7 @@ def yaml_load(f: typing.Union[str, typing.IO[str]]) -> typing.Any:
             if str(e).startswith('could not convert string to float'):
                 # WORKAROUND for https://github.com/yaml/pyyaml/issues/168
                 raise yaml.YAMLError(e)
-            raise
+            raise  # pragma: no cover
 
     end = datetime.datetime.now()
 
