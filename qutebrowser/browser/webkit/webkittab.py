@@ -28,7 +28,7 @@ from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
-from PyQt5.QtWebKit import QWebSettings, QWebHistory
+from PyQt5.QtWebKit import QWebSettings, QWebHistory, QWebElement
 from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab, shared
@@ -706,7 +706,9 @@ class WebKitElements(browsertab.AbstractElements):
         elems = []
         frames = webkitelem.get_child_frames(mainframe)
         for f in frames:
-            for elem in f.findAllElements(selector):
+            frame_elems = typing.cast(
+                typing.Iterable[QWebElement], f.findAllElements(selector))
+            for elem in frame_elems:
                 elems.append(webkitelem.WebKitElement(elem, tab=self._tab))
 
         if only_visible:
