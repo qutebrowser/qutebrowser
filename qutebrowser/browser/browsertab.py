@@ -619,11 +619,6 @@ class AbstractHistoryPrivate:
 
     """Private API related to the history."""
 
-    def __init__(self, tab: 'AbstractTab'):
-        self._tab = tab
-        self._history = typing.cast(
-            typing.Union['QWebHistory', 'QWebEngineHistory'], None)
-
     def serialize(self) -> bytes:
         """Serialize into an opaque format understood by self.deserialize."""
         raise NotImplementedError
@@ -645,7 +640,7 @@ class AbstractHistory:
         self._tab = tab
         self._history = typing.cast(
             typing.Union['QWebHistory', 'QWebEngineHistory'], None)
-        self.private_api = AbstractHistoryPrivate(tab)
+        self.private_api = AbstractHistoryPrivate()
 
     def __len__(self) -> int:
         raise NotImplementedError

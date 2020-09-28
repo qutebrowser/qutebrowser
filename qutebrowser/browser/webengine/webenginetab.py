@@ -29,7 +29,7 @@ from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
                           QTimer, QObject)
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication, QWidget
-from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
+from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript, QWebEngineHistory
 
 from qutebrowser.config import configdata, config
 from qutebrowser.browser import (browsertab, eventfilter, shared, webelem,
@@ -673,6 +673,10 @@ class WebEngineScroller(browsertab.AbstractScroller):
 class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
 
     """History-related methods which are not part of the extension API."""
+
+    def __init__(self, tab: 'WebEngineTab') -> None:
+        self._tab = tab
+        self._history = typing.cast(QWebEngineHistory, None)
 
     def serialize(self):
         if not qtutils.version_check('5.9', compiled=False):

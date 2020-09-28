@@ -22,12 +22,13 @@
 import re
 import functools
 import xml.etree.ElementTree
+import typing
 
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
-from PyQt5.QtWebKit import QWebSettings
+from PyQt5.QtWebKit import QWebSettings, QWebHistory
 from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab, shared
@@ -622,6 +623,10 @@ class WebKitHistoryPrivate(browsertab.AbstractHistoryPrivate):
 
     """History-related methods which are not part of the extension API."""
 
+    def __init__(self, tab: 'WebKitTab') -> None:
+        self._tab = tab
+        self._history = typing.cast(QWebHistory, None)
+
     def serialize(self):
         return qtutils.serialize(self._history)
 
@@ -636,6 +641,7 @@ class WebKitHistoryPrivate(browsertab.AbstractHistoryPrivate):
         qtutils.deserialize_stream(stream, self._history)
         for i, data in enumerate(user_data):
             self._history.itemAt(i).setUserData(data)
+
         cur_data = self._history.currentItem().userData()
         if cur_data is not None:
             if 'zoom' in cur_data:
