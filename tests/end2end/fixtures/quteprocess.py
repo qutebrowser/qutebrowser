@@ -749,6 +749,7 @@ class QuteProc(testprocess.Process):
         Return:
             The parsed log line with "command called: ..." or None.
         """
+        __tracebackhide__ = lambda e: e.errisinstance(testprocess.WaitForTimeout)
         summary = command
         if count is not None:
             summary += ' (count {})'.format(count)
