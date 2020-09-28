@@ -3,7 +3,7 @@ cheroot
 coverage
 Flask
 hypothesis
-pytest
+pytest<6.1
 pytest-bdd
 pytest-benchmark
 pytest-instafail
