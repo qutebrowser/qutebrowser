@@ -105,18 +105,15 @@ def raise_window(window, alert=True):
 
 def get_target_window():
     """Get the target window for new tabs, or None if none exist."""
+    getters = {
+        'last-focused': objreg.last_focused_window,
+        'first-opened': objreg.first_opened_window,
+        'last-opened': objreg.last_opened_window,
+        'last-visible': objreg.last_visible_window,
+    }
+    getter = getters[config.val.new_instance_open_target_window]
     try:
-        win_mode = config.val.new_instance_open_target_window
-        if win_mode == 'last-focused':
-            return objreg.last_focused_window()
-        elif win_mode == 'first-opened':
-            return objreg.window_by_index(0)
-        elif win_mode == 'last-opened':
-            return objreg.window_by_index(-1)
-        elif win_mode == 'last-visible':
-            return objreg.last_visible_window()
-        else:
-            raise ValueError("Invalid win_mode {}".format(win_mode))
+        return getter()
     except objreg.NoWindow:
         return None
 

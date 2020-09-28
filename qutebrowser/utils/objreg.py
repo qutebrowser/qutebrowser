@@ -28,7 +28,7 @@ from PyQt5.QtCore import QObject, QTimer
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QWidget  # pylint: disable=unused-import
 
-from qutebrowser.utils import log, usertypes
+from qutebrowser.utils import log, usertypes, utils
 if typing.TYPE_CHECKING:
     from qutebrowser.mainwindow import mainwindow
 
@@ -321,22 +321,46 @@ def dump_objects() -> typing.Sequence[str]:
 def last_visible_window() -> 'mainwindow.MainWindow':
     """Get the last visible window, or the last focused window if none."""
     try:
-        return get('last-visible-main-window')
+        window = get('last-visible-main-window')
     except KeyError:
         return last_focused_window()
+    if window.tabbed_browser.is_shutting_down:
+        return last_focused_window()
+    return window
 
 
 def last_focused_window() -> 'mainwindow.MainWindow':
     """Get the last focused window, or the last window if none."""
     try:
-        return get('last-focused-main-window')
+        window = get('last-focused-main-window')
     except KeyError:
-        return window_by_index(-1)
+        return last_opened_window()
+    if window.tabbed_browser.is_shutting_down:
+        return last_opened_window()
+    return window
 
 
-def window_by_index(idx: int) -> 'mainwindow.MainWindow':
+def _window_by_index(idx: int) -> 'mainwindow.MainWindow':
     """Get the Nth opened window object."""
     if not window_registry:
         raise NoWindow()
     key = sorted(window_registry)[idx]
     return window_registry[key]
+
+
+def last_opened_window() -> 'mainwindow.MainWindow':
+    """Get the last opened window object."""
+    for idx in range(-1, -(len(window_registry)+1), -1):
+        window = _window_by_index(idx)
+        if not window.tabbed_browser.is_shutting_down:
+            return window
+    raise utils.Unreachable()
+
+
+def first_opened_window() -> 'mainwindow.MainWindow':
+    """Get the first opened window object."""
+    for idx in range(0, len(window_registry)+1):
+        window = _window_by_index(idx)
+        if not window.tabbed_browser.is_shutting_down:
+            return window
+    raise utils.Unreachable()

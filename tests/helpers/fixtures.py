@@ -97,6 +97,10 @@ class WinRegistryHelper:
         def windowTitle(self):
             return 'window title - qutebrowser'
 
+        @property
+        def tabbed_browser(self):
+            return self.registry['tabbed-browser']
+
     def __init__(self):
         self._ids = []
 
