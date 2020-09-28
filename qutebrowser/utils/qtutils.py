@@ -43,6 +43,9 @@ try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
+if typing.TYPE_CHECKING:
+    from PyQt5.QtWebKit import QWebHistory
+    from PyQt5.QtWebEngineWidgets import QWebEngineHistory
 
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes
@@ -184,7 +187,13 @@ def check_qdatastream(stream: QDataStream) -> None:
         raise OSError(status_to_str[stream.status()])
 
 
-_QtSerializableType = typing.Union[QObject, QByteArray, QUrl]
+_QtSerializableType = typing.Union[
+    QObject,
+    QByteArray,
+    QUrl,
+    'QWebEngineHistory',
+    'QWebHistory'
+]
 
 
 def serialize(obj: _QtSerializableType) -> QByteArray:
