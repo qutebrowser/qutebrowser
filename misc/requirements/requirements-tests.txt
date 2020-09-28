@@ -2,7 +2,7 @@
 
 apipkg==1.5
 attrs==20.2.0
-beautifulsoup4==4.9.1
+beautifulsoup4==4.9.2
 certifi==2020.6.20
 chardet==3.0.4
 cheroot==8.4.5
@@ -14,7 +14,7 @@ execnet==1.7.1
 Flask==1.1.2
 glob2==0.7
 hunter==3.2.2
-hypothesis==5.35.3 ; python_version>="3.6"
+hypothesis==5.36.1 ; python_version>="3.6"
 idna==2.10
 iniconfig==1.0.1
 itsdangerous==1.1.0
@@ -32,7 +32,7 @@ py==1.9.0
 py-cpuinfo==7.0.0
 Pygments==2.7.1
 pyparsing==2.4.7
-pytest==6.0.2
+pytest==6.1.0
 pytest-bdd==4.0.1
 pytest-benchmark==3.2.3
 pytest-cov==2.10.1
