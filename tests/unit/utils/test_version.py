@@ -908,6 +908,7 @@ class TestChromiumVersion:
         assert version._chromium_version() not in unexpected
 
     def test_avoided(self, monkeypatch):
+        pytest.importorskip('PyQt5.QtWebEngineWidgets')
         monkeypatch.setattr(objects, 'debug_flags', ['avoid-chromium-init'])
         assert version._chromium_version() == 'avoided'
 
