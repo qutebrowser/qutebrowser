@@ -322,6 +322,25 @@ certutil -d "sql:${HOME}/.pki/nssdb" -D -n "My Fancy Certificate Nickname"
 And then import the new and valid certificates using the procedure
 described above.
 
+Is there a dark mode? How can I filter websites to be darker?::
+There is a total of four possible approaches to get dark websites:
++
+- The `colors.webpage.prefers_color_scheme_dark` setting tells websites that you prefer
+  a dark theme. However, this requires websites to ship an appropriate dark style sheet.
+  The setting requires a restart and QtWebEngine with at least Qt 5.14.
+- The `colors.webpage.darkmode.*` settings enable the dark mode of the underlying
+  Chromium. Those setting require a restart and QtWebEngine with at least Qt 5.14. It's
+  unfortunately not possible (due to limitations in Chromium and/or QtWebEngine) to
+  change them dynamically or to specify a list of excluded websites.
+- The `content.user_stylesheets` setting allows specifying a custom CSS such as
+  https://github.com/alphapapa/solarized-everything-css/[Solarized Everything]. Despite
+  the name, the repository also offers themes other than just Solarized. This approach
+  often yields worse results compared to the above ones, but it's possible to toggle it
+  dynamically using a binding like `:bind ,d 'config-cycle content.user_stylesheets
+  ~/path/to/solarized-everything-css/css/gruvbox/gruvbox-all-sites.css ""'`
+- Finally, qutebrowser's Greasemonkey support should allow for running a
+  https://github.com/darkreader/darkreader/issues/926#issuecomment-575893299[stripped down version]
+  of the Dark Reader extension. This is mostly untested, though.
 
 == Troubleshooting
 
