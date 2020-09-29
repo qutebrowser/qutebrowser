@@ -134,18 +134,24 @@ class TestQtArgs:
             assert '--disable-in-process-stack-traces' in args
             assert '--enable-in-process-stack-traces' not in args
 
-    @pytest.mark.parametrize('flags, added', [
-        ([], False),
-        (['--debug-flag', 'chromium'], True),
+    @pytest.mark.parametrize('flags, args', [
+        ([], []),
+        (['--debug-flag', 'chromium'], ['--enable-logging', '--v=1']),
+        (['--debug-flag', 'wait-renderer-process'], ['--renderer-startup-dialog']),
     ])
-    def test_chromium_debug(self, monkeypatch, parser, flags, added):
+    def test_chromium_flags(self, monkeypatch, parser, flags, args):
         monkeypatch.setattr(qtargs.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
         parsed = parser.parse_args(flags)
         args = qtargs.qt_args(parsed)
 
-        for arg in ['--enable-logging', '--v=1']:
-            assert (arg in args) == added
+        if args:
+            for arg in args:
+                assert arg in args
+        else:
+            assert '--enable-logging' not in args
+            assert '--v=1' not in args
+            assert '--renderer-startup-dialog' not in args
 
     @pytest.mark.parametrize('config, added', [
         ('none', False),

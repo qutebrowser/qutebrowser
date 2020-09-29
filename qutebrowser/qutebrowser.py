@@ -170,12 +170,13 @@ def debug_flag_error(flag):
         log-scroll-pos: Log all scrolling changes.
         stack: Enable Chromium stack logging.
         chromium: Enable Chromium logging.
+        wait-renderer-process: Wait for debugger in renderer process.
         werror: Turn Python warnings into errors.
     """
     valid_flags = ['debug-exit', 'pdb-postmortem', 'no-sql-history',
                    'no-scroll-filtering', 'log-requests', 'log-cookies',
                    'lost-focusproxy', 'log-scroll-pos', 'stack', 'chromium',
-                   'werror']
+                   'wait-renderer-process', 'werror']
 
     if flag in valid_flags:
         return flag

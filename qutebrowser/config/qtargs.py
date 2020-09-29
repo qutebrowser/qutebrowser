@@ -230,6 +230,9 @@ def _qtwebengine_args(
         yield '--enable-logging'
         yield '--v=1'
 
+    if 'wait-renderer-process' in namespace.debug_flags:
+        yield '--renderer-startup-dialog'
+
     blink_settings = list(_darkmode_settings())
     if blink_settings:
         yield '--blink-settings=' + ','.join('{}={}'.format(k, v)
