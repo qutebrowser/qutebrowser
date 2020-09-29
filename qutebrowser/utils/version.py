@@ -429,6 +429,8 @@ def _chromium_version() -> str:
         return 'unavailable'  # type: ignore[unreachable]
 
     if webenginesettings.parsed_user_agent is None:
+        if 'avoid-chromium-init' in objects.debug_flags:
+            return 'avoided'
         webenginesettings.init_user_agent()
         assert webenginesettings.parsed_user_agent is not None
 
