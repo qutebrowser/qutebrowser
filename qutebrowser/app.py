@@ -82,6 +82,8 @@ def run(args):
     if args.temp_basedir:
         args.basedir = tempfile.mkdtemp(prefix='qutebrowser-basedir-')
 
+    log.init.debug("Main process PID: {}".format(os.getpid()))
+
     log.init.debug("Initializing directories...")
     standarddir.init(args)
     utils.preload_resources()

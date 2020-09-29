@@ -22,6 +22,7 @@
 import math
 import functools
 import re
+import os
 import html as html_utils
 import typing
 
@@ -1586,6 +1587,12 @@ class WebEngineTab(browsertab.AbstractTab):
         super()._on_load_started()
         self.data.netrc_used = False
 
+    @pyqtSlot('qint64')
+    def _on_renderer_process_pid_changed(self, pid):
+        log.webview.debug("Renderer process PID for tab {}: {}"
+                          .format(self.tab_id, pid))
+
+
     @pyqtSlot(QWebEnginePage.RenderProcessTerminationStatus, int)
     def _on_render_process_terminated(self, status, exitcode):
         """Show an error when the renderer process terminated."""
@@ -1857,6 +1864,12 @@ class WebEngineTab(browsertab.AbstractTab):
         page.loadFinished.connect(self._on_history_trigger)
         page.loadFinished.connect(self._restore_zoom)
         page.loadFinished.connect(self._on_load_finished)
+
+        try:
+            page.renderProcessPidChanged.connect(self._on_renderer_process_pid_changed)
+        except AttributeError:
+            # Added in Qt 5.15.0
+            pass
 
         self.before_load_started.connect(self._on_before_load_started)
         self.shutting_down.connect(
