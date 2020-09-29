@@ -245,7 +245,7 @@ def _qtwebengine_args(
     yield from _qtwebengine_settings_args()
 
 
-def _qtwebengine_settings_args():
+def _qtwebengine_settings_args() -> typing.Iterator[str]:
     settings = {
         'qt.force_software_rendering': {
             'software-opengl': None,

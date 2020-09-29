@@ -872,7 +872,9 @@ class TestChromiumVersion:
 
     @pytest.fixture(autouse=True)
     def clear_parsed_ua(self, monkeypatch):
-        monkeypatch.setattr(version.webenginesettings, 'parsed_user_agent', None)
+        if version.webenginesettings is not None:
+            # Not available with QtWebKit
+            monkeypatch.setattr(version.webenginesettings, 'parsed_user_agent', None)
 
     def test_fake_ua(self, monkeypatch, caplog):
         pytest.importorskip('PyQt5.QtWebEngineWidgets')
