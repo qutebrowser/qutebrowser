@@ -22,7 +22,6 @@
 import math
 import functools
 import re
-import os
 import html as html_utils
 import typing
 
@@ -1591,7 +1590,6 @@ class WebEngineTab(browsertab.AbstractTab):
     def _on_renderer_process_pid_changed(self, pid):
         log.webview.debug("Renderer process PID for tab {}: {}"
                           .format(self.tab_id, pid))
-
 
     @pyqtSlot(QWebEnginePage.RenderProcessTerminationStatus, int)
     def _on_render_process_terminated(self, status, exitcode):

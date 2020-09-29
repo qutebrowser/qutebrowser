@@ -242,6 +242,10 @@ def _qtwebengine_args(
     if enabled_features:
         yield '--enable-features=' + ','.join(enabled_features)
 
+    yield from _qtwebengine_settings_args()
+
+
+def _qtwebengine_settings_args():
     settings = {
         'qt.force_software_rendering': {
             'software-opengl': None,
