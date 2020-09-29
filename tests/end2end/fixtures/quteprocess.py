@@ -308,6 +308,14 @@ def is_ignored_chromium_message(line):
         'Could not open platform files for entry.',
         'Unable to terminate process *: No such process (3)',
         'Failed to read /proc/*/stat',
+
+        # Qt 5.15.1 debug build (Chromium 83)
+        # '[314297:7:0929/214605.491958:ERROR:context_provider_command_buffer.cc(145)]
+        # GpuChannelHost failed to create command buffer.'
+        'GpuChannelHost failed to create command buffer.',
+        # [338691:4:0929/220114.488847:WARNING:ipc_message_attachment_set.cc(49)]
+        # MessageAttachmentSet destroyed with unconsumed attachments: 0/1
+        'MessageAttachmentSet destroyed with unconsumed attachments: *',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
