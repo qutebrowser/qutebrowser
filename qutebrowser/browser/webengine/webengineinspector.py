@@ -20,7 +20,6 @@
 """Customized QWebInspector for QtWebEngine."""
 
 import os
-import typing
 import pathlib
 
 from PyQt5.QtCore import QUrl, QLibraryInfo

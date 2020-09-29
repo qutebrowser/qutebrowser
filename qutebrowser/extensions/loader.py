@@ -19,7 +19,6 @@
 
 """Loader for qutebrowser extensions."""
 
-import importlib.abc
 import pkgutil
 import types
 import typing

@@ -21,7 +21,6 @@
 
 import typing
 import functools
-import urllib.request
 import urllib.parse
 
 from PyQt5.QtCore import pyqtSignal, QObject, QTimer
