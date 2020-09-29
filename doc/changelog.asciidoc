@@ -96,6 +96,11 @@ Added
   open the directory containing the downloaded file. An entry to do the same
   was also added to the context menu.
 - Messages are now wrapped when they are too long to be displayed on a single line.
+- New possible `--debug-flag` values:
+  * `wait-renderer-process` waits for a `SIGUSR1` in the renderer process so a
+    debugger can be attached.
+  * `avoid-chromium-init` allows using `--version` without needing a working
+    QtWebEngine/Chromium.
 
 Fixed
 ~~~~~
