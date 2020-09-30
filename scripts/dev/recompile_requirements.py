@@ -123,6 +123,11 @@ CHANGELOG_URLS = {
     'tldextract': 'https://github.com/john-kurkowski/tldextract/blob/master/CHANGELOG.md',
     'typing_extensions': 'https://github.com/python/typing/commits/master/typing_extensions',
     'diff_cover': 'https://github.com/Bachmann1234/diff_cover/blob/master/CHANGELOG',
+    'pytest-clarity': 'https://github.com/darrenburns/pytest-clarity/commits/master',
+    'pytest-icdiff': 'https://github.com/hjwp/pytest-icdiff/blob/master/HISTORY.rst',
+    'icdiff': 'https://github.com/jeffkaufman/icdiff/blob/master/ChangeLog',
+    'termcolor': 'https://pypi.org/project/termcolor/',
+    'pprintpp': 'https://github.com/wolever/pprintpp/blob/master/CHANGELOG.txt',
 }
 
 # PyQt versions which need SIP v4

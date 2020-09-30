@@ -27,6 +27,9 @@ pytest-xvfb
 PyVirtualDisplay
 # To run on multiple cores with -n
 pytest-xdist
+# For nicer output
+pytest-icdiff
+pytest-clarity
 
 # Needed to test misc/userscripts/qute-lastpass
 tldextract
