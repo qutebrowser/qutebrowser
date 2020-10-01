@@ -45,7 +45,7 @@ except ImportError:
 
 
 logger = logging.getLogger("network")
-ad_blocker = typing.cast(typing.Optional["BraveAdBlocker"], None)
+ad_blocker = None  # type: typing.Optional["BraveAdBlocker"]
 
 
 def _should_be_used() -> bool:
@@ -141,18 +141,21 @@ class BraveAdBlocker:
     ) -> bool:
         """Check whether the given request is blocked."""
         if not self.enabled:
+            # Do nothing if `content.blocking.method` is not set to enable the
+            # use of this adblocking module.
             return False
 
-        if first_party_url is not None and not first_party_url.isValid():
-            first_party_url = None
-
-        if not first_party_url:
+        if first_party_url is None or not first_party_url.isValid():
+            # FIXME: It seems that when `first_party_url` is None, every URL
+            # I try is blocked. This may have been a result of me incorrectly
+            # using the upstream library, or an upstream bug. For now we don't
+            # block any request with `first_party_url=None`.
             return False
 
         qtutils.ensure_valid(request_url)
 
         if not config.get("content.blocking.enabled", url=first_party_url):
-            # Do nothing if adblocking is disabled.
+            # Do nothing if adblocking is disabled for this site.
             return False
 
         result = self._engine.check_network_urls(
@@ -164,6 +167,12 @@ class BraveAdBlocker:
         if not result.matched:
             return False
         elif result.exception is not None and not result.important:
+            # Exception is not `None` when the blocker matched on an exception
+            # rule. Effectively this means that there was a match, but the
+            # request should not be blocked.
+            #
+            # An `important` match means that exceptions should not apply and
+            # no further checking is neccesary--the request should be blocked.
             logger.debug(
                 "Excepting %s from being blocked by %s because of %s",
                 request_url.toDisplayString(),
