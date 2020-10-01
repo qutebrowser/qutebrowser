@@ -106,7 +106,6 @@ let getDOM, domOpts, target;
 // When hinting, use the selected hint instead of the current page
 if (process.env.QUTE_MODE === 'hints') {
     getDOM = JSDOM.fromURL;
-    domOpts = {};
     target = process.env.QUTE_URL;
 }
 else {
