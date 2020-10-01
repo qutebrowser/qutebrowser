@@ -87,8 +87,6 @@ class HostBlocker:
         enabled: Given the current blocking method, should the host blocker be enabled?
         _blocked_hosts: A set of blocked hosts.
         _config_blocked_hosts: A set of blocked hosts from ~/.config.
-        _in_progress: The DownloadItems which are currently downloading.
-        _done_count: How many files have been read successfully.
         _local_hosts_file: The path to the blocked-hosts file.
         _config_hosts_file: The path to a blocked-hosts in ~/.config
         _has_basedir: Whether a custom --basedir is set.
@@ -105,8 +103,6 @@ class HostBlocker:
         self._has_basedir = has_basedir
         self._blocked_hosts = set()  # type: typing.Set[str]
         self._config_blocked_hosts = set()  # type: typing.Set[str]
-        self._in_progress = []  # type: typing.List[downloads.TempDownload]
-        self._done_count = 0
 
         self._local_hosts_file = str(data_dir / "blocked-hosts")
         self.update_files()
@@ -221,11 +217,12 @@ class HostBlocker:
         """Update the adblock block lists."""
         self._read_hosts_file(self._config_hosts_file, self._config_blocked_hosts)
         self._blocked_hosts = set()
-        self._done_count = 0
-        for url in config.val.content.blocking.hosts.lists:
-            blockutils.download_blocklist_url(
-                url, self._on_download_finished, self._in_progress
-            )
+
+        blocklists = config.val.content.blocking.hosts.lists
+        dl = blockutils.BlocklistDownload(
+            blocklists, self._merge_file, self._on_lists_downloaded
+        )
+        dl.initiate()
 
     def _merge_file(self, byte_io: typing.IO[bytes]) -> None:
         """Read and merge host files.
@@ -259,16 +256,19 @@ class HostBlocker:
                 "hostblock: {} read errors for {}".format(error_count, byte_io.name)
             )
 
-    def _on_lists_downloaded(self) -> None:
+    def _on_lists_downloaded(self, done_count: int) -> None:
         """Install block lists after files have been downloaded."""
-        with open(self._local_hosts_file, "w", encoding="utf-8") as f:
-            for host in sorted(self._blocked_hosts):
-                f.write(host + "\n")
-            message.info(
-                "hostblock: Read {} hosts from {} sources.".format(
-                    len(self._blocked_hosts), self._done_count
+        try:
+            with open(self._local_hosts_file, "w", encoding="utf-8") as f:
+                for host in sorted(self._blocked_hosts):
+                    f.write(host + "\n")
+                message.info(
+                    "hostblock: Read {} hosts from {} sources.".format(
+                        len(self._blocked_hosts), done_count
+                    )
                 )
-            )
+        except OSError:
+            logger.exception("Failed to write host block list!")
 
     def update_files(self) -> None:
         """Update files when the config changed."""
@@ -279,27 +279,6 @@ class HostBlocker:
                 pass
             except OSError as e:
                 logger.exception("Failed to delete hosts file: {}".format(e))
-
-    def _on_download_finished(self, download: downloads.TempDownload) -> None:
-        """Check if all downloads are finished and if so, trigger reading.
-
-        Arguments:
-            download: The finished download.
-        """
-        self._in_progress.remove(download)
-        if download.successful:
-            self._done_count += 1
-            assert not isinstance(download.fileobj, downloads.UnsupportedAttribute)
-            assert download.fileobj is not None
-            try:
-                self._merge_file(download.fileobj)
-            finally:
-                download.fileobj.close()
-        if not self._in_progress:
-            try:
-                self._on_lists_downloaded()
-            except OSError:
-                logger.exception("Failed to write host block list!")
 
 
 @hook.config_changed("content.blocking.hosts.lists")

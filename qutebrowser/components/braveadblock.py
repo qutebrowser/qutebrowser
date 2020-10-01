@@ -110,16 +110,6 @@ class BraveAdBlocker:
         enabled: Should we block ads or not
         _has_basedir: Whether a custom --basedir is set.
         _cache_path: The path of the adblock engine cache file
-        _in_progress: The DownloadItems which are currently downloading.
-        _done_count: How many files have been read successfully.
-        _finished_registering_downloads:
-            Used to make sure that if all the downloads finish really quickly,
-            before all of the block-lists have been added to the download
-            queue, we don't call `_on_lists_downloaded`.
-        _wip_filter_set:
-            If we're in midst of updating the block lists, this attribute
-            contains a "work-in-progress" filter set that will later be used to
-            create a new instance of `_engine`. Otherwise it's `None`.
         _engine: Brave ad-blocking engine.
     """
 
@@ -127,10 +117,6 @@ class BraveAdBlocker:
         self.enabled = _should_be_used()
         self._has_basedir = has_basedir
         self._cache_path = data_dir / "adblock-cache.dat"
-        self._in_progress = []  # type: typing.List[downloads.TempDownload]
-        self._done_count = 0
-        self._finished_registering_downloads = False
-        self._wip_filter_set = None  # type: typing.Optional[adblock.FilterSet]
         self._engine = adblock.Engine(adblock.FilterSet())
 
     def _is_blocked(
@@ -213,34 +199,29 @@ class BraveAdBlocker:
 
     def adblock_update(self) -> None:
         """Update the adblock block lists."""
-        self._done_count = 0
-        self._wip_filter_set = adblock.FilterSet()
         logger.info("Downloading adblock filter lists...")
 
+        filter_set = adblock.FilterSet()
         blocklists = config.val.content.blocking.adblock.lists
         if not blocklists:
             # Blocklists are None or length zero
             self._on_lists_downloaded()
         else:
-            self._finished_registering_downloads = False
-            for url in blocklists:
-                blockutils.download_blocklist_url(
-                    url, self._on_download_finished, self._in_progress
-                )
-            self._finished_registering_downloads = True
-            if not self._in_progress and self._wip_filter_set is not None:
-                self._on_lists_downloaded()
+            dl = blockutils.BlocklistDownload(
+                blocklists,
+                lambda d: self._on_download_finished(d, filter_set),
+                lambda cnt: self._on_lists_downloaded(cnt, filter_set),
+            )
+            dl.initiate()
 
-    def _on_lists_downloaded(self) -> None:
+    def _on_lists_downloaded(
+        self, done_count: int, filter_set: adblock.FilterSet
+    ) -> None:
         """Install block lists after files have been downloaded."""
-        assert self._wip_filter_set is not None
-        self._engine = adblock.Engine(self._wip_filter_set)
-        self._wip_filter_set = None
+        self._engine = adblock.Engine(filter_set)
         self._engine.serialize_to_file(str(self._cache_path))
         logger.info(
-            "adblock: Filters successfully read from {} sources".format(
-                self._done_count
-            )
+            "braveadblock: Filters successfully read from {} sources".format(done_count)
         )
 
     def update_files(self) -> None:
@@ -253,34 +234,23 @@ class BraveAdBlocker:
             except OSError as e:
                 logger.exception("Failed to remove adblock cache file: {}".format(e))
 
-    def _on_download_finished(self, download: downloads.TempDownload) -> None:
-        """Check if all downloads are finished and if so, trigger reading.
+    def _on_download_finished(
+        self, fileobj: typing.IO[bytes], filter_set: adblock.FilterSet
+    ) -> None:
+        """When a blocklist download finishes, add it to the given filter set.
 
         Arguments:
-            download: The finished download.
+            fileobj: The finished download's contents.
         """
-        self._in_progress.remove(download)
-        if download.successful:
-            self._done_count += 1
-            assert not isinstance(download.fileobj, downloads.UnsupportedAttribute)
-            assert download.fileobj is not None
-            assert self._wip_filter_set is not None
-            try:
-                download.fileobj.seek(0)
-                # WORKAROUND for https://github.com/python/typeshed/pull/4145
-                fileobj = typing.cast(typing.BinaryIO, download.fileobj)
-                text = io.TextIOWrapper(fileobj, encoding="utf-8")
-                self._wip_filter_set.add_filter_list(text.read())
-                text.close()
-            except UnicodeDecodeError:
-                message.info("Block list is not valid utf-8")
-            finally:
-                download.fileobj.close()
-        if len(self._in_progress) == 0 and self._finished_registering_downloads:
-            try:
-                self._on_lists_downloaded()
-            except OSError:
-                logger.exception("Failed to write host block list!")
+        try:
+            fileobj.seek(0)
+            # WORKAROUND for https://github.com/python/typeshed/pull/4145
+            fileobj = typing.cast(typing.BinaryIO, fileobj)
+            text = io.TextIOWrapper(fileobj, encoding="utf-8")
+            filter_set.add_filter_list(text.read())
+            text.close()
+        except UnicodeDecodeError:
+            message.info("braveadblock: Block list is not valid utf-8")
 
 
 @hook.config_changed("content.blocking.adblock.lists")
