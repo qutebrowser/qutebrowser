@@ -205,7 +205,7 @@ class BraveAdBlocker:
         blocklists = config.val.content.blocking.adblock.lists
         if not blocklists:
             # Blocklists are None or length zero
-            self._on_lists_downloaded()
+            self._on_lists_downloaded(0, filter_set)
         else:
             dl = blockutils.BlocklistDownload(
                 blocklists,
