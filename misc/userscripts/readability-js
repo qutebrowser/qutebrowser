@@ -102,16 +102,17 @@ if (!fs.existsSync(scriptsDir)) {
     fs.mkdirSync(scriptsDir);
 }
 
+let getDOM, domOpts, target;
 // When hinting, use the selected hint instead of the current page
 if (process.env.QUTE_MODE === 'hints') {
-    var getDOM = JSDOM.fromURL;
-    var domOpts = {};
-    var target = process.env.QUTE_URL;
+    getDOM = JSDOM.fromURL;
+    domOpts = {};
+    target = process.env.QUTE_URL;
 }
 else {
-    var getDOM = JSDOM.fromFile;
-    var domOpts = {url: process.env.QUTE_URL, contentType: "text/html; charset=utf-8"};
-    var target = process.env.QUTE_HTML;
+    getDOM = JSDOM.fromFile;
+    domOpts = {url: process.env.QUTE_URL, contentType: "text/html; charset=utf-8"};
+    target = process.env.QUTE_HTML;
 }
 
 getDOM(target, domOpts).then(dom => {
