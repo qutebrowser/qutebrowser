@@ -63,11 +63,11 @@ class GUIProcess(QObject):
 
         self._proc = QProcess(self)
         self._proc.errorOccurred.connect(self._on_error)
-        self._proc.errorOccurred.connect(self.error)  # type: ignore[arg-type]
+        self._proc.errorOccurred.connect(self.error)
         self._proc.finished.connect(self._on_finished)
-        self._proc.finished.connect(self.finished)  # type: ignore[arg-type]
+        self._proc.finished.connect(self.finished)
         self._proc.started.connect(self._on_started)
-        self._proc.started.connect(self.started)  # type: ignore[arg-type]
+        self._proc.started.connect(self.started)
 
         if additional_env is not None:
             procenv = QProcessEnvironment.systemEnvironment()

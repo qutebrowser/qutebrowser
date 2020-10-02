@@ -209,8 +209,7 @@ def signal_name(sig: pyqtBoundSignal) -> str:
         # Examples:
         # sig.signal == '2signal1'
         # sig.signal == '2signal2(QString,QString)'
-        m = re.fullmatch(r'[0-9]+(?P<name>.*)\(.*\)',
-                         sig.signal)  # type: ignore[attr-defined]
+        m = re.fullmatch(r'[0-9]+(?P<name>.*)\(.*\)', sig.signal)
     elif hasattr(sig, 'signatures'):
         # Unbound signal, PyQt >= 5.11
         # Examples:

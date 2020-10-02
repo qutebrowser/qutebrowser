@@ -267,7 +267,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
             return
 
         self._reader = _QtFIFOReader(self._filepath)
-        self._reader.got_line.connect(self.got_cmd)  # type: ignore[arg-type]
+        self._reader.got_line.connect(self.got_cmd)
 
     @pyqtSlot()
     def on_proc_finished(self):

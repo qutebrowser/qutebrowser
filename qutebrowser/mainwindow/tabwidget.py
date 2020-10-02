@@ -60,8 +60,7 @@ class TabWidget(QTabWidget):
         bar = TabBar(win_id, self)
         self.setStyle(TabBarStyle())
         self.setTabBar(bar)
-        bar.tabCloseRequested.connect(
-            self.tabCloseRequested)  # type: ignore[arg-type]
+        bar.tabCloseRequested.connect(self.tabCloseRequested)
         bar.tabMoved.connect(functools.partial(
             QTimer.singleShot, 0, self.update_tab_titles))
         bar.currentChanged.connect(self._on_current_changed)

@@ -498,20 +498,15 @@ class MainWindow(QWidget):
         mode_manager.entered.connect(self.status.on_mode_entered)
         mode_manager.left.connect(self.status.on_mode_left)
         mode_manager.left.connect(self.status.cmd.on_mode_left)
-        mode_manager.left.connect(
-            message.global_bridge.mode_left)  # type: ignore[arg-type]
+        mode_manager.left.connect(message.global_bridge.mode_left)
 
         # commands
         mode_manager.keystring_updated.connect(
             self.status.keystring.on_keystring_updated)
-        self.status.cmd.got_cmd[str].connect(  # type: ignore[index]
-            self._commandrunner.run_safely)
-        self.status.cmd.got_cmd[str, int].connect(  # type: ignore[index]
-            self._commandrunner.run_safely)
-        self.status.cmd.returnPressed.connect(
-            self.tabbed_browser.on_cmd_return_pressed)
-        self.status.cmd.got_search.connect(
-            self._command_dispatcher.search)
+        self.status.cmd.got_cmd[str].connect(self._commandrunner.run_safely)
+        self.status.cmd.got_cmd[str, int].connect(self._commandrunner.run_safely)
+        self.status.cmd.returnPressed.connect(self.tabbed_browser.on_cmd_return_pressed)
+        self.status.cmd.got_search.connect(self._command_dispatcher.search)
 
         # key hint popup
         mode_manager.keystring_updated.connect(self._keyhint.update_keyhint)

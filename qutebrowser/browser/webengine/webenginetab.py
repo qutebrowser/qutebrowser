@@ -1870,10 +1870,8 @@ class WebEngineTab(browsertab.AbstractTab):
             pass
 
         self.before_load_started.connect(self._on_before_load_started)
-        self.shutting_down.connect(
-            self.abort_questions)  # type: ignore[arg-type]
-        self.load_started.connect(
-            self.abort_questions)  # type: ignore[arg-type]
+        self.shutting_down.connect(self.abort_questions)
+        self.load_started.connect(self.abort_questions)
 
         # pylint: disable=protected-access
         self.audio._connect_signals()
