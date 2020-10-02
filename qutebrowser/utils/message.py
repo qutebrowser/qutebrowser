@@ -25,7 +25,7 @@
 import traceback
 import typing
 
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, pyqtBoundSignal, QObject
 
 from qutebrowser.utils import usertypes, log, utils
 
@@ -87,7 +87,7 @@ def _build_question(title: str,
                     text: str = None, *,
                     mode: usertypes.PromptMode,
                     default: typing.Union[None, bool, str] = None,
-                    abort_on: typing.Iterable[pyqtSignal] = (),
+                    abort_on: typing.Iterable[pyqtBoundSignal] = (),
                     url: str = None,
                     option: bool = None) -> usertypes.Question:
     """Common function for ask/ask_async."""

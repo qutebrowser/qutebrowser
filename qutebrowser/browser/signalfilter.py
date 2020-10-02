@@ -50,7 +50,7 @@ class SignalFilter(QObject):
         """Factory for partial _filter_signals functions.
 
         Args:
-            signal: The pyqtSignal to filter.
+            signal: The pyqtBoundSignal to filter.
             tab: The WebView to create filters for.
 
         Return:

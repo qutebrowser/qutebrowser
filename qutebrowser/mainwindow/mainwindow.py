@@ -25,7 +25,7 @@ import itertools
 import functools
 import typing
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QRect, QPoint, QTimer, Qt,
+from PyQt5.QtCore import (pyqtBoundSignal, pyqtSlot, QRect, QPoint, QTimer, Qt,
                           QCoreApplication, QEventLoop, QByteArray)
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 from PyQt5.QtGui import QPalette
@@ -118,7 +118,7 @@ def get_target_window():
         return None
 
 
-_OverlayInfoType = typing.Tuple[QWidget, pyqtSignal, bool, str]
+_OverlayInfoType = typing.Tuple[QWidget, pyqtBoundSignal, bool, str]
 
 
 class MainWindow(QWidget):

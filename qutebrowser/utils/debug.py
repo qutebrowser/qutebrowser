@@ -27,7 +27,7 @@ import datetime
 import typing
 import types
 
-from PyQt5.QtCore import Qt, QEvent, QMetaMethod, QObject, pyqtSignal
+from PyQt5.QtCore import Qt, QEvent, QMetaMethod, QObject, pyqtBoundSignal
 from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.utils import log, utils, qtutils, objreg
@@ -54,7 +54,7 @@ def log_signals(obj: QObject) -> QObject:
 
     Can be used as class decorator.
     """
-    def log_slot(obj: QObject, signal: pyqtSignal, *args: typing.Any) -> None:
+    def log_slot(obj: QObject, signal: pyqtBoundSignal, *args: typing.Any) -> None:
         """Slot connected to a signal to log it."""
         dbg = dbg_signal(signal, args)
         try:
@@ -188,7 +188,7 @@ def qflags_key(base: typing.Type,
     return '|'.join(names)
 
 
-def signal_name(sig: pyqtSignal) -> str:
+def signal_name(sig: pyqtBoundSignal) -> str:
     """Get a cleaned up name of a signal.
 
     Unfortunately, the way to get the name of a signal differs based on:
@@ -199,7 +199,7 @@ def signal_name(sig: pyqtSignal) -> str:
     fails, extract it from the repr().
 
     Args:
-        sig: The pyqtSignal
+        sig: A bound signal.
 
     Return:
         The cleaned up signal name.
@@ -251,11 +251,11 @@ def format_args(args: typing.Sequence = None,
     return ', '.join(arglist)
 
 
-def dbg_signal(sig: pyqtSignal, args: typing.Any) -> str:
+def dbg_signal(sig: pyqtBoundSignal, args: typing.Any) -> str:
     """Get a string representation of a signal for debugging.
 
     Args:
-        sig: A pyqtSignal.
+        sig: A bound signal.
         args: The arguments as list of strings.
 
     Return:
