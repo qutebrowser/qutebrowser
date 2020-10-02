@@ -604,6 +604,7 @@ class CommandDispatcher:
             'prev': functools.partial(navigate.prevnext, prev=True),
             'next': functools.partial(navigate.prevnext, prev=False),
             'up': navigate.path_up,
+            'strip': navigate.strip,
             'decrement': functools.partial(navigate.incdec,
                                            inc_or_dec='decrement'),
             'increment': functools.partial(navigate.incdec,
