@@ -418,6 +418,7 @@ def _chromium_version() -> str:
     Qt 5.15: Chromium 80
              80.0.3987.163 (2020-04-02)
              5.15.0: Security fixes up to 81.0.4044.138 (2020-05-05)
+             5.15.1: Security fixes up to 85.0.4183.83  (2020-08-25)
 
     Also see:
 
