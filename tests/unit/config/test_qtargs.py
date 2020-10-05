@@ -537,7 +537,7 @@ class TestDarkMode:
             'Qt 5.15.0 bug')
 
         expected = [
-            [('darkModeEnabled', 'true')], # Qt 5.15
+            [('darkModeEnabled', 'true')],  # Qt 5.15
             [('darkMode', '4')],  # Qt 5.14
         ]
         assert settings in expected
