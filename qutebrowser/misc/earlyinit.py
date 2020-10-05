@@ -172,12 +172,12 @@ def check_qt_version():
     """Check if the Qt version is recent enough."""
     from PyQt5.QtCore import (qVersion, QT_VERSION, PYQT_VERSION,
                               PYQT_VERSION_STR)
-    from pkg_resources import parse_version
+    import packaging
     from qutebrowser.utils import log
-    parsed_qversion = parse_version(qVersion())
+    parsed_qversion = packaging.version.parse(qVersion())
 
     if (QT_VERSION < 0x050701 or PYQT_VERSION < 0x050700 or
-            parsed_qversion < parse_version('5.7.1')):
+            parsed_qversion < packaging.version.parse('5.7.1')):
         text = ("Fatal error: Qt >= 5.7.1 and PyQt >= 5.7 are required, "
                 "but Qt {} / PyQt {} is installed.".format(qt_version(),
                                                            PYQT_VERSION_STR))
@@ -230,6 +230,7 @@ def check_libraries():
     """Check if all needed Python libraries are installed."""
     modules = {
         'pkg_resources': _missing_str("pkg_resources/setuptools"),
+        'packaging': _missing_str("packaging")
         'pypeg2': _missing_str("pypeg2"),
         'jinja2': _missing_str("jinja2"),
         'pygments': _missing_str("pygments"),

@@ -33,7 +33,7 @@ import textwrap
 import datetime
 
 import attr
-import pkg_resources
+import packaging
 import pytest
 import hypothesis
 import hypothesis.strategies
@@ -77,7 +77,7 @@ from qutebrowser.browser import pdfjs
      """,
      version.DistributionInfo(
          id='ubuntu', parsed=version.Distribution.ubuntu,
-         version=pkg_resources.parse_version('14.4'),
+         version=packaging.version.parse('14.4'),
          pretty='Ubuntu 14.04.5 LTS')),
     # Ubuntu 17.04
     ("""
@@ -90,7 +90,7 @@ from qutebrowser.browser import pdfjs
      """,
      version.DistributionInfo(
          id='ubuntu', parsed=version.Distribution.ubuntu,
-         version=pkg_resources.parse_version('17.4'),
+         version=packaging.version.parse('17.4'),
          pretty='Ubuntu 17.04')),
     # Debian Jessie
     ("""
@@ -102,7 +102,7 @@ from qutebrowser.browser import pdfjs
      """,
      version.DistributionInfo(
          id='debian', parsed=version.Distribution.debian,
-         version=pkg_resources.parse_version('8'),
+         version=packaging.version.parse('8'),
          pretty='Debian GNU/Linux 8 (jessie)')),
     # Void Linux
     ("""
@@ -133,7 +133,7 @@ from qutebrowser.browser import pdfjs
      """,
      version.DistributionInfo(
          id='fedora', parsed=version.Distribution.fedora,
-         version=pkg_resources.parse_version('25'),
+         version=packaging.version.parse('25'),
          pretty='Fedora 25 (Twenty Five)')),
     # OpenSUSE
     ("""
@@ -146,7 +146,7 @@ from qutebrowser.browser import pdfjs
      """,
      version.DistributionInfo(
          id='opensuse', parsed=version.Distribution.opensuse,
-         version=pkg_resources.parse_version('42.2'),
+         version=packaging.version.parse('42.2'),
          pretty='openSUSE Leap 42.2')),
     # Linux Mint
     ("""
@@ -159,7 +159,7 @@ from qutebrowser.browser import pdfjs
      """,
      version.DistributionInfo(
          id='linuxmint', parsed=version.Distribution.linuxmint,
-         version=pkg_resources.parse_version('18.1'),
+         version=packaging.version.parse('18.1'),
          pretty='Linux Mint 18.1')),
     # Manjaro
     ("""
@@ -188,7 +188,7 @@ from qutebrowser.browser import pdfjs
     """,
      version.DistributionInfo(
          id='org.kde.Platform', parsed=version.Distribution.kde_flatpak,
-         version=pkg_resources.parse_version('5.12'),
+         version=packaging.version.parse('5.12'),
          pretty='KDE')),
     # No PRETTY_NAME
     ("""
@@ -221,7 +221,7 @@ def test_distribution(tmpdir, monkeypatch, os_release, expected):
     (None, False),
     (version.DistributionInfo(
         id='org.kde.Platform', parsed=version.Distribution.kde_flatpak,
-        version=pkg_resources.parse_version('5.12'),
+        version=packaging.version.parse('5.12'),
         pretty='Unknown'), True),
     (version.DistributionInfo(
         id='arch', parsed=version.Distribution.arch, version=None,

@@ -33,7 +33,7 @@ import operator
 import contextlib
 import typing
 
-import pkg_resources
+import packaging
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QFileDevice, QSaveFile, QT_VERSION_STR,
                           PYQT_VERSION_STR, QObject, QUrl)
@@ -100,15 +100,15 @@ def version_check(version: str,
     if compiled and exact:
         raise ValueError("Can't use compiled=True with exact=True!")
 
-    parsed = pkg_resources.parse_version(version)
+    parsed = packaging.version.parse(version)
     op = operator.eq if exact else operator.ge
-    result = op(pkg_resources.parse_version(qVersion()), parsed)
+    result = op(packaging.version.parse(qVersion()), parsed)
     if compiled and result:
         # qVersion() ==/>= parsed, now check if QT_VERSION_STR ==/>= parsed.
-        result = op(pkg_resources.parse_version(QT_VERSION_STR), parsed)
+        result = op(packaging.version.parse(QT_VERSION_STR), parsed)
     if compiled and result:
         # Finally, check PYQT_VERSION_STR as well.
-        result = op(pkg_resources.parse_version(PYQT_VERSION_STR), parsed)
+        result = op(packaging.version.parse(PYQT_VERSION_STR), parsed)
     return result
 
 
@@ -119,8 +119,8 @@ MAX_WORLD_ID = 256 if version_check('5.11.2') else 11
 def is_new_qtwebkit() -> bool:
     """Check if the given version is a new QtWebKit."""
     assert qWebKitVersion is not None
-    return (pkg_resources.parse_version(qWebKitVersion()) >
-            pkg_resources.parse_version('538.1'))
+    return (packaging.version.parse(qWebKitVersion()) >
+            packaging.version.parse('538.1'))
 
 
 def is_single_process() -> bool:
