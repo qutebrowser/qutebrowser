@@ -66,6 +66,7 @@ Changed
   `--asciidoc-python path/to/python --asciidoc path/to/asciidoc.py`
   instead of the former
   `--asciidoc path/to/python path/to/asciidoc.py`.
+- Dark mode is now supported with Qt 5.15.2 (which is not released yet)
 - The `readability-js` userscript now adds some CSS to improve the reader mode
   styling in various scenarios:
   * Images are now shrinked to the page width, similarly to what Firefox' reader

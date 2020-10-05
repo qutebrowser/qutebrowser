@@ -400,7 +400,14 @@ class TestQtArgs:
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
 
-        assert '--blink-settings=darkModeEnabled=true' in args
+        old_setting = '--blink-settings=darkModeEnabled=true'
+        new_setting = '--blink-settings=forceDarkModeEnabled=true'
+
+        assert old_setting in args or new_setting in args
+
+
+def add_prefix(name):
+    return qtargs._darkmode_prefix() + name
 
 
 class TestDarkMode:
@@ -421,25 +428,25 @@ class TestDarkMode:
         (
             {'enabled': True},
             True,
-            [('darkModeEnabled', 'true')]
+            [(add_prefix('Enabled'), 'true')]
         ),
         (
             {'enabled': True},
             False,
-            [('darkMode', '4')]
+            [(add_prefix(''), '4')]
         ),
 
         # Algorithm
         (
             {'enabled': True, 'algorithm': 'brightness-rgb'},
             True,
-            [('darkModeEnabled', 'true'),
-             ('darkModeInversionAlgorithm', '2')],
+            [(add_prefix('Enabled'), 'true'),
+             (add_prefix('InversionAlgorithm'), '2')],
         ),
         (
             {'enabled': True, 'algorithm': 'brightness-rgb'},
             False,
-            [('darkMode', '2')],
+            [(add_prefix(''), '2')],
         ),
 
     ])
@@ -455,19 +462,19 @@ class TestDarkMode:
 
     @pytest.mark.parametrize('setting, value, exp_key, exp_val', [
         ('contrast', -0.5,
-         'darkModeContrast', '-0.5'),
+         add_prefix('Contrast'), '-0.5'),
         ('policy.page', 'smart',
-         'darkModePagePolicy', '1'),
+         add_prefix('PagePolicy'), '1'),
         ('policy.images', 'smart',
-         'darkModeImagePolicy', '2'),
+         add_prefix('ImagePolicy'), '2'),
         ('threshold.text', 100,
-         'darkModeTextBrightnessThreshold', '100'),
+         add_prefix('TextBrightnessThreshold'), '100'),
         ('threshold.background', 100,
-         'darkModeBackgroundBrightnessThreshold', '100'),
+         add_prefix('BackgroundBrightnessThreshold'), '100'),
         ('grayscale.all', True,
-         'darkModeGrayscale', 'true'),
+         add_prefix('Grayscale'), 'true'),
         ('grayscale.images', 0.5,
-         'darkModeImageGrayscale', '0.5'),
+         add_prefix('ImageGrayscale'), '0.5'),
     ])
     def test_customization(self, config_stub, monkeypatch,
                            setting, value, exp_key, exp_val):
@@ -477,7 +484,7 @@ class TestDarkMode:
                             lambda version, exact=False, compiled=True:
                             True)
 
-        expected = [('darkModeEnabled', 'true'), (exp_key, exp_val)]
+        expected = [(add_prefix('Enabled'), 'true'), (exp_key, exp_val)]
         assert list(qtargs._darkmode_settings()) == expected
 
     def test_new_chromium(self):
@@ -493,7 +500,8 @@ class TestDarkMode:
         assert version._chromium_version() in [
             'unavailable',  # QtWebKit
             '77.0.3865.129',  # Qt 5.14
-            '80.0.3987.163',  # Qt 5.15
+            '80.0.3987.163',  # Qt 5.15.0
+            '83.0.4103.122',  # Qt 5.15.2
         ]
 
     def test_options(self, configdata_init):

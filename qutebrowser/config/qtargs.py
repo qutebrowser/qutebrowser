@@ -61,6 +61,21 @@ def qt_args(namespace: argparse.Namespace) -> typing.List[str]:
     return argv
 
 
+def _darkmode_prefix() -> str:
+    """Return the prefix to use for darkmode settings."""
+    try:
+        from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
+    except ImportError:
+        # Added in PyQt 5.13
+        return 'darkMode'
+
+    if PYQT_WEBENGINE_VERSION >= 0x050f02:
+        # QtWebEngine 5.15.2 comes with Chromium 83
+        return 'forceDarkMode'
+    else:
+        return 'darkMode'
+
+
 def _darkmode_settings() -> typing.Iterator[typing.Tuple[str, str]]:
     """Get necessary blink settings to configure dark mode for QtWebEngine."""
     if not config.val.colors.webpage.darkmode.enabled:
@@ -139,10 +154,7 @@ def _darkmode_settings() -> typing.Iterator[typing.Tuple[str, str]]:
         if mapping is not None:
             value = mapping[value]
 
-        # FIXME: This is "forceDarkMode" starting with Chromium 83
-        prefix = 'darkMode'
-
-        yield prefix + key, str(value)
+        yield _darkmode_prefix() + key, str(value)
 
 
 def _qtwebengine_enabled_features(
