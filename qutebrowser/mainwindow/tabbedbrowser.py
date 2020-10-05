@@ -418,9 +418,10 @@ class TabbedBrowser(QWidget):
             new_undo: Whether the undo entry should be a new item in the stack.
         """
         last_close = config.val.tabs.last_close
+        tabs_are_windows = config.val.tabs.tabs_are_windows
         count = self.widget.count()
 
-        if last_close == 'ignore' and count == 1:
+        if last_close == 'ignore' and count == 1 and not tabs_are_windows:
             return
 
         self._remove_tab(tab, add_undo=add_undo, new_undo=new_undo)
