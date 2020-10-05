@@ -511,6 +511,19 @@ class TestDarkMode:
 
         assert list(qtargs._darkmode_settings()) == expected
 
+    @pytest.mark.parametrize('webengine_version, expected', [
+        (None, 'darkMode'),
+        (0x050e00, 'darkMode'),  # 5.14
+        (0x050f00, 'darkMode'),  # 5.15.0
+        (0x050f01, 'darkMode'),  # 5.15.0
+        (0x050f02, 'forceDarkMode'),  # 5.15.2
+        (0x050f02, 'forceDarkMode'),  # 5.15.2
+        (0x060000, 'forceDarkMode'),  # 6
+    ])
+    def test_darkmode_prefix(self, monkeypatch, webengine_version, expected):
+        monkeypatch.setattr(qtargs, 'PYQT_WEBENGINE_VERSION', webengine_version)
+        assert qtargs._darkmode_prefix() == expected
+
     def test_broken_smart_images_policy(self, config_stub, monkeypatch, caplog):
         config_stub.val.colors.webpage.darkmode.enabled = True
         config_stub.val.colors.webpage.darkmode.policy.images = 'smart'

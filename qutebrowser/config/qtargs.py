@@ -26,7 +26,7 @@ import argparse
 
 try:
     from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
-except ImportError:
+except ImportError:  # pragma: no cover
     # Added in PyQt 5.13
     PYQT_WEBENGINE_VERSION = None  # type: ignore[assignment]
 
