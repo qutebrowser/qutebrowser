@@ -128,6 +128,9 @@ CHANGELOG_URLS = {
     'icdiff': 'https://github.com/jeffkaufman/icdiff/blob/master/ChangeLog',
     'termcolor': 'https://pypi.org/project/termcolor/',
     'pprintpp': 'https://github.com/wolever/pprintpp/blob/master/CHANGELOG.txt',
+    'beautifulsoup4': 'https://bazaar.launchpad.net/~leonardr/beautifulsoup/bs4/view/head:/CHANGELOG',
+    'check-manifest': 'https://github.com/mgedmin/check-manifest/blob/master/CHANGES.rst',
+    'yamllint': 'https://github.com/adrienverge/yamllint/blob/master/CHANGELOG.rst',
 }
 
 # PyQt versions which need SIP v4
