@@ -28,7 +28,7 @@ try:
     from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
 except ImportError:
     # Added in PyQt 5.13
-    PYQT_WEBENGINE_VERSION = None
+    PYQT_WEBENGINE_VERSION = None  # type: ignore[assignment]
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
@@ -69,7 +69,8 @@ def qt_args(namespace: argparse.Namespace) -> typing.List[str]:
 
 def _darkmode_prefix() -> str:
     """Return the prefix to use for darkmode settings."""
-    if PYQT_WEBENGINE_VERSION is None or PYQT_WEBENGINE_VERSION < 0x050f02:
+    if (PYQT_WEBENGINE_VERSION is None or  # type: ignore[unreachable]
+            PYQT_WEBENGINE_VERSION < 0x050f02):
         return 'darkMode'
     else:
         # QtWebEngine 5.15.2 comes with Chromium 83
@@ -159,7 +160,8 @@ def _darkmode_settings() -> typing.Iterator[typing.Tuple[str, str]]:
         if isinstance(value, usertypes.Unset):
             continue
 
-        if setting == 'policy.images' and value == 'smart' and smart_image_policy_broken:
+        if (setting == 'policy.images' and value == 'smart' and
+                smart_image_policy_broken):
             # WORKAROUND for
             # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211
             log.init.warning("Ignoring colors.webpage.darkmode.policy.images = smart "

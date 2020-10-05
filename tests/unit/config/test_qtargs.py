@@ -506,7 +506,7 @@ class TestDarkMode:
         expected = []
         expected.append((add_prefix('Enabled'), 'true'))
         if exp_key != 'ImagePolicy':
-            expected.append((add_prefix('ImagePolicy'), '2')),
+            expected.append((add_prefix('ImagePolicy'), '2'))
         expected.append((add_prefix(exp_key), exp_val))
 
         assert list(qtargs._darkmode_settings()) == expected
