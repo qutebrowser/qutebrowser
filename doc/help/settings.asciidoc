@@ -1663,7 +1663,7 @@ On QtWebKit, this setting is unavailable.
 [[colors.webpage.darkmode.policy.images]]
 === colors.webpage.darkmode.policy.images
 Which images to apply dark mode to.
-WARNING: On Qt 5.15.0, this setting can cause frequent renderer process crashes due to a https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug in Qt].
+WARNING: With QtWebengine 5.15.0, this setting can cause frequent renderer process crashes due to a https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug in Qt]. Thus, the 'smart' setting is ignored and treated like 'never' in that case.
 
 This setting requires a restart.
 
@@ -1675,7 +1675,7 @@ Valid values:
  * +never+: Never apply dark mode filter to any images.
  * +smart+: Apply dark mode based on image content.
 
-Default: +pass:[never]+
+Default: +pass:[smart]+
 
 On QtWebEngine, this setting requires Qt 5.14 or newer.
 

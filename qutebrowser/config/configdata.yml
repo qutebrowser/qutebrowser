@@ -2745,7 +2745,7 @@ colors.webpage.darkmode.contrast:
     QtWebKit: false
 
 colors.webpage.darkmode.policy.images:
-  default: never
+  default: smart
   type:
     name: String
     valid_values:
@@ -2755,10 +2755,11 @@ colors.webpage.darkmode.policy.images:
   desc: >-
       Which images to apply dark mode to.
 
-      WARNING: On Qt 5.15.0, this setting can cause frequent renderer process
-      crashes due to a
+      WARNING: With QtWebengine 5.15.0, this setting can cause frequent renderer
+      process crashes due to a
       https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug
-      in Qt].
+      in Qt]. Thus, the 'smart' setting is ignored and treated like 'never' in
+      that case.
   restart: true
   backend:
     QtWebEngine: Qt 5.14
