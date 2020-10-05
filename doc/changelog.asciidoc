@@ -79,6 +79,7 @@ Changed
     reader mode.
   * Code blocks are now easier to distinguish from text and tables have visible
     cell margins.
+- The `readability-js` userscript now supports hint userscript mode.
 
 Added
 ~~~~~
