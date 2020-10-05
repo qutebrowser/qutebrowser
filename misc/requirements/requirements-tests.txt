@@ -34,7 +34,7 @@ py==1.9.0
 py-cpuinfo==7.0.0
 Pygments==2.7.1
 pyparsing==2.4.7
-pytest==6.0.2
+pytest==6.1.1
 pytest-bdd==4.0.1
 pytest-benchmark==3.2.3
 pytest-clarity==0.3.0a0
