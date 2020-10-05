@@ -522,7 +522,12 @@ class TestDarkMode:
         assert caplog.messages[-1] == (
             'Ignoring colors.webpage.darkmode.policy.images = smart because of '
             'Qt 5.15.0 bug')
-        assert settings == [('darkModeEnabled', 'true')]
+
+        expected = [
+            [('darkModeEnabled', 'true')], # Qt 5.15
+            [('darkMode', '4')],  # Qt 5.14
+        ]
+        assert settings in expected
 
     def test_new_chromium(self):
         """Fail if we encounter an unknown Chromium version.
