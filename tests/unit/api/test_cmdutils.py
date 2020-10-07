@@ -25,7 +25,7 @@ import sys
 import logging
 import types
 import enum
-from typing import Union
+import textwrap
 
 import pytest
 
@@ -296,32 +296,42 @@ class TestRegister:
         x = enum.auto()
         y = enum.auto()
 
-    @pytest.mark.parametrize('typ, inp, choices, expected', [
-        (int, '42', None, 42),
-        (int, 'x', None, cmdexc.ArgumentTypeError),
-        (str, 'foo', None, 'foo'),
+    @pytest.mark.parametrize('annotation, inp, choices, expected', [
+        ('int', '42', None, 42),
+        ('int', 'x', None, cmdexc.ArgumentTypeError),
+        ('str', 'foo', None, 'foo'),
 
-        (Union[str, int], 'foo', None, 'foo'),
-        (Union[str, int], '42', None, 42),
+        ('Union[str, int]', 'foo', None, 'foo'),
+        ('Union[str, int]', '42', None, 42),
 
         # Choices
-        (str, 'foo', ['foo'], 'foo'),
-        (str, 'bar', ['foo'], cmdexc.ArgumentTypeError),
+        ('str', 'foo', ['foo'], 'foo'),
+        ('str', 'bar', ['foo'], cmdexc.ArgumentTypeError),
 
         # Choices with Union: only checked when it's a str
-        (Union[str, int], 'foo', ['foo'], 'foo'),
-        (Union[str, int], 'bar', ['foo'], cmdexc.ArgumentTypeError),
-        (Union[str, int], '42', ['foo'], 42),
+        ('Union[str, int]', 'foo', ['foo'], 'foo'),
+        ('Union[str, int]', 'bar', ['foo'], cmdexc.ArgumentTypeError),
+        ('Union[str, int]', '42', ['foo'], 42),
 
-        (Enum, 'x', None, Enum.x),
-        (Enum, 'z', None, cmdexc.ArgumentTypeError),
+        ('Enum', 'x', None, Enum.x),
+        ('Enum', 'z', None, cmdexc.ArgumentTypeError),
     ])
-    def test_typed_args(self, typ, inp, choices, expected):
+    def test_typed_args(self, annotation, inp, choices, expected):
+        src = textwrap.dedent("""
+        from typing import Union
+        from qutebrowser.api import cmdutils
+
         @cmdutils.register()
         @cmdutils.argument('arg', choices=choices)
-        def fun(arg: typ):
-            """Blah."""
-            assert arg == expected
+        def fun(arg: {annotation}):
+            '''Blah.'''
+            return arg
+        """.format(annotation=annotation))
+        code = compile(src, '<string>', 'exec')
+        print(src)
+        ns = {'choices': choices, 'Enum': self.Enum}
+        exec(code, ns, ns)
+        fun = ns['fun']
 
         cmd = objects.commands['fun']
         cmd.namespace = cmd.parser.parse_args([inp])
@@ -333,7 +343,8 @@ class TestRegister:
             args, kwargs = cmd._get_call_args(win_id=0)
             assert args == [expected]
             assert kwargs == {}
-            fun(*args, **kwargs)
+            ret = fun(*args, **kwargs)
+            assert ret == expected
 
     def test_choices_no_annotation(self):
         # https://github.com/qutebrowser/qutebrowser/issues/1871
