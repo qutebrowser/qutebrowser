@@ -216,6 +216,8 @@ class Command:
             How many user-visible arguments the command has.
         """
         signature = inspect.signature(self.handler)
+        type_hints = typing.get_type_hints(self.handler)
+
         doc = inspect.getdoc(self.handler)
         if doc is not None:
             self.desc = doc.splitlines()[0].strip()
@@ -238,7 +240,7 @@ class Command:
                 raise TypeError("{}: handler has keyword only argument {!r} "
                                 "without default!".format(
                                     self.name, param.name))
-            typ = self._get_type(param)
+            typ = self._get_type(param, type_hints)
             is_bool = typ is bool
             kwargs = self._param_to_argparse_kwargs(param, is_bool)
             args = self._param_to_argparse_args(param, is_bool)
@@ -328,11 +330,12 @@ class Command:
                 self.pos_args.append((param.name, name))
         return args
 
-    def _get_type(self, param):
+    def _get_type(self, param, type_hints):
         """Get the type of an argument from its default value or annotation.
 
         Args:
             param: The inspect.Parameter to look at.
+            type_hints: The dict returned by typing.get_type_hints
         """
         arg_info = self.get_arg_info(param)
         if arg_info.value:
@@ -341,10 +344,12 @@ class Command:
         elif param.kind in [inspect.Parameter.VAR_POSITIONAL,
                             inspect.Parameter.VAR_KEYWORD]:
             # For *args/**kwargs we only support strings
-            assert param.annotation in [inspect.Parameter.empty, str], param
+            if param.name in type_hints and type_hints[param.name] != str:
+                raise TypeError("Expected str annotation for {}, got {}".format(
+                    param, type_hints[param.name]))
             return None
-        elif param.annotation is not inspect.Parameter.empty:
-            return param.annotation
+        elif param.name in type_hints:
+            return type_hints[param.name]
         elif param.default not in [None, inspect.Parameter.empty]:
             return type(param.default)
         else:
@@ -397,10 +402,10 @@ class Command:
         self._add_special_arg(value=tab, param=param, args=args,
                               kwargs=kwargs)
 
-    def _get_param_value(self, param):
+    def _get_param_value(self, param, type_hints):
         """Get the converted value for an inspect.Parameter."""
         value = getattr(self.namespace, param.name)
-        typ = self._get_type(param)
+        typ = self._get_type(param, type_hints)
 
         if isinstance(typ, tuple):
             raise TypeError("{}: Legacy tuple type annotation!".format(
@@ -497,6 +502,7 @@ class Command:
         args: Any = []
         kwargs: MutableMapping[str, Any] = {}
         signature = inspect.signature(self.handler)
+        type_hints = typing.get_type_hints(self.handler)
 
         for i, param in enumerate(signature.parameters.values()):
             if self._handle_special_call_arg(pos=i, param=param,
@@ -504,7 +510,7 @@ class Command:
                                              kwargs=kwargs):
                 continue
 
-            value = self._get_param_value(param)
+            value = self._get_param_value(param, type_hints)
             if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
                 args.append(value)
             elif param.kind == inspect.Parameter.VAR_POSITIONAL:

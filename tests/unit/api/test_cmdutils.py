@@ -159,7 +159,7 @@ class TestRegister:
 
         This isn't implemented, so be sure we catch it.
         """
-        with pytest.raises(AssertionError):
+        with pytest.raises(TypeError):
             @cmdutils.register()
             def fun(*args: int):
                 """Blah."""
