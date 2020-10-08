@@ -571,7 +571,7 @@ class ConfigAPI:
                 raise configexc.Error("The autoconfig hasn't been specified to be loaded or not")
         self._config.update_mutables()
 
-    def load_autoconfig(self, load_config=True) -> None:
+    def load_autoconfig(self, load_config: bool = True) -> None:
         """Load the autoconfig.yml file which is used for :set/:bind/etc."""
         with self._handle_error('reading', 'autoconfig.yml'):
             read_autoconfig(load_config)
@@ -817,7 +817,7 @@ def read_config_py(filename: str, raising: bool = False) -> None:
         raise configexc.ConfigFileErrors('config.py', api.errors)
 
 
-def read_autoconfig(load_config=True) -> None:
+def read_autoconfig(load_config: bool = True) -> None:
     """Read the autoconfig.yml file."""
     try:
         config.instance.warn_autoconfig = False
