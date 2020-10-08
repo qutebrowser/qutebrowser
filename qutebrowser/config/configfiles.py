@@ -568,7 +568,8 @@ class ConfigAPI:
         """Do work which needs to be done after reading config.py."""
         with self._handle_error('loading', 'autoconfig'):
             if config.instance.warn_autoconfig:
-                raise configexc.Error("The autoconfig hasn't been specified to be loaded or not")
+                raise configexc.Error(
+                        "The autoconfig hasn't been specified to be loaded or not")
         self._config.update_mutables()
 
     def load_autoconfig(self, load_config: bool = True) -> None:
