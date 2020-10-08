@@ -235,7 +235,7 @@ following snippet to `config.py`:
 
 [source,python]
 ----
-config.load_autoconfig()
+config.load_autoconfig(True)
 ----
 
 You can configure which file overrides the other by the location of the above code snippet.

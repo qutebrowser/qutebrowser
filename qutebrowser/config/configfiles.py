@@ -566,12 +566,15 @@ class ConfigAPI:
 
     def finalize(self) -> None:
         """Do work which needs to be done after reading config.py."""
+        with self._handle_error('loading', 'autoconfig'):
+            if config.instance is not None and config.instance.warn_autoconfig:
+                raise configexc.Error("The autoconfig hasn't been specified to be loaded or not")
         self._config.update_mutables()
 
-    def load_autoconfig(self) -> None:
+    def load_autoconfig(self, load_config=True) -> None:
         """Load the autoconfig.yml file which is used for :set/:bind/etc."""
         with self._handle_error('reading', 'autoconfig.yml'):
-            read_autoconfig()
+            read_autoconfig(load_config)
 
     def get(self, name: str, pattern: str = None) -> typing.Any:
         """Get a setting value from the config, optionally with a pattern."""
@@ -689,12 +692,12 @@ class ConfigPyWriter:
                              "still loaded.")
             yield self._line("# Remove it to not load settings done via the "
                              "GUI.")
-            yield self._line("config.load_autoconfig()")
+            yield self._line("config.load_autoconfig(True)")
             yield ''
         else:
-            yield self._line("# Uncomment this to still load settings "
+            yield self._line("# Change the argument to True to still load settings "
                              "configured via autoconfig.yml")
-            yield self._line("# config.load_autoconfig()")
+            yield self._line("config.load_autoconfig(False)")
             yield ''
 
     def _gen_options(self) -> typing.Iterator[str]:
@@ -814,10 +817,12 @@ def read_config_py(filename: str, raising: bool = False) -> None:
         raise configexc.ConfigFileErrors('config.py', api.errors)
 
 
-def read_autoconfig() -> None:
+def read_autoconfig(load_config=True) -> None:
     """Read the autoconfig.yml file."""
     try:
-        config.instance.read_yaml()
+        config.instance.warn_autoconfig = False
+        if load_config:
+            config.instance.read_yaml()
     except configexc.ConfigFileErrors:
         raise  # caught in outer block
     except configexc.Error as e:
