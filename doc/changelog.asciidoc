@@ -21,6 +21,13 @@ v1.14.0 (unreleased)
 Changed
 ~~~~~~~
 
+- Note: The QtWebEngine version bundled with the Windows/macOS
+  releases is still based on Qt 5.15.0 (like with qutebrowser v1.12.0 and
+  v1.13.0) rather than Qt 5.15.1 because of a
+  https://bugreports.qt.io/browse/QTBUG-86752[Qt bug] causing
+  frequent renderer process crashes. When Qt 5.15.2 is released
+  (expected around December 2020), a qutebrowser v1.14.x patch
+  release with an updated QtWebEngine will be released.
 - The `content.media_capture` setting got split up into three more fine-grained
   settings, `content.media.audio_capture`, `.video_capture` and
   `.audio_video_capture`. Before this change, anwering "always" to a prompt
@@ -44,8 +51,6 @@ Changed
 - `:back` and `:forward` now take an optional index which is completed using
   the current tab's history.
 - The time a website in a tab was visited is now saved/restored in sessions.
-- New argument `strip` for `:navigate` which removes queries and
-  fragments from the current URL.
 - When attempting to download a file to a location for which there's already a
   still-running download, a confirmation prompt is now displayed.
 - `:completion-item-focus` now understands `next-page` and `prev-page` with
@@ -66,7 +71,8 @@ Changed
   `--asciidoc-python path/to/python --asciidoc path/to/asciidoc.py`
   instead of the former
   `--asciidoc path/to/python path/to/asciidoc.py`.
-- Dark mode is now supported with Qt 5.15.2 (which is not released yet)
+- Dark mode (`colors.webpage.darkmode.*`) is now supported with Qt 5.15.2 (which
+  is not released yet).
 - The default for the darkmode `policy.images` setting is now set to `smart`
   which fixes issues with e.g. formulas on Wikipedia.
 - The `readability-js` userscript now adds some CSS to improve the reader mode
@@ -84,6 +90,8 @@ Changed
 Added
 ~~~~~
 
+- New argument `strip` for `:navigate` which removes queries and
+  fragments from the current URL.
 - `:undo` now has a new `-w` / `--window` argument, which can be used to
   restore closed windows (rather than tabs). This is bound to `U` by default.
 - `:jseval` can now take `javascript:...` URLs via a new `--url` flag.
@@ -142,11 +150,11 @@ Fixed
   could end up in a confusing state. This is now fixed.
 - When qutebrowser quits, running downloads are now cancelled properly.
 - The site-specific quirk for `web.whatsapp.com` has been updated to work after recent
-  WhatsApp-changes.
+  changes in WhatsApp.
 - Highlighting in the completion now works properly when UTF-16 surrogate pairs (such as
   emoji) are involved.
 - When a windowed inspector is clicked, insert mode now isn't entered anymore.
-- When `:undo` to re-open a tab but `tabs.tabs_are_windows` was set between
+- When `:undo` is used to re-open a tab, but `tabs.tabs_are_windows` was set between
   closing and undoing the close, qutebrowser crashed. This is now fixed.
 - With QtWebEngine 5.15.0, setting the darkmode image policy to `smart` leads to
   renderer process crashes. The offending setting value is now ignored with a
@@ -156,7 +164,7 @@ Fixed
     password due to `qute-pass` using it in a deprecated way.
   * The `--password-store` argument didn't actually set
     `PASSWORD_STORE_DIR` for `pass`, resulting in `qute-pass` finding matches but the
-    underlying `pass` not finding matching passwords. This is now fixed.
+    underlying `pass` not finding matching passwords.
 
 v1.13.1 (2020-07-17)
 --------------------
