@@ -42,10 +42,24 @@ if typing.TYPE_CHECKING:
     from qutebrowser.browser import browsertab
 
 
-Target = enum.Enum('Target', ['normal', 'current', 'tab', 'tab_fg', 'tab_bg',
-                              'window', 'yank', 'yank_primary', 'run', 'fill',
-                              'hover', 'download', 'userscript', 'spawn',
-                              'delete', 'right_click'])
+class Target(enum.Enum):
+
+    normal = 1
+    current = 2
+    tab = 3
+    tab_fg = 4
+    tab_bg = 5
+    window = 6
+    yank = 7
+    yank_primary = 8
+    run = 9
+    fill = 10
+    hover = 11
+    download = 12
+    userscript = 13
+    spawn = 14
+    delete = 15
+    right_click = 16
 
 
 class HintingError(Exception):
