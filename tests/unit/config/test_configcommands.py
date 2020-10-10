@@ -499,7 +499,8 @@ class TestSource:
         else:
             assert False, location
 
-        pyfile.write_text('config.load_autoconfig(False)\nc.content.javascript.enabled = False\n',
+        pyfile.write_text('\n'.join(['config.load_autoconfig(False)'
+                                     'c.content.javascript.enabled = False']),
                           encoding='utf-8')
 
         commands.config_source(arg, clear=clear)
@@ -511,7 +512,8 @@ class TestSource:
 
     def test_config_py_arg_source(self, commands, config_py_arg, config_stub):
         assert config_stub.val.content.javascript.enabled
-        config_py_arg.write_text('config.load_autoconfig(False)\nc.content.javascript.enabled = False\n',
+        config_py_arg.write_text('\n'.join(['config.load_autoconfig(False)',
+                                            'c.content.javascript.enabled = False']),
                                  encoding='utf-8')
         commands.config_source()
         assert not config_stub.val.content.javascript.enabled
@@ -571,7 +573,8 @@ class TestEdit:
 
     def test_with_sourcing(self, commands, config_stub, patch_editor):
         assert config_stub.val.content.javascript.enabled
-        mock = patch_editor('config.load_autoconfig(False)\nc.content.javascript.enabled = False')
+        mock = patch_editor('\n'.join(['config.load_autoconfig(False)',
+                                       'c.content.javascript.enabled = False']))
 
         commands.config_edit()
 
@@ -580,7 +583,7 @@ class TestEdit:
 
     def test_config_py_with_sourcing(self, commands, config_stub, patch_editor, config_py_arg):
         assert config_stub.val.content.javascript.enabled
-        conf = ['config.load_autoconfig(False)','c.content.javascript.enabled = False']
+        conf = ['config.load_autoconfig(False)', 'c.content.javascript.enabled = False']
         mock = patch_editor("\n".join(conf))
         commands.config_edit()
         mock.assert_called_once_with(unittest.mock.ANY)
