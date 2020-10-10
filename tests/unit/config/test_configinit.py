@@ -63,7 +63,7 @@ def configdata_init(monkeypatch):
 class TestEarlyInit:
 
     def test_config_py_path(self, args, init_patch, config_py_arg):
-        config_py_arg.write('c.colors.hints.bg = "red"\n')
+        config_py_arg.write('config.load_autoconfig()\nc.colors.hints.bg = "red"\n')
         configinit.early_init(args)
         expected = 'colors.hints.bg = red'
         assert config.instance.dump_userconfig() == expected
