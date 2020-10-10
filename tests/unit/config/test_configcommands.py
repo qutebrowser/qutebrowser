@@ -499,7 +499,7 @@ class TestSource:
         else:
             assert False, location
 
-        pyfile.write_text('\n'.join(['config.load_autoconfig(False)'
+        pyfile.write_text('\n'.join(['config.load_autoconfig(False)',
                                      'c.content.javascript.enabled = False']),
                           encoding='utf-8')
 
