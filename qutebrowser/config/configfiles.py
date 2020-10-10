@@ -566,16 +566,18 @@ class ConfigAPI:
 
     def finalize(self) -> None:
         """Do work which needs to be done after reading config.py."""
-        with self._handle_error('loading', 'autoconfig'):
-            if config.instance.warn_autoconfig:
-                raise configexc.Error(
-                        "The autoconfig hasn't been specified to be loaded or not")
+        if config.instance.warn_autoconfig:
+            desc = configexc.ConfigErrorDesc("autoconfig loading not specified",
+                                             "Your config.py should call either `config.load_autoconfig()` (to load settings configured via the GUI) or `config.load_autoconfig(False)` (to not do so)")
+            self.errors.append(desc)
         self._config.update_mutables()
 
     def load_autoconfig(self, load_config: bool = True) -> None:
         """Load the autoconfig.yml file which is used for :set/:bind/etc."""
+        config.instance.warn_autoconfig = False
         with self._handle_error('reading', 'autoconfig.yml'):
-            read_autoconfig(load_config)
+            if load_config:
+                read_autoconfig()
 
     def get(self, name: str, pattern: str = None) -> typing.Any:
         """Get a setting value from the config, optionally with a pattern."""
@@ -821,9 +823,7 @@ def read_config_py(filename: str, raising: bool = False) -> None:
 def read_autoconfig(load_config: bool = True) -> None:
     """Read the autoconfig.yml file."""
     try:
-        config.instance.warn_autoconfig = False
-        if load_config:
-            config.instance.read_yaml()
+        config.instance.read_yaml()
     except configexc.ConfigFileErrors:
         raise  # caught in outer block
     except configexc.Error as e:
