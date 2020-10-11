@@ -30,13 +30,13 @@ import datetime
 import enum
 import typing
 
-import pkg_resources
 from PyQt5.QtCore import pyqtSlot, Qt, QSize
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout, QCheckBox,
                              QDialogButtonBox, QApplication, QMessageBox)
 
 import qutebrowser
+from qutebrowser.utils.qtutils import parse_version
 from qutebrowser.utils import version, log, utils
 from qutebrowser.misc import (miscwidgets, autoupdate, msgbox, httpclient,
                               pastebin)
@@ -361,8 +361,8 @@ class _CrashDialog(QDialog):
         Args:
             newest: The newest version as a string.
         """
-        new_version = pkg_resources.parse_version(newest)
-        cur_version = pkg_resources.parse_version(qutebrowser.__version__)
+        new_version = parse_version(newest)
+        cur_version = parse_version(qutebrowser.__version__)
         lines = ['The report has been sent successfully. Thanks!']
         if new_version > cur_version:
             lines.append("<b>Note:</b> The newest available version is v{}, "

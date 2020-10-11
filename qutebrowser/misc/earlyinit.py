@@ -172,7 +172,7 @@ def check_qt_version():
     """Check if the Qt version is recent enough."""
     from PyQt5.QtCore import (qVersion, QT_VERSION, PYQT_VERSION,
                               PYQT_VERSION_STR)
-    from pkg_resources import parse_version
+    from qutebrowser.utils.qtutils import parse_version
     from qutebrowser.utils import log
     parsed_qversion = parse_version(qVersion())
 
