@@ -745,9 +745,6 @@ class TestProxyFromUrl:
     def test_proxy_from_url_valid(self, url, expected):
         assert urlutils.proxy_from_url(QUrl(url)) == expected
 
-    @pytest.mark.qt_log_ignore(
-        r'^QHttpNetworkConnectionPrivate::_q_hostLookupFinished could not '
-        r'de-queue request, failed to report HostNotFoundError')
     @pytest.mark.parametrize('scheme', ['pac+http', 'pac+https'])
     def test_proxy_from_url_pac(self, scheme, qapp):
         fetcher = urlutils.proxy_from_url(QUrl('{}://foo'.format(scheme)))
