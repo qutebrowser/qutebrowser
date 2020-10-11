@@ -61,17 +61,17 @@ Feature: Using hints
 
     Scenario: Using :hint spawn with flags and -- (issue 797)
         When I open data/hints/html/simple.html
-        And I hint with args "-- all spawn -v python -c ''" and follow a
+        And I hint with args "-- all spawn -v (python-executable) -c ''" and follow a
         Then the message "Command exited successfully." should be shown
 
     Scenario: Using :hint spawn with flags (issue 797)
         When I open data/hints/html/simple.html
-        And I hint with args "all spawn -v python -c ''" and follow a
+        And I hint with args "all spawn -v (python-executable) -c ''" and follow a
         Then the message "Command exited successfully." should be shown
 
     Scenario: Using :hint spawn with flags and --rapid (issue 797)
         When I open data/hints/html/simple.html
-        And I hint with args "--rapid all spawn -v python -c ''" and follow a
+        And I hint with args "--rapid all spawn -v (python-executable) -c ''" and follow a
         Then the message "Command exited successfully." should be shown
 
     @posix

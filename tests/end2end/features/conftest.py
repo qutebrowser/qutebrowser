@@ -378,6 +378,7 @@ def hint(quteproc, args):
 @bdd.when(bdd.parsers.parse('I hint with args "{args}" and follow {letter}'))
 def hint_and_follow(quteproc, args, letter):
     args = args.replace('(testdata)', testutils.abs_datapath())
+    args = args.replace('(python-executable)', sys.executable)
     quteproc.send_cmd(':hint {}'.format(args))
     quteproc.wait_for(message='hints: *')
     quteproc.send_cmd(':follow-hint {}'.format(letter))
