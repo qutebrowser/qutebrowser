@@ -955,6 +955,17 @@ class TestConfigPy:
         # points at the location *after* the +
         assert "    ^" in tblines or "     ^" in tblines
 
+    def test_load_autoconfig_warning(self, confpy):
+        confpy.write('')
+        config.instance.warn_autoconfig = True
+        with pytest.raises(configexc.ConfigFileErrors) as excinfo:
+            configfiles.read_config_py(confpy.filename)
+        assert len(excinfo.value.errors) == 1
+        error = excinfo.value.errors[0]
+        assert error.text == "autoconfig loading not specified"
+        exception_text = 'Your config.py should call either `config.load_autoconfig()` (to load settings configured via the GUI) or `config.load_autoconfig(False)` (to not do so)'
+        assert str(error.exception) == exception_text
+
     def test_unhandled_exception(self, confpy):
         confpy.write("1/0")
         error = confpy.read(error=True)
