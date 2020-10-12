@@ -361,11 +361,11 @@ class PyQIODevice(io.BufferedIOBase):
     def readable(self) -> bool:
         return self.dev.isReadable()
 
-    def readline(self, size: int = -1) -> bytes:
+    def readline(self, size: typing.Optional[int] = -1) -> bytes:
         self._check_open()
         self._check_readable()
 
-        if size < 0:
+        if size is None or size < 0:
             qt_size = 0  # no maximum size
         elif size == 0:
             return b''
@@ -375,7 +375,7 @@ class PyQIODevice(io.BufferedIOBase):
         buf = None  # type: typing.Union[QByteArray, bytes, None]
         if self.dev.canReadLine():
             buf = self.dev.readLine(qt_size)
-        elif size < 0:
+        elif size is None or size < 0:
             buf = self.dev.readAll()
         else:
             buf = self.dev.read(size)
@@ -401,7 +401,10 @@ class PyQIODevice(io.BufferedIOBase):
     def writable(self) -> bool:
         return self.dev.isWritable()
 
-    def write(self, data: typing.Union[bytes, bytearray]) -> int:
+    def write(  # type: ignore[override]
+        self,
+        data: typing.Union[bytes, bytearray]
+    ) -> int:
         self._check_open()
         self._check_writable()
         num = self.dev.write(data)
