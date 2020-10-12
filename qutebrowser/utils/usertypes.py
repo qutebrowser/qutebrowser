@@ -33,8 +33,13 @@ from qutebrowser.utils import log, qtutils, utils
 if typing.TYPE_CHECKING:
     # Protocol was added in Python 3.8
     from typing import Protocol, Any
+
     class SupportsLessThan(Protocol):
-        def __lt__(self, other: Any) -> bool: ...
+
+        """Protocol for the _T TypeVar below."""
+
+        def __lt__(self, other: Any) -> bool:
+            ...
 
 
 _T = typing.TypeVar('_T', bound='SupportsLessThan')

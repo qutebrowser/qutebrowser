@@ -402,8 +402,8 @@ class PyQIODevice(io.BufferedIOBase):
         return self.dev.isWritable()
 
     def write(  # type: ignore[override]
-        self,
-        data: typing.Union[bytes, bytearray]
+            self,
+            data: typing.Union[bytes, bytearray]
     ) -> int:
         self._check_open()
         self._check_writable()
