@@ -9,37 +9,37 @@ var iframe, object;
 // svg iframe
 iframe = document.createElement('iframe');
 iframe.onload = function () { kungFuDeathGrip.title += '1' };
-iframe.src = "svg.xml";
+// iframe.src = "svg.xml";
 kungFuDeathGrip.appendChild(iframe);
 // object iframe
 object = document.createElement('object');
 object.onload = function () { kungFuDeathGrip.title += '2' };
-object.data = "svg.xml";
+// object.data = "svg.xml";
 kungFuDeathGrip.appendChild(object);
 // xml iframe
 iframe = document.createElement('iframe');
 iframe.onload = function () { kungFuDeathGrip.title += '3' };
-iframe.src = "empty.xml";
+// iframe.src = "empty.xml";
 kungFuDeathGrip.appendChild(iframe);
 // html iframe
 iframe = document.createElement('iframe');
 iframe.onload = function () { kungFuDeathGrip.title += '4' };
-iframe.src = "empty.html";
+// iframe.src = "empty.html";
 kungFuDeathGrip.appendChild(iframe);
 // html iframe
 iframe = document.createElement('iframe');
 iframe.onload = function () { kungFuDeathGrip.title += '5' };
-iframe.src = "xhtml.1";
+// iframe.src = "xhtml.1";
 kungFuDeathGrip.appendChild(iframe);
 // html iframe
 iframe = document.createElement('iframe');
 iframe.onload = function () { kungFuDeathGrip.title += '6' };
-iframe.src = "xhtml.2";
+// iframe.src = "xhtml.2";
 kungFuDeathGrip.appendChild(iframe);
 // html iframe
 iframe = document.createElement('iframe');
 iframe.onload = function () { kungFuDeathGrip.title += '7' };
-iframe.src = "xhtml.3";
+// iframe.src = "xhtml.3";
 kungFuDeathGrip.appendChild(iframe);
 // add the lot to the document
 
