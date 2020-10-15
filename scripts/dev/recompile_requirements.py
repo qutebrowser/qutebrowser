@@ -313,8 +313,8 @@ class Change:
             return '| {} | {} | {} |'.format(self.link, self.old, self.new)
 
 
-def print_changed_files():
-    """Output all changed files from this run."""
+def _get_changed_files():
+    """Get a list of changed files via git."""
     changed_files = set()
     filenames = git_diff('--name-only')
     for filename in filenames:
@@ -322,8 +322,12 @@ def print_changed_files():
         filename = filename.replace('misc/requirements/requirements-', '')
         filename = filename.replace('.txt', '')
         changed_files.add(filename)
-    files_text = '\n'.join('- ' + line for line in sorted(changed_files))
 
+    return sorted(changed_files)
+
+
+def _get_changes():
+    """Get a list of changed versions from git."""
     changes_dict = {}
     diff = git_diff()
     for line in diff:
@@ -354,7 +358,15 @@ def print_changed_files():
         elif line.startswith('+'):
             changes_dict[name].new = version
 
-    changes = [change for _name, change in sorted(changes_dict.items())]
+    return [change for _name, change in sorted(changes_dict.items())]
+
+
+def print_changed_files():
+    """Output all changed files from this run."""
+    changed_files = _get_changed_files()
+    files_text = '\n'.join('- ' + line for line in changed_files)
+
+    changes = _get_changes()
     diff_text = '\n'.join(str(change) for change in changes)
 
     utils.print_title('Changed')
