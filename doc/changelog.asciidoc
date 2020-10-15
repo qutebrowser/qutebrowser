@@ -18,16 +18,23 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v1.14.0 (unreleased)
 --------------------
 
+Note: The QtWebEngine version bundled with the Windows/macOS
+releases is still based on Qt 5.15.0 (like with qutebrowser v1.12.0 and
+v1.13.0) rather than Qt 5.15.1 because of a
+https://bugreports.qt.io/browse/QTBUG-86752[Qt bug] causing
+frequent renderer process crashes. When Qt 5.15.2 is released
+(planned for November 3rd, 2020), a qutebrowser v1.14.x patch
+release with an updated QtWebEngine will be released.
+
+Furthermore, this release still only contains partial session support for QtWebEngine
+5.15. It's still recommended to run against Qt 5.15 due to the security patches
+contained in it -- for most users, the added workarounds seem to work out fine. A
+rewritten session support will be part of qutebrowser v2.0.0, tenatively planned for the
+end of the year or early 2021.
+
 Changed
 ~~~~~~~
 
-- Note: The QtWebEngine version bundled with the Windows/macOS
-  releases is still based on Qt 5.15.0 (like with qutebrowser v1.12.0 and
-  v1.13.0) rather than Qt 5.15.1 because of a
-  https://bugreports.qt.io/browse/QTBUG-86752[Qt bug] causing
-  frequent renderer process crashes. When Qt 5.15.2 is released
-  (expected around December 2020), a qutebrowser v1.14.x patch
-  release with an updated QtWebEngine will be released.
 - The `content.media_capture` setting got split up into three more fine-grained
   settings, `content.media.audio_capture`, `.video_capture` and
   `.audio_video_capture`. Before this change, anwering "always" to a prompt
