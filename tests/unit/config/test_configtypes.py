@@ -249,7 +249,7 @@ class TestAll:
         ]:
             return
         elif (isinstance(klass, functools.partial) and
-              klass.func in [configtypes.ListOrValue, configtypes.List])):
+              klass.func in [configtypes.ListOrValue, configtypes.List]):
             # ListOrValue: "- /" -> "/"
             # List: "- /" -> ["/"]
             return
