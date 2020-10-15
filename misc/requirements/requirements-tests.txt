@@ -7,17 +7,17 @@ certifi==2020.6.20
 chardet==3.0.4
 cheroot==8.4.5
 click==7.1.2
-# colorama==0.4.3
+# colorama==0.4.4
 coverage==5.3
 EasyProcess==0.3
 execnet==1.7.1
 Flask==1.1.2
 glob2==0.7
 hunter==3.2.2
-hypothesis==5.37.1 ; python_version>="3.6"
+hypothesis==5.37.3 ; python_version>="3.6"
 icdiff==1.9.1 ; python_version>="3.6"
 idna==2.10
-iniconfig==1.0.1
+iniconfig==1.1.1
 itsdangerous==1.1.0
 jaraco.functools==3.0.1 ; python_version>="3.6"
 # Jinja2==2.11.2
