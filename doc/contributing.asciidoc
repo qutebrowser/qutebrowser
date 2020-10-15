@@ -9,7 +9,7 @@ IMPORTANT: Bandwidth for pull request review is currently quite limited. If you
 want to contribute where it's most needed, please consider reviewing or testing
 open pull requests.
 
-I `&lt;3` footnote:[Of course, that says `<3` in HTML.] contributors!
+I `&lt;3` footnote:[`<3` in HTML] contributors!
 
 This document contains guidelines for contributing to qutebrowser, as well as
 useful hints when doing so.

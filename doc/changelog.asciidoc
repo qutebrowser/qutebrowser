@@ -29,7 +29,7 @@ release with an updated QtWebEngine will be released.
 Furthermore, this release still only contains partial session support for QtWebEngine
 5.15. It's still recommended to run against Qt 5.15 due to the security patches
 contained in it -- for most users, the added workarounds seem to work out fine. A
-rewritten session support will be part of qutebrowser v2.0.0, tenatively planned for the
+rewritten session support will be part of qutebrowser v2.0.0, tentatively planned for the
 end of the year or early 2021.
 
 Changed
@@ -37,7 +37,7 @@ Changed
 
 - The `content.media_capture` setting got split up into three more fine-grained
   settings, `content.media.audio_capture`, `.video_capture` and
-  `.audio_video_capture`. Before this change, anwering "always" to a prompt
+  `.audio_video_capture`. Before this change, answering "always" to a prompt
   about e.g. audio capturing would set the `content.media_capture` setting,
   which would also allow the same website to capture video on a future visit.
   Now every prompt will set the appropriate setting, though existing
