@@ -342,6 +342,9 @@ def print_changed_files():
             name = line[1:]
             version = '?'
 
+        if name.startswith('#'):  # duplicate requirements
+            name = name[1:].strip()
+
         if name not in changes_dict:
             changes_dict[name] = Change(name)
 
