@@ -84,6 +84,7 @@ CHANGELOG_URLS = {
     'jaraco.functools': 'https://github.com/jaraco/jaraco.functools/blob/master/CHANGES.rst',
     'parse': 'https://github.com/r1chardj0n3s/parse#potential-gotchas',
     'py': 'https://py.readthedocs.io/en/latest/changelog.html#changelog',
+    'Pympler': 'https://github.com/pympler/pympler/blob/master/CHANGELOG.md',
     'pytest-mock': 'https://github.com/pytest-dev/pytest-mock/blob/master/CHANGELOG.rst',
     'pytest-qt': 'https://github.com/pytest-dev/pytest-qt/blob/master/CHANGELOG.rst',
     'wcwidth': 'https://github.com/jquast/wcwidth#history',
