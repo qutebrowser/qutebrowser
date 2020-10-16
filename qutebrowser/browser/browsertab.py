@@ -107,16 +107,16 @@ class TerminationStatus(enum.Enum):
     Also see QWebEnginePage::RenderProcessTerminationStatus
     """
 
-    #: The render process terminated normally.
-    normal = 1
-    #: The render process terminated with with a non-zero exit status.
-    abnormal = 2
-    #: The render process crashed, for example because of a segmentation fault.
-    crashed = 3
-    #: The render process was killed, for example by SIGKILL or task manager kill.
-    killed = 4
     #: Unknown render process status value gotten from Qt.
-    unknown = 5
+    unknown = -1
+    #: The render process terminated normally.
+    normal = 0
+    #: The render process terminated with with a non-zero exit status.
+    abnormal = 1
+    #: The render process crashed, for example because of a segmentation fault.
+    crashed = 2
+    #: The render process was killed, for example by SIGKILL or task manager kill.
+    killed = 3
 
 
 @attr.s
