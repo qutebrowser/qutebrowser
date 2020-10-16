@@ -49,7 +49,12 @@ class ColorFlags:
         passthrough: If we're currently in passthrough-mode.
     """
 
-    CaretMode = enum.Enum('CaretMode', ['off', 'on', 'selection'])
+    class CaretMode(enum.Enum):
+
+        off = 1
+        on = 2
+        selection = 3
+
     prompt = attr.ib(False)
     insert = attr.ib(False)
     command = attr.ib(False)

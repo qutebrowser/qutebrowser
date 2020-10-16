@@ -39,7 +39,10 @@ class Text(textbase.TextBase):
         available. If not, the permanent text is shown.
     """
 
-    Text = enum.Enum('Text', ['normal', 'temp'])
+    class Text(enum.Enum):
+
+        normal = 1
+        temp = 2
 
     def __init__(self, parent=None):
         super().__init__(parent)

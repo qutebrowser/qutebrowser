@@ -89,10 +89,21 @@ class DistributionInfo:
 
 
 pastebin_url = None
-Distribution = enum.Enum(
-    'Distribution', ['unknown', 'ubuntu', 'debian', 'void', 'arch',
-                     'gentoo', 'fedora', 'opensuse', 'linuxmint', 'manjaro',
-                     'kde_flatpak'])
+
+
+class Distribution(enum.Enum):
+
+    unknown = 1
+    ubuntu = 2
+    debian = 3
+    void = 4
+    arch = 5
+    gentoo = 6
+    fedora = 7
+    opensuse = 8
+    linuxmint = 9
+    manjaro = 10
+    kde_flatpak = 11
 
 
 def distribution() -> typing.Optional[DistributionInfo]:

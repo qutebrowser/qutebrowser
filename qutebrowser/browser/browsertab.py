@@ -100,13 +100,13 @@ class UnsupportedOperationError(WebTabError):
     """Raised when an operation is not supported with the given backend."""
 
 
-TerminationStatus = enum.Enum('TerminationStatus', [
-    'normal',
-    'abnormal',  # non-zero exit status
-    'crashed',   # e.g. segfault
-    'killed',
-    'unknown',
-])
+class TerminationStatus(enum.Enum):
+
+    normal = 1
+    abnormal = 2  # non-zero exit status
+    crashed = 3  # e.g. segfault
+    killed = 4
+    unknown = 5
 
 
 @attr.s

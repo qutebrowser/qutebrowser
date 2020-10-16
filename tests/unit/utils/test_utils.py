@@ -561,8 +561,12 @@ class TestIsEnum:
 
     def test_enum(self):
         """Test is_enum with an enum."""
-        e = enum.Enum('Foo', 'bar, baz')
-        assert utils.is_enum(e)
+        class Foo(enum.Enum):
+
+            bar = 1
+            baz = 2
+
+        assert utils.is_enum(Foo)
 
     def test_class(self):
         """Test is_enum with a non-enum class."""

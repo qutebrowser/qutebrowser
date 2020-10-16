@@ -53,7 +53,10 @@ class Message:
             print(self.text)
 
 
-MsgType = enum.Enum('MsgType', 'insufficient_coverage, perfect_file')
+class MsgType(enum.Enum):
+
+    insufficient_coverage = 1
+    perfect_file = 2
 
 
 # A list of (test_file, tested_file) tuples. test_file can be None.
