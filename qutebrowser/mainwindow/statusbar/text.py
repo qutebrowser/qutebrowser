@@ -29,57 +29,13 @@ from qutebrowser.utils import log
 
 class Text(textbase.TextBase):
 
-    """Text displayed in the statusbar.
-
-    Attributes:
-        _normaltext: The "permanent" text. Never automatically cleared.
-        _temptext: The temporary text to display.
-
-        The temptext is shown from StatusBar when a temporary text or error is
-        available. If not, the permanent text is shown.
-    """
-
-    class Text(enum.Enum):
-
-        normal = 1
-        temp = 2
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._normaltext = ''
-        self._temptext = ''
-
-    def set_text(self, which, text):
-        """Set a text.
-
-        Args:
-            which: Which text to set, a self.Text instance.
-            text: The text to set.
-        """
-        log.statusbar.debug("Setting {} text to '{}'.".format(
-            which.name, text))
-        if which is self.Text.normal:
-            self._normaltext = text
-        elif which is self.Text.temp:
-            self._temptext = text
-        else:
-            raise ValueError("Invalid value {} for which!".format(which))
-        self.update_text()
+    """Text displayed in the statusbar."""
 
     @pyqtSlot(str)
     def maybe_reset_text(self, text):
         """Clear a normal text if it still matches an expected text."""
-        if self._normaltext == text:
+        if self.text() == text:
             log.statusbar.debug("Resetting: '{}'".format(text))
-            self.set_text(self.Text.normal, '')
+            self.setText('')
         else:
             log.statusbar.debug("Ignoring reset: '{}'".format(text))
-
-    def update_text(self):
-        """Update QLabel text when needed."""
-        if self._temptext:
-            self.setText(self._temptext)
-        elif self._normaltext:
-            self.setText(self._normaltext)
-        else:
-            self.setText('')

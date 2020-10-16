@@ -335,7 +335,7 @@ class StatusBar(QWidget):
         else:
             suffix = ''
         text = "-- {} MODE --{}".format(mode.upper(), suffix)
-        self.txt.set_text(self.txt.Text.normal, text)
+        self.txt.setText(text)
 
     def _show_cmd_widget(self):
         """Show command widget instead of temporary text."""
@@ -351,7 +351,7 @@ class StatusBar(QWidget):
     @pyqtSlot(str)
     def set_text(self, val):
         """Set a normal (persistent) text in the status bar."""
-        self.txt.set_text(self.txt.Text.normal, val)
+        self.txt.setText(val)
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
@@ -379,7 +379,7 @@ class StatusBar(QWidget):
             if mode_manager.parsers[new_mode].passthrough:
                 self._set_mode_text(new_mode.name)
             else:
-                self.txt.set_text(self.txt.Text.normal, '')
+                self.txt.setText('')
         if old_mode in [usertypes.KeyMode.insert,
                         usertypes.KeyMode.command,
                         usertypes.KeyMode.caret,
