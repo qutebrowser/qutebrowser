@@ -292,6 +292,7 @@ class TestRegister:
 
     class Enum(enum.Enum):
 
+        # pylint: disable=invalid-name
         x = 1
         y = 2
 
