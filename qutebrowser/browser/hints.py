@@ -29,7 +29,7 @@ import enum
 from string import ascii_lowercase
 
 import attr
-from PyQt5.QtCore import pyqtSlot, QObject, Qt, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt, QUrl
 from PyQt5.QtWidgets import QLabel
 
 from qutebrowser.config import config, configexc
@@ -369,7 +369,7 @@ class HintManager(QObject):
         _tab_id: The tab ID this HintManager is associated with.
 
     Signals:
-        See HintActions
+        set_text: Request for the statusbar to change its text.
     """
 
     HINT_TEXTS = {
@@ -390,6 +390,8 @@ class HintManager(QObject):
         Target.spawn: "Spawn command via hint",
         Target.delete: "Delete an element",
     }
+
+    set_text = pyqtSignal(str)
 
     def __init__(self, win_id: int, parent: QObject = None) -> None:
         """Constructor."""
@@ -418,8 +420,7 @@ class HintManager(QObject):
         for label in self._context.all_labels:
             label.cleanup()
 
-        window = objreg.get('main-window', scope='window', window=self._win_id)
-        window.status.set_text('')
+        self.set_text.emit('')
 
         self._context = None
 
@@ -651,8 +652,7 @@ class HintManager(QObject):
         modeman.enter(self._win_id, usertypes.KeyMode.hint,
                       'HintManager.start')
 
-        window = objreg.get('main-window', scope='window', window=self._win_id)
-        window.status.set_text(self._get_text())
+        self.set_text.emit(self._get_text())
 
         if self._context.first:
             self._fire(strings[0])

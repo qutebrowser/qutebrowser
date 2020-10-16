@@ -486,6 +486,7 @@ class MainWindow(QWidget):
         mode_manager.entered.connect(hints.on_mode_entered)
 
         # status bar
+        mode_manager.hintmanager.set_text.connect(self.status.set_text)
         mode_manager.entered.connect(self.status.on_mode_entered)
         mode_manager.left.connect(self.status.on_mode_left)
         mode_manager.left.connect(self.status.cmd.on_mode_left)
