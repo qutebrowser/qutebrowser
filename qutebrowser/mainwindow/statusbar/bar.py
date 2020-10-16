@@ -31,8 +31,7 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.mainwindow.statusbar import (backforward, command, progress,
                                               keystring, percentage, url,
-                                              tabindex)
-from qutebrowser.mainwindow.statusbar import text as textwidget
+                                              tabindex, textbase)
 
 
 @attr.s
@@ -187,7 +186,7 @@ class StatusBar(QWidget):
         objreg.register('status-command', self.cmd, scope='window',
                         window=win_id)
 
-        self.txt = textwidget.Text()
+        self.txt = textbase.TextBase()
         self._stack.addWidget(self.txt)
 
         self.cmd.show_cmd.connect(self._show_cmd_widget)

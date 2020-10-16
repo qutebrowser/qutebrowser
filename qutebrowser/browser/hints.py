@@ -418,10 +418,9 @@ class HintManager(QObject):
         for label in self._context.all_labels:
             label.cleanup()
 
-        text = self._get_text()
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
-        message_bridge.maybe_reset_text(text)
+        message_bridge.set_text('')
         self._context = None
 
     def _hint_strings(self, elems: _ElemsType) -> _HintStringsType:

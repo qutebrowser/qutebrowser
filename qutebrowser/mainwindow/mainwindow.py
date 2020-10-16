@@ -519,8 +519,6 @@ class MainWindow(QWidget):
             self._messageview.clear_messages)
 
         message_bridge.s_set_text.connect(self.status.set_text)
-        message_bridge.s_maybe_reset_text.connect(
-            self.status.txt.maybe_reset_text)
 
         # statusbar
         self.tabbed_browser.current_tab_changed.connect(

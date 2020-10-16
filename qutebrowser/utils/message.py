@@ -266,12 +266,9 @@ class MessageBridge(QObject):
     Signals:
         s_set_text: Set a persistent text in the statusbar.
                     arg: The text to set.
-        s_maybe_reset_text: Reset the text if it hasn't been changed yet.
-                            arg: The expected text.
     """
 
     s_set_text = pyqtSignal(str)
-    s_maybe_reset_text = pyqtSignal(str)
 
     def __repr__(self) -> str:
         return utils.get_repr(self)
@@ -286,15 +283,6 @@ class MessageBridge(QObject):
         text = str(text)
         log.message.debug(text)
         self.s_set_text.emit(text)
-
-    def maybe_reset_text(self, text: str, *, log_stack: bool = False) -> None:
-        """Reset the text in the statusbar if it matches an expected text.
-
-        Args:
-            text: The expected text.
-            log_stack: ignored
-        """
-        self.s_maybe_reset_text.emit(str(text))
 
 
 global_bridge = GlobalMessageBridge()
