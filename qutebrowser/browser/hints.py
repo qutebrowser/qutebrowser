@@ -44,6 +44,8 @@ if typing.TYPE_CHECKING:
 
 class Target(enum.Enum):
 
+    """What action to take on a hint."""
+
     normal = 1
     current = 2
     tab = 3

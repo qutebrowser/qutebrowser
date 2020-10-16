@@ -102,10 +102,20 @@ class UnsupportedOperationError(WebTabError):
 
 class TerminationStatus(enum.Enum):
 
+    """How a QtWebEngine renderer process terminated.
+
+    Also see QWebEnginePage::RenderProcessTerminationStatus
+    """
+
+    #: The render process terminated normally.
     normal = 1
-    abnormal = 2  # non-zero exit status
-    crashed = 3  # e.g. segfault
+    #: The render process terminated with with a non-zero exit status.
+    abnormal = 2
+    #: The render process crashed, for example because of a segmentation fault.
+    crashed = 3
+    #: The render process was killed, for example by SIGKILL or task manager kill.
     killed = 4
+    #: Unknown render process status value gotten from Qt.
     unknown = 5
 
 

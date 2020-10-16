@@ -79,6 +79,8 @@ class DocstringParser:
 
     class State(enum.Enum):
 
+        """The current state of the parser."""
+
         short = 1
         desc = 2
         desc_hidden = 3

@@ -74,6 +74,8 @@ class NeighborList(typing.Sequence[_T]):
 
     class Modes(enum.Enum):
 
+        """Behavior for the 'mode' argument."""
+
         edge = 1
         exception = 2
 
@@ -308,7 +310,7 @@ class LoadStatus(enum.Enum):
 
 class Backend(enum.Enum):
 
-    """Backend of a tab."""
+    """The backend being used (usertypes.backend)."""
 
     QtWebKit = 1
     QtWebEngine = 2
@@ -339,13 +341,17 @@ class JsLogLevel(enum.Enum):
 
 
 class MessageLevel(enum.Enum):
-    
+
+    """The level of a message being shown."""
+
     error = 1
     warning = 2
     info = 3
 
 
 class IgnoreCase(enum.Enum):
+
+    """Possible values for the 'search.ignore_case' setting."""
 
     smart = 1
     never = 2
@@ -509,13 +515,27 @@ class NavigationRequest:
 
     class Type(enum.Enum):
 
+        """The type of a request.
+
+        Based on QWebEngineUrlRequestInfo::NavigationType and QWebPage::NavigationType.
+        """
+
+        #: Navigation initiated by clicking a link.
         link_clicked = 1
-        typed = 2  # QtWebEngine only
+        #: Navigation explicitly initiated by typing a URL (QtWebEngine only).
+        typed = 2
+        #: Navigation submits a form.
         form_submitted = 3
-        form_resubmitted = 4  # QtWebKit only
+        #: An HTML form was submitted a second time (QtWebKit only).
+        form_resubmitted = 4
+        #: Navigation initiated by a history action.
         back_forward = 5
+        #: Navigation initiated by refreshing the page.
         reloaded = 6
-        redirect = 7  # QtWebEngine >= 5.14 only
+        #: Navigation triggered automatically by page content or remote server
+        #: (QtWebEngine >= 5.14 only)
+        redirect = 7
+        #: None of the above.
         other = 8
 
     url = attr.ib()  # type: QUrl

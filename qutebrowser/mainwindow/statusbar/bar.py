@@ -51,6 +51,8 @@ class ColorFlags:
 
     class CaretMode(enum.Enum):
 
+        """The current caret "sub-mode" we're in."""
+
         off = 1
         on = 2
         selection = 3

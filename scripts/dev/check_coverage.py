@@ -55,6 +55,8 @@ class Message:
 
 class MsgType(enum.Enum):
 
+    """The type of a message to be output."""
+
     insufficient_coverage = 1
     perfect_file = 2
 

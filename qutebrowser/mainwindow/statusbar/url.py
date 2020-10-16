@@ -31,7 +31,10 @@ from qutebrowser.utils import usertypes, urlutils
 
 class UrlType(enum.Enum):
 
-    """Note this has entries for success/error/warn from widgets.webview:LoadStatus."""
+    """The type/color of the URL being shown.
+
+    Note this has entries for success/error/warn from widgets.webview:LoadStatus.
+    """
 
     success = 1
     success_https = 2
