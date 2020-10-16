@@ -27,7 +27,7 @@ import typing
 
 from PyQt5.QtCore import pyqtSignal, pyqtBoundSignal, QObject
 
-from qutebrowser.utils import usertypes, log, utils
+from qutebrowser.utils import usertypes, log
 
 
 def _log_stack(typ: str, stack: str) -> None:
@@ -257,32 +257,6 @@ class GlobalMessageBridge(QObject):
         for args in self._cache:
             self.show(*args)
         self._cache = []
-
-
-class MessageBridge(QObject):
-
-    """Bridge for messages to be shown in the statusbar.
-
-    Signals:
-        s_set_text: Set a persistent text in the statusbar.
-                    arg: The text to set.
-    """
-
-    s_set_text = pyqtSignal(str)
-
-    def __repr__(self) -> str:
-        return utils.get_repr(self)
-
-    def set_text(self, text: str, *, log_stack: bool = False) -> None:
-        """Set the normal text of the statusbar.
-
-        Args:
-            text: The text to set.
-            log_stack: ignored
-        """
-        text = str(text)
-        log.message.debug(text)
-        self.s_set_text.emit(text)
 
 
 global_bridge = GlobalMessageBridge()

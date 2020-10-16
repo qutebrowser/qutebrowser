@@ -418,9 +418,9 @@ class HintManager(QObject):
         for label in self._context.all_labels:
             label.cleanup()
 
-        message_bridge = objreg.get('message-bridge', scope='window',
-                                    window=self._win_id)
-        message_bridge.set_text('')
+        window = objreg.get('main-window', scope='window', window=self._win_id)
+        window.status.set_text('')
+
         self._context = None
 
     def _hint_strings(self, elems: _ElemsType) -> _HintStringsType:
@@ -651,9 +651,8 @@ class HintManager(QObject):
         modeman.enter(self._win_id, usertypes.KeyMode.hint,
                       'HintManager.start')
 
-        message_bridge = objreg.get('message-bridge', scope='window',
-                                    window=self._win_id)
-        message_bridge.set_text(self._get_text())
+        window = objreg.get('main-window', scope='window', window=self._win_id)
+        window.status.set_text(self._get_text())
 
         if self._context.first:
             self._fire(strings[0])

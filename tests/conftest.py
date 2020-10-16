@@ -34,7 +34,7 @@ pytest.register_assert_rewrite('helpers')
 
 from helpers import logfail
 from helpers.logfail import fail_on_logging
-from helpers.messagemock import message_mock, message_bridge
+from helpers.messagemock import message_mock
 from helpers.fixtures import *  # noqa: F403
 from helpers import utils as testutils
 from qutebrowser.utils import qtutils, standarddir, usertypes, utils, version

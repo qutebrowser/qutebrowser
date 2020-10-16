@@ -348,9 +348,10 @@ class StatusBar(QWidget):
         self.maybe_hide()
 
     @pyqtSlot(str)
-    def set_text(self, val):
+    def set_text(self, text):
         """Set a normal (persistent) text in the status bar."""
-        self.txt.setText(val)
+        log.message.debug(text)
+        self.txt.setText(text)
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
