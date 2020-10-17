@@ -36,7 +36,7 @@ from qutebrowser.browser.webengine import spell, webenginequtescheme
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import (utils, standarddir, qtutils, message, log,
-                               urlmatch, usertypes)
+                               urlmatch, usertypes, objreg)
 
 # The default QWebEngineProfile
 default_profile = typing.cast(QWebEngineProfile, None)
@@ -382,11 +382,20 @@ def init_private_profile():
     global private_profile
 
     if not qtutils.is_single_process():
+        is_first_time = private_profile is None
         private_profile = QWebEngineProfile()
         private_profile.setter = ProfileSetter(  # type: ignore[attr-defined]
             private_profile)
         assert private_profile.isOffTheRecord()
         private_profile.setter.init_profile()
+
+        if not is_first_time:
+            from qutebrowser.browser.webengine import webenginetab
+            webenginetab._qute_scheme_handler.install(private_profile)
+            webenginetab.req_interceptor.install(private_profile)
+            objreg.get('webengine-download-manager').install(private_profile)
+            from qutebrowser.browser.webengine import cookies
+            cookies.install_filter(private_profile)
 
 
 def _init_site_specific_quirks():
