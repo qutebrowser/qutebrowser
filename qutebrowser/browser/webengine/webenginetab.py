@@ -46,6 +46,7 @@ from qutebrowser.qt import sip
 
 
 _qute_scheme_handler = None
+req_interceptor = None
 
 
 def init():
@@ -54,6 +55,7 @@ def init():
     # won't work...
     # https://www.riverbankcomputing.com/pipermail/pyqt/2016-September/038075.html
     global _qute_scheme_handler
+    global req_interceptor
 
     app = QApplication.instance()
     log.init.debug("Initializing qute://* handler...")
