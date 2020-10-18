@@ -316,6 +316,19 @@ def is_ignored_chromium_message(line):
         # [338691:4:0929/220114.488847:WARNING:ipc_message_attachment_set.cc(49)]
         # MessageAttachmentSet destroyed with unconsumed attachments: 0/1
         'MessageAttachmentSet destroyed with unconsumed attachments: *',
+
+        # GitHub Actions with Qt 5.15.1
+        ('SharedImageManager::ProduceGLTexture: Trying to produce a '
+         'representation from a non-existent mailbox. *'),
+        ('[.DisplayCompositor]GL ERROR :GL_INVALID_OPERATION : '
+         'DoCreateAndTexStorage2DSharedImageINTERNAL: invalid mailbox name'),
+        ('[.DisplayCompositor]GL ERROR :GL_INVALID_OPERATION : '
+         'DoBeginSharedImageAccessCHROMIUM: bound texture is not a shared image'),
+        ('[.DisplayCompositor]RENDER WARNING: texture bound to texture unit 0 is '
+         'not renderable. It might be non-power-of-2 or have incompatible texture '
+         'filtering (maybe)?'),
+        ('[.DisplayCompositor]GL ERROR :GL_INVALID_OPERATION : '
+         'DoEndSharedImageAccessCHROMIUM: bound texture is not a shared image'),
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
