@@ -27,16 +27,19 @@ import functools
 import glob
 import textwrap
 import typing
+import enum
 
 import attr
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
 from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
                                javascript, urlmatch, version, usertypes,
-                               qtutils)
+                               qtutils, message)
 from qutebrowser.api import cmdutils
 from qutebrowser.browser import downloads
 from qutebrowser.misc import objects
+if typing.TYPE_CHECKING:
+    from qutebrowser.browser.qtnetworkdownloads import DownloadItem
 
 
 gm_manager = typing.cast('GreasemonkeyManager', None)
@@ -45,6 +48,15 @@ gm_manager = typing.cast('GreasemonkeyManager', None)
 def _scripts_dir():
     """Get the directory of the scripts."""
     return os.path.join(standarddir.data(), 'greasemonkey')
+
+
+@attr.s
+class _Resource:
+
+    """A resource for a greasemonkey userscript."""
+
+    name = attr.ib()
+    url = attr.ib()
 
 
 class GreasemonkeyScript:
@@ -58,6 +70,8 @@ class GreasemonkeyScript:
         self.matches = []  # type: typing.Sequence[str]
         self.excludes = []  # type: typing.Sequence[str]
         self.requires = []  # type: typing.Sequence[str]
+        self.resources = []  # type: typing.Sequence[_Resource]
+        self.resource_text = {}  # type: typing.Dict[str, str]
         self.description = None
         self.namespace = None
         self.run_at = None
@@ -85,6 +99,9 @@ class GreasemonkeyScript:
                 self.runs_on_sub_frames = False
             elif name == 'require':
                 self.requires.append(value)
+            elif name == 'resource':
+                resource_name, url = value.split(maxsplit=1)
+                self.resources.append(_Resource(resource_name, url))
             elif name == 'qute-js-world':
                 self.jsworld = value
 
@@ -100,7 +117,7 @@ class GreasemonkeyScript:
     PROPS_REGEX = r'// @(?P<prop>[^\s]+)\s*(?P<val>.*)'
 
     @classmethod
-    def parse(cls, source, filename=None):
+    def parse(cls, source, filename=None) -> "GreasemonkeyScript":
         """GreasemonkeyScript factory.
 
         Takes a userscript source and returns a GreasemonkeyScript.
@@ -177,6 +194,7 @@ class GreasemonkeyScript:
             scriptInfo=self._meta_json(),
             scriptMeta=javascript.string_escape(self.script_meta or ''),
             scriptSource=self._code,
+            resourceText=json.dumps(self.resource_text),
             use_proxy=use_proxy)
 
     def _meta_json(self):
@@ -186,6 +204,13 @@ class GreasemonkeyScript:
             'matches': self.matches,
             'includes': self.includes,
             'excludes': self.excludes,
+            'resources': {
+                resource.name: {
+                    'name': resource.name,
+                    'mimetype': '',  # currently unsupported
+                    'url': resource.url,
+                }
+                for resource in self.resources},
             'run-at': self.run_at,
         })
 
@@ -196,6 +221,13 @@ class GreasemonkeyScript:
         # QWebEngineScript and that would parse the first metadata block
         # found as the valid one.
         self._code = "\n".join([textwrap.indent(source, "    "), self._code])
+
+    def add_resource(self, resource_name: str, resource_text: str):
+        """Add the text of a required resource to this script."""
+        if resource_name in self.resource_text:
+            log.greasemonkey.debug("Duplicate resource: " + resource_name)
+            # TODO message.error ?
+        self.resource_text[resource_name] = resource_text
 
 
 @attr.s
@@ -245,6 +277,17 @@ class GreasemonkeyMatcher:
         return (matching_includes or matching_match) and not matching_excludes
 
 
+class _RequirementType(enum.Enum):
+    requires = 1
+    resources = 2
+
+
+_FOLDER_NAME_OF_REQUIREMENT = {
+    _RequirementType.requires: 'requires',
+    _RequirementType.resources: 'resources',
+}
+
+
 class GreasemonkeyManager(QObject):
 
     """Manager of userscripts and a Greasemonkey compatible environment.
@@ -267,7 +310,7 @@ class GreasemonkeyManager(QObject):
 
         self.load_scripts()
 
-    def load_scripts(self, *, force=False):
+    def load_scripts(self, *, force: bool = False):
         """Re-read Greasemonkey scripts from disk.
 
         The scripts are read from a 'greasemonkey' subdirectory in
@@ -295,22 +338,22 @@ class GreasemonkeyManager(QObject):
                 self.add_script(script, force)
         self.scripts_reloaded.emit()
 
-    def add_script(self, script, force=False):
+    def add_script(self, script: GreasemonkeyScript, force: bool = False):
         """Add a GreasemonkeyScript to this manager.
 
         Args:
             force: Fetch and overwrite any dependancies which are
                    already locally cached.
         """
-        if script.requires:
+        if script.requires or script.resources:
             log.greasemonkey.debug(
                 "Deferring script until requirements are "
                 "fulfilled: {}".format(script.name))
-            self._get_required_scripts(script, force)
+            self._get_requirements(script, force)
         else:
             self._add_script(script)
 
-    def _add_script(self, script):
+    def _add_script(self, script: GreasemonkeyScript):
         if script.run_at == 'document-start':
             self._run_start.append(script)
         elif script.run_at == 'document-end':
@@ -328,13 +371,16 @@ class GreasemonkeyManager(QObject):
             self._run_end.append(script)
         log.greasemonkey.debug("Loaded script: {}".format(script.name))
 
-    def _required_url_to_file_path(self, url):
-        requires_dir = os.path.join(_scripts_dir(), 'requires')
+    def _required_url_to_file_path(self, requirement_type: _RequirementType,
+                                   url: str):
+        requires_dir = os.path.join(
+            _scripts_dir(), _FOLDER_NAME_OF_REQUIREMENT[requirement_type])
         if not os.path.exists(requires_dir):
             os.mkdir(requires_dir)
         return os.path.join(requires_dir, utils.sanitize_filename(url))
 
-    def _on_required_download_finished(self, script, download):
+    def _on_required_download_finished(self, script: GreasemonkeyScript,
+                                       download: 'DownloadItem'):
         self._in_progress_dls.remove(download)
         if not self._add_script_with_requires(script):
             log.greasemonkey.debug(
@@ -342,11 +388,12 @@ class GreasemonkeyManager(QObject):
                 "but some requirements are still pending"
                 .format(download.basename, script.name))
 
-    def _add_script_with_requires(self, script, quiet=False):
+    def _add_script_with_requires(self, script: GreasemonkeyScript,
+                                  quiet: bool = False):
         """Add a script with pending downloads to this GreasemonkeyManager.
 
         Specifically a script that has dependancies specified via an
-        `@require` rule.
+        `@require` or `@resource` rule.
 
         Args:
             script: The GreasemonkeyScript to add.
@@ -356,30 +403,64 @@ class GreasemonkeyManager(QObject):
                  dependancies being downloaded.
         """
         # See if we are still waiting on any required scripts for this one
-        for dl in self._in_progress_dls:
-            if dl.requested_url in script.requires:
-                return False
+        if {download.requested_url for download in self._in_progress_dls} & (
+            set(script.requires) | {
+                resource.url for resource in script.resources}):
+            return False
 
         # Need to add the required scripts to the IIFE now
         for url in reversed(script.requires):
-            target_path = self._required_url_to_file_path(url)
+            target_path = self._required_url_to_file_path(
+                _RequirementType.requires, url)
             log.greasemonkey.debug(
                 "Adding required script for {} to IIFE: {}"
                 .format(script.name, url))
             with open(target_path, encoding='utf8') as f:
                 script.add_required_script(f.read())
 
+        for resource in script.resources:
+            target_path = self._required_url_to_file_path(
+                _RequirementType.resources, resource.url)
+            log.greasemonkey.debug(
+                "Adding required resource for {} to IIFE: {}"
+                .format(script.name, resource.url))
+            with open(target_path, encoding='utf8') as f:
+                script.add_resource(resource.name, f.read())
+
         self._add_script(script)
         if not quiet:
             self.scripts_reloaded.emit()
         return True
 
-    def _get_required_scripts(self, script, force=False):
-        required_dls = [(url, self._required_url_to_file_path(url))
-                        for url in script.requires]
-        if not force:
-            required_dls = [(url, path) for (url, path) in required_dls
-                            if not os.path.exists(path)]
+    def _get_requirements(self, script: GreasemonkeyScript, force: bool = False
+                          ) -> None:
+        all_downloads = [
+            (url, self._required_url_to_file_path(
+                _RequirementType.requires, url)) for url in script.requires
+        ]+[
+            (resource.url, self._required_url_to_file_path(
+                _RequirementType.resources, resource.url))
+            for resource in script.resources]
+
+        required_dls = []  # type: typing.List[typing.Tuple[str, QUrl, str]]
+        for url, path in all_downloads:
+            url_ = QUrl(url)
+            file_exists = os.path.exists(path)
+
+            if url_.isRelative():
+                if not file_exists:
+                    message.error("Missing relative resource: {} for script {}"
+                                  .format(url, script.name))
+                    return
+
+                log.greasemonkey.debug(
+                    "Resource URL is relative: " + url + ". "
+                    "Force refresh is not supported.")
+                continue
+
+            if force or not file_exists:
+                required_dls.append((url, url_, path))
+
         if not required_dls:
             # All the required files exist already
             self._add_script_with_requires(script, quiet=True)
@@ -387,10 +468,10 @@ class GreasemonkeyManager(QObject):
 
         download_manager = objreg.get('qtnetwork-download-manager')
 
-        for url, target_path in required_dls:
+        for url, url_, target_path in required_dls:
             target = downloads.FileDownloadTarget(target_path,
                                                   force_overwrite=True)
-            download = download_manager.get(QUrl(url), target=target,
+            download = download_manager.get(url_, target=target,
                                             auto_remove=True)
             download.requested_url = url
             self._in_progress_dls.append(download)
