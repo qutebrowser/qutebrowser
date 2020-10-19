@@ -54,8 +54,8 @@ def patch_backend(monkeypatch):
 def test_basics(config_stub, monkeypatch, settings, expected):
     for k, v in settings.items():
         config_stub.set_obj('colors.webpage.darkmode.' + k, v)
-    monkeypatch.setattr(darkmode, '_version',
-                        lambda: darkmode.Version.qt_515_2)
+    monkeypatch.setattr(darkmode, '_variant',
+                        lambda: darkmode.Variant.qt_515_2)
 
     if expected:
         expected.append(('forceDarkModeImagePolicy', '2'))
@@ -143,7 +143,7 @@ def test_qt_version_differences(config_stub, monkeypatch, qversion, expected):
 def test_customization(config_stub, monkeypatch, setting, value, exp_key, exp_val):
     config_stub.val.colors.webpage.darkmode.enabled = True
     config_stub.set_obj('colors.webpage.darkmode.' + setting, value)
-    monkeypatch.setattr(darkmode, '_version', lambda: darkmode.Version.qt_515_2)
+    monkeypatch.setattr(darkmode, '_variant', lambda: darkmode.Variant.qt_515_2)
 
     expected = []
     expected.append(('forceDarkModeEnabled', 'true'))
@@ -156,23 +156,23 @@ def test_customization(config_stub, monkeypatch, setting, value, exp_key, exp_va
 
 @pytest.mark.parametrize('qversion, webengine_version, expected', [
     # Without PYQT_WEBENGINE_VERSION
-    ('5.9.9', None, darkmode.Version.unavailable),
-    ('5.10.1', None, darkmode.Version.qt_510),
-    ('5.11.3', None, darkmode.Version.qt_511_to_513),
-    ('5.12.9', None, darkmode.Version.qt_511_to_513),
+    ('5.9.9', None, darkmode.Variant.unavailable),
+    ('5.10.1', None, darkmode.Variant.qt_510),
+    ('5.11.3', None, darkmode.Variant.qt_511_to_513),
+    ('5.12.9', None, darkmode.Variant.qt_511_to_513),
 
     # With PYQT_WEBENGINE_VERSION
-    (None, 0x050d00, darkmode.Version.qt_511_to_513),
-    (None, 0x050e00, darkmode.Version.qt_514),
-    (None, 0x050f00, darkmode.Version.qt_515_0),
-    (None, 0x050f01, darkmode.Version.qt_515_1),
-    (None, 0x050f02, darkmode.Version.qt_515_2),
-    (None, 0x060000, darkmode.Version.qt_515_2),  # Qt 6
+    (None, 0x050d00, darkmode.Variant.qt_511_to_513),
+    (None, 0x050e00, darkmode.Variant.qt_514),
+    (None, 0x050f00, darkmode.Variant.qt_515_0),
+    (None, 0x050f01, darkmode.Variant.qt_515_1),
+    (None, 0x050f02, darkmode.Variant.qt_515_2),
+    (None, 0x060000, darkmode.Variant.qt_515_2),  # Qt 6
 ])
-def test_version(monkeypatch, qversion, webengine_version, expected):
+def test_variant(monkeypatch, qversion, webengine_version, expected):
     monkeypatch.setattr(darkmode.qtutils, 'qVersion', lambda: qversion)
     monkeypatch.setattr(darkmode, 'PYQT_WEBENGINE_VERSION', webengine_version)
-    assert darkmode._version() == expected
+    assert darkmode._variant() == expected
 
 def test_broken_smart_images_policy(config_stub, monkeypatch, caplog):
     config_stub.val.colors.webpage.darkmode.enabled = True

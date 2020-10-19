@@ -86,7 +86,9 @@ from qutebrowser.config import config
 from qutebrowser.utils import usertypes, qtutils, utils, log
 
 
-class Version(enum.Enum):
+class Variant(enum.Enum):
+
+    """A dark mode variant."""
 
     unavailable = -1
     qt_510 = 0
@@ -161,9 +163,9 @@ _QT_514_SETTINGS = [
 # workaround warning below if the setting wasn't explicitly customized.
 
 _DARK_MODE_DEFINITIONS = {
-    Version.unavailable: ([], set()),
+    Variant.unavailable: ([], set()),
 
-    Version.qt_515_2: ([
+    Variant.qt_515_2: ([
         # 'darkMode' renamed to 'forceDarkMode'
         ('enabled', 'forceDarkModeEnabled', _BOOLS),
         ('algorithm', 'forceDarkModeInversionAlgorithm', _ALGORITHMS),
@@ -182,7 +184,7 @@ _DARK_MODE_DEFINITIONS = {
         ('grayscale.images', 'forceDarkModeImageGrayscale', None),
     ], {'enabled', 'policy.images'}),
 
-    Version.qt_515_1: ([
+    Variant.qt_515_1: ([
         # 'policy.images' mandatory again
         ('enabled', 'darkModeEnabled', _BOOLS),
         ('algorithm', 'darkModeInversionAlgorithm', _ALGORITHMS),
@@ -197,7 +199,7 @@ _DARK_MODE_DEFINITIONS = {
         ('grayscale.images', 'darkModeImageGrayscale', None),
     ], {'enabled', 'policy.images'}),
 
-    Version.qt_515_0: ([
+    Variant.qt_515_0: ([
         # 'policy.images' not mandatory because it's broken
         ('enabled', 'darkModeEnabled', _BOOLS),
         ('algorithm', 'darkModeInversionAlgorithm', _ALGORITHMS),
@@ -212,7 +214,7 @@ _DARK_MODE_DEFINITIONS = {
         ('grayscale.images', 'darkModeImageGrayscale', None),
     ], {'enabled'}),
 
-    Version.qt_514: ([
+    Variant.qt_514: ([
         ('algorithm', 'darkMode', _ALGORITHMS),  # new: kInvertLightnessLAB
 
         ('policy.images', 'darkModeImagePolicy', _IMAGE_POLICIES),
@@ -225,7 +227,7 @@ _DARK_MODE_DEFINITIONS = {
         ('grayscale.images', 'darkModeImageGrayscale', None),
     ], {'algorithm', 'policy.images'}),
 
-    Version.qt_511_to_513: ([
+    Variant.qt_511_to_513: ([
         ('algorithm', 'highContrastMode', _ALGORITHMS_BEFORE_QT_514),
 
         ('policy.images', 'highContrastImagePolicy', _IMAGE_POLICIES),  # new: smart
@@ -233,42 +235,43 @@ _DARK_MODE_DEFINITIONS = {
         ('grayscale.all', 'highContrastGrayscale', _BOOLS),
     ], {'algorithm', 'policy.images'}),
 
-    Version.qt_510: ([
+    Variant.qt_510: ([
         ('algorithm', 'highContrastMode', _ALGORITHMS_BEFORE_QT_514),
 
         ('policy.images', 'highContrastImagePolicy', _IMAGE_POLICIES_QT_510),
         ('contrast', 'highContrastContrast', None),
         ('grayscale.all', 'highContrastGrayscale', _BOOLS),
     ], {'algorithm'}),
-}  # type: typing.Mapping[Version, _DarkModeDefinitionType]
+}  # type: typing.Mapping[Variant, _DarkModeDefinitionType]
 
 
-def _version() -> Version:
-    """Get the dark mode version based on the underlying Qt version."""
+def _variant() -> Variant:
+    """Get the dark mode variant based on the underlying Qt version."""
     if PYQT_WEBENGINE_VERSION is not None:
         # Available with Qt >= 5.13
         if PYQT_WEBENGINE_VERSION >= 0x050f02:
-            return Version.qt_515_2
+            return Variant.qt_515_2
         elif PYQT_WEBENGINE_VERSION == 0x050f01:
-            return Version.qt_515_1
+            return Variant.qt_515_1
         elif PYQT_WEBENGINE_VERSION == 0x050f00:
-            return Version.qt_515_0
+            return Variant.qt_515_0
         elif PYQT_WEBENGINE_VERSION >= 0x050e00:
-            return Version.qt_514
+            return Variant.qt_514
         elif PYQT_WEBENGINE_VERSION >= 0x050d00:
-            return Version.qt_511_to_513
+            return Variant.qt_511_to_513
         raise utils.Unreachable(hex(PYQT_WEBENGINE_VERSION))
 
     # If we don't have PYQT_WEBENGINE_VERSION, we'll need to assume based on the Qt
     # version.
-    assert not qtutils.version_check('5.13', compiled=False)  # type: ignore[unreachable]
+    assert not qtutils.version_check('5.13',
+                                     compiled=False)  # type: ignore[unreachable]
 
     if qtutils.version_check('5.11', compiled=False):
-        return Version.qt_511_to_513
+        return Variant.qt_511_to_513
     elif qtutils.version_check('5.10', compiled=False):
-        return Version.qt_510
+        return Variant.qt_510
 
-    return Version.unavailable
+    return Variant.unavailable
 
 
 def settings() -> typing.Iterator[typing.Tuple[str, str]]:
@@ -276,8 +279,8 @@ def settings() -> typing.Iterator[typing.Tuple[str, str]]:
     if not config.val.colors.webpage.darkmode.enabled:
         return
 
-    version = _version()
-    settings, mandatory_settings = _DARK_MODE_DEFINITIONS[version]
+    variant = _variant()
+    settings, mandatory_settings = _DARK_MODE_DEFINITIONS[variant]
 
     for setting, key, mapping in settings:
         # To avoid blowing up the commandline length, we only pass modified
@@ -291,7 +294,7 @@ def settings() -> typing.Iterator[typing.Tuple[str, str]]:
             continue
 
         if (setting == 'policy.images' and value == 'smart' and
-                version == Version.qt_515_0):
+                variant == Variant.qt_515_0):
             # WORKAROUND for
             # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211
             log.init.warning("Ignoring colors.webpage.darkmode.policy.images = smart "
