@@ -2764,8 +2764,8 @@ colors.webpage.darkmode.policy.images:
 
       With QtWebEngine 5.15.0, this setting can cause frequent renderer process
       crashes due to a
-      https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[
-      bug in Qt]. With QtWebEngine 5.10, this is not available at all. In those
+      https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug
+      in Qt]. With QtWebEngine 5.10, this is not available at all. In those
       cases, the 'smart' setting is ignored and treated like 'never'.
   restart: true
   backend:
