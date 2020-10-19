@@ -21,6 +21,7 @@
 
 import os
 import sys
+import enum
 import typing
 import argparse
 
@@ -67,14 +68,43 @@ def qt_args(namespace: argparse.Namespace) -> typing.List[str]:
     return argv
 
 
-def _darkmode_prefix() -> str:
-    """Return the prefix to use for darkmode settings."""
-    if (PYQT_WEBENGINE_VERSION is None or  # type: ignore[unreachable]
-            PYQT_WEBENGINE_VERSION < 0x050f02):
-        return 'darkMode'
-    else:
-        # QtWebEngine 5.15.2 comes with Chromium 83
-        return 'forceDarkMode'
+class DarkModeVersion(enum.Enum):
+
+    unavailable = -1
+    qt_510 = 0
+    qt_511_to_513 = 1
+    qt_514 = 2
+    qt_515_0 = 3
+    qt_515_1 = 4
+    qt_515_2 = 5
+
+
+def _darkmode_version() -> DarkModeVersion:
+    """Get the dark mode version based on the underlying Qt version."""
+    if PYQT_WEBENGINE_VERSION is not None:
+        # Available with Qt >= 5.13
+        if PYQT_WEBENGINE_VERSION >= 0x050f02:
+            return DarkModeVersion.qt_515_2
+        elif PYQT_WEBENGINE_VERSION == 0x050f01:
+            return DarkModeVersion.qt_515_1
+        elif PYQT_WEBENGINE_VERSION == 0x050f00:
+            return DarkModeVersion.qt_515_0
+        elif PYQT_WEBENGINE_VERSION >= 0x050e00:
+            return DarkModeVersion.qt_514
+        elif PYQT_WEBENGINE_VERSION >= 0x050d00:
+            return DarkModeVersion.qt_511_to_513
+        raise utils.Unreachable(hex(PYQT_WEBENGINE_VERSION))
+
+    # If we don't have PYQT_WEBENGINE_VERSION, we'll need to assume based on the Qt
+    # version.
+    assert not qtutils.version_check('5.13', compiled=False)  # type: ignore[unreachable]
+
+    if qtutils.version_check('5.11', compiled=False):
+        return DarkModeVersion.qt_511_to_513
+    elif qtutils.version_check('5.10', compiled=False):
+        return DarkModeVersion.qt_510
+
+    return DarkModeVersion.unavailable
 
 
 def _darkmode_settings() -> typing.Iterator[typing.Tuple[str, str]]:
@@ -145,6 +175,9 @@ def _darkmode_settings() -> typing.Iterator[typing.Tuple[str, str]]:
         'lightness-hsl': 3,  # kInvertLightness
         'lightness-cielab': 4,  # kInvertLightnessLAB
     }
+    # kInvertLightnessLAB is not available with Qt < 5.14
+    algorithms_before_qt_514 = algorithms.copy()
+    algorithms_before_qt_514['lightness-cielab'] = algorithms['lightness-hsl']
 
     # Mapping from a colors.webpage.darkmode.policy.images setting value to
     # Chromium's DarkModeImagePolicy enum values.
@@ -153,6 +186,9 @@ def _darkmode_settings() -> typing.Iterator[typing.Tuple[str, str]]:
         'never': 1,  # kFilterNone
         'smart': 2,  # kFilterSmart
     }
+    # Image policy smart is not available with Qt 5.10
+    image_policies_qt_510 = image_policies.copy()
+    image_policies_qt_510['smart'] = image_policies['never']
 
     # Mapping from a colors.webpage.darkmode.policy.page setting value to
     # Chromium's DarkModePagePolicy enum values.
@@ -166,14 +202,6 @@ def _darkmode_settings() -> typing.Iterator[typing.Tuple[str, str]]:
         False: 'false',
     }
 
-    # Our defaults for policy.images are different from Chromium's, so we mark it as
-    # mandatory setting - except on Qt 5.15.0 where we don't, so we don't get the
-    # workaround warning below if the setting wasn't explicitly customized.
-    smart_image_policy_broken = PYQT_WEBENGINE_VERSION == 0x050f00
-    mandatory_settings = set()
-    if not smart_image_policy_broken:
-        mandatory_settings.add('policy.images')
-
     _setting_description_type = typing.Tuple[
         str,  # qutebrowser option name
         str,  # darkmode setting name
@@ -181,27 +209,98 @@ def _darkmode_settings() -> typing.Iterator[typing.Tuple[str, str]]:
         # to a string) which gets passed to Chromium.
         typing.Optional[typing.Mapping[typing.Any, typing.Union[str, int]]],
     ]
-    if qtutils.version_check('5.15', compiled=False):
-        settings = [
-            ('enabled', 'Enabled', bools),
-            ('algorithm', 'InversionAlgorithm', algorithms),
-        ]  # type: typing.List[_setting_description_type]
-        mandatory_settings.add('enabled')
-    else:
-        settings = [
-            ('algorithm', '', algorithms),
-        ]
-        mandatory_settings.add('algorithm')
-
-    settings += [
-        ('policy.images', 'ImagePolicy', image_policies),
-        ('policy.page', 'PagePolicy', page_policies),
-        ('contrast', 'Contrast', None),
-        ('threshold.text', 'TextBrightnessThreshold', None),
-        ('threshold.background', 'BackgroundBrightnessThreshold', None),
-        ('grayscale.all', 'Grayscale', bools),
-        ('grayscale.images', 'ImageGrayscale', None),
+    _dark_mode_definition_type = typing.Tuple[
+        typing.Iterable[_setting_description_type],
+        typing.Set[str],
     ]
+
+    # Our defaults for policy.images are different from Chromium's, so we mark it as
+    # mandatory setting - except on Qt 5.15.0 where we don't, so we don't get the
+    # workaround warning below if the setting wasn't explicitly customized.
+
+    version = _darkmode_version()
+    dark_mode_definitions = {
+        DarkModeVersion.qt_515_2: ([
+            # 'darkMode' renamed to 'forceDarkMode'
+            ('enabled', 'forceDarkModeEnabled', bools),
+            ('algorithm', 'forceDarkModeInversionAlgorithm', algorithms),
+
+            ('policy.images', 'forceDarkModeImagePolicy', image_policies),
+            ('contrast', 'forceDarkModeContrast', None),
+            ('grayscale.all', 'forceDarkModeGrayscale', bools),
+
+            ('policy.page', 'forceDarkModePagePolicy', page_policies),
+            ('threshold.text', 'forceDarkModeTextBrightnessThreshold', None),
+            (
+                'threshold.background',
+                'forceDarkModeBackgroundBrightnessThreshold',
+                None
+            ),
+            ('grayscale.images', 'forceDarkModeImageGrayscale', None),
+        ], {'enabled', 'policy.images'}),
+
+        DarkModeVersion.qt_515_1: ([
+            # 'policy.images' mandatory again
+            ('enabled', 'darkModeEnabled', bools),
+            ('algorithm', 'darkModeInversionAlgorithm', algorithms),
+
+            ('policy.images', 'darkModeImagePolicy', image_policies),
+            ('contrast', 'darkModeContrast', None),
+            ('grayscale.all', 'darkModeGrayscale', bools),
+
+            ('policy.page', 'darkModePagePolicy', page_policies),
+            ('threshold.text', 'darkModeTextBrightnessThreshold', None),
+            ('threshold.background', 'darkModeBackgroundBrightnessThreshold', None),
+            ('grayscale.images', 'darkModeImageGrayscale', None),
+        ], {'enabled', 'policy.images'}),
+
+        DarkModeVersion.qt_515_0: ([
+            # 'policy.images' not mandatory because it's broken
+            ('enabled', 'darkModeEnabled', bools),
+            ('algorithm', 'darkModeInversionAlgorithm', algorithms),
+
+            ('policy.images', 'darkModeImagePolicy', image_policies),
+            ('contrast', 'darkModeContrast', None),
+            ('grayscale.all', 'darkModeGrayscale', bools),
+
+            ('policy.page', 'darkModePagePolicy', page_policies),
+            ('threshold.text', 'darkModeTextBrightnessThreshold', None),
+            ('threshold.background', 'darkModeBackgroundBrightnessThreshold', None),
+            ('grayscale.images', 'darkModeImageGrayscale', None),
+        ], {'enabled'}),
+
+        DarkModeVersion.qt_514: ([
+            ('algorithm', 'darkMode', algorithms),  # new: kInvertLightnessLAB
+
+            ('policy.images', 'darkModeImagePolicy', image_policies),
+            ('contrast', 'darkModeContrast', None),
+            ('grayscale.all', 'darkModeGrayscale', bools),
+
+            # New
+            ('policy.page', 'darkModePagePolicy', page_policies),
+            ('threshold.text', 'darkModeTextBrightnessThreshold', None),
+            ('threshold.background', 'darkModeBackgroundBrightnessThreshold', None),
+            ('grayscale.images', 'darkModeImageGrayscale', None),
+        ], {'algorithm', 'policy.images'}),
+
+        DarkModeVersion.qt_511_to_513: ([
+            ('algorithm', 'highContrastMode', algorithms_before_qt_514),
+
+            ('policy.images', 'highContrastImagePolicy', image_policies),  # new: smart
+            ('contrast', 'highContrastContrast', None),
+            ('grayscale.all', 'highContrastGrayscale', bools),
+        ], {'algorithm', 'policy.images'}),
+
+        DarkModeVersion.qt_510: ([
+            ('algorithm', 'highContrastMode', algorithms_before_qt_514),
+
+            ('policy.images', 'highContrastImagePolicy', image_policies_qt_510),
+            ('contrast', 'highContrastContrast', None),
+            ('grayscale.all', 'highContrastGrayscale', bools),
+        ], {'algorithm'}),
+    }  # type: typing.Mapping[DarkModeVersion, _dark_mode_definition_type]
+
+    settings, mandatory_settings = dark_mode_definitions[version]
 
     for setting, key, mapping in settings:
         # To avoid blowing up the commandline length, we only pass modified
@@ -215,7 +314,7 @@ def _darkmode_settings() -> typing.Iterator[typing.Tuple[str, str]]:
             continue
 
         if (setting == 'policy.images' and value == 'smart' and
-                smart_image_policy_broken):
+                version == DarkModeVersion.qt_515_0):
             # WORKAROUND for
             # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211
             log.init.warning("Ignoring colors.webpage.darkmode.policy.images = smart "
@@ -225,7 +324,7 @@ def _darkmode_settings() -> typing.Iterator[typing.Tuple[str, str]]:
         if mapping is not None:
             value = mapping[value]
 
-        yield _darkmode_prefix() + key, str(value)
+        yield key, str(value)
 
 
 def _qtwebengine_enabled_features(

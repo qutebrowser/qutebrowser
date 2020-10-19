@@ -394,27 +394,21 @@ class TestQtArgs:
         assert combined_flag in args
         assert overlay_flag not in args
 
-    @utils.qt514
+    @utils.qt510
     def test_blink_settings(self, config_stub, monkeypatch, parser):
         monkeypatch.setattr(qtargs.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
-        monkeypatch.setattr(qtargs.qtutils, 'version_check',
-                            lambda version, exact=False, compiled=True:
-                            True)
+        monkeypatch.setattr(qtargs, '_darkmode_version',
+                            lambda: qtargs.DarkModeVersion.qt_515_2)
 
         config_stub.val.colors.webpage.darkmode.enabled = True
 
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
 
-        old = '--blink-settings=darkModeEnabled=true,darkModeImagePolicy=2'
-        new = '--blink-settings=forceDarkModeEnabled=true,forceDarkModeImagePolicy=2'
+        expected = '--blink-settings=forceDarkModeEnabled=true,forceDarkModeImagePolicy=2'
 
-        assert old in args or new in args
-
-
-def add_prefix(name):
-    return qtargs._darkmode_prefix() + name
+        assert expected in args
 
 
 smart_image_policy_broken = PYQT_WEBENGINE_VERSION == 0x050f00
@@ -422,54 +416,38 @@ smart_image_policy_broken = PYQT_WEBENGINE_VERSION == 0x050f00
 
 class TestDarkMode:
 
-    pytestmark = utils.qt514
+    pytestmark = utils.qt510
 
     @pytest.fixture(autouse=True)
     def patch_backend(self, monkeypatch):
         monkeypatch.setattr(qtargs.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
 
-    @pytest.mark.parametrize('settings, new_qt, expected', [
+    @pytest.mark.parametrize('settings, expected', [
         # Disabled
-        ({}, True, []),
-        ({}, False, []),
+        ({}, []),
 
         # Enabled without customization
-        (
-            {'enabled': True},
-            True,
-            [(add_prefix('Enabled'), 'true')]
-        ),
-        (
-            {'enabled': True},
-            False,
-            [(add_prefix(''), '4')]
-        ),
+        ({'enabled': True}, [('forceDarkModeEnabled', 'true')]),
 
         # Algorithm
         (
             {'enabled': True, 'algorithm': 'brightness-rgb'},
-            True,
-            [(add_prefix('Enabled'), 'true'),
-             (add_prefix('InversionAlgorithm'), '2')],
+            [
+                ('forceDarkModeEnabled', 'true'),
+                ('forceDarkModeInversionAlgorithm', '2')
+            ],
         ),
-        (
-            {'enabled': True, 'algorithm': 'brightness-rgb'},
-            False,
-            [(add_prefix(''), '2')],
-        ),
-
     ])
     def test_basics(self, config_stub, monkeypatch,
-                    settings, new_qt, expected):
+                    settings, expected):
         for k, v in settings.items():
             config_stub.set_obj('colors.webpage.darkmode.' + k, v)
-        monkeypatch.setattr(qtargs.qtutils, 'version_check',
-                            lambda version, exact=False, compiled=True:
-                            new_qt)
+        monkeypatch.setattr(qtargs, '_darkmode_version',
+                            lambda: qtargs.DarkModeVersion.qt_515_2)
 
         if expected:
-            expected.append((add_prefix('ImagePolicy'), '2'))
+            expected.append(('forceDarkModeImagePolicy', '2'))
 
         assert list(qtargs._darkmode_settings()) == expected
 
@@ -529,20 +507,14 @@ class TestDarkMode:
 
         assert list(qtargs._darkmode_settings()) == expected
 
-
+    @utils.qt514
     @pytest.mark.parametrize('setting, value, exp_key, exp_val', [
         ('contrast', -0.5,
          'Contrast', '-0.5'),
         ('policy.page', 'smart',
          'PagePolicy', '1'),
-        pytest.param(
-            'policy.images', 'smart',
-            'ImagePolicy', '2',
-            marks=pytest.mark.skipif(
-                PYQT_WEBENGINE_VERSION == 0x050f00,
-                reason='smart setting is broken with QtWebEngine 5.15.0'
-            )
-        ),
+        ('policy.images', 'smart',
+         'ImagePolicy', '2'),
         ('threshold.text', 100,
          'TextBrightnessThreshold', '100'),
         ('threshold.background', 100,
@@ -556,30 +528,36 @@ class TestDarkMode:
                            setting, value, exp_key, exp_val):
         config_stub.val.colors.webpage.darkmode.enabled = True
         config_stub.set_obj('colors.webpage.darkmode.' + setting, value)
-        monkeypatch.setattr(qtargs.qtutils, 'version_check',
-                            lambda version, exact=False, compiled=True:
-                            True)
+        monkeypatch.setattr(qtargs, '_darkmode_version',
+                            lambda: qtargs.DarkModeVersion.qt_515_2)
 
         expected = []
-        expected.append((add_prefix('Enabled'), 'true'))
+        expected.append(('forceDarkModeEnabled', 'true'))
         if exp_key != 'ImagePolicy':
-            expected.append((add_prefix('ImagePolicy'), '2'))
-        expected.append((add_prefix(exp_key), exp_val))
+            expected.append(('forceDarkModeImagePolicy', '2'))
+        expected.append(('forceDarkMode' + exp_key, exp_val))
 
         assert list(qtargs._darkmode_settings()) == expected
 
-    @pytest.mark.parametrize('webengine_version, expected', [
-        (None, 'darkMode'),
-        (0x050e00, 'darkMode'),  # 5.14
-        (0x050f00, 'darkMode'),  # 5.15.0
-        (0x050f01, 'darkMode'),  # 5.15.0
-        (0x050f02, 'forceDarkMode'),  # 5.15.2
-        (0x050f02, 'forceDarkMode'),  # 5.15.2
-        (0x060000, 'forceDarkMode'),  # 6
+    @pytest.mark.parametrize('qversion, webengine_version, expected', [
+        # Without PYQT_WEBENGINE_VERSION
+        ('5.9.9', None, qtargs.DarkModeVersion.unavailable),
+        ('5.10.1', None, qtargs.DarkModeVersion.qt_510),
+        ('5.11.3', None, qtargs.DarkModeVersion.qt_511_to_513),
+        ('5.12.9', None, qtargs.DarkModeVersion.qt_511_to_513),
+
+        # With PYQT_WEBENGINE_VERSION
+        (None, 0x050d00, qtargs.DarkModeVersion.qt_511_to_513),
+        (None, 0x050e00, qtargs.DarkModeVersion.qt_514),
+        (None, 0x050f00, qtargs.DarkModeVersion.qt_515_0),
+        (None, 0x050f01, qtargs.DarkModeVersion.qt_515_1),
+        (None, 0x050f02, qtargs.DarkModeVersion.qt_515_2),
+        (None, 0x060000, qtargs.DarkModeVersion.qt_515_2),  # Qt 6
     ])
-    def test_darkmode_prefix(self, monkeypatch, webengine_version, expected):
+    def test_darkmode_version(self, monkeypatch, qversion, webengine_version, expected):
+        monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: qversion)
         monkeypatch.setattr(qtargs, 'PYQT_WEBENGINE_VERSION', webengine_version)
-        assert qtargs._darkmode_prefix() == expected
+        assert qtargs._darkmode_version() == expected
 
     def test_broken_smart_images_policy(self, config_stub, monkeypatch, caplog):
         config_stub.val.colors.webpage.darkmode.enabled = True
@@ -599,18 +577,22 @@ class TestDarkMode:
         ]
         assert settings in expected
 
+    @utils.qt510
     def test_new_chromium(self):
         """Fail if we encounter an unknown Chromium version.
 
-        Dark mode in Chromium currently is undergoing various changes (as it's
-        relatively recent), and Qt 5.15 is supposed to update the underlying
-        Chromium at some point.
+        Dark mode in Chromium (or rather, the underlying Blink) is being changed with
+        almost every Chromium release.
 
         Make this test fail deliberately with newer Chromium versions, so that
         we can test whether dark mode still works manually, and adjust if not.
         """
         assert version._chromium_version() in [
             'unavailable',  # QtWebKit
+            '61.0.3163.140',  # Qt 5.10
+            '65.0.3325.230',  # Qt 5.11
+            '69.0.3497.128',  # Qt 5.12
+            '73.0.3683.105',  # Qt 5.13
             '77.0.3865.129',  # Qt 5.14
             '80.0.3987.163',  # Qt 5.15.0
             '83.0.4103.122',  # Qt 5.15.2
@@ -622,10 +604,10 @@ class TestDarkMode:
             if not name.startswith('colors.webpage.darkmode.'):
                 continue
 
-            backends = {'QtWebEngine': 'Qt 5.14', 'QtWebKit': False}
             assert not opt.supports_pattern, name
             assert opt.restart, name
-            assert opt.raw_backends == backends, name
+            assert not opt.raw_backends['QtWebKit'], name
+            assert opt.raw_backends['QtWebEngine'] in ['Qt 5.10', 'Qt 5.14'], name
 
 
 class TestEnvVars:
