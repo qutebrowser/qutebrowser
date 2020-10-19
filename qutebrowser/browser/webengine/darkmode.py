@@ -161,6 +161,8 @@ _QT_514_SETTINGS = [
 # workaround warning below if the setting wasn't explicitly customized.
 
 _DARK_MODE_DEFINITIONS = {
+    Version.unavailable: ([], set()),
+
     Version.qt_515_2: ([
         # 'darkMode' renamed to 'forceDarkMode'
         ('enabled', 'forceDarkModeEnabled', _BOOLS),
