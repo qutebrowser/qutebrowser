@@ -2715,8 +2715,8 @@ colors.webpage.darkmode.algorithm:
   desc: >-
     Which algorithm to use for modifying how colors are rendered with darkmode.
 
-    The `lightness-cielab` value was added with QtWebEngine 5.14 and is treated like
-    `lightness-hsl` with older QtWebEngine versions.
+    The `lightness-cielab` value was added with QtWebEngine 5.14 and is treated
+    like `lightness-hsl` with older QtWebEngine versions.
   type:
     name: String
     valid_values:
@@ -2757,15 +2757,16 @@ colors.webpage.darkmode.policy.images:
     valid_values:
       - always: Apply dark mode filter to all images.
       - never: Never apply dark mode filter to any images.
-      - smart: "Apply dark mode based on image content. Not available with Qt 5.10 /
-        5.15.0."
+      - smart: "Apply dark mode based on image content. Not available with Qt
+        5.10 / 5.15.0."
   desc: >-
       Which images to apply dark mode to.
 
-      With QtWebEngine 5.15.0, this setting can cause frequent renderer process crashes
-      due to a https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug
-      in Qt]. With QtWebEngine 5.10, this is not available at all. In those cases, the
-      'smart' setting is ignored and treated like 'never'.
+      With QtWebEngine 5.15.0, this setting can cause frequent renderer process
+      crashes due to a
+      https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[
+      bug in Qt]. With QtWebEngine 5.10, this is not available at all. In those
+      cases, the 'smart' setting is ignored and treated like 'never'.
   restart: true
   backend:
     QtWebEngine: Qt 5.10

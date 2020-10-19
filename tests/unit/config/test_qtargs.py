@@ -18,13 +18,12 @@
 
 import sys
 import os
-import logging
 
 import pytest
 
 from qutebrowser import qutebrowser
-from qutebrowser.config import qtargs, configdata
-from qutebrowser.utils import usertypes, version
+from qutebrowser.config import qtargs
+from qutebrowser.utils import usertypes
 from helpers import utils
 
 
@@ -390,17 +389,19 @@ class TestQtArgs:
 
     @utils.qt510
     def test_blink_settings(self, config_stub, monkeypatch, parser):
+        from qutebrowser.browser.webengine import darkmode
         monkeypatch.setattr(qtargs.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
-        monkeypatch.setattr(qtargs, '_darkmode_version',
-                            lambda: qtargs.DarkModeVersion.qt_515_2)
+        monkeypatch.setattr(darkmode, '_variant',
+                            lambda: darkmode.Variant.qt_515_2)
 
         config_stub.val.colors.webpage.darkmode.enabled = True
 
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
 
-        expected = '--blink-settings=forceDarkModeEnabled=true,forceDarkModeImagePolicy=2'
+        expected = ('--blink-settings=forceDarkModeEnabled=true,'
+                    'forceDarkModeImagePolicy=2')
 
         assert expected in args
 

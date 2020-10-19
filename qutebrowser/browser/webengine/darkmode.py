@@ -263,8 +263,8 @@ def _variant() -> Variant:
 
     # If we don't have PYQT_WEBENGINE_VERSION, we'll need to assume based on the Qt
     # version.
-    assert not qtutils.version_check('5.13',
-                                     compiled=False)  # type: ignore[unreachable]
+    assert not qtutils.version_check(  # type: ignore[unreachable]
+        '5.13', compiled=False)
 
     if qtutils.version_check('5.11', compiled=False):
         return Variant.qt_511_to_513
@@ -280,9 +280,9 @@ def settings() -> typing.Iterator[typing.Tuple[str, str]]:
         return
 
     variant = _variant()
-    settings, mandatory_settings = _DARK_MODE_DEFINITIONS[variant]
+    setting_defs, mandatory_settings = _DARK_MODE_DEFINITIONS[variant]
 
-    for setting, key, mapping in settings:
+    for setting, key, mapping in setting_defs:
         # To avoid blowing up the commandline length, we only pass modified
         # settings to Chromium, as our defaults line up with Chromium's.
         # However, we always pass enabled/algorithm to make sure dark mode gets

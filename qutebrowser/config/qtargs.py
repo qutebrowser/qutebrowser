@@ -26,7 +26,7 @@ import argparse
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
-from qutebrowser.utils import usertypes, qtutils, utils, log
+from qutebrowser.utils import usertypes, qtutils, utils
 
 
 def qt_args(namespace: argparse.Namespace) -> typing.List[str]:

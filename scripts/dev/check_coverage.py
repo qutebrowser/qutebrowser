@@ -218,6 +218,8 @@ PERFECT_FILES = [
      'qutebrowser/browser/webengine/spell.py'),
     ('tests/unit/browser/webengine/test_webengine_cookies.py',
      'qutebrowser/browser/webengine/cookies.py'),
+    ('tests/unit/browser/webengine/test_darkmode.py',
+     'qutebrowser/browser/webengine/darkmode.py'),
 ]
 
 

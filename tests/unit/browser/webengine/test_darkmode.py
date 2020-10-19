@@ -174,6 +174,7 @@ def test_variant(monkeypatch, qversion, webengine_version, expected):
     monkeypatch.setattr(darkmode, 'PYQT_WEBENGINE_VERSION', webengine_version)
     assert darkmode._variant() == expected
 
+
 def test_broken_smart_images_policy(config_stub, monkeypatch, caplog):
     config_stub.val.colors.webpage.darkmode.enabled = True
     config_stub.val.colors.webpage.darkmode.policy.images = 'smart'
