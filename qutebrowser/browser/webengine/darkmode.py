@@ -17,7 +17,61 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Get darkmode arguments to pass to Qt."""
+"""Get darkmode arguments to pass to Qt.
+
+Overview of blink setting names based on the Qt version:
+
+Qt 5.10
+-------
+
+First implementation, called "high contrast mode".
+
+- highContrastMode (kOff/kSimpleInvertForTesting/kInvertBrightness/kInvertLightness)
+- highContrastGrayscale (bool)
+- highContrastContrast (float)
+- highContractImagePolicy (kFilterAll/kFilterNone)
+
+Qt 5.11, 5.12, 5.13
+-------------------
+
+New "smart" image policy.
+
+- Mode/Grayscale/Contrast as above
+- highContractImagePolicy (kFilterAll/kFilterNone/kFilterSmart [new!])
+
+Qt 5.14
+-------
+
+Renamed to "darkMode".
+
+- darkMode (kOff/kSimpleInvertForTesting/kInvertBrightness/kInvertLightness/
+            kInvertLightnessLAB [new!])
+- darkModeGrayscale (bool)
+- darkModeContrast (float)
+- darkModeImagePolicy (kFilterAll/kFilterNone/kFilterSmart)
+- darkModePagePolicy (kFilterAll/kFilterByBackground) [new!]
+- darkModeTextBrightnessThreshold (int) [new!]
+- darkModeBackgroundBrightnessThreshold (int) [new!]
+- darkModeImageGrayscale (float) [new!]
+
+Qt 5.15.0 and 5.15.1
+--------------------
+
+"darkMode" split into "darkModeEnabled" and "darkModeInversionAlgorithm".
+
+- darkModeEnabled (bool) [new!]
+- darkModeInversionAlgorithm (kSimpleInvertForTesting/kInvertBrightness/
+                                kInvertLightness/kInvertLightnessLAB)
+- Rest (except darkMode) as above.
+- NOTE: smart image policy is broken with Qt 5.15.0!
+
+Qt 5.15.2
+---------
+
+Prefix changed to "forceDarkMode".
+
+- As with Qt 5.15.0 / .1, but with "forceDarkMode" as prefix.
+"""
 
 import enum
 import typing
@@ -41,6 +95,150 @@ class Version(enum.Enum):
     qt_515_0 = 3
     qt_515_1 = 4
     qt_515_2 = 5
+
+
+# Mapping from a colors.webpage.darkmode.algorithm setting value to
+# Chromium's DarkModeInversionAlgorithm enum values.
+_ALGORITHMS = {
+    # 0: kOff (not exposed)
+    # 1: kSimpleInvertForTesting (not exposed)
+    'brightness-rgb': 2,  # kInvertBrightness
+    'lightness-hsl': 3,  # kInvertLightness
+    'lightness-cielab': 4,  # kInvertLightnessLAB
+}
+# kInvertLightnessLAB is not available with Qt < 5.14
+_ALGORITHMS_BEFORE_QT_514 = _ALGORITHMS.copy()
+_ALGORITHMS_BEFORE_QT_514['lightness-cielab'] = _ALGORITHMS['lightness-hsl']
+
+# Mapping from a colors.webpage.darkmode.policy.images setting value to
+# Chromium's DarkModeImagePolicy enum values.
+_IMAGE_POLICIES = {
+    'always': 0,  # kFilterAll
+    'never': 1,  # kFilterNone
+    'smart': 2,  # kFilterSmart
+}
+# Image policy smart is not available with Qt 5.10
+_IMAGE_POLICIES_QT_510 = _IMAGE_POLICIES.copy()
+_IMAGE_POLICIES_QT_510['smart'] = _IMAGE_POLICIES['never']
+
+# Mapping from a colors.webpage.darkmode.policy.page setting value to
+# Chromium's DarkModePagePolicy enum values.
+_PAGE_POLICIES = {
+    'always': 0,  # kFilterAll
+    'smart': 1,  # kFilterByBackground
+}
+
+_BOOLS = {
+    True: 'true',
+    False: 'false',
+}
+
+_DarkModeSettingsType = typing.Iterable[
+    typing.Tuple[
+        str,  # qutebrowser option name
+        str,  # darkmode setting name
+        # Mapping from the config value to a string (or something convertable
+        # to a string) which gets passed to Chromium.
+        typing.Optional[typing.Mapping[typing.Any, typing.Union[str, int]]],
+    ],
+]
+
+_DarkModeDefinitionType = typing.Tuple[_DarkModeSettingsType, typing.Set[str]]
+
+_QT_514_SETTINGS = [
+    ('policy.images', 'darkModeImagePolicy', _IMAGE_POLICIES),
+    ('contrast', 'darkModeContrast', None),
+    ('grayscale.all', 'darkModeGrayscale', _BOOLS),
+
+    ('policy.page', 'darkModePagePolicy', _PAGE_POLICIES),
+    ('threshold.text', 'darkModeTextBrightnessThreshold', None),
+    ('threshold.background', 'darkModeBackgroundBrightnessThreshold', None),
+    ('grayscale.images', 'darkModeImageGrayscale', None),
+]
+
+# Our defaults for policy.images are different from Chromium's, so we mark it as
+# mandatory setting - except on Qt 5.15.0 where we don't, so we don't get the
+# workaround warning below if the setting wasn't explicitly customized.
+
+_DARK_MODE_DEFINITIONS = {
+    Version.qt_515_2: ([
+        # 'darkMode' renamed to 'forceDarkMode'
+        ('enabled', 'forceDarkModeEnabled', _BOOLS),
+        ('algorithm', 'forceDarkModeInversionAlgorithm', _ALGORITHMS),
+
+        ('policy.images', 'forceDarkModeImagePolicy', _IMAGE_POLICIES),
+        ('contrast', 'forceDarkModeContrast', None),
+        ('grayscale.all', 'forceDarkModeGrayscale', _BOOLS),
+
+        ('policy.page', 'forceDarkModePagePolicy', _PAGE_POLICIES),
+        ('threshold.text', 'forceDarkModeTextBrightnessThreshold', None),
+        (
+            'threshold.background',
+            'forceDarkModeBackgroundBrightnessThreshold',
+            None
+        ),
+        ('grayscale.images', 'forceDarkModeImageGrayscale', None),
+    ], {'enabled', 'policy.images'}),
+
+    Version.qt_515_1: ([
+        # 'policy.images' mandatory again
+        ('enabled', 'darkModeEnabled', _BOOLS),
+        ('algorithm', 'darkModeInversionAlgorithm', _ALGORITHMS),
+
+        ('policy.images', 'darkModeImagePolicy', _IMAGE_POLICIES),
+        ('contrast', 'darkModeContrast', None),
+        ('grayscale.all', 'darkModeGrayscale', _BOOLS),
+
+        ('policy.page', 'darkModePagePolicy', _PAGE_POLICIES),
+        ('threshold.text', 'darkModeTextBrightnessThreshold', None),
+        ('threshold.background', 'darkModeBackgroundBrightnessThreshold', None),
+        ('grayscale.images', 'darkModeImageGrayscale', None),
+    ], {'enabled', 'policy.images'}),
+
+    Version.qt_515_0: ([
+        # 'policy.images' not mandatory because it's broken
+        ('enabled', 'darkModeEnabled', _BOOLS),
+        ('algorithm', 'darkModeInversionAlgorithm', _ALGORITHMS),
+
+        ('policy.images', 'darkModeImagePolicy', _IMAGE_POLICIES),
+        ('contrast', 'darkModeContrast', None),
+        ('grayscale.all', 'darkModeGrayscale', _BOOLS),
+
+        ('policy.page', 'darkModePagePolicy', _PAGE_POLICIES),
+        ('threshold.text', 'darkModeTextBrightnessThreshold', None),
+        ('threshold.background', 'darkModeBackgroundBrightnessThreshold', None),
+        ('grayscale.images', 'darkModeImageGrayscale', None),
+    ], {'enabled'}),
+
+    Version.qt_514: ([
+        ('algorithm', 'darkMode', _ALGORITHMS),  # new: kInvertLightnessLAB
+
+        ('policy.images', 'darkModeImagePolicy', _IMAGE_POLICIES),
+        ('contrast', 'darkModeContrast', None),
+        ('grayscale.all', 'darkModeGrayscale', _BOOLS),
+
+        ('policy.page', 'darkModePagePolicy', _PAGE_POLICIES),
+        ('threshold.text', 'darkModeTextBrightnessThreshold', None),
+        ('threshold.background', 'darkModeBackgroundBrightnessThreshold', None),
+        ('grayscale.images', 'darkModeImageGrayscale', None),
+    ], {'algorithm', 'policy.images'}),
+
+    Version.qt_511_to_513: ([
+        ('algorithm', 'highContrastMode', _ALGORITHMS_BEFORE_QT_514),
+
+        ('policy.images', 'highContrastImagePolicy', _IMAGE_POLICIES),  # new: smart
+        ('contrast', 'highContrastContrast', None),
+        ('grayscale.all', 'highContrastGrayscale', _BOOLS),
+    ], {'algorithm', 'policy.images'}),
+
+    Version.qt_510: ([
+        ('algorithm', 'highContrastMode', _ALGORITHMS_BEFORE_QT_514),
+
+        ('policy.images', 'highContrastImagePolicy', _IMAGE_POLICIES_QT_510),
+        ('contrast', 'highContrastContrast', None),
+        ('grayscale.all', 'highContrastGrayscale', _BOOLS),
+    ], {'algorithm'}),
+}  # type: typing.Mapping[Version, _DarkModeDefinitionType]
 
 
 def _version() -> Version:
@@ -72,199 +270,12 @@ def _version() -> Version:
 
 
 def settings() -> typing.Iterator[typing.Tuple[str, str]]:
-    """Get necessary blink settings to configure dark mode for QtWebEngine.
-
-    Overview of blink setting names based on the Qt version:
-
-    Qt 5.10
-    -------
-
-    First implementation, called "high contrast mode".
-
-    - highContrastMode (kOff/kSimpleInvertForTesting/kInvertBrightness/kInvertLightness)
-    - highContrastGrayscale (bool)
-    - highContrastContrast (float)
-    - highContractImagePolicy (kFilterAll/kFilterNone)
-
-    Qt 5.11, 5.12, 5.13
-    -------------------
-
-    New "smart" image policy.
-
-    - Mode/Grayscale/Contrast as above
-    - highContractImagePolicy (kFilterAll/kFilterNone/kFilterSmart [new!])
-
-    Qt 5.14
-    -------
-
-    Renamed to "darkMode".
-
-    - darkMode (kOff/kSimpleInvertForTesting/kInvertBrightness/kInvertLightness/
-                kInvertLightnessLAB [new!])
-    - darkModeGrayscale (bool)
-    - darkModeContrast (float)
-    - darkModeImagePolicy (kFilterAll/kFilterNone/kFilterSmart)
-    - darkModePagePolicy (kFilterAll/kFilterByBackground) [new!]
-    - darkModeTextBrightnessThreshold (int) [new!]
-    - darkModeBackgroundBrightnessThreshold (int) [new!]
-    - darkModeImageGrayscale (float) [new!]
-
-    Qt 5.15.0 and 5.15.1
-    --------------------
-
-    "darkMode" split into "darkModeEnabled" and "darkModeInversionAlgorithm".
-
-    - darkModeEnabled (bool) [new!]
-    - darkModeInversionAlgorithm (kSimpleInvertForTesting/kInvertBrightness/
-                                  kInvertLightness/kInvertLightnessLAB)
-    - Rest (except darkMode) as above.
-    - NOTE: smart image policy is broken with Qt 5.15.0!
-
-    Qt 5.15.2
-    ---------
-
-    Prefix changed to "forceDarkMode".
-
-    - As with Qt 5.15.0 / .1, but with "forceDarkMode" as prefix.
-    """
+    """Get necessary blink settings to configure dark mode for QtWebEngine."""
     if not config.val.colors.webpage.darkmode.enabled:
         return
 
-    # Mapping from a colors.webpage.darkmode.algorithm setting value to
-    # Chromium's DarkModeInversionAlgorithm enum values.
-    algorithms = {
-        # 0: kOff (not exposed)
-        # 1: kSimpleInvertForTesting (not exposed)
-        'brightness-rgb': 2,  # kInvertBrightness
-        'lightness-hsl': 3,  # kInvertLightness
-        'lightness-cielab': 4,  # kInvertLightnessLAB
-    }
-    # kInvertLightnessLAB is not available with Qt < 5.14
-    algorithms_before_qt_514 = algorithms.copy()
-    algorithms_before_qt_514['lightness-cielab'] = algorithms['lightness-hsl']
-
-    # Mapping from a colors.webpage.darkmode.policy.images setting value to
-    # Chromium's DarkModeImagePolicy enum values.
-    image_policies = {
-        'always': 0,  # kFilterAll
-        'never': 1,  # kFilterNone
-        'smart': 2,  # kFilterSmart
-    }
-    # Image policy smart is not available with Qt 5.10
-    image_policies_qt_510 = image_policies.copy()
-    image_policies_qt_510['smart'] = image_policies['never']
-
-    # Mapping from a colors.webpage.darkmode.policy.page setting value to
-    # Chromium's DarkModePagePolicy enum values.
-    page_policies = {
-        'always': 0,  # kFilterAll
-        'smart': 1,  # kFilterByBackground
-    }
-
-    bools = {
-        True: 'true',
-        False: 'false',
-    }
-
-    _setting_description_type = typing.Tuple[
-        str,  # qutebrowser option name
-        str,  # darkmode setting name
-        # Mapping from the config value to a string (or something convertable
-        # to a string) which gets passed to Chromium.
-        typing.Optional[typing.Mapping[typing.Any, typing.Union[str, int]]],
-    ]
-    _dark_mode_definition_type = typing.Tuple[
-        typing.Iterable[_setting_description_type],
-        typing.Set[str],
-    ]
-
-    # Our defaults for policy.images are different from Chromium's, so we mark it as
-    # mandatory setting - except on Qt 5.15.0 where we don't, so we don't get the
-    # workaround warning below if the setting wasn't explicitly customized.
-
     version = _version()
-    dark_mode_definitions = {
-        Version.qt_515_2: ([
-            # 'darkMode' renamed to 'forceDarkMode'
-            ('enabled', 'forceDarkModeEnabled', bools),
-            ('algorithm', 'forceDarkModeInversionAlgorithm', algorithms),
-
-            ('policy.images', 'forceDarkModeImagePolicy', image_policies),
-            ('contrast', 'forceDarkModeContrast', None),
-            ('grayscale.all', 'forceDarkModeGrayscale', bools),
-
-            ('policy.page', 'forceDarkModePagePolicy', page_policies),
-            ('threshold.text', 'forceDarkModeTextBrightnessThreshold', None),
-            (
-                'threshold.background',
-                'forceDarkModeBackgroundBrightnessThreshold',
-                None
-            ),
-            ('grayscale.images', 'forceDarkModeImageGrayscale', None),
-        ], {'enabled', 'policy.images'}),
-
-        Version.qt_515_1: ([
-            # 'policy.images' mandatory again
-            ('enabled', 'darkModeEnabled', bools),
-            ('algorithm', 'darkModeInversionAlgorithm', algorithms),
-
-            ('policy.images', 'darkModeImagePolicy', image_policies),
-            ('contrast', 'darkModeContrast', None),
-            ('grayscale.all', 'darkModeGrayscale', bools),
-
-            ('policy.page', 'darkModePagePolicy', page_policies),
-            ('threshold.text', 'darkModeTextBrightnessThreshold', None),
-            ('threshold.background', 'darkModeBackgroundBrightnessThreshold', None),
-            ('grayscale.images', 'darkModeImageGrayscale', None),
-        ], {'enabled', 'policy.images'}),
-
-        Version.qt_515_0: ([
-            # 'policy.images' not mandatory because it's broken
-            ('enabled', 'darkModeEnabled', bools),
-            ('algorithm', 'darkModeInversionAlgorithm', algorithms),
-
-            ('policy.images', 'darkModeImagePolicy', image_policies),
-            ('contrast', 'darkModeContrast', None),
-            ('grayscale.all', 'darkModeGrayscale', bools),
-
-            ('policy.page', 'darkModePagePolicy', page_policies),
-            ('threshold.text', 'darkModeTextBrightnessThreshold', None),
-            ('threshold.background', 'darkModeBackgroundBrightnessThreshold', None),
-            ('grayscale.images', 'darkModeImageGrayscale', None),
-        ], {'enabled'}),
-
-        Version.qt_514: ([
-            ('algorithm', 'darkMode', algorithms),  # new: kInvertLightnessLAB
-
-            ('policy.images', 'darkModeImagePolicy', image_policies),
-            ('contrast', 'darkModeContrast', None),
-            ('grayscale.all', 'darkModeGrayscale', bools),
-
-            # New
-            ('policy.page', 'darkModePagePolicy', page_policies),
-            ('threshold.text', 'darkModeTextBrightnessThreshold', None),
-            ('threshold.background', 'darkModeBackgroundBrightnessThreshold', None),
-            ('grayscale.images', 'darkModeImageGrayscale', None),
-        ], {'algorithm', 'policy.images'}),
-
-        Version.qt_511_to_513: ([
-            ('algorithm', 'highContrastMode', algorithms_before_qt_514),
-
-            ('policy.images', 'highContrastImagePolicy', image_policies),  # new: smart
-            ('contrast', 'highContrastContrast', None),
-            ('grayscale.all', 'highContrastGrayscale', bools),
-        ], {'algorithm', 'policy.images'}),
-
-        Version.qt_510: ([
-            ('algorithm', 'highContrastMode', algorithms_before_qt_514),
-
-            ('policy.images', 'highContrastImagePolicy', image_policies_qt_510),
-            ('contrast', 'highContrastContrast', None),
-            ('grayscale.all', 'highContrastGrayscale', bools),
-        ], {'algorithm'}),
-    }  # type: typing.Mapping[Version, _dark_mode_definition_type]
-
-    settings, mandatory_settings = dark_mode_definitions[version]
+    settings, mandatory_settings = _DARK_MODE_DEFINITIONS[version]
 
     for setting, key, mapping in settings:
         # To avoid blowing up the commandline length, we only pass modified
