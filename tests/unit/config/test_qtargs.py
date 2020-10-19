@@ -473,6 +473,63 @@ class TestDarkMode:
 
         assert list(qtargs._darkmode_settings()) == expected
 
+    QT_514_SETTINGS = [
+        ('darkMode', '2'),
+        ('darkModeImagePolicy', '2'),
+        ('darkModeGrayscale', 'true'),
+    ]
+
+    QT_515_0_SETTINGS = [
+        ('darkModeEnabled', 'true'),
+        ('darkModeInversionAlgorithm', '2'),
+        ('darkModeGrayscale', 'true'),
+    ]
+
+    QT_515_1_SETTINGS = [
+        ('darkModeEnabled', 'true'),
+        ('darkModeInversionAlgorithm', '2'),
+        ('darkModeImagePolicy', '2'),
+        ('darkModeGrayscale', 'true'),
+    ]
+
+    QT_515_2_SETTINGS = [
+        ('forceDarkModeEnabled', 'true'),
+        ('forceDarkModeInversionAlgorithm', '2'),
+        ('forceDarkModeImagePolicy', '2'),
+        ('forceDarkModeGrayscale', 'true'),
+    ]
+
+    @pytest.mark.parametrize('qversion, expected', [
+        ('5.14.0', QT_514_SETTINGS),
+        ('5.14.1', QT_514_SETTINGS),
+        ('5.14.2', QT_514_SETTINGS),
+
+        ('5.15.0', QT_515_0_SETTINGS),
+        ('5.15.1', QT_515_1_SETTINGS),
+
+        ('5.15.2', QT_515_2_SETTINGS),
+    ])
+    def test_qt_version_differences(self, config_stub, monkeypatch,
+                                    qversion, expected):
+        monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: qversion)
+
+        major, minor, patch = [int(part) for part in qversion.split('.')]
+        hexversion = major << 16 | minor << 8 | patch
+        if major > 5 or minor >= 13:
+            # Added in Qt 5.13
+            monkeypatch.setattr(qtargs, 'PYQT_WEBENGINE_VERSION', hexversion)
+
+        settings = {
+            'enabled': True,
+            'algorithm': 'brightness-rgb',
+            'grayscale.all': True,
+        }
+        for k, v in settings.items():
+            config_stub.set_obj('colors.webpage.darkmode.' + k, v)
+
+        assert list(qtargs._darkmode_settings()) == expected
+
+
     @pytest.mark.parametrize('setting, value, exp_key, exp_val', [
         ('contrast', -0.5,
          'Contrast', '-0.5'),

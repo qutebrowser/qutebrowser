@@ -78,7 +78,61 @@ def _darkmode_prefix() -> str:
 
 
 def _darkmode_settings() -> typing.Iterator[typing.Tuple[str, str]]:
-    """Get necessary blink settings to configure dark mode for QtWebEngine."""
+    """Get necessary blink settings to configure dark mode for QtWebEngine.
+
+    Overview of blink setting names based on the Qt version:
+
+    Qt 5.10
+    -------
+
+    First implementation, called "high contrast mode".
+
+    - highContrastMode (kOff/kSimpleInvertForTesting/kInvertBrightness/kInvertLightness)
+    - highContrastGrayscale (bool)
+    - highContrastContrast (float)
+    - highContractImagePolicy (kFilterAll/kFilterNone)
+
+    Qt 5.11, 5.12, 5.13
+    -------------------
+
+    New "smart" image policy.
+
+    - Mode/Grayscale/Contrast as above
+    - highContractImagePolicy (kFilterAll/kFilterNone/kFilterSmart [new!])
+
+    Qt 5.14
+    -------
+
+    Renamed to "darkMode".
+
+    - darkMode (kOff/kSimpleInvertForTesting/kInvertBrightness/kInvertLightness/
+                kInvertLightnessLAB [new!])
+    - darkModeGrayscale (bool)
+    - darkModeContrast (float)
+    - darkModeImagePolicy (kFilterAll/kFilterNone/kFilterSmart)
+    - darkModePagePolicy (kFilterAll/kFilterByBackground) [new!]
+    - darkModeTextBrightnessThreshold (int) [new!]
+    - darkModeBackgroundBrightnessThreshold (int) [new!]
+    - darkModeImageGrayscale (float) [new!]
+
+    Qt 5.15.0 and 5.15.1
+    --------------------
+
+    "darkMode" split into "darkModeEnabled" and "darkModeInversionAlgorithm".
+
+    - darkModeEnabled (bool) [new!]
+    - darkModeInversionAlgorithm (kSimpleInvertForTesting/kInvertBrightness/
+                                  kInvertLightness/kInvertLightnessLAB)
+    - Rest (except darkMode) as above.
+    - NOTE: smart image policy is broken with Qt 5.15.0!
+
+    Qt 5.15.2
+    ---------
+
+    Prefix changed to "forceDarkMode".
+
+    - As with Qt 5.15.0 / .1, but with "forceDarkMode" as prefix.
+    """
     if not config.val.colors.webpage.darkmode.enabled:
         return
 
