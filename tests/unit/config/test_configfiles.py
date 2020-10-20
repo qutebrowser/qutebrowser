@@ -963,7 +963,9 @@ class TestConfigPy:
         assert len(excinfo.value.errors) == 1
         error = excinfo.value.errors[0]
         assert error.text == "autoconfig loading not specified"
-        exception_text = 'Your config.py should call either `config.load_autoconfig()` (to load settings configured via the GUI) or `config.load_autoconfig(False)` (to not do so)'
+        exception_text = ('Your config.py should call either `config.load_autoconfig()`'
+                          ' (to load settings configured via the GUI) or '
+                          '`config.load_autoconfig(False)` (to not do so)')
         assert str(error.exception) == exception_text
 
     def test_unhandled_exception(self, confpy):

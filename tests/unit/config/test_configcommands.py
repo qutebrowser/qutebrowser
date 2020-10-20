@@ -520,7 +520,8 @@ class TestSource:
 
     def test_errors(self, commands, config_tmpdir):
         pyfile = config_tmpdir / 'config.py'
-        pyfile.write_text('config.load_autoconfig(False)\nc.foo = 42', encoding='utf-8')
+        pyfile.write_text('\n'.join(['config.load_autoconfig(False)',
+                                     'c.foo = 42']), encoding='utf-8')
 
         with pytest.raises(cmdutils.CommandError) as excinfo:
             commands.config_source()
@@ -531,7 +532,8 @@ class TestSource:
 
     def test_invalid_source(self, commands, config_tmpdir):
         pyfile = config_tmpdir / 'config.py'
-        pyfile.write_text('config.load_autoconfig(False)\n1/0', encoding='utf-8')
+        pyfile.write_text('\n'.join(['config.load_autoconfig(False)',
+                                     '1/0']), encoding='utf-8')
 
         with pytest.raises(cmdutils.CommandError) as excinfo:
             commands.config_source()
@@ -592,7 +594,7 @@ class TestEdit:
 
     def test_error(self, commands, config_stub, patch_editor, message_mock,
                    caplog):
-        patch_editor('config.load_autoconfig(False)\nc.foo = 42')
+        patch_editor('\n'.join(['config.load_autoconfig(False)', 'c.foo = 42']))
 
         with caplog.at_level(logging.ERROR):
             commands.config_edit()
