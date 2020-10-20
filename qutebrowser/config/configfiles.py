@@ -567,8 +567,11 @@ class ConfigAPI:
     def finalize(self) -> None:
         """Do work which needs to be done after reading config.py."""
         if self._config.warn_autoconfig:
-            desc = configexc.ConfigErrorDesc("autoconfig loading not specified",
-                                             "Your config.py should call either `config.load_autoconfig()` (to load settings configured via the GUI) or `config.load_autoconfig(False)` (to not do so)")
+            desc = configexc.ConfigErrorDesc(
+                "autoconfig loading not specified",
+                ("Your config.py should call either `config.load_autoconfig()`"
+                 " (to load settings configured via the GUI) or "
+                 "`config.load_autoconfig(False)` (to not do so)"))
             self.errors.append(desc)
         self._config.update_mutables()
 
