@@ -566,7 +566,7 @@ class ConfigAPI:
 
     def finalize(self) -> None:
         """Do work which needs to be done after reading config.py."""
-        if config.instance.warn_autoconfig:
+        if self._config.warn_autoconfig:
             desc = configexc.ConfigErrorDesc("autoconfig loading not specified",
                                              "Your config.py should call either `config.load_autoconfig()` (to load settings configured via the GUI) or `config.load_autoconfig(False)` (to not do so)")
             self.errors.append(desc)
@@ -574,7 +574,7 @@ class ConfigAPI:
 
     def load_autoconfig(self, load_config: bool = True) -> None:
         """Load the autoconfig.yml file which is used for :set/:bind/etc."""
-        config.instance.warn_autoconfig = False
+        self._config.warn_autoconfig = False
         with self._handle_error('reading', 'autoconfig.yml'):
             if load_config:
                 read_autoconfig()
