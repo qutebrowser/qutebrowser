@@ -820,7 +820,7 @@ def read_config_py(filename: str, raising: bool = False) -> None:
         raise configexc.ConfigFileErrors('config.py', api.errors)
 
 
-def read_autoconfig(load_config: bool = True) -> None:
+def read_autoconfig() -> None:
     """Read the autoconfig.yml file."""
     try:
         config.instance.read_yaml()
