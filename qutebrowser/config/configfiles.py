@@ -578,8 +578,8 @@ class ConfigAPI:
     def load_autoconfig(self, load_config: bool = True) -> None:
         """Load the autoconfig.yml file which is used for :set/:bind/etc."""
         self._config.warn_autoconfig = False
-        with self._handle_error('reading', 'autoconfig.yml'):
-            if load_config:
+        if load_config:
+            with self._handle_error('reading', 'autoconfig.yml'):
                 read_autoconfig()
 
     def get(self, name: str, pattern: str = None) -> typing.Any:
