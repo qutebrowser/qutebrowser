@@ -19,7 +19,7 @@ import qutebrowser.config.websettings
 
 def version(ua):
     """Comparable version of a user agent."""
-    return tuple(int(v) for v in ua.upstream_browser_version.split('.'))
+    return tuple(int(v) for v in ua.upstream_browser_version.split('.')[:2])
 
 
 def wrap(ini, sub, string):
@@ -33,9 +33,9 @@ if response.status_code != 200:
     sys.exit(1)
 
 ua_checks = {
-    'Windows NT': lambda ua: ua.os_info.startswith('Windows NT'),
-    'Macintosh': lambda ua: ua.os_info.startswith('Macintosh'),
-    'X11': lambda ua: ua.os_info.startswith('X11'),
+    'Win10': lambda ua: ua.os_info.startswith('Windows NT'),
+    'macOS': lambda ua: ua.os_info.startswith('Macintosh'),
+    'Linux': lambda ua: ua.os_info.startswith('X11'),
 }
 
 ua_strings = {}
@@ -56,7 +56,7 @@ for ua_string in reversed(response.json()):
     # check which os_string conditions are met and select the most recent version
     for key, check in ua_checks.items():
         if check(user_agent):
-            if version(user_agent) > ua_versions.get(key, (-math.inf,)):
+            if version(user_agent) >= ua_versions.get(key, (-math.inf,)):
                 ua_versions[key] = version(user_agent)
                 ua_strings[key] = ua_string
 
