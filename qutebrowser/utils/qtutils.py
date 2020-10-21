@@ -230,7 +230,7 @@ def savefile_open(
         if not open_ok:
             raise QtOSError(f)
 
-        dev = typing.cast(typing.IO[bytes], PyQIODevice(f))
+        dev = typing.cast(typing.BinaryIO, PyQIODevice(f))
 
         if binary:
             new_f = dev  # type: typing.IO

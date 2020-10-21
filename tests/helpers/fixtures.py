@@ -676,3 +676,26 @@ def web_history(fake_save_manager, tmpdir, init_sql, config_stub, stubs,
     web_history = history.WebHistory(stubs.FakeHistoryProgress())
     monkeypatch.setattr(history, 'web_history', web_history)
     return web_history
+
+
+@pytest.fixture
+def blue_widget(qtbot):
+    widget = QWidget()
+    widget.setStyleSheet('background-color: blue;')
+    qtbot.add_widget(widget)
+    return widget
+
+
+@pytest.fixture
+def red_widget(qtbot):
+    widget = QWidget()
+    widget.setStyleSheet('background-color: red;')
+    qtbot.add_widget(widget)
+    return widget
+
+
+@pytest.fixture
+def state_config(data_tmpdir, monkeypatch):
+    state = configfiles.StateConfig()
+    monkeypatch.setattr(configfiles, 'state', state)
+    return state

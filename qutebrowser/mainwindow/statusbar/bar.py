@@ -203,7 +203,7 @@ class StatusBar(QWidget):
 
     @pyqtSlot(str)
     def _on_config_changed(self, option):
-        if option == 'statusbar.hide':
+        if option == 'statusbar.show':
             self.maybe_hide()
         elif option == 'statusbar.padding':
             self._set_hbox_padding()
@@ -254,12 +254,26 @@ class StatusBar(QWidget):
     @pyqtSlot()
     def maybe_hide(self):
         """Hide the statusbar if it's configured to do so."""
+        strategy = config.val.statusbar.show
         tab = self._current_tab()
-        hide = config.val.statusbar.hide
-        if hide or (tab is not None and tab.data.fullscreen):
+        if tab is not None and tab.data.fullscreen:
             self.hide()
-        else:
+        elif strategy == 'never':
+            self.hide()
+        elif strategy == 'in-mode':
+            try:
+                mode_manager = modeman.instance(self._win_id)
+            except modeman.UnavailableError:
+                self.hide()
+            else:
+                if mode_manager.mode == usertypes.KeyMode.normal:
+                    self.hide()
+                else:
+                    self.show()
+        elif strategy == 'always':
             self.show()
+        else:
+            raise utils.Unreachable
 
     def _set_hbox_padding(self):
         padding = config.val.statusbar.padding
@@ -336,6 +350,8 @@ class StatusBar(QWidget):
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
         mode_manager = modeman.instance(self._win_id)
+        if config.val.statusbar.show == 'in-mode':
+            self.show()
         if mode_manager.parsers[mode].passthrough:
             self._set_mode_text(mode.name)
         if mode in [usertypes.KeyMode.insert,
@@ -350,6 +366,8 @@ class StatusBar(QWidget):
     def on_mode_left(self, old_mode, new_mode):
         """Clear marked mode."""
         mode_manager = modeman.instance(self._win_id)
+        if config.val.statusbar.show == 'in-mode':
+            self.hide()
         if mode_manager.parsers[old_mode].passthrough:
             if mode_manager.parsers[new_mode].passthrough:
                 self._set_mode_text(new_mode.name)

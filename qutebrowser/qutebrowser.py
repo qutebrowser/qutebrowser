@@ -83,20 +83,20 @@ def get_argparser():
     parser.add_argument('--backend', choices=['webkit', 'webengine'],
                         help="Which backend to use.")
     parser.add_argument('--enable-webengine-inspector', action='store_true',
-                        help="Enable the web inspector for QtWebEngine. Note "
-                        "that this is a SECURITY RISK and you should not "
-                        "visit untrusted websites with the inspector turned "
-                        "on. See https://bugreports.qt.io/browse/QTBUG-50725 "
-                        "for more details. This is not needed anymore since "
-                        "Qt 5.11 where the inspector is always enabled and "
-                        "secure.")
+                        help="Enable the web inspector / devtools for "
+                        "QtWebEngine. Note that this is a SECURITY RISK and "
+                        "you should not visit untrusted websites with the "
+                        "inspector turned on. See "
+                        "https://bugreports.qt.io/browse/QTBUG-50725 for more "
+                        "details. This is not needed anymore since Qt 5.11 "
+                        "where the inspector is always enabled and secure.")
 
     parser.add_argument('--json-args', help=argparse.SUPPRESS)
     parser.add_argument('--temp-basedir-restarted', help=argparse.SUPPRESS)
 
     debug = parser.add_argument_group('debug arguments')
     debug.add_argument('-l', '--loglevel', dest='loglevel',
-                       help="Set loglevel", default='info',
+                       help="Override the configured console loglevel",
                        choices=['critical', 'error', 'warning', 'info',
                                 'debug', 'vdebug'])
     debug.add_argument('--logfilter', type=logfilter_error,
@@ -150,12 +150,11 @@ def logfilter_error(logfilter):
         logfilter: A comma separated list of logger names.
     """
     from qutebrowser.utils import log
-    if set(logfilter.lstrip('!').split(',')).issubset(log.LOGGER_NAMES):
-        return logfilter
-    else:
-        raise argparse.ArgumentTypeError(
-            "filters: Invalid value {} - expected a list of: {}".format(
-                logfilter, ', '.join(log.LOGGER_NAMES)))
+    try:
+        log.LogFilter.parse(logfilter)
+    except log.InvalidLogFilterError as e:
+        raise argparse.ArgumentTypeError(e)
+    return logfilter
 
 
 def debug_flag_error(flag):

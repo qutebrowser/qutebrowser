@@ -12,6 +12,7 @@ pytest-mock
 pytest-qt
 pytest-rerunfailures
 pytest-xvfb
+PyVirtualDisplay
 
 ## optional:
 # To test :debug-trace, gets skipped if hunter is not installed

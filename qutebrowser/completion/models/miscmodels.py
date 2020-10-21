@@ -22,8 +22,9 @@
 import typing
 
 from qutebrowser.config import config, configdata
-from qutebrowser.utils import objreg, log
+from qutebrowser.utils import objreg, log, utils
 from qutebrowser.completion.models import completionmodel, listcategory, util
+from qutebrowser.browser import inspector
 
 
 def command(*, info):
@@ -49,7 +50,7 @@ def helptopic(*, info):
     return model
 
 
-def quickmark(*, info=None):  # pylint: disable=unused-argument
+def quickmark(*, info=None):
     """A CompletionModel filled with all quickmarks."""
     def delete(data: typing.Sequence[str]) -> None:
         """Delete a quickmark from the completion menu."""
@@ -58,6 +59,7 @@ def quickmark(*, info=None):  # pylint: disable=unused-argument
         log.completion.debug('Deleting quickmark {}'.format(name))
         quickmark_manager.delete(name)
 
+    utils.unused(info)
     model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
     marks = objreg.get('quickmark-manager').marks.items()
     model.add_category(listcategory.ListCategory('Quickmarks', marks,
@@ -66,7 +68,7 @@ def quickmark(*, info=None):  # pylint: disable=unused-argument
     return model
 
 
-def bookmark(*, info=None):  # pylint: disable=unused-argument
+def bookmark(*, info=None):
     """A CompletionModel filled with all bookmarks."""
     def delete(data: typing.Sequence[str]) -> None:
         """Delete a bookmark from the completion menu."""
@@ -75,6 +77,7 @@ def bookmark(*, info=None):  # pylint: disable=unused-argument
         bookmark_manager = objreg.get('bookmark-manager')
         bookmark_manager.delete(urlstr)
 
+    utils.unused(info)
     model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
     marks = objreg.get('bookmark-manager').marks.items()
     model.add_category(listcategory.ListCategory('Bookmarks', marks,
@@ -83,9 +86,10 @@ def bookmark(*, info=None):  # pylint: disable=unused-argument
     return model
 
 
-def session(*, info=None):  # pylint: disable=unused-argument
+def session(*, info=None):
     """A CompletionModel filled with session names."""
     from qutebrowser.misc import sessions
+    utils.unused(info)
     model = completionmodel.CompletionModel()
     try:
         sess = ((name,) for name
@@ -151,11 +155,12 @@ def _buffer(*, win_id_filter=lambda _win_id: True, add_win_id=True):
     return model
 
 
-def buffer(*, info=None):  # pylint: disable=unused-argument
+def buffer(*, info=None):
     """A model to complete on open tabs across all windows.
 
     Used for switching the buffer command.
     """
+    utils.unused(info)
     return _buffer()
 
 
@@ -200,4 +205,14 @@ def window(*, info):
 
     model.add_category(listcategory.ListCategory("Windows", windows))
 
+    return model
+
+
+def inspector_position(*, info):
+    """A model for possible inspector positions."""
+    utils.unused(info)
+    model = completionmodel.CompletionModel(column_widths=(100, 0, 0))
+    positions = [(e.name,) for e in inspector.Position]
+    category = listcategory.ListCategory("Position (optional)", positions)
+    model.add_category(category)
     return model

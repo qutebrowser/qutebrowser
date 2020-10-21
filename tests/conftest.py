@@ -25,8 +25,6 @@ import os
 import sys
 import warnings
 import pathlib
-import ctypes
-import ctypes.util
 
 import pytest
 import hypothesis
@@ -258,9 +256,7 @@ def set_backend(monkeypatch, request):
 @pytest.fixture(autouse=True, scope='session')
 def apply_libgl_workaround():
     """Make sure we load libGL early so QtWebEngine tests run properly."""
-    libgl = ctypes.util.find_library("GL")
-    if libgl is not None:
-        ctypes.CDLL(libgl, mode=ctypes.RTLD_GLOBAL)
+    utils.libgl_workaround()
 
 
 @pytest.fixture(autouse=True)
@@ -298,8 +294,8 @@ def apply_fake_os(monkeypatch, request):
 
 @pytest.fixture(scope='session', autouse=True)
 def check_yaml_c_exts():
-    """Make sure PyYAML C extensions are available on Travis."""
-    if 'TRAVIS' in os.environ:
+    """Make sure PyYAML C extensions are available on CI."""
+    if 'CI' in os.environ:
         from yaml import CLoader
 
 

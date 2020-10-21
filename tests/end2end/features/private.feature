@@ -153,7 +153,7 @@ Feature: Using private browsing
                 - url: http://localhost:*/data/numbers/1.txt
                 - url: http://localhost:*/data/numbers/2.txt
 
-
+  @flaky
   Scenario: Saving a private session with only-active-window
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab

@@ -61,8 +61,7 @@ class TabWidget(QTabWidget):
         self.setTabBar(bar)
         bar.tabCloseRequested.connect(
             self.tabCloseRequested)  # type: ignore[arg-type]
-        bar.tabMoved.connect(functools.partial(
-            QTimer.singleShot, 0, self.update_tab_titles))
+        bar.tabMoved.connect(self.update_tab_titles)
         bar.currentChanged.connect(self._on_current_changed)
         bar.new_tab_requested.connect(self._on_new_tab_requested)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -388,7 +387,12 @@ class TabBar(QTabBar):
 
     STYLESHEET = """
         TabBar {
+            font: {{ conf.fonts.tabs.unselected }};
             background-color: {{ conf.colors.tabs.bar.bg }};
+        }
+
+        TabBar::tab:selected {
+            font: {{ conf.fonts.tabs.selected }};
         }
     """
 
@@ -398,8 +402,6 @@ class TabBar(QTabBar):
         super().__init__(parent)
         self._win_id = win_id
         self.setStyle(TabBarStyle())
-        self._set_font()
-        config.instance.changed.connect(self._on_config_changed)
         self.vertical = False
         self._auto_hide_timer = QTimer()
         self._auto_hide_timer.setSingleShot(True)
@@ -408,6 +410,9 @@ class TabBar(QTabBar):
         self.setAutoFillBackground(True)
         self.drag_in_progress = False
         stylesheet.set_register(self)
+        self.ensurePolished()
+        config.instance.changed.connect(self._on_config_changed)
+        self._set_icon_size()
         QTimer.singleShot(0, self.maybe_hide)
 
     def __repr__(self):
@@ -419,8 +424,9 @@ class TabBar(QTabBar):
 
     @pyqtSlot(str)
     def _on_config_changed(self, option: str) -> None:
-        if option == 'fonts.tabs':
-            self._set_font()
+        if option.startswith('fonts.tabs.'):
+            self.ensurePolished()
+            self._set_icon_size()
         elif option == 'tabs.favicons.scale':
             self._set_icon_size()
         elif option == 'tabs.show_switching_delay':
@@ -436,7 +442,9 @@ class TabBar(QTabBar):
                       "tabs.padding",
                       "tabs.indicator.width",
                       "tabs.min_width",
-                      "tabs.pinned.shrink"]:
+                      "tabs.pinned.shrink",
+                      "fonts.tabs.selected",
+                      "fonts.tabs.unselected"]:
             self._minimum_tab_size_hint_helper.cache_clear()
             self._minimum_tab_height.cache_clear()
 
@@ -508,14 +516,6 @@ class TabBar(QTabBar):
         # This is a horrible hack, but we need to do this so the underlying Qt
         # code sets layoutDirty so it actually relayouts the tabs.
         self.setIconSize(self.iconSize())
-
-    def _set_font(self):
-        """Set the tab bar font."""
-        self.setFont(config.val.fonts.tabs)
-        self._set_icon_size()
-        # clear tab size cache
-        self._minimum_tab_size_hint_helper.cache_clear()
-        self._minimum_tab_height.cache_clear()
 
     def _set_icon_size(self):
         """Set the tab bar favicon size."""

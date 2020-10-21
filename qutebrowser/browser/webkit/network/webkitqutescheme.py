@@ -48,7 +48,7 @@ def handler(request, operation, current_url):
     if ((url.scheme(), url.host(), url.path()) ==
             ('qute', 'settings', '/set')):
         if current_url != QUrl('qute://settings/'):
-            log.webview.warning("Blocking malicious request from {} to {}"
+            log.network.warning("Blocking malicious request from {} to {}"
                                 .format(current_url.toDisplayString(),
                                         url.toDisplayString()))
             return networkreply.ErrorNetworkReply(

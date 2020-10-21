@@ -23,7 +23,6 @@
 from typing import List, Optional
 import re
 import os
-import os.path
 import sys
 import subprocess
 import shutil
@@ -32,7 +31,7 @@ import argparse
 import io
 import pathlib
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 from scripts import utils
 
@@ -68,7 +67,7 @@ class AsciiDoc:
     def cleanup(self) -> None:
         """Clean up the temporary home directory for asciidoc."""
         if self._homedir is not None and not self._failed:
-            shutil.rmtree(self._homedir)
+            shutil.rmtree(str(self._homedir))
 
     def build(self) -> None:
         """Build either the website or the docs."""
@@ -98,12 +97,12 @@ class AsciiDoc:
         for src, dst in files:
             assert self._tempdir is not None    # for mypy
             modified_src = self._tempdir / src.name
-            with open(modified_src, 'w', encoding='utf-8') as modified_f, \
-                    open(src, 'r', encoding='utf-8') as f:
+            with modified_src.open('w', encoding='utf-8') as moded_f, \
+                    src.open('r', encoding='utf-8') as f:
                 for line in f:
                     for orig, repl in replacements:
                         line = line.replace(orig, repl)
-                    modified_f.write(line)
+                    moded_f.write(line)
             self.call(modified_src, dst, *asciidoc_args)
 
     def _copy_images(self) -> None:
@@ -114,7 +113,7 @@ class AsciiDoc:
         for filename in ['cheatsheet-big.png', 'cheatsheet-small.png']:
             src = pathlib.Path('doc') / 'img' / filename
             dst = dst_path / filename
-            shutil.copy(src, dst)
+            shutil.copy(str(src), str(dst))
 
     def _build_website_file(self, root: pathlib.Path, filename: str) -> None:
         """Build a single website file."""
@@ -130,11 +129,10 @@ class AsciiDoc:
 
         outfp = io.StringIO()
 
-        with open(modified_src, 'r', encoding='utf-8') as header_file:
-            header = header_file.read()
-            header += "\n\n"
+        header = modified_src.read_text(encoding='utf-8')
+        header += "\n\n"
 
-        with open(src, 'r', encoding='utf-8') as infp:
+        with src.open('r', encoding='utf-8') as infp:
             outfp.write("\n\n")
             hidden = False
             found_title = False
@@ -174,8 +172,8 @@ class AsciiDoc:
         current_lines = outfp.getvalue()
         outfp.close()
 
-        with open(modified_src, 'w+', encoding='utf-8') as final_version:
-            final_version.write(title + "\n\n" + header + current_lines)
+        modified_str = title + "\n\n" + header + current_lines
+        modified_src.write_text(modified_str, encoding='utf-8')
 
         asciidoc_args = ['--theme=qute', '-a toc', '-a toc-placement=manual',
                          '-a', 'source-highlighter=pygments']

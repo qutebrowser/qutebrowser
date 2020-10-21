@@ -846,10 +846,15 @@ class WebEngineAudio(browsertab.AbstractAudio):
         config.instance.changed.connect(self._on_config_changed)
 
     def set_muted(self, muted: bool, override: bool = False) -> None:
+        was_muted = self.is_muted()
         self._overridden = override
         assert self._widget is not None
         page = self._widget.page()
         page.setAudioMuted(muted)
+        if was_muted != muted and qtutils.version_check('5.15'):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-85118
+            # so that the tab title at least updates the muted indicator
+            self.muted_changed.emit(muted)
 
     def is_muted(self):
         page = self._widget.page()
@@ -969,9 +974,24 @@ class _WebEnginePermissions(QObject):
             page.setFeaturePermission, url, feature,
             QWebEnginePage.PermissionDeniedByUser)
 
+        permission_str = debug.qenum_key(QWebEnginePage, feature)
+
+        if not url.isValid():
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-85116
+            is_qtbug = (qtutils.version_check('5.15.0',
+                                              compiled=False,
+                                              exact=True) and
+                        self._tab.is_private and
+                        feature == QWebEnginePage.Notifications)
+            logger = log.webview.debug if is_qtbug else log.webview.warning
+            logger("Ignoring feature permission {} for invalid URL {}".format(
+                permission_str, url))
+            deny_permission()
+            return
+
         if feature not in self._options:
             log.webview.error("Unhandled feature permission {}".format(
-                debug.qenum_key(QWebEnginePage, feature)))
+                permission_str))
             deny_permission()
             return
 
@@ -1237,19 +1257,31 @@ class _WebEngineScripts(QObject):
         """Add site-specific quirk scripts.
 
         NOTE: This isn't implemented for Qt 5.7 because of different UserScript
-        semantics there. We only have a quirk for WhatsApp Web right now. It
-        looks like that quirk isn't needed for Qt < 5.13.
+        semantics there. The WhatsApp Web quirk isn't needed for Qt < 5.13.
+        The globalthis_quirk would be, but let's not keep such old QtWebEngine
+        versions on life support.
         """
         if not config.val.content.site_specific_quirks:
             return
 
         page_scripts = self._widget.page().scripts()
+        quirks = [
+            (
+                'whatsapp_web_quirk',
+                QWebEngineScript.DocumentReady,
+                QWebEngineScript.ApplicationWorld,
+            ),
+        ]
+        if not qtutils.version_check('5.13'):
+            quirks.append(('globalthis_quirk',
+                           QWebEngineScript.DocumentCreation,
+                           QWebEngineScript.MainWorld))
 
-        for filename in ['whatsapp_web_quirk']:
+        for filename, injection_point, world in quirks:
             script = QWebEngineScript()
             script.setName(filename)
-            script.setWorldId(QWebEngineScript.ApplicationWorld)
-            script.setInjectionPoint(QWebEngineScript.DocumentReady)
+            script.setWorldId(world)
+            script.setInjectionPoint(injection_point)
             src = utils.read_file("javascript/{}.user.js".format(filename))
             script.setSourceCode(src)
             page_scripts.insert(script)
@@ -1333,8 +1365,12 @@ class WebEngineTab(browsertab.AbstractTab):
         if fp is not None:
             fp.installEventFilter(self._tab_event_filter)
         self._child_event_filter = eventfilter.ChildEventFilter(
-            eventfilter=self._tab_event_filter, widget=self._widget,
-            win_id=self.win_id, parent=self)
+            eventfilter=self._tab_event_filter,
+            widget=self._widget,
+            win_id=self.win_id,
+            focus_workaround=qtutils.version_check(
+                '5.11', compiled=False, exact=True),
+            parent=self)
         self._widget.installEventFilter(self._child_event_filter)
 
     @pyqtSlot()
@@ -1607,16 +1643,16 @@ class WebEngineTab(browsertab.AbstractTab):
         url = error.url()
         self._insecure_hosts.add(url.host())
 
-        log.webview.debug("Certificate error: {}".format(error))
+        log.network.debug("Certificate error: {}".format(error))
 
         if error.is_overridable():
             error.ignore = shared.ignore_certificate_errors(
                 url, [error], abort_on=[self.abort_questions])
         else:
-            log.webview.error("Non-overridable certificate error: "
+            log.network.error("Non-overridable certificate error: "
                               "{}".format(error))
 
-        log.webview.debug("ignore {}, URL {}, requested {}".format(
+        log.network.debug("ignore {}, URL {}, requested {}".format(
             error.ignore, url, self.url(requested=True)))
 
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-56207

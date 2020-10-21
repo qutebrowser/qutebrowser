@@ -143,6 +143,10 @@ def test_open_with_ascii_locale(request, server, tmpdir, quteproc_new, url):
     quteproc_new.wait_for(message="load status for <* tab_id=* "
                           "url='*/f%C3%B6%C3%B6.html'>: LoadStatus.error")
 
+    if request.config.webengine:
+        line = quteproc_new.wait_for(message='Load error: ERR_FILE_NOT_FOUND')
+        line.expected = True
+
 
 @pytest.mark.linux
 @ascii_locale
@@ -248,7 +252,8 @@ def test_version(request):
     assert ok
     assert proc.exitStatus() == QProcess.NormalExit
 
-    assert re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout) is not None
+    match = re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout, re.MULTILINE)
+    assert match is not None
 
 
 def test_qt_arg(request, quteproc_new, tmpdir):
@@ -381,6 +386,9 @@ def test_qute_settings_persistence(short_tmpdir, request, quteproc_new):
     quteproc_new.send_cmd(':jseval --world main '
                           'cset("search.ignore_case", "always")')
     quteproc_new.wait_for(message='No output or error')
+    quteproc_new.wait_for(category='config',
+                          message='Config option changed: '
+                                  'search.ignore_case = always')
 
     assert quteproc_new.get_setting('search.ignore_case') == 'always'
 

@@ -64,8 +64,11 @@ class TabDeque:
     """
 
     def __init__(self) -> None:
+        size = config.val.tabs.focus_stack_size
+        if size < 0:
+            size = None
         self._stack = collections.deque(
-            maxlen=config.val.tabs.focus_stack_size
+            maxlen=size
         )  # type: typing.Deque[weakref.ReferenceType[QWidget]]
         # Items that have been removed from the primary stack.
         self._stack_deleted = [
@@ -490,7 +493,12 @@ class TabbedBrowser(QWidget):
         if not crashed:
             # WORKAROUND for a segfault when we delete the crashed tab.
             # see https://bugreports.qt.io/browse/QTBUG-58698
-            tab.layout().unwrap()
+
+            if not qtutils.version_check('5.12'):
+                # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58982
+                # Seems to affect Qt 5.7-5.11 as well.
+                tab.layout().unwrap()
+
             tab.deleteLater()
 
     def undo(self):
@@ -523,9 +531,15 @@ class TabbedBrowser(QWidget):
                 newtab = self.widget.widget(0)
                 use_current_tab = False
             else:
-                newtab = self.tabopen(background=False,
-                                      related=False,
-                                      idx=entry.index)
+                # FIXME:typing mypy thinks this is None due to @pyqtSlot
+                newtab = typing.cast(
+                    browsertab.AbstractTab,
+                    self.tabopen(
+                        background=False,
+                        related=False,
+                        idx=entry.index
+                    )
+                )
 
             newtab.history.private_api.deserialize(entry.history)
             self.widget.set_tab_pinned(newtab, entry.pinned)

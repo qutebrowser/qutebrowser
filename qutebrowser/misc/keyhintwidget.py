@@ -82,8 +82,8 @@ class KeyHintView(QLabel):
         self.update_geometry.emit()
         super().showEvent(e)
 
-    @pyqtSlot(str)
-    def update_keyhint(self, modename, prefix):
+    @pyqtSlot(usertypes.KeyMode, str)
+    def update_keyhint(self, mode, prefix):
         """Show hints for the given prefix (or hide if prefix is empty).
 
         Args:
@@ -108,7 +108,7 @@ class KeyHintView(QLabel):
             cmd = objects.commands.get(cmdname)
             return cmd and cmd.takes_count()
 
-        bindings_dict = config.key_instance.get_bindings_for(modename)
+        bindings_dict = config.key_instance.get_bindings_for(mode.name)
         bindings = [(k, v) for (k, v) in sorted(bindings_dict.items())
                     if keyutils.KeySequence.parse(prefix).matches(k) and
                     not blacklisted(str(k)) and

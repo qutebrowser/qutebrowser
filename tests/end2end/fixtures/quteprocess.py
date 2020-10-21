@@ -285,6 +285,23 @@ def is_ignored_chromium_message(line):
         # [5306:5324:0417/151739.362362:ERROR:address_tracker_linux.cc(171)]
         # Could not bind NETLINK socket: Address already in use (98)
         'Could not bind NETLINK socket: Address already in use (98)',
+
+        # Qt 5.15 with AppVeyor
+        # [2968:3108:0601/123442.125:ERROR:mf_helpers.cc(14)] Error in
+        # dxva_video_decode_accelerator_win.cc on line 517
+        'Error in dxva_video_decode_accelerator_win.cc on line 517',
+
+        # Qt 5.15 and debug build
+        # [134188:134199:0609/132454.797229:WARNING:
+        # simple_synchronous_entry.cc(1389)]
+        # Could not open platform files for entry.
+        # [134151:134187:0609/132456.754321:ERROR:process_posix.cc(333)]
+        # Unable to terminate process 134188: No such process (3)
+        # [134151:134187:0609/132456.754414:WARNING:internal_linux.cc(64)]
+        # Failed to read /proc/134188/stat
+        'Could not open platform files for entry.',
+        'Unable to terminate process *: No such process (3)',
+        'Failed to read /proc/*/stat',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -694,7 +711,7 @@ class QuteProc(testprocess.Process):
             is_dl_inconsistency = str(self.captured_log[-1]).endswith(
                 "_dl_allocate_tls_init: Assertion "
                 "`listp->slotinfo[cnt].gen <= GL(dl_tls_generation)' failed!")
-            if 'TRAVIS' in os.environ and is_dl_inconsistency:
+            if 'CI' in os.environ and is_dl_inconsistency:
                 # WORKAROUND for https://sourceware.org/bugzilla/show_bug.cgi?id=19329
                 self.captured_log = []
                 self._log("NOTE: Restarted after libc DL inconsistency!")
