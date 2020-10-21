@@ -40,6 +40,7 @@ ua_checks = {
 
 ua_strings = {}
 ua_versions = {}
+ua_names = {}
 
 for ua_string in reversed(response.json()):
     # reversed to prefer more common versions
@@ -56,12 +57,14 @@ for ua_string in reversed(response.json()):
     # check which os_string conditions are met and select the most recent version
     for key, check in ua_checks.items():
         if check(user_agent):
-            if version(user_agent) >= ua_versions.get(key, (-math.inf,)):
-                ua_versions[key] = version(user_agent)
+            v = version(user_agent)
+            if v >= ua_versions.get(key, (-math.inf,)):
+                ua_versions[key] = v
                 ua_strings[key] = ua_string
+                ua_names[key] = f'Chrome {v[0]} {key}'
 
-for ua_name, ua_string in ua_strings.items():
+for key, ua_string in ua_strings.items():
     for line in wrap("      - - ", "          ", ua_string):
         print(line)
-    for line in wrap("        - ", "          ", ua_name):
+    for line in wrap("        - ", "          ", ua_names[key]):
         print(line)
