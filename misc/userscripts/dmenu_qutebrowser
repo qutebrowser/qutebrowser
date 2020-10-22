@@ -47,4 +47,3 @@ url=$(echo "$url" | sed -E 's/[^ ]+ +//g' | grep -E "https?:" || echo "$url")
 [ -z "${url// }" ] && exit
 
 echo "open $url" >> "$QUTE_FIFO" || qutebrowser "$url"
-
