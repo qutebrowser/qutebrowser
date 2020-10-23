@@ -21,7 +21,7 @@
 
 import re
 import posixpath
-import typing
+from typing import Optional, Set
 
 from PyQt5.QtCore import QUrl
 
@@ -99,7 +99,7 @@ def incdec(url, count, inc_or_dec):
     urlutils.ensure_valid(url)
     segments = (
         set(config.val.url.incdec_segments)
-    )  # type: typing.Optional[typing.Set[str]]
+    )  # type: Optional[Set[str]]
 
     if segments is None:
         segments = {'path', 'query'}
