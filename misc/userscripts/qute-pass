@@ -177,7 +177,7 @@ def main(arguments):
         argument_parser.print_help()
         return ExitCodes.FAILURE
 
-    extractor = tldextract.TLDExtract(extra_suffixes=arguments.extra_url_suffixes.split(','))
+    extractor = tldextract.TLDExtract(extra_suffixes=arguments.extra_url_suffixes.split(','), cache_dir=os.environ['QUTE_DATA_DIR'])
     extract_result = extractor(arguments.url)
 
     # Try to find candidates using targets in the following order: fully-qualified domain name (includes subdomains),
