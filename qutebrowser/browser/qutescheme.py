@@ -196,6 +196,19 @@ def qute_bookmarks(_url: QUrl) -> _HandlerRet:
     return 'text/html', src
 
 
+@add_handler('error')
+def qute_error(error_url: QUrl) -> _HandlerRet:
+    """Handler for qute://error. Display an error page."""
+    queries = QUrlQuery(error_url)
+    url_string = queries.queryItemValue("u")
+    error = queries.queryItemValue("e")
+    error_page = jinja.render(
+        'error.html',
+        title="Error loading page: {}".format(url_string),
+        url=url_string, error=error)
+    return 'text/html', error_page
+
+
 @add_handler('tabs')
 def qute_tabs(_url: QUrl) -> _HandlerRet:
     """Handler for qute://tabs. Display information about all open tabs."""

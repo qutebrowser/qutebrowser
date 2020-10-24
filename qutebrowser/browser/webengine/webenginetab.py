@@ -26,7 +26,7 @@ import html as html_utils
 import typing
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
-                          QTimer, QObject)
+                          QTimer, QObject, QUrlQuery)
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript, QWebEngineHistory
@@ -40,7 +40,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            webenginesettings, certificateerror)
 from qutebrowser.misc import miscwidgets, objects, quitter
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               message, objreg, jinja, debug)
+                               message, objreg, debug)
 from qutebrowser.keyinput import modeman
 from qutebrowser.qt import sip
 
@@ -1492,15 +1492,14 @@ class WebEngineTab(browsertab.AbstractTab):
         # percent encoded content is 2 megabytes minus 30 bytes.
         self._widget.setHtml(html, base_url)
 
-    def _show_error_page(self, url, error):
+    def _show_error_page(self, url: QUrl, error: str):
         """Show an error page in the tab."""
         log.misc.debug("Showing error page for {}".format(error))
-        url_string = url.toDisplayString()
-        error_page = jinja.render(
-            'error.html',
-            title="Error loading page: {}".format(url_string),
-            url=url_string, error=error)
-        self.set_html(error_page)
+        error_url = QUrl("qute://error")
+        queries = QUrlQuery()
+        queries.setQueryItems([["u", url.toDisplayString()], ["e", error]])
+        error_url.setQuery(queries)
+        self.load_url(error_url)
 
     @pyqtSlot()
     def _on_history_trigger(self):
