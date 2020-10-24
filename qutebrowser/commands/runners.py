@@ -52,7 +52,7 @@ class ParseResult:
     cmdline = attr.ib()
 
 
-def _url(tabbed_browser) -> QUrl:
+def _url(tabbed_browser: 'tabbedbrowser.TabbedBrowser') -> QUrl:
     """Convenience method to get the current url."""
     try:
         url = tabbed_browser.current_url()

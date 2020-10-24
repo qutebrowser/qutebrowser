@@ -1492,12 +1492,12 @@ class WebEngineTab(browsertab.AbstractTab):
         # percent encoded content is 2 megabytes minus 30 bytes.
         self._widget.setHtml(html, base_url)
 
-    def _show_error_page(self, url: QUrl, error: str):
+    def _show_error_page(self, url: QUrl, error: str) -> None:
         """Show an error page in the tab."""
         log.misc.debug("Showing error page for {}".format(error))
         error_url = QUrl("qute://error")
         queries = QUrlQuery()
-        queries.setQueryItems([["u", url.toDisplayString()], ["e", error]])
+        queries.setQueryItems((("u", url.toDisplayString()), ("e", error)))
         error_url.setQuery(queries)
         self.load_url(error_url)
 
