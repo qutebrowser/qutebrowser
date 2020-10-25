@@ -29,14 +29,18 @@ import operator
 import typing
 
 from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
                                       QWebEnginePage)
 
-from qutebrowser.browser.webengine import spell, webenginequtescheme
+from qutebrowser.browser import history
+from qutebrowser.browser.webengine import (spell, webenginequtescheme, cookies,
+                                           webenginedownloads)
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import (utils, standarddir, qtutils, message, log,
                                urlmatch, usertypes, objreg)
+
 
 # The default QWebEngineProfile
 default_profile = typing.cast(QWebEngineProfile, None)
@@ -46,6 +50,10 @@ private_profile = None  # type: typing.Optional[QWebEngineProfile]
 global_settings = typing.cast('WebEngineSettings', None)
 
 parsed_user_agent = None
+
+_qute_scheme_handler = None
+_req_interceptor = None
+_download_manager = None
 
 
 class _SettingsWrapper:
@@ -376,6 +384,16 @@ def _init_default_profile():
     default_profile.setter.init_profile()
     default_profile.setter.set_persistent_cookie_policy()
 
+    _qute_scheme_handler.install(default_profile)
+    _req_interceptor.install(default_profile)
+    _download_manager.install(default_profile)
+    cookies.install_filter(default_profile)
+
+    # Clear visited links on web history clear
+    history.web_history.history_cleared.connect(default_profile.clearAllVisitedLinks)
+    history.web_history.url_cleared.connect(
+        lambda url, profile=default_profile: profile.clearVisitedLinks([url]))
+
 
 def init_private_profile():
     """Init the private QWebEngineProfile."""
@@ -389,13 +407,16 @@ def init_private_profile():
         assert private_profile.isOffTheRecord()
         private_profile.setter.init_profile()
 
-        if not is_first_time:
-            from qutebrowser.browser.webengine import webenginetab
-            webenginetab._qute_scheme_handler.install(private_profile)
-            webenginetab.req_interceptor.install(private_profile)
-            objreg.get('webengine-download-manager').install(private_profile)
-            from qutebrowser.browser.webengine import cookies
-            cookies.install_filter(private_profile)
+        _qute_scheme_handler.install(private_profile)
+        _req_interceptor.install(private_profile)
+        _download_manager.install(private_profile)
+        cookies.install_filter(private_profile)
+
+        # Clear visited links on web history clear
+        history.web_history.history_cleared.connect(
+            default_profile.clearAllVisitedLinks)
+        history.web_history.url_cleared.connect(
+            lambda url, profile=private_profile: profile.clearVisitedLinks([url]))
 
 
 def _init_site_specific_quirks():
@@ -479,6 +500,26 @@ def init(args):
 
     webenginequtescheme.init()
     spell.init()
+
+    # For some reason we need to keep a reference, otherwise the scheme handler
+    # won't work...
+    # https://www.riverbankcomputing.com/pipermail/pyqt/2016-September/038075.html
+    global _qute_scheme_handler
+    app = QApplication.instance()
+    log.init.debug("Initializing qute://* handler...")
+    _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(parent=app)
+
+    global _req_interceptor
+    log.init.debug("Initializing request interceptor...")
+    from qutebrowser.browser.webengine import interceptor
+    _req_interceptor = interceptor.RequestInterceptor(parent=app)
+
+    global _download_manager
+    log.init.debug("Initializing QtWebEngine downloads...")
+    _download_manager = webenginedownloads.DownloadManager(parent=app)
+    objreg.register('webengine-download-manager', _download_manager)
+    from qutebrowser.misc import quitter
+    quitter.instance.shutting_down.connect(_download_manager.shutdown)
 
     _init_default_profile()
     init_private_profile()

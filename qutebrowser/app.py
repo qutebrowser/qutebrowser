@@ -465,10 +465,6 @@ def _init_modules(*, args):
     log.init.debug("Initializing sessions...")
     sessions.init(q_app)
 
-    log.init.debug("Initializing websettings...")
-    websettings.init(args)
-    quitter.instance.shutting_down.connect(websettings.shutdown)
-
     if not args.no_err_windows:
         crashsignal.crash_handler.display_faulthandler()
 
@@ -483,6 +479,10 @@ def _init_modules(*, args):
     log.init.debug("Initializing cookies...")
     cookies.init(q_app)
 
+    log.init.debug("Initializing websettings...")
+    websettings.init(args)
+    quitter.instance.shutting_down.connect(websettings.shutdown)
+
     log.init.debug("Initializing cache...")
     cache.init(q_app)
 
@@ -496,7 +496,6 @@ def _init_modules(*, args):
     macros.init()
     windowundo.init()
     # Init backend-specific stuff
-    browsertab.init()
 
 
 class Application(QApplication):
