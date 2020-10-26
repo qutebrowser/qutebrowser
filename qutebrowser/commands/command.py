@@ -406,22 +406,19 @@ class Command:
             raise TypeError("{}: Legacy tuple type annotation!".format(
                 self.name))
 
-        if hasattr(typing, 'UnionMeta'):
-            # Python 3.5.2
-            # pylint: disable=no-member,useless-suppression
-            is_union = isinstance(
-                typ, typing.UnionMeta)  # type: ignore[attr-defined]
-        else:
-            is_union = getattr(typ, '__origin__', None) is typing.Union
+        try:
+            origin = typing.get_origin(typ)  # type: ignore[attr-defined]
+        except AttributeError:
+            # typing.get_origin was added in Python 3.8
+            origin = getattr(typ, '__origin__', None)
 
-        if is_union:
-            # this is... slightly evil, I know
+        if origin is typing.Union:
             try:
-                types = list(typ.__args__)
+                types = list(typing.get_args(typ))  # type: ignore[attr-defined]
             except AttributeError:
-                # Python 3.5.2
-                types = list(typ.__union_params__)
-            # pylint: enable=no-member,useless-suppression
+                # typing.get_args was added in Python 3.8
+                types = list(typ.__args__)
+
             if param.default is not inspect.Parameter.empty:
                 types.append(type(param.default))
             choices = self.get_arg_info(param).choices

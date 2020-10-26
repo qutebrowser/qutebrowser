@@ -31,15 +31,9 @@ import time
 import textwrap
 import urllib
 import collections
-import base64
 import typing
+import secrets
 from typing import TypeVar, Callable, Union, Tuple
-
-try:
-    import secrets
-except ImportError:
-    # New in Python 3.6
-    secrets = None  # type: ignore[assignment]
 
 from PyQt5.QtCore import QUrlQuery, QUrl, qVersion
 
@@ -449,12 +443,7 @@ def qute_settings(url: QUrl) -> _HandlerRet:
     # Requests to qute://settings/set should only be allowed from
     # qute://settings. As an additional security precaution, we generate a CSRF
     # token to use here.
-    if secrets:
-        csrf_token = secrets.token_urlsafe()
-    else:
-        # On Python < 3.6, from secrets.py
-        token = base64.urlsafe_b64encode(os.urandom(32))
-        csrf_token = token.rstrip(b'=').decode('ascii')
+    csrf_token = secrets.token_urlsafe()
 
     src = jinja.render('settings.html', title='settings',
                        configdata=configdata,

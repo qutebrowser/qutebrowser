@@ -111,7 +111,7 @@ unittests and several linters/checkers.
 Currently, the following tox environments are available:
 
 * Tests using https://www.pytest.org[pytest]:
-  - `py35`, `py36`: Run pytest for python 3.5/3.6 with the system-wide PyQt.
+  - `py36`, `py37`, ...: Run pytest for python 3.6/3.7/... with the system-wide PyQt.
   - `py36-pyqt57`, ..., `py36-pyqt59`: Run pytest with the given PyQt version (`py35-*` also works).
   - `py36-pyqt59-cov`: Run with coverage support (other Python/PyQt versions work too).
 * `flake8`: Run various linting checks via https://pypi.python.org/pypi/flake8[flake8].

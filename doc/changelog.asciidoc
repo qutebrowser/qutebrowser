@@ -18,6 +18,14 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v2.0.0 (unreleased)
 -------------------
 
+Major changes
+~~~~~~~~~~~~~
+
+- At least Python 3.6 is now required to run qutebrowser, support for Python
+  3.5 is dropped. Note that Python 3.5 is
+  https://www.python.org/downloads/release/python-3510/[no longer supported
+  upstream] since September 2020.
+
 Changed
 ~~~~~~~
 

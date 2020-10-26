@@ -310,11 +310,8 @@ class log_time:  # noqa: N801,N806 pylint: disable=invalid-name
     def __enter__(self) -> None:
         self._started = datetime.datetime.now()
 
-    # The string annotation is a WORKAROUND for a Python 3.5.2 bug:
-    # https://github.com/python/typing/issues/266
-
     def __exit__(self,
-                 _exc_type: 'typing.Optional[typing.Type[BaseException]]',
+                 _exc_type: typing.Optional[typing.Type[BaseException]],
                  _exc_val: typing.Optional[BaseException],
                  _exc_tb: typing.Optional[types.TracebackType]) -> None:
         assert self._started is not None

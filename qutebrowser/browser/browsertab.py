@@ -465,6 +465,7 @@ class AbstractCaret(QObject):
     follow_selected_done = pyqtSignal()
 
     def __init__(self,
+                 tab: 'AbstractTab',
                  mode_manager: modeman.ModeManager,
                  parent: QWidget = None) -> None:
         super().__init__(parent)
@@ -472,7 +473,7 @@ class AbstractCaret(QObject):
         self._mode_manager = mode_manager
         mode_manager.entered.connect(self._on_mode_entered)
         mode_manager.left.connect(self._on_mode_left)
-        # self._tab is set by subclasses so mypy knows its concrete type.
+        self._tab = tab
 
     def _on_mode_entered(self, mode: usertypes.KeyMode) -> None:
         raise NotImplementedError
@@ -715,9 +716,9 @@ class AbstractElements:
         [typing.Optional['webelem.AbstractWebElement']], None]
     _ErrorCallback = typing.Callable[[Exception], None]
 
-    def __init__(self) -> None:
+    def __init__(self, tab: 'AbstractTab') -> None:
         self._widget = typing.cast(QWidget, None)
-        # self._tab is set by subclasses so mypy knows its concrete type.
+        self._tab = tab
 
     def find_css(self, selector: str,
                  callback: _MultiCallback,
