@@ -200,7 +200,8 @@ def qute_bookmarks(_url: QUrl) -> _HandlerRet:
 def qute_error(error_url: QUrl) -> _HandlerRet:
     """Handler for qute://error. Display an error page."""
     original = urlutils.extract_error_url(error_url)
-    assert original is not None
+    if original is None:
+        raise UrlInvalidError("Original URL is invalid")
     original_url, error_message = original
     url_string = original_url.toDisplayString()
     error_page = jinja.render(
