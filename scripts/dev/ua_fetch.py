@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-"""\
-Fetch and print the most common user agents.
+"""Fetch and print the most common user agents.
 
 This script fetches the most common user agents according to
 https://github.com/Kikobeats/top-user-agents, and prints the most recent
