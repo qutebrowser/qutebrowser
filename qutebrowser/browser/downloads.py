@@ -49,7 +49,7 @@ class ModelRole(enum.IntEnum):
 
 
 # Remember the last used directory
-last_used_directory = None  # type: Optional[str]
+last_used_directory: Optional[str] = None
 
 # All REFRESH_INTERVAL milliseconds, speeds will be recalculated and downloads
 # redrawn.
@@ -228,7 +228,7 @@ def suggested_fn_from_title(url_path, title=None):
     ext_whitelist = [".html", ".htm", ".php", ""]
     _, ext = os.path.splitext(url_path)
 
-    suggested_fn = None  # type: Optional[str]
+    suggested_fn: Optional[str] = None
     if ext.lower() in ext_whitelist and title:
         suggested_fn = utils.sanitize_filename(title, shorten=True)
         if not suggested_fn.lower().endswith((".html", ".htm")):
@@ -355,8 +355,7 @@ class DownloadItemStats(QObject):
         self.speed = 0
         self._last_done = 0
         samples = int(self.SPEED_AVG_WINDOW * (1000 / _REFRESH_INTERVAL))
-        self._speed_avg = collections.deque(
-            maxlen=samples)  # type: MutableSequence[float]
+        self._speed_avg: MutableSequence[float] = collections.deque(maxlen=samples)
 
     def update_speed(self):
         """Recalculate the current download speed.
@@ -459,12 +458,14 @@ class AbstractDownloadItem(QObject):
         self.basename = '???'
         self.successful = False
 
-        self.fileobj = UnsupportedAttribute(
-        )  # type: Union[UnsupportedAttribute, IO[bytes], None]
-        self.raw_headers = UnsupportedAttribute(
-        )  # type: Union[UnsupportedAttribute, Dict[bytes,bytes]]
+        self.fileobj: Union[
+            UnsupportedAttribute, IO[bytes], None
+        ] = UnsupportedAttribute()
+        self.raw_headers: Union[
+            UnsupportedAttribute, Dict[bytes, bytes]
+        ] = UnsupportedAttribute()
 
-        self._filename = None  # type: Optional[str]
+        self._filename: Optional[str] = None
         self._dead = False
 
     def __repr__(self):
@@ -877,7 +878,7 @@ class AbstractDownloadManager(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.downloads = []  # type: List[AbstractDownloadItem]
+        self.downloads: List[AbstractDownloadItem] = []
         self._update_timer = usertypes.Timer(self, 'download-update')
         self._update_timer.timeout.connect(self._update_gui)
         self._update_timer.setInterval(_REFRESH_INTERVAL)
@@ -1251,7 +1252,7 @@ class DownloadModel(QAbstractListModel):
 
         item = self[index.row()]
         if role == Qt.DisplayRole:
-            data = str(item)  # type: Any
+            data: Any = str(item)
         elif role == Qt.ForegroundRole:
             data = item.get_status_color('fg')
         elif role == Qt.BackgroundRole:
@@ -1297,7 +1298,7 @@ class TempDownloadManager:
     """
 
     def __init__(self):
-        self.files = []  # type: MutableSequence[IO[bytes]]
+        self.files: MutableSequence[IO[bytes]] = []
         self._tmpdir = None
 
     def cleanup(self):

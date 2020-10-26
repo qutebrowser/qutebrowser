@@ -92,8 +92,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
             reply: The QNetworkReply to download.
         """
         super().__init__(manager=manager, parent=manager)
-        self.fileobj = None  # type: Optional[IO[bytes]]
-        self.raw_headers = {}  # type: Dict[bytes, bytes]
+        self.fileobj: Optional[IO[bytes]] = None
+        self.raw_headers: Dict[bytes, bytes] = {}
 
         self._autoclose = True
         self._retry_info = None

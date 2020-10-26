@@ -111,7 +111,7 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
 
     def __init__(self, name):
         self._name = name
-        self._function = None  # type: Optional[Callable]
+        self._function: Optional[Callable] = None
 
     def __call__(self, function: _Handler) -> _Handler:
         self._function = function
@@ -198,8 +198,7 @@ def qute_bookmarks(_url: QUrl) -> _HandlerRet:
 @add_handler('tabs')
 def qute_tabs(_url: QUrl) -> _HandlerRet:
     """Handler for qute://tabs. Display information about all open tabs."""
-    tabs = collections.defaultdict(
-        list)  # type: Dict[str, List[Tuple[str, str]]]
+    tabs: Dict[str, List[Tuple[str, str]]] = collections.defaultdict(list)
     for win_id, window in objreg.window_registry.items():
         if sip.isdeleted(window):
             continue

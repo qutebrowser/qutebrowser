@@ -134,13 +134,13 @@ def javascript_alert(url, js_msg, abort_on, *, escape_msg=True):
 
 # Needs to line up with the values allowed for the
 # content.javascript.log setting.
-_JS_LOGMAP = {
+_JS_LOGMAP: Mapping[str, Callable[[str], None]] = {
     'none': lambda arg: None,
     'debug': log.js.debug,
     'info': log.js.info,
     'warning': log.js.warning,
     'error': log.js.error,
-}  # type: Mapping[str, Callable[[str], None]]
+}
 
 
 def javascript_log_message(level, source, line, msg):

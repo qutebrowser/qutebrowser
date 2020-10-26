@@ -78,8 +78,7 @@ class UrlMarkManager(QObject):
         """Initialize and read quickmarks."""
         super().__init__(parent)
 
-        self.marks = collections.OrderedDict(
-        )  # type: MutableMapping[str, str]
+        self.marks: MutableMapping[str, str] = collections.OrderedDict()
 
         self._init_lineparser()
         for line in self._lineparser:

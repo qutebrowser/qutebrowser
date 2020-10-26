@@ -97,9 +97,9 @@ def incdec(url, count, inc_or_dec):
         window: Open the link in a new window.
     """
     urlutils.ensure_valid(url)
-    segments = (
+    segments: Optional[Set[str]] = (
         set(config.val.url.incdec_segments)
-    )  # type: Optional[Set[str]]
+    )
 
     if segments is None:
         segments = {'path', 'query'}
