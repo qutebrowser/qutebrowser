@@ -19,7 +19,7 @@
 
 """Generic web element related code."""
 
-import typing
+from typing import cast, TYPE_CHECKING, Iterator, Optional, Set, Union
 import collections.abc
 
 from PyQt5.QtCore import QUrl, Qt, QEvent, QTimer, QRect, QPoint
@@ -29,11 +29,11 @@ from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.browser import browsertab
 
 
-JsValueType = typing.Union[int, float, str, None]
+JsValueType = Union[int, float, str, None]
 
 
 class Error(Exception):
@@ -80,7 +80,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
     def __delitem__(self, key: str) -> None:
         raise NotImplementedError
 
-    def __iter__(self) -> typing.Iterator[str]:
+    def __iter__(self) -> Iterator[str]:
         raise NotImplementedError
 
     def __len__(self) -> int:
@@ -88,8 +88,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
 
     def __repr__(self) -> str:
         try:
-            html = utils.compact_text(
-                self.outer_xml(), 500)  # type: typing.Optional[str]
+            html: Optional[str] = utils.compact_text(self.outer_xml(), 500)
         except Error:
             html = None
         return utils.get_repr(self, html=html)
@@ -102,7 +101,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Get the geometry for this element."""
         raise NotImplementedError
 
-    def classes(self) -> typing.Set[str]:
+    def classes(self) -> Set[str]:
         """Get a set of classes assigned to this element."""
         raise NotImplementedError
 
@@ -282,7 +281,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Remove target from link."""
         raise NotImplementedError
 
-    def resolve_url(self, baseurl: QUrl) -> typing.Optional[QUrl]:
+    def resolve_url(self, baseurl: QUrl) -> Optional[QUrl]:
         """Resolve the URL in the element's src/href attribute.
 
         Args:
@@ -357,16 +356,12 @@ class AbstractWebElement(collections.abc.MutableMapping):
         else:
             target_modifiers[usertypes.ClickTarget.tab_bg] |= Qt.ShiftModifier
 
-        modifiers = typing.cast(Qt.KeyboardModifiers,
-                                target_modifiers[click_target])
+        modifiers = cast(Qt.KeyboardModifiers, target_modifiers[click_target])
 
         events = [
-            QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
-                        Qt.NoModifier),
-            QMouseEvent(QEvent.MouseButtonPress, pos, button, button,
-                        modifiers),
-            QMouseEvent(QEvent.MouseButtonRelease, pos, button, Qt.NoButton,
-                        modifiers),
+            QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton, Qt.NoModifier),
+            QMouseEvent(QEvent.MouseButtonPress, pos, button, button, modifiers),
+            QMouseEvent(QEvent.MouseButtonRelease, pos, button, Qt.NoButton, modifiers),
         ]
 
         for evt in events:

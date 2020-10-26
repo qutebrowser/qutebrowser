@@ -21,7 +21,7 @@
 
 import html
 import functools
-import typing
+from typing import cast
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QUrl, QPoint
 from PyQt5.QtGui import QDesktopServices
@@ -353,11 +353,11 @@ class BrowserPage(QWebPage):
             self.setFeaturePermission, frame, feature,
             QWebPage.PermissionDeniedByUser)
 
-        url = frame.url().adjusted(typing.cast(QUrl.FormattingOptions,
-                                               QUrl.RemoveUserInfo |
-                                               QUrl.RemovePath |
-                                               QUrl.RemoveQuery |
-                                               QUrl.RemoveFragment))
+        url = frame.url().adjusted(cast(QUrl.FormattingOptions,
+                                        QUrl.RemoveUserInfo |
+                                        QUrl.RemovePath |
+                                        QUrl.RemoveQuery |
+                                        QUrl.RemoveFragment))
         question = shared.feature_permission(
             url=url,
             option=options[feature], msg=messages[feature],
