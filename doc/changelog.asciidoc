@@ -29,6 +29,9 @@ Major changes
 Changed
 ~~~~~~~
 
+- `config.py` files now are required to have either
+  `config.load_autoconfig(False)` (don't load `autoconfig.yml`) or
+  `config.load_autoconfig()` (do load `autoconfig.yml`) in them.
 - The `colors.webpage.darkmode.*` settings are now also supported with older Qt
   versions (Qt 5.10 to 5.13) rather than just with Qt 5.14 and above.
 
