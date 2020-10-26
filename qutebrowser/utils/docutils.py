@@ -77,8 +77,16 @@ class DocstringParser:
         arg_descs: A dict of argument names to their descriptions
     """
 
-    State = enum.Enum('State', ['short', 'desc', 'desc_hidden',
-                                'arg_start', 'arg_inside', 'misc'])
+    class State(enum.Enum):
+
+        """The current state of the parser."""
+
+        short = enum.auto()
+        desc = enum.auto()
+        desc_hidden = enum.auto()
+        arg_start = enum.auto()
+        arg_inside = enum.auto()
+        misc = enum.auto()
 
     def __init__(self, func: typing.Callable) -> None:
         """Constructor.

@@ -32,10 +32,17 @@ Ubuntu 16.04 LTS / Linux Mint 18
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Ubuntu 16.04 doesn't come with an up-to-date engine (a new enough QtWebKit, or
-QtWebEngine). However, it comes with Python 3.5, so you can
-<<tox,install qutebrowser in a virtualenv>>.
+QtWebEngine). It also comes with Python 3.5 which is not supported anymore since
+qutebrowser v2.0.0.
 
-You'll need some basic libraries to use the virtualenv-installed PyQt:
+You should be able to install a newer Python (3.6+) using the
+https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa[deadsnakes PPA] or
+https://github.com/pyenv/pyenv[pyenv], and then proceed to
+<<tox,install qutebrowser in a virtualenv>>. However, this is currently untested. If you
+got this setup to work successfully, please submit a pull request to adjust these
+instructions!
+
+Note you'll need some basic libraries to use the virtualenv-installed PyQt:
 
 ----
 # apt install --no-install-recommends git ca-certificates python3 python3-venv asciidoc libglib2.0-0 libgl1 libfontconfig1 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0 libdbus-1-3 libyaml-dev gcc python3-dev
@@ -43,12 +50,6 @@ You'll need some basic libraries to use the virtualenv-installed PyQt:
 
 // FIXME not needed anymore?
 // libxi6 libxrender1 libegl1-mesa
-
-NOTE: Support for Python 3.5 will be dropped with the qutebrowser v2.0.0
-release, preliminarily planned for late 2020. At that point, you will need to
-either upgrade to a newer Ubuntu release, or use something like the
-https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa[deadsnakes PPA] or
-https://github.com/pyenv/pyenv[pyenv] to install a newer Python.
 
 Debian Stretch
 ~~~~~~~~~~~~~~
@@ -439,9 +440,8 @@ This installs all needed Python dependencies in a `.venv` subfolder
 This comes with an up-to-date Qt/PyQt including a pre-compiled QtWebEngine
 binary, but has a few caveats:
 
-- Make sure your `python3` is Python 3.5 or newer, otherwise you'll get a "No
-  matching distribution found" error. Note that qutebrowser itself also requires
-  this.
+- Make sure your `python3` is Python 3.6 or newer, otherwise you'll get a "No
+  matching distribution found" error and/or qutebrowser will not run.
 - It only works on 64-bit x86 systems, with other architectures you'll get the
   same error.
 - It comes with a QtWebEngine compiled without proprietary codec support (such

@@ -1570,6 +1570,7 @@ Default: +pass:[white]+
 [[colors.webpage.darkmode.algorithm]]
 === colors.webpage.darkmode.algorithm
 Which algorithm to use for modifying how colors are rendered with darkmode.
+The `lightness-cielab` value was added with QtWebEngine 5.14 and is treated like `lightness-hsl` with older QtWebEngine versions.
 
 This setting requires a restart.
 
@@ -1577,13 +1578,13 @@ Type: <<types,String>>
 
 Valid values:
 
- * +lightness-cielab+: Modify colors by converting them to CIELAB color space and inverting the L value.
+ * +lightness-cielab+: Modify colors by converting them to CIELAB color space and inverting the L value. Not available with Qt < 5.14.
  * +lightness-hsl+: Modify colors by converting them to the HSL color space and inverting the lightness (i.e. the "L" in HSL).
  * +brightness-rgb+: Modify colors by subtracting each of r, g, and b from their maximum value.
 
 Default: +pass:[lightness-cielab]+
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
+On QtWebEngine, this setting requires Qt 5.10 or newer.
 
 On QtWebKit, this setting is unavailable.
 
@@ -1598,7 +1599,7 @@ Type: <<types,Float>>
 
 Default: +pass:[0.0]+
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
+On QtWebEngine, this setting requires Qt 5.10 or newer.
 
 On QtWebKit, this setting is unavailable.
 
@@ -1626,7 +1627,7 @@ Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
+On QtWebEngine, this setting requires Qt 5.10 or newer.
 
 On QtWebKit, this setting is unavailable.
 
@@ -1641,7 +1642,7 @@ Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
+On QtWebEngine, this setting requires Qt 5.10 or newer.
 
 On QtWebKit, this setting is unavailable.
 
@@ -1663,7 +1664,7 @@ On QtWebKit, this setting is unavailable.
 [[colors.webpage.darkmode.policy.images]]
 === colors.webpage.darkmode.policy.images
 Which images to apply dark mode to.
-WARNING: With QtWebengine 5.15.0, this setting can cause frequent renderer process crashes due to a https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug in Qt]. Thus, the 'smart' setting is ignored and treated like 'never' in that case.
+With QtWebEngine 5.15.0, this setting can cause frequent renderer process crashes due to a https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug in Qt]. With QtWebEngine 5.10, this is not available at all. In those cases, the 'smart' setting is ignored and treated like 'never'.
 
 This setting requires a restart.
 
@@ -1673,11 +1674,11 @@ Valid values:
 
  * +always+: Apply dark mode filter to all images.
  * +never+: Never apply dark mode filter to any images.
- * +smart+: Apply dark mode based on image content.
+ * +smart+: Apply dark mode based on image content. Not available with Qt 5.10 / 5.15.0.
 
 Default: +pass:[smart]+
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
+On QtWebEngine, this setting requires Qt 5.10 or newer.
 
 On QtWebKit, this setting is unavailable.
 

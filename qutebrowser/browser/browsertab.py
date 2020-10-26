@@ -100,13 +100,23 @@ class UnsupportedOperationError(WebTabError):
     """Raised when an operation is not supported with the given backend."""
 
 
-TerminationStatus = enum.Enum('TerminationStatus', [
-    'normal',
-    'abnormal',  # non-zero exit status
-    'crashed',   # e.g. segfault
-    'killed',
-    'unknown',
-])
+class TerminationStatus(enum.Enum):
+
+    """How a QtWebEngine renderer process terminated.
+
+    Also see QWebEnginePage::RenderProcessTerminationStatus
+    """
+
+    #: Unknown render process status value gotten from Qt.
+    unknown = -1
+    #: The render process terminated normally.
+    normal = 0
+    #: The render process terminated with with a non-zero exit status.
+    abnormal = 1
+    #: The render process crashed, for example because of a segmentation fault.
+    crashed = 2
+    #: The render process was killed, for example by SIGKILL or task manager kill.
+    killed = 3
 
 
 @attr.s
@@ -440,9 +450,9 @@ class SelectionState(enum.Enum):
     NOTE: Names need to line up with SelectionState in caret.js!
     """
 
-    none = 1
-    normal = 2
-    line = 3
+    none = enum.auto()
+    normal = enum.auto()
+    line = enum.auto()
 
 
 class AbstractCaret(QObject):
@@ -455,6 +465,7 @@ class AbstractCaret(QObject):
     follow_selected_done = pyqtSignal()
 
     def __init__(self,
+                 tab: 'AbstractTab',
                  mode_manager: modeman.ModeManager,
                  parent: QWidget = None) -> None:
         super().__init__(parent)
@@ -462,7 +473,7 @@ class AbstractCaret(QObject):
         self._mode_manager = mode_manager
         mode_manager.entered.connect(self._on_mode_entered)
         mode_manager.left.connect(self._on_mode_left)
-        # self._tab is set by subclasses so mypy knows its concrete type.
+        self._tab = tab
 
     def _on_mode_entered(self, mode: usertypes.KeyMode) -> None:
         raise NotImplementedError
@@ -705,9 +716,9 @@ class AbstractElements:
         [typing.Optional['webelem.AbstractWebElement']], None]
     _ErrorCallback = typing.Callable[[Exception], None]
 
-    def __init__(self) -> None:
+    def __init__(self, tab: 'AbstractTab') -> None:
         self._widget = typing.cast(QWidget, None)
-        # self._tab is set by subclasses so mypy knows its concrete type.
+        self._tab = tab
 
     def find_css(self, selector: str,
                  callback: _MultiCallback,

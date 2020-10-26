@@ -215,10 +215,6 @@ class MainWindow(QWidget):
         objreg.register('tab-registry', tab_registry, scope='window',
                         window=self.win_id)
 
-        message_bridge = message.MessageBridge(self)
-        objreg.register('message-bridge', message_bridge, scope='window',
-                        window=self.win_id)
-
         self.setWindowTitle('qutebrowser')
         self._vbox = QVBoxLayout(self)
         self._vbox.setContentsMargins(0, 0, 0, 0)
@@ -481,13 +477,8 @@ class MainWindow(QWidget):
         """Set some sensible default geometry."""
         self.setGeometry(QRect(50, 50, 800, 600))
 
-    def _get_object(self, name):
-        """Get an object for this window in the object registry."""
-        return objreg.get(name, scope='window', window=self.win_id)
-
     def _connect_signals(self):
         """Connect all mainwindow signals."""
-        message_bridge = self._get_object('message-bridge')
         mode_manager = modeman.instance(self.win_id)
 
         # misc
@@ -495,6 +486,7 @@ class MainWindow(QWidget):
         mode_manager.entered.connect(hints.on_mode_entered)
 
         # status bar
+        mode_manager.hintmanager.set_text.connect(self.status.set_text)
         mode_manager.entered.connect(self.status.on_mode_entered)
         mode_manager.left.connect(self.status.on_mode_left)
         mode_manager.left.connect(self.status.cmd.on_mode_left)
@@ -517,10 +509,6 @@ class MainWindow(QWidget):
         message.global_bridge.flush()
         message.global_bridge.clear_messages.connect(
             self._messageview.clear_messages)
-
-        message_bridge.s_set_text.connect(self.status.set_text)
-        message_bridge.s_maybe_reset_text.connect(
-            self.status.txt.maybe_reset_text)
 
         # statusbar
         self.tabbed_browser.current_tab_changed.connect(

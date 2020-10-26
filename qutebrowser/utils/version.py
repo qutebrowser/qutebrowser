@@ -89,10 +89,26 @@ class DistributionInfo:
 
 
 pastebin_url = None
-Distribution = enum.Enum(
-    'Distribution', ['unknown', 'ubuntu', 'debian', 'void', 'arch',
-                     'gentoo', 'fedora', 'opensuse', 'linuxmint', 'manjaro',
-                     'kde_flatpak'])
+
+
+class Distribution(enum.Enum):
+
+    """A known Linux distribution.
+
+    Usually lines up with ID=... in /etc/os-release.
+    """
+
+    unknown = enum.auto()
+    ubuntu = enum.auto()
+    debian = enum.auto()
+    void = enum.auto()
+    arch = enum.auto()
+    gentoo = enum.auto()  # includes funtoo
+    fedora = enum.auto()
+    opensuse = enum.auto()
+    linuxmint = enum.auto()
+    manjaro = enum.auto()
+    kde_flatpak = enum.auto()  # org.kde.Platform
 
 
 def distribution() -> typing.Optional[DistributionInfo]:

@@ -9,7 +9,7 @@ IMPORTANT: Bandwidth for pull request review is currently quite limited. If you
 want to contribute where it's most needed, please consider reviewing or testing
 open pull requests.
 
-I `&lt;3` footnote:[Of course, that says `<3` in HTML.] contributors!
+I `&lt;3` footnote:[`<3` in HTML] contributors!
 
 This document contains guidelines for contributing to qutebrowser, as well as
 useful hints when doing so.
@@ -111,7 +111,7 @@ unittests and several linters/checkers.
 Currently, the following tox environments are available:
 
 * Tests using https://www.pytest.org[pytest]:
-  - `py35`, `py36`: Run pytest for python 3.5/3.6 with the system-wide PyQt.
+  - `py36`, `py37`, ...: Run pytest for python 3.6/3.7/... with the system-wide PyQt.
   - `py36-pyqt57`, ..., `py36-pyqt59`: Run pytest with the given PyQt version (`py35-*` also works).
   - `py36-pyqt59-cov`: Run with coverage support (other Python/PyQt versions work too).
 * `flake8`: Run various linting checks via https://pypi.python.org/pypi/flake8[flake8].

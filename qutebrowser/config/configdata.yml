@@ -576,11 +576,14 @@ content.headers.user_agent:
     completions:
       # See https://techblog.willshouse.com/2012/01/03/most-common-user-agents/
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/83.0.4103.61 Safari/537.36"
+          like Gecko) Chrome/85.0.4183.121 Safari/537.36"
         - Chrome 83 Win10
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/83.0.4103.61 Safari/537.36"
+          Gecko) Chrome/85.0.4183.121 Safari/537.36"
         - Chrome 83 Linux
+      - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36
+          (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36"
+        - Chrome 83 macOS
   supports_pattern: true
   desc: |
     User agent to send.
@@ -2704,18 +2707,21 @@ colors.webpage.darkmode.enabled:
       above.
   restart: true
   backend:
-    QtWebEngine: Qt 5.14
+    QtWebEngine: Qt 5.10
     QtWebKit: false
 
 colors.webpage.darkmode.algorithm:
   default: lightness-cielab
-  desc: "Which algorithm to use for modifying how colors are rendered with
-    darkmode."
+  desc: >-
+    Which algorithm to use for modifying how colors are rendered with darkmode.
+
+    The `lightness-cielab` value was added with QtWebEngine 5.14 and is treated
+    like `lightness-hsl` with older QtWebEngine versions.
   type:
     name: String
     valid_values:
       - lightness-cielab: Modify colors by converting them to CIELAB color
-            space and inverting the L value.
+            space and inverting the L value. Not available with Qt < 5.14.
       - lightness-hsl: Modify colors by converting them to the HSL color space
             and inverting the lightness (i.e. the "L" in HSL).
       - brightness-rgb: Modify colors by subtracting each of r, g, and b from
@@ -2725,7 +2731,7 @@ colors.webpage.darkmode.algorithm:
       # Chromium's automated tests
   restart: true
   backend:
-    QtWebEngine: Qt 5.14
+    QtWebEngine: Qt 5.10
     QtWebKit: false
 
 colors.webpage.darkmode.contrast:
@@ -2741,7 +2747,7 @@ colors.webpage.darkmode.contrast:
     `lightness-hsl` or `brightness-rgb`.
   restart: true
   backend:
-    QtWebEngine: Qt 5.14
+    QtWebEngine: Qt 5.10
     QtWebKit: false
 
 colors.webpage.darkmode.policy.images:
@@ -2751,18 +2757,19 @@ colors.webpage.darkmode.policy.images:
     valid_values:
       - always: Apply dark mode filter to all images.
       - never: Never apply dark mode filter to any images.
-      - smart: Apply dark mode based on image content.
+      - smart: "Apply dark mode based on image content. Not available with Qt
+        5.10 / 5.15.0."
   desc: >-
       Which images to apply dark mode to.
 
-      WARNING: With QtWebengine 5.15.0, this setting can cause frequent renderer
-      process crashes due to a
+      With QtWebEngine 5.15.0, this setting can cause frequent renderer process
+      crashes due to a
       https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug
-      in Qt]. Thus, the 'smart' setting is ignored and treated like 'never' in
-      that case.
+      in Qt]. With QtWebEngine 5.10, this is not available at all. In those
+      cases, the 'smart' setting is ignored and treated like 'never'.
   restart: true
   backend:
-    QtWebEngine: Qt 5.14
+    QtWebEngine: Qt 5.10
     QtWebKit: false
 
 colors.webpage.darkmode.policy.page:
@@ -2825,7 +2832,7 @@ colors.webpage.darkmode.grayscale.all:
     `lightness-hsl` or `brightness-rgb`.
   restart: true
   backend:
-    QtWebEngine: Qt 5.14
+    QtWebEngine: Qt 5.10
     QtWebKit: false
 
 colors.webpage.darkmode.grayscale.images:

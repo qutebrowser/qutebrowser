@@ -15,22 +15,46 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v1.14.0 (unreleased)
---------------------
+v2.0.0 (unreleased)
+-------------------
+
+Major changes
+~~~~~~~~~~~~~
+
+- At least Python 3.6 is now required to run qutebrowser, support for Python
+  3.5 is dropped. Note that Python 3.5 is
+  https://www.python.org/downloads/release/python-3510/[no longer supported
+  upstream] since September 2020.
 
 Changed
 ~~~~~~~
 
-- Note: The QtWebEngine version bundled with the Windows/macOS
-  releases is still based on Qt 5.15.0 (like with qutebrowser v1.12.0 and
-  v1.13.0) rather than Qt 5.15.1 because of a
-  https://bugreports.qt.io/browse/QTBUG-86752[Qt bug] causing
-  frequent renderer process crashes. When Qt 5.15.2 is released
-  (expected around December 2020), a qutebrowser v1.14.x patch
-  release with an updated QtWebEngine will be released.
+- The `colors.webpage.darkmode.*` settings are now also supported with older Qt
+  versions (Qt 5.10 to 5.13) rather than just with Qt 5.14 and above.
+
+v1.14.0 (2020-10-15)
+--------------------
+
+Note: The QtWebEngine version bundled with the Windows/macOS
+releases is still based on Qt 5.15.0 (like with qutebrowser v1.12.0 and
+v1.13.0) rather than Qt 5.15.1 because of a
+https://bugreports.qt.io/browse/QTBUG-86752[Qt bug] causing
+frequent renderer process crashes. When Qt 5.15.2 is released
+(planned for November 3rd, 2020), a qutebrowser v1.14.x patch
+release with an updated QtWebEngine will be released.
+
+Furthermore, this release still only contains partial session support for QtWebEngine
+5.15. It's still recommended to run against Qt 5.15 due to the security patches
+contained in it -- for most users, the added workarounds seem to work out fine. A
+rewritten session support will be part of qutebrowser v2.0.0, tentatively planned for the
+end of the year or early 2021.
+
+Changed
+~~~~~~~
+
 - The `content.media_capture` setting got split up into three more fine-grained
   settings, `content.media.audio_capture`, `.video_capture` and
-  `.audio_video_capture`. Before this change, anwering "always" to a prompt
+  `.audio_video_capture`. Before this change, answering "always" to a prompt
   about e.g. audio capturing would set the `content.media_capture` setting,
   which would also allow the same website to capture video on a future visit.
   Now every prompt will set the appropriate setting, though existing

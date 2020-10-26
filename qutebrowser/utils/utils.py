@@ -485,12 +485,13 @@ def qualname(obj: typing.Any) -> str:
         return repr(obj)
 
 
-# The string annotation is a WORKAROUND for a Python 3.5.2 bug:
-# https://github.com/python/typing/issues/266
+_ExceptionType = typing.Union[
+    typing.Type[BaseException],
+    typing.Tuple[typing.Type[BaseException]]
+]
 
-def raises(exc: ('typing.Union['  # pylint: disable=bad-docstring-quotes
-                 '    typing.Type[BaseException], '
-                 '    typing.Tuple[typing.Type[BaseException]]]'),
+
+def raises(exc: _ExceptionType,
            func: typing.Callable,
            *args: typing.Any) -> bool:
     """Check if a function raises a given exception.

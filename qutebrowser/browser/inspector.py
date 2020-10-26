@@ -65,11 +65,11 @@ class Position(enum.Enum):
 
     """Where the inspector is shown."""
 
-    right = 1
-    left = 2
-    top = 3
-    bottom = 4
-    window = 5
+    right = enum.auto()
+    left = enum.auto()
+    top = enum.auto()
+    bottom = enum.auto()
+    window = enum.auto()
 
 
 class Error(Exception):

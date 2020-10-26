@@ -1,8 +1,8 @@
 dist: xenial
 language: python
-python: 3.5
+python: 3.6
 os: linux
-env: TESTENV=py35-pyqt57
+env: TESTENV=py36-pyqt57
 
 install:
   - python -m pip install -U pip

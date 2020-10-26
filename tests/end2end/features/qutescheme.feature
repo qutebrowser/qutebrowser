@@ -89,6 +89,7 @@ Feature: Special qute:// pages
         And I open qute://help/img/ without waiting
         Then "*Error while * qute://*" should be logged
         And "* url='qute://help/img'* LoadStatus.error" should be logged
+        And "Load error: ERR_FILE_NOT_FOUND" should be logged
 
     # :history
 

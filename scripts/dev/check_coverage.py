@@ -53,7 +53,12 @@ class Message:
             print(self.text)
 
 
-MsgType = enum.Enum('MsgType', 'insufficient_coverage, perfect_file')
+class MsgType(enum.Enum):
+
+    """The type of a message to be output."""
+
+    insufficient_coverage = enum.auto()
+    perfect_file = enum.auto()
 
 
 # A list of (test_file, tested_file) tuples. test_file can be None.
@@ -213,6 +218,8 @@ PERFECT_FILES = [
      'qutebrowser/browser/webengine/spell.py'),
     ('tests/unit/browser/webengine/test_webengine_cookies.py',
      'qutebrowser/browser/webengine/cookies.py'),
+    ('tests/unit/browser/webengine/test_darkmode.py',
+     'qutebrowser/browser/webengine/darkmode.py'),
 ]
 
 

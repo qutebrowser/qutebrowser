@@ -24,15 +24,9 @@ import sys
 import typing
 import argparse
 
-try:
-    from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
-except ImportError:  # pragma: no cover
-    # Added in PyQt 5.13
-    PYQT_WEBENGINE_VERSION = None  # type: ignore[assignment]
-
 from qutebrowser.config import config
 from qutebrowser.misc import objects
-from qutebrowser.utils import usertypes, qtutils, utils, log
+from qutebrowser.utils import usertypes, qtutils, utils
 
 
 def qt_args(namespace: argparse.Namespace) -> typing.List[str]:
@@ -65,113 +59,6 @@ def qt_args(namespace: argparse.Namespace) -> typing.List[str]:
     argv += list(_qtwebengine_args(namespace, feature_flags))
 
     return argv
-
-
-def _darkmode_prefix() -> str:
-    """Return the prefix to use for darkmode settings."""
-    if (PYQT_WEBENGINE_VERSION is None or  # type: ignore[unreachable]
-            PYQT_WEBENGINE_VERSION < 0x050f02):
-        return 'darkMode'
-    else:
-        # QtWebEngine 5.15.2 comes with Chromium 83
-        return 'forceDarkMode'
-
-
-def _darkmode_settings() -> typing.Iterator[typing.Tuple[str, str]]:
-    """Get necessary blink settings to configure dark mode for QtWebEngine."""
-    if not config.val.colors.webpage.darkmode.enabled:
-        return
-
-    # Mapping from a colors.webpage.darkmode.algorithm setting value to
-    # Chromium's DarkModeInversionAlgorithm enum values.
-    algorithms = {
-        # 0: kOff (not exposed)
-        # 1: kSimpleInvertForTesting (not exposed)
-        'brightness-rgb': 2,  # kInvertBrightness
-        'lightness-hsl': 3,  # kInvertLightness
-        'lightness-cielab': 4,  # kInvertLightnessLAB
-    }
-
-    # Mapping from a colors.webpage.darkmode.policy.images setting value to
-    # Chromium's DarkModeImagePolicy enum values.
-    image_policies = {
-        'always': 0,  # kFilterAll
-        'never': 1,  # kFilterNone
-        'smart': 2,  # kFilterSmart
-    }
-
-    # Mapping from a colors.webpage.darkmode.policy.page setting value to
-    # Chromium's DarkModePagePolicy enum values.
-    page_policies = {
-        'always': 0,  # kFilterAll
-        'smart': 1,  # kFilterByBackground
-    }
-
-    bools = {
-        True: 'true',
-        False: 'false',
-    }
-
-    # Our defaults for policy.images are different from Chromium's, so we mark it as
-    # mandatory setting - except on Qt 5.15.0 where we don't, so we don't get the
-    # workaround warning below if the setting wasn't explicitly customized.
-    smart_image_policy_broken = PYQT_WEBENGINE_VERSION == 0x050f00
-    mandatory_settings = set()
-    if not smart_image_policy_broken:
-        mandatory_settings.add('policy.images')
-
-    _setting_description_type = typing.Tuple[
-        str,  # qutebrowser option name
-        str,  # darkmode setting name
-        # Mapping from the config value to a string (or something convertable
-        # to a string) which gets passed to Chromium.
-        typing.Optional[typing.Mapping[typing.Any, typing.Union[str, int]]],
-    ]
-    if qtutils.version_check('5.15', compiled=False):
-        settings = [
-            ('enabled', 'Enabled', bools),
-            ('algorithm', 'InversionAlgorithm', algorithms),
-        ]  # type: typing.List[_setting_description_type]
-        mandatory_settings.add('enabled')
-    else:
-        settings = [
-            ('algorithm', '', algorithms),
-        ]
-        mandatory_settings.add('algorithm')
-
-    settings += [
-        ('policy.images', 'ImagePolicy', image_policies),
-        ('policy.page', 'PagePolicy', page_policies),
-        ('contrast', 'Contrast', None),
-        ('threshold.text', 'TextBrightnessThreshold', None),
-        ('threshold.background', 'BackgroundBrightnessThreshold', None),
-        ('grayscale.all', 'Grayscale', bools),
-        ('grayscale.images', 'ImageGrayscale', None),
-    ]
-
-    for setting, key, mapping in settings:
-        # To avoid blowing up the commandline length, we only pass modified
-        # settings to Chromium, as our defaults line up with Chromium's.
-        # However, we always pass enabled/algorithm to make sure dark mode gets
-        # actually turned on.
-        value = config.instance.get(
-            'colors.webpage.darkmode.' + setting,
-            fallback=setting in mandatory_settings)
-        if isinstance(value, usertypes.Unset):
-            continue
-
-        if (setting == 'policy.images' and value == 'smart' and
-                smart_image_policy_broken):
-            # WORKAROUND for
-            # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211
-            log.init.warning("Ignoring colors.webpage.darkmode.policy.images = smart "
-                             "because of Qt 5.15.0 bug")
-            continue
-
-        if mapping is not None:
-            value = mapping[value]
-
-        yield _darkmode_prefix() + key, str(value)
 
 
 def _qtwebengine_enabled_features(
@@ -262,7 +149,8 @@ def _qtwebengine_args(
     if 'wait-renderer-process' in namespace.debug_flags:
         yield '--renderer-startup-dialog'
 
-    blink_settings = list(_darkmode_settings())
+    from qutebrowser.browser.webengine import darkmode
+    blink_settings = list(darkmode.settings())
     if blink_settings:
         yield '--blink-settings=' + ','.join('{}={}'.format(k, v)
                                              for k, v in blink_settings)

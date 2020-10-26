@@ -201,8 +201,7 @@ class WebKitCaret(browsertab.AbstractCaret):
                  tab: 'WebKitTab',
                  mode_manager: modeman.ModeManager,
                  parent: QWidget = None) -> None:
-        super().__init__(mode_manager, parent)
-        self._tab = tab
+        super().__init__(tab, mode_manager, parent)
         self._selection_state = browsertab.SelectionState.none
 
     @pyqtSlot(usertypes.KeyMode)
@@ -693,9 +692,7 @@ class WebKitElements(browsertab.AbstractElements):
 
     """QtWebKit implemementations related to elements on the page."""
 
-    def __init__(self, tab: 'WebKitTab') -> None:
-        super().__init__()
-        self._tab = tab
+    _tab: 'WebKitTab'
 
     def find_css(self, selector, callback, error_cb, *, only_visible=False):
         utils.unused(error_cb)

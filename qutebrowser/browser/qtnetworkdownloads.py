@@ -23,7 +23,7 @@ import io
 import os.path
 import shutil
 import functools
-import typing
+from typing import Dict, IO, Optional
 
 import attr
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, QUrl
@@ -92,8 +92,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
             reply: The QNetworkReply to download.
         """
         super().__init__(manager=manager, parent=manager)
-        self.fileobj = None  # type: typing.Optional[typing.IO[bytes]]
-        self.raw_headers = {}  # type: typing.Dict[bytes, bytes]
+        self.fileobj: Optional[IO[bytes]] = None
+        self.raw_headers: Dict[bytes, bytes] = {}
 
         self._autoclose = True
         self._retry_info = None

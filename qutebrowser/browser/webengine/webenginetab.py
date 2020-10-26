@@ -41,7 +41,6 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
 from qutebrowser.misc import miscwidgets, objects, quitter
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, objreg, debug, urlutils)
-from qutebrowser.keyinput import modeman
 from qutebrowser.qt import sip
 
 
@@ -356,12 +355,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
     """QtWebEngine implementations related to moving the cursor/selection."""
 
-    def __init__(self,
-                 tab: 'WebEngineTab',
-                 mode_manager: modeman.ModeManager,
-                 parent: QWidget = None) -> None:
-        super().__init__(mode_manager, parent)
-        self._tab = tab
+    _tab: 'WebEngineTab'
 
     def _flags(self):
         """Get flags to pass to JS."""
@@ -786,9 +780,7 @@ class WebEngineElements(browsertab.AbstractElements):
 
     """QtWebEngine implemementations related to elements on the page."""
 
-    def __init__(self, tab: 'WebEngineTab') -> None:
-        super().__init__()
-        self._tab = tab
+    _tab: 'WebEngineTab'
 
     def _js_cb_multiple(self, callback, error_cb, js_elems):
         """Handle found elements coming from JS and call the real callback.

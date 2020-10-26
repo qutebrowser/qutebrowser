@@ -29,9 +29,19 @@ from qutebrowser.config import stylesheet
 from qutebrowser.utils import usertypes, urlutils
 
 
-# Note this has entries for success/error/warn from widgets.webview:LoadStatus
-UrlType = enum.Enum('UrlType', ['success', 'success_https', 'error', 'warn',
-                                'hover', 'normal'])
+class UrlType(enum.Enum):
+
+    """The type/color of the URL being shown.
+
+    Note this has entries for success/error/warn from widgets.webview:LoadStatus.
+    """
+
+    success = enum.auto()
+    success_https = enum.auto()
+    error = enum.auto()
+    warn = enum.auto()
+    hover = enum.auto()
+    normal = enum.auto()
 
 
 class UrlText(textbase.TextBase):

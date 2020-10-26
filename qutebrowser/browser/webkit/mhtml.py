@@ -90,10 +90,7 @@ def _get_css_imports_cssutils(data, inline=False):
     """
     try:
         import cssutils
-    except (ImportError, re.error):
-        # Catching re.error because cssutils in earlier releases (<= 1.0) is
-        # broken on Python 3.5
-        # See https://bitbucket.org/cthedot/cssutils/issues/52
+    except ImportError:
         return None
 
     # We don't care about invalid CSS data, this will only litter the log
