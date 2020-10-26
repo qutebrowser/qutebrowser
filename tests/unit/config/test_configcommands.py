@@ -499,7 +499,8 @@ class TestSource:
         else:
             assert False, location
 
-        pyfile.write_text('c.content.javascript.enabled = False\n',
+        pyfile.write_text('\n'.join(['config.load_autoconfig(False)',
+                                     'c.content.javascript.enabled = False']),
                           encoding='utf-8')
 
         commands.config_source(arg, clear=clear)
@@ -511,14 +512,16 @@ class TestSource:
 
     def test_config_py_arg_source(self, commands, config_py_arg, config_stub):
         assert config_stub.val.content.javascript.enabled
-        config_py_arg.write_text('c.content.javascript.enabled = False\n',
+        config_py_arg.write_text('\n'.join(['config.load_autoconfig(False)',
+                                            'c.content.javascript.enabled = False']),
                                  encoding='utf-8')
         commands.config_source()
         assert not config_stub.val.content.javascript.enabled
 
     def test_errors(self, commands, config_tmpdir):
         pyfile = config_tmpdir / 'config.py'
-        pyfile.write_text('c.foo = 42', encoding='utf-8')
+        pyfile.write_text('\n'.join(['config.load_autoconfig(False)',
+                                     'c.foo = 42']), encoding='utf-8')
 
         with pytest.raises(cmdutils.CommandError) as excinfo:
             commands.config_source()
@@ -529,7 +532,8 @@ class TestSource:
 
     def test_invalid_source(self, commands, config_tmpdir):
         pyfile = config_tmpdir / 'config.py'
-        pyfile.write_text('1/0', encoding='utf-8')
+        pyfile.write_text('\n'.join(['config.load_autoconfig(False)',
+                                     '1/0']), encoding='utf-8')
 
         with pytest.raises(cmdutils.CommandError) as excinfo:
             commands.config_source()
@@ -571,7 +575,8 @@ class TestEdit:
 
     def test_with_sourcing(self, commands, config_stub, patch_editor):
         assert config_stub.val.content.javascript.enabled
-        mock = patch_editor('c.content.javascript.enabled = False')
+        mock = patch_editor('\n'.join(['config.load_autoconfig(False)',
+                                       'c.content.javascript.enabled = False']))
 
         commands.config_edit()
 
@@ -580,16 +585,16 @@ class TestEdit:
 
     def test_config_py_with_sourcing(self, commands, config_stub, patch_editor, config_py_arg):
         assert config_stub.val.content.javascript.enabled
-        conf = 'c.content.javascript.enabled = False'
-        mock = patch_editor(conf)
+        conf = ['config.load_autoconfig(False)', 'c.content.javascript.enabled = False']
+        mock = patch_editor("\n".join(conf))
         commands.config_edit()
         mock.assert_called_once_with(unittest.mock.ANY)
         assert not config_stub.val.content.javascript.enabled
-        assert config_py_arg.read_text('utf-8').splitlines() == [conf]
+        assert config_py_arg.read_text('utf-8').splitlines() == conf
 
     def test_error(self, commands, config_stub, patch_editor, message_mock,
                    caplog):
-        patch_editor('c.foo = 42')
+        patch_editor('\n'.join(['config.load_autoconfig(False)', 'c.foo = 42']))
 
         with caplog.at_level(logging.ERROR):
             commands.config_edit()
