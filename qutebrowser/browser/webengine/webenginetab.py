@@ -1469,6 +1469,10 @@ class WebEngineTab(browsertab.AbstractTab):
             self._widget.page().runJavaScript(code, world_id, callback)
 
     def reload(self, *, force=False):
+        original = urlutils.extract_error_url(self.raw_url())
+        if original:
+            self.load_url(original[0])
+            return
         if force:
             action = QWebEnginePage.ReloadAndBypassCache
         else:
