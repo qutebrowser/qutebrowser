@@ -563,8 +563,8 @@ class TestIsEnum:
         """Test is_enum with an enum."""
         class Foo(enum.Enum):
 
-            bar = 1
-            baz = 2
+            bar = enum.auto()
+            baz = enum.auto()
 
         assert utils.is_enum(Foo)
 

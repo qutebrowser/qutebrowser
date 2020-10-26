@@ -450,9 +450,9 @@ class SelectionState(enum.Enum):
     NOTE: Names need to line up with SelectionState in caret.js!
     """
 
-    none = 1
-    normal = 2
-    line = 3
+    none = enum.auto()
+    normal = enum.auto()
+    line = enum.auto()
 
 
 class AbstractCaret(QObject):

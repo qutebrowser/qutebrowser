@@ -293,8 +293,8 @@ class TestRegister:
     class Enum(enum.Enum):
 
         # pylint: disable=invalid-name
-        x = 1
-        y = 2
+        x = enum.auto()
+        y = enum.auto()
 
     @pytest.mark.parametrize('typ, inp, choices, expected', [
         (int, '42', None, 42),

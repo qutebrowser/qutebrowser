@@ -90,13 +90,13 @@ class Variant(enum.Enum):
 
     """A dark mode variant."""
 
-    unavailable = -1
-    qt_510 = 0
-    qt_511_to_513 = 1
-    qt_514 = 2
-    qt_515_0 = 3
-    qt_515_1 = 4
-    qt_515_2 = 5
+    unavailable = enum.auto()
+    qt_510 = enum.auto()
+    qt_511_to_513 = enum.auto()
+    qt_514 = enum.auto()
+    qt_515_0 = enum.auto()
+    qt_515_1 = enum.auto()
+    qt_515_2 = enum.auto()
 
 
 # Mapping from a colors.webpage.darkmode.algorithm setting value to

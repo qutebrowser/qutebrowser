@@ -46,9 +46,9 @@ class LastPress(enum.Enum):
 
     """Whether the last keypress filtered a text or was part of a keystring."""
 
-    none = 1
-    filtertext = 2
-    keystring = 3
+    none = enum.auto()
+    filtertext = enum.auto()
+    keystring = enum.auto()
 
 
 class CommandKeyParser(basekeyparser.BaseKeyParser):

@@ -57,8 +57,8 @@ class MsgType(enum.Enum):
 
     """The type of a message to be output."""
 
-    insufficient_coverage = 1
-    perfect_file = 2
+    insufficient_coverage = enum.auto()
+    perfect_file = enum.auto()
 
 
 # A list of (test_file, tested_file) tuples. test_file can be None.

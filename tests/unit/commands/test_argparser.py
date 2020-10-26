@@ -30,8 +30,8 @@ from qutebrowser.commands import argparser, cmdexc
 
 class Enum(enum.Enum):
 
-    foo = 1
-    foo_bar = 2
+    foo = enum.auto()
+    foo_bar = enum.auto()
 
 
 class TestArgumentParser:

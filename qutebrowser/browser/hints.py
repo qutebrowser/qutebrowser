@@ -46,22 +46,22 @@ class Target(enum.Enum):
 
     """What action to take on a hint."""
 
-    normal = 1
-    current = 2
-    tab = 3
-    tab_fg = 4
-    tab_bg = 5
-    window = 6
-    yank = 7
-    yank_primary = 8
-    run = 9
-    fill = 10
-    hover = 11
-    download = 12
-    userscript = 13
-    spawn = 14
-    delete = 15
-    right_click = 16
+    normal = enum.auto()
+    current = enum.auto()
+    tab = enum.auto()
+    tab_fg = enum.auto()
+    tab_bg = enum.auto()
+    window = enum.auto()
+    yank = enum.auto()
+    yank_primary = enum.auto()
+    run = enum.auto()
+    fill = enum.auto()
+    hover = enum.auto()
+    download = enum.auto()
+    userscript = enum.auto()
+    spawn = enum.auto()
+    delete = enum.auto()
+    right_click = enum.auto()
 
 
 class HintingError(Exception):

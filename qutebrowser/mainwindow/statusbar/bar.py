@@ -52,9 +52,9 @@ class ColorFlags:
 
         """The current caret "sub-mode" we're in."""
 
-        off = 1
-        on = 2
-        selection = 3
+        off = enum.auto()
+        on = enum.auto()
+        selection = enum.auto()
 
     prompt = attr.ib(False)
     insert = attr.ib(False)

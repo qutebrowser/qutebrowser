@@ -81,12 +81,12 @@ class DocstringParser:
 
         """The current state of the parser."""
 
-        short = 1
-        desc = 2
-        desc_hidden = 3
-        arg_start = 4
-        arg_inside = 5
-        misc = 6
+        short = enum.auto()
+        desc = enum.auto()
+        desc_hidden = enum.auto()
+        arg_start = enum.auto()
+        arg_inside = enum.auto()
+        misc = enum.auto()
 
     def __init__(self, func: typing.Callable) -> None:
         """Constructor.

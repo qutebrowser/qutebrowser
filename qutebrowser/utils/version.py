@@ -98,17 +98,17 @@ class Distribution(enum.Enum):
     Usually lines up with ID=... in /etc/os-release.
     """
 
-    unknown = 1
-    ubuntu = 2
-    debian = 3
-    void = 4
-    arch = 5
-    gentoo = 6  # includes funtoo
-    fedora = 7
-    opensuse = 8
-    linuxmint = 9
-    manjaro = 10
-    kde_flatpak = 11  # org.kde.Platform
+    unknown = enum.auto()
+    ubuntu = enum.auto()
+    debian = enum.auto()
+    void = enum.auto()
+    arch = enum.auto()
+    gentoo = enum.auto()  # includes funtoo
+    fedora = enum.auto()
+    opensuse = enum.auto()
+    linuxmint = enum.auto()
+    manjaro = enum.auto()
+    kde_flatpak = enum.auto()  # org.kde.Platform
 
 
 def distribution() -> typing.Optional[DistributionInfo]:

@@ -41,14 +41,14 @@ class _Location(enum.Enum):
 
     """A key for _locations."""
 
-    config = 1
-    auto_config = 2
-    data = 3
-    system_data = 4
-    cache = 5
-    download = 6
-    runtime = 7
-    config_py = 8
+    config = enum.auto()
+    auto_config = enum.auto()
+    data = enum.auto()
+    system_data = enum.auto()
+    cache = enum.auto()
+    download = enum.auto()
+    runtime = enum.auto()
+    config_py = enum.auto()
 
 
 APPNAME = 'qutebrowser'
