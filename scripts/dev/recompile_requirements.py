@@ -132,6 +132,7 @@ CHANGELOG_URLS = {
     'beautifulsoup4': 'https://bazaar.launchpad.net/~leonardr/beautifulsoup/bs4/view/head:/CHANGELOG',
     'check-manifest': 'https://github.com/mgedmin/check-manifest/blob/master/CHANGES.rst',
     'yamllint': 'https://github.com/adrienverge/yamllint/blob/master/CHANGELOG.rst',
+    'filelock': 'https://github.com/benediktschmitt/py-filelock/commits/master',
 }
 
 # PyQt versions which need SIP v4
