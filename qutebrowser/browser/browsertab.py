@@ -1037,6 +1037,9 @@ class AbstractTab(QWidget):
     @pyqtSlot(QUrl)
     def _on_url_changed(self, url: QUrl) -> None:
         """Update title when URL has changed and no title is available."""
+        original = urlutils.extract_error_url(url)
+        if original:
+            url = original[0]
         if url.isValid() and not self.title():
             self.title_changed.emit(url.toDisplayString())
         self.url_changed.emit(url)

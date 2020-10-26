@@ -1748,9 +1748,6 @@ class WebEngineTab(browsertab.AbstractTab):
         Since update_for_url() is idempotent, it doesn't matter much if we end
         up doing it twice.
         """
-        original = urlutils.extract_error_url(url)
-        if original:
-            url = original[0]
         super()._on_url_changed(url)
         if url.isValid() and qtutils.version_check('5.13'):
             self.settings.update_for_url(url)
