@@ -199,13 +199,14 @@ def qute_bookmarks(_url: QUrl) -> _HandlerRet:
 @add_handler('error')
 def qute_error(error_url: QUrl) -> _HandlerRet:
     """Handler for qute://error. Display an error page."""
-    queries = QUrlQuery(error_url)
-    url_string = queries.queryItemValue("u")
-    error = queries.queryItemValue("e")
+    original = urlutils.extract_error_url(error_url)
+    assert original is not None
+    original_url, error_message = original
+    url_string = original_url.toDisplayString()
     error_page = jinja.render(
         'error.html',
         title="Error loading page: {}".format(url_string),
-        url=url_string, error=error)
+        url=url_string, error=error_message)
     return 'text/html', error_page
 
 

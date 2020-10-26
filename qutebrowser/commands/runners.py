@@ -25,7 +25,7 @@ import typing
 import contextlib
 
 import attr
-from PyQt5.QtCore import pyqtSlot, QUrl, QObject, QUrlQuery
+from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config
@@ -55,12 +55,7 @@ class ParseResult:
 def _url(tabbed_browser: 'tabbedbrowser.TabbedBrowser') -> QUrl:
     """Convenience method to get the current url."""
     try:
-        url = tabbed_browser.current_url()
-        if url.scheme() == "qute" and url.host() == "error":
-            real_url = QUrl(QUrlQuery(url).queryItemValue("u"))
-            if real_url.isValid():
-                return real_url
-        return url
+        return tabbed_browser.current_url()
     except qtutils.QtValueError as e:
         msg = "Current URL is invalid"
         if e.reason:

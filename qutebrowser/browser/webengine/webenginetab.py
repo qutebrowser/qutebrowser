@@ -1437,7 +1437,7 @@ class WebEngineTab(browsertab.AbstractTab):
             url, emit_before_load_started=emit_before_load_started)
         self._widget.load(url)
 
-    def url(self, *, requested=False):
+    def raw_url(self, *, requested=False):
         page = self._widget.page()
         if requested:
             return page.requestedUrl()
@@ -1497,7 +1497,7 @@ class WebEngineTab(browsertab.AbstractTab):
         log.misc.debug("Showing error page for {}".format(error))
         error_url = QUrl("qute://error")
         queries = QUrlQuery()
-        queries.setQueryItems((("u", url.toDisplayString()), ("e", error)))
+        queries.setQueryItems((("url", url.toDisplayString()), ("error", error)))
         error_url.setQuery(queries)
         self.load_url(error_url)
 

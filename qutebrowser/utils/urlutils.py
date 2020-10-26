@@ -574,6 +574,24 @@ def safe_display_string(qurl: QUrl) -> str:
     return qurl.toDisplayString()
 
 
+def extract_error_url(url: QUrl) -> typing.Optional[typing.Tuple[QUrl, str]]:
+    """Extract the original URL and the error message from a qute://error URL,
+    or returns None if the input isn't one.
+
+    Args:
+        url: The URL as a QUrl.
+
+    Return:
+        A tuple (original URL, error message) if available.
+    """
+    if url.scheme() == "qute" and url.host() == "error":
+        queries = QUrlQuery(url)
+        real_url = QUrl(queries.queryItemValue("url"))
+        if real_url.isValid():
+            return real_url, queries.queryItemValue("error")
+    return None
+
+
 def query_string(qurl: QUrl) -> str:
     """Get a query string for the given URL.
 

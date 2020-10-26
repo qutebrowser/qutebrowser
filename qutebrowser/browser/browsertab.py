@@ -26,7 +26,7 @@ import typing
 
 import attr
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
-                          QEvent, QPoint)
+                          QEvent, QPoint, QUrlQuery)
 from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtWidgets import QWidget, QApplication, QDialog
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
@@ -1115,8 +1115,15 @@ class AbstractTab(QWidget):
         self._progress = perc
         self.load_progress.emit(perc)
 
-    def url(self, *, requested: bool = False) -> QUrl:
+    def raw_url(self, *, requested: bool = False) -> QUrl:
         raise NotImplementedError
+
+    def url(self, *, requested: bool = False) -> QUrl:
+        """The page URL, after replacing qute://error URL with the original one.
+        """
+        url = self.raw_url(requested=requested)
+        original = urlutils.extract_error_url(url)
+        return original[0] if original else url
 
     def progress(self) -> int:
         return self._progress
