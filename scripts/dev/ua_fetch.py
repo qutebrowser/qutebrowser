@@ -63,7 +63,8 @@ for ua_string in reversed(response.json()):
                 ua_names[key] = f'Chrome {v[0]} {key}'
 
 for key, ua_string in ua_strings.items():
-    for line in wrap("      - - ", "          ", ua_string):
+    quoted_ua_string = f'"{ua_string}"'
+    for line in wrap("      - - ", "          ", quoted_ua_string):
         print(line)
     for line in wrap("        - ", "          ", ua_names[key]):
         print(line)
