@@ -10,7 +10,7 @@ imagesize==1.2.0
 Jinja2==2.11.2
 MarkupSafe==1.1.1
 packaging==20.4
-Pygments==2.7.1
+Pygments==2.7.2
 pyparsing==2.4.7
 pytz==2020.1
 requests==2.24.0
@@ -23,4 +23,4 @@ sphinxcontrib-htmlhelp==1.0.3
 sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.4
-urllib3==1.25.10
+urllib3==1.25.11
