@@ -289,11 +289,11 @@ class Exit(enum.IntEnum):
 
     """Exit statuses for errors. Needs to be an int for sys.exit."""
 
-    ok = enum.auto()
-    reserved = enum.auto()
-    exception = enum.auto()
-    err_ipc = enum.auto()
-    err_init = enum.auto()
+    ok = 0
+    reserved = 1
+    exception = 2
+    err_ipc = 3
+    err_init = 4
 
 
 class LoadStatus(enum.Enum):
