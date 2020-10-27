@@ -35,7 +35,8 @@ from PyQt5.QtNetwork import QNetworkAccessManager
 
 if TYPE_CHECKING:
     from PyQt5.QtWebKit import QWebHistory
-    from PyQt5.QtWebEngineWidgets import QWebEngineHistory
+    from PyQt5.QtWebKitWidgets import QWebPage
+    from PyQt5.QtWebEngineWidgets import QWebEngineHistory, QWebEnginePage
 
 import pygments
 import pygments.lexers
@@ -163,10 +164,8 @@ class AbstractAction:
 
     """Attribute ``action`` of AbstractTab for Qt WebActions."""
 
-    # The class actions are defined on (QWeb{Engine,}Page)
-    action_class: Any = None
-    # The type of the actions (QWeb{Engine,}Page.WebAction)
-    action_base: Any = None
+    action_class: Type[Union['QWebPage', 'QWebEnginePage']]
+    action_base: Type[Union['QWebPage.WebAction', 'QWebEnginePage.WebAction']]
 
     def __init__(self, tab: 'AbstractTab') -> None:
         self._widget = cast(QWidget, None)
