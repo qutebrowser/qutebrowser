@@ -45,7 +45,6 @@ class CompletionView(QTreeView):
 
     Attributes:
         pattern: Current filter pattern, used for highlighting.
-        _model_pattern: Pattern currently set in the underlying model.
         _win_id: The ID of the window this CompletionView is associated with.
         _height: The height to use for the CompletionView.
         _height_perc: Either None or a percentage if height should be relative.
@@ -117,7 +116,6 @@ class CompletionView(QTreeView):
                  parent: QWidget = None) -> None:
         super().__init__(parent)
         self.pattern = None  # type: typing.Optional[str]
-        self._model_pattern = None  # type: typing.Optional[str]
         self._win_id = win_id
         self._cmd = cmd
         self._active = False
@@ -312,14 +310,9 @@ class CompletionView(QTreeView):
         if not self._active:
             return
 
-        if (
-                config.val.completion.show != 'always'
-                and self.pattern is not None
-                and self.pattern != self._model_pattern
-        ):
+        if config.val.completion.show != 'always':
             with debug.log_time(log.completion, 'Set pattern {}'.format(self.pattern)):
                 self.model().set_pattern(self.pattern)
-                self._model_pattern = self.pattern
                 self._maybe_update_geometry()
 
         selmodel = self.selectionModel()
@@ -395,7 +388,6 @@ class CompletionView(QTreeView):
         if config.val.completion.show == 'always':
             with debug.log_time(log.completion, 'Set pattern {}'.format(pattern)):
                 self.model().set_pattern(pattern)
-                self._model_pattern = pattern
                 self._maybe_update_geometry()
                 self._maybe_show()
         else:
