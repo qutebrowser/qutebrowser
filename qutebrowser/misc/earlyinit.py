@@ -210,13 +210,13 @@ def _check_modules(modules):
         try:
             # https://bitbucket.org/fdik/pypeg/commits/dd15ca462b532019c0a3be1d39b8ee2f3fa32f4e
             # pylint: disable=bad-continuation
-            with log.ignore_py_warnings(
+            with log.py_warning_filter(
                 category=DeprecationWarning,
                 message=r'invalid escape sequence'
-            ), log.ignore_py_warnings(
+            ), log.py_warning_filter(
                 category=ImportWarning,
                 message=r'Not importing directory .*: missing __init__'
-            ), log.ignore_py_warnings(
+            ), log.py_warning_filter(
                 category=DeprecationWarning,
                 message=r'the imp module is deprecated',
             ):

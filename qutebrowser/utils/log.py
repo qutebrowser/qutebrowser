@@ -243,9 +243,12 @@ def disable_qt_msghandler() -> typing.Iterator[None]:
 
 
 @contextlib.contextmanager
-def ignore_py_warnings(**kwargs: typing.Any) -> typing.Iterator[None]:
+def py_warning_filter(
+        action: str = 'ignore',
+        **kwargs: typing.Any
+) -> typing.Iterator[None]:
     """Contextmanager to temporarily disable certain Python warnings."""
-    warnings.filterwarnings('ignore', **kwargs)
+    warnings.filterwarnings(action, **kwargs)
     yield
     if _log_inited:
         _init_py_warnings()

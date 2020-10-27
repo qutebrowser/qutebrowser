@@ -736,7 +736,7 @@ def yaml_load(f: typing.Union[str, typing.IO[str]]) -> typing.Any:
     start = datetime.datetime.now()
 
     # WORKAROUND for https://github.com/yaml/pyyaml/pull/181
-    with log.ignore_py_warnings(
+    with log.py_warning_filter(
             category=DeprecationWarning,
             message=r"Using or importing the ABCs from 'collections' instead "
             r"of from 'collections\.abc' is deprecated.*"):
