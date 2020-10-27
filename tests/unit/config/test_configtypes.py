@@ -19,6 +19,7 @@
 """Tests for qutebrowser.config.configtypes."""
 
 import re
+import sys
 import json
 import math
 import warnings
@@ -1482,8 +1483,14 @@ class TestRegex:
     @pytest.mark.parametrize('val', [
         pytest.param(r'(foo|bar))?baz[fis]h', id='unmatched parens'),
         pytest.param('(' * 500, id='too many parens'),
-        r'foo\Xbar',
-        r'foo\Cbar',
+        pytest.param(r'foo\Xbar', id='invalid escape X'),
+        pytest.param(r'foo\Cbar', id='invalid escape C'),
+        pytest.param(r'[[]]', id='nested set', marks=pytest.mark.skipif(
+                     sys.hexversion < 0x03070000,
+                     reason="Warning was added in Python 3.7")),
+        pytest.param(r'[a||b]', id='set operation', marks=pytest.mark.skipif(
+                     sys.hexversion < 0x03070000,
+                     reason="Warning was added in Python 3.7")),
     ])
     def test_to_py_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):

@@ -34,6 +34,11 @@ Changed
   `config.load_autoconfig()` (do load `autoconfig.yml`) in them.
 - The `colors.webpage.darkmode.*` settings are now also supported with older Qt
   versions (Qt 5.10 to 5.13) rather than just with Qt 5.14 and above.
+- For regexes in the config (`hints.{prev,next}_regexes`), certain patterns
+  which will change meanings in future Python versions are now disallowed. This is
+  the case for character sets starting with a literal `[` or containing literal
+  character sequences `--`, `&&`, `~~`, or `||`. To avoid a warning, remove the
+  duplicate characters or escape them with a backslash.
 
 v1.14.0 (2020-10-15)
 --------------------

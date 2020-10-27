@@ -1316,10 +1316,15 @@ class Regex(BaseType):
                 (getattr(re, flag.strip()) for flag in flags.split(' | ')))
 
     def _compile_regex(self, pattern: str) -> typing.Pattern[str]:
-        """Check if the given regex is valid."""
+        """Check if the given regex is valid.
+
+        Some semi-invalid regexes can also raise warnings - we also treat them as
+        invalid.
+        """
         try:
-            compiled = re.compile(pattern, self.flags)
-        except re.error as e:
+            with log.py_warning_filter('error', category=FutureWarning):
+                compiled = re.compile(pattern, self.flags)
+        except (re.error, FutureWarning) as e:
             raise configexc.ValidationError(
                 pattern, "must be a valid regex - " + str(e))
         except RuntimeError:  # pragma: no cover
