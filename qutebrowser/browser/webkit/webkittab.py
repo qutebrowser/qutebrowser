@@ -22,7 +22,7 @@
 import re
 import functools
 import xml.etree.ElementTree
-import typing
+from typing import cast, Iterable
 
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
 from PyQt5.QtGui import QIcon
@@ -624,7 +624,7 @@ class WebKitHistoryPrivate(browsertab.AbstractHistoryPrivate):
 
     def __init__(self, tab: 'WebKitTab') -> None:
         self._tab = tab
-        self._history = typing.cast(QWebHistory, None)
+        self._history = cast(QWebHistory, None)
 
     def serialize(self):
         return qtutils.serialize(self._history)
@@ -703,8 +703,7 @@ class WebKitElements(browsertab.AbstractElements):
         elems = []
         frames = webkitelem.get_child_frames(mainframe)
         for f in frames:
-            frame_elems = typing.cast(
-                typing.Iterable[QWebElement], f.findAllElements(selector))
+            frame_elems = cast(Iterable[QWebElement], f.findAllElements(selector))
             for elem in frame_elems:
                 elems.append(webkitelem.WebKitElement(elem, tab=self._tab))
 

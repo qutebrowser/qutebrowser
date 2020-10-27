@@ -21,7 +21,7 @@
 
 import collections
 import html
-import typing
+from typing import TYPE_CHECKING, Dict, MutableMapping, Optional, Sequence
 
 import attr
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QCoreApplication, QUrl,
@@ -40,12 +40,12 @@ from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
                                                 filescheme)
 from qutebrowser.misc import objects
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.mainwindow import prompt
 
 
 HOSTBLOCK_ERROR_STRING = '%HOSTBLOCK%'
-_proxy_auth_cache = {}  # type: typing.Dict[ProxyId, prompt.AuthInfo]
+_proxy_auth_cache: Dict['ProxyId', 'prompt.AuthInfo'] = {}
 
 
 @attr.s(frozen=True)
@@ -123,8 +123,7 @@ def init():
         QSslSocket.setDefaultCiphers(good_ciphers)
 
 
-_SavedErrorsType = typing.MutableMapping[urlutils.HostTupleType,
-                                         typing.Sequence[QSslError]]
+_SavedErrorsType = MutableMapping[urlutils.HostTupleType, Sequence[QSslError]]
 
 
 class NetworkManager(QNetworkAccessManager):
@@ -173,10 +172,8 @@ class NetworkManager(QNetworkAccessManager):
         self._set_cache()
         self.sslErrors.connect(  # type: ignore[attr-defined]
             self.on_ssl_errors)
-        self._rejected_ssl_errors = collections.defaultdict(
-            list)  # type: _SavedErrorsType
-        self._accepted_ssl_errors = collections.defaultdict(
-            list)  # type: _SavedErrorsType
+        self._rejected_ssl_errors: _SavedErrorsType = collections.defaultdict(list)
+        self._accepted_ssl_errors: _SavedErrorsType = collections.defaultdict(list)
         self.authenticationRequired.connect(  # type: ignore[attr-defined]
             self.on_authentication_required)
         self.proxyAuthenticationRequired.connect(  # type: ignore[attr-defined]
@@ -241,8 +238,8 @@ class NetworkManager(QNetworkAccessManager):
         log.network.debug("Certificate errors: {!r}".format(
             ' / '.join(str(err) for err in errors)))
         try:
-            host_tpl = urlutils.host_tuple(
-                reply.url())  # type: typing.Optional[urlutils.HostTupleType]
+            host_tpl: Optional[urlutils.HostTupleType] = urlutils.host_tuple(
+                reply.url())
         except ValueError:
             host_tpl = None
             is_accepted = False
