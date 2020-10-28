@@ -310,10 +310,12 @@ class CompletionView(QTreeView):
         if not self._active:
             return
 
-        if config.val.completion.show != 'always':
+        if (
+                self.pattern is not None and
+                config.val.completion.show != 'always'
+        ):
             with debug.log_time(log.completion, 'Set pattern {}'.format(self.pattern)):
                 self.model().set_pattern(self.pattern)
-                self._maybe_update_geometry()
 
         selmodel = self.selectionModel()
         indices = {
@@ -389,11 +391,11 @@ class CompletionView(QTreeView):
             with debug.log_time(log.completion, 'Set pattern {}'.format(pattern)):
                 self.model().set_pattern(pattern)
                 self._maybe_update_geometry()
-                self._maybe_show()
         else:
             log.completion.debug(
                 "Ignoring pattern set request as completion.show is {}.".format(
                     config.val.completion.show))
+        self._maybe_show()
 
     def _maybe_show(self):
         if (config.val.completion.show == 'always' and
