@@ -38,13 +38,16 @@ class CompletionModel(QAbstractItemModel):
         column_widths: The width percentages of the columns used in the
                        completion view.
         _categories: The sub-categories.
+        _pattern: The pattern currently set.
     """
+    _pattern: typing.Optional[str]
 
     def __init__(self, *, column_widths=(30, 70, 0), parent=None):
         super().__init__(parent)
         self.column_widths = column_widths
         self._categories = [
         ]  # type: typing.MutableSequence[QAbstractItemModel]
+        self._pattern = None
 
     def _cat_from_idx(self, index):
         """Return the category pointed to by the given index.
@@ -179,6 +182,12 @@ class CompletionModel(QAbstractItemModel):
         Args:
             pattern: The filter pattern to set.
         """
+        if pattern == self._pattern:
+            log.completion.debug(
+                "Ignoring pattern set request as pattern has not changed.")
+            return
+
+        self._pattern = pattern
         log.completion.debug("Setting completion pattern '{}'".format(pattern))
         # WORKAROUND:
         # layoutChanged is broken in PyQt 5.7.1, so we must use metaObject
