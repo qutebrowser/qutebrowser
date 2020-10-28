@@ -40,6 +40,7 @@ class CompletionModel(QAbstractItemModel):
         _categories: The sub-categories.
         _pattern: The pattern currently set.
     """
+
     _pattern: typing.Optional[str]
 
     def __init__(self, *, column_widths=(30, 70, 0), parent=None):
