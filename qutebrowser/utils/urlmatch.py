@@ -25,8 +25,8 @@ https://cs.chromium.org/chromium/src/extensions/common/url_pattern.cc
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern.h
 
 Based on the following commit in Chromium:
-https://chromium.googlesource.com/chromium/src/+/757854e199e159523e7789de5cb2f6ba49b79b63
-(February 4 2020, newest commit as per July 1st 2020)
+https://chromium.googlesource.com/chromium/src/+/6f4a6681eae01c2036336c18b06303e16a304a7c
+(October 10 2020, newest commit as per October 28th 2020)
 """
 
 import ipaddress
