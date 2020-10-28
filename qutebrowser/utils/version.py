@@ -418,6 +418,7 @@ def _chromium_version() -> str:
              5.12.7: Security fixes up to 79.0.3945.130 (2020-01-16)
              5.12.8: Security fixes up to 80.0.3987.149 (2020-03-18)
              5.12.9: Security fixes up to 83.0.4103.97  (2020-06-03)
+             5.12.10: Security fixes up to 86.0.4240.75 (2020-10-06)
 
     Qt 5.13: Chromium 73
              73.0.3683.105 (~2019-02-28)
@@ -435,6 +436,9 @@ def _chromium_version() -> str:
              80.0.3987.163 (2020-04-02)
              5.15.0: Security fixes up to 81.0.4044.138 (2020-05-05)
              5.15.1: Security fixes up to 85.0.4183.83  (2020-08-25)
+
+             5.15.2: Updated to 83.0.4103.122           (~2020-06-24)
+                     Security fixes up to 86.0.4240.111 (2020-10-20)
 
     Also see:
 
