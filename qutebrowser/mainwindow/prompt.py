@@ -793,8 +793,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
 
     def download_open(self, cmdline, pdfjs):
         if pdfjs:
-            target: downloads._DownloadTarget = (  # pylint: disable=protected-access
-                downloads.PDFJSDownloadTarget())
+            target: 'downloads._DownloadTarget' = downloads.PDFJSDownloadTarget()
         else:
             target = downloads.OpenFileDownloadTarget(cmdline)
 
