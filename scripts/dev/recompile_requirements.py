@@ -105,7 +105,7 @@ CHANGELOG_URLS = {
     'tox-pip-version': 'https://github.com/pglass/tox-pip-version/commits/master',
     'wrapt': 'https://github.com/GrahamDumpleton/wrapt/blob/develop/docs/changes.rst',
     'pep517': 'https://github.com/pypa/pep517/blob/master/doc/changelog.rst',
-    'cryptography': 'https://cryptography.io/en/latest/changelog/',
+    'cryptography': 'https://cryptography.io/en/latest/changelog.html',
     'toml': 'https://github.com/uiri/toml/releases',
     'PyQt5': 'https://www.riverbankcomputing.com/news',
     'PyQtWebEngine': 'https://www.riverbankcomputing.com/news',
