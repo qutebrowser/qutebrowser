@@ -23,9 +23,9 @@ Module attributes:
     STARTCHARS: Possible chars for starting a commandline input.
 """
 
-import typing
 import traceback
 import enum
+from typing import TYPE_CHECKING, Sequence
 
 from PyQt5.QtCore import pyqtSlot, Qt, QObject
 from PyQt5.QtGui import QKeySequence, QKeyEvent
@@ -35,7 +35,7 @@ from qutebrowser.commands import cmdexc
 from qutebrowser.config import config
 from qutebrowser.keyinput import basekeyparser, keyutils, macros
 from qutebrowser.utils import usertypes, log, message, objreg, utils
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.commands import runners
 
 
@@ -232,7 +232,7 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
 
         return match
 
-    def update_bindings(self, strings: typing.Sequence[str],
+    def update_bindings(self, strings: Sequence[str],
                         preserve_filter: bool = False) -> None:
         """Update bindings when the hint strings changed.
 
