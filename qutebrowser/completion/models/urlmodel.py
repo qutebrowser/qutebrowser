@@ -19,7 +19,7 @@
 
 """Function to return the url completion model for the `open` command."""
 
-from typing import TYPE_CHECKING, Dict, Sequence
+from typing import Dict, Sequence
 
 from PyQt5.QtCore import QAbstractItemModel
 

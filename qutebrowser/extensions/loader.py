@@ -25,7 +25,7 @@ import sys
 import pathlib
 import importlib
 import argparse
-from typing import TYPE_CHECKING, Callable, Iterator, List, Optional, Set, Tuple
+from typing import Callable, Iterator, List, Optional, Set, Tuple
 
 import attr
 

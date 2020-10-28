@@ -42,7 +42,7 @@ class WebKitElement(webelem.AbstractWebElement):
 
     """A wrapper around a QWebElement."""
 
-    _tab: webkittab.WebKitTab
+    _tab: 'webkittab.WebKitTab'
 
     def __init__(self, elem: QWebElement, tab: 'webkittab.WebKitTab') -> None:
         super().__init__(tab)
