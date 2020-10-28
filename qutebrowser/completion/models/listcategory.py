@@ -20,7 +20,7 @@
 """Completion category that uses a list of tuples as a data source."""
 
 import re
-import typing
+from typing import Iterable, Tuple
 
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QRegExp
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
@@ -36,7 +36,7 @@ class ListCategory(QSortFilterProxyModel):
 
     def __init__(self,
                  name: str,
-                 items: typing.Iterable[typing.Tuple[str, ...]],
+                 items: Iterable[Tuple[str, ...]],
                  sort: bool = True,
                  delete_func: util.DeleteFuncType = None,
                  parent: QWidget = None):

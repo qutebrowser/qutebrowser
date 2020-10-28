@@ -20,7 +20,7 @@
 """Functions that return miscellaneous completion models."""
 
 import datetime
-import typing
+from typing import List, Sequence, Tuple
 
 from qutebrowser.config import config, configdata
 from qutebrowser.utils import objreg, log, utils
@@ -53,7 +53,7 @@ def helptopic(*, info):
 
 def quickmark(*, info=None):
     """A CompletionModel filled with all quickmarks."""
-    def delete(data: typing.Sequence[str]) -> None:
+    def delete(data: Sequence[str]) -> None:
         """Delete a quickmark from the completion menu."""
         name = data[0]
         quickmark_manager = objreg.get('quickmark-manager')
@@ -71,7 +71,7 @@ def quickmark(*, info=None):
 
 def bookmark(*, info=None):
     """A CompletionModel filled with all bookmarks."""
-    def delete(data: typing.Sequence[str]) -> None:
+    def delete(data: Sequence[str]) -> None:
         """Delete a bookmark from the completion menu."""
         urlstr = data[0]
         log.completion.debug('Deleting bookmark {}'.format(urlstr))
@@ -121,7 +121,7 @@ def _buffer(*, win_id_filter=lambda _win_id: True, add_win_id=True):
 
     tabs_are_windows = config.val.tabs.tabs_are_windows
     # list storing all single-tabbed windows when tabs_are_windows
-    windows = []  # type: typing.List[typing.Tuple[str, str, str]]
+    windows: List[Tuple[str, str, str]] = []
 
     for win_id in objreg.window_registry:
         if not win_id_filter(win_id):
@@ -131,7 +131,7 @@ def _buffer(*, win_id_filter=lambda _win_id: True, add_win_id=True):
                                     window=win_id)
         if tabbed_browser.is_shutting_down:
             continue
-        tabs = []  # type: typing.List[typing.Tuple[str, str, str]]
+        tabs: List[Tuple[str, str, str]] = []
         for idx in range(tabbed_browser.widget.count()):
             tab = tabbed_browser.widget.widget(idx)
             tab_str = ("{}/{}".format(win_id, idx + 1) if add_win_id

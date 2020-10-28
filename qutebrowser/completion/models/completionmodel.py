@@ -19,7 +19,7 @@
 
 """A model that proxies access to one or more completion categories."""
 
-import typing
+from typing import MutableSequence
 
 from PyQt5.QtCore import Qt, QModelIndex, QAbstractItemModel
 
@@ -43,8 +43,7 @@ class CompletionModel(QAbstractItemModel):
     def __init__(self, *, column_widths=(30, 70, 0), parent=None):
         super().__init__(parent)
         self.column_widths = column_widths
-        self._categories = [
-        ]  # type: typing.MutableSequence[QAbstractItemModel]
+        self._categories: MutableSequence[QAbstractItemModel] = []
 
     def _cat_from_idx(self, index):
         """Return the category pointed to by the given index.

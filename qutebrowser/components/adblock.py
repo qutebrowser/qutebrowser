@@ -24,8 +24,8 @@ import functools
 import posixpath
 import zipfile
 import logging
-import typing
 import pathlib
+from typing import cast, IO, List, Set
 
 from PyQt5.QtCore import QUrl
 
@@ -34,7 +34,7 @@ from qutebrowser.api import (cmdutils, hook, config, message, downloads,
 
 
 logger = logging.getLogger('network')
-_host_blocker = typing.cast('HostBlocker', None)
+_host_blocker = cast('HostBlocker', None)
 
 
 def _guess_zip_filename(zf: zipfile.ZipFile) -> str:
@@ -49,7 +49,7 @@ def _guess_zip_filename(zf: zipfile.ZipFile) -> str:
     raise FileNotFoundError("No hosts file found in zip")
 
 
-def get_fileobj(byte_io: typing.IO[bytes]) -> typing.IO[bytes]:
+def get_fileobj(byte_io: IO[bytes]) -> IO[bytes]:
     """Get a usable file object to read the hosts file from."""
     byte_io.seek(0)  # rewind downloaded file
     if zipfile.is_zipfile(byte_io):
@@ -75,7 +75,7 @@ class _FakeDownload(downloads.TempDownload):
     """A download stub to use on_download_finished with local files."""
 
     def __init__(self,  # pylint: disable=super-init-not-called
-                 fileobj: typing.IO[bytes]) -> None:
+                 fileobj: IO[bytes]) -> None:
         self.fileobj = fileobj
         self.successful = True
 
@@ -97,9 +97,9 @@ class HostBlocker:
     def __init__(self, *, data_dir: pathlib.Path, config_dir: pathlib.Path,
                  has_basedir: bool = False) -> None:
         self._has_basedir = has_basedir
-        self._blocked_hosts = set()  # type: typing.Set[str]
-        self._config_blocked_hosts = set()  # type: typing.Set[str]
-        self._in_progress = []  # type: typing.List[downloads.TempDownload]
+        self._blocked_hosts: Set[str] = set()
+        self._config_blocked_hosts: Set[str] = set()
+        self._in_progress: List[downloads.TempDownload] = []
         self._done_count = 0
 
         self._local_hosts_file = str(data_dir / 'blocked-hosts')
@@ -132,7 +132,7 @@ class HostBlocker:
                          .format(info.request_url.host()))
             info.block()
 
-    def _read_hosts_line(self, raw_line: bytes) -> typing.Set[str]:
+    def _read_hosts_line(self, raw_line: bytes) -> Set[str]:
         """Read hosts from the given line.
 
         Args:
@@ -170,7 +170,7 @@ class HostBlocker:
 
         return filtered_hosts
 
-    def _read_hosts_file(self, filename: str, target: typing.Set[str]) -> bool:
+    def _read_hosts_file(self, filename: str, target: Set[str]) -> bool:
         """Read hosts from the given filename.
 
         Args:
@@ -246,7 +246,7 @@ class HostBlocker:
         self._in_progress.append(download)
         self._on_download_finished(download)
 
-    def _merge_file(self, byte_io: typing.IO[bytes]) -> None:
+    def _merge_file(self, byte_io: IO[bytes]) -> None:
         """Read and merge host files.
 
         Args:
