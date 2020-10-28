@@ -24,7 +24,7 @@
 import functools
 import os
 import traceback
-import typing
+from typing import Optional
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QApplication
@@ -274,7 +274,7 @@ def version(win_id: int, paste: bool = False) -> None:
         pastebin_version()
 
 
-_keytester_widget = None  # type: typing.Optional[miscwidgets.KeyTesterWidget]
+_keytester_widget: Optional[miscwidgets.KeyTesterWidget] = None
 
 
 @cmdutils.register(debug=True)

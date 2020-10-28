@@ -29,7 +29,7 @@ import argparse
 import functools
 import threading
 import faulthandler
-import typing
+from typing import TYPE_CHECKING, Optional, MutableMapping, cast
 try:
     # WORKAROUND for segfaults when using pdb in pytest for some reason...
     import readline  # pylint: disable=unused-import
@@ -45,7 +45,7 @@ from qutebrowser.api import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog, ipc, objects
 from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
 from qutebrowser.qt import sip
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.misc import quitter
 
 
@@ -59,7 +59,7 @@ class ExceptionInfo:
     objects = attr.ib()
 
 
-crash_handler = typing.cast('CrashHandler', None)
+crash_handler = cast('CrashHandler', None)
 
 
 class CrashHandler(QObject):
@@ -337,10 +337,9 @@ class SignalHandler(QObject):
         self._quitter = quitter
         self._notifier = None
         self._timer = usertypes.Timer(self, 'python_hacks')
-        self._orig_handlers = {
-        }  # type: typing.MutableMapping[int, signal._HANDLER]
+        self._orig_handlers: MutableMapping[int, 'signal._HANDLER'] = {}
         self._activated = False
-        self._orig_wakeup_fd = None  # type: typing.Optional[int]
+        self._orig_wakeup_fd: Optional[int] = None
 
     def activate(self):
         """Set up signal handlers.
@@ -363,7 +362,7 @@ class SignalHandler(QObject):
             for fd in [read_fd, write_fd]:
                 flags = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-            self._notifier = QSocketNotifier(typing.cast(sip.voidptr, read_fd),
+            self._notifier = QSocketNotifier(cast(sip.voidptr, read_fd),
                                              QSocketNotifier.Read,
                                              self)
             self._notifier.activated.connect(  # type: ignore[attr-defined]

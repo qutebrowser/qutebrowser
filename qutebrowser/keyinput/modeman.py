@@ -19,7 +19,6 @@
 
 """Mode manager (per window) which handles the current keyboard mode."""
 
-import typing
 import functools
 from typing import Mapping, Callable, MutableMapping, Union, Set, cast
 
@@ -265,7 +264,7 @@ class ModeManager(QObject):
         self.mode = usertypes.KeyMode.normal
         self._releaseevents_to_pass = set()  # type: Set[KeyEvent]
         # Set after __init__
-        self.hintmanager = typing.cast(hints.HintManager, None)
+        self.hintmanager = cast(hints.HintManager, None)
 
     def __repr__(self) -> str:
         return utils.get_repr(self, mode=self.mode)

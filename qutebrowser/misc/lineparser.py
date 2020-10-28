@@ -22,7 +22,7 @@
 import os
 import os.path
 import contextlib
-import typing
+from typing import Sequence
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
@@ -150,7 +150,7 @@ class LineParser(BaseLineParser):
         """
         super().__init__(configdir, fname, binary=binary, parent=parent)
         if not os.path.isfile(self._configfile):
-            self.data = []  # type: typing.Sequence[str]
+            self.data: Sequence[str] = []
         else:
             log.init.debug("Reading {}".format(self._configfile))
             self._read()
