@@ -159,6 +159,8 @@ def check_overflow(arg: int, ctype: str, fatal: bool = True) -> int:
 
 
 if typing.TYPE_CHECKING:
+    # Protocol was added in Python 3.8
+
     class Validatable(typing.Protocol):
 
         """An object with an isValid() method (e.g. QUrl)."""

@@ -42,6 +42,8 @@ class WebKitElement(webelem.AbstractWebElement):
 
     """A wrapper around a QWebElement."""
 
+    _tab: webkittab.WebKitTab
+
     def __init__(self, elem: QWebElement, tab: 'webkittab.WebKitTab') -> None:
         super().__init__(tab)
         if isinstance(elem, self.__class__):
@@ -180,10 +182,6 @@ class WebKitElement(webelem.AbstractWebElement):
         elem = cast(Optional[QWebElement], self._elem.parent())
         if elem is None or elem.isNull():
             return None
-
-        if TYPE_CHECKING:
-            # pylint: disable=used-before-assignment
-            assert isinstance(self._tab, webkittab.WebKitTab)
 
         return WebKitElement(elem, tab=self._tab)
 

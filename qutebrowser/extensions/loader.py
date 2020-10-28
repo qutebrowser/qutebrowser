@@ -24,6 +24,7 @@ import types
 import sys
 import pathlib
 import importlib
+import argparse
 from typing import TYPE_CHECKING, Callable, Iterator, List, Optional, Set, Tuple
 
 import attr
@@ -34,9 +35,6 @@ from qutebrowser import components
 from qutebrowser.config import config
 from qutebrowser.utils import log, standarddir
 from qutebrowser.misc import objects
-
-if TYPE_CHECKING:
-    import argparse
 
 
 # ModuleInfo objects for all loaded plugins
@@ -50,7 +48,7 @@ class InitContext:
 
     data_dir: pathlib.Path = attr.ib()
     config_dir: pathlib.Path = attr.ib()
-    args: 'argparse.Namespace' = attr.ib()
+    args: argparse.Namespace = attr.ib()
 
 
 @attr.s
