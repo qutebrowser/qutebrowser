@@ -44,7 +44,7 @@ Possible values:
 - A callable (``int``, ``float``, etc.): Gets called to validate/convert the
   value.
 - A python enum type: All members of the enum are possible values.
-- A ``Union`` of multiple types above: Any of these types are valid
+- A ``typing.Union`` of multiple types above: Any of these types are valid
   values, e.g., ``Union[str, int]``.
 """
 
