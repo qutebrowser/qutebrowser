@@ -31,7 +31,7 @@ Module attributes:
 import io
 import operator
 import contextlib
-import typing
+from typing import TYPE_CHECKING, BinaryIO, IO, Iterator, Optional, Union, cast
 
 import pkg_resources
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
@@ -43,7 +43,7 @@ try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from PyQt5.QtWebKit import QWebHistory
     from PyQt5.QtWebEngineWidgets import QWebEngineHistory
 
@@ -74,7 +74,7 @@ class QtOSError(OSError):
         if msg is None:
             msg = dev.errorString()
 
-        self.qt_errno = None  # type: typing.Optional[QFileDevice.FileError]
+        self.qt_errno: Optional[QFileDevice.FileError] = None
         if isinstance(dev, QFileDevice):
             msg = self._init_filedev(dev, msg)
 
@@ -158,10 +158,11 @@ def check_overflow(arg: int, ctype: str, fatal: bool = True) -> int:
         return arg
 
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     # Protocol was added in Python 3.8
+    from typing import Protocol
 
-    class Validatable(typing.Protocol):
+    class Validatable(Protocol):
 
         """An object with an isValid() method (e.g. QUrl)."""
 
@@ -189,7 +190,7 @@ def check_qdatastream(stream: QDataStream) -> None:
         raise OSError(status_to_str[stream.status()])
 
 
-_QtSerializableType = typing.Union[
+_QtSerializableType = Union[
     QObject,
     QByteArray,
     QUrl,
@@ -233,7 +234,7 @@ def savefile_open(
         filename: str,
         binary: bool = False,
         encoding: str = 'utf-8'
-) -> typing.Iterator[typing.IO]:
+) -> Iterator[IO]:
     """Context manager to easily use a QSaveFile."""
     f = QSaveFile(filename)
     cancelled = False
@@ -242,10 +243,10 @@ def savefile_open(
         if not open_ok:
             raise QtOSError(f)
 
-        dev = typing.cast(typing.BinaryIO, PyQIODevice(f))
+        dev = cast(BinaryIO, PyQIODevice(f))
 
         if binary:
-            new_f = dev  # type: typing.IO
+            new_f: IO = dev
         else:
             new_f = io.TextIOWrapper(dev, encoding=encoding)
 
@@ -363,7 +364,7 @@ class PyQIODevice(io.BufferedIOBase):
     def readable(self) -> bool:
         return self.dev.isReadable()
 
-    def readline(self, size: typing.Optional[int] = -1) -> bytes:
+    def readline(self, size: Optional[int] = -1) -> bytes:
         self._check_open()
         self._check_readable()
 
@@ -374,7 +375,7 @@ class PyQIODevice(io.BufferedIOBase):
         else:
             qt_size = size + 1  # Qt also counts the NUL byte
 
-        buf = None  # type: typing.Union[QByteArray, bytes, None]
+        buf: Union[QByteArray, bytes, None] = None
         if self.dev.canReadLine():
             buf = self.dev.readLine(qt_size)
         elif size is None or size < 0:
@@ -405,7 +406,7 @@ class PyQIODevice(io.BufferedIOBase):
 
     def write(  # type: ignore[override]
             self,
-            data: typing.Union[bytes, bytearray]
+            data: Union[bytes, bytearray]
     ) -> int:
         self._check_open()
         self._check_writable()
@@ -414,11 +415,11 @@ class PyQIODevice(io.BufferedIOBase):
             raise QtOSError(self.dev)
         return num
 
-    def read(self, size: typing.Optional[int] = None) -> bytes:
+    def read(self, size: Optional[int] = None) -> bytes:
         self._check_open()
         self._check_readable()
 
-        buf = None  # type: typing.Union[QByteArray, bytes, None]
+        buf: Union[QByteArray, bytes, None] = None
         if size in [None, -1]:
             buf = self.dev.readAll()
         else:
@@ -465,7 +466,7 @@ class EventLoop(QEventLoop):
     def exec_(
             self,
             flags: QEventLoop.ProcessEventsFlags =
-            typing.cast(QEventLoop.ProcessEventsFlags, QEventLoop.AllEvents)
+            cast(QEventLoop.ProcessEventsFlags, QEventLoop.AllEvents)
     ) -> int:
         """Override exec_ to raise an exception when re-running."""
         if self._executing:

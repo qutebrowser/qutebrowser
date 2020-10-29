@@ -21,7 +21,7 @@
 
 import operator
 import enum
-import typing
+from typing import TYPE_CHECKING, Any, Optional, Sequence, TypeVar, Union
 
 import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
@@ -30,9 +30,9 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.utils import log, qtutils, utils
 
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     # Protocol was added in Python 3.8
-    from typing import Protocol, Any
+    from typing import Protocol
 
     class SupportsLessThan(Protocol):
 
@@ -42,7 +42,7 @@ if typing.TYPE_CHECKING:
             ...
 
 
-_T = typing.TypeVar('_T', bound='SupportsLessThan')
+_T = TypeVar('_T', bound='SupportsLessThan')
 
 
 class Unset:
@@ -58,7 +58,7 @@ class Unset:
 UNSET = Unset()
 
 
-class NeighborList(typing.Sequence[_T]):
+class NeighborList(Sequence[_T]):
 
     """A list of items which saves its current position.
 
@@ -79,8 +79,8 @@ class NeighborList(typing.Sequence[_T]):
         edge = enum.auto()
         exception = enum.auto()
 
-    def __init__(self, items: typing.Sequence[_T] = None,
-                 default: typing.Union[_T, Unset] = UNSET,
+    def __init__(self, items: Sequence[_T] = None,
+                 default: Union[_T, Unset] = UNSET,
                  mode: Modes = Modes.exception) -> None:
         """Constructor.
 
@@ -94,19 +94,19 @@ class NeighborList(typing.Sequence[_T]):
         if not isinstance(mode, self.Modes):
             raise TypeError("Mode {} is not a Modes member!".format(mode))
         if items is None:
-            self._items = []  # type: typing.Sequence[_T]
+            self._items: Sequence[_T] = []
         else:
             self._items = list(items)
         self._default = default
 
         if not isinstance(default, Unset):
             idx = self._items.index(default)
-            self._idx = idx  # type: typing.Optional[int]
+            self._idx: Optional[int] = idx
         else:
             self._idx = None
 
         self._mode = mode
-        self.fuzzyval = None  # type: typing.Optional[int]
+        self.fuzzyval: Optional[int] = None
 
     def __getitem__(self, key: int) -> _T:  # type: ignore[override]
         return self._items[key]
@@ -175,7 +175,7 @@ class NeighborList(typing.Sequence[_T]):
         return new
 
     @property
-    def items(self) -> typing.Sequence[_T]:
+    def items(self) -> Sequence[_T]:
         """Getter for items, which should not be set."""
         return self._items
 
@@ -415,13 +415,13 @@ class Question(QObject):
 
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
-        self.mode = None  # type: typing.Optional[PromptMode]
-        self.default = None  # type: typing.Union[bool, str, None]
-        self.title = None  # type: typing.Optional[str]
-        self.text = None  # type: typing.Optional[str]
-        self.url = None  # type: typing.Optional[str]
-        self.option = None  # type: typing.Optional[bool]
-        self.answer = None  # type: typing.Union[str, bool, None]
+        self.mode: Optional[PromptMode] = None
+        self.default: Union[bool, str, None] = None
+        self.title: Optional[str] = None
+        self.text: Optional[str] = None
+        self.url: Optional[str] = None
+        self.option: Optional[bool] = None
+        self.answer: Union[str, bool, None] = None
         self.is_aborted = False
         self.interrupted = False
 
@@ -495,7 +495,7 @@ class AbstractCertificateErrorWrapper:
 
     """A wrapper over an SSL/certificate error."""
 
-    def __init__(self, error: typing.Any) -> None:
+    def __init__(self, error: Any) -> None:
         self._error = error
 
     def __str__(self) -> str:
@@ -538,7 +538,7 @@ class NavigationRequest:
         #: None of the above.
         other = 8
 
-    url = attr.ib()  # type: QUrl
-    navigation_type = attr.ib()  # type: Type
-    is_main_frame = attr.ib()  # type: bool
-    accepted = attr.ib(default=True)  # type: bool
+    url: QUrl = attr.ib()
+    navigation_type: Type = attr.ib()
+    is_main_frame: bool = attr.ib()
+    accepted: bool = attr.ib(default=True)
