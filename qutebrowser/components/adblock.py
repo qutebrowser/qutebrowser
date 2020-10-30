@@ -42,7 +42,7 @@ from qutebrowser.components.braveadblock import ad_blocker
 
 
 logger = logging.getLogger("network")
-host_blocker = typing.cast("HostBlocker", None)
+host_blocker = cast("HostBlocker", None)
 
 
 def _guess_zip_filename(zf: zipfile.ZipFile) -> str:

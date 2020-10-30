@@ -182,6 +182,7 @@ def easylist_easyprivacy(easylist_easyprivacy_both):
 
 @pytest.fixture
 def ad_blocker(config_stub, data_tmpdir):
+    pytest.importorskip("adblock")
     return braveadblock.BraveAdBlocker(data_dir=pathlib.Path(str(data_tmpdir)))
 
 
@@ -374,7 +375,8 @@ def test_update_easylist_easyprivacy_directory(
         ad_blocker.adblock_update()
         assert_only_one_success_message(caplog.messages)
         assert (
-            caplog.messages[-1] == "braveadblock: Filters successfully read from 2 sources"
+            caplog.messages[-1]
+            == "braveadblock: Filters successfully read from 2 sources"
         )
     assert_urls(ad_blocker, NOT_OKAY_URLS, True)
     assert_urls(ad_blocker, OKAY_URLS, False)
@@ -393,7 +395,8 @@ def test_update_empty_directory_blocklist(ad_blocker, config_stub, empty_dir, ca
         ad_blocker.adblock_update()
         assert_only_one_success_message(caplog.messages)
         assert (
-            caplog.messages[-1] == "braveadblock: Filters successfully read from 0 sources"
+            caplog.messages[-1]
+            == "braveadblock: Filters successfully read from 0 sources"
         )
 
     # There are no filters, so no ads should be blocked.

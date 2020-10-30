@@ -99,7 +99,6 @@ class BlocklistDownloads:
             self._finished = True
             self._user_cb_all(self._done_count)
 
-
     def _download_blocklist_url(self, url: QUrl) -> None:
         """Take a blocklist url and queue it for download.
 

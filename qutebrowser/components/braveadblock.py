@@ -23,6 +23,7 @@ import io
 import logging
 import typing
 import pathlib
+import functools
 
 from PyQt5.QtCore import QUrl
 
@@ -205,14 +206,14 @@ class BraveAdBlocker:
         blocklists = config.val.content.blocking.adblock.lists
         dl = blockutils.BlocklistDownloads(
             blocklists,
-            lambda d: self._on_download_finished(d, filter_set),
-            lambda cnt: self._on_lists_downloaded(cnt, filter_set),
+            functools.partial(self._on_download_finished, filter_set=filter_set),
+            functools.partial(self._on_lists_downloaded, filter_set=filter_set),
         )
         dl.initiate()
         return dl
 
     def _on_lists_downloaded(
-        self, done_count: int, filter_set: adblock.FilterSet
+        self, done_count: int, filter_set: "adblock.FilterSet"
     ) -> None:
         """Install block lists after files have been downloaded."""
         self._engine = adblock.Engine(filter_set)
@@ -232,7 +233,7 @@ class BraveAdBlocker:
                 logger.exception("Failed to remove adblock cache file: {}".format(e))
 
     def _on_download_finished(
-        self, fileobj: typing.IO[bytes], filter_set: adblock.FilterSet
+        self, fileobj: typing.IO[bytes], filter_set: "adblock.FilterSet"
     ) -> None:
         """When a blocklist download finishes, add it to the given filter set.
 

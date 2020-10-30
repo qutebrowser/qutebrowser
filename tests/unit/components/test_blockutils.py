@@ -8,6 +8,7 @@ import pytest
 
 from qutebrowser.components.utils import blockutils
 
+
 @pytest.fixture
 def pretend_blocklists(tmpdir):
     """Put fake blocklists into a tempdir.
@@ -52,7 +53,9 @@ def test_blocklist_dl(pretend_blocklists):
 
     list_qurls = [QUrl(l) for l in pretend_blocklists[0]]
 
-    dl = blockutils.BlocklistDownloads(list_qurls, on_single_download, on_all_downloaded)
+    dl = blockutils.BlocklistDownloads(
+        list_qurls, on_single_download, on_all_downloaded
+    )
     dl.initiate()
     while dl._in_progress:
         pass
