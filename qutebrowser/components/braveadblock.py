@@ -204,10 +204,12 @@ class BraveAdBlocker:
 
         filter_set = adblock.FilterSet()
         blocklists = config.val.content.blocking.adblock.lists
-        dl = blockutils.BlocklistDownloads(
-            blocklists,
-            functools.partial(self._on_download_finished, filter_set=filter_set),
-            functools.partial(self._on_lists_downloaded, filter_set=filter_set),
+        dl = blockutils.BlocklistDownloads(blocklists)
+        dl.single_download_finished.connect(
+            functools.partial(self._on_download_finished, filter_set=filter_set)
+        )
+        dl.all_downloads_finished.connect(
+            functools.partial(self._on_lists_downloaded, filter_set=filter_set)
         )
         dl.initiate()
         return dl

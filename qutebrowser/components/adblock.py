@@ -219,9 +219,9 @@ class HostBlocker:
         self._blocked_hosts = set()
 
         blocklists = config.val.content.blocking.hosts.lists
-        dl = blockutils.BlocklistDownloads(
-            blocklists, self._merge_file, self._on_lists_downloaded
-        )
+        dl = blockutils.BlocklistDownloads(blocklists)
+        dl.single_download_finished.connect(self._merge_file)
+        dl.all_downloads_finished.connect(self._on_lists_downloaded)
         dl.initiate()
         return dl
 

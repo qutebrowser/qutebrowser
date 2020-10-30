@@ -53,10 +53,11 @@ def test_blocklist_dl(pretend_blocklists):
 
     list_qurls = [QUrl(l) for l in pretend_blocklists[0]]
 
-    dl = blockutils.BlocklistDownloads(
-        list_qurls, on_single_download, on_all_downloaded
-    )
+    dl = blockutils.BlocklistDownloads(list_qurls)
+    dl.single_download_finished.connect(on_single_download)
+    dl.all_downloads_finished.connect(on_all_downloaded)
     dl.initiate()
+
     while dl._in_progress:
         pass
 
