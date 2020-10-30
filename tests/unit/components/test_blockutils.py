@@ -1,3 +1,23 @@
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+#!/usr/bin/env python3
+
+# Copyright 2020 Árni Dagur <arni@dagur.eu>
+#
+# This file is part of qutebrowser.
+#
+# qutebrowser is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# qutebrowser is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
 import typing
 import os
 import io
@@ -51,7 +71,7 @@ def test_blocklist_dl(pretend_blocklists):
     def on_all_downloaded(done_count: int) -> None:
         assert done_count == 10
 
-    list_qurls = [QUrl(l) for l in pretend_blocklists[0]]
+    list_qurls = [QUrl(blocklist) for blocklist in pretend_blocklists[0]]
 
     dl = blockutils.BlocklistDownloads(list_qurls)
     dl.single_download_finished.connect(on_single_download)

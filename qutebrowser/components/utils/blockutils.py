@@ -23,8 +23,6 @@
 import typing
 import os
 import functools
-import threading
-import io
 
 from PyQt5.QtCore import QUrl, QObject, pyqtSignal
 
@@ -45,14 +43,13 @@ class BlocklistDownloads(QObject):
     """Download blocklists from the given URLs.
 
     Attributes:
+        single_download_finished:
+            A signal that is emitted when a single download has finished. The
+            listening slot is provided with the download object.
+        all_downloads_finished:
+            A signal that is emitted when all downloads have finished. The
+            first argument is the number of items downloaded.
         _urls: The URLs to download.
-        _user_cb_single:
-            A user-provided function to be called when a single download has
-            finished. The user is provided with the download object.
-        _user_cb_all:
-            A user-provided function to be called when all downloads have
-            finished. The first argument to the function is the number of
-            items downloaded.
         _in_progress: The DownloadItems which are currently downloading.
         _done_count: How many files have been read successfully.
         _finished_registering_downloads:
@@ -79,6 +76,7 @@ class BlocklistDownloads(QObject):
         self._finished = False
 
     def initiate(self) -> None:
+        """Initiate downloads of each url in `self._urls`."""
         if self._started:
             raise ValueError("This download has already been initiated")
         self._started = True

@@ -24,7 +24,7 @@ import posixpath
 import zipfile
 import logging
 import pathlib
-from typing import cast, IO, List, Set
+from typing import cast, IO, Set
 
 from PyQt5.QtCore import QUrl
 
@@ -32,7 +32,6 @@ from qutebrowser.api import (
     hook,
     config,
     message,
-    downloads,
     interceptor,
     apitypes,
     qtutils,

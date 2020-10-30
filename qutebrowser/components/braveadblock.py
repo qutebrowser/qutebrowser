@@ -31,7 +31,6 @@ from qutebrowser.api import (
     hook,
     config,
     message,
-    downloads,
     interceptor,
     apitypes,
     qtutils,
