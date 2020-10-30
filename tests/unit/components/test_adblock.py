@@ -260,9 +260,9 @@ def test_disabled_blocking_update(
     config_stub.val.content.blocking.method = method
 
     host_blocker = host_blocker_factory()
-    host_blocker.adblock_update()
-    while host_blocker._in_progress:
-        current_download = host_blocker._in_progress[0]
+    downloads = host_blocker.adblock_update()
+    while downloads._in_progress:
+        current_download = downloads._in_progress[0]
         with caplog.at_level(logging.ERROR):
             current_download.successful = True
             current_download.finished.emit()
@@ -311,10 +311,10 @@ def test_successful_update(config_stub, tmpdir, caplog, host_blocker_factory):
     config_stub.val.content.blocking.whitelist = None
 
     host_blocker = host_blocker_factory()
-    host_blocker.adblock_update()
+    downloads = host_blocker.adblock_update()
     # Simulate download is finished
-    while host_blocker._in_progress:
-        current_download = host_blocker._in_progress[0]
+    while downloads._in_progress:
+        current_download = downloads._in_progress[0]
         with caplog.at_level(logging.ERROR):
             current_download.successful = True
             current_download.finished.emit()
@@ -383,9 +383,9 @@ def test_failed_dl_update(config_stub, tmpdir, caplog, host_blocker_factory):
     config_stub.val.content.blocking.whitelist = None
 
     host_blocker = host_blocker_factory()
-    host_blocker.adblock_update()
-    while host_blocker._in_progress:
-        current_download = host_blocker._in_progress[0]
+    downloads = host_blocker.adblock_update()
+    while downloads._in_progress:
+        current_download = downloads._in_progress[0]
         # if current download is the file we want to fail, make it fail
         if current_download.name == dl_fail_blocklist.path():
             current_download.successful = False
@@ -419,8 +419,8 @@ def test_invalid_utf8(config_stub, tmpdir, caplog, host_blocker_factory, locatio
     config_stub.val.content.blocking.whitelist = None
 
     host_blocker = host_blocker_factory()
-    host_blocker.adblock_update()
-    current_download = host_blocker._in_progress[0]
+    downloads = host_blocker.adblock_update()
+    current_download = downloads._in_progress[0]
 
     if location == "content":
         with caplog.at_level(logging.ERROR):

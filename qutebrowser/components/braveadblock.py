@@ -197,22 +197,19 @@ class BraveAdBlocker:
             ):
                 message.info("Run :adblock-update to get adblock lists.")
 
-    def adblock_update(self) -> None:
+    def adblock_update(self) -> blockutils.BlocklistDownloads:
         """Update the adblock block lists."""
         logger.info("Downloading adblock filter lists...")
 
         filter_set = adblock.FilterSet()
         blocklists = config.val.content.blocking.adblock.lists
-        if not blocklists:
-            # Blocklists are None or length zero
-            self._on_lists_downloaded(0, filter_set)
-        else:
-            dl = blockutils.BlocklistDownload(
-                blocklists,
-                lambda d: self._on_download_finished(d, filter_set),
-                lambda cnt: self._on_lists_downloaded(cnt, filter_set),
-            )
-            dl.initiate()
+        dl = blockutils.BlocklistDownloads(
+            blocklists,
+            lambda d: self._on_download_finished(d, filter_set),
+            lambda cnt: self._on_lists_downloaded(cnt, filter_set),
+        )
+        dl.initiate()
+        return dl
 
     def _on_lists_downloaded(
         self, done_count: int, filter_set: adblock.FilterSet

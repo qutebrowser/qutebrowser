@@ -213,16 +213,17 @@ class HostBlocker:
             ):
                 message.info("Run :adblock-update to get adblock lists.")
 
-    def adblock_update(self) -> None:
+    def adblock_update(self) -> blockutils.BlocklistDownloads:
         """Update the adblock block lists."""
         self._read_hosts_file(self._config_hosts_file, self._config_blocked_hosts)
         self._blocked_hosts = set()
 
         blocklists = config.val.content.blocking.hosts.lists
-        dl = blockutils.BlocklistDownload(
+        dl = blockutils.BlocklistDownloads(
             blocklists, self._merge_file, self._on_lists_downloaded
         )
         dl.initiate()
+        return dl
 
     def _merge_file(self, byte_io: typing.IO[bytes]) -> None:
         """Read and merge host files.

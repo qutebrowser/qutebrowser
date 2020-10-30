@@ -190,7 +190,7 @@ def assert_only_one_success_message(messages):
         len(
             list(
                 filter(
-                    lambda m: m.startswith("adblock: Filters successfully read"),
+                    lambda m: m.startswith("braveadblock: Filters successfully read"),
                     messages,
                 )
             )
@@ -243,9 +243,9 @@ def test_blocking_enabled(
     # with pytest.
     ad_blocker.enabled = braveadblock._should_be_used()
 
-    ad_blocker.adblock_update()
-    while ad_blocker._in_progress:
-        current_download = ad_blocker._in_progress[0]
+    downloads = ad_blocker.adblock_update()
+    while downloads._in_progress:
+        current_download = downloads._in_progress[0]
         with caplog.at_level(logging.ERROR):
             current_download.successful = True
             current_download.finished.emit()
@@ -273,9 +273,9 @@ def test_adblock_cache(config_stub, easylist_easyprivacy, caplog, ad_blocker):
             assert_none_blocked(ad_blocker)
 
         # Now we initialize the adblocker.
-        ad_blocker.adblock_update()
-        while ad_blocker._in_progress:
-            current_download = ad_blocker._in_progress[0]
+        downloads = ad_blocker.adblock_update()
+        while downloads._in_progress:
+            current_download = downloads._in_progress[0]
             with caplog.at_level(logging.ERROR):
                 current_download.successful = True
                 current_download.finished.emit()
@@ -301,7 +301,7 @@ def test_invalid_utf8(ad_blocker, config_stub, blocklist_invalid_utf8, caplog):
 
     with caplog.at_level(logging.INFO):
         ad_blocker.adblock_update()
-    expected = "Block list is not valid utf-8"
+    expected = "braveadblock: Block list is not valid utf-8"
     assert caplog.messages[-2].startswith(expected)
 
 
@@ -314,9 +314,9 @@ def test_config_changed(ad_blocker, config_stub, easylist_easyprivacy, caplog):
         # We should be blocking like normal, since the block lists are set to
         # easylist and easyprivacy.
         config_stub.val.content.blocking.adblock.lists = easylist_easyprivacy
-        ad_blocker.adblock_update()
-        while ad_blocker._in_progress:
-            current_download = ad_blocker._in_progress[0]
+        downloads = ad_blocker.adblock_update()
+        while downloads._in_progress:
+            current_download = downloads._in_progress[0]
             with caplog.at_level(logging.ERROR):
                 current_download.successful = True
                 current_download.finished.emit()
@@ -331,9 +331,9 @@ def test_config_changed(ad_blocker, config_stub, easylist_easyprivacy, caplog):
 
         # After updating the adblocker, nothing should be blocked, since we set
         # the blocklist to None.
-        ad_blocker.adblock_update()
-        while ad_blocker._in_progress:
-            current_download = ad_blocker._in_progress[0]
+        downloads = ad_blocker.adblock_update()
+        while downloads._in_progress:
+            current_download = downloads._in_progress[0]
             with caplog.at_level(logging.ERROR):
                 current_download.successful = True
                 current_download.finished.emit()
@@ -374,7 +374,7 @@ def test_update_easylist_easyprivacy_directory(
         ad_blocker.adblock_update()
         assert_only_one_success_message(caplog.messages)
         assert (
-            caplog.messages[-1] == "adblock: Filters successfully read from 2 sources"
+            caplog.messages[-1] == "braveadblock: Filters successfully read from 2 sources"
         )
     assert_urls(ad_blocker, NOT_OKAY_URLS, True)
     assert_urls(ad_blocker, OKAY_URLS, False)
@@ -393,7 +393,7 @@ def test_update_empty_directory_blocklist(ad_blocker, config_stub, empty_dir, ca
         ad_blocker.adblock_update()
         assert_only_one_success_message(caplog.messages)
         assert (
-            caplog.messages[-1] == "adblock: Filters successfully read from 0 sources"
+            caplog.messages[-1] == "braveadblock: Filters successfully read from 0 sources"
         )
 
     # There are no filters, so no ads should be blocked.
