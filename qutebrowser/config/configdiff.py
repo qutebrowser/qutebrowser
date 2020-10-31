@@ -19,9 +19,9 @@
 
 """Code to show a diff of the legacy config format."""
 
-import typing
 import difflib
 import os.path
+from typing import MutableSequence
 
 import pygments
 import pygments.lexers
@@ -730,8 +730,8 @@ scroll right
 
 def get_diff() -> str:
     """Get a HTML diff for the old config files."""
-    old_conf_lines = []  # type: typing.MutableSequence[str]
-    old_key_lines = []  # type: typing.MutableSequence[str]
+    old_conf_lines: MutableSequence[str] = []
+    old_key_lines: MutableSequence[str] = []
 
     for filename, dest in [('qutebrowser.conf', old_conf_lines),
                            ('keys.conf', old_key_lines)]:
