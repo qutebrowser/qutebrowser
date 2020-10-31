@@ -26,10 +26,10 @@ import pathlib
 import sys
 import os
 import os.path
-import typing
 import shutil
 import venv
 import subprocess
+from typing import List, Optional, Tuple
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from scripts import utils, link_pyqt
@@ -77,7 +77,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def pyqt_versions() -> typing.List[str]:
+def pyqt_versions() -> List[str]:
     """Get a list of all available PyQt versions.
 
     The list is based on the filenames of misc/requirements/ files.
@@ -224,7 +224,7 @@ def install_qutebrowser(venv_dir: pathlib.Path) -> None:
 
 
 def regenerate_docs(venv_dir: pathlib.Path,
-                    asciidoc: typing.Optional[typing.Tuple[str, str]]):
+                    asciidoc: Optional[Tuple[str, str]]):
     """Regenerate docs using asciidoc."""
     utils.print_title("Generating documentation")
     if asciidoc is not None:

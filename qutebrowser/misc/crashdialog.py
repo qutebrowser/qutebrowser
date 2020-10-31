@@ -28,7 +28,7 @@ import fnmatch
 import traceback
 import datetime
 import enum
-import typing
+from typing import List, Tuple
 
 import pkg_resources
 from PyQt5.QtCore import pyqtSlot, Qt, QSize
@@ -119,7 +119,7 @@ class _CrashDialog(QDialog):
         super().__init__(parent)
         # We don't set WA_DeleteOnClose here as on an exception, we'll get
         # closed anyways, and it only could have unintended side-effects.
-        self._crash_info = []  # type: typing.List[typing.Tuple[str, str]]
+        self._crash_info: List[Tuple[str, str]] = []
         self._btn_box = None
         self._paste_text = None
         self.setWindowTitle("Whoops!")
