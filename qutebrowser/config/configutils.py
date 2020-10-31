@@ -21,21 +21,22 @@
 """Utilities and data structures used by various config code."""
 
 
-import typing
 import collections
 import itertools
 import operator
+from typing import (
+    TYPE_CHECKING, Any, Dict, Iterable, Iterator, List, Optional, Sequence, Set, Union)
 
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import utils, urlmatch, usertypes, qtutils
 from qutebrowser.config import configexc
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.config import configdata
 
 
-def _widened_hostnames(hostname: str) -> typing.Iterable[str]:
+def _widened_hostnames(hostname: str) -> Iterable[str]:
     """A generator for widening string hostnames.
 
     Ex: a.c.foo -> [a.c.foo, c.foo, foo]"""
@@ -56,8 +57,8 @@ class ScopedValue:
 
     id_gen = itertools.count(0)
 
-    def __init__(self, value: typing.Any,
-                 pattern: typing.Optional[urlmatch.UrlPattern],
+    def __init__(self, value: Any,
+                 pattern: Optional[urlmatch.UrlPattern],
                  hide_userconfig: bool = False) -> None:
         self.value = value
         self.pattern = pattern
@@ -90,17 +91,18 @@ class Values:
         _domain_map: A mapping from hostnames to all associated ScopedValues.
     """
 
-    _VmapKeyType = typing.Optional[urlmatch.UrlPattern]
+    _VmapKeyType = Optional[urlmatch.UrlPattern]
 
     def __init__(self,
                  opt: 'configdata.Option',
-                 values: typing.Sequence[ScopedValue] = ()) -> None:
+                 values: Sequence[ScopedValue] = ()) -> None:
         self.opt = opt
-        self._vmap = collections.OrderedDict()  \
-            # type: collections.OrderedDict[Values._VmapKeyType, ScopedValue]
+        self._vmap: 'collections.OrderedDict[Values._VmapKeyType, ScopedValue]' = (
+            collections.OrderedDict()
+        )
         # A map from domain parts to rules that fall under them.
-        self._domain_map = collections.defaultdict(set)  \
-            # type: typing.Dict[typing.Optional[str], typing.Set[ScopedValue]]
+        self._domain_map: Dict[
+            Optional[str], Set[ScopedValue]] = collections.defaultdict(set)
 
         for scoped in values:
             self._add_scoped(scoped)
@@ -117,7 +119,7 @@ class Values:
             return '\n'.join(lines)
         return '{}: <unchanged>'.format(self.opt.name)
 
-    def dump(self, include_hidden: bool = False) -> typing.Sequence[str]:
+    def dump(self, include_hidden: bool = False) -> Sequence[str]:
         """Dump all customizations for this value.
 
         Arguments:
@@ -138,7 +140,7 @@ class Values:
 
         return lines
 
-    def __iter__(self) -> typing.Iterator['ScopedValue']:
+    def __iter__(self) -> Iterator['ScopedValue']:
         """Yield ScopedValue elements.
 
         This yields in "normal" order, i.e. global and then first-set settings
@@ -151,12 +153,12 @@ class Values:
         return bool(self._vmap)
 
     def _check_pattern_support(
-            self, arg: typing.Union[urlmatch.UrlPattern, QUrl, None]) -> None:
+            self, arg: Union[urlmatch.UrlPattern, QUrl, None]) -> None:
         """Make sure patterns are supported if one was given."""
         if arg is not None and not self.opt.supports_pattern:
             raise configexc.NoPatternError(self.opt.name)
 
-    def add(self, value: typing.Any,
+    def add(self, value: Any,
             pattern: urlmatch.UrlPattern = None, *,
             hide_userconfig: bool = False) -> None:
         """Add a value with the given pattern to the list of values.
@@ -201,7 +203,7 @@ class Values:
         self._vmap.clear()
         self._domain_map.clear()
 
-    def _get_fallback(self, fallback: bool) -> typing.Any:
+    def _get_fallback(self, fallback: bool) -> Any:
         """Get the fallback global/default value."""
         if None in self._vmap:
             return self._vmap[None].value
@@ -211,8 +213,7 @@ class Values:
         else:
             return usertypes.UNSET
 
-    def get_for_url(self, url: QUrl = None, *,
-                    fallback: bool = True) -> typing.Any:
+    def get_for_url(self, url: QUrl = None, *, fallback: bool = True) -> Any:
         """Get a config value, falling back when needed.
 
         This first tries to find a value matching the URL (if given).
@@ -225,7 +226,7 @@ class Values:
             return self._get_fallback(fallback)
         qtutils.ensure_valid(url)
 
-        candidates = []  # type: typing.List[ScopedValue]
+        candidates: List[ScopedValue] = []
         # Urls trailing with '.' are equivalent to non-trailing types.
         # urlutils strips them, so in order to match we will need to as well.
         widened_hosts = _widened_hostnames(url.host().rstrip('.'))
@@ -247,8 +248,8 @@ class Values:
         return self._get_fallback(fallback)
 
     def get_for_pattern(self,
-                        pattern: typing.Optional[urlmatch.UrlPattern], *,
-                        fallback: bool = True) -> typing.Any:
+                        pattern: Optional[urlmatch.UrlPattern], *,
+                        fallback: bool = True) -> Any:
         """Get a value only if it's been overridden for the given pattern.
 
         This is useful when showing values to the user.
@@ -272,11 +273,11 @@ class FontFamilies:
 
     """A list of font family names."""
 
-    def __init__(self, families: typing.Sequence[str]) -> None:
+    def __init__(self, families: Sequence[str]) -> None:
         self._families = families
         self.family = families[0] if families else None
 
-    def __iter__(self) -> typing.Iterator[str]:
+    def __iter__(self) -> Iterator[str]:
         yield from self._families
 
     def __repr__(self) -> str:
@@ -285,7 +286,7 @@ class FontFamilies:
     def __str__(self) -> str:
         return self.to_str()
 
-    def _quoted_families(self) -> typing.Iterator[str]:
+    def _quoted_families(self) -> Iterator[str]:
         for f in self._families:
             needs_quoting = any(c in f for c in ', ')
             yield '"{}"'.format(f) if needs_quoting else f

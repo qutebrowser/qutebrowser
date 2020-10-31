@@ -20,9 +20,9 @@
 """Bridge from QWeb(Engine)Settings to our own settings."""
 
 import re
-import typing
 import argparse
 import functools
+from typing import Any, Callable, Dict, Optional, Set
 
 import attr
 from PyQt5.QtCore import QUrl, pyqtSlot, qVersion
@@ -41,11 +41,11 @@ class UserAgent:
 
     """A parsed user agent."""
 
-    os_info = attr.ib()  # type: str
-    webkit_version = attr.ib()  # type: str
-    upstream_browser_key = attr.ib()  # type: str
-    upstream_browser_version = attr.ib()  # type: str
-    qt_key = attr.ib()  # type: str
+    os_info: str = attr.ib()
+    webkit_version: str = attr.ib()
+    upstream_browser_key: str = attr.ib()
+    upstream_browser_version: str = attr.ib()
+    qt_key: str = attr.ib()
 
     @classmethod
     def parse(cls, ua: str) -> 'UserAgent':
@@ -82,8 +82,7 @@ class AttributeInfo:
 
     """Info about a settings attribute."""
 
-    def __init__(self, *attributes: typing.Any,
-                 converter: typing.Callable = None) -> None:
+    def __init__(self, *attributes: Any, converter: Callable = None) -> None:
         self.attributes = attributes
         if converter is None:
             self.converter = lambda val: val
@@ -95,18 +94,18 @@ class AbstractSettings:
 
     """Abstract base class for settings set via QWeb(Engine)Settings."""
 
-    _ATTRIBUTES = {}  # type: typing.Dict[str, AttributeInfo]
-    _FONT_SIZES = {}  # type: typing.Dict[str, typing.Any]
-    _FONT_FAMILIES = {}  # type: typing.Dict[str, typing.Any]
-    _FONT_TO_QFONT = {}  # type: typing.Dict[typing.Any, QFont.StyleHint]
+    _ATTRIBUTES: Dict[str, AttributeInfo] = {}
+    _FONT_SIZES: Dict[str, Any] = {}
+    _FONT_FAMILIES: Dict[str, Any] = {}
+    _FONT_TO_QFONT: Dict[Any, QFont.StyleHint] = {}
 
-    def __init__(self, settings: typing.Any) -> None:
+    def __init__(self, settings: Any) -> None:
         self._settings = settings
 
-    def _assert_not_unset(self, value: typing.Any) -> None:
+    def _assert_not_unset(self, value: Any) -> None:
         assert value is not usertypes.UNSET
 
-    def set_attribute(self, name: str, value: typing.Any) -> bool:
+    def set_attribute(self, name: str, value: Any) -> bool:
         """Set the given QWebSettings/QWebEngineSettings attribute.
 
         If the value is usertypes.UNSET, the value is reset instead.
@@ -148,7 +147,7 @@ class AbstractSettings:
         self._settings.setFontSize(family, value)
         return old_value != value
 
-    def set_font_family(self, name: str, value: typing.Optional[str]) -> bool:
+    def set_font_family(self, name: str, value: Optional[str]) -> bool:
         """Set the given QWebSettings/QWebEngineSettings font family.
 
         With None (the default), QFont is used to get the default font for the
@@ -180,7 +179,7 @@ class AbstractSettings:
         self._settings.setDefaultTextEncoding(encoding)
         return old_value != encoding
 
-    def _update_setting(self, setting: str, value: typing.Any) -> bool:
+    def _update_setting(self, setting: str, value: Any) -> bool:
         """Update the given setting/value.
 
         Unknown settings are ignored.
@@ -203,7 +202,7 @@ class AbstractSettings:
         value = config.instance.get(setting)
         self._update_setting(setting, value)
 
-    def update_for_url(self, url: QUrl) -> typing.Set[str]:
+    def update_for_url(self, url: QUrl) -> Set[str]:
         """Update settings customized for the given tab.
 
         Return:
