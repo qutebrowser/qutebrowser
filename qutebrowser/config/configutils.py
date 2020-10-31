@@ -25,7 +25,8 @@ import collections
 import itertools
 import operator
 from typing import (
-    TYPE_CHECKING, Any, Dict, Iterable, Iterator, List, Optional, Sequence, Set, Union)
+    TYPE_CHECKING, Any, Dict, Iterable, Iterator, List, Optional, Sequence, Set, Union,
+    MutableMapping)
 
 from PyQt5.QtCore import QUrl
 
@@ -97,9 +98,8 @@ class Values:
                  opt: 'configdata.Option',
                  values: Sequence[ScopedValue] = ()) -> None:
         self.opt = opt
-        self._vmap: 'collections.OrderedDict[Values._VmapKeyType, ScopedValue]' = (
-            collections.OrderedDict()
-        )
+        self._vmap: MutableMapping[
+            Values._VmapKeyType, ScopedValue] = collections.OrderedDict()
         # A map from domain parts to rules that fall under them.
         self._domain_map: Dict[
             Optional[str], Set[ScopedValue]] = collections.defaultdict(set)
