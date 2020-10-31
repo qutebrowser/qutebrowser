@@ -99,7 +99,7 @@ class DocstringParser:
         self._short_desc_parts: List[str] = []
         self._long_desc_parts: List[str] = []
         self.arg_descs: MutableMapping[
-                str, Union[str, List[str]]] = collections.OrderedDict()
+            str, Union[str, List[str]]] = collections.OrderedDict()
         doc = inspect.getdoc(func)
         handlers = {
             self.State.short: self._parse_short,
