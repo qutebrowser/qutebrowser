@@ -48,7 +48,7 @@ if TYPE_CHECKING:
     from PyQt5.QtWebEngineWidgets import QWebEngineHistory
 
 from qutebrowser.misc import objects
-from qutebrowser.utils import usertypes, version
+from qutebrowser.utils import usertypes
 
 
 MAXVALS = {
