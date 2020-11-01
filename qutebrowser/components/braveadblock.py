@@ -45,7 +45,7 @@ except ImportError:
 
 
 logger = logging.getLogger("network")
-ad_blocker = None  # type: typing.Optional["BraveAdBlocker"]
+ad_blocker: typing.Optional["BraveAdBlocker"] = None
 
 
 def _should_be_used() -> bool:
@@ -243,8 +243,6 @@ class BraveAdBlocker:
         """
         try:
             fileobj.seek(0)
-            # WORKAROUND for https://github.com/python/typeshed/pull/4145
-            fileobj = typing.cast(typing.BinaryIO, fileobj)
             text = io.TextIOWrapper(fileobj, encoding="utf-8")
             filter_set.add_filter_list(text.read())
             text.close()

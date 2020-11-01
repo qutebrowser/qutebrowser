@@ -96,46 +96,34 @@ def run_function_on_dataset(given_function):
     to values to the given function, row by row.
     """
 
-    def dataset_type_to_enum(type_int: int) -> ResourceType:
-        """Translate the dataset's encoding of a resource type to Qutebrowser's."""
-        if type_int == 0:
-            return ResourceType.unknown
-        elif type_int == 1:
-            return ResourceType.image
-        elif type_int == 2:
-            return ResourceType.stylesheet
-        elif type_int == 3:
-            return ResourceType.media
-        elif type_int == 4:
-            return ResourceType.script
-        elif type_int == 5:
-            return ResourceType.font_resource
-        elif type_int == 6:
-            return ResourceType.xhr
-        else:
-            assert type_int == 7
-            return ResourceType.sub_frame
+    DATASET_TYPE_TO_ENUM = {
+        0: ResourceType.unknown,
+        1: ResourceType.image,
+        2: ResourceType.stylesheet,
+        3: ResourceType.media,
+        4: ResourceType.script,
+        5: ResourceType.font_resource,
+        6: ResourceType.xhr,
+        7: ResourceType.sub_frame,
+    }
 
     dataset = utils.adblock_dataset_tsv()
     reader = csv.DictReader(dataset, delimiter="\t")
     for row in reader:
         url = QUrl(row["url"])
         source_url = QUrl(row["source_url"])
-        resource_type = dataset_type_to_enum(int(row["type"]))
+        resource_type = DATASET_TYPE_TO_ENUM[int(row["type"])]
         given_function(url, source_url, resource_type)
 
 
 def assert_none_blocked(ad_blocker):
     assert_urls(ad_blocker, NOT_OKAY_URLS + OKAY_URLS, False)
 
-    def assert_not_blocked(ad_blocker, url, source_url, resource_type):
+    def assert_not_blocked(url, source_url, resource_type):
+        nonlocal ad_blocker
         assert not ad_blocker._is_blocked(url, source_url, resource_type)
 
-    run_function_on_dataset(
-        lambda url, source_url, resource_type: assert_not_blocked(
-            ad_blocker, url, source_url, resource_type
-        )
-    )
+    run_function_on_dataset(assert_not_blocked)
 
 
 @pytest.fixture
@@ -169,8 +157,8 @@ def easylist_easyprivacy_both(tmpdir):
 
 @pytest.fixture
 def empty_dir(tmpdir):
-    empty_dir_path = os.path.join(str(tmpdir), "empty_dir")
-    os.mkdir(empty_dir_path)
+    empty_dir_path = tmpdir / "empty_dir"
+    empty_dir_path.mkdir()
     return empty_dir_path
 
 
@@ -187,17 +175,8 @@ def ad_blocker(config_stub, data_tmpdir):
 
 
 def assert_only_one_success_message(messages):
-    assert (
-        len(
-            list(
-                filter(
-                    lambda m: m.startswith("braveadblock: Filters successfully read"),
-                    messages,
-                )
-            )
-        )
-        == 1
-    )
+    expected_msg = "braveadblock: Filters successfully read"
+    assert len([m for m in messages if m.startswith(expected_msg)]) == 1
 
 
 def assert_urls(
@@ -208,10 +187,8 @@ def assert_urls(
     for (str_url, source_str_url, request_type) in urls:
         url = QUrl(str_url)
         source_url = QUrl(source_str_url)
-        if should_be_blocked:
-            assert ad_blocker._is_blocked(url, source_url, request_type)
-        else:
-            assert not ad_blocker._is_blocked(url, source_url, request_type)
+        is_blocked = ad_blocker._is_blocked(url, source_url, request_type)
+        assert is_blocked == should_be_blocked
 
 
 @pytest.mark.parametrize(
@@ -383,13 +360,13 @@ def test_update_easylist_easyprivacy_directory(
 
 
 def test_update_empty_directory_blocklist(ad_blocker, config_stub, empty_dir, caplog):
-    tmpdir_url = QUrl.fromLocalFile(empty_dir).toString()
+    tmpdir_url = QUrl.fromLocalFile(str(empty_dir)).toString()
     config_stub.val.content.blocking.adblock.lists = [tmpdir_url]
     config_stub.val.content.blocking.enabled = True
     config_stub.val.content.blocking.whitelist = None
 
     # The temporary directory we created should be empty
-    assert len(os.listdir(empty_dir)) == 0
+    assert len(empty_dir.listdir()) == 0
 
     with caplog.at_level(logging.INFO):
         ad_blocker.adblock_update()

@@ -55,16 +55,18 @@ class BlocklistDownloads(QObject):
         _finished_registering_downloads:
             Used to make sure that if all the downloads finish really quickly,
             before all of the block-lists have been added to the download
-            queue, we don't call `_on_lists_downloaded`.
+            queue, we don't emit `single_download_finished`.
         _started: Has the `initiate` method been called?
-        _finished: Has `_user_cb_all` been called?
+        _finished: Has `all_downloads_finished` been emitted?
     """
 
     single_download_finished = pyqtSignal(object)  # arg: the file object
     all_downloads_finished = pyqtSignal(int)  # arg: download count
 
     def __init__(
-        self, urls: typing.List[QUrl], parent: typing.Optional[QObject] = None,
+        self,
+        urls: typing.List[QUrl],
+        parent: typing.Optional[QObject] = None,
     ) -> None:
         super().__init__(parent)
         self._urls = urls
@@ -81,16 +83,16 @@ class BlocklistDownloads(QObject):
             raise ValueError("This download has already been initiated")
         self._started = True
 
-        if len(self._urls) == 0:
-            self.all_downloads_finished.emit(self._done_count)
+        if not self._urls:
             self._finished = True
+            self.all_downloads_finished.emit(self._done_count)
             return
 
         for url in self._urls:
             self._download_blocklist_url(url)
         self._finished_registering_downloads = True
 
-        if not self._in_progress:
+        if not self._in_progress and not self._finished:
             # The in-progress list is empty but we still haven't called the
             # completion callback yet. This happens when all downloads finish
             # before we've set `_finished_registering_dowloads` to False.
@@ -160,8 +162,5 @@ class BlocklistDownloads(QObject):
 
 def is_whitelisted_url(url: QUrl) -> bool:
     """Check if the given URL is on the adblock whitelist."""
-    for pattern in config.val.content.blocking.whitelist:
-        if pattern.matches(url):
-            return True
-
-    return False
+    whitelist = config.val.content.blocking.whitelist
+    return any(pattern.matches(url) for pattern in whitelist)

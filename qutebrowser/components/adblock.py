@@ -37,7 +37,7 @@ from qutebrowser.api import (
     qtutils,
 )
 from qutebrowser.components.utils import blockutils
-from qutebrowser.components.braveadblock import ad_blocker
+from qutebrowser.components import braveadblock
 
 
 logger = logging.getLogger("network")
@@ -72,7 +72,7 @@ def get_fileobj(byte_io: IO[bytes]) -> IO[bytes]:
 def _should_be_used() -> bool:
     """Whether the hostblocker should be used or not."""
     method = config.val.content.blocking.method
-    adblock_dependency_satisfied = ad_blocker is None
+    adblock_dependency_satisfied = braveadblock.ad_blocker is None
     return method in ("both", "hosts") or (
         method == "auto" and not adblock_dependency_satisfied
     )
