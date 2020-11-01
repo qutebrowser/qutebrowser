@@ -56,12 +56,15 @@ def pretend_blocklists(tmpdir):
     return urls, bl_dst_dir
 
 
-def test_blocklist_dl(pretend_blocklists):
-    num_single = 0
+def test_blocklist_dl(qtbot, pretend_blocklists):
+    TOTAL_EXPECTED = 10
+    num_single_dl_called = 0
+    all_dl_called = False
 
     def on_single_download(download: typing.IO[bytes]) -> None:
-        nonlocal num_single
-        num_single += 1
+        nonlocal num_single_dl_called
+        num_single_dl_called += 1
+
         num_lines = 0
         for line in io.TextIOWrapper(download, encoding="utf-8"):
             assert line.split(".")[-1].strip() in ("com", "net", "is")
@@ -69,16 +72,19 @@ def test_blocklist_dl(pretend_blocklists):
         assert num_lines >= 1
 
     def on_all_downloaded(done_count: int) -> None:
-        assert done_count == 10
+        nonlocal all_dl_called
+        assert done_count == TOTAL_EXPECTED
+        all_dl_called = True
 
     list_qurls = [QUrl(blocklist) for blocklist in pretend_blocklists[0]]
 
     dl = blockutils.BlocklistDownloads(list_qurls)
     dl.single_download_finished.connect(on_single_download)
     dl.all_downloads_finished.connect(on_all_downloaded)
-    dl.initiate()
 
-    while dl._in_progress:
-        pass
+    with qtbot.waitSignal(dl.all_downloads_finished) as blocker:
+        dl.initiate()
+        assert blocker.args == [TOTAL_EXPECTED]
 
-    assert num_single == 10
+    assert num_single_dl_called == TOTAL_EXPECTED
+    assert all_dl_called
