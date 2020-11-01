@@ -2045,6 +2045,7 @@ url.searchengines:
       expands to `slash%2Fand%26amp`).
     * `{unquoted}` quotes nothing (for `slash/and&amp` this placeholder
       expands to `slash/and&amp`).
+    * `{0}` same as `{}` but can be used multiple times.
 
     The search engine named `DEFAULT` is used when `url.auto_search` is turned
     on and something else than a URL was entered to be opened. Other search
