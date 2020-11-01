@@ -287,6 +287,7 @@ def clear_private_data() -> None:
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginesettings
         webenginesettings.init_private_profile()
+        webenginesettings.global_settings.init_settings()
     elif objects.backend == usertypes.Backend.QtWebKit:
         from qutebrowser.browser.webkit import cookies
         assert cookies.ram_cookie_jar is not None
