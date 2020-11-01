@@ -181,7 +181,8 @@ def read_file(filename: str, binary: bool = False) -> Any:
         # https://github.com/pyinstaller/pyinstaller/wiki/FAQ#misc
         fn = os.path.join(os.path.dirname(sys.executable), filename)
         if binary:
-            with open(fn, 'rb') as f:  # type: IO
+            f: IO
+            with open(fn, 'rb') as f:
                 return f.read()
         else:
             with open(fn, 'r', encoding='utf-8') as f:
