@@ -28,7 +28,6 @@ import argparse
 import subprocess
 import tokenize
 import traceback
-import collections
 import pathlib
 from typing import List, Iterator, Optional
 
