@@ -981,7 +981,8 @@ class AbstractDownloadManager(QObject):
     def shutdown(self):
         """Cancel all downloads when shutting down."""
         for download in self.downloads:
-            download.cancel(remove_data=False)
+            if not download.done:
+                download.cancel(remove_data=False)
 
 
 class DownloadModel(QAbstractListModel):
