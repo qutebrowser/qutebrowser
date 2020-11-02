@@ -145,7 +145,11 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             re.compile(r'# type: ignore[^\[]'),
             ("Don't use a blanket 'type: ignore', use something like "
              "'type: ignore[error-code]' instead."),
-        )
+        ),
+        (
+            re.compile(r'# type: (?!ignore\[)'),
+            "Don't use type comments, use type annotations instead.",
+        ),
     ]
 
     # Files which should be ignored, e.g. because they come from another
