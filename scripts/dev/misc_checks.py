@@ -203,20 +203,29 @@ def check_userscripts_descriptions(_args: argparse.Namespace = None) -> bool:
 
 
 def main() -> int:
+    checkers = {
+        'git': check_git,
+        'vcs': check_vcs_conflict,
+        'spelling': check_spelling,
+        'userscripts': check_userscripts_descriptions,
+    }
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--verbose', action='store_true', help='Show checked filenames')
     parser.add_argument('checker',
-                        choices=('git', 'vcs', 'spelling', 'userscripts'),
+                        choices=list(checkers) + ['all'],
                         help="Which checker to run.")
     args = parser.parse_args()
-    if args.checker == 'git':
-        ok = check_git(args)
-    elif args.checker == 'vcs':
-        ok = check_vcs_conflict(args)
-    elif args.checker == 'spelling':
-        ok = check_spelling(args)
-    elif args.checker == 'userscripts':
-        ok = check_userscripts_descriptions(args)
+
+    if args.checker == 'all':
+        retvals = []
+        for name, checker in checkers.items():
+            utils.print_title(name)
+            retvals.append(checker(args))
+        return 0 if all(retvals) else 1
+
+    checker = checkers[args.checker]
+    ok = checker(args)
     return 0 if ok else 1
 
 
