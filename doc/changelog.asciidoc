@@ -39,6 +39,8 @@ Changed
   the case for character sets starting with a literal `[` or containing literal
   character sequences `--`, `&&`, `~~`, or `||`. To avoid a warning, remove the
   duplicate characters or escape them with a backslash.
+- If `prompt(..., "default")` is used via JS, the default text is now
+  pre-selected in the prompt shown by qutebrowser.
 
 v1.14.0 (2020-10-15)
 --------------------
