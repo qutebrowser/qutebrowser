@@ -674,4 +674,4 @@ class FakeCookieStore:
         self.cookie_filter = None
         if has_cookie_filter:
             self.setCookieFilter = (
-                lambda func: setattr(self, 'cookie_filter', func))  # noqa
+                lambda func: setattr(self, 'cookie_filter', func))  # noqa: B010

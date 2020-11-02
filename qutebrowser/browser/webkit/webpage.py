@@ -365,7 +365,7 @@ class BrowserPage(QWebPage):
             abort_on=[self.shutting_down, self.loadStarted])
 
         if question is not None:
-            self.featurePermissionRequestCanceled.connect(  # type: ignore
+            self.featurePermissionRequestCanceled.connect(  # type: ignore[attr-defined]
                 functools.partial(self._on_feature_permission_cancelled,
                                   question, frame, feature))
 

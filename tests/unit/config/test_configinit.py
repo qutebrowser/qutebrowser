@@ -110,7 +110,7 @@ class TestEarlyInit:
             expected = '<Default configuration>'
         assert config.instance.dump_userconfig() == expected
 
-    @pytest.mark.parametrize('load_autoconfig', [True, False])  # noqa
+    @pytest.mark.parametrize('load_autoconfig', [True, False])
     @pytest.mark.parametrize('config_py', [True, 'error', False])
     @pytest.mark.parametrize('invalid_yaml', ['42', 'list', 'unknown',
                                               'wrong-type', False])

@@ -107,7 +107,8 @@ def _check_spelling_file(path, fobj, patterns):
         for pattern, explanation in patterns:
             if pattern.search(line):
                 ok = False
-                print(f'{path}:{num}: Found "{pattern.pattern}" ({explanation})')
+                print(f'{path}:{num}: Found "{pattern.pattern}" - ', end='')
+                utils.print_col(explanation, 'blue')
     return ok
 
 
@@ -134,6 +135,17 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             re.compile(r'[{}{}]{}'.format(w[0], w[0].upper(), w[1:])),
             "Common misspelling or non-US spelling"
         ) for w in words
+    ]
+    patterns += [
+        (
+            re.compile(r'(?i)# noqa(?!: )'),
+            "Don't use a blanket 'noqa', use something like 'noqa: X123' instead.",
+        ),
+        (
+            re.compile(r'# type: ignore[^\[]'),
+            ("Don't use a blanket 'type: ignore', use something like "
+             "'type: ignore[error-code]' instead."),
+        )
     ]
 
     # Files which should be ignored, e.g. because they come from another
