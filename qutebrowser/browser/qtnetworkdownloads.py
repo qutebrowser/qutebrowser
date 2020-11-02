@@ -181,11 +181,16 @@ class DownloadItem(downloads.AbstractDownloadItem):
         assert self.done
         assert not self.successful
         assert self._retry_info is not None
+
+        # Not calling self.cancel() here because the download is done (albeit
+        # unsuccessfully)
+        self.remove()
+        self.delete()
+
         new_reply = self._retry_info.manager.get(self._retry_info.request)
         new_download = self._manager.fetch(new_reply,
                                            suggested_filename=self.basename)
         self.adopt_download.emit(new_download)
-        self.cancel()
 
     def _get_open_filename(self):
         filename = self._filename

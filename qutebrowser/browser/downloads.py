@@ -574,8 +574,7 @@ class AbstractDownloadItem(QObject):
         Args:
             remove_data: Whether to remove the downloaded data.
         """
-        # FIXME: retry() calls cancel() with self.done = True - is that a good idea?
-        assert not self.done or not self.successful, self.done
+        assert not self.done
         self._do_cancel()
         log.downloads.debug("cancelled")
         if remove_data:
