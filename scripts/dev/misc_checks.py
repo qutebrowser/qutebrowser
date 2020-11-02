@@ -150,6 +150,10 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             re.compile(r'# type: (?!ignore\[)'),
             "Don't use type comments, use type annotations instead.",
         ),
+        (
+            re.compile(r': typing\.'),
+            "Don't use typing.SomeType, do 'from typing import SomeType' instead.",
+        ),
     ]
 
     # Files which should be ignored, e.g. because they come from another
