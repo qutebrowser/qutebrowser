@@ -101,6 +101,16 @@ def check_git(_args: argparse.Namespace = None) -> bool:
     return status
 
 
+def _check_spelling_file(path, fobj, patterns):
+    ok = True
+    for num, line in enumerate(fobj, start=1):
+        for pattern, explanation in patterns:
+            if pattern.search(line):
+                ok = False
+                print(f'{path}:{num}: Found "{pattern.pattern}" ({explanation})')
+    return ok
+
+
 def check_spelling(args: argparse.Namespace) -> Optional[bool]:
     """Check commonly misspelled words."""
     # Words which I often misspell
@@ -119,6 +129,13 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
               'eventloops', 'sizehint', 'statemachine', 'metaobject',
               'logrecord'}
 
+    patterns = [
+        (
+            re.compile(r'[{}{}]{}'.format(w[0], w[0].upper(), w[1:])),
+            "Common misspelling or non-US spelling"
+        ) for w in words
+    ]
+
     # Files which should be ignored, e.g. because they come from another
     # package
     hint_data = pathlib.Path('tests', 'end2end', 'data', 'hints')
@@ -129,20 +146,12 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
         hint_data / 'bootstrap' / 'bootstrap.css',
     ]
 
-    seen = collections.defaultdict(list)
     try:
         ok = True
         for path in _get_files(verbose=args.verbose, ignored=ignored):
             with tokenize.open(str(path)) as f:
-                for line in f:
-                    for w in words:
-                        pattern = '[{}{}]{}'.format(w[0], w[0].upper(), w[1:])
-                        if (re.search(pattern, line) and
-                                path not in seen[w] and
-                                '# pragma: no spellcheck' not in line):
-                            print('Found "{}" in {}!'.format(w, path))
-                            seen[w].append(path)
-                            ok = False
+                if not _check_spelling_file(path, f, patterns):
+                    ok = False
         print()
         return ok
     except Exception:
