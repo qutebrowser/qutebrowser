@@ -350,6 +350,8 @@ def _window_by_index(idx: int) -> 'mainwindow.MainWindow':
 
 def last_opened_window() -> 'mainwindow.MainWindow':
     """Get the last opened window object."""
+    if not window_registry:
+        raise NoWindow()
     for idx in range(-1, -(len(window_registry)+1), -1):
         window = _window_by_index(idx)
         if not window.tabbed_browser.is_shutting_down:
@@ -359,6 +361,8 @@ def last_opened_window() -> 'mainwindow.MainWindow':
 
 def first_opened_window() -> 'mainwindow.MainWindow':
     """Get the first opened window object."""
+    if not window_registry:
+        raise NoWindow()
     for idx in range(0, len(window_registry)+1):
         window = _window_by_index(idx)
         if not window.tabbed_browser.is_shutting_down:
