@@ -574,6 +574,8 @@ class AbstractDownloadItem(QObject):
         Args:
             remove_data: Whether to remove the downloaded data.
         """
+        # FIXME: retry() calls cancel() with self.done = True - is that a good idea?
+        assert not self.done or not self.successful, self.done
         self._do_cancel()
         log.downloads.debug("cancelled")
         if remove_data:
@@ -982,7 +984,8 @@ class AbstractDownloadManager(QObject):
     def shutdown(self):
         """Cancel all downloads when shutting down."""
         for download in self.downloads:
-            download.cancel(remove_data=False)
+            if not download.done:
+                download.cancel(remove_data=False)
 
 
 class DownloadModel(QAbstractListModel):

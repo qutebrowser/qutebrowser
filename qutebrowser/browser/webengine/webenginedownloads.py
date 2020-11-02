@@ -102,13 +102,17 @@ class DownloadItem(downloads.AbstractDownloadItem):
             self._qt_item.cancel()
 
     def _do_cancel(self):
+        state = self._qt_item.state()
+        state_name = debug.qenum_key(QWebEngineDownloadItem, state)
+        assert state not in [QWebEngineDownloadItem.DownloadCompleted,
+                             QWebEngineDownloadItem.DownloadCancelled], state_name
         self._qt_item.cancel()
 
     def retry(self):
         state = self._qt_item.state()
         if state != QWebEngineDownloadItem.DownloadInterrupted:
             log.downloads.warning(
-                "Trying to retry download in state {}".format(
+                "Refusing to retry download in state {}".format(
                     debug.qenum_key(QWebEngineDownloadItem, state)))
             return
 
