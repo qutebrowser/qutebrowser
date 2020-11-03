@@ -100,26 +100,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          ### PyQt 5.9 (Python 3.6)
-          - testenv: py36-pyqt59
-            os: ubuntu-18.04
-            python: 3.6
-          ### PyQt 5.10 (Python 3.6)
-          - testenv: py36-pyqt510
+          ### PyQt 5.12 (Python 3.6)
+          - testenv: py36-pyqt512
             os: ubuntu-20.04
             python: 3.6
-          ### PyQt 5.11 (Python 3.7)
-          - testenv: py37-pyqt511
+          ### PyQt 5.13 (Python 3.7)
+          - testenv: py37-pyqt513
             os: ubuntu-20.04
             python: 3.7
-          ### PyQt 5.12 (Python 3.8)
-          - testenv: py38-pyqt512
-            os: ubuntu-20.04
-            python: 3.8
-          ### PyQt 5.13 (Python 3.8)
-          - testenv: py38-pyqt513
-            os: ubuntu-20.04
-            python: 3.8
           ### PyQt 5.14 (Python 3.8)
           - testenv: py38-pyqt514
             os: ubuntu-20.04
