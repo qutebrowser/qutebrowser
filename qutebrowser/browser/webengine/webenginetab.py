@@ -1585,11 +1585,6 @@ class WebEngineTab(browsertab.AbstractTab):
         log.network.debug("ignore {}, URL {}, requested {}".format(
             error.ignore, url, self.url(requested=True)))
 
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-56207
-        show_cert_error = (
-            not qtutils.version_check('5.9') and
-            not error.ignore
-        )
         # WORKAROUND for https://codereview.qt-project.org/c/qt/qtwebengine/+/270556
         show_non_overr_cert_error = (
             not error.is_overridable() and (
@@ -1609,7 +1604,7 @@ class WebEngineTab(browsertab.AbstractTab):
         # However, self.url() is not available yet and the requested URL
         # might not match the URL we get from the error - so we just apply a
         # heuristic here.
-        if ((show_cert_error or show_non_overr_cert_error) and
+        if (show_non_overr_cert_error and
                 url.matches(self.data.last_navigation.url, QUrl.RemoveScheme)):
             self._show_error_page(url, str(error))
 
