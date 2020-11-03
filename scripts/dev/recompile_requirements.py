@@ -137,9 +137,6 @@ CHANGELOG_URLS = {
     'filelock': 'https://github.com/benediktschmitt/py-filelock/commits/master',
 }
 
-# PyQt versions which need SIP v4
-OLD_PYQT = {'pyqt-5.7', 'pyqt-5.9', 'pyqt-5.10', 'pyqt-5.11'}
-
 
 def convert_line(line, comments):
     """Convert the given requirement line to place into the output."""
@@ -225,14 +222,6 @@ def get_all_names():
         yield basename[len('requirements-'):-len('.txt-raw')]
 
 
-def filter_names(names, old_pyqt=False):
-    """Filter requirement names."""
-    if old_pyqt:
-        return sorted(names)
-    else:
-        return sorted(set(names) - OLD_PYQT)
-
-
 def run_pip(venv_dir, *args, **kwargs):
     """Run pip inside the virtualenv."""
     arg_str = ' '.join(str(arg) for arg in args)
@@ -263,9 +252,6 @@ def init_venv(host_python, venv_dir, requirements, pre=False):
 def parse_args():
     """Parse commandline arguments via argparse."""
     parser = argparse.ArgumentParser()
-    parser.add_argument('--old-pyqt',
-                        action='store_true',
-                        help='Also include old PyQt requirements.')
     parser.add_argument('names', nargs='*')
     return parser.parse_args()
 
@@ -395,10 +381,9 @@ def print_changed_files():
 def get_host_python(name):
     """Get the Python to use for a given requirement name.
 
-    Old PyQt versions need sip v4 which doesn't work on Python 3.8
-    ylint installs typed_ast on < 3.8 only
+    pylint installs typed_ast on < 3.8 only
     """
-    if name in OLD_PYQT or name == 'pylint':
+    if name == 'pylint':
         return 'python3.7'
     else:
         return sys.executable
@@ -486,7 +471,7 @@ def main():
     if args.names:
         names = args.names
     else:
-        names = filter_names(get_all_names(), old_pyqt=args.old_pyqt)
+        names = sorted(get_all_names())
 
     utils.print_col('Rebuilding requirements: ' + ', '.join(names), 'green')
     for name in names:
