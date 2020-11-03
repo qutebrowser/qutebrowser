@@ -249,10 +249,11 @@ class TestAll:
                 configtypes.PercOrInt,  # ditto
         ]:
             return
-        elif (isinstance(klass, functools.partial) and
-              klass.func in [configtypes.ListOrValue, configtypes.List]):
+        elif (isinstance(klass, functools.partial) and klass.func in [
+                configtypes.ListOrValue, configtypes.List, configtypes.Dict]):
             # ListOrValue: "- /" -> "/"
             # List: "- /" -> ["/"]
+            # Dict: '{":": "A"}' -> ':: A'
             return
 
         assert converted == s
