@@ -664,15 +664,6 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
         self._history = cast(QWebEngineHistory, None)
 
     def serialize(self):
-        if not qtutils.version_check('5.9', compiled=False):
-            # WORKAROUND for
-            # https://github.com/qutebrowser/qutebrowser/issues/2289
-            # Don't use the history's currentItem here, because of
-            # https://bugreports.qt.io/browse/QTBUG-59599 and because it doesn't
-            # contain view-source.
-            scheme = self._tab.url().scheme()
-            if scheme in ['view-source', 'chrome']:
-                raise browsertab.WebTabError("Can't serialize special URL!")
         return qtutils.serialize(self._history)
 
     def deserialize(self, data):
