@@ -55,34 +55,8 @@ class WebEngineView(QWebEngineView):
         self.setPage(page)
 
     def render_widget(self):
-        """Get the RenderWidgetHostViewQt for this view.
-
-        Normally, this would always be the focusProxy().
-        However, it sometimes isn't, so we use this as a WORKAROUND for
-        https://bugreports.qt.io/browse/QTBUG-68727
-
-        The above bug got introduced in Qt 5.11.0 and fixed in 5.12.0.
-        """
-        proxy: Optional[QWidget] = self.focusProxy()
-
-        if 'lost-focusproxy' in objects.debug_flags:
-            proxy = None
-
-        if (proxy is not None or
-                not qtutils.version_check('5.11', compiled=False) or
-                qtutils.version_check('5.12', compiled=False)):
-            return proxy
-
-        # We don't want e.g. a QMenu.
-        rwhv_class = 'QtWebEngineCore::RenderWidgetHostViewQtDelegateWidget'
-        children = [c for c in self.findChildren(QWidget)
-                    if c.isVisible() and c.inherits(rwhv_class)]
-
-        if children:
-            log.webview.debug("Found possibly lost focusProxy: {}"
-                              .format(children))
-
-        return children[-1] if children else None
+        """Get the RenderWidgetHostViewQt for this view."""
+        return self.focusProxy()
 
     def shutdown(self):
         self.page().shutdown()
