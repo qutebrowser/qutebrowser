@@ -249,6 +249,103 @@ def _release_info() -> Sequence[Tuple[str, str]]:
     return data
 
 
+class ModuleInfo:
+
+    """Class to query version information of qutebrowser dependencies.
+
+    Attributes:
+        name: Name of the module as it is imported.
+        _version_attributes:
+            Sequence of attribute names belonging to the module which may hold
+            version information.
+        min_version: Minimum version of this module which qutebrowser can use.
+        _installed: Is the module installed? Determined at runtime.
+        _version: Version of the module. Determined at runtime.
+        _initialized:
+            Set to `True` if the `self._installed` and `self._version`
+            attributes have been set.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        version_attributes: Sequence[str],
+        min_version: Optional[str] = None
+    ):
+        self.name = name
+        self._version_attributes = version_attributes
+        self.min_version = min_version
+        # Determined at runtime
+        self._installed = False
+        self._version: Optional[str] = None
+        self._initialized = False
+
+    def _initialize_info(self) -> None:
+        """Import module and set `self.installed` and `self.version`."""
+        try:
+            module = importlib.import_module(self.name)
+        except (ImportError, ValueError):
+            self._installed = False
+            return
+        else:
+            self._installed = True
+
+        for attribute_name in self._version_attributes:
+            if hasattr(module, attribute_name):
+                version = getattr(module, attribute_name)
+                assert isinstance(version, (str, float))
+                self._version = str(version)
+                break
+
+    def get_version(self) -> Optional[str]:
+        """Finds the module version if it exists."""
+        if not self._initialized:
+            self._initialize_info()
+        return self._version
+
+    def is_installed(self) -> bool:
+        """Checks whether the module is installed."""
+        if not self._initialized:
+            self._initialize_info()
+        return self._installed
+
+    def is_outdated(self) -> Optional[bool]:
+        """Checks whether the module is outdated.
+
+        Return:
+            A boolean when the version and minimum version are both defined.
+            Otherwise `None`.
+        """
+        version = self.get_version()
+        if (
+            not self.is_installed()
+            or version is None
+            or self.min_version is None
+        ):
+            return None
+        return version < self.min_version
+
+
+MODULE_INFO: Mapping[str, ModuleInfo] = collections.OrderedDict([
+    (name, ModuleInfo(name, version_attributes, min_version))
+    for (name, version_attributes, min_version) in
+    (
+        ('sip', ('SIP_VERSION_STR'), None),
+        ('colorama', ('VERSION', '__version__'), None),
+        ('pypeg2', ('__version__',), None),
+        ('jinja2', ('__version__',), None),
+        ('pygments', ('__version__',), None),
+        ('yaml', ('__version__',), None),
+        ('adblock', ('__version__',), "0.3.2"),
+        ('cssutils', ('__version__',), None),
+        ('attr', ('__version__',), None),
+        ('PyQt5.QtWebEngineWidgets', tuple(), None),
+        ('PyQt5.QtWebEngine', ('PYQT_WEBENGINE_VERSION_STR',), None),
+        ('PyQt5.QtWebKitWidgets', tuple(), None),
+    )
+])
+
+
 def _module_versions() -> Sequence[str]:
     """Get versions of optional modules.
 
@@ -256,35 +353,17 @@ def _module_versions() -> Sequence[str]:
         A list of lines with version info.
     """
     lines = []
-    modules: Mapping[str, Sequence[str]] = collections.OrderedDict([
-        ('sip', ['SIP_VERSION_STR']),
-        ('colorama', ['VERSION', '__version__']),
-        ('pypeg2', ['__version__']),
-        ('jinja2', ['__version__']),
-        ('pygments', ['__version__']),
-        ('yaml', ['__version__']),
-        ('adblock', ['__version__']),
-        ('cssutils', ['__version__']),
-        ('attr', ['__version__']),
-        ('PyQt5.QtWebEngineWidgets', []),
-        ('PyQt5.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
-        ('PyQt5.QtWebKitWidgets', []),
-    ])
-    for modname, attributes in modules.items():
-        try:
-            module = importlib.import_module(modname)
-        except (ImportError, ValueError):
-            text = '{}: no'.format(modname)
+    for mod_info in MODULE_INFO.values():
+        if not mod_info.is_installed():
+            text = f'{mod_info.name}: no'
         else:
-            for name in attributes:
-                try:
-                    text = '{}: {}'.format(modname, getattr(module, name))
-                except AttributeError:
-                    pass
-                else:
-                    break
+            version = mod_info.get_version()
+            if version is None:
+                text = f'{mod_info.name}: yes'
             else:
-                text = '{}: yes'.format(modname)
+                text = f'{mod_info.name}: {version}'
+                if mod_info.is_outdated():
+                    text += f" (< {mod_info.min_version}, outdated)"
         lines.append(text)
     return lines
 

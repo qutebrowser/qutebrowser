@@ -37,9 +37,16 @@ from qutebrowser.api import (
 )
 from qutebrowser.api.interceptor import ResourceType
 from qutebrowser.components.utils import blockutils
+from qutebrowser.utils import version
 
+_outdated_version: typing.Optional[str] = None
 try:
     import adblock
+
+    adblock_info = version.MODULE_INFO["adblock"]
+    if adblock_info.is_outdated():
+        adblock = None  # type: ignore[assignment]
+        _outdated_version = adblock_info.get_version()
 except ImportError:
     adblock = None  # type: ignore[assignment]
 
@@ -65,11 +72,18 @@ def _possibly_show_missing_dependency_warning() -> None:
     error message.
     """
     method = config.val.content.blocking.method
-    if method in ("adblock", "both"):
-        message.warning(
-            "Ad blocking method is set to '{}' but 'adblock' dependency is"
-            " not installed.".format(method)
-        )
+    if method in ("both", "adblock"):
+        if _outdated_version is not None:
+            message.warning(
+                f"Installed version {_outdated_version} of the"
+                " 'adblock' dependency is too old. Minimum supported is"
+                f" {adblock_info.min_version}."
+            )
+        else:
+            message.warning(
+                f"Ad blocking method is set to '{method}' but 'adblock' dependency"
+                " is not installed."
+            )
 
 
 _RESOURCE_TYPE_STRINGS = {
@@ -220,7 +234,7 @@ class BraveAdBlocker:
         self._engine = adblock.Engine(filter_set)
         self._engine.serialize_to_file(str(self._cache_path))
         logger.info(
-            "braveadblock: Filters successfully read from {} sources".format(done_count)
+            "braveadblock: Filters successfully read from %s sources", done_count
         )
 
     def update_files(self) -> None:
@@ -231,7 +245,7 @@ class BraveAdBlocker:
             except FileNotFoundError:
                 pass
             except OSError as e:
-                logger.exception("Failed to remove adblock cache file: {}".format(e))
+                logger.exception("Failed to remove adblock cache file: %s", e)
 
     def _on_download_finished(
         self, fileobj: typing.IO[bytes], filter_set: "adblock.FilterSet"
