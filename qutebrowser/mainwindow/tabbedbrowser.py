@@ -940,18 +940,11 @@ class TabbedBrowser(QWidget):
             tab.set_html(html)
             log.webview.error(msg)
 
-        if qtutils.version_check('5.9', compiled=False):
-            url_string = tab.url(requested=True).toDisplayString()
-            error_page = jinja.render(
-                'error.html', title="Error loading {}".format(url_string),
-                url=url_string, error=msg)
-            QTimer.singleShot(100, lambda: show_error_page(error_page))
-        else:
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58698
-            message.error(msg)
-            self._remove_tab(tab, crashed=True)
-            if self.widget.count() == 0:
-                self.tabopen(QUrl('about:blank'))
+        url_string = tab.url(requested=True).toDisplayString()
+        error_page = jinja.render(
+            'error.html', title="Error loading {}".format(url_string),
+            url=url_string, error=msg)
+        QTimer.singleShot(100, lambda: show_error_page(error_page))
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
