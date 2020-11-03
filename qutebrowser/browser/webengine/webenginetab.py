@@ -355,8 +355,6 @@ class WebEngineCaret(browsertab.AbstractCaret):
     def _flags(self):
         """Get flags to pass to JS."""
         flags = set()
-        if qtutils.version_check('5.7.1', compiled=False):
-            flags.add('filter-prefix')
         if utils.is_windows:
             flags.add('windows')
         return list(flags)
