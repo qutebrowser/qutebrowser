@@ -1557,7 +1557,6 @@ class WebEngineTab(browsertab.AbstractTab):
         """
         super()._on_load_progress(perc)
         if (perc == 100 and
-                qtutils.version_check('5.10', compiled=False) and
                 self.load_status() != usertypes.LoadStatus.error):
             self._update_load_status(ok=True)
 
@@ -1610,8 +1609,7 @@ class WebEngineTab(browsertab.AbstractTab):
                 (qtutils.version_check('5.13') and
                  not qtutils.version_check('5.13.2')) or
                 (qtutils.version_check('5.12') and
-                 not qtutils.version_check('5.12.6')) or
-                not qtutils.version_check('5.12')
+                 not qtutils.version_check('5.12.6'))
             )
         )
 

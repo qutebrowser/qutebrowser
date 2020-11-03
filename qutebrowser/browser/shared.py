@@ -284,9 +284,7 @@ def get_user_stylesheet(searching=False):
             css += f.read()
 
     setting = config.val.scrolling.bar
-    overlay_bar_available = (qtutils.version_check('5.11', compiled=False) and
-                             not utils.is_mac)
-    if setting == 'overlay' and not overlay_bar_available:
+    if setting == 'overlay' and not utils.is_mac:
         setting = 'when-searching'
 
     if setting == 'never' or setting == 'when-searching' and not searching:

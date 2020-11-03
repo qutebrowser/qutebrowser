@@ -93,7 +93,7 @@ def _qtwebengine_enabled_features(feature_flags: Sequence[str]) -> Iterator[str]
         # just turn it on unconditionally on Linux, which shouldn't hurt.
         yield 'WebRTCPipeWireCapturer'
 
-    if qtutils.version_check('5.11', compiled=False) and not utils.is_mac:
+    if not utils.is_mac:
         # Enable overlay scrollbars.
         #
         # There are two additional flags in Chromium:
@@ -118,13 +118,8 @@ def _qtwebengine_args(
     is_qt_514 = (qtutils.version_check('5.14', compiled=False) and
                  not qtutils.version_check('5.15', compiled=False))
 
-    if not qtutils.version_check('5.11', compiled=False) or is_qt_514:
-        # WORKAROUND equivalent to
-        # https://codereview.qt-project.org/#/c/217932/
-        # Needed for Qt < 5.9.5 and < 5.10.1
-        #
-        # For Qt 5,14, WORKAROUND for
-        # https://bugreports.qt.io/browse/QTBUG-82105
+    if is_qt_514:
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-82105
         yield '--disable-shared-workers'
 
     # WORKAROUND equivalent to

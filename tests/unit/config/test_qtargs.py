@@ -42,8 +42,7 @@ class TestQtArgs:
     @pytest.fixture(autouse=True)
     def reduce_args(self, monkeypatch, config_stub):
         """Make sure no --disable-shared-workers/referer argument get added."""
-        monkeypatch.setattr(qtargs.qtutils, 'version_check',
-                            lambda version, compiled=False: True)
+        monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: '5.15.0')
         config_stub.val.content.headers.referer = 'always'
 
     @pytest.mark.parametrize('args, expected', [
@@ -95,8 +94,7 @@ class TestQtArgs:
     ])
     def test_shared_workers(self, config_stub, monkeypatch, parser,
                             backend, expected):
-        monkeypatch.setattr(qtargs.qtutils, 'version_check',
-                            lambda version, compiled=False: False)
+        monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: '5.14.0')
         monkeypatch.setattr(qtargs.objects, 'backend', backend)
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
@@ -295,26 +293,20 @@ class TestQtArgs:
 
         assert ('--force-dark-mode' in args) == added
 
-    @pytest.mark.parametrize('bar, new_qt, is_mac, added', [
+    @pytest.mark.parametrize('bar, is_mac, added', [
         # Overlay bar enabled
-        ('overlay', True, False, True),
+        ('overlay', False, True),
         # No overlay on mac
-        ('overlay', True, True, False),
-        ('overlay', False, True, False),
-        # No overlay on old Qt
-        ('overlay', False, False, False),
+        ('overlay', True, False),
         # Overlay disabled
-        ('when-searching', True, False, False),
-        ('always', True, False, False),
-        ('never', True, False, False),
+        ('when-searching', False, False),
+        ('always', False, False),
+        ('never', False, False),
     ])
     def test_overlay_scrollbar(self, config_stub, monkeypatch, parser,
-                               bar, new_qt, is_mac, added):
+                               bar, is_mac, added):
         monkeypatch.setattr(qtargs.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
-        monkeypatch.setattr(qtargs.qtutils, 'version_check',
-                            lambda version, exact=False, compiled=True:
-                            new_qt)
         monkeypatch.setattr(qtargs.utils, 'is_mac', is_mac)
         # Avoid WebRTC pipewire feature
         monkeypatch.setattr(qtargs.utils, 'is_linux', False)
