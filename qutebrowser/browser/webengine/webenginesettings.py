@@ -126,8 +126,7 @@ class WebEngineSettings(websettings.AbstractSettings):
         'content.desktop_capture':
             Attr(QWebEngineSettings.ScreenCaptureEnabled,
                  converter=lambda val: True if val == 'ask' else val),
-        # 'ask' is handled via the permission system,
-        # or a hardcoded dialog on Qt < 5.10
+        # 'ask' is handled via the permission system
 
         'input.spatial_navigation':
             Attr(QWebEngineSettings.SpatialNavigationEnabled),

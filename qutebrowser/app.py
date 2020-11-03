@@ -199,7 +199,7 @@ def _init_pulseaudio():
     WORKAROUND for https://bugreports.qt.io/browse/QTBUG-85363
 
     Affected Qt versions:
-    - Older than 5.11
+    - Older than 5.11 (which is unsupported)
     - 5.14.0 to 5.15.0 (inclusive)
 
     However, we set this on all versions so that qutebrowser's icon gets picked

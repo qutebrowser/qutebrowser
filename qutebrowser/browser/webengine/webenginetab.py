@@ -367,7 +367,6 @@ class WebEngineCaret(browsertab.AbstractCaret):
         if self._tab.search.search_displayed:
             # We are currently in search mode.
             # convert the search to a blue selection so we can operate on it
-            # https://bugreports.qt.io/browse/QTBUG-60673
             self._tab.search.clear()
 
         self._tab.run_js_async(
@@ -500,7 +499,6 @@ class WebEngineCaret(browsertab.AbstractCaret):
         if self._tab.search.search_displayed:
             # We are currently in search mode.
             # let's click the link via a fake-click
-            # https://bugreports.qt.io/browse/QTBUG-60673
             self._tab.search.clear()
 
             log.webview.debug("Clicking a searched link via fake key press.")
@@ -1537,9 +1535,6 @@ class WebEngineTab(browsertab.AbstractTab):
 
         WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66643
         WORKAROUND for https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=882805
-
-        Needs to check the page content as a WORKAROUND for
-        https://bugreports.qt.io/browse/QTBUG-66661
         """
         match = re.search(r'"errorCode":"([^"]*)"', html)
         if match is None:
@@ -1611,7 +1606,7 @@ class WebEngineTab(browsertab.AbstractTab):
                 # Affected Qt versions:
                 # 5.13 before 5.13.2
                 # 5.12 before 5.12.6
-                # < 5.12
+                # < 5.12 (which is unsupported)
                 (qtutils.version_check('5.13') and
                  not qtutils.version_check('5.13.2')) or
                 (qtutils.version_check('5.12') and

@@ -1048,9 +1048,6 @@ class AbstractTab(QWidget):
             self.data.last_navigation = navigation
 
         if not navigation.url.isValid():
-            # Also a WORKAROUND for missing IDNA 2008 support in QUrl, see
-            # https://bugreports.qt.io/browse/QTBUG-60364
-
             if navigation.navigation_type == navigation.Type.link_clicked:
                 msg = urlutils.get_errstring(navigation.url,
                                              "Invalid link clicked")

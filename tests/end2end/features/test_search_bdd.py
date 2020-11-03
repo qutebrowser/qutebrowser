@@ -37,6 +37,7 @@ def check_found_text(request, quteproc, text):
         # https://codereview.qt-project.org/#/c/192920/
         # https://codereview.qt-project.org/#/c/192921/
         # https://bugreports.qt.io/browse/QTBUG-53134
+        # FIXME: Doesn't actually work, investigate why.
         return
     quteproc.send_cmd(':yank selection')
     quteproc.wait_for(message='Setting fake clipboard: {}'.format(

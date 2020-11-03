@@ -129,7 +129,7 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
             # Qt >= 5.13, GUI thread
             profile.setUrlRequestInterceptor(self)
         except AttributeError:
-            # Qt <= 5.12, IO thread
+            # Qt 5.12, IO thread
             profile.setRequestInterceptor(self)
 
     # Gets called in the IO thread -> showing crash window will fail

@@ -196,9 +196,14 @@ class IPCServer(QObject):
 
         self._socket = None
         self._old_socket = None
+
         if utils.is_windows:  # pragma: no cover
-            # If we use setSocketOptions on Unix with Qt < 5.4, we get a
-            # NameError while listening...
+            # As a WORKAROUND for a Qt bug, we can't use UserAccessOption on Unix. If we
+            # do, we don't get an AddressInUseError anymore:
+            # https://bugreports.qt.io/browse/QTBUG-48635
+            #
+            # Thus, we only do so on Windows, and handle permissions manually in
+            # listen() on Linux.
             log.ipc.debug("Calling setSocketOptions")
             self._server.setSocketOptions(QLocalServer.UserAccessOption)
         else:  # pragma: no cover
@@ -222,15 +227,9 @@ class IPCServer(QObject):
             if self._server.serverError() == QAbstractSocket.AddressInUseError:
                 raise AddressInUseError(self._server)
             raise ListenError(self._server)
+
         if not utils.is_windows:  # pragma: no cover
-            # If we use setSocketOptions on Unix with Qt < 5.4, we get a
-            # NameError while listening.
-            # (see b135569d5c6e68c735ea83f42e4baf51f7972281)
-            #
-            # Also, we don't get an AddressInUseError with Qt 5.5:
-            # https://bugreports.qt.io/browse/QTBUG-48635
-            #
-            # This means we only use setSocketOption on Windows...
+            # WORKAROUND for QTBUG-48635, see the comment in __init__ for details.
             try:
                 os.chmod(self._server.fullServerName(), 0o700)
             except FileNotFoundError:
