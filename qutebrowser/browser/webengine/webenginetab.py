@@ -1383,13 +1383,6 @@ class WebEngineTab(browsertab.AbstractTab):
             parent=self)
         self._widget.installEventFilter(self._child_event_filter)
 
-        if qtutils.version_check('5.11', compiled=False, exact=True):
-            focus_event_filter = eventfilter.FocusWorkaroundEventFilter(
-                win_id=self.win_id,
-                widget=self._widget,
-                parent=self)
-            self._widget.installEventFilter(focus_event_filter)
-
     @pyqtSlot()
     def _restore_zoom(self):
         if sip.isdeleted(self._widget):
