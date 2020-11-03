@@ -406,10 +406,6 @@ def _init_site_specific_quirks():
         'https://*.slack.com/*': new_chrome_ua,
     }
 
-    if not qtutils.version_check('5.9'):
-        # Shows 502 Bad Gateway with the Qt 5.7 UA.
-        user_agents['https://www.dell.com/support/*'] = new_chrome_ua
-
     for pattern, ua in user_agents.items():
         config.instance.set_obj('content.headers.user_agent', ua,
                                 pattern=urlmatch.UrlPattern(pattern),
