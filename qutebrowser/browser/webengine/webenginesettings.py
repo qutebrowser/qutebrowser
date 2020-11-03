@@ -246,8 +246,7 @@ class ProfileSetter:
         self.set_http_headers()
         self.set_http_cache_size()
         self._set_hardcoded_settings()
-        if qtutils.version_check('5.8'):
-            self.set_dictionary_language()
+        self.set_dictionary_language()
 
     def _set_hardcoded_settings(self):
         """Set up settings with a fixed value."""
