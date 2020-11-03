@@ -340,9 +340,7 @@ def _update_settings(option):
         default_profile.setter.set_http_cache_size()
         if private_profile:
             private_profile.setter.set_http_cache_size()
-    elif (option == 'content.cookies.store' and
-          # https://bugreports.qt.io/browse/QTBUG-58650
-          qtutils.version_check('5.9', compiled=False)):
+    elif option == 'content.cookies.store':
         default_profile.setter.set_persistent_cookie_policy()
         # We're not touching the private profile's cookie policy.
     elif option == 'spellcheck.languages':
@@ -450,10 +448,9 @@ def _init_devtools_settings():
     """Make sure the devtools always get images/JS permissions."""
     settings: List[Tuple[str, Any]] = [
         ('content.javascript.enabled', True),
-        ('content.images', True)
+        ('content.images', True),
+        ('content.cookies.accept', 'all'),
     ]
-    if qtutils.version_check('5.11'):
-        settings.append(('content.cookies.accept', 'all'))
 
     for setting, value in settings:
         for pattern in ['chrome-devtools://*', 'devtools://*']:
