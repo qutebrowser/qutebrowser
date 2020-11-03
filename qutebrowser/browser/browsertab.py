@@ -230,14 +230,6 @@ class AbstractPrinting:
         """
         raise NotImplementedError
 
-    def check_printer_support(self) -> None:
-        """Check whether writing to a printer is supported.
-
-        If it's not supported (by the current Qt version), a WebTabError is
-        raised.
-        """
-        raise NotImplementedError
-
     def check_preview_support(self) -> None:
         """Check whether showing a print preview is supported.
 
@@ -263,8 +255,6 @@ class AbstractPrinting:
 
     def show_dialog(self) -> None:
         """Print with a QPrintDialog."""
-        self.check_printer_support()
-
         def print_callback(ok: bool) -> None:
             """Called when printing finished."""
             if not ok:

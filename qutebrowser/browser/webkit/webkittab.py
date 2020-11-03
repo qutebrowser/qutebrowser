@@ -82,9 +82,6 @@ class WebKitPrinting(browsertab.AbstractPrinting):
     def check_pdf_support(self):
         pass
 
-    def check_printer_support(self):
-        pass
-
     def check_preview_support(self):
         pass
 
