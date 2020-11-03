@@ -227,14 +227,7 @@ def _get_suggested_filename(path):
       (?=\.|$)  # Begin of extension, or filename without extension
     """, re.VERBOSE)
 
-    filename = suffix_re.sub('', filename)
-    if not qtutils.version_check('5.9', compiled=False):
-        # https://bugreports.qt.io/browse/QTBUG-58155
-        filename = urllib.parse.unquote(filename)
-        # Doing basename a *second* time because there could be a %2F in
-        # there...
-        filename = os.path.basename(filename)
-    return filename
+    return suffix_re.sub('', filename)
 
 
 class DownloadManager(downloads.AbstractDownloadManager):
