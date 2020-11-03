@@ -1393,20 +1393,17 @@ class WebEngineTab(browsertab.AbstractTab):
         self.zoom.set_factor(self._saved_zoom)
         self._saved_zoom = None
 
-    def load_url(self, url, *, emit_before_load_started=True):
+    def load_url(self, url):
         """Load the given URL in this tab.
 
         Arguments:
             url: The QUrl to load.
-            emit_before_load_started: If set to False, before_load_started is
-                                      not emitted.
         """
         if sip.isdeleted(self._widget):
             # https://github.com/qutebrowser/qutebrowser/issues/3896
             return
         self._saved_zoom = self.zoom.factor()
-        self._load_url_prepare(
-            url, emit_before_load_started=emit_before_load_started)
+        self._load_url_prepare(url)
         self._widget.load(url)
 
     def url(self, *, requested=False):
@@ -1695,16 +1692,6 @@ class WebEngineTab(browsertab.AbstractTab):
         if ((show_cert_error or show_non_overr_cert_error) and
                 url.matches(self.data.last_navigation.url, QUrl.RemoveScheme)):
             self._show_error_page(url, str(error))
-
-    @pyqtSlot(QUrl)
-    def _on_before_load_started(self, url):
-        """If we know we're going to visit a URL soon, change the settings.
-
-        This is a WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
-        """
-        super()._on_before_load_started(url)
-        if not qtutils.version_check('5.11.1', compiled=False):
-            self.settings.update_for_url(url)
 
     @pyqtSlot()
     def _on_print_requested(self):
