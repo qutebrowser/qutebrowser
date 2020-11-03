@@ -21,6 +21,7 @@
 import io
 import textwrap
 import re
+import uuid
 
 import pytest
 
@@ -35,7 +36,7 @@ except ImportError:
 
 @pytest.fixture(autouse=True)
 def patch_uuid(monkeypatch):
-    monkeypatch.setattr("uuid.uuid4", lambda: "UUID")
+    monkeypatch.setattr(uuid, "uuid4", lambda: "UUID")
 
 
 class Checker:

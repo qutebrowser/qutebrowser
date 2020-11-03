@@ -392,7 +392,7 @@ class TestSystemData:
                                           fake_args):
         """Test that system-wide path is not used on non-Linux OS."""
         fake_args.basedir = str(tmpdir)
-        monkeypatch.setattr('sys.platform', "potato")
+        monkeypatch.setattr(sys, 'platform', 'potato')
         standarddir._init_data(args=fake_args)
         assert standarddir.data(system=True) == standarddir.data()
 

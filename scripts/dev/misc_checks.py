@@ -153,6 +153,11 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             re.compile(r': typing\.'),
             "Don't use typing.SomeType, do 'from typing import SomeType' instead.",
         ),
+        (
+            re.compile(r"""monkeypatch\.setattr\(['"]"""),
+            "Don't use monkeypatch.setattr('obj.attr', value), use "
+            "setattr(obj, 'attr', value) instead.",
+        ),
     ]
 
     # Files which should be ignored, e.g. because they come from another

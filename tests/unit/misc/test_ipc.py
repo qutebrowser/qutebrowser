@@ -767,7 +767,7 @@ def test_long_username(monkeypatch):
     """See https://github.com/qutebrowser/qutebrowser/issues/888."""
     username = 'alexandercogneau'
     basedir = '/this_is_a_long_basedir'
-    monkeypatch.setattr('getpass.getuser', lambda: username)
+    monkeypatch.setattr(getpass, 'getuser', lambda: username)
     name = ipc._get_socketname(basedir=basedir)
     server = ipc.IPCServer(name)
     expected_md5 = md5('{}-{}'.format(username, basedir))

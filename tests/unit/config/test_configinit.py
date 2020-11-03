@@ -18,6 +18,7 @@
 
 """Tests for qutebrowser.config.configinit."""
 
+import builtins
 import logging
 import unittest.mock
 
@@ -390,6 +391,6 @@ def test_get_backend(monkeypatch, args, config_stub,
 
     args.backend = arg
     config_stub.val.backend = confval
-    monkeypatch.setattr('builtins.__import__', fake_import)
+    monkeypatch.setattr(builtins, '__import__', fake_import)
 
     assert configinit.get_backend(args) == used

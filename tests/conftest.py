@@ -281,10 +281,10 @@ def apply_fake_os(monkeypatch, request):
     else:
         raise ValueError("Invalid fake_os {}".format(name))
 
-    monkeypatch.setattr('qutebrowser.utils.utils.is_mac', mac)
-    monkeypatch.setattr('qutebrowser.utils.utils.is_linux', linux)
-    monkeypatch.setattr('qutebrowser.utils.utils.is_windows', windows)
-    monkeypatch.setattr('qutebrowser.utils.utils.is_posix', posix)
+    monkeypatch.setattr(utils, 'is_mac', mac)
+    monkeypatch.setattr(utils, 'is_linux', linux)
+    monkeypatch.setattr(utils, 'is_windows', windows)
+    monkeypatch.setattr(utils, 'is_posix', posix)
 
 
 @pytest.fixture(scope='session', autouse=True)
