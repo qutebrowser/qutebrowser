@@ -179,16 +179,10 @@ class CompletionModel(QAbstractItemModel):
             pattern: The filter pattern to set.
         """
         log.completion.debug("Setting completion pattern '{}'".format(pattern))
-        # WORKAROUND:
-        # layoutChanged is broken in PyQt 5.7.1, so we must use metaObject
-        # https://www.riverbankcomputing.com/pipermail/pyqt/2017-January/038483.html
-        meta = self.metaObject()
-        meta.invokeMethod(self,  # type: ignore[misc, call-overload]
-                          "layoutAboutToBeChanged")
+        self.layoutAboutToBeChanged.emit()  # type: ignore[attr-defined]
         for cat in self._categories:
             cat.set_pattern(pattern)
-        meta.invokeMethod(self,  # type: ignore[misc, call-overload]
-                          "layoutChanged")
+        self.layoutChanged.emit()  # type: ignore[attr-defined]
 
     def first_item(self):
         """Return the index of the first child (non-category) in the model."""
