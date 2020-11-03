@@ -339,9 +339,9 @@ MODULE_INFO: Mapping[str, ModuleInfo] = collections.OrderedDict([
         ('adblock', ('__version__',), "0.3.2"),
         ('cssutils', ('__version__',), None),
         ('attr', ('__version__',), None),
-        ('PyQt5.QtWebEngineWidgets', tuple(), None),
+        ('PyQt5.QtWebEngineWidgets', (), None),
         ('PyQt5.QtWebEngine', ('PYQT_WEBENGINE_VERSION_STR',), None),
-        ('PyQt5.QtWebKitWidgets', tuple(), None),
+        ('PyQt5.QtWebKitWidgets', (), None),
     )
 ])
 

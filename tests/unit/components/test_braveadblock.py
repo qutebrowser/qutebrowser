@@ -21,7 +21,7 @@ import pathlib
 import logging
 import csv
 import os.path
-import typing
+from typing import Iterable, Tuple
 
 from PyQt5.QtCore import QUrl
 
@@ -95,8 +95,7 @@ def run_function_on_dataset(given_function):
     contains tuples of (url, source_url, type) in each line. We give these
     to values to the given function, row by row.
     """
-
-    DATASET_TYPE_TO_ENUM = {
+    dataset_type_to_enum = {
         0: ResourceType.unknown,
         1: ResourceType.image,
         2: ResourceType.stylesheet,
@@ -112,7 +111,7 @@ def run_function_on_dataset(given_function):
     for row in reader:
         url = QUrl(row["url"])
         source_url = QUrl(row["source_url"])
-        resource_type = DATASET_TYPE_TO_ENUM[int(row["type"])]
+        resource_type = dataset_type_to_enum[int(row["type"])]
         given_function(url, source_url, resource_type)
 
 
@@ -181,7 +180,7 @@ def assert_only_one_success_message(messages):
 
 def assert_urls(
     ad_blocker: braveadblock.BraveAdBlocker,
-    urls: typing.Iterable[typing.Tuple[str, str, ResourceType]],
+    urls: Iterable[Tuple[str, str, ResourceType]],
     should_be_blocked: bool,
 ) -> None:
     for (str_url, source_str_url, request_type) in urls:

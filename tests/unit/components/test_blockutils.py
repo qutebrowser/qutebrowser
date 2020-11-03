@@ -18,9 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import typing
 import os
 import io
+from typing import IO
 
 from PyQt5.QtCore import QUrl
 
@@ -57,11 +57,11 @@ def pretend_blocklists(tmpdir):
 
 
 def test_blocklist_dl(qtbot, pretend_blocklists):
-    TOTAL_EXPECTED = 10
+    total_expected = 10
     num_single_dl_called = 0
     all_dl_called = False
 
-    def on_single_download(download: typing.IO[bytes]) -> None:
+    def on_single_download(download: IO[bytes]) -> None:
         nonlocal num_single_dl_called
         num_single_dl_called += 1
 
@@ -73,7 +73,7 @@ def test_blocklist_dl(qtbot, pretend_blocklists):
 
     def on_all_downloaded(done_count: int) -> None:
         nonlocal all_dl_called
-        assert done_count == TOTAL_EXPECTED
+        assert done_count == total_expected
         all_dl_called = True
 
     list_qurls = [QUrl(blocklist) for blocklist in pretend_blocklists[0]]
@@ -84,7 +84,7 @@ def test_blocklist_dl(qtbot, pretend_blocklists):
 
     with qtbot.waitSignal(dl.all_downloads_finished) as blocker:
         dl.initiate()
-        assert blocker.args == [TOTAL_EXPECTED]
+        assert blocker.args == [total_expected]
 
-    assert num_single_dl_called == TOTAL_EXPECTED
+    assert num_single_dl_called == total_expected
     assert all_dl_called

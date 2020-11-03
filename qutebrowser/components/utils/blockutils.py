@@ -20,9 +20,9 @@
 
 """Code that is shared between the host blocker and Brave ad blocker."""
 
-import typing
 import os
 import functools
+from typing import IO, List, Optional
 
 from PyQt5.QtCore import QUrl, QObject, pyqtSignal
 
@@ -33,7 +33,7 @@ class FakeDownload(downloads.TempDownload):
 
     """A download stub to use on_download_finished with local files."""
 
-    def __init__(self, fileobj: typing.IO[bytes]) -> None:
+    def __init__(self, fileobj: IO[bytes]) -> None:
         # pylint: disable=super-init-not-called
         self.fileobj = fileobj
         self.successful = True
@@ -63,15 +63,11 @@ class BlocklistDownloads(QObject):
     single_download_finished = pyqtSignal(object)  # arg: the file object
     all_downloads_finished = pyqtSignal(int)  # arg: download count
 
-    def __init__(
-        self,
-        urls: typing.List[QUrl],
-        parent: typing.Optional[QObject] = None,
-    ) -> None:
+    def __init__(self, urls: List[QUrl], parent: Optional[QObject] = None) -> None:
         super().__init__(parent)
         self._urls = urls
 
-        self._in_progress: typing.List[downloads.TempDownload] = []
+        self._in_progress: List[downloads.TempDownload] = []
         self._done_count = 0
         self._finished_registering_downloads = False
         self._started = False

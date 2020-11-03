@@ -21,9 +21,9 @@
 
 import io
 import logging
-import typing
 import pathlib
 import functools
+from typing import Optional, IO
 
 from PyQt5.QtCore import QUrl
 
@@ -39,20 +39,21 @@ from qutebrowser.api.interceptor import ResourceType
 from qutebrowser.components.utils import blockutils
 from qutebrowser.utils import version
 
-_outdated_version: typing.Optional[str] = None
 try:
     import adblock
-
-    adblock_info = version.MODULE_INFO["adblock"]
-    if adblock_info.is_outdated():
-        adblock = None  # type: ignore[assignment]
-        _outdated_version = adblock_info.get_version()
 except ImportError:
     adblock = None  # type: ignore[assignment]
 
+_outdated_version: Optional[str] = None
+if adblock is not None:
+    _adblock_info = version.MODULE_INFO["adblock"]
+    if _adblock_info.is_outdated():
+        adblock = None  # type: ignore[assignment]
+        _outdated_version = _adblock_info.get_version()
+
 
 logger = logging.getLogger("network")
-ad_blocker: typing.Optional["BraveAdBlocker"] = None
+ad_blocker: Optional["BraveAdBlocker"] = None
 
 
 def _should_be_used() -> bool:
@@ -77,7 +78,7 @@ def _possibly_show_missing_dependency_warning() -> None:
             message.warning(
                 f"Installed version {_outdated_version} of the"
                 " 'adblock' dependency is too old. Minimum supported is"
-                f" {adblock_info.min_version}."
+                f" {_adblock_info.min_version}."
             )
         else:
             message.warning(
@@ -112,7 +113,7 @@ _RESOURCE_TYPE_STRINGS = {
 }
 
 
-def resource_type_to_string(resource_type: typing.Optional[ResourceType]) -> str:
+def resource_type_to_string(resource_type: Optional[ResourceType]) -> str:
     return _RESOURCE_TYPE_STRINGS.get(resource_type, "other")
 
 
@@ -136,8 +137,8 @@ class BraveAdBlocker:
     def _is_blocked(
         self,
         request_url: QUrl,
-        first_party_url: typing.Optional[QUrl] = None,
-        resource_type: typing.Optional[interceptor.ResourceType] = None,
+        first_party_url: Optional[QUrl] = None,
+        resource_type: Optional[interceptor.ResourceType] = None,
     ) -> bool:
         """Check whether the given request is blocked."""
         if not self.enabled:
@@ -248,7 +249,7 @@ class BraveAdBlocker:
                 logger.exception("Failed to remove adblock cache file: %s", e)
 
     def _on_download_finished(
-        self, fileobj: typing.IO[bytes], filter_set: "adblock.FilterSet"
+        self, fileobj: IO[bytes], filter_set: "adblock.FilterSet"
     ) -> None:
         """When a blocklist download finishes, add it to the given filter set.
 
