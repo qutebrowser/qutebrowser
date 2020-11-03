@@ -165,14 +165,6 @@ class _BackendProblemChecker:
 
     """Check for various backend-specific issues."""
 
-    SOFTWARE_RENDERING_TEXT = (
-        "<p><b>Forcing software rendering</b></p>"
-        "<p>This allows you to use the newer QtWebEngine backend (based on "
-        "Chromium) but could have noticeable performance impact (depending on "
-        "your hardware). This sets the <i>qt.force_software_rendering = "
-        "'chromium'</i> option (if you have a <i>config.py</i> file, you'll "
-        "need to set this manually).</p>")
-
     def __init__(self, *,
                  no_err_windows: bool,
                  save_manager: savemanager.SaveManager) -> None:
@@ -212,47 +204,6 @@ class _BackendProblemChecker:
         self._assert_backend(usertypes.Backend.QtWebEngine)
         utils.libgl_workaround()
 
-    def _handle_nouveau_graphics(self) -> None:
-        """Force software rendering when using the Nouveau driver.
-
-        WORKAROUND for
-        https://bugreports.qt.io/browse/QTBUG-41242
-        Should be fixed in Qt 5.10 via
-        https://codereview.qt-project.org/#/c/208664/
-        """
-        self._assert_backend(usertypes.Backend.QtWebEngine)
-
-        if os.environ.get('QUTE_SKIP_NOUVEAU_CHECK'):
-            return
-
-        if qtutils.version_check('5.10', compiled=False):
-            return
-
-        opengl_info = version.opengl_info()
-        if opengl_info is None or opengl_info.vendor != 'nouveau':
-            return
-
-        if (os.environ.get('LIBGL_ALWAYS_SOFTWARE') == '1' or
-                # qt.force_software_rendering = 'software-opengl'
-                'QT_XCB_FORCE_SOFTWARE_OPENGL' in os.environ or
-                # qt.force_software_rendering = 'chromium', also see:
-                # https://build.opensuse.org/package/view_file/openSUSE:Factory/libqt5-qtwebengine/disable-gpu-when-using-nouveau-boo-1005323.diff?expand=1
-                'QT_WEBENGINE_DISABLE_NOUVEAU_WORKAROUND' in os.environ):
-            return
-
-        button = _Button("Force software rendering",
-                         'qt.force_software_rendering',
-                         'chromium')
-        self._show_dialog(
-            backend=usertypes.Backend.QtWebEngine,
-            because="you're using Nouveau graphics",
-            text=("<p>There are two ways to fix this:</p>" +
-                  self.SOFTWARE_RENDERING_TEXT),
-            buttons=[button],
-        )
-
-        raise utils.Unreachable
-
     def _xwayland_options(self) -> Tuple[str, List[_Button]]:
         """Get buttons/text for a possible XWayland solution."""
         buttons = []
@@ -274,36 +225,6 @@ class _BackendProblemChecker:
                      "(based on Chromium). ")
 
         return text, buttons
-
-    def _handle_wayland(self) -> None:
-        self._assert_backend(usertypes.Backend.QtWebEngine)
-
-        if os.environ.get('QUTE_SKIP_WAYLAND_CHECK'):
-            return
-
-        platform = QApplication.instance().platformName()
-        if platform not in ['wayland', 'wayland-egl']:
-            return
-
-        has_qt511 = qtutils.version_check('5.11', compiled=False)
-        if has_qt511 and config.val.qt.force_software_rendering == 'chromium':
-            return
-
-        if qtutils.version_check('5.11.2', compiled=False):
-            return
-
-        text, buttons = self._xwayland_options()
-
-        if has_qt511:
-            buttons.append(_Button("Force software rendering",
-                                   'qt.force_software_rendering',
-                                   'chromium'))
-            text += self.SOFTWARE_RENDERING_TEXT
-
-        self._show_dialog(backend=usertypes.Backend.QtWebEngine,
-                          because="you're using Wayland",
-                          text=text,
-                          buttons=buttons)
 
     def _handle_wayland_webgl(self) -> None:
         """On older graphic hardware, WebGL on Wayland causes segfaults.
@@ -480,9 +401,7 @@ class _BackendProblemChecker:
         # It seems these issues started with Qt 5.12.
         # They should be fixed with Qt 5.12.5:
         # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/265408
-        affected = (qtutils.version_check('5.12', compiled=False) and not
-                    qtutils.version_check('5.12.5', compiled=False))
-        if not affected:
+        if qtutils.version_check('5.12.5', compiled=False):
             return
 
         log.init.info("Qt version changed, nuking QtWebEngine cache")
@@ -533,10 +452,8 @@ class _BackendProblemChecker:
         self._check_backend_modules()
         if objects.backend == usertypes.Backend.QtWebEngine:
             self._handle_ssl_support()
-            self._handle_wayland()
             self._nvidia_shader_workaround()
             self._handle_wayland_webgl()
-            self._handle_nouveau_graphics()
             self._handle_cache_nuking()
             self._handle_serviceworker_nuking()
         else:
