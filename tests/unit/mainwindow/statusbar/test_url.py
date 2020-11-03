@@ -47,10 +47,7 @@ def url_widget(qtbot, monkeypatch, config_stub):
     ('http://username:secret%20password@test.com', 'http://username@test.com'),
     ('http://example.com%5b/', '(invalid URL!) http://example.com%5b/'),
     # https://bugreports.qt.io/browse/QTBUG-60364
-    pytest.param('http://www.xn--80ak6aa92e.com',
-                 '(unparseable URL!) http://www.аррӏе.com', marks=utils.qt58),
-    pytest.param('http://www.xn--80ak6aa92e.com',
-                 'http://www.xn--80ak6aa92e.com', marks=utils.qt59),
+    ('http://www.xn--80ak6aa92e.com', 'http://www.xn--80ak6aa92e.com'),
     # IDN URL
     ('http://www.ä.com', '(www.xn--4ca.com) http://www.ä.com'),
     (None, ''),

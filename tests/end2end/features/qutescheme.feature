@@ -185,7 +185,6 @@ Feature: Special qute:// pages
         And I open data/misc/test.pdf without waiting
         Then "Download test.pdf finished" should be logged
 
-    @qtwebengine_skip: Might work with Qt 5.12
     Scenario: Downloading a pdf via pdf.js button (issue 1214)
         Given pdfjs is available
         When I set content.pdfjs to true

@@ -41,16 +41,8 @@ from qutebrowser.utils import qtutils, log
 
 ON_CI = 'CI' in os.environ
 
-qt58 = pytest.mark.skipif(
-    qtutils.version_check('5.9'), reason="Needs Qt 5.8 or earlier")
-qt59 = pytest.mark.skipif(
-    not qtutils.version_check('5.9'), reason="Needs Qt 5.9 or newer")
-qt510 = pytest.mark.skipif(
-    not qtutils.version_check('5.10'), reason="Needs Qt 5.10 or newer")
 qt514 = pytest.mark.skipif(
     not qtutils.version_check('5.14'), reason="Needs Qt 5.14 or newer")
-skip_qt511 = pytest.mark.skipif(
-    qtutils.version_check('5.11'), reason="Needs Qt 5.10 or earlier")
 
 
 class PartialCompareOutcome:

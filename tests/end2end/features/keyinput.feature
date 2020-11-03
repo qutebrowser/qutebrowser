@@ -18,31 +18,6 @@ Feature: Keyboard input
 
     # input.forward_unbound_keys
 
-    @qt<5.11.1
-    Scenario: Forwarding all keys
-        When I open data/keyinput/log.html
-        And I set input.forward_unbound_keys to all
-        And I press the key ","
-        And I press the key "<F1>"
-        # ,
-        Then the javascript message "key press: 188" should be logged
-        And the javascript message "key release: 188" should be logged
-        # <F1>
-        And the javascript message "key press: 112" should be logged
-        And the javascript message "key release: 112" should be logged
-
-    @qt<5.11.1
-    Scenario: Forwarding special keys
-        When I open data/keyinput/log.html
-        And I set input.forward_unbound_keys to auto
-        And I press the keys ",<F1>"
-        # <F1>
-        Then the javascript message "key press: 112" should be logged
-        And the javascript message "key release: 112" should be logged
-        # ,
-        And the javascript message "key press: 188" should not be logged
-        And the javascript message "key release: 188" should not be logged
-
     Scenario: Forwarding no keys
         When I open data/keyinput/log.html
         And I set input.forward_unbound_keys to none

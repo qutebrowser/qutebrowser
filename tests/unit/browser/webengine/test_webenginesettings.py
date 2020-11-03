@@ -45,8 +45,6 @@ def test_big_cache_size(config_stub):
     assert profile.httpCacheMaximumSize() == 2 ** 31 - 1
 
 
-@pytest.mark.skipif(
-    not qtutils.version_check('5.8'), reason="Needs Qt 5.8 or newer")
 def test_non_existing_dict(config_stub, monkeypatch, message_mock, caplog):
     monkeypatch.setattr(webenginesettings.spell, 'local_filename',
                         lambda _code: None)
@@ -61,8 +59,6 @@ def test_non_existing_dict(config_stub, monkeypatch, message_mock, caplog):
     assert msg.text == expected
 
 
-@pytest.mark.skipif(
-    not qtutils.version_check('5.8'), reason="Needs Qt 5.8 or newer")
 def test_existing_dict(config_stub, monkeypatch):
     monkeypatch.setattr(webenginesettings.spell, 'local_filename',
                         lambda _code: 'en-US-8-0')
@@ -74,8 +70,6 @@ def test_existing_dict(config_stub, monkeypatch):
         assert profile.spellCheckLanguages() == ['en-US-8-0']
 
 
-@pytest.mark.skipif(
-    not qtutils.version_check('5.8'), reason="Needs Qt 5.8 or newer")
 def test_spell_check_disabled(config_stub, monkeypatch):
     config_stub.val.spellcheck.languages = []
     webenginesettings._update_settings('spellcheck.languages')

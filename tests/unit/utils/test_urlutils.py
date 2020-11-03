@@ -702,12 +702,8 @@ def test_data_url():
     (QUrl('http://www.example.xn--p1ai'),
      '(www.example.xn--p1ai) http://www.example.рф'),
     # https://bugreports.qt.io/browse/QTBUG-60364
-    pytest.param(QUrl('http://www.xn--80ak6aa92e.com'),
-                 '(unparseable URL!) http://www.аррӏе.com',
-                 marks=testutils.qt58),
-    pytest.param(QUrl('http://www.xn--80ak6aa92e.com'),
-                 'http://www.xn--80ak6aa92e.com',
-                 marks=testutils.qt59),
+    (QUrl('http://www.xn--80ak6aa92e.com'),
+     'http://www.xn--80ak6aa92e.com'),
 ])
 def test_safe_display_string(url, expected):
     assert urlutils.safe_display_string(url) == expected

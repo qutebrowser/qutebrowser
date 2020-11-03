@@ -168,7 +168,6 @@ class TestQtArgs:
         args = qtargs.qt_args(parsed)
         assert ('--disable-gpu' in args) == added
 
-    @utils.qt59
     @pytest.mark.parametrize('policy, arg', [
         ('all-interfaces', None),
 
@@ -369,7 +368,6 @@ class TestQtArgs:
         assert combined_flag in args
         assert overlay_flag not in args
 
-    @utils.qt510
     def test_blink_settings(self, config_stub, monkeypatch, parser):
         from qutebrowser.browser.webengine import darkmode
         monkeypatch.setattr(qtargs.objects, 'backend',

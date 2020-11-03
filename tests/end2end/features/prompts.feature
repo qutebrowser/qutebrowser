@@ -39,7 +39,6 @@ Feature: Prompts
         And I run :leave-mode
         Then the javascript message "confirm reply: false" should be logged
 
-    @js_prompt
     Scenario: Javascript prompt
         When I open data/prompt/jsprompt.html
         And I run :click-element id button
@@ -48,7 +47,6 @@ Feature: Prompts
         And I run :prompt-accept
         Then the javascript message "Prompt reply: prompt test" should be logged
 
-    @js_prompt
     Scenario: Javascript prompt with default
         When I open data/prompt/jsprompt.html
         And I run :click-element id button-default
@@ -56,7 +54,6 @@ Feature: Prompts
         And I run :prompt-accept
         Then the javascript message "Prompt reply: default" should be logged
 
-    @js_prompt
     Scenario: Rejected javascript prompt
         When I open data/prompt/jsprompt.html
         And I run :click-element id button
@@ -137,7 +134,6 @@ Feature: Prompts
 
     # Shift-Insert with prompt (issue 1299)
 
-    @js_prompt
     Scenario: Pasting via shift-insert in prompt mode
         When selection is supported
         And I put "insert test" into the primary selection
@@ -148,7 +144,6 @@ Feature: Prompts
         And I run :prompt-accept
         Then the javascript message "Prompt reply: insert test" should be logged
 
-    @js_prompt
     Scenario: Pasting via shift-insert without it being supported
         When selection is not supported
         And I put "insert test" into the primary selection
@@ -160,7 +155,6 @@ Feature: Prompts
         And I run :prompt-accept
         Then the javascript message "Prompt reply: clipboard test" should be logged
 
-    @js_prompt
     Scenario: Using content.javascript.prompt
         When I set content.javascript.prompt to false
         And I open data/prompt/jsprompt.html
@@ -396,7 +390,6 @@ Feature: Prompts
         Then the javascript message "Alert done" should be logged
         And the error "No value is permitted with alert prompts!" should be shown
 
-    @js_prompt
     Scenario: Javascript prompt with value
         When I set content.javascript.prompt to true
         And I open data/prompt/jsprompt.html
