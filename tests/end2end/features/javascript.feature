@@ -129,9 +129,6 @@ Feature: Javascript stuff
         When I have a GreaseMonkey file saved for document-start with noframes unset
         And I run :greasemonkey-reload
         And I open data/hints/iframe.html
-        # This second reload is required in webengine < 5.8 for scripts
-        # registered to run at document-start, some sort of timing issue.
-        And I run :reload
         Then the javascript message "Script is running on /data/hints/iframe.html" should be logged
 
     Scenario: Have a GreaseMonkey script running on frames

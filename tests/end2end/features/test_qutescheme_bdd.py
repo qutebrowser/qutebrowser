@@ -47,7 +47,7 @@ def request_blocked(request, quteproc, kind):
     webkit_error_unsupported = (
         "Error while loading qute://settings/set?*: Unsupported request type")
 
-    if request.config.webengine and qtutils.version_check('5.12'):
+    if request.config.webengine:
         # On Qt 5.12, we mark qute:// as a local scheme, causing most requests
         # being blocked by Chromium internally (logging to the JS console).
         expected_messages = {
@@ -60,13 +60,6 @@ def request_blocked(request, quteproc, kind):
             # On Qt 5.15, Chromium blocks the redirect as ERR_UNSAFE_REDIRECT
             # instead.
             expected_messages['redirect'] = [unsafe_redirect_msg]
-    elif request.config.webengine:
-        expected_messages = {
-            'img': [blocking_csrf_msg],
-            'link': [blocking_set_msg, blocked_request_msg],
-            'redirect': [blocking_set_msg, blocked_request_msg],
-            'form': [blocking_set_msg, blocked_request_msg],
-        }
     else:  # QtWebKit
         expected_messages = {
             'img': [blocking_csrf_msg],
