@@ -24,7 +24,7 @@ Module attributes:
              value.
     MINVALS: A dictionary of C/Qt types (as string) mapped to their minimum
              value.
-    MAX_WORLD_ID: The highest world ID allowed in this version of QtWebEngine.
+    MAX_WORLD_ID: The highest world ID allowed by QtWebEngine.
 """
 
 
@@ -112,8 +112,7 @@ def version_check(version: str,
     return result
 
 
-# WORKAROUND for https://bugreports.qt.io/browse/QTBUG-69904
-MAX_WORLD_ID = 256 if version_check('5.11.2') else 11
+MAX_WORLD_ID = 256
 
 
 def is_new_qtwebkit() -> bool:
