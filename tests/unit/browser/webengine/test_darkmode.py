@@ -27,9 +27,6 @@ from qutebrowser.misc import objects
 from helpers import utils
 
 
-pytestmark = utils.qt510
-
-
 @pytest.fixture(autouse=True)
 def patch_backend(monkeypatch):
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
@@ -156,9 +153,6 @@ def test_customization(config_stub, monkeypatch, setting, value, exp_key, exp_va
 
 @pytest.mark.parametrize('qversion, webengine_version, expected', [
     # Without PYQT_WEBENGINE_VERSION
-    ('5.9.9', None, darkmode.Variant.unavailable),
-    ('5.10.1', None, darkmode.Variant.qt_510),
-    ('5.11.3', None, darkmode.Variant.qt_511_to_513),
     ('5.12.9', None, darkmode.Variant.qt_511_to_513),
 
     # With PYQT_WEBENGINE_VERSION
@@ -194,7 +188,6 @@ def test_broken_smart_images_policy(config_stub, monkeypatch, caplog):
     assert settings in expected
 
 
-@utils.qt510
 def test_new_chromium():
     """Fail if we encounter an unknown Chromium version.
 
@@ -225,7 +218,9 @@ def test_options(configdata_init):
         assert not opt.supports_pattern, name
         assert opt.restart, name
 
-        assert opt.backends == [usertypes.Backend.QtWebEngine], name
+        if opt.backends:
+            # On older Qt versions, this is an empty list.
+            assert opt.backends == [usertypes.Backend.QtWebEngine], name
 
         if opt.raw_backends is not None:
             assert not opt.raw_backends['QtWebKit'], name

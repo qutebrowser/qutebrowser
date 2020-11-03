@@ -91,7 +91,6 @@ class Variant(enum.Enum):
     """A dark mode variant."""
 
     unavailable = enum.auto()
-    qt_510 = enum.auto()
     qt_511_to_513 = enum.auto()
     qt_514 = enum.auto()
     qt_515_0 = enum.auto()
@@ -119,9 +118,6 @@ _IMAGE_POLICIES = {
     'never': 1,  # kFilterNone
     'smart': 2,  # kFilterSmart
 }
-# Image policy smart is not available with Qt 5.10
-_IMAGE_POLICIES_QT_510 = _IMAGE_POLICIES.copy()
-_IMAGE_POLICIES_QT_510['smart'] = _IMAGE_POLICIES['never']
 
 # Mapping from a colors.webpage.darkmode.policy.page setting value to
 # Chromium's DarkModePagePolicy enum values.
@@ -234,14 +230,6 @@ _DARK_MODE_DEFINITIONS: Mapping[Variant, _DarkModeDefinitionType] = {
         ('contrast', 'highContrastContrast', None),
         ('grayscale.all', 'highContrastGrayscale', _BOOLS),
     ], {'algorithm', 'policy.images'}),
-
-    Variant.qt_510: ([
-        ('algorithm', 'highContrastMode', _ALGORITHMS_BEFORE_QT_514),
-
-        ('policy.images', 'highContrastImagePolicy', _IMAGE_POLICIES_QT_510),
-        ('contrast', 'highContrastContrast', None),
-        ('grayscale.all', 'highContrastGrayscale', _BOOLS),
-    ], {'algorithm'}),
 }
 
 
@@ -261,17 +249,12 @@ def _variant() -> Variant:
             return Variant.qt_511_to_513
         raise utils.Unreachable(hex(PYQT_WEBENGINE_VERSION))
 
-    # If we don't have PYQT_WEBENGINE_VERSION, we'll need to assume based on the Qt
-    # version.
+    # If we don't have PYQT_WEBENGINE_VERSION, we're on 5.12 (or older, but 5.12 is the
+    # oldest supported version).
     assert not qtutils.version_check(  # type: ignore[unreachable]
         '5.13', compiled=False)
 
-    if qtutils.version_check('5.11', compiled=False):
-        return Variant.qt_511_to_513
-    elif qtutils.version_check('5.10', compiled=False):
-        return Variant.qt_510
-
-    return Variant.unavailable
+    return Variant.qt_511_to_513
 
 
 def settings() -> Iterator[Tuple[str, str]]:
