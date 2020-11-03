@@ -275,23 +275,6 @@ def test_qt_arg(request, quteproc_new, tmpdir):
     quteproc_new.wait_for_quit()
 
 
-@utils.skip_qt511
-def test_webengine_inspector(request, quteproc_new):
-    if not request.config.webengine:
-        pytest.skip()
-    args = (['--temp-basedir', '--enable-webengine-inspector'] +
-            _base_args(request.config))
-    quteproc_new.start(args)
-    line = quteproc_new.wait_for(
-        message='Remote debugging server started successfully. Try pointing a '
-                'Chromium-based browser to http://127.0.0.1:*')
-    port = int(line.message.split(':')[-1])
-
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect(('127.0.0.1', port))
-    s.close()
-
-
 @pytest.mark.linux
 def test_webengine_download_suffix(request, quteproc_new, tmpdir):
     """Make sure QtWebEngine does not add a suffix to downloads."""

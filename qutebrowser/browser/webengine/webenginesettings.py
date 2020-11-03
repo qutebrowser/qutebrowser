@@ -462,12 +462,8 @@ def _init_devtools_settings():
                                     hide_userconfig=True)
 
 
-def init(args):
+def init():
     """Initialize the global QWebSettings."""
-    if (args.enable_webengine_inspector and
-            not hasattr(QWebEnginePage, 'setInspectedPage')):  # only Qt < 5.11
-        os.environ['QTWEBENGINE_REMOTE_DEBUGGING'] = str(utils.random_port())
-
     webenginequtescheme.init()
     spell.init()
 

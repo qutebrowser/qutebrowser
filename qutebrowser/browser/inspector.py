@@ -49,12 +49,7 @@ def create(*, splitter: 'miscwidgets.InspectorSplitter',
     # argument and to avoid circular imports.
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webengineinspector
-        if webengineinspector.supports_new():
-            return webengineinspector.WebEngineInspector(
-                splitter, win_id, parent)
-        else:
-            return webengineinspector.LegacyWebEngineInspector(
-                splitter, win_id, parent)
+        return webengineinspector.WebEngineInspector(splitter, win_id, parent)
     elif objects.backend == usertypes.Backend.QtWebKit:
         from qutebrowser.browser.webkit import webkitinspector
         return webkitinspector.WebKitInspector(splitter, win_id, parent)

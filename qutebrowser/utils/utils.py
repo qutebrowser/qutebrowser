@@ -634,15 +634,6 @@ def supports_selection() -> bool:
     return QApplication.clipboard().supportsSelection()
 
 
-def random_port() -> int:
-    """Get a random free port."""
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(('localhost', 0))
-    port = sock.getsockname()[1]
-    sock.close()
-    return port
-
-
 def open_file(filename: str, cmdline: str = None) -> None:
     """Open the given file.
 

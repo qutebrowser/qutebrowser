@@ -750,13 +750,6 @@ class TestGetSetClipboard:
             utils.get_clipboard(fallback=True)
 
 
-def test_random_port():
-    port = utils.random_port()
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(('localhost', port))
-    sock.close()
-
-
 class TestOpenFile:
 
     @pytest.mark.not_frozen

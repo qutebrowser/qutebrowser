@@ -172,7 +172,7 @@ def _init_user_agent():
     parsed_user_agent = websettings.UserAgent.parse(ua)
 
 
-def init(_args):
+def init():
     """Initialize the global QWebSettings."""
     cache_path = standarddir.cache()
     data_path = standarddir.data()

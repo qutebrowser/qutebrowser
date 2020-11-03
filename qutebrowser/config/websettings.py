@@ -267,10 +267,10 @@ def init(args: argparse.Namespace) -> None:
     """Initialize all QWeb(Engine)Settings."""
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginesettings
-        webenginesettings.init(args)
+        webenginesettings.init()
     elif objects.backend == usertypes.Backend.QtWebKit:
         from qutebrowser.browser.webkit import webkitsettings
-        webkitsettings.init(args)
+        webkitsettings.init()
     else:
         raise utils.Unreachable(objects.backend)
 
