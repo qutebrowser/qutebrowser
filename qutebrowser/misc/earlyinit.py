@@ -176,22 +176,12 @@ def check_qt_version():
     from qutebrowser.utils import log
     parsed_qversion = parse_version(qVersion())
 
-    if (QT_VERSION < 0x050701 or PYQT_VERSION < 0x050700 or
-            parsed_qversion < parse_version('5.7.1')):
-        text = ("Fatal error: Qt >= 5.7.1 and PyQt >= 5.7 are required, "
+    if (QT_VERSION < 0x050C00 or PYQT_VERSION < 0x050C00 or
+            parsed_qversion < parse_version('5.12.0')):
+        text = ("Fatal error: Qt >= 5.12.0 and PyQt >= 5.12.0 are required, "
                 "but Qt {} / PyQt {} is installed.".format(qt_version(),
                                                            PYQT_VERSION_STR))
         _die(text)
-
-    if qVersion().startswith('5.8.'):
-        log.init.warning("Running qutebrowser with Qt 5.8 is untested and "
-                         "unsupported!")
-
-    if (parsed_qversion >= parse_version('5.12') and
-            (PYQT_VERSION < 0x050c00 or QT_VERSION < 0x050c00)):
-        log.init.warning("Combining PyQt {} with Qt {} is unsupported! Ensure "
-                         "all versions are newer than 5.12 to avoid potential "
-                         "issues.".format(PYQT_VERSION_STR, qt_version()))
 
 
 def check_ssl_support():
