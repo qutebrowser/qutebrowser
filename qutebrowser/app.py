@@ -366,10 +366,6 @@ def _open_special_pages(args):
          objects.backend == usertypes.Backend.QtWebKit,
          'qute://warning/webkit'),
 
-        ('old-qt-warning-shown',
-         not qtutils.version_check('5.11'),
-         'qute://warning/old-qt'),
-
         ('session-warning-shown',
          qtutils.version_check('5.15', compiled=False),
          'qute://warning/sessions'),

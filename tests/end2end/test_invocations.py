@@ -71,7 +71,6 @@ def temp_basedir_env(tmpdir, short_tmpdir):
         '[general]',
         'quickstart-done = 1',
         'backend-warning-shown = 1',
-        'old-qt-warning-shown = 1',
         'webkit-warning-shown = 1',
     ]
 
