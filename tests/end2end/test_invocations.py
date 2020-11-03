@@ -161,7 +161,7 @@ def test_open_command_line_with_ascii_locale(request, server, tmpdir,
     # all be called. No exception thrown means test success.
     args = (['--temp-basedir'] + _base_args(request.config) +
             ['/home/user/föö.html'])
-    quteproc_new.start(args, env={'LC_ALL': 'C'}, wait_focus=False)
+    quteproc_new.start(args, env={'LC_ALL': 'C'})
 
     if not request.config.webengine:
         line = quteproc_new.wait_for(message="Error while loading *: Error "
