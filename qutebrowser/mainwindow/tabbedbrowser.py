@@ -215,11 +215,9 @@ class TabbedBrowser(QWidget):
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
-        if qtutils.version_check('5.10', compiled=False):
-            self.cur_load_finished.connect(self._leave_modes_on_load)
-        else:
-            self.cur_load_started.connect(self._leave_modes_on_load)
+        # load_finished instead of load_started as WORKAROUND for
+        # https://bugreports.qt.io/browse/QTBUG-65223
+        self.cur_load_finished.connect(self._leave_modes_on_load)
 
         # This init is never used, it is immediately thrown away in the next
         # line.

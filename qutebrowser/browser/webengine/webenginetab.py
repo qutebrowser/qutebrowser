@@ -1556,14 +1556,10 @@ class WebEngineTab(browsertab.AbstractTab):
         """QtWebEngine-specific loadFinished workarounds."""
         super()._on_load_finished(ok)
 
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
-        if qtutils.version_check('5.10', compiled=False):
-            if not ok:
-                self._update_load_status(ok)
-        else:
+        if not ok:
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
             self._update_load_status(ok)
 
-        if not ok:
             self.dump_async(functools.partial(
                 self._error_page_workaround,
                 self.settings.test_attribute('content.javascript.enabled')))
