@@ -19,11 +19,14 @@
 
 import json
 
+import pytest
 import pytest_bdd as bdd
 
-# pylint: disable=unused-import
-from end2end.features.test_yankpaste_bdd import init_fake_clipboard
-# pylint: enable=unused-import
+
+@pytest.fixture(autouse=True)
+def init_fake_clipboard(quteproc):
+    """Make sure the fake clipboard will be used."""
+    quteproc.send_cmd(':debug-set-fake-clipboard')
 
 
 @bdd.then(bdd.parsers.parse('"{text}" should be found'))
