@@ -19,17 +19,16 @@
 
 """Customized QWebInspector for QtWebEngine."""
 
-import os
 import pathlib
 
-from PyQt5.QtCore import QUrl, QLibraryInfo
+from PyQt5.QtCore import QLibraryInfo
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from PyQt5.QtWidgets import QWidget
 
 from qutebrowser.browser import inspector
 from qutebrowser.browser.webengine import webenginesettings
 from qutebrowser.misc import miscwidgets
-from qutebrowser.utils import version, qtutils
+from qutebrowser.utils import version
 
 
 class WebEngineInspectorView(QWebEngineView):

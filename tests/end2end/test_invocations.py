@@ -20,7 +20,6 @@
 """Test starting qutebrowser with special arguments/environments."""
 
 import subprocess
-import socket
 import sys
 import logging
 import re
@@ -29,7 +28,6 @@ import pytest
 from PyQt5.QtCore import QProcess
 
 from helpers import utils
-from qutebrowser.utils import qtutils
 
 
 ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,

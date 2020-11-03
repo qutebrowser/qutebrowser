@@ -25,7 +25,6 @@ import os.path
 import io
 import logging
 import functools
-import socket
 import re
 import shlex
 import math

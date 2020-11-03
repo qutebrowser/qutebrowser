@@ -22,7 +22,7 @@
 import re
 import argparse
 import functools
-from typing import Any, Callable, Dict, Optional, Set
+from typing import Any, Callable, Dict, Optional
 
 import attr
 from PyQt5.QtCore import QUrl, pyqtSlot, qVersion
@@ -30,7 +30,7 @@ from PyQt5.QtGui import QFont
 
 import qutebrowser
 from qutebrowser.config import config
-from qutebrowser.utils import log, usertypes, urlmatch, qtutils, utils
+from qutebrowser.utils import usertypes, urlmatch, qtutils, utils
 from qutebrowser.misc import objects, debugcachestats
 
 UNSET = object()

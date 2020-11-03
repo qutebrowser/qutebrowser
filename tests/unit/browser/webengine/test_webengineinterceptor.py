@@ -27,8 +27,6 @@ pytest.importorskip('PyQt5.QtWebEngineWidgets')
 from PyQt5.QtWebEngineCore import QWebEngineUrlRequestInfo
 
 from qutebrowser.browser.webengine import interceptor
-from qutebrowser.extensions import interceptors
-from qutebrowser.utils import qtutils
 
 
 def test_no_missing_resource_types():

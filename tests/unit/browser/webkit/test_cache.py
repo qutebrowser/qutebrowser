@@ -23,7 +23,6 @@ from PyQt5.QtCore import QUrl, QDateTime
 from PyQt5.QtNetwork import QNetworkDiskCache, QNetworkCacheMetaData
 
 from qutebrowser.browser.webkit import cache
-from qutebrowser.utils import qtutils
 
 
 @pytest.fixture

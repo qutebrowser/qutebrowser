@@ -27,8 +27,7 @@ from typing import Callable, Mapping
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import config
-from qutebrowser.utils import (usertypes, message, log, objreg, jinja, utils,
-                               qtutils)
+from qutebrowser.utils import usertypes, message, log, objreg, jinja, utils
 from qutebrowser.mainwindow import mainwindow
 
 

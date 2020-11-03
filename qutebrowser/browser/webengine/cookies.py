@@ -20,7 +20,7 @@
 """Filter for QtWebEngine cookies."""
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils, qtutils, log
+from qutebrowser.utils import utils, log
 from qutebrowser.misc import objects
 
 

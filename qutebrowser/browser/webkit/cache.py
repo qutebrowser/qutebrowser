@@ -25,7 +25,7 @@ import os.path
 from PyQt5.QtNetwork import QNetworkDiskCache
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils, qtutils, standarddir
+from qutebrowser.utils import utils, standarddir
 
 
 diskcache = cast('DiskCache', None)

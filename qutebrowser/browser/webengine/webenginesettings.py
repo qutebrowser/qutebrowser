@@ -29,14 +29,12 @@ import operator
 from typing import cast, Any, List, Optional, Tuple, Union
 
 from PyQt5.QtGui import QFont
-from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
-                                      QWebEnginePage)
+from PyQt5.QtWebEngineWidgets import QWebEngineSettings, QWebEngineProfile
 
 from qutebrowser.browser.webengine import spell, webenginequtescheme
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
-from qutebrowser.utils import (utils, standarddir, qtutils, message, log,
-                               urlmatch, usertypes)
+from qutebrowser.utils import standarddir, qtutils, message, log, urlmatch, usertypes
 
 # The default QWebEngineProfile
 default_profile = cast(QWebEngineProfile, None)

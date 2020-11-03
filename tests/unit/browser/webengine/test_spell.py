@@ -22,10 +22,9 @@ import logging
 import os
 
 import pytest
-from PyQt5.QtCore import QLibraryInfo
 
 from qutebrowser.browser.webengine import spell
-from qutebrowser.utils import usertypes, qtutils, standarddir
+from qutebrowser.utils import usertypes
 
 
 def test_version(message_mock, caplog):

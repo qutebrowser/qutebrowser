@@ -33,7 +33,6 @@ import hypothesis.strategies
 from qutebrowser.api import cmdutils
 from qutebrowser.browser.network import pac
 from qutebrowser.utils import utils, urlutils, usertypes
-from helpers import utils as testutils
 
 
 class FakeDNS:

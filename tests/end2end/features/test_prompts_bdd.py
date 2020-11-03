@@ -22,8 +22,6 @@ import logging
 import pytest_bdd as bdd
 bdd.scenarios('prompts.feature')
 
-from qutebrowser.utils import qtutils
-
 
 @bdd.when("I load an SSL page")
 def load_ssl_page(quteproc, ssl_server):

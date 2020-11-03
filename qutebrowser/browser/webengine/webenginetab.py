@@ -23,15 +23,14 @@ import math
 import functools
 import re
 import html as html_utils
-from typing import cast, Optional, Union
+from typing import cast, Union
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
-                          QTimer, QObject)
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl, QObject
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript, QWebEngineHistory
 
-from qutebrowser.config import configdata, config
+from qutebrowser.config import config
 from qutebrowser.browser import (browsertab, eventfilter, shared, webelem,
                                  history, greasemonkey)
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,

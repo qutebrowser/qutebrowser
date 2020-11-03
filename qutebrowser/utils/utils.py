@@ -31,7 +31,6 @@ import traceback
 import functools
 import contextlib
 import posixpath
-import socket
 import shlex
 import glob
 import mimetypes

@@ -26,7 +26,6 @@ from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import usertypes, urlutils
 from qutebrowser.mainwindow.statusbar import url
-from helpers import utils
 
 
 @pytest.fixture

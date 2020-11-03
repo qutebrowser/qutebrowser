@@ -21,14 +21,13 @@
 
 import re
 import os.path
-import urllib
 import functools
 
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QObject
 from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
 
 from qutebrowser.browser import downloads, pdfjs
-from qutebrowser.utils import debug, usertypes, message, log, qtutils, objreg
+from qutebrowser.utils import debug, usertypes, message, log, objreg
 
 
 class DownloadItem(downloads.AbstractDownloadItem):

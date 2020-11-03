@@ -37,8 +37,7 @@ import attr
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from qutebrowser.browser.webengine import spell
 from qutebrowser.config import configdata
-from qutebrowser.utils import standarddir, utils
-from scripts import utils as scriptutils
+from qutebrowser.utils import standarddir
 
 
 API_URL = 'https://chromium.googlesource.com/chromium/deps/hunspell_dictionaries.git/+/master/'

@@ -36,7 +36,7 @@ import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl
 
 from qutebrowser.misc import ipc
-from qutebrowser.utils import log, utils, javascript, qtutils
+from qutebrowser.utils import log, utils, javascript
 from helpers import utils as testutils
 from end2end.fixtures import testprocess
 

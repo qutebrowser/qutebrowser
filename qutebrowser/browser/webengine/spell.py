@@ -24,10 +24,8 @@ import glob
 import os
 import os.path
 import re
-import shutil
 
-from PyQt5.QtCore import QLibraryInfo
-from qutebrowser.utils import log, message, standarddir, qtutils
+from qutebrowser.utils import log, message, standarddir
 
 _DICT_VERSION_RE = re.compile(r".+-(?P<version>[0-9]+-[0-9]+?)\.bdic")
 

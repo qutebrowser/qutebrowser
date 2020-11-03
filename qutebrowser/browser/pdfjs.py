@@ -24,9 +24,7 @@ import os
 
 from PyQt5.QtCore import QUrl, QUrlQuery
 
-from qutebrowser.utils import (utils, javascript, jinja, qtutils, usertypes,
-                               standarddir, log)
-from qutebrowser.misc import objects
+from qutebrowser.utils import utils, javascript, jinja, standarddir, log
 from qutebrowser.config import config
 
 

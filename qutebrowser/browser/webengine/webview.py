@@ -19,19 +19,15 @@
 
 """The main browser widget for QtWebEngine."""
 
-from typing import Optional
 
-from PyQt5.QtCore import pyqtSignal, QUrl, PYQT_VERSION
+from PyQt5.QtCore import pyqtSignal, QUrl
 from PyQt5.QtGui import QPalette
-from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import webenginesettings, certificateerror
 from qutebrowser.config import config
-from qutebrowser.utils import log, debug, usertypes, qtutils
-from qutebrowser.misc import miscwidgets, objects
-from qutebrowser.qt import sip
+from qutebrowser.utils import log, debug, usertypes
 
 
 class WebEngineView(QWebEngineView):

@@ -173,7 +173,6 @@ def check_qt_version():
     from PyQt5.QtCore import (qVersion, QT_VERSION, PYQT_VERSION,
                               PYQT_VERSION_STR)
     from pkg_resources import parse_version
-    from qutebrowser.utils import log
     parsed_qversion = parse_version(qVersion())
 
     if (QT_VERSION < 0x050C00 or PYQT_VERSION < 0x050C00 or

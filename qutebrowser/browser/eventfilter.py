@@ -22,7 +22,7 @@
 from PyQt5.QtCore import QObject, QEvent, Qt, QTimer
 
 from qutebrowser.config import config
-from qutebrowser.utils import message, log, usertypes, qtutils, objreg
+from qutebrowser.utils import message, log, usertypes, qtutils
 from qutebrowser.misc import objects
 from qutebrowser.keyinput import modeman
 
