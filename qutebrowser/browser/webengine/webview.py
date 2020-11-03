@@ -54,13 +54,6 @@ class WebEngineView(QWebEngineView):
                              parent=self)
         self.setPage(page)
 
-        if qtutils.version_check('5.11.0', compiled=False, exact=True):
-            # Set a PseudoLayout as a WORKAROUND for
-            # https://bugreports.qt.io/browse/QTBUG-68224
-            # and other related issues. (Fixed in Qt 5.11.1)
-            sip.delete(self.layout())
-            self._layout = miscwidgets.PseudoLayout(self)
-
     def render_widget(self):
         """Get the RenderWidgetHostViewQt for this view.
 

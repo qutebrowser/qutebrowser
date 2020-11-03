@@ -284,47 +284,6 @@ class WrapperLayout(QLayout):
         self._container.setFocusProxy(None)  # type: ignore[arg-type]
 
 
-class PseudoLayout(QLayout):
-
-    """A layout which isn't actually a real layout.
-
-    This is used to replace QWebEngineView's internal layout, as a WORKAROUND
-    for https://bugreports.qt.io/browse/QTBUG-68224 and other related issues.
-
-    This is partly inspired by https://codereview.qt-project.org/#/c/230894/
-    which does something similar as part of Qt.
-    """
-
-    def addItem(self, item):
-        assert self.parent() is not None
-        item.widget().setParent(self.parent())
-
-    def removeItem(self, item):
-        item.widget().setParent(None)
-
-    def count(self):
-        return 0
-
-    def itemAt(self, _pos):
-        return None
-
-    def widget(self):
-        return self.parent().render_widget()
-
-    def setGeometry(self, rect):
-        """Resize the render widget when the view is resized."""
-        widget = self.widget()
-        if widget is not None:
-            widget.setGeometry(rect)
-
-    def sizeHint(self):
-        """Make sure the view has the sizeHint of the render widget."""
-        widget = self.widget()
-        if widget is not None:
-            return widget.sizeHint()
-        return QSize()
-
-
 class FullscreenNotification(QLabel):
 
     """A label telling the user this page is now fullscreen."""
