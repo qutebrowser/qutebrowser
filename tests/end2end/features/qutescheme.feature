@@ -281,9 +281,7 @@ Feature: Special qute:// pages
         Then the error "Invalid log category invalid - *" should be shown
 
     Scenario: Using qute://log directly
-        When I open qute://log without waiting
-        # With Qt 5.9, we don't get a loaded message?
-        And I wait for "Changing title for idx * to 'log'" in the log
+        When I open qute://log
         Then no crash should happen
 
     # FIXME More possible tests:

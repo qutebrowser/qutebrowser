@@ -251,10 +251,7 @@ def test_version(request):
     print(stderr)
 
     assert ok
-
-    if qtutils.version_check('5.9'):
-        # Segfaults on exit with Qt 5.7
-        assert proc.exitStatus() == QProcess.NormalExit
+    assert proc.exitStatus() == QProcess.NormalExit
 
     match = re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout, re.MULTILINE)
     assert match is not None
