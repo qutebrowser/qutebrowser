@@ -78,36 +78,6 @@ def test_generate_pdfjs_script(filename, expected):
     assert 'PDFView' in actual
 
 
-@pytest.mark.parametrize('qt, backend, expected', [
-    ('new', usertypes.Backend.QtWebEngine, False),
-    ('new', usertypes.Backend.QtWebKit, False),
-    ('old', usertypes.Backend.QtWebEngine, True),
-    ('old', usertypes.Backend.QtWebKit, False),
-    ('5.7', usertypes.Backend.QtWebEngine, False),
-    ('5.7', usertypes.Backend.QtWebKit, False),
-])
-def test_generate_pdfjs_script_disable_object_url(monkeypatch,
-                                                  qt, backend, expected):
-    if qt == 'new':
-        monkeypatch.setattr(pdfjs.qtutils, 'version_check',
-                            lambda version, exact=False, compiled=True:
-                            version != '5.7.1')
-    elif qt == 'old':
-        monkeypatch.setattr(pdfjs.qtutils, 'version_check',
-                            lambda version, exact=False, compiled=True: False)
-    elif qt == '5.7':
-        monkeypatch.setattr(pdfjs.qtutils, 'version_check',
-                            lambda version, exact=False, compiled=True:
-                            version == '5.7.1')
-    else:
-        raise utils.Unreachable
-
-    monkeypatch.setattr(pdfjs.objects, 'backend', backend)
-
-    script = pdfjs._generate_pdfjs_script('testfile')
-    assert ('PDFJS.disableCreateObjectURL' in script) == expected
-
-
 class TestResources:
 
     @pytest.fixture
