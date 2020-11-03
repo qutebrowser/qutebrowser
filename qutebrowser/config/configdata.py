@@ -141,7 +141,7 @@ def _parse_yaml_backends_dict(
 
     backends:
       QtWebKit: true
-      QtWebEngine: Qt 5.9
+      QtWebEngine: Qt 5.15
     """
     str_to_backend = {
         'QtWebKit': usertypes.Backend.QtWebKit,
@@ -158,14 +158,9 @@ def _parse_yaml_backends_dict(
     conditionals = {
         True: True,
         False: False,
-        'Qt 5.8': qtutils.version_check('5.8'),
-        'Qt 5.9': qtutils.version_check('5.9'),
-        'Qt 5.9.2': qtutils.version_check('5.9.2'),
-        'Qt 5.10': qtutils.version_check('5.10'),
-        'Qt 5.11': qtutils.version_check('5.11'),
-        'Qt 5.12': qtutils.version_check('5.12'),
         'Qt 5.13': qtutils.version_check('5.13'),
         'Qt 5.14': qtutils.version_check('5.14'),
+        'Qt 5.15': qtutils.version_check('5.15'),
     }
     for key in sorted(node.keys()):
         if conditionals[node[key]]:
@@ -186,7 +181,7 @@ def _parse_yaml_backends(
     - backend: QtWebEngine -> setting only available with QtWebEngine
     - backend:
        QtWebKit: true
-       QtWebEngine: Qt 5.9
+       QtWebEngine: Qt 5.15
       -> setting available based on the given conditionals.
 
     Return:

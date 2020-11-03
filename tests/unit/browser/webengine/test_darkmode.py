@@ -224,5 +224,9 @@ def test_options(configdata_init):
 
         assert not opt.supports_pattern, name
         assert opt.restart, name
-        assert not opt.raw_backends['QtWebKit'], name
-        assert opt.raw_backends['QtWebEngine'] in ['Qt 5.10', 'Qt 5.14'], name
+
+        assert opt.backends == [usertypes.Backend.QtWebEngine], name
+
+        if opt.raw_backends is not None:
+            assert not opt.raw_backends['QtWebKit'], name
+            assert opt.raw_backends['QtWebEngine'] == 'Qt 5.14', name

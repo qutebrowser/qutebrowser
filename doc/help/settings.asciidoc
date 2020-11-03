@@ -1584,9 +1584,7 @@ Valid values:
 
 Default: +pass:[lightness-cielab]+
 
-On QtWebEngine, this setting requires Qt 5.10 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[colors.webpage.darkmode.contrast]]
 === colors.webpage.darkmode.contrast
@@ -1599,9 +1597,7 @@ Type: <<types,Float>>
 
 Default: +pass:[0.0]+
 
-On QtWebEngine, this setting requires Qt 5.10 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[colors.webpage.darkmode.enabled]]
 === colors.webpage.darkmode.enabled
@@ -1627,9 +1623,7 @@ Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
-On QtWebEngine, this setting requires Qt 5.10 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[colors.webpage.darkmode.grayscale.all]]
 === colors.webpage.darkmode.grayscale.all
@@ -1642,9 +1636,7 @@ Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
-On QtWebEngine, this setting requires Qt 5.10 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[colors.webpage.darkmode.grayscale.images]]
 === colors.webpage.darkmode.grayscale.images
@@ -1664,7 +1656,7 @@ On QtWebKit, this setting is unavailable.
 [[colors.webpage.darkmode.policy.images]]
 === colors.webpage.darkmode.policy.images
 Which images to apply dark mode to.
-With QtWebEngine 5.15.0, this setting can cause frequent renderer process crashes due to a https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug in Qt]. With QtWebEngine 5.10, this is not available at all. In those cases, the 'smart' setting is ignored and treated like 'never'.
+With QtWebEngine 5.15.0, this setting can cause frequent renderer process crashes due to a https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug in Qt].
 
 This setting requires a restart.
 
@@ -1674,13 +1666,11 @@ Valid values:
 
  * +always+: Apply dark mode filter to all images.
  * +never+: Never apply dark mode filter to any images.
- * +smart+: Apply dark mode based on image content. Not available with Qt 5.10 / 5.15.0.
+ * +smart+: Apply dark mode based on image content. Not available with Qt 5.15.0.
 
 Default: +pass:[smart]+
 
-On QtWebEngine, this setting requires Qt 5.10 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[colors.webpage.darkmode.policy.page]]
 === colors.webpage.darkmode.policy.page
@@ -1903,7 +1893,6 @@ Default:
 [[content.autoplay]]
 === content.autoplay
 Automatically start playing `<video>` elements.
-Note: On Qt < 5.11, this option needs a restart and does not support URL patterns.
 
 This setting supports URL patterns.
 
@@ -1911,9 +1900,7 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-On QtWebEngine, this setting requires Qt 5.10 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[content.cache.appcache]]
 === content.cache.appcache
@@ -1982,12 +1969,9 @@ Valid values:
 
 Default: +pass:[all]+
 
-On QtWebEngine, this setting requires Qt 5.11 or newer.
-
 [[content.cookies.store]]
 === content.cookies.store
 Store cookies.
-Note this option needs a restart with QtWebEngine on Qt < 5.9.
 
 Type: <<types,Bool>>
 
@@ -2005,7 +1989,6 @@ Default: +pass:[iso-8859-1]+
 [[content.desktop_capture]]
 === content.desktop_capture
 Allow websites to share screen content.
-On Qt < 5.10, a dialog box is always displayed, even if this is set to "true".
 
 This setting supports URL patterns.
 
@@ -2029,7 +2012,7 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-On QtWebEngine, this setting requires Qt 5.12 or newer.
+This setting is only available with the QtWebEngine backend.
 
 [[content.frame_flattening]]
 === content.frame_flattening
@@ -2403,9 +2386,7 @@ Valid values:
 
 Default: +pass:[ask]+
 
-On QtWebEngine, this setting requires Qt 5.8 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[content.mute]]
 === content.mute
@@ -2472,9 +2453,7 @@ Valid values:
 
 Default: +pass:[ask]+
 
-On QtWebEngine, this setting requires Qt 5.11 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[content.plugins]]
 === content.plugins
@@ -2496,7 +2475,7 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-On QtWebEngine, this setting requires Qt 5.8 or newer.
+This setting is only available with the QtWebEngine backend.
 
 [[content.private_browsing]]
 === content.private_browsing
@@ -2547,9 +2526,7 @@ Valid values:
 
 Default: +pass:[ask]+
 
-On QtWebEngine, this setting requires Qt 5.11 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[content.site_specific_quirks]]
 === content.site_specific_quirks
@@ -2593,9 +2570,7 @@ Valid values:
 
 Default: +pass:[allow-from-user-interaction]+
 
-On QtWebEngine, this setting requires Qt 5.11 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[content.user_stylesheets]]
 === content.user_stylesheets
@@ -2618,7 +2593,6 @@ Default: +pass:[true]+
 [[content.webrtc_ip_handling_policy]]
 === content.webrtc_ip_handling_policy
 Which interfaces to expose via WebRTC.
-On Qt 5.10, this option doesn't work because of a Qt bug.
 
 This setting requires a restart.
 
@@ -2633,9 +2607,7 @@ Valid values:
 
 Default: +pass:[all-interfaces]+
 
-On QtWebEngine, this setting requires Qt 5.9.2 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[content.xss_auditing]]
 === content.xss_auditing
@@ -3561,7 +3533,7 @@ Valid values:
  * +always+: Always show the scrollbar.
  * +never+: Never show the scrollbar.
  * +when-searching+: Show the scrollbar when searching for text in the webpage. With the QtWebKit backend, this is equal to `never`.
- * +overlay+: Show an overlay scrollbar. With Qt < 5.11 or on macOS, this is unavailable and equal to `when-searching`; with the QtWebKit backend, this is equal to `never`. Enabling/disabling overlay scrollbars requires a restart.
+ * +overlay+: Show an overlay scrollbar. On macOS, this is unavailable and equal to `when-searching`; with the QtWebKit backend, this is equal to `never`. Enabling/disabling overlay scrollbars requires a restart.
 
 Default: +pass:[overlay]+
 
@@ -3680,9 +3652,7 @@ Valid values:
 
 Default: empty
 
-On QtWebEngine, this setting requires Qt 5.8 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[statusbar.padding]]
 === statusbar.padding
