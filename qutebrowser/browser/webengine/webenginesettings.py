@@ -136,6 +136,16 @@ class WebEngineSettings(websettings.AbstractSettings):
 
         'scrolling.smooth':
             Attr(QWebEngineSettings.ScrollAnimatorEnabled),
+
+        'content.print_element_backgrounds':
+            Attr(QWebEngineSettings.PrintElementBackgrounds),
+
+        'content.autoplay':
+            Attr(QWebEngineSettings.PlaybackRequiresUserGesture,
+                 converter=operator.not_),
+
+        'content.dns_prefetch':
+            Attr(QWebEngineSettings.DnsPrefetchEnabled),
     }
 
     _FONT_SIZES = {
@@ -158,18 +168,14 @@ class WebEngineSettings(websettings.AbstractSettings):
         'fonts.web.family.fantasy': QWebEngineSettings.FantasyFont,
     }
 
-    # Only Qt >= 5.11 support UnknownUrlSchemePolicy
-    try:
-        _UNKNOWN_URL_SCHEME_POLICY = {
-            'disallow':
-                QWebEngineSettings.DisallowUnknownUrlSchemes,
-            'allow-from-user-interaction':
-                QWebEngineSettings.AllowUnknownUrlSchemesFromUserInteraction,
-            'allow-all':
-                QWebEngineSettings.AllowAllUnknownUrlSchemes,
-        }
-    except AttributeError:
-        _UNKNOWN_URL_SCHEME_POLICY = None
+    _UNKNOWN_URL_SCHEME_POLICY = {
+        'disallow':
+            QWebEngineSettings.DisallowUnknownUrlSchemes,
+        'allow-from-user-interaction':
+            QWebEngineSettings.AllowUnknownUrlSchemesFromUserInteraction,
+        'allow-all':
+            QWebEngineSettings.AllowAllUnknownUrlSchemes,
+    }
 
     # Mapping from WebEngineSettings::initDefaults in
     # qtwebengine/src/core/web_engine_settings.cpp
@@ -200,38 +206,12 @@ class WebEngineSettings(websettings.AbstractSettings):
 
     def _update_setting(self, setting, value):
         if setting == 'content.unknown_url_scheme_policy':
-            if self._UNKNOWN_URL_SCHEME_POLICY:
-                return self.set_unknown_url_scheme_policy(value)
-            return False
+            return self.set_unknown_url_scheme_policy(value)
         return super()._update_setting(setting, value)
 
     def init_settings(self):
         super().init_settings()
         self.update_setting('content.unknown_url_scheme_policy')
-
-    def __init__(self, settings):
-        super().__init__(settings)
-        # Attributes which don't exist in all Qt versions.
-        new_attributes = {
-            # Qt 5.8
-            'content.print_element_backgrounds':
-                ('PrintElementBackgrounds', None),
-
-            # Qt 5.11
-            'content.autoplay':
-                ('PlaybackRequiresUserGesture', operator.not_),
-
-            # Qt 5.12
-            'content.dns_prefetch':
-                ('DnsPrefetchEnabled', None),
-        }
-        for name, (attribute, converter) in new_attributes.items():
-            try:
-                value = getattr(QWebEngineSettings, attribute)
-            except AttributeError:
-                continue
-
-            self._ATTRIBUTES[name] = Attr(value, converter=converter)
 
 
 class ProfileSetter:
@@ -254,13 +234,8 @@ class ProfileSetter:
 
         settings.setAttribute(
             QWebEngineSettings.FullScreenSupportEnabled, True)
-
-        try:
-            settings.setAttribute(
-                QWebEngineSettings.FocusOnNavigationEnabled, False)
-        except AttributeError:
-            # Added in Qt 5.8
-            pass
+        settings.setAttribute(
+            QWebEngineSettings.FocusOnNavigationEnabled, False)
 
         try:
             settings.setAttribute(QWebEngineSettings.PdfViewerEnabled, False)

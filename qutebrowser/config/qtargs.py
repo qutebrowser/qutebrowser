@@ -201,13 +201,6 @@ def _qtwebengine_settings_args() -> Iterator[str]:
         }
     }
 
-    if not qtutils.version_check('5.11'):
-        # On Qt 5.11, we can control this via QWebEngineSettings
-        settings['content.autoplay'] = {
-            True: None,
-            False: '--autoplay-policy=user-gesture-required',
-        }
-
     if qtutils.version_check('5.14'):
         settings['colors.webpage.prefers_color_scheme_dark'] = {
             True: '--force-dark-mode',

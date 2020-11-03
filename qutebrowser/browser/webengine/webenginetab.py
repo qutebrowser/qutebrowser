@@ -905,8 +905,10 @@ class _WebEnginePermissions(QObject):
         QWebEnginePage.Geolocation: 'content.geolocation',
         QWebEnginePage.MediaAudioCapture: 'content.media.audio_capture',
         QWebEnginePage.MediaVideoCapture: 'content.media.video_capture',
-        QWebEnginePage.MediaAudioVideoCapture:
-            'content.media.audio_video_capture',
+        QWebEnginePage.MediaAudioVideoCapture: 'content.media.audio_video_capture',
+        QWebEnginePage.MouseLock: 'content.mouse_lock',
+        QWebEnginePage.DesktopVideoCapture: 'content.desktop_capture',
+        QWebEnginePage.DesktopAudioVideoCapture: 'content.desktop_capture',
     }
 
     _messages = {
@@ -915,42 +917,15 @@ class _WebEnginePermissions(QObject):
         QWebEnginePage.MediaAudioCapture: 'record audio',
         QWebEnginePage.MediaVideoCapture: 'record video',
         QWebEnginePage.MediaAudioVideoCapture: 'record audio/video',
+        QWebEnginePage.MouseLock: 'hide your mouse pointer',
+        QWebEnginePage.DesktopVideoCapture: 'capture your desktop',
+        QWebEnginePage.DesktopAudioVideoCapture: 'capture your desktop and audio',
     }
 
     def __init__(self, tab, parent=None):
         super().__init__(parent)
         self._tab = tab
         self._widget = cast(QWidget, None)
-
-        try:
-            self._options.update({
-                QWebEnginePage.MouseLock:
-                    'content.mouse_lock',
-            })
-            self._messages.update({
-                QWebEnginePage.MouseLock:
-                    'hide your mouse pointer',
-            })
-        except AttributeError:
-            # Added in Qt 5.8
-            pass
-        try:
-            self._options.update({
-                QWebEnginePage.DesktopVideoCapture:
-                    'content.desktop_capture',
-                QWebEnginePage.DesktopAudioVideoCapture:
-                    'content.desktop_capture',
-            })
-            self._messages.update({
-                QWebEnginePage.DesktopVideoCapture:
-                    'capture your desktop',
-                QWebEnginePage.DesktopAudioVideoCapture:
-                    'capture your desktop and audio',
-            })
-        except AttributeError:
-            # Added in Qt 5.10
-            pass
-
         assert self._options.keys() == self._messages.keys()
 
     def connect_signals(self):
@@ -961,11 +936,9 @@ class _WebEnginePermissions(QObject):
         page.featurePermissionRequested.connect(
             self._on_feature_permission_requested)
 
-        if qtutils.version_check('5.11'):
-            page.quotaRequested.connect(
-                self._on_quota_requested)
-            page.registerProtocolHandlerRequested.connect(
-                self._on_register_protocol_handler_requested)
+        page.quotaRequested.connect(self._on_quota_requested)
+        page.registerProtocolHandlerRequested.connect(
+            self._on_register_protocol_handler_requested)
 
     @pyqtSlot('QWebEngineFullScreenRequest')
     def _on_fullscreen_requested(self, request):
@@ -1014,7 +987,6 @@ class _WebEnginePermissions(QObject):
             return
 
         if (
-                hasattr(QWebEnginePage, 'DesktopVideoCapture') and
                 feature in [QWebEnginePage.DesktopVideoCapture,
                             QWebEnginePage.DesktopAudioVideoCapture] and
                 qtutils.version_check('5.13', compiled=False) and

@@ -84,12 +84,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
             self.stats.finish()
         elif state == QWebEngineDownloadItem.DownloadInterrupted:
             self.successful = False
-            # https://bugreports.qt.io/browse/QTBUG-56839
-            try:
-                reason = self._qt_item.interruptReasonString()
-            except AttributeError:
-                # Qt < 5.9
-                reason = "Download failed"
+            reason = self._qt_item.interruptReasonString()
             self._die(reason)
         else:
             raise ValueError("_on_state_changed was called with unknown state "
@@ -116,12 +111,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
                     debug.qenum_key(QWebEngineDownloadItem, state)))
             return
 
-        try:
-            self._qt_item.resume()
-        except AttributeError:
-            raise downloads.UnsupportedOperationError(
-                "Retrying downloads is unsupported with QtWebEngine on "
-                "Qt/PyQt < 5.10")
+        self._qt_item.resume()
 
     def _get_open_filename(self):
         return self._filename

@@ -168,24 +168,6 @@ class TestQtArgs:
         args = qtargs.qt_args(parsed)
         assert ('--disable-gpu' in args) == added
 
-    @utils.qt510
-    @pytest.mark.parametrize('new_version, autoplay, added', [
-        (True, False, False),  # new enough to not need it
-        (False, True, False),  # autoplay enabled
-        (False, False, True),
-    ])
-    def test_autoplay(self, config_stub, monkeypatch, parser,
-                      new_version, autoplay, added):
-        monkeypatch.setattr(qtargs.objects, 'backend',
-                            usertypes.Backend.QtWebEngine)
-        config_stub.val.content.autoplay = autoplay
-        monkeypatch.setattr(qtargs.qtutils, 'version_check',
-                            lambda version, compiled=False: new_version)
-
-        parsed = parser.parse_args([])
-        args = qtargs.qt_args(parsed)
-        assert ('--autoplay-policy=user-gesture-required' in args) == added
-
     @utils.qt59
     @pytest.mark.parametrize('policy, arg', [
         ('all-interfaces', None),

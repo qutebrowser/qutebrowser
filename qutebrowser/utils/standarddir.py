@@ -254,8 +254,7 @@ def _writable_location(typ: QStandardPaths.StandardLocation) -> str:
         QStandardPaths.ConfigLocation, QStandardPaths.DataLocation,
         QStandardPaths.CacheLocation, QStandardPaths.DownloadLocation,
         QStandardPaths.RuntimeLocation, QStandardPaths.TempLocation,
-        # FIXME old Qt
-        getattr(QStandardPaths, 'AppDataLocation', object())], typ_str
+        QStandardPaths.AppDataLocation], typ_str
 
     with _unset_organization():
         path = QStandardPaths.writableLocation(typ)
