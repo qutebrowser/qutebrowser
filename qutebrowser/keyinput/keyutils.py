@@ -352,7 +352,7 @@ def _parse_single_key(keystr: str) -> str:
     return 'Shift+' + keystr if keystr.isupper() else keystr
 
 
-@attr.s(frozen=True, hash=False)
+@attr.s(frozen=True)
 class KeyInfo:
 
     """A key with optional modifiers.
@@ -377,14 +377,6 @@ class KeyInfo:
         _assert_plain_key(key)
         _assert_plain_modifier(modifiers)
         return cls(key, cast(Qt.KeyboardModifier, modifiers))
-
-    def __hash__(self) -> int:
-        """Convert KeyInfo to int before hashing.
-
-        This is needed as a WORKAROUND because enum members aren't hashable
-        with PyQt 5.7.
-        """
-        return hash(self.to_int())
 
     def __str__(self) -> str:
         """Convert this KeyInfo to a meaningful name.
