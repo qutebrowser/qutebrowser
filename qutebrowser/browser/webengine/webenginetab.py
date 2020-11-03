@@ -1340,7 +1340,6 @@ class WebEngineTab(browsertab.AbstractTab):
         self.backend = usertypes.Backend.QtWebEngine
         self._child_event_filter = None
         self._saved_zoom = None
-        self._reload_url: Optional[QUrl] = None
         self._scripts.init()
 
     def _set_widget(self, widget):
@@ -1614,16 +1613,6 @@ class WebEngineTab(browsertab.AbstractTab):
                 self._error_page_workaround,
                 self.settings.test_attribute('content.javascript.enabled')))
 
-        if ok and self._reload_url is not None:
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
-            log.config.debug(
-                "Loading {} again because of config change".format(
-                    self._reload_url.toDisplayString()))
-            QTimer.singleShot(100, functools.partial(
-                self.load_url, self._reload_url,
-                emit_before_load_started=False))
-            self._reload_url = None
-
     @pyqtSlot(certificateerror.CertificateErrorWrapper)
     def _on_ssl_errors(self, error):
         url = error.url()
@@ -1700,31 +1689,7 @@ class WebEngineTab(browsertab.AbstractTab):
         if not navigation.accepted or not navigation.is_main_frame:
             return
 
-        settings_needing_reload = {
-            'content.plugins',
-            'content.javascript.enabled',
-            'content.javascript.can_access_clipboard',
-            'content.print_element_backgrounds',
-            'input.spatial_navigation',
-        }
-        assert settings_needing_reload.issubset(configdata.DATA)
-
-        changed = self.settings.update_for_url(navigation.url)
-        reload_needed = bool(changed & settings_needing_reload)
-
-        # On Qt < 5.11, we don't don't need a reload when type == link_clicked.
-        # On Qt 5.11.0, we always need a reload.
-        # On Qt > 5.11.0, we never need a reload:
-        # https://codereview.qt-project.org/#/c/229525/1
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
-        if qtutils.version_check('5.11.1', compiled=False):
-            reload_needed = False
-        elif not qtutils.version_check('5.11.0', exact=True, compiled=False):
-            if navigation.navigation_type == navigation.Type.link_clicked:
-                reload_needed = False
-
-        if reload_needed:
-            self._reload_url = navigation.url
+        self.settings.update_for_url(navigation.url)
 
     def _on_select_client_certificate(self, selection):
         """Handle client certificates.
