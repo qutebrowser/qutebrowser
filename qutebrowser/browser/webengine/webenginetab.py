@@ -1147,17 +1147,10 @@ class _WebEngineScripts(QObject):
         self._inject_early_js('js', js_code, subframes=True)
         self._init_stylesheet()
 
-        # The Greasemonkey metadata block support in QtWebEngine only starts at
-        # Qt 5.8. With 5.7.1, we need to inject the scripts ourselves in
-        # response to urlChanged.
-        if not qtutils.version_check('5.8'):
-            self._tab.url_changed.connect(
-                self._inject_greasemonkey_scripts_for_url)
-        else:
-            self._greasemonkey.scripts_reloaded.connect(
-                self._inject_all_greasemonkey_scripts)
-            self._inject_all_greasemonkey_scripts()
-            self._inject_site_specific_quirks()
+        self._greasemonkey.scripts_reloaded.connect(
+            self._inject_all_greasemonkey_scripts)
+        self._inject_all_greasemonkey_scripts()
+        self._inject_site_specific_quirks()
 
     def _init_stylesheet(self):
         """Initialize custom stylesheets.
@@ -1173,16 +1166,6 @@ class _WebEngineScripts(QObject):
             javascript.assemble('stylesheet', 'set_css', css),
         )
         self._inject_early_js('stylesheet', js_code, subframes=True)
-
-    @pyqtSlot(QUrl)
-    def _inject_greasemonkey_scripts_for_url(self, url):
-        matching_scripts = self._greasemonkey.scripts_for(url)
-        self._inject_greasemonkey_scripts(
-            matching_scripts.start, QWebEngineScript.DocumentCreation, True)
-        self._inject_greasemonkey_scripts(
-            matching_scripts.end, QWebEngineScript.DocumentReady, False)
-        self._inject_greasemonkey_scripts(
-            matching_scripts.idle, QWebEngineScript.Deferred, False)
 
     @pyqtSlot()
     def _inject_all_greasemonkey_scripts(self):
@@ -1266,13 +1249,7 @@ class _WebEngineScripts(QObject):
             page_scripts.insert(new_script)
 
     def _inject_site_specific_quirks(self):
-        """Add site-specific quirk scripts.
-
-        NOTE: This isn't implemented for Qt 5.7 because of different UserScript
-        semantics there. The WhatsApp Web quirk isn't needed for Qt < 5.13.
-        The globalthis_quirk would be, but let's not keep such old QtWebEngine
-        versions on life support.
-        """
+        """Add site-specific quirk scripts."""
         if not config.val.content.site_specific_quirks:
             return
 

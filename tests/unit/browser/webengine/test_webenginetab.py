@@ -101,9 +101,6 @@ class TestWebengineScripts:
         """Make sure document-end is forced when needed."""
         monkeypatch.setattr(greasemonkey.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
-        monkeypatch.setattr(greasemonkey.qtutils, 'version_check',
-                            lambda version, exact=False, compiled=True:
-                            True)
 
         scripts = [
             greasemonkey.GreasemonkeyScript([
