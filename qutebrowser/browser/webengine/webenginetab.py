@@ -117,18 +117,7 @@ class WebEngineAction(browsertab.AbstractAction):
             self._show_source_pygments()
             return
 
-        try:
-            self._widget.triggerPageAction(QWebEnginePage.ViewSource)
-        except AttributeError:
-            # Qt < 5.8
-            tb = objreg.get('tabbed-browser', scope='window',
-                            window=self._tab.win_id)
-            urlstr = self._tab.url().toString(
-                QUrl.RemoveUserInfo)  # type: ignore[arg-type]
-            # The original URL becomes the path of a view-source: URL
-            # (without a host), but query/fragment should stay.
-            url = QUrl('view-source:' + urlstr)
-            tb.tabopen(url, background=False, related=True)
+        self._widget.triggerPageAction(QWebEnginePage.ViewSource)
 
 
 class WebEnginePrinting(browsertab.AbstractPrinting):
