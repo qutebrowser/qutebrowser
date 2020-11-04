@@ -1949,7 +1949,7 @@ class TestFuzzyUrl:
         assert klass().to_py(val) == expected
 
     @pytest.mark.parametrize('val', [
-        '::foo',  # invalid URL
+        '',  # invalid URL
         'foo bar',  # invalid search term
     ])
     def test_to_py_invalid(self, klass, val):

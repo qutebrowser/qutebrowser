@@ -215,15 +215,11 @@ class TestFuzzyUrl:
         assert url == QUrl('http://foo')
 
     @pytest.mark.parametrize('do_search', [True, False])
-    def test_invalid_url(self, do_search, is_url_mock, monkeypatch,
-                         caplog):
+    def test_invalid_url(self, do_search, caplog):
         """Test with an invalid URL."""
-        is_url_mock.return_value = True
-        monkeypatch.setattr(urlutils, 'qurl_from_user_input',
-                            lambda url: QUrl())
         with pytest.raises(urlutils.InvalidUrlError):
             with caplog.at_level(logging.ERROR):
-                urlutils.fuzzy_url('foo', do_search=do_search)
+                urlutils.fuzzy_url('', do_search=do_search)
 
     @pytest.mark.parametrize('url', ['', ' '])
     def test_empty(self, url):
@@ -487,29 +483,6 @@ def test_searchengine_is_url(config_stub, auto_search, open_base_url, is_url):
     config_stub.val.url.auto_search = auto_search
     config_stub.val.url.open_base_url = open_base_url
     assert urlutils.is_url('test') == is_url
-
-
-@pytest.mark.parametrize('user_input, output', [
-    ('qutebrowser.org', 'http://qutebrowser.org'),
-    ('http://qutebrowser.org', 'http://qutebrowser.org'),
-    ('::1/foo', 'http://[::1]/foo'),
-    ('[::1]/foo', 'http://[::1]/foo'),
-    ('http://[::1]', 'http://[::1]'),
-    ('qutebrowser.org', 'http://qutebrowser.org'),
-    ('http://qutebrowser.org', 'http://qutebrowser.org'),
-    ('::1/foo', 'http://[::1]/foo'),
-    ('[::1]/foo', 'http://[::1]/foo'),
-    ('http://[::1]', 'http://[::1]'),
-])
-def test_qurl_from_user_input(user_input, output):
-    """Test qurl_from_user_input.
-
-    Args:
-        user_input: The string to pass to qurl_from_user_input.
-        output: The expected QUrl string.
-    """
-    url = urlutils.qurl_from_user_input(user_input)
-    assert url.toString() == output
 
 
 @pytest.mark.parametrize('url, valid, has_err_string', [

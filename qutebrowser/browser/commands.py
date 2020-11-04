@@ -1304,7 +1304,7 @@ class CommandDispatcher:
             if mhtml_:
                 raise cmdutils.CommandError("Can only download the current "
                                             "page as mhtml.")
-            url = urlutils.qurl_from_user_input(url)
+            url = QUrl.fromUserInput(url)
             urlutils.raise_cmdexc_if_invalid(url)
             download_manager.get(url, target=target)
         elif mhtml_:
