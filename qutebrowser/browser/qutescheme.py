@@ -40,7 +40,7 @@ import qutebrowser
 from qutebrowser.browser import pdfjs, downloads, history
 from qutebrowser.config import config, configdata, configexc, configdiff
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
-                               objreg, urlutils, standarddir)
+                               objreg, standarddir)
 from qutebrowser.qt import sip
 
 
@@ -135,7 +135,7 @@ def data_for_url(url: QUrl) -> Tuple[str, bytes]:
 
     path = url.path()
     host = url.host()
-    query = urlutils.query_string(url)
+    query = url.query()
     # A url like "qute:foo" is split as "scheme:path", not "scheme:host".
     log.misc.debug("url: {}, path: {}, host {}".format(
         url.toDisplayString(), path, host))

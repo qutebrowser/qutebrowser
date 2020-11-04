@@ -27,7 +27,7 @@ import posixpath
 import urllib.parse
 from typing import Optional, Tuple, Union
 
-from PyQt5.QtCore import QUrl, QUrlQuery
+from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QHostInfo, QHostAddress, QNetworkProxy
 
 from qutebrowser.api import cmdutils
@@ -569,18 +569,6 @@ def safe_display_string(qurl: QUrl) -> str:
             return '({}) {}'.format(host, qurl.toDisplayString())
 
     return qurl.toDisplayString()
-
-
-def query_string(qurl: QUrl) -> str:
-    """Get a query string for the given URL.
-
-    This is a WORKAROUND for:
-    https://www.riverbankcomputing.com/pipermail/pyqt/2017-November/039702.html
-    """
-    try:
-        return qurl.query()
-    except AttributeError:  # pragma: no cover
-        return QUrlQuery(qurl).query()
 
 
 class InvalidProxyTypeError(Exception):
