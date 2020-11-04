@@ -561,9 +561,7 @@ def safe_display_string(qurl: QUrl) -> str:
     ensure_valid(qurl)
 
     host = qurl.host(QUrl.FullyEncoded)
-    if '..' in host:  # pragma: no cover
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-60364
-        return '(unparseable URL!) {}'.format(qurl.toDisplayString())
+    assert '..' not in host, qurl  # https://bugreports.qt.io/browse/QTBUG-60364
 
     for part in host.split('.'):
         url_host = qurl.host(QUrl.FullyDecoded)
