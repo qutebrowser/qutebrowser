@@ -234,16 +234,6 @@ def _init_py_warnings() -> None:
 
 
 @contextlib.contextmanager
-def disable_qt_msghandler() -> Iterator[None]:
-    """Contextmanager which temporarily disables the Qt message handler."""
-    old_handler = QtCore.qInstallMessageHandler(None)
-    try:
-        yield
-    finally:
-        QtCore.qInstallMessageHandler(old_handler)
-
-
-@contextlib.contextmanager
 def py_warning_filter(action: str = 'ignore', **kwargs: Any) -> Iterator[None]:
     """Contextmanager to temporarily disable certain Python warnings."""
     warnings.filterwarnings(action, **kwargs)
