@@ -627,18 +627,6 @@ class KeySequence:
                 not ev.text().isupper()):
             modifiers = Qt.KeyboardModifiers()  # type: ignore[assignment]
 
-        # On macOS, swap Ctrl and Meta back
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-51293
-        if utils.is_mac:
-            if modifiers & Qt.ControlModifier and modifiers & Qt.MetaModifier:
-                pass
-            elif modifiers & Qt.ControlModifier:
-                modifiers &= ~Qt.ControlModifier
-                modifiers |= Qt.MetaModifier
-            elif modifiers & Qt.MetaModifier:
-                modifiers &= ~Qt.MetaModifier
-                modifiers |= Qt.ControlModifier
-
         keys = list(self._iter_keys())
         keys.append(key | int(modifiers))
 
