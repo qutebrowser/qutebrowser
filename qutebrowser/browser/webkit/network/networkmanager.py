@@ -365,13 +365,6 @@ class NetworkManager(QNetworkAccessManager):
             # https://www.playstation.com/ for example.
             pass
 
-    # WORKAROUND for:
-    # http://www.riverbankcomputing.com/pipermail/pyqt/2014-September/034806.html
-    #
-    # By returning False, we provoke a TypeError because of a wrong return
-    # type, which does *not* trigger a segfault but invoke our return handler
-    # immediately.
-    @utils.prevent_exceptions(False)
     def createRequest(self, op, req, outgoing_data):
         """Return a new QNetworkReply object.
 
