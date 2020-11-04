@@ -1302,6 +1302,15 @@ class TempDownloadManager:
     def __init__(self):
         self.files: MutableSequence[IO[bytes]] = []
         self._tmpdir = None
+        self._original_names = {}
+
+    def get_original_name(self, filename: str) -> typing.Optional[str]:
+        """Returns the original filename for the given temporary name.
+
+        The filename should be the basename of the temporary file, not the
+        whole path!
+        """
+        return self._original_names.get(filename)
 
     def cleanup(self):
         """Clean up any temporary files."""
@@ -1332,6 +1341,9 @@ class TempDownloadManager:
         The files are kept as long as qutebrowser is running and automatically
         cleaned up at program exit.
 
+        The suggested name is remembered for later use and can be retrieved
+        with get_original_name.
+
         Args:
             suggested_name: str of the "suggested"/original filename. Used as a
                             suffix, so any file extensions are preserved.
@@ -1346,6 +1358,7 @@ class TempDownloadManager:
         fobj = tempfile.NamedTemporaryFile(dir=tmpdir.name, delete=False,
                                            suffix='_' + suggested_name)
         self.files.append(fobj)
+        self._original_names[os.path.basename(fobj.name)] = suggested_name
         return fobj
 
 

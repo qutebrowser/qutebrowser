@@ -26,7 +26,7 @@ import functools
 from typing import Dict, IO, Optional
 
 import attr
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, QUrl
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, QUrl, QUrlQuery
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
@@ -36,6 +36,21 @@ from qutebrowser.misc import quitter
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
+
+
+def _get_pdfjs_save_name(url: QUrl) -> typing.Optional[str]:
+    """Return the save name if the given URL is a pdf.js url.
+
+    If the given URL is not a qute://pdfjs/ URL, this function returns None.
+    """
+    if (url.scheme() != 'qute' or url.host() != 'pdfjs' or
+            url.path() != '/web/viewer.html'):
+        return None
+
+    filename = QUrlQuery(url.query()).queryItemValue('filename')
+    if not filename:
+        return None
+    return downloads.temp_download_manager.get_original_name(filename)
 
 
 @attr.s
@@ -497,7 +512,9 @@ class DownloadManager(downloads.AbstractDownloadManager):
             else:
                 # Use the originating URL as a base for the filename (works
                 # e.g. for pdf.js).
-                suggested_fn = urlutils.filename_from_url(origin_url)
+                suggested_fn = _get_pdfjs_save_name(origin_url)
+                if suggested_fn is None:
+                    suggested_fn = urlutils.filename_from_url(origin_url)
 
         if suggested_fn is None:
             suggested_fn = 'qutebrowser-download'

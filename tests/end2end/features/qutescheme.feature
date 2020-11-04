@@ -185,7 +185,6 @@ Feature: Special qute:// pages
         And I open data/misc/test.pdf without waiting
         Then "Download test.pdf finished" should be logged
 
-    @qtwebengine_skip: Might work with Qt 5.12
     Scenario: Downloading a pdf via pdf.js button (issue 1214)
         Given pdfjs is available
         When I set content.pdfjs to true
@@ -193,9 +192,20 @@ Feature: Special qute:// pages
         And I open data/misc/test.pdf without waiting
         And I wait for "[qute://pdfjs/*] PDF * (PDF.js: *)" in the log
         And I run :jseval document.getElementById("download").click()
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=* mode=<PromptMode.download: 5> text=* title='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=* mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
         And I run :leave-mode
         Then no crash should happen
+
+    Scenario: Downloading a pdf via pdf.js preserves the name (issue 5241)
+        Given pdfjs is available
+        When I set content.pdfjs to true
+        And I set downloads.location.prompt to false
+        And I run :download-delete
+        And I open data/misc/test.pdf without waiting
+        And I wait for "Download *test.pdf finished" in the log
+        And I wait for "[qute://pdfjs/*] PDF * (PDF.js: *)" in the log
+        And I run :jseval document.getElementById("download").click()
+        Then "Download test.pdf finished" should be logged
 
     # :pyeval
 

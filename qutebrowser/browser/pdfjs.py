@@ -24,6 +24,7 @@ import os
 
 from PyQt5.QtCore import QUrl, QUrlQuery
 
+from qutebrowser.browser import downloads
 from qutebrowser.utils import (utils, javascript, jinja, qtutils, usertypes,
                                standarddir, log)
 from qutebrowser.misc import objects
@@ -95,6 +96,9 @@ def _generate_pdfjs_script(filename):
     url = QUrl('qute://pdfjs/file')
     url_query = QUrlQuery()
     url_query.addQueryItem('filename', filename)
+    original_name = downloads.temp_download_manager.get_original_name(filename)
+    if original_name is not None:
+        url_query.addQueryItem('saveName', original_name)
     url.setQuery(url_query)
 
     js_url = javascript.to_js(
