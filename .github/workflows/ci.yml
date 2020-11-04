@@ -120,6 +120,10 @@ jobs:
           - testenv: py39-pyqt515-cov
             os: ubuntu-20.04
             python: 3.9
+          ### PyQt 5.15 (Python 3.10)
+          - testenv: py310-pyqt515
+            os: ubuntu-20.04
+            python: 3.10-dev
           ### macOS: PyQt 5.15 (Python 3.7 to match PyInstaller env)
           - testenv: py37-pyqt515
             os: macos-10.15
