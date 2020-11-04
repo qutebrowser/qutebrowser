@@ -22,8 +22,7 @@
 from typing import (
     TYPE_CHECKING, Any, Callable, Dict, Iterator, Optional, Set, Tuple, Union)
 
-from PyQt5.QtCore import QRect, Qt, QPoint, QEventLoop
-from PyQt5.QtGui import QMouseEvent
+from PyQt5.QtCore import QRect, QEventLoop
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEngineSettings
 
@@ -230,11 +229,7 @@ class WebEngineElement(webelem.AbstractWebElement):
         return url.scheme() not in urlutils.WEBENGINE_SCHEMES
 
     def _click_editable(self, click_target: usertypes.ClickTarget) -> None:
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58515
-        ev = QMouseEvent(QMouseEvent.MouseButtonPress, QPoint(0, 0),
-                         QPoint(0, 0), QPoint(0, 0), Qt.NoButton, Qt.NoButton,
-                         Qt.NoModifier, Qt.MouseEventSynthesizedBySystem)
-        self._tab.send_event(ev)
+        self._tab.setFocus()  # Needed as WORKAROUND on Qt 5.12
         # This actually "clicks" the element by calling focus() on it in JS.
         self._js_call('focus')
         self._move_text_cursor()
