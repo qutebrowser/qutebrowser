@@ -1063,35 +1063,21 @@ class _WebEngineScripts(QObject):
     def _inject_early_js(self, name, js_code, *,
                          world=QWebEngineScript.ApplicationWorld,
                          subframes=False):
-        """Inject the given script to run early on a page load.
-
-        This runs the script both on DocumentCreation and DocumentReady as on
-        some internal pages, DocumentCreation will not work.
-
-        That is a WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66011
-        """
-        scripts = self._widget.page().scripts()
-        for injection in ['creation', 'ready']:
-            injection_points = {
-                'creation': QWebEngineScript.DocumentCreation,
-                'ready': QWebEngineScript.DocumentReady,
-            }
-            script = QWebEngineScript()
-            script.setInjectionPoint(injection_points[injection])
-            script.setSourceCode(js_code)
-            script.setWorldId(world)
-            script.setRunsOnSubFrames(subframes)
-            script.setName('_qute_{}_{}'.format(name, injection))
-            scripts.insert(script)
+        """Inject the given script to run early on a page load."""
+        script = QWebEngineScript()
+        script.setInjectionPoint(QWebEngineScript.DocumentCreation)
+        script.setSourceCode(js_code)
+        script.setWorldId(world)
+        script.setRunsOnSubFrames(subframes)
+        script.setName(f'_qute_{name}')
+        self._widget.page().scripts().insert(script)
 
     def _remove_early_js(self, name):
         """Remove an early QWebEngineScript."""
         scripts = self._widget.page().scripts()
-        for injection in ['creation', 'ready']:
-            full_name = '_qute_{}_{}'.format(name, injection)
-            script = scripts.findScript(full_name)
-            if not script.isNull():
-                scripts.remove(script)
+        script = scripts.findScript(f'_qute_{name}')
+        if not script.isNull():
+            scripts.remove(script)
 
     def init(self):
         """Initialize global qutebrowser JavaScript."""
