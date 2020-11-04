@@ -1433,14 +1433,12 @@ class WebEngineTab(browsertab.AbstractTab):
             mode=usertypes.PromptMode.user_pwd,
             abort_on=[self.abort_questions], url=urlstr)
 
-        if answer is not None:
-            authenticator.setUser(answer.user)
-            authenticator.setPassword(answer.password)
-        else:
-            try:
-                sip.assign(authenticator, QAuthenticator())
-            except AttributeError:
-                self._show_error_page(url, "Proxy authentication required")
+        if answer is None:
+            sip.assign(authenticator, QAuthenticator())
+            return
+
+        authenticator.setUser(answer.user)
+        authenticator.setPassword(answer.password)
 
     @pyqtSlot(QUrl, 'QAuthenticator*')
     def _on_authentication_required(self, url, authenticator):
@@ -1458,12 +1456,7 @@ class WebEngineTab(browsertab.AbstractTab):
                 url, authenticator, abort_on=[self.abort_questions])
         if not netrc_success and answer is None:
             log.network.debug("Aborting auth")
-            try:
-                sip.assign(authenticator, QAuthenticator())
-            except AttributeError:
-                # WORKAROUND for
-                # https://www.riverbankcomputing.com/pipermail/pyqt/2016-December/038400.html
-                self._show_error_page(url, "Authentication required")
+            sip.assign(authenticator, QAuthenticator())
 
     @pyqtSlot()
     def _on_load_started(self):
