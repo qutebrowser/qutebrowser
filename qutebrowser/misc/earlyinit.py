@@ -240,18 +240,13 @@ def configure_pyqt():
     from PyQt5 import QtCore
     QtCore.pyqtRemoveInputHook()
     try:
-        QtCore.pyqt5_enable_new_onexit_scheme(  # type: ignore[attr-defined]
-            True)
+        QtCore.pyqt5_enable_new_onexit_scheme(True)  # type: ignore[attr-defined]
     except AttributeError:
         # Added in PyQt 5.13 somewhere, going to be the default in 5.14
         pass
 
     from qutebrowser.qt import sip
-    try:
-        # Added in sip 4.19.4
-        sip.enableoverflowchecking(True)
-    except AttributeError:
-        pass
+    sip.enableoverflowchecking(True)
 
 
 def init_log(args):
