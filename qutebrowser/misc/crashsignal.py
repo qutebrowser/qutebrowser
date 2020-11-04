@@ -30,11 +30,6 @@ import functools
 import threading
 import faulthandler
 from typing import TYPE_CHECKING, Optional, MutableMapping, cast
-try:
-    # WORKAROUND for segfaults when using pdb in pytest for some reason...
-    import readline  # pylint: disable=unused-import
-except ImportError:
-    pass
 
 import attr
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
