@@ -855,7 +855,7 @@ class WebKitTab(browsertab.AbstractTab):
             url, emit_before_load_started=emit_before_load_started)
         self._widget.load(url)
 
-    def url(self, *, requested=False):
+    def raw_url(self, *, requested=False):
         frame = self._widget.page().mainFrame()
         if requested:
             return frame.requestedUrl()

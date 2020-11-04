@@ -1031,6 +1031,9 @@ class AbstractTab(QWidget):
     @pyqtSlot(QUrl)
     def _on_url_changed(self, url: QUrl) -> None:
         """Update title when URL has changed and no title is available."""
+        original = urlutils.extract_error_url(url)
+        if original:
+            url = original[0]
         if url.isValid() and not self.title():
             self.title_changed.emit(url.toDisplayString())
         self.url_changed.emit(url)
@@ -1120,8 +1123,14 @@ class AbstractTab(QWidget):
         self._progress = perc
         self.load_progress.emit(perc)
 
-    def url(self, *, requested: bool = False) -> QUrl:
+    def raw_url(self, *, requested: bool = False) -> QUrl:
         raise NotImplementedError
+
+    def url(self, *, requested: bool = False) -> QUrl:
+        """The page URL, after replacing qute://error URL with the original one."""
+        url = self.raw_url(requested=requested)
+        original = urlutils.extract_error_url(url)
+        return original[0] if original else url
 
     def progress(self) -> int:
         return self._progress

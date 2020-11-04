@@ -26,7 +26,7 @@ import html as html_utils
 from typing import cast, Optional, Union
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
-                          QTimer, QObject)
+                          QTimer, QObject, QUrlQuery)
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript, QWebEngineHistory
@@ -40,7 +40,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            webenginesettings, certificateerror)
 from qutebrowser.misc import miscwidgets, objects, quitter
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               message, objreg, jinja, debug)
+                               message, objreg, debug, urlutils)
 from qutebrowser.qt import sip
 
 
@@ -1429,7 +1429,7 @@ class WebEngineTab(browsertab.AbstractTab):
             url, emit_before_load_started=emit_before_load_started)
         self._widget.load(url)
 
-    def url(self, *, requested=False):
+    def raw_url(self, *, requested=False):
         page = self._widget.page()
         if requested:
             return page.requestedUrl()
@@ -1461,6 +1461,10 @@ class WebEngineTab(browsertab.AbstractTab):
             self._widget.page().runJavaScript(code, world_id, callback)
 
     def reload(self, *, force=False):
+        original = urlutils.extract_error_url(self.raw_url())
+        if original:
+            self.load_url(original[0])
+            return
         if force:
             action = QWebEnginePage.ReloadAndBypassCache
         else:
@@ -1484,15 +1488,14 @@ class WebEngineTab(browsertab.AbstractTab):
         # percent encoded content is 2 megabytes minus 30 bytes.
         self._widget.setHtml(html, base_url)
 
-    def _show_error_page(self, url, error):
+    def _show_error_page(self, url: QUrl, error: str) -> None:
         """Show an error page in the tab."""
         log.misc.debug("Showing error page for {}".format(error))
-        url_string = url.toDisplayString()
-        error_page = jinja.render(
-            'error.html',
-            title="Error loading page: {}".format(url_string),
-            url=url_string, error=error)
-        self.set_html(error_page)
+        error_url = QUrl("qute://error")
+        queries = QUrlQuery()
+        queries.setQueryItems((("url", url.toDisplayString()), ("error", error)))
+        error_url.setQuery(queries)
+        self.load_url(error_url)
 
     @pyqtSlot()
     def _on_history_trigger(self):
