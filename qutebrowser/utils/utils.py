@@ -210,30 +210,28 @@ def resource_filename(filename: str) -> str:
     return pkg_resources.resource_filename(qutebrowser.__name__, filename)
 
 
-def _get_color_percentage(a_c1: int, a_c2: int, a_c3: int, a_alpha: int,
-                          b_c1: int, b_c2: int, b_c3: int, b_alpha: int,
+def _get_color_percentage(x1: int, y1: int, z1: int, a1: int,
+                          x2: int, y2: int, z2: int, a2: int,
                           percent: int) -> Tuple[int, int, int, int]:
     """Get a color which is percent% interpolated between start and end.
 
     Args:
-        a_c1, a_c2, a_c3, a_alpha : Start color components (R, G, B, A / H, S, V, A /
-                                                            H, S, L, A)
-        b_c1, b_c2, b_c3, b_alpha : End color components (R, G, B, A / H, S, V, A /
-                                                          H, S, L, A)
+        x1, y1, z1, a1 : Start color components (R, G, B, A / H, S, V, A / H, S, L, A)
+        x2, y2, z2, a2 : End color components (R, G, B, A / H, S, V, A / H, S, L, A)
         percent: Percentage to interpolate, 0-100.
                  0: Start color will be returned.
                  100: End color will be returned.
 
     Return:
-        A (c1, c2, c3, alpha) tuple with the interpolated color components.
+        A (x, y, z, alpha) tuple with the interpolated color components.
     """
     if not 0 <= percent <= 100:
         raise ValueError("percent needs to be between 0 and 100!")
-    out_c1 = round(a_c1 + (b_c1 - a_c1) * percent / 100)
-    out_c2 = round(a_c2 + (b_c2 - a_c2) * percent / 100)
-    out_c3 = round(a_c3 + (b_c3 - a_c3) * percent / 100)
-    out_alpha = round(a_alpha + (b_alpha - a_alpha) * percent / 100)
-    return (out_c1, out_c2, out_c3, out_alpha)
+    x = round(x1 + (x2 - x1) * percent / 100)
+    y = round(y1 + (y2 - y1) * percent / 100)
+    z = round(z1 + (z2 - z1) * percent / 100)
+    a = round(a1 + (a2 - a1) * percent / 100)
+    return (x, y, z, a)
 
 
 def interpolate_color(
@@ -266,22 +264,19 @@ def interpolate_color(
 
     out = QColor()
     if colorspace == QColor.Rgb:
-        r1, g1, b1, alpha1 = start.getRgb()
-        r2, g2, b2, alpha2 = end.getRgb()
-        components = _get_color_percentage(r1, g1, b1, alpha1, r2, g2, b2, alpha2,
-                                           percent)
+        r1, g1, b1, a1 = start.getRgb()
+        r2, g2, b2, a2 = end.getRgb()
+        components = _get_color_percentage(r1, g1, b1, a1, r2, g2, b2, a2, percent)
         out.setRgb(*components)
     elif colorspace == QColor.Hsv:
-        h1, s1, v1, alpha1 = start.getHsv()
-        h2, s2, v2, alpha2 = end.getHsv()
-        components = _get_color_percentage(h1, s1, v1, alpha1, h2, s2, v2, alpha2,
-                                           percent)
+        h1, s1, v1, a1 = start.getHsv()
+        h2, s2, v2, a2 = end.getHsv()
+        components = _get_color_percentage(h1, s1, v1, a1, h2, s2, v2, a2, percent)
         out.setHsv(*components)
     elif colorspace == QColor.Hsl:
-        h1, s1, l1, alpha1 = start.getHsl()
-        h2, s2, l2, alpha2 = end.getHsl()
-        components = _get_color_percentage(h1, s1, l1, alpha1, h2, s2, l2, alpha2,
-                                           percent)
+        h1, s1, l1, a1 = start.getHsl()
+        h2, s2, l2, a2 = end.getHsl()
+        components = _get_color_percentage(h1, s1, l1, a1, h2, s2, l2, a2, percent)
         out.setHsl(*components)
     else:
         raise ValueError("Invalid colorspace!")
