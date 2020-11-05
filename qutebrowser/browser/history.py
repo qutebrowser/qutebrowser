@@ -80,6 +80,7 @@ class CompletionMetaInfo(sql.SqlTable):
 
     KEYS = {
         'force_rebuild': False,
+        'excluded_patterns': '',
     }
 
     def __init__(self, parent=None):
@@ -156,9 +157,18 @@ class WebHistory(sql.SqlTable):
         self.completion = CompletionHistory(parent=self)
         self.metainfo = CompletionMetaInfo(parent=self)
 
+        # Get a string of all patterns
+        patterns = "\n".join([str(pattern) for pattern in
+                              config.cache['completion.web_history.exclude']])
+
+        do_rebuild = False
+        if self.metainfo['excluded_patterns'] != patterns:
+            self.metainfo['excluded_patterns'] = patterns
+            do_rebuild = True
+
         if sql.Query('pragma user_version').run().value() < _USER_VERSION:
             self.completion.delete_all()
-        if self.metainfo['force_rebuild']:
+        if self.metainfo['force_rebuild'] or do_rebuild:
             self.completion.delete_all()
             self.metainfo['force_rebuild'] = False
 
