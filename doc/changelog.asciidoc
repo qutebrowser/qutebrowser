@@ -25,6 +25,23 @@ Major changes
   3.5 is dropped. Note that Python 3.5 is
   https://www.python.org/downloads/release/python-3510/[no longer supported
   upstream] since September 2020.
+- At least Qt/PyQt 5.12 is now required to run qutebrowser, support for 5.7 to
+  5.11 (inclusive) is dropped. While Debian Buster ships Qt 5.11, it's based on a
+  Chromium version from 2018 with
+  https://www.debian.org/releases/buster/amd64/release-notes/ch-information.en.html#browser-security[no Debian security support]
+  and unsupported upstream since May 2019.
+  It also has compatibility issues with various websites (GitHub, Twitch, Android
+  Developer documentation, YouTube, ...). Since no newer Debian Stable is released
+  at the time of writing, it's recommended to
+  https://github.com/qutebrowser/qutebrowser/blob/master/doc/install.asciidoc#installing-qutebrowser-with-virtualenv[install qutebrowser in a virtualenv]
+  with a newer version of Qt/PyQt.
+
+Removed
+~~~~~~~
+
+- The `--enable-webengine-inspector` flag (which was only needed for Qt 5.10 and
+  below) is now dropped. With Qt 5.11 and newer, the inspector/devtools are
+  enabled unconditionally.
 
 Changed
 ~~~~~~~
@@ -33,7 +50,7 @@ Changed
   `config.load_autoconfig(False)` (don't load `autoconfig.yml`) or
   `config.load_autoconfig()` (do load `autoconfig.yml`) in them.
 - The `colors.webpage.darkmode.*` settings are now also supported with older Qt
-  versions (Qt 5.10 to 5.13) rather than just with Qt 5.14 and above.
+  versions (Qt 5.12 and 5.13) rather than just with Qt 5.14 and above.
 - For regexes in the config (`hints.{prev,next}_regexes`), certain patterns
   which will change meanings in future Python versions are now disallowed. This is
   the case for character sets starting with a literal `[` or containing literal
@@ -41,6 +58,49 @@ Changed
   duplicate characters or escape them with a backslash.
 - If `prompt(..., "default")` is used via JS, the default text is now
   pre-selected in the prompt shown by qutebrowser.
+- URLs such as `::1/foo` are now handled as a search term or local file rather
+  than IPv6. Use `[::1]/foo` to force parsing as IPv6 instead.
+
+Fixed
+~~~~~
+
+- The `open_url_instance.sh` userscript now complains when `socat` is not
+  installed, rather than silencing the error.
+- With interpolated color settings (`colors.tabs.indicator.*` and
+  `colors.downloads.*`), the alpha channel is now handled correctly.
+
+v1.14.1 (unreleased)
+--------------------
+
+Changed
+~~~~~~~
+
+- (TODO) Windows and macOS releases now ship Qt 5.15.2, which is based on
+  Chromium 83.0.4103.122 with security fixes up to 86.0.4240.111. This includes
+  CVE-2020-15999 in the bundled freetype library, which is known to be exploited
+  in the wild. It also includes various other bugfixes/features compared to
+  Qt 5.15.0 included in qutebrowser v1.14.0, such as:
+    * Correct handling of AltGr on Windows
+    * Fix for `content.cookies.accept` not working properly
+    * Proper support for screen sharing
+    * Support for FIDO U2F / WebAuth
+    * Fix for the unwanted creation of directories such as `databases-incognito` in
+      the home directory
+    * Proper autocompletion in the devtools console
+    * Proper signalisation of a tab's audible status (`[A]`)
+    * Hardware accelerated graphics on macOS
+
+Fixed
+~~~~~
+
+- Fix for a crash introduced in v1.14.0 when closing qutebrowser after opening a
+  download with PDF.js.
+- (TODO) Fix for various functionality breaking in private windows with v1.14.0,
+  after the last private window is closed. This includes:
+    * Ad blocking
+    * Downloads
+    * Site-specific quirks (e.g. for Google login)
+    * Certain settings such as `content.javascript.enabled`
 
 v1.14.0 (2020-10-15)
 --------------------
