@@ -44,14 +44,9 @@ try:
 except ImportError:
     adblock = None  # type: ignore[assignment]
 
+# If the `adblock` library version is outdated, this variable is not None and
+# contains its version.
 _outdated_version: Optional[str] = None
-if adblock is not None:
-    _adblock_info = version.MODULE_INFO["adblock"]
-    if _adblock_info.is_outdated():
-        adblock = None  # type: ignore[assignment]
-        _outdated_version = _adblock_info.get_version()
-
-
 logger = logging.getLogger("network")
 ad_blocker: Optional["BraveAdBlocker"] = None
 
@@ -78,7 +73,7 @@ def _possibly_show_missing_dependency_warning() -> None:
             message.warning(
                 f"Installed version {_outdated_version} of the"
                 " 'adblock' dependency is too old. Minimum supported is"
-                f" {_adblock_info.min_version}."
+                f" {version.MODULE_INFO['adblock'].min_version}."
             )
         else:
             message.warning(
@@ -286,11 +281,19 @@ def on_method_changed() -> None:
 def init(context: apitypes.InitContext) -> None:
     """Initialize the Brave ad blocker."""
     global ad_blocker
+    global adblock
+    global _outdated_version
+
+    if adblock is not None:
+        _adblock_info = version.MODULE_INFO["adblock"]
+        if _adblock_info.is_outdated():
+            adblock = None  # type: ignore[assignment]
+            _outdated_version = _adblock_info.get_version()
 
     if adblock is None:
         # We want 'adblock' to be an optional dependency. If the module is
-        # not found, we simply set the `ad_blocker` global to `None`. Always
-        # remember to check the case where `ad_blocker` is `None`!
+        # not installed or is outdated, we simply set the `ad_blocker` global to
+        # `None`.
         ad_blocker = None  # type: ignore[unreachable]
         _possibly_show_missing_dependency_warning()
         return
