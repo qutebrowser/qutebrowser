@@ -337,15 +337,15 @@ class ModuleInfo:
     def __str__(self) -> str:
         if not self.is_installed():
             return f'{self.name}: no'
-        else:
-            version = self.get_version()
-            if version is None:
-                return f'{self.name}: yes'
-            else:
-                text = f'{self.name}: {version}'
-                if self.is_outdated():
-                    text += f" (< {self.min_version}, outdated)"
-                return text
+
+        version = self.get_version()
+        if version is None:
+            return f'{self.name}: yes'
+
+        text = f'{self.name}: {version}'
+        if self.is_outdated():
+            text += f" (< {self.min_version}, outdated)"
+        return text
 
 
 MODULE_INFO: Mapping[str, ModuleInfo] = collections.OrderedDict([
