@@ -281,20 +281,15 @@ def on_method_changed() -> None:
 def init(context: apitypes.InitContext) -> None:
     """Initialize the Brave ad blocker."""
     global ad_blocker
-    global adblock
     global _outdated_version
 
-    if adblock is not None:
-        _adblock_info = version.MODULE_INFO["adblock"]
-        if _adblock_info.is_outdated():
-            adblock = None  # type: ignore[assignment]
-            _outdated_version = _adblock_info.get_version()
-
-    if adblock is None:
+    _adblock_info = version.MODULE_INFO["adblock"]
+    if adblock is None or _adblock_info.is_outdated(): # type: ignore[unreachable]
         # We want 'adblock' to be an optional dependency. If the module is
         # not installed or is outdated, we simply set the `ad_blocker` global to
         # `None`.
-        ad_blocker = None  # type: ignore[unreachable]
+        ad_blocker = None
+        _outdated_version = _adblock_info.get_version()
         _possibly_show_missing_dependency_warning()
         return
 
