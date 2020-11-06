@@ -79,7 +79,6 @@ class CompletionMetaInfo(sql.SqlTable):
     """Table containing meta-information for the completion."""
 
     KEYS = {
-        'force_rebuild': False,
         'excluded_patterns': '',
     }
 
@@ -157,20 +156,15 @@ class WebHistory(sql.SqlTable):
         self.completion = CompletionHistory(parent=self)
         self.metainfo = CompletionMetaInfo(parent=self)
 
-        # Get a string of all patterns
-        patterns = "\n".join([str(pattern) for pattern in
-                              config.cache['completion.web_history.exclude']])
-
-        do_rebuild = False
-        if self.metainfo['excluded_patterns'] != patterns:
-            self.metainfo['excluded_patterns'] = patterns
-            do_rebuild = True
-
         if sql.Query('pragma user_version').run().value() < _USER_VERSION:
             self.completion.delete_all()
-        if self.metainfo['force_rebuild'] or do_rebuild:
+
+        # Get a string of all patterns
+        patterns = config.instance.get_str('completion.web_history.exclude')
+
+        if self.metainfo['excluded_patterns'] != patterns:
+            self.metainfo['excluded_patterns'] = patterns
             self.completion.delete_all()
-            self.metainfo['force_rebuild'] = False
 
         if not self.completion:
             # either the table is out-of-date or the user wiped it manually
@@ -193,17 +187,11 @@ class WebHistory(sql.SqlTable):
                                        'ORDER BY atime desc '
                                        'limit :limit offset :offset')
 
-        config.instance.changed.connect(self._on_config_changed)
-
     def __repr__(self):
         return utils.get_repr(self, length=len(self))
 
     def __contains__(self, url):
         return self._contains_query.run(val=url).value()
-
-    @config.change_filter('completion.web_history.exclude')
-    def _on_config_changed(self):
-        self.metainfo['force_rebuild'] = True
 
     @contextlib.contextmanager
     def _handle_sql_errors(self):
