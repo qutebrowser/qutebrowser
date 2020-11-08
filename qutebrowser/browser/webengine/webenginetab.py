@@ -1676,7 +1676,6 @@ class WebEngineTab(browsertab.AbstractTab):
             # Added in Qt 5.15.0
             pass
 
-        self.before_load_started.connect(self._on_before_load_started)
         self.shutting_down.connect(self.abort_questions)
         self.load_started.connect(self.abort_questions)
 
