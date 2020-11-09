@@ -2,7 +2,7 @@
 
 alabaster==0.7.12
 Babel==2.8.0
-certifi==2020.6.20
+certifi==2020.11.8
 chardet==3.0.4
 docutils==0.16
 idna==2.10
@@ -12,11 +12,11 @@ MarkupSafe==1.1.1
 packaging==20.4
 Pygments==2.7.2
 pyparsing==2.4.7
-pytz==2020.1
+pytz==2020.4
 requests==2.24.0
 six==1.15.0
 snowballstemmer==2.0.0
-Sphinx==3.2.1
+Sphinx==3.3.0
 sphinxcontrib-applehelp==1.0.2
 sphinxcontrib-devhelp==1.0.2
 sphinxcontrib-htmlhelp==1.0.3
