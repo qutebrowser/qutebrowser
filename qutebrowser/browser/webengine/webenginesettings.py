@@ -50,9 +50,9 @@ global_settings = cast('WebEngineSettings', None)
 
 parsed_user_agent = None
 
-_qute_scheme_handler = typing.cast(webenginequtescheme.QuteSchemeHandler, None)
+_qute_scheme_handler = cast(webenginequtescheme.QuteSchemeHandler, None)
 _req_interceptor = None
-_download_manager = typing.cast(webenginedownloads.DownloadManager, None)
+_download_manager = cast(webenginedownloads.DownloadManager, None)
 
 
 class _SettingsWrapper:
