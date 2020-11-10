@@ -281,7 +281,8 @@ Feature: Special qute:// pages
         Then the error "Invalid log category invalid - *" should be shown
 
     Scenario: Using qute://log directly
-        When I open qute://log
+        When I open qute://log without waiting
+        And I wait for "Changing title for idx * to 'log'" in the log
         Then no crash should happen
 
     # FIXME More possible tests:
