@@ -101,13 +101,6 @@ def _apply_platform_markers(config, item):
          sys.getfilesystemencoding() == 'ascii',
          "Skipped because of ASCII locale"),
 
-        ('qtbug60673',
-         pytest.mark.xfail,
-         qtutils.version_check('5.8') and
-         not qtutils.version_check('5.10') and
-         config.webengine,
-         "Broken on webengine due to "
-         "https://bugreports.qt.io/browse/QTBUG-60673"),
         ('qtwebkit6021_xfail',
          pytest.mark.xfail,
          version.qWebKitVersion and  # type: ignore[unreachable]
@@ -175,11 +168,6 @@ def pytest_collection_modifyitems(config, items):
         _apply_platform_markers(config, item)
         if list(item.iter_markers('xfail_norun')):
             item.add_marker(pytest.mark.xfail(run=False))
-        if list(item.iter_markers('js_prompt')):
-            if config.webengine:
-                item.add_marker(pytest.mark.skipif(
-                    PYQT_VERSION <= 0x050700,
-                    reason='JS prompts are not supported with PyQt 5.7'))
 
         if deselected:
             deselected_items.append(item)
@@ -281,10 +269,10 @@ def apply_fake_os(monkeypatch, request):
     else:
         raise ValueError("Invalid fake_os {}".format(name))
 
-    monkeypatch.setattr('qutebrowser.utils.utils.is_mac', mac)
-    monkeypatch.setattr('qutebrowser.utils.utils.is_linux', linux)
-    monkeypatch.setattr('qutebrowser.utils.utils.is_windows', windows)
-    monkeypatch.setattr('qutebrowser.utils.utils.is_posix', posix)
+    monkeypatch.setattr(utils, 'is_mac', mac)
+    monkeypatch.setattr(utils, 'is_linux', linux)
+    monkeypatch.setattr(utils, 'is_windows', windows)
+    monkeypatch.setattr(utils, 'is_posix', posix)
 
 
 @pytest.fixture(scope='session', autouse=True)

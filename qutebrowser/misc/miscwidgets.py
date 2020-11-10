@@ -19,7 +19,7 @@
 
 """Misc. widgets used at different places."""
 
-import typing
+from typing import Optional
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QTimer
 from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
@@ -239,8 +239,8 @@ class WrapperLayout(QLayout):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._widget = None  # type: typing.Optional[QWidget]
-        self._container = None  # type: typing.Optional[QWidget]
+        self._widget: Optional[QWidget] = None
+        self._container: Optional[QWidget] = None
 
     def addItem(self, _widget):
         raise utils.Unreachable
@@ -282,47 +282,6 @@ class WrapperLayout(QLayout):
         self._widget.deleteLater()
         self._widget = None
         self._container.setFocusProxy(None)  # type: ignore[arg-type]
-
-
-class PseudoLayout(QLayout):
-
-    """A layout which isn't actually a real layout.
-
-    This is used to replace QWebEngineView's internal layout, as a WORKAROUND
-    for https://bugreports.qt.io/browse/QTBUG-68224 and other related issues.
-
-    This is partly inspired by https://codereview.qt-project.org/#/c/230894/
-    which does something similar as part of Qt.
-    """
-
-    def addItem(self, item):
-        assert self.parent() is not None
-        item.widget().setParent(self.parent())
-
-    def removeItem(self, item):
-        item.widget().setParent(None)
-
-    def count(self):
-        return 0
-
-    def itemAt(self, _pos):
-        return None
-
-    def widget(self):
-        return self.parent().render_widget()
-
-    def setGeometry(self, rect):
-        """Resize the render widget when the view is resized."""
-        widget = self.widget()
-        if widget is not None:
-            widget.setGeometry(rect)
-
-    def sizeHint(self):
-        """Make sure the view has the sizeHint of the render widget."""
-        widget = self.widget()
-        if widget is not None:
-            return widget.sizeHint()
-        return QSize()
 
 
 class FullscreenNotification(QLabel):
@@ -390,10 +349,10 @@ class InspectorSplitter(QSplitter):
         self.addWidget(main_webview)
         self.setFocusProxy(main_webview)
         self.splitterMoved.connect(self._on_splitter_moved)
-        self._main_idx = None  # type: typing.Optional[int]
-        self._inspector_idx = None  # type: typing.Optional[int]
-        self._position = None  # type: typing.Optional[inspector.Position]
-        self._preferred_size = None  # type: typing.Optional[int]
+        self._main_idx: Optional[int] = None
+        self._inspector_idx: Optional[int] = None
+        self._position: Optional[inspector.Position] = None
+        self._preferred_size: Optional[int] = None
 
     def cycle_focus(self):
         """Cycle keyboard focus between the main/inspector widget."""

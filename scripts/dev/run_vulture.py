@@ -42,7 +42,7 @@ from qutebrowser.browser import qutescheme
 from qutebrowser.config import configtypes
 
 
-def whitelist_generator():  # noqa
+def whitelist_generator():  # noqa: C901
     """Generator which yields lines to add to a vulture whitelist."""
     loader.load_components(skip_hooks=True)
 

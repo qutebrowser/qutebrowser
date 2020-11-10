@@ -27,6 +27,7 @@ from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import usertypes
 from qutebrowser.browser import greasemonkey
+from qutebrowser.misc import objects
 
 test_gm_script = r"""
 // ==UserScript==
@@ -168,15 +169,6 @@ def test_utf8_bom():
 
 class TestForceDocumentEnd:
 
-    @pytest.fixture
-    def patch(self, monkeypatch):
-        def _patch(*, backend, qt_512):
-            monkeypatch.setattr(greasemonkey.objects, 'backend', backend)
-            monkeypatch.setattr(greasemonkey.qtutils, 'version_check',
-                                lambda version, exact=False, compiled=True:
-                                qt_512)
-        return _patch
-
     def _get_script(self, *, namespace, name):
         source = textwrap.dedent("""
             // ==UserScript==
@@ -192,26 +184,15 @@ class TestForceDocumentEnd:
         assert len(scripts) == 1
         return scripts[0]
 
-    @pytest.mark.parametrize('backend, qt_512', [
-        (usertypes.Backend.QtWebKit, True),
-        (usertypes.Backend.QtWebEngine, False),
-    ])
-    def test_not_applicable(self, patch, backend, qt_512):
-        """Test backend/Qt version combinations which don't need a fix."""
-        patch(backend=backend, qt_512=qt_512)
-        script = self._get_script(namespace='https://github.com/ParticleCore',
-                                  name='Iridium')
-        assert not script.needs_document_end_workaround()
-
     @pytest.mark.parametrize('namespace, name, force', [
         ('http://userstyles.org', 'foobar', True),
         ('https://github.com/ParticleCore', 'Iridium', True),
         ('https://github.com/ParticleCore', 'Foo', False),
         ('https://example.org', 'Iridium', False),
     ])
-    def test_matching(self, patch, namespace, name, force):
+    def test_matching(self, monkeypatch, namespace, name, force):
         """Test matching based on namespace/name."""
-        patch(backend=usertypes.Backend.QtWebEngine, qt_512=True)
+        monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
         script = self._get_script(namespace=namespace, name=name)
         assert script.needs_document_end_workaround() == force
 

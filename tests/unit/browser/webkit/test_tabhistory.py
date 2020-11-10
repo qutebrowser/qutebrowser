@@ -33,7 +33,8 @@ pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open')
 
 ITEMS = [
     Item(QUrl('https://www.heise.de/'), 'heise'),
-    Item(QUrl('http://example.com/%E2%80%A6'), 'percent', active=True),
+    Item(QUrl('about:blank'), 'blank', active=True),
+    Item(QUrl('http://example.com/%E2%80%A6'), 'percent'),
     Item(QUrl('http://example.com/?foo=bar'), 'arg',
          original_url=QUrl('http://original.url.example.com/'),
          user_data={'foo': 23, 'bar': 42}),

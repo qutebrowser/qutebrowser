@@ -67,25 +67,6 @@ window._qutebrowser.webelem = (function() {
         };
     }
 
-    function get_caret_position(elem, frame) {
-        // With older Chromium versions (and QtWebKit), InvalidStateError will
-        // be thrown if elem doesn't have selectionStart.
-        // With newer Chromium versions (>= Qt 5.10), we get null.
-        try {
-            return elem.selectionStart;
-        } catch (err) {
-            if ((err instanceof DOMException ||
-                 (frame && err instanceof frame.DOMException)) &&
-                err.name === "InvalidStateError") {
-                // nothing to do, caret_position is already null
-            } else {
-                // not the droid we're looking for
-                throw err;
-            }
-        }
-        return null;
-    }
-
     function serialize_elem(elem, frame = null) {
         if (!elem) {
             return null;
@@ -94,7 +75,7 @@ window._qutebrowser.webelem = (function() {
         const id = elements.length;
         elements[id] = elem;
 
-        const caret_position = get_caret_position(elem, frame);
+        const caret_position = elem.selectionStart;
 
         // isContentEditable occasionally returns undefined.
         const is_content_editable = elem.isContentEditable || false;

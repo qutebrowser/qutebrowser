@@ -81,13 +81,13 @@ class _StyleSheetObserver(QObject):
         if update:
             self.setParent(self._obj)
         if stylesheet is None:
-            self._stylesheet = obj.STYLESHEET  # type: str
+            self._stylesheet: str = obj.STYLESHEET
         else:
             self._stylesheet = stylesheet
 
         if update:
-            self._options = jinja.template_config_variables(
-                self._stylesheet)  # type: Optional[FrozenSet[str]]
+            self._options: Optional[FrozenSet[str]] = jinja.template_config_variables(
+                self._stylesheet)
         else:
             self._options = None
 

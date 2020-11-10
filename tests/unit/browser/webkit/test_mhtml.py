@@ -21,6 +21,7 @@
 import io
 import textwrap
 import re
+import uuid
 
 import pytest
 
@@ -29,16 +30,13 @@ mhtml = pytest.importorskip('qutebrowser.browser.webkit.mhtml')
 
 try:
     import cssutils
-except (ImportError, re.error):
-    # Catching re.error because cssutils in earlier releases (<= 1.0) is
-    # broken on Python 3.5
-    # See https://bitbucket.org/cthedot/cssutils/issues/52
+except ImportError:
     cssutils = None
 
 
 @pytest.fixture(autouse=True)
 def patch_uuid(monkeypatch):
-    monkeypatch.setattr("uuid.uuid4", lambda: "UUID")
+    monkeypatch.setattr(uuid, "uuid4", lambda: "UUID")
 
 
 class Checker:

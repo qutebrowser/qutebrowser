@@ -25,7 +25,7 @@ import collections
 import os.path
 import subprocess
 import contextlib
-import builtins  # noqa https://github.com/JBKahn/flake8-debugger/issues/20
+import builtins
 import types
 import importlib
 import logging
@@ -615,7 +615,7 @@ class ImportFake:
 def import_fake(monkeypatch):
     """Fixture to patch imports using ImportFake."""
     fake = ImportFake()
-    monkeypatch.setattr('builtins.__import__', fake.fake_import)
+    monkeypatch.setattr(builtins, '__import__', fake.fake_import)
     monkeypatch.setattr(version.importlib, 'import_module',
                         fake.fake_importlib_import)
     return fake
@@ -1023,7 +1023,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
     substitutions['ssl'] = 'SSL VERSION' if params.ssl_support else 'no'
 
     for name, val in patches.items():
-        monkeypatch.setattr('qutebrowser.utils.version.' + name, val)
+        monkeypatch.setattr(f'qutebrowser.utils.version.{name}', val)
 
     if params.frozen:
         monkeypatch.setattr(sys, 'frozen', True, raising=False)
@@ -1138,9 +1138,8 @@ def pbclient(stubs):
 
 def test_pastebin_version(pbclient, message_mock, monkeypatch, qtbot):
     """Test version.pastebin_version() sets the url."""
-    monkeypatch.setattr('qutebrowser.utils.version.version_info',
-                        lambda: "dummy")
-    monkeypatch.setattr('qutebrowser.utils.utils.log_clipboard', True)
+    monkeypatch.setattr(version, 'version_info', lambda: 'dummy')
+    monkeypatch.setattr(utils, 'log_clipboard', True)
 
     version.pastebin_version(pbclient)
     pbclient.success.emit("https://www.example.com/\n")
@@ -1153,8 +1152,7 @@ def test_pastebin_version(pbclient, message_mock, monkeypatch, qtbot):
 
 def test_pastebin_version_twice(pbclient, monkeypatch):
     """Test whether calling pastebin_version twice sends no data."""
-    monkeypatch.setattr('qutebrowser.utils.version.version_info',
-                        lambda: "dummy")
+    monkeypatch.setattr(version, 'version_info', lambda: 'dummy')
 
     version.pastebin_version(pbclient)
     pbclient.success.emit("https://www.example.com/\n")
@@ -1171,8 +1169,7 @@ def test_pastebin_version_twice(pbclient, monkeypatch):
 
 def test_pastebin_version_error(pbclient, caplog, message_mock, monkeypatch):
     """Test version.pastebin_version() with errors."""
-    monkeypatch.setattr('qutebrowser.utils.version.version_info',
-                        lambda: "dummy")
+    monkeypatch.setattr(version, 'version_info', lambda: 'dummy')
 
     version.pastebin_url = None
     with caplog.at_level(logging.ERROR):
@@ -1192,7 +1189,7 @@ def test_uptime(monkeypatch, qapp):
 
     class FakeDateTime(datetime.datetime):
         now = lambda x=datetime.datetime(1, 1, 1, 1, 1, 1, 2): x
-    monkeypatch.setattr('datetime.datetime', FakeDateTime)
+    monkeypatch.setattr(datetime, 'datetime', FakeDateTime)
 
     uptime_delta = version._uptime()
     assert uptime_delta == datetime.timedelta(0)

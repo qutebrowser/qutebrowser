@@ -19,7 +19,7 @@
 
 """Things which need to be done really early (e.g. before importing Qt).
 
-At this point we can be sure we have all python 3.5 features available.
+At this point we can be sure we have all python 3.6 features available.
 """
 
 try:
@@ -173,25 +173,14 @@ def check_qt_version():
     from PyQt5.QtCore import (qVersion, QT_VERSION, PYQT_VERSION,
                               PYQT_VERSION_STR)
     from pkg_resources import parse_version
-    from qutebrowser.utils import log
     parsed_qversion = parse_version(qVersion())
 
-    if (QT_VERSION < 0x050701 or PYQT_VERSION < 0x050700 or
-            parsed_qversion < parse_version('5.7.1')):
-        text = ("Fatal error: Qt >= 5.7.1 and PyQt >= 5.7 are required, "
+    if (QT_VERSION < 0x050C00 or PYQT_VERSION < 0x050C00 or
+            parsed_qversion < parse_version('5.12.0')):
+        text = ("Fatal error: Qt >= 5.12.0 and PyQt >= 5.12.0 are required, "
                 "but Qt {} / PyQt {} is installed.".format(qt_version(),
                                                            PYQT_VERSION_STR))
         _die(text)
-
-    if qVersion().startswith('5.8.'):
-        log.init.warning("Running qutebrowser with Qt 5.8 is untested and "
-                         "unsupported!")
-
-    if (parsed_qversion >= parse_version('5.12') and
-            (PYQT_VERSION < 0x050c00 or QT_VERSION < 0x050c00)):
-        log.init.warning("Combining PyQt {} with Qt {} is unsupported! Ensure "
-                         "all versions are newer than 5.12 to avoid potential "
-                         "issues.".format(PYQT_VERSION_STR, qt_version()))
 
 
 def check_ssl_support():
@@ -210,13 +199,13 @@ def _check_modules(modules):
         try:
             # https://bitbucket.org/fdik/pypeg/commits/dd15ca462b532019c0a3be1d39b8ee2f3fa32f4e
             # pylint: disable=bad-continuation
-            with log.ignore_py_warnings(
+            with log.py_warning_filter(
                 category=DeprecationWarning,
                 message=r'invalid escape sequence'
-            ), log.ignore_py_warnings(
+            ), log.py_warning_filter(
                 category=ImportWarning,
                 message=r'Not importing directory .*: missing __init__'
-            ), log.ignore_py_warnings(
+            ), log.py_warning_filter(
                 category=DeprecationWarning,
                 message=r'the imp module is deprecated',
             ):
@@ -251,18 +240,13 @@ def configure_pyqt():
     from PyQt5 import QtCore
     QtCore.pyqtRemoveInputHook()
     try:
-        QtCore.pyqt5_enable_new_onexit_scheme(  # type: ignore[attr-defined]
-            True)
+        QtCore.pyqt5_enable_new_onexit_scheme(True)  # type: ignore[attr-defined]
     except AttributeError:
         # Added in PyQt 5.13 somewhere, going to be the default in 5.14
         pass
 
     from qutebrowser.qt import sip
-    try:
-        # Added in sip 4.19.4
-        sip.enableoverflowchecking(True)
-    except AttributeError:
-        pass
+    sip.enableoverflowchecking(True)
 
 
 def init_log(args):

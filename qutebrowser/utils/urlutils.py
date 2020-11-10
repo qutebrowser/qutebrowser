@@ -25,9 +25,9 @@ import os.path
 import ipaddress
 import posixpath
 import urllib.parse
-import typing
+from typing import Optional, Tuple, Union
 
-from PyQt5.QtCore import QUrl, QUrlQuery
+from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QHostInfo, QHostAddress, QNetworkProxy
 
 from qutebrowser.api import cmdutils
@@ -72,8 +72,7 @@ class InvalidUrlError(Error):
         super().__init__(self.msg)
 
 
-def _parse_search_term(s: str) -> typing.Tuple[typing.Optional[str],
-                                               typing.Optional[str]]:
+def _parse_search_term(s: str) -> Tuple[Optional[str], Optional[str]]:
     """Get a search engine name and search term from a string.
 
     Args:
@@ -89,8 +88,8 @@ def _parse_search_term(s: str) -> typing.Tuple[typing.Optional[str],
 
     if len(split) == 2:
         if split[0] in config.val.url.searchengines:
-            engine = split[0]  # type: typing.Optional[str]
-            term = split[1]  # type: typing.Optional[str]
+            engine: Optional[str] = split[0]
+            term: Optional[str] = split[1]
         else:
             engine = None
             term = s
@@ -127,9 +126,9 @@ def _get_search_url(txt: str) -> QUrl:
                                     unquoted=term,
                                     quoted=quoted_term,
                                     semiquoted=semiquoted_term)
-        url = qurl_from_user_input(evaluated)
+        url = QUrl.fromUserInput(evaluated)
     else:
-        url = qurl_from_user_input(config.val.url.searchengines[engine])
+        url = QUrl.fromUserInput(config.val.url.searchengines[engine])
         url.setPath(None)  # type: ignore[arg-type]
         url.setFragment(None)  # type: ignore[arg-type]
         url.setQuery(None)  # type: ignore[call-overload]
@@ -146,7 +145,7 @@ def _is_url_naive(urlstr: str) -> bool:
     Return:
         True if the URL really is a URL, False otherwise.
     """
-    url = qurl_from_user_input(urlstr)
+    url = QUrl.fromUserInput(urlstr)
     assert url.isValid()
     host = url.host()
 
@@ -171,7 +170,7 @@ def _is_url_dns(urlstr: str) -> bool:
     Return:
         True if the URL really is a URL, False otherwise.
     """
-    url = qurl_from_user_input(urlstr)
+    url = QUrl.fromUserInput(urlstr)
     assert url.isValid()
 
     if (utils.raises(ValueError, ipaddress.ip_address, urlstr) and
@@ -220,10 +219,10 @@ def fuzzy_url(urlstr: str,
         try:
             url = _get_search_url(urlstr)
         except ValueError:  # invalid search engine
-            url = qurl_from_user_input(urlstr)
+            url = QUrl.fromUserInput(urlstr)
     else:  # probably an address
         log.url.debug("URL is a fuzzy address")
-        url = qurl_from_user_input(urlstr)
+        url = QUrl.fromUserInput(urlstr)
     log.url.debug("Converting fuzzy term {!r} to URL -> {}".format(
         urlstr, url.toDisplayString()))
     ensure_valid(url)
@@ -273,7 +272,7 @@ def is_url(urlstr: str) -> bool:
 
     urlstr = urlstr.strip()
     qurl = QUrl(urlstr)
-    qurl_userinput = qurl_from_user_input(urlstr)
+    qurl_userinput = QUrl.fromUserInput(urlstr)
 
     if autosearch == 'never':
         # no autosearch, so everything is a URL unless it has an explicit
@@ -307,7 +306,7 @@ def is_url(urlstr: str) -> bool:
         url = True
     elif autosearch == 'dns':
         log.url.debug("Checking via DNS check")
-        # We want to use qurl_from_user_input here, as the user might enter
+        # We want to use QUrl.fromUserInput here, as the user might enter
         # "foo.de" and that should be treated as URL here.
         url = ' ' not in qurl_userinput.userName() and _is_url_dns(urlstr)
     elif autosearch == 'naive':
@@ -317,42 +316,6 @@ def is_url(urlstr: str) -> bool:
         raise ValueError("Invalid autosearch value")
     log.url.debug("url = {}".format(url))
     return url
-
-
-def qurl_from_user_input(urlstr: str) -> QUrl:
-    """Get a QUrl based on a user input. Additionally handles IPv6 addresses.
-
-    QUrl.fromUserInput handles something like '::1' as a file URL instead of an
-    IPv6, so we first try to handle it as a valid IPv6, and if that fails we
-    use QUrl.fromUserInput.
-
-    WORKAROUND - https://bugreports.qt.io/browse/QTBUG-41089
-    FIXME - Maybe https://codereview.qt-project.org/#/c/93851/ has a better way
-            to solve this?
-    https://github.com/qutebrowser/qutebrowser/issues/109
-
-    Args:
-        urlstr: The URL as string.
-
-    Return:
-        The converted QUrl.
-    """
-    # First we try very liberally to separate something like an IPv6 from the
-    # rest (e.g. path info or parameters)
-    match = re.fullmatch(r'\[?([0-9a-fA-F:.]+)\]?(.*)', urlstr.strip())
-    if match:
-        ipstr, rest = match.groups()
-    else:
-        ipstr = urlstr.strip()
-        rest = ''
-    # Then we try to parse it as an IPv6, and if we fail use
-    # QUrl.fromUserInput.
-    try:
-        ipaddress.IPv6Address(ipstr)
-    except ipaddress.AddressValueError:
-        return QUrl.fromUserInput(urlstr)
-    else:
-        return QUrl('http://[{}]{}'.format(ipstr, rest))
 
 
 def ensure_valid(url: QUrl) -> None:
@@ -385,7 +348,7 @@ def raise_cmdexc_if_invalid(url: QUrl) -> None:
 def get_path_if_valid(pathstr: str,
                       cwd: str = None,
                       relative: bool = False,
-                      check_exists: bool = False) -> typing.Optional[str]:
+                      check_exists: bool = False) -> Optional[str]:
     """Check if path is a valid path.
 
     Args:
@@ -403,7 +366,7 @@ def get_path_if_valid(pathstr: str,
     expanded = os.path.expanduser(pathstr)
 
     if os.path.isabs(expanded):
-        path = expanded  # type: typing.Optional[str]
+        path: Optional[str] = expanded
     elif relative and cwd:
         path = os.path.join(cwd, expanded)
     elif relative:
@@ -430,7 +393,7 @@ def get_path_if_valid(pathstr: str,
     return path
 
 
-def filename_from_url(url: QUrl) -> typing.Optional[str]:
+def filename_from_url(url: QUrl) -> Optional[str]:
     """Get a suitable filename from a URL.
 
     Args:
@@ -450,7 +413,7 @@ def filename_from_url(url: QUrl) -> typing.Optional[str]:
         return None
 
 
-HostTupleType = typing.Tuple[str, str, int]
+HostTupleType = Tuple[str, str, int]
 
 
 def host_tuple(url: QUrl) -> HostTupleType:
@@ -562,9 +525,7 @@ def safe_display_string(qurl: QUrl) -> str:
     ensure_valid(qurl)
 
     host = qurl.host(QUrl.FullyEncoded)
-    if '..' in host:  # pragma: no cover
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-60364
-        return '(unparseable URL!) {}'.format(qurl.toDisplayString())
+    assert '..' not in host, qurl  # https://bugreports.qt.io/browse/QTBUG-60364
 
     for part in host.split('.'):
         url_host = qurl.host(QUrl.FullyDecoded)
@@ -572,18 +533,6 @@ def safe_display_string(qurl: QUrl) -> str:
             return '({}) {}'.format(host, qurl.toDisplayString())
 
     return qurl.toDisplayString()
-
-
-def query_string(qurl: QUrl) -> str:
-    """Get a query string for the given URL.
-
-    This is a WORKAROUND for:
-    https://www.riverbankcomputing.com/pipermail/pyqt/2017-November/039702.html
-    """
-    try:
-        return qurl.query()
-    except AttributeError:  # pragma: no cover
-        return QUrlQuery(qurl).query()
 
 
 class InvalidProxyTypeError(Exception):
@@ -594,7 +543,7 @@ class InvalidProxyTypeError(Exception):
         super().__init__("Invalid proxy type {}!".format(typ))
 
 
-def proxy_from_url(url: QUrl) -> typing.Union[QNetworkProxy, pac.PACFetcher]:
+def proxy_from_url(url: QUrl) -> Union[QNetworkProxy, pac.PACFetcher]:
     """Create a QNetworkProxy from QUrl and a proxy type.
 
     Args:

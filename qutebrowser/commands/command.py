@@ -23,6 +23,7 @@ import inspect
 import collections
 import traceback
 import typing
+from typing import Any, MutableMapping, MutableSequence, Tuple, Union
 
 import attr
 
@@ -116,13 +117,11 @@ class Command:
         self.parser.add_argument('-h', '--help', action=argparser.HelpAction,
                                  default=argparser.SUPPRESS, nargs=0,
                                  help=argparser.SUPPRESS)
-        self.opt_args = collections.OrderedDict(
-        )  # type: typing.MutableMapping[str, typing.Tuple[str, str]]
+        self.opt_args: MutableMapping[str, Tuple[str, str]] = collections.OrderedDict()
         self.namespace = None
         self._count = None
-        self.pos_args = [
-        ]  # type: typing.MutableSequence[typing.Tuple[str, str]]
-        self.flags_with_args = []  # type: typing.MutableSequence[str]
+        self.pos_args: MutableSequence[Tuple[str, str]] = []
+        self.flags_with_args: MutableSequence[str] = []
         self._has_vararg = False
 
         # This is checked by future @cmdutils.argument calls so they fail
@@ -406,22 +405,19 @@ class Command:
             raise TypeError("{}: Legacy tuple type annotation!".format(
                 self.name))
 
-        if hasattr(typing, 'UnionMeta'):
-            # Python 3.5.2
-            # pylint: disable=no-member,useless-suppression
-            is_union = isinstance(
-                typ, typing.UnionMeta)  # type: ignore[attr-defined]
-        else:
-            is_union = getattr(typ, '__origin__', None) is typing.Union
+        try:
+            origin = typing.get_origin(typ)  # type: ignore[attr-defined]
+        except AttributeError:
+            # typing.get_origin was added in Python 3.8
+            origin = getattr(typ, '__origin__', None)
 
-        if is_union:
-            # this is... slightly evil, I know
+        if origin is Union:
             try:
-                types = list(typ.__args__)
+                types = list(typing.get_args(typ))  # type: ignore[attr-defined]
             except AttributeError:
-                # Python 3.5.2
-                types = list(typ.__union_params__)
-            # pylint: enable=no-member,useless-suppression
+                # typing.get_args was added in Python 3.8
+                types = list(typ.__args__)
+
             if param.default is not inspect.Parameter.empty:
                 types.append(type(param.default))
             choices = self.get_arg_info(param).choices
@@ -497,8 +493,8 @@ class Command:
         Return:
             An (args, kwargs) tuple.
         """
-        args = []  # type: typing.Any
-        kwargs = {}  # type: typing.MutableMapping[str, typing.Any]
+        args: Any = []
+        kwargs: MutableMapping[str, Any] = {}
         signature = inspect.signature(self.handler)
 
         for i, param in enumerate(signature.parameters.values()):

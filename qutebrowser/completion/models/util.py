@@ -19,13 +19,13 @@
 
 """Utility functions for completion models."""
 
-import typing
+from typing import Callable, Sequence
 
 from qutebrowser.utils import usertypes
 from qutebrowser.misc import objects
 
 
-DeleteFuncType = typing.Callable[[typing.Sequence[str]], None]
+DeleteFuncType = Callable[[Sequence[str]], None]
 
 
 def get_cmd_completions(info, include_hidden, include_aliases, prefix=''):

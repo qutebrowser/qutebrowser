@@ -49,13 +49,13 @@ class AsciiDoc:
                  asciidoc: Optional[str],
                  asciidoc_python: Optional[str],
                  website: Optional[str]) -> None:
-        self._cmd = None        # type: Optional[List[str]]
+        self._cmd: Optional[List[str]] = None
         self._asciidoc = asciidoc
         self._asciidoc_python = asciidoc_python
         self._website = website
-        self._homedir = None    # type: Optional[pathlib.Path]
-        self._themedir = None   # type: Optional[pathlib.Path]
-        self._tempdir = None    # type: Optional[pathlib.Path]
+        self._homedir: Optional[pathlib.Path] = None
+        self._themedir: Optional[pathlib.Path] = None
+        self._tempdir: Optional[pathlib.Path] = None
         self._failed = False
 
     def prepare(self) -> None:

@@ -72,7 +72,7 @@ def test_benchmark_highlight(benchmark):
 def test_highlighted(qtbot):
     """Make sure highlighting works.
 
-    Note that with Qt 5.11.3 and > 5.12.1 we need to call setPlainText *after*
+    Note that with Qt > 5.12.1 we need to call setPlainText *after*
     creating the highlighter for highlighting to work. Ideally, we'd test
     whether CompletionItemDelegate._get_textdoc() works properly, but testing
     that is kind of hard, so we just test it in isolation here.

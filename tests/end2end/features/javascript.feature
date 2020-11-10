@@ -124,33 +124,11 @@ Feature: Javascript stuff
     # https://github.com/qutebrowser/qutebrowser/issues/1190
     # https://github.com/qutebrowser/qutebrowser/issues/2495
 
-    # Currently broken on Windows and on Qt 5.12
-    # https://github.com/qutebrowser/qutebrowser/issues/4230
-    @posix @qt<5.12
-    Scenario: Checking visible/invisible window size
-        When I run :tab-only
-        And I open data/javascript/windowsize.html in a new background tab
-        And I wait for "[*/data/javascript/windowsize.html:*] loaded" in the log
-        And I run :tab-next
-        Then the window sizes should be the same
-
-    @flaky @qt<5.12
-    Scenario: Checking visible/invisible window size with vertical tabbar
-        When I run :tab-only
-        And I set tabs.position to left
-        And I open data/javascript/windowsize.html in a new background tab
-        And I wait for "[*/data/javascript/windowsize.html:*] loaded" in the log
-        And I run :tab-next
-        Then the window sizes should be the same
-
     @flaky
     Scenario: Have a GreaseMonkey script run at page start
         When I have a GreaseMonkey file saved for document-start with noframes unset
         And I run :greasemonkey-reload
         And I open data/hints/iframe.html
-        # This second reload is required in webengine < 5.8 for scripts
-        # registered to run at document-start, some sort of timing issue.
-        And I run :reload
         Then the javascript message "Script is running on /data/hints/iframe.html" should be logged
 
     Scenario: Have a GreaseMonkey script running on frames

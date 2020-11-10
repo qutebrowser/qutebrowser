@@ -20,7 +20,6 @@
 """Test starting qutebrowser with special arguments/environments."""
 
 import subprocess
-import socket
 import sys
 import logging
 import re
@@ -29,7 +28,6 @@ import pytest
 from PyQt5.QtCore import QProcess
 
 from helpers import utils
-from qutebrowser.utils import qtutils
 
 
 ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,
@@ -71,7 +69,6 @@ def temp_basedir_env(tmpdir, short_tmpdir):
         '[general]',
         'quickstart-done = 1',
         'backend-warning-shown = 1',
-        'old-qt-warning-shown = 1',
         'webkit-warning-shown = 1',
     ]
 
@@ -162,7 +159,7 @@ def test_open_command_line_with_ascii_locale(request, server, tmpdir,
     # all be called. No exception thrown means test success.
     args = (['--temp-basedir'] + _base_args(request.config) +
             ['/home/user/föö.html'])
-    quteproc_new.start(args, env={'LC_ALL': 'C'}, wait_focus=False)
+    quteproc_new.start(args, env={'LC_ALL': 'C'})
 
     if not request.config.webengine:
         line = quteproc_new.wait_for(message="Error while loading *: Error "
@@ -252,10 +249,7 @@ def test_version(request):
     print(stderr)
 
     assert ok
-
-    if qtutils.version_check('5.9'):
-        # Segfaults on exit with Qt 5.7
-        assert proc.exitStatus() == QProcess.NormalExit
+    assert proc.exitStatus() == QProcess.NormalExit
 
     match = re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout, re.MULTILINE)
     assert match is not None
@@ -273,23 +267,6 @@ def test_qt_arg(request, quteproc_new, tmpdir):
 
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
-
-
-@utils.skip_qt511
-def test_webengine_inspector(request, quteproc_new):
-    if not request.config.webengine:
-        pytest.skip()
-    args = (['--temp-basedir', '--enable-webengine-inspector'] +
-            _base_args(request.config))
-    quteproc_new.start(args)
-    line = quteproc_new.wait_for(
-        message='Remote debugging server started successfully. Try pointing a '
-                'Chromium-based browser to http://127.0.0.1:*')
-    port = int(line.message.split(':')[-1])
-
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect(('127.0.0.1', port))
-    s.close()
 
 
 @pytest.mark.linux
@@ -333,16 +310,17 @@ def test_command_on_start(request, quteproc_new):
     quteproc_new.wait_for_quit()
 
 
-def test_launching_with_python2():
+@pytest.mark.parametrize('python', ['python2', 'python3.5'])
+def test_launching_with_old_python(python):
     try:
         proc = subprocess.run(
-            ['python2', '-m', 'qutebrowser', '--no-err-windows'],
+            [python, '-m', 'qutebrowser', '--no-err-windows'],
             stderr=subprocess.PIPE,
             check=False)
     except FileNotFoundError:
-        pytest.skip("python2 not found")
+        pytest.skip(f"{python} not found")
     assert proc.returncode == 1
-    error = "At least Python 3.5.2 is required to run qutebrowser"
+    error = "At least Python 3.6 is required to run qutebrowser"
     assert proc.stderr.decode('ascii').startswith(error)
 
 

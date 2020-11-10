@@ -190,7 +190,6 @@ For QtWebKit:
 +
 For QtWebEngine:
 
-. Make sure your versions of PyQt and Qt are 5.8 or higher.
 . Use `dictcli.py` script to install dictionaries.
   Run the script with `-h` for the parameter description.
 . Set `spellcheck.languages` to the desired list of languages, e.g.:
@@ -253,11 +252,6 @@ Note that there are some missing features which you may run into:
 . Some scripts expect `GM_xmlhttpRequest` to ignore Cross Origin Resource
   Sharing restrictions, this is currently not supported, so scripts making
   requests to third party sites will often fail to function correctly.
-. If your backend is a QtWebEngine version 5.8, 5.9 or 5.10 then regular
-  expressions are not supported in `@include` or `@exclude` rules. If your
-  script uses them you can re-write them to use glob expressions or convert
-  them to `@match` rules.
-  See https://wiki.greasespot.net/Metadata_Block[the wiki] for more info.
 . Any greasemonkey API function to do with adding UI elements is not currently
   supported. That means context menu extentensions and background pages.
 

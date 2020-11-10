@@ -22,7 +22,7 @@
 import re
 import functools
 import xml.etree.ElementTree
-import typing
+from typing import cast, Iterable
 
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
 from PyQt5.QtGui import QIcon
@@ -80,9 +80,6 @@ class WebKitPrinting(browsertab.AbstractPrinting):
     """QtWebKit implementations related to printing."""
 
     def check_pdf_support(self):
-        pass
-
-    def check_printer_support(self):
         pass
 
     def check_preview_support(self):
@@ -201,8 +198,7 @@ class WebKitCaret(browsertab.AbstractCaret):
                  tab: 'WebKitTab',
                  mode_manager: modeman.ModeManager,
                  parent: QWidget = None) -> None:
-        super().__init__(mode_manager, parent)
-        self._tab = tab
+        super().__init__(tab, mode_manager, parent)
         self._selection_state = browsertab.SelectionState.none
 
     @pyqtSlot(usertypes.KeyMode)
@@ -625,7 +621,7 @@ class WebKitHistoryPrivate(browsertab.AbstractHistoryPrivate):
 
     def __init__(self, tab: 'WebKitTab') -> None:
         self._tab = tab
-        self._history = typing.cast(QWebHistory, None)
+        self._history = cast(QWebHistory, None)
 
     def serialize(self):
         return qtutils.serialize(self._history)
@@ -693,9 +689,7 @@ class WebKitElements(browsertab.AbstractElements):
 
     """QtWebKit implemementations related to elements on the page."""
 
-    def __init__(self, tab: 'WebKitTab') -> None:
-        super().__init__()
-        self._tab = tab
+    _tab: 'WebKitTab'
 
     def find_css(self, selector, callback, error_cb, *, only_visible=False):
         utils.unused(error_cb)
@@ -706,8 +700,7 @@ class WebKitElements(browsertab.AbstractElements):
         elems = []
         frames = webkitelem.get_child_frames(mainframe)
         for f in frames:
-            frame_elems = typing.cast(
-                typing.Iterable[QWebElement], f.findAllElements(selector))
+            frame_elems = cast(Iterable[QWebElement], f.findAllElements(selector))
             for elem in frame_elems:
                 elems.append(webkitelem.WebKitElement(elem, tab=self._tab))
 
@@ -854,9 +847,8 @@ class WebKitTab(browsertab.AbstractTab):
         settings = widget.settings()
         settings.setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
 
-    def load_url(self, url, *, emit_before_load_started=True):
-        self._load_url_prepare(
-            url, emit_before_load_started=emit_before_load_started)
+    def load_url(self, url):
+        self._load_url_prepare(url)
         self._widget.load(url)
 
     def url(self, *, requested=False):

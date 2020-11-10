@@ -22,7 +22,7 @@
 import os.path
 import shlex
 import functools
-import typing
+from typing import cast, Callable, Dict, Union
 
 from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QEvent, QUrlQuery
@@ -600,16 +600,14 @@ class CommandDispatcher:
         widget = self._current_widget()
         url = self._current_url()
 
-        handlers = {
+        handlers: Dict[str, Callable] = {
             'prev': functools.partial(navigate.prevnext, prev=True),
             'next': functools.partial(navigate.prevnext, prev=False),
             'up': navigate.path_up,
             'strip': navigate.strip,
-            'decrement': functools.partial(navigate.incdec,
-                                           inc_or_dec='decrement'),
-            'increment': functools.partial(navigate.incdec,
-                                           inc_or_dec='increment'),
-        }  # type: typing.Dict[str, typing.Callable]
+            'decrement': functools.partial(navigate.incdec, inc_or_dec='decrement'),
+            'increment': functools.partial(navigate.incdec, inc_or_dec='increment'),
+        }
 
         try:
             if where in ['prev', 'next']:
@@ -675,7 +673,7 @@ class CommandDispatcher:
 
         url = QUrl(self._current_url())
         url_query = QUrlQuery()
-        url_query_str = urlutils.query_string(url)
+        url_query_str = url.query()
         if '&' not in url_query_str and ';' in url_query_str:
             url_query.setQueryDelimiters('=', ';')
         url_query.setQuery(url_query_str)
@@ -950,7 +948,7 @@ class CommandDispatcher:
     @cmdutils.argument('index', choices=['last', 'stack-next', 'stack-prev'],
                        completion=miscmodels.tab_focus)
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def tab_focus(self, index: typing.Union[str, int] = None,
+    def tab_focus(self, index: Union[str, int] = None,
                   count: int = None, no_last: bool = False) -> None:
         """Select the tab given as argument/[count].
 
@@ -994,7 +992,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', choices=['+', '-'])
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def tab_move(self, index: typing.Union[str, int] = None,
+    def tab_move(self, index: Union[str, int] = None,
                  count: int = None) -> None:
         """Move the current tab according to the argument and [count].
 
@@ -1306,7 +1304,7 @@ class CommandDispatcher:
             if mhtml_:
                 raise cmdutils.CommandError("Can only download the current "
                                             "page as mhtml.")
-            url = urlutils.qurl_from_user_input(url)
+            url = QUrl.fromUserInput(url)
             urlutils.raise_cmdexc_if_invalid(url)
             download_manager.get(url, target=target)
         elif mhtml_:
@@ -1432,7 +1430,7 @@ class CommandDispatcher:
         query = QUrlQuery()
         query.addQueryItem('level', level)
         if plain:
-            query.addQueryItem('plain', typing.cast(str, None))
+            query.addQueryItem('plain', cast(str, None))
 
         if logfilter:
             try:
@@ -1653,7 +1651,7 @@ class CommandDispatcher:
                url: bool = False,
                quiet: bool = False,
                *,
-               world: typing.Union[usertypes.JsWorld, int] = None) -> None:
+               world: Union[usertypes.JsWorld, int] = None) -> None:
         """Evaluate a JavaScript string.
 
         Args:

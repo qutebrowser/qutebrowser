@@ -23,13 +23,6 @@ from PyQt5.QtCore import QUrl, QDateTime
 from PyQt5.QtNetwork import QNetworkDiskCache, QNetworkCacheMetaData
 
 from qutebrowser.browser.webkit import cache
-from qutebrowser.utils import qtutils
-
-
-pytestmark = pytest.mark.skipif(
-    qtutils.version_check('5.7.1', compiled=False) and
-    not qtutils.version_check('5.9', compiled=False),
-    reason="QNetworkDiskCache is broken on Qt 5.7.1 and 5.8")
 
 
 @pytest.fixture

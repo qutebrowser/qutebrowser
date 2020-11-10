@@ -29,12 +29,9 @@ from qutebrowser.utils import urlmatch
 
 @pytest.fixture
 def filter_request():
-    try:
-        request = QWebEngineCookieStore.FilterRequest()
-        request.firstPartyUrl = QUrl('https://example.com')
-        return request
-    except AttributeError:
-        pytest.skip("FilterRequest not available")
+    request = QWebEngineCookieStore.FilterRequest()
+    request.firstPartyUrl = QUrl('https://example.com')
+    return request
 
 
 @pytest.fixture(autouse=True)
@@ -85,15 +82,6 @@ def test_invalid_url(config_stub, filter_request, global_value):
     assert cookies._accept_cookie(filter_request) == accepted
 
 
-def test_third_party_workaround(monkeypatch, config_stub, filter_request):
-    monkeypatch.setattr(cookies.qtutils, 'version_check',
-                        lambda ver, compiled: False)
-    config_stub.val.content.cookies.accept = 'no-3rdparty'
-    filter_request.thirdParty = True
-    filter_request.firstPartyUrl = QUrl()
-    assert cookies._accept_cookie(filter_request)
-
-
 @pytest.mark.parametrize('enabled', [True, False])
 def test_logging(monkeypatch, config_stub, filter_request, caplog, enabled):
     monkeypatch.setattr(cookies.objects, 'debug_flags',
@@ -117,12 +105,10 @@ class TestInstall:
         profile = QWebEngineProfile()
         cookies.install_filter(profile)
 
-    @pytest.mark.parametrize('has_cookie_filter', [True, False])
-    def test_fake_profile(self, stubs, has_cookie_filter):
-        store = stubs.FakeCookieStore(has_cookie_filter=has_cookie_filter)
+    def test_fake_profile(self, stubs):
+        store = stubs.FakeCookieStore()
         profile = stubs.FakeWebEngineProfile(cookie_store=store)
 
         cookies.install_filter(profile)
 
-        if has_cookie_filter:
-            assert store.cookie_filter is cookies._accept_cookie
+        assert store.cookie_filter is cookies._accept_cookie

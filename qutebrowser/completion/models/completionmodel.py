@@ -19,7 +19,7 @@
 
 """A model that proxies access to one or more completion categories."""
 
-import typing
+from typing import MutableSequence
 
 from PyQt5.QtCore import Qt, QModelIndex, QAbstractItemModel
 
@@ -43,8 +43,7 @@ class CompletionModel(QAbstractItemModel):
     def __init__(self, *, column_widths=(30, 70, 0), parent=None):
         super().__init__(parent)
         self.column_widths = column_widths
-        self._categories = [
-        ]  # type: typing.MutableSequence[QAbstractItemModel]
+        self._categories: MutableSequence[QAbstractItemModel] = []
 
     def _cat_from_idx(self, index):
         """Return the category pointed to by the given index.
@@ -180,16 +179,10 @@ class CompletionModel(QAbstractItemModel):
             pattern: The filter pattern to set.
         """
         log.completion.debug("Setting completion pattern '{}'".format(pattern))
-        # WORKAROUND:
-        # layoutChanged is broken in PyQt 5.7.1, so we must use metaObject
-        # https://www.riverbankcomputing.com/pipermail/pyqt/2017-January/038483.html
-        meta = self.metaObject()
-        meta.invokeMethod(self,  # type: ignore[misc, call-overload]
-                          "layoutAboutToBeChanged")
+        self.layoutAboutToBeChanged.emit()  # type: ignore[attr-defined]
         for cat in self._categories:
             cat.set_pattern(pattern)
-        meta.invokeMethod(self,  # type: ignore[misc, call-overload]
-                          "layoutChanged")
+        self.layoutChanged.emit()  # type: ignore[attr-defined]
 
     def first_item(self):
         """Return the index of the first child (non-category) in the model."""

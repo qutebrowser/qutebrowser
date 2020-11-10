@@ -1,4 +1,0 @@
-#@ filter: PyQt5 < 5.8
-#@ filter: sip < 5
-PyQt5 >= 5.7, < 5.8
-sip < 5

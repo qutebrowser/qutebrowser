@@ -23,16 +23,16 @@ Defines a CompletionView which uses CompletionFiterModel and CompletionModel
 subclasses to provide completions.
 """
 
-import typing
+from typing import TYPE_CHECKING, Optional
 
 from PyQt5.QtWidgets import QTreeView, QSizePolicy, QStyleFactory, QWidget
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
 from qutebrowser.config import config, stylesheet
 from qutebrowser.completion import completiondelegate
-from qutebrowser.utils import utils, usertypes, debug, log
+from qutebrowser.utils import utils, usertypes, debug, log, qtutils
 from qutebrowser.api import cmdutils
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.mainwindow.statusbar import command
 
 
@@ -115,7 +115,7 @@ class CompletionView(QTreeView):
                  win_id: int,
                  parent: QWidget = None) -> None:
         super().__init__(parent)
-        self.pattern = None  # type: typing.Optional[str]
+        self.pattern: Optional[str] = None
         self._win_id = win_id
         self._cmd = cmd
         self._active = False
@@ -223,8 +223,9 @@ class CompletionView(QTreeView):
             return model.last_item() if upwards else model.first_item()
 
         # Find height of each CompletionView element
-        element_height = self.visualRect(idx).height()
-        page_length = self.height() // element_height
+        rect = self.visualRect(idx)
+        qtutils.ensure_valid(rect)
+        page_length = self.height() // rect.height()
 
         # Skip one pageful, except leave one old line visible
         offset = -(page_length - 1) if upwards else page_length - 1

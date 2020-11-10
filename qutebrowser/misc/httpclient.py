@@ -19,9 +19,9 @@
 
 """An HTTP client based on QNetworkAccessManager."""
 
-import typing
 import functools
 import urllib.parse
+from typing import MutableMapping
 
 from PyQt5.QtCore import pyqtSignal, QObject, QTimer
 from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkRequest,
@@ -33,14 +33,8 @@ class HTTPRequest(QNetworkRequest):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        try:
-            self.setAttribute(QNetworkRequest.RedirectPolicyAttribute,
-                              QNetworkRequest.NoLessSafeRedirectPolicy)
-        except AttributeError:
-            # RedirectPolicyAttribute was introduced in 5.9 to replace
-            # FollowRedirectsAttribute.
-            self.setAttribute(QNetworkRequest.FollowRedirectsAttribute,
-                              True)
+        self.setAttribute(QNetworkRequest.RedirectPolicyAttribute,
+                          QNetworkRequest.NoLessSafeRedirectPolicy)
 
 
 class HTTPClient(QObject):
@@ -66,7 +60,7 @@ class HTTPClient(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._nam = QNetworkAccessManager(self)
-        self._timers = {}  # type: typing.MutableMapping[QNetworkReply, QTimer]
+        self._timers: MutableMapping[QNetworkReply, QTimer] = {}
 
     def post(self, url, data=None):
         """Create a new POST request.

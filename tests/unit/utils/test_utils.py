@@ -25,7 +25,6 @@ import os.path
 import io
 import logging
 import functools
-import socket
 import re
 import shlex
 import math
@@ -240,6 +239,16 @@ class TestInterpolateColor:
         color = utils.interpolate_color(start, stop, 50, QColor.Hsl)
         expected = Color()
         expected.setHsl(0, 30, 150)
+        assert Color(color) == expected
+
+    @pytest.mark.parametrize('colorspace', [QColor.Rgb, QColor.Hsv,
+                                            QColor.Hsl])
+    def test_interpolation_alpha(self, colorspace):
+        """Test interpolation of colorspace's alpha."""
+        start = Color(0, 0, 0, 30)
+        stop = Color(0, 0, 0, 100)
+        color = utils.interpolate_color(start, stop, 50, colorspace)
+        expected = Color(0, 0, 0, 65)
         assert Color(color) == expected
 
     @pytest.mark.parametrize('percentage, expected', [
@@ -563,8 +572,8 @@ class TestIsEnum:
         """Test is_enum with an enum."""
         class Foo(enum.Enum):
 
-            bar = 1
-            baz = 2
+            bar = enum.auto()
+            baz = enum.auto()
 
         assert utils.is_enum(Foo)
 
@@ -748,13 +757,6 @@ class TestGetSetClipboard:
     def test_fallback_without_selection(self):
         with pytest.raises(ValueError):
             utils.get_clipboard(fallback=True)
-
-
-def test_random_port():
-    port = utils.random_port()
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(('localhost', port))
-    sock.close()
 
 
 class TestOpenFile:

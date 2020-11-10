@@ -21,7 +21,7 @@
 
 import sys
 import functools
-import typing
+from typing import Optional
 
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QUrl
 from PyQt5.QtNetwork import (QNetworkProxy, QNetworkRequest, QHostInfo,
@@ -251,8 +251,7 @@ class PACFetcher(QObject):
         url.setScheme(url.scheme()[len(pac_prefix):])
 
         self._pac_url = url
-        self._manager = QNetworkAccessManager(
-        )  # type: typing.Optional[QNetworkAccessManager]
+        self._manager: Optional[QNetworkAccessManager] = QNetworkAccessManager()
         self._manager.setProxy(QNetworkProxy(QNetworkProxy.NoProxy))
         self._pac = None
         self._error_message = None

@@ -41,16 +41,8 @@ from qutebrowser.utils import qtutils, log
 
 ON_CI = 'CI' in os.environ
 
-qt58 = pytest.mark.skipif(
-    qtutils.version_check('5.9'), reason="Needs Qt 5.8 or earlier")
-qt59 = pytest.mark.skipif(
-    not qtutils.version_check('5.9'), reason="Needs Qt 5.9 or newer")
-qt510 = pytest.mark.skipif(
-    not qtutils.version_check('5.10'), reason="Needs Qt 5.10 or newer")
 qt514 = pytest.mark.skipif(
     not qtutils.version_check('5.14'), reason="Needs Qt 5.14 or newer")
-skip_qt511 = pytest.mark.skipif(
-    qtutils.version_check('5.11'), reason="Needs Qt 5.10 or earlier")
 
 
 class PartialCompareOutcome:
@@ -234,7 +226,7 @@ def change_cwd(path):
 @contextlib.contextmanager
 def ignore_bs4_warning():
     """WORKAROUND for https://bugs.launchpad.net/beautifulsoup/+bug/1847592."""
-    with log.ignore_py_warnings(
+    with log.py_warning_filter(
             category=DeprecationWarning,
             message="Using or importing the ABCs from 'collections' instead "
             "of from 'collections.abc' is deprecated", module='bs4.element'):
@@ -257,15 +249,6 @@ def seccomp_args(qt_flag):
     """
     affected_versions = set()
     for base, patch_range in [
-            ## seccomp-bpf failure in syscall 0281
-            ## https://github.com/qutebrowser/qutebrowser/issues/3163
-            # 5.7.1
-            ('5.7', [1]),
-
-            ## seccomp-bpf failure in syscall 0281 (clock_nanosleep)
-            ## https://bugreports.qt.io/browse/QTBUG-81313
-            # 5.11.0 to 5.11.3 (inclusive)
-            ('5.11', range(0, 4)),
             # 5.12.0 to 5.12.7 (inclusive)
             ('5.12', range(0, 8)),
             # 5.13.0 to 5.13.2 (inclusive)

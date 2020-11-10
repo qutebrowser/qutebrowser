@@ -21,8 +21,8 @@
 
 import traceback
 import re
-import typing
 import contextlib
+from typing import TYPE_CHECKING, Callable, Dict, Iterator, Mapping, MutableMapping
 
 import attr
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject
@@ -34,9 +34,9 @@ from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 from qutebrowser.misc import split, objects
 from qutebrowser.keyinput import macros, modeman
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.mainwindow import tabbedbrowser
-_ReplacementFunction = typing.Callable[['tabbedbrowser.TabbedBrowser'], str]
+_ReplacementFunction = Callable[['tabbedbrowser.TabbedBrowser'], str]
 
 
 last_command = {}
@@ -64,9 +64,9 @@ def _url(tabbed_browser):
         raise cmdutils.CommandError(msg)
 
 
-def _init_variable_replacements() -> typing.Mapping[str, _ReplacementFunction]:
+def _init_variable_replacements() -> Mapping[str, _ReplacementFunction]:
     """Return a dict from variable replacements to fns processing them."""
-    replacements = {
+    replacements: Dict[str, _ReplacementFunction] = {
         'url': lambda tb: _url(tb).toString(
             QUrl.FullyEncoded | QUrl.RemovePassword),
         'url:pretty': lambda tb: _url(tb).toString(
@@ -88,7 +88,7 @@ def _init_variable_replacements() -> typing.Mapping[str, _ReplacementFunction]:
         'title': lambda tb: tb.widget.page_title(tb.widget.currentIndex()),
         'clipboard': lambda _: utils.get_clipboard(),
         'primary': lambda _: utils.get_clipboard(selection=True),
-    }  # type: typing.Dict[str, _ReplacementFunction]
+    }
 
     for key in list(replacements):
         modified_key = '{' + key + '}'
@@ -108,7 +108,7 @@ def replace_variables(win_id, arglist):
     """Utility function to replace variables like {url} in a list of args."""
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    values = {}  # type: typing.MutableMapping[str, str]
+    values: MutableMapping[str, str] = {}
     args = []
 
     def repl_cb(matchobj):
@@ -332,7 +332,7 @@ class CommandRunner(AbstractCommandRunner):
         self._win_id = win_id
 
     @contextlib.contextmanager
-    def _handle_error(self, safely: bool) -> typing.Iterator[None]:
+    def _handle_error(self, safely: bool) -> Iterator[None]:
         """Show exceptions as errors if safely=True is given."""
         try:
             yield

@@ -19,10 +19,9 @@
 
 """Function to return the url completion model for the `open` command."""
 
-import typing
+from typing import Dict, Sequence
 
-if typing.TYPE_CHECKING:
-    from PyQt5.QtCore import QAbstractItemModel
+from PyQt5.QtCore import QAbstractItemModel
 
 from qutebrowser.completion.models import (completionmodel, listcategory,
                                            histcategory)
@@ -41,14 +40,14 @@ def _delete_history(data):
     history.web_history.delete_url(urlstr)
 
 
-def _delete_bookmark(data: typing.Sequence[str]) -> None:
+def _delete_bookmark(data: Sequence[str]) -> None:
     urlstr = data[_URLCOL]
     log.completion.debug('Deleting bookmark {}'.format(urlstr))
     bookmark_manager = objreg.get('bookmark-manager')
     bookmark_manager.delete(urlstr)
 
 
-def _delete_quickmark(data: typing.Sequence[str]) -> None:
+def _delete_quickmark(data: Sequence[str]) -> None:
     name = data[_TEXTCOL]
     quickmark_manager = objreg.get('quickmark-manager')
     log.completion.debug('Deleting quickmark {}'.format(name))
@@ -77,7 +76,7 @@ def url(*, info):
                      if k != 'DEFAULT']
     # pylint: enable=bad-config-option
     categories = config.val.completion.open_categories
-    models = {}  # type: typing.Dict[str, QAbstractItemModel]
+    models: Dict[str, QAbstractItemModel] = {}
 
     if searchengines and 'searchengines' in categories:
         models['searchengines'] = listcategory.ListCategory(

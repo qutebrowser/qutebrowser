@@ -23,7 +23,7 @@ import io
 import os.path
 import shutil
 import functools
-import typing
+from typing import Dict, IO, Optional
 
 import attr
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, QUrl
@@ -92,8 +92,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
             reply: The QNetworkReply to download.
         """
         super().__init__(manager=manager, parent=manager)
-        self.fileobj = None  # type: typing.Optional[typing.IO[bytes]]
-        self.raw_headers = {}  # type: typing.Dict[bytes, bytes]
+        self.fileobj: Optional[IO[bytes]] = None
+        self.raw_headers: Dict[bytes, bytes] = {}
 
         self._autoclose = True
         self._retry_info = None
@@ -181,11 +181,16 @@ class DownloadItem(downloads.AbstractDownloadItem):
         assert self.done
         assert not self.successful
         assert self._retry_info is not None
+
+        # Not calling self.cancel() here because the download is done (albeit
+        # unsuccessfully)
+        self.remove()
+        self.delete()
+
         new_reply = self._retry_info.manager.get(self._retry_info.request)
         new_download = self._manager.fetch(new_reply,
                                            suggested_filename=self.basename)
         self.adopt_download.emit(new_download)
-        self.cancel()
 
     def _get_open_filename(self):
         filename = self._filename

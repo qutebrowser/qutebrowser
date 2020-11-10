@@ -22,8 +22,9 @@
 import collections
 import functools
 import weakref
-import typing
 import datetime
+from typing import (
+    Any, Deque, List, Mapping, MutableMapping, MutableSequence, Optional, Tuple)
 
 import attr
 from PyQt5.QtWidgets import QSizePolicy, QWidget, QApplication
@@ -68,12 +69,10 @@ class TabDeque:
         size = config.val.tabs.focus_stack_size
         if size < 0:
             size = None
-        self._stack = collections.deque(
-            maxlen=size
-        )  # type: typing.Deque[weakref.ReferenceType[QWidget]]
+        self._stack: Deque[weakref.ReferenceType[QWidget]] = collections.deque(
+            maxlen=size)
         # Items that have been removed from the primary stack.
-        self._stack_deleted = [
-        ]  # type: typing.List[weakref.ReferenceType[QWidget]]
+        self._stack_deleted: List[weakref.ReferenceType[QWidget]] = []
         self._ignore_next = False
         self._keep_deleted_next = False
 
@@ -94,7 +93,7 @@ class TabDeque:
 
         Throws IndexError on failure.
         """
-        tab = None  # type: typing.Optional[QWidget]
+        tab: Optional[QWidget] = None
         while tab is None or tab.pending_removal or tab is cur_tab:
             tab = self._stack.pop()()
         self._stack_deleted.append(weakref.ref(cur_tab))
@@ -106,7 +105,7 @@ class TabDeque:
 
         Throws IndexError on failure.
         """
-        tab = None  # type: typing.Optional[QWidget]
+        tab: Optional[QWidget] = None
         while tab is None or tab.pending_removal or tab is cur_tab:
             tab = self._stack_deleted.pop()()
         # On next tab-switch, current tab will be added to stack as normal.
@@ -216,26 +215,21 @@ class TabbedBrowser(QWidget):
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
-        if qtutils.version_check('5.10', compiled=False):
-            self.cur_load_finished.connect(self._leave_modes_on_load)
-        else:
-            self.cur_load_started.connect(self._leave_modes_on_load)
+        # load_finished instead of load_started as WORKAROUND for
+        # https://bugreports.qt.io/browse/QTBUG-65223
+        self.cur_load_finished.connect(self._leave_modes_on_load)
 
         # This init is never used, it is immediately thrown away in the next
         # line.
-        self.undo_stack = (
-            collections.deque()
-        )  # type: typing.MutableSequence[typing.MutableSequence[_UndoEntry]]
+        self.undo_stack: MutableSequence[MutableSequence[_UndoEntry]] = (
+            collections.deque())
         self._update_stack_size()
         self._filter = signalfilter.SignalFilter(win_id, self)
         self._now_focused = None
         self.search_text = None
-        self.search_options = {}  # type: typing.Mapping[str, typing.Any]
-        self._local_marks = {
-        }  # type: typing.MutableMapping[QUrl, typing.MutableMapping[str, int]]
-        self._global_marks = {
-        }  # type: typing.MutableMapping[str, typing.Tuple[int, QUrl]]
+        self.search_options: Mapping[str, Any] = {}
+        self._local_marks: MutableMapping[QUrl, MutableMapping[str, int]] = {}
+        self._global_marks: MutableMapping[str, Tuple[int, QUrl]] = {}
         self.default_window_icon = self.widget.window().windowIcon()
         self.is_private = private
         self.tab_deque = TabDeque()
@@ -485,16 +479,7 @@ class TabbedBrowser(QWidget):
         tab.private_api.shutdown()
         self.widget.removeTab(idx)
 
-        if not crashed:
-            # WORKAROUND for a segfault when we delete the crashed tab.
-            # see https://bugreports.qt.io/browse/QTBUG-58698
-
-            if not qtutils.version_check('5.12'):
-                # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58982
-                # Seems to affect Qt 5.7-5.11 as well.
-                tab.layout().unwrap()
-
-            tab.deleteLater()
+        tab.deleteLater()
 
     def undo(self, depth=1):
         """Undo removing of a tab or tabs."""
@@ -637,9 +622,6 @@ class TabbedBrowser(QWidget):
             self.widget.currentWidget().setFocus()
         else:
             self.widget.setCurrentWidget(tab)
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
-            # Still seems to be needed with Qt 5.11.1
-            tab.setFocus()
 
         mode = modeman.instance(self._win_id).mode
         if mode in [usertypes.KeyMode.command, usertypes.KeyMode.prompt,
@@ -955,18 +937,11 @@ class TabbedBrowser(QWidget):
             tab.set_html(html)
             log.webview.error(msg)
 
-        if qtutils.version_check('5.9', compiled=False):
-            url_string = tab.url(requested=True).toDisplayString()
-            error_page = jinja.render(
-                'error.html', title="Error loading {}".format(url_string),
-                url=url_string, error=msg)
-            QTimer.singleShot(100, lambda: show_error_page(error_page))
-        else:
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58698
-            message.error(msg)
-            self._remove_tab(tab, crashed=True)
-            if self.widget.count() == 0:
-                self.tabopen(QUrl('about:blank'))
+        url_string = tab.url(requested=True).toDisplayString()
+        error_page = jinja.render(
+            'error.html', title="Error loading {}".format(url_string),
+            url=url_string, error=msg)
+        QTimer.singleShot(100, lambda: show_error_page(error_page))
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

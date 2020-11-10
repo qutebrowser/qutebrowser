@@ -49,22 +49,8 @@ class TestSqlError:
         with pytest.raises(exception):
             sql.raise_sqlite_error("Message", sql_err)
 
-    def test_qtbug_70506(self):
-        """Test Qt's wrong handling of errors while opening the database.
-
-        Due to https://bugreports.qt.io/browse/QTBUG-70506 we get an error with
-        "out of memory" as string and -1 as error code.
-        """
-        sql_err = QSqlError("Error opening database",
-                            "out of memory",
-                            QSqlError.UnknownError,
-                            sql.SqliteErrorCode.UNKNOWN)
-        with pytest.raises(sql.KnownError):
-            sql.raise_sqlite_error("Message", sql_err)
-
     def test_logging(self, caplog):
-        sql_err = QSqlError("driver text", "db text", QSqlError.UnknownError,
-                            '23')
+        sql_err = QSqlError("driver text", "db text", QSqlError.UnknownError, '23')
         with pytest.raises(sql.BugError):
             sql.raise_sqlite_error("Message", sql_err)
 

@@ -29,7 +29,6 @@ parameters or headers with the same name properly.
 import sys
 import json
 import time
-import signal
 import os
 import threading
 from http import HTTPStatus
@@ -327,13 +326,7 @@ def main():
         app.template_folder = os.path.join(basedir, 'end2end', 'templates')
     port = int(sys.argv[1])
     server = WSGIServer(('127.0.0.1', port), app)
-
-    signal.signal(signal.SIGTERM, lambda *args: server.stop())
-
-    try:
-        server.start()
-    except KeyboardInterrupt:
-        server.stop()
+    server.start()
 
 
 if __name__ == '__main__':

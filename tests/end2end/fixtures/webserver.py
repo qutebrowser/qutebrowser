@@ -23,6 +23,7 @@ import re
 import sys
 import json
 import os.path
+import socket
 from http import HTTPStatus
 
 import attr
@@ -30,8 +31,6 @@ import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl
 
 from end2end.fixtures import testprocess
-
-from qutebrowser.utils import utils
 
 
 class Request(testprocess.Line):
@@ -140,8 +139,16 @@ class WebserverProcess(testprocess.Process):
     def __init__(self, request, script, parent=None):
         super().__init__(request, parent)
         self._script = script
-        self.port = utils.random_port()
+        self.port = self._random_port()
         self.new_data.connect(self.new_request)
+
+    def _random_port(self) -> int:
+        """Get a random free port."""
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.bind(('localhost', 0))
+        port = sock.getsockname()[1]
+        sock.close()
+        return port
 
     def get_requests(self):
         """Get the requests to the server during this test."""

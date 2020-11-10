@@ -24,7 +24,7 @@ Module attributes:
                 constants.
 """
 
-import typing
+from typing import cast
 import os.path
 
 from PyQt5.QtCore import QUrl
@@ -39,7 +39,7 @@ from qutebrowser.browser import shared
 
 
 # The global WebKitSettings object
-global_settings = typing.cast('WebKitSettings', None)
+global_settings = cast('WebKitSettings', None)
 
 parsed_user_agent = None
 
@@ -172,7 +172,7 @@ def _init_user_agent():
     parsed_user_agent = websettings.UserAgent.parse(ua)
 
 
-def init(_args):
+def init():
     """Initialize the global QWebSettings."""
     cache_path = standarddir.cache()
     data_path = standarddir.data()

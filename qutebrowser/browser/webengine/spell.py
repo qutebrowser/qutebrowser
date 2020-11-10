@@ -24,21 +24,10 @@ import glob
 import os
 import os.path
 import re
-import shutil
 
-from PyQt5.QtCore import QLibraryInfo
-from qutebrowser.utils import log, message, standarddir, qtutils
+from qutebrowser.utils import log, message, standarddir
 
 _DICT_VERSION_RE = re.compile(r".+-(?P<version>[0-9]+-[0-9]+?)\.bdic")
-
-
-def can_use_data_path():
-    """Whether the current Qt version can use a customized path.
-
-    Qt >= 5.10 understands QTWEBENGINE_DICTIONARIES_PATH which means we don't
-    need to put them to a fixed root-only folder.
-    """
-    return qtutils.version_check('5.10', compiled=False)
 
 
 def version(filename):
@@ -51,13 +40,9 @@ def version(filename):
     return tuple(int(n) for n in match.group('version').split('-'))
 
 
-def dictionary_dir(old=False):
+def dictionary_dir():
     """Return the path (str) to the QtWebEngine's dictionaries directory."""
-    if can_use_data_path() and not old:
-        datapath = standarddir.data()
-    else:
-        datapath = QLibraryInfo.location(QLibraryInfo.DataPath)
-    return os.path.join(datapath, 'qtwebengine_dictionaries')
+    return os.path.join(standarddir.data(), 'qtwebengine_dictionaries')
 
 
 def local_files(code):
@@ -91,13 +76,6 @@ def local_filename(code):
 
 
 def init():
-    """Initialize the dictionary path if supported."""
-    if can_use_data_path():
-        new_dir = dictionary_dir()
-        old_dir = dictionary_dir(old=True)
-        os.environ['QTWEBENGINE_DICTIONARIES_PATH'] = new_dir
-        try:
-            if os.path.exists(old_dir) and not os.path.exists(new_dir):
-                shutil.copytree(old_dir, new_dir)
-        except OSError:
-            log.misc.exception("Failed to copy old dictionaries")
+    """Initialize the dictionary path."""
+    dict_dir = dictionary_dir()
+    os.environ['QTWEBENGINE_DICTIONARIES_PATH'] = dict_dir

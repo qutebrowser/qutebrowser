@@ -20,7 +20,6 @@
 """The main browser widgets."""
 
 from PyQt5.QtCore import pyqtSignal, Qt, QUrl
-from PyQt5.QtWidgets import QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
@@ -62,10 +61,6 @@ class WebView(QWebView):
 
     def __init__(self, *, win_id, tab_id, tab, private, parent=None):
         super().__init__(parent)
-        if utils.is_mac:
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-42948
-            # See https://github.com/qutebrowser/qutebrowser/issues/462
-            self.setStyle(QStyleFactory.create('Fusion'))
         # FIXME:qtwebengine this is only used to set the zoom factor from
         # the QWebPage - we should get rid of it somehow (signals?)
         self.tab = tab

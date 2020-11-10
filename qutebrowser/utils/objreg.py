@@ -22,18 +22,19 @@
 
 import collections
 import functools
-import typing
+from typing import (TYPE_CHECKING, Any, Callable, MutableMapping, MutableSequence,
+                    Optional, Sequence, Union)
 
 from PyQt5.QtCore import QObject, QTimer
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QWidget  # pylint: disable=unused-import
+from PyQt5.QtWidgets import QWidget
 
 from qutebrowser.utils import log, usertypes, utils
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.mainwindow import mainwindow
 
 
-_WindowTab = typing.Union[str, int, None]
+_WindowTab = Union[str, int, None]
 
 
 class RegistryUnavailableError(Exception):
@@ -51,7 +52,7 @@ class CommandOnlyError(Exception):
     """Raised when an object is requested which is used for commands only."""
 
 
-_IndexType = typing.Union[str, int]
+_IndexType = Union[str, int]
 
 
 class ObjectRegistry(collections.UserDict):
@@ -67,11 +68,10 @@ class ObjectRegistry(collections.UserDict):
 
     def __init__(self) -> None:
         super().__init__()
-        self._partial_objs = {
-        }  # type: typing.MutableMapping[_IndexType, typing.Callable[[], None]]
-        self.command_only = []  # type: typing.MutableSequence[str]
+        self._partial_objs: MutableMapping[_IndexType, Callable[[], None]] = {}
+        self.command_only: MutableSequence[str] = []
 
-    def __setitem__(self, name: _IndexType, obj: typing.Any) -> None:
+    def __setitem__(self, name: _IndexType, obj: Any) -> None:
         """Register an object in the object registry.
 
         Sets a slot to remove QObjects when they are destroyed.
@@ -139,7 +139,7 @@ class ObjectRegistry(collections.UserDict):
         except KeyError:
             pass
 
-    def dump_objects(self) -> typing.Sequence[str]:
+    def dump_objects(self) -> Sequence[str]:
         """Dump all objects as a list of strings."""
         lines = []
         for name, obj in self.data.items():
@@ -166,7 +166,7 @@ def _get_tab_registry(win_id: _WindowTab,
     if tab_id is None:
         raise ValueError("Got tab_id None (win_id {})".format(win_id))
     if tab_id == 'current' and win_id is None:
-        window = QApplication.activeWindow()  # type: typing.Optional[QWidget]
+        window: Optional[QWidget] = QApplication.activeWindow()
         if window is None or not hasattr(window, 'win_id'):
             raise RegistryUnavailableError('tab')
         win_id = window.win_id
@@ -192,7 +192,7 @@ def _get_window_registry(window: _WindowTab) -> ObjectRegistry:
         raise TypeError("window is None with scope window!")
     try:
         if window == 'current':
-            win = QApplication.activeWindow()  # type: typing.Optional[QWidget]
+            win: Optional[QWidget] = QApplication.activeWindow()
         elif window == 'last-focused':
             win = last_focused_window()
         else:
@@ -228,11 +228,11 @@ def _get_registry(scope: str,
 
 
 def get(name: str,
-        default: typing.Any = usertypes.UNSET,
+        default: Any = usertypes.UNSET,
         scope: str = 'global',
         window: _WindowTab = None,
         tab: _WindowTab = None,
-        from_command: bool = False) -> typing.Any:
+        from_command: bool = False) -> Any:
     """Helper function to get an object.
 
     Args:
@@ -253,7 +253,7 @@ def get(name: str,
 
 
 def register(name: str,
-             obj: typing.Any,
+             obj: Any,
              update: bool = False,
              scope: str = None,
              registry: ObjectRegistry = None,
@@ -296,7 +296,7 @@ def delete(name: str,
     del reg[name]
 
 
-def dump_objects() -> typing.Sequence[str]:
+def dump_objects() -> Sequence[str]:
     """Get all registered objects in all registries as a string."""
     blocks = []
     lines = []
@@ -350,6 +350,8 @@ def _window_by_index(idx: int) -> 'mainwindow.MainWindow':
 
 def last_opened_window() -> 'mainwindow.MainWindow':
     """Get the last opened window object."""
+    if not window_registry:
+        raise NoWindow()
     for idx in range(-1, -(len(window_registry)+1), -1):
         window = _window_by_index(idx)
         if not window.tabbed_browser.is_shutting_down:
@@ -359,6 +361,8 @@ def last_opened_window() -> 'mainwindow.MainWindow':
 
 def first_opened_window() -> 'mainwindow.MainWindow':
     """Get the first opened window object."""
+    if not window_registry:
+        raise NoWindow()
     for idx in range(0, len(window_registry)+1):
         window = _window_by_index(idx)
         if not window.tabbed_browser.is_shutting_down:

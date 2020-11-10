@@ -30,8 +30,8 @@ import collections
 import enum
 import datetime
 import getpass
-import typing
 import functools
+from typing import Mapping, Optional, Sequence, Tuple, cast
 
 import attr
 import pkg_resources
@@ -82,10 +82,10 @@ class DistributionInfo:
 
     """Information about the running distribution."""
 
-    id = attr.ib()  # type: typing.Optional[str]
-    parsed = attr.ib()  # type: Distribution
-    version = attr.ib()  # type: typing.Optional[typing.Tuple[str, ...]]
-    pretty = attr.ib()  # type: str
+    id: Optional[str] = attr.ib()
+    parsed: 'Distribution' = attr.ib()
+    version: Optional[Tuple[str, ...]] = attr.ib()
+    pretty: str = attr.ib()
 
 
 pastebin_url = None
@@ -98,20 +98,20 @@ class Distribution(enum.Enum):
     Usually lines up with ID=... in /etc/os-release.
     """
 
-    unknown = 1
-    ubuntu = 2
-    debian = 3
-    void = 4
-    arch = 5
-    gentoo = 6  # includes funtoo
-    fedora = 7
-    opensuse = 8
-    linuxmint = 9
-    manjaro = 10
-    kde_flatpak = 11  # org.kde.Platform
+    unknown = enum.auto()
+    ubuntu = enum.auto()
+    debian = enum.auto()
+    void = enum.auto()
+    arch = enum.auto()
+    gentoo = enum.auto()  # includes funtoo
+    fedora = enum.auto()
+    opensuse = enum.auto()
+    linuxmint = enum.auto()
+    manjaro = enum.auto()
+    kde_flatpak = enum.auto()  # org.kde.Platform
 
 
-def distribution() -> typing.Optional[DistributionInfo]:
+def distribution() -> Optional[DistributionInfo]:
     """Get some information about the running Linux distribution.
 
     Returns:
@@ -139,9 +139,8 @@ def distribution() -> typing.Optional[DistributionInfo]:
     assert pretty is not None
 
     if 'VERSION_ID' in info:
-        dist_version = pkg_resources.parse_version(
-            info['VERSION_ID']
-        )  # type: typing.Optional[typing.Tuple[str, ...]]
+        dist_version: Optional[Tuple[str, ...]] = pkg_resources.parse_version(
+            info['VERSION_ID'])
     else:
         dist_version = None
 
@@ -170,7 +169,7 @@ def is_sandboxed() -> bool:
     return current_distro.parsed == Distribution.kde_flatpak
 
 
-def _git_str() -> typing.Optional[str]:
+def _git_str() -> Optional[str]:
     """Try to find out git version.
 
     Return:
@@ -204,7 +203,7 @@ def _call_git(gitpath: str, *args: str) -> str:
         stdout=subprocess.PIPE).stdout.decode('UTF-8').strip()
 
 
-def _git_str_subprocess(gitpath: str) -> typing.Optional[str]:
+def _git_str_subprocess(gitpath: str) -> Optional[str]:
     """Try to get the git commit ID and timestamp by calling git.
 
     Args:
@@ -226,7 +225,7 @@ def _git_str_subprocess(gitpath: str) -> typing.Optional[str]:
         return None
 
 
-def _release_info() -> typing.Sequence[typing.Tuple[str, str]]:
+def _release_info() -> Sequence[Tuple[str, str]]:
     """Try to gather distribution release information.
 
     Return:
@@ -250,14 +249,14 @@ def _release_info() -> typing.Sequence[typing.Tuple[str, str]]:
     return data
 
 
-def _module_versions() -> typing.Sequence[str]:
+def _module_versions() -> Sequence[str]:
     """Get versions of optional modules.
 
     Return:
         A list of lines with version info.
     """
     lines = []
-    modules = collections.OrderedDict([
+    modules: Mapping[str, Sequence[str]] = collections.OrderedDict([
         ('sip', ['SIP_VERSION_STR']),
         ('colorama', ['VERSION', '__version__']),
         ('pypeg2', ['__version__']),
@@ -269,7 +268,7 @@ def _module_versions() -> typing.Sequence[str]:
         ('PyQt5.QtWebEngineWidgets', []),
         ('PyQt5.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
         ('PyQt5.QtWebKitWidgets', []),
-    ])  # type: typing.Mapping[str, typing.Sequence[str]]
+    ])
     for modname, attributes in modules.items():
         try:
             module = importlib.import_module(modname)
@@ -289,7 +288,7 @@ def _module_versions() -> typing.Sequence[str]:
     return lines
 
 
-def _path_info() -> typing.Mapping[str, str]:
+def _path_info() -> Mapping[str, str]:
     """Get info about important path names.
 
     Return:
@@ -308,7 +307,7 @@ def _path_info() -> typing.Mapping[str, str]:
     return info
 
 
-def _os_info() -> typing.Sequence[str]:
+def _os_info() -> Sequence[str]:
     """Get operating system info.
 
     Return:
@@ -371,41 +370,6 @@ def _chromium_version() -> str:
 
     Quick reference:
 
-    Qt 5.7:  Chromium 49
-             49.0.2623.111 (2016-03-31)
-             5.7.0: Security fixes from Chromium 50 and 51
-             5.7.1: Security fixes up to 54.0.2840.87 (2016-11-01)
-
-    Qt 5.8:  Chromium 53
-             53.0.2785.148 (2016-08-31)
-             5.8.0: Security fixes up to 55.0.2883.75 (2016-12-01)
-
-    Qt 5.9:  Chromium 56
-    (LTS)    56.0.2924.122 (2017-01-25)
-             5.9.0: Security fixes up to 56.0.2924.122 (?)
-             5.9.1: Security fixes up to 59.0.3071.104 (2017-06-15)
-             5.9.2: Security fixes up to 61.0.3163.79  (2017-09-05)
-             5.9.3: Security fixes up to 62.0.3202.89  (2017-11-06)
-             5.9.4: Security fixes up to 63.0.3239.132 (~2017-12-14)
-             5.9.5: Security fixes up to 65.0.3325.146 (~2018-03-13)
-             5.9.6: Security fixes up to 66.0.3359.170 (2018-05-10)
-             5.9.7: Security fixes up to 69.0.3497.113 (~2018-09-11)
-             5.9.8: Security fixes up to 72.0.3626.121 (2019-03-01)
-             5.9.9: Security fixes up to 78.0.3904.108 (2019-11-18)
-
-    Qt 5.10: Chromium 61
-             61.0.3163.140 (2017-09-05)
-             5.10.0: Security fixes up to 62.0.3202.94  (2017-11-13)
-             5.10.1: Security fixes up to 64.0.3282.140 (2018-02-01)
-
-    Qt 5.11: Chromium 65
-             65.0.3325.151 (2018-03-06)
-             5.11.0: Security fixes up to 66.0.3359.139 (2018-04-26)
-             5.11.1: Updated to 65.0.3325.15.230
-                     Security fixes up to 67.0.3396.87  (2018-06-12)
-             5.11.2: Security fixes up to 68.0.3440.75  (~2018-07-31)
-             5.11.3: Security fixes up to 70.0.3538.102 (2018-11-09)
-
     Qt 5.12: Chromium 69
     (LTS)    69.0.3497.128 (~2018-09-11)
              5.12.0: Security fixes up to 70.0.3538.102 (~2018-10-24)
@@ -418,6 +382,7 @@ def _chromium_version() -> str:
              5.12.7: Security fixes up to 79.0.3945.130 (2020-01-16)
              5.12.8: Security fixes up to 80.0.3987.149 (2020-03-18)
              5.12.9: Security fixes up to 83.0.4103.97  (2020-06-03)
+             5.12.10: Security fixes up to 86.0.4240.75 (2020-10-06)
 
     Qt 5.13: Chromium 73
              73.0.3683.105 (~2019-02-28)
@@ -435,6 +400,9 @@ def _chromium_version() -> str:
              80.0.3987.163 (2020-04-02)
              5.15.0: Security fixes up to 81.0.4044.138 (2020-05-05)
              5.15.1: Security fixes up to 85.0.4183.83  (2020-08-25)
+
+             5.15.2: Updated to 83.0.4103.122           (~2020-06-24)
+                     Security fixes up to 86.0.4240.111 (2020-10-20)
 
     Also see:
 
@@ -568,21 +536,21 @@ class OpenGLInfo:
     """Information about the OpenGL setup in use."""
 
     # If we're using OpenGL ES. If so, no further information is available.
-    gles = attr.ib(False)  # type: bool
+    gles: bool = attr.ib(False)
 
     # The name of the vendor. Examples:
     # - nouveau
     # - "Intel Open Source Technology Center", "Intel", "Intel Inc."
-    vendor = attr.ib(None)  # type: typing.Optional[str]
+    vendor: Optional[str] = attr.ib(None)
 
     # The OpenGL version as a string. See tests for examples.
-    version_str = attr.ib(None)  # type: typing.Optional[str]
+    version_str: Optional[str] = attr.ib(None)
 
     # The parsed version as a (major, minor) tuple of ints
-    version = attr.ib(None)  # type: typing.Optional[typing.Tuple[int, ...]]
+    version: Optional[Tuple[int, ...]] = attr.ib(None)
 
     # The vendor specific information following the version number
-    vendor_specific = attr.ib(None)  # type: typing.Optional[str]
+    vendor_specific: Optional[str] = attr.ib(None)
 
     def __str__(self) -> str:
         if self.gles:
@@ -620,7 +588,7 @@ class OpenGLInfo:
 
 
 @functools.lru_cache(maxsize=1)
-def opengl_info() -> typing.Optional[OpenGLInfo]:  # pragma: no cover
+def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
     """Get the OpenGL vendor used.
 
     This returns a string such as 'nouveau' or
@@ -638,8 +606,7 @@ def opengl_info() -> typing.Optional[OpenGLInfo]:  # pragma: no cover
         vendor, version = override.split(', ', maxsplit=1)
         return OpenGLInfo.parse(vendor=vendor, version=version)
 
-    old_context = typing.cast(typing.Optional[QOpenGLContext],
-                              QOpenGLContext.currentContext())
+    old_context = cast(Optional[QOpenGLContext], QOpenGLContext.currentContext())
     old_surface = None if old_context is None else old_context.surface()
 
     surface = QOffscreenSurface()

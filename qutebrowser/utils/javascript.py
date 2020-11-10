@@ -19,10 +19,10 @@
 
 """Utilities related to javascript interaction."""
 
-import typing
+from typing import Sequence, Union
 
-_InnerJsArgType = typing.Union[None, str, bool, int, float]
-_JsArgType = typing.Union[_InnerJsArgType, typing.Sequence[_InnerJsArgType]]
+_InnerJsArgType = Union[None, str, bool, int, float]
+_JsArgType = Union[_InnerJsArgType, Sequence[_InnerJsArgType]]
 
 
 def string_escape(text: str) -> str:

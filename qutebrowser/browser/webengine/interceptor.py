@@ -39,9 +39,9 @@ class WebEngineRequest(interceptors.Request):
 
     _WHITELISTED_REQUEST_METHODS = {QByteArray(b'GET'), QByteArray(b'HEAD')}
 
-    _webengine_info = attr.ib(default=None)  # type: QWebEngineUrlRequestInfo
+    _webengine_info: QWebEngineUrlRequestInfo = attr.ib(default=None)
     #: If this request has been redirected already
-    _redirected = attr.ib(init=False, default=False)  # type: bool
+    _redirected: bool = attr.ib(init=False, default=False)
 
     def redirect(self, url: QUrl) -> None:
         if self._redirected:
@@ -129,7 +129,7 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
             # Qt >= 5.13, GUI thread
             profile.setUrlRequestInterceptor(self)
         except AttributeError:
-            # Qt <= 5.12, IO thread
+            # Qt 5.12, IO thread
             profile.setRequestInterceptor(self)
 
     # Gets called in the IO thread -> showing crash window will fail

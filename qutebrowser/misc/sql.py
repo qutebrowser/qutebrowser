@@ -35,7 +35,6 @@ class SqliteErrorCode:
     in qutebrowser here.
     """
 
-    UNKNOWN = '-1'
     ERROR = '1'  # generic error code
     BUSY = '5'  # database is locked
     READONLY = '8'  # attempt to write a readonly database
@@ -108,13 +107,6 @@ def raise_sqlite_error(msg, error):
         SqliteErrorCode.NOTADB,
     ]
 
-    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70506
-    # We don't know what the actual error was, but let's assume it's not us to
-    # blame... Usually this is something like an unreadable database file.
-    qtbug_70506 = (error_code == SqliteErrorCode.UNKNOWN and
-                   driver_text == "Error opening database" and
-                   database_text == "out of memory")
-
     # https://github.com/qutebrowser/qutebrowser/issues/4681
     # If the query we built was too long
     too_long_err = (
@@ -123,7 +115,7 @@ def raise_sqlite_error(msg, error):
          database_text in ["too many SQL variables",
                            "LIKE or GLOB pattern too complex"]))
 
-    if error_code in known_errors or qtbug_70506 or too_long_err:
+    if error_code in known_errors or too_long_err:
         raise KnownError(msg, error)
 
     raise BugError(msg, error)
