@@ -51,9 +51,9 @@ global_settings = typing.cast('WebEngineSettings', None)
 
 parsed_user_agent = None
 
-_qute_scheme_handler = None
+_qute_scheme_handler = typing.cast(webenginequtescheme.QuteSchemeHandler, None)
 _req_interceptor = None
-_download_manager = None
+_download_manager = typing.cast(webenginedownloads.DownloadManager, None)
 
 
 class _SettingsWrapper:
@@ -385,7 +385,7 @@ def _init_default_profile():
     default_profile.setter.set_persistent_cookie_policy()
 
     _qute_scheme_handler.install(default_profile)
-    _req_interceptor.install(default_profile)
+    _req_interceptor.install(default_profile)  # type: ignore
     _download_manager.install(default_profile)
     cookies.install_filter(default_profile)
 
@@ -400,7 +400,6 @@ def init_private_profile():
     global private_profile
 
     if not qtutils.is_single_process():
-        is_first_time = private_profile is None
         private_profile = QWebEngineProfile()
         private_profile.setter = ProfileSetter(  # type: ignore[attr-defined]
             private_profile)
@@ -408,7 +407,7 @@ def init_private_profile():
         private_profile.setter.init_profile()
 
         _qute_scheme_handler.install(private_profile)
-        _req_interceptor.install(private_profile)
+        _req_interceptor.install(private_profile)  # type: ignore
         _download_manager.install(private_profile)
         cookies.install_filter(private_profile)
 

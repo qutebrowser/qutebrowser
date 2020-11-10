@@ -28,14 +28,14 @@ import typing
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
                           QTimer, QObject)
 from PyQt5.QtNetwork import QAuthenticator
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript, QWebEngineHistory
 
 from qutebrowser.config import configdata, config
 from qutebrowser.browser import (browsertab, eventfilter, shared, webelem, greasemonkey)
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            webenginesettings, certificateerror)
-from qutebrowser.misc import miscwidgets, objects, quitter
+from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, objreg, jinja, debug)
 from qutebrowser.keyinput import modeman
