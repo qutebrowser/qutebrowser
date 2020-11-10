@@ -22,6 +22,7 @@
 import re
 import os
 import time
+import warnings
 
 import attr
 import pytest
@@ -316,8 +317,11 @@ class Process(QObject):
         else:
             self.proc.terminate()
 
-        ok = self.proc.waitForFinished()
+        ok = self.proc.waitForFinished(5000)
         if not ok:
+            cmdline = ' '.join([self.proc.program()] + self.proc.arguments())
+            warnings.warn(f"Test process {cmdline} with PID {self.proc.processId()} "
+                          "failed to terminate!")
             self.proc.kill()
             self.proc.waitForFinished()
 
