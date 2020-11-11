@@ -263,7 +263,6 @@ def _module_versions() -> Sequence[str]:
         ('jinja2', ['__version__']),
         ('pygments', ['__version__']),
         ('yaml', ['__version__']),
-        ('cssutils', ['__version__']),
         ('attr', ['__version__']),
         ('PyQt5.QtWebEngineWidgets', []),
         ('PyQt5.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),

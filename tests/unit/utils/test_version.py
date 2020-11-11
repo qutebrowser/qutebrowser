@@ -561,7 +561,6 @@ class ImportFake:
             ('jinja2', True),
             ('pygments', True),
             ('yaml', True),
-            ('cssutils', True),
             ('attr', True),
             ('PyQt5.QtWebEngineWidgets', True),
             ('PyQt5.QtWebEngine', True),
@@ -637,7 +636,6 @@ class TestModuleVersions:
 
     @pytest.mark.parametrize('module, idx, expected', [
         ('colorama', 1, 'colorama: no'),
-        ('cssutils', 6, 'cssutils: no'),
     ])
     def test_missing_module(self, module, idx, expected, import_fake):
         """Test with a module missing.
@@ -681,7 +679,6 @@ class TestModuleVersions:
         ('jinja2', True),
         ('pygments', True),
         ('yaml', True),
-        ('cssutils', True),
         ('attr', True),
     ])
     def test_existing_attributes(self, name, has_version):
@@ -694,8 +691,6 @@ class TestModuleVersions:
             name: The name of the module to check.
             has_version: Whether a __version__ attribute is expected.
         """
-        if name == 'cssutils':
-            pytest.importorskip(name)
         module = importlib.import_module(name)
         assert hasattr(module, '__version__') == has_version
 

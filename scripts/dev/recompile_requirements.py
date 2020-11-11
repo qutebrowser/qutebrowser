@@ -164,7 +164,6 @@ CHANGELOG_URLS = {
     'yamllint': 'https://github.com/adrienverge/yamllint/blob/master/CHANGELOG.rst',
     'pathspec': 'https://github.com/cpburnz/python-path-specification/blob/master/CHANGES.rst',
     'filelock': 'https://github.com/benediktschmitt/py-filelock/commits/master',
-    'cssutils': 'https://pythonhosted.org/cssutils/CHANGELOG.html',
     'github3.py': 'https://github3py.readthedocs.io/en/master/release-notes/index.html',
     'manhole': 'https://github3py.readthedocs.io/en/master/release-notes/index.html',
     'pycparser': 'https://github.com/eliben/pycparser/blob/master/CHANGES',

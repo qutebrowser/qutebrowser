@@ -134,8 +134,6 @@ The following software and libraries are required to run qutebrowser:
 
 The following libraries are optional:
 
-* http://cthedot.de/cssutils/[cssutils] (for an improved `:download --mhtml`
-  with QtWebKit).
 * On Windows, https://pypi.python.org/pypi/colorama/[colorama] for colored log
   output.
 * http://asciidoc.org/[asciidoc] to generate the documentation for the `:help`
