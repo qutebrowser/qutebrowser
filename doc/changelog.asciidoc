@@ -53,6 +53,8 @@ Removed
 - The `--old` flag for `:config-diff` has been removed. It used to show
   customized options for the old pre-v1.0 config files (in order to aid
   migration to v1.0).
+- The `:inspector` command which was deprecated in v1.13.0 (in favor of
+  `:devtools`) is now removed.
 
 Changed
 ~~~~~~~

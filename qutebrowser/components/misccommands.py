@@ -343,10 +343,3 @@ def devtools_focus(tab: apitypes.Tab) -> None:
         tab.data.splitter.cycle_focus()
     except apitypes.InspectorError as e:
         raise cmdutils.CommandError(e)
-
-
-@cmdutils.register(deprecated='Use :devtools instead')
-@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-def inspector(tab: apitypes.Tab) -> None:
-    """Toggle the web inspector."""
-    devtools(tab)
