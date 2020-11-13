@@ -48,6 +48,8 @@ Removed
 - The `--enable-webengine-inspector` flag (which was only needed for Qt 5.10 and
   below) is now dropped. With Qt 5.11 and newer, the inspector/devtools are
   enabled unconditionally.
+- Support for moving qutebrowser data from versions before v1.0.0 has been
+  removed.
 
 Changed
 ~~~~~~~
