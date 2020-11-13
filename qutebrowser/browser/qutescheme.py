@@ -38,7 +38,7 @@ from PyQt5.QtCore import QUrlQuery, QUrl
 
 import qutebrowser
 from qutebrowser.browser import pdfjs, downloads, history
-from qutebrowser.config import config, configdata, configexc, configdiff
+from qutebrowser.config import config, configdata, configexc
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg, standarddir)
 from qutebrowser.qt import sip
@@ -481,18 +481,10 @@ def qute_back(url: QUrl) -> _HandlerRet:
 
 
 @add_handler('configdiff')
-def qute_configdiff(url: QUrl) -> _HandlerRet:
+def qute_configdiff(_url: QUrl) -> _HandlerRet:
     """Handler for qute://configdiff."""
-    if url.path() == '/old':
-        try:
-            return 'text/html', configdiff.get_diff()
-        except OSError as e:
-            error = (b'Failed to read old config: ' +
-                     str(e.strerror).encode('utf-8'))
-            return 'text/plain', error
-    else:
-        data = config.instance.dump_userconfig().encode('utf-8')
-        return 'text/plain', data
+    data = config.instance.dump_userconfig().encode('utf-8')
+    return 'text/plain', data
 
 
 @add_handler('pastebin-version')

@@ -50,6 +50,9 @@ Removed
   enabled unconditionally.
 - Support for moving qutebrowser data from versions before v1.0.0 has been
   removed.
+- The `--old` flag for `:config-diff` has been removed. It used to show
+  customized options for the old pre-v1.0 config files (in order to aid
+  migration to v1.0).
 
 Changed
 ~~~~~~~
