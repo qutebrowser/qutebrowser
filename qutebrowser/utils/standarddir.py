@@ -129,11 +129,11 @@ def config_py() -> str:
 
 def _init_data(args: Optional[argparse.Namespace]) -> None:
     """Initialize the location for data."""
-    typ = QStandardPaths.DataLocation
+    typ = QStandardPaths.AppDataLocation
     path = _from_args(typ, args)
     if path is None:
         if utils.is_windows:
-            app_data_path = _writable_location(QStandardPaths.AppDataLocation)
+            app_data_path = _writable_location(typ)  # same location as config
             path = os.path.join(app_data_path, 'data')
         elif sys.platform.startswith('haiku'):
             # HaikuOS returns an empty value for AppDataLocation
@@ -174,7 +174,7 @@ def _init_cache(args: Optional[argparse.Namespace]) -> None:
     if path is None:
         if utils.is_windows:
             # Local, not Roaming!
-            data_path = _writable_location(QStandardPaths.DataLocation)
+            data_path = _writable_location(QStandardPaths.AppLocalDataLocation)
             path = os.path.join(data_path, 'cache')
         else:
             path = _writable_location(typ)
@@ -251,7 +251,7 @@ def _writable_location(typ: QStandardPaths.StandardLocation) -> str:
 
     # Types we are sure we handle correctly below.
     assert typ in [
-        QStandardPaths.ConfigLocation, QStandardPaths.DataLocation,
+        QStandardPaths.ConfigLocation, QStandardPaths.AppLocalDataLocation,
         QStandardPaths.CacheLocation, QStandardPaths.DownloadLocation,
         QStandardPaths.RuntimeLocation, QStandardPaths.TempLocation,
         QStandardPaths.AppDataLocation], typ_str
@@ -287,7 +287,8 @@ def _from_args(
     """
     basedir_suffix = {
         QStandardPaths.ConfigLocation: 'config',
-        QStandardPaths.DataLocation: 'data',
+        QStandardPaths.AppDataLocation: 'data',
+        QStandardPaths.AppLocalDataLocation: 'data',
         QStandardPaths.CacheLocation: 'cache',
         QStandardPaths.DownloadLocation: 'download',
         QStandardPaths.RuntimeLocation: 'runtime',
@@ -359,7 +360,7 @@ def _move_macos() -> None:
 def _move_windows() -> None:
     """Move the whole qutebrowser directory from Local to Roaming AppData."""
     # %APPDATA%\Local\qutebrowser
-    old_appdata_dir = _writable_location(QStandardPaths.DataLocation)
+    old_appdata_dir = _writable_location(QStandardPaths.AppLocalDataLocation)
     # %APPDATA%\Roaming\qutebrowser
     new_appdata_dir = _writable_location(QStandardPaths.AppDataLocation)
 
