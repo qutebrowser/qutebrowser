@@ -172,7 +172,18 @@ def check_qt_version():
     """Check if the Qt version is recent enough."""
     from PyQt5.QtCore import (qVersion, QT_VERSION, PYQT_VERSION,
                               PYQT_VERSION_STR)
-    from pkg_resources import parse_version
+
+    try:
+        from PyQt5.QtCore import QVersionNumber, QLibraryInfo
+        recent_qt_runtime = QLibraryInfo.version().normalized() >= QVersionNumber(5, 12)
+    except (ImportError, AttributeError):
+        # QVersionNumber was added in Qt 5.6, QLibraryInfo.version() in 5.8
+        recent_qt_runtime = False
+
+    if QT_VERSION < 0x050C00 or PYQT_VERSION < 0x050C00 or not recent_qt_runtime:
+        from pkg_resources import parse_version
+    else:
+        from qutebrowser.utils.utils import parse_version
     parsed_qversion = parse_version(qVersion())
 
     if (QT_VERSION < 0x050C00 or PYQT_VERSION < 0x050C00 or

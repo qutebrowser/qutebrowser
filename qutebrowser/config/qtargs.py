@@ -26,7 +26,7 @@ from typing import Any, Dict, Iterator, List, Optional, Sequence
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
-from qutebrowser.utils import usertypes, qtutils, utils
+from qutebrowser.utils import usertypes, utils
 
 
 def qt_args(namespace: argparse.Namespace) -> List[str]:
@@ -73,7 +73,7 @@ def _qtwebengine_enabled_features(feature_flags: Sequence[str]) -> Iterator[str]
         flag = flag[len(prefix):]
         yield from iter(flag.split(','))
 
-    if qtutils.version_check('5.15', compiled=False) and utils.is_linux:
+    if utils.version_check('5.15', compiled=False) and utils.is_linux:
         # Enable WebRTC PipeWire for screen capturing on Wayland.
         #
         # This is disabled in Chromium by default because of the "dialog hell":
@@ -115,8 +115,8 @@ def _qtwebengine_args(
         feature_flags: Sequence[str],
 ) -> Iterator[str]:
     """Get the QtWebEngine arguments to use based on the config."""
-    is_qt_514 = (qtutils.version_check('5.14', compiled=False) and
-                 not qtutils.version_check('5.15', compiled=False))
+    is_qt_514 = (utils.version_check('5.14', compiled=False) and
+                 not utils.version_check('5.15', compiled=False))
 
     if is_qt_514:
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-82105
@@ -126,7 +126,7 @@ def _qtwebengine_args(
     # https://codereview.qt-project.org/c/qt/qtwebengine/+/256786
     # also see:
     # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/265753
-    if qtutils.version_check('5.12.3', compiled=False):
+    if utils.version_check('5.12.3', compiled=False):
         if 'stack' in namespace.debug_flags:
             # Only actually available in Qt 5.12.5, but let's save another
             # check, as passing the option won't hurt.
@@ -196,7 +196,7 @@ def _qtwebengine_settings_args() -> Iterator[str]:
         }
     }
 
-    if qtutils.version_check('5.14'):
+    if utils.version_check('5.14'):
         settings['colors.webpage.prefers_color_scheme_dark'] = {
             True: '--force-dark-mode',
             False: None,
@@ -231,6 +231,6 @@ def init_envvars() -> None:
 
     if config.val.qt.highdpi:
         env_var = ('QT_ENABLE_HIGHDPI_SCALING'
-                   if qtutils.version_check('5.14', compiled=False)
+                   if utils.version_check('5.14', compiled=False)
                    else 'QT_AUTO_SCREEN_SCALE_FACTOR')
         os.environ[env_var] = '1'

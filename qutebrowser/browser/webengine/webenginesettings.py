@@ -34,7 +34,8 @@ from PyQt5.QtWebEngineWidgets import QWebEngineSettings, QWebEngineProfile
 from qutebrowser.browser.webengine import spell, webenginequtescheme
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
-from qutebrowser.utils import standarddir, qtutils, message, log, urlmatch, usertypes
+from qutebrowser.utils import (standarddir, qtutils, message, log, urlmatch,
+                               usertypes, utils)
 
 # The default QWebEngineProfile
 default_profile = cast(QWebEngineProfile, None)
@@ -299,7 +300,7 @@ def _update_settings(option):
 
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-75884
     # (note this isn't actually fixed properly before Qt 5.15)
-    header_bug_fixed = qtutils.version_check('5.15', compiled=False)
+    header_bug_fixed = utils.version_check('5.15', compiled=False)
 
     if option in ['content.headers.user_agent',
                   'content.headers.accept_language'] and header_bug_fixed:

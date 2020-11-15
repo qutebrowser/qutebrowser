@@ -39,7 +39,7 @@ from end2end.fixtures.webserver import server, server_per_test, ssl_server
 from end2end.fixtures.quteprocess import (quteproc_process, quteproc,
                                           quteproc_new)
 from end2end.fixtures.testprocess import pytest_runtest_makereport
-from qutebrowser.utils import qtutils, utils
+from qutebrowser.utils import utils
 from qutebrowser.browser.webengine import spell
 
 
@@ -84,11 +84,11 @@ def _get_version_tag(tag):
     if package == 'qt':
         op = match.group('operator')
         do_skip = {
-            '==': not qtutils.version_check(version, exact=True,
-                                            compiled=False),
-            '>=': not qtutils.version_check(version, compiled=False),
-            '<': qtutils.version_check(version, compiled=False),
-            '!=': qtutils.version_check(version, exact=True, compiled=False),
+            '==': not utils.version_check(version, exact=True,
+                                          compiled=False),
+            '>=': not utils.version_check(version, compiled=False),
+            '<': utils.version_check(version, compiled=False),
+            '!=': utils.version_check(version, exact=True, compiled=False),
         }
         return pytest.mark.skipif(do_skip[op], reason='Needs ' + tag)
     elif package == 'pyqt':
@@ -140,7 +140,7 @@ def pytest_collection_modifyitems(config, items):
     """Apply @qtwebengine_* markers; skip unittests with QUTE_BDD_WEBENGINE."""
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-75884
     # (note this isn't actually fixed properly before Qt 5.15)
-    header_bug_fixed = qtutils.version_check('5.15', compiled=False)
+    header_bug_fixed = utils.version_check('5.15', compiled=False)
 
     lib_path = pathlib.Path(QCoreApplication.libraryPaths()[0])
     qpdf_image_plugin = lib_path / 'imageformats' / 'libqpdf.so'
@@ -153,7 +153,7 @@ def pytest_collection_modifyitems(config, items):
         ('qtwebengine_notifications',
          'Skipped with QtWebEngine < 5.13',
          pytest.mark.skipif,
-         config.webengine and not qtutils.version_check('5.13')),
+         config.webengine and not utils.version_check('5.13')),
         ('qtwebkit_skip', 'Skipped with QtWebKit', pytest.mark.skipif,
          not config.webengine),
         ('qtwebengine_flaky', 'Flaky with QtWebEngine', pytest.mark.skipif,

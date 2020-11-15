@@ -27,7 +27,7 @@ from PyQt5.QtWebEngineCore import (QWebEngineUrlRequestInterceptor,
 
 from qutebrowser.config import websettings
 from qutebrowser.browser import shared
-from qutebrowser.utils import utils, log, debug, qtutils
+from qutebrowser.utils import utils, log, debug
 from qutebrowser.extensions import interceptors
 from qutebrowser.misc import objects
 
@@ -133,7 +133,7 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
             profile.setRequestInterceptor(self)
 
     # Gets called in the IO thread -> showing crash window will fail
-    @utils.prevent_exceptions(None, not qtutils.version_check('5.13'))
+    @utils.prevent_exceptions(None, not utils.version_check('5.13'))
     def interceptRequest(self, info):
         """Handle the given request.
 

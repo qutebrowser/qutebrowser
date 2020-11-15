@@ -66,7 +66,7 @@ def init(parent=None):
     backup_path = os.path.join(base_path, 'before-qt-515')
     if (os.path.exists(base_path) and
             not os.path.exists(backup_path) and
-            qtutils.version_check('5.15', compiled=False)):
+            utils.version_check('5.15', compiled=False)):
         os.mkdir(backup_path)
         for filename in glob.glob(os.path.join(base_path, '*.yml')):
             shutil.copy(filename, backup_path)

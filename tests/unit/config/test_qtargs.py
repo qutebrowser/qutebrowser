@@ -42,7 +42,7 @@ class TestQtArgs:
     @pytest.fixture(autouse=True)
     def reduce_args(self, monkeypatch, config_stub):
         """Make sure no --disable-shared-workers/referer argument get added."""
-        monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: '5.15.0')
+        monkeypatch.setattr(qtargs.utils, 'qVersion', lambda: '5.15.0')
         config_stub.val.content.headers.referer = 'always'
 
     @pytest.mark.parametrize('args, expected', [
@@ -94,7 +94,7 @@ class TestQtArgs:
     ])
     def test_shared_workers(self, config_stub, monkeypatch, parser,
                             backend, expected):
-        monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: '5.14.0')
+        monkeypatch.setattr(qtargs.utils, 'qVersion', lambda: '5.14.0')
         monkeypatch.setattr(qtargs.objects, 'backend', backend)
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
@@ -115,7 +115,7 @@ class TestQtArgs:
     ])
     def test_in_process_stack_traces(self, monkeypatch, parser, backend,
                                      version_check, debug_flag, expected):
-        monkeypatch.setattr(qtargs.qtutils, 'version_check',
+        monkeypatch.setattr(qtargs.utils, 'version_check',
                             lambda version, compiled=False: version_check)
         monkeypatch.setattr(qtargs.objects, 'backend', backend)
         parsed = parser.parse_args(['--debug-flag', 'stack'] if debug_flag
@@ -282,7 +282,7 @@ class TestQtArgs:
                                        dark, new_qt, added):
         monkeypatch.setattr(qtargs.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
-        monkeypatch.setattr(qtargs.qtutils, 'version_check',
+        monkeypatch.setattr(qtargs.utils, 'version_check',
                             lambda version, exact=False, compiled=True:
                             new_qt)
 
@@ -336,7 +336,7 @@ class TestQtArgs:
         """If enable-features is already specified, we should combine both."""
         monkeypatch.setattr(qtargs.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
-        monkeypatch.setattr(qtargs.qtutils, 'version_check',
+        monkeypatch.setattr(qtargs.utils, 'version_check',
                             lambda version, exact=False, compiled=True:
                             True)
         monkeypatch.setattr(qtargs.utils, 'is_mac', False)
@@ -417,7 +417,7 @@ class TestEnvVars:
 
         monkeypatch.setattr(qtargs.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
-        monkeypatch.setattr(qtargs.qtutils, 'version_check',
+        monkeypatch.setattr(qtargs.utils, 'version_check',
                             lambda version, exact=False, compiled=True:
                             new_qt)
 

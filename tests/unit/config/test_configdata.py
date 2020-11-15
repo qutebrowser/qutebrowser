@@ -291,7 +291,7 @@ class TestParseYamlBackend:
               QtWebKit: {}
               QtWebEngine: Qt 5.15
         """.format('true' if webkit else 'false'))
-        monkeypatch.setattr(configdata.qtutils, 'version_check',
+        monkeypatch.setattr(configdata.utils, 'version_check',
                             lambda v: has_new_version)
         backends = configdata._parse_yaml_backends('test', data)
         assert backends == expected

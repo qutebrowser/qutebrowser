@@ -29,14 +29,12 @@ Module attributes:
 
 
 import io
-import operator
 import contextlib
 from typing import TYPE_CHECKING, BinaryIO, IO, Iterator, Optional, Union, cast
 
 import pkg_resources
-from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
-                          QIODevice, QFileDevice, QSaveFile, QT_VERSION_STR,
-                          PYQT_VERSION_STR, QObject, QUrl)
+from PyQt5.QtCore import (QEventLoop, QDataStream, QByteArray, QIODevice,
+                          QFileDevice, QSaveFile, QObject, QUrl)
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QApplication
 try:
@@ -85,31 +83,6 @@ class QtOSError(OSError):
         filename = dev.fileName()
         msg += ": {!r}".format(filename)
         return msg
-
-
-def version_check(version: str,
-                  exact: bool = False,
-                  compiled: bool = True) -> bool:
-    """Check if the Qt runtime version is the version supplied or newer.
-
-    Args:
-        version: The version to check against.
-        exact: if given, check with == instead of >=
-        compiled: Set to False to not check the compiled version.
-    """
-    if compiled and exact:
-        raise ValueError("Can't use compiled=True with exact=True!")
-
-    parsed = pkg_resources.parse_version(version)
-    op = operator.eq if exact else operator.ge
-    result = op(pkg_resources.parse_version(qVersion()), parsed)
-    if compiled and result:
-        # qVersion() ==/>= parsed, now check if QT_VERSION_STR ==/>= parsed.
-        result = op(pkg_resources.parse_version(QT_VERSION_STR), parsed)
-    if compiled and result:
-        # Finally, check PYQT_VERSION_STR as well.
-        result = op(pkg_resources.parse_version(PYQT_VERSION_STR), parsed)
-    return result
 
 
 MAX_WORLD_ID = 256

@@ -49,59 +49,6 @@ else:
     test_file = None
 
 
-# pylint: disable=bad-continuation
-@pytest.mark.parametrize(['qversion', 'compiled', 'pyqt', 'version', 'exact',
-                          'expected'], [
-    # equal versions
-    ('5.4.0', None, None, '5.4.0', False, True),
-    ('5.4.0', None, None, '5.4.0', True, True),  # exact=True
-    ('5.4.0', None, None, '5.4', True, True),  # without trailing 0
-    # newer version installed
-    ('5.4.1', None, None, '5.4', False, True),
-    ('5.4.1', None, None, '5.4', True, False),  # exact=True
-    # older version installed
-    ('5.3.2', None, None, '5.4', False, False),
-    ('5.3.0', None, None, '5.3.2', False, False),
-    ('5.3.0', None, None, '5.3.2', True, False),  # exact=True
-    # compiled=True
-    # new Qt runtime, but compiled against older version
-    ('5.4.0', '5.3.0', '5.4.0', '5.4.0', False, False),
-    # new Qt runtime, compiled against new version, but old PyQt
-    ('5.4.0', '5.4.0', '5.3.0', '5.4.0', False, False),
-    # all up-to-date
-    ('5.4.0', '5.4.0', '5.4.0', '5.4.0', False, True),
-])
-# pylint: enable=bad-continuation
-def test_version_check(monkeypatch, qversion, compiled, pyqt, version, exact,
-                       expected):
-    """Test for version_check().
-
-    Args:
-        monkeypatch: The pytest monkeypatch fixture.
-        qversion: The version to set as fake qVersion().
-        compiled: The value for QT_VERSION_STR (set compiled=False)
-        pyqt: The value for PYQT_VERSION_STR (set compiled=False)
-        version: The version to compare with.
-        exact: Use exact comparing (==)
-        expected: The expected result.
-    """
-    monkeypatch.setattr(qtutils, 'qVersion', lambda: qversion)
-    if compiled is not None:
-        monkeypatch.setattr(qtutils, 'QT_VERSION_STR', compiled)
-        monkeypatch.setattr(qtutils, 'PYQT_VERSION_STR', pyqt)
-        compiled_arg = True
-    else:
-        compiled_arg = False
-
-    actual = qtutils.version_check(version, exact, compiled=compiled_arg)
-    assert actual == expected
-
-
-def test_version_check_compiled_and_exact():
-    with pytest.raises(ValueError):
-        qtutils.version_check('1.2.3', exact=True, compiled=True)
-
-
 @pytest.mark.parametrize('version, is_new', [
     ('537.21', False),  # QtWebKit 5.1
     ('538.1', False),   # Qt 5.8

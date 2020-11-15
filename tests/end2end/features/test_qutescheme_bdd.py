@@ -19,7 +19,7 @@
 
 import pytest_bdd as bdd
 
-from qutebrowser.utils import qtutils
+from qutebrowser.utils import utils
 
 
 bdd.scenarios('qutescheme.feature')
@@ -56,7 +56,7 @@ def request_blocked(request, quteproc, kind):
             'redirect': [blocking_set_msg, blocked_request_msg],
             'form': [blocking_js_msg],
         }
-        if qtutils.version_check('5.15', compiled=False):
+        if utils.version_check('5.15', compiled=False):
             # On Qt 5.15, Chromium blocks the redirect as ERR_UNSAFE_REDIRECT
             # instead.
             expected_messages['redirect'] = [unsafe_redirect_msg]

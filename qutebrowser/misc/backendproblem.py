@@ -241,9 +241,9 @@ class _BackendProblemChecker:
             return
 
         # Only Qt 5.14 should be affected
-        if not qtutils.version_check('5.14', compiled=False):
+        if not utils.version_check('5.14', compiled=False):
             return
-        if qtutils.version_check('5.15', compiled=False):
+        if utils.version_check('5.15', compiled=False):
             return
 
         # Newer graphic hardware isn't affected
@@ -318,7 +318,7 @@ class _BackendProblemChecker:
         if QSslSocket.supportsSsl():
             return
 
-        if qtutils.version_check('5.12.4'):
+        if utils.version_check('5.12.4'):
             version_text = ("If you use OpenSSL 1.0 with a PyQt package from "
                             "PyPI (e.g. on Ubuntu 16.04), you will need to "
                             "build OpenSSL 1.1 from sources and set "
@@ -401,7 +401,7 @@ class _BackendProblemChecker:
         # It seems these issues started with Qt 5.12.
         # They should be fixed with Qt 5.12.5:
         # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/265408
-        if qtutils.version_check('5.12.5', compiled=False):
+        if utils.version_check('5.12.5', compiled=False):
             return
 
         log.init.info("Qt version changed, nuking QtWebEngine cache")
@@ -417,7 +417,7 @@ class _BackendProblemChecker:
         https://bugreports.qt.io/browse/QTBUG-82105
         """
         if ('serviceworker_workaround' not in configfiles.state['general'] and
-                qtutils.version_check('5.14', compiled=False)):
+                utils.version_check('5.14', compiled=False)):
             # Nuke the service worker directory once for every install with Qt
             # 5.14, given that it seems to cause a variety of segfaults.
             configfiles.state['general']['serviceworker_workaround'] = '514'

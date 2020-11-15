@@ -101,7 +101,7 @@ QT_515_2_SETTINGS = [
     ('5.15.2', QT_515_2_SETTINGS),
 ])
 def test_qt_version_differences(config_stub, monkeypatch, qversion, expected):
-    monkeypatch.setattr(darkmode.qtutils, 'qVersion', lambda: qversion)
+    monkeypatch.setattr(darkmode.utils, 'qVersion', lambda: qversion)
 
     major, minor, patch = [int(part) for part in qversion.split('.')]
     hexversion = major << 16 | minor << 8 | patch
@@ -164,7 +164,7 @@ def test_customization(config_stub, monkeypatch, setting, value, exp_key, exp_va
     (None, 0x060000, darkmode.Variant.qt_515_2),  # Qt 6
 ])
 def test_variant(monkeypatch, qversion, webengine_version, expected):
-    monkeypatch.setattr(darkmode.qtutils, 'qVersion', lambda: qversion)
+    monkeypatch.setattr(darkmode.utils, 'qVersion', lambda: qversion)
     monkeypatch.setattr(darkmode, 'PYQT_WEBENGINE_VERSION', webengine_version)
     assert darkmode._variant() == expected
 

@@ -37,12 +37,12 @@ try:
 except ImportError:
     PYQT_WEBENGINE_VERSION_STR = None
 
-from qutebrowser.utils import qtutils, log
+from qutebrowser.utils import utils, log
 
 ON_CI = 'CI' in os.environ
 
 qt514 = pytest.mark.skipif(
-    not qtutils.version_check('5.14'), reason="Needs Qt 5.14 or newer")
+    not utils.version_check('5.14'), reason="Needs Qt 5.14 or newer")
 
 
 class PartialCompareOutcome:

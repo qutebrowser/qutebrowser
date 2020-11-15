@@ -367,7 +367,7 @@ def _open_special_pages(args):
          'qute://warning/webkit'),
 
         ('session-warning-shown',
-         qtutils.version_check('5.15', compiled=False),
+         utils.version_check('5.15', compiled=False),
          'qute://warning/sessions'),
     ]
 

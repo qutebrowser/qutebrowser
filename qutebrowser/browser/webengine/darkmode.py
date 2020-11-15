@@ -83,7 +83,7 @@ except ImportError:  # pragma: no cover
     PYQT_WEBENGINE_VERSION = None  # type: ignore[assignment]
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, qtutils, utils, log
+from qutebrowser.utils import usertypes, utils, log
 
 
 class Variant(enum.Enum):
@@ -251,7 +251,7 @@ def _variant() -> Variant:
 
     # If we don't have PYQT_WEBENGINE_VERSION, we're on 5.12 (or older, but 5.12 is the
     # oldest supported version).
-    assert not qtutils.version_check(  # type: ignore[unreachable]
+    assert not utils.version_check(  # type: ignore[unreachable]
         '5.13', compiled=False)
 
     return Variant.qt_511_to_513

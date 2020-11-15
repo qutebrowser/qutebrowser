@@ -22,7 +22,7 @@
 from PyQt5.QtCore import QObject, QEvent, Qt, QTimer
 
 from qutebrowser.config import config
-from qutebrowser.utils import message, log, usertypes, qtutils
+from qutebrowser.utils import message, log, usertypes, utils
 from qutebrowser.misc import objects
 from qutebrowser.keyinput import modeman
 
@@ -182,7 +182,7 @@ class TabEventFilter(QObject):
             True if the event should be filtered, False otherwise.
         """
         return (e.isAutoRepeat() and
-                not qtutils.version_check('5.14', compiled=False) and
+                not utils.version_check('5.14', compiled=False) and
                 objects.backend == usertypes.Backend.QtWebEngine)
 
     def _mousepress_insertmode_cb(self, elem):

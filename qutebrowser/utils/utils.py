@@ -30,6 +30,7 @@ import datetime
 import traceback
 import functools
 import contextlib
+import operator
 import posixpath
 import shlex
 import glob
@@ -38,7 +39,8 @@ import ctypes
 import ctypes.util
 from typing import Any, Callable, IO, Iterator, Optional, Sequence, Tuple, Type, Union
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import (QUrl, qVersion, QT_VERSION_STR, PYQT_VERSION_STR,
+                          QVersionNumber)
 from PyQt5.QtGui import QColor, QClipboard, QDesktopServices
 from PyQt5.QtWidgets import QApplication
 import pkg_resources
@@ -208,6 +210,40 @@ def resource_filename(filename: str) -> str:
     if hasattr(sys, 'frozen'):
         return os.path.join(os.path.dirname(sys.executable), filename)
     return pkg_resources.resource_filename(qutebrowser.__name__, filename)
+
+
+def parse_version(version):
+    """Parse version string.
+
+    This is a replacement of pkg_resources.parse_version
+    """
+    v_q, _suffix = QVersionNumber.fromString(version)
+    return v_q.normalized()
+
+
+def version_check(version_str: str,
+                  exact: bool = False,
+                  compiled: bool = True) -> bool:
+    """Check if the Qt runtime version is the version supplied or newer.
+
+    Args:
+        version: The version to check against.
+        exact: if given, check with == instead of >=
+        compiled: Set to False to not check the compiled version.
+    """
+    if compiled and exact:
+        raise ValueError("Can't use compiled=True with exact=True!")
+
+    parsed = parse_version(version_str)
+    op = operator.eq if exact else operator.ge
+    result = op(parse_version(qVersion()), parsed)
+    if compiled and result:
+        # qVersion() ==/>= parsed, now check if QT_VERSION_STR ==/>= parsed.
+        result = op(parse_version(QT_VERSION_STR), parsed)
+    if compiled and result:
+        # Finally, check PYQT_VERSION_STR as well.
+        result = op(parse_version(PYQT_VERSION_STR), parsed)
+    return result
 
 
 def _get_color_percentage(x1: int, y1: int, z1: int, a1: int,

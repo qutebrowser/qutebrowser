@@ -166,7 +166,7 @@ class _WebEngineSearchWrapHandler:
         Args:
             page: The QtWebEnginePage to connect to this handler.
         """
-        if not qtutils.version_check("5.14"):
+        if not utils.version_check("5.14"):
             return
 
         try:
@@ -678,7 +678,7 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
         self._tab.load_url(url)
 
     def load_items(self, items):
-        if qtutils.version_check('5.15', compiled=False):
+        if utils.version_check('5.15', compiled=False):
             self._load_items_workaround(items)
             return
 
@@ -845,7 +845,7 @@ class WebEngineAudio(browsertab.AbstractAudio):
         assert self._widget is not None
         page = self._widget.page()
         page.setAudioMuted(muted)
-        if was_muted != muted and qtutils.version_check('5.15'):
+        if was_muted != muted and utils.version_check('5.15'):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-85118
             # so that the tab title at least updates the muted indicator
             self.muted_changed.emit(muted)
@@ -946,9 +946,9 @@ class _WebEnginePermissions(QObject):
 
         if not url.isValid():
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-85116
-            is_qtbug = (qtutils.version_check('5.15.0',
-                                              compiled=False,
-                                              exact=True) and
+            is_qtbug = (utils.version_check('5.15.0',
+                                            compiled=False,
+                                            exact=True) and
                         self._tab.is_private and
                         feature == QWebEnginePage.Notifications)
             logger = log.webview.debug if is_qtbug else log.webview.warning
@@ -966,8 +966,8 @@ class _WebEnginePermissions(QObject):
         if (
                 feature in [QWebEnginePage.DesktopVideoCapture,
                             QWebEnginePage.DesktopAudioVideoCapture] and
-                qtutils.version_check('5.13', compiled=False) and
-                not qtutils.version_check('5.13.2', compiled=False)
+                utils.version_check('5.13', compiled=False) and
+                not utils.version_check('5.13.2', compiled=False)
         ):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-78016
             log.webview.warning("Ignoring desktop sharing request due to "
@@ -1194,7 +1194,7 @@ class _WebEngineScripts(QObject):
                 QWebEngineScript.ApplicationWorld,
             ),
         ]
-        if not qtutils.version_check('5.13'):
+        if not utils.version_check('5.13'):
             quirks.append(('globalthis_quirk',
                            QWebEngineScript.DocumentCreation,
                            QWebEngineScript.MainWorld))
@@ -1555,10 +1555,10 @@ class WebEngineTab(browsertab.AbstractTab):
                 # 5.13 before 5.13.2
                 # 5.12 before 5.12.6
                 # < 5.12 (which is unsupported)
-                (qtutils.version_check('5.13') and
-                 not qtutils.version_check('5.13.2')) or
-                (qtutils.version_check('5.12') and
-                 not qtutils.version_check('5.12.6'))
+                (utils.version_check('5.13') and
+                 not utils.version_check('5.13.2')) or
+                (utils.version_check('5.12') and
+                 not utils.version_check('5.12.6'))
             )
         )
 
@@ -1591,7 +1591,7 @@ class WebEngineTab(browsertab.AbstractTab):
         up doing it twice.
         """
         super()._on_url_changed(url)
-        if url.isValid() and qtutils.version_check('5.13'):
+        if url.isValid() and utils.version_check('5.13'):
             self.settings.update_for_url(url)
 
     @pyqtSlot(usertypes.NavigationRequest)
