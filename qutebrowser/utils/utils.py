@@ -212,7 +212,7 @@ def resource_filename(filename: str) -> str:
     return pkg_resources.resource_filename(qutebrowser.__name__, filename)
 
 
-def parse_version(version):
+def parse_version(version: str) -> QVersionNumber:
     """Parse version string.
 
     This is a replacement of pkg_resources.parse_version
