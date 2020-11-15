@@ -10,7 +10,7 @@ from qutebrowser.qt.core import pyqtSlot, QUrl
 
 from qutebrowser.config import config, configtypes
 from qutebrowser.mainwindow.statusbar import textbase
-from qutebrowser.utils import objreg, usertypes
+from qutebrowser.utils import objreg, usertypes, message
 from qutebrowser.browser.browsertab import WebTabError, shared
 
 
@@ -33,7 +33,7 @@ class BooleanSettings(textbase.TextBase):
     def _test_feature(self, setting_name):
         tab = self._current_tab()
         if not tab:
-            raise WebTabError
+            return None
         state = tab.permissions.test_feature(setting_name)
         return state == shared.FeatureState.granted
 
@@ -44,10 +44,14 @@ class BooleanSettings(textbase.TextBase):
             url = None
         obj = config.instance.get_obj(setting_name, url=url)
         if isinstance(opt.typ, configtypes.BoolAsk):
+            feature_state = None
             try:
-                return self._test_feature(setting_name)
-            except WebTabError:
+                feature_state = self._test_feature(setting_name)
+            except WebTabError as err:
+                message.error(str(err))
+            if feature_state is None:
                 return obj is True
+            return feature_state
         return obj
 
     def _parse_config(self):
