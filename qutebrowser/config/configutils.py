@@ -287,7 +287,7 @@ class FontFamilies:
 
     def _quoted_families(self) -> typing.Iterator[str]:
         for f in self._families:
-            needs_quoting = any(c in f for c in ', ')
+            needs_quoting = any(c in f for c in '., ')
             yield '"{}"'.format(f) if needs_quoting else f
 
     def to_str(self, *, quote: bool = True) -> str:
