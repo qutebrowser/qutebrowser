@@ -324,8 +324,14 @@ There is a total of four possible approaches to get dark websites:
   The setting requires a restart and QtWebEngine with at least Qt 5.14.
 - The `colors.webpage.darkmode.*` settings enable the dark mode of the underlying
   Chromium. Those setting require a restart and QtWebEngine with at least Qt 5.14. It's
-  unfortunately not possible (due to limitations in Chromium and/or QtWebEngine) to
+  unfortunately not possible (due to limitations
+  https://bugs.chromium.org/p/chromium/issues/detail?id=952419[in Chromium] and/or
+  https://bugreports.qt.io/browse/QTBUG-84484[QtWebEngine]) to
   change them dynamically or to specify a list of excluded websites.
+  There is some remaining hope to
+  https://github.com/qutebrowser/qutebrowser/issues/5542[allow for this]
+  using HTML/CSS features, but so far nobody has been able to get things to
+  work (even with Chromium) - help welcome!
 - The `content.user_stylesheets` setting allows specifying a custom CSS such as
   https://github.com/alphapapa/solarized-everything-css/[Solarized Everything]. Despite
   the name, the repository also offers themes other than just Solarized. This approach
