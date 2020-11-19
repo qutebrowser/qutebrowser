@@ -1,4 +1,4 @@
-// Source: https://gitlab.com/moongoal/js-polyfill-object.fromentries/-/tree/master
+// Based on: https://gitlab.com/moongoal/js-polyfill-object.fromentries/-/tree/master
 
 /*
     Copyright 2018  Alfredo Mungo <alfredo.mungo@protonmail.ch>
@@ -22,21 +22,25 @@
     IN THE SOFTWARE.
 */
 
+"use strict";
+
 if (!Object.fromEntries) {
-  Object.defineProperty(Object, 'fromEntries', {
-    value(entries) {
-      if (!entries || !entries[Symbol.iterator]) { throw new Error('Object.fromEntries() requires a single iterable argument'); }
+    Object.defineProperty(Object, "fromEntries", {
+        value(entries) {
+            if (!entries || !entries[Symbol.iterator]) {
+                throw new Error(
+                    "Object.fromEntries() requires a single iterable argument");
+            }
 
-      const o = {};
+            const obj = {};
 
-      Object.keys(entries).forEach((key) => {
-        const [k, v] = entries[key];
+            Object.keys(entries).forEach((key) => {
+                const [k, v] = entries[key];
+                obj[k] = v;
+            });
 
-        o[k] = v;
-      });
-
-      return o;
-    },
-  });
+            return obj;
+        },
+    });
 }
 
