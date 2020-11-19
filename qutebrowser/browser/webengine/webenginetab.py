@@ -1309,6 +1309,9 @@ class _WebEngineScripts(QObject):
             quirks.append(('globalthis_quirk',
                            QWebEngineScript.DocumentCreation,
                            QWebEngineScript.MainWorld))
+            quirks.append(('object_fromentries_quirk',
+                           QWebEngineScript.DocumentCreation,
+                           QWebEngineScript.MainWorld))
 
         for filename, injection_point, world in quirks:
             script = QWebEngineScript()
