@@ -105,7 +105,7 @@ CHANGELOG_URLS = {
     'more-itertools': 'https://github.com/erikrose/more-itertools/blob/master/docs/versions.rst',
     'pydocstyle': 'http://www.pydocstyle.org/en/latest/release_notes.html',
     'Sphinx': 'https://www.sphinx-doc.org/en/master/changes.html',
-    'Babel': 'http://babel.pocoo.org/en/latest/changelog.html',
+    'Babel': 'https://github.com/python-babel/babel/blob/master/CHANGES',
     'alabaster': 'https://alabaster.readthedocs.io/en/latest/changelog.html',
     'imagesize': 'https://github.com/shibukawa/imagesize_py/commits/master',
     'pytz': 'https://mm.icann.org/pipermail/tz-announce/',
