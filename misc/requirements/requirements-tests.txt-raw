@@ -33,5 +33,7 @@ pytest-clarity
 
 # Needed to test misc/userscripts/qute-lastpass
 tldextract
+# https://github.com/urllib3/urllib3/issues/2071
+urllib3!=1.26.0,!=1.26.1,!=1.26.2
 
 #@ ignore: Jinja2, MarkupSafe, colorama
