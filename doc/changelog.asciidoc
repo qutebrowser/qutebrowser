@@ -108,6 +108,8 @@ Fixed
 
 - Fix for a crash introduced in v1.14.0 when closing qutebrowser after opening a
   download with PDF.js.
+- New site-specific quirk to polyfill `Object.fromEntries` on Qt 5.12, thus
+  fixing https://www.vr.fi/en and possibly other websites.
 - (TODO) Fix for various functionality breaking in private windows with v1.14.0,
   after the last private window is closed. This includes:
     * Ad blocking
