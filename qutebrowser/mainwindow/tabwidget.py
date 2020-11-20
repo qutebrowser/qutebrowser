@@ -640,7 +640,7 @@ class TabBar(QTabBar):
                 main_window = objreg.get('main-window', scope='window',
                                          window=self._win_id)
                 perc = int(confwidth.rstrip('%'))
-                width = main_window.width() * perc / 100
+                width = main_window.width() * perc // 100
             else:
                 width = int(confwidth)
             size = QSize(width, height)
