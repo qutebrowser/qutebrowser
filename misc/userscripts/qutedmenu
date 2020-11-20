@@ -6,8 +6,9 @@
 
 # If you would like to set a custom colorscheme/font use these dirs.
 # https://github.com/halfwit/dotfiles/blob/master/.config/dmenu/bemenucolors
-readonly confdir=${XDG_CONFIG_HOME:-$HOME/.config}
 
+
+readonly confdir=${XDG_CONFIG_HOME:-$HOME/.config}
 readonly optsfile=$confdir/dmenu/bemenucolors
 
 create_menu() {
@@ -22,15 +23,13 @@ create_menu() {
     done < "$QUTE_CONFIG_DIR"/bookmarks/urls
 
     # Finally history
-    while read -r _ url; do
-        printf -- '%s\n' "$url"
-    done < "$QUTE_DATA_DIR"/history
+        printf -- '%s\n' "$(sqlite3 -separator ' ' "$QUTE_DATA_DIR/history.sqlite" 'select title, url from CompletionHistory')"
     }
 
 get_selection() {
     opts+=(-p qutebrowser)
-    #create_menu | dmenu -l 10 "${opts[@]}"
-    create_menu | bemenu -l 10 "${opts[@]}"
+    create_menu | dmenu -l 10 "${opts[@]}"
+    #create_menu | bemenu -l 10 "${opts[@]}"
 }
 
 # Main
