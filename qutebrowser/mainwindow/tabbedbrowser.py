@@ -863,7 +863,7 @@ class TabbedBrowser(QWidget):
         start = config.cache['colors.tabs.indicator.start']
         stop = config.cache['colors.tabs.indicator.stop']
         system = config.cache['colors.tabs.indicator.system']
-        color = utils.interpolate_color(start, stop, perc, system)
+        color = qtutils.interpolate_color(start, stop, perc, system)
         self.widget.set_tab_indicator_color(idx, color)
         self.widget.update_tab_title(idx)
         if idx == self.widget.currentIndex():
@@ -880,7 +880,7 @@ class TabbedBrowser(QWidget):
             start = config.cache['colors.tabs.indicator.start']
             stop = config.cache['colors.tabs.indicator.stop']
             system = config.cache['colors.tabs.indicator.system']
-            color = utils.interpolate_color(start, stop, 100, system)
+            color = qtutils.interpolate_color(start, stop, 100, system)
         else:
             color = config.cache['colors.tabs.indicator.error']
         self.widget.set_tab_indicator_color(idx, color)
