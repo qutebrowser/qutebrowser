@@ -73,7 +73,8 @@ try:
 except ImportError:
     if not TYPE_CHECKING:
         class Protocol:
-            pass
+
+            """Empty stub at runtime."""
 
 
 class SupportsLessThan(Protocol):
@@ -83,9 +84,15 @@ class SupportsLessThan(Protocol):
     def __lt__(self, other: Any) -> bool:
         ...
 
-class VersionNumber(SupportsLessThan, QVersionNumber):
 
-    """WORKAROUND for incorrect PyQt stubs."""
+if TYPE_CHECKING:
+    class VersionNumber(SupportsLessThan, QVersionNumber):
+
+        """WORKAROUND for incorrect PyQt stubs."""
+else:
+    class VersionNumber:
+
+        """We can't inherit from Protocol and QVersionNumber at runtime."""
 
 
 class Unreachable(Exception):
