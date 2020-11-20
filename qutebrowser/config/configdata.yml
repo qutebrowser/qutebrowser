@@ -2101,6 +2101,19 @@ window.title_format:
     Format to use for the window title. The same placeholders like for
     `tabs.title.format` are defined.
 
+window.transparent:
+  type: Bool
+  default: false
+  desc: |
+    Set the main window background to transparent.
+
+    This allows having a transparent tab- or statusbar (might require a compositor such
+    as picom). However, it breaks some functionality such as dmenu embedding via its
+    `-w` option. On some systems, it was additionally reported that main window
+    transparency negatively affects performance.
+
+    Note this setting only affects windows opened after setting it.
+
 ## zoom
 
 zoom.default:
