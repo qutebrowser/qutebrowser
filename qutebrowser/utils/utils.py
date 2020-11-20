@@ -70,7 +70,7 @@ is_posix = os.name == 'posix'
 try:
     # Protocol was added in Python 3.8
     from typing import Protocol
-except ImportError:
+except ImportError:  # pragma: no cover
     if not TYPE_CHECKING:
         class Protocol:
 
