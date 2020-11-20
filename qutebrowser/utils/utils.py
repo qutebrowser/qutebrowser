@@ -79,7 +79,7 @@ except ImportError:  # pragma: no cover
 
 class SupportsLessThan(Protocol):
 
-    """Protocol for the _T TypeVar below."""
+    """Protocol for a "comparable" object."""
 
     def __lt__(self, other: Any) -> bool:
         ...
