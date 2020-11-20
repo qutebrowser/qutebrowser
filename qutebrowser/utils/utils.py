@@ -36,7 +36,8 @@ import glob
 import mimetypes
 import ctypes
 import ctypes.util
-from typing import Any, Callable, IO, Iterator, Optional, Sequence, Tuple, Type, Union
+from typing import (Any, Callable, IO, Iterator, Optional, Sequence, Tuple, Type, Union,
+                    TYPE_CHECKING, cast)
 
 from PyQt5.QtCore import QUrl, QVersionNumber
 from PyQt5.QtGui import QColor, QClipboard, QDesktopServices
@@ -64,6 +65,22 @@ is_mac = sys.platform.startswith('darwin')
 is_linux = sys.platform.startswith('linux')
 is_windows = sys.platform.startswith('win')
 is_posix = os.name == 'posix'
+
+
+if TYPE_CHECKING:
+    # Protocol was added in Python 3.8
+    from typing import Protocol
+
+    class SupportsLessThan(Protocol):
+
+        """Protocol for the _T TypeVar below."""
+
+        def __lt__(self, other: Any) -> bool:
+            ...
+
+    class VersionNumber(SupportsLessThan, QVersionNumber):
+
+        """WORKAROUND for incorrect PyQt stubs."""
 
 
 class Unreachable(Exception):
@@ -210,10 +227,10 @@ def resource_filename(filename: str) -> str:
     return pkg_resources.resource_filename(qutebrowser.__name__, filename)
 
 
-def parse_version(version: str) -> QVersionNumber:
+def parse_version(version: str) -> 'VersionNumber':
     """Parse a version string."""
     v_q, _suffix = QVersionNumber.fromString(version)
-    return v_q.normalized()
+    return cast('VersionNumber', v_q.normalized())
 
 
 def _get_color_percentage(x1: int, y1: int, z1: int, a1: int,

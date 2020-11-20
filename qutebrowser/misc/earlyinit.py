@@ -173,7 +173,8 @@ def check_qt_version():
     from PyQt5.QtCore import QT_VERSION, PYQT_VERSION, PYQT_VERSION_STR
     try:
         from PyQt5.QtCore import QVersionNumber, QLibraryInfo
-        recent_qt_runtime = QLibraryInfo.version().normalized() >= QVersionNumber(5, 12)
+        qt_ver = QLibraryInfo.version().normalized()
+        recent_qt_runtime = qt_ver >= QVersionNumber(5, 12)  # type: ignore[operator]
     except (ImportError, AttributeError):
         # QVersionNumber was added in Qt 5.6, QLibraryInfo.version() in 5.8
         recent_qt_runtime = False

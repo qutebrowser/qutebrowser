@@ -34,7 +34,7 @@ import functools
 from typing import Mapping, Optional, Sequence, Tuple, cast
 
 import attr
-from PyQt5.QtCore import PYQT_VERSION_STR, QLibraryInfo, QVersionNumber
+from PyQt5.QtCore import PYQT_VERSION_STR, QLibraryInfo
 from PyQt5.QtNetwork import QSslSocket
 from PyQt5.QtGui import (QOpenGLContext, QOpenGLVersionProfile,
                          QOffscreenSurface)
@@ -83,7 +83,7 @@ class DistributionInfo:
 
     id: Optional[str] = attr.ib()
     parsed: 'Distribution' = attr.ib()
-    version: Optional[QVersionNumber] = attr.ib()
+    version: Optional['utils.VersionNumber'] = attr.ib()
     pretty: str = attr.ib()
 
 
@@ -138,7 +138,8 @@ def distribution() -> Optional[DistributionInfo]:
     assert pretty is not None
 
     if 'VERSION_ID' in info:
-        dist_version: Optional[QVersionNumber] = utils.parse_version(info['VERSION_ID'])
+        version_id = info['VERSION_ID']
+        dist_version: Optional['utils.VersionNumber'] = utils.parse_version(version_id)
     else:
         dist_version = None
 
