@@ -13,7 +13,7 @@ jobs:
   linters:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
     timeout-minutes: 10
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -164,7 +164,7 @@ jobs:
   codeql:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
     timeout-minutes: 30
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -186,7 +186,7 @@ jobs:
   irc:
     timeout-minutes: 2
     continue-on-error: true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [linters, tests, tests-docker, codeql]
     if: "always() && github.repository_owner == 'qutebrowser'"
     steps:
