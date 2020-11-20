@@ -41,7 +41,7 @@ rules:
     func-names: "off"
     sort-keys: "off"
     no-warning-comments: "off"
-    max-len: ["error", {"ignoreUrls": true}]
+    max-len: ["error", {"ignoreUrls": true, "code": 88}]
     capitalized-comments: "off"
     prefer-destructuring: "off"
     line-comment-position: "off"
