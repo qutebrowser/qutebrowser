@@ -110,6 +110,11 @@ Fixed
   download with PDF.js.
 - New site-specific quirk to polyfill `Object.fromEntries` on Qt 5.12, thus
   fixing https://www.vr.fi/en and possibly other websites.
+- While XDG startup notifications (e.g. launch feedback via the bouncy cursor
+  in KDE Plasma) were supported ever since Qt 5.1, qutebrowser's desktop file
+  accidentally declared that it wasn't supported. This is now fixed.
+- The `dmenu_qutebrowser` and `qutedmenu` userscripts now correctly read the
+  qutebrowser sqlite history which has been in use since v1.0.0.
 - (TODO) Fix for various functionality breaking in private windows with v1.14.0,
   after the last private window is closed. This includes:
     * Ad blocking
