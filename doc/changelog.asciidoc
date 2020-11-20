@@ -62,6 +62,7 @@ Changed
 - `config.py` files now are required to have either
   `config.load_autoconfig(False)` (don't load `autoconfig.yml`) or
   `config.load_autoconfig()` (do load `autoconfig.yml`) in them.
+- (TODO) Windows and macOS releases now ship Python 3.9 rather than 3.7.
 - The `colors.webpage.darkmode.*` settings are now also supported with older Qt
   versions (Qt 5.12 and 5.13) rather than just with Qt 5.14 and above.
 - For regexes in the config (`hints.{prev,next}_regexes`), certain patterns
@@ -85,6 +86,17 @@ Fixed
 v1.14.1 (unreleased)
 --------------------
 
+Added
+~~~~~
+
+- With v1.14.0, qutebrowser configures the main window to be transparent, so
+  that it's possible to configure a translucent tab- or statusbar. However, that
+  change introduced various issues, such as performance degradation on some
+  systems or breaking dmenu window embedding with its `-w` option. To avoid those
+  issues for people who are not using transparency, the default behavior is
+  reverted to versions before v1.14.0 in this release. A new `window.transparent`
+  setting can be set to `true` to restore the behavior of v1.14.0.
+
 Changed
 ~~~~~~~
 
@@ -103,7 +115,6 @@ Changed
     * Proper autocompletion in the devtools console
     * Proper signalisation of a tab's audible status (`[A]`)
     * Hardware accelerated graphics on macOS
-- (TODO) Windows and macOS releases now ship Python 3.9 rather than 3.7.
 
 Fixed
 ~~~~~
