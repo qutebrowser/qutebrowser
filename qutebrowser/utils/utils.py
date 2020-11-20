@@ -67,20 +67,25 @@ is_windows = sys.platform.startswith('win')
 is_posix = os.name == 'posix'
 
 
-if TYPE_CHECKING:
+try:
     # Protocol was added in Python 3.8
     from typing import Protocol
+except ImportError:
+    if not TYPE_CHECKING:
+        class Protocol:
+            pass
 
-    class SupportsLessThan(Protocol):
 
-        """Protocol for the _T TypeVar below."""
+class SupportsLessThan(Protocol):
 
-        def __lt__(self, other: Any) -> bool:
-            ...
+    """Protocol for the _T TypeVar below."""
 
-    class VersionNumber(SupportsLessThan, QVersionNumber):
+    def __lt__(self, other: Any) -> bool:
+        ...
 
-        """WORKAROUND for incorrect PyQt stubs."""
+class VersionNumber(SupportsLessThan, QVersionNumber):
+
+    """WORKAROUND for incorrect PyQt stubs."""
 
 
 class Unreachable(Exception):
@@ -227,10 +232,10 @@ def resource_filename(filename: str) -> str:
     return pkg_resources.resource_filename(qutebrowser.__name__, filename)
 
 
-def parse_version(version: str) -> 'VersionNumber':
+def parse_version(version: str) -> VersionNumber:
     """Parse a version string."""
     v_q, _suffix = QVersionNumber.fromString(version)
-    return cast('VersionNumber', v_q.normalized())
+    return cast(VersionNumber, v_q.normalized())
 
 
 def format_seconds(total_seconds: int) -> str:

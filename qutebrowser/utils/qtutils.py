@@ -156,19 +156,15 @@ def check_overflow(arg: int, ctype: str, fatal: bool = True) -> int:
         return arg
 
 
-if TYPE_CHECKING:
-    # Protocol was added in Python 3.8
-    from typing import Protocol
+class Validatable(utils.Protocol):
 
-    class Validatable(Protocol):
+    """An object with an isValid() method (e.g. QUrl)."""
 
-        """An object with an isValid() method (e.g. QUrl)."""
-
-        def isValid(self) -> bool:
-            ...
+    def isValid(self) -> bool:
+        ...
 
 
-def ensure_valid(obj: 'Validatable') -> None:
+def ensure_valid(obj: Validatable) -> None:
     """Ensure a Qt object with an .isValid() method is valid."""
     if not obj.isValid():
         raise QtValueError(obj)
@@ -439,7 +435,7 @@ class QtValueError(ValueError):
 
     """Exception which gets raised by ensure_valid."""
 
-    def __init__(self, obj: 'Validatable') -> None:
+    def __init__(self, obj: Validatable) -> None:
         try:
             self.reason = obj.errorString()  # type: ignore[attr-defined]
         except AttributeError:

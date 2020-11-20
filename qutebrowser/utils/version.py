@@ -83,7 +83,7 @@ class DistributionInfo:
 
     id: Optional[str] = attr.ib()
     parsed: 'Distribution' = attr.ib()
-    version: Optional['utils.VersionNumber'] = attr.ib()
+    version: Optional[utils.VersionNumber] = attr.ib()
     pretty: str = attr.ib()
 
 
@@ -139,7 +139,7 @@ def distribution() -> Optional[DistributionInfo]:
 
     if 'VERSION_ID' in info:
         version_id = info['VERSION_ID']
-        dist_version: Optional['utils.VersionNumber'] = utils.parse_version(version_id)
+        dist_version: Optional[utils.VersionNumber] = utils.parse_version(version_id)
     else:
         dist_version = None
 
