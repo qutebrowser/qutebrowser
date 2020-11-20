@@ -33,7 +33,6 @@ import operator
 import contextlib
 from typing import TYPE_CHECKING, BinaryIO, IO, Iterator, Optional, Union, cast
 
-import pkg_resources
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QFileDevice, QSaveFile, QT_VERSION_STR,
                           PYQT_VERSION_STR, QObject, QUrl)
@@ -48,7 +47,7 @@ if TYPE_CHECKING:
     from PyQt5.QtWebEngineWidgets import QWebEngineHistory
 
 from qutebrowser.misc import objects
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, utils
 
 
 MAXVALS = {
@@ -100,15 +99,15 @@ def version_check(version: str,
     if compiled and exact:
         raise ValueError("Can't use compiled=True with exact=True!")
 
-    parsed = pkg_resources.parse_version(version)
+    parsed = utils.parse_version(version)
     op = operator.eq if exact else operator.ge
-    result = op(pkg_resources.parse_version(qVersion()), parsed)
+    result = op(utils.parse_version(qVersion()), parsed)
     if compiled and result:
         # qVersion() ==/>= parsed, now check if QT_VERSION_STR ==/>= parsed.
-        result = op(pkg_resources.parse_version(QT_VERSION_STR), parsed)
+        result = op(utils.parse_version(QT_VERSION_STR), parsed)
     if compiled and result:
         # Finally, check PYQT_VERSION_STR as well.
-        result = op(pkg_resources.parse_version(PYQT_VERSION_STR), parsed)
+        result = op(utils.parse_version(PYQT_VERSION_STR), parsed)
     return result
 
 
@@ -118,8 +117,8 @@ MAX_WORLD_ID = 256
 def is_new_qtwebkit() -> bool:
     """Check if the given version is a new QtWebKit."""
     assert qWebKitVersion is not None
-    return (pkg_resources.parse_version(qWebKitVersion()) >
-            pkg_resources.parse_version('538.1'))
+    return (utils.parse_version(qWebKitVersion()) >
+            utils.parse_version('538.1'))
 
 
 def is_single_process() -> bool:

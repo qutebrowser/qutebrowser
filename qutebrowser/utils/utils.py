@@ -38,7 +38,7 @@ import ctypes
 import ctypes.util
 from typing import Any, Callable, IO, Iterator, Optional, Sequence, Tuple, Type, Union
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QVersionNumber
 from PyQt5.QtGui import QColor, QClipboard, QDesktopServices
 from PyQt5.QtWidgets import QApplication
 import pkg_resources
@@ -208,6 +208,12 @@ def resource_filename(filename: str) -> str:
     if hasattr(sys, 'frozen'):
         return os.path.join(os.path.dirname(sys.executable), filename)
     return pkg_resources.resource_filename(qutebrowser.__name__, filename)
+
+
+def parse_version(version: str) -> QVersionNumber:
+    """Parse a version string."""
+    v_q, _suffix = QVersionNumber.fromString(version)
+    return v_q.normalized()
 
 
 def _get_color_percentage(x1: int, y1: int, z1: int, a1: int,
