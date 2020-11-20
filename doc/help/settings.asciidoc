@@ -327,6 +327,7 @@
 |<<url.yank_ignored_parameters,url.yank_ignored_parameters>>|URL parameters to strip with `:yank url`.
 |<<window.hide_decoration,window.hide_decoration>>|Hide the window decoration.
 |<<window.title_format,window.title_format>>|Format to use for the window title. The same placeholders like for
+|<<window.transparent,window.transparent>>|Set the main window background to transparent.
 |<<zoom.default,zoom.default>>|Default zoom level.
 |<<zoom.levels,zoom.levels>>|Available zoom levels.
 |<<zoom.mouse_divider,zoom.mouse_divider>>|Number of zoom increments to divide the mouse wheel movements to.
@@ -4205,6 +4206,22 @@ Format to use for the window title. The same placeholders like for
 Type: <<types,FormatString>>
 
 Default: +pass:[{perc}{current_title}{title_sep}qutebrowser]+
+
+[[window.transparent]]
+=== window.transparent
+Set the main window background to transparent.
+
+This allows having a transparent tab- or statusbar (might require a compositor such
+as picom). However, it breaks some functionality such as dmenu embedding via its
+`-w` option. On some systems, it was additionally reported that main window
+transparency negatively affects performance.
+
+Note this setting only affects windows opened after setting it.
+
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[zoom.default]]
 === zoom.default
