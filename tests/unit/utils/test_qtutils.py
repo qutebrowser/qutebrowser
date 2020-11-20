@@ -54,23 +54,25 @@ else:
 @pytest.mark.parametrize(['qversion', 'compiled', 'pyqt', 'version', 'exact',
                           'expected'], [
     # equal versions
-    ('5.4.0', None, None, '5.4.0', False, True),
-    ('5.4.0', None, None, '5.4.0', True, True),  # exact=True
-    ('5.4.0', None, None, '5.4', True, True),  # without trailing 0
+    ('5.14.0', None, None, '5.14.0', False, True),
+    ('5.14.0', None, None, '5.14.0', True, True),  # exact=True
+    ('5.14.0', None, None, '5.14', True, True),  # without trailing 0
     # newer version installed
-    ('5.4.1', None, None, '5.4', False, True),
-    ('5.4.1', None, None, '5.4', True, False),  # exact=True
+    ('5.14.1', None, None, '5.14', False, True),
+    ('5.14.1', None, None, '5.14', True, False),  # exact=True
     # older version installed
-    ('5.3.2', None, None, '5.4', False, False),
-    ('5.3.0', None, None, '5.3.2', False, False),
-    ('5.3.0', None, None, '5.3.2', True, False),  # exact=True
+    ('5.13.2', None, None, '5.14', False, False),
+    ('5.13.0', None, None, '5.13.2', False, False),
+    ('5.13.0', None, None, '5.13.2', True, False),  # exact=True
     # compiled=True
     # new Qt runtime, but compiled against older version
-    ('5.4.0', '5.3.0', '5.4.0', '5.4.0', False, False),
+    ('5.14.0', '5.13.0', '5.14.0', '5.14.0', False, False),
     # new Qt runtime, compiled against new version, but old PyQt
-    ('5.4.0', '5.4.0', '5.3.0', '5.4.0', False, False),
+    ('5.14.0', '5.14.0', '5.13.0', '5.14.0', False, False),
     # all up-to-date
-    ('5.4.0', '5.4.0', '5.4.0', '5.4.0', False, True),
+    ('5.14.0', '5.14.0', '5.14.0', '5.14.0', False, True),
+    # dev suffix
+    ('5.15.1', '5.15.1', '5.15.2.dev2009281246', '5.15.0', False, True),
 ])
 # pylint: enable=bad-continuation
 def test_version_check(monkeypatch, qversion, compiled, pyqt, version, exact,
