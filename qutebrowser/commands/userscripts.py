@@ -395,6 +395,7 @@ def _lookup_path(cmd):
     directories = [
         os.path.join(standarddir.data(), "userscripts"),
         os.path.join(standarddir.data(system=True), "userscripts"),
+        os.path.join(standarddir.config(), "userscripts"),
     ]
     for directory in directories:
         cmd_path = os.path.join(directory, cmd)
