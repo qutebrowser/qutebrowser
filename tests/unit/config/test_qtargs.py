@@ -116,7 +116,7 @@ class TestQtArgs:
     def test_in_process_stack_traces(self, monkeypatch, parser, backend,
                                      version_check, debug_flag, expected):
         monkeypatch.setattr(qtargs.qtutils, 'version_check',
-                            lambda version, compiled=False: version_check)
+                            lambda version, compiled=False, exact=False: version_check)
         monkeypatch.setattr(qtargs.objects, 'backend', backend)
         parsed = parser.parse_args(['--debug-flag', 'stack'] if debug_flag
                                    else [])
