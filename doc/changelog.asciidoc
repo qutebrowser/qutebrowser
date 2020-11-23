@@ -35,6 +35,7 @@ Major changes
   at the time of writing, it's recommended to
   https://github.com/qutebrowser/qutebrowser/blob/master/doc/install.asciidoc#installing-qutebrowser-with-virtualenv[install qutebrowser in a virtualenv]
   with a newer version of Qt/PyQt.
+- Windows 7 is not supported anymore by the Windows binaries.
 - The (formerly optional) `cssutils` dependency is now removed. It was only
   needed for improved behavior in corner cases when using `:download --mhtml`
   with the (non-default) QtWebKit backend, and as such it's unlikely anyone is
@@ -96,6 +97,10 @@ Added
   issues for people who are not using transparency, the default behavior is
   reverted to versions before v1.14.0 in this release. A new `window.transparent`
   setting can be set to `true` to restore the behavior of v1.14.0.
+- When QtWebEngine has been updated but PyQtWebEngine hasn't yet, the dark mode
+  settings might stop working. As a (currently undocumented) escape hatch, this
+  version adds a `QUTE_DARKMODE_VARIANT=qt_515_2` environment variable which can
+  be set to get the correct behavior in (transitive) situations like this.
 
 Changed
 ~~~~~~~
@@ -135,6 +140,9 @@ Fixed
   The exact reason is currently unknown, but this release adds a tenative fix.
 - When PgUp/PgDown were used to go beyond the last visible item, the above issue
   caused a crash. This is also fixed.
+- As a workaround for an overzealous Microsoft Defender false-positive detecting
+  a "trojan" in the (unprocessed) adblock list, `:adblock-update` now doesn't
+  cache the HTTP response anymore.
 - (TODO) Fix for various functionality breaking in private windows with v1.14.0,
   after the last private window is closed. This includes:
     * Ad blocking
