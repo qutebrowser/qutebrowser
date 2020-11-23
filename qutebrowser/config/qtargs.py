@@ -155,8 +155,7 @@ def _qtwebengine_args(
     from qutebrowser.browser.webengine import darkmode
     blink_settings = list(darkmode.settings())
     if blink_settings:
-        yield '--blink-settings=' + ','.join('{}={}'.format(k, v)
-                                             for k, v in blink_settings)
+        yield '--blink-settings=' + ','.join(f'{k}={v}' for k, v in blink_settings)
 
     enabled_features = list(_qtwebengine_enabled_features(feature_flags))
     if enabled_features:
