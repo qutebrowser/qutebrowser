@@ -31,7 +31,7 @@ jobs:
         run: "python3 scripts/dev/recompile_requirements.py ${{ github.events.input.environments }}"
         id: requirements
       - name: Create pull request
-        uses: peter-evans/create-pull-request@v2
+        uses: peter-evans/create-pull-request@v3
         with:
           committer: qutebrowser bot <bot@qutebrowser.org>
           author: qutebrowser bot <bot@qutebrowser.org>
