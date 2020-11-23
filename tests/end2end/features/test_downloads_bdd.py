@@ -96,12 +96,6 @@ def wait_for_download_prompt(tmpdir, quteproc, path):
                       "(reason: question asked)")
 
 
-@bdd.when("I download an SSL page")
-def download_ssl_page(quteproc, ssl_server):
-    quteproc.send_cmd(':download https://localhost:{}/'
-                      .format(ssl_server.port))
-
-
 @bdd.then(bdd.parsers.parse("The downloaded file {filename} should not exist"))
 def download_should_not_exist(filename, tmpdir):
     path = tmpdir / 'downloads' / filename
