@@ -49,8 +49,7 @@ class TestQtArgs:
     @pytest.fixture(autouse=True)
     def reduce_args(self, monkeypatch, config_stub):
         """Make sure no --disable-shared-workers/referer argument get added."""
-        monkeypatch.setattr(qtargs.qtutils, 'version_check',
-                            lambda version, compiled=False: True)
+        monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: '5.15.0')
         config_stub.val.content.headers.referer = 'always'
 
     @pytest.mark.parametrize('args, expected', [
@@ -103,7 +102,7 @@ class TestQtArgs:
     def test_shared_workers(self, config_stub, monkeypatch, parser,
                             backend, expected):
         monkeypatch.setattr(qtargs.qtutils, 'version_check',
-                            lambda version, compiled=False: False)
+                            lambda version, compiled=False, exact=False: False)
         monkeypatch.setattr(qtargs.objects, 'backend', backend)
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
@@ -125,7 +124,7 @@ class TestQtArgs:
     def test_in_process_stack_traces(self, monkeypatch, parser, backend,
                                      version_check, debug_flag, expected):
         monkeypatch.setattr(qtargs.qtutils, 'version_check',
-                            lambda version, compiled=False: version_check)
+                            lambda version, compiled=False, exact=False: version_check)
         monkeypatch.setattr(qtargs.objects, 'backend', backend)
         parsed = parser.parse_args(['--debug-flag', 'stack'] if debug_flag
                                    else [])
@@ -187,7 +186,8 @@ class TestQtArgs:
                             usertypes.Backend.QtWebEngine)
         config_stub.val.content.autoplay = autoplay
         monkeypatch.setattr(qtargs.qtutils, 'version_check',
-                            lambda version, compiled=False: new_version)
+                            lambda version, compiled=False, exact=False:
+                            new_version)
 
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
