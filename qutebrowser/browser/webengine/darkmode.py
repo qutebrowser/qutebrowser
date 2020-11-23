@@ -91,7 +91,6 @@ class Variant(enum.Enum):
 
     """A dark mode variant."""
 
-    unavailable = enum.auto()
     qt_511_to_513 = enum.auto()
     qt_514 = enum.auto()
     qt_515_0 = enum.auto()
@@ -160,8 +159,6 @@ _QT_514_SETTINGS = [
 # workaround warning below if the setting wasn't explicitly customized.
 
 _DARK_MODE_DEFINITIONS: Mapping[Variant, _DarkModeDefinitionType] = {
-    Variant.unavailable: ([], set()),
-
     Variant.qt_515_2: ([
         # 'darkMode' renamed to 'forceDarkMode'
         ('enabled', 'forceDarkModeEnabled', _BOOLS),
