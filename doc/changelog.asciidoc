@@ -57,6 +57,14 @@ Removed
 - The `:inspector` command which was deprecated in v1.13.0 (in favor of
   `:devtools`) is now removed.
 
+Added
+~~~~~
+
+- When QtWebEngine has been updated but PyQtWebEngine hasn't yet, the dark mode
+  settings might stop working. As a (currently undocumented) escape hatch, this
+  version adds a `QUTE_DARKMODE_VARIANT=qt_515_2` environment variable which can
+  be set to get the correct behavior in (transitive) situations like this.
+
 Changed
 ~~~~~~~
 
@@ -97,10 +105,6 @@ Added
   issues for people who are not using transparency, the default behavior is
   reverted to versions before v1.14.0 in this release. A new `window.transparent`
   setting can be set to `true` to restore the behavior of v1.14.0.
-- When QtWebEngine has been updated but PyQtWebEngine hasn't yet, the dark mode
-  settings might stop working. As a (currently undocumented) escape hatch, this
-  version adds a `QUTE_DARKMODE_VARIANT=qt_515_2` environment variable which can
-  be set to get the correct behavior in (transitive) situations like this.
 
 Changed
 ~~~~~~~
