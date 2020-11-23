@@ -143,6 +143,14 @@ Fixed
 - As a workaround for an overzealous Microsoft Defender false-positive detecting
   a "trojan" in the (unprocessed) adblock list, `:adblock-update` now doesn't
   cache the HTTP response anymore.
+- Setting the `content.headers.referer` setting to `same-domain` (the default)
+  was supposed to truncate referers to only the host with QtWebEngine.
+  Unfortunately, this functionality broke in Qt 5.14. It is now fixed again.
+- With QtWebEngine 5.15, setting the `content.headers.referer` setting to
+  `never` did still send referers. This is now fixed.
+- With the QtWebKit backend and `content.headers` set to `same-domain` (the
+  default), origins with the same domain but different schemes or ports were
+  treated as the same domain. They now are correctly treated as different domains.
 - (TODO) Fix for various functionality breaking in private windows with v1.14.0,
   after the last private window is closed. This includes:
     * Ad blocking
