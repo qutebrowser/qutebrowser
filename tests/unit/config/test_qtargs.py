@@ -253,11 +253,21 @@ class TestQtArgs:
             assert arg in args
 
     @pytest.mark.parametrize('qt_version, referer, arg', [
-        ('5.15', 'always', None),
-        ('5.15', 'never', '--no-referrers'),
-        ('5.15', 'same-domain', '--enable-features=ReducedReferrerGranularity'),
-        ('5.14', 'same-domain', '--enable-features=ReducedReferrerGranularity'),
-        ('5.13', 'same-domain', '--reduced-referrer-granularity'),
+        # 'always' -> no arguments
+        ('5.15.0', 'always', None),
+
+        # 'never' is handled via interceptor for most Qt versions
+        ('5.12.3', 'never', '--no-referrers'),
+        ('5.12.4', 'never', None),
+        ('5.13.0', 'never', '--no-referrers'),
+        ('5.13.1', 'never', None),
+        ('5.14.0', 'never', None),
+        ('5.15.0', 'never', None),
+
+        # 'same-domain' - arguments depend on Qt versions
+        ('5.13.0', 'same-domain', '--reduced-referrer-granularity'),
+        ('5.14.0', 'same-domain', '--enable-features=ReducedReferrerGranularity'),
+        ('5.15.0', 'same-domain', '--enable-features=ReducedReferrerGranularity'),
     ])
     def test_referer(self, config_stub, monkeypatch, parser, qt_version, referer, arg):
         monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)

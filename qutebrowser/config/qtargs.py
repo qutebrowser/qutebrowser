@@ -201,7 +201,6 @@ def _qtwebengine_settings_args() -> Iterator[str]:
         },
         'content.headers.referer': {
             'always': None,
-            'never': '--no-referrers',
         }
     }
 
@@ -215,6 +214,13 @@ def _qtwebengine_settings_args() -> Iterator[str]:
         referrer_setting['same-domain'] = None
     else:
         referrer_setting['same-domain'] = '--reduced-referrer-granularity'
+
+    can_override_referer = (
+        qtutils.version_check('5.12.4', compiled=False) and
+        not qtutils.version_check('5.13.0', compiled=False, exact=True)
+    )
+    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-60203
+    referrer_setting['never'] = None if can_override_referer else '--no-referrers'
 
     for setting, args in sorted(settings.items()):
         arg = args[config.instance.get(setting)]
