@@ -73,6 +73,7 @@ Prefix changed to "forceDarkMode".
 - As with Qt 5.15.0 / .1, but with "forceDarkMode" as prefix.
 """
 
+import os
 import enum
 from typing import Any, Iterable, Iterator, Mapping, Optional, Set, Tuple, Union
 
@@ -235,6 +236,13 @@ _DARK_MODE_DEFINITIONS: Mapping[Variant, _DarkModeDefinitionType] = {
 
 def _variant() -> Variant:
     """Get the dark mode variant based on the underlying Qt version."""
+    env_var = os.environ.get('QUTE_DARKMODE_VARIANT')
+    if env_var is not None:
+        try:
+            return Variant[env_var]
+        except KeyError:
+            log.init.warning(f"Ignoring invalid QUTE_DARKMODE_VARIANT={env_var}")
+
     if PYQT_WEBENGINE_VERSION is not None:
         # Available with Qt >= 5.13
         if PYQT_WEBENGINE_VERSION >= 0x050f02:
