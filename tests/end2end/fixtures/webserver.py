@@ -192,7 +192,10 @@ def server(qapp, request):
 @pytest.fixture(autouse=True)
 def server_per_test(server, request):
     """Fixture to clean server request list after each test."""
-    request.node._server_log = server.captured_log
+    if not hasattr(request.node, '_server_logs'):
+        request.node._server_logs = []
+    request.node._server_logs.append(('server', server.captured_log))
+
     server.before_test()
     yield
     server.after_test()
@@ -202,11 +205,14 @@ def server_per_test(server, request):
 def ssl_server(request, qapp):
     """Fixture for a webserver with a self-signed SSL certificate.
 
-    This needs to be explicitly used in a test, and overwrites the server log
-    used in that test.
+    This needs to be explicitly used in a test.
     """
     server = WebserverProcess(request, 'webserver_sub_ssl')
-    request.node._server_log = server.captured_log
+
+    if not hasattr(request.node, '_server_logs'):
+        request.node._server_logs = []
+    request.node._server_logs.append(('SSL server', server.captured_log))
+
     server.start()
     yield server
     server.after_test()
