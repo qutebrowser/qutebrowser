@@ -109,6 +109,16 @@ def _qtwebengine_enabled_features(feature_flags: Sequence[str]) -> Iterator[str]
         if config.val.scrolling.bar == 'overlay':
             yield 'OverlayScrollbar'
 
+    if (qtutils.version_check('5.14', compiled=False) and
+            config.val.content.headers.referer == 'same-domain'):
+        # Handling of reduced-referrer-granularity in Chromium 76+
+        # https://chromium-review.googlesource.com/c/chromium/src/+/1572699
+        #
+        # Note that this is removed entirely (and apparently the default) starting with
+        # Chromium 89 (Qt 5.15.x or 6.x):
+        # https://chromium-review.googlesource.com/c/chromium/src/+/2545444
+        yield 'ReducedReferrerGranularity'
+
 
 def _qtwebengine_args(
         namespace: argparse.Namespace,
@@ -192,15 +202,19 @@ def _qtwebengine_settings_args() -> Iterator[str]:
         'content.headers.referer': {
             'always': None,
             'never': '--no-referrers',
-            'same-domain': '--reduced-referrer-granularity',
         }
     }
 
+    referrer_setting = settings['content.headers.referer']
     if qtutils.version_check('5.14', compiled=False):
         settings['colors.webpage.prefers_color_scheme_dark'] = {
             True: '--force-dark-mode',
             False: None,
         }
+        # Starting with Qt 5.14, this is handled via --enable-features
+        referrer_setting['same-domain'] = None
+    else:
+        referrer_setting['same-domain'] = '--reduced-referrer-granularity'
 
     for setting, args in sorted(settings.items()):
         arg = args[config.instance.get(setting)]
