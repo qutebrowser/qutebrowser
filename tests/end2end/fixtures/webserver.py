@@ -202,6 +202,20 @@ def server_per_test(server, request):
 
 
 @pytest.fixture
+def server2(qapp, request):
+    """Fixture for a second server object for cross-origin tests."""
+    server = WebserverProcess(request, 'webserver_sub')
+
+    if not hasattr(request.node, '_server_logs'):
+        request.node._server_logs = []
+    request.node._server_logs.append(('secondary server', server.captured_log))
+
+    server.start()
+    yield server
+    server.terminate()
+
+
+@pytest.fixture
 def ssl_server(request, qapp):
     """Fixture for a webserver with a self-signed SSL certificate.
 
