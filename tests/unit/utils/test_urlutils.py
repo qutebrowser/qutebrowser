@@ -643,7 +643,7 @@ class TestInvalidUrlError:
 
 @pytest.mark.parametrize('are_same, url1, url2', [
     (True, 'http://example.com', 'http://www.example.com'),
-    (True, 'http://bbc.co.uk', 'https://www.bbc.co.uk'),
+    (True, 'http://bbc.co.uk', 'http://www.bbc.co.uk'),
     (True, 'http://many.levels.of.domains.example.com', 'http://www.example.com'),
     (True, 'http://idn.иком.museum', 'http://idn2.иком.museum'),
     (True, 'http://one.not_a_valid_tld', 'http://one.not_a_valid_tld'),
@@ -652,6 +652,9 @@ class TestInvalidUrlError:
     (False, 'https://example.kids.museum', 'http://example.kunst.museum'),
     (False, 'http://idn.иком.museum', 'http://idn.ירושלים.museum'),
     (False, 'http://one.not_a_valid_tld', 'http://two.not_a_valid_tld'),
+
+    (False, 'http://example.org', 'https://example.org'),  # different scheme
+    (False, 'http://example.org:80', 'http://example.org:8080'),  # different port
 ])
 def test_same_domain(are_same, url1, url2):
     """Test same_domain."""

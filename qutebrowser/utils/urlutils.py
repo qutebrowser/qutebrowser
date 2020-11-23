@@ -504,11 +504,18 @@ def same_domain(url1: QUrl, url2: QUrl) -> bool:
     For example example.com and www.example.com are considered the same. but
     example.co.uk and test.co.uk are not.
 
+    If the URL's schemes or ports are different, they are always treated as not equal.
+
     Return:
         True if the domains are the same, False otherwise.
     """
     ensure_valid(url1)
     ensure_valid(url2)
+
+    if url1.scheme() != url2.scheme():
+        return False
+    if url1.port() != url2.port():
+        return False
 
     suffix1 = url1.topLevelDomain()
     suffix2 = url2.topLevelDomain()
