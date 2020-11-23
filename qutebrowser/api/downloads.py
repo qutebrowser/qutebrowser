@@ -75,4 +75,6 @@ def download_temp(url: QUrl) -> TempDownload:
     fobj.name = 'temporary: ' + url.host()
     target = downloads.FileObjDownloadTarget(fobj)
     download_manager = objreg.get('qtnetwork-download-manager')
-    return download_manager.get(url, target=target, auto_remove=True)
+    # cache=False is set as a WORKAROUND for MS Defender thinking we're a trojan
+    # downloader when caching the hostblock list...
+    return download_manager.get(url, target=target, auto_remove=True, cache=False)
