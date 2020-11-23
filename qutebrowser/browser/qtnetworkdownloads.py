@@ -414,11 +414,12 @@ class DownloadManager(downloads.AbstractDownloadManager):
             private=config.val.content.private_browsing, parent=self)
 
     @pyqtSlot('QUrl')
-    def get(self, url, **kwargs):
+    def get(self, url, cache=True, **kwargs):
         """Start a download with a link URL.
 
         Args:
             url: The URL to get, as QUrl
+            cache: If set to False, don't cache the response.
             **kwargs: passed to get_request().
 
         Return:
@@ -431,6 +432,9 @@ class DownloadManager(downloads.AbstractDownloadManager):
         req = QNetworkRequest(url)
         user_agent = websettings.user_agent(url)
         req.setHeader(QNetworkRequest.UserAgentHeader, user_agent)
+
+        if not cache:
+            req.setAttribute(QNetworkRequest.CacheSaveControlAttribute, False)
 
         return self.get_request(req, **kwargs)
 
