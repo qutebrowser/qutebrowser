@@ -322,7 +322,7 @@ def _qtwebengine_settings_args() -> typing.Iterator[str]:
             False: '--autoplay-policy=user-gesture-required',
         }
 
-    if qtutils.version_check('5.14'):
+    if qtutils.version_check('5.14', compiled=False):
         settings['colors.webpage.prefers_color_scheme_dark'] = {
             True: '--force-dark-mode',
             False: None,
