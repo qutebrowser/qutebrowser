@@ -23,6 +23,7 @@ import subprocess
 import sys
 import logging
 import re
+import json
 
 import pytest
 from PyQt5.QtCore import QProcess
@@ -383,3 +384,36 @@ def test_qute_settings_persistence(short_tmpdir, request, quteproc_new):
 
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
+
+
+@pytest.mark.parametrize('value, expected', [
+    ('always', 'http://localhost:(port2)/headers-link/(port)'),
+    ('never', None),
+    ('same-domain', 'http://localhost:(port2)/'),  # None with QtWebKit
+])
+def test_referrer(quteproc_new, server, server2, request, value, expected):
+    """Check referrer settings."""
+    args = _base_args(request.config) + [
+        '--temp-basedir',
+        '-s', 'content.headers.referer', value,
+    ]
+    quteproc_new.start(args)
+
+    quteproc_new.open_path(f'headers-link/{server.port}', port=server2.port)
+    quteproc_new.send_cmd(':click-element id link')
+    quteproc_new.wait_for_load_finished('headers')
+
+    content = quteproc_new.get_content()
+    data = json.loads(content)
+    print(data)
+    headers = data['headers']
+
+    if not request.config.webengine and value == 'same-domain':
+        # With QtWebKit and same-domain, we don't send a referer at all.
+        expected = None
+
+    if expected is not None:
+        for key, val in [('(port)', server.port), ('(port2)', server2.port)]:
+            expected = expected.replace(key, str(val))
+
+    assert headers.get('Referer') == expected

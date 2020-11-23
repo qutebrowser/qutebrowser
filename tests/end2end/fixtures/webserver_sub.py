@@ -244,6 +244,12 @@ def view_headers():
     return flask.jsonify(headers=dict(flask.request.headers))
 
 
+@app.route('/headers-link/<int:port>')
+def headers_link(port):
+    """Get a (possibly cross-origin) link to /headers."""
+    return flask.render_template('headers-link.html', port=port)
+
+
 @app.route('/response-headers')
 def response_headers():
     """Return a set of response headers from the query string."""
