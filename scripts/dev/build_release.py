@@ -252,7 +252,7 @@ def _get_windows_python_path(x64):
         return fallback
 
 
-def build_windows():
+def build_windows(*, skip_packaging):
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
     update_3rdparty.run(nsis=True, ace=False, pdfjs=True, fancy_dmg=False)
@@ -289,6 +289,14 @@ def build_windows():
     utils.print_title("Running 64bit smoke test")
     smoke_test(os.path.join(out_64, 'qutebrowser.exe'))
 
+    if not skip_packaging:
+        artifacts += _package_windows(out_32, out_64)
+
+    return artifacts
+
+
+def _package_windows(out_32, out_64):
+    """Build installers/zips for Windows."""
     utils.print_title("Building installers")
     subprocess.run(['makensis.exe',
                     '/DVERSION={}'.format(qutebrowser.__version__),
@@ -301,7 +309,7 @@ def build_windows():
     name_32 = 'qutebrowser-{}-win32.exe'.format(qutebrowser.__version__)
     name_64 = 'qutebrowser-{}-amd64.exe'.format(qutebrowser.__version__)
 
-    artifacts += [
+    artifacts = [
         (os.path.join('dist', name_32),
          'application/vnd.microsoft.portable-executable',
          'Windows 32bit installer'),
@@ -465,7 +473,9 @@ def main():
                         "If not given, the current Python interpreter is used.",
                         nargs='?')
     parser.add_argument('--upload', action='store_true', required=False,
-                        help="Toggle to upload the release to GitHub")
+                        help="Toggle to upload the release to GitHub.")
+    parser.add_argument('--skip-packaging', action='store_true', required=False,
+                        help="Skip Windows installer/zip generation.")
     args = parser.parse_args()
     utils.change_cwd()
 
@@ -487,7 +497,7 @@ def main():
         run_asciidoc2html(args)
 
     if os.name == 'nt':
-        artifacts = build_windows()
+        artifacts = build_windows(skip_packaging=args.skip_packaging)
     elif sys.platform == 'darwin':
         artifacts = build_mac()
     else:
