@@ -196,7 +196,7 @@ def _qtwebengine_settings_args() -> Iterator[str]:
         }
     }
 
-    if qtutils.version_check('5.14'):
+    if qtutils.version_check('5.14', compiled=False):
         settings['colors.webpage.prefers_color_scheme_dark'] = {
             True: '--force-dark-mode',
             False: None,
