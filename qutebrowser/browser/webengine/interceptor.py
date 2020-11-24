@@ -207,7 +207,7 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         # Note this is ignored before Qt 5.12.4 and 5.13.1 due to
         # https://bugreports.qt.io/browse/QTBUG-60203 - there, we set the
         # commandline-flag in qtargs.py instead.
-        if config.val.content.headers.referer == 'never':
+        if config.cache['content.headers.referer'] == 'never':
             info.setHttpHeader(b'Referer', b'')
 
         user_agent = websettings.user_agent(url)
