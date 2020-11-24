@@ -82,7 +82,7 @@ CHANGELOG_URLS = {
     'flake8-docstrings': 'https://pypi.org/project/flake8-docstrings/',
     'flake8-debugger': 'https://github.com/JBKahn/flake8-debugger/',
     'flake8-builtins': 'https://github.com/gforcada/flake8-builtins/blob/master/CHANGES.rst',
-    'flake8-bugbear': 'https://github.com/PyCQA/flake8-bugbear',
+    'flake8-bugbear': 'https://github.com/PyCQA/flake8-bugbear#change-log',
     'flake8-tidy-imports': 'https://github.com/adamchainz/flake8-tidy-imports/blob/master/HISTORY.rst',
     'flake8-tuple': 'https://github.com/ar4s/flake8_tuple/blob/master/HISTORY.rst',
     'flake8-comprehensions': 'https://github.com/adamchainz/flake8-comprehensions/blob/master/HISTORY.rst',
