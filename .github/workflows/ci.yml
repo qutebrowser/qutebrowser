@@ -121,6 +121,11 @@ jobs:
             os: macos-10.15
             python: 3.7
             args: "tests/unit"  # Only run unit tests on macOS
+          ### macOS Big Sur
+          - testenv: py37-pyqt515
+            os: macos-11.0
+            python: 3.7
+            args: "tests/unit"  # Only run unit tests on macOS
           ### Windows: PyQt 5.15 (Python 3.7 to match PyInstaller env)
           - testenv: py37-pyqt515
             os: windows-2019
