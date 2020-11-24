@@ -432,12 +432,11 @@ class TestConfig:
         assert conf.get_obj(name1) == 'never'
         assert conf.get_obj(name2) is True
 
-        with qtbot.waitSignal(conf.changed), qtbot.waitSignal(conf.changed):
+        with qtbot.waitSignals([conf.changed, conf.changed]) as blocker:
             conf.clear(save_yaml=save_yaml)
 
-        # Doesn't work with PyQt 5.15.1 workaround
-        # options = {blocker1.args[0], blocker2.args[0]}
-        # assert options == {name1, name2}
+        options = {e.args[0] for e in blocker.all_signals_and_args}
+        assert options == {name1, name2}
 
         if save_yaml:
             assert yaml_value(name1) is usertypes.UNSET

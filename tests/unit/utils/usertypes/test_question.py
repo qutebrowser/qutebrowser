@@ -53,25 +53,23 @@ def test_done(mode, answer, signal_names, question, qtbot):
     question.mode = mode
     question.answer = answer
     signals = [getattr(question, name) for name in signal_names]
-    blockers = [qtbot.waitSignal(signal) for signal in signals]
-
-    question.done()
-    for blocker in blockers:
-        blocker.wait()
-
+    with qtbot.waitSignals(signals, order='strict'):
+        question.done()
     assert not question.is_aborted
 
 
 def test_cancel(question, qtbot):
     """Test Question.cancel()."""
-    with qtbot.waitSignal(question.cancelled), qtbot.waitSignal(question.completed):
+    with qtbot.waitSignals([question.cancelled, question.completed],
+                           order='strict'):
         question.cancel()
     assert not question.is_aborted
 
 
 def test_abort(question, qtbot):
     """Test Question.abort()."""
-    with qtbot.waitSignal(question.aborted), qtbot.waitSignal(question.completed):
+    with qtbot.waitSignals([question.aborted, question.completed],
+                           order='strict'):
         question.abort()
     assert question.is_aborted
 
