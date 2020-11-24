@@ -2,7 +2,7 @@
 
 bump2version==1.0.1
 certifi==2020.11.8
-cffi==1.14.3
+cffi==1.14.4
 chardet==3.0.4
 colorama==0.4.4
 cryptography==3.2.1
@@ -15,10 +15,10 @@ packaging==20.4
 pycparser==2.20
 Pympler==0.9
 pyparsing==2.4.7
-PyQt-builder==1.5.0
+PyQt-builder==1.6.0
 python-dateutil==2.8.1
 requests==2.25.0
-sip==5.4.0
+sip==5.5.0
 six==1.15.0
 toml==0.10.2
 uritemplate==3.0.1
