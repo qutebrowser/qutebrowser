@@ -56,8 +56,8 @@ from typing import (Any, Callable, Dict as DictType, Iterable, Iterator,
 import attr
 import yaml
 from PyQt5.QtCore import QUrl, Qt
-from PyQt5.QtGui import QColor, QFontDatabase
-from PyQt5.QtWidgets import QTabWidget, QTabBar, QApplication
+from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QTabWidget, QTabBar
 from PyQt5.QtNetwork import QNetworkProxy
 
 from qutebrowser.misc import objects, debugcachestats
@@ -1159,50 +1159,11 @@ class FontBase(BaseType):
 
         If the given family value (fonts.default_family in the config) is
         unset, a system-specific default monospace font is used.
-
-        Note that (at least) three ways of getting the default monospace font
-        exist:
-
-        1) f = QFont()
-           f.setStyleHint(QFont.Monospace)
-           print(f.defaultFamily())
-
-        2) f = QFont()
-           f.setStyleHint(QFont.TypeWriter)
-           print(f.defaultFamily())
-
-        3) f = QFontDatabase.systemFont(QFontDatabase.FixedFont)
-           print(f.family())
-
-        They yield different results depending on the OS:
-
-                   QFont.Monospace  | QFont.TypeWriter    | QFontDatabase
-                   ------------------------------------------------------
-        Windows:   Courier New      | Courier New         | Courier New
-        Linux:     DejaVu Sans Mono | DejaVu Sans Mono    | monospace
-        macOS:     Menlo            | American Typewriter | Monaco
-
-        Test script: https://p.cmpl.cc/d4dfe573
-
-        On Linux, it seems like both actually resolve to the same font.
-
-        On macOS, "American Typewriter" looks like it indeed tries to imitate a
-        typewriter, so it's not really a suitable UI font.
-
-        Looking at those Wikipedia articles:
-
-        https://en.wikipedia.org/wiki/Monaco_(typeface)
-        https://en.wikipedia.org/wiki/Menlo_(typeface)
-
-        the "right" choice isn't really obvious. Thus, let's go for the
-        QFontDatabase approach here, since it's by far the simplest one.
         """
         if default_family:
             families = configutils.FontFamilies(default_family)
         else:
-            assert QApplication.instance() is not None
-            font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
-            families = configutils.FontFamilies([font.family()])
+            families = configutils.FontFamilies.from_system_default()
 
         cls.default_family = families.to_str(quote=True)
         cls.default_size = default_size

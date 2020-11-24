@@ -29,6 +29,8 @@ from typing import (
     MutableMapping)
 
 from PyQt5.QtCore import QUrl
+from PyQt5.QtGui import QFontDatabase
+from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.utils import utils, urlmatch, usertypes, qtutils
 from qutebrowser.config import configexc
@@ -294,6 +296,57 @@ class FontFamilies:
     def to_str(self, *, quote: bool = True) -> str:
         families = self._quoted_families() if quote else self._families
         return ', '.join(families)
+
+    @classmethod
+    def from_system_default(
+            cls,
+            font_type: QFontDatabase.SystemFont = QFontDatabase.FixedFont,
+    ) -> 'FontFamilies':
+        """Get a FontFamilies object for the default system font.
+
+        By default, the monospace font is returned, though via the "font_type" argument,
+        other types can be requested as well.
+
+        Note that (at least) three ways of getting the default monospace font
+        exist:
+
+        1) f = QFont()
+           f.setStyleHint(QFont.Monospace)
+           print(f.defaultFamily())
+
+        2) f = QFont()
+           f.setStyleHint(QFont.TypeWriter)
+           print(f.defaultFamily())
+
+        3) f = QFontDatabase.systemFont(QFontDatabase.FixedFont)
+           print(f.family())
+
+        They yield different results depending on the OS:
+
+                   QFont.Monospace  | QFont.TypeWriter    | QFontDatabase
+                   ------------------------------------------------------
+        Windows:   Courier New      | Courier New         | Courier New
+        Linux:     DejaVu Sans Mono | DejaVu Sans Mono    | monospace
+        macOS:     Menlo            | American Typewriter | Monaco
+
+        Test script: https://p.cmpl.cc/d4dfe573
+
+        On Linux, it seems like both actually resolve to the same font.
+
+        On macOS, "American Typewriter" looks like it indeed tries to imitate a
+        typewriter, so it's not really a suitable UI font.
+
+        Looking at those Wikipedia articles:
+
+        https://en.wikipedia.org/wiki/Monaco_(typeface)
+        https://en.wikipedia.org/wiki/Menlo_(typeface)
+
+        the "right" choice isn't really obvious. Thus, let's go for the
+        QFontDatabase approach here, since it's by far the simplest one.
+        """
+        assert QApplication.instance() is not None
+        font = QFontDatabase.systemFont(font_type)
+        return cls([font.family()])
 
     @classmethod
     def from_str(cls, family_str: str) -> 'FontFamilies':
