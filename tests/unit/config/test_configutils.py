@@ -401,7 +401,7 @@ class TestFontFamilies:
             fallback_label.show()
 
         fallback_family = fallback_label.fontInfo().family()
-        print(f'fallback: fallback_family')
+        print(f'fallback: {fallback_family}')
         if info.family() == fallback_family:
             return
 
