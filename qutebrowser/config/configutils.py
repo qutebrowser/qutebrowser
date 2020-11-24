@@ -282,6 +282,9 @@ class FontFamilies:
     def __iter__(self) -> Iterator[str]:
         yield from self._families
 
+    def __len__(self) -> int:
+        return len(self._families)
+
     def __repr__(self) -> str:
         return utils.get_repr(self, families=self._families, constructor=True)
 
