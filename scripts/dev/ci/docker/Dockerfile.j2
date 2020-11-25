@@ -1,0 +1,27 @@
+FROM thecompiler/archlinux
+MAINTAINER Florian Bruhin <me@the-compiler.org>
+
+{% if unstable %}
+RUN sed -i '/^# after the header/a[kde-unstable]\nInclude = /etc/pacman.d/mirrorlist\n\n[testing]\nInclude = /etc/pacman.d/mirrorlist' /etc/pacman.conf
+{% endif %}
+RUN pacman -Suyy --noconfirm \
+    git \
+    python-tox \
+    python-distlib \
+    qt5-base \
+    qt5-declarative \
+    {% if webengine %}qt5-webengine python-pyqtwebengine{% else %}qt5-webkit{% endif %} \
+    python-pyqt5 \
+    xorg-xinit \
+    xorg-server-xvfb \
+    ttf-bitstream-vera \
+    gcc \
+    libyaml \
+    xorg-xdpyinfo
+
+USER user
+WORKDIR /home/user
+
+CMD git clone /outside qutebrowser.git && \
+    cd qutebrowser.git && \
+    tox -e py38
