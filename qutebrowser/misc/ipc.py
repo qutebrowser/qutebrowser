@@ -269,8 +269,8 @@ class IPCServer(QObject):
                 "No new connection to handle.")
             return
         log.ipc.debug("Client connected (socket 0x{:x}).".format(id(socket)))
-        self._socket = socket
         self._timer.start()
+        self._socket = socket
         socket.readyRead.connect(  # type: ignore[attr-defined]
             self.on_ready_read)
         if socket.canReadLine():
@@ -310,7 +310,7 @@ class IPCServer(QObject):
         self._socket.disconnectFromServer()
 
     def _handle_data(self, data):
-        """Handle data (as bytes) we got from on_ready_read."""
+        """Handle data (as bytes) we got from on_ready_ready_read."""
         try:
             decoded = data.decode('utf-8')
         except UnicodeDecodeError:
@@ -383,13 +383,14 @@ class IPCServer(QObject):
             log.ipc.debug("Read from socket 0x{:x}: {!r}".format(
                 id(socket), data))
             self._handle_data(data)
-
-        if self._socket is not None:
-            self._timer.start()
+        self._timer.start()
 
     @pyqtSlot()
     def on_timeout(self):
         """Cancel the current connection if it was idle for too long."""
+        if self._socket is None:  # pragma: no cover
+            log.ipc.debug("on_timeout got called with None socket!")
+            return
         log.ipc.error("IPC connection timed out "
                       "(socket 0x{:x}).".format(id(self._socket)))
         self._socket.disconnectFromServer()
