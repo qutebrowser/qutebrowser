@@ -87,8 +87,6 @@ Changed
 Fixed
 ~~~~~
 
-- The `open_url_instance.sh` userscript now complains when `socat` is not
-  installed, rather than silencing the error.
 - With interpolated color settings (`colors.tabs.indicator.*` and
   `colors.downloads.*`), the alpha channel is now handled correctly.
 
@@ -109,8 +107,8 @@ Added
 Changed
 ~~~~~~~
 
-- (TODO) Windows and macOS releases now ship Qt 5.15.2, which is based on
-  Chromium 83.0.4103.122 with security fixes up to 86.0.4240.111. This includes
+- Windows and macOS releases now ship Qt 5.15.2, which is based on
+  Chromium 83.0.4103.122 with security fixes up to 86.0.4240.183. This includes
   CVE-2020-15999 in the bundled freetype library, which is known to be exploited
   in the wild. It also includes various other bugfixes/features compared to
   Qt 5.15.0 included in qutebrowser v1.14.0, such as:
@@ -123,15 +121,25 @@ Changed
       the home directory
     * Proper autocompletion in the devtools console
     * Proper signalisation of a tab's audible status (`[A]`)
+    * Fix for a hang when opening the context menu on macOS Big Sur (11.0)
     * Hardware accelerated graphics on macOS
 
 Fixed
 ~~~~~
 
-- Fix for a crash introduced in v1.14.0 when closing qutebrowser after opening a
-  download with PDF.js.
-- New site-specific quirk to polyfill `Object.fromEntries` on Qt 5.12, thus
-  fixing https://www.vr.fi/en and possibly other websites.
+- Setting the `content.headers.referer` setting to `same-domain` (the default)
+  was supposed to truncate referers to only the host with QtWebEngine.
+  Unfortunately, this functionality broke in Qt 5.14. It works properly again
+  with this release, including a test so this won't happen again.
+- With QtWebEngine 5.15, setting the `content.headers.referer` setting to
+  `never` did still send referers. This is now fixed as well.
+- In v1.14.0, a regression was introduced, causing a crash when qutebrowser was
+  closed after opening a download with PDF.js. This is now fixed.
+- With Qt 5.12, the `Object.fromEntries` JavaScript API is unavailable (it was
+  introduced in Chromium 73, while Qt 5.12 is based on 69). This caused
+  https://www.vr.fi/en and possibly other websites to break when accessed with Qt
+  5.12. A suitable polyfill is now included with qutebrowser if
+  `content.site_specific_quirks` is enabled (which is the default).
 - While XDG startup notifications (e.g. launch feedback via the bouncy cursor
   in KDE Plasma) were supported ever since Qt 5.1, qutebrowser's desktop file
   accidentally declared that it wasn't supported. This is now fixed.
@@ -143,15 +151,10 @@ Fixed
   lazily (such as with history) and the last visible item is selected was broken.
   The exact reason is currently unknown, but this release adds a tenative fix.
 - When PgUp/PgDown were used to go beyond the last visible item, the above issue
-  caused a crash. This is also fixed.
+  caused a crash, which is now also fixed.
 - As a workaround for an overzealous Microsoft Defender false-positive detecting
   a "trojan" in the (unprocessed) adblock list, `:adblock-update` now doesn't
   cache the HTTP response anymore.
-- Setting the `content.headers.referer` setting to `same-domain` (the default)
-  was supposed to truncate referers to only the host with QtWebEngine.
-  Unfortunately, this functionality broke in Qt 5.14. It is now fixed again.
-- With QtWebEngine 5.15, setting the `content.headers.referer` setting to
-  `never` did still send referers. This is now fixed.
 - With the QtWebKit backend and `content.headers` set to `same-domain` (the
   default), origins with the same domain but different schemes or ports were
   treated as the same domain. They now are correctly treated as different domains.
@@ -162,12 +165,20 @@ Fixed
 - On macOS 11.0 (Big Sur), the default monospace font name caused a parsing error, thus
   resulting in broken styling for the completion, hints, and other UI components.
   They now look properly again.
-- On macOS 11.0 (Big Sur), opening the context menu caused a hang. This is now
-  fixed thanks to a fix in PyQt5.
 - Due to a Qt bug, installing Qt/PyQt from prebuilt binaries on systems with a
   very old `libxcb-utils` version (notably, Debian Stable, but not Ubuntu since
-  16.04LTS) results in a setup which fails to start. This also affects the
+  16.04 LTS) results in a setup which fails to start. This also affects the
   `mkvenv.py` script, which now includes a workaround for this case.
+- The `open_url_instance.sh` userscript now complains when `socat` is not
+  installed, rather than silencing the error.
+- The example AppArmor profile in `misc/` was outdated and written for the
+  older QtWebKit backend. It is now updated to serve as an useful starting
+  point with QtWebEngine.
+- When running `:devtools` on Fedora without the needed (optional) dependency
+  installed, it was suggested to install `qt5-webengine-devtools`, which does
+  not, in fact, exist. It's now correctly suggested to install
+  `qt5-qtwebengine-devtools` instead.
+- Minor performance improvements.
 - (TODO) Fix for various functionality breaking in private windows with v1.14.0,
   after the last private window is closed. This includes:
     * Ad blocking
