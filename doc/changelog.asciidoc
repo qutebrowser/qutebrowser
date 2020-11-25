@@ -155,6 +155,19 @@ Fixed
 - With the QtWebKit backend and `content.headers` set to `same-domain` (the
   default), origins with the same domain but different schemes or ports were
   treated as the same domain. They now are correctly treated as different domains.
+- When a URL path uses percent escapes (such as
+  `https://example.com/embedded%2Fpath`), using `:navigate up` would treat the
+  `%2F` as a path separator and replace any remaining percent escapes by their
+  unescaped equivalents. Those are now handled correctly.
+- On macOS 11.0 (Big Sur), the default monospace font name caused a parsing error, thus
+  resulting in broken styling for the completion, hints, and other UI components.
+  They now look properly again.
+- On macOS 11.0 (Big Sur), opening the context menu caused a hang. This is now
+  fixed thanks to a fix in PyQt5.
+- Due to a Qt bug, installing Qt/PyQt from prebuilt binaries on systems with a
+  very old `libxcb-utils` version (notably, Debian Stable, but not Ubuntu since
+  16.04LTS) results in a setup which fails to start. This also affects the
+  `mkvenv.py` script, which now includes a workaround for this case.
 - (TODO) Fix for various functionality breaking in private windows with v1.14.0,
   after the last private window is closed. This includes:
     * Ad blocking
