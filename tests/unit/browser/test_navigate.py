@@ -187,6 +187,8 @@ class TestUp:
         ('/one/two/three', 1, '/one/two'),
         ('/one/two/three?foo=bar', 1, '/one/two'),
         ('/one/two/three', 2, '/one'),
+        ('/one/two%2Fthree', 1, '/one'),
+        ('/one/two%2Fthree/four', 1, '/one/two%2Fthree'),
     ])
     def test_up(self, url_suffix, count, expected_suffix):
         url_base = 'https://example.com'
