@@ -7,7 +7,7 @@ on:
 
 jobs:
   docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         image:
@@ -36,23 +36,26 @@ jobs:
           push: ${{ github.ref == 'refs/heads/master' }}
 
   irc:
-    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    continue-on-error: true
+    runs-on: ubuntu-20.04
     needs: [docker]
-    if: "always() && github.repository_owner == 'qutebrowser'"
+    if: "always() && github.repository == 'qutebrowser/qutebrowser'"
     steps:
-    - name: Send success IRC notification
-      uses: Gottox/irc-message-action@v1.1
-      if: "needs.docker.result == 'success'"
-      with:
-        server: chat.freenode.net
-        channel: '#qutebrowser-dev'
-        nickname: qutebrowser-bot
-        message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
-    - name: Send non-success IRC notification
-      uses: Gottox/irc-message-action@v1.1
-      if: "needs.docker.result != 'success'"
-      with:
-        server: chat.freenode.net
-        channel: '#qutebrowser-dev'
-        nickname: qutebrowser-bot
-        message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
+      - name: Send success IRC notification
+        uses: Gottox/irc-message-action@v1.1
+        if: "needs.docker.result == 'success'"
+        with:
+          server: chat.freenode.net
+          channel: '#qutebrowser-dev'
+          nickname: qutebrowser-bot
+          message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
+      - name: Send non-success IRC notification
+        uses: Gottox/irc-message-action@v1.1
+        if: "needs.docker.result != 'success'"
+        with:
+          server: chat.freenode.net
+          channel: '#qutebrowser-dev'
+          nickname: qutebrowser-bot
+          message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
+            linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}"
