@@ -267,7 +267,7 @@ def _find_libs() -> typing.Dict[str, str]:
         ['ldconfig', '-p'],
         check=True,
         stdout=subprocess.PIPE,
-        encoding=sys.getfilesystemencoding(),
+        universal_newlines=True,
     )
     for line in ldconfig_proc.stdout.splitlines():
         if ' => ' not in line:
