@@ -38,7 +38,16 @@ from scripts import utils, link_pyqt
 REPO_ROOT = pathlib.Path(__file__).parent.parent
 
 
-def parse_args() -> argparse.Namespace:
+class Error(Exception):
+
+    """Exception for errors in this script."""
+
+    def __init__(self, msg, code=1):
+        super().__init__(msg)
+        self.code = code
+
+
+def parse_args(argv=None) -> argparse.Namespace:
     """Parse commandline arguments."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--keep',
@@ -74,7 +83,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--tox-error',
                         action='store_true',
                         help=argparse.SUPPRESS)
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
 def pyqt_versions() -> List[str]:
@@ -110,8 +119,7 @@ def run_venv(
             stdout=subprocess.PIPE if capture_output else None,
         )
     except subprocess.CalledProcessError as e:
-        utils.print_error("Subprocess failed, exiting")
-        sys.exit(e.returncode)
+        raise Error("Subprocess failed, exiting")
 
 
 def pip_install(venv_dir: pathlib.Path, *args: str) -> None:
@@ -134,9 +142,8 @@ def delete_old_venv(venv_dir: pathlib.Path) -> None:
     ]
 
     if not any(m.exists() for m in markers):
-        utils.print_error('{} does not look like a virtualenv, '
-                          'cowardly refusing to remove it.'.format(venv_dir))
-        sys.exit(1)
+        raise Error('{} does not look like a virtualenv, cowardly refusing to '
+                    'remove it.'.format(venv_dir))
 
     utils.print_col('$ rm -r {}'.format(venv_dir), 'blue')
     shutil.rmtree(str(venv_dir))
@@ -150,8 +157,7 @@ def create_venv(venv_dir: pathlib.Path, use_virtualenv: bool = False) -> None:
             subprocess.run([sys.executable, '-m', 'virtualenv', venv_dir],
                            check=True)
         except subprocess.CalledProcessError as e:
-            utils.print_error("virtualenv failed, exiting")
-            sys.exit(e.returncode)
+            raise Error("virtualenv failed, exiting", e.returncode)
     else:
         utils.print_col('$ python3 -m venv {}'.format(venv_dir), 'blue')
         venv.create(str(venv_dir), with_pip=True)
@@ -318,22 +324,19 @@ def regenerate_docs(venv_dir: pathlib.Path,
     run_venv(venv_dir, 'python', str(script_path), *a2h_args)
 
 
-def main() -> None:
+def run(args) -> None:
     """Install qutebrowser in a virtualenv.."""
-    args = parse_args()
     venv_dir = pathlib.Path(args.venv_dir)
     wheels_dir = pathlib.Path(args.pyqt_wheels_dir)
     utils.change_cwd()
 
     if (args.pyqt_version != 'auto' and
             args.pyqt_type not in ['binary', 'source']):
-        utils.print_error('The --pyqt-version option is only available when '
-                          'installing PyQt from binary or source')
-        sys.exit(1)
+        raise Error('The --pyqt-version option is only available when installing PyQt '
+                    'from binary or source')
     elif args.pyqt_wheels_dir != 'wheels' and args.pyqt_type != 'wheels':
-        utils.print_error('The --pyqt-wheels-dir option is only available '
-                          'when installing PyQt from wheels')
-        sys.exit(1)
+        raise Error('The --pyqt-wheels-dir option is only available when installing '
+                    'PyQt from wheels')
 
     if not args.keep:
         utils.print_title("Creating virtual environment")
@@ -364,6 +367,15 @@ def main() -> None:
 
     if not args.skip_docs:
         regenerate_docs(venv_dir, args.asciidoc)
+
+
+def main():
+    args = parse_args()
+    try:
+        run(args)
+    except Error as e:
+        utils.print_error(str(e))
+        sys.exit(e.code)
 
 
 if __name__ == '__main__':
