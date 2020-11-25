@@ -24,12 +24,13 @@
 import argparse
 import pathlib
 import sys
+import re
 import os
 import os.path
-import typing
 import shutil
-import venv
+import venv as pyvenv
 import subprocess
+from typing import List, Optional, Tuple, Dict, Union
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from scripts import utils, link_pyqt
@@ -38,7 +39,22 @@ from scripts import utils, link_pyqt
 REPO_ROOT = pathlib.Path(__file__).parent.parent
 
 
-def parse_args() -> argparse.Namespace:
+class Error(Exception):
+
+    """Exception for errors in this script."""
+
+    def __init__(self, msg, code=1):
+        super().__init__(msg)
+        self.code = code
+
+
+def print_command(*cmd: Union[str, pathlib.Path], venv: bool) -> None:
+    """Print a command being run."""
+    prefix = 'venv$ ' if venv else '$ '
+    utils.print_col(prefix + ' '.join([str(e) for e in cmd]), 'blue')
+
+
+def parse_args(argv: List[str] = None) -> argparse.Namespace:
     """Parse commandline arguments."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--keep',
@@ -74,10 +90,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--tox-error',
                         action='store_true',
                         help=argparse.SUPPRESS)
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
-def pyqt_versions() -> typing.List[str]:
+def pyqt_versions() -> List[str]:
     """Get a list of all available PyQt versions.
 
     The list is based on the filenames of misc/requirements/ files.
@@ -98,26 +114,35 @@ def run_venv(
         executable,
         *args: str,
         capture_output=False,
+        capture_error=False,
+        env=None,
 ) -> subprocess.CompletedProcess:
     """Run the given command inside the virtualenv."""
     subdir = 'Scripts' if os.name == 'nt' else 'bin'
+
+    if env is None:
+        proc_env = None
+    else:
+        proc_env = os.environ.copy()
+        proc_env.update(env)
 
     try:
         return subprocess.run(
             [str(venv_dir / subdir / executable)] + [str(arg) for arg in args],
             check=True,
-            universal_newlines=capture_output,
+            universal_newlines=capture_output or capture_error,
             stdout=subprocess.PIPE if capture_output else None,
+            stderr=subprocess.PIPE if capture_error else None,
+            env=proc_env,
         )
     except subprocess.CalledProcessError as e:
-        utils.print_error("Subprocess failed, exiting")
-        sys.exit(e.returncode)
+        raise Error("Subprocess failed, exiting") from e
 
 
 def pip_install(venv_dir: pathlib.Path, *args: str) -> None:
     """Run a pip install command inside the virtualenv."""
     arg_str = ' '.join(str(arg) for arg in args)
-    utils.print_col('venv$ pip install {}'.format(arg_str), 'blue')
+    print_command('pip install', arg_str, venv=True)
     run_venv(venv_dir, 'python', '-m', 'pip', 'install', *args)
 
 
@@ -134,27 +159,25 @@ def delete_old_venv(venv_dir: pathlib.Path) -> None:
     ]
 
     if not any(m.exists() for m in markers):
-        utils.print_error('{} does not look like a virtualenv, '
-                          'cowardly refusing to remove it.'.format(venv_dir))
-        sys.exit(1)
+        raise Error('{} does not look like a virtualenv, cowardly refusing to '
+                    'remove it.'.format(venv_dir))
 
-    utils.print_col('$ rm -r {}'.format(venv_dir), 'blue')
+    print_command('rm -r', venv_dir, venv=False)
     shutil.rmtree(str(venv_dir))
 
 
 def create_venv(venv_dir: pathlib.Path, use_virtualenv: bool = False) -> None:
     """Create a new virtualenv."""
     if use_virtualenv:
-        utils.print_col('$ python3 -m virtualenv {}'.format(venv_dir), 'blue')
+        print_command('python3 -m virtualenv', venv_dir, venv=False)
         try:
             subprocess.run([sys.executable, '-m', 'virtualenv', venv_dir],
                            check=True)
         except subprocess.CalledProcessError as e:
-            utils.print_error("virtualenv failed, exiting")
-            sys.exit(e.returncode)
+            raise Error("virtualenv failed, exiting", e.returncode)
     else:
-        utils.print_col('$ python3 -m venv {}'.format(venv_dir), 'blue')
-        venv.create(str(venv_dir), with_pip=True)
+        print_command('python3 -m venv', venv_dir, venv=False)
+        pyvenv.create(str(venv_dir), with_pip=True)
 
 
 def upgrade_seed_pkgs(venv_dir: pathlib.Path) -> None:
@@ -233,15 +256,25 @@ def apply_xcb_util_workaround(
         return
 
     libs = _find_libs()
-    if 'libxcb-util.so.1' in libs:
+    abi_type = 'libc6,x86-64'  # the only one PyQt wheels are available for
+
+    if ('libxcb-util.so.1', abi_type) in libs:
         print("Workaround not needed: libxcb-util.so.1 found.")
         return
 
     try:
-        libxcb_util_path = pathlib.Path(libs['libxcb-util.so.0'])
+        libxcb_util_libs = libs['libxcb-util.so.0', abi_type]
     except KeyError:
-        utils.print_col('Workaround failed: libxcb-util.so.0 not found.', 'red')
+        utils.print_error('Workaround failed: libxcb-util.so.0 not found.')
         return
+
+    if len(libxcb_util_libs) > 1:
+        utils.print_error(
+            f'Workaround failed: Multiple matching libxcb-util found: '
+            f'{libxcb_util_libs}')
+        return
+
+    libxcb_util_path = pathlib.Path(libxcb_util_libs[0])
 
     code = [
         'from PyQt5.QtCore import QLibraryInfo',
@@ -255,31 +288,66 @@ def apply_xcb_util_workaround(
     # This gives us a nicer path to print, and also conveniently makes sure we
     # didn't accidentally end up with a path outside the venv.
     rel_link_path = venv_dir / link_path.relative_to(venv_dir.resolve())
-    utils.print_col(f'$ ln -s {libxcb_util_path} {rel_link_path}', 'blue')
+    print_command('ln -s', libxcb_util_path, rel_link_path, venv=False)
 
     link_path.symlink_to(libxcb_util_path)
 
 
-def _find_libs() -> typing.Dict[str, str]:
+def _find_libs() -> Dict[Tuple[str, str], List[str]]:
     """Find all system-wide .so libraries."""
-    all_libs = {}  # type: typing.Dict[str, str]
+    all_libs: Dict[Tuple[str, str], List[str]] = {}
     ldconfig_proc = subprocess.run(
         ['ldconfig', '-p'],
         check=True,
         stdout=subprocess.PIPE,
-        universal_newlines=True,
+        encoding=sys.getfilesystemencoding(),
     )
+    pattern = re.compile(r'(?P<name>\S+) \((?P<abi_type>[^)]+)\) => (?P<path>.*)')
     for line in ldconfig_proc.stdout.splitlines():
-        if ' => ' not in line:
+        match = pattern.fullmatch(line.strip())
+        if match is None:
+            if 'libs found in cache' not in line:
+                utils.print_col(f'Failed to match ldconfig output: {line}', 'yellow')
             continue
-        line = line.strip()
-        name, path = line.split(' => ')
-        name = name.split(' (')[0]
-        if name in all_libs:
-            raise ValueError(f'Found duplicate {name} ({all_libs[name]}; {path})')
-        all_libs[name] = path
+
+        key = match.group('name'), match.group('abi_type')
+        path = match.group('path')
+
+        libs = all_libs.setdefault(key, [])
+        libs.append(path)
 
     return all_libs
+
+
+def run_qt_smoke_test(venv_dir: pathlib.Path) -> None:
+    """Make sure the Qt installation works."""
+    utils.print_title("Running Qt smoke test")
+    code = [
+        'import sys',
+        'from PyQt5.QtWidgets import QApplication',
+        'from PyQt5.QtCore import qVersion, QT_VERSION_STR, PYQT_VERSION_STR',
+        'print(f"Python: {sys.version}")',
+        'print(f"qVersion: {qVersion()}")',
+        'print(f"QT_VERSION_STR: {QT_VERSION_STR}")',
+        'print(f"PYQT_VERSION_STR: {PYQT_VERSION_STR}")',
+        'QApplication([])',
+        'print("Qt seems to work properly!")',
+        'print()',
+    ]
+    try:
+        run_venv(
+            venv_dir,
+            'python', '-c', '; '.join(code),
+            env={'QT_DEBUG_PLUGINS': '1'},
+            capture_error=True
+        )
+    except Error as e:
+        proc_e = e.__cause__
+        assert isinstance(proc_e, subprocess.CalledProcessError), proc_e
+        print(proc_e.stderr)
+        raise Error(
+            f"Smoke test failed with status {proc_e.returncode}. "
+            "You might find additional information in the debug output above.")
 
 
 def install_requirements(venv_dir: pathlib.Path) -> None:
@@ -304,7 +372,7 @@ def install_qutebrowser(venv_dir: pathlib.Path) -> None:
 
 
 def regenerate_docs(venv_dir: pathlib.Path,
-                    asciidoc: typing.Optional[typing.Tuple[str, str]]):
+                    asciidoc: Optional[Tuple[str, str]]):
     """Regenerate docs using asciidoc."""
     utils.print_title("Generating documentation")
     if asciidoc is not None:
@@ -313,27 +381,24 @@ def regenerate_docs(venv_dir: pathlib.Path,
         a2h_args = []
     script_path = pathlib.Path(__file__).parent / 'asciidoc2html.py'
 
-    utils.print_col('venv$ python3 scripts/asciidoc2html.py {}'
-                    .format(' '.join(a2h_args)), 'blue')
+    print_command('python3 scripts/asciidoc2html.py', *a2h_args, venv=True)
     run_venv(venv_dir, 'python', str(script_path), *a2h_args)
 
 
-def main() -> None:
+def run(args) -> None:
     """Install qutebrowser in a virtualenv.."""
-    args = parse_args()
     venv_dir = pathlib.Path(args.venv_dir)
     wheels_dir = pathlib.Path(args.pyqt_wheels_dir)
     utils.change_cwd()
 
     if (args.pyqt_version != 'auto' and
             args.pyqt_type not in ['binary', 'source']):
-        utils.print_error('The --pyqt-version option is only available when '
-                          'installing PyQt from binary or source')
-        sys.exit(1)
-    elif args.pyqt_wheels_dir != 'wheels' and args.pyqt_type != 'wheels':
-        utils.print_error('The --pyqt-wheels-dir option is only available '
-                          'when installing PyQt from wheels')
-        sys.exit(1)
+        raise Error('The --pyqt-version option is only available when installing PyQt '
+                    'from binary or source')
+
+    if args.pyqt_wheels_dir != 'wheels' and args.pyqt_type != 'wheels':
+        raise Error('The --pyqt-wheels-dir option is only available when installing '
+                    'PyQt from wheels')
 
     if not args.keep:
         utils.print_title("Creating virtual environment")
@@ -356,6 +421,8 @@ def main() -> None:
         raise AssertionError
 
     apply_xcb_util_workaround(venv_dir, args.pyqt_type, args.pyqt_version)
+    if args.pyqt_type != 'skip':
+        run_qt_smoke_test(venv_dir)
 
     install_requirements(venv_dir)
     install_qutebrowser(venv_dir)
@@ -364,6 +431,15 @@ def main() -> None:
 
     if not args.skip_docs:
         regenerate_docs(venv_dir, args.asciidoc)
+
+
+def main():
+    args = parse_args()
+    try:
+        run(args)
+    except Error as e:
+        utils.print_error(str(e))
+        sys.exit(e.code)
 
 
 if __name__ == '__main__':
