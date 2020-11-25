@@ -295,7 +295,7 @@ def apply_xcb_util_workaround(
 
 def _find_libs() -> Dict[Tuple[str, str], List[str]]:
     """Find all system-wide .so libraries."""
-    all_libs: Dict[str, str] = {}
+    all_libs: Dict[Tuple[str, str], List[str]] = {}
     ldconfig_proc = subprocess.run(
         ['ldconfig', '-p'],
         check=True,
