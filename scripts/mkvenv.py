@@ -115,7 +115,7 @@ def run_venv(
         *args: str,
         capture_output=False,
         capture_error=False,
-        env=None,
+        env=None
 ) -> subprocess.CompletedProcess:
     """Run the given command inside the virtualenv."""
     subdir = 'Scripts' if os.name == 'nt' else 'bin'
@@ -270,8 +270,8 @@ def apply_xcb_util_workaround(
 
     if len(libxcb_util_libs) > 1:
         utils.print_error(
-            f'Workaround failed: Multiple matching libxcb-util found: '
-            f'{libxcb_util_libs}')
+            'Workaround failed: Multiple matching libxcb-util found: {}'
+            .format(libxcb_util_libs))
         return
 
     libxcb_util_path = pathlib.Path(libxcb_util_libs[0])
@@ -295,19 +295,20 @@ def apply_xcb_util_workaround(
 
 def _find_libs() -> Dict[Tuple[str, str], List[str]]:
     """Find all system-wide .so libraries."""
-    all_libs: Dict[Tuple[str, str], List[str]] = {}
+    all_libs = {}  # type: Dict[Tuple[str, str], List[str]] 
     ldconfig_proc = subprocess.run(
         ['ldconfig', '-p'],
         check=True,
         stdout=subprocess.PIPE,
-        encoding=sys.getfilesystemencoding(),
+        universal_newlines=True,
     )
     pattern = re.compile(r'(?P<name>\S+) \((?P<abi_type>[^)]+)\) => (?P<path>.*)')
     for line in ldconfig_proc.stdout.splitlines():
         match = pattern.fullmatch(line.strip())
         if match is None:
             if 'libs found in cache' not in line:
-                utils.print_col(f'Failed to match ldconfig output: {line}', 'yellow')
+                utils.print_col(
+                    'Failed to match ldconfig output: {}'.format(line), 'yellow')
             continue
 
         key = match.group('name'), match.group('abi_type')
@@ -326,10 +327,10 @@ def run_qt_smoke_test(venv_dir: pathlib.Path) -> None:
         'import sys',
         'from PyQt5.QtWidgets import QApplication',
         'from PyQt5.QtCore import qVersion, QT_VERSION_STR, PYQT_VERSION_STR',
-        'print(f"Python: {sys.version}")',
-        'print(f"qVersion: {qVersion()}")',
-        'print(f"QT_VERSION_STR: {QT_VERSION_STR}")',
-        'print(f"PYQT_VERSION_STR: {PYQT_VERSION_STR}")',
+        'print("Python: {}".format(sys.version))',
+        'print("qVersion: {}".format(qVersion()))',
+        'print("QT_VERSION_STR: {}".format(QT_VERSION_STR))',
+        'print("PYQT_VERSION_STR: {}".format(PYQT_VERSION_STR))',
         'QApplication([])',
         'print("Qt seems to work properly!")',
         'print()',
@@ -346,8 +347,10 @@ def run_qt_smoke_test(venv_dir: pathlib.Path) -> None:
         assert isinstance(proc_e, subprocess.CalledProcessError), proc_e
         print(proc_e.stderr)
         raise Error(
-            f"Smoke test failed with status {proc_e.returncode}. "
-            "You might find additional information in the debug output above.")
+            "Smoke test failed with status {}. "
+            "You might find additional information in the debug output above."
+            .format(proc_e.returncode)
+        )
 
 
 def install_requirements(venv_dir: pathlib.Path) -> None:
