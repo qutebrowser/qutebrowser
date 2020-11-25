@@ -29,7 +29,6 @@ parameters or headers with the same name properly.
 import sys
 import json
 import time
-import signal
 import os
 import threading
 from http import HTTPStatus
