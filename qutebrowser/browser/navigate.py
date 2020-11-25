@@ -134,13 +134,13 @@ def path_up(url, count):
     """
     urlutils.ensure_valid(url)
     url = url.adjusted(QUrl.RemoveFragment | QUrl.RemoveQuery)
-    path = url.path()
+    path = url.path(QUrl.FullyEncoded)
     if not path or path == '/':
         raise Error("Can't go up!")
     for _i in range(0, min(count, path.count('/'))):
         path = posixpath.join(path, posixpath.pardir)
     path = posixpath.normpath(path)
-    url.setPath(path)
+    url.setPath(path, QUrl.StrictMode)
     return url
 
 
