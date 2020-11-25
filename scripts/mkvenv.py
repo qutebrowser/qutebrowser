@@ -249,13 +249,13 @@ def apply_xcb_util_workaround(
     try:
         libxcb_util_libs = libs['libxcb-util.so.0', abi_type]
     except KeyError:
-        utils.print_col('Workaround failed: libxcb-util.so.0 not found.', 'red')
+        utils.print_error('Workaround failed: libxcb-util.so.0 not found.')
         return
 
     if len(libxcb_util_libs) > 1:
-        utils.print_col(
+        utils.print_error(
             f'Workaround failed: Multiple matching libxcb-util found: '
-            f'{libxcb_util_libs}', 'red')
+            f'{libxcb_util_libs}')
         return
 
     libxcb_util_path = pathlib.Path(libxcb_util_libs[0])
