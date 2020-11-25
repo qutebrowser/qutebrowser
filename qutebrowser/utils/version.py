@@ -400,7 +400,7 @@ def _chromium_version() -> str:
              5.15.1: Security fixes up to 85.0.4183.83  (2020-08-25)
 
              5.15.2: Updated to 83.0.4103.122           (~2020-06-24)
-                     Security fixes up to 86.0.4240.111 (2020-10-20)
+                     Security fixes up to 86.0.4240.183 (2020-11-02)
 
     Also see:
 
