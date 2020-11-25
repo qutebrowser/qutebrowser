@@ -28,9 +28,9 @@ import re
 import os
 import os.path
 import shutil
-import venv
+import venv as pyvenv
 import subprocess
-from typing import List, Optional, Tuple, Dict
+from typing import List, Optional, Tuple, Dict, Union
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from scripts import utils, link_pyqt
@@ -46,6 +46,12 @@ class Error(Exception):
     def __init__(self, msg, code=1):
         super().__init__(msg)
         self.code = code
+
+
+def print_command(*cmd: Union[str, pathlib.Path], venv: bool) -> None:
+    """Print a command being run."""
+    prefix = 'venv$ ' if venv else '$ '
+    utils.print_col(prefix + ' '.join([str(e) for e in cmd]), 'blue')
 
 
 def parse_args(argv: List[str] = None) -> argparse.Namespace:
@@ -136,7 +142,7 @@ def run_venv(
 def pip_install(venv_dir: pathlib.Path, *args: str) -> None:
     """Run a pip install command inside the virtualenv."""
     arg_str = ' '.join(str(arg) for arg in args)
-    utils.print_col('venv$ pip install {}'.format(arg_str), 'blue')
+    print_command('pip install', arg_str, venv=True)
     run_venv(venv_dir, 'python', '-m', 'pip', 'install', *args)
 
 
@@ -156,22 +162,22 @@ def delete_old_venv(venv_dir: pathlib.Path) -> None:
         raise Error('{} does not look like a virtualenv, cowardly refusing to '
                     'remove it.'.format(venv_dir))
 
-    utils.print_col('$ rm -r {}'.format(venv_dir), 'blue')
+    print_command('rm -r', venv_dir, venv=False)
     shutil.rmtree(str(venv_dir))
 
 
 def create_venv(venv_dir: pathlib.Path, use_virtualenv: bool = False) -> None:
     """Create a new virtualenv."""
     if use_virtualenv:
-        utils.print_col('$ python3 -m virtualenv {}'.format(venv_dir), 'blue')
+        print_command('python3 -m virtualenv', venv_dir, venv=False)
         try:
             subprocess.run([sys.executable, '-m', 'virtualenv', venv_dir],
                            check=True)
         except subprocess.CalledProcessError as e:
             raise Error("virtualenv failed, exiting", e.returncode)
     else:
-        utils.print_col('$ python3 -m venv {}'.format(venv_dir), 'blue')
-        venv.create(str(venv_dir), with_pip=True)
+        print_command('python3 -m venv', venv_dir, venv=False)
+        pyvenv.create(str(venv_dir), with_pip=True)
 
 
 def upgrade_seed_pkgs(venv_dir: pathlib.Path) -> None:
@@ -282,7 +288,7 @@ def apply_xcb_util_workaround(
     # This gives us a nicer path to print, and also conveniently makes sure we
     # didn't accidentally end up with a path outside the venv.
     rel_link_path = venv_dir / link_path.relative_to(venv_dir.resolve())
-    utils.print_col(f'$ ln -s {libxcb_util_path} {rel_link_path}', 'blue')
+    print_command('ln -s', libxcb_util_path, rel_link_path, venv=False)
 
     link_path.symlink_to(libxcb_util_path)
 
@@ -375,8 +381,7 @@ def regenerate_docs(venv_dir: pathlib.Path,
         a2h_args = []
     script_path = pathlib.Path(__file__).parent / 'asciidoc2html.py'
 
-    utils.print_col('venv$ python3 scripts/asciidoc2html.py {}'
-                    .format(' '.join(a2h_args)), 'blue')
+    print_command('python3 scripts/asciidoc2html.py', *a2h_args, venv=True)
     run_venv(venv_dir, 'python', str(script_path), *a2h_args)
 
 
