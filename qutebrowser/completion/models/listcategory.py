@@ -64,6 +64,7 @@ class ListCategory(QSortFilterProxyModel):
         val = re.escape(val)
         val = val.replace(r'\ ', '.*')
         rx = QRegExp(val, Qt.CaseInsensitive)
+        qtutils.ensure_valid(rx)
         self.setFilterRegExp(rx)
         self.invalidate()
         sortcol = 0

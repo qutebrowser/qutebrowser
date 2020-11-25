@@ -18,6 +18,8 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 from unittest import mock
 
+import hypothesis
+import hypothesis.strategies
 import pytest
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QTextDocument, QColor
@@ -67,6 +69,13 @@ def test_benchmark_highlight(benchmark):
         highlighter.highlightBlock(txt)
 
     benchmark(bench)
+
+
+@hypothesis.given(text=hypothesis.strategies.text())
+def test_pattern_hypothesis(text):
+    """Make sure we can't produce invalid patterns."""
+    doc = QTextDocument()
+    completiondelegate._Highlighter(doc, text, Qt.red)
 
 
 def test_highlighted(qtbot):
