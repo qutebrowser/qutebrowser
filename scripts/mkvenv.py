@@ -25,6 +25,7 @@ import argparse
 import pathlib
 import sys
 import os
+import re
 import os.path
 import shutil
 import venv
@@ -239,15 +240,25 @@ def apply_xcb_util_workaround(
         return
 
     libs = _find_libs()
-    if 'libxcb-util.so.1' in libs:
+    abi_type = 'libc6,x86-64'  # the only one PyQt wheels are available for
+
+    if ('libxcb-util.so.1', abi_type) in libs:
         print("Workaround not needed: libxcb-util.so.1 found.")
         return
 
     try:
-        libxcb_util_path = pathlib.Path(libs['libxcb-util.so.0'])
+        libxcb_util_libs = libs['libxcb-util.so.0', abi_type]
     except KeyError:
         utils.print_col('Workaround failed: libxcb-util.so.0 not found.', 'red')
         return
+
+    if len(libxcb_util_libs) > 1:
+        utils.print_col(
+            f'Workaround failed: Multiple matching libxcb-util found: '
+            f'{libxcb_util_libs}', 'red')
+        return
+
+    libxcb_util_path = pathlib.Path(libxcb_util_libs[0])
 
     code = [
         'from PyQt5.QtCore import QLibraryInfo',
@@ -266,7 +277,7 @@ def apply_xcb_util_workaround(
     link_path.symlink_to(libxcb_util_path)
 
 
-def _find_libs() -> Dict[str, str]:
+def _find_libs() -> Dict[Tuple[str, str], List[str]]:
     """Find all system-wide .so libraries."""
     all_libs: Dict[str, str] = {}
     ldconfig_proc = subprocess.run(
@@ -275,15 +286,19 @@ def _find_libs() -> Dict[str, str]:
         stdout=subprocess.PIPE,
         encoding=sys.getfilesystemencoding(),
     )
+    pattern = re.compile(r'(?P<name>\S+) \((?P<abi_type>[^)]+)\) => (?P<path>.*)')
     for line in ldconfig_proc.stdout.splitlines():
-        if ' => ' not in line:
+        match = pattern.fullmatch(line.strip())
+        if match is None:
+            if 'libs found in cache' not in line:
+                utils.print_col(f'Failed to match ldconfig output: {line}', 'yellow')
             continue
-        line = line.strip()
-        name, path = line.split(' => ')
-        name = name.split(' (')[0]
-        if name in all_libs:
-            raise ValueError(f'Found duplicate {name} ({all_libs[name]}; {path})')
-        all_libs[name] = path
+
+        key = match.group('name'), match.group('abi_type')
+        path = match.group('path')
+
+        libs = all_libs.setdefault(key, [])
+        libs.append(path)
 
     return all_libs
 
