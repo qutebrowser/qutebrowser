@@ -23,6 +23,6 @@ from scripts import mkvenv
 
 
 def test_smoke(tmp_path):
-    """Simple smoke test of mkvenv.py"""
+    """Simple smoke test of mkvenv.py."""
     args = mkvenv.parse_args(['--venv-dir', str(tmp_path / 'venv'), '--skip-docs'])
     mkvenv.run(args)

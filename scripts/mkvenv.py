@@ -24,13 +24,13 @@
 import argparse
 import pathlib
 import sys
-import os
 import re
+import os
 import os.path
 import shutil
 import venv
 import subprocess
-from typing import List, Optional, Tuple, Dict, cast
+from typing import List, Optional, Tuple, Dict
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from scripts import utils, link_pyqt
@@ -48,7 +48,7 @@ class Error(Exception):
         self.code = code
 
 
-def parse_args(argv=None) -> argparse.Namespace:
+def parse_args(argv: List[str] = None) -> argparse.Namespace:
     """Parse commandline arguments."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--keep',
@@ -325,7 +325,7 @@ def run_qt_smoke_test(venv_dir: pathlib.Path) -> None:
         'print(f"QT_VERSION_STR: {QT_VERSION_STR}")',
         'print(f"PYQT_VERSION_STR: {PYQT_VERSION_STR}")',
         'QApplication([])',
-        'print("QApplication created successfully!")',
+        'print("Qt seems to work properly!")',
         'print()',
     ]
     try:
@@ -336,7 +336,8 @@ def run_qt_smoke_test(venv_dir: pathlib.Path) -> None:
             capture_error=True
         )
     except Error as e:
-        proc_e = cast(subprocess.CalledProcessError, e.__cause__)
+        proc_e = e.__cause__
+        assert isinstance(proc_e, subprocess.CalledProcessError), proc_e
         print(proc_e.stderr)
         raise Error(
             f"Smoke test failed with status {proc_e.returncode}. "
@@ -389,7 +390,8 @@ def run(args) -> None:
             args.pyqt_type not in ['binary', 'source']):
         raise Error('The --pyqt-version option is only available when installing PyQt '
                     'from binary or source')
-    elif args.pyqt_wheels_dir != 'wheels' and args.pyqt_type != 'wheels':
+
+    if args.pyqt_wheels_dir != 'wheels' and args.pyqt_type != 'wheels':
         raise Error('The --pyqt-wheels-dir option is only available when installing '
                     'PyQt from wheels')
 
