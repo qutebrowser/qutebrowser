@@ -93,13 +93,22 @@ def pyqt_versions() -> typing.List[str]:
     return versions + ['auto']
 
 
-def run_venv(venv_dir: pathlib.Path, executable, *args: str) -> None:
+def run_venv(
+        venv_dir: pathlib.Path,
+        executable,
+        *args: str,
+        capture_output=False,
+) -> subprocess.CompletedProcess:
     """Run the given command inside the virtualenv."""
     subdir = 'Scripts' if os.name == 'nt' else 'bin'
 
     try:
-        subprocess.run([str(venv_dir / subdir / executable)] +
-                       [str(arg) for arg in args], check=True)
+        return subprocess.run(
+            [str(venv_dir / subdir / executable)] + [str(arg) for arg in args],
+            check=True,
+            universal_newlines=capture_output,
+            stdout=subprocess.PIPE if capture_output else None,
+        )
     except subprocess.CalledProcessError as e:
         utils.print_error("Subprocess failed, exiting")
         sys.exit(e.returncode)
@@ -202,6 +211,77 @@ def install_pyqt_wheels(venv_dir: pathlib.Path,
     pip_install(venv_dir, *wheels)
 
 
+def apply_xcb_util_workaround(
+        venv_dir: pathlib.Path,
+        pyqt_type: str,
+        pyqt_version: str,
+) -> None:
+    """If needed (Debian Stable), symlink libxcb-util.so.0 -> .1.
+
+    WORKAROUND for https://bugreports.qt.io/browse/QTBUG-88688
+    """
+    utils.print_title("Running xcb-util workaround")
+
+    if not sys.platform.startswith('linux'):
+        print("Workaround not needed: Not on Linux.")
+        return
+    if pyqt_type != 'binary':
+        print("Workaround not needed: Not installing from PyQt binaries.")
+        return
+    if pyqt_version not in ['auto', '5.15']:
+        print("Workaround not needed: Not installing Qt 5.15.")
+        return
+
+    libs = _find_libs()
+    if 'libxcb-util.so.1' in libs:
+        print("Workaround not needed: libxcb-util.so.1 found.")
+        return
+
+    try:
+        libxcb_util_path = pathlib.Path(libs['libxcb-util.so.0'])
+    except KeyError:
+        utils.print_col('Workaround failed: libxcb-util.so.0 not found.', 'red')
+        return
+
+    code = [
+        'from PyQt5.QtCore import QLibraryInfo',
+        'print(QLibraryInfo.location(QLibraryInfo.LibrariesPath))',
+    ]
+    proc = run_venv(venv_dir, 'python', '-c', '; '.join(code), capture_output=True)
+    venv_lib_path = pathlib.Path(proc.stdout.strip())
+
+    link_path = venv_lib_path / libxcb_util_path.with_suffix('.1').name
+
+    # This gives us a nicer path to print, and also conveniently makes sure we
+    # didn't accidentally end up with a path outside the venv.
+    rel_link_path = venv_dir / link_path.relative_to(venv_dir.resolve())
+    utils.print_col(f'$ ln -s {libxcb_util_path} {rel_link_path}', 'blue')
+
+    link_path.symlink_to(libxcb_util_path)
+
+
+def _find_libs() -> typing.Dict[str, str]:
+    """Find all system-wide .so libraries."""
+    all_libs = {}  # type: typing.Dict[str, str]
+    ldconfig_proc = subprocess.run(
+        ['ldconfig', '-p'],
+        check=True,
+        stdout=subprocess.PIPE,
+        encoding=sys.getfilesystemencoding(),
+    )
+    for line in ldconfig_proc.stdout.splitlines():
+        if ' => ' not in line:
+            continue
+        line = line.strip()
+        name, path = line.split(' => ')
+        name = name.split(' (')[0]
+        if name in all_libs:
+            raise ValueError(f'Found duplicate {name} ({all_libs[name]}; {path})')
+        all_libs[name] = path
+
+    return all_libs
+
+
 def install_requirements(venv_dir: pathlib.Path) -> None:
     """Install qutebrowser's requirement.txt."""
     utils.print_title("Installing other qutebrowser dependencies")
@@ -274,6 +354,8 @@ def main() -> None:
         pass
     else:
         raise AssertionError
+
+    apply_xcb_util_workaround(venv_dir, args.pyqt_type, args.pyqt_version)
 
     install_requirements(venv_dir)
     install_qutebrowser(venv_dir)
