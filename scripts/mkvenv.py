@@ -30,7 +30,7 @@ import os.path
 import shutil
 import venv
 import subprocess
-from typing import List, Optional, Tuple, Dict
+from typing import List, Optional, Tuple, Dict, cast
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from scripts import utils, link_pyqt
@@ -108,19 +108,29 @@ def run_venv(
         executable,
         *args: str,
         capture_output=False,
+        capture_error=False,
+        env=None,
 ) -> subprocess.CompletedProcess:
     """Run the given command inside the virtualenv."""
     subdir = 'Scripts' if os.name == 'nt' else 'bin'
+
+    if env is None:
+        proc_env = None
+    else:
+        proc_env = os.environ.copy()
+        proc_env.update(env)
 
     try:
         return subprocess.run(
             [str(venv_dir / subdir / executable)] + [str(arg) for arg in args],
             check=True,
-            universal_newlines=capture_output,
+            universal_newlines=capture_output or capture_error,
             stdout=subprocess.PIPE if capture_output else None,
+            stderr=subprocess.PIPE if capture_error else None,
+            env=proc_env,
         )
     except subprocess.CalledProcessError as e:
-        raise Error("Subprocess failed, exiting")
+        raise Error("Subprocess failed, exiting") from e
 
 
 def pip_install(venv_dir: pathlib.Path, *args: str) -> None:
@@ -303,6 +313,36 @@ def _find_libs() -> Dict[Tuple[str, str], List[str]]:
     return all_libs
 
 
+def run_qt_smoke_test(venv_dir: pathlib.Path) -> None:
+    """Make sure the Qt installation works."""
+    utils.print_title("Running Qt smoke test")
+    code = [
+        'import sys',
+        'from PyQt5.QtWidgets import QApplication',
+        'from PyQt5.QtCore import qVersion, QT_VERSION_STR, PYQT_VERSION_STR',
+        'print(f"Python: {sys.version}")',
+        'print(f"qVersion: {qVersion()}")',
+        'print(f"QT_VERSION_STR: {QT_VERSION_STR}")',
+        'print(f"PYQT_VERSION_STR: {PYQT_VERSION_STR}")',
+        'QApplication([])',
+        'print("QApplication created successfully!")',
+        'print()',
+    ]
+    try:
+        run_venv(
+            venv_dir,
+            'python', '-c', '; '.join(code),
+            env={'QT_DEBUG_PLUGINS': '1'},
+            capture_error=True
+        )
+    except Error as e:
+        proc_e = cast(subprocess.CalledProcessError, e.__cause__)
+        print(proc_e.stderr)
+        raise Error(
+            f"Smoke test failed with status {proc_e.returncode}. "
+            "You might find additional information in the debug output above.")
+
+
 def install_requirements(venv_dir: pathlib.Path) -> None:
     """Install qutebrowser's requirement.txt."""
     utils.print_title("Installing other qutebrowser dependencies")
@@ -374,6 +414,8 @@ def run(args) -> None:
         raise AssertionError
 
     apply_xcb_util_workaround(venv_dir, args.pyqt_type, args.pyqt_version)
+    if args.pyqt_type != 'skip':
+        run_qt_smoke_test(venv_dir)
 
     install_requirements(venv_dir)
     install_qutebrowser(venv_dir)
