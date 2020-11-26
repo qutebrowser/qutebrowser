@@ -296,12 +296,19 @@ def apply_xcb_util_workaround(
 def _find_libs() -> Dict[Tuple[str, str], List[str]]:
     """Find all system-wide .so libraries."""
     all_libs: Dict[Tuple[str, str], List[str]] = {}
+
+    if pathlib.Path("/sbin/ldconfig").exists():
+        # /sbin might not be in PATH on e.g. Debian
+        ldconfig_bin = "/sbin/ldconfig"
+    else:
+        ldconfig_bin = "ldconfig"
     ldconfig_proc = subprocess.run(
-        ['ldconfig', '-p'],
+        [ldconfig_bin, '-p'],
         check=True,
         stdout=subprocess.PIPE,
         encoding=sys.getfilesystemencoding(),
     )
+
     pattern = re.compile(r'(?P<name>\S+) \((?P<abi_type>[^)]+)\) => (?P<path>.*)')
     for line in ldconfig_proc.stdout.splitlines():
         match = pattern.fullmatch(line.strip())
