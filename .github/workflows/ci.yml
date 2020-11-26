@@ -188,20 +188,6 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
 
-  semgrep:
-    if: "!contains(github.event.head_commit.message, '[ci skip]')"
-    timeout-minutes: 30
-    name: Semgrep
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: returntocorp/semgrep-action@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
-          publishDeployment: 188
-
   irc:
     timeout-minutes: 2
     continue-on-error: true
@@ -211,7 +197,7 @@ jobs:
     steps:
       - name: Send success IRC notification
         uses: Gottox/irc-message-action@v1.1
-        if: "needs.linters.result == 'success' && needs.tests.result == 'success' && needs.tests-docker.result == 'success' && needs.codeql.result == 'success' && needs.semgrep.result == 'success'"
+        if: "needs.linters.result == 'success' && needs.tests.result == 'success' && needs.tests-docker.result == 'success' && needs.codeql.result == 'success'"
         with:
           server: chat.freenode.net
           channel: '#qutebrowser-dev'
@@ -219,16 +205,16 @@ jobs:
           message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
       - name: Send failure IRC notification
         uses: Gottox/irc-message-action@v1.1
-        if: "needs.linters.result == 'failure' || needs.tests.result == 'failure' || needs.tests-docker.result == 'failure' || needs.codeql.result == 'failure' || needs.semgrep.result == 'failure'"
+        if: "needs.linters.result == 'failure' || needs.tests.result == 'failure' || needs.tests-docker.result == 'failure' || needs.codeql.result == 'failure'"
         with:
           server: chat.freenode.net
           channel: '#qutebrowser-dev'
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
-            linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}, semgrep: ${{ needs.semgrep.result }}"
+            linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}"
       - name: Send skipped IRC notification
         uses: Gottox/irc-message-action@v1.1
-        if: "needs.linters.result == 'skipped' || needs.tests.result == 'skipped' || needs.tests-docker.result == 'skipped' || needs.codeql.result == 'skipped' || needs.semgrep.result == 'skipped'"
+        if: "needs.linters.result == 'skipped' || needs.tests.result == 'skipped' || needs.tests-docker.result == 'skipped' || needs.codeql.result == 'skipped'"
         with:
           server: chat.freenode.net
           channel: '#qutebrowser-dev'
@@ -236,10 +222,10 @@ jobs:
           message: "[${{ github.workflow }}] \u00038Skipped:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
       - name: Send cancelled IRC notification
         uses: Gottox/irc-message-action@v1.1
-        if: "needs.linters.result == 'cancelled' || needs.tests.result == 'cancelled' || needs.tests-docker.result == 'cancelled' || needs.codeql.result == 'cancelled' || needs.semgrep.result == 'cancelled'"
+        if: "needs.linters.result == 'cancelled' || needs.tests.result == 'cancelled' || needs.tests-docker.result == 'cancelled' || needs.codeql.result == 'cancelled'"
         with:
           server: chat.freenode.net
           channel: '#qutebrowser-dev'
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u000314Cancelled:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
-            linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}, semgrep: ${{ needs.semgrep.result }}"
+            linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}"
