@@ -173,6 +173,7 @@ CHANGELOG_URLS = {
     'jinja2-pluralize': 'https://github.com/audreyfeldroy/jinja2_pluralize/blob/master/HISTORY.rst',
     'mypy-extensions': 'https://github.com/python/mypy_extensions/commits/master',
     'pyroma': 'https://github.com/regebro/pyroma/blob/master/HISTORY.txt',
+    'adblock': 'https://github.com/ArniDagur/python-adblock/blob/master/CHANGELOG.md',
     'pyPEG2': None,
 }
 
