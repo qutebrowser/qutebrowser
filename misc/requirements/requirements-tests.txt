@@ -5,7 +5,7 @@ attrs==20.3.0
 beautifulsoup4==4.9.3
 certifi==2020.11.8
 chardet==3.0.4
-cheroot==8.4.7
+cheroot==8.4.8
 click==7.1.2
 # colorama==0.4.4
 coverage==5.3
