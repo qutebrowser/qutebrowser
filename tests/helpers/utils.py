@@ -251,7 +251,7 @@ def blocked_hosts():
 
 
 def adblock_dataset_tsv():
-    return _decompress_gzip_datafile("adblock_dataset.tsv.gz")
+    return _decompress_gzip_datafile("brave-adblock/ublock-matches.tsv.gz")
 
 
 def easylist_txt():

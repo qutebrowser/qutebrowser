@@ -96,14 +96,14 @@ def run_function_on_dataset(given_function):
     to values to the given function, row by row.
     """
     dataset_type_to_enum = {
-        0: ResourceType.unknown,
-        1: ResourceType.image,
-        2: ResourceType.stylesheet,
-        3: ResourceType.media,
-        4: ResourceType.script,
-        5: ResourceType.font_resource,
-        6: ResourceType.xhr,
-        7: ResourceType.sub_frame,
+        "unknown": ResourceType.unknown,
+        "image": ResourceType.image,
+        "stylesheet": ResourceType.stylesheet,
+        "media": ResourceType.media,
+        "script": ResourceType.script,
+        "font_resource": ResourceType.font_resource,
+        "xhr": ResourceType.xhr,
+        "sub_frame": ResourceType.sub_frame,
     }
 
     dataset = utils.adblock_dataset_tsv()
@@ -111,7 +111,7 @@ def run_function_on_dataset(given_function):
     for row in reader:
         url = QUrl(row["url"])
         source_url = QUrl(row["source_url"])
-        resource_type = dataset_type_to_enum[int(row["type"])]
+        resource_type = dataset_type_to_enum[row["type"]]
         given_function(url, source_url, resource_type)
 
 
