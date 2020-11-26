@@ -1,6 +1,22 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# vim: fenc=utf-8:et:ts=4:sts=4:sw=4:fdm=marker
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+
+# Copyright 2020 Árni Dagur <arni@dagur.eu>
+#
+# This file is part of qutebrowser.
+#
+# qutebrowser is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# qutebrowser is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import io
 import os
@@ -16,7 +32,7 @@ ROWS_TO_USE = 30_000
 
 
 def type_rename(type_str: str) -> Optional[str]:
-    # Use the same resource type names as QtWebEngine
+    """Use the same resource type names as QtWebEngine."""
     if type_str == "other":
         return "unknown"
     if type_str == "xmlhttprequest":
@@ -32,7 +48,7 @@ if __name__ == "__main__":
     # Download file or use cached version
     if os.path.isfile(CACHE_LOCATION):
         print(f"Using cached file {CACHE_LOCATION}")
-        with open(CACHE_LOCATION, "r") as cache_f:
+        with open(CACHE_LOCATION, "r", encoding="utf-8") as cache_f:
             data = io.StringIO(cache_f.read())
     else:
         request = urllib.request.Request(URL)
@@ -41,7 +57,7 @@ if __name__ == "__main__":
         assert response.status == 200
         data_str = response.read().decode("utf-8")
         print(f"Saving to cache file {CACHE_LOCATION} ...")
-        with open(CACHE_LOCATION, "w") as cache_f:
+        with open(CACHE_LOCATION, "w", encoding="utf-8") as cache_f:
             cache_f.write(data_str)
         data = io.StringIO(data_str)
 

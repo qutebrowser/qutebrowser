@@ -284,7 +284,7 @@ def init(context: apitypes.InitContext) -> None:
     global _outdated_version
 
     _adblock_info = version.MODULE_INFO["adblock"]
-    if adblock is None or _adblock_info.is_outdated(): # type: ignore[unreachable]
+    if adblock is None or _adblock_info.is_outdated():  # type: ignore[unreachable]
         # We want 'adblock' to be an optional dependency. If the module is
         # not installed or is outdated, we simply set the `ad_blocker` global to
         # `None`.
