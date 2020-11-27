@@ -220,6 +220,16 @@ def _validate_untrusted_args(argv):
             sys.exit("Found {} after --untrusted-args, aborting.".format(arg))
 
 
+def start_new_instance(args):
+    """start a new instance."""
+    from qutebrowser.utils import standarddir
+    from qutebrowser.misc import ipcclient
+
+    # In order to get socket path for starting a new instance
+    standarddir.init(args)
+    return ipcclient.send(args)
+
+
 def main():
     _validate_untrusted_args(sys.argv)
     parser = get_argparser()
@@ -228,6 +238,8 @@ def main():
     if args.json_args is not None:
         args = _unpack_json_args(args)
     earlyinit.early_init(args)
+    if start_new_instance(args):
+        sys.exit()
     # We do this imports late as earlyinit needs to be run first (because of
     # version checking and other early initialization)
     from qutebrowser import app
