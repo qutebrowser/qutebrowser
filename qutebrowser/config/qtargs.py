@@ -79,8 +79,10 @@ def _darkmode_prefix() -> str:
 
 def _darkmode_settings() -> typing.Iterator[typing.Tuple[str, str]]:
     """Get necessary blink settings to configure dark mode for QtWebEngine."""
-    if (qtutils.version_check('5.15', compiled=False) and
+    if (qtutils.version_check('5.15.2', compiled=False) and
             config.val.colors.webpage.prefers_color_scheme_dark):
+        # In future versions of 'blink', (> Qt 5.15.2) the enumeration has
+        # changed and this will need to be set to '0' instead.
         yield "preferredColorScheme", "1"
 
     if not config.val.colors.webpage.darkmode.enabled:
@@ -335,10 +337,10 @@ def _qtwebengine_settings_args() -> typing.Iterator[str]:
         }
 
     if (qtutils.version_check('5.14', compiled=False) and
-            not qtutils.version_check('5.15', compiled=False)):
-        # In Qt 5.14, `--force-dark-mode` is used to set the preferred
-        # colorscheme. In Qt 5.15, this is handled by a blink-setting
-        # instead.
+            not qtutils.version_check('5.15.2', compiled=False)):
+        # In Qt 5.14 to 5.15.1, `--force-dark-mode` is used to set the
+        # preferred colorscheme. In Qt 5.15.2, this is handled by a
+        # blink-setting instead.
         settings['colors.webpage.prefers_color_scheme_dark'] = {
             True: '--force-dark-mode',
             False: None,
