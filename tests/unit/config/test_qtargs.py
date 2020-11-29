@@ -292,10 +292,14 @@ class TestQtArgs:
     @pytest.mark.parametrize('dark, qt_version, added', [
         (True, "5.13", False),
         (True, "5.14", True),
-        (True, "5.15", False),
+        (True, "5.15.0", True),
+        (True, "5.15.1", True),
+        (True, "5.15.2", False),
         (False, "5.13", False),
         (False, "5.14", False),
-        (False, "5.15", False),
+        (False, "5.15.0", False),
+        (False, "5.15.1", False),
+        (False, "5.15.2", False),
     ])
     @utils.qt514
     def test_prefers_color_scheme_dark(self, config_stub, monkeypatch, parser,
