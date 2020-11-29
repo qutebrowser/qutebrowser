@@ -52,6 +52,9 @@ qt514 = pytest.mark.skipif(
 skip_qt511 = pytest.mark.skipif(
     qtutils.version_check('5.11'), reason="Needs Qt 5.10 or earlier")
 
+qt515 = pytest.mark.skipif(
+    not qtutils.version_check('5.15'), reason="Needs Qt 5.15 or newer")
+
 
 class PartialCompareOutcome:
 

@@ -317,20 +317,20 @@ class TestQtArgs:
         else:
             assert arg in args
 
-    @pytest.mark.parametrize('dark, new_qt, added', [
-        (True, True, True),
-        (True, False, False),
-        (False, True, False),
-        (False, False, False),
+    @pytest.mark.parametrize('dark, qt_version, added', [
+        (True, "5.13", False),
+        (True, "5.14", True),
+        (True, "5.15", False),
+        (False, "5.13", False),
+        (False, "5.14", False),
+        (False, "5.15", False),
     ])
     @utils.qt514
     def test_prefers_color_scheme_dark(self, config_stub, monkeypatch, parser,
-                                       dark, new_qt, added):
+                                       dark, qt_version, added):
         monkeypatch.setattr(qtargs.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
-        monkeypatch.setattr(qtargs.qtutils, 'version_check',
-                            lambda version, exact=False, compiled=True:
-                            new_qt)
+        monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: qt_version)
 
         config_stub.val.colors.webpage.prefers_color_scheme_dark = dark
 
@@ -590,6 +590,18 @@ class TestDarkMode:
             assert not opt.supports_pattern, name
             assert opt.restart, name
             assert opt.raw_backends == backends, name
+
+    @pytest.mark.parametrize('enabled, expected', [
+        # Disabled or nothing set
+        (False, []),
+
+        # Enabled in configuration
+        (True, [("preferredColorScheme", "1")]),
+    ])
+    @utils.qt515
+    def test_colorscheme(self, config_stub, monkeypatch, enabled, expected):
+        config_stub.set_obj('colors.webpage.prefers_color_scheme_dark', enabled)
+        assert list(qtargs._darkmode_settings()) == expected
 
 
 class TestEnvVars:
