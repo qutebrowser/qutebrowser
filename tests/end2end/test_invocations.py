@@ -429,11 +429,6 @@ def test_preferred_colorscheme(request, quteproc_new):
     ]
     quteproc_new.start(args)
 
-    quteproc_new.open_path("qute://version")
-    quteproc_new.send_cmd(':jseval --world main '
+    quteproc_new.send_cmd(':jseval '
                           'matchMedia("(prefers-color-scheme: dark)").matches')
-    line = quteproc_new.wait_for(message='True')
-    line.expected = True
-
-    quteproc_new.send_cmd(':quit')
-    quteproc_new.wait_for_quit()
+    quteproc_new.wait_for(message='True')
