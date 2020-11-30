@@ -1,5 +1,6 @@
 beautifulsoup4
-cheroot
+# https://github.com/cherrypy/cheroot/issues/341
+cheroot!=8.4.8
 coverage
 Flask
 hypothesis
