@@ -4,7 +4,7 @@ diff-cover==4.0.1
 inflect==5.0.2
 Jinja2==2.11.2
 jinja2-pluralize==0.3.0
-lxml==4.6.1
+lxml==4.6.2
 MarkupSafe==1.1.1
 mypy==0.790
 mypy-extensions==0.4.3
