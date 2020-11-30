@@ -11,7 +11,7 @@ hunter==3.3.1
 idna==2.10
 jwcrypto==0.8
 manhole==1.6.0
-packaging==20.4
+packaging==20.7
 pycparser==2.20
 Pympler==0.9
 pyparsing==2.4.7
