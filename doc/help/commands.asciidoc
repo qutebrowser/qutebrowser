@@ -1310,7 +1310,8 @@ Note that the command is *not* run in a shell, so things like `$VAR` or `> outpu
 * +*-v*+, +*--verbose*+: Show notifications when the command started/exited.
 * +*-o*+, +*--output*+: Show the output in a new tab.
 * +*-m*+, +*--output-messages*+: Show the output as messages.
-* +*-d*+, +*--detach*+: Whether the command should be detached from qutebrowser.
+* +*-d*+, +*--detach*+: Detach the command from qutebrowser so that it continues running when qutebrowser quits.
+
 
 ==== count
 Given to userscripts as $QUTE_COUNT.
