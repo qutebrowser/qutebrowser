@@ -162,7 +162,7 @@ class TestResources:
         """Make sure we don't crash with a broken local installation."""
         monkeypatch.setattr(pdfjs, '_SYSTEM_PATHS', [])
         monkeypatch.setattr(pdfjs.os.path, 'expanduser',
-                            lambda _in: tmpdir / 'fallback')
+                            lambda _in: str(tmpdir / 'fallback'))
         read_file_mock.side_effect = FileNotFoundError
 
         (data_tmpdir / 'pdfjs' / 'pdf.js').ensure()  # But no viewer.html
