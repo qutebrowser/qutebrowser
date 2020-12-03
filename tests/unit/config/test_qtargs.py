@@ -290,11 +290,12 @@ class TestQtArgs:
             assert arg in args
 
     @pytest.mark.parametrize('dark, qt_version, added', [
-        (True, "5.13", False),
+        (True, "5.13", False),  # not supported
         (True, "5.14", True),
         (True, "5.15.0", True),
         (True, "5.15.1", True),
-        (True, "5.15.2", False),
+        (True, "5.15.2", False),  # handled via blink setting
+
         (False, "5.13", False),
         (False, "5.14", False),
         (False, "5.15.0", False),
