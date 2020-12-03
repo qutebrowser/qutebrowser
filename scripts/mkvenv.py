@@ -434,7 +434,7 @@ def run(args) -> None:
         raise AssertionError
 
     apply_xcb_util_workaround(venv_dir, args.pyqt_type, args.pyqt_version)
-    if args.pyqt_type != 'skip':
+    if args.pyqt_type != 'skip' and not args.skip_smoke_test:
         run_qt_smoke_test(venv_dir)
 
     install_requirements(venv_dir)
