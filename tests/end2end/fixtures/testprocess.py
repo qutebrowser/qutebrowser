@@ -320,8 +320,8 @@ class Process(QObject):
         ok = self.proc.waitForFinished(5000)
         if not ok:
             cmdline = ' '.join([self.proc.program()] + self.proc.arguments())
-            warnings.warn(f"Test process {cmdline} with PID {self.proc.processId()} "
-                          "failed to terminate!")
+            warnings.warn("Test process {} with PID {} failed to terminate!"
+                          .format(cmdline, self.proc.processId()))
             self.proc.kill()
             self.proc.waitForFinished()
 
