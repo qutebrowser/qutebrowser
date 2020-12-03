@@ -87,6 +87,9 @@ def parse_args(argv: List[str] = None) -> argparse.Namespace:
     parser.add_argument('--skip-docs',
                         action='store_true',
                         help="Skip doc generation.")
+    parser.add_argument('--skip-smoke-test',
+                        action='store_true',
+                        help="Skip Qt smoke test.")
     parser.add_argument('--tox-error',
                         action='store_true',
                         help=argparse.SUPPRESS)
