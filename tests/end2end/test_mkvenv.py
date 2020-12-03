@@ -19,10 +19,15 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import os
 from scripts import mkvenv
 
 
 def test_smoke(tmp_path):
     """Simple smoke test of mkvenv.py."""
-    args = mkvenv.parse_args(['--venv-dir', str(tmp_path / 'venv'), '--skip-docs'])
+    argv = ['--venv-dir', str(tmp_path / 'venv'), '--skip-docs']
+    if 'TRAVIS' in os.environ:  # Travis doesn't have necessary libs installed
+        argv.append('--skip-smoke-test')
+    print(argv)
+    args = mkvenv.parse_args(argv)
     mkvenv.run(args)
