@@ -35,6 +35,7 @@ Sessionx.vim
 /.pytest_cache
 /.testmondata
 /.hypothesis
+/.benchmarks
 .mypy_cache
 /prof
 /venv
