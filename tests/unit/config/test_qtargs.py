@@ -613,7 +613,7 @@ class TestDarkMode:
     def test_colorscheme(self, config_stub, monkeypatch, qversion, enabled, expected):
         monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: qversion)
         config_stub.val.colors.webpage.prefers_color_scheme_dark = enabled
-        assert list(qtargs._dark_mode_settings()) == expected
+        assert list(qtargs._darkmode_settings()) == expected
 
 
 class TestEnvVars:
