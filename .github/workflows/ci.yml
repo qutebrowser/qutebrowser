@@ -133,6 +133,10 @@ jobs:
           - testenv: py39-pyqt515
             os: ubuntu-20.04
             python: 3.9-dev
+          ### PyQt 5.15.0 (Python 3.9)
+          - testenv: py39-pyqt5150
+            os: ubuntu-20.04
+            python: 3.9
           ### PyQt 5.15 (Python 3.8, with coverage)
           - testenv: py38-pyqt515-cov
             os: ubuntu-20.04
