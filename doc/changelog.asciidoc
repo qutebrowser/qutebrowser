@@ -64,6 +64,9 @@ Added
   settings might stop working. As a (currently undocumented) escape hatch, this
   version adds a `QUTE_DARKMODE_VARIANT=qt_515_2` environment variable which can
   be set to get the correct behavior in (transitive) situations like this.
+- New `--desktop-file-name` commandline argument, which can be used to customize
+  the desktop filename passed to Qt (which is used to set the `app_id` on
+  Wayland).
 - New userscripts:
   - `kodi` to play videos in Kodi
   - `qr` to generate a QR code of the current URL

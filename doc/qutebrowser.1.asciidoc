@@ -62,6 +62,9 @@ show it.
 *--backend* '{webkit,webengine}'::
     Which backend to use.
 
+*--desktop-file-name* 'DESKTOP_FILE_NAME'::
+    Set the base name of the desktop entry for this application. Used to set the app_id under Wayland. See https://doc.qt.io/qt-5/qguiapplication.html#desktopFileName-prop
+
 === debug arguments
 *-l* '{critical,error,warning,info,debug,vdebug}', *--loglevel* '{critical,error,warning,info,debug,vdebug}'::
     Override the configured console loglevel
