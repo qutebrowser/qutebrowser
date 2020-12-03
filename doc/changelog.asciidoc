@@ -87,7 +87,8 @@ Changed
 - URLs such as `::1/foo` are now handled as a search term or local file rather
   than IPv6. Use `[::1]/foo` to force parsing as IPv6 instead.
 - The `mkvenv.py` script now runs a "smoke test" after setting up the virtual
-  environment to ensure it's working as expected.
+  environment to ensure it's working as expected. If necessary, the test can be
+  skipped via a new `--skip-smoke-test` flag.
 - Both qutebrowser userscripts and Greasemonkey scripts are now additionally
   picked up from qutebrowser's config directory (the `userscripts` and
   `greasemonkey` subdirectories of e.g. `~/.config/qutebrowser/`) rather than only
