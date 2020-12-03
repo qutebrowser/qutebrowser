@@ -425,8 +425,11 @@ class TestQtArgs:
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
 
-        old = '--blink-settings=darkModeEnabled=true,darkModeImagePolicy=2'
-        new = '--blink-settings=forceDarkModeEnabled=true,forceDarkModeImagePolicy=2'
+        old = '--blink-settings=darkModeEnabled=true'
+        new = '--blink-settings=forceDarkModeEnabled=true'
+        if not smart_image_policy_broken:
+            old += ',darkModeImagePolicy=2'
+            new += ',forceDarkModeImagePolicy=2'
 
         assert old in args or new in args
 
@@ -486,7 +489,7 @@ class TestDarkMode:
                             lambda version, exact=False, compiled=True:
                             new_qt)
 
-        if expected:
+        if expected and not smart_image_policy_broken:
             expected.append((add_prefix('ImagePolicy'), '2'))
 
         assert list(qtargs._darkmode_settings()) == expected
@@ -523,7 +526,7 @@ class TestDarkMode:
 
         expected = []
         expected.append((add_prefix('Enabled'), 'true'))
-        if exp_key != 'ImagePolicy':
+        if exp_key != 'ImagePolicy' and not smart_image_policy_broken:
             expected.append((add_prefix('ImagePolicy'), '2'))
         expected.append((add_prefix(exp_key), exp_val))
 
