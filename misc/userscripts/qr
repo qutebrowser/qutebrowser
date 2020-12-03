@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 pngfile=$(mktemp --suffix=.png)
 trap 'rm -f "$pngfile"' EXIT
