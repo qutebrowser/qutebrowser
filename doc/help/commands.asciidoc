@@ -599,7 +599,7 @@ Syntax: +:greasemonkey-reload [*--force*]+
 
 Re-read Greasemonkey scripts from disk.
 
-The scripts are read from a 'greasemonkey' subdirectory in qutebrowser's data directory (see `:version`).
+The scripts are read from a 'greasemonkey' subdirectory in qutebrowser's data or config directories (see `:version`).
 
 ==== optional arguments
 * +*-f*+, +*--force*+: For any scripts that have required dependencies, re-download them.
