@@ -197,11 +197,11 @@ Fixed
 - With Qt 5.15.2, lines/borders coming from the  `readability-js` userscript
   were invisible. This is now fixed by changing the border color to grey (with all
   Qt versions).
-- Minor performance improvements.
 - Due to changes in the underlying Chromium, the
   `colors.webpage.prefers_color_scheme_dark` setting broke with Qt 5.15.2. It now
   works properly again.
-- (TODO) Fix for various functionality breaking in private windows with v1.14.0,
+- Minor performance improvements.
+- Fix for various functionality breaking in private windows with v1.14.0,
   after the last private window is closed. This includes:
     * Ad blocking
     * Downloads
