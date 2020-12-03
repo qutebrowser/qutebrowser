@@ -57,7 +57,7 @@ const HEADER = `
         table,
         th,
         td {
-            border: 1px solid currentColor;
+            border: 1px solid grey;
             border-collapse: collapse;
             padding: 6px;
             vertical-align: top;
@@ -77,7 +77,7 @@ const HEADER = `
             background-color: #dddddd;
         }
         blockquote {
-            border-inline-start: 2px solid #333333 !important;
+            border-inline-start: 2px solid grey !important;
             padding: 0;
             padding-inline-start: 16px;
             margin-inline-start: 24px;
