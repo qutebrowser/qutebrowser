@@ -264,6 +264,12 @@ def _variant() -> Variant:
 
 def settings() -> Iterator[Tuple[str, str]]:
     """Get necessary blink settings to configure dark mode for QtWebEngine."""
+    if (qtutils.version_check('5.15.2', compiled=False) and
+            config.val.colors.webpage.prefers_color_scheme_dark):
+        # In future versions of 'blink', (> Qt 5.15.2) the enumeration has
+        # changed and this will need to be set to '0' instead.
+        yield "preferredColorScheme", "1"
+
     if not config.val.colors.webpage.darkmode.enabled:
         return
 
