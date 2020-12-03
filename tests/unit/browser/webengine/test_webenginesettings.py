@@ -34,6 +34,8 @@ def init(qapp, config_stub, cache_tmpdir, data_tmpdir, monkeypatch):
     monkeypatch.setattr(webenginesettings.webenginequtescheme, 'init',
                         lambda: None)
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
+    monkeypatch.setattr(
+        webenginesettings, 'private_profile', None)  # for "is_first_time"
     init_args = types.SimpleNamespace(enable_webengine_inspector=False)
     webenginesettings.init(init_args)
     config_stub.changed.disconnect(webenginesettings._update_settings)

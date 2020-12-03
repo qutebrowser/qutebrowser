@@ -390,10 +390,16 @@ def init_private_profile():
         private_profile.setter.init_profile()
 
         if not is_first_time:
+            # pylint: disable=protected-access
             from qutebrowser.browser.webengine import webenginetab
+
+            assert webenginetab._qute_scheme_handler is not None
+            assert webenginetab.req_interceptor is not None
             webenginetab._qute_scheme_handler.install(private_profile)
             webenginetab.req_interceptor.install(private_profile)
+
             objreg.get('webengine-download-manager').install(private_profile)
+
             from qutebrowser.browser.webengine import cookies
             cookies.install_filter(private_profile)
 
