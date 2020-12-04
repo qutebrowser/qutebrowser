@@ -200,6 +200,9 @@ Fixed
 - Due to changes in the underlying Chromium, the
   `colors.webpage.prefers_color_scheme_dark` setting broke with Qt 5.15.2. It now
   works properly again.
+- A bug in the `pkg_resources` module used by qutebrowser caused deprecation
+  warnings to appear on start with Python 3.9 on some setups. Those are now
+  hidden.
 - Minor performance improvements.
 - Fix for various functionality breaking in private windows with v1.14.0,
   after the last private window is closed. This includes:
