@@ -277,7 +277,8 @@ class ProfileSetter:
 
     def set_persistent_cookie_policy(self):
         """Set the HTTP Cookie size for the given profile."""
-        assert not self._profile.isOffTheRecord()
+        if self._profile.isOffTheRecord():
+            return
         if config.val.content.cookies.store:
             value = QWebEngineProfile.AllowPersistentCookies
         else:
@@ -322,7 +323,8 @@ def _update_settings(option):
             private_profile.setter.set_http_cache_size()
     elif option == 'content.cookies.store':
         default_profile.setter.set_persistent_cookie_policy()
-        # We're not touching the private profile's cookie policy.
+        if private_profile:
+            private_profile.setter.set_persistent_cookie_policy()
     elif option == 'spellcheck.languages':
         default_profile.setter.set_dictionary_language()
         if private_profile:
@@ -370,7 +372,6 @@ def _init_default_profile():
         os.path.join(standarddir.cache(), 'webengine'))
     default_profile.setPersistentStoragePath(
         os.path.join(standarddir.data(), 'webengine'))
-    default_profile.setter.set_persistent_cookie_policy()
 
     _init_profile(default_profile)
 
