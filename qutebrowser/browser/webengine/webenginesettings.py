@@ -338,54 +338,53 @@ def init_user_agent():
     _init_user_agent_str(QWebEngineProfile.defaultProfile().httpUserAgent())
 
 
+def _init_profile(profile: QWebEngineProfile) -> None:
+    """Initialize a new QWebEngineProfile.
+
+    This currently only contains the steps which are shared between a private and a
+    non-private profile (at the moment, only the default profile).
+    """
+    profile.setter = ProfileSetter(profile)  # type: ignore[attr-defined]
+    profile.setter.init_profile()
+
+    _qute_scheme_handler.install(profile)
+    _req_interceptor.install(profile)
+    _download_manager.install(profile)
+    cookies.install_filter(profile)
+
+    # Clear visited links on web history clear
+    history.web_history.history_cleared.connect(profile.clearAllVisitedLinks)
+    history.web_history.url_cleared.connect(
+        lambda url: profile.clearVisitedLinks([url]))
+
+
 def _init_default_profile():
     """Init the default QWebEngineProfile."""
     global default_profile
 
     default_profile = QWebEngineProfile.defaultProfile()
+
     init_user_agent()
 
-    default_profile.setter = ProfileSetter(  # type: ignore[attr-defined]
-        default_profile)
     default_profile.setCachePath(
         os.path.join(standarddir.cache(), 'webengine'))
     default_profile.setPersistentStoragePath(
         os.path.join(standarddir.data(), 'webengine'))
-    default_profile.setter.init_profile()
     default_profile.setter.set_persistent_cookie_policy()
 
-    _qute_scheme_handler.install(default_profile)
-    _req_interceptor.install(default_profile)
-    _download_manager.install(default_profile)
-    cookies.install_filter(default_profile)
-
-    # Clear visited links on web history clear
-    history.web_history.history_cleared.connect(default_profile.clearAllVisitedLinks)
-    history.web_history.url_cleared.connect(
-        lambda url, profile=default_profile: profile.clearVisitedLinks([url]))
+    _init_profile(default_profile)
 
 
 def init_private_profile():
     """Init the private QWebEngineProfile."""
     global private_profile
 
-    if not qtutils.is_single_process():
-        private_profile = QWebEngineProfile()
-        private_profile.setter = ProfileSetter(  # type: ignore[attr-defined]
-            private_profile)
-        assert private_profile.isOffTheRecord()
-        private_profile.setter.init_profile()
+    if qtutils.is_single_process():
+        return
 
-        _qute_scheme_handler.install(private_profile)
-        _req_interceptor.install(private_profile)
-        _download_manager.install(private_profile)
-        cookies.install_filter(private_profile)
-
-        # Clear visited links on web history clear
-        history.web_history.history_cleared.connect(
-            private_profile.clearAllVisitedLinks)
-        history.web_history.url_cleared.connect(
-            lambda url, profile=private_profile: profile.clearVisitedLinks([url]))
+    private_profile = QWebEngineProfile()
+    assert private_profile.isOffTheRecord()
+    _init_profile(private_profile)
 
 
 def _init_site_specific_quirks():
