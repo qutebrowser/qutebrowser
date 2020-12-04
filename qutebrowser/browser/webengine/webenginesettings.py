@@ -383,7 +383,7 @@ def init_private_profile():
 
         # Clear visited links on web history clear
         history.web_history.history_cleared.connect(
-            default_profile.clearAllVisitedLinks)
+            private_profile.clearAllVisitedLinks)
         history.web_history.url_cleared.connect(
             lambda url, profile=private_profile: profile.clearVisitedLinks([url]))
 
