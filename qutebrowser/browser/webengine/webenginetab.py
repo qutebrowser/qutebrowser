@@ -31,7 +31,7 @@ from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript, QWebEngineHistory
 
 from qutebrowser.config import config
-from qutebrowser.browser import (browsertab, eventfilter, shared, webelem, greasemonkey)
+from qutebrowser.browser import browsertab, eventfilter, shared, webelem, greasemonkey
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            webenginesettings, certificateerror)
 from qutebrowser.misc import miscwidgets, objects
