@@ -24,8 +24,7 @@ import pytest
 QtWebEngineWidgets = pytest.importorskip('PyQt5.QtWebEngineWidgets')
 
 from qutebrowser.browser.webengine import webenginesettings
-from qutebrowser.utils import usertypes, objreg
-from qutebrowser.misc import objects, quitter
+from qutebrowser.utils import usertypes
 
 
 @pytest.fixture
