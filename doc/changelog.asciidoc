@@ -106,7 +106,7 @@ Fixed
 - The `format_json` userscript now uses `env` in its shebang, making it work
   correctly on systems where `bash` isn't located in `/bin`.
 
-v1.14.1 (unreleased)
+v1.14.1 (2020-12-04)
 --------------------
 
 Added
