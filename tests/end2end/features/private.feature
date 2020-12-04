@@ -226,7 +226,7 @@ Feature: Using private browsing
         And I open data/adblock/external_logo.html in a private window
         Then "Request to qutebrowser.org blocked by host blocker." should be logged
 
-    @pyqt!=5.15.0   # cookie filtering is broken on QtWebEngine 5.15.0
+    @pyqt!=5.15.0 @qt>=5.11  # cookie filtering is broken on QtWebEngine 5.15.0
     Scenario: Cookie filtering after reiniting private profile
         When I open about:blank in a private window
         And I run :close
