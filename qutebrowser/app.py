@@ -492,8 +492,6 @@ def _init_modules(*, args):
     log.init.debug("Misc initialization...")
     macros.init()
     windowundo.init()
-    # Init backend-specific stuff
-    browsertab.init()
 
 
 class Application(QApplication):

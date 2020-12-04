@@ -27,66 +27,17 @@ from typing import cast, Union
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl, QObject
 from PyQt5.QtNetwork import QAuthenticator
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript, QWebEngineHistory
 
 from qutebrowser.config import config
-from qutebrowser.browser import (browsertab, eventfilter, shared, webelem,
-                                 history, greasemonkey)
+from qutebrowser.browser import browsertab, eventfilter, shared, webelem, greasemonkey
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
-                                           interceptor, webenginequtescheme,
-                                           cookies, webenginedownloads,
                                            webenginesettings, certificateerror)
-from qutebrowser.misc import miscwidgets, objects, quitter
+from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               message, objreg, jinja, debug)
+                               message, jinja, debug)
 from qutebrowser.qt import sip
-
-
-_qute_scheme_handler = None
-
-
-def init():
-    """Initialize QtWebEngine-specific modules."""
-    # For some reason we need to keep a reference, otherwise the scheme handler
-    # won't work...
-    # https://www.riverbankcomputing.com/pipermail/pyqt/2016-September/038075.html
-    global _qute_scheme_handler
-
-    app = QApplication.instance()
-    log.init.debug("Initializing qute://* handler...")
-    _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(parent=app)
-    _qute_scheme_handler.install(webenginesettings.default_profile)
-    if webenginesettings.private_profile:
-        _qute_scheme_handler.install(webenginesettings.private_profile)
-
-    log.init.debug("Initializing request interceptor...")
-    req_interceptor = interceptor.RequestInterceptor(parent=app)
-    req_interceptor.install(webenginesettings.default_profile)
-    if webenginesettings.private_profile:
-        req_interceptor.install(webenginesettings.private_profile)
-
-    log.init.debug("Initializing QtWebEngine downloads...")
-    download_manager = webenginedownloads.DownloadManager(parent=app)
-    download_manager.install(webenginesettings.default_profile)
-    if webenginesettings.private_profile:
-        download_manager.install(webenginesettings.private_profile)
-    objreg.register('webengine-download-manager', download_manager)
-    quitter.instance.shutting_down.connect(download_manager.shutdown)
-
-    log.init.debug("Initializing cookie filter...")
-    cookies.install_filter(webenginesettings.default_profile)
-    if webenginesettings.private_profile:
-        cookies.install_filter(webenginesettings.private_profile)
-
-    # Clear visited links on web history clear
-    for p in [webenginesettings.default_profile,
-              webenginesettings.private_profile]:
-        if not p:
-            continue
-        history.web_history.history_cleared.connect(p.clearAllVisitedLinks)
-        history.web_history.url_cleared.connect(
-            lambda url, profile=p: profile.clearVisitedLinks([url]))
 
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
