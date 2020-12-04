@@ -43,6 +43,7 @@ def default_profile(monkeypatch):
     """
     profile = QtWebEngineWidgets.QWebEngineProfile()
     profile.setter = webenginesettings.ProfileSetter(profile)
+    monkeypatch.setattr(profile, 'isOffTheRecord', lambda: False)
     monkeypatch.setattr(webenginesettings, 'default_profile', profile)
     return profile
 
