@@ -291,6 +291,8 @@ def init_venv(host_python, venv_dir, requirements, pre=False):
 def parse_args():
     """Parse commandline arguments via argparse."""
     parser = argparse.ArgumentParser()
+    parser.add_argument('--force-test', help="Force running environment tests",
+                        action='store_true')
     parser.add_argument('names', nargs='*')
     return parser.parse_args()
 
@@ -481,7 +483,6 @@ def build_requirements(name):
 
 def test_tox():
     """Test requirements via tox."""
-    utils.print_title('Testing via tox')
     host_python = get_host_python('tox')
     req_path = os.path.join(REQ_DIR, 'requirements-tox.txt')
 
@@ -506,10 +507,14 @@ def test_tox():
                                check=True)
 
 
-def test_requirements(name, outfile):
+def test_requirements(name, outfile, *, force=False):
     """Test a resulting requirements file."""
     print()
     utils.print_subtitle("Testing")
+
+    if name not in _get_changed_files() and not force:
+        print(f"Skipping test as there were no changes for {name}.")
+        return
 
     host_python = get_host_python(name)
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -528,11 +533,16 @@ def main():
     for name in names:
         utils.print_title(name)
         outfile = build_requirements(name)
-        test_requirements(name, outfile)
+        test_requirements(name, outfile, force=args.force_test)
 
-    if not args.names:
+    utils.print_title('Testing via tox')
+    if args.names and not args.force_test:
         # If we selected a subset, let's not go through the trouble of testing
         # via tox.
+        print("Skipping: Selected a subset only")
+    elif not _get_changed_files() and not args.force_test:
+        print("Skipping: No changes")
+    else:
         test_tox()
 
     print_changed_files()
