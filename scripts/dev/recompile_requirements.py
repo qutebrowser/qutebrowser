@@ -414,7 +414,7 @@ def print_changed_files():
     utils.print_subtitle('Diff')
     print(diff_text)
 
-    if 'CI' in os.environ:
+    if utils.ON_CI:
         print()
         print('::set-output name=changed::' +
               files_text.replace('\n', '%0A'))

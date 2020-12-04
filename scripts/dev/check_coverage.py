@@ -339,7 +339,7 @@ def main_check():
         print("or check https://codecov.io/github/qutebrowser/qutebrowser")
         print()
 
-    if 'CI' in os.environ:
+    if scriptutils.ON_CI:
         print("Keeping coverage.xml on CI.")
     else:
         os.remove('coverage.xml')

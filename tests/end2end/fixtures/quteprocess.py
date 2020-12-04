@@ -691,7 +691,7 @@ class QuteProc(testprocess.Process):
             is_dl_inconsistency = str(self.captured_log[-1]).endswith(
                 "_dl_allocate_tls_init: Assertion "
                 "`listp->slotinfo[cnt].gen <= GL(dl_tls_generation)' failed!")
-            if 'CI' in os.environ and is_dl_inconsistency:
+            if testutils.ON_CI and is_dl_inconsistency:
                 # WORKAROUND for https://sourceware.org/bugzilla/show_bug.cgi?id=19329
                 self.captured_log = []
                 self._log("NOTE: Restarted after libc DL inconsistency!")
@@ -809,7 +809,7 @@ class QuteProc(testprocess.Process):
             testprocess.WaitForTimeout))
 
         if timeout is None:
-            if 'CI' in os.environ:
+            if testutils.ON_CI:
                 timeout = 15000
             else:
                 timeout = 5000
