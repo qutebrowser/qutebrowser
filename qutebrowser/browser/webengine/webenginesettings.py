@@ -47,7 +47,7 @@ default_profile = cast(QWebEngineProfile, None)
 # The QWebEngineProfile used for private (off-the-record) windows
 private_profile: Optional[QWebEngineProfile] = None
 # The global WebEngineSettings object
-global_settings = cast('WebEngineSettings', None)
+_global_settings = cast('WebEngineSettings', None)
 
 parsed_user_agent = None
 
@@ -326,7 +326,7 @@ class ProfileSetter:
 
 def _update_settings(option):
     """Update global settings when qwebsettings changed."""
-    global_settings.update_setting(option)
+    _global_settings.update_setting(option)
     default_profile.setter.update_setting(option)
     if private_profile:
         private_profile.setter.update_setting(option)
@@ -359,6 +359,8 @@ def _init_profile(profile: QWebEngineProfile) -> None:
     history.web_history.history_cleared.connect(profile.clearAllVisitedLinks)
     history.web_history.url_cleared.connect(
         lambda url: profile.clearVisitedLinks([url]))
+
+    _global_settings.init_settings()
 
 
 def _init_default_profile():
@@ -482,13 +484,12 @@ def init():
     from qutebrowser.misc import quitter
     quitter.instance.shutting_down.connect(_download_manager.shutdown)
 
+    global _global_settings
+    _global_settings = WebEngineSettings(_SettingsWrapper())
+
     _init_default_profile()
     init_private_profile()
     config.instance.changed.connect(_update_settings)
-
-    global global_settings
-    global_settings = WebEngineSettings(_SettingsWrapper())
-    global_settings.init_settings()
 
     _init_site_specific_quirks()
     _init_devtools_settings()

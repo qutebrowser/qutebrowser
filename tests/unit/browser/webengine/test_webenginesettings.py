@@ -32,7 +32,7 @@ def global_settings(monkeypatch, default_profile):
     wrapper = webenginesettings._SettingsWrapper()
     settings = webenginesettings.WebEngineSettings(wrapper)
     settings.init_settings()
-    monkeypatch.setattr(webenginesettings, 'global_settings', settings)
+    monkeypatch.setattr(webenginesettings, '_global_settings', settings)
 
 
 @pytest.fixture
