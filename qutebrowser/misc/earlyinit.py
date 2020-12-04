@@ -219,6 +219,10 @@ def _check_modules(modules):
             ), log.ignore_py_warnings(
                 category=DeprecationWarning,
                 message=r'the imp module is deprecated',
+            ), log.py_warning_filter(
+                # WORKAROUND for https://github.com/pypa/setuptools/issues/2466
+                category=DeprecationWarning,
+                message=r'Creating a LegacyVersion has been deprecated',
             ):
                 # pylint: enable=bad-continuation
                 importlib.import_module(name)
