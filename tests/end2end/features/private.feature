@@ -231,9 +231,10 @@ Feature: Using private browsing
         And I run :close
         And I set content.cookies.accept to never
         And I open data/title.html in a private window
-        And I run :jseval document.cookie = "testcookie"
-        And I run :jseval "has cookie: " + !!document.cookie
-        Then "has cookie: false" should be logged
+        And I open cookies/set?unsuccessful-cookie=1 without waiting in a new tab
+        And I wait until cookies is loaded
+        And I open cookies
+        Then the cookie unsuccessful-cookie should not be set
 
     Scenario: Disabling JS after reiniting private profile
         When I open about:blank in a new window
