@@ -261,13 +261,17 @@ def get_all_names():
         yield basename[len('requirements-'):-len('.txt-raw')]
 
 
-def run_pip(venv_dir, *args, **kwargs):
+def run_pip(venv_dir, *args, quiet=False, **kwargs):
     """Run pip inside the virtualenv."""
+    args = list(args)
+    if quiet:
+        args.insert(1, '-q')
+
     arg_str = ' '.join(str(arg) for arg in args)
     utils.print_col('venv$ pip {}'.format(arg_str), 'blue')
+
     venv_python = os.path.join(venv_dir, 'bin', 'python')
-    return subprocess.run([venv_python, '-m', 'pip'] + list(args),
-                          check=True, **kwargs)
+    return subprocess.run([venv_python, '-m', 'pip'] + args, check=True, **kwargs)
 
 
 def init_venv(host_python, venv_dir, requirements, pre=False):
@@ -276,8 +280,8 @@ def init_venv(host_python, venv_dir, requirements, pre=False):
         utils.print_col('$ python3 -m venv {}'.format(venv_dir), 'blue')
         subprocess.run([host_python, '-m', 'venv', venv_dir], check=True)
 
-        run_pip(venv_dir, 'install', '-U', 'pip')
-        run_pip(venv_dir, 'install', '-U', 'setuptools', 'wheel')
+        run_pip(venv_dir, 'install', '-U', 'pip', quiet=not utils.ON_CI)
+        run_pip(venv_dir, 'install', '-U', 'setuptools', 'wheel', quiet=not utils.ON_CI)
 
     install_command = ['install', '-r', requirements]
     if pre:
