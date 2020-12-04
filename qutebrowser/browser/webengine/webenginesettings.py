@@ -227,6 +227,26 @@ class ProfileSetter:
 
     def __init__(self, profile):
         self._profile = profile
+        self._name_to_method = {
+            'content.cache.size': self.set_http_cache_size,
+            'content.cookies.store': self.set_persistent_cookie_policy,
+            'spellcheck.languages': self.set_dictionary_language,
+        }
+
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-75884
+        # (note this isn't actually fixed properly before Qt 5.15)
+        header_bug_fixed = qtutils.version_check('5.15', compiled=False)
+        if header_bug_fixed:
+            for name in ['user_agent', 'accept_language']:
+                self._name_to_method[f'content.headers.{name}'] = self.set_http_headers
+
+    def update_setting(self, name):
+        """Update a setting based on its name."""
+        try:
+            meth = self._name_to_method[name]
+        except KeyError:
+            return
+        meth()
 
     def init_profile(self):
         """Initialize settings on the given profile."""
@@ -307,28 +327,9 @@ class ProfileSetter:
 def _update_settings(option):
     """Update global settings when qwebsettings changed."""
     global_settings.update_setting(option)
-
-    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-75884
-    # (note this isn't actually fixed properly before Qt 5.15)
-    header_bug_fixed = qtutils.version_check('5.15', compiled=False)
-
-    if option in ['content.headers.user_agent',
-                  'content.headers.accept_language'] and header_bug_fixed:
-        default_profile.setter.set_http_headers()
-        if private_profile:
-            private_profile.setter.set_http_headers()
-    elif option == 'content.cache.size':
-        default_profile.setter.set_http_cache_size()
-        if private_profile:
-            private_profile.setter.set_http_cache_size()
-    elif option == 'content.cookies.store':
-        default_profile.setter.set_persistent_cookie_policy()
-        if private_profile:
-            private_profile.setter.set_persistent_cookie_policy()
-    elif option == 'spellcheck.languages':
-        default_profile.setter.set_dictionary_language()
-        if private_profile:
-            private_profile.setter.set_dictionary_language()
+    default_profile.setter.update_setting(option)
+    if private_profile:
+        private_profile.setter.update_setting(option)
 
 
 def _init_user_agent_str(ua):
