@@ -26,7 +26,7 @@ Module attributes:
 
 import os
 import operator
-from typing import cast, Any, List, Optional, Tuple, Union
+from typing import cast, Any, List, Optional, Tuple, Union, TYPE_CHECKING
 
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QApplication
@@ -39,7 +39,8 @@ from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import (standarddir, qtutils, message, log,
                                urlmatch, usertypes, objreg)
-
+if TYPE_CHECKING:
+    from qutebrowser.browser.webengine import interceptor
 
 # The default QWebEngineProfile
 default_profile = cast(QWebEngineProfile, None)
@@ -51,7 +52,7 @@ global_settings = cast('WebEngineSettings', None)
 parsed_user_agent = None
 
 _qute_scheme_handler = cast(webenginequtescheme.QuteSchemeHandler, None)
-_req_interceptor = None
+_req_interceptor = cast('interceptor.RequestInterceptor', None)
 _download_manager = cast(webenginedownloads.DownloadManager, None)
 
 
@@ -354,7 +355,7 @@ def _init_default_profile():
     default_profile.setter.set_persistent_cookie_policy()
 
     _qute_scheme_handler.install(default_profile)
-    _req_interceptor.install(default_profile)  # type: ignore
+    _req_interceptor.install(default_profile)
     _download_manager.install(default_profile)
     cookies.install_filter(default_profile)
 
@@ -376,7 +377,7 @@ def init_private_profile():
         private_profile.setter.init_profile()
 
         _qute_scheme_handler.install(private_profile)
-        _req_interceptor.install(private_profile)  # type: ignore
+        _req_interceptor.install(private_profile)
         _download_manager.install(private_profile)
         cookies.install_filter(private_profile)
 
