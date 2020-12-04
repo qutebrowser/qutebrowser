@@ -20,7 +20,6 @@
 """Base class for a subprocess run for tests."""
 
 import re
-import os
 import time
 import warnings
 
