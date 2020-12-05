@@ -35,6 +35,7 @@ The following userscripts are included in the current directory.
 - [qr](./qr): Show a QR code for the current webpage via
   [qrencode](https://fukuchi.org/works/qrencode/).
 - [kodi](./kodi): Play videos in Kodi.
+- [add-nextcloud-bookmarks](./add-nextcloud-bookmarks): create bookmarks in Nextcloud's Bookmarks app
 
 [castnow]: https://github.com/xat/castnow
 [youtube-dl]: https://rg3.github.io/youtube-dl/
