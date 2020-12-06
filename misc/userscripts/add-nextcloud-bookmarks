@@ -16,7 +16,7 @@ USER=username
 ;PASSWORD=lamepassword
 DESCRIPTION=None
 ;TAGS=just-one
-TAGS=read-me-later, added-by-qutebrowser
+TAGS=read-me-later,added-by-qutebrowser, Another-One
 
     If settings aren't in the configuration file, the user will be prompted during
     bookmark creation.  If DESCRIPTION and TAGS are set to None, they will be left
@@ -32,17 +32,18 @@ qutebrowser setup:
         config.bind('X', 'spawn --userscript add-nextcloud-bookmarks')
 
 troubleshooting:
-    Errors detected within this userscript with have an exit of 231.  All other
+    Errors detected within this userscript will have an exit of 231.  All other
     exit codes will come from requests.
 """
 
 import configparser
-from base64 import b64encode
+from json import dumps
 from os import environ, path
 from sys import argv, exit
 
 from PyQt5.QtWidgets import QApplication, QInputDialog, QLineEdit
 from requests import get, post
+from requests.auth import HTTPBasicAuth
 
 
 def get_text(name, info):
@@ -69,7 +70,7 @@ def message(level, text):
     """display message"""
     with open(environ["QUTE_FIFO"], "w") as fifo:
         fifo.write(
-            'message-{} "add-nextcloud-bookmarks userscript: {}"'.format(level, text)
+            'message-{} "add-nextcloud-bookmarks userscript: {}"\n'.format(level, text)
         )
         fifo.flush()
 
@@ -114,24 +115,18 @@ for setting in settings_info:
         if settings[setting[0]] == "None":
             settings[setting[0]] = ""
 
-# tags need to be formatted like [], ["one"] or ["one", two"] as a string
-tags = settings["tags"]
-settings["tags"] = str(tags.split(", ")).replace("'", '"')
+tags = settings["tags"].split(",")
 
 QUTE_URL = environ["QUTE_URL"]
 api_url = settings["host"] + "/index.php/apps/bookmarks/public/rest/v2/bookmark"
 
-auth = b64encode(format(settings["user"] + ":" + settings["password"]).encode("utf-8"))
-auth = str(auth, "utf-8")
-
-headers = {
-    "Authorization": "Basic {}".format(auth),
-    "Content-Type": "application/json",
-}
+headers = {"Content-Type": "application/json"}
+auth = HTTPBasicAuth(settings["user"], settings["password"])
 
 # check if there is already a bookmark for the URL
 r = get(
     "{}?url={}".format(api_url, QUTE_URL),
+    auth=auth,
     headers=headers,
     timeout=(3.05, 27),
 )
@@ -159,21 +154,17 @@ else:
 
 # JSON format
 # https://nextcloud-bookmarks.readthedocs.io/en/latest/bookmark.html#create-a-bookmark
-data = (
-    '{"url": "'
-    + QUTE_URL
-    + '", "title": "'
-    + QUTE_TITLE
-    + '", "description": "'
-    + settings["description"]
-    + '", "tags": '
-    + settings["tags"]
-    + "}"
-)
+dict = {
+    "url": QUTE_URL,
+    "title": QUTE_TITLE,
+    "description": settings["description"],
+    "tags": tags,
+}
+data = dumps(dict)
 
-r = post(api_url, data=data.encode("utf-8"), headers=headers, timeout=(3.05, 27))
+r = post(api_url, data=data, headers=headers, auth=auth, timeout=(3.05, 27))
 
-if (r.status_code) == 200:
+if r.status_code == 200:
     message("info", "bookmark {} added".format(QUTE_URL))
 else:
     message("error", "something went wrong {} bookmark not added".format(QUTE_URL))
