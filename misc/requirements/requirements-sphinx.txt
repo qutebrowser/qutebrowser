@@ -2,7 +2,7 @@
 
 alabaster==0.7.12
 Babel==2.9.0
-certifi==2020.11.8
+certifi==2020.12.5
 chardet==3.0.4
 docutils==0.16
 idna==2.10
@@ -10,7 +10,7 @@ imagesize==1.2.0
 Jinja2==2.11.2
 MarkupSafe==1.1.1
 packaging==20.7
-Pygments==2.7.2
+Pygments==2.7.3
 pyparsing==2.4.7
 pytz==2020.4
 requests==2.25.0
