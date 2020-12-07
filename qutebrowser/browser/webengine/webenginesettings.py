@@ -47,7 +47,7 @@ default_profile = cast(QWebEngineProfile, None)
 # The QWebEngineProfile used for private (off-the-record) windows
 private_profile: Optional[QWebEngineProfile] = None
 # The global WebEngineSettings object
-global_settings = cast('WebEngineSettings', None)
+_global_settings = cast('WebEngineSettings', None)
 
 parsed_user_agent = None
 
@@ -227,6 +227,26 @@ class ProfileSetter:
 
     def __init__(self, profile):
         self._profile = profile
+        self._name_to_method = {
+            'content.cache.size': self.set_http_cache_size,
+            'content.cookies.store': self.set_persistent_cookie_policy,
+            'spellcheck.languages': self.set_dictionary_language,
+        }
+
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-75884
+        # (note this isn't actually fixed properly before Qt 5.15)
+        header_bug_fixed = qtutils.version_check('5.15', compiled=False)
+        if header_bug_fixed:
+            for name in ['user_agent', 'accept_language']:
+                self._name_to_method[f'content.headers.{name}'] = self.set_http_headers
+
+    def update_setting(self, name):
+        """Update a setting based on its name."""
+        try:
+            meth = self._name_to_method[name]
+        except KeyError:
+            return
+        meth()
 
     def init_profile(self):
         """Initialize settings on the given profile."""
@@ -277,20 +297,21 @@ class ProfileSetter:
 
     def set_persistent_cookie_policy(self):
         """Set the HTTP Cookie size for the given profile."""
-        assert not self._profile.isOffTheRecord()
+        if self._profile.isOffTheRecord():
+            return
         if config.val.content.cookies.store:
             value = QWebEngineProfile.AllowPersistentCookies
         else:
             value = QWebEngineProfile.NoPersistentCookies
         self._profile.setPersistentCookiesPolicy(value)
 
-    def set_dictionary_language(self, warn=True):
+    def set_dictionary_language(self):
         """Load the given dictionaries."""
         filenames = []
         for code in config.val.spellcheck.languages or []:
             local_filename = spell.local_filename(code)
             if not local_filename:
-                if warn:
+                if not self._profile.isOffTheRecord():
                     message.warning("Language {} is not installed - see "
                                     "scripts/dictcli.py in qutebrowser's "
                                     "sources".format(code))
@@ -305,28 +326,10 @@ class ProfileSetter:
 
 def _update_settings(option):
     """Update global settings when qwebsettings changed."""
-    global_settings.update_setting(option)
-
-    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-75884
-    # (note this isn't actually fixed properly before Qt 5.15)
-    header_bug_fixed = qtutils.version_check('5.15', compiled=False)
-
-    if option in ['content.headers.user_agent',
-                  'content.headers.accept_language'] and header_bug_fixed:
-        default_profile.setter.set_http_headers()
-        if private_profile:
-            private_profile.setter.set_http_headers()
-    elif option == 'content.cache.size':
-        default_profile.setter.set_http_cache_size()
-        if private_profile:
-            private_profile.setter.set_http_cache_size()
-    elif option == 'content.cookies.store':
-        default_profile.setter.set_persistent_cookie_policy()
-        # We're not touching the private profile's cookie policy.
-    elif option == 'spellcheck.languages':
-        default_profile.setter.set_dictionary_language()
-        if private_profile:
-            private_profile.setter.set_dictionary_language(warn=False)
+    _global_settings.update_setting(option)
+    default_profile.setter.update_setting(option)
+    if private_profile:
+        private_profile.setter.update_setting(option)
 
 
 def _init_user_agent_str(ua):
@@ -338,54 +341,54 @@ def init_user_agent():
     _init_user_agent_str(QWebEngineProfile.defaultProfile().httpUserAgent())
 
 
+def _init_profile(profile: QWebEngineProfile) -> None:
+    """Initialize a new QWebEngineProfile.
+
+    This currently only contains the steps which are shared between a private and a
+    non-private profile (at the moment, only the default profile).
+    """
+    profile.setter = ProfileSetter(profile)  # type: ignore[attr-defined]
+    profile.setter.init_profile()
+
+    _qute_scheme_handler.install(profile)
+    _req_interceptor.install(profile)
+    _download_manager.install(profile)
+    cookies.install_filter(profile)
+
+    # Clear visited links on web history clear
+    history.web_history.history_cleared.connect(profile.clearAllVisitedLinks)
+    history.web_history.url_cleared.connect(
+        lambda url: profile.clearVisitedLinks([url]))
+
+    _global_settings.init_settings()
+
+
 def _init_default_profile():
     """Init the default QWebEngineProfile."""
     global default_profile
 
     default_profile = QWebEngineProfile.defaultProfile()
+
     init_user_agent()
 
-    default_profile.setter = ProfileSetter(  # type: ignore[attr-defined]
-        default_profile)
     default_profile.setCachePath(
         os.path.join(standarddir.cache(), 'webengine'))
     default_profile.setPersistentStoragePath(
         os.path.join(standarddir.data(), 'webengine'))
-    default_profile.setter.init_profile()
-    default_profile.setter.set_persistent_cookie_policy()
 
-    _qute_scheme_handler.install(default_profile)
-    _req_interceptor.install(default_profile)
-    _download_manager.install(default_profile)
-    cookies.install_filter(default_profile)
-
-    # Clear visited links on web history clear
-    history.web_history.history_cleared.connect(default_profile.clearAllVisitedLinks)
-    history.web_history.url_cleared.connect(
-        lambda url, profile=default_profile: profile.clearVisitedLinks([url]))
+    _init_profile(default_profile)
 
 
 def init_private_profile():
     """Init the private QWebEngineProfile."""
     global private_profile
 
-    if not qtutils.is_single_process():
-        private_profile = QWebEngineProfile()
-        private_profile.setter = ProfileSetter(  # type: ignore[attr-defined]
-            private_profile)
-        assert private_profile.isOffTheRecord()
-        private_profile.setter.init_profile()
+    if qtutils.is_single_process():
+        return
 
-        _qute_scheme_handler.install(private_profile)
-        _req_interceptor.install(private_profile)
-        _download_manager.install(private_profile)
-        cookies.install_filter(private_profile)
-
-        # Clear visited links on web history clear
-        history.web_history.history_cleared.connect(
-            private_profile.clearAllVisitedLinks)
-        history.web_history.url_cleared.connect(
-            lambda url, profile=private_profile: profile.clearVisitedLinks([url]))
+    private_profile = QWebEngineProfile()
+    assert private_profile.isOffTheRecord()
+    _init_profile(private_profile)
 
 
 def _init_site_specific_quirks():
@@ -481,13 +484,12 @@ def init():
     from qutebrowser.misc import quitter
     quitter.instance.shutting_down.connect(_download_manager.shutdown)
 
+    global _global_settings
+    _global_settings = WebEngineSettings(_SettingsWrapper())
+
     _init_default_profile()
     init_private_profile()
     config.instance.changed.connect(_update_settings)
-
-    global global_settings
-    global_settings = WebEngineSettings(_SettingsWrapper())
-    global_settings.init_settings()
 
     _init_site_specific_quirks()
     _init_devtools_settings()
