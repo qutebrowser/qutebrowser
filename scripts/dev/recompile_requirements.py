@@ -174,6 +174,7 @@ CHANGELOG_URLS = {
     'mypy-extensions': 'https://github.com/python/mypy_extensions/commits/master',
     'pyroma': 'https://github.com/regebro/pyroma/blob/master/HISTORY.txt',
     'pyPEG2': None,
+    'importlib-resources': 'https://importlib-resources.readthedocs.io/en/latest/changelog%20%28links%29.html',
 }
 
 

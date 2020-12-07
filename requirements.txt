@@ -2,6 +2,7 @@
 
 attrs==20.3.0
 colorama==0.4.4
+importlib-resources==3.3.0
 Jinja2==2.11.2
 MarkupSafe==1.1.1
 Pygments==2.7.2

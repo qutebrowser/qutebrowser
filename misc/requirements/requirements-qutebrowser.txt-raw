@@ -4,3 +4,4 @@ pyPEG2
 PyYAML
 colorama
 attrs
+importlib_resources
