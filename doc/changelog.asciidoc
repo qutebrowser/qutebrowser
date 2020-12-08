@@ -42,6 +42,12 @@ Major changes
   still relying on it. The `cssutils` project is also dead upstream, with its
   repository being gone after Bitbucket
   https://bitbucket.org/blog/sunsetting-mercurial-support-in-bitbucket[removed Mercurial support].
+- TODO: The former dependency on the `pkg_resources` module (part of the
+  `setuptools` project) got dropped.
+- A new dependency on the `importlib_resources` module got introduced for
+  Python versions up to and including 3.8. Note that the stdlib
+  `importlib.resources` module for Python 3.7 and 3.8 is missing the needed APIs,
+  thus requiring the backports for those versions as well.
 
 Removed
 ~~~~~~~
@@ -107,6 +113,10 @@ Fixed
   `colors.downloads.*`), the alpha channel is now handled correctly.
 - The `format_json` userscript now uses `env` in its shebang, making it work
   correctly on systems where `bash` isn't located in `/bin`.
+- TODO: Due to a long-standing bug in the `pkg_resources` dependency, it caused
+  qutebrowser's startup to slow down by around 150ms-1s (heavily depending on
+  the system). Since the dependency is now removed, qutebrowser's startup time
+  thus improved.
 
 v1.14.1 (2020-12-04)
 --------------------
