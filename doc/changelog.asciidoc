@@ -97,6 +97,8 @@ Changed
   `greasemonkey` subdirectories of e.g. `~/.config/qutebrowser/`) rather than only
   the data directory (the same subdirectories of e.g.
   `~/.local/share/qutebrowser/`).
+- The `:later` command now understands a time specification like `5m` or
+  `1h5m2s`, rather than just taking milliseconds.
 
 Fixed
 ~~~~~

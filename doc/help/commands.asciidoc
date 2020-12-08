@@ -786,12 +786,12 @@ Jump to the mark named by `key`.
 
 [[later]]
 === later
-Syntax: +:later 'ms' 'command'+
+Syntax: +:later 'duration' 'command'+
 
 Execute a command after some time.
 
 ==== positional arguments
-* +'ms'+: How many milliseconds to wait.
+* +'duration'+: Duration to wait in format XhYmZs or a number for milliseconds.
 * +'command'+: The command to run, with optional args.
 
 ==== note
