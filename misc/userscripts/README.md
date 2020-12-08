@@ -36,6 +36,7 @@ The following userscripts are included in the current directory.
   [qrencode](https://fukuchi.org/works/qrencode/).
 - [kodi](./kodi): Play videos in Kodi.
 - [add-nextcloud-bookmarks](./add-nextcloud-bookmarks): create bookmarks in Nextcloud's Bookmarks app
+- [add-nextcloud-cookbook](./add-nextcloud-cookbook): add recipes to Nextcloud's Cookbook app
 
 [castnow]: https://github.com/xat/castnow
 [youtube-dl]: https://rg3.github.io/youtube-dl/
