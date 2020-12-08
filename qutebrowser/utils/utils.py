@@ -42,6 +42,11 @@ from typing import (Any, Callable, IO, Iterator, Optional, Sequence, Tuple, Type
 from PyQt5.QtCore import QUrl, QVersionNumber
 from PyQt5.QtGui import QClipboard, QDesktopServices
 from PyQt5.QtWidgets import QApplication
+# We cannot use the stdlib version on 3.7-3.8 because we need the files() API.
+if sys.version_info >= (3, 9):
+    import importlib.resources as importlib_resources
+else:
+    import importlib_resources
 import pkg_resources
 import yaml
 try:
@@ -216,13 +221,12 @@ def read_file(filename: str, binary: bool = False) -> Any:
             with open(fn, 'r', encoding='utf-8') as f:
                 return f.read()
     else:
-        data = pkg_resources.resource_string(
-            qutebrowser.__name__, filename)
+        p = importlib_resources.files(qutebrowser) / filename
 
         if binary:
-            return data
+            return p.read_bytes()
 
-        return data.decode('UTF-8')
+        return p.read_text()
 
 
 def resource_filename(filename: str) -> str:

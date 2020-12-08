@@ -263,6 +263,7 @@ def _module_versions() -> Sequence[str]:
         ('pygments', ['__version__']),
         ('yaml', ['__version__']),
         ('attr', ['__version__']),
+        ('importlib_resources', []),
         ('PyQt5.QtWebEngineWidgets', []),
         ('PyQt5.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
         ('PyQt5.QtWebKitWidgets', []),
