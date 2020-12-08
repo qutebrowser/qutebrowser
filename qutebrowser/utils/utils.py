@@ -45,7 +45,7 @@ from PyQt5.QtWidgets import QApplication
 # We cannot use the stdlib version on 3.7-3.8 because we need the files() API.
 if sys.version_info >= (3, 9):
     import importlib.resources as importlib_resources
-else:
+else:  # pragma: no cover
     import importlib_resources
 import pkg_resources
 import yaml
@@ -74,7 +74,7 @@ is_posix = os.name == 'posix'
 
 try:
     # Protocol was added in Python 3.8
-    from typing import Protocol
+    from typing import Protocol  # pylint: disable=ungrouped-imports
 except ImportError:  # pragma: no cover
     if not TYPE_CHECKING:
         class Protocol:
