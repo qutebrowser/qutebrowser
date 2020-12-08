@@ -4,4 +4,6 @@ pyPEG2
 PyYAML
 colorama
 attrs
-importlib_resources
+importlib-resources
+
+#@ markers: importlib-resources python_version<"3.9"
