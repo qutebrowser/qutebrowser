@@ -22,7 +22,7 @@ TAGS=read-me-later,added-by-qutebrowser, Another-One
     bookmark creation.  If DESCRIPTION and TAGS are set to None, they will be left
     blank. If the user does not want to be prompted for a password, it is recommended
     to set up an 'app password'.  See the following for instructions:
-    https://docs.nextcloud.com/server/latest/user_manual/en/session_management.htmlmanaging-devices  # noqa: E501
+    https://docs.nextcloud.com/server/latest/user_manual/en/session_management.html#managing-devices  # noqa: E501
 
 qutebrowser setup:
     add bookmark via hints
