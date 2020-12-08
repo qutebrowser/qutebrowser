@@ -46,7 +46,7 @@ def later(duration: str, command: str, win_id: int) -> None:
     """Execute a command after some time.
 
     Args:
-        duration: Duration to wait in format XhYmZs or number for seconds.
+        duration: Duration to wait in format XhYmZs or a number for milliseconds.
         command: The command to run, with optional args.
     """
     try:

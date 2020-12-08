@@ -843,12 +843,20 @@ def test_parse_duration(duration, out):
     assert utils.parse_duration(duration) == out
 
 
-@pytest.mark.parametrize('duration, out', [
-    ("-1s", -1),  # No sense to wait for negative seconds
-    ("-1", -1),
-    ("34ss", -1),
+@pytest.mark.parametrize('duration', [
+    "-1s",  # No sense to wait for negative seconds
+    "-1",
+    "34ss",
+    "",
+    "h",
+    "1.s",
+    "1.1.1s",
+    ".1s",
+    ".s",
+    "10e5s",
+    "5s10m",
 ])
-def test_parse_duration_invalid(duration, out):
+def test_parse_duration_invalid(duration):
     with pytest.raises(ValueError, match='Invalid duration'):
         utils.parse_duration(duration)
 

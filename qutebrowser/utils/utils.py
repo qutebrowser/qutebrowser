@@ -781,18 +781,17 @@ def parse_duration(duration: str) -> int:
         # For backward compatibility return milliseconds
         return int(duration)
 
-    match = re.search(
-        r'^(?P<hours>[0-9]+(\.[0-9])*h)?\s*'
-        r'(?P<minutes>[0-9]+(\.[0-9])*m)?\s*'
-        r'(?P<seconds>[0-9]+(\.[0-9])*s)?$',
+    match = re.fullmatch(
+        r'(?P<hours>[0-9]+(\.[0-9])?h)?\s*'
+        r'(?P<minutes>[0-9]+(\.[0-9])?m)?\s*'
+        r'(?P<seconds>[0-9]+(\.[0-9])?s)?',
         duration
     )
-    if not match:
+    if not match or not match.group(0):
         raise ValueError(
             f"Invalid duration: {duration} - "
             "expected XhYmZs or a number of milliseconds"
         )
-
     seconds_string = match.group('seconds') if match.group('seconds') else '0'
     seconds = float(seconds_string.rstrip('s'))
     minutes_string = match.group('minutes') if match.group('minutes') else '0'
