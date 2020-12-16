@@ -293,6 +293,6 @@ def undo(*, info):
         enumerate(reversed(tabbed_browser.undo_stack), start=1)
     ]
 
-    cat = listcategory.ListCategory("Closed tabs", entries)
+    cat = listcategory.ListCategory("Closed tabs", entries, sort=False)
     model.add_category(cat)
     return model
