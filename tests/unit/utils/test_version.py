@@ -655,7 +655,7 @@ class TestModuleVersions:
 
         assert version._module_versions()[idx] == expected
 
-        for method_name, expected in [
+        for method_name, expected_result in [
             ("is_installed", False),
             ("get_version", None),
             ("is_outdated", None)
@@ -663,10 +663,10 @@ class TestModuleVersions:
             method = getattr(mod_info, method_name)
             # With hot cache
             mod_info._initialize_info()
-            assert method() == expected
+            assert method() == expected_result
             # With cold cache
             mod_info._reset_cache()
-            assert method() == expected
+            assert method() == expected_result
 
     def test_outdated_adblock(self, import_fake):
         """Test that warning is shown when adblock module is outdated."""
