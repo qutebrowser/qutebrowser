@@ -198,6 +198,26 @@ class TestKeyConfig:
         # Chained command
         ({'a': 'message-info foo ;; message-info bar'},
          {'message-info foo': ['a'], 'message-info bar': ['a']}),
+        # Command using set-cmd-text (#5942)
+        (
+            {
+                "o": "set-cmd-text -s :open",
+                "O": "set-cmd-text -s :open -t",
+                "go": "set-cmd-text :open {url:pretty}",
+                # all of these should be ignored
+                "/": "set-cmd-text /",
+                "?": "set-cmd-text ?",
+                ":": "set-cmd-text :",
+                "a": "set-cmd-text no_leading_colon",
+                "b": "set-cmd-text -s -a :skip_cuz_append",
+                "c": "set-cmd-text --append :skip_cuz_append",
+            },
+            {
+                "open": ["o"],
+                "open -t": ["O"],
+                "open {url:pretty}": ["go"],
+            }
+        ),
     ])
     def test_get_reverse_bindings_for(self, key_config_stub, config_stub,
                                       no_bindings, bindings, expected):

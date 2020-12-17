@@ -162,13 +162,40 @@ class KeyConfig:
                 bindings[key] = binding
         return bindings
 
+    def _strip_leading_flags(self, cmdline: str) -> List[str]:
+        """Split cmdline at whitespace until the first non-flag."""
+        first, _, rest = cmdline.partition(" ")
+        if first.startswith("-"):
+            return [first] + self._strip_leading_flags(rest)
+        return [cmdline]
+
+    def _implied_cmd(self, cmdline: str) -> str:
+        """Return cmdline, or the implied cmd if cmdline is a set-cmd-text."""
+        if not cmdline.startswith("set-cmd-text "):
+            return cmdline
+        cmdline = cmdline[len("set-cmd-text "):]
+        *flags, cmd = self._strip_leading_flags(cmdline)
+        if "-a" in flags or "--append" in flags or not cmd.startswith(":"):
+            return ""  # doesn't look like this sets a command
+        return cmd.lstrip(":")
+
     def get_reverse_bindings_for(self, mode: str) -> '_ReverseBindings':
-        """Get a dict of commands to a list of bindings for the mode."""
+        """Get a dict of commands to a list of bindings for the mode.
+
+        This is intented for user-facing display of keybindings.
+        As such, bindings for 'set-cmd-text [flags] :<cmd> ...' are translated
+        to '<cmd> ...', as from the user's perspective these keys behave like
+        bindings for '<cmd>' (that allow for further input before running).
+
+        See #5942.
+        """
         cmd_to_keys: KeyConfig._ReverseBindings = {}
         bindings = self.get_bindings_for(mode)
         for seq, full_cmd in sorted(bindings.items()):
             for cmd in full_cmd.split(';;'):
-                cmd = cmd.strip()
+                cmd = self._implied_cmd(cmd.strip())
+                if not cmd:
+                    continue
                 cmd_to_keys.setdefault(cmd, [])
                 # Put bindings involving modifiers last
                 if any(info.modifiers for info in seq):
