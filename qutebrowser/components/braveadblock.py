@@ -253,9 +253,8 @@ class BraveAdBlocker:
         """
         try:
             fileobj.seek(0)
-            text = io.TextIOWrapper(fileobj, encoding="utf-8")
-            filter_set.add_filter_list(text.read())
-            text.close()
+            with io.TextIOWrapper(fileobj, encoding="utf-8") as text_io:
+                filter_set.add_filter_list(text_io.read())
         except UnicodeDecodeError:
             message.info("braveadblock: Block list is not valid utf-8")
 

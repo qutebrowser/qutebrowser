@@ -65,9 +65,10 @@ def test_blocklist_dl(qtbot, pretend_blocklists):
         num_single_dl_called += 1
 
         num_lines = 0
-        for line in io.TextIOWrapper(download, encoding="utf-8"):
-            assert line.split(".")[-1].strip() in ("com", "net", "is")
-            num_lines += 1
+        with io.TextIOWrapper(download, encoding="utf-8") as dl_io:
+            for line in dl_io:
+                assert line.split(".")[-1].strip() in ("com", "net", "is")
+                num_lines += 1
         assert num_lines >= 1
 
     list_qurls = [QUrl(blocklist) for blocklist in pretend_blocklists[0]]
