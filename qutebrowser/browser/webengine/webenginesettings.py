@@ -390,9 +390,14 @@ def init_private_profile():
 
 
 def _init_site_specific_quirks():
+    """Add custom user-agent settings for problematic sites.
+
+    See https://github.com/qutebrowser/qutebrowser/issues/4810
+    """
     if not config.val.content.site_specific_quirks:
         return
 
+    # Please leave this here as a template for new UAs.
     # default_ua = ("Mozilla/5.0 ({os_info}) "
     #               "AppleWebKit/{webkit_version} (KHTML, like Gecko) "
     #               "{qt_key}/{qt_version} "
@@ -402,7 +407,6 @@ def _init_site_specific_quirks():
                   "AppleWebKit/{webkit_version} (KHTML, like Gecko) "
                   "{upstream_browser_key}/{upstream_browser_version} "
                   "Safari/{webkit_version}")
-    firefox_ua = "Mozilla/5.0 ({os_info}; rv:71.0) Gecko/20100101 Firefox/71.0"
     new_chrome_ua = ("Mozilla/5.0 ({os_info}) "
                      "AppleWebKit/537.36 (KHTML, like Gecko) "
                      "Chrome/99 "
@@ -414,14 +418,26 @@ def _init_site_specific_quirks():
                "Edg/{upstream_browser_version}")
 
     user_agents = {
+        # Needed to avoid a ""WhatsApp works with Google Chrome 36+" error
+        # page which doesn't allow to use WhatsApp Web at all. Also see the
+        # additional JS quirk: qutebrowser/javascript/whatsapp_web_quirk.user.js
+        # https://github.com/qutebrowser/qutebrowser/issues/4445
         'https://web.whatsapp.com/': no_qtwe_ua,
+
+        # Needed to avoid a "you're using a browser [...] that doesn't allow us
+        # to keep your account secure" error.
+        # https://github.com/qutebrowser/qutebrowser/issues/5182
         'https://accounts.google.com/*': edge_ua,
+
+        # Needed because Slack adds an error which prevents using it relatively
+        # aggressively, despite things actually working fine.
+        # September 2020: Qt 5.12 works, but Qt <= 5.11 shows the error.
+        # https://github.com/qutebrowser/qutebrowser/issues/4669
         'https://*.slack.com/*': new_chrome_ua,
-        'https://docs.google.com/*': firefox_ua,
-        'https://drive.google.com/*': firefox_ua,
     }
 
     if not qtutils.version_check('5.9'):
+        # Shows 502 Bad Gateway with the Qt 5.7 UA.
         user_agents['https://www.dell.com/support/*'] = new_chrome_ua
 
     for pattern, ua in user_agents.items():

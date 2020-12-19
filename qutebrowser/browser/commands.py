@@ -278,7 +278,7 @@ class CommandDispatcher:
             return
 
         to_pin = not tab.data.pinned
-        self._tabbed_browser.widget.set_tab_pinned(tab, to_pin)
+        tab.set_pinned(to_pin)
 
     @cmdutils.register(instance='command-dispatcher', name='open',
                        maxsplit=0, scope='window')
@@ -421,7 +421,8 @@ class CommandDispatcher:
         newtab.data.keep_icon = True
         newtab.history.private_api.deserialize(history)
         newtab.zoom.set_factor(curtab.zoom.factor())
-        new_tabbed_browser.widget.set_tab_pinned(newtab, curtab.data.pinned)
+
+        newtab.set_pinned(curtab.data.pinned)
         return newtab
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
@@ -1663,7 +1664,15 @@ class CommandDispatcher:
             url: Interpret js-code as a `javascript:...` URL.
             quiet: Don't show resulting JS object.
             world: Ignored on QtWebKit. On QtWebEngine, a world ID or name to
-                   run the snippet in.
+                   run the snippet in. Predefined world names are:
+
+                      - `main` (same world as the web page's JavaScript and
+                        Greasemonkey, unless overridden via `@qute-js-world`)
+                      - `application` (used for internal qutebrowser JS code,
+                        should not be used via `:jseval` unless you know what
+                        you're doing)
+                      - `user` (currently unused)
+                      - `jseval` (used for this command by default)
         """
         cmdutils.check_exclusive((file, url), 'fu')
 

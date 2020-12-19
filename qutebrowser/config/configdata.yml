@@ -2714,6 +2714,7 @@ colors.webpage.prefers_color_scheme_dark:
   backend:
     QtWebEngine: Qt 5.14
     QtWebKit: false
+  restart: true
 
 ## dark mode
 

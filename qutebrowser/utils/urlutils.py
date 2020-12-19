@@ -644,12 +644,10 @@ def parse_javascript_url(url: QUrl) -> str:
         raise Error("URL contains unexpected components: {}"
                     .format(url.authority()))
 
-    code = url.path(QUrl.FullyDecoded)
-    if url.hasQuery():
-        code += '?' + url.query(QUrl.FullyDecoded)
-    if url.hasFragment():
-        code += '#' + url.fragment(QUrl.FullyDecoded)
+    urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
+    urlstr = urllib.parse.unquote(urlstr)
 
+    code = urlstr[len('javascript:'):]
     if not code:
         raise Error("Resulted in empty JavaScript code")
 

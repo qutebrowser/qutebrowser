@@ -763,7 +763,16 @@ Evaluate a JavaScript string.
 
 * +*-u*+, +*--url*+: Interpret js-code as a `javascript:...` URL.
 * +*-q*+, +*--quiet*+: Don't show resulting JS object.
-* +*-w*+, +*--world*+: Ignored on QtWebKit. On QtWebEngine, a world ID or name to run the snippet in.
+* +*-w*+, +*--world*+: Ignored on QtWebKit. On QtWebEngine, a world ID or name to run the snippet in. Predefined world names are:
+ 
+
+ - `main` (same world as the web page's JavaScript and
+ Greasemonkey, unless overridden via `@qute-js-world`)
+ - `application` (used for internal qutebrowser JS code,
+ should not be used via `:jseval` unless you know what
+ you're doing)
+ - `user` (currently unused)
+ - `jseval` (used for this command by default)
 
 
 ==== note

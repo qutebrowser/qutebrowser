@@ -102,8 +102,8 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Get the geometry for this element."""
         raise NotImplementedError
 
-    def classes(self) -> typing.List[str]:
-        """Get a list of classes assigned to this element."""
+    def classes(self) -> typing.Set[str]:
+        """Get a set of classes assigned to this element."""
         raise NotImplementedError
 
     def tag_name(self) -> str:

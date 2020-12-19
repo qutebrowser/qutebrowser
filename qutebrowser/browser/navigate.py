@@ -154,13 +154,18 @@ def strip(url, count):
 
 def _find_prevnext(prev, elems):
     """Find a prev/next element in the given list of elements."""
-    # First check for <link rel="prev(ious)|next">
+    # First check for <link rel="prev(ious)|next"> as well as
+    # e.g. <a class="nav-(prev|next)"> (Hugo)
     rel_values = {'prev', 'previous'} if prev else {'next'}
+    classes = {'nav-prev'} if prev else {'nav-next'}
     for e in elems:
-        if e.tag_name() not in ['link', 'a'] or 'rel' not in e:
+        if e.tag_name() not in ['link', 'a']:
             continue
-        if set(e['rel'].split(' ')) & rel_values:
+        if 'rel' in e and set(e['rel'].split(' ')) & rel_values:
             log.hints.debug("Found {!r} with rel={}".format(e, e['rel']))
+            return e
+        elif e.classes() & classes:
+            log.hints.debug("Found {!r} with class={}".format(e, e.classes()))
             return e
 
     # Then check for regular links/buttons.

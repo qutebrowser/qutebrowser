@@ -1737,6 +1737,8 @@ On QtWebKit, this setting is unavailable.
 === colors.webpage.prefers_color_scheme_dark
 Force `prefers-color-scheme: dark` colors for websites.
 
+This setting requires a restart.
+
 Type: <<types,Bool>>
 
 Default: +pass:[false]+

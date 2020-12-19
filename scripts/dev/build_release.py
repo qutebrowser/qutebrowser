@@ -78,10 +78,11 @@ def call_tox(toxenv, *args, python=sys.executable):
 def run_asciidoc2html(args):
     """Common buildsteps used for all OS'."""
     utils.print_title("Running asciidoc2html.py")
+    a2h_args = []
     if args.asciidoc is not None:
-        a2h_args = ['--asciidoc'] + args.asciidoc
-    else:
-        a2h_args = []
+        a2h_args += ['--asciidoc', args.asciidoc]
+    if args.asciidoc_python is not None:
+        a2h_args += ['--asciidoc-python', args.asciidoc_python]
     call_script('asciidoc2html.py', *a2h_args)
 
 
@@ -201,7 +202,7 @@ def build_mac():
     utils.print_title("Updating 3rdparty content")
     update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False)
     utils.print_title("Building .app via pyinstaller")
-    call_tox('pyinstaller', '-r')
+    call_tox('pyinstaller-64', '-r')
     utils.print_title("Patching .app")
     patch_mac_app()
     utils.print_title("Building .dmg")
@@ -457,10 +458,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--no-asciidoc', action='store_true',
                         help="Don't generate docs")
-    parser.add_argument('--asciidoc', help="Full path to python and "
-                        "asciidoc.py. If not given, it's searched in PATH.",
-                        nargs=2, required=False,
-                        metavar=('PYTHON', 'ASCIIDOC'))
+    parser.add_argument('--asciidoc', help="Full path to asciidoc.py. "
+                        "If not given, it's searched in PATH.",
+                        nargs='?')
+    parser.add_argument('--asciidoc-python', help="Python to use for asciidoc."
+                        "If not given, the current Python interpreter is used.",
+                        nargs='?')
     parser.add_argument('--upload', action='store_true', required=False,
                         help="Toggle to upload the release to GitHub")
     args = parser.parse_args()

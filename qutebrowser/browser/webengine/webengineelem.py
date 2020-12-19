@@ -118,9 +118,9 @@ class WebEngineElement(webelem.AbstractWebElement):
         log.stub()
         return QRect()
 
-    def classes(self) -> typing.List[str]:
+    def classes(self) -> typing.Set[str]:
         """Get a list of classes assigned to this element."""
-        return self._js_dict['class_name'].split()
+        return set(self._js_dict['class_name'].split())
 
     def tag_name(self) -> str:
         """Get the tag name of this element.

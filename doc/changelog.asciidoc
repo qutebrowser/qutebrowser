@@ -36,8 +36,7 @@ Changed
   partially transparent qutebrowser window on a setup which supports doing so.
 - If QtWebEngine is compiled with PipeWire support and libpipewire is
   installed, qutebrowser will now support screen sharing on Wayland. Note that
-  QtWebEngine 5.15.1 (planned for August 2020) is needed, though the Archlinux
-  qt5-webengine package backports the patch.
+  QtWebEngine 5.15.1 is needed.
 - When `:undo` is used with a count, it now reopens the count-th to last tab
   instead of the last one. The depth can instead be passed as an argument,
   which is also completed.
@@ -52,6 +51,23 @@ Changed
 - `:completion-item-focus` now understands `next-page` and `prev-page` with
   corresponding `<PgDown>` / `<PgUp>` default bindings.
 - When the last private window is closed, all private browsing data is now cleared.
+- When `config.source(...)` is used with a `--config-py` argument given,
+  qutebrowser used to search relative files in the config basedir, leading to them
+  not being found when using a shared `config.py` for different basedirs. Instead,
+  they are now searched relative to the given `config.py` file.
+- `navigate prev` (`[[`) and `navigate next` (`]]`) now recognize links with
+  `nav-prev` and `nav-next` classes, such as those used by the Hugo static site
+  generator.
+- When `tabs.favicons` is disabled but `tabs.tabs_are_windows` is set, the
+  window icon is still set to the page's favicon now.
+- The `--asciidoc` argument to `src2asciidoc.py` and `build_release.py` now
+  only takes the path to `asciidoc.py`, using the current Python interpreter by
+  default. To configure the Python interpreter as well, use
+  `--asciidoc-python path/to/python --asciidoc path/to/asciidoc.py`
+  instead of the former
+  `--asciidoc path/to/python path/to/asciidoc.py`.
+- The `readability-js` userscript now adds some CSS to better deal
+  with images, similarly to what Firefox' reader mode does.
 
 Added
 ~~~~~
@@ -113,6 +129,14 @@ Fixed
 - Highlighting in the completion now works properly when UTF-16 surrogate pairs (such as
   emoji) are involved.
 - When a windowed inspector is clicked, insert mode now isn't entered anymore.
+- When `:undo` to re-open a tab but `tabs.tabs_are_windows` was set between
+  closing and undoing the close, qutebrowser crashed. This is now fixed.
+- Fixes for the `qute-pass` userscript:
+  * With newer `gopass` versions, a deprecation notice was copied as
+    password due to `qute-pass` using it in a deprecated way.
+  * The `--password-store` argument didn't actually set
+    `PASSWORD_STORE_DIR` for `pass`, resulting in `qute-pass` finding matches but the
+    underlying `pass` not finding matching passwords. This is now fixed.
 
 v1.13.1 (2020-07-17)
 --------------------
@@ -1128,7 +1152,7 @@ Fixed
 
 - `qute://` pages now work properly on Qt 5.11.2
 - Error when passing a substring with spaces to `:tab-take`.
-- Greasemonkey scripts which start with an UTF-8 BOM are now handled correctly.
+- Greasemonkey scripts which start with a UTF-8 BOM are now handled correctly.
 - When no documentation has been generated, the plaintext documentation now can
   be shown for more files such as `qute://help/userscripts.html`.
 - Crash when doing initial run on Wayland without XWayland.

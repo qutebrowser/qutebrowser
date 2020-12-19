@@ -28,7 +28,7 @@ from PyQt5.QtCore import QSettings
 
 from qutebrowser.config import (config, configfiles, configexc, configdata,
                                 configtypes)
-from qutebrowser.utils import utils, usertypes, urlmatch
+from qutebrowser.utils import utils, usertypes, urlmatch, standarddir
 from qutebrowser.keyinput import keyutils
 
 
@@ -1061,6 +1061,24 @@ class TestConfigPy:
                            encoding='utf-8')
         confpy.write("config.source({!r})".format(arg))
         confpy.read()
+
+        assert not config.instance.get_obj('content.javascript.enabled')
+
+    def test_source_configpy_arg(self, tmpdir, data_tmpdir, monkeypatch):
+        alt_filename = 'alt-config.py'
+
+        alt_confpy_dir = tmpdir / 'alt-confpy-dir'
+        alt_confpy_dir.ensure(dir=True)
+        monkeypatch.setattr(standarddir, 'config_py',
+                            lambda: str(alt_confpy_dir / alt_filename))
+
+        subfile = alt_confpy_dir / 'subfile.py'
+        subfile.write_text("c.content.javascript.enabled = False",
+                           encoding='utf-8')
+
+        alt_confpy = ConfPy(alt_confpy_dir, alt_filename)
+        alt_confpy.write("config.source('subfile.py')")
+        alt_confpy.read()
 
         assert not config.instance.get_obj('content.javascript.enabled')
 

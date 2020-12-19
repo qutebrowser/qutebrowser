@@ -28,7 +28,6 @@ import datetime
 import attr
 from PyQt5.QtWidgets import QSizePolicy, QWidget, QApplication
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
-from PyQt5.QtGui import QIcon
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
@@ -212,8 +211,7 @@ class TabbedBrowser(QWidget):
         self._tab_insert_idx_right = -1
         self.is_shutting_down = False
         self.widget.tabCloseRequested.connect(self.on_tab_close_requested)
-        self.widget.new_tab_requested.connect(
-            self.tabopen)  # type: ignore[arg-type]
+        self.widget.new_tab_requested.connect(self.tabopen)
         self.widget.currentChanged.connect(self._on_current_changed)
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -351,6 +349,8 @@ class TabbedBrowser(QWidget):
             functools.partial(self._on_title_changed, tab))
         tab.icon_changed.connect(
             functools.partial(self._on_icon_changed, tab))
+        tab.pinned_changed.connect(
+            functools.partial(self._on_pinned_changed, tab))
         tab.load_progress.connect(
             functools.partial(self._on_load_progress, tab))
         tab.load_finished.connect(
@@ -530,7 +530,7 @@ class TabbedBrowser(QWidget):
                 newtab = self.tabopen(background=False, idx=entry.index)
 
             newtab.history.private_api.deserialize(entry.history)
-            self.widget.set_tab_pinned(newtab, entry.pinned)
+            newtab.set_pinned(entry.pinned)
 
     @pyqtSlot('QUrl', bool)
     def load_url(self, url, newtab):
@@ -788,26 +788,21 @@ class TabbedBrowser(QWidget):
         if not self.widget.page_title(idx):
             self.widget.set_page_title(idx, url.toDisplayString())
 
-    @pyqtSlot(browsertab.AbstractTab, QIcon)
-    def _on_icon_changed(self, tab, icon):
+    @pyqtSlot(browsertab.AbstractTab)
+    def _on_icon_changed(self, tab):
         """Set the icon of a tab.
 
         Slot for the iconChanged signal of any tab.
 
         Args:
             tab: The WebView where the title was changed.
-            icon: The new icon
         """
-        if not tab.data.should_show_icon():
-            return
         try:
-            idx = self._tab_index(tab)
+            self._tab_index(tab)
         except TabDeletedError:
             # We can get signals for tabs we already deleted...
             return
-        self.widget.setTabIcon(idx, icon)
-        if config.val.tabs.tabs_are_windows:
-            self.widget.window().setWindowIcon(icon)
+        self.widget.update_tab_favicon(tab)
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
@@ -921,6 +916,12 @@ class TabbedBrowser(QWidget):
             return
         self._update_window_title('scroll_pos')
         self.widget.update_tab_title(idx, 'scroll_pos')
+
+    def _on_pinned_changed(self, tab):
+        """Update the tab's pinned status."""
+        idx = self.widget.indexOf(tab)
+        self.widget.update_tab_favicon(tab)
+        self.widget.update_tab_title(idx)
 
     def _on_audio_changed(self, tab, _muted):
         """Update audio field in tab when mute or recentlyAudible changed."""

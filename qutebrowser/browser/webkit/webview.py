@@ -181,9 +181,9 @@ class WebView(QWebView):
         This is not needed for QtWebEngine, so it's in here.
         """
         menu = self.page().createStandardContextMenu()
-        self.shutting_down.connect(menu.close)  # type: ignore[arg-type]
+        self.shutting_down.connect(menu.close)
         mm = modeman.instance(self.win_id)
-        mm.entered.connect(menu.close)  # type: ignore[arg-type]
+        mm.entered.connect(menu.close)
         menu.exec_(e.globalPos())
 
     def showEvent(self, e):

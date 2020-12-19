@@ -78,13 +78,12 @@ if __name__ == "__main__":
     print("* Create new release via GitHub (required to upload release "
           "artifacts)")
     print("* Linux: git fetch && git checkout v{v} && "
-          "./.venv/bin/python3 scripts/dev/build_release.py --upload"
+          "tox -e build-release -- --upload"
           .format(v=version))
     print("* Windows: git fetch; git checkout v{v}; "
-          "py -3 scripts\\dev\\build_release.py --asciidoc "
-          "C:\\Python27\\python "
-          "$env:userprofile\\bin\\asciidoc-8.6.10\\asciidoc.py --upload"
+          "py -3.7 -m tox -e build-release -- --asciidoc "
+          "$env:userprofile\\bin\\asciidoc-9.9.2\\asciidoc.py --upload"
           .format(v=version))
     print("* macOS: git fetch && git checkout v{v} && "
-          "python3 scripts/dev/build_release.py --upload"
+          "tox -e build-release -- --upload"
           .format(v=version))

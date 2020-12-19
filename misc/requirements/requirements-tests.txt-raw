@@ -25,6 +25,8 @@ pytest-cov
 # To avoid windows from popping up
 pytest-xvfb
 PyVirtualDisplay
+# To run on multiple cores with -n
+pytest-xdist
 
 # Needed to test misc/userscripts/qute-lastpass
 tldextract
@@ -34,5 +36,8 @@ tldextract
 
 #@ markers: vulture python_version>="3.6"
 #@ add: vulture==1.6; python_version<"3.6"
+
+#@ markers: hypothesis python_version>="3.6"
+#@ add: hypothesis<5.34.0; python_version<"3.6"
 
 #@ ignore: Jinja2, MarkupSafe, colorama

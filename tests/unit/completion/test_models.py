@@ -124,7 +124,7 @@ def configdata_stub(config_stub, monkeypatch, configdata_init):
             no_autoconfig=True)),
         ('bindings.commands', configdata.Option(
             name='bindings.commands',
-            description='Default keybindings',
+            description='Custom keybindings',
             typ=configtypes.Dict(
                 keytype=configtypes.String(),
                 valtype=configtypes.Dict(
@@ -269,13 +269,38 @@ def test_help_completion(qtmodeltester, cmdutils_stub, key_config_stub,
             (':tab-close', 'Close the current tab.', ''),
         ],
         "Settings": [
-            ('aliases', 'Aliases for commands.', None),
-            ('bindings.commands', 'Default keybindings', None),
-            ('bindings.default', 'Default keybindings', None),
-            ('completion.open_categories', 'Which categories to show (in '
-             'which order) in the :open completion.', None),
-            ('content.javascript.enabled', 'Enable/Disable JavaScript', None),
-            ('url.searchengines', 'searchengines list', None),
+            (
+                'aliases',
+                'Aliases for commands.',
+                '{"q": "quit"}',
+            ),
+            (
+                'bindings.commands',
+                'Custom keybindings',
+                ('{"normal": {"<Ctrl+q>": "quit", "I": "invalid", "ZQ": "quit", '
+                 '"d": "scroll down"}}'),
+            ),
+            (
+                'bindings.default',
+                'Default keybindings',
+                '{"normal": {"<Ctrl+q>": "quit", "d": "tab-close"}}',
+            ),
+            (
+                'completion.open_categories',
+                'Which categories to show (in which order) in the :open completion.',
+                '["searchengines", "quickmarks", "bookmarks", "history"]',
+            ),
+            (
+                'content.javascript.enabled',
+                'Enable/Disable JavaScript',
+                'true'
+            ),
+            (
+                'url.searchengines',
+                'searchengines list',
+                ('{"DEFAULT": "https://duckduckgo.com/?q={}", '
+                 '"google": "https://google.com/?q={}"}'),
+            ),
         ],
     })
 
@@ -909,7 +934,7 @@ def test_setting_option_completion(qtmodeltester, config_stub,
     _check_completions(model, {
         "Options": [
             ('aliases', 'Aliases for commands.', '{"q": "quit"}'),
-            ('bindings.commands', 'Default keybindings', (
+            ('bindings.commands', 'Custom keybindings', (
                 '{"normal": {"<Ctrl+q>": "quit", "I": "invalid", '
                 '"ZQ": "quit", "d": "scroll down"}}')),
             ('completion.open_categories', 'Which categories to show (in '
@@ -933,7 +958,7 @@ def test_setting_dict_option_completion(qtmodeltester, config_stub,
     _check_completions(model, {
         "Dict options": [
             ('aliases', 'Aliases for commands.', '{"q": "quit"}'),
-            ('bindings.commands', 'Default keybindings', (
+            ('bindings.commands', 'Custom keybindings', (
                 '{"normal": {"<Ctrl+q>": "quit", "I": "invalid", '
                 '"ZQ": "quit", "d": "scroll down"}}')),
             ('url.searchengines', 'searchengines list',

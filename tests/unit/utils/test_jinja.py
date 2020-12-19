@@ -115,7 +115,7 @@ def test_not_found(caplog):
 
 
 def test_utf8():
-    """Test rendering with an UTF8 template.
+    """Test rendering with a UTF8 template.
 
     This was an attempt to get a failing test case for #127 but it seems
     the issue is elsewhere.

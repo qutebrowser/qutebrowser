@@ -61,11 +61,19 @@ import sys
 
 import tldextract
 
+
+def expanded_path(path):
+    # Expand potential ~ in paths, since this script won't be called from a shell that does it for us
+    expanded = os.path.expanduser(path)
+    # Add trailing slash if not present
+    return os.path.join(expanded, '')
+
+
 argument_parser = argparse.ArgumentParser(description=__doc__, usage=USAGE, epilog=EPILOG)
 argument_parser.add_argument('url', nargs='?', default=os.getenv('QUTE_URL'))
 argument_parser.add_argument('--password-store', '-p',
-                             default=os.getenv('PASSWORD_STORE_DIR', default=os.path.expanduser('~/.password-store')),
-                             help='Path to your pass password-store (only used in pass-mode)')
+                             default=expanded_path(os.getenv('PASSWORD_STORE_DIR', default='~/.password-store')),
+                             help='Path to your pass password-store (only used in pass-mode)', type=expanded_path)
 argument_parser.add_argument('--mode', '-M', choices=['pass', 'gopass'], default="pass",
                              help='Select mode [gopass] to use gopass instead of the standard pass.')
 argument_parser.add_argument('--username-pattern', '-u', default=r'.*/(.+)',
@@ -107,7 +115,7 @@ def qute_command(command):
         fifo.flush()
 
 
-def find_pass_candidates(domain, password_store_path):
+def find_pass_candidates(domain):
     candidates = []
 
     if arguments.mode == "gopass":
@@ -117,13 +125,13 @@ def find_pass_candidates(domain, password_store_path):
             if domain in password:
                 candidates.append(password)
     else:
-        for path, directories, file_names in os.walk(password_store_path, followlinks=True):
+        for path, directories, file_names in os.walk(arguments.password_store, followlinks=True):
             secrets = fnmatch.filter(file_names, '*.gpg')
             if not secrets:
                 continue
 
             # Strip password store path prefix to get the relative pass path
-            pass_path = path[len(password_store_path):]
+            pass_path = path[len(arguments.password_store):]
             split_path = pass_path.split(os.path.sep)
             for secret in secrets:
                 secret_base = os.path.splitext(secret)[0]
@@ -134,25 +142,27 @@ def find_pass_candidates(domain, password_store_path):
     return candidates
 
 
-def _run_pass(pass_arguments, encoding):
+def _run_pass(pass_arguments):
     # The executable is conveniently named after it's mode [pass|gopass].
     pass_command = [arguments.mode]
-    process = subprocess.run(pass_command + pass_arguments, stdout=subprocess.PIPE)
-    return process.stdout.decode(encoding).strip()
+    env = os.environ.copy()
+    env['PASSWORD_STORE_DIR'] = arguments.password_store
+    process = subprocess.run(pass_command + pass_arguments, env=env, stdout=subprocess.PIPE)
+    return process.stdout.decode(arguments.io_encoding).strip()
 
 
-def pass_(path, encoding):
-    return _run_pass([path], encoding)
+def pass_(path):
+    return _run_pass(['show', path])
 
 
-def pass_otp(path, encoding):
-    return _run_pass(['otp', path], encoding)
+def pass_otp(path):
+    return _run_pass(['otp', path])
 
 
-def dmenu(items, invocation, encoding):
+def dmenu(items, invocation):
     command = shlex.split(invocation)
-    process = subprocess.run(command, input='\n'.join(items).encode(encoding), stdout=subprocess.PIPE)
-    return process.stdout.decode(encoding).strip()
+    process = subprocess.run(command, input='\n'.join(items).encode(arguments.io_encoding), stdout=subprocess.PIPE)
+    return process.stdout.decode(arguments.io_encoding).strip()
 
 
 def fake_key_raw(text):
@@ -170,11 +180,6 @@ def main(arguments):
     extractor = tldextract.TLDExtract(extra_suffixes=arguments.extra_url_suffixes.split(','))
     extract_result = extractor(arguments.url)
 
-    # Expand potential ~ in paths, since this script won't be called from a shell that does it for us
-    password_store_path = os.path.expanduser(arguments.password_store)
-    # Add trailing slash if not present
-    password_store_path = os.path.join(password_store_path, '')
-
     # Try to find candidates using targets in the following order: fully-qualified domain name (includes subdomains),
     # the registered domain name, the IPv4 address if that's what the URL represents and finally the private domain
     # (if a non-public suffix was used).
@@ -188,7 +193,7 @@ def main(arguments):
 
     for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4, private_domain]):
         attempted_targets.append(target)
-        target_candidates = find_pass_candidates(target, password_store_path)
+        target_candidates = find_pass_candidates(target)
         if not target_candidates:
             continue
 
@@ -200,8 +205,7 @@ def main(arguments):
             stderr('No pass candidates for URL {!r} found! (I tried {!r})'.format(arguments.url, attempted_targets))
             return ExitCodes.NO_PASS_CANDIDATES
 
-    selection = candidates.pop() if len(candidates) == 1 else dmenu(sorted(candidates), arguments.dmenu_invocation,
-                                                                    arguments.io_encoding)
+    selection = candidates.pop() if len(candidates) == 1 else dmenu(sorted(candidates), arguments.dmenu_invocation)
     # Nothing was selected, simply return
     if not selection:
         return ExitCodes.SUCCESS
@@ -209,7 +213,7 @@ def main(arguments):
     # If username-target is path and user asked for username-only, we don't need to run pass
     secret = None
     if not (arguments.username_target == 'path' and arguments.username_only):
-        secret = pass_(selection, arguments.io_encoding)
+        secret = pass_(selection)
 
         # Match password
         match = re.match(arguments.password_pattern, secret)
@@ -231,7 +235,7 @@ def main(arguments):
     elif arguments.password_only:
         fake_key_raw(password)
     elif arguments.otp_only:
-        otp = pass_otp(selection, arguments.io_encoding)
+        otp = pass_otp(selection)
         fake_key_raw(otp)
     else:
         # Enter username and password using fake-key and <Tab> (which seems to work almost universally), then switch

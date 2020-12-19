@@ -30,33 +30,55 @@ import tokenize
 import traceback
 import collections
 import pathlib
+from typing import List, Iterator, Optional
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
 from scripts import utils
 
-
-def _get_files(only_py=False):
-    """Iterate over all python files and yield filenames."""
-    for (dirpath, _dirnames, filenames) in os.walk('.'):
-        parts = dirpath.split(os.sep)
-        if len(parts) >= 2:
-            rootdir = parts[1]
-            if rootdir.startswith('.') or rootdir == 'htmlcov':
-                # ignore hidden dirs and htmlcov
-                continue
-
-        if only_py:
-            endings = {'.py'}
-        else:
-            endings = {'.py', '.asciidoc', '.js', '.feature'}
-        files = (e for e in filenames if os.path.splitext(e)[1] in endings)
-        for name in files:
-            yield os.path.join(dirpath, name)
+BINARY_EXTS = {'.png', '.icns', '.ico', '.bmp', '.gz', '.bin', '.pdf',
+               '.sqlite', '.woff2', '.whl'}
 
 
-def check_git():
+def _get_files(
+        *,
+        verbose: bool,
+        ignored: List[pathlib.Path] = None
+) -> Iterator[pathlib.Path]:
+    """Iterate over all files and yield filenames."""
+    filenames = subprocess.run(
+        ['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'],
+        stdout=subprocess.PIPE,
+        universal_newlines=True,
+        check=True,
+    )
+    all_ignored = ignored or []
+    all_ignored.append(
+        pathlib.Path('tests', 'unit', 'scripts', 'importer_sample', 'chrome'))
+
+    for filename in filenames.stdout.split('\0'):
+        path = pathlib.Path(filename)
+        is_ignored = any(path == p or p in path.parents for p in all_ignored)
+        if not filename or path.suffix in BINARY_EXTS or is_ignored:
+            continue
+
+        try:
+            with tokenize.open(str(path)):
+                pass
+        except SyntaxError as e:
+            # Could not find encoding
+            utils.print_col("{} - maybe {} should be added to BINARY_EXTS?".format(
+                str(e).capitalize(), path.suffix), 'yellow')
+            continue
+
+        if verbose:
+            print(path)
+
+        yield path
+
+
+def check_git(_args: argparse.Namespace = None) -> bool:
     """Check for uncommitted git files.."""
     if not os.path.isdir(".git"):
         print("No .git dir, ignoring")
@@ -79,7 +101,7 @@ def check_git():
     return status
 
 
-def check_spelling():
+def check_spelling(args: argparse.Namespace) -> Optional[bool]:
     """Check commonly misspelled words."""
     # Words which I often misspell
     words = {'behaviour', 'quitted', 'likelyhood', 'sucessfully',
@@ -90,37 +112,36 @@ def check_spelling():
              'exitted', 'mininum', 'resett?ed', 'recieved', 'regularily',
              'underlaying', 'inexistant', 'elipsis', 'commiting', 'existant',
              'resetted', 'similarily', 'informations', 'an url', 'treshold',
-             'artefact'}
+             'artefact', 'an unix', 'an utf', 'an unicode'}
 
     # Words which look better when splitted, but might need some fine tuning.
     words |= {'webelements', 'mouseevent', 'keysequence', 'normalmode',
               'eventloops', 'sizehint', 'statemachine', 'metaobject',
-              'logrecord', 'filetype'}
+              'logrecord'}
 
     # Files which should be ignored, e.g. because they come from another
     # package
+    hint_data = pathlib.Path('tests', 'end2end', 'data', 'hints')
     ignored = [
-        os.path.join('.', 'scripts', 'dev', 'misc_checks.py'),
-        os.path.join('.', 'qutebrowser', '3rdparty', 'pdfjs'),
-        os.path.join('.', 'tests', 'end2end', 'data', 'hints', 'ace',
-                     'ace.js'),
+        pathlib.Path('scripts', 'dev', 'misc_checks.py'),
+        pathlib.Path('qutebrowser', '3rdparty', 'pdfjs'),
+        hint_data / 'ace' / 'ace.js',
+        hint_data / 'bootstrap' / 'bootstrap.css',
     ]
 
     seen = collections.defaultdict(list)
     try:
         ok = True
-        for fn in _get_files():
-            with tokenize.open(fn) as f:
-                if any(fn.startswith(i) for i in ignored):
-                    continue
+        for path in _get_files(verbose=args.verbose, ignored=ignored):
+            with tokenize.open(str(path)) as f:
                 for line in f:
                     for w in words:
                         pattern = '[{}{}]{}'.format(w[0], w[0].upper(), w[1:])
                         if (re.search(pattern, line) and
-                                fn not in seen[w] and
+                                path not in seen[w] and
                                 '# pragma: no spellcheck' not in line):
-                            print('Found "{}" in {}!'.format(w, fn))
-                            seen[w].append(fn)
+                            print('Found "{}" in {}!'.format(w, path))
+                            seen[w].append(path)
                             ok = False
         print()
         return ok
@@ -129,15 +150,18 @@ def check_spelling():
         return None
 
 
-def check_vcs_conflict():
+def check_vcs_conflict(args: argparse.Namespace) -> Optional[bool]:
     """Check VCS conflict markers."""
     try:
         ok = True
-        for fn in _get_files(only_py=True):
-            with tokenize.open(fn) as f:
+        for path in _get_files(verbose=args.verbose):
+            if path.suffix in {'.rst', '.asciidoc'}:
+                # False positives
+                continue
+            with tokenize.open(str(path)) as f:
                 for line in f:
                     if any(line.startswith(c * 7) for c in '<>=|'):
-                        print("Found conflict marker in {}".format(fn))
+                        print("Found conflict marker in {}".format(path))
                         ok = False
         print()
         return ok
@@ -146,7 +170,7 @@ def check_vcs_conflict():
         return None
 
 
-def check_userscripts_descriptions():
+def check_userscripts_descriptions(_args: argparse.Namespace = None) -> bool:
     """Make sure all userscripts are described properly."""
     folder = pathlib.Path('misc/userscripts')
     readme = folder / 'README.md'
@@ -178,20 +202,21 @@ def check_userscripts_descriptions():
     return ok
 
 
-def main():
+def main() -> int:
     parser = argparse.ArgumentParser()
+    parser.add_argument('--verbose', action='store_true', help='Show checked filenames')
     parser.add_argument('checker',
                         choices=('git', 'vcs', 'spelling', 'userscripts'),
                         help="Which checker to run.")
     args = parser.parse_args()
     if args.checker == 'git':
-        ok = check_git()
+        ok = check_git(args)
     elif args.checker == 'vcs':
-        ok = check_vcs_conflict()
+        ok = check_vcs_conflict(args)
     elif args.checker == 'spelling':
-        ok = check_spelling()
+        ok = check_spelling(args)
     elif args.checker == 'userscripts':
-        ok = check_userscripts_descriptions()
+        ok = check_userscripts_descriptions(args)
     return 0 if ok else 1
 
 
