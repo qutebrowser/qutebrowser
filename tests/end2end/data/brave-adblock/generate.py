@@ -44,7 +44,7 @@ def type_rename(type_str: str) -> Optional[str]:
     return None
 
 
-if __name__ == "__main__":
+def main():
     # Download file or use cached version
     if os.path.isfile(CACHE_LOCATION):
         print(f"Using cached file {CACHE_LOCATION}")
@@ -90,3 +90,7 @@ if __name__ == "__main__":
     # Compress the data before storing on the filesystem
     with gzip.open("ublock-matches.tsv.gz", "wb", compresslevel=9) as gzip_f:
         gzip_f.write(uncompressed_f.read().encode("utf-8"))
+
+
+if __name__ == "__main__":
+    main()
