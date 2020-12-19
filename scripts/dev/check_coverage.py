@@ -232,6 +232,7 @@ WHITELISTED_FILES = [
     'qutebrowser/keyinput/macros.py',
     'qutebrowser/browser/webkit/webkitelem.py',
     'qutebrowser/api/interceptor.py',
+    'qutebrowser/extensions/interceptors.py',
 ]
 
 
