@@ -432,11 +432,10 @@ You can specify a Qt/PyQt version with the `--pyqt-version` flag, see
 `mkenv.py --help` for a list of available versions. By default, the latest
 version which plays well with qutebrowser is used.
 
-NOTE: If qutebrowser fails to start with a _"This application failed to start
+NOTE: If the Qt smoke test fails with a _"This application failed to start
 because no Qt platform plugin could be initialized."_ message, most likely a
-system-wide library is missing. Run qutebrowser again after
-`export QT_DEBUG_PLUGINS=1` and keep attention to a
-_QLibraryPrivate::loadPlugin failed on ..._ line for details.
+system-wide library is missing. Pay attention to a _QLibraryPrivate::loadPlugin
+failed on ..._ line for details.
 
 Installing dependencies (system-wide Qt)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -487,5 +486,6 @@ Updating
 
 When you updated your local copy of the code (e.g. by pulling the git repo, or
 extracting a new version), the virtualenv should automatically use the updated
-code. However, dependencies won't be updated that way. Re-running `mkvenv.py`
-will recreate the virtualenv with updated dependencies.
+code. However, dependencies won't be updated that way. Thus, it's recommended
+to run `mkvenv.py --update` instead, which will run `git pull` and recreate the
+virtualenv with updated dependencies.

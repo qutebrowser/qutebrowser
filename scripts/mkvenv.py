@@ -57,6 +57,9 @@ def print_command(*cmd: Union[str, pathlib.Path], venv: bool) -> None:
 def parse_args(argv: List[str] = None) -> argparse.Namespace:
     """Parse commandline arguments."""
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--update',
+                        action='store_true',
+                        help="Run 'git pull' before creating the environment.")
     parser.add_argument('--keep',
                         action='store_true',
                         help="Reuse an existing virtualenv.")
@@ -395,10 +398,35 @@ def regenerate_docs(venv_dir: pathlib.Path,
     run_venv(venv_dir, 'python', str(script_path), *a2h_args)
 
 
+def update_repo():
+    """Update the git repository via git pull."""
+    print_command('git pull', venv=False)
+    try:
+        subprocess.run(['git', 'pull'], check=True)
+    except subprocess.CalledProcessError as e:
+        raise Error("git pull failed, exiting") from e
+
+
+def install_pyqt(venv_dir, args):
+    """Install PyQt in the virtualenv."""
+    if args.pyqt_type == 'binary':
+        install_pyqt_binary(venv_dir, args.pyqt_version)
+    elif args.pyqt_type == 'source':
+        install_pyqt_source(venv_dir, args.pyqt_version)
+    elif args.pyqt_type == 'link':
+        install_pyqt_link(venv_dir)
+    elif args.pyqt_type == 'wheels':
+        wheels_dir = pathlib.Path(args.pyqt_wheels_dir)
+        install_pyqt_wheels(venv_dir, wheels_dir)
+    elif args.pyqt_type == 'skip':
+        pass
+    else:
+        raise AssertionError
+
+
 def run(args) -> None:
     """Install qutebrowser in a virtualenv.."""
     venv_dir = pathlib.Path(args.venv_dir)
-    wheels_dir = pathlib.Path(args.pyqt_wheels_dir)
     utils.change_cwd()
 
     if (args.pyqt_version != 'auto' and
@@ -410,25 +438,17 @@ def run(args) -> None:
         raise Error('The --pyqt-wheels-dir option is only available when installing '
                     'PyQt from wheels')
 
+    if args.update:
+        utils.print_title("Updating repository")
+        update_repo()
+
     if not args.keep:
         utils.print_title("Creating virtual environment")
         delete_old_venv(venv_dir)
         create_venv(venv_dir, use_virtualenv=args.virtualenv)
 
     upgrade_seed_pkgs(venv_dir)
-
-    if args.pyqt_type == 'binary':
-        install_pyqt_binary(venv_dir, args.pyqt_version)
-    elif args.pyqt_type == 'source':
-        install_pyqt_source(venv_dir, args.pyqt_version)
-    elif args.pyqt_type == 'link':
-        install_pyqt_link(venv_dir)
-    elif args.pyqt_type == 'wheels':
-        install_pyqt_wheels(venv_dir, wheels_dir)
-    elif args.pyqt_type == 'skip':
-        pass
-    else:
-        raise AssertionError
+    install_pyqt(venv_dir, args)
 
     apply_xcb_util_workaround(venv_dir, args.pyqt_type, args.pyqt_version)
     if args.pyqt_type != 'skip' and not args.skip_smoke_test:
