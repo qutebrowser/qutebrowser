@@ -59,15 +59,7 @@ class ResourceType(enum.Enum):
 
 
 class RedirectException(Exception):
-    """Raised when there was an error with redirection."""
-
-
-class RedirectFailedException(RedirectException):
     """Raised when the request was invalid, or a request was already made."""
-
-
-class RedirectUnsupportedException(RedirectException):
-    """Raised when redirection is currently unsupported."""
 
 
 @attr.s
@@ -96,14 +88,13 @@ class Request:
         Only some types of requests can be successfully redirected.
         Improper use of this method can result in redirect loops.
 
-        This method will throw a RedirectFailedException if the request was not
-        possible.
+        This method will throw a RedirectException if the request was not possible.
 
         Args:
             url: The QUrl to try to redirect to.
         """
         # Will be overridden if the backend supports redirection
-        raise RedirectUnsupportedException("Unsupported backend.")
+        raise NotImplementedError
 
 
 #: Type annotation for an interceptor function.

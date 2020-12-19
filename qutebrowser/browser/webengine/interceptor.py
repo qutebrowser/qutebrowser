@@ -45,16 +45,14 @@ class WebEngineRequest(interceptors.Request):
 
     def redirect(self, url: QUrl) -> None:
         if self._redirected:
-            raise interceptors.RedirectFailedException(
-                "Request already redirected.")
+            raise interceptors.RedirectException("Request already redirected.")
         if self._webengine_info is None:
-            raise interceptors.RedirectFailedException(
-                "Request improperly initialized.")
+            raise interceptors.RedirectException("Request improperly initialized.")
         # Redirecting a request that contains payload data is not allowed.
         # To be safe, abort on any request not in a whitelist.
         if (self._webengine_info.requestMethod()
                 not in self._WHITELISTED_REQUEST_METHODS):
-            raise interceptors.RedirectFailedException(
+            raise interceptors.RedirectException(
                 "Request method does not support redirection.")
         self._webengine_info.redirect(url)
         self._redirected = True
