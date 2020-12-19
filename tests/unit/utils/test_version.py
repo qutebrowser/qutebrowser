@@ -562,11 +562,13 @@ class ImportFake:
             ('yaml', True),
             ('adblock', True),
             ('attr', True),
+            ('importlib_resources', True),
             ('PyQt5.QtWebEngineWidgets', True),
             ('PyQt5.QtWebEngine', True),
             ('PyQt5.QtWebKitWidgets', True),
         ])
         self.no_version_attribute = ['sip',
+                                     'importlib_resources',
                                      'PyQt5.QtWebEngineWidgets',
                                      'PyQt5.QtWebKitWidgets',
                                      'PyQt5.QtWebEngine']

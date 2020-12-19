@@ -32,6 +32,26 @@ def patch_backend(monkeypatch):
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
 
 
+@pytest.mark.parametrize('qversion, enabled, expected', [
+    # Disabled or nothing set
+    ("5.14", False, []),
+    ("5.15.0", False, []),
+    ("5.15.1", False, []),
+    ("5.15.2", False, []),
+
+    # Enabled in configuration
+    ("5.14", True, []),
+    ("5.15.0", True, []),
+    ("5.15.1", True, []),
+    ("5.15.2", True, [("preferredColorScheme", "1")]),
+])
+@utils.qt514
+def test_colorscheme(config_stub, monkeypatch, qversion, enabled, expected):
+    monkeypatch.setattr(darkmode.qtutils, 'qVersion', lambda: qversion)
+    config_stub.val.colors.webpage.prefers_color_scheme_dark = enabled
+    assert list(darkmode.settings()) == expected
+
+
 @pytest.mark.parametrize('settings, expected', [
     # Disabled
     ({}, []),

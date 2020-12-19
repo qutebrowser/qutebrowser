@@ -188,7 +188,7 @@ MATCHERS = {
             "severity": "error",
             "pattern": [
                 {
-                    "regexp": r'^([^:]+):(\d+): (Found .*)',
+                    "regexp": r'^([^:]+):(\d+): \033\[34m(Found .*)\033\[0m',
                     "file": 1,
                     "line": 2,
                     "message": 3,

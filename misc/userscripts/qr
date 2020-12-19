@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+pngfile=$(mktemp --suffix=.png)
+trap 'rm -f "$pngfile"' EXIT
+
+qrencode -t PNG -o "$pngfile" -s 10 "$QUTE_URL"
+echo ":open -t file:///$pngfile" >> "$QUTE_FIFO"
+sleep 1  # give qutebrowser time to open the file before it gets removed

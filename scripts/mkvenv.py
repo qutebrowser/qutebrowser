@@ -87,6 +87,9 @@ def parse_args(argv: List[str] = None) -> argparse.Namespace:
     parser.add_argument('--skip-docs',
                         action='store_true',
                         help="Skip doc generation.")
+    parser.add_argument('--skip-smoke-test',
+                        action='store_true',
+                        help="Skip Qt smoke test.")
     parser.add_argument('--tox-error',
                         action='store_true',
                         help=argparse.SUPPRESS)
@@ -296,12 +299,19 @@ def apply_xcb_util_workaround(
 def _find_libs() -> Dict[Tuple[str, str], List[str]]:
     """Find all system-wide .so libraries."""
     all_libs: Dict[Tuple[str, str], List[str]] = {}
+
+    if pathlib.Path("/sbin/ldconfig").exists():
+        # /sbin might not be in PATH on e.g. Debian
+        ldconfig_bin = "/sbin/ldconfig"
+    else:
+        ldconfig_bin = "ldconfig"
     ldconfig_proc = subprocess.run(
-        ['ldconfig', '-p'],
+        [ldconfig_bin, '-p'],
         check=True,
         stdout=subprocess.PIPE,
         encoding=sys.getfilesystemencoding(),
     )
+
     pattern = re.compile(r'(?P<name>\S+) \((?P<abi_type>[^)]+)\) => (?P<path>.*)')
     for line in ldconfig_proc.stdout.splitlines():
         match = pattern.fullmatch(line.strip())
@@ -421,7 +431,7 @@ def run(args) -> None:
         raise AssertionError
 
     apply_xcb_util_workaround(venv_dir, args.pyqt_type, args.pyqt_version)
-    if args.pyqt_type != 'skip':
+    if args.pyqt_type != 'skip' and not args.skip_smoke_test:
         run_qt_smoke_test(venv_dir)
 
     install_requirements(venv_dir)

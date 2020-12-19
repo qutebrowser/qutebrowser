@@ -2,8 +2,7 @@
 
 build==0.1.0
 check-manifest==0.45
-packaging==20.4
+packaging==20.8
 pep517==0.9.1
 pyparsing==2.4.7
-six==1.15.0
 toml==0.10.2

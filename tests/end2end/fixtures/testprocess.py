@@ -20,7 +20,6 @@
 """Base class for a subprocess run for tests."""
 
 import re
-import os
 import time
 import warnings
 
@@ -234,7 +233,7 @@ class Process(QObject):
         self._started = True
         verbose = self.request.config.getoption('--verbose')
 
-        timeout = 60 if 'CI' in os.environ else 20
+        timeout = 60 if utils.ON_CI else 20
         for _ in range(timeout):
             with self._wait_signal(self.ready, timeout=1000,
                                    raising=False) as blocker:
@@ -476,7 +475,7 @@ class Process(QObject):
         if timeout is None:
             if do_skip:
                 timeout = 2000
-            elif 'CI' in os.environ:
+            elif utils.ON_CI:
                 timeout = 15000
             else:
                 timeout = 5000

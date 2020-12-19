@@ -41,12 +41,15 @@ test_gm_script = r"""
 console.log("Script is running.");
 """
 
-pytestmark = pytest.mark.usefixtures('data_tmpdir')
+pytestmark = [
+    pytest.mark.usefixtures('data_tmpdir'),
+    pytest.mark.usefixtures('config_tmpdir')
+]
 
 
 def _save_script(script_text, filename):
     # pylint: disable=no-member
-    file_path = py.path.local(greasemonkey._scripts_dir()) / filename
+    file_path = py.path.local(greasemonkey._scripts_dirs()[0]) / filename
     # pylint: enable=no-member
     file_path.write_text(script_text, encoding='utf-8', ensure=True)
 

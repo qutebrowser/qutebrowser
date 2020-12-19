@@ -1057,7 +1057,8 @@ class CommandDispatcher:
             verbose: Show notifications when the command started/exited.
             output: Show the output in a new tab.
             output_messages: Show the output as messages.
-            detach: Whether the command should be detached from qutebrowser.
+            detach: Detach the command from qutebrowser so that it continues
+                    running when qutebrowser quits.
             cmdline: The commandline to execute.
             count: Given to userscripts as $QUTE_COUNT.
         """

@@ -18,7 +18,7 @@ mpv, a simple key binding to something like `:spawn mpv {url}` should suffice.
 Also note userscripts need to have the executable bit set (`chmod +x`) for
 qutebrowser to run them.
 
-To call a userscript, it needs to be stored in your data directory under
+To call a userscript, it needs to be stored in your config or data directory under
 `userscripts` (for example: `~/.local/share/qutebrowser/userscripts/myscript`),
 or just use an absolute path.
 

@@ -289,20 +289,25 @@ class TestQtArgs:
         else:
             assert arg in args
 
-    @pytest.mark.parametrize('dark, new_qt, added', [
-        (True, True, True),
-        (True, False, False),
-        (False, True, False),
-        (False, False, False),
+    @pytest.mark.parametrize('dark, qt_version, added', [
+        (True, "5.13", False),  # not supported
+        (True, "5.14", True),
+        (True, "5.15.0", True),
+        (True, "5.15.1", True),
+        (True, "5.15.2", False),  # handled via blink setting
+
+        (False, "5.13", False),
+        (False, "5.14", False),
+        (False, "5.15.0", False),
+        (False, "5.15.1", False),
+        (False, "5.15.2", False),
     ])
     @utils.qt514
     def test_prefers_color_scheme_dark(self, config_stub, monkeypatch, parser,
-                                       dark, new_qt, added):
+                                       dark, qt_version, added):
         monkeypatch.setattr(qtargs.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
-        monkeypatch.setattr(qtargs.qtutils, 'version_check',
-                            lambda version, exact=False, compiled=True:
-                            new_qt)
+        monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: qt_version)
 
         config_stub.val.colors.webpage.prefers_color_scheme_dark = dark
 

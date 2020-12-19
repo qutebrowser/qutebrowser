@@ -42,6 +42,12 @@ Major changes
   still relying on it. The `cssutils` project is also dead upstream, with its
   repository being gone after Bitbucket
   https://bitbucket.org/blog/sunsetting-mercurial-support-in-bitbucket[removed Mercurial support].
+- TODO: The former dependency on the `pkg_resources` module (part of the
+  `setuptools` project) got dropped.
+- A new dependency on the `importlib_resources` module got introduced for
+  Python versions up to and including 3.8. Note that the stdlib
+  `importlib.resources` module for Python 3.7 and 3.8 is missing the needed APIs,
+  thus requiring the backports for those versions as well.
 
 Removed
 ~~~~~~~
@@ -64,6 +70,12 @@ Added
   settings might stop working. As a (currently undocumented) escape hatch, this
   version adds a `QUTE_DARKMODE_VARIANT=qt_515_2` environment variable which can
   be set to get the correct behavior in (transitive) situations like this.
+- New `--desktop-file-name` commandline argument, which can be used to customize
+  the desktop filename passed to Qt (which is used to set the `app_id` on
+  Wayland).
+- New userscripts:
+  - `kodi` to play videos in Kodi
+  - `qr` to generate a QR code of the current URL
 
 Changed
 ~~~~~~~
@@ -83,14 +95,30 @@ Changed
   pre-selected in the prompt shown by qutebrowser.
 - URLs such as `::1/foo` are now handled as a search term or local file rather
   than IPv6. Use `[::1]/foo` to force parsing as IPv6 instead.
+- The `mkvenv.py` script now runs a "smoke test" after setting up the virtual
+  environment to ensure it's working as expected. If necessary, the test can be
+  skipped via a new `--skip-smoke-test` flag.
+- Both qutebrowser userscripts and Greasemonkey scripts are now additionally
+  picked up from qutebrowser's config directory (the `userscripts` and
+  `greasemonkey` subdirectories of e.g. `~/.config/qutebrowser/`) rather than only
+  the data directory (the same subdirectories of e.g.
+  `~/.local/share/qutebrowser/`).
+- The `:later` command now understands a time specification like `5m` or
+  `1h5m2s`, rather than just taking milliseconds.
 
 Fixed
 ~~~~~
 
 - With interpolated color settings (`colors.tabs.indicator.*` and
   `colors.downloads.*`), the alpha channel is now handled correctly.
+- The `format_json` userscript now uses `env` in its shebang, making it work
+  correctly on systems where `bash` isn't located in `/bin`.
+- TODO: Due to a long-standing bug in the `pkg_resources` dependency, it caused
+  qutebrowser's startup to slow down by around 150ms-1s (heavily depending on
+  the system). Since the dependency is now removed, qutebrowser's startup time
+  thus improved.
 
-v1.14.1 (unreleased)
+v1.14.1 (2020-12-04)
 --------------------
 
 Added
@@ -178,8 +206,17 @@ Fixed
   installed, it was suggested to install `qt5-webengine-devtools`, which does
   not, in fact, exist. It's now correctly suggested to install
   `qt5-qtwebengine-devtools` instead.
+- With Qt 5.15.2, lines/borders coming from the  `readability-js` userscript
+  were invisible. This is now fixed by changing the border color to grey (with all
+  Qt versions).
+- Due to changes in the underlying Chromium, the
+  `colors.webpage.prefers_color_scheme_dark` setting broke with Qt 5.15.2. It now
+  works properly again.
+- A bug in the `pkg_resources` module used by qutebrowser caused deprecation
+  warnings to appear on start with Python 3.9 on some setups. Those are now
+  hidden.
 - Minor performance improvements.
-- (TODO) Fix for various functionality breaking in private windows with v1.14.0,
+- Fix for various functionality breaking in private windows with v1.14.0,
   after the last private window is closed. This includes:
     * Ad blocking
     * Downloads

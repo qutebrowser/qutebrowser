@@ -417,3 +417,17 @@ def test_referrer(quteproc_new, server, server2, request, value, expected):
             expected = expected.replace(key, str(val))
 
     assert headers.get('Referer') == expected
+
+
+@pytest.mark.qtwebkit_skip
+@utils.qt514
+def test_preferred_colorscheme(request, quteproc_new):
+    """Make sure the the preferred colorscheme is set."""
+    args = _base_args(request.config) + [
+        '--temp-basedir',
+        '-s', 'colors.webpage.prefers_color_scheme_dark', 'true',
+    ]
+    quteproc_new.start(args)
+
+    quteproc_new.send_cmd(':jseval matchMedia("(prefers-color-scheme: dark)").matches')
+    quteproc_new.wait_for(message='True')

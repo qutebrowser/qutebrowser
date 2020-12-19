@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+#
+# Behavior:
+#   A qutebrowser userscript that plays Twitch, YouTube or Vimeo videos in Kodi via its
+#   API.
+#
+#   Requirements:
+#     awk
+#     bash
+#     curl
+#
+#  Kodi setup:
+#    Settings -> Services -> Control
+#      enable 'Allow remote control via HTTP'
+#      set Username and Password
+#      enable 'Allow remote control from applications on this system'
+#     Optional yet recommended, setup SSL within Kodi over via a proxy webserver
+#
+#  userscript setup:
+#    create ~/.config/qutebrowser/kodi_rc with host and authentication information like:
+#
+#      HOST="http://127.0.0.1:8080"
+#      or
+#      HOST="https://kodi.example.com"
+#
+#      AUTH="user:password"
+#      or
+#      AUTH="bas64authenticationinformation"
+#
+#      The base64 authentication is the output of
+#      `echo -ne "user:password" |base64 --wrap 0`
+#      reminder base64 is not encryption
+#
+#      For vim users you might want to add '# vim: set nospell filetype=bash' to the
+#      kodi_rc file.
+#
+#  qutebrowser setup:
+#    in ~/.config/qutebrowser/config.py add something like
+#
+#      to send video link via hints:
+#        config.bind('X', 'hint links userscript kodi')
+#      to send current URL:
+#        config.bind('X', 'spawn --userscript kodi')
+#
+#   troubleshooting:
+#     Errors detected within this userscript with have an exit of 231.  All other exit
+#     codes will come from curl or awk.  To test that the kodi_rc file is set up
+#     correctly, run the following command. It will display a 'It works!' notification within Kodi.
+#
+#     source ~/.config/qutebrowser/kodi_rc ; curl --request POST "$HOST"/jsonrpc --header "Authorization: Basic $AUTH" --header "Content-Type: application/json" --data '{"id":1,"jsonrpc":"2.0","method":"GUI.ShowNotification","params":{"title":"It works!","message":"both HOST and AUTH are correct"}}'
+#
+#     In case you miss the notification in Kodi the successful response is:
+#
+#     {"id":1,"jsonrpc":"2.0","result":"OK"}
+#
+#     Note, curl will display errors for some problems, but not all.
+
+if [[ -z "$QUTE_FIFO" ]] ; then
+	echo "This script is designed to run as a qutebrowser userscript, not as a standalone script."
+	exit 231
+fi
+
+# configuration loading adapted from the password_fill userscript
+QUTE_CONFIG_DIR=${QUTE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/qutebrowser/}
+KODI_CONFIG=${PWFILL_CONFIG:-${QUTE_CONFIG_DIR}/kodi_rc}
+if [[ -f "$KODI_CONFIG" ]] ; then
+	# shellcheck source=/dev/null
+	source "$KODI_CONFIG"
+	if [[ -z "$HOST" || -z "$AUTH" ]] ; then
+		echo "message-error 'HOST and/or AUTH not set in $KODI_CONFIG'" > "$QUTE_FIFO"
+		exit 231
+	fi
+else
+	echo "message-error '$KODI_CONFIG not found'" > "$QUTE_FIFO"
+	exit 231
+fi
+
+# get real URL from twitter links
+if [[ "$QUTE_URL" =~ ^https:\/\/t\.co ]] ; then
+	QUTE_URL=$(curl -o /dev/null --silent --head --write-out '%{redirect_url}' "$QUTE_URL" )
+fi
+
+# regex from https://github.com/dirkjanm/firefox-send-to-xbmc/blob/master/webextension/main.js
+if [[ "$QUTE_URL" =~  ^.*twitch.tv\/([a-zA-Z0-9_]+)$ ]] ; then
+	NAME="${BASH_REMATCH[1]}"
+	JSON='{"jsonrpc":"2.0","method":"Player.Open","params":{"item":{"file":"plugin://plugin.video.twitch/?mode=play&channel_name='$NAME'"}},"id":"2"}'
+
+elif [[ "$QUTE_URL" =~ ^.*twitch.tv\/videos\/([0-9]+)$ ]] ; then
+	NAME="${BASH_REMATCH[1]}"
+	JSON='{"jsonrpc":"2.0","method":"Player.Open","params":{"item":{"file":"plugin://plugin.video.twitch/?mode=play&video_id='$NAME'"}},"id":"2"}'
+
+elif [[ "$QUTE_URL" =~ ^.*vimeo.com\/([0-9]+) ]] ; then
+	NAME="${BASH_REMATCH[1]}"
+	JSON='{"jsonrpc":"2.0","method":"Player.Open","params":{"item":{"file":"plugin://plugin.video.vimeo/play/?video_id='$NAME'"}},"id":"2"}'
+
+elif [[ "$QUTE_URL" =~ ^.*youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=([^#\&\?]*).*  ]] ; then
+	NAME="${BASH_REMATCH[1]}"
+	JSON='{"jsonrpc":"2.0","method":"Player.Open","params":{"item":{"file":"plugin://plugin.video.youtube/play/?video_id='$NAME'"}},"id":"2"}'
+fi
+
+if [[ "$JSON" ]] ; then
+	curl \
+	--request POST "$HOST"/jsonrpc \
+	--header "Authorization: Basic $AUTH" \
+	--header "Content-Type: application/json" \
+	--data "$JSON" \
+	--silent > /dev/null
+else
+	URL=$(echo "$QUTE_URL" |awk -F/ '{print $3}')
+	echo "message-warning 'kodi userscript does not support this $URL'" > "$QUTE_FIFO"
+fi

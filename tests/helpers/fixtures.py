@@ -166,7 +166,7 @@ def fake_web_tab(stubs, tab_registry, mode_manager, qapp):
 
 
 @pytest.fixture
-def greasemonkey_manager(monkeypatch, data_tmpdir):
+def greasemonkey_manager(monkeypatch, data_tmpdir, config_tmpdir):
     gm_manager = greasemonkey.GreasemonkeyManager()
     monkeypatch.setattr(greasemonkey, 'gm_manager', gm_manager)
 

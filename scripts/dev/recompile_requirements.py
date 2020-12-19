@@ -73,7 +73,7 @@ CHANGELOG_URLS = {
     'pytest-bdd': 'https://github.com/pytest-dev/pytest-bdd/blob/master/CHANGES.rst',
     'snowballstemmer': 'https://github.com/snowballstem/snowball/blob/master/NEWS',
     'virtualenv': 'https://virtualenv.pypa.io/en/latest/changelog.html',
-    'packaging': 'https://pypi.org/project/packaging/',
+    'packaging': 'https://packaging.pypa.io/en/latest/changelog.html',
     'build': 'https://github.com/pypa/build/commits/master',
     'attrs': 'http://www.attrs.org/en/stable/changelog.html',
     'Jinja2': 'https://github.com/pallets/jinja/blob/master/CHANGES.rst',
@@ -130,7 +130,7 @@ CHANGELOG_URLS = {
     'six': 'https://github.com/benjaminp/six/blob/master/CHANGES',
     'altgraph': 'https://github.com/ronaldoussoren/altgraph/blob/master/doc/changelog.rst',
     'urllib3': 'https://github.com/urllib3/urllib3/blob/master/CHANGES.rst',
-    'lxml': 'https://lxml.de/4.6/changes-4.6.0.html',
+    'lxml': 'https://lxml.de/index.html#old-versions',
     'jwcrypto': 'https://github.com/latchset/jwcrypto/commits/master',
     'wrapt': 'https://github.com/GrahamDumpleton/wrapt/blob/develop/docs/changes.rst',
     'pep517': 'https://github.com/pypa/pep517/blob/master/doc/changelog.rst',
@@ -175,6 +175,7 @@ CHANGELOG_URLS = {
     'pyroma': 'https://github.com/regebro/pyroma/blob/master/HISTORY.txt',
     'adblock': 'https://github.com/ArniDagur/python-adblock/blob/master/CHANGELOG.md',
     'pyPEG2': None,
+    'importlib-resources': 'https://importlib-resources.readthedocs.io/en/latest/changelog%20%28links%29.html',
 }
 
 
@@ -262,13 +263,17 @@ def get_all_names():
         yield basename[len('requirements-'):-len('.txt-raw')]
 
 
-def run_pip(venv_dir, *args, **kwargs):
+def run_pip(venv_dir, *args, quiet=False, **kwargs):
     """Run pip inside the virtualenv."""
+    args = list(args)
+    if quiet:
+        args.insert(1, '-q')
+
     arg_str = ' '.join(str(arg) for arg in args)
     utils.print_col('venv$ pip {}'.format(arg_str), 'blue')
+
     venv_python = os.path.join(venv_dir, 'bin', 'python')
-    return subprocess.run([venv_python, '-m', 'pip'] + list(args),
-                          check=True, **kwargs)
+    return subprocess.run([venv_python, '-m', 'pip'] + args, check=True, **kwargs)
 
 
 def init_venv(host_python, venv_dir, requirements, pre=False):
@@ -277,8 +282,8 @@ def init_venv(host_python, venv_dir, requirements, pre=False):
         utils.print_col('$ python3 -m venv {}'.format(venv_dir), 'blue')
         subprocess.run([host_python, '-m', 'venv', venv_dir], check=True)
 
-        run_pip(venv_dir, 'install', '-U', 'pip')
-        run_pip(venv_dir, 'install', '-U', 'setuptools', 'wheel')
+        run_pip(venv_dir, 'install', '-U', 'pip', quiet=not utils.ON_CI)
+        run_pip(venv_dir, 'install', '-U', 'setuptools', 'wheel', quiet=not utils.ON_CI)
 
     install_command = ['install', '-r', requirements]
     if pre:
@@ -292,6 +297,8 @@ def init_venv(host_python, venv_dir, requirements, pre=False):
 def parse_args():
     """Parse commandline arguments via argparse."""
     parser = argparse.ArgumentParser()
+    parser.add_argument('--force-test', help="Force running environment tests",
+                        action='store_true')
     parser.add_argument('names', nargs='*')
     return parser.parse_args()
 
@@ -358,6 +365,7 @@ def _get_changed_files():
 def parse_versioned_line(line):
     """Parse a requirements.txt line into name/version."""
     if '==' in line:
+        line = line.rsplit('#', maxsplit=1)[0]  # Strip comments
         name, version = line.split('==')
         if ';' in version:  # pip environment markers
             version = version.split(';')[0].strip()
@@ -412,7 +420,7 @@ def print_changed_files():
     utils.print_subtitle('Diff')
     print(diff_text)
 
-    if 'CI' in os.environ:
+    if utils.ON_CI:
         print()
         print('::set-output name=changed::' +
               files_text.replace('\n', '%0A'))
@@ -481,7 +489,6 @@ def build_requirements(name):
 
 def test_tox():
     """Test requirements via tox."""
-    utils.print_title('Testing via tox')
     host_python = get_host_python('tox')
     req_path = os.path.join(REQ_DIR, 'requirements-tox.txt')
 
@@ -506,10 +513,14 @@ def test_tox():
                                check=True)
 
 
-def test_requirements(name, outfile):
+def test_requirements(name, outfile, *, force=False):
     """Test a resulting requirements file."""
     print()
     utils.print_subtitle("Testing")
+
+    if name not in _get_changed_files() and not force:
+        print(f"Skipping test as there were no changes for {name}.")
+        return
 
     host_python = get_host_python(name)
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -528,11 +539,16 @@ def main():
     for name in names:
         utils.print_title(name)
         outfile = build_requirements(name)
-        test_requirements(name, outfile)
+        test_requirements(name, outfile, force=args.force_test)
 
-    if not args.names:
+    utils.print_title('Testing via tox')
+    if args.names and not args.force_test:
         # If we selected a subset, let's not go through the trouble of testing
         # via tox.
+        print("Skipping: Selected a subset only")
+    elif not _get_changed_files() and not args.force_test:
+        print("Skipping: No changes")
+    else:
         test_tox()
 
     print_changed_files()

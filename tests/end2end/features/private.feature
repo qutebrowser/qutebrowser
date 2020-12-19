@@ -199,3 +199,49 @@ Feature: Using private browsing
                     - history:
                         - active: true
                           url: http://localhost:*/data/numbers/5.txt
+
+    # https://github.com/qutebrowser/qutebrowser/issues/5810
+
+    Scenario: Using qute:// scheme after reiniting private profile
+        When I open about:blank in a private window
+        And I run :close
+        And I open qute://version in a private window
+        Then the page should contain the plaintext "Version info"
+
+    Scenario: Downloading after reiniting private profile
+        When I open about:blank in a private window
+        And I run :close
+        And I open data/downloads/downloads.html in a private window
+        And I run :click-element id download
+        And I wait for "*PromptMode.download*" in the log
+        And I run :leave-mode
+        Then "Removed download *: download.bin *" should be logged
+
+    Scenario: Adblocking after reiniting private profile
+        When I open about:blank in a private window
+        And I run :close
+        And I set content.host_blocking.lists to ["http://localhost:(port)/data/adblock/qutebrowser"]
+        And I run :adblock-update
+        And I wait for the message "adblock: Read 1 hosts from 1 sources."
+        And I open data/adblock/external_logo.html in a private window
+        Then "Request to qutebrowser.org blocked by host blocker." should be logged
+
+    @pyqt!=5.15.0   # cookie filtering is broken on QtWebEngine 5.15.0
+    Scenario: Cookie filtering after reiniting private profile
+        When I open about:blank in a private window
+        And I run :close
+        And I set content.cookies.accept to never
+        And I open data/title.html in a private window
+        And I open cookies/set?unsuccessful-cookie=1 without waiting in a new tab
+        And I wait until cookies is loaded
+        And I open cookies
+        Then the cookie unsuccessful-cookie should not be set
+
+    Scenario: Disabling JS after reiniting private profile
+        When I open about:blank in a new window
+        And I run :window-only
+        And I set content.javascript.enabled to false
+        And I open about:blank in a private window
+        And I run :close
+        And I open data/javascript/enabled.html in a private window
+        Then the page should contain the plaintext "JavaScript is disabled"

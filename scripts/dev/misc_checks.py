@@ -145,8 +145,8 @@ def _check_spelling_file(path, fobj, patterns):
         for pattern, explanation in patterns:
             if pattern.search(line):
                 ok = False
-                print(f'{path}:{num}: Found "{pattern.pattern}" - ', end='')
-                utils.print_col(explanation, 'blue')
+                print(f'{path}:{num}: ', end='')
+                utils.print_col(f'Found "{pattern.pattern}" - {explanation}', 'blue')
     return ok
 
 
@@ -185,7 +185,7 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
              "'type: ignore[error-code]' instead."),
         ),
         (
-            re.compile(r'# type: (?!ignore\[)'),
+            re.compile(r'# type: (?!ignore(\[|$))'),
             "Don't use type comments, use type annotations instead.",
         ),
         (
@@ -274,12 +274,35 @@ def check_userscripts_descriptions(_args: argparse.Namespace = None) -> bool:
     return ok
 
 
+def check_userscript_shebangs(_args: argparse.Namespace) -> bool:
+    """Check that we're using /usr/bin/env in shebangs."""
+    ok = True
+    folder = pathlib.Path('misc/userscripts')
+
+    for sub in folder.iterdir():
+        if sub.is_dir() or sub.name == 'README.md':
+            continue
+
+        with sub.open('r', encoding='utf-8') as f:
+            shebang = f.readline()
+        assert shebang.startswith('#!'), shebang
+        binary = shebang.split()[0][2:]
+
+        if binary not in ['/bin/sh', '/usr/bin/env']:
+            bin_name = pathlib.Path(binary).name
+            print(f"In {sub}, use #!/usr/bin/env {bin_name} instead of #!{binary}")
+            ok = False
+
+    return ok
+
+
 def main() -> int:
     checkers = {
         'git': check_git,
         'vcs': check_vcs_conflict,
         'spelling': check_spelling,
-        'userscripts': check_userscripts_descriptions,
+        'userscript-descriptions': check_userscripts_descriptions,
+        'userscript-shebangs': check_userscript_shebangs,
         'changelog-urls': check_changelog_urls,
     }
 

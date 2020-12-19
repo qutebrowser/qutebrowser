@@ -1,7 +1,7 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-#
+# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+
 # This file is part of qutebrowser.
 #
 # qutebrowser is free software: you can redistribute it and/or modify
@@ -17,17 +17,22 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""A keyboard-driven, vim-like browser based on PyQt5."""
+import re
 
-import os.path
+import pytest
 
-__author__ = "Florian Bruhin"
-__copyright__ = "Copyright 2014-2020 Florian Bruhin (The Compiler)"
-__license__ = "GPL"
-__maintainer__ = __author__
-__email__ = "mail@qutebrowser.org"
-__version__ = "1.14.1"
-__version_info__ = tuple(int(part) for part in __version__.split('.'))
-__description__ = "A keyboard-driven, vim-like browser based on PyQt5."
+from scripts.dev.ci import problemmatchers
 
-basedir = os.path.dirname(os.path.realpath(__file__))
+
+@pytest.mark.parametrize('matcher_name', list(problemmatchers.MATCHERS))
+def test_patterns(matcher_name):
+    """Make sure all regexps are valid.
+
+    They aren't actually Python syntax, but hopefully close enough to it to compile with
+    Python's re anyways.
+    """
+    for matcher in problemmatchers.MATCHERS[matcher_name]:
+        for pattern in matcher['pattern']:
+            regexp = pattern['regexp']
+            print(regexp)
+            re.compile(regexp)

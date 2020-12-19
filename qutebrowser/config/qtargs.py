@@ -203,12 +203,18 @@ def _qtwebengine_settings_args() -> Iterator[str]:
         }
     }
 
-    referrer_setting = settings['content.headers.referer']
-    if qtutils.version_check('5.14', compiled=False):
+    if (qtutils.version_check('5.14', compiled=False) and
+            not qtutils.version_check('5.15.2', compiled=False)):
+        # In Qt 5.14 to 5.15.1, `--force-dark-mode` is used to set the
+        # preferred colorscheme. In Qt 5.15.2, this is handled by a
+        # blink-setting instead.
         settings['colors.webpage.prefers_color_scheme_dark'] = {
             True: '--force-dark-mode',
             False: None,
         }
+
+    referrer_setting = settings['content.headers.referer']
+    if qtutils.version_check('5.14', compiled=False):
         # Starting with Qt 5.14, this is handled via --enable-features
         referrer_setting['same-domain'] = None
     else:

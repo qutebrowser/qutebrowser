@@ -116,7 +116,13 @@ def smoke_test(executable):
         (r'\[.*:ERROR:mach_port_broker.mm\(48\)\] bootstrap_look_up '
          r'org\.chromium\.Chromium\.rohitfork\.1: Permission denied \(1100\)'),
         (r'\[.*:ERROR:mach_port_broker.mm\(43\)\] bootstrap_look_up: '
-         r'Unknown service name \(1102\)')
+         r'Unknown service name \(1102\)'),
+
+        # Windows N:
+        # https://github.com/microsoft/playwright/issues/2901
+        (r'\[.*:ERROR:dxva_video_decode_accelerator_win.cc\(\d+\)\] '
+         r'DXVAVDA fatal error: could not LoadLibrary: .*: The specified '
+         r'module could not be found. \(0x7E\)'),
     ]
 
     proc = subprocess.run([executable, '--no-err-windows', '--nowindow',

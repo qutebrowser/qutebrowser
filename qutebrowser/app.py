@@ -96,7 +96,8 @@ def run(args):
     q_app = Application(args)
     q_app.setOrganizationName("qutebrowser")
     q_app.setApplicationName("qutebrowser")
-    q_app.setDesktopFileName("org.qutebrowser.qutebrowser")
+    # Default DesktopFileName is org.qutebrowser.qutebrowser, set in `get_argparser()`
+    q_app.setDesktopFileName(args.desktop_file_name)
     q_app.setApplicationVersion(qutebrowser.__version__)
 
     if args.version:
@@ -491,8 +492,6 @@ def _init_modules(*, args):
     log.init.debug("Misc initialization...")
     macros.init()
     windowundo.init()
-    # Init backend-specific stuff
-    browsertab.init()
 
 
 class Application(QApplication):

@@ -42,6 +42,11 @@ from typing import (Any, Callable, IO, Iterator, Optional, Sequence, Tuple, Type
 from PyQt5.QtCore import QUrl, QVersionNumber
 from PyQt5.QtGui import QClipboard, QDesktopServices
 from PyQt5.QtWidgets import QApplication
+# We cannot use the stdlib version on 3.7-3.8 because we need the files() API.
+if sys.version_info >= (3, 9):
+    import importlib.resources as importlib_resources
+else:  # pragma: no cover
+    import importlib_resources
 import pkg_resources
 import yaml
 try:
@@ -69,7 +74,7 @@ is_posix = os.name == 'posix'
 
 try:
     # Protocol was added in Python 3.8
-    from typing import Protocol
+    from typing import Protocol  # pylint: disable=ungrouped-imports
 except ImportError:  # pragma: no cover
     if not TYPE_CHECKING:
         class Protocol:
@@ -216,13 +221,12 @@ def read_file(filename: str, binary: bool = False) -> Any:
             with open(fn, 'r', encoding='utf-8') as f:
                 return f.read()
     else:
-        data = pkg_resources.resource_string(
-            qutebrowser.__name__, filename)
+        p = importlib_resources.files(qutebrowser) / filename
 
         if binary:
-            return data
+            return p.read_bytes()
 
-        return data.decode('UTF-8')
+        return p.read_text()
 
 
 def resource_filename(filename: str) -> str:
@@ -773,3 +777,30 @@ def libgl_workaround() -> None:
     libgl = ctypes.util.find_library("GL")
     if libgl is not None:  # pragma: no branch
         ctypes.CDLL(libgl, mode=ctypes.RTLD_GLOBAL)
+
+
+def parse_duration(duration: str) -> int:
+    """Parse duration in format XhYmZs into milliseconds duration."""
+    if duration.isdigit():
+        # For backward compatibility return milliseconds
+        return int(duration)
+
+    match = re.fullmatch(
+        r'(?P<hours>[0-9]+(\.[0-9])?h)?\s*'
+        r'(?P<minutes>[0-9]+(\.[0-9])?m)?\s*'
+        r'(?P<seconds>[0-9]+(\.[0-9])?s)?',
+        duration
+    )
+    if not match or not match.group(0):
+        raise ValueError(
+            f"Invalid duration: {duration} - "
+            "expected XhYmZs or a number of milliseconds"
+        )
+    seconds_string = match.group('seconds') if match.group('seconds') else '0'
+    seconds = float(seconds_string.rstrip('s'))
+    minutes_string = match.group('minutes') if match.group('minutes') else '0'
+    minutes = float(minutes_string.rstrip('m'))
+    hours_string = match.group('hours') if match.group('hours') else '0'
+    hours = float(hours_string.rstrip('h'))
+    milliseconds = int((seconds + minutes * 60 + hours * 3600) * 1000)
+    return milliseconds

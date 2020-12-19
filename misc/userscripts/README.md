@@ -24,7 +24,7 @@ The following userscripts are included in the current directory.
 - [qutedmenu](./qutedmenu): Handle open -s && open -t with bemenu.
 - [readability](./readability): Executes python-readability on current page and
   opens the summary as new tab.
-- [readability-js](./readability-js): Processes the current page with the readability 
+- [readability-js](./readability-js): Processes the current page with the readability
   library used in Firefox Reader View and opens the summary as new tab.
 - [ripbang](./ripbang): Adds DuckDuckGo bang as searchengine.
 - [rss](./rss): Keeps track of URLs in RSS feeds and opens new ones.
@@ -32,6 +32,9 @@ The following userscripts are included in the current directory.
 - [tor_identity](./tor_identity): Change your tor identity.
 - [view_in_mpv](./view_in_mpv): Views the current web page in mpv using
   sensible mpv-flags.
+- [qr](./qr): Show a QR code for the current webpage via
+  [qrencode](https://fukuchi.org/works/qrencode/).
+- [kodi](./kodi): Play videos in Kodi.
 
 [castnow]: https://github.com/xat/castnow
 [youtube-dl]: https://rg3.github.io/youtube-dl/
@@ -67,6 +70,8 @@ The following userscripts can be found on their own repositories.
    and retrieve they when you want.
 - [doi](https://github.com/cadadr/configuration/blob/master/qutebrowser/userscripts/doi):
   Opens DOIs on Sci-Hub.
+- [1password](https://github.com/tomoakley/dotfiles/blob/master/qutebrowser/userscripts/1password):
+  Integration with 1password on macOS.
 
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/

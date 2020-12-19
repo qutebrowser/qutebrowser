@@ -264,6 +264,16 @@ def _variant() -> Variant:
 
 def settings() -> Iterator[Tuple[str, str]]:
     """Get necessary blink settings to configure dark mode for QtWebEngine."""
+    if (qtutils.version_check('5.15.2', compiled=False) and
+            config.val.colors.webpage.prefers_color_scheme_dark):
+        # With older Qt versions, this is passed in qtargs.py as --force-dark-mode
+        # instead.
+        #
+        # With Chromium 85 (> Qt 5.15.2), the enumeration has changed in Blink and this
+        # will need to be set to '0' instead:
+        # https://chromium-review.googlesource.com/c/chromium/src/+/2232922
+        yield "preferredColorScheme", "1"
+
     if not config.val.colors.webpage.darkmode.enabled:
         return
 

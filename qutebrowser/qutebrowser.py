@@ -85,6 +85,11 @@ def get_argparser():
 
     parser.add_argument('--json-args', help=argparse.SUPPRESS)
     parser.add_argument('--temp-basedir-restarted', help=argparse.SUPPRESS)
+    parser.add_argument('--desktop-file-name',
+                        default="org.qutebrowser.qutebrowser",
+                        help="Set the base name of the desktop entry for this "
+                        "application. Used to set the app_id under Wayland. See "
+                        "https://doc.qt.io/qt-5/qguiapplication.html#desktopFileName-prop")
 
     debug = parser.add_argument_group('debug arguments')
     debug.add_argument('-l', '--loglevel', dest='loglevel',

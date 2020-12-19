@@ -125,12 +125,15 @@ The following software and libraries are required to run qutebrowser:
     sensitive data.**
 * https://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.12.0 or newer
   for Python 3
-* https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
+* https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools] (being
+  phased out for qutebrowser v2.0.0)
 * https://fdik.org/pyPEG/[pyPEG2]
 * http://jinja.pocoo.org/[jinja2]
 * http://pygments.org/[pygments]
 * https://github.com/yaml/pyyaml[PyYAML]
 * https://www.attrs.org/[attrs]
+* https://importlib-resources.readthedocs.io/[importlib_resources] (on Python
+  3.8 or older)
 
 The following libraries are optional:
 

@@ -3,8 +3,9 @@
 adblock==0.3.2
 attrs==20.3.0
 colorama==0.4.4
+importlib-resources==3.3.0 ; python_version<"3.9"
 Jinja2==2.11.2
 MarkupSafe==1.1.1
-Pygments==2.7.2
+Pygments==2.7.3
 pyPEG2==2.15.2
 PyYAML==5.3.1

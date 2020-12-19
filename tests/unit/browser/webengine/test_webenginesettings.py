@@ -21,31 +21,51 @@ import logging
 
 import pytest
 
-pytest.importorskip('PyQt5.QtWebEngineWidgets')
+QtWebEngineWidgets = pytest.importorskip('PyQt5.QtWebEngineWidgets')
 
 from qutebrowser.browser.webengine import webenginesettings
 from qutebrowser.utils import usertypes
-from qutebrowser.misc import objects
 
 
-@pytest.fixture(autouse=True)
-def init(qapp, config_stub, cache_tmpdir, data_tmpdir, monkeypatch):
-    monkeypatch.setattr(webenginesettings.webenginequtescheme, 'init',
-                        lambda: None)
-    monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
-    webenginesettings.init()
-    config_stub.changed.disconnect(webenginesettings._update_settings)
+@pytest.fixture
+def global_settings(monkeypatch, default_profile):
+    wrapper = webenginesettings._SettingsWrapper()
+    settings = webenginesettings.WebEngineSettings(wrapper)
+    settings.init_settings()
+    monkeypatch.setattr(webenginesettings, '_global_settings', settings)
 
 
-def test_big_cache_size(config_stub):
+@pytest.fixture
+def default_profile(monkeypatch):
+    """A profile to use which is set as default_profile.
+
+    Note we use a "private" profile here to avoid actually storing data during tests.
+    """
+    profile = QtWebEngineWidgets.QWebEngineProfile()
+    profile.setter = webenginesettings.ProfileSetter(profile)
+    monkeypatch.setattr(profile, 'isOffTheRecord', lambda: False)
+    monkeypatch.setattr(webenginesettings, 'default_profile', profile)
+    return profile
+
+
+@pytest.fixture
+def private_profile(monkeypatch):
+    """A profile to use which is set as private_profile."""
+    profile = QtWebEngineWidgets.QWebEngineProfile()
+    profile.setter = webenginesettings.ProfileSetter(profile)
+    monkeypatch.setattr(webenginesettings, 'private_profile', profile)
+    return profile
+
+
+def test_big_cache_size(config_stub, default_profile):
     """Make sure a too big cache size is handled correctly."""
     config_stub.val.content.cache.size = 2 ** 63 - 1
-    profile = webenginesettings.default_profile
-    profile.setter.set_http_cache_size()
-    assert profile.httpCacheMaximumSize() == 2 ** 31 - 1
+    default_profile.setter.set_http_cache_size()
+    assert default_profile.httpCacheMaximumSize() == 2 ** 31 - 1
 
 
-def test_non_existing_dict(config_stub, monkeypatch, message_mock, caplog):
+def test_non_existing_dict(config_stub, monkeypatch, message_mock, caplog,
+                           global_settings):
     monkeypatch.setattr(webenginesettings.spell, 'local_filename',
                         lambda _code: None)
     config_stub.val.spellcheck.languages = ['af-ZA']
@@ -59,27 +79,23 @@ def test_non_existing_dict(config_stub, monkeypatch, message_mock, caplog):
     assert msg.text == expected
 
 
-def test_existing_dict(config_stub, monkeypatch):
+def test_existing_dict(config_stub, monkeypatch, global_settings,
+                       default_profile, private_profile):
     monkeypatch.setattr(webenginesettings.spell, 'local_filename',
                         lambda _code: 'en-US-8-0')
     config_stub.val.spellcheck.languages = ['en-US']
     webenginesettings._update_settings('spellcheck.languages')
-    for profile in [webenginesettings.default_profile,
-                    webenginesettings.private_profile]:
+    for profile in [default_profile, private_profile]:
         assert profile.isSpellCheckEnabled()
         assert profile.spellCheckLanguages() == ['en-US-8-0']
 
 
-def test_spell_check_disabled(config_stub, monkeypatch):
+def test_spell_check_disabled(config_stub, monkeypatch, global_settings,
+                              default_profile, private_profile):
     config_stub.val.spellcheck.languages = []
     webenginesettings._update_settings('spellcheck.languages')
-    for profile in [webenginesettings.default_profile,
-                    webenginesettings.private_profile]:
+    for profile in [default_profile, private_profile]:
         assert not profile.isSpellCheckEnabled()
-
-
-def test_default_user_agent_saved():
-    assert webenginesettings.parsed_user_agent is not None
 
 
 def test_parsed_user_agent(qapp):

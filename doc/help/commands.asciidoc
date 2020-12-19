@@ -597,7 +597,7 @@ Syntax: +:greasemonkey-reload [*--force*]+
 
 Re-read Greasemonkey scripts from disk.
 
-The scripts are read from a 'greasemonkey' subdirectory in qutebrowser's data directory (see `:version`).
+The scripts are read from a 'greasemonkey' subdirectory in qutebrowser's data or config directories (see `:version`).
 
 ==== optional arguments
 * +*-f*+, +*--force*+: For any scripts that have required dependencies, re-download them.
@@ -784,12 +784,12 @@ Jump to the mark named by `key`.
 
 [[later]]
 === later
-Syntax: +:later 'ms' 'command'+
+Syntax: +:later 'duration' 'command'+
 
 Execute a command after some time.
 
 ==== positional arguments
-* +'ms'+: How many milliseconds to wait.
+* +'duration'+: Duration to wait in format XhYmZs or a number for milliseconds.
 * +'command'+: The command to run, with optional args.
 
 ==== note
@@ -1308,7 +1308,8 @@ Note that the command is *not* run in a shell, so things like `$VAR` or `> outpu
 * +*-v*+, +*--verbose*+: Show notifications when the command started/exited.
 * +*-o*+, +*--output*+: Show the output in a new tab.
 * +*-m*+, +*--output-messages*+: Show the output as messages.
-* +*-d*+, +*--detach*+: Whether the command should be detached from qutebrowser.
+* +*-d*+, +*--detach*+: Detach the command from qutebrowser so that it continues running when qutebrowser quits.
+
 
 ==== count
 Given to userscripts as $QUTE_COUNT.

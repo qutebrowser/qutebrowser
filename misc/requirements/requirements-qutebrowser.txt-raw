@@ -5,3 +5,6 @@ PyYAML
 colorama
 attrs
 adblock  # Optional, for improved adblocking
+importlib-resources
+
+#@ markers: importlib-resources python_version<"3.9"

@@ -22,7 +22,7 @@
 import re
 from typing import Iterable, Tuple
 
-from PyQt5.QtCore import Qt, QSortFilterProxyModel, QRegExp
+from PyQt5.QtCore import QSortFilterProxyModel, QRegularExpression
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import QWidget
 
@@ -63,9 +63,9 @@ class ListCategory(QSortFilterProxyModel):
         val = re.sub(r' +', r' ', val)  # See #1919
         val = re.escape(val)
         val = val.replace(r'\ ', '.*')
-        rx = QRegExp(val, Qt.CaseInsensitive)
+        rx = QRegularExpression(val, QRegularExpression.CaseInsensitiveOption)
         qtutils.ensure_valid(rx)
-        self.setFilterRegExp(rx)
+        self.setFilterRegularExpression(rx)
         self.invalidate()
         sortcol = 0
         self.sort(sortcol)
