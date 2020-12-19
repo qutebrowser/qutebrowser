@@ -20,7 +20,6 @@
 """Customized QWebInspector for QtWebEngine."""
 
 import os
-import typing
 import pathlib
 
 from PyQt5.QtCore import QUrl, QLibraryInfo
@@ -118,7 +117,7 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         pak = data_path / 'resources' / 'qtwebengine_devtools_resources.pak'
         if not pak.exists():
             raise inspector.Error("QtWebEngine devtools resources not found, "
-                                  "please install the qt5-webengine-devtools "
+                                  "please install the qt5-qtwebengine-devtools "
                                   "Fedora package.")
 
     def inspect(self, page: QWebEnginePage) -> None:  # type: ignore[override]

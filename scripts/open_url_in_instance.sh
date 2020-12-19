@@ -12,4 +12,4 @@ printf '{"args": ["%s"], "target_arg": null, "version": "%s", "protocol_version"
        "${_url}" \
        "${_qb_version}" \
        "${_proto_version}" \
-       "${PWD}" | socat - UNIX-CONNECT:"${_ipc_socket}" 2>/dev/null || "$_qute_bin" "$@" &
+       "${PWD}" | socat -lf /dev/null - UNIX-CONNECT:"${_ipc_socket}" || "$_qute_bin" "$@" &

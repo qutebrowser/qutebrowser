@@ -575,12 +575,20 @@ content.headers.user_agent:
       - qutebrowser_version
     completions:
       # See https://techblog.willshouse.com/2012/01/03/most-common-user-agents/
-      - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/83.0.4103.61 Safari/537.36"
-        - Chrome 83 Win10
+      #
+      # To update the following list of user agents, run the script
+      # 'ua_fetch.py'
+      # Vim-protip: Place your cursor below this comment and run
+      # :r!python scripts/dev/ua_fetch.py
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/83.0.4103.61 Safari/537.36"
-        - Chrome 83 Linux
+          Gecko) Chrome/86.0.4240.75 Safari/537.36"
+        - Chrome 86 Linux
+      - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
+          like Gecko) Chrome/86.0.4240.75 Safari/537.36"
+        - Chrome 86 Win10
+      - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
+          (KHTML, like Gecko) Chrome/86.0.4240.80 Safari/537.36"
+        - Chrome 86 macOS
   supports_pattern: true
   desc: |
     User agent to send.
@@ -1863,14 +1871,14 @@ tabs.title.format:
     * `{perc}`: Percentage as a string like `[10%]`.
     * `{perc_raw}`: Raw percentage, e.g. `10`.
     * `{current_title}`: Title of the current web page.
-    * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
+    * `{title_sep}`: The string `" - "` if a title is set, empty otherwise.
     * `{index}`: Index of this tab.
     * `{aligned_index}`: Index of this tab padded with spaces to have the same
       width.
     * `{id}`: Internal tab ID of this tab.
     * `{scroll_pos}`: Page scroll position.
     * `{host}`: Host of the current web page.
-    * `{backend}`: Either ''webkit'' or ''webengine''
+    * `{backend}`: Either `webkit` or `webengine`
     * `{private}`: Indicates when private mode is enabled.
     * `{current_url}`: URL of the current web page.
     * `{protocol}`: Protocol (http/https/...) of the current web page.
@@ -2740,18 +2748,21 @@ colors.webpage.darkmode.enabled:
       above.
   restart: true
   backend:
-    QtWebEngine: Qt 5.14
+    QtWebEngine: Qt 5.10
     QtWebKit: false
 
 colors.webpage.darkmode.algorithm:
   default: lightness-cielab
-  desc: "Which algorithm to use for modifying how colors are rendered with
-    darkmode."
+  desc: >-
+    Which algorithm to use for modifying how colors are rendered with darkmode.
+
+    The `lightness-cielab` value was added with QtWebEngine 5.14 and is treated
+    like `lightness-hsl` with older QtWebEngine versions.
   type:
     name: String
     valid_values:
       - lightness-cielab: Modify colors by converting them to CIELAB color
-            space and inverting the L value.
+            space and inverting the L value. Not available with Qt < 5.14.
       - lightness-hsl: Modify colors by converting them to the HSL color space
             and inverting the lightness (i.e. the "L" in HSL).
       - brightness-rgb: Modify colors by subtracting each of r, g, and b from
@@ -2761,7 +2772,7 @@ colors.webpage.darkmode.algorithm:
       # Chromium's automated tests
   restart: true
   backend:
-    QtWebEngine: Qt 5.14
+    QtWebEngine: Qt 5.10
     QtWebKit: false
 
 colors.webpage.darkmode.contrast:
@@ -2777,27 +2788,29 @@ colors.webpage.darkmode.contrast:
     `lightness-hsl` or `brightness-rgb`.
   restart: true
   backend:
-    QtWebEngine: Qt 5.14
+    QtWebEngine: Qt 5.10
     QtWebKit: false
 
 colors.webpage.darkmode.policy.images:
-  default: never
+  default: smart
   type:
     name: String
     valid_values:
       - always: Apply dark mode filter to all images.
       - never: Never apply dark mode filter to any images.
-      - smart: Apply dark mode based on image content.
+      - smart: "Apply dark mode based on image content. Not available with Qt
+        5.10 / 5.15.0."
   desc: >-
       Which images to apply dark mode to.
 
-      WARNING: On Qt 5.15.0, this setting can cause frequent renderer process
+      With QtWebEngine 5.15.0, this setting can cause frequent renderer process
       crashes due to a
       https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug
-      in Qt].
+      in Qt]. With QtWebEngine 5.10, this is not available at all. In those
+      cases, the 'smart' setting is ignored and treated like 'never'.
   restart: true
   backend:
-    QtWebEngine: Qt 5.14
+    QtWebEngine: Qt 5.10
     QtWebKit: false
 
 colors.webpage.darkmode.policy.page:
@@ -2860,7 +2873,7 @@ colors.webpage.darkmode.grayscale.all:
     `lightness-hsl` or `brightness-rgb`.
   restart: true
   backend:
-    QtWebEngine: Qt 5.14
+    QtWebEngine: Qt 5.10
     QtWebKit: false
 
 colors.webpage.darkmode.grayscale.images:

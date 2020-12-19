@@ -45,12 +45,12 @@ Possible values:
   value.
 - A python enum type: All members of the enum are possible values.
 - A ``typing.Union`` of multiple types above: Any of these types are valid
-  values, e.g., ``typing.Union[str, int]``.
+  values, e.g., ``Union[str, int]``.
 """
 
 
 import inspect
-import typing
+from typing import Any, Callable, Iterable
 
 from qutebrowser.utils import qtutils
 from qutebrowser.commands import command, cmdexc
@@ -91,8 +91,7 @@ def check_overflow(arg: int, ctype: str) -> None:
                            "representation.".format(ctype))
 
 
-def check_exclusive(flags: typing.Iterable[bool],
-                    names: typing.Iterable[str]) -> None:
+def check_exclusive(flags: Iterable[bool], names: Iterable[str]) -> None:
     """Check if only one flag is set with exclusive flags.
 
     Raise a CommandError if not.
@@ -113,7 +112,7 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
     def __init__(self, *,
                  instance: str = None,
                  name: str = None,
-                 **kwargs: typing.Any) -> None:
+                 **kwargs: Any) -> None:
         """Save decorator arguments.
 
         Gets called on parse-time with the decorator arguments.
@@ -128,7 +127,7 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
         # The arguments to pass to Command.
         self._kwargs = kwargs
 
-    def __call__(self, func: typing.Callable) -> typing.Callable:
+    def __call__(self, func: Callable) -> Callable:
         """Register the command before running the function.
 
         Gets called when a function should be decorated.
@@ -175,7 +174,7 @@ class argument:  # noqa: N801,N806 pylint: disable=invalid-name
       def foo(bar: str):
           ...
 
-    For ``typing.Union`` types, the given ``choices`` are only checked if other
+    For ``Union`` types, the given ``choices`` are only checked if other
     types (like ``int``) don't match.
 
     The following arguments are supported for ``@cmdutils.argument``:
@@ -197,11 +196,11 @@ class argument:  # noqa: N801,N806 pylint: disable=invalid-name
     trailing underscores stripped and underscores replaced by dashes.
     """
 
-    def __init__(self, argname: str, **kwargs: typing.Any) -> None:
+    def __init__(self, argname: str, **kwargs: Any) -> None:
         self._argname = argname   # The name of the argument to handle.
         self._kwargs = kwargs  # Valid ArgInfo members.
 
-    def __call__(self, func: typing.Callable) -> typing.Callable:
+    def __call__(self, func: Callable) -> Callable:
         funcname = func.__name__
 
         if self._argname not in inspect.signature(func).parameters:

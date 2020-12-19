@@ -23,7 +23,7 @@ import os.path
 import html
 import collections
 import functools
-import typing
+from typing import Deque, MutableSequence, Optional, cast
 
 import attr
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
@@ -40,7 +40,7 @@ from qutebrowser.api import cmdutils
 from qutebrowser.utils import urlmatch
 
 
-prompt_queue = typing.cast('PromptQueue', None)
+prompt_queue = cast('PromptQueue', None)
 
 
 @attr.s
@@ -102,9 +102,8 @@ class PromptQueue(QObject):
         super().__init__(parent)
         self._question = None
         self._shutting_down = False
-        self._loops = []  # type: typing.MutableSequence[qtutils.EventLoop]
-        self._queue = collections.deque(
-        )  # type: typing.Deque[usertypes.Question]
+        self._loops: MutableSequence[qtutils.EventLoop] = []
+        self._queue: Deque[usertypes.Question] = collections.deque()
         message.global_bridge.mode_left.connect(self._on_mode_left)
 
     def __repr__(self):
@@ -196,8 +195,8 @@ class PromptQueue(QObject):
             question.completed.connect(loop.quit)
             question.completed.connect(loop.deleteLater)
             log.prompt.debug("Starting loop.exec_() for {}".format(question))
-            flags = typing.cast(QEventLoop.ProcessEventsFlags,
-                                QEventLoop.ExcludeSocketNotifiers)
+            flags = cast(QEventLoop.ProcessEventsFlags,
+                         QEventLoop.ExcludeSocketNotifiers)
             loop.exec_(flags)
             log.prompt.debug("Ending loop.exec_() for {}".format(question))
 
@@ -289,7 +288,7 @@ class PromptContainer(QWidget):
         self._layout = QVBoxLayout(self)
         self._layout.setContentsMargins(10, 10, 10, 10)
         self._win_id = win_id
-        self._prompt = None  # type: typing.Optional[_BasePrompt]
+        self._prompt: Optional[_BasePrompt] = None
 
         self.setObjectName('PromptContainer')
         self.setAttribute(Qt.WA_StyledBackground, True)
@@ -794,8 +793,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
 
     def download_open(self, cmdline, pdfjs):
         if pdfjs:
-            target = downloads.PDFJSDownloadTarget(
-            )  # type: downloads._DownloadTarget
+            target: 'downloads._DownloadTarget' = downloads.PDFJSDownloadTarget()
         else:
             target = downloads.OpenFileDownloadTarget(cmdline)
 

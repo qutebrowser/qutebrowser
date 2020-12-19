@@ -31,15 +31,8 @@ import time
 import textwrap
 import urllib
 import collections
-import base64
-import typing
-from typing import TypeVar, Callable, Union, Tuple
-
-try:
-    import secrets
-except ImportError:
-    # New in Python 3.6
-    secrets = None  # type: ignore[assignment]
+import secrets
+from typing import TypeVar, Callable, Dict, List, Optional, Union, Sequence, Tuple
 
 from PyQt5.QtCore import QUrlQuery, QUrl, qVersion
 
@@ -112,7 +105,7 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
 
     def __init__(self, name):
         self._name = name
-        self._function = None  # type: typing.Optional[typing.Callable]
+        self._function: Optional[Callable] = None
 
     def __call__(self, function: _Handler) -> _Handler:
         self._function = function
@@ -125,7 +118,7 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
         return self._function(*args, **kwargs)
 
 
-def data_for_url(url: QUrl) -> typing.Tuple[str, bytes]:
+def data_for_url(url: QUrl) -> Tuple[str, bytes]:
     """Get the data to show for the given URL.
 
     Args:
@@ -199,8 +192,7 @@ def qute_bookmarks(_url: QUrl) -> _HandlerRet:
 @add_handler('tabs')
 def qute_tabs(_url: QUrl) -> _HandlerRet:
     """Handler for qute://tabs. Display information about all open tabs."""
-    tabs = collections.defaultdict(
-        list)  # type: typing.Dict[str, typing.List[typing.Tuple[str, str]]]
+    tabs: Dict[str, List[Tuple[str, str]]] = collections.defaultdict(list)
     for win_id, window in objreg.window_registry.items():
         if sip.isdeleted(window):
             continue
@@ -221,7 +213,7 @@ def qute_tabs(_url: QUrl) -> _HandlerRet:
 def history_data(
         start_time: float,
         offset: int = None
-) -> typing.Sequence[typing.Dict[str, typing.Union[str, int]]]:
+) -> Sequence[Dict[str, Union[str, int]]]:
     """Return history data.
 
     Arguments:
@@ -355,7 +347,7 @@ def qute_gpl(_url: QUrl) -> _HandlerRet:
     return 'text/html', utils.read_file('html/license.html')
 
 
-def _asciidoc_fallback_path(html_path: str) -> typing.Optional[str]:
+def _asciidoc_fallback_path(html_path: str) -> Optional[str]:
     """Fall back to plaintext asciidoc if the HTML is unavailable."""
     path = html_path.replace('.html', '.asciidoc')
     try:
@@ -449,12 +441,7 @@ def qute_settings(url: QUrl) -> _HandlerRet:
     # Requests to qute://settings/set should only be allowed from
     # qute://settings. As an additional security precaution, we generate a CSRF
     # token to use here.
-    if secrets:
-        csrf_token = secrets.token_urlsafe()
-    else:
-        # On Python < 3.6, from secrets.py
-        token = base64.urlsafe_b64encode(os.urandom(32))
-        csrf_token = token.rstrip(b'=').decode('ascii')
+    csrf_token = secrets.token_urlsafe()
 
     src = jinja.render('settings.html', title='settings',
                        configdata=configdata,

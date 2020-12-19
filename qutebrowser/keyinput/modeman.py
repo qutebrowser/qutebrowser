@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Mode manager singleton which handles the current keyboard mode."""
+"""Mode manager (per window) which handles the current keyboard mode."""
 
 import functools
 from typing import Mapping, Callable, MutableMapping, Union, Set, cast
@@ -78,14 +78,16 @@ class UnavailableError(Exception):
 
 def init(win_id: int, parent: QObject) -> 'ModeManager':
     """Initialize the mode manager and the keyparsers for the given win_id."""
+    commandrunner = runners.CommandRunner(win_id)
+
     modeman = ModeManager(win_id, parent)
     objreg.register('mode-manager', modeman, scope='window', window=win_id)
-
-    commandrunner = runners.CommandRunner(win_id)
 
     hintmanager = hints.HintManager(win_id, parent=parent)
     objreg.register('hintmanager', hintmanager, scope='window',
                     window=win_id, command_only=True)
+
+    modeman.hintmanager = hintmanager
 
     keyparsers = {
         usertypes.KeyMode.normal:
@@ -227,6 +229,7 @@ class ModeManager(QObject):
 
     Attributes:
         mode: The mode we're currently in.
+        hintmanager: The HintManager associated with this window.
         _win_id: The window ID of this ModeManager
         _prev_mode: Mode before a prompt popped up
         parsers: A dictionary of modes and their keyparsers.
@@ -260,6 +263,8 @@ class ModeManager(QObject):
         self._prev_mode = usertypes.KeyMode.normal
         self.mode = usertypes.KeyMode.normal
         self._releaseevents_to_pass = set()  # type: Set[KeyEvent]
+        # Set after __init__
+        self.hintmanager = cast(hints.HintManager, None)
 
     def __repr__(self) -> str:
         return utils.get_repr(self, mode=self.mode)

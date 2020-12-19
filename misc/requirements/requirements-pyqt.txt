@@ -2,4 +2,4 @@
 
 PyQt5==5.15.1
 PyQt5-sip==12.8.1
-PyQtWebEngine==5.15.1
+PyQtWebEngine==5.15.0

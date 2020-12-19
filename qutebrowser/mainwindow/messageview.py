@@ -19,7 +19,7 @@
 
 """Showing messages above the statusbar."""
 
-import typing
+from typing import MutableSequence
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
@@ -76,7 +76,7 @@ class MessageView(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._messages = []  # type: typing.MutableSequence[Message]
+        self._messages: MutableSequence[Message] = []
         self._vbox = QVBoxLayout(self)
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)

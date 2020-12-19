@@ -82,6 +82,8 @@ def run(args):
     if args.temp_basedir:
         args.basedir = tempfile.mkdtemp(prefix='qutebrowser-basedir-')
 
+    log.init.debug("Main process PID: {}".format(os.getpid()))
+
     log.init.debug("Initializing directories...")
     standarddir.init(args)
     utils.preload_resources()
@@ -553,14 +555,14 @@ class Application(QApplication):
 
     def event(self, e):
         """Handle macOS FileOpen events."""
-        if e.type() == QEvent.FileOpen:
-            url = e.url()
-            if url.isValid():
-                open_url(url, no_raise=True)
-            else:
-                message.error("Invalid URL: {}".format(url.errorString()))
-        else:
+        if e.type() != QEvent.FileOpen:
             return super().event(e)
+
+        url = e.url()
+        if url.isValid():
+            open_url(url, no_raise=True)
+        else:
+            message.error("Invalid URL: {}".format(url.errorString()))
 
         return True
 

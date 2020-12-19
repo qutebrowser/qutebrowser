@@ -172,7 +172,7 @@ Feature: Using private browsing
                 - url: http://localhost:*/data/numbers/1.txt
                 - url: http://localhost:*/data/numbers/2.txt
 
-  @flaky
+  @skip  # Too flaky
   Scenario: Saving a private session with only-active-window
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
@@ -181,7 +181,12 @@ Feature: Using private browsing
         And I open data/numbers/5.txt in a new tab
         And I run :session-save --only-active-window window_session_name
         And I run :window-only
+        And I wait for "removed: tab" in the log
+        And I wait for "removed: tab" in the log
         And I run :tab-only
+        And I wait for "removed: tab" in the log
+        And I wait for "removed: tab" in the log
+        And I wait for "removed: tab" in the log
         And I run :session-load -c window_session_name
         And I wait until data/numbers/5.txt is loaded
         Then the session should look like:

@@ -31,8 +31,9 @@ import traceback
 import warnings
 import json
 import inspect
-import typing
 import argparse
+from typing import (TYPE_CHECKING, Any, Iterator, Mapping, MutableSequence,
+                    Optional, Set, Tuple, Union, cast)
 
 from PyQt5 import QtCore
 # Optional imports
@@ -41,7 +42,7 @@ try:
 except ImportError:
     colorama = None
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.config import config as configmodule
 
 _log_inited = False
@@ -98,8 +99,8 @@ LOG_LEVELS = {
 
 def vdebug(self: logging.Logger,
            msg: str,
-           *args: typing.Any,
-           **kwargs: typing.Any) -> None:
+           *args: Any,
+           **kwargs: Any) -> None:
     """Log with a VDEBUG level.
 
     VDEBUG is used when a debug message is rather verbose, and probably of
@@ -159,8 +160,8 @@ LOGGER_NAMES = [
 ]
 
 
-ram_handler = None  # type: typing.Optional[RAMHandler]
-console_handler = None  # type: typing.Optional[logging.Handler]
+ram_handler: Optional['RAMHandler'] = None
+console_handler: Optional[logging.Handler] = None
 console_filter = None
 
 
@@ -233,7 +234,7 @@ def _init_py_warnings() -> None:
 
 
 @contextlib.contextmanager
-def disable_qt_msghandler() -> typing.Iterator[None]:
+def disable_qt_msghandler() -> Iterator[None]:
     """Contextmanager which temporarily disables the Qt message handler."""
     old_handler = QtCore.qInstallMessageHandler(None)
     try:
@@ -243,9 +244,9 @@ def disable_qt_msghandler() -> typing.Iterator[None]:
 
 
 @contextlib.contextmanager
-def ignore_py_warnings(**kwargs: typing.Any) -> typing.Iterator[None]:
+def py_warning_filter(action: str = 'ignore', **kwargs: Any) -> Iterator[None]:
     """Contextmanager to temporarily disable certain Python warnings."""
-    warnings.filterwarnings('ignore', **kwargs)
+    warnings.filterwarnings(action, **kwargs)
     yield
     if _log_inited:
         _init_py_warnings()
@@ -257,7 +258,7 @@ def _init_handlers(
         force_color: bool,
         json_logging: bool,
         ram_capacity: int
-) -> typing.Tuple[logging.StreamHandler, typing.Optional['RAMHandler']]:
+) -> Tuple[logging.StreamHandler, Optional['RAMHandler']]:
     """Init log handlers.
 
     Args:
@@ -311,8 +312,8 @@ def _init_formatters(
         color: bool,
         force_color: bool,
         json_logging: bool
-) -> typing.Tuple[typing.Union['JSONFormatter', 'ColoredFormatter'],
-                  'ColoredFormatter', 'HTMLFormatter', bool]:
+) -> Tuple[Union['JSONFormatter', 'ColoredFormatter'],
+           'ColoredFormatter', 'HTMLFormatter', bool]:
     """Init log formatters.
 
     Args:
@@ -364,7 +365,7 @@ def change_console_formatter(level: int) -> None:
     """
     assert console_handler is not None
 
-    old_formatter = typing.cast(ColoredFormatter, console_handler.formatter)
+    old_formatter = cast(ColoredFormatter, console_handler.formatter)
     console_fmt = get_console_format(level)
     console_formatter = ColoredFormatter(console_fmt, DATEFMT, '{',
                                          use_colors=old_formatter.use_colors)
@@ -504,7 +505,7 @@ def qt_message_handler(msg_type: QtCore.QtMsgType,
 
     assert _args is not None
     if _args.debug:
-        stack = ''.join(traceback.format_stack())  # type: typing.Optional[str]
+        stack: Optional[str] = ''.join(traceback.format_stack())
     else:
         stack = None
 
@@ -515,7 +516,7 @@ def qt_message_handler(msg_type: QtCore.QtMsgType,
 
 
 @contextlib.contextmanager
-def hide_qt_warning(pattern: str, logger: str = 'qt') -> typing.Iterator[None]:
+def hide_qt_warning(pattern: str, logger: str = 'qt') -> Iterator[None]:
     """Hide Qt warnings matching the given regex."""
     log_filter = QtWarningFilter(pattern)
     logger_obj = logging.getLogger(logger)
@@ -578,7 +579,7 @@ class InvalidLogFilterError(Exception):
 
     """Raised when an invalid filter string is passed to LogFilter.parse()."""
 
-    def __init__(self, names: typing.Set[str]):
+    def __init__(self, names: Set[str]):
         invalid = names - set(LOGGER_NAMES)
         super().__init__("Invalid log category {} - valid categories: {}"
                          .format(', '.join(sorted(invalid)),
@@ -599,7 +600,7 @@ class LogFilter(logging.Filter):
                     than debug.
     """
 
-    def __init__(self, names: typing.Set[str], *, negated: bool = False,
+    def __init__(self, names: Set[str], *, negated: bool = False,
                  only_debug: bool = True) -> None:
         super().__init__()
         self.names = names
@@ -607,7 +608,7 @@ class LogFilter(logging.Filter):
         self.only_debug = only_debug
 
     @classmethod
-    def parse(cls, filter_str: typing.Optional[str], *,
+    def parse(cls, filter_str: Optional[str], *,
               only_debug: bool = True) -> 'LogFilter':
         """Parse a log filter from a string."""
         if filter_str is None or filter_str == 'none':
@@ -661,11 +662,11 @@ class RAMHandler(logging.Handler):
 
     def __init__(self, capacity: int) -> None:
         super().__init__()
-        self.html_formatter = None  # type: typing.Optional[HTMLFormatter]
+        self.html_formatter: Optional[HTMLFormatter] = None
         if capacity != -1:
-            self._data = collections.deque(
+            self._data: MutableSequence[logging.LogRecord] = collections.deque(
                 maxlen=capacity
-            )  # type: typing.MutableSequence[logging.LogRecord]
+            )
         else:
             self._data = collections.deque()
 
@@ -748,9 +749,7 @@ class HTMLFormatter(logging.Formatter):
         _colordict: The colordict passed to the logger.
     """
 
-    def __init__(self, fmt: str,
-                 datefmt: str,
-                 log_colors: typing.Mapping[str, str]) -> None:
+    def __init__(self, fmt: str, datefmt: str, log_colors: Mapping[str, str]) -> None:
         """Constructor.
 
         Args:
@@ -759,8 +758,8 @@ class HTMLFormatter(logging.Formatter):
             log_colors: The colors to use for logging levels.
         """
         super().__init__(fmt, datefmt)
-        self._log_colors = log_colors  # type: typing.Mapping[str, str]
-        self._colordict = {}  # type: typing.Mapping[str, str]
+        self._log_colors: Mapping[str, str] = log_colors
+        self._colordict: Mapping[str, str] = {}
         # We could solve this nicer by using CSS, but for this simple case this
         # works.
         for color in COLORS:

@@ -26,7 +26,7 @@ Module attributes:
 
 import os
 import operator
-import typing
+from typing import cast, Any, List, Optional, Tuple, Union
 
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
@@ -39,11 +39,11 @@ from qutebrowser.utils import (utils, standarddir, qtutils, message, log,
                                urlmatch, usertypes)
 
 # The default QWebEngineProfile
-default_profile = typing.cast(QWebEngineProfile, None)
+default_profile = cast(QWebEngineProfile, None)
 # The QWebEngineProfile used for private (off-the-record) windows
-private_profile = None  # type: typing.Optional[QWebEngineProfile]
+private_profile: Optional[QWebEngineProfile] = None
 # The global WebEngineSettings object
-global_settings = typing.cast('WebEngineSettings', None)
+global_settings = cast('WebEngineSettings', None)
 
 parsed_user_agent = None
 
@@ -183,7 +183,7 @@ class WebEngineSettings(websettings.AbstractSettings):
     }
 
     def set_unknown_url_scheme_policy(
-            self, policy: typing.Union[str, usertypes.Unset]) -> bool:
+            self, policy: Union[str, usertypes.Unset]) -> bool:
         """Set the UnknownUrlSchemePolicy to use.
 
         Return:
@@ -448,10 +448,10 @@ def _init_site_specific_quirks():
 
 def _init_devtools_settings():
     """Make sure the devtools always get images/JS permissions."""
-    settings = [
+    settings: List[Tuple[str, Any]] = [
         ('content.javascript.enabled', True),
         ('content.images', True)
-    ]  # type: typing.List[typing.Tuple[str, typing.Any]]
+    ]
     if qtutils.version_check('5.11'):
         settings.append(('content.cookies.accept', 'all'))
 

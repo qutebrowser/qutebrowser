@@ -22,10 +22,10 @@
 # NOTE: We need to be careful with imports here, as this is imported from
 # earlyinit.
 
-import typing
 import argparse
+from typing import TYPE_CHECKING, Any, Dict, Set, Union, cast
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.utils import usertypes
     from qutebrowser.commands import command
 
@@ -38,11 +38,11 @@ class NoBackend:
     def name(self) -> str:
         raise AssertionError("No backend set!")
 
-    def __eq__(self, other: typing.Any) -> bool:
+    def __eq__(self, other: Any) -> bool:
         raise AssertionError("No backend set!")
 
 
-backend = NoBackend()  # type: typing.Union[usertypes.Backend, NoBackend]
-commands = {}  # type: typing.Dict[str, command.Command]
-debug_flags = set()  # type: typing.Set[str]
-args = typing.cast(argparse.Namespace, None)
+backend: Union['usertypes.Backend', NoBackend] = NoBackend()
+commands: Dict[str, 'command.Command'] = {}
+debug_flags: Set[str] = set()
+args = cast(argparse.Namespace, None)

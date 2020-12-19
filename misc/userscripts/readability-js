@@ -54,6 +54,35 @@ const HEADER = `
         figure img {
             display: block;
         }
+        table,
+        th,
+        td {
+            border: 1px solid currentColor;
+            border-collapse: collapse;
+            padding: 6px;
+            vertical-align: top;
+        }
+        table {
+            margin: 5px;
+        }
+        pre {
+            padding: 16px;
+            overflow: auto;
+            line-height: 1.45;
+            background-color: #dddddd;
+        }
+        code { 
+            padding: .2em .4em;
+            margin: 0;
+            background-color: #dddddd;
+        }
+        blockquote {
+            border-inline-start: 2px solid #333333 !important;
+            padding: 0;
+            padding-inline-start: 16px;
+            margin-inline-start: 24px;
+            border-radius: 5px;
+        }
     </style>
     <!-- This icon is licensed under the Mozilla Public License 2.0 (available at: https://www.mozilla.org/en-US/MPL/2.0/).
     The original icon can be found here: https://dxr.mozilla.org/mozilla-central/source/browser/themes/shared/reader/readerMode.svg -->
@@ -68,13 +97,24 @@ const HEADER = `
 </head>`;
 const scriptsDir = path.join(process.env.QUTE_DATA_DIR, 'userscripts');
 const tmpFile = path.join(scriptsDir, '/readability.html');
-const domOpts = {url: process.env.QUTE_URL, contentType: "text/html; charset=utf-8"};
 
-if (!fs.existsSync(scriptsDir)){
+if (!fs.existsSync(scriptsDir)) {
     fs.mkdirSync(scriptsDir);
 }
 
-JSDOM.fromFile(process.env.QUTE_HTML, domOpts).then(dom => {
+let getDOM, domOpts, target;
+// When hinting, use the selected hint instead of the current page
+if (process.env.QUTE_MODE === 'hints') {
+    getDOM = JSDOM.fromURL;
+    target = process.env.QUTE_URL;
+}
+else {
+    getDOM = JSDOM.fromFile;
+    domOpts = {url: process.env.QUTE_URL, contentType: "text/html; charset=utf-8"};
+    target = process.env.QUTE_HTML;
+}
+
+getDOM(target, domOpts).then(dom => {
     let reader = new Readability(dom.window.document);
     let article = reader.parse();
     let content = util.format(HEADER, article.title) + article.content;

@@ -566,12 +566,21 @@ class ConfigAPI:
 
     def finalize(self) -> None:
         """Do work which needs to be done after reading config.py."""
+        if self._config.warn_autoconfig:
+            desc = configexc.ConfigErrorDesc(
+                "autoconfig loading not specified",
+                ("Your config.py should call either `config.load_autoconfig()`"
+                 " (to load settings configured via the GUI) or "
+                 "`config.load_autoconfig(False)` (to not do so)"))
+            self.errors.append(desc)
         self._config.update_mutables()
 
-    def load_autoconfig(self) -> None:
+    def load_autoconfig(self, load_config: bool = True) -> None:
         """Load the autoconfig.yml file which is used for :set/:bind/etc."""
-        with self._handle_error('reading', 'autoconfig.yml'):
-            read_autoconfig()
+        self._config.warn_autoconfig = False
+        if load_config:
+            with self._handle_error('reading', 'autoconfig.yml'):
+                read_autoconfig()
 
     def get(self, name: str, pattern: str = None) -> typing.Any:
         """Get a setting value from the config, optionally with a pattern."""
@@ -689,12 +698,12 @@ class ConfigPyWriter:
                              "still loaded.")
             yield self._line("# Remove it to not load settings done via the "
                              "GUI.")
-            yield self._line("config.load_autoconfig()")
+            yield self._line("config.load_autoconfig(True)")
             yield ''
         else:
-            yield self._line("# Uncomment this to still load settings "
+            yield self._line("# Change the argument to True to still load settings "
                              "configured via autoconfig.yml")
-            yield self._line("# config.load_autoconfig()")
+            yield self._line("config.load_autoconfig(False)")
             yield ''
 
     def _gen_options(self) -> typing.Iterator[str]:

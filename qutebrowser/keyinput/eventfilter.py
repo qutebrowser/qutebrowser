@@ -19,7 +19,7 @@
 
 """Global Qt event filter which dispatches key events."""
 
-import typing
+from typing import cast
 
 from PyQt5.QtCore import pyqtSlot, QObject, QEvent
 from PyQt5.QtGui import QKeyEvent, QWindow
@@ -102,7 +102,7 @@ class EventFilter(QObject):
 
         handler = self._handlers[typ]
         try:
-            return handler(typing.cast(QKeyEvent, event))
+            return handler(cast(QKeyEvent, event))
         except:
             # If there is an exception in here and we leave the eventfilter
             # activated, we'll get an infinite loop and a stack overflow.

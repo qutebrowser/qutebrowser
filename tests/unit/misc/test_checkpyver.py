@@ -28,21 +28,22 @@ import pytest
 from qutebrowser.misc import checkpyver
 
 
-TEXT = (r"At least Python 3.5.2 is required to run qutebrowser, but it's "
+TEXT = (r"At least Python 3.6 is required to run qutebrowser, but it's "
         r"running with \d+\.\d+\.\d+.")
 
 
 @pytest.mark.not_frozen
-def test_python2():
-    """Run checkpyver with python 2."""
+@pytest.mark.parametrize('python', ['python2', 'python3.5'])
+def test_old_python(python):
+    """Run checkpyver with old python versions."""
     try:
         proc = subprocess.run(
-            ['python2', checkpyver.__file__, '--no-err-windows'],
+            [python, checkpyver.__file__, '--no-err-windows'],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=False)
     except FileNotFoundError:
-        pytest.skip("python2 not found")
+        pytest.skip(f"{python} not found")
     assert not proc.stdout
     stderr = proc.stderr.decode('utf-8').rstrip()
     assert re.fullmatch(TEXT, stderr), stderr

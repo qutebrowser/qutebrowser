@@ -19,8 +19,8 @@
 
 """A throttle for throttling function calls."""
 
-import typing
 import time
+from typing import Any, Callable, Mapping, Optional, Sequence
 
 import attr
 from PyQt5.QtCore import QObject
@@ -31,8 +31,8 @@ from qutebrowser.utils import usertypes
 @attr.s
 class _CallArgs:
 
-    args = attr.ib()  # type: typing.Sequence[typing.Any]
-    kwargs = attr.ib()  # type: typing.Mapping[str, typing.Any]
+    args: Sequence[Any] = attr.ib()
+    kwargs: Mapping[str, Any] = attr.ib()
 
 
 class Throttle(QObject):
@@ -45,7 +45,7 @@ class Throttle(QObject):
     """
 
     def __init__(self,
-                 func: typing.Callable,
+                 func: Callable,
                  delay_ms: int,
                  parent: QObject = None) -> None:
         """Constructor.
@@ -59,8 +59,8 @@ class Throttle(QObject):
         super().__init__(parent)
         self._delay_ms = delay_ms
         self._func = func
-        self._pending_call = None  # type: typing.Optional[_CallArgs]
-        self._last_call_ms = None  # type: typing.Optional[int]
+        self._pending_call: Optional[_CallArgs] = None
+        self._last_call_ms: Optional[int] = None
         self._timer = usertypes.Timer(self, 'throttle-timer')
         self._timer.setSingleShot(True)
 
@@ -71,7 +71,7 @@ class Throttle(QObject):
         self._pending_call = None
         self._last_call_ms = int(time.monotonic() * 1000)
 
-    def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
         cur_time_ms = int(time.monotonic() * 1000)
         if self._pending_call is None:
             if (self._last_call_ms is None or

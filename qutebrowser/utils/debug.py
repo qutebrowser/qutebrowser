@@ -24,22 +24,23 @@ import inspect
 import logging
 import functools
 import datetime
-import typing
 import types
+from typing import (
+    Any, Callable, List, Mapping, MutableSequence, Optional, Sequence, Type, Union)
 
-from PyQt5.QtCore import Qt, QEvent, QMetaMethod, QObject, pyqtSignal
+from PyQt5.QtCore import Qt, QEvent, QMetaMethod, QObject, pyqtBoundSignal
 from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.utils import log, utils, qtutils, objreg
 from qutebrowser.qt import sip
 
 
-def log_events(klass: typing.Type) -> typing.Type:
+def log_events(klass: Type) -> Type:
     """Class decorator to log Qt events."""
     old_event = klass.event
 
     @functools.wraps(old_event)
-    def new_event(self: typing.Any, e: QEvent) -> bool:
+    def new_event(self: Any, e: QEvent) -> bool:
         """Wrapper for event() which logs events."""
         log.misc.debug("Event in {}: {}".format(utils.qualname(klass),
                                                 qenum_key(QEvent, e.type())))
@@ -54,7 +55,7 @@ def log_signals(obj: QObject) -> QObject:
 
     Can be used as class decorator.
     """
-    def log_slot(obj: QObject, signal: pyqtSignal, *args: typing.Any) -> None:
+    def log_slot(obj: QObject, signal: pyqtBoundSignal, *args: Any) -> None:
         """Slot connected to a signal to log it."""
         dbg = dbg_signal(signal, args)
         try:
@@ -83,9 +84,7 @@ def log_signals(obj: QObject) -> QObject:
         old_init = obj.__init__  # type: ignore[misc]
 
         @functools.wraps(old_init)
-        def new_init(self: typing.Any,
-                     *args: typing.Any,
-                     **kwargs: typing.Any) -> None:
+        def new_init(self: Any, *args: Any, **kwargs: Any) -> None:
             """Wrapper for __init__() which logs signals."""
             old_init(self, *args, **kwargs)
             connect_log_slot(self)
@@ -97,10 +96,10 @@ def log_signals(obj: QObject) -> QObject:
     return obj
 
 
-def qenum_key(base: typing.Type,
-              value: typing.Union[int, sip.simplewrapper],
+def qenum_key(base: Type,
+              value: Union[int, sip.simplewrapper],
               add_base: bool = False,
-              klass: typing.Type = None) -> str:
+              klass: Type = None) -> str:
     """Convert a Qt Enum value to its key as a string.
 
     Args:
@@ -140,10 +139,10 @@ def qenum_key(base: typing.Type,
         return ret
 
 
-def qflags_key(base: typing.Type,
-               value: typing.Union[int, sip.simplewrapper],
+def qflags_key(base: Type,
+               value: Union[int, sip.simplewrapper],
                add_base: bool = False,
-               klass: typing.Type = None) -> str:
+               klass: Type = None) -> str:
     """Convert a Qt QFlags value to its keys as string.
 
     Note: Passing a combined value (such as Qt.AlignCenter) will get the names
@@ -188,7 +187,7 @@ def qflags_key(base: typing.Type,
     return '|'.join(names)
 
 
-def signal_name(sig: pyqtSignal) -> str:
+def signal_name(sig: pyqtBoundSignal) -> str:
     """Get a cleaned up name of a signal.
 
     Unfortunately, the way to get the name of a signal differs based on:
@@ -199,7 +198,7 @@ def signal_name(sig: pyqtSignal) -> str:
     fails, extract it from the repr().
 
     Args:
-        sig: The pyqtSignal
+        sig: A bound signal.
 
     Return:
         The cleaned up signal name.
@@ -209,8 +208,7 @@ def signal_name(sig: pyqtSignal) -> str:
         # Examples:
         # sig.signal == '2signal1'
         # sig.signal == '2signal2(QString,QString)'
-        m = re.fullmatch(r'[0-9]+(?P<name>.*)\(.*\)',
-                         sig.signal)  # type: ignore[attr-defined]
+        m = re.fullmatch(r'[0-9]+(?P<name>.*)\(.*\)', sig.signal)
     elif hasattr(sig, 'signatures'):
         # Unbound signal, PyQt >= 5.11
         # Examples:
@@ -238,8 +236,7 @@ def signal_name(sig: pyqtSignal) -> str:
     return m.group('name')
 
 
-def format_args(args: typing.Sequence = None,
-                kwargs: typing.Mapping = None) -> str:
+def format_args(args: Sequence = None, kwargs: Mapping = None) -> str:
     """Format a list of arguments/kwargs to a function-call like string."""
     if args is not None:
         arglist = [utils.compact_text(repr(arg), 200) for arg in args]
@@ -251,11 +248,11 @@ def format_args(args: typing.Sequence = None,
     return ', '.join(arglist)
 
 
-def dbg_signal(sig: pyqtSignal, args: typing.Any) -> str:
+def dbg_signal(sig: pyqtBoundSignal, args: Any) -> str:
     """Get a string representation of a signal for debugging.
 
     Args:
-        sig: A pyqtSignal.
+        sig: A bound signal.
         args: The arguments as list of strings.
 
     Return:
@@ -264,9 +261,9 @@ def dbg_signal(sig: pyqtSignal, args: typing.Any) -> str:
     return '{}({})'.format(signal_name(sig), format_args(args))
 
 
-def format_call(func: typing.Callable,
-                args: typing.Sequence = None,
-                kwargs: typing.Mapping = None,
+def format_call(func: Callable,
+                args: Sequence = None,
+                kwargs: Mapping = None,
                 full: bool = True) -> str:
     """Get a string representation of a function calls with the given args.
 
@@ -293,7 +290,7 @@ class log_time:  # noqa: N801,N806 pylint: disable=invalid-name
     Usable as context manager or as decorator.
     """
 
-    def __init__(self, logger: typing.Union[logging.Logger, str],
+    def __init__(self, logger: Union[logging.Logger, str],
                  action: str = 'operation') -> None:
         """Constructor.
 
@@ -305,28 +302,25 @@ class log_time:  # noqa: N801,N806 pylint: disable=invalid-name
             self._logger = logging.getLogger(logger)
         else:
             self._logger = logger
-        self._started = None  # type: typing.Optional[datetime.datetime]
+        self._started: Optional[datetime.datetime] = None
         self._action = action
 
     def __enter__(self) -> None:
         self._started = datetime.datetime.now()
 
-    # The string annotation is a WORKAROUND for a Python 3.5.2 bug:
-    # https://github.com/python/typing/issues/266
-
     def __exit__(self,
-                 _exc_type: 'typing.Optional[typing.Type[BaseException]]',
-                 _exc_val: typing.Optional[BaseException],
-                 _exc_tb: typing.Optional[types.TracebackType]) -> None:
+                 _exc_type: Optional[Type[BaseException]],
+                 _exc_val: Optional[BaseException],
+                 _exc_tb: Optional[types.TracebackType]) -> None:
         assert self._started is not None
         finished = datetime.datetime.now()
         delta = (finished - self._started).total_seconds()
         self._logger.debug("{} took {} seconds.".format(
             self._action.capitalize(), delta))
 
-    def __call__(self, func: typing.Callable) -> typing.Callable:
+    def __call__(self, func: Callable) -> Callable:
         @functools.wraps(func)
-        def wrapped(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+        def wrapped(*args: Any, **kwargs: Any) -> Any:
             """Call the original function."""
             with self:
                 return func(*args, **kwargs)
@@ -334,14 +328,14 @@ class log_time:  # noqa: N801,N806 pylint: disable=invalid-name
         return wrapped
 
 
-def _get_widgets() -> typing.Sequence[str]:
+def _get_widgets() -> Sequence[str]:
     """Get a string list of all widgets."""
     widgets = QApplication.instance().allWidgets()
     widgets.sort(key=repr)
     return [repr(w) for w in widgets]
 
 
-def _get_pyqt_objects(lines: typing.MutableSequence[str],
+def _get_pyqt_objects(lines: MutableSequence[str],
                       obj: QObject,
                       depth: int = 0) -> None:
     """Recursive method for get_all_objects to get Qt objects."""
@@ -362,7 +356,7 @@ def get_all_objects(start_obj: QObject = None) -> str:
     if start_obj is None:
         start_obj = QApplication.instance()
 
-    pyqt_lines = []  # type: typing.List[str]
+    pyqt_lines: List[str] = []
     _get_pyqt_objects(pyqt_lines, start_obj)
     pyqt_lines = ['    ' + e for e in pyqt_lines]
     pyqt_lines.insert(0, 'Qt objects - {} objects:'.format(len(pyqt_lines)))

@@ -25,7 +25,7 @@ import os.path
 import ipaddress
 import posixpath
 import urllib.parse
-import typing
+from typing import Optional, Tuple, Union
 
 from PyQt5.QtCore import QUrl, QUrlQuery
 from PyQt5.QtNetwork import QHostInfo, QHostAddress, QNetworkProxy
@@ -72,8 +72,7 @@ class InvalidUrlError(Error):
         super().__init__(self.msg)
 
 
-def _parse_search_term(s: str) -> typing.Tuple[typing.Optional[str],
-                                               typing.Optional[str]]:
+def _parse_search_term(s: str) -> Tuple[Optional[str], Optional[str]]:
     """Get a search engine name and search term from a string.
 
     Args:
@@ -89,8 +88,8 @@ def _parse_search_term(s: str) -> typing.Tuple[typing.Optional[str],
 
     if len(split) == 2:
         if split[0] in config.val.url.searchengines:
-            engine = split[0]  # type: typing.Optional[str]
-            term = split[1]  # type: typing.Optional[str]
+            engine: Optional[str] = split[0]
+            term: Optional[str] = split[1]
         else:
             engine = None
             term = s
@@ -385,7 +384,7 @@ def raise_cmdexc_if_invalid(url: QUrl) -> None:
 def get_path_if_valid(pathstr: str,
                       cwd: str = None,
                       relative: bool = False,
-                      check_exists: bool = False) -> typing.Optional[str]:
+                      check_exists: bool = False) -> Optional[str]:
     """Check if path is a valid path.
 
     Args:
@@ -403,7 +402,7 @@ def get_path_if_valid(pathstr: str,
     expanded = os.path.expanduser(pathstr)
 
     if os.path.isabs(expanded):
-        path = expanded  # type: typing.Optional[str]
+        path: Optional[str] = expanded
     elif relative and cwd:
         path = os.path.join(cwd, expanded)
     elif relative:
@@ -430,7 +429,7 @@ def get_path_if_valid(pathstr: str,
     return path
 
 
-def filename_from_url(url: QUrl) -> typing.Optional[str]:
+def filename_from_url(url: QUrl) -> Optional[str]:
     """Get a suitable filename from a URL.
 
     Args:
@@ -450,7 +449,7 @@ def filename_from_url(url: QUrl) -> typing.Optional[str]:
         return None
 
 
-HostTupleType = typing.Tuple[str, str, int]
+HostTupleType = Tuple[str, str, int]
 
 
 def host_tuple(url: QUrl) -> HostTupleType:
@@ -594,7 +593,7 @@ class InvalidProxyTypeError(Exception):
         super().__init__("Invalid proxy type {}!".format(typ))
 
 
-def proxy_from_url(url: QUrl) -> typing.Union[QNetworkProxy, pac.PACFetcher]:
+def proxy_from_url(url: QUrl) -> Union[QNetworkProxy, pac.PACFetcher]:
     """Create a QNetworkProxy from QUrl and a proxy type.
 
     Args:

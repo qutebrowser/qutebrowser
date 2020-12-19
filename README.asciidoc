@@ -109,8 +109,7 @@ Requirements
 
 The following software and libraries are required to run qutebrowser:
 
-* https://www.python.org/[Python] 3.5.2 or newer (3.6 - 3.8 recommended;
-  support for 3.5 will be dropped with qutebrowser v2.0.0)
+* https://www.python.org/[Python] 3.6 or newer
 * https://www.qt.io/[Qt] 5.7.1 or newer (5.14 recommended; support for < 5.11
   will be dropped with qutebrowser v2.0.0) with the following modules:
   - QtCore / qtbase
@@ -219,11 +218,11 @@ Active
 
 * https://fanglingsu.github.io/vimb/[vimb] (C, GTK+ with WebKit2)
 * https://luakit.github.io/luakit/[luakit] (C/Lua, GTK+ with WebKit2)
-* https://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
 * https://nyxt.atlas.engineer/[Nyxt browser] (formerly "Next browser", Lisp, Emacs-like but also offers Vim bindings, QtWebKit or GTK+/WebKit2 - note there was a http://jgkamat.gitlab.io/blog/next-rce.html[critical remote code execution] which was handled quite badly)
 * https://vieb.dev/[Vieb] (JavaScript, Electron)
 * Chrome/Chromium addons:
   https://vimium.github.io/[Vimium],
+  https://github.com/dcchambers/vb4c[vb4c] (fork of cVim)
 * Firefox addons (based on WebExtensions):
   https://github.com/tridactyl/tridactyl[Tridactyl],
   https://addons.mozilla.org/en-GB/firefox/addon/vimium-ff/[Vimium-FF] (experimental),
@@ -231,7 +230,6 @@ Active
   https://github.com/amedama41/vvimpulation[VVimpulation]
 * Addons for Firefox and Chrome:
   https://github.com/brookhong/Surfingkeys[Surfingkeys],
-  https://github.com/lusakasa/saka-key[Saka Key],
   https://krabby.netlify.com/[Krabby],
   https://lydell.github.io/LinkHints/[Link Hints] (hinting only)
 * Addons for Safari:
@@ -253,6 +251,7 @@ original site is gone but the Arch Linux wiki has some data)
 * https://www.uzbl.org/[uzbl] (C, GTK+ with WebKit1/WebKit2)
 * https://github.com/conformal/xombrero[xombrero] (C, GTK+ with WebKit1)
 * https://github.com/linkdd/cream-browser[Cream Browser] (C, GTK+ with WebKit1)
+* https://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
 * Firefox addons (not based on WebExtensions or no recent activity):
   http://www.vimperator.org/[Vimperator],
   http://bug.5digits.org/pentadactyl/index[Pentadactyl],
@@ -262,7 +261,7 @@ original site is gone but the Arch Linux wiki has some data)
 * Chrome/Chromium addons:
   https://github.com/k2nr/ViChrome/[ViChrome],
   https://github.com/jinzhu/vrome[Vrome],
-  https://github.com/lusakasa/saka-key[Saka Key],
+  https://github.com/lusakasa/saka-key[Saka Key] (https://github.com/lusakasa/saka-key/issues/171[unmaintained]),
   https://github.com/1995eaton/chromium-vim[cVim],
   https://glee.github.io/[GleeBox]
 

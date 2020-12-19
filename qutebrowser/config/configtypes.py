@@ -47,7 +47,6 @@ import html
 import codecs
 import os.path
 import itertools
-import warnings
 import functools
 import operator
 import json
@@ -1319,30 +1318,19 @@ class Regex(BaseType):
     def _compile_regex(self, pattern: str) -> typing.Pattern[str]:
         """Check if the given regex is valid.
 
-        This is more complicated than it could be since there's a warning on
-        invalid escapes with newer Python versions, and we want to catch that
-        case and treat it as invalid.
+        Some semi-invalid regexes can also raise warnings - we also treat them as
+        invalid.
         """
-        with warnings.catch_warnings(record=True) as recorded_warnings:
-            warnings.simplefilter('always')
-            try:
+        try:
+            with log.py_warning_filter('error', category=FutureWarning):
                 compiled = re.compile(pattern, self.flags)
-            except re.error as e:
-                raise configexc.ValidationError(
-                    pattern, "must be a valid regex - " + str(e))
-            except RuntimeError:  # pragma: no cover
-                raise configexc.ValidationError(
-                    pattern, "must be a valid regex - recursion depth "
-                    "exceeded")
-
-        assert recorded_warnings is not None
-
-        for w in recorded_warnings:
-            if (issubclass(w.category, DeprecationWarning) and
-                    str(w.message).startswith('bad escape')):
-                raise configexc.ValidationError(
-                    pattern, "must be a valid regex - " + str(w.message))
-            warnings.warn(w.message)
+        except (re.error, FutureWarning) as e:
+            raise configexc.ValidationError(
+                pattern, "must be a valid regex - " + str(e))
+        except RuntimeError:  # pragma: no cover
+            raise configexc.ValidationError(
+                pattern, "must be a valid regex - recursion depth "
+                "exceeded")
 
         return compiled
 

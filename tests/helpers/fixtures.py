@@ -97,6 +97,10 @@ class WinRegistryHelper:
         def windowTitle(self):
             return 'window title - qutebrowser'
 
+        @property
+        def tabbed_browser(self):
+            return self.registry['tabbed-browser']
+
     def __init__(self):
         self._ids = []
 
@@ -705,3 +709,16 @@ def state_config(data_tmpdir, monkeypatch):
     state = configfiles.StateConfig()
     monkeypatch.setattr(configfiles, 'state', state)
     return state
+
+
+@pytest.fixture
+def unwritable_tmp_path(tmp_path):
+    tmp_path.chmod(0)
+    if os.access(str(tmp_path), os.W_OK):
+        # Docker container or similar
+        pytest.skip("Directory was still writable")
+
+    yield tmp_path
+
+    # Make sure pytest can clean up the tmp_path
+    tmp_path.chmod(0o755)

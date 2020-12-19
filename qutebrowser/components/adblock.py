@@ -23,8 +23,8 @@ import os.path
 import posixpath
 import zipfile
 import logging
-import typing
 import pathlib
+from typing import cast, IO, List, Set
 
 from PyQt5.QtCore import QUrl
 
@@ -57,7 +57,7 @@ def _guess_zip_filename(zf: zipfile.ZipFile) -> str:
     raise FileNotFoundError("No hosts file found in zip")
 
 
-def get_fileobj(byte_io: typing.IO[bytes]) -> typing.IO[bytes]:
+def get_fileobj(byte_io: IO[bytes]) -> IO[bytes]:
     """Get a usable file object to read the hosts file from."""
     byte_io.seek(0)  # rewind downloaded file
     if zipfile.is_zipfile(byte_io):
@@ -101,8 +101,8 @@ class HostBlocker:
     ) -> None:
         self.enabled = _should_be_used()
         self._has_basedir = has_basedir
-        self._blocked_hosts = set()  # type: typing.Set[str]
-        self._config_blocked_hosts = set()  # type: typing.Set[str]
+        self._blocked_hosts: Set[str] = set()
+        self._config_blocked_hosts: Set[str] = set()
 
         self._local_hosts_file = str(data_dir / "blocked-hosts")
         self.update_files()
@@ -137,7 +137,7 @@ class HostBlocker:
             )
             info.block()
 
-    def _read_hosts_line(self, raw_line: bytes) -> typing.Set[str]:
+    def _read_hosts_line(self, raw_line: bytes) -> Set[str]:
         """Read hosts from the given line.
 
         Args:
@@ -173,7 +173,7 @@ class HostBlocker:
 
         return filtered_hosts
 
-    def _read_hosts_file(self, filename: str, target: typing.Set[str]) -> bool:
+    def _read_hosts_file(self, filename: str, target: Set[str]) -> bool:
         """Read hosts from the given filename.
 
         Args:
@@ -225,7 +225,7 @@ class HostBlocker:
         dl.initiate()
         return dl
 
-    def _merge_file(self, byte_io: typing.IO[bytes]) -> None:
+    def _merge_file(self, byte_io: IO[bytes]) -> None:
         """Read and merge host files.
 
         Args:

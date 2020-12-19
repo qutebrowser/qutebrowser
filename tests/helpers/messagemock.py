@@ -24,7 +24,7 @@ import logging
 import attr
 import pytest
 
-from qutebrowser.utils import usertypes, message, objreg
+from qutebrowser.utils import usertypes, message
 
 
 @attr.s
@@ -90,12 +90,3 @@ def message_mock():
     mmock.patch()
     yield mmock
     mmock.unpatch()
-
-
-@pytest.fixture
-def message_bridge(win_registry):
-    """Fixture to get a MessageBridge."""
-    bridge = message.MessageBridge()
-    objreg.register('message-bridge', bridge, scope='window', window=0)
-    yield bridge
-    objreg.delete('message-bridge', scope='window', window=0)

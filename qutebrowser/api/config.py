@@ -19,7 +19,7 @@
 
 """Access to the qutebrowser configuration."""
 
-import typing
+from typing import cast, Any
 
 from PyQt5.QtCore import QUrl
 
@@ -35,9 +35,9 @@ from qutebrowser.config import config
 #: This also supports setting configuration values::
 #:
 #:   config.val.content.javascript.enabled = False
-val = typing.cast('config.ConfigContainer', None)
+val = cast('config.ConfigContainer', None)
 
 
-def get(name: str, url: QUrl = None) -> typing.Any:
+def get(name: str, url: QUrl = None) -> Any:
     """Get a value from the config based on a string name."""
     return config.instance.get(name, url)

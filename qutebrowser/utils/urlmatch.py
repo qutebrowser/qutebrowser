@@ -25,14 +25,14 @@ https://cs.chromium.org/chromium/src/extensions/common/url_pattern.cc
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern.h
 
 Based on the following commit in Chromium:
-https://chromium.googlesource.com/chromium/src/+/757854e199e159523e7789de5cb2f6ba49b79b63
-(February 4 2020, newest commit as per July 1st 2020)
+https://chromium.googlesource.com/chromium/src/+/6f4a6681eae01c2036336c18b06303e16a304a7c
+(October 10 2020, newest commit as per October 28th 2020)
 """
 
 import ipaddress
 import fnmatch
-import typing
 import urllib.parse
+from typing import Any, Optional, Tuple
 
 from PyQt5.QtCore import QUrl
 
@@ -73,11 +73,11 @@ class UrlPattern:
         # Make sure all attributes are initialized if we exit early.
         self._pattern = pattern
         self._match_all = False
-        self._match_subdomains = False  # type: bool
-        self._scheme = None  # type: typing.Optional[str]
-        self.host = None  # type: typing.Optional[str]
-        self._path = None  # type: typing.Optional[str]
-        self._port = None  # type: typing.Optional[int]
+        self._match_subdomains: bool = False
+        self._scheme: Optional[str] = None
+        self.host: Optional[str] = None
+        self._path: Optional[str] = None
+        self._port: Optional[int] = None
 
         # > The special pattern <all_urls> matches any URL that starts with a
         # > permitted scheme.
@@ -104,7 +104,7 @@ class UrlPattern:
         self._init_path(parsed)
         self._init_port(parsed)
 
-    def _to_tuple(self) -> typing.Tuple:
+    def _to_tuple(self) -> Tuple:
         """Get a pattern with information used for __eq__/__hash__."""
         return (self._match_all, self._match_subdomains, self._scheme,
                 self.host, self._path, self._port)
@@ -112,7 +112,7 @@ class UrlPattern:
     def __hash__(self) -> int:
         return hash(self._to_tuple())
 
-    def __eq__(self, other: typing.Any) -> bool:
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, UrlPattern):
             return NotImplemented
         return self._to_tuple() == other._to_tuple()

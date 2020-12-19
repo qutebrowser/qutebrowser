@@ -84,6 +84,7 @@ CHANGELOG_URLS = {
     'jaraco.functools': 'https://github.com/jaraco/jaraco.functools/blob/master/CHANGES.rst',
     'parse': 'https://github.com/r1chardj0n3s/parse#potential-gotchas',
     'py': 'https://py.readthedocs.io/en/latest/changelog.html#changelog',
+    'Pympler': 'https://github.com/pympler/pympler/blob/master/CHANGELOG.md',
     'pytest-mock': 'https://github.com/pytest-dev/pytest-mock/blob/master/CHANGELOG.rst',
     'pytest-qt': 'https://github.com/pytest-dev/pytest-qt/blob/master/CHANGELOG.rst',
     'wcwidth': 'https://github.com/jquast/wcwidth#history',
@@ -99,17 +100,18 @@ CHANGELOG_URLS = {
     'urllib3': 'https://github.com/urllib3/urllib3/blob/master/CHANGES.rst',
     'wheel': 'https://github.com/pypa/wheel/blob/master/docs/news.rst',
     'mako': 'https://docs.makotemplates.org/en/latest/changelog.html',
-    'lxml': 'https://lxml.de/4.5/changes-4.5.0.html',
+    'lxml': 'https://lxml.de/4.6/changes-4.6.0.html',
     'jwcrypto': 'https://github.com/latchset/jwcrypto/commits/master',
     'tox-pip-version': 'https://github.com/pglass/tox-pip-version/commits/master',
     'wrapt': 'https://github.com/GrahamDumpleton/wrapt/blob/develop/docs/changes.rst',
-    'pep517': 'https://github.com/pypa/pep517/commits/master',
-    'cryptography': 'https://cryptography.io/en/latest/changelog/',
+    'pep517': 'https://github.com/pypa/pep517/blob/master/doc/changelog.rst',
+    'cryptography': 'https://cryptography.io/en/latest/changelog.html',
     'toml': 'https://github.com/uiri/toml/releases',
     'PyQt5': 'https://www.riverbankcomputing.com/news',
     'PyQtWebEngine': 'https://www.riverbankcomputing.com/news',
     'PyQt-builder': 'https://www.riverbankcomputing.com/news',
     'PyQt5-sip': 'https://www.riverbankcomputing.com/news',
+    'PyQt5_stubs': 'https://github.com/stlehmann/PyQt5-stubs/blob/master/CHANGELOG.md',
     'sip': 'https://www.riverbankcomputing.com/news',
     'Pygments': 'https://pygments.org/docs/changelog/',
     'vulture': 'https://github.com/jendrikseipp/vulture/blob/master/CHANGELOG.md',
@@ -122,6 +124,15 @@ CHANGELOG_URLS = {
     'tldextract': 'https://github.com/john-kurkowski/tldextract/blob/master/CHANGELOG.md',
     'typing_extensions': 'https://github.com/python/typing/commits/master/typing_extensions',
     'diff_cover': 'https://github.com/Bachmann1234/diff_cover/blob/master/CHANGELOG',
+    'pytest-clarity': 'https://github.com/darrenburns/pytest-clarity/commits/master',
+    'pytest-icdiff': 'https://github.com/hjwp/pytest-icdiff/blob/master/HISTORY.rst',
+    'icdiff': 'https://github.com/jeffkaufman/icdiff/blob/master/ChangeLog',
+    'termcolor': 'https://pypi.org/project/termcolor/',
+    'pprintpp': 'https://github.com/wolever/pprintpp/blob/master/CHANGELOG.txt',
+    'beautifulsoup4': 'https://bazaar.launchpad.net/~leonardr/beautifulsoup/bs4/view/head:/CHANGELOG',
+    'check-manifest': 'https://github.com/mgedmin/check-manifest/blob/master/CHANGES.rst',
+    'yamllint': 'https://github.com/adrienverge/yamllint/blob/master/CHANGELOG.rst',
+    'filelock': 'https://github.com/benediktschmitt/py-filelock/commits/master',
 }
 
 # PyQt versions which need SIP v4
@@ -303,8 +314,8 @@ class Change:
             return '| {} | {} | {} |'.format(self.link, self.old, self.new)
 
 
-def print_changed_files():
-    """Output all changed files from this run."""
+def _get_changed_files():
+    """Get a list of changed files via git."""
     changed_files = set()
     filenames = git_diff('--name-only')
     for filename in filenames:
@@ -312,8 +323,12 @@ def print_changed_files():
         filename = filename.replace('misc/requirements/requirements-', '')
         filename = filename.replace('.txt', '')
         changed_files.add(filename)
-    files_text = '\n'.join('- ' + line for line in sorted(changed_files))
 
+    return sorted(changed_files)
+
+
+def _get_changes():
+    """Get a list of changed versions from git."""
     changes_dict = {}
     diff = git_diff()
     for line in diff:
@@ -326,9 +341,15 @@ def print_changed_files():
             name, version = line[1:].split('==')
             if ';' in version:  # pip environment markers
                 version = version.split(';')[0].strip()
+        elif line[1:].startswith('-e'):
+            rest, name = line.split('#egg=')
+            version = rest.split('@')[1][:7]
         else:
             name = line[1:]
             version = '?'
+
+        if name.startswith('#'):  # duplicate requirements
+            name = name[1:].strip()
 
         if name not in changes_dict:
             changes_dict[name] = Change(name)
@@ -338,7 +359,15 @@ def print_changed_files():
         elif line.startswith('+'):
             changes_dict[name].new = version
 
-    changes = [change for _name, change in sorted(changes_dict.items())]
+    return [change for _name, change in sorted(changes_dict.items())]
+
+
+def print_changed_files():
+    """Output all changed files from this run."""
+    changed_files = _get_changed_files()
+    files_text = '\n'.join('- ' + line for line in changed_files)
+
+    changes = _get_changes()
     diff_text = '\n'.join(str(change) for change in changes)
 
     utils.print_title('Changed')

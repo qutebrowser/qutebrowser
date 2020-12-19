@@ -23,17 +23,17 @@ Because many modules depend on this command, this needs to have as few
 dependencies as possible to avoid cyclic dependencies.
 """
 
-import typing
+from typing import Any, Callable, List, Optional, Tuple, TypeVar
 
 
 # The second element of each tuple should be a lru_cache wrapped function
-_CACHE_FUNCTIONS = []  # type: typing.List[typing.Tuple[str, typing.Any]]
+_CACHE_FUNCTIONS: List[Tuple[str, Any]] = []
 
 
-_T = typing.TypeVar('_T', bound=typing.Callable)
+_T = TypeVar('_T', bound=Callable)
 
 
-def register(name: typing.Optional[str] = None) -> typing.Callable[[_T], _T]:
+def register(name: Optional[str] = None) -> Callable[[_T], _T]:
     """Register a lru_cache wrapped function for debug_cache_stats."""
     def wrapper(fn: _T) -> _T:
         _CACHE_FUNCTIONS.append((fn.__name__ if name is None else name, fn))

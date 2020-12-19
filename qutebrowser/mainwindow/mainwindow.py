@@ -23,9 +23,9 @@ import binascii
 import base64
 import itertools
 import functools
-import typing
+from typing import List, MutableSequence, Optional, Tuple, cast
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QRect, QPoint, QTimer, Qt,
+from PyQt5.QtCore import (pyqtBoundSignal, pyqtSlot, QRect, QPoint, QTimer, Qt,
                           QCoreApplication, QEventLoop, QByteArray)
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 from PyQt5.QtGui import QPalette
@@ -105,23 +105,20 @@ def raise_window(window, alert=True):
 
 def get_target_window():
     """Get the target window for new tabs, or None if none exist."""
+    getters = {
+        'last-focused': objreg.last_focused_window,
+        'first-opened': objreg.first_opened_window,
+        'last-opened': objreg.last_opened_window,
+        'last-visible': objreg.last_visible_window,
+    }
+    getter = getters[config.val.new_instance_open_target_window]
     try:
-        win_mode = config.val.new_instance_open_target_window
-        if win_mode == 'last-focused':
-            return objreg.last_focused_window()
-        elif win_mode == 'first-opened':
-            return objreg.window_by_index(0)
-        elif win_mode == 'last-opened':
-            return objreg.window_by_index(-1)
-        elif win_mode == 'last-visible':
-            return objreg.last_visible_window()
-        else:
-            raise ValueError("Invalid win_mode {}".format(win_mode))
+        return getter()
     except objreg.NoWindow:
         return None
 
 
-_OverlayInfoType = typing.Tuple[QWidget, pyqtSignal, bool, str]
+_OverlayInfoType = Tuple[QWidget, pyqtBoundSignal, bool, str]
 
 
 class MainWindow(QWidget):
@@ -190,8 +187,8 @@ class MainWindow(QWidget):
 
     def __init__(self, *,
                  private: bool,
-                 geometry: typing.Optional[QByteArray] = None,
-                 parent: typing.Optional[QWidget] = None) -> None:
+                 geometry: Optional[QByteArray] = None,
+                 parent: Optional[QWidget] = None) -> None:
         """Create a new main window.
 
         Args:
@@ -208,7 +205,7 @@ class MainWindow(QWidget):
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.palette().setColor(QPalette.Window, Qt.transparent)
-        self._overlays = []  # type: typing.MutableSequence[_OverlayInfoType]
+        self._overlays: MutableSequence[_OverlayInfoType] = []
         self.win_id = next(win_id_gen)
         self.registry = objreg.ObjectRegistry()
         objreg.window_registry[self.win_id] = self
@@ -216,10 +213,6 @@ class MainWindow(QWidget):
                         window=self.win_id)
         tab_registry = objreg.ObjectRegistry()
         objreg.register('tab-registry', tab_registry, scope='window',
-                        window=self.win_id)
-
-        message_bridge = message.MessageBridge(self)
-        objreg.register('message-bridge', message_bridge, scope='window',
                         window=self.win_id)
 
         self.setWindowTitle('qutebrowser')
@@ -233,9 +226,8 @@ class MainWindow(QWidget):
 
         self.is_private = config.val.content.private_browsing or private
 
-        self.tabbed_browser = tabbedbrowser.TabbedBrowser(
-            win_id=self.win_id, private=self.is_private, parent=self
-        )  # type: tabbedbrowser.TabbedBrowser
+        self.tabbed_browser: tabbedbrowser.TabbedBrowser = tabbedbrowser.TabbedBrowser(
+            win_id=self.win_id, private=self.is_private, parent=self)
         objreg.register('tabbed-browser', self.tabbed_browser, scope='window',
                         window=self.win_id)
         self._init_command_dispatcher()
@@ -420,7 +412,7 @@ class MainWindow(QWidget):
         self._vbox.removeWidget(self.tabbed_browser.widget)
         self._vbox.removeWidget(self._downloadview)
         self._vbox.removeWidget(self.status)
-        widgets = [self.tabbed_browser.widget]  # type: typing.List[QWidget]
+        widgets: List[QWidget] = [self.tabbed_browser.widget]
 
         downloads_position = config.val.downloads.position
         if downloads_position == 'top':
@@ -484,13 +476,8 @@ class MainWindow(QWidget):
         """Set some sensible default geometry."""
         self.setGeometry(QRect(50, 50, 800, 600))
 
-    def _get_object(self, name):
-        """Get an object for this window in the object registry."""
-        return objreg.get(name, scope='window', window=self.win_id)
-
     def _connect_signals(self):
         """Connect all mainwindow signals."""
-        message_bridge = self._get_object('message-bridge')
         mode_manager = modeman.instance(self.win_id)
 
         # misc
@@ -498,23 +485,19 @@ class MainWindow(QWidget):
         mode_manager.entered.connect(hints.on_mode_entered)
 
         # status bar
+        mode_manager.hintmanager.set_text.connect(self.status.set_text)
         mode_manager.entered.connect(self.status.on_mode_entered)
         mode_manager.left.connect(self.status.on_mode_left)
         mode_manager.left.connect(self.status.cmd.on_mode_left)
-        mode_manager.left.connect(
-            message.global_bridge.mode_left)  # type: ignore[arg-type]
+        mode_manager.left.connect(message.global_bridge.mode_left)
 
         # commands
         mode_manager.keystring_updated.connect(
             self.status.keystring.on_keystring_updated)
-        self.status.cmd.got_cmd[str].connect(  # type: ignore[index]
-            self._commandrunner.run_safely)
-        self.status.cmd.got_cmd[str, int].connect(  # type: ignore[index]
-            self._commandrunner.run_safely)
-        self.status.cmd.returnPressed.connect(
-            self.tabbed_browser.on_cmd_return_pressed)
-        self.status.cmd.got_search.connect(
-            self._command_dispatcher.search)
+        self.status.cmd.got_cmd[str].connect(self._commandrunner.run_safely)
+        self.status.cmd.got_cmd[str, int].connect(self._commandrunner.run_safely)
+        self.status.cmd.returnPressed.connect(self.tabbed_browser.on_cmd_return_pressed)
+        self.status.cmd.got_search.connect(self._command_dispatcher.search)
 
         # key hint popup
         mode_manager.keystring_updated.connect(self._keyhint.update_keyhint)
@@ -525,10 +508,6 @@ class MainWindow(QWidget):
         message.global_bridge.flush()
         message.global_bridge.clear_messages.connect(
             self._messageview.clear_messages)
-
-        message_bridge.s_set_text.connect(self.status.set_text)
-        message_bridge.s_maybe_reset_text.connect(
-            self.status.txt.maybe_reset_text)
 
         # statusbar
         self.tabbed_browser.current_tab_changed.connect(
@@ -578,11 +557,11 @@ class MainWindow(QWidget):
 
     def _set_decoration(self, hidden):
         """Set the visibility of the window decoration via Qt."""
-        window_flags = Qt.Window  # type: int
+        window_flags: int = Qt.Window
         refresh_window = self.isVisible()
         if hidden:
             window_flags |= Qt.CustomizeWindowHint | Qt.NoDropShadowWindowHint
-        self.setWindowFlags(typing.cast(Qt.WindowFlags, window_flags))
+        self.setWindowFlags(cast(Qt.WindowFlags, window_flags))
         if refresh_window:
             self.show()
 

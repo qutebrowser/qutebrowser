@@ -63,7 +63,8 @@ def configdata_init(monkeypatch):
 class TestEarlyInit:
 
     def test_config_py_path(self, args, init_patch, config_py_arg):
-        config_py_arg.write('c.colors.hints.bg = "red"\n')
+        config_py_arg.write('\n'.join(['config.load_autoconfig()',
+                                       'c.colors.hints.bg = "red"']))
         configinit.early_init(args)
         expected = 'colors.hints.bg = red'
         assert config.instance.dump_userconfig() == expected
@@ -75,7 +76,8 @@ class TestEarlyInit:
         config_py_file = config_tmpdir / 'config.py'
 
         if config_py:
-            config_py_lines = ['c.colors.hints.bg = "red"']
+            config_py_lines = ['c.colors.hints.bg = "red"',
+                               'config.load_autoconfig(False)']
             if config_py == 'error':
                 config_py_lines.append('c.foo = 42')
             config_py_file.write_text('\n'.join(config_py_lines),
@@ -147,8 +149,7 @@ class TestEarlyInit:
 
         if config_py:
             config_py_lines = ['c.colors.hints.bg = "red"']
-            if load_autoconfig:
-                config_py_lines.append('config.load_autoconfig()')
+            config_py_lines.append('config.load_autoconfig({})'.format(load_autoconfig))
             if config_py == 'error':
                 config_py_lines.append('c.foo = 42')
             config_py_file.write_text('\n'.join(config_py_lines),
@@ -310,6 +311,7 @@ class TestLateInit:
         elif method == 'py':
             config_py_file = config_tmpdir / 'config.py'
             lines = ["c.{} = '{}'".format(k, v) for k, v in settings]
+            lines.append("config.load_autoconfig(False)")
             config_py_file.write_text('\n'.join(lines), 'utf-8', ensure=True)
 
         configinit.early_init(args)

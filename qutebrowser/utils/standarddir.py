@@ -26,7 +26,7 @@ import shutil
 import contextlib
 import enum
 import argparse
-import typing
+from typing import Iterator, Optional
 
 from PyQt5.QtCore import QStandardPaths
 from PyQt5.QtWidgets import QApplication
@@ -41,14 +41,14 @@ class _Location(enum.Enum):
 
     """A key for _locations."""
 
-    config = 1
-    auto_config = 2
-    data = 3
-    system_data = 4
-    cache = 5
-    download = 6
-    runtime = 7
-    config_py = 8
+    config = enum.auto()
+    auto_config = enum.auto()
+    data = enum.auto()
+    system_data = enum.auto()
+    cache = enum.auto()
+    download = enum.auto()
+    runtime = enum.auto()
+    config_py = enum.auto()
 
 
 APPNAME = 'qutebrowser'
@@ -60,7 +60,7 @@ class EmptyValueError(Exception):
 
 
 @contextlib.contextmanager
-def _unset_organization() -> typing.Iterator[None]:
+def _unset_organization() -> Iterator[None]:
     """Temporarily unset QApplication.organizationName().
 
     This is primarily needed in config.py.
@@ -76,7 +76,7 @@ def _unset_organization() -> typing.Iterator[None]:
             qapp.setOrganizationName(orgname)
 
 
-def _init_config(args: typing.Optional[argparse.Namespace]) -> None:
+def _init_config(args: Optional[argparse.Namespace]) -> None:
     """Initialize the location for configs."""
     typ = QStandardPaths.ConfigLocation
     path = _from_args(typ, args)
@@ -127,7 +127,7 @@ def config_py() -> str:
     return _locations[_Location.config_py]
 
 
-def _init_data(args: typing.Optional[argparse.Namespace]) -> None:
+def _init_data(args: Optional[argparse.Namespace]) -> None:
     """Initialize the location for data."""
     typ = QStandardPaths.DataLocation
     path = _from_args(typ, args)
@@ -167,7 +167,7 @@ def data(system: bool = False) -> str:
     return _locations[_Location.data]
 
 
-def _init_cache(args: typing.Optional[argparse.Namespace]) -> None:
+def _init_cache(args: Optional[argparse.Namespace]) -> None:
     """Initialize the location for the cache."""
     typ = QStandardPaths.CacheLocation
     path = _from_args(typ, args)
@@ -187,7 +187,7 @@ def cache() -> str:
     return _locations[_Location.cache]
 
 
-def _init_download(args: typing.Optional[argparse.Namespace]) -> None:
+def _init_download(args: Optional[argparse.Namespace]) -> None:
     """Initialize the location for downloads.
 
     Note this is only the default directory as found by Qt.
@@ -204,7 +204,7 @@ def download() -> str:
     return _locations[_Location.download]
 
 
-def _init_runtime(args: typing.Optional[argparse.Namespace]) -> None:
+def _init_runtime(args: Optional[argparse.Namespace]) -> None:
     """Initialize location for runtime data."""
     if utils.is_mac or utils.is_windows:
         # RuntimeLocation is a weird path on macOS and Windows.
@@ -279,8 +279,8 @@ def _writable_location(typ: QStandardPaths.StandardLocation) -> str:
 
 def _from_args(
         typ: QStandardPaths.StandardLocation,
-        args: typing.Optional[argparse.Namespace]
-) -> typing.Optional[str]:
+        args: Optional[argparse.Namespace]
+) -> Optional[str]:
     """Get the standard directory from an argparse namespace.
 
     Return:
@@ -332,7 +332,7 @@ def _init_dirs(args: argparse.Namespace = None) -> None:
     _init_runtime(args)
 
 
-def init(args: typing.Optional[argparse.Namespace]) -> None:
+def init(args: Optional[argparse.Namespace]) -> None:
     """Initialize all standard dirs."""
     if args is not None:
         # args can be None during tests

@@ -35,9 +35,9 @@ import socket
 import shlex
 import glob
 import mimetypes
-import typing
 import ctypes
 import ctypes.util
+from typing import Any, Callable, IO, Iterator, Optional, Sequence, Tuple, Type, Union
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QClipboard, QDesktopServices
@@ -159,7 +159,7 @@ def preload_resources() -> None:
 
 
 # FIXME:typing Return value should be bytes/str
-def read_file(filename: str, binary: bool = False) -> typing.Any:
+def read_file(filename: str, binary: bool = False) -> Any:
     """Get the contents of a file contained with qutebrowser.
 
     Args:
@@ -181,7 +181,7 @@ def read_file(filename: str, binary: bool = False) -> typing.Any:
         # https://github.com/pyinstaller/pyinstaller/wiki/FAQ#misc
         fn = os.path.join(os.path.dirname(sys.executable), filename)
         if binary:
-            with open(fn, 'rb') as f:  # type: typing.IO
+            with open(fn, 'rb') as f:  # type: IO
                 return f.read()
         else:
             with open(fn, 'r', encoding='utf-8') as f:
@@ -212,7 +212,7 @@ def resource_filename(filename: str) -> str:
 
 def _get_color_percentage(a_c1: int, a_c2: int, a_c3:
                           int, b_c1: int, b_c2: int, b_c3: int,
-                          percent: int) -> typing.Tuple[int, int, int]:
+                          percent: int) -> Tuple[int, int, int]:
     """Get a color which is percent% interpolated between start and end.
 
     Args:
@@ -237,7 +237,7 @@ def interpolate_color(
         start: QColor,
         end: QColor,
         percent: int,
-        colorspace: typing.Optional[QColor.Spec] = QColor.Rgb
+        colorspace: Optional[QColor.Spec] = QColor.Rgb
 ) -> QColor:
     """Get an interpolated color value.
 
@@ -303,9 +303,7 @@ def format_seconds(total_seconds: int) -> str:
     return prefix + ':'.join(chunks)
 
 
-def format_size(size: typing.Optional[float],
-                base: int = 1024,
-                suffix: str = '') -> str:
+def format_size(size: Optional[float], base: int = 1024, suffix: str = '') -> str:
     """Format a byte size so it's human readable.
 
     Inspired by http://stackoverflow.com/q/1094841
@@ -324,13 +322,13 @@ class FakeIOStream(io.TextIOBase):
 
     """A fake file-like stream which calls a function for write-calls."""
 
-    def __init__(self, write_func: typing.Callable[[str], int]) -> None:
+    def __init__(self, write_func: Callable[[str], int]) -> None:
         super().__init__()
         self.write = write_func  # type: ignore[assignment]
 
 
 @contextlib.contextmanager
-def fake_io(write_func: typing.Callable[[str], int]) -> typing.Iterator[None]:
+def fake_io(write_func: Callable[[str], int]) -> Iterator[None]:
     """Run code with stdout and stderr replaced by FakeIOStreams.
 
     Args:
@@ -354,7 +352,7 @@ def fake_io(write_func: typing.Callable[[str], int]) -> typing.Iterator[None]:
 
 
 @contextlib.contextmanager
-def disabled_excepthook() -> typing.Iterator[None]:
+def disabled_excepthook() -> Iterator[None]:
     """Run code with the exception hook temporarily disabled."""
     old_excepthook = sys.excepthook
     sys.excepthook = sys.__excepthook__
@@ -387,7 +385,7 @@ class prevent_exceptions:  # noqa: N801,N806 pylint: disable=invalid-name
         _predicate: The condition which needs to be True to prevent exceptions
     """
 
-    def __init__(self, retval: typing.Any, predicate: bool = True) -> None:
+    def __init__(self, retval: Any, predicate: bool = True) -> None:
         """Save decorator arguments.
 
         Gets called on parse-time with the decorator arguments.
@@ -398,7 +396,7 @@ class prevent_exceptions:  # noqa: N801,N806 pylint: disable=invalid-name
         self._retval = retval
         self._predicate = predicate
 
-    def __call__(self, func: typing.Callable) -> typing.Callable:
+    def __call__(self, func: Callable) -> Callable:
         """Called when a function should be decorated.
 
         Args:
@@ -413,7 +411,7 @@ class prevent_exceptions:  # noqa: N801,N806 pylint: disable=invalid-name
         retval = self._retval
 
         @functools.wraps(func)
-        def wrapper(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             """Call the original function."""
             try:
                 return func(*args, **kwargs)
@@ -424,7 +422,7 @@ class prevent_exceptions:  # noqa: N801,N806 pylint: disable=invalid-name
         return wrapper
 
 
-def is_enum(obj: typing.Any) -> bool:
+def is_enum(obj: Any) -> bool:
     """Check if a given object is an enum."""
     try:
         return issubclass(obj, enum.Enum)
@@ -432,9 +430,7 @@ def is_enum(obj: typing.Any) -> bool:
         return False
 
 
-def get_repr(obj: typing.Any,
-             constructor: bool = False,
-             **attrs: typing.Any) -> str:
+def get_repr(obj: Any, constructor: bool = False, **attrs: Any) -> str:
     """Get a suitable __repr__ string for an object.
 
     Args:
@@ -457,7 +453,7 @@ def get_repr(obj: typing.Any,
             return '<{}>'.format(cls)
 
 
-def qualname(obj: typing.Any) -> str:
+def qualname(obj: Any) -> str:
     """Get the fully qualified name of an object.
 
     Based on twisted.python.reflect.fullyQualifiedName.
@@ -485,14 +481,10 @@ def qualname(obj: typing.Any) -> str:
         return repr(obj)
 
 
-# The string annotation is a WORKAROUND for a Python 3.5.2 bug:
-# https://github.com/python/typing/issues/266
+_ExceptionType = Union[Type[BaseException], Tuple[Type[BaseException]]]
 
-def raises(exc: ('typing.Union['  # pylint: disable=bad-docstring-quotes
-                 '    typing.Type[BaseException], '
-                 '    typing.Tuple[typing.Type[BaseException]]]'),
-           func: typing.Callable,
-           *args: typing.Any) -> bool:
+
+def raises(exc: _ExceptionType, func: Callable, *args: Any) -> bool:
     """Check if a function raises a given exception.
 
     Args:
@@ -520,7 +512,7 @@ def force_encoding(text: str, encoding: str) -> str:
 
 
 def sanitize_filename(name: str,
-                      replacement: typing.Optional[str] = '_',
+                      replacement: Optional[str] = '_',
                       shorten: bool = False) -> str:
     """Replace invalid filename characters.
 
@@ -708,7 +700,7 @@ def open_file(filename: str, cmdline: str = None) -> None:
     proc.start_detached(cmd, args)
 
 
-def unused(_arg: typing.Any) -> None:
+def unused(_arg: Any) -> None:
     """Function which does nothing to avoid pylint complaining."""
 
 
@@ -730,16 +722,22 @@ def expand_windows_drive(path: str) -> str:
         return path
 
 
-def yaml_load(f: typing.Union[str, typing.IO[str]]) -> typing.Any:
+def yaml_load(f: Union[str, IO[str]]) -> Any:
     """Wrapper over yaml.load using the C loader if possible."""
     start = datetime.datetime.now()
 
     # WORKAROUND for https://github.com/yaml/pyyaml/pull/181
-    with log.ignore_py_warnings(
+    with log.py_warning_filter(
             category=DeprecationWarning,
             message=r"Using or importing the ABCs from 'collections' instead "
             r"of from 'collections\.abc' is deprecated.*"):
-        data = yaml.load(f, Loader=YamlLoader)
+        try:
+            data = yaml.load(f, Loader=YamlLoader)
+        except ValueError as e:
+            if str(e).startswith('could not convert string to float'):
+                # WORKAROUND for https://github.com/yaml/pyyaml/issues/168
+                raise yaml.YAMLError(e)
+            raise  # pragma: no cover
 
     end = datetime.datetime.now()
 
@@ -760,8 +758,7 @@ def yaml_load(f: typing.Union[str, typing.IO[str]]) -> typing.Any:
     return data
 
 
-def yaml_dump(data: typing.Any,
-              f: typing.IO[str] = None) -> typing.Optional[str]:
+def yaml_dump(data: Any, f: IO[str] = None) -> Optional[str]:
     """Wrapper over yaml.dump using the C dumper if possible.
 
     Also returns a str instead of bytes.
@@ -774,7 +771,7 @@ def yaml_dump(data: typing.Any,
         return yaml_data.decode('utf-8')
 
 
-def chunk(elems: typing.Sequence, n: int) -> typing.Iterator[typing.Sequence]:
+def chunk(elems: Sequence, n: int) -> Iterator[Sequence]:
     """Yield successive n-sized chunks from elems.
 
     If elems % n != 0, the last chunk will be smaller.

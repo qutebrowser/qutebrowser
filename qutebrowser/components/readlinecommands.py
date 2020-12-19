@@ -19,7 +19,7 @@
 
 """Bridge to provide readline-like shortcuts for QLineEdits."""
 
-import typing
+from typing import Iterable, Optional, MutableMapping
 
 from PyQt5.QtWidgets import QApplication, QLineEdit
 
@@ -35,9 +35,9 @@ class _ReadlineBridge:
     """
 
     def __init__(self) -> None:
-        self._deleted = {}  # type: typing.MutableMapping[QLineEdit, str]
+        self._deleted: MutableMapping[QLineEdit, str] = {}
 
-    def _widget(self) -> typing.Optional[QLineEdit]:
+    def _widget(self) -> Optional[QLineEdit]:
         """Get the currently active QLineEdit."""
         w = QApplication.instance().focusWidget()
         if isinstance(w, QLineEdit):
@@ -86,7 +86,7 @@ class _ReadlineBridge:
     def kill_line(self) -> None:
         self._dispatch('end', mark=True, delete=True)
 
-    def _rubout(self, delim: typing.Iterable[str]) -> None:
+    def _rubout(self, delim: Iterable[str]) -> None:
         """Delete backwards using the characters in delim as boundaries."""
         widget = self._widget()
         if widget is None:

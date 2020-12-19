@@ -22,8 +22,9 @@
 import collections
 import functools
 import weakref
-import typing
 import datetime
+from typing import (
+    Any, Deque, List, Mapping, MutableMapping, MutableSequence, Optional, Tuple)
 
 import attr
 from PyQt5.QtWidgets import QSizePolicy, QWidget, QApplication
@@ -68,12 +69,10 @@ class TabDeque:
         size = config.val.tabs.focus_stack_size
         if size < 0:
             size = None
-        self._stack = collections.deque(
-            maxlen=size
-        )  # type: typing.Deque[weakref.ReferenceType[QWidget]]
+        self._stack: Deque[weakref.ReferenceType[QWidget]] = collections.deque(
+            maxlen=size)
         # Items that have been removed from the primary stack.
-        self._stack_deleted = [
-        ]  # type: typing.List[weakref.ReferenceType[QWidget]]
+        self._stack_deleted: List[weakref.ReferenceType[QWidget]] = []
         self._ignore_next = False
         self._keep_deleted_next = False
 
@@ -94,7 +93,7 @@ class TabDeque:
 
         Throws IndexError on failure.
         """
-        tab = None  # type: typing.Optional[QWidget]
+        tab: Optional[QWidget] = None
         while tab is None or tab.pending_removal or tab is cur_tab:
             tab = self._stack.pop()()
         self._stack_deleted.append(weakref.ref(cur_tab))
@@ -106,7 +105,7 @@ class TabDeque:
 
         Throws IndexError on failure.
         """
-        tab = None  # type: typing.Optional[QWidget]
+        tab: Optional[QWidget] = None
         while tab is None or tab.pending_removal or tab is cur_tab:
             tab = self._stack_deleted.pop()()
         # On next tab-switch, current tab will be added to stack as normal.
@@ -224,18 +223,15 @@ class TabbedBrowser(QWidget):
 
         # This init is never used, it is immediately thrown away in the next
         # line.
-        self.undo_stack = (
-            collections.deque()
-        )  # type: typing.MutableSequence[typing.MutableSequence[_UndoEntry]]
+        self.undo_stack: MutableSequence[MutableSequence[_UndoEntry]] = (
+            collections.deque())
         self._update_stack_size()
         self._filter = signalfilter.SignalFilter(win_id, self)
         self._now_focused = None
         self.search_text = None
-        self.search_options = {}  # type: typing.Mapping[str, typing.Any]
-        self._local_marks = {
-        }  # type: typing.MutableMapping[QUrl, typing.MutableMapping[str, int]]
-        self._global_marks = {
-        }  # type: typing.MutableMapping[str, typing.Tuple[int, QUrl]]
+        self.search_options: Mapping[str, Any] = {}
+        self._local_marks: MutableMapping[QUrl, MutableMapping[str, int]] = {}
+        self._global_marks: MutableMapping[str, Tuple[int, QUrl]] = {}
         self.default_window_icon = self.widget.window().windowIcon()
         self.is_private = private
         self.tab_deque = TabDeque()

@@ -30,7 +30,7 @@ import os.path
 import html
 import functools
 import collections
-import typing
+from typing import MutableMapping
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
@@ -78,8 +78,7 @@ class UrlMarkManager(QObject):
         """Initialize and read quickmarks."""
         super().__init__(parent)
 
-        self.marks = collections.OrderedDict(
-        )  # type: typing.MutableMapping[str, str]
+        self.marks: MutableMapping[str, str] = collections.OrderedDict()
 
         self._init_lineparser()
         for line in self._lineparser:

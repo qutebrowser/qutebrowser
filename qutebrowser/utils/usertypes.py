@@ -21,7 +21,7 @@
 
 import operator
 import enum
-import typing
+from typing import TYPE_CHECKING, Any, Optional, Sequence, TypeVar, Union
 
 import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
@@ -30,7 +30,19 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.utils import log, qtutils, utils
 
 
-_T = typing.TypeVar('_T')
+if TYPE_CHECKING:
+    # Protocol was added in Python 3.8
+    from typing import Protocol
+
+    class SupportsLessThan(Protocol):
+
+        """Protocol for the _T TypeVar below."""
+
+        def __lt__(self, other: Any) -> bool:
+            ...
+
+
+_T = TypeVar('_T', bound='SupportsLessThan')
 
 
 class Unset:
@@ -46,7 +58,7 @@ class Unset:
 UNSET = Unset()
 
 
-class NeighborList(typing.Sequence[_T]):
+class NeighborList(Sequence[_T]):
 
     """A list of items which saves its current position.
 
@@ -60,10 +72,15 @@ class NeighborList(typing.Sequence[_T]):
         _mode: The current mode.
     """
 
-    Modes = enum.Enum('Modes', ['edge', 'exception'])
+    class Modes(enum.Enum):
 
-    def __init__(self, items: typing.Sequence[_T] = None,
-                 default: typing.Union[_T, Unset] = UNSET,
+        """Behavior for the 'mode' argument."""
+
+        edge = enum.auto()
+        exception = enum.auto()
+
+    def __init__(self, items: Sequence[_T] = None,
+                 default: Union[_T, Unset] = UNSET,
                  mode: Modes = Modes.exception) -> None:
         """Constructor.
 
@@ -77,19 +94,19 @@ class NeighborList(typing.Sequence[_T]):
         if not isinstance(mode, self.Modes):
             raise TypeError("Mode {} is not a Modes member!".format(mode))
         if items is None:
-            self._items = []  # type: typing.Sequence[_T]
+            self._items: Sequence[_T] = []
         else:
             self._items = list(items)
         self._default = default
 
         if not isinstance(default, Unset):
             idx = self._items.index(default)
-            self._idx = idx  # type: typing.Optional[int]
+            self._idx: Optional[int] = idx
         else:
             self._idx = None
 
         self._mode = mode
-        self.fuzzyval = None  # type: typing.Optional[int]
+        self.fuzzyval: Optional[int] = None
 
     def __getitem__(self, key: int) -> _T:  # type: ignore[override]
         return self._items[key]
@@ -158,7 +175,7 @@ class NeighborList(typing.Sequence[_T]):
         return new
 
     @property
-    def items(self) -> typing.Sequence[_T]:
+    def items(self) -> Sequence[_T]:
         """Getter for items, which should not be set."""
         return self._items
 
@@ -224,42 +241,48 @@ class NeighborList(typing.Sequence[_T]):
         return self.curitem()
 
 
-# The mode of a Question.
-PromptMode = enum.Enum('PromptMode', ['yesno', 'text', 'user_pwd', 'alert',
-                                      'download'])
+class PromptMode(enum.Enum):
+
+    """The mode of a Question."""
+
+    yesno = enum.auto()
+    text = enum.auto()
+    user_pwd = enum.auto()
+    alert = enum.auto()
+    download = enum.auto()
 
 
 class ClickTarget(enum.Enum):
 
     """How to open a clicked link."""
 
-    normal = 0  #: Open the link in the current tab
-    tab = 1  #: Open the link in a new foreground tab
-    tab_bg = 2  #: Open the link in a new background tab
-    window = 3  #: Open the link in a new window
-    hover = 4  #: Only hover over the link
+    normal = enum.auto()  #: Open the link in the current tab
+    tab = enum.auto()  #: Open the link in a new foreground tab
+    tab_bg = enum.auto()  #: Open the link in a new background tab
+    window = enum.auto()  #: Open the link in a new window
+    hover = enum.auto()  #: Only hover over the link
 
 
 class KeyMode(enum.Enum):
 
     """Key input modes."""
 
-    normal = 1  #: Normal mode (no mode was entered)
-    hint = 2  #: Hint mode (showing labels for links)
-    command = 3  #: Command mode (after pressing the colon key)
-    yesno = 4  #: Yes/No prompts
-    prompt = 5  #: Text prompts
-    insert = 6  #: Insert mode (passing through most keys)
-    passthrough = 7  #: Passthrough mode (passing through all keys)
-    caret = 8  #: Caret mode (moving cursor with keys)
-    set_mark = 9
-    jump_mark = 10
-    record_macro = 11
-    run_macro = 12
+    normal = enum.auto()  #: Normal mode (no mode was entered)
+    hint = enum.auto()  #: Hint mode (showing labels for links)
+    command = enum.auto()  #: Command mode (after pressing the colon key)
+    yesno = enum.auto()  #: Yes/No prompts
+    prompt = enum.auto()  #: Text prompts
+    insert = enum.auto()  #: Insert mode (passing through most keys)
+    passthrough = enum.auto()  #: Passthrough mode (passing through all keys)
+    caret = enum.auto()  #: Caret mode (moving cursor with keys)
+    set_mark = enum.auto()
+    jump_mark = enum.auto()
+    record_macro = enum.auto()
+    run_macro = enum.auto()
     # 'register' is a bit of an oddball here: It's not really a "real" mode,
     # but it's used in the config for common bindings for
     # set_mark/jump_mark/record_macro/run_macro.
-    register = 13
+    register = enum.auto()
 
 
 class Exit(enum.IntEnum):
@@ -273,44 +296,76 @@ class Exit(enum.IntEnum):
     err_init = 4
 
 
-# Load status of a tab
-LoadStatus = enum.Enum('LoadStatus', ['none', 'success', 'success_https',
-                                      'error', 'warn', 'loading'])
+class LoadStatus(enum.Enum):
+
+    """Load status of a tab."""
+
+    none = enum.auto()
+    success = enum.auto()
+    success_https = enum.auto()
+    error = enum.auto()
+    warn = enum.auto()
+    loading = enum.auto()
 
 
-# Backend of a tab
-Backend = enum.Enum('Backend', ['QtWebKit', 'QtWebEngine'])
+class Backend(enum.Enum):
+
+    """The backend being used (usertypes.backend)."""
+
+    QtWebKit = enum.auto()
+    QtWebEngine = enum.auto()
 
 
 class JsWorld(enum.Enum):
 
     """World/context to run JavaScript code in."""
 
-    main = 1  #: Same world as the web page's JavaScript.
-    application = 2  #: Application world, used by qutebrowser internally.
-    user = 3  #: User world, currently not used.
-    jseval = 4  #: World used for the jseval-command.
+    main = enum.auto()  #: Same world as the web page's JavaScript.
+    application = enum.auto()  #: Application world, used by qutebrowser internally.
+    user = enum.auto()  #: User world, currently not used.
+    jseval = enum.auto()  #: World used for the jseval-command.
 
 
-# Log level of a JS message. This needs to match up with the keys allowed for
-# the content.javascript.log setting.
-JsLogLevel = enum.Enum('JsLogLevel', ['unknown', 'info', 'warning', 'error'])
+class JsLogLevel(enum.Enum):
+
+    """Log level of a JS message.
+
+    This needs to match up with the keys allowed for the
+    content.javascript.log setting.
+    """
+
+    unknown = enum.auto()
+    info = enum.auto()
+    warning = enum.auto()
+    error = enum.auto()
 
 
-MessageLevel = enum.Enum('MessageLevel', ['error', 'warning', 'info'])
+class MessageLevel(enum.Enum):
+
+    """The level of a message being shown."""
+
+    error = enum.auto()
+    warning = enum.auto()
+    info = enum.auto()
 
 
-IgnoreCase = enum.Enum('IgnoreCase', ['smart', 'never', 'always'])
+class IgnoreCase(enum.Enum):
+
+    """Possible values for the 'search.ignore_case' setting."""
+
+    smart = enum.auto()
+    never = enum.auto()
+    always = enum.auto()
 
 
 class CommandValue(enum.Enum):
 
     """Special values which are injected when running a command handler."""
 
-    count = 1
-    win_id = 2
-    cur_tab = 3
-    count_tab = 4
+    count = enum.auto()
+    win_id = enum.auto()
+    cur_tab = enum.auto()
+    count_tab = enum.auto()
 
 
 class Question(QObject):
@@ -360,13 +415,13 @@ class Question(QObject):
 
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
-        self.mode = None  # type: typing.Optional[PromptMode]
-        self.default = None  # type: typing.Union[bool, str, None]
-        self.title = None  # type: typing.Optional[str]
-        self.text = None  # type: typing.Optional[str]
-        self.url = None  # type: typing.Optional[str]
-        self.option = None  # type: typing.Optional[bool]
-        self.answer = None  # type: typing.Union[str, bool, None]
+        self.mode: Optional[PromptMode] = None
+        self.default: Union[bool, str, None] = None
+        self.title: Optional[str] = None
+        self.text: Optional[str] = None
+        self.url: Optional[str] = None
+        self.option: Optional[bool] = None
+        self.answer: Union[str, bool, None] = None
         self.is_aborted = False
         self.interrupted = False
 
@@ -440,7 +495,7 @@ class AbstractCertificateErrorWrapper:
 
     """A wrapper over an SSL/certificate error."""
 
-    def __init__(self, error: typing.Any) -> None:
+    def __init__(self, error: Any) -> None:
         self._error = error
 
     def __str__(self) -> str:
@@ -458,18 +513,32 @@ class NavigationRequest:
 
     """A request to navigate to the given URL."""
 
-    Type = enum.Enum('Type', [
-        'link_clicked',
-        'typed',  # QtWebEngine only
-        'form_submitted',
-        'form_resubmitted',  # QtWebKit only
-        'back_forward',
-        'reloaded',
-        'redirect',  # QtWebEngine >= 5.14 only
-        'other'
-    ])
+    class Type(enum.Enum):
 
-    url = attr.ib()  # type: QUrl
-    navigation_type = attr.ib()  # type: Type
-    is_main_frame = attr.ib()  # type: bool
-    accepted = attr.ib(default=True)  # type: bool
+        """The type of a request.
+
+        Based on QWebEngineUrlRequestInfo::NavigationType and QWebPage::NavigationType.
+        """
+
+        #: Navigation initiated by clicking a link.
+        link_clicked = 1
+        #: Navigation explicitly initiated by typing a URL (QtWebEngine only).
+        typed = 2
+        #: Navigation submits a form.
+        form_submitted = 3
+        #: An HTML form was submitted a second time (QtWebKit only).
+        form_resubmitted = 4
+        #: Navigation initiated by a history action.
+        back_forward = 5
+        #: Navigation initiated by refreshing the page.
+        reloaded = 6
+        #: Navigation triggered automatically by page content or remote server
+        #: (QtWebEngine >= 5.14 only)
+        redirect = 7
+        #: None of the above.
+        other = 8
+
+    url: QUrl = attr.ib()
+    navigation_type: Type = attr.ib()
+    is_main_frame: bool = attr.ib()
+    accepted: bool = attr.ib(default=True)

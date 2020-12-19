@@ -15,15 +15,54 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v1.14.0 (unreleased)
+v2.0.0 (unreleased)
+-------------------
+
+Major changes
+~~~~~~~~~~~~~
+
+- At least Python 3.6 is now required to run qutebrowser, support for Python
+  3.5 is dropped. Note that Python 3.5 is
+  https://www.python.org/downloads/release/python-3510/[no longer supported
+  upstream] since September 2020.
+
+Changed
+~~~~~~~
+
+- `config.py` files now are required to have either
+  `config.load_autoconfig(False)` (don't load `autoconfig.yml`) or
+  `config.load_autoconfig()` (do load `autoconfig.yml`) in them.
+- The `colors.webpage.darkmode.*` settings are now also supported with older Qt
+  versions (Qt 5.10 to 5.13) rather than just with Qt 5.14 and above.
+- For regexes in the config (`hints.{prev,next}_regexes`), certain patterns
+  which will change meanings in future Python versions are now disallowed. This is
+  the case for character sets starting with a literal `[` or containing literal
+  character sequences `--`, `&&`, `~~`, or `||`. To avoid a warning, remove the
+  duplicate characters or escape them with a backslash.
+
+v1.14.0 (2020-10-15)
 --------------------
+
+Note: The QtWebEngine version bundled with the Windows/macOS
+releases is still based on Qt 5.15.0 (like with qutebrowser v1.12.0 and
+v1.13.0) rather than Qt 5.15.1 because of a
+https://bugreports.qt.io/browse/QTBUG-86752[Qt bug] causing
+frequent renderer process crashes. When Qt 5.15.2 is released
+(planned for November 3rd, 2020), a qutebrowser v1.14.x patch
+release with an updated QtWebEngine will be released.
+
+Furthermore, this release still only contains partial session support for QtWebEngine
+5.15. It's still recommended to run against Qt 5.15 due to the security patches
+contained in it -- for most users, the added workarounds seem to work out fine. A
+rewritten session support will be part of qutebrowser v2.0.0, tentatively planned for the
+end of the year or early 2021.
 
 Changed
 ~~~~~~~
 
 - The `content.media_capture` setting got split up into three more fine-grained
   settings, `content.media.audio_capture`, `.video_capture` and
-  `.audio_video_capture`. Before this change, anwering "always" to a prompt
+  `.audio_video_capture`. Before this change, answering "always" to a prompt
   about e.g. audio capturing would set the `content.media_capture` setting,
   which would also allow the same website to capture video on a future visit.
   Now every prompt will set the appropriate setting, though existing
@@ -44,8 +83,6 @@ Changed
 - `:back` and `:forward` now take an optional index which is completed using
   the current tab's history.
 - The time a website in a tab was visited is now saved/restored in sessions.
-- New argument `strip` for `:navigate` which removes queries and
-  fragments from the current URL.
 - When attempting to download a file to a location for which there's already a
   still-running download, a confirmation prompt is now displayed.
 - `:completion-item-focus` now understands `next-page` and `prev-page` with
@@ -66,12 +103,27 @@ Changed
   `--asciidoc-python path/to/python --asciidoc path/to/asciidoc.py`
   instead of the former
   `--asciidoc path/to/python path/to/asciidoc.py`.
-- The `readability-js` userscript now adds some CSS to better deal
-  with images, similarly to what Firefox' reader mode does.
+- Dark mode (`colors.webpage.darkmode.*`) is now supported with Qt 5.15.2 (which
+  is not released yet).
+- The default for the darkmode `policy.images` setting is now set to `smart`
+  which fixes issues with e.g. formulas on Wikipedia.
+- The `readability-js` userscript now adds some CSS to improve the reader mode
+  styling in various scenarios:
+  * Images are now shrinked to the page width, similarly to what Firefox' reader
+    mode does.
+  * Some images ore now displayed as block (rather than inline) which is what
+    Firefox' reader mode does as well.
+  * Blockquotes are now styled more distinctively, again based on the Firefox
+    reader mode.
+  * Code blocks are now easier to distinguish from text and tables have visible
+    cell margins.
+- The `readability-js` userscript now supports hint userscript mode.
 
 Added
 ~~~~~
 
+- New argument `strip` for `:navigate` which removes queries and
+  fragments from the current URL.
 - `:undo` now has a new `-w` / `--window` argument, which can be used to
   restore closed windows (rather than tabs). This is bound to `U` by default.
 - `:jseval` can now take `javascript:...` URLs via a new `--url` flag.
@@ -88,6 +140,11 @@ Added
   open the directory containing the downloaded file. An entry to do the same
   was also added to the context menu.
 - Messages are now wrapped when they are too long to be displayed on a single line.
+- New possible `--debug-flag` values:
+  * `wait-renderer-process` waits for a `SIGUSR1` in the renderer process so a
+    debugger can be attached.
+  * `avoid-chromium-init` allows using `--version` without needing a working
+    QtWebEngine/Chromium.
 
 Fixed
 ~~~~~
@@ -125,18 +182,21 @@ Fixed
   could end up in a confusing state. This is now fixed.
 - When qutebrowser quits, running downloads are now cancelled properly.
 - The site-specific quirk for `web.whatsapp.com` has been updated to work after recent
-  WhatsApp-changes.
+  changes in WhatsApp.
 - Highlighting in the completion now works properly when UTF-16 surrogate pairs (such as
   emoji) are involved.
 - When a windowed inspector is clicked, insert mode now isn't entered anymore.
-- When `:undo` to re-open a tab but `tabs.tabs_are_windows` was set between
+- When `:undo` is used to re-open a tab, but `tabs.tabs_are_windows` was set between
   closing and undoing the close, qutebrowser crashed. This is now fixed.
+- With QtWebEngine 5.15.0, setting the darkmode image policy to `smart` leads to
+  renderer process crashes. The offending setting value is now ignored with a
+  warning.
 - Fixes for the `qute-pass` userscript:
   * With newer `gopass` versions, a deprecation notice was copied as
     password due to `qute-pass` using it in a deprecated way.
   * The `--password-store` argument didn't actually set
     `PASSWORD_STORE_DIR` for `pass`, resulting in `qute-pass` finding matches but the
-    underlying `pass` not finding matching passwords. This is now fixed.
+    underlying `pass` not finding matching passwords.
 
 v1.13.1 (2020-07-17)
 --------------------

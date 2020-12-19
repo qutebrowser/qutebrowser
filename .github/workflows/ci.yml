@@ -39,10 +39,10 @@ jobs:
             .tox
             ~/.cache/pip
           key: "${{ matrix.testenv }}-${{ hashFiles('misc/requirements/requirements-*.txt') }}-${{ hashFiles('requirements.txt') }}"
-      - uses: actions/setup-python@v2.1.2
+      - uses: actions/setup-python@v2
         with:
           python-version: '3.8'
-      - uses: actions/setup-node@v2.1.1
+      - uses: actions/setup-node@v2-beta
         with:
           node-version: '12.x'
         if: "matrix.testenv == 'eslint'"
@@ -57,7 +57,7 @@ jobs:
                 bindir="$HOME/.local/bin"
                 mkdir -p "$bindir"
                 wget -qO- "https://github.com/koalaman/shellcheck/releases/download/$scversion/shellcheck-$scversion.linux.x86_64.tar.xz" | tar -xJv --strip-components 1 -C "$bindir" shellcheck-$scversion/shellcheck
-                echo "::add-path::$bindir"
+                echo "$bindir" >> "$GITHUB_PATH"
             fi
             python -m pip install -U pip
             python -m pip install -U -r misc/requirements/requirements-tox.txt
@@ -100,11 +100,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          ### PyQt 5.7.1 (Python 3.5)
-          # - testenv: py35-pyqt57
-          #   os: ubuntu-16.04
-          #   python: 3.5
-          #   experimental: true
           ### PyQt 5.9 (Python 3.6)
           - testenv: py36-pyqt59
             os: ubuntu-18.04
@@ -132,7 +127,7 @@ jobs:
           ### PyQt 5.15 (Python 3.9)
           - testenv: py39-pyqt515
             os: ubuntu-20.04
-            python: 3.9-dev
+            python: 3.9
           ### PyQt 5.15 (Python 3.8, with coverage)
           - testenv: py38-pyqt515-cov
             os: ubuntu-20.04
@@ -157,7 +152,7 @@ jobs:
             ~/.cache/pip
           key: "${{ matrix.testenv }}-${{ matrix.os }}-${{ matrix.python }}-${{ hashFiles('misc/requirements/requirements-*.txt') }}-${{ hashFiles('requirements.txt') }}"
       - name: Set up Python
-        uses: actions/setup-python@v2.1.2
+        uses: actions/setup-python@v2
         with:
           python-version: "${{ matrix.python }}"
       - name: Set up problem matchers
@@ -178,7 +173,7 @@ jobs:
         if: "failure()"
       - name: Upload coverage
         if: "endsWith(matrix.testenv, '-cov')"
-        uses: codecov/codecov-action@v1.0.13
+        uses: codecov/codecov-action@v1
         with:
           name: "${{ matrix.testenv }}"
 
@@ -212,7 +207,7 @@ jobs:
     if: "always() && github.repository_owner == 'qutebrowser'"
     steps:
       - name: Send success IRC notification
-        uses: Gottox/irc-message-action@v1
+        uses: Gottox/irc-message-action@v1.1
         if: "needs.linters.result == 'success' && needs.tests.result == 'success' && needs.tests-docker.result == 'success' && needs.codeql.result == 'success'"
         with:
           server: chat.freenode.net
@@ -220,7 +215,7 @@ jobs:
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
       - name: Send failure IRC notification
-        uses: Gottox/irc-message-action@v1
+        uses: Gottox/irc-message-action@v1.1
         if: "needs.linters.result == 'failure' || needs.tests.result == 'failure' || needs.tests-docker.result == 'failure' || needs.codeql.result == 'failure'"
         with:
           server: chat.freenode.net
@@ -229,7 +224,7 @@ jobs:
           message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
             linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}"
       - name: Send skipped IRC notification
-        uses: Gottox/irc-message-action@v1
+        uses: Gottox/irc-message-action@v1.1
         if: "needs.linters.result == 'skipped' || needs.tests.result == 'skipped' || needs.tests-docker.result == 'skipped' || needs.codeql.result == 'skipped'"
         with:
           server: chat.freenode.net
@@ -237,7 +232,7 @@ jobs:
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00038Skipped:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
       - name: Send cancelled IRC notification
-        uses: Gottox/irc-message-action@v1
+        uses: Gottox/irc-message-action@v1.1
         if: "needs.linters.result == 'cancelled' || needs.tests.result == 'cancelled' || needs.tests-docker.result == 'cancelled' || needs.codeql.result == 'cancelled'"
         with:
           server: chat.freenode.net

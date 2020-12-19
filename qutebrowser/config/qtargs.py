@@ -61,90 +61,6 @@ def qt_args(namespace: argparse.Namespace) -> typing.List[str]:
     return argv
 
 
-def _darkmode_settings() -> typing.Iterator[typing.Tuple[str, str]]:
-    """Get necessary blink settings to configure dark mode for QtWebEngine."""
-    if not config.val.colors.webpage.darkmode.enabled:
-        return
-
-    # Mapping from a colors.webpage.darkmode.algorithm setting value to
-    # Chromium's DarkModeInversionAlgorithm enum values.
-    algorithms = {
-        # 0: kOff (not exposed)
-        # 1: kSimpleInvertForTesting (not exposed)
-        'brightness-rgb': 2,  # kInvertBrightness
-        'lightness-hsl': 3,  # kInvertLightness
-        'lightness-cielab': 4,  # kInvertLightnessLAB
-    }
-
-    # Mapping from a colors.webpage.darkmode.policy.images setting value to
-    # Chromium's DarkModeImagePolicy enum values.
-    image_policies = {
-        'always': 0,  # kFilterAll
-        'never': 1,  # kFilterNone
-        'smart': 2,  # kFilterSmart
-    }
-
-    # Mapping from a colors.webpage.darkmode.policy.page setting value to
-    # Chromium's DarkModePagePolicy enum values.
-    page_policies = {
-        'always': 0,  # kFilterAll
-        'smart': 1,  # kFilterByBackground
-    }
-
-    bools = {
-        True: 'true',
-        False: 'false',
-    }
-
-    _setting_description_type = typing.Tuple[
-        str,  # qutebrowser option name
-        str,  # darkmode setting name
-        # Mapping from the config value to a string (or something convertable
-        # to a string) which gets passed to Chromium.
-        typing.Optional[typing.Mapping[typing.Any, typing.Union[str, int]]],
-    ]
-    if qtutils.version_check('5.15', compiled=False):
-        settings = [
-            ('enabled', 'Enabled', bools),
-            ('algorithm', 'InversionAlgorithm', algorithms),
-        ]  # type: typing.List[_setting_description_type]
-        mandatory_setting = 'enabled'
-    else:
-        settings = [
-            ('algorithm', '', algorithms),
-        ]
-        mandatory_setting = 'algorithm'
-
-    settings += [
-        ('contrast', 'Contrast', None),
-        ('policy.images', 'ImagePolicy', image_policies),
-        ('policy.page', 'PagePolicy', page_policies),
-        ('threshold.text', 'TextBrightnessThreshold', None),
-        ('threshold.background', 'BackgroundBrightnessThreshold', None),
-        ('grayscale.all', 'Grayscale', bools),
-        ('grayscale.images', 'ImageGrayscale', None),
-    ]
-
-    for setting, key, mapping in settings:
-        # To avoid blowing up the commandline length, we only pass modified
-        # settings to Chromium, as our defaults line up with Chromium's.
-        # However, we always pass enabled/algorithm to make sure dark mode gets
-        # actually turned on.
-        value = config.instance.get(
-            'colors.webpage.darkmode.' + setting,
-            fallback=setting == mandatory_setting)
-        if isinstance(value, usertypes.Unset):
-            continue
-
-        if mapping is not None:
-            value = mapping[value]
-
-        # FIXME: This is "forceDarkMode" starting with Chromium 83
-        prefix = 'darkMode'
-
-        yield prefix + key, str(value)
-
-
 def _qtwebengine_enabled_features(
         feature_flags: typing.Sequence[str],
 ) -> typing.Iterator[str]:
@@ -230,7 +146,11 @@ def _qtwebengine_args(
         yield '--enable-logging'
         yield '--v=1'
 
-    blink_settings = list(_darkmode_settings())
+    if 'wait-renderer-process' in namespace.debug_flags:
+        yield '--renderer-startup-dialog'
+
+    from qutebrowser.browser.webengine import darkmode
+    blink_settings = list(darkmode.settings())
     if blink_settings:
         yield '--blink-settings=' + ','.join('{}={}'.format(k, v)
                                              for k, v in blink_settings)
@@ -239,6 +159,10 @@ def _qtwebengine_args(
     if enabled_features:
         yield '--enable-features=' + ','.join(enabled_features)
 
+    yield from _qtwebengine_settings_args()
+
+
+def _qtwebengine_settings_args() -> typing.Iterator[str]:
     settings = {
         'qt.force_software_rendering': {
             'software-opengl': None,

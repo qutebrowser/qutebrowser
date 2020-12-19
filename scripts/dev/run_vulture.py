@@ -32,7 +32,7 @@ import vulture
 import qutebrowser.app  # pylint: disable=unused-import
 from qutebrowser.extensions import loader
 from qutebrowser.misc import objects
-from qutebrowser.utils import utils
+from qutebrowser.utils import utils, version
 from qutebrowser.browser.webkit import rfc6266
 # To run the decorators from there
 # pylint: disable=unused-import
@@ -123,6 +123,9 @@ def whitelist_generator():  # noqa
     for attr in ['_get_default_metavar_for_optional',
                  '_get_default_metavar_for_positional', '_metavar_formatter']:
         yield 'scripts.dev.src2asciidoc.UsageFormatter.' + attr
+
+    for dist in version.Distribution:
+        yield 'qutebrowser.utils.version.Distribution.{}'.format(dist.name)
 
     # attrs
     yield 'qutebrowser.browser.webkit.network.networkmanager.ProxyId.hostname'

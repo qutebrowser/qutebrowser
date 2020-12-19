@@ -39,6 +39,7 @@ exclude = .*,__pycache__,resources.py
 # A003: Builtin name for class attribute (needed for overridden methods)
 # W503: like break before binary operator
 # W504: line break after binary operator
+# FI15: __future__ import "generator_stop" missing
 ignore =
     B001,B008,B305,
     E128,E226,E265,E501,E402,E266,E722,E731,
@@ -48,7 +49,8 @@ ignore =
     D102,D103,D106,D107,D104,D105,D209,D211,D401,D402,D403,D412,D413,
     A003,
     W503, W504
-min-version = 3.4.0
+    FI15
+min-version = 3.6.0
 max-complexity = 12
 per-file-ignores =
     qutebrowser/api/hook.py : N801

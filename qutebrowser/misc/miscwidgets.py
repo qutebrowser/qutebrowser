@@ -19,7 +19,7 @@
 
 """Misc. widgets used at different places."""
 
-import typing
+from typing import Optional
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QTimer
 from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
@@ -239,8 +239,8 @@ class WrapperLayout(QLayout):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._widget = None  # type: typing.Optional[QWidget]
-        self._container = None  # type: typing.Optional[QWidget]
+        self._widget: Optional[QWidget] = None
+        self._container: Optional[QWidget] = None
 
     def addItem(self, _widget):
         raise utils.Unreachable
@@ -390,10 +390,10 @@ class InspectorSplitter(QSplitter):
         self.addWidget(main_webview)
         self.setFocusProxy(main_webview)
         self.splitterMoved.connect(self._on_splitter_moved)
-        self._main_idx = None  # type: typing.Optional[int]
-        self._inspector_idx = None  # type: typing.Optional[int]
-        self._position = None  # type: typing.Optional[inspector.Position]
-        self._preferred_size = None  # type: typing.Optional[int]
+        self._main_idx: Optional[int] = None
+        self._inspector_idx: Optional[int] = None
+        self._position: Optional[inspector.Position] = None
+        self._preferred_size: Optional[int] = None
 
     def cycle_focus(self):
         """Cycle keyboard focus between the main/inspector widget."""

@@ -21,10 +21,10 @@
 
 import os
 import os.path
-import typing
 import functools
 import contextlib
 import html
+from typing import Any, Callable, FrozenSet, Iterator, List, Set, Tuple
 
 import jinja2
 import jinja2.nodes
@@ -68,7 +68,7 @@ class Loader(jinja2.BaseLoader):
             self,
             _env: jinja2.Environment,
             template: str
-    ) -> typing.Tuple[str, str, typing.Callable[[], bool]]:
+    ) -> Tuple[str, str, Callable[[], bool]]:
         path = os.path.join(self._subdir, template)
         try:
             source = utils.read_file(path)
@@ -98,7 +98,7 @@ class Environment(jinja2.Environment):
         self._autoescape = True
 
     @contextlib.contextmanager
-    def no_autoescape(self) -> typing.Iterator[None]:
+    def no_autoescape(self) -> Iterator[None]:
         """Context manager to temporarily turn off autoescaping."""
         self._autoescape = False
         yield
@@ -122,7 +122,7 @@ class Environment(jinja2.Environment):
         mimetype = utils.guess_mimetype(filename)
         return urlutils.data_url(mimetype, data).toString()
 
-    def getattr(self, obj: typing.Any, attribute: str) -> typing.Any:
+    def getattr(self, obj: Any, attribute: str) -> Any:
         """Override jinja's getattr() to be less clever.
 
         This means it doesn't fall back to __getitem__, and it doesn't hide
@@ -131,7 +131,7 @@ class Environment(jinja2.Environment):
         return getattr(obj, attribute)
 
 
-def render(template: str, **kwargs: typing.Any) -> str:
+def render(template: str, **kwargs: Any) -> str:
     """Render the given template and pass the given arguments to it."""
     return environment.get_template(template).render(**kwargs)
 
@@ -142,10 +142,10 @@ js_environment = jinja2.Environment(loader=Loader('javascript'))
 
 @debugcachestats.register()
 @functools.lru_cache()
-def template_config_variables(template: str) -> typing.FrozenSet[str]:
+def template_config_variables(template: str) -> FrozenSet[str]:
     """Return the config variables used in the template."""
     unvisted_nodes = [environment.parse(template)]
-    result = set()  # type: typing.Set[str]
+    result: Set[str] = set()
     while unvisted_nodes:
         node = unvisted_nodes.pop()
         if not isinstance(node, jinja2.nodes.Getattr):
@@ -154,7 +154,7 @@ def template_config_variables(template: str) -> typing.FrozenSet[str]:
 
         # List of attribute names in reverse order.
         # For example it's ['ab', 'c', 'd'] for 'conf.d.c.ab'.
-        attrlist = []  # type: typing.List[str]
+        attrlist: List[str] = []
         while isinstance(node, jinja2.nodes.Getattr):
             attrlist.append(node.attr)  # type: ignore[attr-defined]
             node = node.node  # type: ignore[attr-defined]

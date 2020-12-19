@@ -20,7 +20,7 @@
 """The ListView to display downloads in."""
 
 import functools
-import typing
+from typing import Callable, MutableSequence, Tuple, Union
 
 from PyQt5.QtCore import pyqtSlot, QSize, Qt, QTimer
 from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu, QStyleFactory
@@ -54,10 +54,10 @@ def update_geometry(obj):
     QTimer.singleShot(0, _update_geometry)
 
 
-_ActionListType = typing.MutableSequence[
-    typing.Union[
-        typing.Tuple[None, None],  # separator
-        typing.Tuple[str, typing.Callable[[], None]],
+_ActionListType = MutableSequence[
+    Union[
+        Tuple[None, None],  # separator
+        Tuple[str, Callable[[], None]],
     ]
 ]
 
@@ -142,7 +142,7 @@ class DownloadView(QListView):
             item: The DownloadItem to get the actions for, or None.
         """
         model = self.model()
-        actions = []  # type: _ActionListType
+        actions: _ActionListType = []
         if item is None:
             pass
         elif item.done:

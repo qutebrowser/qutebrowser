@@ -63,6 +63,8 @@ The following userscripts can be found on their own repositories.
   snippets on web pages to the clipboard via hints.
 - [Qute-Translate](https://github.com/AckslD/Qute-Translate): Translate URLs or
   selections via Google Translate.
+- [qute-snippets](https://github.com/Aledosim/qute-snippets): Bind text snippets to a keyword
+   and retrieve they when you want.
 
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/

@@ -290,7 +290,11 @@ class TestRegister:
         else:
             assert pos_args == [('arg', 'arg')]
 
-    Enum = enum.Enum('Test', ['x', 'y'])
+    class Enum(enum.Enum):
+
+        # pylint: disable=invalid-name
+        x = enum.auto()
+        y = enum.auto()
 
     @pytest.mark.parametrize('typ, inp, choices, expected', [
         (int, '42', None, 42),

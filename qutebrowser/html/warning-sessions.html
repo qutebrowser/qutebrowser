@@ -5,11 +5,11 @@
 <span class="note">Note this warning will only appear once. Use <span class="mono">:open
 qute://warning/sessions</span> to show it again at a later time.</span>
 
-<p>You're using qutebrowser with Qt 5.15.</p>
+<p>You're using qutebrowser with Qt 5.15. While this is the recommended Qt version to use (due to QtWebEngine security updates), qutebrowser only provides partial support for session files.</p>
 
 <p>Since Qt doesn't provide an API to load the history of a tab, qutebrowser relies on a reverse-engineered binary serialization format to load tab history from session files. With Qt 5.15, unfortunately that format changed (due to the underlying Chromium upgrade), in a way which makes it impossible for qutebrowser to load tab history from existing session data.</p>
 
-<p>At the time of writing (September 2020), a new session format which stores part of the needed binary data in saved sessions is <a href="https://github.com/qutebrowser/qutebrowser/issues/5359">in development</a> and is expected to be released with qutebrowser v1.15.0.</p>
+<p>At the time of writing (October 2020), a new session format which stores part of the needed binary data in saved sessions is <a href="https://github.com/qutebrowser/qutebrowser/issues/5359">in development</a> and is expected to be released with qutebrowser v2.0.0 (planned to be released at the end of the year or early 2021).</p>
 
 <p>As a stop-gap measure:</p>
 

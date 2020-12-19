@@ -308,6 +308,27 @@ def is_ignored_chromium_message(line):
         'Could not open platform files for entry.',
         'Unable to terminate process *: No such process (3)',
         'Failed to read /proc/*/stat',
+
+        # Qt 5.15.1 debug build (Chromium 83)
+        # '[314297:7:0929/214605.491958:ERROR:context_provider_command_buffer.cc(145)]
+        # GpuChannelHost failed to create command buffer.'
+        'GpuChannelHost failed to create command buffer.',
+        # [338691:4:0929/220114.488847:WARNING:ipc_message_attachment_set.cc(49)]
+        # MessageAttachmentSet destroyed with unconsumed attachments: 0/1
+        'MessageAttachmentSet destroyed with unconsumed attachments: *',
+
+        # GitHub Actions with Qt 5.15.1
+        ('SharedImageManager::ProduceGLTexture: Trying to produce a '
+         'representation from a non-existent mailbox. *'),
+        ('[.DisplayCompositor]GL ERROR :GL_INVALID_OPERATION : '
+         'DoCreateAndTexStorage2DSharedImageINTERNAL: invalid mailbox name'),
+        ('[.DisplayCompositor]GL ERROR :GL_INVALID_OPERATION : '
+         'DoBeginSharedImageAccessCHROMIUM: bound texture is not a shared image'),
+        ('[.DisplayCompositor]RENDER WARNING: texture bound to texture unit 0 is '
+         'not renderable. It might be non-power-of-2 or have incompatible texture '
+         'filtering (maybe)?'),
+        ('[.DisplayCompositor]GL ERROR :GL_INVALID_OPERATION : '
+         'DoEndSharedImageAccessCHROMIUM: bound texture is not a shared image'),
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -749,6 +770,7 @@ class QuteProc(testprocess.Process):
         Return:
             The parsed log line with "command called: ..." or None.
         """
+        __tracebackhide__ = lambda e: e.errisinstance(testprocess.WaitForTimeout)
         summary = command
         if count is not None:
             summary += ' (count {})'.format(count)

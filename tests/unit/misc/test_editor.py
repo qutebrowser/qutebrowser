@@ -137,17 +137,6 @@ class TestFileHandling:
         msg = message_mock.getmsg(usertypes.MessageLevel.error)
         assert msg.text.startswith("Failed to read back edited file: ")
 
-    @pytest.fixture
-    def unwritable_tmp_path(self, tmp_path):
-        tmp_path.chmod(0)
-        if os.access(str(tmp_path), os.W_OK):
-            # Docker container or similar
-            pytest.skip("File was still writable")
-
-        yield tmp_path
-
-        tmp_path.chmod(0o755)
-
     def test_unwritable(self, monkeypatch, message_mock, editor,
                         unwritable_tmp_path, caplog):
         """Test file handling when the initial file is not writable."""

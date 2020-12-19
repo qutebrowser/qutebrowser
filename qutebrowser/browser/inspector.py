@@ -21,8 +21,8 @@
 
 import base64
 import binascii
-import typing
 import enum
+from typing import cast, Optional
 
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
@@ -65,11 +65,11 @@ class Position(enum.Enum):
 
     """Where the inspector is shown."""
 
-    right = 1
-    left = 2
-    top = 3
-    bottom = 4
-    window = 5
+    right = enum.auto()
+    left = enum.auto()
+    top = enum.auto()
+    bottom = enum.auto()
+    window = enum.auto()
 
 
 class Error(Exception):
@@ -119,10 +119,10 @@ class AbstractWebInspector(QWidget):
                  win_id: int,
                  parent: QWidget = None) -> None:
         super().__init__(parent)
-        self._widget = typing.cast(QWidget, None)
+        self._widget = cast(QWidget, None)
         self._layout = miscwidgets.WrapperLayout(self)
         self._splitter = splitter
-        self._position = None  # type: typing.Optional[Position]
+        self._position: Optional[Position] = None
         self._win_id = win_id
 
         self._event_filter = _EventFilter(parent=self)
@@ -163,7 +163,7 @@ class AbstractWebInspector(QWidget):
             modeman.enter(self._win_id, usertypes.KeyMode.insert,
                           reason='Inspector clicked', only_if_normal=True)
 
-    def set_position(self, position: typing.Optional[Position]) -> None:
+    def set_position(self, position: Optional[Position]) -> None:
         """Set the position of the inspector.
 
         If the position is None, the last known position is used.

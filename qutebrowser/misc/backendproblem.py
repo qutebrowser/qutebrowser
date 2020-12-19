@@ -25,8 +25,8 @@ import functools
 import html
 import enum
 import shutil
-import typing
 import argparse
+from typing import Any, List, Sequence, Tuple
 
 import attr
 from PyQt5.QtCore import Qt
@@ -55,15 +55,13 @@ class _Button:
 
     """A button passed to BackendProblemDialog."""
 
-    text = attr.ib()  # type: str
-    setting = attr.ib()  # type: str
-    value = attr.ib()  # type: typing.Any
-    default = attr.ib(default=False)  # type: bool
+    text: str = attr.ib()
+    setting: str = attr.ib()
+    value: Any = attr.ib()
+    default: bool = attr.ib(default=False)
 
 
-def _other_backend(
-        backend: usertypes.Backend
-) -> typing.Tuple[usertypes.Backend, str]:
+def _other_backend(backend: usertypes.Backend) -> Tuple[usertypes.Backend, str]:
     """Get the other backend enum/setting for a given backend."""
     other_backend = {
         usertypes.Backend.QtWebKit: usertypes.Backend.QtWebEngine,
@@ -103,7 +101,7 @@ class _Dialog(QDialog):
     def __init__(self, *, because: str,
                  text: str,
                  backend: usertypes.Backend,
-                 buttons: typing.Sequence[_Button] = None,
+                 buttons: Sequence[_Button] = None,
                  parent: QWidget = None) -> None:
         super().__init__(parent)
         vbox = QVBoxLayout(self)
@@ -157,10 +155,10 @@ class _BackendImports:
 
     """Whether backend modules could be imported."""
 
-    webkit_available = attr.ib(default=None)  # type: bool
-    webengine_available = attr.ib(default=None)  # type: bool
-    webkit_error = attr.ib(default=None)  # type: str
-    webengine_error = attr.ib(default=None)  # type: str
+    webkit_available: bool = attr.ib(default=None)
+    webengine_available: bool = attr.ib(default=None)
+    webkit_error: str = attr.ib(default=None)
+    webengine_error: str = attr.ib(default=None)
 
 
 class _BackendProblemChecker:
@@ -181,7 +179,7 @@ class _BackendProblemChecker:
         self._save_manager = save_manager
         self._no_err_windows = no_err_windows
 
-    def _show_dialog(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+    def _show_dialog(self, *args: Any, **kwargs: Any) -> None:
         """Show a dialog for a backend problem."""
         if self._no_err_windows:
             text = _error_text(*args, **kwargs)
@@ -255,7 +253,7 @@ class _BackendProblemChecker:
 
         raise utils.Unreachable
 
-    def _xwayland_options(self) -> typing.Tuple[str, typing.List[_Button]]:
+    def _xwayland_options(self) -> Tuple[str, List[_Button]]:
         """Get buttons/text for a possible XWayland solution."""
         buttons = []
         text = "<p>You can work around this in one of the following ways:</p>"

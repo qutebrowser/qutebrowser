@@ -19,7 +19,7 @@
 
 """Things which need to be done really early (e.g. before importing Qt).
 
-At this point we can be sure we have all python 3.5 features available.
+At this point we can be sure we have all python 3.6 features available.
 """
 
 try:
@@ -210,13 +210,13 @@ def _check_modules(modules):
         try:
             # https://bitbucket.org/fdik/pypeg/commits/dd15ca462b532019c0a3be1d39b8ee2f3fa32f4e
             # pylint: disable=bad-continuation
-            with log.ignore_py_warnings(
+            with log.py_warning_filter(
                 category=DeprecationWarning,
                 message=r'invalid escape sequence'
-            ), log.ignore_py_warnings(
+            ), log.py_warning_filter(
                 category=ImportWarning,
                 message=r'Not importing directory .*: missing __init__'
-            ), log.ignore_py_warnings(
+            ), log.py_warning_filter(
                 category=DeprecationWarning,
                 message=r'the imp module is deprecated',
             ):
@@ -260,7 +260,7 @@ def configure_pyqt():
     from qutebrowser.qt import sip
     try:
         # Added in sip 4.19.4
-        sip.enableoverflowchecking(True)  # type: ignore[attr-defined]
+        sip.enableoverflowchecking(True)
     except AttributeError:
         pass
 

@@ -23,11 +23,11 @@
 """Message singleton so we don't have to define unneeded signals."""
 
 import traceback
-import typing
+from typing import Any, Callable, Iterable, List, Tuple, Union
 
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, pyqtBoundSignal, QObject
 
-from qutebrowser.utils import usertypes, log, utils
+from qutebrowser.utils import usertypes, log
 
 
 def _log_stack(typ: str, stack: str) -> None:
@@ -86,8 +86,8 @@ def info(message: str, *, replace: bool = False) -> None:
 def _build_question(title: str,
                     text: str = None, *,
                     mode: usertypes.PromptMode,
-                    default: typing.Union[None, bool, str] = None,
-                    abort_on: typing.Iterable[pyqtSignal] = (),
+                    default: Union[None, bool, str] = None,
+                    abort_on: Iterable[pyqtBoundSignal] = (),
                     url: str = None,
                     option: bool = None) -> usertypes.Question:
     """Common function for ask/ask_async."""
@@ -110,7 +110,7 @@ def _build_question(title: str,
     return question
 
 
-def ask(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+def ask(*args: Any, **kwargs: Any) -> Any:
     """Ask a modular question in the statusbar (blocking).
 
     Args:
@@ -134,8 +134,8 @@ def ask(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
 
 def ask_async(title: str,
               mode: usertypes.PromptMode,
-              handler: typing.Callable[[typing.Any], None],
-              **kwargs: typing.Any) -> None:
+              handler: Callable[[Any], None],
+              **kwargs: Any) -> None:
     """Ask an async question in the statusbar.
 
     Args:
@@ -151,13 +151,13 @@ def ask_async(title: str,
     global_bridge.ask(question, blocking=False)
 
 
-_ActionType = typing.Callable[[], typing.Any]
+_ActionType = Callable[[], Any]
 
 
 def confirm_async(*, yes_action: _ActionType,
                   no_action: _ActionType = None,
                   cancel_action: _ActionType = None,
-                  **kwargs: typing.Any) -> usertypes.Question:
+                  **kwargs: Any) -> usertypes.Question:
     """Ask a yes/no question to the user and execute the given actions.
 
     Args:
@@ -219,8 +219,7 @@ class GlobalMessageBridge(QObject):
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
         self._connected = False
-        self._cache = [
-        ]  # type: typing.List[typing.Tuple[usertypes.MessageLevel, str, bool]]
+        self._cache: List[Tuple[usertypes.MessageLevel, str, bool]] = []
 
     def ask(self, question: usertypes.Question,
             blocking: bool, *,
@@ -257,44 +256,6 @@ class GlobalMessageBridge(QObject):
         for args in self._cache:
             self.show(*args)
         self._cache = []
-
-
-class MessageBridge(QObject):
-
-    """Bridge for messages to be shown in the statusbar.
-
-    Signals:
-        s_set_text: Set a persistent text in the statusbar.
-                    arg: The text to set.
-        s_maybe_reset_text: Reset the text if it hasn't been changed yet.
-                            arg: The expected text.
-    """
-
-    s_set_text = pyqtSignal(str)
-    s_maybe_reset_text = pyqtSignal(str)
-
-    def __repr__(self) -> str:
-        return utils.get_repr(self)
-
-    def set_text(self, text: str, *, log_stack: bool = False) -> None:
-        """Set the normal text of the statusbar.
-
-        Args:
-            text: The text to set.
-            log_stack: ignored
-        """
-        text = str(text)
-        log.message.debug(text)
-        self.s_set_text.emit(text)
-
-    def maybe_reset_text(self, text: str, *, log_stack: bool = False) -> None:
-        """Reset the text in the statusbar if it matches an expected text.
-
-        Args:
-            text: The expected text.
-            log_stack: ignored
-        """
-        self.s_maybe_reset_text.emit(str(text))
 
 
 global_bridge = GlobalMessageBridge()

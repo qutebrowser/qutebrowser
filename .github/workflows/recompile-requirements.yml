@@ -20,11 +20,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.7
-        uses: actions/setup-python@v2.1.2
+        uses: actions/setup-python@v2
         with:
           python-version: '3.7'
       - name: Set up Python 3.8
-        uses: actions/setup-python@v2.1.2
+        uses: actions/setup-python@v2
         with:
           python-version: '3.8'
       - name: Recompile requirements
@@ -60,7 +60,7 @@ jobs:
     if: "always() && github.repository == 'qutebrowser/qutebrowser'"
     steps:
       - name: Send success IRC notification
-        uses: Gottox/irc-message-action@v1
+        uses: Gottox/irc-message-action@v1.1
         if: "needs.update.result == 'success'"
         with:
           server: chat.freenode.net
@@ -68,7 +68,7 @@ jobs:
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
       - name: Send non-success IRC notification
-        uses: Gottox/irc-message-action@v1
+        uses: Gottox/irc-message-action@v1.1
         if: "needs.update.result != 'success'"
         with:
           server: chat.freenode.net

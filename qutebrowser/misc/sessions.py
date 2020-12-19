@@ -23,9 +23,9 @@ import os
 import os.path
 import itertools
 import urllib
-import typing
 import glob
 import shutil
+from typing import Any, Iterable, MutableMapping, MutableSequence, Optional, Union, cast
 
 from PyQt5.QtCore import Qt, QUrl, QObject, QPoint, QTimer, QDateTime
 from PyQt5.QtWidgets import QApplication
@@ -40,7 +40,7 @@ from qutebrowser.mainwindow import mainwindow
 from qutebrowser.qt import sip
 
 
-_JsonType = typing.MutableMapping[str, typing.Any]
+_JsonType = MutableMapping[str, Any]
 
 
 class Sentinel:
@@ -49,9 +49,9 @@ class Sentinel:
 
 
 default = Sentinel()
-session_manager = typing.cast('SessionManager', None)
+session_manager = cast('SessionManager', None)
 
-ArgType = typing.Union[str, Sentinel]
+ArgType = Union[str, Sentinel]
 
 
 def init(parent=None):
@@ -80,7 +80,7 @@ def init(parent=None):
     session_manager = SessionManager(base_path, parent)
 
 
-def shutdown(session: typing.Optional[ArgType], last_window: bool) -> None:
+def shutdown(session: Optional[ArgType], last_window: bool) -> None:
     """Handle a shutdown by saving sessions and removing the autosave file."""
     if session_manager is None:
         return  # type: ignore
@@ -153,7 +153,7 @@ class SessionManager(QObject):
 
     def __init__(self, base_path, parent=None):
         super().__init__(parent)
-        self.current = None  # type: typing.Optional[str]
+        self.current: Optional[str] = None
         self._base_path = base_path
         self._last_window_session = None
         self.did_load = False
@@ -196,9 +196,9 @@ class SessionManager(QObject):
         Return:
             A dict with the saved data for this item.
         """
-        data = {
+        data: _JsonType = {
             'url': bytes(item.url().toEncoded()).decode('ascii'),
-        }  # type: _JsonType
+        }
 
         if item.title():
             data['title'] = item.title()
@@ -246,7 +246,7 @@ class SessionManager(QObject):
             tab: The WebView to save.
             active: Whether the tab is currently active.
         """
-        data = {'history': []}  # type: _JsonType
+        data: _JsonType = {'history': []}
         if active:
             data['active'] = True
         for idx, item in enumerate(tab.history):
@@ -263,9 +263,9 @@ class SessionManager(QObject):
 
     def _save_all(self, *, only_window=None, with_private=False):
         """Get a dict with data for all windows/tabs."""
-        data = {'windows': []}  # type: _JsonType
+        data: _JsonType = {'windows': []}
         if only_window is not None:
-            winlist = [only_window]  # type: typing.Iterable[int]
+            winlist: Iterable[int] = [only_window]
         else:
             winlist = objreg.window_registry
 
@@ -282,7 +282,7 @@ class SessionManager(QObject):
             if tabbed_browser.is_private and not with_private:
                 continue
 
-            win_data = {}  # type: _JsonType
+            win_data: _JsonType = {}
             active_window = QApplication.instance().activeWindow()
             if getattr(active_window, 'win_id', None) == win_id:
                 win_data['active'] = True
@@ -377,7 +377,7 @@ class SessionManager(QObject):
     def _load_tab(self, new_tab, data):  # noqa: C901
         """Load yaml data into a newly opened tab."""
         entries = []
-        lazy_load = []  # type: typing.MutableSequence[_JsonType]
+        lazy_load: MutableSequence[_JsonType] = []
         # use len(data['history'])
         # -> dropwhile empty if not session.lazy_session
         lazy_index = len(data['history'])
@@ -436,10 +436,10 @@ class SessionManager(QObject):
                 orig_url = url
 
             if histentry.get("last_visited"):
-                last_visited = QDateTime.fromString(
+                last_visited: Optional[QDateTime] = QDateTime.fromString(
                     histentry.get("last_visited"),
                     Qt.ISODate,
-                )  # type: typing.Optional[QDateTime]
+                )
             else:
                 last_visited = None
 

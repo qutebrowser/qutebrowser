@@ -46,8 +46,7 @@ def tabbed_browser(tabbed_browser_stubs, web_tab):
     return tb
 
 
-def test_show_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
-                        mode_manager):
+def test_show_benchmark(benchmark, tabbed_browser, qtbot, mode_manager):
     """Benchmark showing/drawing of hint labels."""
     tab = tabbed_browser.widget.tabs[0]
 
@@ -66,8 +65,8 @@ def test_show_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
     benchmark(bench)
 
 
-def test_match_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
-                         mode_manager, qapp, config_stub):
+def test_match_benchmark(benchmark, tabbed_browser, qtbot, mode_manager, qapp,
+                         config_stub):
     """Benchmark matching of hint labels."""
     tab = tabbed_browser.widget.tabs[0]
 

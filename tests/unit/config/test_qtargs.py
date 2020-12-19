@@ -22,8 +22,8 @@ import os
 import pytest
 
 from qutebrowser import qutebrowser
-from qutebrowser.config import qtargs, configdata
-from qutebrowser.utils import usertypes, version
+from qutebrowser.config import qtargs
+from qutebrowser.utils import usertypes
 from helpers import utils
 
 
@@ -134,18 +134,24 @@ class TestQtArgs:
             assert '--disable-in-process-stack-traces' in args
             assert '--enable-in-process-stack-traces' not in args
 
-    @pytest.mark.parametrize('flags, added', [
-        ([], False),
-        (['--debug-flag', 'chromium'], True),
+    @pytest.mark.parametrize('flags, args', [
+        ([], []),
+        (['--debug-flag', 'chromium'], ['--enable-logging', '--v=1']),
+        (['--debug-flag', 'wait-renderer-process'], ['--renderer-startup-dialog']),
     ])
-    def test_chromium_debug(self, monkeypatch, parser, flags, added):
+    def test_chromium_flags(self, monkeypatch, parser, flags, args):
         monkeypatch.setattr(qtargs.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
         parsed = parser.parse_args(flags)
         args = qtargs.qt_args(parsed)
 
-        for arg in ['--enable-logging', '--v=1']:
-            assert (arg in args) == added
+        if args:
+            for arg in args:
+                assert arg in args
+        else:
+            assert '--enable-logging' not in args
+            assert '--v=1' not in args
+            assert '--renderer-startup-dialog' not in args
 
     @pytest.mark.parametrize('config, added', [
         ('none', False),
@@ -381,125 +387,23 @@ class TestQtArgs:
         assert combined_flag in args
         assert overlay_flag not in args
 
-    @utils.qt514
+    @utils.qt510
     def test_blink_settings(self, config_stub, monkeypatch, parser):
+        from qutebrowser.browser.webengine import darkmode
         monkeypatch.setattr(qtargs.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
-        monkeypatch.setattr(qtargs.qtutils, 'version_check',
-                            lambda version, exact=False, compiled=True:
-                            True)
+        monkeypatch.setattr(darkmode, '_variant',
+                            lambda: darkmode.Variant.qt_515_2)
 
         config_stub.val.colors.webpage.darkmode.enabled = True
 
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
 
-        assert '--blink-settings=darkModeEnabled=true' in args
+        expected = ('--blink-settings=forceDarkModeEnabled=true,'
+                    'forceDarkModeImagePolicy=2')
 
-
-class TestDarkMode:
-
-    pytestmark = utils.qt514
-
-    @pytest.fixture(autouse=True)
-    def patch_backend(self, monkeypatch):
-        monkeypatch.setattr(qtargs.objects, 'backend',
-                            usertypes.Backend.QtWebEngine)
-
-    @pytest.mark.parametrize('settings, new_qt, expected', [
-        # Disabled
-        ({}, True, []),
-        ({}, False, []),
-
-        # Enabled without customization
-        (
-            {'enabled': True},
-            True,
-            [('darkModeEnabled', 'true')]
-        ),
-        (
-            {'enabled': True},
-            False,
-            [('darkMode', '4')]
-        ),
-
-        # Algorithm
-        (
-            {'enabled': True, 'algorithm': 'brightness-rgb'},
-            True,
-            [('darkModeEnabled', 'true'),
-             ('darkModeInversionAlgorithm', '2')],
-        ),
-        (
-            {'enabled': True, 'algorithm': 'brightness-rgb'},
-            False,
-            [('darkMode', '2')],
-        ),
-
-    ])
-    def test_basics(self, config_stub, monkeypatch,
-                    settings, new_qt, expected):
-        for k, v in settings.items():
-            config_stub.set_obj('colors.webpage.darkmode.' + k, v)
-        monkeypatch.setattr(qtargs.qtutils, 'version_check',
-                            lambda version, exact=False, compiled=True:
-                            new_qt)
-
-        assert list(qtargs._darkmode_settings()) == expected
-
-    @pytest.mark.parametrize('setting, value, exp_key, exp_val', [
-        ('contrast', -0.5,
-         'darkModeContrast', '-0.5'),
-        ('policy.page', 'smart',
-         'darkModePagePolicy', '1'),
-        ('policy.images', 'smart',
-         'darkModeImagePolicy', '2'),
-        ('threshold.text', 100,
-         'darkModeTextBrightnessThreshold', '100'),
-        ('threshold.background', 100,
-         'darkModeBackgroundBrightnessThreshold', '100'),
-        ('grayscale.all', True,
-         'darkModeGrayscale', 'true'),
-        ('grayscale.images', 0.5,
-         'darkModeImageGrayscale', '0.5'),
-    ])
-    def test_customization(self, config_stub, monkeypatch,
-                           setting, value, exp_key, exp_val):
-        config_stub.val.colors.webpage.darkmode.enabled = True
-        config_stub.set_obj('colors.webpage.darkmode.' + setting, value)
-        monkeypatch.setattr(qtargs.qtutils, 'version_check',
-                            lambda version, exact=False, compiled=True:
-                            True)
-
-        expected = [('darkModeEnabled', 'true'), (exp_key, exp_val)]
-        assert list(qtargs._darkmode_settings()) == expected
-
-    def test_new_chromium(self):
-        """Fail if we encounter an unknown Chromium version.
-
-        Dark mode in Chromium currently is undergoing various changes (as it's
-        relatively recent), and Qt 5.15 is supposed to update the underlying
-        Chromium at some point.
-
-        Make this test fail deliberately with newer Chromium versions, so that
-        we can test whether dark mode still works manually, and adjust if not.
-        """
-        assert version._chromium_version() in [
-            'unavailable',  # QtWebKit
-            '77.0.3865.129',  # Qt 5.14
-            '80.0.3987.163',  # Qt 5.15
-        ]
-
-    def test_options(self, configdata_init):
-        """Make sure all darkmode options have the right attributes set."""
-        for name, opt in configdata.DATA.items():
-            if not name.startswith('colors.webpage.darkmode.'):
-                continue
-
-            backends = {'QtWebEngine': 'Qt 5.14', 'QtWebKit': False}
-            assert not opt.supports_pattern, name
-            assert opt.restart, name
-            assert opt.raw_backends == backends, name
+        assert expected in args
 
 
 class TestEnvVars:

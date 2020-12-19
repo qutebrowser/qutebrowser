@@ -28,7 +28,10 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.commands import argparser, cmdexc
 
 
-Enum = enum.Enum('Enum', ['foo', 'foo_bar'])
+class Enum(enum.Enum):
+
+    foo = enum.auto()
+    foo_bar = enum.auto()
 
 
 class TestArgumentParser:

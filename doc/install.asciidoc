@@ -27,21 +27,40 @@ On Debian / Ubuntu
 How to install qutebrowser depends a lot on the version of Debian/Ubuntu you're
 running.
 
+[[ubuntu1604]]
 Ubuntu 16.04 LTS / Linux Mint 18
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Ubuntu 16.04 doesn't come with an up-to-date engine (a new enough QtWebKit, or
-QtWebEngine). However, it comes with Python 3.5, so you can
-<<tox,install qutebrowser in a virtualenv>>.
+QtWebEngine). It also comes with Python 3.5 which is not supported anymore since
+qutebrowser v2.0.0.
 
-You'll need some basic libraries to use the virtualenv-installed PyQt:
+You should be able to install a newer Python (3.6+) using the
+https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa[deadsnakes PPA] or
+https://github.com/pyenv/pyenv[pyenv], and then proceed to
+<<tox,install qutebrowser in a virtualenv>>. However, this is currently untested. If you
+got this setup to work successfully, please submit a pull request to adjust these
+instructions!
+
+Note you'll need some basic libraries to use the virtualenv-installed PyQt:
 
 ----
-# apt install libglib2.0-0 libgl1 libfontconfig1 libx11-xcb1 libxi6 libxrender1 libdbus-1-3
+# apt install --no-install-recommends git ca-certificates python3 python3-venv asciidoc libglib2.0-0 libgl1 libfontconfig1 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0 libdbus-1-3 libyaml-dev gcc python3-dev
 ----
+
+// FIXME not needed anymore?
+// libxi6 libxrender1 libegl1-mesa
 
 Debian Stretch
 ~~~~~~~~~~~~~~
+
+WARNING: Debian Stretch packages Qt 5.7 which is very old (based on a Chromium
+from March 2016 with security fixes from November 2016) and insecure. It is also
+https://www.debian.org/releases/stretch/amd64/release-notes/ch-information.en.html#browser-security[not covered]
+by Debian's security patches. Support for it will be dropped in qutebrowser
+v2.0.0, preliminarily planned for December 2020. It is recommended to
+<<tox,install qutebrowser in a virtualenv>> with a newer PyQt/Qt binary
+instead.
 
 Debian Stretch comes with QtWebEngine in the repositories. This makes it possible
 to install qutebrowser via the Debian package.
@@ -70,6 +89,14 @@ qutebrowser package.
 Debian Buster / Ubuntu 18.04 LTS / Linux Mint 19 (or newer)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+WARNING: Debian Buster packages Qt 5.11 which is very old (based on a Chromium
+from March 2018 with security fixes from November 2018) and insecure. It is also
+https://www.debian.org/releases/buster/amd64/release-notes/ch-information.en.html#browser-security[not covered]
+by Debian's security patches. Support for it will be dropped in qutebrowser
+v2.0.0, preliminarily planned for December 2020. It is recommended to
+<<tox,install qutebrowser in a virtualenv>> with a newer PyQt/Qt binary
+instead.
+
 With those distributions, qutebrowser is in the official repositories, and you
 can install it with apt:
 
@@ -80,18 +107,18 @@ can install it with apt:
 Additional hints
 ~~~~~~~~~~~~~~~~
 
-- Alternatively, you can <<tox,install qutebrowser in a virtualenv>> to get a newer
-  QtWebEngine version.
 - If running from git, run the following to generate the documentation for the
   `:help` command:
 +
 ----
-# apt install --no-install-recommends asciidoc source-highlight
+# apt install --no-install-recommends asciidoc
 $ python3 scripts/asciidoc2html.py
 ----
 
-- If you prefer using QtWebKit, there's an up-to-date version available in
-  https://packages.debian.org/buster/libqt5webkit5[Debian Testing].
+- If you prefer using QtWebKit, there's QtWebKit 5.212 available in
+  https://packages.debian.org/buster/libqt5webkit5[Debian Testing]. Note
+  however that it is based on an upstream WebKit from September 2016 with known
+  security issues and no sandboxing or process isolation.
 - If video or sound don't work with QtWebKit, try installing the gstreamer plugins:
 +
 ----
@@ -141,7 +168,8 @@ $ cd ..
 $ rm -r qutebrowser-git
 ----
 
-or you could use an AUR helper, e.g. `yaourt -S qutebrowser-git`.
+or you could use an AUR helper like https://github.com/Jguer/yay/[yay], e.g.
+`yay -S qutebrowser-git`.
 
 If video or sound don't work with QtWebKit, try installing the gstreamer plugins:
 
@@ -181,12 +209,6 @@ with:
 # xbps-install qutebrowser
 ----
 
-It's currently recommended to install `python3-PyQt5-webengine` and
-`python3-PyQt5-opengl`, then start with `--backend webengine` to use the new
-backend.
-
-Since the v1.0 release, qutebrowser uses QtWebEngine by default.
-
 On NixOS
 --------
 
@@ -197,17 +219,10 @@ it with:
 $ nix-env -i qutebrowser
 ----
 
-It's recommended to install `qt5.qtwebengine` and start with
-`--backend webengine` to use the new backend.
-
-Since the v1.0 release, qutebrowser uses QtWebEngine by default.
-
 On openSUSE
 -----------
 
 There are prebuilt RPMs available at https://software.opensuse.org/download.html?project=network&package=qutebrowser[OBS].
-
-To use the QtWebEngine backend, install `libqt5-qtwebengine`.
 
 On Slackware
 ------------
@@ -248,7 +263,7 @@ qutebrowser is available
 https://flathub.org/apps/details/org.qutebrowser.qutebrowser[on Flathub]
 as `org.qutebrowser.qutebrowser`.
 
-WARNING: As of July 2020, the Flatpak package is severely outdated (qutebrowser
+WARNING: As of October 2020, the Flatpak package is severely outdated (qutebrowser
 v1.7.0 from July 2019) and, among other issues, misses fixes for a
 (low-severity) https://github.com/qutebrowser/qutebrowser/security/advisories/GHSA-4rcq-jv2f-898j[security issue].
 It's recommended to <<tox,install qutebrowser in a virtualenv>> instead, which
@@ -350,9 +365,13 @@ qutebrowser from source.
 ==== Homebrew
 
 ----
-$ brew install qt5
+$ brew install qt
+(build PyQt and PyQtWebEngine from source)
 $ pip3 install qutebrowser
 ----
+
+NOTE: Homebrew does not package PyQtWebEngine (Python wrappers for
+QtWebEngine), so you will need to build that from sources manually.
 
 Since the v1.0 release, qutebrowser uses QtWebEngine by default.
 
@@ -364,12 +383,11 @@ https://github.com/annulen/webkit/wiki/Building-QtWebKit-on-OS-X[manually].
 Packagers
 ---------
 
-There are example .desktop and icon files provided. They would go in the
-standard location for your distro (`/usr/share/applications` and
-`/usr/share/pixmaps` for example).
-
-The normal `setup.py install` doesn't install these files, so you'll have to do
-it as part of the packaging process.
+qutebrowser ships with a
+https://github.com/qutebrowser/qutebrowser/blob/master/misc/Makefile[Makefile]
+intended for packagers. This installs system-wide files in a proper locations,
+so it should be preferred to the usual `setup.py install` or `pip install`
+invocation.
 
 // The tox anchor is so that old links remain compatible.
 // When switching to Sphinx, that should be changed.
@@ -405,6 +423,10 @@ $ cd qutebrowser
 Installing dependencies (including Qt)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Using a Qt installed via virtualenv needs a couple of system-wide libraries.
+See the <<ubuntu1604,Ubuntu 16.04 section>> for details about which libraries
+are required.
+
 Then run the install script:
 
 ----
@@ -418,9 +440,8 @@ This installs all needed Python dependencies in a `.venv` subfolder
 This comes with an up-to-date Qt/PyQt including a pre-compiled QtWebEngine
 binary, but has a few caveats:
 
-- Make sure your `python3` is Python 3.5 or newer, otherwise you'll get a "No
-  matching distribution found" error. Note that qutebrowser itself also requires
-  this.
+- Make sure your `python3` is Python 3.6 or newer, otherwise you'll get a "No
+  matching distribution found" error and/or qutebrowser will not run.
 - It only works on 64-bit x86 systems, with other architectures you'll get the
   same error.
 - It comes with a QtWebEngine compiled without proprietary codec support (such
@@ -432,6 +453,12 @@ those issues but result in an older Qt version.
 You can specify a Qt/PyQt version with the `--pyqt-version` flag, see
 `mkenv.py --help` for a list of available versions. By default, the latest
 version which plays well with qutebrowser is used.
+
+NOTE: If qutebrowser fails to start with a _"This application failed to start
+because no Qt platform plugin could be initialized."_ message, most likely a
+system-wide library is missing. Run qutebrowser again after
+`export QT_DEBUG_PLUGINS=1` and keep attention to a
+_QLibraryPrivate::loadPlugin failed on ..._ line for details.
 
 Installing dependencies (system-wide Qt)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

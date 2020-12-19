@@ -308,14 +308,12 @@ class TestInitCacheDirTag:
             #  http://www.brynosaurus.com/cachedir/
         """).lstrip()
 
-    def test_open_oserror(self, caplog, tmpdir, mocker, monkeypatch):
+    def test_open_oserror(self, caplog, unwritable_tmp_path, monkeypatch):
         """Test creating a new CACHEDIR.TAG."""
-        monkeypatch.setattr(standarddir, 'cache', lambda: str(tmpdir))
-        mocker.patch('builtins.open', side_effect=OSError)
+        monkeypatch.setattr(standarddir, 'cache', lambda: str(unwritable_tmp_path))
         with caplog.at_level(logging.ERROR, 'init'):
             standarddir._init_cachedir_tag()
         assert caplog.messages == ['Failed to create CACHEDIR.TAG']
-        assert not tmpdir.listdir()
 
 
 class TestCreatingDir:

@@ -231,7 +231,7 @@ Feature: quickmarks and bookmarks
         And the page should contain the plaintext "twentyone"
 
     Scenario: Listing bookmarks
-        When I open data/title.html in a new tab
+        When I open data/title.html#unique-url in a new tab
         And I run :bookmark-add
         And I open qute://bookmarks
         Then the page should contain the plaintext "Test title"

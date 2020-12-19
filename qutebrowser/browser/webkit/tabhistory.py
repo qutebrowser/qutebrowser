@@ -19,7 +19,7 @@
 
 """Utilities related to QWebHistory."""
 
-import typing
+from typing import Any, List, Mapping
 
 from PyQt5.QtCore import QByteArray, QDataStream, QIODevice, QUrl
 
@@ -81,7 +81,7 @@ def serialize(items):
     """
     data = QByteArray()
     stream = QDataStream(data, QIODevice.ReadWrite)
-    user_data = []  # type: typing.List[typing.Mapping[str, typing.Any]]
+    user_data: List[Mapping[str, Any]] = []
 
     current_idx = None
 

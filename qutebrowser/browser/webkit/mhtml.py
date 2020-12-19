@@ -33,7 +33,7 @@ import email.encoders
 import email.mime.multipart
 import email.message
 import quopri
-import typing
+from typing import MutableMapping, Set, Tuple
 
 import attr
 from PyQt5.QtCore import QUrl
@@ -90,10 +90,7 @@ def _get_css_imports_cssutils(data, inline=False):
     """
     try:
         import cssutils
-    except (ImportError, re.error):
-        # Catching re.error because cssutils in earlier releases (<= 1.0) is
-        # broken on Python 3.5
-        # See https://bitbucket.org/cthedot/cssutils/issues/52
+    except ImportError:
         return None
 
     # We don't care about invalid CSS data, this will only litter the log
@@ -189,7 +186,7 @@ class MHTMLWriter:
         self.root_content = root_content
         self.content_location = content_location
         self.content_type = content_type
-        self._files = {}  # type: typing.MutableMapping[QUrl, _File]
+        self._files: MutableMapping[QUrl, _File] = {}
 
     def add_file(self, location, content, content_type=None,
                  transfer_encoding=E_QUOPRI):
@@ -244,8 +241,7 @@ class MHTMLWriter:
         return msg
 
 
-_PendingDownloadType = typing.Set[
-    typing.Tuple[QUrl, downloads.AbstractDownloadItem]]
+_PendingDownloadType = Set[Tuple[QUrl, downloads.AbstractDownloadItem]]
 
 
 class _Downloader:
@@ -268,7 +264,7 @@ class _Downloader:
         self.target = target
         self.writer = None
         self.loaded_urls = {tab.url()}
-        self.pending_downloads = set()  # type: _PendingDownloadType
+        self.pending_downloads: _PendingDownloadType = set()
         self._finished_file = False
         self._used = False
 

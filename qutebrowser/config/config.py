@@ -23,7 +23,7 @@ import copy
 import contextlib
 import functools
 import typing
-from typing import Any
+from typing import Any, Tuple, MutableMapping
 
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
@@ -33,7 +33,6 @@ from qutebrowser.misc import objects
 from qutebrowser.keyinput import keyutils
 
 if typing.TYPE_CHECKING:
-    from typing import Tuple, MutableMapping
     from qutebrowser.config import configcache, configfiles
     from qutebrowser.misc import savemanager
 
@@ -283,6 +282,7 @@ class Config(QObject):
         self._init_values()
         self.yaml_loaded = False
         self.config_py_loaded = False
+        self.warn_autoconfig = True
 
     def _init_values(self) -> None:
         """Populate the self._values dict."""
