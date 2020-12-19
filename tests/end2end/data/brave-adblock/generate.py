@@ -19,15 +19,15 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import io
-import os
 import gzip
 import csv
+import pathlib
 import itertools
 import urllib.request
 from typing import Optional
 
 URL = "https://raw.githubusercontent.com/brave/adblock-rust/master/data/ublock-matches.tsv"
-CACHE_LOCATION = "/tmp/ublock-matches.tsv.cache"
+CACHE_PATH = pathlib.Path("/tmp/ublock-matches.tsv.cache")
 ROWS_TO_USE = 30_000
 
 
@@ -46,19 +46,17 @@ def type_rename(type_str: str) -> Optional[str]:
 
 def main():
     # Download file or use cached version
-    if os.path.isfile(CACHE_LOCATION):
-        print(f"Using cached file {CACHE_LOCATION}")
-        with open(CACHE_LOCATION, "r", encoding="utf-8") as cache_f:
-            data = io.StringIO(cache_f.read())
+    if CACHE_PATH.is_file():
+        print(f"Using cached file {CACHE_PATH}")
+        data = io.StringIO(CACHE_PATH.read_text(encoding="utf-8"))
     else:
         request = urllib.request.Request(URL)
         print(f"Downloading {URL} ...")
         response = urllib.request.urlopen(request)
         assert response.status == 200
         data_str = response.read().decode("utf-8")
-        print(f"Saving to cache file {CACHE_LOCATION} ...")
-        with open(CACHE_LOCATION, "w", encoding="utf-8") as cache_f:
-            cache_f.write(data_str)
+        print(f"Saving to cache file {CACHE_PATH} ...")
+        CACHE_PATH.write_text(data_str, encoding="utf-8")
         data = io.StringIO(data_str)
 
     # We only want the first three columns and the first ROWS_TO_USE rows
