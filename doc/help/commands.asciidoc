@@ -290,7 +290,7 @@ Set all settings back to their default.
 
 [[config-cycle]]
 === config-cycle
-Syntax: +:config-cycle [*--pattern* 'pattern'] [*--temp*] [*--print*] 'option' ['values' ['values' ...]]+
+Syntax: +:config-cycle [*--pattern* 'pattern'] [*--temp*] [*--print*] 'option' ['values' ...]+
 
 Cycle an option between multiple values.
 
@@ -625,7 +625,7 @@ Show help about a command or setting.
 
 [[hint]]
 === hint
-Syntax: +:hint [*--mode* 'mode'] [*--add-history*] [*--rapid*] [*--first*] ['group'] ['target'] ['args' ['args' ...]]+
+Syntax: +:hint [*--mode* 'mode'] [*--add-history*] [*--rapid*] [*--first*] ['group'] ['target'] ['args' ...]+
 
 Start hinting.
 
@@ -1088,7 +1088,7 @@ The count that run_with_count itself received.
 
 [[save]]
 === save
-Syntax: +:save ['what' ['what' ...]]+
+Syntax: +:save ['what' ...]+
 
 Save configs and state.
 

@@ -79,7 +79,7 @@ class UsageFormatter(argparse.HelpFormatter):
     def _metavar_formatter(self, action, default_metavar):
         """Override _metavar_formatter to add asciidoc markup to metavars.
 
-        Most code here is copied from Python 3.4's argparse.py.
+        Most code here is copied from Python 3.10's argparse.py.
         """
         if action.metavar is not None:
             result = "'{}'".format(action.metavar)
@@ -114,6 +114,19 @@ class UsageFormatter(argparse.HelpFormatter):
         for action in actions:
             action.option_strings = old_option_strings[action]
         return ret
+
+    def _format_args(self, action, default_metavar):
+        """Backport simplified star nargs usage.
+
+        https://github.com/python/cpython/pull/17106
+        """
+        if sys.version_info >= (3, 9) or action.nargs != argparse.ZERO_OR_MORE:
+            return super()._format_args(action, default_metavar)
+
+        get_metavar = self._metavar_formatter(action, default_metavar)
+        metavar = get_metavar(1)
+        assert len(metavar) == 1
+        return f'[{metavar[0]} ...]'
 
 
 def _open_file(name, mode='w'):
