@@ -28,9 +28,10 @@ import sys
 import shutil
 import pstats
 import operator
+import pathlib
 
 import pytest
-from PyQt5.QtCore import PYQT_VERSION
+from PyQt5.QtCore import PYQT_VERSION, QCoreApplication
 
 pytest.register_assert_rewrite('end2end.fixtures')
 
@@ -142,6 +143,9 @@ def pytest_collection_modifyitems(config, items):
     header_bug_fixed = (not qtutils.version_check('5.12', compiled=False) or
                         qtutils.version_check('5.15', compiled=False))
 
+    lib_path = pathlib.Path(QCoreApplication.libraryPaths()[0])
+    qpdf_image_plugin = lib_path / 'imageformats' / 'libqpdf.so'
+
     markers = [
         ('qtwebengine_todo', 'QtWebEngine TODO', pytest.mark.xfail,
          config.webengine),
@@ -160,6 +164,10 @@ def pytest_collection_modifyitems(config, items):
         ('js_headers', 'Sets headers dynamically via JS',
          pytest.mark.skipif,
          config.webengine and not header_bug_fixed),
+        ('qtwebkit_pdf_imageformat_skip',
+         'Skipped with QtWebKit if PDF image plugin is available',
+         pytest.mark.skipif,
+         not config.webengine and qpdf_image_plugin.exists()),
     ]
 
     for item in items:

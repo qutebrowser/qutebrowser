@@ -170,7 +170,7 @@ class CommandDispatcher:
             elif mode == "stack-next":
                 tab = tab_deque.next(cur_tab)
             else:
-                raise NotImplementedError(
+                raise utils.Unreachable(
                     "Missing implementation for stack mode!")
         except IndexError:
             if not show_error:
@@ -562,7 +562,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('where', choices=['prev', 'next', 'up', 'increment',
-                                         'decrement'])
+                                         'decrement', 'strip'])
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def navigate(self, where: str, tab: bool = False, bg: bool = False,
                  window: bool = False, count: int = 1) -> None:
@@ -587,6 +587,7 @@ class CommandDispatcher:
                   Uses the
                   link:settings{outsuffix}#url.incdec_segments[url.incdec_segments]
                   config option.
+                - `strip`: Strip query and fragment from the current URL.
 
             tab: Open in a new tab.
             bg: Open in a background tab.
@@ -613,9 +614,7 @@ class CommandDispatcher:
                 handler = handlers[where]
                 handler(browsertab=widget, win_id=self._win_id, baseurl=url,
                         tab=tab, background=bg, window=window)
-            elif where in ['up', 'increment', 'decrement']:
-                if where == 'up':
-                    url = url.adjusted(QUrl.RemoveFragment | QUrl.RemoveQuery)
+            elif where in ['up', 'increment', 'decrement', 'strip']:
                 new_url = handlers[where](url, count)
                 self._open(new_url, tab, bg, window, related=True)
             else:  # pragma: no cover
@@ -1627,9 +1626,31 @@ class CommandDispatcher:
             tab.search.prev_result()
         tab.search.prev_result(result_cb=cb)
 
+    def _jseval_cb(self, out):
+        """Show the data returned from JS."""
+        if out is None:
+            # Getting the actual error (if any) seems to be difficult.
+            # The error does end up in
+            # BrowserPage.javaScriptConsoleMessage(), but
+            # distinguishing between :jseval errors and errors from the
+            # webpage is not trivial...
+            message.info('No output or error')
+        else:
+            # The output can be a string, number, dict, array, etc. But
+            # *don't* output too much data, as this will make
+            # qutebrowser hang
+            out = str(out)
+            if len(out) > 5000:
+                out = out[:5000] + ' [...trimmed...]'
+            message.info(out)
+
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_cmd_split=True)
-    def jseval(self, js_code: str, file: bool = False, quiet: bool = False, *,
+    def jseval(self, js_code: str,
+               file: bool = False,
+               url: bool = False,
+               quiet: bool = False,
+               *,
                world: typing.Union[usertypes.JsWorld, int] = None) -> None:
         """Evaluate a JavaScript string.
 
@@ -1639,33 +1660,16 @@ class CommandDispatcher:
                   If the path is relative, the file is searched in a js/ subdir
                   in qutebrowser's data dir, e.g.
                   `~/.local/share/qutebrowser/js`.
+            url: Interpret js-code as a `javascript:...` URL.
             quiet: Don't show resulting JS object.
             world: Ignored on QtWebKit. On QtWebEngine, a world ID or name to
                    run the snippet in.
         """
+        cmdutils.check_exclusive((file, url), 'fu')
+
         if world is None:
             world = usertypes.JsWorld.jseval
-
-        if quiet:
-            jseval_cb = None
-        else:
-            def jseval_cb(out):
-                """Show the data returned from JS."""
-                if out is None:
-                    # Getting the actual error (if any) seems to be difficult.
-                    # The error does end up in
-                    # BrowserPage.javaScriptConsoleMessage(), but
-                    # distinguishing between :jseval errors and errors from the
-                    # webpage is not trivial...
-                    message.info('No output or error')
-                else:
-                    # The output can be a string, number, dict, array, etc. But
-                    # *don't* output too much data, as this will make
-                    # qutebrowser hang
-                    out = str(out)
-                    if len(out) > 5000:
-                        out = out[:5000] + ' [...trimmed...]'
-                    message.info(out)
+        jseval_cb = None if quiet else self._jseval_cb
 
         if file:
             path = os.path.expanduser(js_code)
@@ -1676,6 +1680,11 @@ class CommandDispatcher:
                 with open(path, 'r', encoding='utf-8') as f:
                     js_code = f.read()
             except OSError as e:
+                raise cmdutils.CommandError(str(e))
+        elif url:
+            try:
+                js_code = urlutils.parse_javascript_url(QUrl(js_code))
+            except urlutils.Error as e:
                 raise cmdutils.CommandError(str(e))
 
         widget = self._current_widget()

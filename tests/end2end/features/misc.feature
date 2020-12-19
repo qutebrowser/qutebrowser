@@ -89,6 +89,10 @@ Feature: Various utility commands.
         When I run :jseval Array(5002).join("x")
         Then the message "x* [...trimmed...]" should be shown
 
+    Scenario: :jseval --url
+        When I run :jseval --url javascript:console.log("hello world?")
+        Then the javascript message "hello world?" should be logged
+
     @qtwebengine_skip
     Scenario: :jseval with --world on QtWebKit
         When I run :jseval --world=1 console.log("Hello from JS!");

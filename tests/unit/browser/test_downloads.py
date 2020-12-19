@@ -22,10 +22,14 @@ import pytest
 from qutebrowser.browser import downloads, qtnetworkdownloads
 
 
-def test_download_model(qapp, qtmodeltester, config_stub, cookiejar_and_cache,
-                        fake_args):
+@pytest.fixture
+def manager(config_stub, cookiejar_and_cache):
+    """A QtNetwork download manager."""
+    return qtnetworkdownloads.DownloadManager()
+
+
+def test_download_model(qapp, qtmodeltester, manager):
     """Simple check for download model internals."""
-    manager = qtnetworkdownloads.DownloadManager()
     model = downloads.DownloadModel(manager)
     qtmodeltester.check(model)
 
@@ -107,7 +111,7 @@ def test_sanitized_filenames(raw, expected,
                              config_stub, download_tmpdir, monkeypatch):
     manager = downloads.AbstractDownloadManager()
     target = downloads.FileDownloadTarget(str(download_tmpdir))
-    item = downloads.AbstractDownloadItem()
+    item = downloads.AbstractDownloadItem(manager=manager)
 
     # Don't try to start a timer outside of a QThread
     manager._update_timer.isActive = lambda: True
@@ -116,6 +120,58 @@ def test_sanitized_filenames(raw, expected,
     item._ensure_can_set_filename = lambda *args: True
     item._after_set_filename = lambda *args: True
 
+    # Don't try to get current window
+    monkeypatch.setattr(item, '_get_conflicting_download', list)
+
     manager._init_item(item, True, raw)
     item.set_target(target)
     assert item._filename.endswith(expected)
+
+
+class TestConflictingDownloads:
+
+    @pytest.fixture
+    def item1(self, manager):
+        return downloads.AbstractDownloadItem(manager=manager)
+
+    @pytest.fixture
+    def item2(self, manager):
+        return downloads.AbstractDownloadItem(manager=manager)
+
+    def test_no_downloads(self, item1):
+        item1._filename = 'download.txt'
+        assert item1._get_conflicting_download() is None
+
+    @pytest.mark.parametrize('filename1, filename2, done, conflict', [
+        # Different name
+        ('download.txt', 'download2.txt', False, False),
+        # Finished
+        ('download.txt', 'download.txt', True, False),
+        # Conflict
+        ('download.txt', 'download.txt', False, True),
+    ])
+    def test_conflicts(self, manager, item1, item2,
+                       filename1, filename2, done, conflict):
+        item1._filename = filename1
+        item2._filename = filename2
+        item2.done = done
+        manager.downloads.append(item1)
+        manager.downloads.append(item2)
+        expected = item2 if conflict else None
+        assert item1._get_conflicting_download() is expected
+
+    def test_cancel_conflicting_downloads(self, manager, item1, item2, monkeypatch):
+        item1._filename = 'download.txt'
+        item2._filename = 'download.txt'
+        item2.done = False
+        manager.downloads.append(item1)
+        manager.downloads.append(item2)
+
+        def patched_cancel(remove_data=True):
+            assert not remove_data
+            item2.done = True
+
+        monkeypatch.setattr(item2, 'cancel', patched_cancel)
+        monkeypatch.setattr(item1, '_after_set_filename', lambda: None)
+        item1._cancel_conflicting_download()
+        assert item2.done

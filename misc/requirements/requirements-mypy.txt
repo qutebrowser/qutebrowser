@@ -13,4 +13,4 @@ Pygments==2.6.1
 -e git+https://github.com/stlehmann/PyQt5-stubs.git@master#egg=PyQt5_stubs
 six==1.15.0
 typed-ast==1.4.1
-typing-extensions==3.7.4.2
+typing-extensions==3.7.4.3

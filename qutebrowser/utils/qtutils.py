@@ -124,6 +124,7 @@ def is_single_process() -> bool:
     """Check whether QtWebEngine is running in single-process mode."""
     if objects.backend == usertypes.Backend.QtWebKit:
         return False
+    assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend
     args = QApplication.instance().arguments()
     return '--single-process' in args
 

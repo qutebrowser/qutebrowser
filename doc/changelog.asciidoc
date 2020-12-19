@@ -45,12 +45,20 @@ Changed
 - `:back` and `:forward` now take an optional index which is completed using
   the current tab's history.
 - The time a website in a tab was visited is now saved/restored in sessions.
+- New argument `strip` for `:navigate` which removes queries and
+  fragments from the current URL.
+- When attempting to download a file to a location for which there's already a
+  still-running download, a confirmation prompt is now displayed.
+- `:completion-item-focus` now understands `next-page` and `prev-page` with
+  corresponding `<PgDown>` / `<PgUp>` default bindings.
+- When the last private window is closed, all private browsing data is now cleared.
 
 Added
 ~~~~~
 
 - `:undo` now has a new `-w` / `--window` argument, which can be used to
   restore closed windows (rather than tabs). This is bound to `U` by default.
+- `:jseval` can now take `javascript:...` URLs via a new `--url` flag.
 - New replacement `{aligned_index}` for `tabs.title.format` and `format_pinned`
   which behaves like `{index}`, but space-pads the index based on the total
   numbers of tabs. This can be used to get aligned tab texts with vertical
@@ -63,6 +71,7 @@ Added
 - The `:download-open` command now has a new `--dir` flag, which can be used to
   open the directory containing the downloaded file. An entry to do the same
   was also added to the context menu.
+- Messages are now wrapped when they are too long to be displayed on a single line.
 
 Fixed
 ~~~~~
@@ -98,6 +107,12 @@ Fixed
   instead of displaying the proper text. This is now fixed.
 - When entering different modes too quickly (e.g. pressing `fV`), the statusbar
   could end up in a confusing state. This is now fixed.
+- When qutebrowser quits, running downloads are now cancelled properly.
+- The site-specific quirk for `web.whatsapp.com` has been updated to work after recent
+  WhatsApp-changes.
+- Highlighting in the completion now works properly when UTF-16 surrogate pairs (such as
+  emoji) are involved.
+- When a windowed inspector is clicked, insert mode now isn't entered anymore.
 
 v1.13.1 (2020-07-17)
 --------------------

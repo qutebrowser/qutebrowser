@@ -743,8 +743,8 @@ class TestGetChildFrames:
     def test_one_level(self, stubs):
         r"""Test get_child_frames with one level of children.
 
-                  o   parent
-                 / \
+                  o    parent
+                 / \   ------
         child1  o   o  child2
         """
         child1 = stubs.FakeChildrenFrame()
@@ -763,9 +763,9 @@ class TestGetChildFrames:
         r"""Test get_child_frames with multiple levels of children.
 
             o      root
-           / \
+           / \     ------
           o   o    first
-         /\   /\
+         /\   /\   ------
         o  o o  o  second
         """
         second = [stubs.FakeChildrenFrame() for _ in range(4)]

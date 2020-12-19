@@ -1,5 +1,8 @@
 [run]
-source = qutebrowser
+include =
+    qutebrowser/*
+    tests/*
+    scripts/*
 branch = true
 omit =
     qutebrowser/__main__.py

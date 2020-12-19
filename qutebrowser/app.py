@@ -485,8 +485,7 @@ def _init_modules(*, args):
     cache.init(q_app)
 
     log.init.debug("Initializing downloads...")
-    download_manager = qtnetworkdownloads.DownloadManager(parent=q_app)
-    objreg.register('qtnetwork-download-manager', download_manager)
+    qtnetworkdownloads.init()
 
     log.init.debug("Initializing Greasemonkey...")
     greasemonkey.init()

@@ -39,7 +39,7 @@ jobs:
             .tox
             ~/.cache/pip
           key: "${{ matrix.testenv }}-${{ hashFiles('misc/requirements/requirements-*.txt') }}-${{ hashFiles('requirements.txt') }}"
-      - uses: actions/setup-python@v2.1.1
+      - uses: actions/setup-python@v2.1.2
         with:
           python-version: '3.8'
       - uses: actions/setup-node@v2.1.1
@@ -129,10 +129,10 @@ jobs:
           - testenv: py38-pyqt514
             os: ubuntu-20.04
             python: 3.8
-          ### PyQt 5.15 (Python nightly)
-          - testenv: py3-pyqt515
+          ### PyQt 5.15 (Python 3.9)
+          - testenv: py39-pyqt515
             os: ubuntu-20.04
-            python: 3.10-dev
+            python: 3.9-dev
           ### PyQt 5.15 (Python 3.8, with coverage)
           - testenv: py38-pyqt515-cov
             os: ubuntu-20.04
@@ -157,13 +157,7 @@ jobs:
             ~/.cache/pip
           key: "${{ matrix.testenv }}-${{ matrix.os }}-${{ matrix.python }}-${{ hashFiles('misc/requirements/requirements-*.txt') }}-${{ hashFiles('requirements.txt') }}"
       - name: Set up Python
-        uses: actions/setup-python@v2.1.1
-        if: "!endsWith(matrix.python, '-dev')"
-        with:
-          python-version: "${{ matrix.python }}"
-      - name: Set up development Python
-        uses: deadsnakes/action@v1.0.0
-        if: "endsWith(matrix.python, '-dev')"
+        uses: actions/setup-python@v2.1.2
         with:
           python-version: "${{ matrix.python }}"
       - name: Set up problem matchers
@@ -184,7 +178,7 @@ jobs:
         if: "failure()"
       - name: Upload coverage
         if: "endsWith(matrix.testenv, '-cov')"
-        uses: codecov/codecov-action@v1.0.12
+        uses: codecov/codecov-action@v1.0.13
         with:
           name: "${{ matrix.testenv }}"
 

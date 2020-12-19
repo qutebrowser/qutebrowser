@@ -809,8 +809,9 @@ class TestPDFJSVersion:
         assert version._pdfjs_version() == 'unknown (bundled)'
 
     @pytest.mark.parametrize('varname', [
-        'PDFJS.version',  # older versions
-        'var pdfjsVersion',  # newer versions
+        'PDFJS.version',  # v1.10.100 and older
+        'var pdfjsVersion',  # v2.0.943
+        'const pdfjsVersion',  # v2.5.207
     ])
     def test_known(self, monkeypatch, varname):
         pdfjs_code = textwrap.dedent("""

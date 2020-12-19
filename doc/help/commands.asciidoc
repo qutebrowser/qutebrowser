@@ -749,7 +749,7 @@ Insert text at cursor position.
 
 [[jseval]]
 === jseval
-Syntax: +:jseval [*--file*] [*--quiet*] [*--world* 'world'] 'js-code'+
+Syntax: +:jseval [*--file*] [*--url*] [*--quiet*] [*--world* 'world'] 'js-code'+
 
 Evaluate a JavaScript string.
 
@@ -761,6 +761,7 @@ Evaluate a JavaScript string.
  in qutebrowser's data dir, e.g.
  `~/.local/share/qutebrowser/js`.
 
+* +*-u*+, +*--url*+: Interpret js-code as a `javascript:...` URL.
 * +*-q*+, +*--quiet*+: Don't show resulting JS object.
 * +*-w*+, +*--world*+: Ignored on QtWebKit. On QtWebEngine, a world ID or name to run the snippet in.
 
@@ -864,6 +865,7 @@ This tries to automatically click on typical _Previous Page_ or _Next Page_ link
  Uses the
  link:settings{outsuffix}#url.incdec_segments[url.incdec_segments]
  config option.
+ - `strip`: Strip query and fragment from the current URL.
  
 
 
@@ -1662,7 +1664,9 @@ Syntax: +:completion-item-focus [*--history*] 'which'+
 Shift the focus of the completion menu to another item.
 
 ==== positional arguments
-* +'which'+: 'next', 'prev', 'next-category', or 'prev-category'.
+* +'which'+: 'next', 'prev', 'next-category', 'prev-category',
+ 'next-page', or 'prev-page'.
+
 
 ==== optional arguments
 * +*-H*+, +*--history*+: Navigate through command history if no text was typed.

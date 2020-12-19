@@ -28,7 +28,7 @@ from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QObject
 from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
 
 from qutebrowser.browser import downloads, pdfjs
-from qutebrowser.utils import debug, usertypes, message, log, qtutils
+from qutebrowser.utils import debug, usertypes, message, log, qtutils, objreg
 
 
 class DownloadItem(downloads.AbstractDownloadItem):
@@ -40,8 +40,9 @@ class DownloadItem(downloads.AbstractDownloadItem):
     """
 
     def __init__(self, qt_item: QWebEngineDownloadItem,
+                 manager: downloads.AbstractDownloadManager,
                  parent: QObject = None) -> None:
-        super().__init__(parent)
+        super().__init__(manager=manager, parent=manager)
         self._qt_item = qt_item
         qt_item.downloadProgress.connect(  # type: ignore[attr-defined]
             self.stats.on_download_progress)
@@ -140,14 +141,15 @@ class DownloadItem(downloads.AbstractDownloadItem):
                              "state {} (not in requested state)!".format(
                                  filename, self, state_name))
 
-    def _ask_confirm_question(self, title, msg):
+    def _ask_confirm_question(self, title, msg, *, custom_yes_action=None):
+        yes_action = custom_yes_action or self._after_set_filename
         no_action = functools.partial(self.cancel, remove_data=False)
         question = usertypes.Question()
         question.title = title
         question.text = msg
         question.url = 'file://{}'.format(self._filename)
         question.mode = usertypes.PromptMode.yesno
-        question.answered_yes.connect(self._after_set_filename)
+        question.answered_yes.connect(yes_action)
         question.answered_no.connect(no_action)
         question.cancelled.connect(no_action)
         self.cancelled.connect(question.abort)
@@ -184,6 +186,26 @@ class DownloadItem(downloads.AbstractDownloadItem):
             self._qt_item.setPath(self._filename)
 
         self._qt_item.accept()
+
+    def _get_conflicting_download(self):
+        """Return another potential active download with the same name.
+
+        webenginedownloads.DownloadItem needs to look for downloads both in its
+        manager and in qtnetwork-download-manager as both are used
+        simultaneously.
+
+        This method can be safely removed once #2328 is fixed.
+        """
+        conflicting_download = super()._get_conflicting_download()
+        if conflicting_download:
+            return conflicting_download
+
+        qtnetwork_download_manager = objreg.get(
+            'qtnetwork-download-manager')
+        for download in qtnetwork_download_manager.downloads:
+            if self._conflicts_with(download):
+                return download
+        return None
 
 
 def _get_suggested_filename(path):
@@ -244,7 +266,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
         suggested_filename = _get_suggested_filename(qt_item.path())
         use_pdfjs = pdfjs.should_use_pdfjs(qt_item.mimeType(), qt_item.url())
 
-        download = DownloadItem(qt_item)
+        download = DownloadItem(qt_item, manager=self)
         self._init_item(download, auto_remove=use_pdfjs,
                         suggested_filename=suggested_filename)
 

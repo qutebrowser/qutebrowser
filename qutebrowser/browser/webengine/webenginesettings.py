@@ -55,45 +55,45 @@ class _SettingsWrapper:
     For read operations, the default profile value is always used.
     """
 
-    def __init__(self):
-        self._settings = [default_profile.settings()]
+    def _settings(self):
+        yield default_profile.settings()
         if private_profile:
-            self._settings.append(private_profile.settings())
+            yield private_profile.settings()
 
     def setAttribute(self, attribute, on):
-        for settings in self._settings:
+        for settings in self._settings():
             settings.setAttribute(attribute, on)
 
     def setFontFamily(self, which, family):
-        for settings in self._settings:
+        for settings in self._settings():
             settings.setFontFamily(which, family)
 
     def setFontSize(self, fonttype, size):
-        for settings in self._settings:
+        for settings in self._settings():
             settings.setFontSize(fonttype, size)
 
     def setDefaultTextEncoding(self, encoding):
-        for settings in self._settings:
+        for settings in self._settings():
             settings.setDefaultTextEncoding(encoding)
 
     def setUnknownUrlSchemePolicy(self, policy):
-        for settings in self._settings:
+        for settings in self._settings():
             settings.setUnknownUrlSchemePolicy(policy)
 
     def testAttribute(self, attribute):
-        return self._settings[0].testAttribute(attribute)
+        return default_profile.settings().testAttribute(attribute)
 
     def fontSize(self, fonttype):
-        return self._settings[0].fontSize(fonttype)
+        return default_profile.settings().fontSize(fonttype)
 
     def fontFamily(self, which):
-        return self._settings[0].fontFamily(which)
+        return default_profile.settings().fontFamily(which)
 
     def defaultTextEncoding(self):
-        return self._settings[0].defaultTextEncoding()
+        return default_profile.settings().defaultTextEncoding()
 
     def unknownUrlSchemePolicy(self):
-        return self._settings[0].unknownUrlSchemePolicy()
+        return default_profile.settings().unknownUrlSchemePolicy()
 
 
 class WebEngineSettings(websettings.AbstractSettings):
@@ -360,9 +360,9 @@ def init_user_agent():
     _init_user_agent_str(QWebEngineProfile.defaultProfile().httpUserAgent())
 
 
-def _init_profiles():
-    """Init the two used QWebEngineProfiles."""
-    global default_profile, private_profile
+def _init_default_profile():
+    """Init the default QWebEngineProfile."""
+    global default_profile
 
     default_profile = QWebEngineProfile.defaultProfile()
     init_user_agent()
@@ -375,6 +375,11 @@ def _init_profiles():
         os.path.join(standarddir.data(), 'webengine'))
     default_profile.setter.init_profile()
     default_profile.setter.set_persistent_cookie_policy()
+
+
+def init_private_profile():
+    """Init the private QWebEngineProfile."""
+    global private_profile
 
     if not qtutils.is_single_process():
         private_profile = QWebEngineProfile()
@@ -450,7 +455,8 @@ def init(args):
     webenginequtescheme.init()
     spell.init()
 
-    _init_profiles()
+    _init_default_profile()
+    init_private_profile()
     config.instance.changed.connect(_update_settings)
 
     global global_settings

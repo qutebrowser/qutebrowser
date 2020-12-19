@@ -1,27 +1,26 @@
 #!/usr/bin/env node
-// 
+//
 // # Description
-// 
+//
 // Summarize the current page in a new tab, by processing it with the standalone readability
 // library used for Firefox Reader View.
-// 
+//
 // # Prerequisites
-// 
-//   - NODE_PATH might be required to point to your global node libraries:
+//
+//   - Setting NODE_PATH might be required to point qutebrowser to your global node libraries:
 //     export NODE_PATH=$NODE_PATH:$(npm root -g)
-//   - Mozilla's readability library (npm install -g https://github.com/mozilla/readability.git)
-//     NOTE: You might have to *login* as root for a system-wide installation to work (e.g. sudo -s)
+//   - Mozilla's readability library (npm install -g @mozilla/readability)
 //   - jsdom (npm install -g jsdom)
 //   - qutejs (npm install -g qutejs)
-// 
+//
 // # Usage
-// 
+//
 // :spawn --userscript readability-js
-// 
-// One may wish to define an easy to type command alias in Qutebrowser's configuration file:
+//
+// One may wish to define an easy to type command alias in qutebrowser's configuration file:
 // c.aliases = {"readability" : "spawn --userscript readability-js", ...}
 
-const Readability = require('readability');
+const { Readability } = require('@mozilla/readability');
 const qute = require('qutejs');
 const JSDOM = require('jsdom').JSDOM;
 const fs = require('fs');

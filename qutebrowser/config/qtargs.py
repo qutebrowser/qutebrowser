@@ -50,6 +50,7 @@ def qt_args(namespace: argparse.Namespace) -> typing.List[str]:
     argv += ['--' + arg for arg in config.val.qt.args]
 
     if objects.backend != usertypes.Backend.QtWebEngine:
+        assert objects.backend == usertypes.Backend.QtWebKit, objects.backend
         return argv
 
     feature_flags = [flag for flag in argv
@@ -307,6 +308,8 @@ def init_envvars() -> None:
             os.environ['QT_QUICK_BACKEND'] = 'software'
         elif software_rendering == 'chromium':
             os.environ['QT_WEBENGINE_DISABLE_NOUVEAU_WORKAROUND'] = '1'
+    else:
+        assert objects.backend == usertypes.Backend.QtWebKit, objects.backend
 
     if config.val.qt.force_platform is not None:
         os.environ['QT_QPA_PLATFORM'] = config.val.qt.force_platform

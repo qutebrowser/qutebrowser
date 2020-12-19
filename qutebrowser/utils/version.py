@@ -337,16 +337,14 @@ def _pdfjs_version() -> str:
     else:
         pdfjs_file = pdfjs_file.decode('utf-8')
         version_re = re.compile(
-            r"^ *(PDFJS\.version|var pdfjsVersion) = '([^']+)';$",
+            r"^ *(PDFJS\.version|(var|const) pdfjsVersion) = '(?P<version>[^']+)';$",
             re.MULTILINE)
 
         match = version_re.search(pdfjs_file)
-        if not match:
-            pdfjs_version = 'unknown'
-        else:
-            pdfjs_version = match.group(2)
+        pdfjs_version = 'unknown' if not match else match.group('version')
         if file_path is None:
             file_path = 'bundled'
+
         return '{} ({})'.format(pdfjs_version, file_path)
 
 
@@ -360,6 +358,7 @@ def _chromium_version() -> str:
 
     Qt 5.7:  Chromium 49
              49.0.2623.111 (2016-03-31)
+             5.7.0: Security fixes from Chromium 50 and 51
              5.7.1: Security fixes up to 54.0.2840.87 (2016-11-01)
 
     Qt 5.8:  Chromium 53
@@ -368,34 +367,64 @@ def _chromium_version() -> str:
 
     Qt 5.9:  Chromium 56
     (LTS)    56.0.2924.122 (2017-01-25)
+             5.9.0: Security fixes up to 56.0.2924.122 (?)
+             5.9.1: Security fixes up to 59.0.3071.104 (2017-06-15)
+             5.9.2: Security fixes up to 61.0.3163.79  (2017-09-05)
+             5.9.3: Security fixes up to 62.0.3202.89  (2017-11-06)
+             5.9.4: Security fixes up to 63.0.3239.132 (~2017-12-14)
+             5.9.5: Security fixes up to 65.0.3325.146 (~2018-03-13)
+             5.9.6: Security fixes up to 66.0.3359.170 (2018-05-10)
+             5.9.7: Security fixes up to 69.0.3497.113 (~2018-09-11)
+             5.9.8: Security fixes up to 72.0.3626.121 (2019-03-01)
              5.9.9: Security fixes up to 78.0.3904.108 (2019-11-18)
 
     Qt 5.10: Chromium 61
              61.0.3163.140 (2017-09-05)
+             5.10.0: Security fixes up to 62.0.3202.94  (2017-11-13)
              5.10.1: Security fixes up to 64.0.3282.140 (2018-02-01)
 
     Qt 5.11: Chromium 65
-             65.0.3325.151 (.1: .230) (2018-03-06)
+             65.0.3325.151 (2018-03-06)
+             5.11.0: Security fixes up to 66.0.3359.139 (2018-04-26)
+             5.11.1: Updated to 65.0.3325.15.230
+                     Security fixes up to 67.0.3396.87  (2018-06-12)
+             5.11.2: Security fixes up to 68.0.3440.75  (~2018-07-31)
              5.11.3: Security fixes up to 70.0.3538.102 (2018-11-09)
 
     Qt 5.12: Chromium 69
-    (LTS)    69.0.3497.113 (2018-09-27)
-             5.12.9: Security fixes up to 83.0.4103.97 (2020-06-03)
+    (LTS)    69.0.3497.128 (~2018-09-11)
+             5.12.0: Security fixes up to 70.0.3538.102 (~2018-10-24)
+             5.12.1: Security fixes up to 71.0.3578.94  (2018-12-12)
+             5.12.2: Security fixes up to 72.0.3626.121 (2019-03-01)
+             5.12.3: Security fixes up to 73.0.3683.75  (2019-03-12)
+             5.12.4: Security fixes up to 74.0.3729.157 (2019-05-14)
+             5.12.5: Security fixes up to 76.0.3809.87  (2019-07-30)
+             5.12.6: Security fixes up to 77.0.3865.120 (~2019-09-10)
+             5.12.7: Security fixes up to 79.0.3945.130 (2020-01-16)
+             5.12.8: Security fixes up to 80.0.3987.149 (2020-03-18)
+             5.12.9: Security fixes up to 83.0.4103.97  (2020-06-03)
 
     Qt 5.13: Chromium 73
              73.0.3683.105 (~2019-02-28)
+             5.13.0: Security fixes up to 74.0.3729.157 (2019-05-14)
+             5.13.1: Security fixes up to 76.0.3809.87  (2019-07-30)
              5.13.2: Security fixes up to 77.0.3865.120 (2019-10-10)
 
     Qt 5.14: Chromium 77
              77.0.3865.129 (~2019-10-10)
+             5.14.0: Security fixes up to 77.0.3865.129 (~2019-09-10)
+             5.14.1: Security fixes up to 79.0.3945.117 (2020-01-07)
              5.14.2: Security fixes up to 80.0.3987.132 (2020-03-03)
 
     Qt 5.15: Chromium 80
              80.0.3987.163 (2020-04-02)
              5.15.0: Security fixes up to 81.0.4044.138 (2020-05-05)
 
-    Also see https://www.chromium.org/developers/calendar
-    and https://chromereleases.googleblog.com/
+    Also see:
+
+    - https://chromiumdash.appspot.com/schedule
+    - https://www.chromium.org/developers/calendar
+    - https://chromereleases.googleblog.com/
     """
     if webenginesettings is None:
         return 'unavailable'  # type: ignore[unreachable]
@@ -411,10 +440,11 @@ def _backend() -> str:
     """Get the backend line with relevant information."""
     if objects.backend == usertypes.Backend.QtWebKit:
         return 'new QtWebKit (WebKit {})'.format(qWebKitVersion())
-    else:
+    elif objects.backend == usertypes.Backend.QtWebEngine:
         webengine = usertypes.Backend.QtWebEngine
         assert objects.backend == webengine, objects.backend
         return 'QtWebEngine (Chromium {})'.format(_chromium_version())
+    raise utils.Unreachable(objects.backend)
 
 
 def _uptime() -> datetime.timedelta:

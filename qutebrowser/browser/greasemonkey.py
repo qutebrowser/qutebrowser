@@ -136,6 +136,7 @@ class GreasemonkeyScript:
         those by forcing them to use document-end instead.
         """
         if objects.backend != usertypes.Backend.QtWebEngine:
+            assert objects.backend == usertypes.Backend.QtWebKit, objects.backend
             return False
         elif not qtutils.version_check('5.12', compiled=False):
             return False

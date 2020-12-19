@@ -59,6 +59,26 @@ def test_size_hint(view):
     assert height2 == height1 * 2
 
 
+def test_word_wrap(view, qtbot):
+    """A long message should be wrapped."""
+    with qtbot.waitSignal(view._clear_timer.timeout):
+        view.show_message(usertypes.MessageLevel.info, 'short')
+        height1 = view.sizeHint().height()
+        assert height1 > 0
+
+    text = ("Athene, the bright-eyed goddess, answered him at once: Father of "
+            "us all, Son of Cronos, Highest King, clearly that man deserved to be "
+            "destroyed: so let all be destroyed who act as he did. But my heart aches "
+            "for Odysseus, wise but ill fated, who suffers far from his friends on an "
+            "island deep in the sea.")
+
+    view.show_message(usertypes.MessageLevel.info, text)
+    height2 = view.sizeHint().height()
+
+    assert height2 > height1
+    assert view._messages[0].wordWrap()
+
+
 def test_show_message_twice(view):
     """Show the same message twice -> only one should be shown."""
     view.show_message(usertypes.MessageLevel.info, 'test')

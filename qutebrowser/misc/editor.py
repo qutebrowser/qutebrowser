@@ -65,7 +65,9 @@ class ExternalEditor(QObject):
     def _cleanup(self):
         """Clean up temporary files after the editor closed."""
         assert self._remove_file is not None
-        if self._watcher is not None and self._watcher.files():
+        if (self._watcher is not None and
+                not sip.isdeleted(self._watcher) and
+                self._watcher.files()):
             failed = self._watcher.removePaths(self._watcher.files())
             if failed:
                 log.procs.error("Failed to unwatch paths: {}".format(failed))

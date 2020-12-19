@@ -34,7 +34,7 @@ from qutebrowser.completion import completiondelegate
     ('foo', 'barfoobaz', [(3, 3)]),
     ('foo', 'barfoobazfoo', [(3, 3), (9, 3)]),
     ('foo', 'foofoo', [(0, 3), (3, 3)]),
-    ('a|b', 'cadb', [(1, 1), (3, 1)]),
+    ('a b', 'cadb', [(1, 1), (3, 1)]),
     ('foo', '<foo>', [(1, 3)]),
     ('<a>', "<a>bc", [(0, 3)]),
 
@@ -42,6 +42,10 @@ from qutebrowser.completion import completiondelegate
     ('foo', "'foo'", [(1, 3)]),
     ('x', "'x'", [(1, 1)]),
     ('lt', "<lt", [(1, 2)]),
+
+    # See https://github.com/qutebrowser/qutebrowser/pull/5111
+    ('bar', '\U0001d65b\U0001d664\U0001d664bar', [(6, 3)]),
+    ('an anomaly', 'an anomaly', [(0, 2), (3, 7)]),
 ])
 def test_highlight(pat, txt, segments):
     doc = QTextDocument(txt)
@@ -51,6 +55,18 @@ def test_highlight(pat, txt, segments):
     highlighter.setFormat.assert_has_calls([
         mock.call(s[0], s[1], mock.ANY) for s in segments
     ])
+
+
+def test_benchmark_highlight(benchmark):
+    txt = 'boofoobar'
+    pat = 'foo bar'
+    doc = QTextDocument(txt)
+
+    def bench():
+        highlighter = completiondelegate._Highlighter(doc, pat, Qt.red)
+        highlighter.highlightBlock(txt)
+
+    benchmark(bench)
 
 
 def test_highlighted(qtbot):

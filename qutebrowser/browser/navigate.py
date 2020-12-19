@@ -132,6 +132,8 @@ def path_up(url, count):
         url: The current url.
         count: The number of levels to go up in the url.
     """
+    urlutils.ensure_valid(url)
+    url = url.adjusted(QUrl.RemoveFragment | QUrl.RemoveQuery)
     path = url.path()
     if not path or path == '/':
         raise Error("Can't go up!")
@@ -140,6 +142,14 @@ def path_up(url, count):
     path = posixpath.normpath(path)
     url.setPath(path)
     return url
+
+
+def strip(url, count):
+    """Strip fragment/query from a URL."""
+    if count != 1:
+        raise Error("Count is not supported when stripping URL components")
+    urlutils.ensure_valid(url)
+    return url.adjusted(QUrl.RemoveFragment | QUrl.RemoveQuery)
 
 
 def _find_prevnext(prev, elems):

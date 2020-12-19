@@ -227,11 +227,11 @@ def test_skipped_non_linux(covtest):
 def _generate_files():
     """Get filenames from WHITELISTED_/PERFECT_FILES."""
     for src_file in check_coverage.WHITELISTED_FILES:
-        yield pathlib.Path('qutebrowser') / src_file
+        yield pathlib.Path(src_file)
     for test_file, src_file in check_coverage.PERFECT_FILES:
         if test_file is not None:
             yield pathlib.Path(test_file)
-        yield pathlib.Path('qutebrowser') / src_file
+        yield pathlib.Path(src_file)
 
 
 @pytest.mark.parametrize('filename', list(_generate_files()))

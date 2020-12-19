@@ -72,9 +72,11 @@ def create(win_id: int,
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginetab
         tab_class = webenginetab.WebEngineTab  # type: typing.Type[AbstractTab]
-    else:
+    elif objects.backend == usertypes.Backend.QtWebKit:
         from qutebrowser.browser.webkit import webkittab
         tab_class = webkittab.WebKitTab
+    else:
+        raise utils.Unreachable(objects.backend)
     return tab_class(win_id=win_id, mode_manager=mode_manager, private=private,
                      parent=parent)
 
@@ -84,6 +86,8 @@ def init() -> None:
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginetab
         webenginetab.init()
+        return
+    assert objects.backend == usertypes.Backend.QtWebKit, objects.backend
 
 
 class WebTabError(Exception):

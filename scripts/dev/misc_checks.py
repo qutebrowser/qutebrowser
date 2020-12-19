@@ -162,7 +162,7 @@ def check_userscripts_descriptions():
             described.add(match.group(1))
 
     present = {path.name for path in folder.iterdir()}
-    present.remove('README.md')
+    present -= {'README.md', '.mypy_cache', '__pycache__'}
 
     missing = present - described
     additional = described - present

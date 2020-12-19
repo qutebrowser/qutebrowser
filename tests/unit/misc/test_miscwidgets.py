@@ -18,10 +18,9 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-from unittest import mock
 
 from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import QWidget
 import pytest
 
 from qutebrowser.misc import miscwidgets
@@ -40,19 +39,6 @@ class TestCommandLineEdit:
         qtbot.add_widget(cmd_edit)
         assert cmd_edit.text() == ''
         yield cmd_edit
-
-    @pytest.fixture
-    def mock_clipboard(self, mocker):
-        """Fixture to mock QApplication.clipboard.
-
-        Return:
-            The mocked QClipboard object.
-        """
-        mocker.patch.object(QApplication, 'clipboard')
-        clipboard = mock.MagicMock()
-        clipboard.supportsSelection.return_value = True
-        QApplication.clipboard.return_value = clipboard
-        return clipboard
 
     def test_position(self, qtbot, cmd_edit):
         """Test cursor position based on the prompt."""

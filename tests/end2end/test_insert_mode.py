@@ -58,6 +58,7 @@ def test_insert_mode(file_name, elem_id, source, input_text, zoom,
     (True, False, True),  # enabled and foreground tab
     (True, True, False),  # background tab
 ])
+@pytest.mark.flaky
 def test_auto_load(quteproc, auto_load, background, insert_mode):
     quteproc.set_setting('input.insert_mode.auto_load', str(auto_load))
     url_path = 'data/insert_mode_settings/html/autofocus.html'

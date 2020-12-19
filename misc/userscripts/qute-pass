@@ -27,7 +27,7 @@ for example: "github.com/cryzed" or "websites/github.com". How the username and
 password are determined is freely configurable using the CLI arguments. As an
 example, if you instead store the username as part of the secret (and use a
 site's name as filename), instead of the default configuration, use
-`--username-target secret` and `--username-regex "username: (.+)"`.
+`--username-target secret` and `--username-pattern "username: (.+)"`.
 
 The login information is inserted by emulating key events using qutebrowser's
 fake-key command in this manner: [USERNAME]<Tab>[PASSWORD], which is compatible
