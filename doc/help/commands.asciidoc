@@ -29,7 +29,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Command|Description
-|<<adblock-update,adblock-update>>|Update the adblock block lists for both the host blocker and the brave adblocker.
+|<<adblock-update,adblock-update>>|Update block lists for both the host- and the Brave ad blocker.
 |<<back,back>>|Go back in the history of the current tab.
 |<<bind,bind>>|Bind a key to a command.
 |<<bookmark-add,bookmark-add>>|Save the current page as a bookmark, or a specific url.
@@ -139,7 +139,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |==============
 [[adblock-update]]
 === adblock-update
-Update the adblock block lists for both the host blocker and the brave adblocker.
+Update block lists for both the host- and the Brave ad blocker.
 
 [[back]]
 === back

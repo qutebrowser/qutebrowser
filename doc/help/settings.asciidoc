@@ -137,7 +137,7 @@
 |<<completion.web_history.max_items,completion.web_history.max_items>>|Number of URLs to show in the web history.
 |<<confirm_quit,confirm_quit>>|Require a confirmation before quitting the application.
 |<<content.autoplay,content.autoplay>>|Automatically start playing `<video>` elements.
-|<<content.blocking.adblock.lists,content.blocking.adblock.lists>>|List of URLs of lists which contain adblock rules.
+|<<content.blocking.adblock.lists,content.blocking.adblock.lists>>|List of URLs to ABP-style adblocking rulesets.
 |<<content.blocking.enabled,content.blocking.enabled>>|Enable the ad blocker
 |<<content.blocking.hosts.lists,content.blocking.hosts.lists>>|List of URLs of lists which contain hosts to block.
 |<<content.blocking.method,content.blocking.method>>|Which method of blocking ads should be used.
@@ -1907,7 +1907,7 @@ This setting is only available with the QtWebEngine backend.
 
 [[content.blocking.adblock.lists]]
 === content.blocking.adblock.lists
-List of URLs of lists which contain adblock rules.
+List of URLs to ABP-style adblocking rulesets.
 
 
 Type: <<types,List of Url>>
@@ -1956,8 +1956,7 @@ Which method of blocking ads should be used.
 
 Support for Adblock Plus syntax blocklists requires the `adblock` Python
 package to be installed, which is an optional dependency of qutebrowser.
-It can be installed using the command `pip install --user adblock`. This
-is required when either `adblock` or `both` are selected.
+It is required when either `adblock` or `both` are selected.
 
 
 Type: <<types,String>>
@@ -1974,6 +1973,7 @@ Default: +pass:[auto]+
 [[content.blocking.whitelist]]
 === content.blocking.whitelist
 A list of patterns that should always be loaded, despite being ad-blocked. Local domains are always exempt from adblocking.
+Note this whitelists otherwise blocked requests, not first-party URLs. As an example, if `example.org` loads an ad from `ads.example.org`, the whitelist entry could be `https://ads.example.org/*`. If you want to disable the adblocker on a given page, use the `content.host_blocking.enabled` setting with a URL pattern instead.
 
 Type: <<types,List of UrlPattern>>
 
