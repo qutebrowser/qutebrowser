@@ -56,8 +56,7 @@ def _should_be_used() -> bool:
 
     Here we assume the adblock dependency is satisfied.
     """
-    method = config.val.content.blocking.method
-    return method in ("auto", "both", "adblock")
+    return config.val.content.blocking.method in ("auto", "both", "adblock")
 
 
 def _possibly_show_missing_dependency_warning() -> None:
@@ -68,18 +67,19 @@ def _possibly_show_missing_dependency_warning() -> None:
     error message.
     """
     method = config.val.content.blocking.method
-    if method in ("both", "adblock"):
-        if _outdated_version is not None:
-            message.warning(
-                f"Installed version {_outdated_version} of the"
-                " 'adblock' dependency is too old. Minimum supported is"
-                f" {version.MODULE_INFO['adblock'].min_version}."
-            )
-        else:
-            message.warning(
-                f"Ad blocking method is set to '{method}' but 'adblock' dependency"
-                " is not installed."
-            )
+    if method not in ("both", "adblock"):
+        return
+
+    if _outdated_version is not None:
+        message.warning(
+            f"Installed version {_outdated_version} of the 'adblock' dependency is too "
+            f"old. Minimum supported is {version.MODULE_INFO['adblock'].min_version}."
+        )
+    else:
+        message.warning(
+            f"Ad blocking method is set to '{method}' but 'adblock' dependency is not "
+            "installed."
+        )
 
 
 _RESOURCE_TYPE_STRINGS = {
@@ -117,7 +117,7 @@ class BraveAdBlocker:
     """Manage blocked hosts based on Brave's adblocker.
 
     Attributes:
-        enabled: Should we block ads or not
+        enabled: Whether to block ads or not.
         _has_basedir: Whether a custom --basedir is set.
         _cache_path: The path of the adblock engine cache file
         _engine: Brave ad-blocking engine.
@@ -168,7 +168,7 @@ class BraveAdBlocker:
             # request should not be blocked.
             #
             # An `important` match means that exceptions should not apply and
-            # no further checking is neccesary--the request should be blocked.
+            # no further checking is necessary--the request should be blocked.
             logger.debug(
                 "Excepting %s from being blocked by %s because of %s",
                 request_url.toDisplayString(),
@@ -212,8 +212,7 @@ class BraveAdBlocker:
         logger.info("Downloading adblock filter lists...")
 
         filter_set = adblock.FilterSet()
-        blocklists = config.val.content.blocking.adblock.lists
-        dl = blockutils.BlocklistDownloads(blocklists)
+        dl = blockutils.BlocklistDownloads(config.val.content.blocking.adblock.lists)
         dl.single_download_finished.connect(
             functools.partial(self._on_download_finished, filter_set=filter_set)
         )
@@ -251,8 +250,8 @@ class BraveAdBlocker:
         Arguments:
             fileobj: The finished download's contents.
         """
+        fileobj.seek(0)
         try:
-            fileobj.seek(0)
             with io.TextIOWrapper(fileobj, encoding="utf-8") as text_io:
                 filter_set.add_filter_list(text_io.read())
         except UnicodeDecodeError:
