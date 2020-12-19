@@ -95,23 +95,12 @@ def run_function_on_dataset(given_function):
     contains tuples of (url, source_url, type) in each line. We give these
     to values to the given function, row by row.
     """
-    dataset_type_to_enum = {
-        "unknown": ResourceType.unknown,
-        "image": ResourceType.image,
-        "stylesheet": ResourceType.stylesheet,
-        "media": ResourceType.media,
-        "script": ResourceType.script,
-        "font_resource": ResourceType.font_resource,
-        "xhr": ResourceType.xhr,
-        "sub_frame": ResourceType.sub_frame,
-    }
-
     dataset = utils.adblock_dataset_tsv()
     reader = csv.DictReader(dataset, delimiter="\t")
     for row in reader:
         url = QUrl(row["url"])
         source_url = QUrl(row["source_url"])
-        resource_type = dataset_type_to_enum[row["type"]]
+        resource_type = ResourceType[row["type"]]
         given_function(url, source_url, resource_type)
 
 
