@@ -25,7 +25,7 @@ import os.path
 from PyQt5.QtNetwork import QNetworkDiskCache
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils, qtutils, standarddir
+from qutebrowser.utils import utils, standarddir
 
 
 diskcache = cast('DiskCache', None)
@@ -52,9 +52,6 @@ class DiskCache(QNetworkDiskCache):
         size = config.val.content.cache.size
         if size is None:
             size = 1024 * 1024 * 50  # default from QNetworkDiskCachePrivate
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-59909
-        if not qtutils.version_check('5.9', compiled=False):
-            size = 0  # pragma: no cover
         self.setMaximumCacheSize(size)
 
 

@@ -25,7 +25,7 @@ import inspect
 import os.path
 import collections
 import enum
-from typing import Callable, Dict, Optional, List, Union
+from typing import Callable, MutableMapping, Optional, List, Union
 
 import qutebrowser
 from qutebrowser.utils import log, utils
@@ -98,7 +98,8 @@ class DocstringParser:
         self._cur_arg_name: Optional[str] = None
         self._short_desc_parts: List[str] = []
         self._long_desc_parts: List[str] = []
-        self.arg_descs: Dict[str, Union[str, List[str]]] = collections.OrderedDict()
+        self.arg_descs: MutableMapping[
+            str, Union[str, List[str]]] = collections.OrderedDict()
         doc = inspect.getdoc(func)
         handlers = {
             self.State.short: self._parse_short,

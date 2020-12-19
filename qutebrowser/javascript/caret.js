@@ -774,13 +774,6 @@ window._qutebrowser.caret = (function() {
     CaretBrowsing.isWindows = null;
 
     /**
-     * Whether we're running on on old Qt 5.7.1.
-     * There, we need to use -webkit-filter.
-     * @type {boolean}
-     */
-    CaretBrowsing.needsFilterPrefix = null;
-
-    /**
      * The id returned by window.setInterval for our stopAnimation function, so
      * we can cancel it when we call stopAnimation again.
      * @type {number?}
@@ -863,7 +856,6 @@ window._qutebrowser.caret = (function() {
     };
 
     CaretBrowsing.injectCaretStyles = function() {
-        const prefix = CaretBrowsing.needsFilterPrefix ? "-webkit-" : "";
         const style = `
             .CaretBrowsing_Caret {
               position: absolute;
@@ -875,7 +867,7 @@ window._qutebrowser.caret = (function() {
               background-color: var(--inherited-color, #000);
               color: var(--inherited-color, #000);
               mix-blend-mode: difference;
-              ${prefix}filter: invert(85%);
+              filter: invert(85%);
             }
             @keyframes blink {
               50% { visibility: hidden; }
@@ -1355,7 +1347,6 @@ window._qutebrowser.caret = (function() {
 
     funcs.setFlags = (flags) => {
         CaretBrowsing.isWindows = flags.includes("windows");
-        CaretBrowsing.needsFilterPrefix = flags.includes("filter-prefix");
     };
 
     funcs.disableCaret = () => {

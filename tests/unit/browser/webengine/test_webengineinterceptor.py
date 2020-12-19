@@ -27,8 +27,6 @@ pytest.importorskip('PyQt5.QtWebEngineWidgets')
 from PyQt5.QtWebEngineCore import QWebEngineUrlRequestInfo
 
 from qutebrowser.browser.webengine import interceptor
-from qutebrowser.extensions import interceptors
-from qutebrowser.utils import qtutils
 
 
 def test_no_missing_resource_types():
@@ -42,8 +40,4 @@ def test_no_missing_resource_types():
 def test_resource_type_values():
     request_interceptor = interceptor.RequestInterceptor()
     for qt_value, qb_item in request_interceptor._resource_types.items():
-        if (qtutils.version_check('5.7.1', exact=True, compiled=False) and
-                qb_item == interceptors.ResourceType.unknown):
-            # Qt 5.7 has ResourceTypeUnknown = 18 instead of 255
-            continue
         assert qt_value == qb_item.value

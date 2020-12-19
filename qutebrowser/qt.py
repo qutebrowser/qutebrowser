@@ -20,9 +20,4 @@
 """Wrappers around Qt/PyQt code."""
 
 # pylint: disable=unused-import
-# PyQt 5.11 comes with a bundled sip,
-# for older PyQt versions it's a separate module.
-try:
-    from PyQt5 import sip
-except ImportError:
-    import sip  # type: ignore[import, no-redef]
+from PyQt5 import sip

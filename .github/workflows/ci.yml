@@ -13,7 +13,7 @@ jobs:
   linters:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
     timeout-minutes: 10
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -100,45 +100,34 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          ### PyQt 5.9 (Python 3.6)
-          - testenv: py36-pyqt59
-            os: ubuntu-18.04
-            python: 3.6
-          ### PyQt 5.10 (Python 3.6)
-          - testenv: py36-pyqt510
+          ### PyQt 5.12 (Python 3.6)
+          - testenv: py36-pyqt512
             os: ubuntu-20.04
             python: 3.6
-          ### PyQt 5.11 (Python 3.7)
-          - testenv: py37-pyqt511
+          ### PyQt 5.13 (Python 3.7)
+          - testenv: py37-pyqt513
             os: ubuntu-20.04
             python: 3.7
-          ### PyQt 5.12 (Python 3.8)
-          - testenv: py38-pyqt512
-            os: ubuntu-20.04
-            python: 3.8
-          ### PyQt 5.13 (Python 3.8)
-          - testenv: py38-pyqt513
-            os: ubuntu-20.04
-            python: 3.8
           ### PyQt 5.14 (Python 3.8)
           - testenv: py38-pyqt514
             os: ubuntu-20.04
             python: 3.8
-          ### PyQt 5.15 (Python 3.9)
-          - testenv: py39-pyqt515
+          ### PyQt 5.15 (Python 3.9, with coverage)
+          - testenv: py39-pyqt515-cov
             os: ubuntu-20.04
             python: 3.9
-          ### PyQt 5.15 (Python 3.8, with coverage)
-          - testenv: py38-pyqt515-cov
-            os: ubuntu-20.04
-            python: 3.8
-          ### macOS: PyQt 5.14 (Python 3.7)
-          - testenv: py37-pyqt514
+          ### macOS: PyQt 5.15 (Python 3.7 to match PyInstaller env)
+          - testenv: py37-pyqt515
             os: macos-10.15
             python: 3.7
             args: "tests/unit"  # Only run unit tests on macOS
-          ### Windows: PyQt 5.14 (Python 3.7)
-          - testenv: py37-pyqt514
+          ### macOS Big Sur
+          - testenv: py37-pyqt515
+            os: macos-11.0
+            python: 3.7
+            args: "tests/unit"  # Only run unit tests on macOS
+          ### Windows: PyQt 5.15 (Python 3.7 to match PyInstaller env)
+          - testenv: py37-pyqt515
             os: windows-2019
             python: 3.7
     runs-on: "${{ matrix.os }}"
@@ -180,7 +169,7 @@ jobs:
   codeql:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
     timeout-minutes: 30
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -202,7 +191,7 @@ jobs:
   irc:
     timeout-minutes: 2
     continue-on-error: true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [linters, tests, tests-docker, codeql]
     if: "always() && github.repository_owner == 'qutebrowser'"
     steps:

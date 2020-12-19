@@ -324,9 +324,6 @@ def test_drop_selection(caret, selection):
 
 class TestSearch:
 
-    # https://bugreports.qt.io/browse/QTBUG-60673
-
-    @pytest.mark.qtbug60673
     @pytest.mark.no_xvfb
     def test_yanking_a_searched_line(self, caret, selection, mode_manager, web_tab, qtbot):
         mode_manager.leave(usertypes.KeyMode.caret)
@@ -339,7 +336,6 @@ class TestSearch:
         caret.move_to_end_of_line()
         selection.check('five six')
 
-    @pytest.mark.qtbug60673
     @pytest.mark.no_xvfb
     def test_yanking_a_searched_line_with_multiple_matches(self, caret, selection, mode_manager, web_tab, qtbot):
         mode_manager.leave(usertypes.KeyMode.caret)

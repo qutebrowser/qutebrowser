@@ -21,7 +21,7 @@
 
 import operator
 import enum
-from typing import TYPE_CHECKING, Any, Optional, Sequence, TypeVar, Union
+from typing import Any, Optional, Sequence, TypeVar, Union
 
 import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
@@ -30,19 +30,7 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.utils import log, qtutils, utils
 
 
-if TYPE_CHECKING:
-    # Protocol was added in Python 3.8
-    from typing import Protocol
-
-    class SupportsLessThan(Protocol):
-
-        """Protocol for the _T TypeVar below."""
-
-        def __lt__(self, other: Any) -> bool:
-            ...
-
-
-_T = TypeVar('_T', bound='SupportsLessThan')
+_T = TypeVar('_T', bound=utils.SupportsLessThan)
 
 
 class Unset:

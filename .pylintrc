@@ -75,7 +75,7 @@ valid-metaclass-classmethod-first-arg=cls
 
 [TYPECHECK]
 ignored-modules=PyQt5,PyQt5.QtWebKit
-ignored-classes=DummyBox
+ignored-classes=DummyBox,__cause__
 
 [IMPORTS]
 known-third-party=sip

@@ -21,14 +21,13 @@
 
 import re
 import os.path
-import urllib
 import functools
 
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QObject
 from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
 
 from qutebrowser.browser import downloads, pdfjs
-from qutebrowser.utils import debug, usertypes, message, log, qtutils, objreg
+from qutebrowser.utils import debug, usertypes, message, log, objreg
 
 
 class DownloadItem(downloads.AbstractDownloadItem):
@@ -84,12 +83,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
             self.stats.finish()
         elif state == QWebEngineDownloadItem.DownloadInterrupted:
             self.successful = False
-            # https://bugreports.qt.io/browse/QTBUG-56839
-            try:
-                reason = self._qt_item.interruptReasonString()
-            except AttributeError:
-                # Qt < 5.9
-                reason = "Download failed"
+            reason = self._qt_item.interruptReasonString()
             self._die(reason)
         else:
             raise ValueError("_on_state_changed was called with unknown state "
@@ -102,22 +96,21 @@ class DownloadItem(downloads.AbstractDownloadItem):
             self._qt_item.cancel()
 
     def _do_cancel(self):
+        state = self._qt_item.state()
+        state_name = debug.qenum_key(QWebEngineDownloadItem, state)
+        assert state not in [QWebEngineDownloadItem.DownloadCompleted,
+                             QWebEngineDownloadItem.DownloadCancelled], state_name
         self._qt_item.cancel()
 
     def retry(self):
         state = self._qt_item.state()
         if state != QWebEngineDownloadItem.DownloadInterrupted:
             log.downloads.warning(
-                "Trying to retry download in state {}".format(
+                "Refusing to retry download in state {}".format(
                     debug.qenum_key(QWebEngineDownloadItem, state)))
             return
 
-        try:
-            self._qt_item.resume()
-        except AttributeError:
-            raise downloads.UnsupportedOperationError(
-                "Retrying downloads is unsupported with QtWebEngine on "
-                "Qt/PyQt < 5.10")
+        self._qt_item.resume()
 
     def _get_open_filename(self):
         return self._filename
@@ -233,14 +226,7 @@ def _get_suggested_filename(path):
       (?=\.|$)  # Begin of extension, or filename without extension
     """, re.VERBOSE)
 
-    filename = suffix_re.sub('', filename)
-    if not qtutils.version_check('5.9', compiled=False):
-        # https://bugreports.qt.io/browse/QTBUG-58155
-        filename = urllib.parse.unquote(filename)
-        # Doing basename a *second* time because there could be a %2F in
-        # there...
-        filename = os.path.basename(filename)
-    return filename
+    return suffix_re.sub('', filename)
 
 
 class DownloadManager(downloads.AbstractDownloadManager):

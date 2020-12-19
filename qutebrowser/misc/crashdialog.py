@@ -28,9 +28,8 @@ import fnmatch
 import traceback
 import datetime
 import enum
-import typing
+from typing import List, Tuple
 
-import pkg_resources
 from PyQt5.QtCore import pyqtSlot, Qt, QSize
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout, QCheckBox,
@@ -119,7 +118,7 @@ class _CrashDialog(QDialog):
         super().__init__(parent)
         # We don't set WA_DeleteOnClose here as on an exception, we'll get
         # closed anyways, and it only could have unintended side-effects.
-        self._crash_info = []  # type: typing.List[typing.Tuple[str, str]]
+        self._crash_info: List[Tuple[str, str]] = []
         self._btn_box = None
         self._paste_text = None
         self.setWindowTitle("Whoops!")
@@ -361,8 +360,8 @@ class _CrashDialog(QDialog):
         Args:
             newest: The newest version as a string.
         """
-        new_version = pkg_resources.parse_version(newest)
-        cur_version = pkg_resources.parse_version(qutebrowser.__version__)
+        new_version = utils.parse_version(newest)
+        cur_version = utils.parse_version(qutebrowser.__version__)
         lines = ['The report has been sent successfully. Thanks!']
         if new_version > cur_version:
             lines.append("<b>Note:</b> The newest available version is v{}, "

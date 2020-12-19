@@ -27,9 +27,6 @@ from qutebrowser.misc import objects
 from helpers import utils
 
 
-pytestmark = utils.qt510
-
-
 @pytest.fixture(autouse=True)
 def patch_backend(monkeypatch):
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
@@ -156,9 +153,6 @@ def test_customization(config_stub, monkeypatch, setting, value, exp_key, exp_va
 
 @pytest.mark.parametrize('qversion, webengine_version, expected', [
     # Without PYQT_WEBENGINE_VERSION
-    ('5.9.9', None, darkmode.Variant.unavailable),
-    ('5.10.1', None, darkmode.Variant.qt_510),
-    ('5.11.3', None, darkmode.Variant.qt_511_to_513),
     ('5.12.9', None, darkmode.Variant.qt_511_to_513),
 
     # With PYQT_WEBENGINE_VERSION
@@ -173,6 +167,22 @@ def test_variant(monkeypatch, qversion, webengine_version, expected):
     monkeypatch.setattr(darkmode.qtutils, 'qVersion', lambda: qversion)
     monkeypatch.setattr(darkmode, 'PYQT_WEBENGINE_VERSION', webengine_version)
     assert darkmode._variant() == expected
+
+
+@pytest.mark.parametrize('value, is_valid, expected', [
+    ('invalid_value', False, darkmode.Variant.qt_515_0),
+    ('qt_515_2', True, darkmode.Variant.qt_515_2),
+])
+def test_variant_override(monkeypatch, caplog, value, is_valid, expected):
+    monkeypatch.setattr(darkmode.qtutils, 'qVersion', lambda: None)
+    monkeypatch.setattr(darkmode, 'PYQT_WEBENGINE_VERSION', 0x050f00)
+    monkeypatch.setenv('QUTE_DARKMODE_VARIANT', value)
+
+    with caplog.at_level(logging.WARNING):
+        assert darkmode._variant() == expected
+
+    log_msg = 'Ignoring invalid QUTE_DARKMODE_VARIANT=invalid_value'
+    assert (log_msg in caplog.messages) != is_valid
 
 
 def test_broken_smart_images_policy(config_stub, monkeypatch, caplog):
@@ -194,7 +204,6 @@ def test_broken_smart_images_policy(config_stub, monkeypatch, caplog):
     assert settings in expected
 
 
-@utils.qt510
 def test_new_chromium():
     """Fail if we encounter an unknown Chromium version.
 
@@ -224,5 +233,11 @@ def test_options(configdata_init):
 
         assert not opt.supports_pattern, name
         assert opt.restart, name
-        assert not opt.raw_backends['QtWebKit'], name
-        assert opt.raw_backends['QtWebEngine'] in ['Qt 5.10', 'Qt 5.14'], name
+
+        if opt.backends:
+            # On older Qt versions, this is an empty list.
+            assert opt.backends == [usertypes.Backend.QtWebEngine], name
+
+        if opt.raw_backends is not None:
+            assert not opt.raw_backends['QtWebKit'], name
+            assert opt.raw_backends['QtWebEngine'] == 'Qt 5.14', name

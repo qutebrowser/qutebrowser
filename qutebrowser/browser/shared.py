@@ -27,8 +27,7 @@ from typing import Callable, Mapping
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import config
-from qutebrowser.utils import (usertypes, message, log, objreg, jinja, utils,
-                               qtutils)
+from qutebrowser.utils import usertypes, message, log, objreg, jinja, utils
 from qutebrowser.mainwindow import mainwindow
 
 
@@ -76,13 +75,12 @@ def authentication_required(url, authenticator, abort_on):
     return answer
 
 
-def javascript_confirm(url, js_msg, abort_on, *, escape_msg=True):
+def javascript_confirm(url, js_msg, abort_on):
     """Display a javascript confirm prompt."""
     log.js.debug("confirm: {}".format(js_msg))
     if config.val.content.javascript.modal_dialog:
         raise CallSuper
 
-    js_msg = html.escape(js_msg) if escape_msg else js_msg
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
                                           js_msg)
     urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
@@ -92,7 +90,7 @@ def javascript_confirm(url, js_msg, abort_on, *, escape_msg=True):
     return bool(ans)
 
 
-def javascript_prompt(url, js_msg, default, abort_on, *, escape_msg=True):
+def javascript_prompt(url, js_msg, default, abort_on):
     """Display a javascript prompt."""
     log.js.debug("prompt: {}".format(js_msg))
     if config.val.content.javascript.modal_dialog:
@@ -100,7 +98,6 @@ def javascript_prompt(url, js_msg, default, abort_on, *, escape_msg=True):
     if not config.val.content.javascript.prompt:
         return (False, "")
 
-    js_msg = html.escape(js_msg) if escape_msg else js_msg
     msg = '<b>{}</b> asks:<br/>{}'.format(html.escape(url.toDisplayString()),
                                           js_msg)
     urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
@@ -115,7 +112,7 @@ def javascript_prompt(url, js_msg, default, abort_on, *, escape_msg=True):
         return (True, answer)
 
 
-def javascript_alert(url, js_msg, abort_on, *, escape_msg=True):
+def javascript_alert(url, js_msg, abort_on):
     """Display a javascript alert."""
     log.js.debug("alert: {}".format(js_msg))
     if config.val.content.javascript.modal_dialog:
@@ -124,7 +121,6 @@ def javascript_alert(url, js_msg, abort_on, *, escape_msg=True):
     if not config.val.content.javascript.alert:
         return
 
-    js_msg = html.escape(js_msg) if escape_msg else js_msg
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
                                           js_msg)
     urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
@@ -287,9 +283,7 @@ def get_user_stylesheet(searching=False):
             css += f.read()
 
     setting = config.val.scrolling.bar
-    overlay_bar_available = (qtutils.version_check('5.11', compiled=False) and
-                             not utils.is_mac)
-    if setting == 'overlay' and not overlay_bar_available:
+    if setting == 'overlay' and not utils.is_mac:
         setting = 'when-searching'
 
     if setting == 'never' or setting == 'when-searching' and not searching:

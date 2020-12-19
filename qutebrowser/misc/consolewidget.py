@@ -21,7 +21,7 @@
 
 import sys
 import code
-import typing
+from typing import MutableSequence
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 from PyQt5.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QApplication
@@ -165,7 +165,7 @@ class ConsoleWidget(QWidget):
             'objreg': objreg,
         }
         self._more = False
-        self._buffer = []  # type: typing.MutableSequence[str]
+        self._buffer: MutableSequence[str] = []
         self._lineedit = ConsoleLineEdit(namespace, self)
         self._lineedit.execute.connect(self.push)
         self._output = ConsoleTextEdit()

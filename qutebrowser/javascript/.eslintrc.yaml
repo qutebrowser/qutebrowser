@@ -12,9 +12,7 @@
 
 env:
     browser: true
-
-parserOptions:
-    ecmaVersion: 6
+    es6: true
 
 extends:
     "eslint:all"
@@ -31,7 +29,7 @@ rules:
     init-declarations: "off"
     no-plusplus: "off"
     no-extra-parens: "off"
-    id-length: ["error", {"exceptions": ["i", "k", "x", "y"]}]
+    id-length: ["error", {"exceptions": ["i", "k", "v", "x", "y"]}]
     object-shorthand: "off"
     max-statements: ["error", {"max": 40}]
     quotes: ["error", "double", {"avoidEscape": true}]
@@ -43,7 +41,7 @@ rules:
     func-names: "off"
     sort-keys: "off"
     no-warning-comments: "off"
-    max-len: ["error", {"ignoreUrls": true}]
+    max-len: ["error", {"ignoreUrls": true, "code": 88}]
     capitalized-comments: "off"
     prefer-destructuring: "off"
     line-comment-position: "off"

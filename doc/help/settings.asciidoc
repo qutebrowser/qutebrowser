@@ -329,6 +329,7 @@
 |<<url.yank_ignored_parameters,url.yank_ignored_parameters>>|URL parameters to strip with `:yank url`.
 |<<window.hide_decoration,window.hide_decoration>>|Hide the window decoration.
 |<<window.title_format,window.title_format>>|Format to use for the window title. The same placeholders like for
+|<<window.transparent,window.transparent>>|Set the main window background to transparent.
 |<<zoom.default,zoom.default>>|Default zoom level.
 |<<zoom.levels,zoom.levels>>|Available zoom levels.
 |<<zoom.mouse_divider,zoom.mouse_divider>>|Number of zoom increments to divide the mouse wheel movements to.
@@ -1586,9 +1587,7 @@ Valid values:
 
 Default: +pass:[lightness-cielab]+
 
-On QtWebEngine, this setting requires Qt 5.10 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[colors.webpage.darkmode.contrast]]
 === colors.webpage.darkmode.contrast
@@ -1601,9 +1600,7 @@ Type: <<types,Float>>
 
 Default: +pass:[0.0]+
 
-On QtWebEngine, this setting requires Qt 5.10 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[colors.webpage.darkmode.enabled]]
 === colors.webpage.darkmode.enabled
@@ -1629,9 +1626,7 @@ Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
-On QtWebEngine, this setting requires Qt 5.10 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[colors.webpage.darkmode.grayscale.all]]
 === colors.webpage.darkmode.grayscale.all
@@ -1644,9 +1639,7 @@ Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
-On QtWebEngine, this setting requires Qt 5.10 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[colors.webpage.darkmode.grayscale.images]]
 === colors.webpage.darkmode.grayscale.images
@@ -1666,7 +1659,7 @@ On QtWebKit, this setting is unavailable.
 [[colors.webpage.darkmode.policy.images]]
 === colors.webpage.darkmode.policy.images
 Which images to apply dark mode to.
-With QtWebEngine 5.15.0, this setting can cause frequent renderer process crashes due to a https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug in Qt]. With QtWebEngine 5.10, this is not available at all. In those cases, the 'smart' setting is ignored and treated like 'never'.
+With QtWebEngine 5.15.0, this setting can cause frequent renderer process crashes due to a https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug in Qt].
 
 This setting requires a restart.
 
@@ -1676,13 +1669,11 @@ Valid values:
 
  * +always+: Apply dark mode filter to all images.
  * +never+: Never apply dark mode filter to any images.
- * +smart+: Apply dark mode based on image content. Not available with Qt 5.10 / 5.15.0.
+ * +smart+: Apply dark mode based on image content. Not available with Qt 5.15.0.
 
 Default: +pass:[smart]+
 
-On QtWebEngine, this setting requires Qt 5.10 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[colors.webpage.darkmode.policy.page]]
 === colors.webpage.darkmode.policy.page
@@ -1905,7 +1896,6 @@ Default:
 [[content.autoplay]]
 === content.autoplay
 Automatically start playing `<video>` elements.
-Note: On Qt < 5.11, this option needs a restart and does not support URL patterns.
 
 This setting supports URL patterns.
 
@@ -1913,9 +1903,7 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-On QtWebEngine, this setting requires Qt 5.10 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[content.blocking.adblock.lists]]
 === content.blocking.adblock.lists
@@ -2058,12 +2046,9 @@ Valid values:
 
 Default: +pass:[all]+
 
-On QtWebEngine, this setting requires Qt 5.11 or newer.
-
 [[content.cookies.store]]
 === content.cookies.store
 Store cookies.
-Note this option needs a restart with QtWebEngine on Qt < 5.9.
 
 Type: <<types,Bool>>
 
@@ -2081,7 +2066,6 @@ Default: +pass:[iso-8859-1]+
 [[content.desktop_capture]]
 === content.desktop_capture
 Allow websites to share screen content.
-On Qt < 5.10, a dialog box is always displayed, even if this is set to "true".
 
 This setting supports URL patterns.
 
@@ -2105,7 +2089,7 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-On QtWebEngine, this setting requires Qt 5.12 or newer.
+This setting is only available with the QtWebEngine backend.
 
 [[content.frame_flattening]]
 === content.frame_flattening
@@ -2436,9 +2420,7 @@ Valid values:
 
 Default: +pass:[ask]+
 
-On QtWebEngine, this setting requires Qt 5.8 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[content.mute]]
 === content.mute
@@ -2505,9 +2487,7 @@ Valid values:
 
 Default: +pass:[ask]+
 
-On QtWebEngine, this setting requires Qt 5.11 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[content.plugins]]
 === content.plugins
@@ -2529,7 +2509,7 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-On QtWebEngine, this setting requires Qt 5.8 or newer.
+This setting is only available with the QtWebEngine backend.
 
 [[content.private_browsing]]
 === content.private_browsing
@@ -2580,9 +2560,7 @@ Valid values:
 
 Default: +pass:[ask]+
 
-On QtWebEngine, this setting requires Qt 5.11 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[content.site_specific_quirks]]
 === content.site_specific_quirks
@@ -2626,9 +2604,7 @@ Valid values:
 
 Default: +pass:[allow-from-user-interaction]+
 
-On QtWebEngine, this setting requires Qt 5.11 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[content.user_stylesheets]]
 === content.user_stylesheets
@@ -2651,7 +2627,6 @@ Default: +pass:[true]+
 [[content.webrtc_ip_handling_policy]]
 === content.webrtc_ip_handling_policy
 Which interfaces to expose via WebRTC.
-On Qt 5.10, this option doesn't work because of a Qt bug.
 
 This setting requires a restart.
 
@@ -2666,9 +2641,7 @@ Valid values:
 
 Default: +pass:[all-interfaces]+
 
-On QtWebEngine, this setting requires Qt 5.9.2 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[content.xss_auditing]]
 === content.xss_auditing
@@ -3594,7 +3567,7 @@ Valid values:
  * +always+: Always show the scrollbar.
  * +never+: Never show the scrollbar.
  * +when-searching+: Show the scrollbar when searching for text in the webpage. With the QtWebKit backend, this is equal to `never`.
- * +overlay+: Show an overlay scrollbar. With Qt < 5.11 or on macOS, this is unavailable and equal to `when-searching`; with the QtWebKit backend, this is equal to `never`. Enabling/disabling overlay scrollbars requires a restart.
+ * +overlay+: Show an overlay scrollbar. On macOS, this is unavailable and equal to `when-searching`; with the QtWebKit backend, this is equal to `never`. Enabling/disabling overlay scrollbars requires a restart.
 
 Default: +pass:[overlay]+
 
@@ -3713,9 +3686,7 @@ Valid values:
 
 Default: empty
 
-On QtWebEngine, this setting requires Qt 5.8 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 [[statusbar.padding]]
 === statusbar.padding
@@ -4211,6 +4182,7 @@ characters in the search terms are replaced by safe characters (called
   expands to `slash%2Fand%26amp`).
 * `{unquoted}` quotes nothing (for `slash/and&amp` this placeholder
   expands to `slash/and&amp`).
+* `{0}` means the same as `{}`, but can be used multiple times.
 
 The search engine named `DEFAULT` is used when `url.auto_search` is turned
 on and something else than a URL was entered to be opened. Other search
@@ -4267,6 +4239,22 @@ Format to use for the window title. The same placeholders like for
 Type: <<types,FormatString>>
 
 Default: +pass:[{perc}{current_title}{title_sep}qutebrowser]+
+
+[[window.transparent]]
+=== window.transparent
+Set the main window background to transparent.
+
+This allows having a transparent tab- or statusbar (might require a compositor such
+as picom). However, it breaks some functionality such as dmenu embedding via its
+`-w` option. On some systems, it was additionally reported that main window
+transparency negatively affects performance.
+
+Note this setting only affects windows opened after setting it.
+
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[zoom.default]]
 === zoom.default

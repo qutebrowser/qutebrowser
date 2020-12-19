@@ -56,112 +56,96 @@ _NIL_KEY = Qt.Key(0)
 _ModifierType = Union[Qt.KeyboardModifier, Qt.KeyboardModifiers]
 
 
-def _build_special_names() -> Mapping[Qt.Key, str]:
-    """Build _SPECIAL_NAMES dict from the special_names_str mapping below.
+_SPECIAL_NAMES = {
+    # Some keys handled in a weird way by QKeySequence::toString.
+    # See https://bugreports.qt.io/browse/QTBUG-40030
+    # Most are unlikely to be ever needed, but you never know ;)
+    # For dead/combining keys, we return the corresponding non-combining
+    # key, as that's easier to add to the config.
 
-    The reason we don't do this directly is that certain Qt versions don't have
-    all the keys, so we want to ignore AttributeErrors.
-    """
-    special_names_str = {
-        # Some keys handled in a weird way by QKeySequence::toString.
-        # See https://bugreports.qt.io/browse/QTBUG-40030
-        # Most are unlikely to be ever needed, but you never know ;)
-        # For dead/combining keys, we return the corresponding non-combining
-        # key, as that's easier to add to the config.
+    Qt.Key_Super_L: 'Super L',
+    Qt.Key_Super_R: 'Super R',
+    Qt.Key_Hyper_L: 'Hyper L',
+    Qt.Key_Hyper_R: 'Hyper R',
+    Qt.Key_Direction_L: 'Direction L',
+    Qt.Key_Direction_R: 'Direction R',
 
-        'Super_L': 'Super L',
-        'Super_R': 'Super R',
-        'Hyper_L': 'Hyper L',
-        'Hyper_R': 'Hyper R',
-        'Direction_L': 'Direction L',
-        'Direction_R': 'Direction R',
+    Qt.Key_Shift: 'Shift',
+    Qt.Key_Control: 'Control',
+    Qt.Key_Meta: 'Meta',
+    Qt.Key_Alt: 'Alt',
 
-        'Shift': 'Shift',
-        'Control': 'Control',
-        'Meta': 'Meta',
-        'Alt': 'Alt',
+    Qt.Key_AltGr: 'AltGr',
+    Qt.Key_Multi_key: 'Multi key',
+    Qt.Key_SingleCandidate: 'Single Candidate',
+    Qt.Key_Mode_switch: 'Mode switch',
+    Qt.Key_Dead_Grave: '`',
+    Qt.Key_Dead_Acute: '´',
+    Qt.Key_Dead_Circumflex: '^',
+    Qt.Key_Dead_Tilde: '~',
+    Qt.Key_Dead_Macron: '¯',
+    Qt.Key_Dead_Breve: '˘',
+    Qt.Key_Dead_Abovedot: '˙',
+    Qt.Key_Dead_Diaeresis: '¨',
+    Qt.Key_Dead_Abovering: '˚',
+    Qt.Key_Dead_Doubleacute: '˝',
+    Qt.Key_Dead_Caron: 'ˇ',
+    Qt.Key_Dead_Cedilla: '¸',
+    Qt.Key_Dead_Ogonek: '˛',
+    Qt.Key_Dead_Iota: 'Iota',
+    Qt.Key_Dead_Voiced_Sound: 'Voiced Sound',
+    Qt.Key_Dead_Semivoiced_Sound: 'Semivoiced Sound',
+    Qt.Key_Dead_Belowdot: 'Belowdot',
+    Qt.Key_Dead_Hook: 'Hook',
+    Qt.Key_Dead_Horn: 'Horn',
 
-        'AltGr': 'AltGr',
-        'Multi_key': 'Multi key',
-        'SingleCandidate': 'Single Candidate',
-        'Mode_switch': 'Mode switch',
-        'Dead_Grave': '`',
-        'Dead_Acute': '´',
-        'Dead_Circumflex': '^',
-        'Dead_Tilde': '~',
-        'Dead_Macron': '¯',
-        'Dead_Breve': '˘',
-        'Dead_Abovedot': '˙',
-        'Dead_Diaeresis': '¨',
-        'Dead_Abovering': '˚',
-        'Dead_Doubleacute': '˝',
-        'Dead_Caron': 'ˇ',
-        'Dead_Cedilla': '¸',
-        'Dead_Ogonek': '˛',
-        'Dead_Iota': 'Iota',
-        'Dead_Voiced_Sound': 'Voiced Sound',
-        'Dead_Semivoiced_Sound': 'Semivoiced Sound',
-        'Dead_Belowdot': 'Belowdot',
-        'Dead_Hook': 'Hook',
-        'Dead_Horn': 'Horn',
+    Qt.Key_Dead_Stroke: '\u0335',  # '̵'
+    Qt.Key_Dead_Abovecomma: '\u0313',  # '̓'
+    Qt.Key_Dead_Abovereversedcomma: '\u0314',  # '̔'
+    Qt.Key_Dead_Doublegrave: '\u030f',  # '̏'
+    Qt.Key_Dead_Belowring: '\u0325',  # '̥'
+    Qt.Key_Dead_Belowmacron: '\u0331',  # '̱'
+    Qt.Key_Dead_Belowcircumflex: '\u032d',  # '̭'
+    Qt.Key_Dead_Belowtilde: '\u0330',  # '̰'
+    Qt.Key_Dead_Belowbreve: '\u032e',  # '̮'
+    Qt.Key_Dead_Belowdiaeresis: '\u0324',  # '̤'
+    Qt.Key_Dead_Invertedbreve: '\u0311',  # '̑'
+    Qt.Key_Dead_Belowcomma: '\u0326',  # '̦'
+    Qt.Key_Dead_Currency: '¤',
+    Qt.Key_Dead_a: 'a',
+    Qt.Key_Dead_A: 'A',
+    Qt.Key_Dead_e: 'e',
+    Qt.Key_Dead_E: 'E',
+    Qt.Key_Dead_i: 'i',
+    Qt.Key_Dead_I: 'I',
+    Qt.Key_Dead_o: 'o',
+    Qt.Key_Dead_O: 'O',
+    Qt.Key_Dead_u: 'u',
+    Qt.Key_Dead_U: 'U',
+    Qt.Key_Dead_Small_Schwa: 'ə',
+    Qt.Key_Dead_Capital_Schwa: 'Ə',
+    Qt.Key_Dead_Greek: 'Greek',
+    Qt.Key_Dead_Lowline: '\u0332',  # '̲'
+    Qt.Key_Dead_Aboveverticalline: '\u030d',  # '̍'
+    Qt.Key_Dead_Belowverticalline: '\u0329',
+    Qt.Key_Dead_Longsolidusoverlay: '\u0338',  # '̸'
 
-        'Dead_Stroke': '\u0335',  # '̵'
-        'Dead_Abovecomma': '\u0313',  # '̓'
-        'Dead_Abovereversedcomma': '\u0314',  # '̔'
-        'Dead_Doublegrave': '\u030f',  # '̏'
-        'Dead_Belowring': '\u0325',  # '̥'
-        'Dead_Belowmacron': '\u0331',  # '̱'
-        'Dead_Belowcircumflex': '\u032d',  # '̭'
-        'Dead_Belowtilde': '\u0330',  # '̰'
-        'Dead_Belowbreve': '\u032e',  # '̮'
-        'Dead_Belowdiaeresis': '\u0324',  # '̤'
-        'Dead_Invertedbreve': '\u0311',  # '̑'
-        'Dead_Belowcomma': '\u0326',  # '̦'
-        'Dead_Currency': '¤',
-        'Dead_a': 'a',
-        'Dead_A': 'A',
-        'Dead_e': 'e',
-        'Dead_E': 'E',
-        'Dead_i': 'i',
-        'Dead_I': 'I',
-        'Dead_o': 'o',
-        'Dead_O': 'O',
-        'Dead_u': 'u',
-        'Dead_U': 'U',
-        'Dead_Small_Schwa': 'ə',
-        'Dead_Capital_Schwa': 'Ə',
-        'Dead_Greek': 'Greek',
-        'Dead_Lowline': '\u0332',  # '̲'
-        'Dead_Aboveverticalline': '\u030d',  # '̍'
-        'Dead_Belowverticalline': '\u0329',
-        'Dead_Longsolidusoverlay': '\u0338',  # '̸'
+    Qt.Key_Memo: 'Memo',
+    Qt.Key_ToDoList: 'To Do List',
+    Qt.Key_Calendar: 'Calendar',
+    Qt.Key_ContrastAdjust: 'Contrast Adjust',
+    Qt.Key_LaunchG: 'Launch (G)',
+    Qt.Key_LaunchH: 'Launch (H)',
 
-        'Memo': 'Memo',
-        'ToDoList': 'To Do List',
-        'Calendar': 'Calendar',
-        'ContrastAdjust': 'Contrast Adjust',
-        'LaunchG': 'Launch (G)',
-        'LaunchH': 'Launch (H)',
+    Qt.Key_MediaLast: 'Media Last',
 
-        'MediaLast': 'Media Last',
+    Qt.Key_unknown: 'Unknown',
 
-        'unknown': 'Unknown',
+    # For some keys, we just want a different name
+    Qt.Key_Escape: 'Escape',
 
-        # For some keys, we just want a different name
-        'Escape': 'Escape',
-    }
-    special_names = {_NIL_KEY: 'nil'}
-
-    for k, v in special_names_str.items():
-        try:
-            special_names[getattr(Qt, 'Key_' + k)] = v
-        except AttributeError:  # pragma: no cover
-            pass
-
-    return special_names
-
-
-_SPECIAL_NAMES = _build_special_names()
+    _NIL_KEY: 'nil',
+}
 
 
 def _assert_plain_key(key: Qt.Key) -> None:
@@ -352,7 +336,7 @@ def _parse_single_key(keystr: str) -> str:
     return 'Shift+' + keystr if keystr.isupper() else keystr
 
 
-@attr.s(frozen=True, hash=False)
+@attr.s(frozen=True)
 class KeyInfo:
 
     """A key with optional modifiers.
@@ -377,14 +361,6 @@ class KeyInfo:
         _assert_plain_key(key)
         _assert_plain_modifier(modifiers)
         return cls(key, cast(Qt.KeyboardModifier, modifiers))
-
-    def __hash__(self) -> int:
-        """Convert KeyInfo to int before hashing.
-
-        This is needed as a WORKAROUND because enum members aren't hashable
-        with PyQt 5.7.
-        """
-        return hash(self.to_int())
 
     def __str__(self) -> str:
         """Convert this KeyInfo to a meaningful name.
@@ -634,18 +610,6 @@ class KeySequence:
                 _is_printable(key) and
                 not ev.text().isupper()):
             modifiers = Qt.KeyboardModifiers()  # type: ignore[assignment]
-
-        # On macOS, swap Ctrl and Meta back
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-51293
-        if utils.is_mac:
-            if modifiers & Qt.ControlModifier and modifiers & Qt.MetaModifier:
-                pass
-            elif modifiers & Qt.ControlModifier:
-                modifiers &= ~Qt.ControlModifier
-                modifiers |= Qt.MetaModifier
-            elif modifiers & Qt.MetaModifier:
-                modifiers &= ~Qt.MetaModifier
-                modifiers |= Qt.ControlModifier
 
         keys = list(self._iter_keys())
         keys.append(key | int(modifiers))

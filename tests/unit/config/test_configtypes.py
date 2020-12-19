@@ -138,10 +138,16 @@ class TestValidValues:
 
     def test_descriptions(self, klass):
         """Test descriptions."""
-        vv = klass(('foo', "foo desc"), ('bar', "bar desc"), 'baz')
-        assert vv.descriptions['foo'] == "foo desc"
-        assert vv.descriptions['bar'] == "bar desc"
-        assert 'baz' not in vv.descriptions
+        vv = klass(
+            ('one-with', "desc 1"),
+            ('two-with', "desc 2"),
+            'three-without',
+            ('four-without', None)
+        )
+        assert vv.descriptions['one-with'] == "desc 1"
+        assert vv.descriptions['two-with'] == "desc 2"
+        assert 'three-without' not in vv.descriptions
+        assert 'four-without' not in vv.descriptions
 
     @pytest.mark.parametrize('args, expected', [
         (['a', 'b'], "<qutebrowser.config.configtypes.ValidValues "
@@ -249,10 +255,11 @@ class TestAll:
                 configtypes.PercOrInt,  # ditto
         ]:
             return
-        elif (isinstance(klass, functools.partial) and
-              klass.func in [configtypes.ListOrValue, configtypes.List]):
+        elif (isinstance(klass, functools.partial) and klass.func in [
+                configtypes.ListOrValue, configtypes.List, configtypes.Dict]):
             # ListOrValue: "- /" -> "/"
             # List: "- /" -> ["/"]
+            # Dict: '{":": "A"}' -> ':: A'
             return
 
         assert converted == s
@@ -395,13 +402,10 @@ class MappingSubclass(configtypes.MappingType):
     """A MappingType we use in TestMappingType which is valid/good."""
 
     MAPPING = {
-        'one': 1,
-        'two': 2,
+        'one': (1, 'one doc'),
+        'two': (2, 'two doc'),
+        'three': (3, None),
     }
-
-    def __init__(self, none_ok=False):
-        super().__init__(none_ok)
-        self.valid_values = configtypes.ValidValues('one', 'two')
 
 
 class TestMappingType:
@@ -428,11 +432,12 @@ class TestMappingType:
     def test_to_str(self, klass):
         assert klass().to_str('one') == 'one'
 
-    @pytest.mark.parametrize('typ', [configtypes.ColorSystem(),
-                                     configtypes.Position(),
-                                     configtypes.SelectOnRemove()])
-    def test_mapping_type_matches_valid_values(self, typ):
-        assert sorted(typ.MAPPING) == sorted(typ.valid_values)
+    def test_valid_values(self, klass):
+        assert klass().valid_values == configtypes.ValidValues(
+            ('one', 'one doc'),
+            ('two', 'two doc'),
+            ('three', None),
+        )
 
 
 class TestString:
@@ -1948,7 +1953,7 @@ class TestFuzzyUrl:
         assert klass().to_py(val) == expected
 
     @pytest.mark.parametrize('val', [
-        '::foo',  # invalid URL
+        '',  # invalid URL
         'foo bar',  # invalid search term
     ])
     def test_to_py_invalid(self, klass, val):

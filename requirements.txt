@@ -3,7 +3,6 @@
 adblock==0.3.2
 attrs==20.2.0
 colorama==0.4.4
-cssutils==1.0.2
 Jinja2==2.11.2
 MarkupSafe==1.1.1
 Pygments==2.7.2

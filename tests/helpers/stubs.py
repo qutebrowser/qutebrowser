@@ -670,8 +670,8 @@ class FakeWebEngineProfile:
 
 class FakeCookieStore:
 
-    def __init__(self, has_cookie_filter):
+    def __init__(self):
         self.cookie_filter = None
-        if has_cookie_filter:
-            self.setCookieFilter = (
-                lambda func: setattr(self, 'cookie_filter', func))  # noqa
+
+    def setCookieFilter(self, func):
+        self.cookie_filter = func

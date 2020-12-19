@@ -22,36 +22,12 @@
 import functools
 from typing import Callable, MutableSequence, Tuple, Union
 
-from PyQt5.QtCore import pyqtSlot, QSize, Qt, QTimer
+from PyQt5.QtCore import pyqtSlot, QSize, Qt
 from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu, QStyleFactory
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import stylesheet
 from qutebrowser.utils import qtutils, utils
-from qutebrowser.qt import sip
-
-
-def update_geometry(obj):
-    """Weird WORKAROUND for some weird PyQt bug (probably).
-
-    This actually should be a method of DownloadView, but for some reason the
-    rowsInserted/rowsRemoved signals don't get disconnected from this method
-    when the DownloadView is deleted from Qt (e.g. by closing a window).
-
-    Here we check if obj ("self") was deleted and just ignore the event if so.
-
-    Original bug:   https://github.com/qutebrowser/qutebrowser/issues/167
-    Workaround bug: https://github.com/qutebrowser/qutebrowser/issues/171
-    """
-    def _update_geometry():
-        """Actually update the geometry if the object still exists."""
-        if sip.isdeleted(obj):
-            return
-        obj.updateGeometry()
-
-    # If we don't use a singleShot QTimer, the geometry isn't updated correctly
-    # and won't include the new item.
-    QTimer.singleShot(0, _update_geometry)
 
 
 _ActionListType = MutableSequence[
@@ -93,9 +69,9 @@ class DownloadView(QListView):
         self.setFlow(QListView.LeftToRight)
         self.setSpacing(1)
         self._menu = None
-        model.rowsInserted.connect(functools.partial(update_geometry, self))
-        model.rowsRemoved.connect(functools.partial(update_geometry, self))
-        model.dataChanged.connect(functools.partial(update_geometry, self))
+        model.rowsInserted.connect(self._update_geometry)
+        model.rowsRemoved.connect(self._update_geometry)
+        model.dataChanged.connect(self._update_geometry)
         self.setModel(model)
         self.setWrapping(True)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -109,6 +85,15 @@ class DownloadView(QListView):
         else:
             count = model.rowCount()
         return utils.get_repr(self, count=count)
+
+    @pyqtSlot()
+    def _update_geometry(self):
+        """Wrapper to call updateGeometry.
+
+        For some reason, this is needed so that PyQt disconnects the signals and handles
+        arguments correctly. Probably a WORKAROUND for an unknown PyQt bug.
+        """
+        self.updateGeometry()
 
     @pyqtSlot(bool)
     def on_fullscreen_requested(self, on):

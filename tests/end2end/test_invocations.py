@@ -20,16 +20,15 @@
 """Test starting qutebrowser with special arguments/environments."""
 
 import subprocess
-import socket
 import sys
 import logging
 import re
+import json
 
 import pytest
 from PyQt5.QtCore import QProcess
 
 from helpers import utils
-from qutebrowser.utils import qtutils
 
 
 ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,
@@ -71,7 +70,6 @@ def temp_basedir_env(tmpdir, short_tmpdir):
         '[general]',
         'quickstart-done = 1',
         'backend-warning-shown = 1',
-        'old-qt-warning-shown = 1',
         'webkit-warning-shown = 1',
     ]
 
@@ -162,7 +160,7 @@ def test_open_command_line_with_ascii_locale(request, server, tmpdir,
     # all be called. No exception thrown means test success.
     args = (['--temp-basedir'] + _base_args(request.config) +
             ['/home/user/föö.html'])
-    quteproc_new.start(args, env={'LC_ALL': 'C'}, wait_focus=False)
+    quteproc_new.start(args, env={'LC_ALL': 'C'})
 
     if not request.config.webengine:
         line = quteproc_new.wait_for(message="Error while loading *: Error "
@@ -252,10 +250,7 @@ def test_version(request):
     print(stderr)
 
     assert ok
-
-    if qtutils.version_check('5.9'):
-        # Segfaults on exit with Qt 5.7
-        assert proc.exitStatus() == QProcess.NormalExit
+    assert proc.exitStatus() == QProcess.NormalExit
 
     match = re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout, re.MULTILINE)
     assert match is not None
@@ -273,23 +268,6 @@ def test_qt_arg(request, quteproc_new, tmpdir):
 
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
-
-
-@utils.skip_qt511
-def test_webengine_inspector(request, quteproc_new):
-    if not request.config.webengine:
-        pytest.skip()
-    args = (['--temp-basedir', '--enable-webengine-inspector'] +
-            _base_args(request.config))
-    quteproc_new.start(args)
-    line = quteproc_new.wait_for(
-        message='Remote debugging server started successfully. Try pointing a '
-                'Chromium-based browser to http://127.0.0.1:*')
-    port = int(line.message.split(':')[-1])
-
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect(('127.0.0.1', port))
-    s.close()
 
 
 @pytest.mark.linux
@@ -406,3 +384,36 @@ def test_qute_settings_persistence(short_tmpdir, request, quteproc_new):
 
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
+
+
+@pytest.mark.parametrize('value, expected', [
+    ('always', 'http://localhost:(port2)/headers-link/(port)'),
+    ('never', None),
+    ('same-domain', 'http://localhost:(port2)/'),  # None with QtWebKit
+])
+def test_referrer(quteproc_new, server, server2, request, value, expected):
+    """Check referrer settings."""
+    args = _base_args(request.config) + [
+        '--temp-basedir',
+        '-s', 'content.headers.referer', value,
+    ]
+    quteproc_new.start(args)
+
+    quteproc_new.open_path(f'headers-link/{server.port}', port=server2.port)
+    quteproc_new.send_cmd(':click-element id link')
+    quteproc_new.wait_for_load_finished('headers')
+
+    content = quteproc_new.get_content()
+    data = json.loads(content)
+    print(data)
+    headers = data['headers']
+
+    if not request.config.webengine and value == 'same-domain':
+        # With QtWebKit and same-domain, we don't send a referer at all.
+        expected = None
+
+    if expected is not None:
+        for key, val in [('(port)', server.port), ('(port2)', server2.port)]:
+            expected = expected.replace(key, str(val))
+
+    assert headers.get('Referer') == expected

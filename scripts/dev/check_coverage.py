@@ -78,6 +78,8 @@ PERFECT_FILES = [
      'qutebrowser/api/message.py'),
     (None,
      'qutebrowser/api/qtutils.py'),
+    (None,
+     'qutebrowser/qt.py'),
 
     ('tests/unit/browser/webkit/test_cache.py',
      'qutebrowser/browser/webkit/cache.py'),
@@ -331,8 +333,9 @@ def main_check():
         subprocess.run([sys.executable, '-m', 'coverage', 'report',
                         '--show-missing', '--include', filters], check=True)
         print()
-        print("To debug this, run 'tox -e py36-pyqt59-cov' "
-              "(or py35-pyqt59-cov) locally and check htmlcov/index.html")
+        print("To debug this, run 'tox -e py36-pyqt515-cov' "
+              "(replace Python/Qt versions based on your system) locally and check "
+              "htmlcov/index.html")
         print("or check https://codecov.io/github/qutebrowser/qutebrowser")
         print()
 

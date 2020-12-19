@@ -493,10 +493,10 @@ NEW_VERSION = str(ipc.PROTOCOL_VERSION + 1).encode('utf-8')
     (b'{"args": [], "target_arg": null}\n', 'invalid version'),
 ])
 def test_invalid_data(qtbot, ipc_server, connected_socket, caplog, data, msg):
+    signals = [ipc_server.got_invalid_data, connected_socket.disconnected]
     with caplog.at_level(logging.ERROR):
         with qtbot.assertNotEmitted(ipc_server.got_args):
-            with qtbot.waitSignal(ipc_server.got_invalid_data), \
-                 qtbot.waitSignal(connected_socket.disconnected):
+            with qtbot.waitSignals(signals, order='strict'):
                 connected_socket.write(data)
 
     invalid_msg = 'Ignoring invalid IPC data from socket '
@@ -514,8 +514,8 @@ def test_multiline(qtbot, ipc_server, connected_socket):
                 version=ipc.PROTOCOL_VERSION))
 
     with qtbot.assertNotEmitted(ipc_server.got_invalid_data):
-        with qtbot.waitSignal(ipc_server.got_args), \
-             qtbot.waitSignal(ipc_server.got_args):
+        with qtbot.waitSignals([ipc_server.got_args, ipc_server.got_args],
+                               order='strict'):
             connected_socket.write(data.encode('utf-8'))
 
     assert len(spy) == 2
@@ -767,7 +767,7 @@ def test_long_username(monkeypatch):
     """See https://github.com/qutebrowser/qutebrowser/issues/888."""
     username = 'alexandercogneau'
     basedir = '/this_is_a_long_basedir'
-    monkeypatch.setattr('getpass.getuser', lambda: username)
+    monkeypatch.setattr(getpass, 'getuser', lambda: username)
     name = ipc._get_socketname(basedir=basedir)
     server = ipc.IPCServer(name)
     expected_md5 = md5('{}-{}'.format(username, basedir))

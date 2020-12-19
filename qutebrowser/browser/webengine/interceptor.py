@@ -25,7 +25,7 @@ from PyQt5.QtCore import QUrl, QByteArray
 from PyQt5.QtWebEngineCore import (QWebEngineUrlRequestInterceptor,
                                    QWebEngineUrlRequestInfo)
 
-from qutebrowser.config import websettings
+from qutebrowser.config import websettings, config
 from qutebrowser.browser import shared
 from qutebrowser.utils import utils, log, debug, qtutils
 from qutebrowser.extensions import interceptors
@@ -39,9 +39,9 @@ class WebEngineRequest(interceptors.Request):
 
     _WHITELISTED_REQUEST_METHODS = {QByteArray(b'GET'), QByteArray(b'HEAD')}
 
-    _webengine_info = attr.ib(default=None)  # type: QWebEngineUrlRequestInfo
+    _webengine_info: QWebEngineUrlRequestInfo = attr.ib(default=None)
     #: If this request has been redirected already
-    _redirected = attr.ib(init=False, default=False)  # type: bool
+    _redirected: bool = attr.ib(init=False, default=False)
 
     def redirect(self, url: QUrl) -> None:
         if self._redirected:
@@ -129,7 +129,7 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
             # Qt >= 5.13, GUI thread
             profile.setUrlRequestInterceptor(self)
         except AttributeError:
-            # Qt <= 5.12, IO thread
+            # Qt 5.12, IO thread
             profile.setRequestInterceptor(self)
 
     # Gets called in the IO thread -> showing crash window will fail
@@ -203,6 +203,12 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
 
         for header, value in shared.custom_headers(url=url):
             info.setHttpHeader(header, value)
+
+        # Note this is ignored before Qt 5.12.4 and 5.13.1 due to
+        # https://bugreports.qt.io/browse/QTBUG-60203 - there, we set the
+        # commandline-flag in qtargs.py instead.
+        if config.cache['content.headers.referer'] == 'never':
+            info.setHttpHeader(b'Referer', b'')
 
         user_agent = websettings.user_agent(url)
         info.setHttpHeader(b'User-Agent', user_agent.encode('ascii'))

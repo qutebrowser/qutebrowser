@@ -22,7 +22,6 @@
 import os
 import os.path
 import sys
-import shutil
 import contextlib
 import enum
 import argparse
@@ -31,7 +30,7 @@ from typing import Iterator, Optional
 from PyQt5.QtCore import QStandardPaths
 from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.utils import log, debug, message, utils
+from qutebrowser.utils import log, debug, utils
 
 # The cached locations
 _locations = {}
@@ -129,11 +128,11 @@ def config_py() -> str:
 
 def _init_data(args: Optional[argparse.Namespace]) -> None:
     """Initialize the location for data."""
-    typ = QStandardPaths.DataLocation
+    typ = QStandardPaths.AppDataLocation
     path = _from_args(typ, args)
     if path is None:
         if utils.is_windows:
-            app_data_path = _writable_location(QStandardPaths.AppDataLocation)
+            app_data_path = _writable_location(typ)  # same location as config
             path = os.path.join(app_data_path, 'data')
         elif sys.platform.startswith('haiku'):
             # HaikuOS returns an empty value for AppDataLocation
@@ -174,7 +173,7 @@ def _init_cache(args: Optional[argparse.Namespace]) -> None:
     if path is None:
         if utils.is_windows:
             # Local, not Roaming!
-            data_path = _writable_location(QStandardPaths.DataLocation)
+            data_path = _writable_location(QStandardPaths.AppLocalDataLocation)
             path = os.path.join(data_path, 'cache')
         else:
             path = _writable_location(typ)
@@ -251,11 +250,10 @@ def _writable_location(typ: QStandardPaths.StandardLocation) -> str:
 
     # Types we are sure we handle correctly below.
     assert typ in [
-        QStandardPaths.ConfigLocation, QStandardPaths.DataLocation,
+        QStandardPaths.ConfigLocation, QStandardPaths.AppLocalDataLocation,
         QStandardPaths.CacheLocation, QStandardPaths.DownloadLocation,
         QStandardPaths.RuntimeLocation, QStandardPaths.TempLocation,
-        # FIXME old Qt
-        getattr(QStandardPaths, 'AppDataLocation', object())], typ_str
+        QStandardPaths.AppDataLocation], typ_str
 
     with _unset_organization():
         path = QStandardPaths.writableLocation(typ)
@@ -288,7 +286,8 @@ def _from_args(
     """
     basedir_suffix = {
         QStandardPaths.ConfigLocation: 'config',
-        QStandardPaths.DataLocation: 'data',
+        QStandardPaths.AppDataLocation: 'data',
+        QStandardPaths.AppLocalDataLocation: 'data',
         QStandardPaths.CacheLocation: 'cache',
         QStandardPaths.DownloadLocation: 'download',
         QStandardPaths.RuntimeLocation: 'runtime',
@@ -340,44 +339,6 @@ def init(args: Optional[argparse.Namespace]) -> None:
 
     _init_dirs(args)
     _init_cachedir_tag()
-    if args is not None and getattr(args, 'basedir', None) is None:
-        if utils.is_mac:  # pragma: no cover
-            _move_macos()
-        elif utils.is_windows:  # pragma: no cover
-            _move_windows()
-
-
-def _move_macos() -> None:
-    """Move most config files to new location on macOS."""
-    old_config = config(auto=True)  # ~/Library/Preferences/qutebrowser
-    new_config = config()  # ~/.qutebrowser
-    for f in os.listdir(old_config):
-        if f not in ['qsettings', 'autoconfig.yml']:
-            _move_data(os.path.join(old_config, f),
-                       os.path.join(new_config, f))
-
-
-def _move_windows() -> None:
-    """Move the whole qutebrowser directory from Local to Roaming AppData."""
-    # %APPDATA%\Local\qutebrowser
-    old_appdata_dir = _writable_location(QStandardPaths.DataLocation)
-    # %APPDATA%\Roaming\qutebrowser
-    new_appdata_dir = _writable_location(QStandardPaths.AppDataLocation)
-
-    # data subfolder
-    old_data = os.path.join(old_appdata_dir, 'data')
-    new_data = os.path.join(new_appdata_dir, 'data')
-    ok = _move_data(old_data, new_data)
-    if not ok:  # pragma: no cover
-        return
-
-    # config files
-    new_config_dir = os.path.join(new_appdata_dir, 'config')
-    _create(new_config_dir)
-    for f in os.listdir(old_appdata_dir):
-        if f != 'cache':
-            _move_data(os.path.join(old_appdata_dir, f),
-                       os.path.join(new_config_dir, f))
 
 
 def _init_cachedir_tag() -> None:
@@ -397,33 +358,3 @@ def _init_cachedir_tag() -> None:
                         "cachedir/\n")
         except OSError:
             log.init.exception("Failed to create CACHEDIR.TAG")
-
-
-def _move_data(old: str, new: str) -> bool:
-    """Migrate data from an old to a new directory.
-
-    If the old directory does not exist, the migration is skipped.
-    If the new directory already exists, an error is shown.
-
-    Return: True if moving succeeded, False otherwise.
-    """
-    if not os.path.exists(old):
-        return False
-
-    log.init.debug("Migrating data from {} to {}".format(old, new))
-
-    if os.path.exists(new):
-        if not os.path.isdir(new) or os.listdir(new):
-            message.error("Failed to move data from {} as {} is non-empty!"
-                          .format(old, new))
-            return False
-        os.rmdir(new)
-
-    try:
-        shutil.move(old, new)
-    except OSError as e:
-        message.error("Failed to move data from {} to {}: {}".format(
-            old, new, e))
-        return False
-
-    return True

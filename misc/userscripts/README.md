@@ -65,6 +65,8 @@ The following userscripts can be found on their own repositories.
   selections via Google Translate.
 - [qute-snippets](https://github.com/Aledosim/qute-snippets): Bind text snippets to a keyword
    and retrieve they when you want.
+- [doi](https://github.com/cadadr/configuration/blob/master/qutebrowser/userscripts/doi):
+  Opens DOIs on Sci-Hub.
 
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/

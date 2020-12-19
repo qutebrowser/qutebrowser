@@ -28,12 +28,15 @@ How to install qutebrowser depends a lot on the version of Debian/Ubuntu you're
 running.
 
 [[ubuntu1604]]
-Ubuntu 16.04 LTS / Linux Mint 18
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Debian Stretch / Ubuntu 16.04 LTS / Linux Mint 18
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Debian Stretch does have QtWebEngine packaged, but only in a very old and insecure
+version (Qt 5.7, based on a Chromium from March 2016). Furthermore, it packages Python
+3.5 which is not supported anymore since qutebrowser v2.0.0.
 
 Ubuntu 16.04 doesn't come with an up-to-date engine (a new enough QtWebKit, or
-QtWebEngine). It also comes with Python 3.5 which is not supported anymore since
-qutebrowser v2.0.0.
+QtWebEngine) and also comes with Python 3.5.
 
 You should be able to install a newer Python (3.6+) using the
 https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa[deadsnakes PPA] or
@@ -51,51 +54,23 @@ Note you'll need some basic libraries to use the virtualenv-installed PyQt:
 // FIXME not needed anymore?
 // libxi6 libxrender1 libegl1-mesa
 
-Debian Stretch
-~~~~~~~~~~~~~~
+Debian Buster / Ubuntu 18.04 LTS / Linux Mint 19
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-WARNING: Debian Stretch packages Qt 5.7 which is very old (based on a Chromium
-from March 2016 with security fixes from November 2016) and insecure. It is also
-https://www.debian.org/releases/stretch/amd64/release-notes/ch-information.en.html#browser-security[not covered]
-by Debian's security patches. Support for it will be dropped in qutebrowser
-v2.0.0, preliminarily planned for December 2020. It is recommended to
-<<tox,install qutebrowser in a virtualenv>> with a newer PyQt/Qt binary
-instead.
-
-Debian Stretch comes with QtWebEngine in the repositories. This makes it possible
-to install qutebrowser via the Debian package.
-
-You'll need to download three packages:
-
-- https://packages.debian.org/sid/all/python3-pypeg2/download[PyPEG2] (a library
-  used by qutebrowser which is not in the earlier repositories)
-- https://packages.debian.org/sid/all/qutebrowser/download[qutebrowser] itself
-- Either https://packages.debian.org/sid/all/qutebrowser-qtwebengine/download[qutebrowser-qtwebengine]
-  or https://packages.debian.org/sid/all/qutebrowser-qtwebkit/download[qutebrowser-qtwebkit]
-  (or both) depending on the backend you want to use. QtWebEngine is the
-  default/recommended choice.
-
-After downloading, install the packages (make sure to install all the
-downloaded qutebrowser deb files in one apt command):
-
-----
-# apt install ./python3-pypeg2_*_all.deb
-# apt install ./qutebrowser*.deb
-----
-
-For an update after the initial install, you only need to download/install the
-qutebrowser package.
-
-Debian Buster / Ubuntu 18.04 LTS / Linux Mint 19 (or newer)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-WARNING: Debian Buster packages Qt 5.11 which is very old (based on a Chromium
-from March 2018 with security fixes from November 2018) and insecure. It is also
+Debian Buster packages qutebrowser, but ships a very old version (v1.6.1 from March
+2019). The QtWebEngine library used for rendering web contents is also very old (Qt
+5.11, based on a Chromium from March 2018) and insecure. It is
 https://www.debian.org/releases/buster/amd64/release-notes/ch-information.en.html#browser-security[not covered]
-by Debian's security patches. Support for it will be dropped in qutebrowser
-v2.0.0, preliminarily planned for December 2020. It is recommended to
-<<tox,install qutebrowser in a virtualenv>> with a newer PyQt/Qt binary
-instead.
+by Debian's security patches. It's recommended to <<tox,install qutebrowser in a
+virtualenv>> with a newer PyQt/Qt binary instead.
+
+With Ubuntu 18.04, the situation looks similar (but worse): There, qutebrowser v1.1.1
+from January 2018 is packaged, with QtWebEngine 5.9 based on a Chromium from January
+2017. It's recommended to either upgrade to Ubuntu 20.04 LTS or <<tox,install
+qutebrowser in a virtualenv>> with a newer PyQt/Qt binary instead.
+
+Ubuntu 20.04 LTS / Linux Mint 20 (or newer)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 With those distributions, qutebrowser is in the official repositories, and you
 can install it with apt:
@@ -108,7 +83,8 @@ Additional hints
 ~~~~~~~~~~~~~~~~
 
 - If running from git, run the following to generate the documentation for the
-  `:help` command:
+  `:help` command (the `mkvenv.py` script used with a virtualenv install already does
+  this for you):
 +
 ----
 # apt install --no-install-recommends asciidoc
@@ -116,14 +92,16 @@ $ python3 scripts/asciidoc2html.py
 ----
 
 - If you prefer using QtWebKit, there's QtWebKit 5.212 available in
-  https://packages.debian.org/buster/libqt5webkit5[Debian Testing]. Note
-  however that it is based on an upstream WebKit from September 2016 with known
-  security issues and no sandboxing or process isolation.
+  Ubuntu 18.04 / Debian Buster or newer.  Note however that it is based on an upstream
+  WebKit from September 2016 with known security issues and no sandboxing or process
+  isolation.
 - If video or sound don't work with QtWebKit, try installing the gstreamer plugins:
 +
 ----
 # apt install gstreamer1.0-plugins-{bad,base,good,ugly}
 ----
++
+Note those are only needed with QtWebKit, not with the (default) QtWebEngine backend.
 
 On Fedora
 ---------

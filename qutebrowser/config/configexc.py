@@ -19,9 +19,9 @@
 
 """Exceptions related to config parsing."""
 
-import typing
-import attr
+from typing import Any, Mapping, Optional, Sequence, Union
 
+import attr
 from qutebrowser.utils import usertypes, log
 
 
@@ -46,7 +46,7 @@ class BackendError(Error):
     def __init__(
             self, name: str,
             backend: usertypes.Backend,
-            raw_backends: typing.Optional[typing.Mapping[str, bool]]
+            raw_backends: Optional[Mapping[str, bool]]
     ) -> None:
         if raw_backends is None or not raw_backends[backend.name]:
             msg = ("The {} setting is not available with the {} backend!"
@@ -76,8 +76,7 @@ class ValidationError(Error):
         msg: Additional error message.
     """
 
-    def __init__(self, value: typing.Any,
-                 msg: typing.Union[str, Exception]) -> None:
+    def __init__(self, value: Any, msg: Union[str, Exception]) -> None:
         super().__init__("Invalid value '{}' - {}".format(value, msg))
         self.option = None
 
@@ -117,9 +116,9 @@ class ConfigErrorDesc:
         traceback: The formatted traceback of the exception.
     """
 
-    text = attr.ib()  # type: str
-    exception = attr.ib()  # type: typing.Union[str, Exception]
-    traceback = attr.ib(None)  # type: str
+    text: str = attr.ib()
+    exception: Union[str, Exception] = attr.ib()
+    traceback: str = attr.ib(None)
 
     def __str__(self) -> str:
         if self.traceback:
@@ -141,7 +140,7 @@ class ConfigFileErrors(Error):
 
     def __init__(self,
                  basename: str,
-                 errors: typing.Sequence[ConfigErrorDesc], *,
+                 errors: Sequence[ConfigErrorDesc], *,
                  fatal: bool = False) -> None:
         super().__init__("Errors occurred while reading {}:\n{}".format(
             basename, '\n'.join('  {}'.format(e) for e in errors)))

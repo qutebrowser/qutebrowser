@@ -31,16 +31,16 @@ import traceback
 import functools
 import contextlib
 import posixpath
-import socket
 import shlex
 import glob
 import mimetypes
 import ctypes
 import ctypes.util
-from typing import Any, Callable, IO, Iterator, Optional, Sequence, Tuple, Type, Union
+from typing import (Any, Callable, IO, Iterator, Optional, Sequence, Tuple, Type, Union,
+                    TYPE_CHECKING, cast)
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QColor, QClipboard, QDesktopServices
+from PyQt5.QtCore import QUrl, QVersionNumber
+from PyQt5.QtGui import QClipboard, QDesktopServices
 from PyQt5.QtWidgets import QApplication
 import pkg_resources
 import yaml
@@ -54,7 +54,7 @@ except ImportError:  # pragma: no cover
     YAML_C_EXT = False
 
 import qutebrowser
-from qutebrowser.utils import qtutils, log
+from qutebrowser.utils import log
 
 
 fake_clipboard = None
@@ -65,6 +65,34 @@ is_mac = sys.platform.startswith('darwin')
 is_linux = sys.platform.startswith('linux')
 is_windows = sys.platform.startswith('win')
 is_posix = os.name == 'posix'
+
+
+try:
+    # Protocol was added in Python 3.8
+    from typing import Protocol
+except ImportError:  # pragma: no cover
+    if not TYPE_CHECKING:
+        class Protocol:
+
+            """Empty stub at runtime."""
+
+
+class SupportsLessThan(Protocol):
+
+    """Protocol for a "comparable" object."""
+
+    def __lt__(self, other: Any) -> bool:
+        ...
+
+
+if TYPE_CHECKING:
+    class VersionNumber(SupportsLessThan, QVersionNumber):
+
+        """WORKAROUND for incorrect PyQt stubs."""
+else:
+    class VersionNumber:
+
+        """We can't inherit from Protocol and QVersionNumber at runtime."""
 
 
 class Unreachable(Exception):
@@ -181,7 +209,8 @@ def read_file(filename: str, binary: bool = False) -> Any:
         # https://github.com/pyinstaller/pyinstaller/wiki/FAQ#misc
         fn = os.path.join(os.path.dirname(sys.executable), filename)
         if binary:
-            with open(fn, 'rb') as f:  # type: IO
+            f: IO
+            with open(fn, 'rb') as f:
                 return f.read()
         else:
             with open(fn, 'r', encoding='utf-8') as f:
@@ -210,81 +239,10 @@ def resource_filename(filename: str) -> str:
     return pkg_resources.resource_filename(qutebrowser.__name__, filename)
 
 
-def _get_color_percentage(a_c1: int, a_c2: int, a_c3:
-                          int, b_c1: int, b_c2: int, b_c3: int,
-                          percent: int) -> Tuple[int, int, int]:
-    """Get a color which is percent% interpolated between start and end.
-
-    Args:
-        a_c1, a_c2, a_c3: Start color components (R, G, B / H, S, V / H, S, L)
-        b_c1, b_c2, b_c3: End color components (R, G, B / H, S, V / H, S, L)
-        percent: Percentage to interpolate, 0-100.
-                 0: Start color will be returned.
-                 100: End color will be returned.
-
-    Return:
-        A (c1, c2, c3) tuple with the interpolated color components.
-    """
-    if not 0 <= percent <= 100:
-        raise ValueError("percent needs to be between 0 and 100!")
-    out_c1 = round(a_c1 + (b_c1 - a_c1) * percent / 100)
-    out_c2 = round(a_c2 + (b_c2 - a_c2) * percent / 100)
-    out_c3 = round(a_c3 + (b_c3 - a_c3) * percent / 100)
-    return (out_c1, out_c2, out_c3)
-
-
-def interpolate_color(
-        start: QColor,
-        end: QColor,
-        percent: int,
-        colorspace: Optional[QColor.Spec] = QColor.Rgb
-) -> QColor:
-    """Get an interpolated color value.
-
-    Args:
-        start: The start color.
-        end: The end color.
-        percent: Which value to get (0 - 100)
-        colorspace: The desired interpolation color system,
-                    QColor::{Rgb,Hsv,Hsl} (from QColor::Spec enum)
-                    If None, start is used except when percent is 100.
-
-    Return:
-        The interpolated QColor, with the same spec as the given start color.
-    """
-    qtutils.ensure_valid(start)
-    qtutils.ensure_valid(end)
-
-    if colorspace is None:
-        if percent == 100:
-            return QColor(*end.getRgb())
-        else:
-            return QColor(*start.getRgb())
-
-    out = QColor()
-    if colorspace == QColor.Rgb:
-        a_c1, a_c2, a_c3, _alpha = start.getRgb()
-        b_c1, b_c2, b_c3, _alpha = end.getRgb()
-        components = _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3,
-                                           percent)
-        out.setRgb(*components)
-    elif colorspace == QColor.Hsv:
-        a_c1, a_c2, a_c3, _alpha = start.getHsv()
-        b_c1, b_c2, b_c3, _alpha = end.getHsv()
-        components = _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3,
-                                           percent)
-        out.setHsv(*components)
-    elif colorspace == QColor.Hsl:
-        a_c1, a_c2, a_c3, _alpha = start.getHsl()
-        b_c1, b_c2, b_c3, _alpha = end.getHsl()
-        components = _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3,
-                                           percent)
-        out.setHsl(*components)
-    else:
-        raise ValueError("Invalid colorspace!")
-    out = out.convertTo(start.spec())
-    qtutils.ensure_valid(out)
-    return out
+def parse_version(version: str) -> VersionNumber:
+    """Parse a version string."""
+    v_q, _suffix = QVersionNumber.fromString(version)
+    return cast(VersionNumber, v_q.normalized())
 
 
 def format_seconds(total_seconds: int) -> str:
@@ -631,15 +589,6 @@ def get_clipboard(selection: bool = False, fallback: bool = False) -> str:
 def supports_selection() -> bool:
     """Check if the OS supports primary selection."""
     return QApplication.clipboard().supportsSelection()
-
-
-def random_port() -> int:
-    """Get a random free port."""
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(('localhost', 0))
-    port = sock.getsockname()[1]
-    sock.close()
-    return port
 
 
 def open_file(filename: str, cmdline: str = None) -> None:

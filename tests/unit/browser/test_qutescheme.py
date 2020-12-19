@@ -28,6 +28,7 @@ from PyQt5.QtCore import QUrl, QUrlQuery
 import pytest
 
 from qutebrowser.browser import qutescheme, pdfjs, downloads
+from qutebrowser.utils import utils
 
 
 class TestJavascriptHandler:
@@ -51,7 +52,7 @@ class TestJavascriptHandler:
                     return content
             raise OSError("File not found {}!".format(path))
 
-        monkeypatch.setattr('qutebrowser.utils.utils.read_file', _read_file)
+        monkeypatch.setattr(utils, 'read_file', _read_file)
 
     @pytest.mark.parametrize("filename, content", js_files)
     def test_qutejavascript(self, filename, content):

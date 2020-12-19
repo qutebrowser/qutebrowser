@@ -21,12 +21,8 @@
 
 from PyQt5.QtCore import QBuffer, QIODevice, QUrl
 from PyQt5.QtWebEngineCore import (QWebEngineUrlSchemeHandler,
-                                   QWebEngineUrlRequestJob)
-try:
-    from PyQt5.QtWebEngineCore import QWebEngineUrlScheme
-except ImportError:
-    # Added in Qt 5.12
-    QWebEngineUrlScheme = None  # type: ignore[misc, assignment]
+                                   QWebEngineUrlRequestJob,
+                                   QWebEngineUrlScheme)
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, qtutils
@@ -42,11 +38,6 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             assert QWebEngineUrlScheme.schemeByName(b'qute') is not None
 
         profile.installUrlSchemeHandler(b'qute', self)
-        if (qtutils.version_check('5.11', compiled=False) and
-                not qtutils.version_check('5.12', compiled=False)):
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-63378
-            profile.installUrlSchemeHandler(b'chrome-error', self)
-            profile.installUrlSchemeHandler(b'chrome-extension', self)
 
     def _check_initiator(self, job):
         """Check whether the initiator of the job should be allowed.
@@ -60,29 +51,16 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
         Return:
             True if the initiator is allowed, False if it was blocked.
         """
-        try:
-            initiator = job.initiator()
-            request_url = job.requestUrl()
-        except AttributeError:
-            # Added in Qt 5.11
-            return True
+        initiator = job.initiator()
+        request_url = job.requestUrl()
 
         # https://codereview.qt-project.org/#/c/234849/
         is_opaque = initiator == QUrl('null')
         target = request_url.scheme(), request_url.host()
 
-        if is_opaque and not qtutils.version_check('5.12'):
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70421
-            # When we don't register the qute:// scheme, all requests are
-            # flagged as opaque.
-            return True
-
-        if (target == ('qute', 'testdata') and
-                is_opaque and
-                qtutils.version_check('5.12')):
-            # Allow requests to qute://testdata, as this is needed in Qt 5.12
-            # for all tests to work properly. No qute://testdata handler is
-            # installed outside of tests.
+        if target == ('qute', 'testdata') and is_opaque:
+            # Allow requests to qute://testdata, as this is needed for all tests to work
+            # properly. No qute://testdata handler is installed outside of tests.
             return True
 
         if initiator.isValid() and initiator.scheme() != 'qute':
@@ -104,11 +82,6 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             job: QWebEngineUrlRequestJob
         """
         url = job.requestUrl()
-
-        if url.scheme() in ['chrome-error', 'chrome-extension']:
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-63378
-            job.fail(QWebEngineUrlRequestJob.UrlInvalid)
-            return
 
         if not self._check_initiator(job):
             return

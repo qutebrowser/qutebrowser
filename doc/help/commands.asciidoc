@@ -332,13 +332,7 @@ Remove a key from a dict.
 
 [[config-diff]]
 === config-diff
-Syntax: +:config-diff [*--old*]+
-
 Show all customized options.
-
-==== optional arguments
-* +*-o*+, +*--old*+: Show difference for the pre-v1.0 files (qutebrowser.conf/keys.conf).
-
 
 [[config-edit]]
 === config-edit

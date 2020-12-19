@@ -590,6 +590,7 @@ class LineEditPrompt(_BasePrompt):
         self._vbox.addWidget(self._lineedit)
         if question.default:
             self._lineedit.setText(question.default)
+            self._lineedit.selectAll()
         self.setFocusProxy(self._lineedit)
         self._init_key_label()
 

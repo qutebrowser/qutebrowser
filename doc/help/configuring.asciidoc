@@ -9,9 +9,7 @@ qutebrowser's config files
 --------------------------
 
 qutebrowser releases before v1.0.0 had a `qutebrowser.conf` and `keys.conf`
-file. Those are not used anymore since that release - see
-<<migrating,"Migrating older configurations">> for information on how to
-migrate to the new config.
+file. Those are not used anymore since v1.0.0.
 
 When using `:set` and `:bind`, changes are saved to an `autoconfig.yml` file
 automatically. If you don't want to have a config file which is curated by
@@ -422,8 +420,8 @@ stable across qutebrowser versions):
 # pylint: disable=C0111
 from qutebrowser.config.configfiles import ConfigAPI  # noqa: F401
 from qutebrowser.config.config import ConfigContainer  # noqa: F401
-config = config  # type: ConfigAPI # noqa: F821 pylint: disable=E0602,C0103
-c = c  # type: ConfigContainer # noqa: F821 pylint: disable=E0602,C0103
+config: ConfigAPI = config  # noqa: F821 pylint: disable=E0602,C0103
+c: ConfigContainer = c  # noqa: F821 pylint: disable=E0602,C0103
 ----
 
 emacs-like config
@@ -439,38 +437,3 @@ Various emacs/conkeror-like keybinding configs exist:
 It's also mostly possible to get rid of modal keybindings by setting
 `input.insert_mode.auto_enter` to `false`, and `input.forward_unbound_keys` to
 `all`.
-
-[[migrating]]
-Migrating older configurations
-------------------------------
-
-qutebrowser does no automatic migration for the new configuration. However,
-there's a special link:qute://configdiff/old[configdiff] page
-(`qute://configdiff/old`) in qutebrowser, which will show you the changes you
-did in your old configuration, compared to the old defaults.
-
-Other changes in default settings:
-
-- In v1.1.x and newer, `<Up>` and `<Down>` navigate through command history
-  if no text was entered yet.
-  With v1.0.x, they always navigate through command history instead of selecting
-  completion items. Use `<Tab>`/`<Shift-Tab>` to cycle through the completion
-  instead.
-  You can get back the old behavior by doing:
-+
-----
-:bind -m command <Up> completion-item-focus prev
-:bind -m command <Down> completion-item-focus next
-----
-+
-or always navigate through command history with
-+
-----
-:bind -m command <Up> command-history-prev
-:bind -m command <Down> command-history-next
-----
-
-- The default for `completion.web_history.max_items` is now set to `-1`, showing
-  an unlimited number of items in the completion for `:open` as the new
-  sqlite-based completion is much faster. If the `:open` completion is too slow
-  on your machine, set an appropriate limit again.

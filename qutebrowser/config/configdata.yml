@@ -293,15 +293,10 @@ auto_save.session:
 content.autoplay:
   default: true
   type: Bool
-  backend:
-    QtWebEngine: Qt 5.10
-    QtWebKit: false
+  backend: QtWebEngine
   supports_pattern: true
   desc: >-
     Automatically start playing `<video>` elements.
-
-    Note: On Qt < 5.11, this option needs a restart and does not support URL
-    patterns.
 
 content.cache.size:
   default: null
@@ -359,9 +354,6 @@ content.cache.appcache:
 
 content.cookies.accept:
   default: all
-  backend:
-    QtWebKit: true
-    QtWebEngine: Qt 5.11
   supports_pattern: true
   type:
     name: String
@@ -390,10 +382,7 @@ content.cookies.accept:
 content.cookies.store:
   default: true
   type: Bool
-  desc: >-
-    Store cookies.
-
-    Note this option needs a restart with QtWebEngine on Qt < 5.9.
+  desc: Store cookies.
 
 content.default_encoding:
   type: String
@@ -417,9 +406,7 @@ content.unknown_url_scheme_policy:
       - allow-all: "Allows all navigation requests to URLs with unknown
           schemes."
   default: allow-from-user-interaction
-  backend:
-    QtWebEngine: Qt 5.11
-    QtWebKit: false
+  backend: QtWebEngine
   supports_pattern: true
   desc: >-
     How navigation requests to URLs with unknown schemes are handled.
@@ -448,11 +435,7 @@ content.desktop_capture:
   type: BoolAsk
   default: ask
   supports_pattern: true
-  desc: >-
-    Allow websites to share screen content.
-
-    On Qt < 5.10, a dialog box is always displayed, even if this is set to
-    "true".
+  desc: Allow websites to share screen content.
 
 content.developer_extras:
   deleted: true
@@ -460,9 +443,7 @@ content.developer_extras:
 content.dns_prefetch:
   default: true
   type: Bool
-  backend:
-    QtWebKit: true
-    QtWebEngine: Qt 5.12
+  backend: QtWebEngine
   supports_pattern: true
   desc: Try to pre-fetch DNS entries to speed up browsing.
 
@@ -495,9 +476,7 @@ content.mouse_lock:
   default: ask
   type: BoolAsk
   supports_pattern: true
-  backend:
-    QtWebKit: false
-    QtWebEngine: Qt 5.8
+  backend: QtWebEngine
   desc: Allow websites to lock your mouse pointer.
 
 content.headers.accept_language:
@@ -851,9 +830,7 @@ content.persistent_storage:
   default: ask
   type: BoolAsk
   supports_pattern: true
-  backend:
-    QtWebKit: false
-    QtWebEngine: Qt 5.11
+  backend: QtWebEngine
   desc: Allow websites to request persistent storage quota via
     `navigator.webkitPersistentStorage.requestQuota`.
 
@@ -866,9 +843,7 @@ content.plugins:
 content.print_element_backgrounds:
   type: Bool
   default: true
-  backend:
-    QtWebKit: true
-    QtWebEngine: Qt 5.8
+  backend: QtWebEngine
   supports_pattern: true
   desc: >-
     Draw the background color and images also when the page is printed.
@@ -901,9 +876,7 @@ content.register_protocol_handler:
   default: ask
   type: BoolAsk
   supports_pattern: true
-  backend:
-    QtWebKit: false
-    QtWebEngine: Qt 5.11
+  backend: QtWebEngine
   desc: Allow websites to register protocol handlers via
     `navigator.registerProtocolHandler`.
 
@@ -943,14 +916,10 @@ content.webrtc_ip_handling_policy:
             servers unless the proxy server supports UDP. This doesn't expose
             any local addresses either.
   default: all-interfaces
-  backend:
-    QtWebKit: false
-    QtWebEngine: Qt 5.9.2
+  backend: QtWebEngine
   restart: true
   desc: >-
     Which interfaces to expose via WebRTC.
-
-    On Qt 5.10, this option doesn't work because of a Qt bug.
 
 content.xss_auditing:
   type: Bool
@@ -1573,7 +1542,7 @@ scrolling.bar:
       - never: Never show the scrollbar.
       - when-searching: Show the scrollbar when searching for text in the
             webpage. With the QtWebKit backend, this is equal to `never`.
-      - overlay: Show an overlay scrollbar. With Qt < 5.11 or on macOS, this is
+      - overlay: Show an overlay scrollbar. On macOS, this is
             unavailable and equal to `when-searching`; with the QtWebKit
             backend, this is equal to `never`. Enabling/disabling overlay
             scrollbars requires a restart.
@@ -1647,9 +1616,7 @@ spellcheck.languages:
 
     You can check for available languages and install dictionaries using
     scripts/dictcli.py. Run the script with -h/--help for instructions.
-  backend:
-    QtWebKit: false
-    QtWebEngine: Qt 5.8
+  backend: QtWebEngine
 
 ## statusbar
 
@@ -2081,6 +2048,7 @@ url.searchengines:
       expands to `slash%2Fand%26amp`).
     * `{unquoted}` quotes nothing (for `slash/and&amp` this placeholder
       expands to `slash/and&amp`).
+    * `{0}` means the same as `{}`, but can be used multiple times.
 
     The search engine named `DEFAULT` is used when `url.auto_search` is turned
     on and something else than a URL was entered to be opened. Other search
@@ -2141,6 +2109,19 @@ window.title_format:
   desc: |
     Format to use for the window title. The same placeholders like for
     `tabs.title.format` are defined.
+
+window.transparent:
+  type: Bool
+  default: false
+  desc: |
+    Set the main window background to transparent.
+
+    This allows having a transparent tab- or statusbar (might require a compositor such
+    as picom). However, it breaks some functionality such as dmenu embedding via its
+    `-w` option. On some systems, it was additionally reported that main window
+    transparency negatively affects performance.
+
+    Note this setting only affects windows opened after setting it.
 
 ## zoom
 
@@ -2747,9 +2728,7 @@ colors.webpage.darkmode.enabled:
     - "With selective inversion of everything": Combines the two variants
       above.
   restart: true
-  backend:
-    QtWebEngine: Qt 5.10
-    QtWebKit: false
+  backend: QtWebEngine
 
 colors.webpage.darkmode.algorithm:
   default: lightness-cielab
@@ -2771,9 +2750,7 @@ colors.webpage.darkmode.algorithm:
       # kInvertBrightness without gamma correction, and only available for
       # Chromium's automated tests
   restart: true
-  backend:
-    QtWebEngine: Qt 5.10
-    QtWebKit: false
+  backend: QtWebEngine
 
 colors.webpage.darkmode.contrast:
   default: 0.0
@@ -2787,9 +2764,7 @@ colors.webpage.darkmode.contrast:
     This only has an effect when `colors.webpage.darkmode.algorithm` is set to
     `lightness-hsl` or `brightness-rgb`.
   restart: true
-  backend:
-    QtWebEngine: Qt 5.10
-    QtWebKit: false
+  backend: QtWebEngine
 
 colors.webpage.darkmode.policy.images:
   default: smart
@@ -2799,19 +2774,16 @@ colors.webpage.darkmode.policy.images:
       - always: Apply dark mode filter to all images.
       - never: Never apply dark mode filter to any images.
       - smart: "Apply dark mode based on image content. Not available with Qt
-        5.10 / 5.15.0."
+        5.15.0."
   desc: >-
       Which images to apply dark mode to.
 
       With QtWebEngine 5.15.0, this setting can cause frequent renderer process
       crashes due to a
       https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug
-      in Qt]. With QtWebEngine 5.10, this is not available at all. In those
-      cases, the 'smart' setting is ignored and treated like 'never'.
+      in Qt].
   restart: true
-  backend:
-    QtWebEngine: Qt 5.10
-    QtWebKit: false
+  backend: QtWebEngine
 
 colors.webpage.darkmode.policy.page:
   default: smart
@@ -2872,9 +2844,7 @@ colors.webpage.darkmode.grayscale.all:
     This only has an effect when `colors.webpage.darkmode.algorithm` is set to
     `lightness-hsl` or `brightness-rgb`.
   restart: true
-  backend:
-    QtWebEngine: Qt 5.10
-    QtWebKit: false
+  backend: QtWebEngine
 
 colors.webpage.darkmode.grayscale.images:
   default: 0.0

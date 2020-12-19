@@ -26,6 +26,8 @@ import time
 from datetime import datetime
 from unittest import mock
 
+import hypothesis
+import hypothesis.strategies
 import pytest
 from PyQt5.QtCore import QUrl, QDateTime
 try:
@@ -37,7 +39,8 @@ except ImportError:
 
 from qutebrowser.misc import objects
 from qutebrowser.completion import completer
-from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
+from qutebrowser.completion.models import (
+    miscmodels, urlmodel, configmodel, listcategory)
 from qutebrowser.config import configdata, configtypes
 from qutebrowser.utils import usertypes
 from qutebrowser.mainwindow import tabbedbrowser
@@ -1324,3 +1327,10 @@ def test_undo_completion(tabbed_browser_stubs, info):
              "2020-01-01 00:00"),
         ],
     })
+
+
+@hypothesis.given(text=hypothesis.strategies.text())
+def test_listcategory_hypothesis(text):
+    """Make sure we can't produce invalid patterns."""
+    cat = listcategory.ListCategory("test", [])
+    cat.set_pattern(text)

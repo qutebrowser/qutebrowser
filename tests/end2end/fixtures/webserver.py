@@ -23,6 +23,7 @@ import re
 import sys
 import json
 import os.path
+import socket
 from http import HTTPStatus
 
 import attr
@@ -30,8 +31,6 @@ import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl
 
 from end2end.fixtures import testprocess
-
-from qutebrowser.utils import utils
 
 
 class Request(testprocess.Line):
@@ -140,8 +139,16 @@ class WebserverProcess(testprocess.Process):
     def __init__(self, request, script, parent=None):
         super().__init__(request, parent)
         self._script = script
-        self.port = utils.random_port()
+        self.port = self._random_port()
         self.new_data.connect(self.new_request)
+
+    def _random_port(self) -> int:
+        """Get a random free port."""
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.bind(('localhost', 0))
+        port = sock.getsockname()[1]
+        sock.close()
+        return port
 
     def get_requests(self):
         """Get the requests to the server during this test."""
@@ -185,21 +192,41 @@ def server(qapp, request):
 @pytest.fixture(autouse=True)
 def server_per_test(server, request):
     """Fixture to clean server request list after each test."""
-    request.node._server_log = server.captured_log
+    if not hasattr(request.node, '_server_logs'):
+        request.node._server_logs = []
+    request.node._server_logs.append(('server', server.captured_log))
+
     server.before_test()
     yield
     server.after_test()
 
 
 @pytest.fixture
+def server2(qapp, request):
+    """Fixture for a second server object for cross-origin tests."""
+    server = WebserverProcess(request, 'webserver_sub')
+
+    if not hasattr(request.node, '_server_logs'):
+        request.node._server_logs = []
+    request.node._server_logs.append(('secondary server', server.captured_log))
+
+    server.start()
+    yield server
+    server.terminate()
+
+
+@pytest.fixture
 def ssl_server(request, qapp):
     """Fixture for a webserver with a self-signed SSL certificate.
 
-    This needs to be explicitly used in a test, and overwrites the server log
-    used in that test.
+    This needs to be explicitly used in a test.
     """
     server = WebserverProcess(request, 'webserver_sub_ssl')
-    request.node._server_log = server.captured_log
+
+    if not hasattr(request.node, '_server_logs'):
+        request.node._server_logs = []
+    request.node._server_logs.append(('SSL server', server.captured_log))
+
     server.start()
     yield server
     server.after_test()

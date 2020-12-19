@@ -21,11 +21,11 @@
 
 from unittest import mock
 
-from PyQt5.QtCore import Qt, PYQT_VERSION
+from PyQt5.QtCore import Qt
 import pytest
 
 from qutebrowser.keyinput import basekeyparser, keyutils
-from qutebrowser.utils import utils, usertypes
+from qutebrowser.utils import usertypes
 
 
 # Alias because we need this a lot in here.
@@ -119,11 +119,9 @@ def test_read_config(keyparser, key_config_stub, changed_mode, expected):
 class TestHandle:
 
     def test_valid_key(self, prompt_keyparser, handle_text):
-        modifier = Qt.MetaModifier if utils.is_mac else Qt.ControlModifier
-
         infos = [
-            keyutils.KeyInfo(Qt.Key_A, modifier),
-            keyutils.KeyInfo(Qt.Key_X, modifier),
+            keyutils.KeyInfo(Qt.Key_A, Qt.ControlModifier),
+            keyutils.KeyInfo(Qt.Key_X, Qt.ControlModifier),
         ]
         for info in infos:
             prompt_keyparser.handle(info.to_event())
@@ -133,11 +131,9 @@ class TestHandle:
         assert not prompt_keyparser._sequence
 
     def test_valid_key_count(self, prompt_keyparser):
-        modifier = Qt.MetaModifier if utils.is_mac else Qt.ControlModifier
-
         infos = [
             keyutils.KeyInfo(Qt.Key_5, Qt.NoModifier),
-            keyutils.KeyInfo(Qt.Key_A, modifier),
+            keyutils.KeyInfo(Qt.Key_A, Qt.ControlModifier),
         ]
         for info in infos:
             prompt_keyparser.handle(info.to_event())
@@ -309,8 +305,6 @@ class TestCount:
         # https://github.com/qutebrowser/qutebrowser/issues/3743
         handle_text(prompt_keyparser, Qt.Key_twosuperior, Qt.Key_B, Qt.Key_A)
 
-    @pytest.mark.skipif(PYQT_VERSION == 0x050F01,
-                        reason='waitSignals is broken in PyQt 5.15.1')
     def test_count_keystring_update(self, qtbot,
                                     handle_text, prompt_keyparser):
         """Make sure the keystring is updated correctly when entering count."""

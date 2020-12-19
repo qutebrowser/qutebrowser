@@ -25,7 +25,7 @@ import collections
 import os.path
 import subprocess
 import contextlib
-import builtins  # noqa https://github.com/JBKahn/flake8-debugger/issues/20
+import builtins
 import types
 import importlib
 import logging
@@ -33,7 +33,6 @@ import textwrap
 import datetime
 
 import attr
-import pkg_resources
 import pytest
 import hypothesis
 import hypothesis.strategies
@@ -77,7 +76,7 @@ from qutebrowser.browser import pdfjs
      """,
      version.DistributionInfo(
          id='ubuntu', parsed=version.Distribution.ubuntu,
-         version=pkg_resources.parse_version('14.4'),
+         version=utils.parse_version('14.4'),
          pretty='Ubuntu 14.04.5 LTS')),
     # Ubuntu 17.04
     ("""
@@ -90,7 +89,7 @@ from qutebrowser.browser import pdfjs
      """,
      version.DistributionInfo(
          id='ubuntu', parsed=version.Distribution.ubuntu,
-         version=pkg_resources.parse_version('17.4'),
+         version=utils.parse_version('17.4'),
          pretty='Ubuntu 17.04')),
     # Debian Jessie
     ("""
@@ -102,7 +101,7 @@ from qutebrowser.browser import pdfjs
      """,
      version.DistributionInfo(
          id='debian', parsed=version.Distribution.debian,
-         version=pkg_resources.parse_version('8'),
+         version=utils.parse_version('8'),
          pretty='Debian GNU/Linux 8 (jessie)')),
     # Void Linux
     ("""
@@ -133,7 +132,7 @@ from qutebrowser.browser import pdfjs
      """,
      version.DistributionInfo(
          id='fedora', parsed=version.Distribution.fedora,
-         version=pkg_resources.parse_version('25'),
+         version=utils.parse_version('25'),
          pretty='Fedora 25 (Twenty Five)')),
     # OpenSUSE
     ("""
@@ -146,7 +145,7 @@ from qutebrowser.browser import pdfjs
      """,
      version.DistributionInfo(
          id='opensuse', parsed=version.Distribution.opensuse,
-         version=pkg_resources.parse_version('42.2'),
+         version=utils.parse_version('42.2'),
          pretty='openSUSE Leap 42.2')),
     # Linux Mint
     ("""
@@ -159,7 +158,7 @@ from qutebrowser.browser import pdfjs
      """,
      version.DistributionInfo(
          id='linuxmint', parsed=version.Distribution.linuxmint,
-         version=pkg_resources.parse_version('18.1'),
+         version=utils.parse_version('18.1'),
          pretty='Linux Mint 18.1')),
     # Manjaro
     ("""
@@ -188,7 +187,7 @@ from qutebrowser.browser import pdfjs
     """,
      version.DistributionInfo(
          id='org.kde.Platform', parsed=version.Distribution.kde_flatpak,
-         version=pkg_resources.parse_version('5.12'),
+         version=utils.parse_version('5.12'),
          pretty='KDE')),
     # No PRETTY_NAME
     ("""
@@ -221,7 +220,7 @@ def test_distribution(tmpdir, monkeypatch, os_release, expected):
     (None, False),
     (version.DistributionInfo(
         id='org.kde.Platform', parsed=version.Distribution.kde_flatpak,
-        version=pkg_resources.parse_version('5.12'),
+        version=utils.parse_version('5.12'),
         pretty='Unknown'), True),
     (version.DistributionInfo(
         id='arch', parsed=version.Distribution.arch, version=None,
@@ -562,7 +561,6 @@ class ImportFake:
             ('pygments', True),
             ('yaml', True),
             ('adblock', True),
-            ('cssutils', True),
             ('attr', True),
             ('PyQt5.QtWebEngineWidgets', True),
             ('PyQt5.QtWebEngine', True),
@@ -616,7 +614,7 @@ class ImportFake:
 def import_fake(monkeypatch):
     """Fixture to patch imports using ImportFake."""
     fake = ImportFake()
-    monkeypatch.setattr('builtins.__import__', fake.fake_import)
+    monkeypatch.setattr(builtins, '__import__', fake.fake_import)
     monkeypatch.setattr(version.importlib, 'import_module',
                         fake.fake_importlib_import)
     return fake
@@ -639,7 +637,6 @@ class TestModuleVersions:
     @pytest.mark.parametrize('module, idx, expected', [
         ('colorama', 1, 'colorama: no'),
         ('adblock', 6, 'adblock: no'),
-        ('cssutils', 7, 'cssutils: no'),
     ])
     def test_missing_module(self, module, idx, expected, import_fake):
         """Test with a module missing.
@@ -690,7 +687,6 @@ class TestModuleVersions:
         ('pygments', True),
         ('yaml', True),
         ('adblock', True),
-        ('cssutils', True),
         ('attr', True),
     ])
     def test_existing_attributes(self, name, has_version):
@@ -703,8 +699,6 @@ class TestModuleVersions:
             name: The name of the module to check.
             has_version: Whether a __version__ attribute is expected.
         """
-        if name == 'cssutils':
-            pytest.importorskip(name)
         module = importlib.import_module(name)
         assert hasattr(module, '__version__') == has_version
 
@@ -1032,7 +1026,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
     substitutions['ssl'] = 'SSL VERSION' if params.ssl_support else 'no'
 
     for name, val in patches.items():
-        monkeypatch.setattr('qutebrowser.utils.version.' + name, val)
+        monkeypatch.setattr(f'qutebrowser.utils.version.{name}', val)
 
     if params.frozen:
         monkeypatch.setattr(sys, 'frozen', True, raising=False)
@@ -1147,9 +1141,8 @@ def pbclient(stubs):
 
 def test_pastebin_version(pbclient, message_mock, monkeypatch, qtbot):
     """Test version.pastebin_version() sets the url."""
-    monkeypatch.setattr('qutebrowser.utils.version.version_info',
-                        lambda: "dummy")
-    monkeypatch.setattr('qutebrowser.utils.utils.log_clipboard', True)
+    monkeypatch.setattr(version, 'version_info', lambda: 'dummy')
+    monkeypatch.setattr(utils, 'log_clipboard', True)
 
     version.pastebin_version(pbclient)
     pbclient.success.emit("https://www.example.com/\n")
@@ -1162,8 +1155,7 @@ def test_pastebin_version(pbclient, message_mock, monkeypatch, qtbot):
 
 def test_pastebin_version_twice(pbclient, monkeypatch):
     """Test whether calling pastebin_version twice sends no data."""
-    monkeypatch.setattr('qutebrowser.utils.version.version_info',
-                        lambda: "dummy")
+    monkeypatch.setattr(version, 'version_info', lambda: 'dummy')
 
     version.pastebin_version(pbclient)
     pbclient.success.emit("https://www.example.com/\n")
@@ -1180,8 +1172,7 @@ def test_pastebin_version_twice(pbclient, monkeypatch):
 
 def test_pastebin_version_error(pbclient, caplog, message_mock, monkeypatch):
     """Test version.pastebin_version() with errors."""
-    monkeypatch.setattr('qutebrowser.utils.version.version_info',
-                        lambda: "dummy")
+    monkeypatch.setattr(version, 'version_info', lambda: 'dummy')
 
     version.pastebin_url = None
     with caplog.at_level(logging.ERROR):
@@ -1201,7 +1192,7 @@ def test_uptime(monkeypatch, qapp):
 
     class FakeDateTime(datetime.datetime):
         now = lambda x=datetime.datetime(1, 1, 1, 1, 1, 1, 2): x
-    monkeypatch.setattr('datetime.datetime', FakeDateTime)
+    monkeypatch.setattr(datetime, 'datetime', FakeDateTime)
 
     uptime_delta = version._uptime()
     assert uptime_delta == datetime.timedelta(0)

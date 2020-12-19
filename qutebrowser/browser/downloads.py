@@ -560,8 +560,8 @@ class AbstractDownloadItem(QObject):
         elif self.stats.percentage() is None:
             return start
         else:
-            return utils.interpolate_color(start, stop,
-                                           self.stats.percentage(), system)
+            return qtutils.interpolate_color(
+                start, stop, self.stats.percentage(), system)
 
     def _do_cancel(self):
         """Actual cancel implementation."""
@@ -574,6 +574,7 @@ class AbstractDownloadItem(QObject):
         Args:
             remove_data: Whether to remove the downloaded data.
         """
+        assert not self.done
         self._do_cancel()
         log.downloads.debug("cancelled")
         if remove_data:
@@ -982,7 +983,8 @@ class AbstractDownloadManager(QObject):
     def shutdown(self):
         """Cancel all downloads when shutting down."""
         for download in self.downloads:
-            download.cancel(remove_data=False)
+            if not download.done:
+                download.cancel(remove_data=False)
 
 
 class DownloadModel(QAbstractListModel):

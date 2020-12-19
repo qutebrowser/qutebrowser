@@ -38,9 +38,10 @@
 #				(This is unnecessarily long. I use this rarely, feel free to make this script accept parameters.)
 #
 
-[ -z "$QUTE_URL" ] && QUTE_URL='http://google.com'
 
-url=$(echo "$QUTE_URL" | cat - "$QUTE_CONFIG_DIR/quickmarks" "$QUTE_DATA_DIR/history" | dmenu -l 15 -p qutebrowser)
+[ -z "$QUTE_URL" ] && QUTE_URL='https://duckduckgo.com'
+
+url=$(printf "%s\n%s" "$QUTE_URL" "$(sqlite3 -separator ' ' "$QUTE_DATA_DIR/history.sqlite" 'select title, url from CompletionHistory')" | cat "$QUTE_CONFIG_DIR/quickmarks" - | dmenu -l 15 -p qutebrowser)
 url=$(echo "$url" | sed -E 's/[^ ]+ +//g' | grep -E "https?:" || echo "$url")
 
 [ -z "${url// }" ] && exit

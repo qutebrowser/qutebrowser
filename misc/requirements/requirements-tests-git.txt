@@ -27,7 +27,6 @@ git+https://github.com/pallets/werkzeug.git
 ## qutebrowser dependencies
 
 git+https://github.com/tartley/colorama.git
-hg+https://bitbucket.org/cthedot/cssutils
 git+https://github.com/pallets/jinja.git
 git+https://github.com/pallets/markupsafe.git
 hg+http://bitbucket.org/birkenfeld/pygments-main

@@ -30,7 +30,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
 from qutebrowser.config import config, stylesheet
 from qutebrowser.completion import completiondelegate
-from qutebrowser.utils import utils, usertypes, debug, log
+from qutebrowser.utils import utils, usertypes, debug, log, qtutils
 from qutebrowser.api import cmdutils
 if TYPE_CHECKING:
     from qutebrowser.mainwindow.statusbar import command
@@ -223,8 +223,9 @@ class CompletionView(QTreeView):
             return model.last_item() if upwards else model.first_item()
 
         # Find height of each CompletionView element
-        element_height = self.visualRect(idx).height()
-        page_length = self.height() // element_height
+        rect = self.visualRect(idx)
+        qtutils.ensure_valid(rect)
+        page_length = self.height() // rect.height()
 
         # Skip one pageful, except leave one old line visible
         offset = -(page_length - 1) if upwards else page_length - 1
@@ -330,7 +331,8 @@ class CompletionView(QTreeView):
             QItemSelectionModel.Rows)
 
         # if the last item is focused, try to fetch more
-        if idx.row() == self.model().rowCount(idx.parent()) - 1:
+        next_idx = self.indexBelow(idx)
+        if not self.visualRect(next_idx).isValid():
             self.expandAll()
 
         count = self.model().count()

@@ -737,15 +737,8 @@ Feature: Tab management
 
     # https://github.com/qutebrowser/qutebrowser/issues/2289
 
-    @qtwebkit_skip @qt<5.9
-    Scenario: Cloning a tab with a view-source URL
-        When I open /
-        And I open view-source:http://localhost:(port)
-        And I run :tab-clone
-        Then the error "Can't serialize special URL!" should be shown
-
-    @qtwebkit_skip @qt>=5.9
-    Scenario: Cloning a tab with a special URL (Qt 5.9)
+    @qtwebkit_skip
+    Scenario: Cloning a tab with a special URL
         When I open chrome://gpu
         And I run :tab-clone
         Then no crash should happen

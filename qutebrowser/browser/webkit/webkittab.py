@@ -82,9 +82,6 @@ class WebKitPrinting(browsertab.AbstractPrinting):
     def check_pdf_support(self):
         pass
 
-    def check_printer_support(self):
-        pass
-
     def check_preview_support(self):
         pass
 
@@ -850,9 +847,8 @@ class WebKitTab(browsertab.AbstractTab):
         settings = widget.settings()
         settings.setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
 
-    def load_url(self, url, *, emit_before_load_started=True):
-        self._load_url_prepare(
-            url, emit_before_load_started=emit_before_load_started)
+    def load_url(self, url):
+        self._load_url_prepare(url)
         self._widget.load(url)
 
     def url(self, *, requested=False):

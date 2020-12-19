@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import types
 import logging
 
 import pytest
@@ -25,7 +24,7 @@ import pytest
 pytest.importorskip('PyQt5.QtWebEngineWidgets')
 
 from qutebrowser.browser.webengine import webenginesettings
-from qutebrowser.utils import usertypes, qtutils
+from qutebrowser.utils import usertypes
 from qutebrowser.misc import objects
 
 
@@ -34,8 +33,7 @@ def init(qapp, config_stub, cache_tmpdir, data_tmpdir, monkeypatch):
     monkeypatch.setattr(webenginesettings.webenginequtescheme, 'init',
                         lambda: None)
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
-    init_args = types.SimpleNamespace(enable_webengine_inspector=False)
-    webenginesettings.init(init_args)
+    webenginesettings.init()
     config_stub.changed.disconnect(webenginesettings._update_settings)
 
 
@@ -47,8 +45,6 @@ def test_big_cache_size(config_stub):
     assert profile.httpCacheMaximumSize() == 2 ** 31 - 1
 
 
-@pytest.mark.skipif(
-    not qtutils.version_check('5.8'), reason="Needs Qt 5.8 or newer")
 def test_non_existing_dict(config_stub, monkeypatch, message_mock, caplog):
     monkeypatch.setattr(webenginesettings.spell, 'local_filename',
                         lambda _code: None)
@@ -63,8 +59,6 @@ def test_non_existing_dict(config_stub, monkeypatch, message_mock, caplog):
     assert msg.text == expected
 
 
-@pytest.mark.skipif(
-    not qtutils.version_check('5.8'), reason="Needs Qt 5.8 or newer")
 def test_existing_dict(config_stub, monkeypatch):
     monkeypatch.setattr(webenginesettings.spell, 'local_filename',
                         lambda _code: 'en-US-8-0')
@@ -76,8 +70,6 @@ def test_existing_dict(config_stub, monkeypatch):
         assert profile.spellCheckLanguages() == ['en-US-8-0']
 
 
-@pytest.mark.skipif(
-    not qtutils.version_check('5.8'), reason="Needs Qt 5.8 or newer")
 def test_spell_check_disabled(config_stub, monkeypatch):
     config_stub.val.spellcheck.languages = []
     webenginesettings._update_settings('spellcheck.languages')

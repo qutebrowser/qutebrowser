@@ -47,6 +47,7 @@ class _Highlighter(QSyntaxHighlighter):
         self._expression = QRegularExpression(
             pat, QRegularExpression.CaseInsensitiveOption
         )
+        qtutils.ensure_valid(self._expression)
 
     def highlightBlock(self, text):
         """Override highlightBlock for custom highlighting."""

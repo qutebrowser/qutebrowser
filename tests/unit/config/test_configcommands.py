@@ -212,14 +212,12 @@ class TestSet:
             commands.set(win_id=0, option='foo?')
 
 
-@pytest.mark.parametrize('old', [True, False])
-def test_diff(commands, tabbed_browser_stubs, old):
+def test_diff(commands, tabbed_browser_stubs):
     """Run ':config-diff'.
 
     Should open qute://configdiff."""
-    commands.config_diff(win_id=0, old=old)
-    url = QUrl('qute://configdiff/old') if old else QUrl('qute://configdiff')
-    assert tabbed_browser_stubs[0].loaded_url == url
+    commands.config_diff(win_id=0)
+    assert tabbed_browser_stubs[0].loaded_url == QUrl('qute://configdiff')
 
 
 class TestCycle:

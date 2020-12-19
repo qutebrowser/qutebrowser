@@ -83,7 +83,7 @@ def init(parent=None):
 def shutdown(session: Optional[ArgType], last_window: bool) -> None:
     """Handle a shutdown by saving sessions and removing the autosave file."""
     if session_manager is None:
-        return  # type: ignore
+        return  # type: ignore[unreachable]
 
     try:
         if session is not None:

@@ -203,8 +203,10 @@ class MainWindow(QWidget):
         from qutebrowser.mainwindow.statusbar import bar
 
         self.setAttribute(Qt.WA_DeleteOnClose)
-        self.setAttribute(Qt.WA_TranslucentBackground)
-        self.palette().setColor(QPalette.Window, Qt.transparent)
+        if config.val.window.transparent:
+            self.setAttribute(Qt.WA_TranslucentBackground)
+            self.palette().setColor(QPalette.Window, Qt.transparent)
+
         self._overlays: MutableSequence[_OverlayInfoType] = []
         self.win_id = next(win_id_gen)
         self.registry = objreg.ObjectRegistry()

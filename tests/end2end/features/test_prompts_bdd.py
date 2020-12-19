@@ -22,8 +22,6 @@ import logging
 import pytest_bdd as bdd
 bdd.scenarios('prompts.feature')
 
-from qutebrowser.utils import qtutils
-
 
 @bdd.when("I load an SSL page")
 def load_ssl_page(quteproc, ssl_server):
@@ -51,24 +49,17 @@ def no_prompt_shown(quteproc):
 
 @bdd.then("a SSL error page should be shown")
 def ssl_error_page(request, quteproc):
-    if request.config.webengine and qtutils.version_check('5.9'):
+    if request.config.webengine:
         quteproc.wait_for(message="Certificate error: *")
 
         msg = quteproc.wait_for(message="Load error: *")
         msg.expected = True
 
-        expected_messages = [
-            'Load error: ERR_INSECURE_RESPONSE',  # Qt <= 5.10
-            'Load error: ERR_CERT_AUTHORITY_INVALID',  # Qt 5.11
-        ]
-        assert msg.message in expected_messages
+        assert msg.message == 'Load error: ERR_CERT_AUTHORITY_INVALID'
     else:
-        if not request.config.webengine:
-            line = quteproc.wait_for(message='Error while loading *: SSL '
-                                     'handshake failed')
-            line.expected = True
-        quteproc.wait_for(message="Changing title for idx * to 'Error "
-                          "loading page: *'")
+        line = quteproc.wait_for(message='Error while loading *: SSL handshake failed')
+        line.expected = True
+        quteproc.wait_for(message="Changing title for idx * to 'Error loading page: *'")
         content = quteproc.get_content().strip()
         assert "Unable to load page" in content
 

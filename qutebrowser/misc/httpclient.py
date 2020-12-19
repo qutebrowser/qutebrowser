@@ -33,14 +33,8 @@ class HTTPRequest(QNetworkRequest):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        try:
-            self.setAttribute(QNetworkRequest.RedirectPolicyAttribute,
-                              QNetworkRequest.NoLessSafeRedirectPolicy)
-        except AttributeError:
-            # RedirectPolicyAttribute was introduced in 5.9 to replace
-            # FollowRedirectsAttribute.
-            self.setAttribute(QNetworkRequest.FollowRedirectsAttribute,
-                              True)
+        self.setAttribute(QNetworkRequest.RedirectPolicyAttribute,
+                          QNetworkRequest.NoLessSafeRedirectPolicy)
 
 
 class HTTPClient(QObject):

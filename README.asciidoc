@@ -110,8 +110,8 @@ Requirements
 The following software and libraries are required to run qutebrowser:
 
 * https://www.python.org/[Python] 3.6 or newer
-* https://www.qt.io/[Qt] 5.7.1 or newer (5.14 recommended; support for < 5.11
-  will be dropped with qutebrowser v2.0.0) with the following modules:
+* https://www.qt.io/[Qt] 5.12.0 or newer (5.12 LTS or 5.15 recommended)
+  with the following modules:
   - QtCore / qtbase
   - QtQuick (part of qtbase in some distributions)
   - QtSQL (part of qtbase in some distributions)
@@ -123,8 +123,8 @@ The following software and libraries are required to run qutebrowser:
     revision with known unpatched vulnerabilities. Please use it carefully and
     avoid visiting untrusted websites and using it for transmission of
     sensitive data.**
-* https://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.7.0 or newer
-  (5.14 recommended, support for < 5.11 will be dropped soon) for Python 3
+* https://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.12.0 or newer
+  for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
 * https://fdik.org/pyPEG/[pyPEG2]
 * http://jinja.pocoo.org/[jinja2]
@@ -135,8 +135,6 @@ The following software and libraries are required to run qutebrowser:
 The following libraries are optional:
 
 * https://pypi.org/project/adblock/[adblock] (for improved adblocking using ABP syntax)
-* http://cthedot.de/cssutils/[cssutils] (for an improved `:download --mhtml`
-  with QtWebKit).
 * On Windows, https://pypi.python.org/pypi/colorama/[colorama] for colored log
   output.
 * http://asciidoc.org/[asciidoc] to generate the documentation for the `:help`

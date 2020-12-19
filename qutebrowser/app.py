@@ -43,7 +43,7 @@ import functools
 import tempfile
 import datetime
 import argparse
-import typing
+from typing import Iterable, Optional, cast
 
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
@@ -74,7 +74,7 @@ from qutebrowser.misc import utilcmds
 # pylint: enable=unused-import
 
 
-q_app = typing.cast(QApplication, None)
+q_app = cast(QApplication, None)
 
 
 def run(args):
@@ -199,7 +199,7 @@ def _init_pulseaudio():
     WORKAROUND for https://bugreports.qt.io/browse/QTBUG-85363
 
     Affected Qt versions:
-    - Older than 5.11
+    - Older than 5.11 (which is unsupported)
     - 5.14.0 to 5.15.0 (inclusive)
 
     However, we set this on all versions so that qutebrowser's icon gets picked
@@ -256,7 +256,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
     if command_target in {'window', 'private-window'}:
         command_target = 'tab-silent'
 
-    win_id = None  # type: typing.Optional[int]
+    win_id: Optional[int] = None
 
     if via_ipc and not args:
         win_id = mainwindow.get_window(via_ipc=via_ipc,
@@ -325,7 +325,7 @@ def _open_startpage(win_id=None):
                 If set, open the startpage in the given window.
     """
     if win_id is not None:
-        window_ids = [win_id]  # type: typing.Iterable[int]
+        window_ids: Iterable[int] = [win_id]
     else:
         window_ids = objreg.window_registry
     for cur_win_id in list(window_ids):  # Copying as the dict could change
@@ -365,10 +365,6 @@ def _open_special_pages(args):
         ('webkit-warning-shown',
          objects.backend == usertypes.Backend.QtWebKit,
          'qute://warning/webkit'),
-
-        ('old-qt-warning-shown',
-         not qtutils.version_check('5.11'),
-         'qute://warning/old-qt'),
 
         ('session-warning-shown',
          qtutils.version_check('5.15', compiled=False),
@@ -536,7 +532,9 @@ class Application(QApplication):
         self.launch_time = datetime.datetime.now()
         self.focusObjectChanged.connect(  # type: ignore[attr-defined]
             self.on_focus_object_changed)
+
         self.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+        self.setAttribute(Qt.AA_MacDontSwapCtrlAndMeta, True)
 
         self.new_window.connect(self._on_new_window)
 

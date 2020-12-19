@@ -54,8 +54,8 @@ def fake_proc(monkeypatch, stubs):
 
 def test_start(proc, qtbot, message_mock, py_proc):
     """Test simply starting a process."""
-    with qtbot.waitSignal(proc.started, timeout=10000), \
-         qtbot.waitSignal(proc.finished, timeout=10000):
+    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
+                           order='strict'):
         argv = py_proc("import sys; print('test'); sys.exit(0)")
         proc.start(*argv)
 
@@ -70,8 +70,8 @@ def test_start_verbose(proc, qtbot, message_mock, py_proc):
     """Test starting a process verbosely."""
     proc.verbose = True
 
-    with qtbot.waitSignal(proc.started, timeout=10000), \
-         qtbot.waitSignal(proc.finished, timeout=10000):
+    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
+                           order='strict'):
         argv = py_proc("import sys; print('test'); sys.exit(0)")
         proc.start(*argv)
 
@@ -99,8 +99,9 @@ def test_start_output_message(proc, qtbot, caplog, message_mock, py_proc,
     code.append("sys.exit(0)")
 
     with caplog.at_level(logging.ERROR, 'message'):
-        with qtbot.waitSignal(proc.started, timeout=10000), \
-             qtbot.waitSignal(proc.finished, timeout=10000):
+        with qtbot.waitSignals([proc.started, proc.finished],
+                               timeout=10000,
+                               order='strict'):
             argv = py_proc(';'.join(code))
             proc.start(*argv)
 
@@ -146,8 +147,8 @@ def test_start_env(monkeypatch, qtbot, py_proc):
         sys.exit(0)
     """)
 
-    with qtbot.waitSignal(proc.started, timeout=10000), \
-         qtbot.waitSignal(proc.finished, timeout=10000):
+    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
+                           order='strict'):
         proc.start(*argv)
 
     data = qutescheme.spawn_output
@@ -186,12 +187,12 @@ def test_double_start(qtbot, proc, py_proc):
 
 def test_double_start_finished(qtbot, proc, py_proc):
     """Test starting a GUIProcess twice (with the first call finished)."""
-    with qtbot.waitSignal(proc.started, timeout=10000), \
-         qtbot.waitSignal(proc.finished, timeout=10000):
+    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
+                           order='strict'):
         argv = py_proc("import sys; sys.exit(0)")
         proc.start(*argv)
-    with qtbot.waitSignal(proc.started, timeout=10000), \
-         qtbot.waitSignal(proc.finished, timeout=10000):
+    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
+                           order='strict'):
         argv = py_proc("import sys; sys.exit(0)")
         proc.start(*argv)
 
@@ -266,8 +267,8 @@ def test_exit_successful_output(qtbot, proc, py_proc, stream):
 
 def test_stdout_not_decodable(proc, qtbot, message_mock, py_proc):
     """Test handling malformed utf-8 in stdout."""
-    with qtbot.waitSignal(proc.started, timeout=10000), \
-         qtbot.waitSignal(proc.finished, timeout=10000):
+    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
+                           order='strict'):
         argv = py_proc(r"""
             import sys
             # Using \x81 because it's invalid in UTF-8 and CP1252

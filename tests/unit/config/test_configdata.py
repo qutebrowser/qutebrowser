@@ -289,7 +289,7 @@ class TestParseYamlBackend:
         data = self._yaml("""
             backend:
               QtWebKit: {}
-              QtWebEngine: Qt 5.8
+              QtWebEngine: Qt 5.15
         """.format('true' if webkit else 'false'))
         monkeypatch.setattr(configdata.qtutils, 'version_check',
                             lambda v: has_new_version)

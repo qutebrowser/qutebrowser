@@ -36,7 +36,7 @@ import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl
 
 from qutebrowser.misc import ipc
-from qutebrowser.utils import log, utils, javascript, qtutils
+from qutebrowser.utils import log, utils, javascript
 from helpers import utils as testutils
 from end2end.fixtures import testprocess
 
@@ -421,8 +421,6 @@ class QuteProc(testprocess.Process):
         _webengine: Whether to use QtWebEngine
         basedir: The base directory for this instance.
         request: The request object for the current test.
-        _focus_ready: Whether the main window got focused.
-        _load_ready: Whether the about:blank page got loaded.
         _instance_id: A unique ID for this QuteProc instance
         _run_counter: A counter to get a unique ID for each run.
 
@@ -439,75 +437,23 @@ class QuteProc(testprocess.Process):
         super().__init__(request, parent)
         self._ipc_socket = None
         self.basedir = None
-        self._focus_ready = False
-        self._load_ready = False
         self._instance_id = next(instance_counter)
         self._run_counter = itertools.count()
 
-    def _is_ready(self, what):
-        """Called by _parse_line if loading/focusing is done.
-
-        When both are done, emits the 'ready' signal.
-        """
-        if what == 'load':
-            self._load_ready = True
-        elif what == 'focus':
-            self._focus_ready = True
-        else:
-            raise ValueError("Invalid value {!r} for 'what'.".format(what))
-
-        is_qt_5_12 = qtutils.version_check('5.12', compiled=False)
-        if ((self._load_ready and self._focus_ready) or
-                (self._load_ready and is_qt_5_12)):
-            self._load_ready = False
-            self._focus_ready = False
-            self.ready.emit()
-
     def _process_line(self, log_line):
         """Check if the line matches any initial lines we're interested in."""
-        start_okay_message_load = (
+        start_okay_message = (
             "load status for <qutebrowser.browser.* tab_id=0 "
             "url='about:blank'>: LoadStatus.success")
-        start_okay_messages_focus = [
-            ## QtWebKit
-            "Focus object changed: "
-            "<qutebrowser.browser.* tab_id=0 url='about:blank'>",
-            # when calling QApplication::sync
-            "Focus object changed: "
-            "<qutebrowser.browser.webkit.webview.WebView tab_id=0 url=''>",
-
-            ## QtWebEngine
-            "Focus object changed: "
-            "<PyQt5.QtWidgets.QOpenGLWidget object at *>",
-            # with Qt >= 5.8
-            "Focus object changed: "
-            "<PyQt5.QtGui.QWindow object at *>",
-            # when calling QApplication::sync
-            "Focus object changed: "
-            "<PyQt5.QtWidgets.QWidget object at *>",
-            # Qt >= 5.11
-            "Focus object changed: "
-            "<qutebrowser.browser.webengine.webview.WebEngineView object "
-            "at *>",
-            # Qt >= 5.11 with workarounds
-            "Focus object changed: "
-            "<PyQt5.QtQuickWidgets.QQuickWidget object at *>",
-        ]
 
         if (log_line.category == 'ipc' and
                 log_line.message.startswith("Listening as ")):
             self._ipc_socket = log_line.message.split(' ', maxsplit=2)[2]
         elif (log_line.category == 'webview' and
-              testutils.pattern_match(pattern=start_okay_message_load,
+              testutils.pattern_match(pattern=start_okay_message,
                                       value=log_line.message)):
-            if not self._load_ready:
-                log_line.waited_for = True
-            self._is_ready('load')
-        elif (log_line.category == 'misc' and any(
-                testutils.pattern_match(pattern=pattern,
-                                        value=log_line.message)
-                for pattern in start_okay_messages_focus)):
-            self._is_ready('focus')
+            log_line.waited_for = True
+            self.ready.emit()
         elif (log_line.category == 'init' and
               log_line.module == 'standarddir' and
               log_line.function == 'init' and
@@ -738,11 +684,7 @@ class QuteProc(testprocess.Process):
                                          target_arg)
             self._wait_for_ipc()
 
-    def start(self, *args, wait_focus=True,
-              **kwargs):  # pylint: disable=arguments-differ
-        if not wait_focus:
-            self._focus_ready = True
-
+    def start(self, *args, **kwargs):  # pylint: disable=arguments-differ
         try:
             super().start(*args, **kwargs)
         except testprocess.ProcessExited:
@@ -877,24 +819,16 @@ class QuteProc(testprocess.Process):
             raise ValueError("Invalid URL {}: {}".format(url,
                                                          qurl.errorString()))
 
-        if (qurl == QUrl('about:blank') and
-                not qtutils.version_check('5.10', compiled=False)):
-            # For some reason, we don't get a LoadStatus.success for
-            # about:blank sometimes.
-            # However, if we do this for Qt 5.10, we get general testsuite
-            # instability as site loads get reported with about:blank...
-            pattern = "Changing title for idx * to 'about:blank'"
-        else:
-            # We really need the same representation that the webview uses in
-            # its __repr__
-            url = utils.elide(qurl.toDisplayString(QUrl.EncodeUnicode), 100)
-            assert url
+        # We really need the same representation that the webview uses in
+        # its __repr__
+        url = utils.elide(qurl.toDisplayString(QUrl.EncodeUnicode), 100)
+        assert url
 
-            pattern = re.compile(
-                r"(load status for <qutebrowser\.browser\..* "
-                r"tab_id=\d+ url='{url}/?'>: LoadStatus\.{load_status}|fetch: "
-                r"PyQt5\.QtCore\.QUrl\('{url}'\) -> .*)".format(
-                    load_status=re.escape(load_status), url=re.escape(url)))
+        pattern = re.compile(
+            r"(load status for <qutebrowser\.browser\..* "
+            r"tab_id=\d+ url='{url}/?'>: LoadStatus\.{load_status}|fetch: "
+            r"PyQt5\.QtCore\.QUrl\('{url}'\) -> .*)".format(
+                load_status=re.escape(load_status), url=re.escape(url)))
 
         try:
             self.wait_for(message=pattern, timeout=timeout, after=after)

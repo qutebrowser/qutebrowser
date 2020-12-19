@@ -21,15 +21,15 @@
 
 import os
 import sys
-import typing
 import argparse
+from typing import Any, Dict, Iterator, List, Optional, Sequence
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes, qtutils, utils
 
 
-def qt_args(namespace: argparse.Namespace) -> typing.List[str]:
+def qt_args(namespace: argparse.Namespace) -> List[str]:
     """Get the Qt QApplication arguments based on an argparse namespace.
 
     Args:
@@ -61,9 +61,7 @@ def qt_args(namespace: argparse.Namespace) -> typing.List[str]:
     return argv
 
 
-def _qtwebengine_enabled_features(
-        feature_flags: typing.Sequence[str],
-) -> typing.Iterator[str]:
+def _qtwebengine_enabled_features(feature_flags: Sequence[str]) -> Iterator[str]:
     """Get --enable-features flags for QtWebEngine.
 
     Args:
@@ -95,7 +93,7 @@ def _qtwebengine_enabled_features(
         # just turn it on unconditionally on Linux, which shouldn't hurt.
         yield 'WebRTCPipeWireCapturer'
 
-    if qtutils.version_check('5.11', compiled=False) and not utils.is_mac:
+    if not utils.is_mac:
         # Enable overlay scrollbars.
         #
         # There are two additional flags in Chromium:
@@ -111,22 +109,27 @@ def _qtwebengine_enabled_features(
         if config.val.scrolling.bar == 'overlay':
             yield 'OverlayScrollbar'
 
+    if (qtutils.version_check('5.14', compiled=False) and
+            config.val.content.headers.referer == 'same-domain'):
+        # Handling of reduced-referrer-granularity in Chromium 76+
+        # https://chromium-review.googlesource.com/c/chromium/src/+/1572699
+        #
+        # Note that this is removed entirely (and apparently the default) starting with
+        # Chromium 89 (Qt 5.15.x or 6.x):
+        # https://chromium-review.googlesource.com/c/chromium/src/+/2545444
+        yield 'ReducedReferrerGranularity'
+
 
 def _qtwebengine_args(
         namespace: argparse.Namespace,
-        feature_flags: typing.Sequence[str],
-) -> typing.Iterator[str]:
+        feature_flags: Sequence[str],
+) -> Iterator[str]:
     """Get the QtWebEngine arguments to use based on the config."""
     is_qt_514 = (qtutils.version_check('5.14', compiled=False) and
                  not qtutils.version_check('5.15', compiled=False))
 
-    if not qtutils.version_check('5.11', compiled=False) or is_qt_514:
-        # WORKAROUND equivalent to
-        # https://codereview.qt-project.org/#/c/217932/
-        # Needed for Qt < 5.9.5 and < 5.10.1
-        #
-        # For Qt 5,14, WORKAROUND for
-        # https://bugreports.qt.io/browse/QTBUG-82105
+    if is_qt_514:
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-82105
         yield '--disable-shared-workers'
 
     # WORKAROUND equivalent to
@@ -152,8 +155,7 @@ def _qtwebengine_args(
     from qutebrowser.browser.webengine import darkmode
     blink_settings = list(darkmode.settings())
     if blink_settings:
-        yield '--blink-settings=' + ','.join('{}={}'.format(k, v)
-                                             for k, v in blink_settings)
+        yield '--blink-settings=' + ','.join(f'{k}={v}' for k, v in blink_settings)
 
     enabled_features = list(_qtwebengine_enabled_features(feature_flags))
     if enabled_features:
@@ -162,8 +164,8 @@ def _qtwebengine_args(
     yield from _qtwebengine_settings_args()
 
 
-def _qtwebengine_settings_args() -> typing.Iterator[str]:
-    settings = {
+def _qtwebengine_settings_args() -> Iterator[str]:
+    settings: Dict[str, Dict[Any, Optional[str]]] = {
         'qt.force_software_rendering': {
             'software-opengl': None,
             'qt-quick': None,
@@ -198,23 +200,26 @@ def _qtwebengine_settings_args() -> typing.Iterator[str]:
         },
         'content.headers.referer': {
             'always': None,
-            'never': '--no-referrers',
-            'same-domain': '--reduced-referrer-granularity',
         }
-    }  # type: typing.Dict[str, typing.Dict[typing.Any, typing.Optional[str]]]
+    }
 
-    if not qtutils.version_check('5.11'):
-        # On Qt 5.11, we can control this via QWebEngineSettings
-        settings['content.autoplay'] = {
-            True: None,
-            False: '--autoplay-policy=user-gesture-required',
-        }
-
-    if qtutils.version_check('5.14'):
+    referrer_setting = settings['content.headers.referer']
+    if qtutils.version_check('5.14', compiled=False):
         settings['colors.webpage.prefers_color_scheme_dark'] = {
             True: '--force-dark-mode',
             False: None,
         }
+        # Starting with Qt 5.14, this is handled via --enable-features
+        referrer_setting['same-domain'] = None
+    else:
+        referrer_setting['same-domain'] = '--reduced-referrer-granularity'
+
+    can_override_referer = (
+        qtutils.version_check('5.12.4', compiled=False) and
+        not qtutils.version_check('5.13.0', compiled=False, exact=True)
+    )
+    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-60203
+    referrer_setting['never'] = None if can_override_referer else '--no-referrers'
 
     for setting, args in sorted(settings.items()):
         arg = args[config.instance.get(setting)]

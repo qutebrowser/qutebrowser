@@ -171,25 +171,20 @@ Feature: Various utility commands.
 
     # :inspect
 
-    @qtwebkit_skip @qt<5.11
-    Scenario: Inspector without --enable-webengine-inspector
-        When I run :devtools
-        Then the error "QtWebEngine inspector is not enabled. See 'qutebrowser --help' for details." should be shown
-
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test
-        When I run :inspector
+        When I run :devtools
         And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
-        And I run :inspector
+        And I run :devtools
         And I wait for "Focus object changed: *" in the log
         Then no crash should happen
 
     # Different code path as an inspector got created now
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test 2
-        When I run :inspector
+        When I run :devtools
         And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
-        And I run :inspector
+        And I run :devtools
         And I wait for "Focus object changed: *" in the log
         Then no crash should happen
 
@@ -314,7 +309,6 @@ Feature: Various utility commands.
         And I press the key "<Ctrl-C>"
         Then no crash should happen
 
-    @js_prompt
     Scenario: Focusing download widget via Tab (original issue)
         When I open data/prompt/jsprompt.html
         And I run :click-element id button
@@ -506,25 +500,14 @@ Feature: Various utility commands.
     ## Renderer crashes
 
     # Skipped on Windows as "... has stopped working" hangs.
-    @qtwebkit_skip @no_invalid_lines @posix @qt<5.9
+    @qtwebkit_skip @no_invalid_lines @posix
     Scenario: Renderer crash
-        When I run :open -t chrome://crash
-        Then the error "Renderer process crashed" should be shown
-
-    @qtwebkit_skip @no_invalid_lines @qt<5.9
-    Scenario: Renderer kill
-        When I run :open -t chrome://kill
-        Then the error "Renderer process was killed" should be shown
-
-    # Skipped on Windows as "... has stopped working" hangs.
-    @qtwebkit_skip @no_invalid_lines @posix @qt>=5.9
-    Scenario: Renderer crash (5.9)
         When I run :open -t chrome://crash
         Then "Renderer process crashed" should be logged
         And "* 'Error loading chrome://crash/'" should be logged
 
-    @qtwebkit_skip @no_invalid_lines @qt>=5.9 @flaky
-    Scenario: Renderer kill (5.9)
+    @qtwebkit_skip @no_invalid_lines @flaky
+    Scenario: Renderer kill
         When I run :open -t chrome://kill
         Then "Renderer process was killed" should be logged
         And "* 'Error loading chrome://kill/'" should be logged

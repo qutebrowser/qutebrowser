@@ -181,11 +181,16 @@ class DownloadItem(downloads.AbstractDownloadItem):
         assert self.done
         assert not self.successful
         assert self._retry_info is not None
+
+        # Not calling self.cancel() here because the download is done (albeit
+        # unsuccessfully)
+        self.remove()
+        self.delete()
+
         new_reply = self._retry_info.manager.get(self._retry_info.request)
         new_download = self._manager.fetch(new_reply,
                                            suggested_filename=self.basename)
         self.adopt_download.emit(new_download)
-        self.cancel()
 
     def _get_open_filename(self):
         filename = self._filename
@@ -414,11 +419,12 @@ class DownloadManager(downloads.AbstractDownloadManager):
             private=config.val.content.private_browsing, parent=self)
 
     @pyqtSlot('QUrl')
-    def get(self, url, **kwargs):
+    def get(self, url, cache=True, **kwargs):
         """Start a download with a link URL.
 
         Args:
             url: The URL to get, as QUrl
+            cache: If set to False, don't cache the response.
             **kwargs: passed to get_request().
 
         Return:
@@ -431,6 +437,9 @@ class DownloadManager(downloads.AbstractDownloadManager):
         req = QNetworkRequest(url)
         user_agent = websettings.user_agent(url)
         req.setHeader(QNetworkRequest.UserAgentHeader, user_agent)
+
+        if not cache:
+            req.setAttribute(QNetworkRequest.CacheSaveControlAttribute, False)
 
         return self.get_request(req, **kwargs)
 

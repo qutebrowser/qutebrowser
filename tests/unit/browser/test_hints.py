@@ -30,10 +30,8 @@ import qutebrowser.browser.hints
 
 
 @pytest.fixture(autouse=True)
-def setup(benchmark, win_registry, mode_manager):
-    yield
-    # WORKAROUND for https://github.com/ionelmc/pytest-benchmark/issues/125
-    benchmark._mode = 'WORKAROUND'  # pylint: disable=protected-access
+def setup(win_registry, mode_manager):
+    pass
 
 
 @pytest.fixture

@@ -230,14 +230,6 @@ class AbstractPrinting:
         """
         raise NotImplementedError
 
-    def check_printer_support(self) -> None:
-        """Check whether writing to a printer is supported.
-
-        If it's not supported (by the current Qt version), a WebTabError is
-        raised.
-        """
-        raise NotImplementedError
-
     def check_preview_support(self) -> None:
         """Check whether showing a print preview is supported.
 
@@ -263,8 +255,6 @@ class AbstractPrinting:
 
     def show_dialog(self) -> None:
         """Print with a QPrintDialog."""
-        self.check_printer_support()
-
         def print_callback(ok: bool) -> None:
             """Called when printing finished."""
             if not ok:
@@ -1058,9 +1048,6 @@ class AbstractTab(QWidget):
             self.data.last_navigation = navigation
 
         if not navigation.url.isValid():
-            # Also a WORKAROUND for missing IDNA 2008 support in QUrl, see
-            # https://bugreports.qt.io/browse/QTBUG-60364
-
             if navigation.navigation_type == navigation.Type.link_clicked:
                 msg = urlutils.get_errstring(navigation.url,
                                              "Invalid link clicked")
@@ -1129,14 +1116,11 @@ class AbstractTab(QWidget):
     def load_status(self) -> usertypes.LoadStatus:
         return self._load_status
 
-    def _load_url_prepare(self, url: QUrl, *,
-                          emit_before_load_started: bool = True) -> None:
+    def _load_url_prepare(self, url: QUrl) -> None:
         qtutils.ensure_valid(url)
-        if emit_before_load_started:
-            self.before_load_started.emit(url)
+        self.before_load_started.emit(url)
 
-    def load_url(self, url: QUrl, *,
-                 emit_before_load_started: bool = True) -> None:
+    def load_url(self, url: QUrl) -> None:
         raise NotImplementedError
 
     def reload(self, *, force: bool = False) -> None:

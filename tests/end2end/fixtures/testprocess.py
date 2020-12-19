@@ -22,6 +22,7 @@
 import re
 import os
 import time
+import warnings
 
 import attr
 import pytest
@@ -100,7 +101,7 @@ def pytest_runtest_makereport(item, call):
         return
 
     quteproc_log = getattr(item, '_quteproc_log', None)
-    server_log = getattr(item, '_server_log', None)
+    server_logs = getattr(item, '_server_logs', [])
 
     if not hasattr(report.longrepr, 'addsection'):
         # In some conditions (on macOS and Windows it seems), report.longrepr
@@ -113,11 +114,11 @@ def pytest_runtest_makereport(item, call):
 
     verbose = item.config.getoption('--verbose')
     if quteproc_log is not None:
-        report.longrepr.addsection("qutebrowser output",
-                                   _render_log(quteproc_log, verbose=verbose))
-    if server_log is not None:
-        report.longrepr.addsection("server output",
-                                   _render_log(server_log, verbose=verbose))
+        report.longrepr.addsection(
+            "qutebrowser output", _render_log(quteproc_log, verbose=verbose))
+    for name, content in server_logs:
+        report.longrepr.addsection(
+            f"{name} output", _render_log(content, verbose=verbose))
 
 
 class Process(QObject):
@@ -316,8 +317,11 @@ class Process(QObject):
         else:
             self.proc.terminate()
 
-        ok = self.proc.waitForFinished()
+        ok = self.proc.waitForFinished(5000)
         if not ok:
+            cmdline = ' '.join([self.proc.program()] + self.proc.arguments())
+            warnings.warn(f"Test process {cmdline} with PID {self.proc.processId()} "
+                          "failed to terminate!")
             self.proc.kill()
             self.proc.waitForFinished()
 

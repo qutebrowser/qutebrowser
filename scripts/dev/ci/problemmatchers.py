@@ -182,6 +182,20 @@ MATCHERS = {
             ],
         },
     ],
+
+    "misc": [
+        {
+            "severity": "error",
+            "pattern": [
+                {
+                    "regexp": r'^([^:]+):(\d+): (Found .*)',
+                    "file": 1,
+                    "line": 2,
+                    "message": 3,
+                }
+            ]
+        }
+    ]
 }
 
 

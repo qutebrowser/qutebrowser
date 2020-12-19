@@ -19,9 +19,9 @@
 
 """Commands related to the configuration."""
 
-import typing
 import os.path
 import contextlib
+from typing import TYPE_CHECKING, Iterator, List, Optional
 
 from PyQt5.QtCore import QUrl
 
@@ -32,7 +32,7 @@ from qutebrowser.config import configtypes, configexc, configfiles, configdata
 from qutebrowser.misc import editor
 from qutebrowser.keyinput import keyutils
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.config.config import Config, KeyConfig
 
 
@@ -47,17 +47,14 @@ class ConfigCommands:
         self._keyconfig = keyconfig
 
     @contextlib.contextmanager
-    def _handle_config_error(self) -> typing.Iterator[None]:
+    def _handle_config_error(self) -> Iterator[None]:
         """Catch errors in set_command and raise CommandError."""
         try:
             yield
         except configexc.Error as e:
             raise cmdutils.CommandError(str(e))
 
-    def _parse_pattern(
-            self,
-            pattern: typing.Optional[str]
-    ) -> typing.Optional[urlmatch.UrlPattern]:
+    def _parse_pattern(self, pattern: Optional[str]) -> Optional[urlmatch.UrlPattern]:
         """Parse a pattern string argument to a pattern."""
         if pattern is None:
             return None
@@ -75,8 +72,7 @@ class ConfigCommands:
         except keyutils.KeyParseError as e:
             raise cmdutils.CommandError(str(e))
 
-    def _print_value(self, option: str,
-                     pattern: typing.Optional[urlmatch.UrlPattern]) -> None:
+    def _print_value(self, option: str, pattern: Optional[urlmatch.UrlPattern]) -> None:
         """Print the value of the given option."""
         with self._handle_config_error():
             value = self._config.get_str(option, pattern=pattern)
@@ -263,17 +259,9 @@ class ConfigCommands:
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
-    def config_diff(self, win_id: int, old: bool = False) -> None:
-        """Show all customized options.
-
-        Args:
-            old: Show difference for the pre-v1.0 files
-                 (qutebrowser.conf/keys.conf).
-        """
+    def config_diff(self, win_id: int) -> None:
+        """Show all customized options."""
         url = QUrl('qute://configdiff')
-        if old:
-            url.setPath('/old')
-
         tabbed_browser = objreg.get('tabbed-browser',
                                     scope='window', window=win_id)
         tabbed_browser.load_url(url, newtab=False)
@@ -468,7 +456,7 @@ class ConfigCommands:
             raise cmdutils.CommandError("{} already exists - use --force to "
                                         "overwrite!".format(filename))
 
-        options = []  # type: typing.List
+        options: List = []
         if defaults:
             options = [(None, opt, opt.default)
                        for _name, opt in sorted(configdata.DATA.items())]

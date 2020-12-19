@@ -32,8 +32,7 @@ import attr
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
 from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
-                               javascript, urlmatch, version, usertypes,
-                               qtutils)
+                               javascript, urlmatch, version, usertypes)
 from qutebrowser.api import cmdutils
 from qutebrowser.browser import downloads
 from qutebrowser.misc import objects
@@ -125,8 +124,7 @@ class GreasemonkeyScript:
     def needs_document_end_workaround(self):
         """Check whether to force @run-at document-end.
 
-        This needs to be done on QtWebEngine with Qt 5.12 for known-broken
-        scripts.
+        This needs to be done on QtWebEngine (since Qt 5.12) for known-broken scripts.
 
         On Qt 5.12, accessing the DOM isn't possible with "@run-at
         document-start". It was documented to be impossible before, but seems
@@ -135,11 +133,10 @@ class GreasemonkeyScript:
         However, some scripts do DOM access with "@run-at document-start". Fix
         those by forcing them to use document-end instead.
         """
-        if objects.backend != usertypes.Backend.QtWebEngine:
-            assert objects.backend == usertypes.Backend.QtWebKit, objects.backend
+        if objects.backend == usertypes.Backend.QtWebKit:
             return False
-        elif not qtutils.version_check('5.12', compiled=False):
-            return False
+
+        assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend
 
         broken_scripts = [
             ('http://userstyles.org', None),

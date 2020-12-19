@@ -234,16 +234,6 @@ def _init_py_warnings() -> None:
 
 
 @contextlib.contextmanager
-def disable_qt_msghandler() -> Iterator[None]:
-    """Contextmanager which temporarily disables the Qt message handler."""
-    old_handler = QtCore.qInstallMessageHandler(None)
-    try:
-        yield
-    finally:
-        QtCore.qInstallMessageHandler(old_handler)
-
-
-@contextlib.contextmanager
 def py_warning_filter(action: str = 'ignore', **kwargs: Any) -> Iterator[None]:
     """Contextmanager to temporarily disable certain Python warnings."""
     warnings.filterwarnings(action, **kwargs)
@@ -394,7 +384,9 @@ def qt_message_handler(msg_type: QtCore.QtMsgType,
     try:
         qt_to_logging[QtCore.QtInfoMsg] = logging.INFO
     except AttributeError:
-        # While we don't support Qt < 5.5 anymore, logging still needs to work
+        # Added in Qt 5.5.
+        # While we don't support Qt < 5.5 anymore, logging still needs to work so that
+        # the Qt version warning in earlyinit.py does.
         pass
 
     # Change levels of some well-known messages to debug so they don't get

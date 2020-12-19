@@ -24,9 +24,7 @@ import os
 
 from PyQt5.QtCore import QUrl, QUrlQuery
 
-from qutebrowser.utils import (utils, javascript, jinja, qtutils, usertypes,
-                               standarddir, log)
-from qutebrowser.misc import objects
+from qutebrowser.utils import utils, javascript, jinja, standarddir, log
 from qutebrowser.config import config
 
 
@@ -104,29 +102,17 @@ def _generate_pdfjs_script(filename):
         document.addEventListener("DOMContentLoaded", function() {
           if (typeof window.PDFJS !== 'undefined') {
               // v1.x
-              {% if disable_create_object_url %}
-              window.PDFJS.disableCreateObjectURL = true;
-              {% endif %}
               window.PDFJS.verbosity = window.PDFJS.VERBOSITY_LEVELS.info;
           } else {
               // v2.x
               const options = window.PDFViewerApplicationOptions;
-              {% if disable_create_object_url %}
-              options.set('disableCreateObjectURL', true);
-              {% endif %}
               options.set('verbosity', pdfjsLib.VerbosityLevel.INFOS);
           }
 
           const viewer = window.PDFView || window.PDFViewerApplication;
           viewer.open({{ url }});
         });
-    """).render(
-        url=js_url,
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70420
-        disable_create_object_url=(
-            not qtutils.version_check('5.12') and
-            not qtutils.version_check('5.7.1', exact=True, compiled=False) and
-            objects.backend == usertypes.Backend.QtWebEngine))
+    """).render(url=js_url)
 
 
 def get_pdfjs_res_and_path(path):

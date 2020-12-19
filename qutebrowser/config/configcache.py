@@ -20,7 +20,7 @@
 
 """Implementation of a basic config cache."""
 
-import typing
+from typing import Any, Dict
 
 from qutebrowser.config import config
 
@@ -38,14 +38,14 @@ class ConfigCache:
     """
 
     def __init__(self) -> None:
-        self._cache = {}  # type: typing.Dict[str, typing.Any]
+        self._cache: Dict[str, Any] = {}
         config.instance.changed.connect(self._on_config_changed)
 
     def _on_config_changed(self, attr: str) -> None:
         if attr in self._cache:
             del self._cache[attr]
 
-    def __getitem__(self, attr: str) -> typing.Any:
+    def __getitem__(self, attr: str) -> Any:
         try:
             return self._cache[attr]
         except KeyError:

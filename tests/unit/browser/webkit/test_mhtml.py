@@ -21,21 +21,16 @@
 import io
 import textwrap
 import re
+import uuid
 
 import pytest
 
 mhtml = pytest.importorskip('qutebrowser.browser.webkit.mhtml')
 
 
-try:
-    import cssutils
-except ImportError:
-    cssutils = None
-
-
 @pytest.fixture(autouse=True)
 def patch_uuid(monkeypatch):
-    monkeypatch.setattr("uuid.uuid4", lambda: "UUID")
+    monkeypatch.setattr(uuid, "uuid4", lambda: "UUID")
 
 
 class Checker:
@@ -254,34 +249,25 @@ def test_empty_content_type(checker):
         """)
 
 
-@pytest.mark.parametrize('has_cssutils', [
-    pytest.param(True, marks=pytest.mark.skipif(
-        cssutils is None, reason="requires cssutils"), id='with_cssutils'),
-    pytest.param(False, id='no_cssutils'),
-])
-@pytest.mark.parametrize('inline, style, expected_urls', [
-    pytest.param(False, "@import 'default.css'", ['default.css'],
+@pytest.mark.parametrize('style, expected_urls', [
+    pytest.param("@import 'default.css'", ['default.css'],
                  id='import with apostrophe'),
-    pytest.param(False, '@import "default.css"', ['default.css'],
+    pytest.param('@import "default.css"', ['default.css'],
                  id='import with quote'),
-    pytest.param(False, "@import \t 'tabbed.css'", ['tabbed.css'],
+    pytest.param("@import \t 'tabbed.css'", ['tabbed.css'],
                  id='import with tab'),
-    pytest.param(False, "@import url('default.css')", ['default.css'],
+    pytest.param("@import url('default.css')", ['default.css'],
                  id='import with url()'),
-    pytest.param(False, """body {
+    pytest.param("""body {
     background: url("/bg-img.png")
     }""", ['/bg-img.png'], id='background with body'),
-    pytest.param(True, 'background: url(folder/file.png) no-repeat',
+    pytest.param('background: url(folder/file.png) no-repeat',
                  ['folder/file.png'], id='background'),
-    pytest.param(True, 'content: url()', [], id='content'),
+    pytest.param('content: url()', [], id='content'),
 ])
-def test_css_url_scanner(monkeypatch, has_cssutils, inline, style,
-                         expected_urls):
-    if not has_cssutils:
-        monkeypatch.setattr(mhtml, '_get_css_imports_cssutils',
-                            lambda data, inline=False: None)
+def test_css_url_scanner(monkeypatch, style, expected_urls):
     expected_urls.sort()
-    urls = mhtml._get_css_imports(style, inline=inline)
+    urls = mhtml._get_css_imports(style)
     urls.sort()
     assert urls == expected_urls
 

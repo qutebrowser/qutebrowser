@@ -82,14 +82,6 @@ def get_argparser():
                              "qutebrowser instance running.")
     parser.add_argument('--backend', choices=['webkit', 'webengine'],
                         help="Which backend to use.")
-    parser.add_argument('--enable-webengine-inspector', action='store_true',
-                        help="Enable the web inspector / devtools for "
-                        "QtWebEngine. Note that this is a SECURITY RISK and "
-                        "you should not visit untrusted websites with the "
-                        "inspector turned on. See "
-                        "https://bugreports.qt.io/browse/QTBUG-50725 for more "
-                        "details. This is not needed anymore since Qt 5.11 "
-                        "where the inspector is always enabled and secure.")
 
     parser.add_argument('--json-args', help=argparse.SUPPRESS)
     parser.add_argument('--temp-basedir-restarted', help=argparse.SUPPRESS)
@@ -176,7 +168,7 @@ def debug_flag_error(flag):
     """
     valid_flags = ['debug-exit', 'pdb-postmortem', 'no-sql-history',
                    'no-scroll-filtering', 'log-requests', 'log-cookies',
-                   'lost-focusproxy', 'log-scroll-pos', 'stack', 'chromium',
+                   'log-scroll-pos', 'stack', 'chromium',
                    'wait-renderer-process', 'avoid-chromium-init', 'werror']
 
     if flag in valid_flags:

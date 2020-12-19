@@ -18,6 +18,7 @@
 
 """Tests for qutebrowser.config.configinit."""
 
+import builtins
 import logging
 import unittest.mock
 
@@ -110,7 +111,7 @@ class TestEarlyInit:
             expected = '<Default configuration>'
         assert config.instance.dump_userconfig() == expected
 
-    @pytest.mark.parametrize('load_autoconfig', [True, False])  # noqa
+    @pytest.mark.parametrize('load_autoconfig', [True, False])
     @pytest.mark.parametrize('config_py', [True, 'error', False])
     @pytest.mark.parametrize('invalid_yaml', ['42', 'list', 'unknown',
                                               'wrong-type', False])
@@ -390,6 +391,6 @@ def test_get_backend(monkeypatch, args, config_stub,
 
     args.backend = arg
     config_stub.val.backend = confval
-    monkeypatch.setattr('builtins.__import__', fake_import)
+    monkeypatch.setattr(builtins, '__import__', fake_import)
 
     assert configinit.get_backend(args) == used

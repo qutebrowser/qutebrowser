@@ -33,7 +33,6 @@ import hypothesis.strategies
 from qutebrowser.api import cmdutils
 from qutebrowser.browser.network import pac
 from qutebrowser.utils import utils, urlutils, usertypes
-from helpers import utils as testutils
 
 
 class FakeDNS:
@@ -216,15 +215,11 @@ class TestFuzzyUrl:
         assert url == QUrl('http://foo')
 
     @pytest.mark.parametrize('do_search', [True, False])
-    def test_invalid_url(self, do_search, is_url_mock, monkeypatch,
-                         caplog):
+    def test_invalid_url(self, do_search, caplog):
         """Test with an invalid URL."""
-        is_url_mock.return_value = True
-        monkeypatch.setattr(urlutils, 'qurl_from_user_input',
-                            lambda url: QUrl())
         with pytest.raises(urlutils.InvalidUrlError):
             with caplog.at_level(logging.ERROR):
-                urlutils.fuzzy_url('foo', do_search=do_search)
+                urlutils.fuzzy_url('', do_search=do_search)
 
     @pytest.mark.parametrize('url', ['', ' '])
     def test_empty(self, url):
@@ -490,29 +485,6 @@ def test_searchengine_is_url(config_stub, auto_search, open_base_url, is_url):
     assert urlutils.is_url('test') == is_url
 
 
-@pytest.mark.parametrize('user_input, output', [
-    ('qutebrowser.org', 'http://qutebrowser.org'),
-    ('http://qutebrowser.org', 'http://qutebrowser.org'),
-    ('::1/foo', 'http://[::1]/foo'),
-    ('[::1]/foo', 'http://[::1]/foo'),
-    ('http://[::1]', 'http://[::1]'),
-    ('qutebrowser.org', 'http://qutebrowser.org'),
-    ('http://qutebrowser.org', 'http://qutebrowser.org'),
-    ('::1/foo', 'http://[::1]/foo'),
-    ('[::1]/foo', 'http://[::1]/foo'),
-    ('http://[::1]', 'http://[::1]'),
-])
-def test_qurl_from_user_input(user_input, output):
-    """Test qurl_from_user_input.
-
-    Args:
-        user_input: The string to pass to qurl_from_user_input.
-        output: The expected QUrl string.
-    """
-    url = urlutils.qurl_from_user_input(user_input)
-    assert url.toString() == output
-
-
 @pytest.mark.parametrize('url, valid, has_err_string', [
     ('http://www.example.com/', True, False),
     ('', False, False),
@@ -643,7 +615,7 @@ class TestInvalidUrlError:
 
 @pytest.mark.parametrize('are_same, url1, url2', [
     (True, 'http://example.com', 'http://www.example.com'),
-    (True, 'http://bbc.co.uk', 'https://www.bbc.co.uk'),
+    (True, 'http://bbc.co.uk', 'http://www.bbc.co.uk'),
     (True, 'http://many.levels.of.domains.example.com', 'http://www.example.com'),
     (True, 'http://idn.иком.museum', 'http://idn2.иком.museum'),
     (True, 'http://one.not_a_valid_tld', 'http://one.not_a_valid_tld'),
@@ -652,6 +624,9 @@ class TestInvalidUrlError:
     (False, 'https://example.kids.museum', 'http://example.kunst.museum'),
     (False, 'http://idn.иком.museum', 'http://idn.ירושלים.museum'),
     (False, 'http://one.not_a_valid_tld', 'http://two.not_a_valid_tld'),
+
+    (False, 'http://example.org', 'https://example.org'),  # different scheme
+    (False, 'http://example.org:80', 'http://example.org:8080'),  # different port
 ])
 def test_same_domain(are_same, url1, url2):
     """Test same_domain."""
@@ -702,12 +677,8 @@ def test_data_url():
     (QUrl('http://www.example.xn--p1ai'),
      '(www.example.xn--p1ai) http://www.example.рф'),
     # https://bugreports.qt.io/browse/QTBUG-60364
-    pytest.param(QUrl('http://www.xn--80ak6aa92e.com'),
-                 '(unparseable URL!) http://www.аррӏе.com',
-                 marks=testutils.qt58),
-    pytest.param(QUrl('http://www.xn--80ak6aa92e.com'),
-                 'http://www.xn--80ak6aa92e.com',
-                 marks=testutils.qt59),
+    (QUrl('http://www.xn--80ak6aa92e.com'),
+     'http://www.xn--80ak6aa92e.com'),
 ])
 def test_safe_display_string(url, expected):
     assert urlutils.safe_display_string(url) == expected
@@ -716,11 +687,6 @@ def test_safe_display_string(url, expected):
 def test_safe_display_string_invalid():
     with pytest.raises(urlutils.InvalidUrlError):
         urlutils.safe_display_string(QUrl())
-
-
-def test_query_string():
-    url = QUrl('https://www.example.com/?foo=bar')
-    assert urlutils.query_string(url) == 'foo=bar'
 
 
 class TestProxyFromUrl:

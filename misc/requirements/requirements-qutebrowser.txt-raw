@@ -3,6 +3,5 @@ Pygments
 pyPEG2
 PyYAML
 colorama
-cssutils
 attrs
 adblock  # Optional, for improved adblocking

@@ -62,7 +62,7 @@ _CSS_URL_PATTERNS = [re.compile(x) for x in [
 ]]
 
 
-def _get_css_imports_regex(data):
+def _get_css_imports(data):
     """Return all assets that are referenced in the given CSS document.
 
     The returned URLs are relative to the stylesheet's URL.
@@ -77,55 +77,6 @@ def _get_css_imports_regex(data):
             if url:
                 urls.append(url)
     return urls
-
-
-def _get_css_imports_cssutils(data, inline=False):
-    """Return all assets that are referenced in the given CSS document.
-
-    The returned URLs are relative to the stylesheet's URL.
-
-    Args:
-        data: The content of the stylesheet to scan as string.
-        inline: True if the argument is an inline HTML style attribute.
-    """
-    try:
-        import cssutils
-    except ImportError:
-        return None
-
-    # We don't care about invalid CSS data, this will only litter the log
-    # output with CSS errors
-    parser = cssutils.CSSParser(loglevel=100,
-                                fetcher=lambda url: (None, ""), validate=False)
-    if not inline:
-        sheet = parser.parseString(data)
-        return list(cssutils.getUrls(sheet))
-    else:
-        urls = []
-        declaration = parser.parseStyle(data)
-        # prop = background, color, margin, ...
-        for prop in declaration:
-            # value = red, 10px, url(foobar), ...
-            for value in prop.propertyValue:
-                if isinstance(value, cssutils.css.URIValue):
-                    if value.uri:
-                        urls.append(value.uri)
-        return urls
-
-
-def _get_css_imports(data, inline=False):
-    """Return all assets that are referenced in the given CSS document.
-
-    The returned URLs are relative to the stylesheet's URL.
-
-    Args:
-        data: The content of the stylesheet to scan as string.
-        inline: True if the argument is an inline HTML style attribute.
-    """
-    imports = _get_css_imports_cssutils(data, inline)
-    if imports is None:
-        imports = _get_css_imports_regex(data)
-    return imports
 
 
 def _check_rel(element):
@@ -328,7 +279,7 @@ class _Downloader:
         for element in web_frame.findAllElements('[style]'):
             element = webkitelem.WebKitElement(element, tab=self.tab)
             style = element['style']
-            for element_url in _get_css_imports(style, inline=True):
+            for element_url in _get_css_imports(style):
                 self._fetch_url(web_url.resolved(QUrl(element_url)))
 
         # Shortcut if no assets need to be downloaded, otherwise the file would

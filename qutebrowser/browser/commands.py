@@ -673,7 +673,7 @@ class CommandDispatcher:
 
         url = QUrl(self._current_url())
         url_query = QUrlQuery()
-        url_query_str = urlutils.query_string(url)
+        url_query_str = url.query()
         if '&' not in url_query_str and ';' in url_query_str:
             url_query.setQueryDelimiters('=', ';')
         url_query.setQuery(url_query_str)
@@ -1304,7 +1304,7 @@ class CommandDispatcher:
             if mhtml_:
                 raise cmdutils.CommandError("Can only download the current "
                                             "page as mhtml.")
-            url = urlutils.qurl_from_user_input(url)
+            url = QUrl.fromUserInput(url)
             urlutils.raise_cmdexc_if_invalid(url)
             download_manager.get(url, target=target)
         elif mhtml_:

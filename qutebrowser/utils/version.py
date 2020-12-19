@@ -34,7 +34,6 @@ import functools
 from typing import Mapping, Optional, Sequence, Tuple, cast
 
 import attr
-import pkg_resources
 from PyQt5.QtCore import PYQT_VERSION_STR, QLibraryInfo
 from PyQt5.QtNetwork import QSslSocket
 from PyQt5.QtGui import (QOpenGLContext, QOpenGLVersionProfile,
@@ -84,7 +83,7 @@ class DistributionInfo:
 
     id: Optional[str] = attr.ib()
     parsed: 'Distribution' = attr.ib()
-    version: Optional[Tuple[str, ...]] = attr.ib()
+    version: Optional[utils.VersionNumber] = attr.ib()
     pretty: str = attr.ib()
 
 
@@ -139,8 +138,8 @@ def distribution() -> Optional[DistributionInfo]:
     assert pretty is not None
 
     if 'VERSION_ID' in info:
-        dist_version: Optional[Tuple[str, ...]] = pkg_resources.parse_version(
-            info['VERSION_ID'])
+        version_id = info['VERSION_ID']
+        dist_version: Optional[utils.VersionNumber] = utils.parse_version(version_id)
     else:
         dist_version = None
 
@@ -360,7 +359,6 @@ MODULE_INFO: Mapping[str, ModuleInfo] = collections.OrderedDict([
         ('pygments', ['__version__']),
         ('yaml', ['__version__']),
         ('adblock', ['__version__'], "0.3.2"),
-        ('cssutils', ['__version__']),
         ('attr', ['__version__']),
         ('PyQt5.QtWebEngineWidgets', []),
         ('PyQt5.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
@@ -460,41 +458,6 @@ def _chromium_version() -> str:
 
     Quick reference:
 
-    Qt 5.7:  Chromium 49
-             49.0.2623.111 (2016-03-31)
-             5.7.0: Security fixes from Chromium 50 and 51
-             5.7.1: Security fixes up to 54.0.2840.87 (2016-11-01)
-
-    Qt 5.8:  Chromium 53
-             53.0.2785.148 (2016-08-31)
-             5.8.0: Security fixes up to 55.0.2883.75 (2016-12-01)
-
-    Qt 5.9:  Chromium 56
-    (LTS)    56.0.2924.122 (2017-01-25)
-             5.9.0: Security fixes up to 56.0.2924.122 (?)
-             5.9.1: Security fixes up to 59.0.3071.104 (2017-06-15)
-             5.9.2: Security fixes up to 61.0.3163.79  (2017-09-05)
-             5.9.3: Security fixes up to 62.0.3202.89  (2017-11-06)
-             5.9.4: Security fixes up to 63.0.3239.132 (~2017-12-14)
-             5.9.5: Security fixes up to 65.0.3325.146 (~2018-03-13)
-             5.9.6: Security fixes up to 66.0.3359.170 (2018-05-10)
-             5.9.7: Security fixes up to 69.0.3497.113 (~2018-09-11)
-             5.9.8: Security fixes up to 72.0.3626.121 (2019-03-01)
-             5.9.9: Security fixes up to 78.0.3904.108 (2019-11-18)
-
-    Qt 5.10: Chromium 61
-             61.0.3163.140 (2017-09-05)
-             5.10.0: Security fixes up to 62.0.3202.94  (2017-11-13)
-             5.10.1: Security fixes up to 64.0.3282.140 (2018-02-01)
-
-    Qt 5.11: Chromium 65
-             65.0.3325.151 (2018-03-06)
-             5.11.0: Security fixes up to 66.0.3359.139 (2018-04-26)
-             5.11.1: Updated to 65.0.3325.15.230
-                     Security fixes up to 67.0.3396.87  (2018-06-12)
-             5.11.2: Security fixes up to 68.0.3440.75  (~2018-07-31)
-             5.11.3: Security fixes up to 70.0.3538.102 (2018-11-09)
-
     Qt 5.12: Chromium 69
     (LTS)    69.0.3497.128 (~2018-09-11)
              5.12.0: Security fixes up to 70.0.3538.102 (~2018-10-24)
@@ -527,7 +490,7 @@ def _chromium_version() -> str:
              5.15.1: Security fixes up to 85.0.4183.83  (2020-08-25)
 
              5.15.2: Updated to 83.0.4103.122           (~2020-06-24)
-                     Security fixes up to 86.0.4240.111 (2020-10-20)
+                     Security fixes up to 86.0.4240.183 (2020-11-02)
 
     Also see:
 

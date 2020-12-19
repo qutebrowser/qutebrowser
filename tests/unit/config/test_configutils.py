@@ -21,6 +21,7 @@ import hypothesis
 from hypothesis import strategies
 import pytest
 from PyQt5.QtCore import QUrl
+from PyQt5.QtWidgets import QLabel
 
 from qutebrowser.config import configutils, configdata, configtypes, configexc
 from qutebrowser.utils import urlmatch, usertypes, qtutils
@@ -364,3 +365,45 @@ class TestFontFamilies:
             assert family
 
         str(families)
+
+    def test_system_default_basics(self, qapp):
+        families = configutils.FontFamilies.from_system_default()
+        assert len(families) == 1
+        assert str(families)
+
+    def test_system_default_rendering(self, qtbot):
+        families = configutils.FontFamilies.from_system_default()
+
+        label = QLabel()
+        qtbot.add_widget(label)
+        label.setText("Hello World")
+
+        stylesheet = f'font-family: {families.to_str(quote=True)}'
+        print(stylesheet)
+        label.setStyleSheet(stylesheet)
+
+        with qtbot.waitExposed(label):
+            # Needed so the font gets calculated
+            label.show()
+        info = label.fontInfo()
+
+        # Check the requested font to make sure CSS parsing worked
+        assert label.font().family() == families.family
+
+        # Try to find out whether the monospace font did a fallback on a non-monospace
+        # font...
+        fallback_label = QLabel()
+        qtbot.add_widget(label)
+        fallback_label.setText("fallback")
+
+        with qtbot.waitExposed(fallback_label):
+            # Needed so the font gets calculated
+            fallback_label.show()
+
+        fallback_family = fallback_label.fontInfo().family()
+        print(f'fallback: {fallback_family}')
+        if info.family() == fallback_family:
+            return
+
+        # If we didn't fall back, we should've gotten a fixed-pitch font.
+        assert info.fixedPitch(), info.family()

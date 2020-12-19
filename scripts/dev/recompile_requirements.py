@@ -39,55 +39,88 @@ REQ_DIR = os.path.join(REPO_DIR, 'misc', 'requirements')
 
 CHANGELOG_URLS = {
     'pyparsing': 'https://github.com/pyparsing/pyparsing/blob/master/CHANGES',
-    'cherrypy': 'https://github.com/cherrypy/cherrypy/blob/master/CHANGES.rst',
     'pylint': 'http://pylint.pycqa.org/en/latest/whatsnew/changelog.html',
-    'setuptools': 'https://github.com/pypa/setuptools/blob/master/CHANGES.rst',
+    'isort': 'https://pycqa.github.io/isort/CHANGELOG/',
+    'lazy-object-proxy': 'https://github.com/ionelmc/python-lazy-object-proxy/blob/master/CHANGELOG.rst',
+    'mccabe': 'https://github.com/PyCQA/mccabe#changes',
     'pytest-cov': 'https://github.com/pytest-dev/pytest-cov/blob/master/CHANGELOG.rst',
     'pytest-xdist': 'https://github.com/pytest-dev/pytest-xdist/blob/master/CHANGELOG.rst',
     'pytest-forked': 'https://github.com/pytest-dev/pytest-forked/blob/master/CHANGELOG',
+    'pytest-xvfb': 'https://github.com/The-Compiler/pytest-xvfb/blob/master/CHANGELOG.rst',
+    'EasyProcess': 'https://github.com/ponty/EasyProcess/commits/master',
+    'PyVirtualDisplay': 'https://github.com/ponty/PyVirtualDisplay/commits/master',
     'execnet': 'https://execnet.readthedocs.io/en/latest/changelog.html',
     'apipkg': 'https://github.com/pytest-dev/apipkg/blob/master/CHANGELOG',
     'pytest-rerunfailures': 'https://github.com/pytest-dev/pytest-rerunfailures/blob/master/CHANGES.rst',
+    'pytest-repeat': 'https://github.com/pytest-dev/pytest-repeat/blob/master/CHANGES.rst',
     'requests': 'https://github.com/psf/requests/blob/master/HISTORY.md',
     'requests-file': 'https://github.com/dashea/requests-file/blob/master/CHANGES.rst',
-    'werkzeug': 'https://github.com/pallets/werkzeug/blob/master/CHANGES.rst',
+    'Werkzeug': 'https://github.com/pallets/werkzeug/blob/master/CHANGES.rst',
+    'click': 'https://click.palletsprojects.com/en/7.x/changelog/',
+    'itsdangerous': 'https://itsdangerous.palletsprojects.com/en/1.1.x/changes/',
+    'parse-type': 'https://github.com/jenisys/parse_type/blob/master/CHANGES.txt',
+    'sortedcontainers': 'https://github.com/grantjenks/python-sortedcontainers/blob/master/HISTORY.rst',
+    'soupsieve': 'https://facelessuser.github.io/soupsieve/about/changelog/',
+    'Flask': 'https://flask.palletsprojects.com/en/1.1.x/changelog/',
+    'Mako': 'https://docs.makotemplates.org/en/latest/changelog.html',
+    'glob2': 'https://github.com/miracle2k/python-glob2/blob/master/CHANGES',
     'hypothesis': 'https://hypothesis.readthedocs.io/en/latest/changes.html',
     'mypy': 'https://mypy-lang.blogspot.com/',
     'pytest': 'https://docs.pytest.org/en/latest/changelog.html',
     'iniconfig': 'https://github.com/RonnyPfannschmidt/iniconfig/blob/master/CHANGELOG',
     'tox': 'https://tox.readthedocs.io/en/latest/changelog.html',
-    'pyyaml': 'https://github.com/yaml/pyyaml/blob/master/CHANGES',
+    'PyYAML': 'https://github.com/yaml/pyyaml/blob/master/CHANGES',
     'pytest-bdd': 'https://github.com/pytest-dev/pytest-bdd/blob/master/CHANGES.rst',
     'snowballstemmer': 'https://github.com/snowballstem/snowball/blob/master/NEWS',
     'virtualenv': 'https://virtualenv.pypa.io/en/latest/changelog.html',
-    'pip': 'https://pip.pypa.io/en/stable/news/',
     'packaging': 'https://pypi.org/project/packaging/',
-    'flake8-docstrings': 'https://pypi.org/project/flake8-docstrings/',
+    'build': 'https://github.com/pypa/build/commits/master',
     'attrs': 'http://www.attrs.org/en/stable/changelog.html',
-    'jinja2': 'https://github.com/pallets/jinja/blob/master/CHANGES.rst',
+    'Jinja2': 'https://github.com/pallets/jinja/blob/master/CHANGES.rst',
+    'MarkupSafe': 'https://markupsafe.palletsprojects.com/en/1.1.x/changes/',
     'flake8': 'https://gitlab.com/pycqa/flake8/tree/master/docs/source/release-notes',
-    'cffi': 'https://cffi.readthedocs.io/en/latest/whatsnew.html',
+    'flake8-docstrings': 'https://pypi.org/project/flake8-docstrings/',
     'flake8-debugger': 'https://github.com/JBKahn/flake8-debugger/',
+    'flake8-builtins': 'https://github.com/gforcada/flake8-builtins/blob/master/CHANGES.rst',
+    'flake8-bugbear': 'https://github.com/PyCQA/flake8-bugbear#change-log',
+    'flake8-tidy-imports': 'https://github.com/adamchainz/flake8-tidy-imports/blob/master/HISTORY.rst',
+    'flake8-tuple': 'https://github.com/ar4s/flake8_tuple/blob/master/HISTORY.rst',
+    'flake8-comprehensions': 'https://github.com/adamchainz/flake8-comprehensions/blob/master/HISTORY.rst',
+    'flake8-copyright': 'https://github.com/savoirfairelinux/flake8-copyright/blob/master/CHANGELOG.rst',
+    'flake8-deprecated': 'https://github.com/gforcada/flake8-deprecated/blob/master/CHANGES.rst',
+    'flake8-future-import': 'https://github.com/xZise/flake8-future-import#changes',
+    'flake8-mock': 'https://github.com/aleGpereira/flake8-mock#changes',
+    'flake8-polyfill': 'https://gitlab.com/pycqa/flake8-polyfill/-/blob/master/CHANGELOG.rst',
+    'flake8-string-format': 'https://github.com/xZise/flake8-string-format#changes',
+    'pep8-naming': 'https://github.com/PyCQA/pep8-naming/blob/master/CHANGELOG.rst',
+    'pycodestyle': 'https://github.com/PyCQA/pycodestyle/blob/master/CHANGES.txt',
+    'pyflakes': 'https://github.com/PyCQA/pyflakes/blob/master/NEWS.rst',
+    'cffi': 'https://cffi.readthedocs.io/en/latest/whatsnew.html',
     'astroid': 'https://github.com/PyCQA/astroid/blob/2.4/ChangeLog',
     'pytest-instafail': 'https://github.com/pytest-dev/pytest-instafail/blob/master/CHANGES.rst',
     'coverage': 'https://github.com/nedbat/coveragepy/blob/master/CHANGES.rst',
     'colorama': 'https://github.com/tartley/colorama/blob/master/CHANGELOG.rst',
     'hunter': 'https://github.com/ionelmc/python-hunter/blob/master/CHANGELOG.rst',
-    'uritemplate': 'https://pypi.org/project/uritemplate/',
-    'flake8-builtins': 'https://github.com/gforcada/flake8-builtins/blob/master/CHANGES.rst',
-    'flake8-bugbear': 'https://github.com/PyCQA/flake8-bugbear',
-    'flake8-tidy-imports': 'https://github.com/adamchainz/flake8-tidy-imports/blob/master/HISTORY.rst',
-    'flake8-tuple': 'https://github.com/ar4s/flake8_tuple/blob/master/HISTORY.rst',
+    'uritemplate': 'https://github.com/python-hyper/uritemplate/blob/master/HISTORY.rst',
     'more-itertools': 'https://github.com/erikrose/more-itertools/blob/master/docs/versions.rst',
     'pydocstyle': 'http://www.pydocstyle.org/en/latest/release_notes.html',
-    'sphinx': 'https://www.sphinx-doc.org/en/master/changes.html',
+    'Sphinx': 'https://www.sphinx-doc.org/en/master/changes.html',
+    'Babel': 'https://github.com/python-babel/babel/blob/master/CHANGES',
+    'alabaster': 'https://alabaster.readthedocs.io/en/latest/changelog.html',
+    'imagesize': 'https://github.com/shibukawa/imagesize_py/commits/master',
+    'pytz': 'https://mm.icann.org/pipermail/tz-announce/',
+    'sphinxcontrib-applehelp': 'https://www.sphinx-doc.org/en/master/changes.html',
+    'sphinxcontrib-devhelp': 'https://www.sphinx-doc.org/en/master/changes.html',
+    'sphinxcontrib-htmlhelp': 'https://www.sphinx-doc.org/en/master/changes.html',
+    'sphinxcontrib-jsmath': 'https://www.sphinx-doc.org/en/master/changes.html',
+    'sphinxcontrib-qthelp': 'https://www.sphinx-doc.org/en/master/changes.html',
+    'sphinxcontrib-serializinghtml': 'https://www.sphinx-doc.org/en/master/changes.html',
     'jaraco.functools': 'https://github.com/jaraco/jaraco.functools/blob/master/CHANGES.rst',
     'parse': 'https://github.com/r1chardj0n3s/parse#potential-gotchas',
     'py': 'https://py.readthedocs.io/en/latest/changelog.html#changelog',
     'Pympler': 'https://github.com/pympler/pympler/blob/master/CHANGELOG.md',
     'pytest-mock': 'https://github.com/pytest-dev/pytest-mock/blob/master/CHANGELOG.rst',
     'pytest-qt': 'https://github.com/pytest-dev/pytest-qt/blob/master/CHANGELOG.rst',
-    'wcwidth': 'https://github.com/jquast/wcwidth#history',
     'pyinstaller': 'https://pyinstaller.readthedocs.io/en/stable/CHANGES.html',
     'pyinstaller-hooks-contrib': 'https://github.com/pyinstaller/pyinstaller-hooks-contrib/blob/master/CHANGELOG.rst',
     'pytest-benchmark': 'https://pytest-benchmark.readthedocs.io/en/stable/changelog.html',
@@ -95,14 +128,10 @@ CHANGELOG_URLS = {
     'docutils': 'https://docutils.sourceforge.io/RELEASE-NOTES.html',
     'bump2version': 'https://github.com/c4urself/bump2version/blob/master/CHANGELOG.md',
     'six': 'https://github.com/benjaminp/six/blob/master/CHANGES',
-    'flake8-comprehensions': 'https://github.com/adamchainz/flake8-comprehensions/blob/master/HISTORY.rst',
     'altgraph': 'https://github.com/ronaldoussoren/altgraph/blob/master/doc/changelog.rst',
     'urllib3': 'https://github.com/urllib3/urllib3/blob/master/CHANGES.rst',
-    'wheel': 'https://github.com/pypa/wheel/blob/master/docs/news.rst',
-    'mako': 'https://docs.makotemplates.org/en/latest/changelog.html',
     'lxml': 'https://lxml.de/4.6/changes-4.6.0.html',
     'jwcrypto': 'https://github.com/latchset/jwcrypto/commits/master',
-    'tox-pip-version': 'https://github.com/pglass/tox-pip-version/commits/master',
     'wrapt': 'https://github.com/GrahamDumpleton/wrapt/blob/develop/docs/changes.rst',
     'pep517': 'https://github.com/pypa/pep517/blob/master/doc/changelog.rst',
     'cryptography': 'https://cryptography.io/en/latest/changelog.html',
@@ -122,8 +151,8 @@ CHANGELOG_URLS = {
     'chardet': 'https://github.com/chardet/chardet/releases',
     'idna': 'https://github.com/kjd/idna/blob/master/HISTORY.rst',
     'tldextract': 'https://github.com/john-kurkowski/tldextract/blob/master/CHANGELOG.md',
-    'typing_extensions': 'https://github.com/python/typing/commits/master/typing_extensions',
-    'diff_cover': 'https://github.com/Bachmann1234/diff_cover/blob/master/CHANGELOG',
+    'typing-extensions': 'https://github.com/python/typing/commits/master/typing_extensions',
+    'diff-cover': 'https://github.com/Bachmann1234/diff_cover/blob/master/CHANGELOG',
     'pytest-clarity': 'https://github.com/darrenburns/pytest-clarity/commits/master',
     'pytest-icdiff': 'https://github.com/hjwp/pytest-icdiff/blob/master/HISTORY.rst',
     'icdiff': 'https://github.com/jeffkaufman/icdiff/blob/master/ChangeLog',
@@ -132,11 +161,20 @@ CHANGELOG_URLS = {
     'beautifulsoup4': 'https://bazaar.launchpad.net/~leonardr/beautifulsoup/bs4/view/head:/CHANGELOG',
     'check-manifest': 'https://github.com/mgedmin/check-manifest/blob/master/CHANGES.rst',
     'yamllint': 'https://github.com/adrienverge/yamllint/blob/master/CHANGELOG.rst',
+    'pathspec': 'https://github.com/cpburnz/python-path-specification/blob/master/CHANGES.rst',
     'filelock': 'https://github.com/benediktschmitt/py-filelock/commits/master',
+    'github3.py': 'https://github3py.readthedocs.io/en/master/release-notes/index.html',
+    'manhole': 'https://github3py.readthedocs.io/en/master/release-notes/index.html',
+    'pycparser': 'https://github.com/eliben/pycparser/blob/master/CHANGES',
+    'python-dateutil': 'https://dateutil.readthedocs.io/en/stable/changelog.html',
+    'appdirs': 'https://github.com/ActiveState/appdirs/blob/master/CHANGES.rst',
+    'pluggy': 'https://github.com/pytest-dev/pluggy/blob/master/CHANGELOG.rst',
+    'inflect': 'https://github.com/jazzband/inflect/blob/master/CHANGES.rst',
+    'jinja2-pluralize': 'https://github.com/audreyfeldroy/jinja2_pluralize/blob/master/HISTORY.rst',
+    'mypy-extensions': 'https://github.com/python/mypy_extensions/commits/master',
+    'pyroma': 'https://github.com/regebro/pyroma/blob/master/HISTORY.txt',
+    'pyPEG2': None,
 }
-
-# PyQt versions which need SIP v4
-OLD_PYQT = {'pyqt-5.7', 'pyqt-5.9', 'pyqt-5.10', 'pyqt-5.11'}
 
 
 def convert_line(line, comments):
@@ -223,14 +261,6 @@ def get_all_names():
         yield basename[len('requirements-'):-len('.txt-raw')]
 
 
-def filter_names(names, old_pyqt=False):
-    """Filter requirement names."""
-    if old_pyqt:
-        return sorted(names)
-    else:
-        return sorted(set(names) - OLD_PYQT)
-
-
 def run_pip(venv_dir, *args, **kwargs):
     """Run pip inside the virtualenv."""
     arg_str = ' '.join(str(arg) for arg in args)
@@ -261,9 +291,6 @@ def init_venv(host_python, venv_dir, requirements, pre=False):
 def parse_args():
     """Parse commandline arguments via argparse."""
     parser = argparse.ArgumentParser()
-    parser.add_argument('--old-pyqt',
-                        action='store_true',
-                        help='Also include old PyQt requirements.')
     parser.add_argument('names', nargs='*')
     return parser.parse_args()
 
@@ -287,7 +314,7 @@ class Change:
         self.name = name
         self.old = None
         self.new = None
-        if name in CHANGELOG_URLS:
+        if CHANGELOG_URLS.get(name):
             self.url = CHANGELOG_URLS[name]
             self.link = '[{}]({})'.format(self.name, self.url)
         else:
@@ -327,6 +354,25 @@ def _get_changed_files():
     return sorted(changed_files)
 
 
+def parse_versioned_line(line):
+    """Parse a requirements.txt line into name/version."""
+    if '==' in line:
+        name, version = line.split('==')
+        if ';' in version:  # pip environment markers
+            version = version.split(';')[0].strip()
+    elif line.startswith('-e'):
+        rest, name = line.split('#egg=')
+        version = rest.split('@')[1][:7]
+    else:
+        name = line
+        version = '?'
+
+    if name.startswith('#'):  # duplicate requirements
+        name = name[1:].strip()
+
+    return name, version
+
+
 def _get_changes():
     """Get a list of changed versions from git."""
     changes_dict = {}
@@ -337,19 +383,7 @@ def _get_changes():
         if line.startswith('+++ ') or line.startswith('--- '):
             continue
 
-        if '==' in line:
-            name, version = line[1:].split('==')
-            if ';' in version:  # pip environment markers
-                version = version.split(';')[0].strip()
-        elif line[1:].startswith('-e'):
-            rest, name = line.split('#egg=')
-            version = rest.split('@')[1][:7]
-        else:
-            name = line[1:]
-            version = '?'
-
-        if name.startswith('#'):  # duplicate requirements
-            name = name[1:].strip()
+        name, version = parse_versioned_line(line[1:])
 
         if name not in changes_dict:
             changes_dict[name] = Change(name)
@@ -393,13 +427,19 @@ def print_changed_files():
 def get_host_python(name):
     """Get the Python to use for a given requirement name.
 
-    Old PyQt versions need sip v4 which doesn't work on Python 3.8
-    ylint installs typed_ast on < 3.8 only
+    pylint installs typed_ast on < 3.8 only
     """
-    if name in OLD_PYQT or name == 'pylint':
+    if name == 'pylint':
         return 'python3.7'
     else:
         return sys.executable
+
+
+def get_outfile(name):
+    """Get the path to the output requirements.txt file."""
+    if name == 'qutebrowser':
+        return os.path.join(REPO_DIR, 'requirements.txt')
+    return os.path.join(REQ_DIR, 'requirements-{}.txt'.format(name))
 
 
 def build_requirements(name):
@@ -422,10 +462,7 @@ def build_requirements(name):
             if utils.ON_CI:
                 print(reqs.strip())
 
-    if name == 'qutebrowser':
-        outfile = os.path.join(REPO_DIR, 'requirements.txt')
-    else:
-        outfile = os.path.join(REQ_DIR, 'requirements-{}.txt'.format(name))
+    outfile = get_outfile(name)
 
     with open(outfile, 'w', encoding='utf-8') as f:
         f.write("# This file is automatically generated by "
@@ -484,7 +521,7 @@ def main():
     if args.names:
         names = args.names
     else:
-        names = filter_names(get_all_names(), old_pyqt=args.old_pyqt)
+        names = sorted(get_all_names())
 
     utils.print_col('Rebuilding requirements: ' + ', '.join(names), 'green')
     for name in names:

@@ -161,6 +161,7 @@ def test_completion_item_focus_no_model(which, completionview, model, qtbot):
         completionview.completion_item_focus(which)
 
 
+@pytest.mark.skip("Seems to disagree with reality, see #5897")
 def test_completion_item_focus_fetch(completionview, model, qtbot):
     """Test that on_next_prev_item moves the selection properly.
 

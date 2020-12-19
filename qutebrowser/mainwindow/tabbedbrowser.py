@@ -215,11 +215,9 @@ class TabbedBrowser(QWidget):
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
-        if qtutils.version_check('5.10', compiled=False):
-            self.cur_load_finished.connect(self._leave_modes_on_load)
-        else:
-            self.cur_load_started.connect(self._leave_modes_on_load)
+        # load_finished instead of load_started as WORKAROUND for
+        # https://bugreports.qt.io/browse/QTBUG-65223
+        self.cur_load_finished.connect(self._leave_modes_on_load)
 
         # This init is never used, it is immediately thrown away in the next
         # line.
@@ -481,16 +479,7 @@ class TabbedBrowser(QWidget):
         tab.private_api.shutdown()
         self.widget.removeTab(idx)
 
-        if not crashed:
-            # WORKAROUND for a segfault when we delete the crashed tab.
-            # see https://bugreports.qt.io/browse/QTBUG-58698
-
-            if not qtutils.version_check('5.12'):
-                # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58982
-                # Seems to affect Qt 5.7-5.11 as well.
-                tab.layout().unwrap()
-
-            tab.deleteLater()
+        tab.deleteLater()
 
     def undo(self, depth=1):
         """Undo removing of a tab or tabs."""
@@ -633,9 +622,6 @@ class TabbedBrowser(QWidget):
             self.widget.currentWidget().setFocus()
         else:
             self.widget.setCurrentWidget(tab)
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
-            # Still seems to be needed with Qt 5.11.1
-            tab.setFocus()
 
         mode = modeman.instance(self._win_id).mode
         if mode in [usertypes.KeyMode.command, usertypes.KeyMode.prompt,
@@ -877,7 +863,7 @@ class TabbedBrowser(QWidget):
         start = config.cache['colors.tabs.indicator.start']
         stop = config.cache['colors.tabs.indicator.stop']
         system = config.cache['colors.tabs.indicator.system']
-        color = utils.interpolate_color(start, stop, perc, system)
+        color = qtutils.interpolate_color(start, stop, perc, system)
         self.widget.set_tab_indicator_color(idx, color)
         self.widget.update_tab_title(idx)
         if idx == self.widget.currentIndex():
@@ -894,7 +880,7 @@ class TabbedBrowser(QWidget):
             start = config.cache['colors.tabs.indicator.start']
             stop = config.cache['colors.tabs.indicator.stop']
             system = config.cache['colors.tabs.indicator.system']
-            color = utils.interpolate_color(start, stop, 100, system)
+            color = qtutils.interpolate_color(start, stop, 100, system)
         else:
             color = config.cache['colors.tabs.indicator.error']
         self.widget.set_tab_indicator_color(idx, color)
@@ -951,18 +937,11 @@ class TabbedBrowser(QWidget):
             tab.set_html(html)
             log.webview.error(msg)
 
-        if qtutils.version_check('5.9', compiled=False):
-            url_string = tab.url(requested=True).toDisplayString()
-            error_page = jinja.render(
-                'error.html', title="Error loading {}".format(url_string),
-                url=url_string, error=msg)
-            QTimer.singleShot(100, lambda: show_error_page(error_page))
-        else:
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58698
-            message.error(msg)
-            self._remove_tab(tab, crashed=True)
-            if self.widget.count() == 0:
-                self.tabopen(QUrl('about:blank'))
+        url_string = tab.url(requested=True).toDisplayString()
+        error_page = jinja.render(
+            'error.html', title="Error loading {}".format(url_string),
+            url=url_string, error=msg)
+        QTimer.singleShot(100, lambda: show_error_page(error_page))
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
