@@ -38,6 +38,15 @@ import ctypes
 import ctypes.util
 from typing import (Any, Callable, IO, Iterator, Optional, Sequence, Tuple, Type, Union,
                     TYPE_CHECKING, cast)
+try:
+    # Protocol was added in Python 3.8
+    from typing import Protocol
+except ImportError:  # pragma: no cover
+    if not TYPE_CHECKING:
+        class Protocol:
+
+            """Empty stub at runtime."""
+
 
 from PyQt5.QtCore import QUrl, QVersionNumber
 from PyQt5.QtGui import QClipboard, QDesktopServices
@@ -70,16 +79,6 @@ is_mac = sys.platform.startswith('darwin')
 is_linux = sys.platform.startswith('linux')
 is_windows = sys.platform.startswith('win')
 is_posix = os.name == 'posix'
-
-
-try:
-    # Protocol was added in Python 3.8
-    from typing import Protocol  # pylint: disable=ungrouped-imports
-except ImportError:  # pragma: no cover
-    if not TYPE_CHECKING:
-        class Protocol:
-
-            """Empty stub at runtime."""
 
 
 class SupportsLessThan(Protocol):
