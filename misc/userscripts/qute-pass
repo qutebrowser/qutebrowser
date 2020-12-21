@@ -152,6 +152,8 @@ def _run_pass(pass_arguments):
 
 
 def pass_(path):
+    if arguments.mode == "gopass":
+        return _run_pass(['show', '-o', path])
     return _run_pass(['show', path])
 
 
