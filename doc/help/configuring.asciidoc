@@ -116,7 +116,7 @@ accepted values depend on the type of the option. Commonly used are:
 - Booleans: `c.completion.shrink = True`
 - Integers: `c.messages.timeout = 5000`
 - Dictionaries:
-  * `c.headers.custom = {'X-Hello': 'World', 'X-Awesome': 'yes'}` to override
+  * `c.content.headers.custom = {'X-Hello': 'World', 'X-Awesome': 'yes'}` to override
     any other values in the dictionary.
   * `c.aliases['foo'] = 'message-info foo'` to add a single value.
 - Lists:
