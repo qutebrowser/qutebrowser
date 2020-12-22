@@ -355,10 +355,10 @@ class AbstractZoom(QObject):
         self._tab = tab
         self._widget = cast(QWidget, None)
         # Whether zoom was changed from the default.
-        self._default_zoom_changed = False
         self._init_neighborlist()
         config.instance.changed.connect(self._on_config_changed)
         self._zoom_factor = float(config.val.zoom.default) / 100
+        self._default_zoom_changed = self._zoom_factor != 1.0
 
     @pyqtSlot(str)
     def _on_config_changed(self, option: str) -> None:
