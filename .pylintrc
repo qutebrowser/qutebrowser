@@ -46,6 +46,7 @@ disable=locally-disabled,
         too-many-statements,
         too-few-public-methods,
         import-outside-toplevel,
+        bad-continuation  # This lint disagrees with Black
 
 [BASIC]
 function-rgx=[a-z_][a-z0-9_]{2,50}$

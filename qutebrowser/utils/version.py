@@ -248,43 +248,135 @@ def _release_info() -> Sequence[Tuple[str, str]]:
     return data
 
 
-def _module_versions() -> Sequence[str]:
-    """Get versions of optional modules.
+class ModuleInfo:
 
-    Return:
-        A list of lines with version info.
+    """Class to query version information of qutebrowser dependencies.
+
+    Attributes:
+        name: Name of the module as it is imported.
+        _version_attributes:
+            Sequence of attribute names belonging to the module which may hold
+            version information.
+        min_version: Minimum version of this module which qutebrowser can use.
+        _installed: Is the module installed? Determined at runtime.
+        _version: Version of the module. Determined at runtime.
+        _initialized:
+            Set to `True` if the `self._installed` and `self._version`
+            attributes have been set.
     """
-    lines = []
-    modules: Mapping[str, Sequence[str]] = collections.OrderedDict([
+
+    def __init__(
+        self,
+        name: str,
+        version_attributes: Sequence[str],
+        min_version: Optional[str] = None
+    ):
+        self.name = name
+        self._version_attributes = version_attributes
+        self.min_version = min_version
+        self._installed = False
+        self._version: Optional[str] = None
+        self._initialized = False
+
+    def _reset_cache(self) -> None:
+        """Reset the version cache.
+
+        It is necessary to call this method in unit tests that mock a module's
+        version number.
+        """
+        self._installed = False
+        self._version = None
+        self._initialized = False
+
+    def _initialize_info(self) -> None:
+        """Import module and set `self.installed` and `self.version`."""
+        try:
+            module = importlib.import_module(self.name)
+        except (ImportError, ValueError):
+            self._installed = False
+            return
+        else:
+            self._installed = True
+
+        for attribute_name in self._version_attributes:
+            if hasattr(module, attribute_name):
+                version = getattr(module, attribute_name)
+                assert isinstance(version, (str, float))
+                self._version = str(version)
+                break
+
+        self._initialized = True
+
+    def get_version(self) -> Optional[str]:
+        """Finds the module version if it exists."""
+        if not self._initialized:
+            self._initialize_info()
+        return self._version
+
+    def is_installed(self) -> bool:
+        """Checks whether the module is installed."""
+        if not self._initialized:
+            self._initialize_info()
+        return self._installed
+
+    def is_outdated(self) -> Optional[bool]:
+        """Checks whether the module is outdated.
+
+        Return:
+            A boolean when the version and minimum version are both defined.
+            Otherwise `None`.
+        """
+        version = self.get_version()
+        if (
+            not self.is_installed()
+            or version is None
+            or self.min_version is None
+        ):
+            return None
+        return version < self.min_version
+
+    def __str__(self) -> str:
+        if not self.is_installed():
+            return f'{self.name}: no'
+
+        version = self.get_version()
+        if version is None:
+            return f'{self.name}: yes'
+
+        text = f'{self.name}: {version}'
+        if self.is_outdated():
+            text += f" (< {self.min_version}, outdated)"
+        return text
+
+
+MODULE_INFO: Mapping[str, ModuleInfo] = collections.OrderedDict([
+    # FIXME: Mypy doesn't understand this. See https://github.com/python/mypy/issues/9706
+    (name, ModuleInfo(name, *args))  # type: ignore[arg-type, misc]
+    for (name, *args) in
+    [
         ('sip', ['SIP_VERSION_STR']),
         ('colorama', ['VERSION', '__version__']),
         ('pypeg2', ['__version__']),
         ('jinja2', ['__version__']),
         ('pygments', ['__version__']),
         ('yaml', ['__version__']),
+        ('adblock', ['__version__'], "0.3.2"),
         ('attr', ['__version__']),
         ('importlib_resources', []),
         ('PyQt5.QtWebEngineWidgets', []),
         ('PyQt5.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
         ('PyQt5.QtWebKitWidgets', []),
-    ])
-    for modname, attributes in modules.items():
-        try:
-            module = importlib.import_module(modname)
-        except (ImportError, ValueError):
-            text = '{}: no'.format(modname)
-        else:
-            for name in attributes:
-                try:
-                    text = '{}: {}'.format(modname, getattr(module, name))
-                except AttributeError:
-                    pass
-                else:
-                    break
-            else:
-                text = '{}: yes'.format(modname)
-        lines.append(text)
-    return lines
+    ]
+])
+
+
+def _module_versions() -> Sequence[str]:
+    """Get versions of optional modules.
+
+    Return:
+        A list of lines with version info.
+    """
+    return [str(mod_info) for mod_info in MODULE_INFO.values()]
 
 
 def _path_info() -> Mapping[str, str]:

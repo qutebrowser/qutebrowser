@@ -544,7 +544,7 @@ class ImportFake:
 
     Attributes:
         modules: A dict mapping module names to bools. If True, the import will
-                 success. Otherwise, it'll fail with ImportError.
+                 succeed. Otherwise, it'll fail with ImportError.
         version_attribute: The name to use in the fake modules for the version
                            attribute.
         version: The version to use for the modules.
@@ -560,6 +560,7 @@ class ImportFake:
             ('jinja2', True),
             ('pygments', True),
             ('yaml', True),
+            ('adblock', True),
             ('attr', True),
             ('importlib_resources', True),
             ('PyQt5.QtWebEngineWidgets', True),
@@ -623,7 +624,7 @@ def import_fake(monkeypatch):
 
 class TestModuleVersions:
 
-    """Tests for _module_versions()."""
+    """Tests for _module_versions() and ModuleInfo."""
 
     def test_all_present(self, import_fake):
         """Test with all modules present in version 1.2.3."""
@@ -637,6 +638,7 @@ class TestModuleVersions:
 
     @pytest.mark.parametrize('module, idx, expected', [
         ('colorama', 1, 'colorama: no'),
+        ('adblock', 6, 'adblock: no'),
     ])
     def test_missing_module(self, module, idx, expected, import_fake):
         """Test with a module missing.
@@ -647,7 +649,38 @@ class TestModuleVersions:
             expected: The expected text.
         """
         import_fake.modules[module] = False
+        # Needed after mocking the module
+        mod_info = version.MODULE_INFO[module]
+        mod_info._reset_cache()
+
         assert version._module_versions()[idx] == expected
+
+        for method_name, expected_result in [
+            ("is_installed", False),
+            ("get_version", None),
+            ("is_outdated", None)
+        ]:
+            method = getattr(mod_info, method_name)
+            # With hot cache
+            mod_info._initialize_info()
+            assert method() == expected_result
+            # With cold cache
+            mod_info._reset_cache()
+            assert method() == expected_result
+
+    def test_outdated_adblock(self, import_fake):
+        """Test that warning is shown when adblock module is outdated."""
+        min_version = version.MODULE_INFO["adblock"].min_version
+        fake_version = "0.1.0"
+
+        # Needed after mocking version attribute
+        version.MODULE_INFO["adblock"]._reset_cache()
+
+        assert min_version is not None
+        assert fake_version < min_version
+        import_fake.version = fake_version
+        expected = f"adblock: {fake_version} (< {min_version}, outdated)"
+        assert version._module_versions()[6] == expected
 
     @pytest.mark.parametrize('attribute, expected_modules', [
         ('VERSION', ['colorama']),
@@ -665,12 +698,22 @@ class TestModuleVersions:
             expected: The expected return value.
         """
         import_fake.version_attribute = attribute
+
+        for mod_info in version.MODULE_INFO.values():
+            # Invalidate the "version cache" since we just mocked some of the
+            # attributes.
+            mod_info._reset_cache()
+
         expected = []
         for name in import_fake.modules:
+            mod_info = version.MODULE_INFO[name]
             if name in expected_modules:
+                assert mod_info.get_version() == "1.2.3"
                 expected.append('{}: 1.2.3'.format(name))
             else:
+                assert mod_info.get_version() is None
                 expected.append('{}: yes'.format(name))
+
         assert version._module_versions() == expected
 
     @pytest.mark.parametrize('name, has_version', [
@@ -680,6 +723,7 @@ class TestModuleVersions:
         ('jinja2', True),
         ('pygments', True),
         ('yaml', True),
+        ('adblock', True),
         ('attr', True),
     ])
     def test_existing_attributes(self, name, has_version):
