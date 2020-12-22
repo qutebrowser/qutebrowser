@@ -671,16 +671,21 @@ class TestModuleVersions:
 
     def test_outdated_adblock(self, import_fake):
         """Test that warning is shown when adblock module is outdated."""
-        min_version = version.MODULE_INFO["adblock"].min_version
+        mod_info = version.MODULE_INFO["adblock"]
         fake_version = "0.1.0"
 
         # Needed after mocking version attribute
-        version.MODULE_INFO["adblock"]._reset_cache()
+        mod_info._reset_cache()
 
-        assert min_version is not None
-        assert fake_version < min_version
+        assert mod_info.min_version is not None
+        assert fake_version < mod_info.min_version
         import_fake.version = fake_version
-        expected = f"adblock: {fake_version} (< {min_version}, outdated)"
+
+        assert mod_info.is_installed()
+        assert mod_info.is_outdated()
+        assert not mod_info.is_usable()
+
+        expected = f"adblock: {fake_version} (< {mod_info.min_version}, outdated)"
         assert version._module_versions()[6] == expected
 
     @pytest.mark.parametrize('attribute, expected_modules', [
@@ -737,7 +742,7 @@ class TestModuleVersions:
             name: The name of the module to check.
             has_version: Whether a __version__ attribute is expected.
         """
-        module = importlib.import_module(name)
+        module = pytest.importorskip(name)
         assert hasattr(module, '__version__') == has_version
 
     def test_existing_sip_attribute(self):
