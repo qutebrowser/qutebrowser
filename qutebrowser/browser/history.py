@@ -162,6 +162,7 @@ class WebHistory(sql.SqlTable):
         # Get a string of all patterns
         patterns = config.instance.get_str('completion.web_history.exclude')
 
+        # If patterns changed, update them in database and rebuild completion
         if self.metainfo['excluded_patterns'] != patterns:
             self.metainfo['excluded_patterns'] = patterns
             self.completion.delete_all()
