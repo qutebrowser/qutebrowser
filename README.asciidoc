@@ -44,46 +44,11 @@ See the https://github.com/qutebrowser/qutebrowser/releases[github releases
 page] for available downloads and the link:doc/install.asciidoc[INSTALL] file for
 detailed instructions on how to get qutebrowser running on various platforms.
 
-Documentation
--------------
+Documentation and getting help
+------------------------------
 
-In addition to the topics mentioned in this README, the following documents are
-available:
-
-* https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png[Key binding cheatsheet]: +
-image:https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png"]
-* link:doc/quickstart.asciidoc[Quick start guide]
-* https://www.shortcutfoo.com/app/dojos/qutebrowser[Free training course] to remember those key bindings
-* link:doc/faq.asciidoc[Frequently asked questions]
-* link:doc/help/configuring.asciidoc[Configuring qutebrowser]
-* link:doc/contributing.asciidoc[Contributing to qutebrowser]
-* link:doc/install.asciidoc[Installing qutebrowser]
-* link:doc/changelog.asciidoc[Change Log]
-* link:doc/stacktrace.asciidoc[Reporting segfaults]
-* link:doc/userscripts.asciidoc[How to write userscripts]
-
-Getting help
-------------
-
-You can get help in the IRC channel
-irc://irc.freenode.org/#qutebrowser[`#qutebrowser`] on
-https://freenode.net/[Freenode]
-(https://webchat.freenode.net/?channels=#qutebrowser[webchat]), or by writing a
-message to the
-https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
-mailto:qutebrowser@lists.qutebrowser.org[].
-
-There's also an https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[announce-only mailinglist]
-at mailto:qutebrowser-announce@lists.qutebrowser.org[] (the announcements also
-get sent to the general qutebrowser@ list).
-
-If you're a reddit user, there's a
-https://www.reddit.com/r/qutebrowser/[/r/qutebrowser] subreddit there.
-
-Finally, qutebrowser is participating in the Beta for GitHub's new Discussions
-feature, so you can also use the
-https://github.com/qutebrowser/qutebrowser/discussions[discussions tab] on
-GitHub to get in touch.
+Please see the link:doc/help/index.asciidoc[help page] for available documentation
+pages and support channels.
 
 Contributions / Bugs
 --------------------

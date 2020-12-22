@@ -6,6 +6,7 @@ Documentation
 
 The following help pages are currently available:
 
+* https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png[Key binding cheatsheet (hosted on GitHub)]
 * link:../quickstart{outfilesuffix}[Quick start guide]
 * link:../faq{outfilesuffix}[Frequently asked questions]
 * link:../changelog{outfilesuffix}[Change Log]
@@ -14,6 +15,8 @@ The following help pages are currently available:
 * link:settings{outfilesuffix}[Documentation of settings]
 * link:../userscripts{outfilesuffix}[How to write userscripts]
 * link:../contributing{outfilesuffix}[Contributing to qutebrowser]
+* link:../install{outfilesuffix}[Installing qutebrowser]
+* link:../stacktrace{outfilesuffix}[Reporting segfaults]
 
 Getting help
 ------------
@@ -25,6 +28,17 @@ http://freenode.net/[Freenode]
 message to the
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[].
+
+There's also an https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[announce-only mailinglist]
+at mailto:qutebrowser-announce@lists.qutebrowser.org[] (the announcements also
+get sent to the general qutebrowser@ list).
+
+If you're a reddit user, there's a
+https://www.reddit.com/r/qutebrowser/[/r/qutebrowser] subreddit there.
+
+Finally, qutebrowser is using GitHub's new Discussions feature, so you can also use the
+https://github.com/qutebrowser/qutebrowser/discussions[discussions tab] on GitHub to get
+in touch.
 
 Bugs
 ----
