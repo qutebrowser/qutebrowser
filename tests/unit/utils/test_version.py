@@ -613,6 +613,7 @@ class TestModuleVersions:
         """Test with all modules present in version 1.2.3."""
         expected = []
         for name in import_fake.modules:
+            version.MODULE_INFO[name]._reset_cache()
             if '__version__' not in version.MODULE_INFO[name]._version_attributes:
                 expected.append('{}: yes'.format(name))
             else:
