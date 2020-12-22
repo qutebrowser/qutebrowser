@@ -49,7 +49,7 @@ def test_adblock(method, quteproc, server):
     quteproc.wait_for(message="hostblock: Read 1 hosts from 1 sources.")
     if adblock is not None:
         quteproc.wait_for(
-            message="braveadblock: Filters successfully read from 1 sources")
+            message="braveadblock: Filters successfully read from 1 sources.")
 
     quteproc.open_path('data/blocking/external_logo.html')
 

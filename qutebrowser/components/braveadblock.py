@@ -228,9 +228,8 @@ class BraveAdBlocker:
         """Install block lists after files have been downloaded."""
         self._engine = adblock.Engine(filter_set)
         self._engine.serialize_to_file(str(self._cache_path))
-        logger.info(
-            "braveadblock: Filters successfully read from %s sources", done_count
-        )
+        message.info(
+            f"braveadblock: Filters successfully read from {done_count} sources.")
 
     def update_files(self) -> None:
         """Update files when the config changed."""

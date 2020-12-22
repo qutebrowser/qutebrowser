@@ -341,7 +341,7 @@ def test_update_easylist_easyprivacy_directory(
         assert_only_one_success_message(caplog.messages)
         assert (
             caplog.messages[-1]
-            == "braveadblock: Filters successfully read from 2 sources"
+            == "braveadblock: Filters successfully read from 2 sources."
         )
     assert_urls(ad_blocker, NOT_OKAY_URLS, True)
     assert_urls(ad_blocker, OKAY_URLS, False)
@@ -361,7 +361,7 @@ def test_update_empty_directory_blocklist(ad_blocker, config_stub, empty_dir, ca
         assert_only_one_success_message(caplog.messages)
         assert (
             caplog.messages[-1]
-            == "braveadblock: Filters successfully read from 0 sources"
+            == "braveadblock: Filters successfully read from 0 sources."
         )
 
     # There are no filters, so no ads should be blocked.
