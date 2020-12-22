@@ -138,10 +138,10 @@
 |<<confirm_quit,confirm_quit>>|Require a confirmation before quitting the application.
 |<<content.autoplay,content.autoplay>>|Automatically start playing `<video>` elements.
 |<<content.blocking.adblock.lists,content.blocking.adblock.lists>>|List of URLs to ABP-style adblocking rulesets.
-|<<content.blocking.enabled,content.blocking.enabled>>|Enable the ad blocker
-|<<content.blocking.hosts.lists,content.blocking.hosts.lists>>|List of URLs of lists which contain hosts to block.
+|<<content.blocking.enabled,content.blocking.enabled>>|Enable the ad/host blocker
+|<<content.blocking.hosts.lists,content.blocking.hosts.lists>>|List of URLs to host blocklists for the hock blocker.
 |<<content.blocking.method,content.blocking.method>>|Which method of blocking ads should be used.
-|<<content.blocking.whitelist,content.blocking.whitelist>>|A list of patterns that should always be loaded, despite being ad-blocked. Local domains are always exempt from adblocking.
+|<<content.blocking.whitelist,content.blocking.whitelist>>|A list of patterns that should always be loaded, despite being blocked by the ad-/host-blocker.
 |<<content.cache.appcache,content.cache.appcache>>|Enable support for the HTML 5 web application cache feature.
 |<<content.cache.maximum_pages,content.cache.maximum_pages>>|Maximum number of pages to hold in the global memory page cache.
 |<<content.cache.size,content.cache.size>>|Size (in bytes) of the HTTP network cache. Null to use the default value.
@@ -1909,6 +1909,8 @@ This setting is only available with the QtWebEngine backend.
 === content.blocking.adblock.lists
 List of URLs to ABP-style adblocking rulesets.
 
+Only used when Brave's ABP-style adblocker is used (see `content.blocking.method`).
+
 
 Type: <<types,List of Url>>
 
@@ -1919,7 +1921,7 @@ Default:
 
 [[content.blocking.enabled]]
 === content.blocking.enabled
-Enable the ad blocker
+Enable the ad/host blocker
 
 This setting supports URL patterns.
 
@@ -1929,7 +1931,9 @@ Default: +pass:[true]+
 
 [[content.blocking.hosts.lists]]
 === content.blocking.hosts.lists
-List of URLs of lists which contain hosts to block.
+List of URLs to host blocklists for the hock blocker.
+
+Only used when the simple host-blocker is used (see `content.blocking.method`).
 
 The file can be in one of the following formats:
 
@@ -1954,9 +1958,9 @@ Default:
 === content.blocking.method
 Which method of blocking ads should be used.
 
-Support for Adblock Plus syntax blocklists requires the `adblock` Python
-package to be installed, which is an optional dependency of qutebrowser.
-It is required when either `adblock` or `both` are selected.
+Support for Adblock Plus (ABP) syntax blocklists using Brave's Rust library requires
+the `adblock` Python package to be installed, which is an optional dependency of
+qutebrowser. It is required when either `adblock` or `both` are selected.
 
 
 Type: <<types,String>>
@@ -1972,7 +1976,8 @@ Default: +pass:[auto]+
 
 [[content.blocking.whitelist]]
 === content.blocking.whitelist
-A list of patterns that should always be loaded, despite being ad-blocked. Local domains are always exempt from adblocking.
+A list of patterns that should always be loaded, despite being blocked by the ad-/host-blocker.
+Local domains are always exempt from adblocking.
 Note this whitelists otherwise blocked requests, not first-party URLs. As an example, if `example.org` loads an ad from `ads.example.org`, the whitelist entry could be `https://ads.example.org/*`. If you want to disable the adblocker on a given page, use the `content.host_blocking.enabled` setting with a URL pattern instead.
 
 Type: <<types,List of UrlPattern>>
