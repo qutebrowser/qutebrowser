@@ -139,7 +139,7 @@
 |<<content.autoplay,content.autoplay>>|Automatically start playing `<video>` elements.
 |<<content.blocking.adblock.lists,content.blocking.adblock.lists>>|List of URLs to ABP-style adblocking rulesets.
 |<<content.blocking.enabled,content.blocking.enabled>>|Enable the ad/host blocker
-|<<content.blocking.hosts.lists,content.blocking.hosts.lists>>|List of URLs to host blocklists for the hock blocker.
+|<<content.blocking.hosts.lists,content.blocking.hosts.lists>>|List of URLs to host blocklists for the host blocker.
 |<<content.blocking.method,content.blocking.method>>|Which method of blocking ads should be used.
 |<<content.blocking.whitelist,content.blocking.whitelist>>|A list of patterns that should always be loaded, despite being blocked by the ad-/host-blocker.
 |<<content.cache.appcache,content.cache.appcache>>|Enable support for the HTML 5 web application cache feature.
@@ -1931,7 +1931,7 @@ Default: +pass:[true]+
 
 [[content.blocking.hosts.lists]]
 === content.blocking.hosts.lists
-List of URLs to host blocklists for the hock blocker.
+List of URLs to host blocklists for the host blocker.
 
 Only used when the simple host-blocker is used (see `content.blocking.method`).
 
