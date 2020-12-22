@@ -156,6 +156,18 @@ qt.args:
     https://peter.sh/experiments/chromium-command-line-switches/ for a list)
     will work.
 
+qt.environ:
+  type:
+    name: Dict
+    keytype: String
+    valtype: String
+    none_ok: true
+  default: {}
+  restart: true
+  desc: >-
+    Additional environment variables to set. Set to `None` to unset an environment
+    variable.
+
 force_software_rendering:
   renamed: qt.force_software_rendering
 
