@@ -255,6 +255,9 @@ def test_disabled_blocking_update(
     config_stub, tmpdir, caplog, host_blocker_factory, blocking_enabled, method
 ):
     """Ensure no URL is blocked when host blocking should be disabled."""
+    if blocking_enabled and method == 'auto':
+        pytest.importorskip('adblock')
+
     config_stub.val.content.blocking.hosts.lists = generic_blocklists(tmpdir)
     config_stub.val.content.blocking.enabled = blocking_enabled
     config_stub.val.content.blocking.method = method
