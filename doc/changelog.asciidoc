@@ -105,14 +105,22 @@ Changed
   `~/.local/share/qutebrowser/`).
 - The `:later` command now understands a time specification like `5m` or
   `1h5m2s`, rather than just taking milliseconds.
+- The `importer.py` script doesn't use a browser argument anymore; instead its
+  `--input-format` switch can be used to configure the input format. The help also
+  was expanded to explain how to use it properly.
 
 Fixed
 ~~~~~
 
 - With interpolated color settings (`colors.tabs.indicator.*` and
   `colors.downloads.*`), the alpha channel is now handled correctly.
-- The `format_json` userscript now uses `env` in its shebang, making it work
-  correctly on systems where `bash` isn't located in `/bin`.
+- Fixes to userscripts:
+    * `format_json` now uses `env` in its shebang, making it work
+      correctly on systems where `bash` isn't located in `/bin`.
+    * `qute-pass` now handles the MIME output format introduced in gopass 1.10.0.
+    * `qute-lastpass` now types multiple `<` or `>` characters correctly.
+- The `:undo` completion now sorts its entries correctly (by the numerical index
+  rather than lexicographically).
 - TODO: Due to a long-standing bug in the `pkg_resources` dependency, it caused
   qutebrowser's startup to slow down by around 150ms-1s (heavily depending on
   the system). Since the dependency is now removed, qutebrowser's startup time
