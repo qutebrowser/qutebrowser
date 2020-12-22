@@ -82,10 +82,10 @@ class TestQuteLastPassComponents:
 
     def test_fake_key_raw(self, qutecommand_mock):
         """Test if fake_key_raw properly escapes characters."""
-        qute_lastpass.fake_key_raw('john.doe@example.com ')
+        qute_lastpass.fake_key_raw('john.<<doe>>@example.com ')
 
         qutecommand_mock.assert_called_once_with(
-            'fake-key \\j\\o\\h\\n\\.\\d\\o\\e\\@\\e\\x\\a\\m\\p\\l\\e\\.\\c\\o\\m" "'
+            'fake-key \\j\\o\\h\\n\\.<less><less>\\d\\o\\e<greater><greater>\\@\\e\\x\\a\\m\\p\\l\\e\\.\\c\\o\\m" "'
         )
 
     def test_dmenu(self, subprocess_mock):

@@ -56,11 +56,17 @@ Feature: Keyboard input
 
     Scenario: :fake-key sending keychain to the website
         When I open data/keyinput/log.html
-        And I run :fake-key xy
+        And I run :fake-key x<greater>y<less>" "
         Then the javascript message "key press: 88" should be logged
         And the javascript message "key release: 88" should be logged
+        And the javascript message "key press: 190" should be logged
+        And the javascript message "key release: 190" should be logged
         And the javascript message "key press: 89" should be logged
         And the javascript message "key release: 89" should be logged
+        And the javascript message "key press: 188" should be logged
+        And the javascript message "key release: 188" should be logged
+        And the javascript message "key press: 32" should be logged
+        And the javascript message "key release: 32" should be logged
 
     Scenario: :fake-key sending keypress to qutebrowser
         When I run :fake-key -g x
