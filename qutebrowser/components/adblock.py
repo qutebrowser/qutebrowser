@@ -37,7 +37,7 @@ from qutebrowser.api import (
     qtutils,
 )
 from qutebrowser.components.utils import blockutils
-from qutebrowser.components import braveadblock
+from qutebrowser.utils import version  # FIXME: Move needed parts into api namespace?
 
 
 logger = logging.getLogger("network")
@@ -72,10 +72,13 @@ def get_fileobj(byte_io: IO[bytes]) -> IO[bytes]:
 def _should_be_used() -> bool:
     """Whether the hostblocker should be used or not."""
     method = config.val.content.blocking.method
-    adblock_dependency_satisfied = braveadblock.ad_blocker is None
-    return method in ("both", "hosts") or (
-        method == "auto" and not adblock_dependency_satisfied
-    )
+
+    adblock_info = version.MODULE_INFO["adblock"]
+    adblock_usable = adblock_info.is_installed() and not adblock_info.is_outdated()
+
+    logger.debug(f"Configured adblock method {method}, adblock library usable: "
+                 f"{adblock_usable}")
+    return method in ("both", "hosts") or (method == "auto" and not adblock_usable)
 
 
 class HostBlocker:
