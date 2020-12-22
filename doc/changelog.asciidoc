@@ -76,6 +76,8 @@ Added
 - New userscripts:
   - `kodi` to play videos in Kodi
   - `qr` to generate a QR code of the current URL
+  - `add-nextcloud-bookmarks` to create bookmarks in Nextcloud's Bookmarks app
+  - `add-nextcloud-cookbook` to add recipes to Nextcloud's Cookbook app
 
 Changed
 ~~~~~~~
