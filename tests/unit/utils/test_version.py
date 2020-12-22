@@ -553,25 +553,8 @@ class ImportFake:
     """
 
     def __init__(self):
-        self.modules = collections.OrderedDict([
-            ('sip', True),
-            ('colorama', True),
-            ('pypeg2', True),
-            ('jinja2', True),
-            ('pygments', True),
-            ('yaml', True),
-            ('adblock', True),
-            ('attr', True),
-            ('importlib_resources', True),
-            ('PyQt5.QtWebEngineWidgets', True),
-            ('PyQt5.QtWebEngine', True),
-            ('PyQt5.QtWebKitWidgets', True),
-        ])
-        self.no_version_attribute = ['sip',
-                                     'importlib_resources',
-                                     'PyQt5.QtWebEngineWidgets',
-                                     'PyQt5.QtWebKitWidgets',
-                                     'PyQt5.QtWebEngine']
+        self.modules = collections.OrderedDict(
+            [(mod, True) for mod in version.MODULE_INFO])
         self.version_attribute = '__version__'
         self.version = '1.2.3'
         self._real_import = builtins.__import__
@@ -630,7 +613,7 @@ class TestModuleVersions:
         """Test with all modules present in version 1.2.3."""
         expected = []
         for name in import_fake.modules:
-            if name in import_fake.no_version_attribute:
+            if '__version__' not in version.MODULE_INFO[name]._version_attributes:
                 expected.append('{}: yes'.format(name))
             else:
                 expected.append('{}: 1.2.3'.format(name))
