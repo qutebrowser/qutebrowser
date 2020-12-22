@@ -37,7 +37,7 @@ from qutebrowser.api import (
 )
 from qutebrowser.api.interceptor import ResourceType
 from qutebrowser.components.utils import blockutils
-from qutebrowser.utils import version
+from qutebrowser.utils import version  # FIXME: Move needed parts into api namespace?
 
 try:
     import adblock
@@ -75,6 +75,7 @@ def _possibly_show_missing_dependency_warning() -> None:
             f"dependency is too old. Minimum supported is {adblock_info.min_version}."
         )
     else:
+        assert not adblock_info.is_installed(), adblock_info
         message.warning(
             f"Ad blocking method is set to '{method}' but 'adblock' dependency is not "
             "installed."
@@ -282,9 +283,8 @@ def init(context: apitypes.InitContext) -> None:
     adblock_info = version.MODULE_INFO["adblock"]
     if not adblock_info.is_installed() or adblock_info.is_outdated():
         # We want 'adblock' to be an optional dependency. If the module is
-        # not installed or is outdated, we simply set the `ad_blocker` global to
+        # not installed or is outdated, we simply keep the `ad_blocker` global at
         # `None`.
-        ad_blocker = None
         _possibly_show_missing_dependency_warning()
         return
 
