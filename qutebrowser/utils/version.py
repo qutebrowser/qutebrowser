@@ -335,6 +335,10 @@ class ModuleInfo:
             return None
         return version < self.min_version
 
+    def is_usable(self) -> bool:
+        """Whether the module is both installed and not outdated."""
+        return self.is_installed() and not self.is_outdated()
+
     def __str__(self) -> str:
         if not self.is_installed():
             return f'{self.name}: no'

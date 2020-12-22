@@ -74,7 +74,7 @@ def _should_be_used() -> bool:
     method = config.val.content.blocking.method
 
     adblock_info = version.MODULE_INFO["adblock"]
-    adblock_usable = adblock_info.is_installed() and not adblock_info.is_outdated()
+    adblock_usable = adblock_info.is_usable()
 
     logger.debug(f"Configured adblock method {method}, adblock library usable: "
                  f"{adblock_usable}")

@@ -657,6 +657,7 @@ class TestModuleVersions:
 
         for method_name, expected_result in [
             ("is_installed", False),
+            ("is_usable", False),
             ("get_version", None),
             ("is_outdated", None)
         ]:
