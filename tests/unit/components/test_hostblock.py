@@ -27,7 +27,7 @@ import pytest
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.components import adblock
+from qutebrowser.components import hostblock
 from qutebrowser.utils import urlmatch
 from helpers import utils
 
@@ -64,7 +64,7 @@ URLS_TO_CHECK = (
 @pytest.fixture
 def host_blocker_factory(config_tmpdir, data_tmpdir, download_stub, config_stub):
     def factory():
-        return adblock.HostBlocker(config_dir=config_tmpdir, data_dir=data_tmpdir)
+        return hostblock.HostBlocker(config_dir=config_tmpdir, data_dir=data_tmpdir)
 
     return factory
 
@@ -446,7 +446,7 @@ def test_invalid_utf8_compiled(
     config_stub.val.content.blocking.hosts.lists = []
 
     # Make sure the HostBlocker doesn't delete blocked-hosts in __init__
-    monkeypatch.setattr(adblock.HostBlocker, "update_files", lambda _self: None)
+    monkeypatch.setattr(hostblock.HostBlocker, "update_files", lambda _self: None)
 
     (config_tmpdir / "blocked-hosts").write_binary(b"https://www.example.org/\xa0")
     (data_tmpdir / "blocked-hosts").ensure()

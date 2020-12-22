@@ -27,7 +27,7 @@ import os.path
 import urllib.request
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
-from qutebrowser.components import adblock
+from qutebrowser.components import hostblock
 from qutebrowser.config import configdata
 
 
@@ -43,7 +43,7 @@ def main():
         print("checking {}...".format(url))
         raw_file = urllib.request.urlopen(url)
         byte_io = io.BytesIO(raw_file.read())
-        f = adblock.get_fileobj(byte_io)
+        f = hostblock.get_fileobj(byte_io)
         for line in f:
             line = line.decode('utf-8')
             if sys.argv[1] in line:
