@@ -525,11 +525,6 @@ Feature: Various utility commands.
 
     ## Other
 
-    Scenario: Simple adblock update
-        When I set up "simple" as block lists
-        And I run :adblock-update
-        Then the message "hostblock: Read 1 hosts from 1 sources." should be shown
-
     Scenario: Resource with invalid URL
         When I open data/invalid_resource.html
         Then "Ignoring invalid * URL: Invalid hostname (contains invalid characters); *" should be logged

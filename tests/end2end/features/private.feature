@@ -220,11 +220,11 @@ Feature: Using private browsing
     Scenario: Adblocking after reiniting private profile
         When I open about:blank in a private window
         And I run :close
-        And I set content.blocking.hosts.lists to ["http://localhost:(port)/data/adblock/qutebrowser"]
+        And I set content.blocking.hosts.lists to ["http://localhost:(port)/data/blocking/qutebrowser-hosts"]
         And I set content.blocking.method to hosts
         And I run :adblock-update
         And I wait for the message "hostblock: Read 1 hosts from 1 sources."
-        And I open data/adblock/external_logo.html in a private window
+        And I open data/blocking/external_logo.html in a private window
         Then "Request to qutebrowser.org blocked by host blocker." should be logged
 
     @pyqt!=5.15.0   # cookie filtering is broken on QtWebEngine 5.15.0

@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import json
-
 import pytest_bdd as bdd
 bdd.scenarios('misc.feature')
 
@@ -28,10 +26,3 @@ def pdf_exists(quteproc, tmpdir, filename):
     path = tmpdir / filename
     data = path.read_binary()
     assert data.startswith(b'%PDF')
-
-
-@bdd.when(bdd.parsers.parse('I set up "{lists}" as block lists'))
-def set_up_blocking(quteproc, lists, server):
-    url = 'http://localhost:{}/data/adblock/'.format(server.port)
-    urls = [url + item.strip() for item in lists.split(',')]
-    quteproc.set_setting('content.blocking.hosts.lists', json.dumps(urls))
