@@ -110,6 +110,8 @@ Changed
 - The `importer.py` script doesn't use a browser argument anymore; instead its
   `--input-format` switch can be used to configure the input format. The help also
   was expanded to explain how to use it properly.
+- If `tabs.tabs_are_windows` is set, the `tabs.last_close` setting is now
+  ignored and the window is always closed when using `:close` (`d`).
 
 Fixed
 ~~~~~

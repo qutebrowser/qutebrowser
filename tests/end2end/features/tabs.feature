@@ -6,6 +6,7 @@ Feature: Tab management
     Background:
         Given I clean up open tabs
         And I set tabs.tabs_are_windows to false
+        And I clear the log
 
     # :tab-close
 
@@ -1414,6 +1415,21 @@ Feature: Tab management
             - tabs:
               - history:
                 - url: http://localhost:*/data/hello.txt
+
+    Scenario: Closing tab with tabs_are_windows
+        When I set tabs.tabs_are_windows to true
+        And I set tabs.last_close to ignore
+        And I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-close
+        And I wait for "removed: tabbed-browser" in the log
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
 
     # :tab-pin
 

@@ -3812,6 +3812,7 @@ Default: +pass:[3]+
 [[tabs.last_close]]
 === tabs.last_close
 How to behave when the last tab is closed.
+If the `tabs.tabs_are_windows` setting is set, this is ignored and the behavior is always identical to the `close` value.
 
 Type: <<types,String>>
 

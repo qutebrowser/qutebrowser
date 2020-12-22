@@ -1685,7 +1685,11 @@ tabs.last_close:
       - startpage: "Load the start page."
       - default-page: "Load the default page."
       - close: "Close the window."
-  desc: How to behave when the last tab is closed.
+  desc: >-
+    How to behave when the last tab is closed.
+
+    If the `tabs.tabs_are_windows` setting is set, this is ignored and the behavior is
+    always identical to the `close` value.
 
 tabs.mousewheel_switching:
   default: true

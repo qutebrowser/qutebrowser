@@ -411,7 +411,11 @@ class TabbedBrowser(QWidget):
             add_undo: Whether the tab close can be undone.
             new_undo: Whether the undo entry should be a new item in the stack.
         """
-        last_close = config.val.tabs.last_close
+        if config.val.tabs.tabs_are_windows:
+            last_close = 'close'
+        else:
+            last_close = config.val.tabs.last_close
+
         count = self.widget.count()
 
         if last_close == 'ignore' and count == 1:
