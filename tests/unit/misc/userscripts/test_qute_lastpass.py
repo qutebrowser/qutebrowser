@@ -85,7 +85,8 @@ class TestQuteLastPassComponents:
         qute_lastpass.fake_key_raw('john.<<doe>>@example.com ')
 
         qutecommand_mock.assert_called_once_with(
-            'fake-key \\j\\o\\h\\n\\.<less><less>\\d\\o\\e<greater><greater>\\@\\e\\x\\a\\m\\p\\l\\e\\.\\c\\o\\m" "'
+            'fake-key \\j\\o\\h\\n\\.<less><less>\\d\\o\\e<greater><greater>\\@'
+            '\\e\\x\\a\\m\\p\\l\\e\\.\\c\\o\\m" "'
         )
 
     def test_dmenu(self, subprocess_mock):

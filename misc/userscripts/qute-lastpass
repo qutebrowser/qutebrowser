@@ -102,15 +102,14 @@ def dmenu(items, invocation, encoding):
 
 
 def fake_key_raw(text):
-    sequence = ''
-
-    for character in text:
-        # Escape all characters by default, space, '<' and '>' requires special handling
-        sequence += ('" "' if character == ' ' else
-				'<less>' if character == '<' else
-				'<greater>' if character == '>' else
-				'\\{}'.format(character))
-    qute_command('fake-key {}'.format(sequence))
+    # Escape all characters by default, space, '<' and '>' requires special handling
+    special_escapes = {
+        ' ': '" "',
+        '<': '<less>',
+        '>': '<greater>',
+    }
+    sequence = ''.join([special_escapes.get(c, '\\{}'.format(c)) for c in text])
+    qute_command(f'fake-key {sequence}')
 
 
 def main(arguments):
