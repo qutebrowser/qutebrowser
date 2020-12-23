@@ -475,12 +475,12 @@ class TestCompletionMetaInfo:
             metainfo['does_not_exist'] = 42
 
     def test_contains(self, metainfo):
-        assert 'force_rebuild' in metainfo
+        assert 'excluded_patterns' in metainfo
 
     def test_modify(self, metainfo):
-        assert not metainfo['force_rebuild']
-        metainfo['force_rebuild'] = True
-        assert metainfo['force_rebuild']
+        assert not metainfo['excluded_patterns']
+        metainfo['excluded_patterns'] = 'https://example.com/'
+        assert metainfo['excluded_patterns']
 
 
 class TestHistoryProgress:
