@@ -244,6 +244,9 @@ def main(arguments):
         # back into insert-mode, so the form can be directly submitted by hitting enter afterwards
         fake_key_raw(username)
         qute_command('fake-key <Tab>')
+        # GitHub login needs an extra tab to reach password field
+        if 'github.com' in attempted_targets:
+            qute_command('fake-key <Tab>')
         fake_key_raw(password)
 
     if arguments.insert_mode:
