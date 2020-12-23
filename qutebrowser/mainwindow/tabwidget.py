@@ -212,7 +212,7 @@ class TabWidget(QTabWidget):
         Every single call to setTabText calls the size hinting functions for
         every single tab, which are slow. Since we know we are updating all
         the tab's titles, we can delay this processing by making the tab
-        non-visible. To avoid flickering, disable repaint updates whlie we
+        non-visible. To avoid flickering, disable repaint updates while we
         work.
         """
         bar = self.tabBar()
