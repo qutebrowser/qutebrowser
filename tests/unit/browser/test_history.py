@@ -402,30 +402,12 @@ class TestRebuild:
             ('example.com/2', '', 2),
         ]
 
-    def test_force_rebuild(self, web_history, stubs):
-        """Ensure that completion is regenerated if we force a rebuild."""
-        web_history.add_url(QUrl('example.com/1'), redirect=False, atime=1)
-        web_history.add_url(QUrl('example.com/2'), redirect=False, atime=2)
-        web_history.completion.delete('url', 'example.com/2')
-
-        hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
-        assert list(hist2.completion) == [('example.com/1', '', 1)]
-        hist2.metainfo['force_rebuild'] = True
-
-        hist3 = history.WebHistory(progress=stubs.FakeHistoryProgress())
-        assert list(hist3.completion) == [
-            ('example.com/1', '', 1),
-            ('example.com/2', '', 2),
-        ]
-        assert not hist3.metainfo['force_rebuild']
-
     def test_exclude(self, config_stub, web_history, stubs):
         """Ensure that patterns in completion.web_history.exclude are ignored.
 
         This setting should only be used for the completion.
         """
         config_stub.val.completion.web_history.exclude = ['*.example.org']
-        assert web_history.metainfo['force_rebuild']
 
         web_history.add_url(QUrl('http://example.com'),
                             redirect=False, atime=1)
@@ -435,16 +417,35 @@ class TestRebuild:
         hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
         assert list(hist2.completion) == [('http://example.com', '', 1)]
 
-    def test_unrelated_config_change(self, config_stub, web_history):
-        config_stub.val.history_gap_interval = 1234
-        assert not web_history.metainfo['force_rebuild']
+    def test_pattern_change_rebuild(self, config_stub, web_history, stubs):
+        """Ensure that completion is regenerated when exclude patterns change"""
+        config_stub.val.completion.web_history.exclude = ['*.example.org']
+
+        web_history.add_url(QUrl('http://example.com'),
+                            redirect=False, atime=1)
+        web_history.add_url(QUrl('http://example.org'),
+                            redirect=False, atime=2)
+
+        hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
+        assert list(hist2.completion) == [
+            ('http://example.com', '', 1),
+        ]
+
+        config_stub.val.completion.web_history.exclude = []
+
+        hist3 = history.WebHistory(progress=stubs.FakeHistoryProgress())
+        assert list(hist3.completion) == [
+            ('http://example.com', '', 1),
+            ('http://example.org', '', 2)
+        ]
 
     @pytest.mark.parametrize('patch_threshold', [True, False])
     def test_progress(self, web_history, config_stub, monkeypatch, stubs,
                       patch_threshold):
         web_history.add_url(QUrl('example.com/1'), redirect=False, atime=1)
         web_history.add_url(QUrl('example.com/2'), redirect=False, atime=2)
-        web_history.metainfo['force_rebuild'] = True
+        # Change cached patterns to trigger a completion rebuild
+        web_history.metainfo['excluded_patterns'] = 'http://example.org'
 
         if patch_threshold:
             monkeypatch.setattr(history.WebHistory, '_PROGRESS_THRESHOLD', 1)
