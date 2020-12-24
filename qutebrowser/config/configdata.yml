@@ -160,14 +160,14 @@ qt.environ:
   type:
     name: Dict
     keytype: String
-    valtype: 
+    valtype:
       name: String
       none_ok: true
     none_ok: true
   default: {}
   restart: true
   desc: >-
-    Additional environment variables to set. 
+    Additional environment variables to set.
 
     Setting an environment variable to null/None will unset it.
 
