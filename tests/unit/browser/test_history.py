@@ -418,7 +418,7 @@ class TestRebuild:
         assert list(hist2.completion) == [('http://example.com', '', 1)]
 
     def test_pattern_change_rebuild(self, config_stub, web_history, stubs):
-        """Ensure that completion is regenerated when exclude patterns change"""
+        """Ensure that completion is rebuilt when exclude patterns change."""
         config_stub.val.completion.web_history.exclude = ['*.example.org']
 
         web_history.add_url(QUrl('http://example.com'),
