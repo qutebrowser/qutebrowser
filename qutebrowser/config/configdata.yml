@@ -160,13 +160,16 @@ qt.environ:
   type:
     name: Dict
     keytype: String
-    valtype: String
+    valtype: 
+      name: String
+      none_ok: true
     none_ok: true
   default: {}
   restart: true
   desc: >-
-    Additional environment variables to set. Set to `None` to unset an environment
-    variable.
+    Additional environment variables to set. 
+
+    Setting an environment variable to null/None will unset it.
 
 force_software_rendering:
   renamed: qt.force_software_rendering

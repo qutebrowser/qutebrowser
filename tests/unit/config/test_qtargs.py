@@ -428,38 +428,46 @@ class TestEnvVars:
 
         assert os.environ[envvar] == expected
 
-    @pytest.mark.parametrize('config_opt, config_val, init_val, envvar, expected', [
-        ('qt.environ', {'QT_SCALE_FACTOR': '2'},
-         [None], ['QT_SCALE_FACTOR'], ['2']),
-        #Test changing an environment variable
-        ('qt.environ', {'QT_SCALE_FACTOR': '4'},
-         ['2'], ['QT_SCALE_FACTOR'], ['4']),
-        ('qt.environ', {'QT_SCALE_FACTOR': '4'},
-         ['unset'], ['QT_SCALE_FACTOR'], ['4']),
-        #Test unsetting an environment variable
-        ('qt.environ', {'QT_SCALE_FACTOR': 'None'},
-         ['3'], ['QT_SCALE_FACTOR'], ['']),
-        #Test setting multiple environment variables
-        ('qt.environ', {'QT_SCALE_FACTOR': '3', 'QT_PLUGIN_PATH': '/tmp/',
-                        'QT_NEWVAR': 'newval'},
-         [None, None, None], ['QT_SCALE_FACTOR', 'QT_PLUGIN_PATH', 'QT_NEWVAR'],
-         ['3', '/tmp/', 'newval']),
+    @pytest.mark.parametrize('init_val, config_val', [
+        (   # Test setting a variable
+            {'QT_SCALE_FACTOR': None},
+            {'QT_SCALE_FACTOR': '2'},
+        ),
+        (   # Test changing a set variable
+            {'QT_SCALE_FACTOR': '2'},
+            {'QT_SCALE_FACTOR': '4'},
+        ),
+        (   # Test setting an unset variable
+            {'QT_SCALE_FACTOR': 'unset'},
+            {'QT_SCALE_FACTOR': '3'},
+        ),
+        (   # Test unsetting a variable
+            {'QT_SCALE_FACTOR': '3'},
+            {'QT_SCALE_FACTOR': None},
+        ),
+        (   # Test setting multiple variables
+            {'QT_SCALE_FACTOR': None, 'QT_PLUGIN_PATH': None, 'QT_NEWVAR': None},
+            {'QT_SCALE_FACTOR': '3', 'QT_PLUGIN_PATH': '/tmp/', 'QT_NEWVAR': 'newval'},
+        )
     ])
     def test_environ_settings(self, monkeypatch, config_stub,
-                              config_opt, config_val, init_val, envvar, expected):
-        """Test extra environment settings."""
-        for (var, val) in zip(envvar, init_val):
+                              init_val, config_val):
+        """Test setting environment variables using qt.environ."""
+        for var, val in init_val.items():
             if val is not None:
                 if val == 'unset':
                     monkeypatch.delenv(var)
                 else:
                     monkeypatch.setenv(var, val)
 
-        config_stub.set_obj(config_opt, config_val)
+        config_stub.val.qt.environ = config_val
         qtargs.init_envvars()
 
-        for (var, result) in zip(envvar, expected):
-            assert os.environ[var] == result
+        for var, result in config_val.items():
+            if result is None:
+                assert var not in os.environ
+            else:
+                assert os.environ[var] == result
 
     @pytest.mark.parametrize('new_qt', [True, False])
     def test_highdpi(self, monkeypatch, config_stub, new_qt):

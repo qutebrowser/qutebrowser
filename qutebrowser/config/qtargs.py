@@ -260,9 +260,8 @@ def init_envvars() -> None:
                    else 'QT_AUTO_SCREEN_SCALE_FACTOR')
         os.environ[env_var] = '1'
 
-    for var in config.val.qt.environ:
-        val = config.val.qt.environ[var]
-        if val == 'None':
-            os.environ[var] = ''
-        else:
+    for var, val in config.val.qt.environ.items():
+        if val is None and var in os.environ:
+            del os.environ[var]
+        elif val is not None:
             os.environ[var] = val
