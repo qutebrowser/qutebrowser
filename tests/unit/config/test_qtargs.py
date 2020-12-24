@@ -441,8 +441,12 @@ class TestEnvVars:
             {'QT_SCALE_FACTOR': 'unset'},
             {'QT_SCALE_FACTOR': '3'},
         ),
-        (   # Test unsetting a variable
+        (   # Test unsetting a variable which is set
             {'QT_SCALE_FACTOR': '3'},
+            {'QT_SCALE_FACTOR': None},
+        ),
+        (   # Test unsetting a variable which is unset
+            {'QT_SCALE_FACTOR': 'unset'},
             {'QT_SCALE_FACTOR': None},
         ),
         (   # Test setting multiple variables
