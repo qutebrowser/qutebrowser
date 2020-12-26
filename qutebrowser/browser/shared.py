@@ -22,7 +22,7 @@
 import os
 import html
 import netrc
-from typing import Callable, Mapping
+from typing import Callable, Mapping, List
 import tempfile
 
 from PyQt5.QtCore import QUrl
@@ -344,7 +344,7 @@ def netrc_authentication(url, authenticator):
     return True
 
 
-def choose_file(multiple: bool):
+def choose_file(multiple: bool) -> List[str]:
     """Select file(s) for uploading, using external command defined in config.
 
     Args:

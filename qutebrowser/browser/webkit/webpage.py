@@ -30,7 +30,7 @@ from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtPrintSupport import QPrintDialog
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 
-from qutebrowser.config import websettings, val
+from qutebrowser.config import websettings, config
 from qutebrowser.browser import pdfjs, shared, downloads, greasemonkey
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
@@ -192,9 +192,9 @@ class BrowserPage(QWebPage):
             errpage.encoding = 'utf-8'
             return True
 
-    def chooseFile(self, parent_frame: QWebFrame, suggested_file: str):
+    def chooseFile(self, parent_frame: QWebFrame, suggested_file: str) -> str:
         """Override chooseFiles to (optionally) invoke custom file uploader."""
-        handler = val.fileselect.handler
+        handler = config.val.fileselect.handler
         if handler == "default":
             return super().chooseFile(parent_frame, suggested_file)
 
@@ -217,7 +217,7 @@ class BrowserPage(QWebPage):
         Return:
             True on success, the superclass return value on failure.
         """
-        handler = val.fileselect.handler
+        handler = config.val.fileselect.handler
         if handler == "default":
             suggested_file = ""
             if info.suggestedFileNames:
