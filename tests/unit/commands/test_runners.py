@@ -67,6 +67,30 @@ class TestCommandParser:
         with pytest.raises(cmdexc.NoSuchCommandError):
             parser.parse_all(command)
 
+    @pytest.mark.parametrize('command, name, args', [
+        ("set-cmd-text -s :open", "set-cmd-text", ["-s", ":open"]),
+        ("set-cmd-text :open {url:pretty}", "set-cmd-text",
+            [":open {url:pretty}"]),
+        ("set-cmd-text -s :open -t", "set-cmd-text", ["-s", ":open -t"]),
+        ("set-cmd-text :open -t -r {url:pretty}", "set-cmd-text",
+            [":open -t -r {url:pretty}"]),
+        ("set-cmd-text -s :open -b", "set-cmd-text", ["-s", ":open -b"]),
+        ("set-cmd-text :open -b -r {url:pretty}", "set-cmd-text",
+            [":open -b -r {url:pretty}"]),
+        ("set-cmd-text -s :open -w", "set-cmd-text",
+            ["-s", ":open -w"]),
+        ("set-cmd-text :open -w {url:pretty}", "set-cmd-text",
+            [":open -w {url:pretty}"]),
+        ("set-cmd-text /", "set-cmd-text", ["/"]),
+        ("set-cmd-text ?", "set-cmd-text", ["?"]),
+        ("set-cmd-text :", "set-cmd-text", [":"]),
+    ])
+    def test_parse_result(self, command, name, args):
+        parser = runners.CommandParser()
+        result = parser.parse_all(command, aliases=False)[0]
+        assert result.cmd.name == name
+        assert result.args == args
+
 
 class TestCompletions:
 
