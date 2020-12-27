@@ -27,6 +27,7 @@ from typing import (TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Mapping,
 
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
+from qutebrowser.commands import cmdexc, runners
 from qutebrowser.config import configdata, configexc, configutils
 from qutebrowser.utils import utils, log, urlmatch
 from qutebrowser.misc import objects
@@ -162,19 +163,18 @@ class KeyConfig:
                 bindings[key] = binding
         return bindings
 
-    def _strip_leading_flags(self, cmdline: str) -> List[str]:
-        """Split cmdline at whitespace until the first non-flag."""
-        first, _, rest = cmdline.partition(" ")
-        if first.startswith("-"):
-            return [first] + self._strip_leading_flags(rest)
-        return [cmdline]
-
     def _implied_cmd(self, cmdline: str) -> str:
         """Return cmdline, or the implied cmd if cmdline is a set-cmd-text."""
-        if not cmdline.startswith("set-cmd-text "):
+        try:
+            results = runners.CommandParser().parse_all(cmdline, aliases=False)
+            if len(results) == 0:
+                return ""
+            result = results[0]
+        except cmdexc.NoSuchCommandError:
+            return ""
+        if result.cmd.name != "set-cmd-text":
             return cmdline
-        cmdline = cmdline[len("set-cmd-text "):]
-        *flags, cmd = self._strip_leading_flags(cmdline)
+        *flags, cmd = result.args
         if "-a" in flags or "--append" in flags or not cmd.startswith(":"):
             return ""  # doesn't look like this sets a command
         return cmd.lstrip(":")
