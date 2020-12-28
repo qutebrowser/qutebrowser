@@ -526,6 +526,6 @@ Feature: Various utility commands.
     ## Other
 
     Scenario: Resource with invalid URL
-        When I open data/invalid_resource.html
+        When I open data/invalid_resource.html in a new tab
         Then "Ignoring invalid * URL: Invalid hostname (contains invalid characters); *" should be logged
         And no crash should happen
