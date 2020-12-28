@@ -60,7 +60,10 @@ def test_set_pattern(pattern, before, after, after_nosort, model_validator):
     model_validator.validate(after_nosort)
 
 
-def test_long_pattern(caplog):
+def test_long_pattern(caplog, model_validator):
     """Validate that a huge pattern doesn't crash (#5973)."""
     with caplog.at_level(logging.WARNING):
-        listcategory.ListCategory('Foo', []).set_pattern('a' * 50000)
+        cat = listcategory.ListCategory('Foo', [('a' * 5000, '')])
+        model_validator.set_model(cat)
+        cat.set_pattern('a' * 50000)
+        model_validator.validate([('a' * 5000, '')])
