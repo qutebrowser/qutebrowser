@@ -64,7 +64,7 @@ class ListCategory(QSortFilterProxyModel):
         val = re.escape(val)
         val = val.replace(r'\ ', '.*')
         if len(val) > 5000:  # avoid crash on huge search terms (#5973)
-            log.completion.warning("Pattern too long ({})".format(len(val)))
+            log.completion.warning(f"Pattern too long ({len(val)})")
             val = "^$"
         rx = QRegularExpression(val, QRegularExpression.CaseInsensitiveOption)
         qtutils.ensure_valid(rx)
