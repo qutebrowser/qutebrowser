@@ -474,7 +474,7 @@ Can you share details on the swag?::
 +
 image:https://qutebrowser.org/img/sponsors/swag.jpg["swag",width=300,link="https://qutebrowser.org/img/sponsors/swag.jpg"]
 +
-It's planned to order more swag, depending on the exact demand. Possibilites
+It's planned to order more swag, depending on the exact demand. Possibilities
 would include:
 +
 - qutebrowser pens (refillable)

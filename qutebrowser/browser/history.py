@@ -150,7 +150,7 @@ class WebHistory(sql.SqlTable):
                                       'redirect': 'NOT NULL'},
                          parent=parent)
         self._progress = progress
-        # Store the last saved url to avoid duplicate immedate saves.
+        # Store the last saved url to avoid duplicate immediate saves.
         self._last_url = None
 
         self.completion = CompletionHistory(parent=self)

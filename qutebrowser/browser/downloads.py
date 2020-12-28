@@ -1291,7 +1291,7 @@ class TempDownloadManager:
 
     """Manager to handle temporary download files.
 
-    The downloads are downloaded to a temporary location and then openened with
+    The downloads are downloaded to a temporary location and then opened with
     the system standard application. The temporary files are deleted when
     qutebrowser is shutdown.
 

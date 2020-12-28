@@ -406,7 +406,7 @@ def open_desktopservices_url(url):
 
 
 # This is effectively a @config.change_filter
-# Howerver, logging is initialized too early to use that annotation
+# However, logging is initialized too early to use that annotation
 def _on_config_changed(name: str) -> None:
     if name.startswith('logging.'):
         log.init_from_config(config.val)

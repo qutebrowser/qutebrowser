@@ -351,7 +351,7 @@ def test_set(quteproc, value):
 
 
 @pytest.mark.parametrize('message, ignored', [
-    # Unparseable
+    # Unparsable
     ('Hello World', False),
     # Without process/thread ID
     ('[0606/135039:ERROR:cert_verify_proc_nss.cc(925)] CERT_PKIXVerifyCert '
