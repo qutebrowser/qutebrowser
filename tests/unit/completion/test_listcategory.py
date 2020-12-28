@@ -20,6 +20,7 @@
 """Tests for CompletionFilterModel."""
 
 import pytest
+import logging
 
 from qutebrowser.completion.models import listcategory
 
@@ -57,3 +58,9 @@ def test_set_pattern(pattern, before, after, after_nosort, model_validator):
     model_validator.set_model(cat)
     cat.set_pattern(pattern)
     model_validator.validate(after_nosort)
+
+
+def test_long_pattern(caplog):
+    """Validate that a huge pattern doesn't crash (#5973)."""
+    with caplog.at_level(logging.WARNING):
+        listcategory.ListCategory('Foo', []).set_pattern('a' * 50000)
