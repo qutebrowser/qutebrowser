@@ -175,7 +175,7 @@ CHANGELOG_URLS = {
     'pyroma': 'https://github.com/regebro/pyroma/blob/master/HISTORY.txt',
     'adblock': 'https://github.com/ArniDagur/python-adblock/blob/master/CHANGELOG.md',
     'pyPEG2': None,
-    'importlib-resources': 'https://importlib-resources.readthedocs.io/en/latest/changelog%20%28links%29.html',
+    'importlib-resources': 'https://importlib-resources.readthedocs.io/en/latest/history.html',
 }
 
 
