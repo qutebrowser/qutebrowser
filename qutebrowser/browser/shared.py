@@ -20,6 +20,7 @@
 """Various utilities shared between webpage/webview subclasses."""
 
 import os
+import sys
 import html
 import netrc
 from typing import Callable, Mapping, List
@@ -354,25 +355,24 @@ def choose_file(multiple: bool) -> List[str]:
         A list of selected file paths, or empty list if no file is selected.
         If multiple is False, the return value will have at most 1 item.
     """
-    with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
+    encoding = sys.getfilesystemencoding()
+    with tempfile.NamedTemporaryFile(mode='w+', encoding=encoding) as tmpfile:
         filename = tmpfile.name
 
-    if multiple:
-        command = config.val.fileselect.multiple_files.command
-    else:
-        command = config.val.fileselect.single_file.command
+        if multiple:
+            command = config.val.fileselect.multiple_files.command
+        else:
+            command = config.val.fileselect.single_file.command
 
-    proc = guiprocess.GUIProcess(what='choose-file')
-    proc.start(command[0],
-               [arg.replace('{}', filename) for arg in command[1:]])
+        proc = guiprocess.GUIProcess(what='choose-file')
+        proc.start(command[0],
+                   [arg.replace('{}', filename) for arg in command[1:]])
 
-    loop = qtutils.EventLoop()
-    proc.finished.connect(lambda _code, _status: loop.exit())
-    loop.exec_()
+        loop = qtutils.EventLoop()
+        proc.finished.connect(lambda _code, _status: loop.exit())
+        loop.exec_()
 
-    with open(filename, 'r', encoding='utf8') as tmpfile:
         selected_file_list = tmpfile.read().splitlines()
-    os.remove(filename)
 
     if not multiple:
         assert len(selected_file_list) <= 1
