@@ -19,8 +19,9 @@
 
 """Tests for CompletionFilterModel."""
 
-import pytest
 import logging
+
+import pytest
 
 from qutebrowser.completion.models import listcategory
 
