@@ -429,16 +429,12 @@ class TestEnvVars:
         assert os.environ[envvar] == expected
 
     @pytest.mark.parametrize('init_val, config_val', [
-        (   # Test setting a variable
-            {'QT_SCALE_FACTOR': None},
-            {'QT_SCALE_FACTOR': '2'},
-        ),
         (   # Test changing a set variable
             {'QT_SCALE_FACTOR': '2'},
             {'QT_SCALE_FACTOR': '4'},
         ),
         (   # Test setting an unset variable
-            {'QT_SCALE_FACTOR': 'unset'},
+            {'QT_SCALE_FACTOR': None},
             {'QT_SCALE_FACTOR': '3'},
         ),
         (   # Test unsetting a variable which is set
@@ -446,11 +442,11 @@ class TestEnvVars:
             {'QT_SCALE_FACTOR': None},
         ),
         (   # Test unsetting a variable which is unset
-            {'QT_SCALE_FACTOR': 'unset'},
+            {'QT_SCALE_FACTOR': None},
             {'QT_SCALE_FACTOR': None},
         ),
         (   # Test setting multiple variables
-            {'QT_SCALE_FACTOR': None, 'QT_PLUGIN_PATH': None, 'QT_NEWVAR': None},
+            {'QT_SCALE_FACTOR': '0', 'QT_PLUGIN_PATH': '/usr/bin', 'QT_NEWVAR': None},
             {'QT_SCALE_FACTOR': '3', 'QT_PLUGIN_PATH': '/tmp/', 'QT_NEWVAR': 'newval'},
         )
     ])
@@ -458,11 +454,11 @@ class TestEnvVars:
                               init_val, config_val):
         """Test setting environment variables using qt.environ."""
         for var, val in init_val.items():
-            if val is not None:
-                if val == 'unset':
-                    monkeypatch.delenv(var)
-                else:
-                    monkeypatch.setenv(var, val)
+            if val is None:
+                monkeypatch.setenv(var, '0')
+                monkeypatch.delenv(var, raising=False)
+            else:
+                monkeypatch.setenv(var, val)
 
         config_stub.val.qt.environ = config_val
         qtargs.init_envvars()
