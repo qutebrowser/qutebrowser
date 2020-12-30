@@ -170,6 +170,10 @@ def test_open_command_line_with_ascii_locale(request, server, tmpdir,
     quteproc_new.wait_for(message="load status for <* tab_id=* "
                           "url='*/f*.html'>: LoadStatus.error")
 
+    if request.config.webengine:
+        line = quteproc_new.wait_for(message="Load error: ERR_FILE_NOT_FOUND")
+        line.expected = True
+
 
 @pytest.mark.linux
 def test_misconfigured_user_dirs(request, server, temp_basedir_env,
