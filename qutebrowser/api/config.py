@@ -25,7 +25,7 @@ from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import config
 
-#: Simplified access to config values using attribute acccess.
+#: Simplified access to config values using attribute access.
 #: For example, to access the ``content.javascript.enabled`` setting,
 #: you can do::
 #:

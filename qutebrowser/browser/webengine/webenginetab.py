@@ -699,7 +699,7 @@ class WebEngineZoom(browsertab.AbstractZoom):
 
 class WebEngineElements(browsertab.AbstractElements):
 
-    """QtWebEngine implemementations related to elements on the page."""
+    """QtWebEngine implementations related to elements on the page."""
 
     _tab: 'WebEngineTab'
 
@@ -772,7 +772,7 @@ class WebEngineElements(browsertab.AbstractElements):
 
 class WebEngineAudio(browsertab.AbstractAudio):
 
-    """QtWebEngine implemementations related to audio/muting.
+    """QtWebEngine implementations related to audio/muting.
 
     Attributes:
         _overridden: Whether the user toggled muting manually.

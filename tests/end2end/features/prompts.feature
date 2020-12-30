@@ -1,7 +1,7 @@
 # vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
 
 Feature: Prompts
-    Various prompts (javascript, SSL errors, authentification, etc.)
+    Various prompts (javascript, SSL errors, authentication, etc.)
 
     # Javascript
 
@@ -319,7 +319,7 @@ Feature: Prompts
 
     # Page authentication
 
-    Scenario: Successful webpage authentification
+    Scenario: Successful webpage authentication
         When I open basic-auth/user1/password1 without waiting
         And I wait for a prompt
         And I press the keys "user1"
@@ -372,7 +372,7 @@ Feature: Prompts
             }
 
     @qtwebengine_skip
-    Scenario: Cancellling webpage authentification with QtWebKit
+    Scenario: Cancellling webpage authentication with QtWebKit
         When I open basic-auth/user6/password6 without waiting
         And I wait for a prompt
         And I run :leave-mode

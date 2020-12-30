@@ -687,7 +687,7 @@ class WebKitHistory(browsertab.AbstractHistory):
 
 class WebKitElements(browsertab.AbstractElements):
 
-    """QtWebKit implemementations related to elements on the page."""
+    """QtWebKit implementations related to elements on the page."""
 
     _tab: 'WebKitTab'
 

@@ -299,7 +299,7 @@ class GreasemonkeyManager(QObject):
         """Add a GreasemonkeyScript to this manager.
 
         Args:
-            force: Fetch and overwrite any dependancies which are
+            force: Fetch and overwrite any dependencies which are
                    already locally cached.
         """
         if script.requires:
@@ -345,7 +345,7 @@ class GreasemonkeyManager(QObject):
     def _add_script_with_requires(self, script, quiet=False):
         """Add a script with pending downloads to this GreasemonkeyManager.
 
-        Specifically a script that has dependancies specified via an
+        Specifically a script that has dependencies specified via an
         `@require` rule.
 
         Args:
@@ -353,7 +353,7 @@ class GreasemonkeyManager(QObject):
             quiet: True to suppress the scripts_reloaded signal after
                    adding `script`.
         Returns: True if the script was added, False if there are still
-                 dependancies being downloaded.
+                 dependencies being downloaded.
         """
         # See if we are still waiting on any required scripts for this one
         for dl in self._in_progress_dls:

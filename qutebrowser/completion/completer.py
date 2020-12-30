@@ -150,7 +150,7 @@ class Completer(QObject):
                     parts.insert(i, '')
                 prefix = [x.strip() for x in parts[:i]]
                 center = parts[i].strip()
-                # strip trailing whitepsace included as a separate token
+                # strip trailing whitespace included as a separate token
                 postfix = [x.strip() for x in parts[i+1:] if not x.isspace()]
                 log.completion.debug(
                     "partitioned: {} '{}' {}".format(prefix, center, postfix))

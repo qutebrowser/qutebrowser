@@ -135,7 +135,7 @@ _DarkModeSettingsType = Iterable[
     Tuple[
         str,  # qutebrowser option name
         str,  # darkmode setting name
-        # Mapping from the config value to a string (or something convertable
+        # Mapping from the config value to a string (or something convertible
         # to a string) which gets passed to Chromium.
         Optional[Mapping[Any, Union[str, int]]],
     ],
