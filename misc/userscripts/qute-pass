@@ -58,6 +58,7 @@ import re
 import shlex
 import subprocess
 import sys
+import time
 
 import tldextract
 
@@ -151,6 +152,10 @@ def _run_pass(pass_arguments):
     return process.stdout.decode(arguments.io_encoding).strip()
 
 
+def qute_focus(field):
+    qute_command(f"jseval document.querySelector('input[id*=\"{field}\"], [type=\"{field}\"]').focus()")
+
+
 def pass_(path):
     if arguments.mode == "gopass":
         return _run_pass(['show', '-o', path])
@@ -242,11 +247,11 @@ def main(arguments):
     else:
         # Enter username and password using fake-key and <Tab> (which seems to work almost universally), then switch
         # back into insert-mode, so the form can be directly submitted by hitting enter afterwards
+        qute_focus("login")
         fake_key_raw(username)
-        qute_command('fake-key <Tab>')
-        # GitHub login needs an extra tab to reach password field
-        if 'github.com' in attempted_targets:
-            qute_command('fake-key <Tab>')
+        # Sleep a second so that browser JavaScript won't win the race
+        time.sleep(1)
+        qute_focus("password")
         fake_key_raw(password)
 
     if arguments.insert_mode:
