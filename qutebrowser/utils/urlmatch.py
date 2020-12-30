@@ -125,7 +125,7 @@ class UrlPattern:
 
     def _fixup_pattern(self, pattern: str) -> str:
         """Make sure the given pattern is parseable by urllib.parse."""
-        if pattern.startswith('*:'):  # Any scheme, but *:// is unparseable
+        if pattern.startswith('*:'):  # Any scheme, but *:// is unparsable
             pattern = 'any:' + pattern[2:]
 
         schemes = tuple(s + ':' for s in self._SCHEMES_WITHOUT_HOST)

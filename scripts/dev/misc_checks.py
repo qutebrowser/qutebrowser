@@ -161,7 +161,8 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
              'exitted', 'mininum', 'resett?ed', 'recieved', 'regularily',
              'underlaying', 'inexistant', 'elipsis', 'commiting', 'existant',
              'resetted', 'similarily', 'informations', 'an url', 'treshold',
-             'artefact', 'an unix', 'an utf', 'an unicode'}
+             'artefact', 'an unix', 'an utf', 'an unicode', 'unparseable',
+             'dependancies', 'convertable', 'chosing', 'authentification'}
 
     # Words which look better when splitted, but might need some fine tuning.
     words |= {'webelements', 'mouseevent', 'keysequence', 'normalmode',
