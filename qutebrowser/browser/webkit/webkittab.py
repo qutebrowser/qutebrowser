@@ -22,7 +22,7 @@
 import re
 import functools
 import xml.etree.ElementTree
-from typing import cast, Iterable
+from typing import cast, Iterable, Optional
 
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
 from PyQt5.QtGui import QIcon

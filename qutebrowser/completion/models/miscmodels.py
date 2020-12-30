@@ -121,7 +121,7 @@ def _buffer(*, win_id_filter=lambda _win_id: True, add_win_id=True):
 
     tabs_are_windows = config.val.tabs.tabs_are_windows
     # list storing all single-tabbed windows when tabs_are_windows
-    windows: List[Tuple[str, str, str]] = []
+    windows: List[Tuple[str, str, str, str]] = []
 
     for win_id in objreg.window_registry:
         if not win_id_filter(win_id):
@@ -144,7 +144,7 @@ def _buffer(*, win_id_filter=lambda _win_id: True, add_win_id=True):
                 tab.url().toDisplayString(),
                 tabbed_browser.widget.page_title(idx),
                 "" if pid is None else f"PID {pid}",
-             ))
+            ))
 
         if tabs_are_windows:
             windows += tabs
