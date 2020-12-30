@@ -126,6 +126,8 @@ Changed
   `content.headers.custom`, the custom value is now ignored for XHR
   (`XMLHttpRequest`) requests. Instead, the sent value is now `*/*` or the header
   set from JavaScript, as it would be if `content.headers.custom` wasn't set.
+- The `:buffer` completion now shows the underlying renderer process PID if
+  doing so is supported (QtWebEngine 5.15).
 
 Fixed
 ~~~~~

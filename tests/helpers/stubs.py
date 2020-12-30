@@ -286,6 +286,9 @@ class FakeWebTab(browsertab.AbstractTab):
     def icon(self):
         return QIcon()
 
+    def renderer_process_pid(self):
+        return None
+
 
 class FakeSignal:
 

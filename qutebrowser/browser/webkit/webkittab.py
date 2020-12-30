@@ -888,6 +888,9 @@ class WebKitTab(browsertab.AbstractTab):
     def title(self):
         return self._widget.title()
 
+    def renderer_process_pid(self) -> Optional[int]:
+        return None
+
     @pyqtSlot()
     def _on_history_trigger(self):
         url = self.url()

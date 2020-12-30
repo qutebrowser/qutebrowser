@@ -1172,6 +1172,14 @@ class AbstractTab(QWidget):
         self.data.pinned = pinned
         self.pinned_changed.emit(pinned)
 
+    def renderer_process_pid(self) -> Optional[int]:
+        """Get the PID of the underlying renderer process.
+
+        Returns None if the PID can't be determined or if getting the PID isn't
+        supported.
+        """
+        raise NotImplementedError
+
     def __repr__(self) -> str:
         try:
             qurl = self.url()

@@ -117,7 +117,7 @@ def _buffer(*, win_id_filter=lambda _win_id: True, add_win_id=True):
                                     window=int(win_id))
         tabbed_browser.on_tab_close_requested(int(tab_index) - 1)
 
-    model = completionmodel.CompletionModel(column_widths=(6, 40, 54))
+    model = completionmodel.CompletionModel(column_widths=(6, 40, 46, 8))
 
     tabs_are_windows = config.val.tabs.tabs_are_windows
     # list storing all single-tabbed windows when tabs_are_windows
@@ -131,14 +131,20 @@ def _buffer(*, win_id_filter=lambda _win_id: True, add_win_id=True):
                                     window=win_id)
         if tabbed_browser.is_shutting_down:
             continue
-        tabs: List[Tuple[str, str, str]] = []
+        tabs: List[Tuple[str, str, str, str]] = []
         for idx in range(tabbed_browser.widget.count()):
             tab = tabbed_browser.widget.widget(idx)
             tab_str = ("{}/{}".format(win_id, idx + 1) if add_win_id
                        else str(idx + 1))
-            tabs.append((tab_str,
-                         tab.url().toDisplayString(),
-                         tabbed_browser.widget.page_title(idx)))
+
+            pid = tab.renderer_process_pid()
+
+            tabs.append((
+                tab_str,
+                tab.url().toDisplayString(),
+                tabbed_browser.widget.page_title(idx),
+                "" if pid is None else f"PID {pid}",
+             ))
 
         if tabs_are_windows:
             windows += tabs

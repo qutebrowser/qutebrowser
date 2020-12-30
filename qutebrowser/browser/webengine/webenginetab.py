@@ -23,7 +23,7 @@ import math
 import functools
 import re
 import html as html_utils
-from typing import cast, Union
+from typing import cast, Union, Optional
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl, QObject
 from PyQt5.QtNetwork import QAuthenticator
@@ -1312,6 +1312,14 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def title(self):
         return self._widget.title()
+
+    def renderer_process_pid(self) -> Optional[int]:
+        page = self._widget.page()
+        try:
+            return page.renderProcessPid()
+        except AttributeError:
+            # Added in Qt 5.15
+            return None
 
     def icon(self):
         return self._widget.icon()
