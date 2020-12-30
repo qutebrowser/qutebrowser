@@ -177,11 +177,11 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
                                         info.resourceType())))
             resource_type = interceptors.ResourceType.unknown
 
+        is_xhr = info.resourceType() == QWebEngineUrlRequestInfo.ResourceTypeXhr
+
         if ((url.scheme(), url.host(), url.path()) ==
                 ('qute', 'settings', '/set')):
-            if (first_party != QUrl('qute://settings/') or
-                    info.resourceType() !=
-                    QWebEngineUrlRequestInfo.ResourceTypeXhr):
+            if first_party != QUrl('qute://settings/') or not is_xhr:
                 log.network.warning("Blocking malicious request from {} to {}"
                                     .format(first_party.toDisplayString(),
                                             url.toDisplayString()))
@@ -200,6 +200,14 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
             info.block(True)
 
         for header, value in shared.custom_headers(url=url):
+            if header.lower() == b'accept' and is_xhr:
+                # https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/setRequestHeader
+                # says: "If no Accept header has been set using this, an Accept header
+                # with the type "*/*" is sent with the request when send() is called."
+                #
+                # We shouldn't break that if someone sets a custom Accept header for
+                # normal requests.
+                continue
             info.setHttpHeader(header, value)
 
         # Note this is ignored before Qt 5.12.4 and 5.13.1 due to

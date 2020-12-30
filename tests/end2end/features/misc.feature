@@ -325,6 +325,11 @@ Feature: Various utility commands.
         And I open headers
         Then the header X-Qute-Test should be set to testvalue
 
+    Scenario: Setting accept header
+        When I set content.headers.custom to {"Accept": "testvalue"}
+        And I open headers
+        Then the header Accept should be set to testvalue
+
     Scenario: DNT header
         When I set content.headers.do_not_track to true
         And I open headers
@@ -365,6 +370,14 @@ Feature: Various utility commands.
         And I open about:blank
         And I run :jseval console.log(window.navigator.userAgent)
         Then the javascript message "toaster" should be logged
+
+    @qtwebkit_skip
+    Scenario: Custom headers via XHR
+        When I set content.headers.custom to {"Accept": "config-value", "X-Qute-Test": "config-value"}
+        And I open data/misc/xhr_headers.html
+        And I wait for the javascript message "Got headers via XHR"
+        Then the header Accept should be set to '*/*'
+        And the header X-Qute-Test should be set to config-value
 
     ## https://github.com/qutebrowser/qutebrowser/issues/1523
 

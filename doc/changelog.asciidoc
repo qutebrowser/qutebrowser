@@ -122,6 +122,10 @@ Changed
     * `content.host_blocking.enabled` -> `content.blocking.enabled` (controlling both blockers)
     * `content.host_blocking.whitelist` -> `content.blocking.whitelist` (controlling both blockers)
     * `content.host_blocking.lists` -> `content.blocking.hosts.lists`
+- With the (default) QtWebEngine backend, if a custom `accept` header is set via
+  `content.headers.custom`, the custom value is now ignored for XHR
+  (`XMLHttpRequest`) requests. Instead, the sent value is now `*/*` or the header
+  set from JavaScript, as it would be if `content.headers.custom` wasn't set.
 
 Fixed
 ~~~~~

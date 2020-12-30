@@ -562,6 +562,9 @@ def check_header(quteproc, header, value):
     print(data)
     if value == '<unset>':
         assert header not in data['headers']
+    elif value.startswith("'") and value.endswith("'"):  # literal match
+        actual = data['headers'][header]
+        assert actual == value[1:-1]
     else:
         actual = data['headers'][header]
         assert testutils.pattern_match(pattern=value, value=actual)
