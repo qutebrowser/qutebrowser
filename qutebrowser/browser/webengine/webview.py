@@ -240,7 +240,12 @@ class WebEnginePage(QWebEnginePage):
         self.navigation_request.emit(navigation)
         return navigation.accepted
 
-    def chooseFiles(self, mode: QWebEnginePage.FileSelectionMode, old_files: Iterable[str], accepted_mimetypes: Iterable[str]) -> List[str]:
+    def chooseFiles(
+        self,
+        mode: QWebEnginePage.FileSelectionMode,
+        old_files: Iterable[str],
+        accepted_mimetypes: Iterable[str],
+    ) -> List[str]:
         """Override chooseFiles to (optionally) invoke custom file uploader."""
         if config.val.fileselect.handler == "default":
             return super().chooseFiles(mode, old_files, accepted_mimetypes)
