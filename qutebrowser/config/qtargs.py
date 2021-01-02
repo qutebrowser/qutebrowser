@@ -259,3 +259,9 @@ def init_envvars() -> None:
                    if qtutils.version_check('5.14', compiled=False)
                    else 'QT_AUTO_SCREEN_SCALE_FACTOR')
         os.environ[env_var] = '1'
+
+    for var, val in config.val.qt.environ.items():
+        if val is None and var in os.environ:
+            del os.environ[var]
+        elif val is not None:
+            os.environ[var] = val
