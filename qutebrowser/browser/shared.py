@@ -357,8 +357,6 @@ def choose_file(multiple: bool) -> List[str]:
     """
     encoding = sys.getfilesystemencoding()
     with tempfile.NamedTemporaryFile(mode='w+', encoding=encoding) as tmpfile:
-        filename = tmpfile.name
-
         if multiple:
             command = config.val.fileselect.multiple_files.command
         else:
@@ -366,15 +364,16 @@ def choose_file(multiple: bool) -> List[str]:
 
         proc = guiprocess.GUIProcess(what='choose-file')
         proc.start(command[0],
-                   [arg.replace('{}', filename) for arg in command[1:]])
+                   [arg.replace('{}', tmpfile.name) for arg in command[1:]])
 
         loop = qtutils.EventLoop()
         proc.finished.connect(lambda _code, _status: loop.exit())
         loop.exec_()
 
-        selected_file_list = tmpfile.read().splitlines()
+        selected_files = tmpfile.read().splitlines()
 
     if not multiple:
-        assert len(selected_file_list) <= 1
-
-    return selected_file_list
+        if len(selected_files) > 1:
+            log.misc.exception("More than one files choosen, using only the first")
+            return selected_files[:1]
+    return selected_files
