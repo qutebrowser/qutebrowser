@@ -194,8 +194,7 @@ class BrowserPage(QWebPage):
 
     def chooseFile(self, parent_frame: QWebFrame, suggested_file: str) -> str:
         """Override chooseFiles to (optionally) invoke custom file uploader."""
-        handler = config.val.fileselect.handler
-        if handler == "default":
+        if config.val.fileselect.handler == "default":
             return super().chooseFile(parent_frame, suggested_file)
 
         selected_file = shared.choose_file(multiple=False)
@@ -217,8 +216,7 @@ class BrowserPage(QWebPage):
         Return:
             True on success, the superclass return value on failure.
         """
-        handler = config.val.fileselect.handler
-        if handler == "default":
+        if config.val.fileselect.handler == "default":
             suggested_file = ""
             if info.suggestedFileNames:
                 suggested_file = info.suggestedFileNames[0]
