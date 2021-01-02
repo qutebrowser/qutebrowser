@@ -42,7 +42,7 @@ from os import environ, path
 from sys import argv, exit
 
 from PyQt5.QtWidgets import QApplication, QInputDialog, QLineEdit
-from requests import get, post, utils
+from requests import get, post
 from requests.auth import HTTPBasicAuth
 
 
@@ -120,14 +120,16 @@ tags = settings["tags"].split(",")
 QUTE_URL = environ["QUTE_URL"]
 api_url = settings["host"] + "/index.php/apps/bookmarks/public/rest/v2/bookmark"
 
-headers = {"Content-Type": "application/json"}
 auth = HTTPBasicAuth(settings["user"], settings["password"])
+headers = {"Content-Type": "application/json"}
+params = {"url": QUTE_URL}
 
 # check if there is already a bookmark for the URL
 r = get(
-    "{}?url={}".format(api_url, utils.quote(QUTE_URL, safe="")),
+    api_url,
     auth=auth,
     headers=headers,
+    params=params,
     timeout=(3.05, 27),
 )
 if r.status_code != 200:
