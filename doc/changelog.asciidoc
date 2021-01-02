@@ -71,6 +71,8 @@ Added
 - New settings for the ABP-based adblocker:
    * `content.blocking.method` to decide which blocker(s) should be used.
    * `content.blocking.adblock.lists` to configure ABP-like lists to use.
+- New `qt.environ` setting which makes it easier to set/unset environment
+  variables for qutebrowser.
 - When QtWebEngine has been updated but PyQtWebEngine hasn't yet, the dark mode
   settings might stop working. As a (currently undocumented) escape hatch, this
   version adds a `QUTE_DARKMODE_VARIANT=qt_515_2` environment variable which can

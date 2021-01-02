@@ -271,6 +271,7 @@
 |<<prompt.filebrowser,prompt.filebrowser>>|Show a filebrowser in download prompts.
 |<<prompt.radius,prompt.radius>>|Rounding radius (in pixels) for the edges of prompts.
 |<<qt.args,qt.args>>|Additional arguments to pass to Qt, without leading `--`.
+|<<qt.environ,qt.environ>>|Additional environment variables to set.
 |<<qt.force_platform,qt.force_platform>>|Force a Qt platform to use.
 |<<qt.force_platformtheme,qt.force_platformtheme>>|Force a Qt platformtheme to use.
 |<<qt.force_software_rendering,qt.force_software_rendering>>|Force software rendering for QtWebEngine.
@@ -3468,6 +3469,17 @@ With QtWebEngine, some Chromium arguments (see https://peter.sh/experiments/chro
 This setting requires a restart.
 
 Type: <<types,List of String>>
+
+Default: empty
+
+[[qt.environ]]
+=== qt.environ
+Additional environment variables to set.
+Setting an environment variable to null/None will unset it.
+
+This setting requires a restart.
+
+Type: <<types,Dict>>
 
 Default: empty
 
