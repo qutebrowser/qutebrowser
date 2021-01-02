@@ -372,9 +372,9 @@ Default: +pass:[false]+
 [[backend]]
 === backend
 Backend to use to display websites.
-qutebrowser supports two different web rendering engines / backends, QtWebKit and QtWebEngine.
-QtWebKit was discontinued by the Qt project with Qt 5.6, but picked up as a well maintained fork: https://github.com/annulen/webkit/wiki - qutebrowser only supports the fork.
-QtWebEngine is Qt's official successor to QtWebKit. It's slightly more resource hungry than QtWebKit and has a couple of missing features in qutebrowser, but is generally the preferred choice.
+qutebrowser supports two different web rendering engines / backends, QtWebEngine and QtWebKit (not recommended).
+QtWebEngine is Qt's official successor to QtWebKit, and both the default/recommended backend. It's based on a stripped-down Chromium and regularily updated with security fixes and new features by the Qt project: https://wiki.qt.io/QtWebEngine
+QtWebKit was qutebrowser's original backend when the project was started. However, support for QtWebKit was discontinued by the Qt project with Qt 5.6 in 2016.  The development of QtWebKit was picked up in an official fork: https://github.com/qtwebkit/qtwebkit - however, the project seems to have stalled again. The latest release (5.212.0 Alpha 4) from March 2020 is based on a WebKit version from 2016, with many known security vulnerabilities. Additionally, there is no process isolation and sandboxing. Due to all those issues, while support for QtWebKit is still available in qutebrowser for now, using it is strongly discouraged.
 
 This setting requires a restart.
 
@@ -382,8 +382,8 @@ Type: <<types,String>>
 
 Valid values:
 
- * +webengine+: Use QtWebEngine (based on Chromium).
- * +webkit+: Use QtWebKit (based on WebKit, similar to Safari).
+ * +webengine+: Use QtWebEngine (based on Chromium - recommended).
+ * +webkit+: Use QtWebKit (based on WebKit, similar to Safari - many known security issues!).
 
 Default: +pass:[webengine]+
 
@@ -1910,6 +1910,12 @@ This setting is only available with the QtWebEngine backend.
 List of URLs to ABP-style adblocking rulesets.
 
 Only used when Brave's ABP-style adblocker is used (see `content.blocking.method`).
+
+You can find an overview of available lists here:
+https://adblockplus.org/en/subscriptions - note that the special
+`subscribe.adblockplus.org` links aren't handled by qutebrowser, you will instead
+need to find the link to the raw `.txt` file (e.g. by extracting it from the
+`location` parameter of the subscribe URL and URL-decoding it).
 
 
 Type: <<types,List of Url>>
