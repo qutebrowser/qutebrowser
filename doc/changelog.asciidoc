@@ -143,6 +143,9 @@ Fixed
     * `qute-lastpass` now types multiple `<` or `>` characters correctly.
 - The `:undo` completion now sorts its entries correctly (by the numerical index
   rather than lexicographically).
+- The `completion.web_history.ignore` setting now works properly when set in
+  `config.py` (rather than via `:set`). Additionally, a `:config-source` will not
+  result in a history rebuild if the value wasn't actually changed.
 - TODO: Due to a long-standing bug in the `pkg_resources` dependency, it caused
   qutebrowser's startup to slow down by around 150ms-1s (heavily depending on
   the system). Since the dependency is now removed, qutebrowser's startup time
