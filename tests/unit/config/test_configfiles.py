@@ -808,9 +808,7 @@ class TestConfigPy:
     ])
     def test_get(self, confpy, set_first, get_line):
         """Test whether getting options works correctly."""
-        # pylint: disable=bad-config-option
-        config.val.colors.hints.fg = 'green'
-        # pylint: enable=bad-config-option
+        config.val.colors.hints.fg = 'green'  # pylint: disable=bad-config-option
         if set_first:
             confpy.write('c.colors.hints.fg = "red"',
                          'assert {} == "red"'.format(get_line))
