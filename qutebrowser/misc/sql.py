@@ -324,7 +324,7 @@ class SqlTable(QObject):
         Args:
             field: Field to use as the key.
             value: Key value to delete.
-            optional: If set, non-existant values are ignored.
+            optional: If set, non-existent values are ignored.
 
         Return:
             The number of rows deleted.
