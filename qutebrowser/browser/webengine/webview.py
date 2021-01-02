@@ -19,6 +19,7 @@
 
 """The main browser widget for QtWebEngine."""
 
+from typing import List
 
 from PyQt5.QtCore import pyqtSignal, QUrl
 from PyQt5.QtGui import QPalette
