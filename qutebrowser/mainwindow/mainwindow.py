@@ -39,7 +39,8 @@ from qutebrowser.mainwindow import messageview, prompt
 from qutebrowser.completion import completionwidget, completer
 from qutebrowser.keyinput import modeman
 from qutebrowser.browser import commands, downloadview, hints, downloads
-from qutebrowser.misc import crashsignal, keyhintwidget, sessions
+from qutebrowser.misc import (crashsignal, keyhintwidget, scrollhintwidget,
+                              sessions)
 from qutebrowser.qt import sip
 
 
@@ -254,6 +255,11 @@ class MainWindow(QWidget):
 
         self._keyhint = keyhintwidget.KeyHintView(self.win_id, self)
         self._add_overlay(self._keyhint, self._keyhint.update_geometry)
+
+        self._scrollhint = scrollhintwidget.ScrollHintView(self.win_id,
+                                                           self.tabbed_browser,
+                                                           self)
+        self._add_overlay(self._scrollhint, self._scrollhint.update_geometry)
 
         self._prompt_container = prompt.PromptContainer(self.win_id, self)
         self._add_overlay(self._prompt_container,
@@ -501,8 +507,10 @@ class MainWindow(QWidget):
         self.status.cmd.returnPressed.connect(self.tabbed_browser.on_cmd_return_pressed)
         self.status.cmd.got_search.connect(self._command_dispatcher.search)
 
-        # key hint popup
+        # hint popups
         mode_manager.keystring_updated.connect(self._keyhint.update_keyhint)
+        mode_manager.entered.connect(self._scrollhint.on_mode_entered)
+        mode_manager.left.connect(self._scrollhint.on_mode_left)
 
         # messages
         message.global_bridge.show_message.connect(

@@ -552,6 +552,20 @@ class WebKitScroller(browsertab.AbstractScroller):
         size = self._widget.page().mainFrame().geometry()
         self.delta(int(x * size.width()), int(y * size.height()))
 
+    def _val_to_perc(self, val, orientation):
+        frame = self._widget.page().mainFrame()
+        maximum = frame.scrollBarMaximum(orientation)
+        if maximum == 0:
+            return 0
+        perc = int((val / maximum) * 100)
+        return qtutils.check_overflow(perc, 'int', fatal=False)
+
+    def pos_to_perc(self, pos):
+        return QPoint(
+            self._val_to_perc(pos.x(), Qt.Horizontal),
+            self._val_to_perc(pos.y(), Qt.Vertical),
+        )
+
     def to_perc(self, x=None, y=None):
         if x is None and y == 0:
             self.top()

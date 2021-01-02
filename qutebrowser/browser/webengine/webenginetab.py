@@ -490,10 +490,8 @@ class WebEngineScroller(browsertab.AbstractScroller):
         for _ in range(min(count, 1000)):
             self._tab.fake_key_press(key, modifier)
 
-    @pyqtSlot(QPointF)
-    def _update_pos(self, pos):
-        """Update the scroll position attributes when it changed."""
-        self._pos_px = pos.toPoint()
+    def pos_to_perc(self, pos):
+        """Return the (x, y) scroll percentage for a point on the page."""
         contents_size = self._widget.page().contentsSize()
 
         scrollable_x = contents_size.width() - self._widget.width()
@@ -529,12 +527,21 @@ class WebEngineScroller(browsertab.AbstractScroller):
                 log.misc.debug("scrollable_y: {}".format(scrollable_y))
                 log.misc.debug("pos.y(): {}".format(pos.y()))
                 raise
+        return QPoint(perc_x, perc_y)
 
+    @pyqtSlot(QPointF)
+    def _update_pos(self, pos):
+        """Update the scroll position attributes when it changed."""
+        self._pos_px = pos.toPoint()
+        contents_size = self._widget.page().contentsSize()
+
+        scrollable_y = contents_size.height() - self._widget.height()
         self._at_bottom = math.ceil(pos.y()) >= scrollable_y
 
-        if (self._pos_perc != (perc_x, perc_y) or
+        pos_perc = self.pos_to_perc(self._pos_px)
+        if (self._pos_perc != (pos_perc.x(), pos_perc.y()) or
                 'no-scroll-filtering' in objects.debug_flags):
-            self._pos_perc = perc_x, perc_y
+            self._pos_perc = pos_perc.x(), pos_perc.y()
             self.perc_changed.emit(*self._pos_perc)
 
     def pos_px(self):
