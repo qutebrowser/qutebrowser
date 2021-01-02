@@ -42,7 +42,7 @@ from os import environ, path
 from sys import argv, exit
 
 from PyQt5.QtWidgets import QApplication, QInputDialog, QLineEdit
-from requests import get, post
+from requests import get, post, utils
 from requests.auth import HTTPBasicAuth
 
 
@@ -125,7 +125,7 @@ auth = HTTPBasicAuth(settings["user"], settings["password"])
 
 # check if there is already a bookmark for the URL
 r = get(
-    "{}?url={}".format(api_url, QUTE_URL),
+    "{}?url={}".format(api_url, utils.quote(QUTE_URL, safe="")),
     auth=auth,
     headers=headers,
     timeout=(3.05, 27),
