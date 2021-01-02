@@ -120,14 +120,16 @@ tags = settings["tags"].split(",")
 QUTE_URL = environ["QUTE_URL"]
 api_url = settings["host"] + "/index.php/apps/bookmarks/public/rest/v2/bookmark"
 
-headers = {"Content-Type": "application/json"}
 auth = HTTPBasicAuth(settings["user"], settings["password"])
+headers = {"Content-Type": "application/json"}
+params = {"url": QUTE_URL}
 
 # check if there is already a bookmark for the URL
 r = get(
-    "{}?url={}".format(api_url, QUTE_URL),
+    api_url,
     auth=auth,
     headers=headers,
+    params=params,
     timeout=(3.05, 27),
 )
 if r.status_code != 200:
