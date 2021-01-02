@@ -1210,7 +1210,12 @@ fileselect.handler:
     valid_values:
       - default: "Use the default file selector."
       - external: "Use an external command."
-  desc: Handler for selecting file(s) in forms.
+  desc: >-
+      Handler for selecting file(s) in forms.
+      If `external`, then the commands specified by
+      `fileselect.single_file.command` and
+      `fileselect.multiple_files.command` are used to select one or
+      multiple files respectively.
 
 fileselect.single_file.command:
   type:
