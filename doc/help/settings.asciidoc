@@ -373,8 +373,8 @@ Default: +pass:[false]+
 === backend
 Backend to use to display websites.
 qutebrowser supports two different web rendering engines / backends, QtWebEngine and QtWebKit (not recommended).
-QtWebEngine is Qt's official successor to QtWebKit, and both the default/recommended backend. It's based on a stripped-down Chromium and regularily updated with security fixes and new features by the Qt project: https://wiki.qt.io/QtWebEngine
-QtWebKit was qutebrowser's original backend when the project was started. However, support for QtWebKit was discontinued by the Qt project with Qt 5.6 in 2016.  The development of QtWebKit was picked up in an official fork: https://github.com/qtwebkit/qtwebkit - however, the project seems to have stalled again. The latest release (5.212.0 Alpha 4) from March 2020 is based on a WebKit version from 2016, with many known security vulnerabilities. Additionally, there is no process isolation and sandboxing. Due to all those issues, while support for QtWebKit is still available in qutebrowser for now, using it is strongly discouraged.
+QtWebEngine is Qt's official successor to QtWebKit, and both the default/recommended backend. It's based on a stripped-down Chromium and regularly updated with security fixes and new features by the Qt project: https://wiki.qt.io/QtWebEngine
+QtWebKit was qutebrowser's original backend when the project was started. However, support for QtWebKit was discontinued by the Qt project with Qt 5.6 in 2016. The development of QtWebKit was picked up in an official fork: https://github.com/qtwebkit/qtwebkit - however, the project seems to have stalled again. The latest release (5.212.0 Alpha 4) from March 2020 is based on a WebKit version from 2016, with many known security vulnerabilities. Additionally, there is no process isolation and sandboxing. Due to all those issues, while support for QtWebKit is still available in qutebrowser for now, using it is strongly discouraged.
 
 This setting requires a restart.
 
