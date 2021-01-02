@@ -481,8 +481,9 @@ class TestCompletionMetaInfo:
 
     def test_modify(self, metainfo):
         assert not metainfo['excluded_patterns']
-        metainfo['excluded_patterns'] = 'https://example.com/'
-        assert metainfo['excluded_patterns']
+        value = 'https://example.com/'
+        metainfo['excluded_patterns'] = value
+        assert metainfo['excluded_patterns'] == value
 
 
 class TestHistoryProgress:
