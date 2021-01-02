@@ -89,6 +89,9 @@ class CompletionMetaInfo(sql.SqlTable):
             if key not in self:
                 self[key] = default
 
+        # force_rebuild is not in use anymore
+        self.delete('key', 'force_rebuild', optional=True)
+
     def _check_key(self, key):
         if key not in self.KEYS:
             raise KeyError(key)

@@ -318,12 +318,13 @@ class SqlTable(QObject):
         q.run()
         return q.value()
 
-    def delete(self, field, value):
+    def delete(self, field, value, *, optional=False):
         """Remove all rows for which `field` equals `value`.
 
         Args:
             field: Field to use as the key.
             value: Key value to delete.
+            optional: If set, non-existant values are ignored.
 
         Return:
             The number of rows deleted.
@@ -332,6 +333,8 @@ class SqlTable(QObject):
                   .format(table=self._name, field=field))
         q.run(val=value)
         if not q.rows_affected():
+            if optional:
+                return
             raise KeyError('No row with {} = "{}"'.format(field, value))
         self.changed.emit()
 

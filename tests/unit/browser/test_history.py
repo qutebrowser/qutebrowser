@@ -479,6 +479,12 @@ class TestCompletionMetaInfo:
     def test_contains(self, metainfo):
         assert 'excluded_patterns' in metainfo
 
+    def test_delete_old_key(self, monkeypatch, metainfo):
+        metainfo.insert({'key': 'force_rebuild', 'value': False})
+        info2 = history.CompletionMetaInfo()
+        monkeypatch.setitem(info2.KEYS, 'force_rebuild', False)
+        assert 'force_rebuild' not in info2
+
     def test_modify(self, metainfo):
         assert not metainfo['excluded_patterns']
         value = 'https://example.com/'
