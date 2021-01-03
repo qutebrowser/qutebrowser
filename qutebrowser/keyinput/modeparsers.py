@@ -86,6 +86,8 @@ class NormalKeyParser(CommandKeyParser):
         _partial_timer: Timer to clear partial keypresses.
     """
 
+    _sequence: keyutils.KeySequence
+
     def __init__(self, *, win_id: int,
                  commandrunner: 'runners.CommandRunner',
                  parent: QObject = None) -> None:
@@ -153,6 +155,8 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
         _hintmanager: The HintManager to use.
         _last_press: The nature of the last keypress, a LastPress member.
     """
+
+    _sequence: keyutils.KeySequence
 
     def __init__(self, *, win_id: int,
                  commandrunner: 'runners.CommandRunner',

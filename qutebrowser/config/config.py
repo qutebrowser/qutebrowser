@@ -163,20 +163,21 @@ class KeyConfig:
                 bindings[key] = binding
         return bindings
 
-    def _implied_cmd(self, cmdline: str) -> str:
+    def _implied_cmd(self, cmdline: str) -> Optional[str]:
         """Return cmdline, or the implied cmd if cmdline is a set-cmd-text."""
         try:
             results = runners.CommandParser().parse_all(cmdline, aliases=False)
-            if len(results) == 0:
-                return ""
-            result = results[0]
         except cmdexc.NoSuchCommandError:
-            return ""
+            return None
+
+        if not results:
+            return None
+        result = results[0]
         if result.cmd.name != "set-cmd-text":
             return cmdline
         *flags, cmd = result.args
         if "-a" in flags or "--append" in flags or not cmd.startswith(":"):
-            return ""  # doesn't look like this sets a command
+            return None  # doesn't look like this sets a command
         return cmd.lstrip(":")
 
     def get_reverse_bindings_for(self, mode: str) -> '_ReverseBindings':
