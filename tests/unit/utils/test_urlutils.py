@@ -656,6 +656,11 @@ def test_filename_from_url(qurl, output):
     assert urlutils.filename_from_url(qurl) == output
 
 
+@pytest.mark.parametrize('qurl', [QUrl(), QUrl('qute://')])
+def test_filename_from_url_fallback(qurl):
+    assert urlutils.filename_from_url(qurl, fallback='fallback') == 'fallback'
+
+
 @pytest.mark.parametrize('qurl, expected', [
     (QUrl('ftp://example.com/'), ('ftp', 'example.com', 21)),
     (QUrl('ftp://example.com:2121/'), ('ftp', 'example.com', 2121)),

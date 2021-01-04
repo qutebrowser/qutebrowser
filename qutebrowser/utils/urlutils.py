@@ -439,24 +439,26 @@ def parse_data_url(url: QUrl) -> Tuple[str, str, bytes]:
     return media_type, params, data
 
 
-def filename_from_url(url: QUrl) -> Optional[str]:
+def filename_from_url(url: QUrl, fallback: str = None) -> Optional[str]:
     """Get a suitable filename from a URL.
 
     Args:
         url: The URL to parse, as a QUrl.
+        fallback: Value to use if no name can be determined.
 
     Return:
         The suggested filename as a string, or None.
     """
     if not url.isValid():
-        return None
+        return fallback
+
     pathname = posixpath.basename(url.path())
     if pathname:
         return pathname
     elif url.host():
         return url.host() + '.html'
     else:
-        return None
+        return fallback
 
 
 HostTupleType = Tuple[str, str, int]
