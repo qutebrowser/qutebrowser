@@ -27,7 +27,7 @@ from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QObject
 from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
 
 from qutebrowser.browser import downloads, pdfjs
-from qutebrowser.utils import debug, usertypes, message, log, objreg
+from qutebrowser.utils import debug, usertypes, message, log, objreg, urlutils
 
 
 class DownloadItem(downloads.AbstractDownloadItem):
@@ -249,7 +249,14 @@ class DownloadManager(downloads.AbstractDownloadManager):
     @pyqtSlot(QWebEngineDownloadItem)
     def handle_download(self, qt_item):
         """Start a download coming from a QWebEngineProfile."""
-        suggested_filename = _get_suggested_filename(qt_item.path())
+        if qt_item.url().scheme().lower() == 'data':
+            # WORKAROUND for an unknown QtWebEngine bug (?) which gives us base64 data
+            # as filename.
+            suggested_filename = urlutils.filename_from_url(
+                qt_item.url(), fallback='qutebrowser-download')
+        else:
+            suggested_filename = _get_suggested_filename(qt_item.path())
+
         use_pdfjs = pdfjs.should_use_pdfjs(qt_item.mimeType(), qt_item.url())
 
         download = DownloadItem(qt_item, manager=self)

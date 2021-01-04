@@ -465,6 +465,25 @@ class DownloadManager(downloads.AbstractDownloadManager):
                 mhtml.start_download_checked, tab=tab))
             message.global_bridge.ask(question, blocking=False)
 
+    def _get_suggested_filename(self, request):
+        """Get the suggested filename for the given request."""
+        filename_url = request.url()
+        if request.url().scheme().lower() == 'data':
+            # We might be downloading a binary blob embedded on a page or even
+            # generated dynamically via javascript. If we happen to know where it's
+            # coming from, we can try to figure out a more sensible name than the base64
+            # content of the data.
+            origin = request.originatingObject()
+            try:
+                filename_url = origin.url()
+            except AttributeError:
+                # Raised either if origin is None or some object that doesn't
+                # have its own url. We're probably fine with a default fallback
+                # based on the data URL then.
+                pass
+
+        return urlutils.filename_from_url(filename_url, fallback='qutebrowser-download')
+
     def get_request(self, request, *, target=None,
                     suggested_fn=None, **kwargs):
         """Start a download with a QNetworkRequest.
@@ -482,29 +501,8 @@ class DownloadManager(downloads.AbstractDownloadManager):
         request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
                              QNetworkRequest.AlwaysNetwork)
 
-        if suggested_fn is not None:
-            pass
-        elif request.url().scheme().lower() != 'data':
-            suggested_fn = urlutils.filename_from_url(request.url())
-        else:
-            # We might be downloading a binary blob embedded on a page or even
-            # generated dynamically via javascript. We try to figure out a more
-            # sensible name than the base64 content of the data.
-            origin = request.originatingObject()
-            try:
-                origin_url = origin.url()
-            except AttributeError:
-                # Raised either if origin is None or some object that doesn't
-                # have its own url. We're probably fine with a default fallback
-                # then.
-                suggested_fn = 'binary blob'
-            else:
-                # Use the originating URL as a base for the filename (works
-                # e.g. for pdf.js).
-                suggested_fn = urlutils.filename_from_url(origin_url)
-
         if suggested_fn is None:
-            suggested_fn = 'qutebrowser-download'
+            suggested_fn = self._get_suggested_filename(request)
 
         return self._fetch_request(request,
                                    target=target,
