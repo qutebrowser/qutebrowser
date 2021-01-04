@@ -108,6 +108,7 @@ class MessageView(QWidget):
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         self._clear_timer = QTimer()
+        self._clear_timer.setSingleShot(True)
         self._clear_timer.timeout.connect(self.update)
         config.instance.changed.connect(self._set_clear_timer_interval)
 
@@ -144,11 +145,7 @@ class MessageView(QWidget):
             self._remove_message(self._messages.pop(0))
 
         if self._messages:
-            self._clear_timer.stop()
-            self._clear_timer.setInterval(
-                int(self._messages[0].created_at + interval - now)
-            )
-            self._clear_timer.start()
+            self._clear_timer.start(int(self._messages[0].created_at + interval - now))
 
         else:
             self._last_info = None
