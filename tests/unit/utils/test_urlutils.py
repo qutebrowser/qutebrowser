@@ -545,6 +545,105 @@ def test_raise_cmdexc_if_invalid(url, valid, has_err_string):
             urlutils.raise_cmdexc_if_invalid(qurl)
 
 
+# Test cases inspired by scrapy's w3lib:
+# https://github.com/scrapy/w3lib/blob/v1.22.0/tests/test_url.py#L654-L739
+@pytest.mark.parametrize('url, media_type, params, data', [
+    # Basic test
+    (
+        "data:,A%20brief%20note",
+        "text/plain",
+        "",  # we don't default to "charset=US-ASCII" because params are ignored anyways
+        b"A brief note",
+    ),
+    # Unicode URL
+    (
+        "data:,é",
+        "text/plain",
+        "",
+        "é".encode("utf-8"),
+    ),
+    # Default media type
+    (
+        "data:;charset=iso-8859-7,%be%d3%be",
+        "text/plain",
+        "charset=iso-8859-7",
+        b"\xbe\xd3\xbe",
+    ),
+    # Text with charset
+    (
+        "data:text/plain;charset=iso-8859-7,%be%d3%be",
+        "text/plain",
+        "charset=iso-8859-7",
+        b"\xbe\xd3\xbe",
+    ),
+    # base64
+    (
+        "data:text/plain;base64,SGVsbG8sIHdvcmxkLg%3D%3D",
+        "text/plain",
+        "",
+        b"Hello, world.",
+    ),
+    # base64 with spaces
+    (
+        "data:text/plain;base64,SGVsb%20G8sIH%0A%20%20dvcm%20%20%20xk%20Lg%3D%0A%3D",
+        "text/plain",
+        "",
+        b"Hello, world.",
+    ),
+    (
+        "data:text/plain;base64,SGVsb G8sIH\n  dvcm   xk Lg%3D\n%3D",
+        "text/plain",
+        "",
+        b"Hello, world.",
+    ),
+    # case-insensitive scheme
+    (
+        "DATA:,A%20brief%20note",
+        "text/plain",
+        "",
+        b"A brief note",
+    ),
+    # wrong base64 param - should be invalid but we don't parse the params...
+    (
+        "data:text/plain;baes64,SGVsbG8sIHdvcmxkLg%3D%3D",
+        "text/plain",
+        "baes64",
+        b"SGVsbG8sIHdvcmxkLg==",
+    ),
+    # custom media type
+    (
+        "data:application/pdf,",
+        "application/pdf",
+        "",
+        b"",
+    )
+])
+def test_parse_data_url_valid(url, media_type, params, data):
+    assert isinstance(data, bytes)
+    assert urlutils.parse_data_url(QUrl(url)) == (media_type, params, data)
+
+
+@pytest.mark.parametrize('url', [
+    QUrl(),  # invalid URL
+    QUrl('https://example.org/'),  # no data: scheme
+    QUrl('data:A%20brief%20note'),  # missing comma
+])
+def test_parse_data_url_invalid(url):
+    with pytest.raises(urlutils.Error):
+        urlutils.parse_data_url(url)
+
+
+@hypothesis.given(s=hypothesis.strategies.text())
+def test_parse_data_url_hypothesis(s):
+    url = QUrl('data:' + s)
+    hypothesis.assume(url.isValid())
+
+    try:
+        urlutils.parse_data_url(url)
+    except urlutils.Error:
+        pass
+
+
 @pytest.mark.parametrize('qurl, output', [
     (QUrl(), None),
     (QUrl('http://qutebrowser.org/test.html'), 'test.html'),
