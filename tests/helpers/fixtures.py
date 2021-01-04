@@ -444,7 +444,8 @@ def webengineview(qtbot, monkeypatch, web_tab_setup):
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
     view = QtWebEngineWidgets.QWebEngineView()
     qtbot.add_widget(view)
-    return view
+    yield view
+    view.setPage(None)  # Avoid warning if using QWebEngineProfile
 
 
 @pytest.fixture
