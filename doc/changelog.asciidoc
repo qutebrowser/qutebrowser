@@ -146,6 +146,10 @@ Fixed
 - The `completion.web_history.ignore` setting now works properly when set in
   `config.py` (rather than via `:set`). Additionally, a `:config-source` will not
   result in a history rebuild if the value wasn't actually changed.
+- When downloading a `data:` URL, the suggested filename is now improved and
+  contains a proper extension. Before this fix, qutebrowser would use the URL's
+  data contents as filename with QtWebEngine; or "binary blob" with the Qt network
+  stack.
 - TODO: Due to a long-standing bug in the `pkg_resources` dependency, it caused
   qutebrowser's startup to slow down by around 150ms-1s (heavily depending on
   the system). Since the dependency is now removed, qutebrowser's startup time
