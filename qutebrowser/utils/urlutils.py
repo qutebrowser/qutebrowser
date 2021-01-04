@@ -394,52 +394,6 @@ def get_path_if_valid(pathstr: str,
     return path
 
 
-def parse_data_url(url: QUrl) -> Tuple[str, str, bytes]:
-    """Parse a data URL.
-
-    Returns a tuple with:
-    1) The media type
-    2) Media type parameters (currently without any further parsing)
-    3) The (possibly decoded) data
-
-    Based on https://en.wikipedia.org/wiki/Data_URI_scheme
-
-    Possible further inspiration:
-    https://github.com/scrapy/w3lib/blob/v1.22.0/w3lib/url.py#L324-L384
-    """
-    ensure_valid(url)
-    if url.scheme().lower() != 'data':
-        raise Error(f"URL {url.toDisplayString()} has no data: scheme")
-    if ',' not in url.path():
-        raise Error("Missing comma")
-
-    encoded = url.toEncoded().data()
-    encoded = encoded[len('data:'):]  # strip off scheme
-    encoded = urllib.parse.unquote_to_bytes(encoded)
-    encoded_header, data = encoded.split(b',', 1)
-
-    try:
-        header = encoded_header.decode('ascii')
-    except UnicodeDecodeError as e:
-        raise Error(f"Invalid header in {url.toDisplayString()}: {e}")
-
-    b64_suffix = ';base64'
-    if header.endswith(b64_suffix):
-        header = header[:-len(b64_suffix)]
-        data = base64.b64decode(data)
-
-    if ';' in header:
-        media_type, params = header.split(';', 1)
-    else:
-        media_type = header
-        params = ''
-
-    if not media_type:
-        media_type = 'text/plain'
-
-    return media_type, params, data
-
-
 def filename_from_url(url: QUrl, fallback: str = None) -> Optional[str]:
     """Get a suitable filename from a URL.
 
@@ -454,11 +408,11 @@ def filename_from_url(url: QUrl, fallback: str = None) -> Optional[str]:
         return fallback
 
     if url.scheme().lower() == 'data':
-        media_type, _params, _data = parse_data_url(url)
-        if not media_type:
+        mimetype, _encoding = mimetypes.guess_type(url.toString())
+        if not mimetype:
             return fallback
 
-        ext = mimetypes.guess_extension(media_type, strict=False) or ''
+        ext = mimetypes.guess_extension(mimetype, strict=False) or ''
         return 'download' + ext
 
     pathname = posixpath.basename(url.path())
