@@ -4,6 +4,8 @@
 
 import contextlib
 
+from unittest import mock
+
 import pytest
 from qutebrowser.qt.core import Qt
 
@@ -29,8 +31,24 @@ def test_single_message(qtbot, view, level):
     assert view._messages[0].isVisible()
 
 
-def test_message_hiding(qtbot, view):
+class FakeTime:
+    def __init__(self, times):
+        self.times = times
+
+    def time(self):
+        if isinstance(self.times, list):
+            return self.times.pop(0)
+        else:
+            return self.times
+
+
+def test_message_hiding(qtbot, view, monkeypatch):
     """Messages should be hidden after the timer times out."""
+    monkeypatch.setattr(messageview, 'time', FakeTime([
+        100,  # add first message
+        100,  # first check, don't remove
+        101,  # timeout, clear
+    ]))
     with qtbot.wait_signal(view._clear_timer.timeout):
         view.show_message(message.MessageInfo(usertypes.MessageLevel.info, 'test'))
     assert not view._messages
@@ -155,8 +173,15 @@ def test_show_message_twice(view, info1, info2, count):
     assert len(view._messages) == count
 
 
-def test_show_message_twice_after_first_disappears(qtbot, view):
+def test_show_message_twice_after_first_disappears(qtbot, view, monkeypatch):
     """Show the same message twice after the first is gone."""
+    monkeypatch.setattr(messageview, 'time', FakeTime([
+        100,  # add first message
+        100,  # first check, don't remove
+        101,  # timeout, clear
+        101,  # add second message
+        101,  # first check, don't clear
+    ]))
     with qtbot.wait_signal(view._clear_timer.timeout):
         view.show_message(message.MessageInfo(usertypes.MessageLevel.info, 'test'))
     # Just a sanity check
@@ -166,25 +191,18 @@ def test_show_message_twice_after_first_disappears(qtbot, view):
     assert len(view._messages) == 1
 
 
-def test_changing_timer_with_messages_shown(qtbot, view, config_stub):
+def test_changing_timer_with_messages_shown(qtbot, view, config_stub, monkeypatch):
     """When we change messages.timeout, the timer should be restarted."""
     config_stub.val.messages.timeout = 900000  # 15s
+    monkeypatch.setattr(messageview, 'time', FakeTime([
+        100,  # add first message
+        100,  # first check, don't remove
+        100,  # second check, update timer and don't remove
+        101,  # timeout, clear
+    ]))
     view.show_message(message.MessageInfo(usertypes.MessageLevel.info, 'test'))
     with qtbot.wait_signal(view._clear_timer.timeout):
         config_stub.val.messages.timeout = 100
-
-
-@pytest.mark.parametrize('count, expected', [(1, 100), (3, 300),
-                                             (5, 500), (7, 500)])
-def test_show_multiple_messages_longer(view, count, expected):
-    """When there are multiple messages, messages should be shown longer.
-
-    There is an upper maximum to avoid messages never disappearing.
-    """
-    for message_number in range(1, count+1):
-        view.show_message(message.MessageInfo(
-            usertypes.MessageLevel.info, f"test {message_number}"))
-    assert view._clear_timer.interval() == expected
 
 
 @pytest.mark.parametrize('replace1, replace2, length', [
@@ -246,3 +264,41 @@ def test_click_messages(qtbot, view, button, count):
         usertypes.MessageLevel.info, 'test mouse click 2'))
     qtbot.mousePress(view, button)
     assert len(view._messages) == count
+
+
+class FakeTimer:
+    def start(self, msecs):
+        pass
+
+    def stop(self):
+        pass
+
+
+def test_per_message_timeout(view, monkeypatch, config_stub):
+    # Make sure the list is decremented as expected as time goes on and the
+    # timer is stopped afterwards
+    config_stub.val.messages.timeout = 10
+    info = usertypes.MessageLevel.info
+
+    timer = mock.Mock(spec=FakeTimer)
+    monkeypatch.setattr(view, '_clear_timer', timer)
+
+    message_times = list(range(0, 200, 50))
+    timer_ticks = [i/1000 for i in range(5, 255, 50)]
+
+    view._messages.extend([
+        messageview.Message(
+            info, f"test{t}", parent=view, replace=False,
+            created_at=t, text_format=Qt.TextFormat.PlainText,
+        )
+        for t in message_times
+    ])
+    monkeypatch.setattr(messageview, 'time', FakeTime(timer_ticks))
+
+    for idx in range(1, 6):
+        view.update()
+        assert len(view._messages) == 5 - idx
+
+    assert timer.start.call_args_list == [mock.call(5)]*4
+
+    timer.stop.assert_called_once_with()
