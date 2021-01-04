@@ -867,3 +867,14 @@ def test_parse_duration_hypothesis(duration):
         utils.parse_duration(duration)
     except ValueError:
         pass
+
+
+@pytest.mark.parametrize('mimetype, extension', [
+    ('application/pdf', '.pdf'),  # handled by Python
+    ('text/plain', '.txt'),  # wrong in Python 3.6, overridden
+    ('application/manifest+json', '.webmanifest'),  # newer
+    ('text/xul', '.xul'),  # strict=False
+    ('doesnot/exist', None),
+])
+def test_mimetype_extension(mimetype, extension):
+    assert utils.mimetype_extension(mimetype) == extension

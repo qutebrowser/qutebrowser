@@ -412,7 +412,7 @@ def filename_from_url(url: QUrl, fallback: str = None) -> Optional[str]:
         if not mimetype:
             return fallback
 
-        ext = mimetypes.guess_extension(mimetype, strict=False) or ''
+        ext = utils.mimetype_extension(mimetype) or ''
         return 'download' + ext
 
     pathname = posixpath.basename(url.path())
