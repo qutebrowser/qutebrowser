@@ -25,6 +25,7 @@ import os.path
 import ipaddress
 import posixpath
 import urllib.parse
+import mimetypes
 from typing import Optional, Tuple, Union
 
 from PyQt5.QtCore import QUrl
@@ -451,6 +452,14 @@ def filename_from_url(url: QUrl, fallback: str = None) -> Optional[str]:
     """
     if not url.isValid():
         return fallback
+
+    if url.scheme().lower() == 'data':
+        media_type, _params, _data = parse_data_url(url)
+        if not media_type:
+            return fallback
+
+        ext = mimetypes.guess_extension(media_type, strict=False) or ''
+        return 'download' + ext
 
     pathname = posixpath.basename(url.path())
     if pathname:

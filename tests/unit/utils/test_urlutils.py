@@ -651,6 +651,11 @@ def test_parse_data_url_hypothesis(s):
     (QUrl('http://user:password@qutebrowser.org/foo?bar=baz#fish'), 'foo'),
     (QUrl('http://qutebrowser.org/'), 'qutebrowser.org.html'),
     (QUrl('qute://'), None),
+    # data URL support
+    (QUrl('data:text/plain,'), 'download.txt'),
+    (QUrl('data:application/pdf,'), 'download.pdf'),
+    (QUrl('data:foo/bar,'), 'download'),  # unknown extension
+    (QUrl('data:text/xul,'), 'download.xul'),  # strict=False
 ])
 def test_filename_from_url(qurl, output):
     assert urlutils.filename_from_url(qurl) == output
