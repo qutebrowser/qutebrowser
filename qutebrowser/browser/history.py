@@ -32,14 +32,6 @@ from qutebrowser.api import cmdutils
 from qutebrowser.utils import utils, log, usertypes, message, qtutils
 from qutebrowser.misc import objects, sql
 
-# Increment for schema changes, or if HistoryCompletion needs to be regenerated.
-#
-# Changes from 0 -> 1 and 1 -> 2:
-# - None (only needs history regeneration)
-#
-# Changes from 2 -> 3:
-# - History cleanup is run
-_USER_VERSION = 3
 
 web_history = cast('WebHistory', None)
 
@@ -169,12 +161,18 @@ class WebHistory(sql.SqlTable):
         # Store the last saved url to avoid duplicate immediate saves.
         self._last_url = None
 
-        version_changed = self._run_migrations()
-
         self.completion = CompletionHistory(parent=self)
         self.metainfo = CompletionMetaInfo(parent=self)
 
-        if version_changed:
+        if sql.db_user_version != sql.USER_VERSION:
+            # If the DB user version changed, run a full cleanup and rebuild the
+            # completion history.
+            #
+            # In the future, this could be improved to only be done when actually needed
+            # - but version changes happen very infrequently, rebuilding everything
+            # gives us less corner-cases to deal with, and we can run a VACUUM to make
+            # things smaller.
+            self._cleanup_history()
             self.completion.delete_all()
 
         # Get a string of all patterns
@@ -218,28 +216,6 @@ class WebHistory(sql.SqlTable):
             yield
         except sql.KnownError as e:
             message.error(f"Failed to write history: {e.text()}")
-
-    def _run_migrations(self):
-        """Run migrations needed, based on the stored user_version.
-
-        NOTE: This runs before self.completion or self.metainfo are available!
-
-        Return:
-            True if the version changed, False otherwise.
-        """
-        db_version = sql.Query('pragma user_version').run().value()
-        assert db_version >= 0, db_version
-
-        if db_version != _USER_VERSION:
-            sql.Query(f'PRAGMA user_version = {_USER_VERSION}').run()
-
-        if db_version < 3:
-            self._cleanup_history()
-            return True
-
-        # FIXME handle too new user_version
-        assert db_version == _USER_VERSION, db_version
-        return False
 
     def _is_excluded_from_completion(self, url):
         """Check if the given URL is excluded from the completion."""
