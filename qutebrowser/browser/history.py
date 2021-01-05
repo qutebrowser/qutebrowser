@@ -219,7 +219,7 @@ class WebHistory(sql.SqlTable):
         try:
             yield
         except sql.KnownError as e:
-            message.error("Failed to write history: {}".format(e.text()))
+            message.error(f"Failed to write history: {e.text()}")
 
     def _run_migrations(self):
         """Run migrations needed, based on the stored user_version.
@@ -437,20 +437,15 @@ def debug_dump_history(dest):
     """
     dest = os.path.expanduser(dest)
 
-    lines = ('{}{} {} {}'.format(int(x.atime),
-                                 '-r' * x.redirect,
-                                 x.url,
-                                 x.title)
-             for x in web_history.select(sort_by='atime',
-                                         sort_order='asc'))
+    lines = (f'{int(x.atime)}{"-r" * x.redirect} {x.url} {x.title}'
+             for x in web_history.select(sort_by='atime', sort_order='asc'))
 
     try:
         with open(dest, 'w', encoding='utf-8') as f:
             f.write('\n'.join(lines))
-        message.info("Dumped history to {}".format(dest))
+        message.info(f"Dumped history to {dest}")
     except OSError as e:
-        raise cmdutils.CommandError('Could not write history: {}'
-                                    .format(e))
+        raise cmdutils.CommandError(f'Could not write history: {e}')
 
 
 def init(parent=None):
