@@ -374,6 +374,6 @@ def choose_file(multiple: bool) -> List[str]:
 
     if not multiple:
         if len(selected_files) > 1:
-            log.misc.exception("More than one files choosen, using only the first")
+            message.warning("More than one files choosen, using only the first")
             return selected_files[:1]
     return selected_files
