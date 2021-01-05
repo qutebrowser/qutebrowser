@@ -21,12 +21,63 @@
 
 import pytest
 
+import hypothesis
+from hypothesis import strategies
 from PyQt5.QtSql import QSqlError
 
 from qutebrowser.misc import sql
 
 
 pytestmark = pytest.mark.usefixtures('init_sql')
+
+
+class TestUserVersion:
+
+    @pytest.mark.parametrize('val, major, minor', [
+        (0x0008_0001, 8, 1),
+        (0x7FFF_FFFF, 0x7FFF, 0xFFFF),
+    ])
+    def test_from_int(self, val, major, minor):
+        version = sql.UserVersion.from_int(val)
+        assert version.major == major
+        assert version.minor == minor
+
+    @pytest.mark.parametrize('major, minor, val', [
+        (8, 1, 0x0008_0001),
+        (0x7FFF, 0xFFFF, 0x7FFF_FFFF),
+    ])
+    def test_to_int(self, major, minor, val):
+        version = sql.UserVersion(major, minor)
+        assert version.to_int() == val
+
+    @pytest.mark.parametrize('val', [0x8000_0000, -1])
+    def test_from_int_invalid(self, val):
+        with pytest.raises(AssertionError):
+            sql.UserVersion.from_int(val)
+
+    @pytest.mark.parametrize('major, minor', [
+        (-1, 0),
+        (0, -1),
+        (0, 0x10000),
+        (0x8000, 0),
+    ])
+    def test_to_int_invalid(self, major, minor):
+        version = sql.UserVersion(major, minor)
+        with pytest.raises(AssertionError):
+            version.to_int()
+
+    @hypothesis.given(val=strategies.integers(min_value=0, max_value=0x7FFF_FFFF))
+    def test_from_int_hypothesis(self, val):
+        version = sql.UserVersion.from_int(val)
+        assert version.to_int() == val
+
+    @hypothesis.given(
+        major=strategies.integers(min_value=0, max_value=0x7FFF),
+        minor=strategies.integers(min_value=0, max_value=0xFFFF)
+    )
+    def test_to_int_hypothesis(self, major, minor):
+        version = sql.UserVersion(major, minor)
+        assert version.from_int(version.to_int()) == version
 
 
 @pytest.mark.parametrize('klass', [sql.KnownError, sql.BugError])
