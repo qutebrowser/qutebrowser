@@ -228,16 +228,18 @@ class WebHistory(sql.SqlTable):
             True if the version changed, False otherwise.
         """
         db_version = sql.Query('pragma user_version').run().value()
-        if db_version in [0, 1]:
-            pass  # Only needs completion rebuild which is done in __init__
-        elif db_version == 2:
-            self._cleanup_history()
-        else:
-            assert db_version == _USER_VERSION, db_version
-            return False
+        assert db_version >= 0, db_version
 
-        sql.Query(f'PRAGMA user_version = {_USER_VERSION}').run()
-        return True
+        if db_version != _USER_VERSION:
+            sql.Query(f'PRAGMA user_version = {_USER_VERSION}').run()
+
+        if db_version < 3:
+            self._cleanup_history()
+            return True
+
+        # FIXME handle too new user_version
+        assert db_version == _USER_VERSION, db_version
+        return False
 
     def _is_excluded_from_completion(self, url):
         """Check if the given URL is excluded from the completion."""
