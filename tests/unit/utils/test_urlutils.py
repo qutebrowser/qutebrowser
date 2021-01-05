@@ -557,12 +557,13 @@ def test_raise_cmdexc_if_invalid(url, valid, has_err_string):
     (QUrl('data:application/pdf,'), 'download.pdf'),
     (QUrl('data:foo/bar,'), 'download'),  # unknown extension
     (QUrl('data:text/xul,'), 'download.xul'),  # strict=False
+    (QUrl('data:'), None),  # invalid data URL
 ])
 def test_filename_from_url(qurl, output):
     assert urlutils.filename_from_url(qurl) == output
 
 
-@pytest.mark.parametrize('qurl', [QUrl(), QUrl('qute://')])
+@pytest.mark.parametrize('qurl', [QUrl(), QUrl('qute://'), QUrl('data:')])
 def test_filename_from_url_fallback(qurl):
     assert urlutils.filename_from_url(qurl, fallback='fallback') == 'fallback'
 
