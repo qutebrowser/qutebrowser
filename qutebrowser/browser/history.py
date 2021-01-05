@@ -167,6 +167,8 @@ class WebHistory(sql.SqlTable):
         self.completion = CompletionHistory(parent=self)
         self.metainfo = CompletionMetaInfo(parent=self)
 
+        rebuild_completion = False
+
         if sql.db_user_version != sql.USER_VERSION:
             # If the DB user version changed, run a full cleanup and rebuild the
             # completion history.
@@ -176,7 +178,7 @@ class WebHistory(sql.SqlTable):
             # gives us less corner-cases to deal with, and we can run a VACUUM to make
             # things smaller.
             self._cleanup_history()
-            self.completion.delete_all()
+            rebuild_completion = True
 
         # Get a string of all patterns
         patterns = config.instance.get_str('completion.web_history.exclude')
@@ -184,10 +186,9 @@ class WebHistory(sql.SqlTable):
         # If patterns changed, update them in database and rebuild completion
         if self.metainfo['excluded_patterns'] != patterns:
             self.metainfo['excluded_patterns'] = patterns
-            self.completion.delete_all()
+            rebuild_completion = True
 
-        if not self.completion:
-            # either the table is out-of-date or the user wiped it manually
+        if rebuild_completion:
             self._rebuild_completion()
 
         self.create_index('HistoryIndex', 'url')
@@ -266,7 +267,11 @@ class WebHistory(sql.SqlTable):
 
         self._progress.start("Rebuilding completion...")
 
-        # select the latest entry for each url
+        # Delete old entries
+        self.completion.delete_all()
+        QApplication.processEvents()
+
+        # Select the latest entry for each url
         q = sql.Query('SELECT url, title, max(atime) AS atime FROM History '
                       'WHERE NOT redirect '
                       'GROUP BY url ORDER BY atime asc')
