@@ -204,10 +204,21 @@ class WebHistory(sql.SqlTable):
         except sql.KnownError as e:
             message.error("Failed to write history: {}".format(e.text()))
 
-    def _is_excluded(self, url):
+    def _is_excluded_from_completion(self, url):
         """Check if the given URL is excluded from the completion."""
         patterns = config.cache['completion.web_history.exclude']
         return any(pattern.matches(url) for pattern in patterns)
+
+    def _is_excluded_entirely(self, url):
+        """Check if the given URL is excluded from the entire history.
+
+        This is the case for URLs which can't be visited at a later point; or which are
+        usually excessively long.
+        """
+        return (
+            url.scheme() in ['data', 'view-source'] or
+            (url.scheme() == 'qute' and url.host() == 'back')
+        )
 
     def _rebuild_completion(self):
         data: Mapping[str, MutableSequence[str]] = {
@@ -228,7 +239,7 @@ class WebHistory(sql.SqlTable):
             self._progress.tick()
 
             url = QUrl(entry.url)
-            if self._is_excluded(url):
+            if self._is_excluded_from_completion(url):
                 continue
             data['url'].append(self._format_completion_url(url))
             data['title'].append(entry.title)
@@ -289,9 +300,7 @@ class WebHistory(sql.SqlTable):
     @pyqtSlot(QUrl, QUrl, str)
     def add_from_tab(self, url, requested_url, title):
         """Add a new history entry as slot, called from a BrowserTab."""
-        if any(url.scheme() in ('data', 'view-source') or
-               (url.scheme(), url.host()) == ('qute', 'back')
-               for url in (url, requested_url)):
+        if self._is_excluded_entirely(url) or self._is_excluded_entirely(requested_url):
             return
         if url.isEmpty():
             # things set via setHtml
@@ -331,7 +340,7 @@ class WebHistory(sql.SqlTable):
                          'atime': atime,
                          'redirect': redirect})
 
-            if redirect or self._is_excluded(url):
+            if redirect or self._is_excluded_from_completion(url):
                 return
 
             self.completion.insert({

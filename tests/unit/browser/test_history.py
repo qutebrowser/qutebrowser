@@ -210,9 +210,17 @@ class TestAdd:
         (logging.DEBUG, 'a.com', 'b.com', [('a.com', 'title', 12345, False),
                                            ('b.com', 'title', 12345, True)]),
         (logging.WARNING, 'a.com', '', [('a.com', 'title', 12345, False)]),
+
         (logging.WARNING, '', '', []),
+
         (logging.WARNING, 'data:foo', '', []),
         (logging.WARNING, 'a.com', 'data:foo', []),
+
+        (logging.WARNING, 'view-source:foo', '', []),
+        (logging.WARNING, 'a.com', 'view-source:foo', []),
+
+        (logging.WARNING, 'qute://back', '', []),
+        (logging.WARNING, 'a.com', 'qute://back', []),
     ])
     def test_from_tab(self, web_history, caplog, mock_time,
                       level, url, req_url, expected):
