@@ -293,6 +293,9 @@ class WebHistory(sql.SqlTable):
 
         self._progress.finish()
 
+        # We might have caused fragmentation - let's clean up.
+        sql.Query('VACUUM').run()
+
         self.completion.insert_batch(data, replace=True)
 
     def get_recent(self):
