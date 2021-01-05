@@ -318,19 +318,20 @@ class SqlTable(QObject):
         q.run()
         return q.value()
 
-    def delete(self, field, value, *, optional=False):
+    def delete(self, field, value, *, optional=False, like=False):
         """Remove all rows for which `field` equals `value`.
 
         Args:
             field: Field to use as the key.
             value: Key value to delete.
             optional: If set, non-existent values are ignored.
+            like: If set, LIKE is used instead of =
 
         Return:
             The number of rows deleted.
         """
-        q = Query("DELETE FROM {table} where {field} = :val"
-                  .format(table=self._name, field=field))
+        op = "LIKE" if like else "="
+        q = Query(f"DELETE FROM {self._name} where {field} {op} :val")
         q.run(val=value)
         if not q.rows_affected():
             if optional:
