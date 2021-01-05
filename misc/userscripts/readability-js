@@ -76,10 +76,6 @@ const HEADER = `
             margin: 0;
             background-color: #dddddd;
         }
-        pre > code {
-            padding-right: 0;
-            padding-left: 0;
-        }
         blockquote {
             border-inline-start: 2px solid grey !important;
             padding: 0;
