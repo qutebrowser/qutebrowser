@@ -251,6 +251,10 @@ class WebHistory(sql.SqlTable):
 
         This is the case for URLs which can't be visited at a later point; or which are
         usually excessively long.
+
+        NOTE: If you add new filters here, it might be a good idea to adjust the
+        _USER_VERSION code and _cleanup_history so that older histories get cleaned up
+        accordingly as well.
         """
         return (
             url.scheme() in ['data', 'view-source'] or
@@ -263,18 +267,15 @@ class WebHistory(sql.SqlTable):
         This is run only once after the v2.0.0 upgrade, based on the database's
         user_version.
         """
-        q = sql.Query('SELECT url FROM History')
-        entries = list(q.run())
-
-        self._progress.start("Cleaning up history...", len(entries))
-
-        for entry in entries:
-            self._progress.tick()
-            url = QUrl(entry.url)
-            if self._is_excluded_entirely(url):
-                self.delete('url', entry.url)
-
-        self._progress.finish()
+        terms = [
+            'data:%',
+            'view-source:%',
+            'qute://back%',
+        ]
+        where_clause = ' OR '.join(f"url LIKE '{term}'" for term in terms)
+        q = sql.Query(f'DELETE FROM History WHERE {where_clause}')
+        entries = q.run()
+        log.sql.debug(f"Cleanup removed {entries.rows_affected()} items")
 
     def _rebuild_completion(self):
         data: Mapping[str, MutableSequence[str]] = {
