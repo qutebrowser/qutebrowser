@@ -38,7 +38,6 @@ from qutebrowser.misc import objects, sql
 # - None (only needs history regeneration)
 #
 # Changes from 2 -> 3:
-# - CompletionMetaInfo is renamed to MetaInfo
 # - History cleanup is run
 _USER_VERSION = 3
 
@@ -95,7 +94,7 @@ class HistoryProgress:
         self._reset()
 
 
-class MetaInfo(sql.SqlTable):
+class CompletionMetaInfo(sql.SqlTable):
 
     """Table containing meta-information for the completion."""
 
@@ -104,8 +103,7 @@ class MetaInfo(sql.SqlTable):
     }
 
     def __init__(self, parent=None):
-        super().__init__("MetaInfo",
-                         ['key', 'value'],
+        super().__init__("CompletionMetaInfo", ['key', 'value'],
                          constraints={'key': 'PRIMARY KEY'})
         for key, default in self.KEYS.items():
             if key not in self:
@@ -125,7 +123,8 @@ class MetaInfo(sql.SqlTable):
 
     def __getitem__(self, key):
         self._check_key(key)
-        query = sql.Query('SELECT value FROM MetaInfo WHERE key = :key')
+        query = sql.Query('SELECT value FROM CompletionMetaInfo '
+                          'WHERE key = :key')
         return query.run(key=key).value()
 
     def __setitem__(self, key, value):
@@ -152,7 +151,7 @@ class WebHistory(sql.SqlTable):
 
     Attributes:
         completion: A CompletionHistory instance.
-        metainfo: A MetaInfo instance.
+        metainfo: A CompletionMetaInfo instance.
         _progress: A HistoryProgress instance.
     """
 
@@ -175,7 +174,7 @@ class WebHistory(sql.SqlTable):
         version_changed = self._run_migrations()
 
         self.completion = CompletionHistory(parent=self)
-        self.metainfo = MetaInfo(parent=self)
+        self.metainfo = CompletionMetaInfo(parent=self)
 
         if version_changed:
             self.completion.delete_all()
@@ -235,7 +234,6 @@ class WebHistory(sql.SqlTable):
             pass  # Only needs completion rebuild which is done in __init__
         elif db_version == 2:
             self._cleanup_history()
-            sql.Query('ALTER TABLE CompletionMetaInfo RENAME TO MetaInfo').run()
         else:
             assert db_version == _USER_VERSION, db_version
             return False

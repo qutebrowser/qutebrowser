@@ -465,11 +465,11 @@ class TestRebuild:
         assert progress._started == patch_threshold
 
 
-class TestMetaInfo:
+class TestCompletionMetaInfo:
 
     @pytest.fixture
     def metainfo(self):
-        return history.MetaInfo()
+        return history.CompletionMetaInfo()
 
     def test_contains_keyerror(self, metainfo):
         with pytest.raises(KeyError):
@@ -489,7 +489,7 @@ class TestMetaInfo:
 
     def test_delete_old_key(self, monkeypatch, metainfo):
         metainfo.insert({'key': 'force_rebuild', 'value': False})
-        info2 = history.MetaInfo()
+        info2 = history.CompletionMetaInfo()
         monkeypatch.setitem(info2.KEYS, 'force_rebuild', False)
         assert 'force_rebuild' not in info2
 
