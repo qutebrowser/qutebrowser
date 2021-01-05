@@ -155,7 +155,12 @@ class NetworkManager(QNetworkAccessManager):
 
     def __init__(self, *, win_id, tab_id, private, parent=None):
         log.init.debug("Initializing NetworkManager")
-        super().__init__(parent)
+        with log.disable_qt_msghandler():
+            # WORKAROUND for a hang when a message is printed - See:
+            # http://www.riverbankcomputing.com/pipermail/pyqt/2014-November/035045.html
+            #
+            # Still needed on Qt/PyQt 5.15.2 according to #6010.
+            super().__init__(parent)
         log.init.debug("NetworkManager init done")
         self.adopted_downloads = 0
         self._win_id = win_id
