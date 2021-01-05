@@ -69,6 +69,11 @@ db_user_version = None   # The user version we got from the database
 USER_VERSION = UserVersion(0, 3)    # The current / newest user version
 
 
+def user_version_changed():
+    """Whether the version stored in the database is different from the current one."""
+    return db_user_version != USER_VERSION
+
+
 class SqliteErrorCode:
 
     """Error codes as used by sqlite.
@@ -185,15 +190,16 @@ def init(db_path):
             "Database is too new for this qutebrowser version (database version "
             f"{db_user_version}, but {USER_VERSION.major}.x is supported)")
 
-    if db_user_version < USER_VERSION:
+    if user_version_changed():
         log.sql.debug(f"Migrating from version {db_user_version} to {USER_VERSION}")
-        # FIXME ...
+        # Enable write-ahead-logging and reduce disk write frequency
+        # see https://sqlite.org/pragma.html and issues #2930 and #3507
+        #
+        # We might already have done this (without a migration) in earlier versions, but
+        # as those are idempotent, let's make sure we run them once again.
+        Query("PRAGMA journal_mode=WAL").run()
+        Query("PRAGMA synchronous=NORMAL").run()
         Query(f'PRAGMA user_version = {USER_VERSION.to_int()}').run()
-
-    # Enable write-ahead-logging and reduce disk write frequency
-    # see https://sqlite.org/pragma.html and issues #2930 and #3507
-    Query("PRAGMA journal_mode=WAL").run()
-    Query("PRAGMA synchronous=NORMAL").run()
 
 
 def close():
@@ -321,9 +327,7 @@ class SqlTable(QObject):
     changed = pyqtSignal()
 
     def __init__(self, name, fields, constraints=None, parent=None):
-        """Create a new table in the SQL database.
-
-        Does nothing if the table already exists.
+        """Wrapper over a table in the SQL database.
 
         Args:
             name: Name of the table.
@@ -332,22 +336,34 @@ class SqlTable(QObject):
         """
         super().__init__(parent)
         self._name = name
+        self._create_table(fields, constraints)
+
+    def _create_table(self, fields, constraints):
+        """Create the table if the database is uninitialized.
+
+        If the table already exists, this does nothing, so it can e.g. be called on
+        every user_version change.
+        """
+        if not user_version_changed():
+            return
 
         constraints = constraints or {}
         column_defs = ['{} {}'.format(field, constraints.get(field, ''))
                        for field in fields]
         q = Query("CREATE TABLE IF NOT EXISTS {name} ({column_defs})"
-                  .format(name=name, column_defs=', '.join(column_defs)))
-
+                  .format(name=self._name, column_defs=', '.join(column_defs)))
         q.run()
 
     def create_index(self, name, field):
-        """Create an index over this table.
+        """Create an index over this table if the database is uninitialized.
 
         Args:
             name: Name of the index, should be unique.
             field: Name of the field to index.
         """
+        if not user_version_changed():
+            return
+
         q = Query("CREATE INDEX IF NOT EXISTS {name} ON {table} ({field})"
                   .format(name=name, table=self._name, field=field))
         q.run()

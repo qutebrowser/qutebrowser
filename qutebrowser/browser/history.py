@@ -95,16 +95,19 @@ class CompletionMetaInfo(sql.SqlTable):
     def __init__(self, parent=None):
         super().__init__("CompletionMetaInfo", ['key', 'value'],
                          constraints={'key': 'PRIMARY KEY'})
-        for key, default in self.KEYS.items():
-            if key not in self:
-                self[key] = default
-
-        # force_rebuild is not in use anymore
-        self.delete('key', 'force_rebuild', optional=True)
+        if sql.user_version_changed():
+            self._init_default_values()
+            # force_rebuild is not in use anymore
+            self.delete('key', 'force_rebuild', optional=True)
 
     def _check_key(self, key):
         if key not in self.KEYS:
             raise KeyError(key)
+
+    def _init_default_values(self):
+        for key, default in self.KEYS.items():
+            if key not in self:
+                self[key] = default
 
     def __contains__(self, key):
         self._check_key(key)
