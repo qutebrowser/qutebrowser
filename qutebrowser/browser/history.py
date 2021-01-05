@@ -45,14 +45,24 @@ class HistoryProgress:
     This makes WebHistory simpler as it can call methods of this class even
     when we don't want to show a progress dialog (for very small imports). This
     means tick() and finish() can be called even when start() wasn't.
+
+    Class attributes:
+        _PROGRESS_THRESHOLD: When to start showing progress dialogs.
     """
 
+    PROGRESS_THRESHOLD = 1000
+
     def __init__(self):
+        self._reset()
+
+    def _reset(self):
         self._progress = None
         self._value = 0
 
     def start(self, text, maximum):
-        """Start showing a progress dialog."""
+        """Start showing a progress dialog, if needed."""
+        if maximum < self.PROGRESS_THRESHOLD:
+            return
         self._progress = QProgressDialog()
         self._progress.setMinimumDuration(500)
         self._progress.setLabelText(text)
@@ -69,9 +79,13 @@ class HistoryProgress:
             QApplication.processEvents()
 
     def finish(self):
-        """Finish showing the progress dialog."""
+        """Finish showing the progress dialog.
+
+        After this is called, the object can be reused.
+        """
         if self._progress is not None:
             self._progress.hide()
+        self._reset()
 
 
 class CompletionMetaInfo(sql.SqlTable):
@@ -133,17 +147,12 @@ class WebHistory(sql.SqlTable):
         completion: A CompletionHistory instance.
         metainfo: A CompletionMetaInfo instance.
         _progress: A HistoryProgress instance.
-
-    Class attributes:
-        _PROGRESS_THRESHOLD: When to start showing progress dialogs.
     """
 
     # All web history cleared
     history_cleared = pyqtSignal()
     # one url cleared
     url_cleared = pyqtSignal(QUrl)
-
-    _PROGRESS_THRESHOLD = 1000
 
     def __init__(self, progress, parent=None):
         super().__init__("History", ['url', 'title', 'atime', 'redirect'],
@@ -232,8 +241,7 @@ class WebHistory(sql.SqlTable):
                       'GROUP BY url ORDER BY atime asc')
         entries = list(q.run())
 
-        if len(entries) > self._PROGRESS_THRESHOLD:
-            self._progress.start("Rebuilding completion...", len(entries))
+        self._progress.start("Rebuilding completion...", len(entries))
 
         for entry in entries:
             self._progress.tick()
