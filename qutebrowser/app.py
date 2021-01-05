@@ -66,7 +66,7 @@ from qutebrowser.misc import (ipc, savemanager, sessions, crashsignal,
                               earlyinit, sql, cmdhistory, backendproblem,
                               objects, quitter)
 from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
-                               usertypes, standarddir, error, qtutils)
+                               usertypes, standarddir, error, qtutils, debug)
 # pylint: disable=unused-import
 # We import those to run the cmdutils.register decorators.
 from qutebrowser.mainwindow.statusbar import command
@@ -445,17 +445,18 @@ def _init_modules(*, args):
     downloads.init()
     quitter.instance.shutting_down.connect(downloads.shutdown)
 
-    try:
-        log.init.debug("Initializing SQL...")
-        sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
+    with debug.log_time("init", "Initializing SQL/history"):
+        try:
+            log.init.debug("Initializing SQL...")
+            sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
 
-        log.init.debug("Initializing web history...")
-        history.init(q_app)
-    except sql.KnownError as e:
-        error.handle_fatal_exc(e, 'Error initializing SQL',
-                               pre_text='Error initializing SQL',
-                               no_err_windows=args.no_err_windows)
-        sys.exit(usertypes.Exit.err_init)
+            log.init.debug("Initializing web history...")
+            history.init(q_app)
+        except sql.KnownError as e:
+            error.handle_fatal_exc(e, 'Error initializing SQL',
+                                pre_text='Error initializing SQL',
+                                no_err_windows=args.no_err_windows)
+            sys.exit(usertypes.Exit.err_init)
 
     log.init.debug("Initializing command history...")
     cmdhistory.init()
