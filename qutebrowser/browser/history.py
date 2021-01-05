@@ -32,9 +32,15 @@ from qutebrowser.api import cmdutils
 from qutebrowser.utils import utils, log, usertypes, message, qtutils
 from qutebrowser.misc import objects, sql
 
+# Increment for schema changes, or if HistoryCompletion needs to be regenerated.
+#
+# Changes from 0 -> 1 and 1 -> 2:
+# - None (only needs history regeneration)
+#
+# Changes from 2 -> 3:
+# - History cleanup is run
+_USER_VERSION = 3
 
-# increment to indicate that HistoryCompletion must be regenerated
-_USER_VERSION = 2
 web_history = cast('WebHistory', None)
 
 
@@ -165,10 +171,12 @@ class WebHistory(sql.SqlTable):
         # Store the last saved url to avoid duplicate immediate saves.
         self._last_url = None
 
+        version_changed = self._run_migrations()
+
         self.completion = CompletionHistory(parent=self)
         self.metainfo = CompletionMetaInfo(parent=self)
 
-        if sql.Query('pragma user_version').run().value() < _USER_VERSION:
+        if version_changed:
             self.completion.delete_all()
 
         # Get a string of all patterns
@@ -213,6 +221,26 @@ class WebHistory(sql.SqlTable):
         except sql.KnownError as e:
             message.error("Failed to write history: {}".format(e.text()))
 
+    def _run_migrations(self):
+        """Run migrations needed, based on the stored user_version.
+
+        NOTE: This runs before self.completion or self.metainfo are available!
+
+        Return:
+            True if the version changed, False otherwise.
+        """
+        db_version = sql.Query('pragma user_version').run().value()
+        if db_version in [0, 1]:
+            pass  # Only needs completion rebuild which is done in __init__
+        elif db_version == 2:
+            self._cleanup_history()
+        else:
+            assert db_version == _USER_VERSION, db_version
+            return False
+
+        sql.Query(f'PRAGMA user_version = {_USER_VERSION}').run()
+        return True
+
     def _is_excluded_from_completion(self, url):
         """Check if the given URL is excluded from the completion."""
         patterns = config.cache['completion.web_history.exclude']
@@ -229,6 +257,25 @@ class WebHistory(sql.SqlTable):
             (url.scheme() == 'qute' and url.host() == 'back')
         )
 
+    def _cleanup_history(self):
+        """Do a one-time cleanup of the entire history.
+
+        This is run only once after the v2.0.0 upgrade, based on the database's
+        user_version.
+        """
+        q = sql.Query('SELECT url FROM History')
+        entries = list(q.run())
+
+        self._progress.start("Cleaning up history...", len(entries))
+
+        for entry in entries:
+            self._progress.tick()
+            url = QUrl(entry.url)
+            if self._is_excluded_entirely(url):
+                self.delete('url', entry.url)
+
+        self._progress.finish()
+
     def _rebuild_completion(self):
         data: Mapping[str, MutableSequence[str]] = {
             'url': [],
@@ -237,7 +284,7 @@ class WebHistory(sql.SqlTable):
         }
         # select the latest entry for each url
         q = sql.Query('SELECT url, title, max(atime) AS atime FROM History '
-                      'WHERE NOT redirect and url NOT LIKE "qute://back%" '
+                      'WHERE NOT redirect '
                       'GROUP BY url ORDER BY atime asc')
         entries = list(q.run())
 
@@ -256,7 +303,6 @@ class WebHistory(sql.SqlTable):
         self._progress.finish()
 
         self.completion.insert_batch(data, replace=True)
-        sql.Query('pragma user_version = {}'.format(_USER_VERSION)).run()
 
     def get_recent(self):
         """Get the most recent history entries."""
