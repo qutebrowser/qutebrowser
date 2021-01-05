@@ -59,6 +59,7 @@ class HistoryProgress:
         self._progress.setMinimumDuration(0)
         self._progress.setLabelText(text)
         self._progress.setCancelButton(None)
+        self._progress.setAutoClose(False)
         self._progress.show()
         QApplication.processEvents()
 
@@ -265,7 +266,11 @@ class WebHistory(sql.SqlTable):
             'last_atime': []
         }
 
-        self._progress.start("Rebuilding completion...")
+        self._progress.start(
+            "<b>Rebuilding completion...</b><br>"
+            "This is a one-time operation and happens because the database version "
+            "or <i>completion.web_history.exclude</i> was changed."
+        )
 
         # Delete old entries
         self.completion.delete_all()
@@ -291,12 +296,16 @@ class WebHistory(sql.SqlTable):
             data['title'].append(entry.title)
             data['last_atime'].append(entry.atime)
 
-        self._progress.finish()
+        self._progress.set_maximum(0)
 
         # We might have caused fragmentation - let's clean up.
         sql.Query('VACUUM').run()
+        QApplication.processEvents()
 
         self.completion.insert_batch(data, replace=True)
+        QApplication.processEvents()
+
+        self._progress.finish()
 
     def get_recent(self):
         """Get the most recent history entries."""
