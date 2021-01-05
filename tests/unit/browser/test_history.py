@@ -221,6 +221,9 @@ class TestAdd:
 
         (logging.WARNING, 'qute://back', '', []),
         (logging.WARNING, 'a.com', 'qute://back', []),
+
+        (logging.WARNING, 'qute://pdfjs/', '', []),
+        (logging.WARNING, 'a.com', 'qute://pdfjs/', []),
     ])
     def test_from_tab(self, web_history, caplog, mock_time,
                       level, url, req_url, expected):

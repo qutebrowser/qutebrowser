@@ -258,7 +258,7 @@ class WebHistory(sql.SqlTable):
         """
         return (
             url.scheme() in ['data', 'view-source'] or
-            (url.scheme() == 'qute' and url.host() == 'back')
+            (url.scheme() == 'qute' and url.host() in ['back', 'pdfjs'])
         )
 
     def _cleanup_history(self):
@@ -271,6 +271,7 @@ class WebHistory(sql.SqlTable):
             'data:%',
             'view-source:%',
             'qute://back%',
+            'qute://pdfjs%',
         ]
         where_clause = ' OR '.join(f"url LIKE '{term}'" for term in terms)
         q = sql.Query(f'DELETE FROM History WHERE {where_clause}')
