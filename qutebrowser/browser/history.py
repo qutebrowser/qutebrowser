@@ -178,7 +178,10 @@ class WebHistory(sql.SqlTable):
             # - but version changes happen very infrequently, rebuilding everything
             # gives us less corner-cases to deal with, and we can run a VACUUM to make
             # things smaller.
-            self._cleanup_history()
+            #
+            # If no history exists, we skip cleaning it up.
+            if self:
+                self._cleanup_history()
             rebuild_completion = True
 
         # Get a string of all patterns
@@ -189,7 +192,9 @@ class WebHistory(sql.SqlTable):
             self.metainfo['excluded_patterns'] = patterns
             rebuild_completion = True
 
-        if rebuild_completion:
+        if rebuild_completion and self.completion:
+            # If no completion history exists, we don't need to spawn a dialog for
+            # cleaning it up.
             self._rebuild_completion()
 
         self.create_index('HistoryIndex', 'url')
