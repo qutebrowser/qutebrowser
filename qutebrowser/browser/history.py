@@ -51,12 +51,7 @@ class HistoryProgress:
     This makes WebHistory simpler as it can call methods of this class even
     when we don't want to show a progress dialog (for very small imports). This
     means tick() and finish() can be called even when start() wasn't.
-
-    Class attributes:
-        _PROGRESS_THRESHOLD: When to start showing progress dialogs.
     """
-
-    PROGRESS_THRESHOLD = 1000
 
     def __init__(self):
         self._reset()
@@ -65,16 +60,19 @@ class HistoryProgress:
         self._progress = None
         self._value = 0
 
-    def start(self, text, maximum):
-        """Start showing a progress dialog, if needed."""
-        if maximum < self.PROGRESS_THRESHOLD:
-            return
+    def start(self, text):
+        """Start showing a progress dialog."""
         self._progress = QProgressDialog()
-        self._progress.setMinimumDuration(500)
+        self._progress.setMaximum(0)  # unknown
+        self._progress.setMinimumDuration(0)
         self._progress.setLabelText(text)
-        self._progress.setMaximum(maximum)
         self._progress.setCancelButton(None)
         self._progress.show()
+        QApplication.processEvents()
+
+    def set_maximum(self, maximum):
+        """Set the progress maximum as soon as we know about it."""
+        self._progress.setMaximum(maximum)
         QApplication.processEvents()
 
     def tick(self):
@@ -284,13 +282,18 @@ class WebHistory(sql.SqlTable):
             'title': [],
             'last_atime': []
         }
+
+        self._progress.start("Rebuilding completion...")
+
         # select the latest entry for each url
         q = sql.Query('SELECT url, title, max(atime) AS atime FROM History '
                       'WHERE NOT redirect '
                       'GROUP BY url ORDER BY atime asc')
-        entries = list(q.run())
+        result = q.run()
+        QApplication.processEvents()
+        entries = list(result)
 
-        self._progress.start("Rebuilding completion...", len(entries))
+        self._progress.set_maximum(len(entries))
 
         for entry in entries:
             self._progress.tick()

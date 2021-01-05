@@ -450,22 +450,17 @@ class TestRebuild:
             ('http://example.org', '', 2)
         ]
 
-    @pytest.mark.parametrize('patch_threshold', [True, False])
-    def test_progress(self, web_history, config_stub, monkeypatch, stubs,
-                      patch_threshold):
+    def test_progress(self, web_history, config_stub, stubs):
         web_history.add_url(QUrl('example.com/1'), redirect=False, atime=1)
         web_history.add_url(QUrl('example.com/2'), redirect=False, atime=2)
         # Change cached patterns to trigger a completion rebuild
         web_history.metainfo['excluded_patterns'] = 'http://example.org'
 
-        if patch_threshold:
-            monkeypatch.setattr(history.WebHistory, '_PROGRESS_THRESHOLD', 1)
-
         progress = stubs.FakeHistoryProgress()
         history.WebHistory(progress=progress)
         assert progress._value == 2
+        assert progress._started
         assert progress._finished
-        assert progress._started == patch_threshold
 
 
 class TestCompletionMetaInfo:
@@ -512,12 +507,13 @@ class TestHistoryProgress:
     def test_no_start(self, progress):
         """Test calling tick/finish without start."""
         progress.tick()
+        assert progress._value == 1
         progress.finish()
         assert progress._progress is None
-        assert progress._value == 1
+        assert progress._value == 0
 
     def test_gui(self, qtbot, progress):
-        progress.start("Hello World", 42)
+        progress.start("Hello World")
         dialog = progress._progress
         qtbot.add_widget(dialog)
         progress.tick()
@@ -525,9 +521,12 @@ class TestHistoryProgress:
         assert dialog.isVisible()
         assert dialog.labelText() == "Hello World"
         assert dialog.minimum() == 0
-        assert dialog.maximum() == 42
         assert dialog.value() == 1
-        assert dialog.minimumDuration() == 500
+        assert dialog.minimumDuration() == 0
+
+        assert dialog.maximum() == 0
+        progress.set_maximum(42)
+        assert dialog.maximum() == 42
 
         progress.finish()
         assert not dialog.isVisible()
