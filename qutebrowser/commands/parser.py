@@ -20,7 +20,6 @@
 """Module for parsing commands entered into the browser."""
 
 import attr
-from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
 from qutebrowser.commands import cmdexc
 from qutebrowser.misc import split, objects
