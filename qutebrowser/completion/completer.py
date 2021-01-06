@@ -23,7 +23,7 @@ import attr
 from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
-from qutebrowser.commands import runners
+from qutebrowser.commands import parser
 from qutebrowser.misc import objects
 from qutebrowser.utils import log, utils, debug, objreg
 from qutebrowser.completion.models import miscmodels
@@ -135,8 +135,7 @@ class Completer(QObject):
         if not text or not text.strip():
             # Only ":", empty part under the cursor with nothing before/after
             return [], '', []
-        parser = runners.CommandParser()
-        result = parser.parse(text, fallback=True, keep=True)
+        result = parser.CommandParser().parse(text, fallback=True, keep=True)
         parts = [x for x in result.cmdline if x]
         pos = self._cmd.cursorPosition() - len(self._cmd.prefix())
         pos = min(pos, len(text))  # Qt treats 2-byte UTF-16 chars as 2 chars

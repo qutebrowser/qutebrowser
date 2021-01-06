@@ -27,7 +27,7 @@ from typing import (TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Mapping,
 
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
-from qutebrowser.commands import cmdexc, runners
+from qutebrowser.commands import cmdexc, parser
 from qutebrowser.config import configdata, configexc, configutils
 from qutebrowser.utils import utils, log, urlmatch
 from qutebrowser.misc import objects
@@ -166,7 +166,8 @@ class KeyConfig:
     def _implied_cmd(self, cmdline: str) -> Optional[str]:
         """Return cmdline, or the implied cmd if cmdline is a set-cmd-text."""
         try:
-            results = runners.CommandParser().parse_all(cmdline, aliases=False)
+            results = parser.CommandParser().parse_all(
+                cmdline, aliases=cache['aliases'])
         except cmdexc.NoSuchCommandError:
             return None
 
@@ -193,8 +194,8 @@ class KeyConfig:
         cmd_to_keys: KeyConfig._ReverseBindings = {}
         bindings = self.get_bindings_for(mode)
         for seq, full_cmd in sorted(bindings.items()):
-            for cmd in full_cmd.split(';;'):
-                cmd = self._implied_cmd(cmd.strip())
+            for cmdtext in full_cmd.split(';;'):
+                cmd = self._implied_cmd(cmdtext.strip())
                 if not cmd:
                     continue
                 cmd_to_keys.setdefault(cmd, [])
