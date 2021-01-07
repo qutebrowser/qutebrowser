@@ -171,8 +171,6 @@ class KeyConfig:
         except cmdexc.NoSuchCommandError:
             return None
 
-        if not results:
-            return None
         result = results[0]
         if result.cmd.name != "set-cmd-text":
             return cmdline

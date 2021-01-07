@@ -218,6 +218,8 @@ class TestKeyConfig:
                 "open {url:pretty}": ["go"],
             }
         ),
+        # Empty/unknown commands
+        ({"a": "", "b": "notreal"}, {}),
     ])
     def test_get_reverse_bindings_for(self, key_config_stub, config_stub,
                                       no_bindings, bindings, expected):
