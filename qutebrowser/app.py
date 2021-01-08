@@ -136,7 +136,7 @@ def qt_mainloop():
     WARNING: misc/crashdialog.py checks the stacktrace for this function
     name, so if this is changed, it should be changed there as well!
     """
-    return q_app.exec_()
+    return q_app.exec()
 
 
 def init(*, args: argparse.Namespace) -> None:

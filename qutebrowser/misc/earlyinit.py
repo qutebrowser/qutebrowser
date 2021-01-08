@@ -95,7 +95,7 @@ def _die(message, exception=None):
                              message)
         msgbox.setTextFormat(Qt.RichText)
         msgbox.resize(msgbox.sizeHint())
-        msgbox.exec_()
+        msgbox.exec()
     app.quit()
     sys.exit(1)
 

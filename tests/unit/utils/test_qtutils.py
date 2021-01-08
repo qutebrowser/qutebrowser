@@ -920,14 +920,14 @@ class TestEventLoop:
     def _double_exec(self):
         """Slot which gets called from timers to assert double-exec fails."""
         with pytest.raises(AssertionError):
-            self.loop.exec_()
+            self.loop.exec()
 
     def test_normal_exec(self):
         """Test exec_ without double-executing."""
         self.loop = qtutils.EventLoop()
         QTimer.singleShot(100, self._assert_executing)
         QTimer.singleShot(200, self.loop.quit)
-        self.loop.exec_()
+        self.loop.exec()
         assert not self.loop._executing
 
     def test_double_exec(self):
@@ -937,7 +937,7 @@ class TestEventLoop:
         QTimer.singleShot(200, self._double_exec)
         QTimer.singleShot(300, self._assert_executing)
         QTimer.singleShot(400, self.loop.quit)
-        self.loop.exec_()
+        self.loop.exec()
         assert not self.loop._executing
 
 

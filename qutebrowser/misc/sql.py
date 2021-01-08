@@ -211,7 +211,7 @@ class Query:
         self._bind_values(values)
         log.sql.debug('query bindings: {}'.format(self.bound_values()))
 
-        ok = self.query.exec_()
+        ok = self.query.exec()
         self._check_ok('exec', ok)
 
         return self

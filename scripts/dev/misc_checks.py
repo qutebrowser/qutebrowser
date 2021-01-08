@@ -198,6 +198,22 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             "Don't use monkeypatch.setattr('obj.attr', value), use "
             "setattr(obj, 'attr', value) instead.",
         ),
+        (
+            re.compile(r'(exec|print)_\('),
+            ".exec_()/.print_() are removed in PyQt 6, use .exec()/.print() instead.",
+        ),
+        (
+            re.compile(r'qApp'),
+            "qApp is removed in PyQt 6, use QApplication.instance() instead.",
+        ),
+        (
+            re.compile(r'PYQT_CONFIGURATION'),
+            "PYQT_CONFIGURATION is removed in PyQt 6",
+        ),
+        (
+            re.compile(r'Q_(ENUM|FLAG)'),
+            "Q_ENUM and Q_FLAG are removed in PyQt 6",
+        ),
     ]
 
     # Files which should be ignored, e.g. because they come from another

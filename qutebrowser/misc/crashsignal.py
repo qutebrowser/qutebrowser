@@ -295,7 +295,7 @@ class CrashHandler(QObject):
             self._crash_dialog = crashdialog.ExceptionCrashDialog(
                 self._args.debug, info.pages, info.cmd_history, exc,
                 info.objects)
-            ret = self._crash_dialog.exec_()
+            ret = self._crash_dialog.exec()
             if ret == crashdialog.Result.restore:
                 self._quitter.restart(info.pages)
 

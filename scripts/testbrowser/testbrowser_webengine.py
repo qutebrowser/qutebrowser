@@ -48,4 +48,4 @@ if __name__ == '__main__':
     wv.load(QUrl.fromUserInput(args.url))
     wv.show()
 
-    app.exec_()
+    app.exec()

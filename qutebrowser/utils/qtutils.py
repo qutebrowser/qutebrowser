@@ -450,14 +450,14 @@ class EventLoop(QEventLoop):
 
     """A thin wrapper around QEventLoop.
 
-    Raises an exception when doing exec_() multiple times.
+    Raises an exception when doing exec() multiple times.
     """
 
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
         self._executing = False
 
-    def exec_(
+    def exec(
             self,
             flags: QEventLoop.ProcessEventsFlags =
             cast(QEventLoop.ProcessEventsFlags, QEventLoop.AllEvents)
@@ -466,7 +466,7 @@ class EventLoop(QEventLoop):
         if self._executing:
             raise AssertionError("Eventloop is already running!")
         self._executing = True
-        status = super().exec_(flags)
+        status = super().exec(flags)
         self._executing = False
         return status
 

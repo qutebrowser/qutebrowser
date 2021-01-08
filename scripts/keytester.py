@@ -30,4 +30,4 @@ from qutebrowser.misc import miscwidgets
 app = QApplication([])
 w = miscwidgets.KeyTesterWidget()
 w.show()
-app.exec_()
+app.exec()

@@ -259,7 +259,7 @@ class AbstractPrinting:
         diag = QPrintDialog(self._tab)
         if utils.is_mac:
             # For some reason we get a segfault when using open() on macOS
-            ret = diag.exec_()
+            ret = diag.exec()
             if ret == QDialog.Accepted:
                 do_print()
         else:

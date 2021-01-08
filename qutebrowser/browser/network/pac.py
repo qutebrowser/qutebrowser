@@ -301,7 +301,7 @@ class PACFetcher(QObject):
         if self._manager is not None:
             loop = qtutils.EventLoop()
             self.finished.connect(loop.quit)
-            loop.exec_()
+            loop.exec()
 
     def fetch_error(self):
         """Check if PAC script is successfully fetched.

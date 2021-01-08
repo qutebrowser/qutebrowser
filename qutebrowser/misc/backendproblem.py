@@ -180,7 +180,7 @@ class _BackendProblemChecker:
 
         dialog = _Dialog(*args, **kwargs)
 
-        status = dialog.exec_()
+        status = dialog.exec()
         self._save_manager.save_all(is_exit=True)
 
         if status in [_Result.quit, QDialog.Rejected]:
@@ -338,7 +338,7 @@ class _BackendProblemChecker:
                                    text="Could not initialize SSL support.",
                                    icon=QMessageBox.Critical,
                                    plain_text=False)
-            errbox.exec_()
+            errbox.exec()
             sys.exit(usertypes.Exit.err_init)
 
         assert not fatal
@@ -364,7 +364,7 @@ class _BackendProblemChecker:
                                    text=text,
                                    icon=QMessageBox.Critical,
                                    plain_text=False)
-            errbox.exec_()
+            errbox.exec()
             sys.exit(usertypes.Exit.err_init)
         elif objects.backend == usertypes.Backend.QtWebKit:
             if imports.webkit_available:

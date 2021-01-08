@@ -80,7 +80,7 @@ def _print_preview(tab: apitypes.Tab) -> None:
         Qt.WindowMinimizeButtonHint)
     diag.paintRequested.connect(functools.partial(
         tab.printing.to_printer, callback=print_callback))
-    diag.exec_()
+    diag.exec()
 
 
 def _print_pdf(tab: apitypes.Tab, filename: str) -> None:
