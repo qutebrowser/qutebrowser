@@ -325,7 +325,7 @@ def test_launching_with_old_python(python):
     except FileNotFoundError:
         pytest.skip(f"{python} not found")
     assert proc.returncode == 1
-    error = "At least Python 3.6 is required to run qutebrowser"
+    error = "At least Python 3.6.1 is required to run qutebrowser"
     assert proc.stderr.decode('ascii').startswith(error)
 
 
