@@ -102,7 +102,7 @@ jobs:
         include:
           ### PyQt 5.12 (Python 3.6)
           - testenv: py36-pyqt512
-            os: ubuntu-20.04
+            os: ubuntu-18.04
             python: 3.6
           ### PyQt 5.13 (Python 3.7)
           - testenv: py37-pyqt513
