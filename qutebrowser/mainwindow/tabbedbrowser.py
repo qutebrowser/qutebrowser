@@ -990,20 +990,31 @@ class TabbedBrowser(QWidget):
                 self._local_marks[url] = {}
             self._local_marks[url][key] = point
 
+    def _list_local_marks(self):
+        try:
+            # consider urls that differ only in fragment to be identical
+            urlkey = self.current_url().adjusted(QUrl.RemoveFragment)
+            return self._local_marks.get(urlkey, {})
+        except qtutils.QtValueError:
+            return {}
+
+    def list_local_marks_perc(self):
+        """List local marks for the current URL as map of key to scroll%."""
+        marks = self._list_local_marks()
+        scroller = self.widget.currentWidget().scroller
+        return {
+            key: scroller.pos_to_perc(val) for key, val in marks.items()
+        }
+
     def jump_mark(self, key):
         """Jump to the mark named by `key`.
 
         Args:
             key: mark identifier; capital indicates a global mark
         """
-        try:
-            # consider urls that differ only in fragment to be identical
-            urlkey = self.current_url().adjusted(QUrl.RemoveFragment)
-        except qtutils.QtValueError:
-            urlkey = None
-
         tab = self.widget.currentWidget()
 
+        # global mark
         if key.isupper():
             if key in self._global_marks:
                 point, url = self._global_marks[key]
@@ -1018,10 +1029,17 @@ class TabbedBrowser(QWidget):
                 self.cur_load_finished.connect(callback)
             else:
                 message.error("Mark {} is not set".format(key))
-        elif urlkey is None:
+            return
+
+        # local mark
+        try:
+            marks = self._list_local_marks()
+        except qtutils.QtValueError:
             message.error("Current URL is invalid!")
-        elif urlkey in self._local_marks and key in self._local_marks[urlkey]:
-            point = self._local_marks[urlkey][key]
+            marks = {}
+
+        if key in marks:
+            point = marks[key]
 
             # save the pre-jump position in the special ' mark
             # this has to happen after we read the mark, otherwise jump_mark

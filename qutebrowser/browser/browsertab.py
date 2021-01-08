@@ -603,6 +603,9 @@ class AbstractScroller(QObject):
     def at_bottom(self) -> bool:
         raise NotImplementedError
 
+    def pos_to_perc(self, pos: QPoint) -> QPoint:
+        raise NotImplementedError
+
 
 class AbstractHistoryPrivate:
 
