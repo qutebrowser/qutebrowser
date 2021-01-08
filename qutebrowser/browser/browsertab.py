@@ -38,14 +38,10 @@ if TYPE_CHECKING:
     from PyQt5.QtWebKitWidgets import QWebPage
     from PyQt5.QtWebEngineWidgets import QWebEngineHistory, QWebEnginePage
 
-import pygments
-import pygments.lexers
-import pygments.formatters
-
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
-                               urlutils, message)
+                               urlutils, message, jinja)
 from qutebrowser.misc import miscwidgets, objects, sessions
 from qutebrowser.browser import eventfilter, inspector
 from qutebrowser.qt import sip
@@ -177,30 +173,52 @@ class AbstractAction:
             raise WebTabError("{} is not a valid web action!".format(name))
         self._widget.triggerPageAction(member)
 
-    def show_source(
-            self,
-            pygments: bool = False  # pylint: disable=redefined-outer-name
-    ) -> None:
+    def show_source(self, pygments: bool = False) -> None:
         """Show the source of the current page in a new tab."""
         raise NotImplementedError
+
+    def _show_html_source(self, html: str) -> None:
+        """Show the given HTML as source page."""
+        tb = objreg.get('tabbed-browser', scope='window', window=self._tab.win_id)
+        new_tab = tb.tabopen(background=False, related=True)
+        new_tab.set_html(html, self._tab.url())
+        new_tab.data.viewing_source = True
+
+    def _show_source_fallback(self, source: str) -> None:
+        """Show source with pygments unavailable."""
+        html = jinja.render(
+            'pre.html',
+            title='Source',
+            content=source,
+            preamble="Note: The optional Pygments dependency wasn't found - "
+            "showing unhighlighted source.",
+        )
+        self._show_html_source(html)
 
     def _show_source_pygments(self) -> None:
 
         def show_source_cb(source: str) -> None:
             """Show source as soon as it's ready."""
-            # WORKAROUND for https://github.com/PyCQA/pylint/issues/491
-            # pylint: disable=no-member
-            lexer = pygments.lexers.HtmlLexer()
-            formatter = pygments.formatters.HtmlFormatter(
-                full=True, linenos='table')
-            # pylint: enable=no-member
-            highlighted = pygments.highlight(source, lexer, formatter)
+            try:
+                import pygments
+                import pygments.lexers
+                import pygments.formatters
+            except ImportError:
+                # Pygments is an optional dependency
+                self._show_source_fallback(source)
+                return
 
-            tb = objreg.get('tabbed-browser', scope='window',
-                            window=self._tab.win_id)
-            new_tab = tb.tabopen(background=False, related=True)
-            new_tab.set_html(highlighted, self._tab.url())
-            new_tab.data.viewing_source = True
+            try:
+                lexer = pygments.lexers.HtmlLexer()
+                formatter = pygments.formatters.HtmlFormatter(
+                    full=True, linenos='table')
+            except AttributeError:
+                # Remaining namespace package from Pygments
+                self._show_source_fallback(source)
+                return
+
+            html = pygments.highlight(source, lexer, formatter)
+            self._show_html_source(html)
 
         self._tab.dump_async(show_source_cb)
 

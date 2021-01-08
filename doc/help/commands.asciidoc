@@ -1515,6 +1515,7 @@ Show the source of the current page in a new tab.
 * +*-p*+, +*--pygments*+: Use pygments to generate the view. This is always the case for QtWebKit. For QtWebEngine it may display
  slightly different source.
  Some JavaScript processing may be applied.
+ Needs the optional Pygments dependency for highlighting.
 
 
 [[window-only]]

@@ -1343,6 +1343,7 @@ class CommandDispatcher:
                       the case for QtWebKit. For QtWebEngine it may display
                       slightly different source.
                       Some JavaScript processing may be applied.
+                      Needs the optional Pygments dependency for highlighting.
         """
         tab = self._current_widget()
         try:

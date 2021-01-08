@@ -1,10 +1,12 @@
 Jinja2
-Pygments
 pyPEG2
 PyYAML
-colorama
 attrs
-adblock  # Optional, for improved adblocking
 importlib-resources
+
+## Optional dependencies
+Pygments  # For :view-source --pygments or on QtWebKit
+colorama  # Colored log output on Windows
+adblock  # Improved adblocking
 
 #@ markers: importlib-resources python_version<"3.9"

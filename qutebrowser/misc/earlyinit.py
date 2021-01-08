@@ -228,7 +228,6 @@ def check_libraries():
         'pkg_resources': _missing_str("pkg_resources/setuptools"),
         'pypeg2': _missing_str("pypeg2"),
         'jinja2': _missing_str("jinja2"),
-        'pygments': _missing_str("pygments"),
         'yaml': _missing_str("PyYAML"),
         'attr': _missing_str("attrs"),
         'PyQt5.QtQml': _missing_str("PyQt5.QtQml"),
