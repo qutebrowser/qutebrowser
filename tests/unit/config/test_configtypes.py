@@ -26,7 +26,7 @@ import warnings
 import inspect
 import functools
 
-import attr
+import dataclasses
 import pytest
 import hypothesis
 from hypothesis import strategies
@@ -1350,14 +1350,14 @@ class TestQssColor:
             klass().to_py(val)
 
 
-@attr.s
+@dataclasses.dataclass
 class FontDesc:
 
-    style = attr.ib()
-    weight = attr.ib()
-    pt = attr.ib()
-    px = attr.ib()
-    family = attr.ib()
+    style: QFont.Style
+    weight: QFont.Weight
+    pt: int
+    px: int
+    family: str
 
 
 class TestFont:

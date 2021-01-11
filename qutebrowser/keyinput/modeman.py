@@ -22,7 +22,7 @@
 import functools
 from typing import Mapping, Callable, MutableMapping, Union, Set, cast
 
-import attr
+import dataclasses
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
 from PyQt5.QtGui import QKeyEvent
 
@@ -40,7 +40,7 @@ PROMPT_MODES = [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]
 ParserDictType = MutableMapping[usertypes.KeyMode, basekeyparser.BaseKeyParser]
 
 
-@attr.s(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class KeyEvent:
 
     """A small wrapper over a QKeyEvent storing its data.
@@ -54,8 +54,8 @@ class KeyEvent:
         text: A string (QKeyEvent::text).
     """
 
-    key: Qt.Key = attr.ib()
-    text: str = attr.ib()
+    key: Qt.Key
+    text: str
 
     @classmethod
     def from_event(cls, event: QKeyEvent) -> 'KeyEvent':

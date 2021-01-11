@@ -21,7 +21,7 @@
 
 from typing import Any, Mapping, Optional, Sequence, Union
 
-import attr
+import dataclasses
 from qutebrowser.utils import usertypes, log
 
 
@@ -105,7 +105,7 @@ class NoOptionError(Error):
         self.option = option
 
 
-@attr.s
+@dataclasses.dataclass
 class ConfigErrorDesc:
 
     """A description of an error happening while reading the config.
@@ -116,9 +116,9 @@ class ConfigErrorDesc:
         traceback: The formatted traceback of the exception.
     """
 
-    text: str = attr.ib()
-    exception: Union[str, Exception] = attr.ib()
-    traceback: str = attr.ib(None)
+    text: str
+    exception: Union[str, Exception]
+    traceback: Optional[str] = None
 
     def __str__(self) -> str:
         if self.traceback:

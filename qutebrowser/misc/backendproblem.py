@@ -26,9 +26,9 @@ import html
 import enum
 import shutil
 import argparse
-from typing import Any, List, Sequence, Tuple
+from typing import Any, List, Sequence, Tuple, Optional
 
-import attr
+import dataclasses
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QDialog, QPushButton, QHBoxLayout, QVBoxLayout, QLabel,
                              QMessageBox, QWidget)
@@ -50,15 +50,15 @@ class _Result(enum.IntEnum):
     restart_webengine = QDialog.Accepted + 4
 
 
-@attr.s
+@dataclasses.dataclass
 class _Button:
 
     """A button passed to BackendProblemDialog."""
 
-    text: str = attr.ib()
-    setting: str = attr.ib()
-    value: Any = attr.ib()
-    default: bool = attr.ib(default=False)
+    text: str
+    setting: str
+    value: Any
+    default: bool = False
 
 
 def _other_backend(backend: usertypes.Backend) -> Tuple[usertypes.Backend, str]:
@@ -150,15 +150,15 @@ class _Dialog(QDialog):
             self.done(_Result.restart)
 
 
-@attr.s
+@dataclasses.dataclass
 class _BackendImports:
 
     """Whether backend modules could be imported."""
 
-    webkit_available: bool = attr.ib(default=None)
-    webengine_available: bool = attr.ib(default=None)
-    webkit_error: str = attr.ib(default=None)
-    webengine_error: str = attr.ib(default=None)
+    webkit_available: Optional[bool] = None
+    webengine_available: Optional[bool] = None
+    webkit_error: Optional[str] = None
+    webengine_error: Optional[str] = None
 
 
 class _BackendProblemChecker:

@@ -26,7 +26,7 @@ import os.path
 import socket
 from http import HTTPStatus
 
-import attr
+import dataclasses
 import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl
 
@@ -100,13 +100,13 @@ class Request(testprocess.Line):
         return NotImplemented
 
 
-@attr.s(frozen=True, eq=False, hash=True)
+@dataclasses.dataclass(frozen=True)
 class ExpectedRequest:
 
     """Class to compare expected requests easily."""
 
-    verb = attr.ib()
-    path = attr.ib()
+    verb: str
+    path: int
 
     @classmethod
     def from_request(cls, request):

@@ -34,7 +34,7 @@ import types
 import mimetypes
 import os.path
 
-import attr
+import dataclasses
 import pytest
 import py.path  # pylint: disable=no-name-in-module
 from PyQt5.QtCore import QSize, Qt
@@ -87,12 +87,12 @@ class WinRegistryHelper:
 
     """Helper class for win_registry."""
 
-    @attr.s
+    @dataclasses.dataclass
     class FakeWindow:
 
         """A fake window object for the registry."""
 
-        registry = attr.ib()
+        registry: objreg.ObjectRegistry
 
         def windowTitle(self):
             return 'window title - qutebrowser'
@@ -276,11 +276,11 @@ def web_tab(request):
 
 def _generate_cmdline_tests():
     """Generate testcases for test_split_binding."""
-    @attr.s
+    @dataclasses.dataclass
     class TestCase:
 
-        cmd = attr.ib()
-        valid = attr.ib()
+        cmd: str
+        valid: bool
 
     separators = [';;', ' ;; ', ';; ', ' ;;']
     invalid = ['foo', '']

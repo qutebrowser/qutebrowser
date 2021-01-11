@@ -23,11 +23,13 @@
 """Data used by test_keyutils.py to test all keys."""
 
 
-import attr
+import dataclasses
+from typing import Optional
+
 from PyQt5.QtCore import Qt
 
 
-@attr.s
+@dataclasses.dataclass
 class Key:
 
     """A key with expected values.
@@ -40,21 +42,21 @@ class Key:
         member: The numeric value.
     """
 
-    attribute = attr.ib()
-    name = attr.ib(None)
-    text = attr.ib('')
-    uppertext = attr.ib('')
-    member = attr.ib(None)
-    qtest = attr.ib(True)
+    attribute: str
+    name: Optional[str] = None
+    text: str = ''
+    uppertext: str = ''
+    member: Optional[int] = None
+    qtest: bool = True
 
-    def __attrs_post_init__(self):
+    def __post_init__(self):
         if self.attribute:
             self.member = getattr(Qt, 'Key_' + self.attribute, None)
         if self.name is None:
             self.name = self.attribute
 
 
-@attr.s
+@dataclasses.dataclass
 class Modifier:
 
     """A modifier with expected values.
@@ -66,11 +68,11 @@ class Modifier:
         member: The numeric value.
     """
 
-    attribute = attr.ib()
-    name = attr.ib(None)
-    member = attr.ib(None)
+    attribute: str
+    name: Optional[str] = None
+    member: Optional[int] = None
 
-    def __attrs_post_init__(self):
+    def __post_init__(self):
         self.member = getattr(Qt, self.attribute + 'Modifier')
         if self.name is None:
             self.name = self.attribute

@@ -19,7 +19,9 @@
 
 """Tests for webelement.tabhistory."""
 
-import attr
+import dataclasses
+from typing import Any
+
 from PyQt5.QtCore import QUrl, QPoint
 import pytest
 
@@ -50,11 +52,11 @@ ITEMS = [
 ]
 
 
-@attr.s
+@dataclasses.dataclass
 class Objects:
 
-    history = attr.ib()
-    user_data = attr.ib()
+    history: Any  # FIXME
+    user_data: Any  # FIXME
 
 
 @pytest.fixture

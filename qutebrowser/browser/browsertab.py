@@ -25,7 +25,7 @@ import functools
 from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional,
                     Sequence, Set, Type, Union)
 
-import attr
+import dataclasses
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
                           QEvent, QPoint)
 from PyQt5.QtGui import QKeyEvent, QIcon
@@ -108,7 +108,7 @@ class TerminationStatus(enum.Enum):
     killed = 3
 
 
-@attr.s
+@dataclasses.dataclass
 class TabData:
 
     """A simple namespace with a fixed set of attributes.
@@ -130,17 +130,17 @@ class TabData:
         splitter: InspectorSplitter used to show inspector inside the tab.
     """
 
-    keep_icon: bool = attr.ib(False)
-    viewing_source: bool = attr.ib(False)
-    inspector: Optional['AbstractWebInspector'] = attr.ib(None)
-    open_target: usertypes.ClickTarget = attr.ib(usertypes.ClickTarget.normal)
-    override_target: Optional[usertypes.ClickTarget] = attr.ib(None)
-    pinned: bool = attr.ib(False)
-    fullscreen: bool = attr.ib(False)
-    netrc_used: bool = attr.ib(False)
-    input_mode: usertypes.KeyMode = attr.ib(usertypes.KeyMode.normal)
-    last_navigation: usertypes.NavigationRequest = attr.ib(None)
-    splitter: miscwidgets.InspectorSplitter = attr.ib(None)
+    keep_icon: bool = False
+    viewing_source: bool = False
+    inspector: Optional['AbstractWebInspector'] = None
+    open_target: usertypes.ClickTarget = usertypes.ClickTarget.normal
+    override_target: Optional[usertypes.ClickTarget] = None
+    pinned: bool = False
+    fullscreen: bool = False
+    netrc_used: bool = False
+    input_mode: usertypes.KeyMode = usertypes.KeyMode.normal
+    last_navigation: Optional[usertypes.NavigationRequest] = None
+    splitter: Optional[miscwidgets.InspectorSplitter] = None
 
     def should_show_icon(self) -> bool:
         return (config.val.tabs.favicons.show == 'always' or

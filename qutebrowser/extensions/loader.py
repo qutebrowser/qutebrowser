@@ -27,7 +27,7 @@ import importlib
 import argparse
 from typing import Callable, Iterator, List, Optional, Set, Tuple
 
-import attr
+import dataclasses
 
 from PyQt5.QtCore import pyqtSlot
 
@@ -41,17 +41,17 @@ from qutebrowser.misc import objects
 _module_infos = []
 
 
-@attr.s
+@dataclasses.dataclass
 class InitContext:
 
     """Context an extension gets in its init hook."""
 
-    data_dir: pathlib.Path = attr.ib()
-    config_dir: pathlib.Path = attr.ib()
-    args: argparse.Namespace = attr.ib()
+    data_dir: pathlib.Path
+    config_dir: pathlib.Path
+    args: argparse.Namespace
 
 
-@attr.s
+@dataclasses.dataclass
 class ModuleInfo:
 
     """Information attached to an extension module.
@@ -61,17 +61,17 @@ class ModuleInfo:
 
     _ConfigChangedHooksType = List[Tuple[Optional[str], Callable]]
 
-    skip_hooks: bool = attr.ib(False)
-    init_hook: Optional[Callable] = attr.ib(None)
-    config_changed_hooks: _ConfigChangedHooksType = attr.ib(attr.Factory(list))
+    skip_hooks: bool = False
+    init_hook: Optional[Callable] = None
+    config_changed_hooks: _ConfigChangedHooksType = dataclasses.field(default_factory=list)
 
 
-@attr.s
+@dataclasses.dataclass
 class ExtensionInfo:
 
     """Information about a qutebrowser extension."""
 
-    name: str = attr.ib()
+    name: str
 
 
 def add_module_info(module: types.ModuleType) -> ModuleInfo:

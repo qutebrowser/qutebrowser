@@ -29,9 +29,9 @@ import argparse
 import functools
 import threading
 import faulthandler
-from typing import TYPE_CHECKING, Optional, MutableMapping, cast
+from typing import TYPE_CHECKING, Optional, MutableMapping, cast, List
+import dataclasses
 
-import attr
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
 from PyQt5.QtWidgets import QApplication
@@ -44,14 +44,14 @@ if TYPE_CHECKING:
     from qutebrowser.misc import quitter
 
 
-@attr.s
+@dataclasses.dataclass
 class ExceptionInfo:
 
     """Information stored when there was an exception."""
 
-    pages = attr.ib()
-    cmd_history = attr.ib()
-    objects = attr.ib()
+    pages: List[List[str]]
+    cmd_history: List[str]
+    objects: str
 
 
 crash_handler = cast('CrashHandler', None)

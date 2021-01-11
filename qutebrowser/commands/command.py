@@ -23,9 +23,8 @@ import inspect
 import collections
 import traceback
 import typing
-from typing import Any, MutableMapping, MutableSequence, Tuple, Union
-
-import attr
+from typing import Any, MutableMapping, MutableSequence, Tuple, Union, List, Optional
+import dataclasses
 
 from qutebrowser.api import cmdutils
 from qutebrowser.commands import cmdexc, argparser
@@ -34,17 +33,17 @@ from qutebrowser.utils import debug as debug_utils
 from qutebrowser.misc import objects
 
 
-@attr.s
+@dataclasses.dataclass
 class ArgInfo:
 
     """Information about an argument."""
 
-    value = attr.ib(None)
-    hide = attr.ib(False)
-    metavar = attr.ib(None)
-    flag = attr.ib(None)
-    completion = attr.ib(None)
-    choices = attr.ib(None)
+    value: Optional[usertypes.CommandValue] = None
+    hide: bool = False
+    metavar: Optional[str] = None
+    flag: Optional[str] = None
+    completion: Any = None   # FIXME
+    choices: List[str] = None
 
 
 class Command:

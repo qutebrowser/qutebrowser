@@ -24,7 +24,7 @@ import argparse
 import functools
 from typing import Any, Callable, Dict, Optional
 
-import attr
+import dataclasses
 from PyQt5.QtCore import QUrl, pyqtSlot, qVersion
 from PyQt5.QtGui import QFont
 
@@ -36,16 +36,16 @@ from qutebrowser.misc import objects, debugcachestats
 UNSET = object()
 
 
-@attr.s
+@dataclasses.dataclass
 class UserAgent:
 
     """A parsed user agent."""
 
-    os_info: str = attr.ib()
-    webkit_version: str = attr.ib()
-    upstream_browser_key: str = attr.ib()
-    upstream_browser_version: str = attr.ib()
-    qt_key: str = attr.ib()
+    os_info: str
+    webkit_version: str
+    upstream_browser_key: str
+    upstream_browser_version: str
+    qt_key: str
 
     @classmethod
     def parse(cls, ua: str) -> 'UserAgent':

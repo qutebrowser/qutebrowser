@@ -22,17 +22,17 @@
 import time
 from typing import Any, Callable, Mapping, Optional, Sequence
 
-import attr
+import dataclasses
 from PyQt5.QtCore import QObject
 
 from qutebrowser.utils import usertypes
 
 
-@attr.s
+@dataclasses.dataclass
 class _CallArgs:
 
-    args: Sequence[Any] = attr.ib()
-    kwargs: Mapping[str, Any] = attr.ib()
+    args: Sequence[Any]
+    kwargs: Mapping[str, Any]
 
 
 class Throttle(QObject):

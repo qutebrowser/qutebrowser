@@ -21,7 +21,7 @@
 
 import logging
 
-import attr
+import dataclasses
 import pytest
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 
@@ -46,11 +46,11 @@ class Signaller(QObject):
         self.filtered_signal_arg = s
 
 
-@attr.s
+@dataclasses.dataclass
 class Objects:
 
-    signal_filter = attr.ib()
-    signaller = attr.ib()
+    signal_filter: signalfilter.SignalFilter
+    signaller: Signaller
 
 
 @pytest.fixture

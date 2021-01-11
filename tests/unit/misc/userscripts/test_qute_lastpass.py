@@ -23,7 +23,7 @@ import json
 from types import SimpleNamespace
 from unittest.mock import ANY, call
 
-import attr
+import dataclasses
 import pytest
 
 from helpers import utils
@@ -41,10 +41,15 @@ default_lpass_match = [
 ]
 
 
-@attr.s
+@dataclasses.dataclass
 class FakeOutput:
-    stdout = attr.ib(default='', converter=str.encode)
-    stderr = attr.ib(default='', converter=str.encode)
+    stdout: str = ''
+    stderr: str = ''
+
+    def __post_init__(self):
+        # FIXME
+        self.stdout = self.stdout.encode()
+        self.stderr = self.stderr.encode()
 
 
 @pytest.fixture

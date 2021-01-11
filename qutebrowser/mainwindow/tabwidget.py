@@ -23,7 +23,7 @@ import functools
 import contextlib
 from typing import Optional, cast
 
-import attr
+import dataclasses
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint,
                           QTimer, QUrl)
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
@@ -712,7 +712,7 @@ class TabBar(QTabBar):
             tabbed_browser.wheelEvent(e)
 
 
-@attr.s
+@dataclasses.dataclass
 class Layouts:
 
     """Layout information for tab.
@@ -720,9 +720,9 @@ class Layouts:
     Used by TabBarStyle._tab_layout().
     """
 
-    text = attr.ib()
-    icon = attr.ib()
-    indicator = attr.ib()
+    text: QRect
+    icon: QRect
+    indicator: QRect
 
 
 class TabBarStyle(QCommonStyle):

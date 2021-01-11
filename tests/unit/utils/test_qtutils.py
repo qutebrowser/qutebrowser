@@ -26,7 +26,7 @@ import os.path
 import unittest
 import unittest.mock
 
-import attr
+import dataclasses
 import pytest
 from PyQt5.QtCore import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
                           QTimer, QBuffer, QFile, QProcess, QFileDevice)
@@ -953,11 +953,11 @@ class Color(QColor):
 
 class TestInterpolateColor:
 
-    @attr.s
+    @dataclasses.dataclass
     class Colors:
 
-        white = attr.ib()
-        black = attr.ib()
+        white: Color
+        black: Color
 
     @pytest.fixture
     def colors(self):

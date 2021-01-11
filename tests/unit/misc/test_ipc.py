@@ -25,9 +25,10 @@ import getpass
 import logging
 import json
 import hashlib
+import dataclasses
 from unittest import mock
+from typing import Optional, List
 
-import attr
 import pytest
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtNetwork import QLocalServer, QLocalSocket, QAbstractSocket
@@ -616,13 +617,13 @@ def test_ipcserver_socket_none_error(ipc_server, caplog):
 
 class TestSendOrListen:
 
-    @attr.s
+    @dataclasses.dataclass
     class Args:
 
-        no_err_windows = attr.ib()
-        basedir = attr.ib()
-        command = attr.ib()
-        target = attr.ib()
+        no_err_windows: bool
+        basedir: str
+        command: List[str]
+        target: Optional[str]
 
     @pytest.fixture
     def args(self):

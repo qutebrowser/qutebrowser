@@ -20,7 +20,7 @@
 """The main statusbar widget."""
 
 import enum
-import attr
+import dataclasses
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot,  # type: ignore[attr-defined]
                           pyqtProperty, Qt, QSize, QTimer)
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
@@ -34,7 +34,7 @@ from qutebrowser.mainwindow.statusbar import (backforward, command, progress,
                                               tabindex, textbase)
 
 
-@attr.s
+@dataclasses.dataclass
 class ColorFlags:
 
     """Flags which change the appearance of the statusbar.
@@ -56,12 +56,12 @@ class ColorFlags:
         on = enum.auto()
         selection = enum.auto()
 
-    prompt = attr.ib(False)
-    insert = attr.ib(False)
-    command = attr.ib(False)
-    caret = attr.ib(CaretMode.off)
-    private = attr.ib(False)
-    passthrough = attr.ib(False)
+    prompt: bool = False
+    insert: bool = False
+    command: bool = False
+    caret: CaretMode = CaretMode.off
+    private: bool = False
+    passthrough: bool = False
 
     def to_stringlist(self):
         """Get a string list of set flags used in the stylesheet.

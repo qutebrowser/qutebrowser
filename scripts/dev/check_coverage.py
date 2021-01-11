@@ -27,7 +27,7 @@ import enum
 import subprocess
 from xml.etree import ElementTree
 
-import attr
+import dataclasses
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
@@ -36,14 +36,14 @@ from scripts import utils as scriptutils
 from qutebrowser.utils import utils
 
 
-@attr.s
+@dataclasses.dataclass
 class Message:
 
     """A message shown by coverage.py."""
 
-    typ = attr.ib()
-    filename = attr.ib()
-    text = attr.ib()
+    typ: str
+    filename: str
+    text: str
 
     def show(self):
         """Print this message."""

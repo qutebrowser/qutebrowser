@@ -25,7 +25,7 @@ import itertools
 import sys
 import warnings
 
-import attr
+import dataclasses
 import pytest
 import _pytest.logging
 from PyQt5 import QtCore
@@ -412,15 +412,15 @@ def test_warning_still_errors():
 
 class TestQtMessageHandler:
 
-    @attr.s
+    @dataclasses.dataclass
     class Context:
 
         """Fake QMessageLogContext."""
 
-        function = attr.ib(default=None)
-        category = attr.ib(default=None)
-        file = attr.ib(default=None)
-        line = attr.ib(default=None)
+        function: str = None
+        category: str = None
+        file: str = None
+        line: int = None
 
     @pytest.fixture(autouse=True)
     def init_args(self):

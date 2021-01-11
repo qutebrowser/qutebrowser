@@ -20,10 +20,10 @@
 """Code for :undo --window."""
 
 import collections
-from typing import MutableSequence, cast
+from typing import Any, MutableSequence, cast
 
-import attr
-from PyQt5.QtCore import QObject
+import dataclasses
+from PyQt5.QtCore import QObject, QByteArray
 
 from qutebrowser.config import config
 from qutebrowser.mainwindow import mainwindow
@@ -33,13 +33,13 @@ from qutebrowser.misc import objects
 instance = cast('WindowUndoManager', None)
 
 
-@attr.s
+@dataclasses.dataclass
 class _WindowUndoEntry:
 
     """Information needed for :undo -w."""
 
-    geometry = attr.ib()
-    tab_stack = attr.ib()
+    geometry: QByteArray
+    tab_stack: Any  # FIXME
 
 
 class WindowUndoManager(QObject):

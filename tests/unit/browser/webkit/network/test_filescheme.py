@@ -19,8 +19,9 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import dataclasses
+from typing import List
 
-import attr
 import pytest
 import bs4
 from PyQt5.QtCore import QUrl
@@ -111,18 +112,18 @@ def _file_url(path):
 
 class TestDirbrowserHtml:
 
-    @attr.s
+    @dataclasses.dataclass
     class Parsed:
 
-        parent = attr.ib()
-        folders = attr.ib()
-        files = attr.ib()
+        parent: str
+        folders: List[str]
+        files: List[str]
 
-    @attr.s
+    @dataclasses.dataclass
     class Item:
 
-        link = attr.ib()
-        text = attr.ib()
+        link: str
+        text: str
 
     @pytest.fixture
     def parser(self):

@@ -29,7 +29,7 @@ from string import ascii_lowercase
 from typing import (TYPE_CHECKING, Callable, Dict, Iterable, Iterator, List, Mapping,
                     MutableSequence, Optional, Sequence, Set)
 
-import attr
+import dataclasses
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt, QUrl
 from PyQt5.QtWidgets import QLabel
 
@@ -150,7 +150,7 @@ class HintLabel(QLabel):
         self.deleteLater()
 
 
-@attr.s
+@dataclasses.dataclass
 class HintContext:
 
     """Context namespace used for hinting.
@@ -181,20 +181,20 @@ class HintContext:
         group: The group of web elements to hint.
     """
 
-    all_labels: List[HintLabel] = attr.ib(attr.Factory(list))
-    labels: Dict[str, HintLabel] = attr.ib(attr.Factory(dict))
-    target: Target = attr.ib(None)
-    baseurl: QUrl = attr.ib(None)
-    to_follow: str = attr.ib(None)
-    rapid: bool = attr.ib(False)
-    first_run: bool = attr.ib(True)
-    add_history: bool = attr.ib(False)
-    filterstr: str = attr.ib(None)
-    args: List[str] = attr.ib(attr.Factory(list))
-    tab: 'browsertab.AbstractTab' = attr.ib(None)
-    group: str = attr.ib(None)
-    hint_mode: str = attr.ib(None)
-    first: bool = attr.ib(False)
+    all_labels: List[HintLabel] = dataclasses.field(default_factory=list)
+    labels: Dict[str, HintLabel] = dataclasses.field(default_factory=dict)
+    target: Optional[Target] = None
+    baseurl: Optional[QUrl] = None
+    to_follow: Optional[str] = None
+    rapid: bool = False
+    first_run: bool = True
+    add_history: bool = False
+    filterstr: Optional[str] = None
+    args: List[str] = dataclasses.field(default_factory=list)
+    tab: Optional['browsertab.AbstractTab'] = None
+    group: Optional[str] = None
+    hint_mode: Optional[str] = None
+    first: bool = False
 
     def get_args(self, urlstr: str) -> Sequence[str]:
         """Get the arguments, with {hint-url} replaced by the given URL."""

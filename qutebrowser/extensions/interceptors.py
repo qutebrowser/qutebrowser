@@ -22,7 +22,7 @@
 import enum
 from typing import Callable, List, Optional
 
-import attr
+import dataclasses
 
 from PyQt5.QtCore import QUrl
 
@@ -62,21 +62,21 @@ class RedirectException(Exception):
     """Raised when the request was invalid, or a request was already made."""
 
 
-@attr.s
+@dataclasses.dataclass
 class Request:
 
     """A request which can be intercepted/blocked."""
 
     #: The URL of the page being shown.
-    first_party_url: Optional[QUrl] = attr.ib()
+    first_party_url: Optional[QUrl]
 
     #: The URL of the file being requested.
-    request_url: QUrl = attr.ib()
+    request_url: QUrl
 
-    is_blocked: bool = attr.ib(False)
+    is_blocked: bool = False
 
     #: The resource type of the request. None if not supported on this backend.
-    resource_type: Optional[ResourceType] = attr.ib(None)
+    resource_type: Optional[ResourceType] = None
 
     def block(self) -> None:
         """Block this request."""

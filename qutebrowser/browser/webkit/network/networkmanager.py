@@ -23,9 +23,10 @@ import collections
 import html
 from typing import TYPE_CHECKING, Dict, MutableMapping, Optional, Sequence
 
-import attr
+import dataclasses
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QUrl, QByteArray
-from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QSslSocket, QSslError
+from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslSocket,
+                             QSslError, QNetworkProxy)
 
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg,
@@ -46,14 +47,14 @@ HOSTBLOCK_ERROR_STRING = '%HOSTBLOCK%'
 _proxy_auth_cache: Dict['ProxyId', 'prompt.AuthInfo'] = {}
 
 
-@attr.s(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class ProxyId:
 
     """Information identifying a proxy server."""
 
-    type = attr.ib()
-    hostname = attr.ib()
-    port = attr.ib()
+    type: QNetworkProxy.ProxyType
+    hostname: str
+    port: int
 
 
 def _is_secure_cipher(cipher):

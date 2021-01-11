@@ -21,19 +21,19 @@
 
 import logging
 
-import attr
+import dataclasses
 import pytest
 
 from qutebrowser.utils import usertypes, message
 
 
-@attr.s
+@dataclasses.dataclass
 class Message:
 
     """Information about a shown message."""
 
-    level = attr.ib()
-    text = attr.ib()
+    level: usertypes.MessageLevel
+    text: str
 
 
 class MessageMock:

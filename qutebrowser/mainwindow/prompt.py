@@ -25,7 +25,7 @@ import collections
 import functools
 from typing import Deque, MutableSequence, Optional, cast
 
-import attr
+import dataclasses
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
                           QItemSelectionModel, QObject, QEventLoop)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
@@ -43,13 +43,13 @@ from qutebrowser.utils import urlmatch
 prompt_queue = cast('PromptQueue', None)
 
 
-@attr.s
+@dataclasses.dataclass
 class AuthInfo:
 
     """Authentication info returned by a prompt."""
 
-    user = attr.ib()
-    password = attr.ib()
+    user: str
+    password: str
 
 
 class Error(Exception):

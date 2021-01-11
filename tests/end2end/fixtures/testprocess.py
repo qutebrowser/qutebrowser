@@ -23,7 +23,7 @@ import re
 import time
 import warnings
 
-import attr
+import dataclasses
 import pytest
 import pytestqt.plugin
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QProcess, QObject,
@@ -55,7 +55,7 @@ class BlacklistedMessageError(Exception):
     """Raised when ensure_not_logged found a message."""
 
 
-@attr.s
+@dataclasses.dataclass
 class Line:
 
     """Container for a line of data the process emits.
@@ -65,8 +65,8 @@ class Line:
         waited_for: If Process.wait_for was used on this line already.
     """
 
-    data = attr.ib()
-    waited_for = attr.ib(False)
+    data: str
+    waited_for: bool = False
 
 
 def _render_log(data, *, verbose, threshold=100):

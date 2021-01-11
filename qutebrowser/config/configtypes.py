@@ -53,7 +53,7 @@ import json
 from typing import (Any, Callable, Dict as DictType, Iterable, Iterator,
                     List as ListType, Optional, Pattern, Sequence, Tuple, Union)
 
-import attr
+import dataclasses
 import yaml
 from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QColor
@@ -1645,15 +1645,15 @@ class FuzzyUrl(BaseType):
             raise configexc.ValidationError(value, str(e))
 
 
-@attr.s
+@dataclasses.dataclass
 class PaddingValues:
 
     """Four padding values."""
 
-    top: int = attr.ib()
-    bottom: int = attr.ib()
-    left: int = attr.ib()
-    right: int = attr.ib()
+    top: int
+    bottom: int
+    left: int
+    right: int
 
 
 class Padding(Dict):
