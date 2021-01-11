@@ -15,7 +15,7 @@ filelock==3.0.12
 Flask==1.1.2
 glob2==0.7
 hunter==3.3.1
-hypothesis==5.46.0
+hypothesis==6.0.0
 icdiff==1.9.1
 idna==2.10
 iniconfig==1.1.1
@@ -43,13 +43,13 @@ pytest-cov==2.10.1
 pytest-forked==1.3.0
 pytest-icdiff==0.5
 pytest-instafail==0.4.2
-pytest-mock==3.4.0
+pytest-mock==3.5.1
 pytest-qt==3.3.0
 pytest-repeat==0.9.1
 pytest-rerunfailures==9.1.1
 pytest-xdist==2.2.0
 pytest-xvfb==2.0.0
-PyVirtualDisplay==1.3.2
+PyVirtualDisplay==2.0
 requests==2.25.1
 requests-file==1.5.1
 six==1.15.0
