@@ -29,9 +29,9 @@ from typing import (
     Any, Callable, List, Mapping, MutableSequence, Optional, Sequence, Type, Union)
 
 from PyQt5.QtCore import Qt, QEvent, QMetaMethod, QObject, pyqtBoundSignal
-from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.utils import log, utils, qtutils, objreg
+from qutebrowser.misc import objects
 from qutebrowser.qt import sip
 
 
@@ -314,7 +314,7 @@ class log_time:  # noqa: N801,N806 pylint: disable=invalid-name
 
 def _get_widgets() -> Sequence[str]:
     """Get a string list of all widgets."""
-    widgets = QApplication.instance().allWidgets()
+    widgets = objects.qapp.allWidgets()
     widgets.sort(key=repr)
     return [repr(w) for w in widgets]
 
@@ -338,7 +338,7 @@ def get_all_objects(start_obj: QObject = None) -> str:
     output += widget_lines
 
     if start_obj is None:
-        start_obj = QApplication.instance()
+        start_obj = objects.qapp
 
     pyqt_lines: List[str] = []
     _get_pyqt_objects(pyqt_lines, start_obj)

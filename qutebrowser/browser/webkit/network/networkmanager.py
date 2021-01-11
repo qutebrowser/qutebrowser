@@ -24,10 +24,8 @@ import html
 from typing import TYPE_CHECKING, Dict, MutableMapping, Optional, Sequence
 
 import attr
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QCoreApplication, QUrl,
-                          QByteArray)
-from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslSocket,
-                             QSslError)
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QUrl, QByteArray
+from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QSslSocket, QSslError
 
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg,
@@ -193,8 +191,7 @@ class NetworkManager(QNetworkAccessManager):
         # We have a shared cookie jar - we restore its parent so we don't
         # take ownership of it.
         self.setCookieJar(cookie_jar)
-        app = QCoreApplication.instance()
-        cookie_jar.setParent(app)
+        cookie_jar.setParent(objects.qapp)
 
     def _set_cache(self):
         """Set the cache of the NetworkManager correctly."""
@@ -202,9 +199,8 @@ class NetworkManager(QNetworkAccessManager):
             return
         # We have a shared cache - we restore its parent so we don't take
         # ownership of it.
-        app = QCoreApplication.instance()
         self.setCache(cache.diskcache)
-        cache.diskcache.setParent(app)
+        cache.diskcache.setParent(objects.qapp)
 
     def _get_abort_signals(self, owner=None):
         """Get a list of signals which should abort a question."""

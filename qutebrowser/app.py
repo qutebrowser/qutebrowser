@@ -92,20 +92,20 @@ def run(args):
     configinit.early_init(args)
 
     log.init.debug("Initializing application...")
-    global q_app
-    q_app = Application(args)
-    q_app.setOrganizationName("qutebrowser")
-    q_app.setApplicationName("qutebrowser")
+    app = Application(args)
+    objects.qapp = app
+    app.setOrganizationName("qutebrowser")
+    app.setApplicationName("qutebrowser")
     # Default DesktopFileName is org.qutebrowser.qutebrowser, set in `get_argparser()`
-    q_app.setDesktopFileName(args.desktop_file_name)
-    q_app.setApplicationVersion(qutebrowser.__version__)
+    app.setDesktopFileName(args.desktop_file_name)
+    app.setApplicationVersion(qutebrowser.__version__)
 
     if args.version:
         print(version.version_info())
         sys.exit(usertypes.Exit.ok)
 
     quitter.init(args)
-    crashsignal.init(q_app=q_app, args=args, quitter=quitter.instance)
+    crashsignal.init(q_app=app, args=args, quitter=quitter.instance)
 
     try:
         server = ipc.send_or_listen(args)
@@ -136,7 +136,7 @@ def qt_mainloop():
     WARNING: misc/crashdialog.py checks the stacktrace for this function
     name, so if this is changed, it should be changed there as well!
     """
-    return q_app.exec()
+    return objects.qapp.exec()
 
 
 def init(*, args: argparse.Namespace) -> None:
@@ -145,7 +145,7 @@ def init(*, args: argparse.Namespace) -> None:
 
     crashsignal.crash_handler.init_faulthandler()
 
-    q_app.setQuitOnLastWindowClosed(False)
+    objects.qapp.setQuitOnLastWindowClosed(False)
     quitter.instance.shutting_down.connect(QApplication.closeAllWindows)
 
     _init_icon()
@@ -165,7 +165,7 @@ def init(*, args: argparse.Namespace) -> None:
     eventfilter.init()
 
     log.init.debug("Connecting signals...")
-    q_app.focusChanged.connect(on_focus_changed)
+    objects.qapp.focusChanged.connect(on_focus_changed)
 
     _process_args(args)
 
@@ -191,7 +191,7 @@ def _init_icon():
     if icon.isNull():
         log.init.warning("Failed to load icon")
     else:
-        q_app.setWindowIcon(icon)
+        objects.qapp.setWindowIcon(icon)
 
 
 def _init_pulseaudio():
@@ -228,7 +228,7 @@ def _process_args(args):
         window = mainwindow.MainWindow(private=private)
         if not args.nowindow:
             window.show()
-        q_app.setActiveWindow(window)
+        objects.qapp.setActiveWindow(window)
 
     process_pos_args(args.command)
     _open_startpage()
@@ -423,7 +423,7 @@ def _init_modules(*, args):
     config.instance.changed.connect(_on_config_changed)
 
     log.init.debug("Initializing save manager...")
-    save_manager = savemanager.SaveManager(q_app)
+    save_manager = savemanager.SaveManager(objects.qapp)
     objreg.register('save-manager', save_manager)
     quitter.instance.shutting_down.connect(save_manager.shutdown)
     configinit.late_init(save_manager)
@@ -450,7 +450,7 @@ def _init_modules(*, args):
         sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
 
         log.init.debug("Initializing web history...")
-        history.init(q_app)
+        history.init(objects.qapp)
     except sql.KnownError as e:
         error.handle_fatal_exc(e, 'Error initializing SQL',
                                pre_text='Error initializing SQL',
@@ -460,7 +460,7 @@ def _init_modules(*, args):
     log.init.debug("Initializing command history...")
     cmdhistory.init()
     log.init.debug("Initializing sessions...")
-    sessions.init(q_app)
+    sessions.init(objects.qapp)
 
     log.init.debug("Initializing websettings...")
     websettings.init(args)
@@ -470,18 +470,18 @@ def _init_modules(*, args):
         crashsignal.crash_handler.display_faulthandler()
 
     log.init.debug("Initializing quickmarks...")
-    quickmark_manager = urlmarks.QuickmarkManager(q_app)
+    quickmark_manager = urlmarks.QuickmarkManager(objects.qapp)
     objreg.register('quickmark-manager', quickmark_manager)
 
     log.init.debug("Initializing bookmarks...")
-    bookmark_manager = urlmarks.BookmarkManager(q_app)
+    bookmark_manager = urlmarks.BookmarkManager(objects.qapp)
     objreg.register('bookmark-manager', bookmark_manager)
 
     log.init.debug("Initializing cookies...")
-    cookies.init(q_app)
+    cookies.init(objects.qapp)
 
     log.init.debug("Initializing cache...")
-    cache.init(q_app)
+    cache.init(objects.qapp)
 
     log.init.debug("Initializing downloads...")
     qtnetworkdownloads.init()

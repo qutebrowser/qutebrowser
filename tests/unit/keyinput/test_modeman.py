@@ -23,6 +23,7 @@ from PyQt5.QtCore import Qt, QObject, pyqtSignal
 
 from qutebrowser.utils import usertypes
 from qutebrowser.keyinput import keyutils
+from qutebrowser.misc import objects
 
 
 class FakeKeyparser(QObject):
@@ -44,6 +45,11 @@ class FakeKeyparser(QObject):
 def modeman(mode_manager):
     mode_manager.register(usertypes.KeyMode.normal, FakeKeyparser())
     return mode_manager
+
+
+@pytest.fixture(autouse=True)
+def set_qapp(monkeypatch, qapp):
+    monkeypatch.setattr(objects, 'qapp', qapp)
 
 
 @pytest.mark.parametrize('key, modifiers, filtered', [

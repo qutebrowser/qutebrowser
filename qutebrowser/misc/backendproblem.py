@@ -30,8 +30,8 @@ from typing import Any, List, Sequence, Tuple
 
 import attr
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QApplication, QDialog, QPushButton, QHBoxLayout,
-                             QVBoxLayout, QLabel, QMessageBox, QWidget)
+from PyQt5.QtWidgets import (QDialog, QPushButton, QHBoxLayout, QVBoxLayout, QLabel,
+                             QMessageBox, QWidget)
 from PyQt5.QtNetwork import QSslSocket
 
 from qutebrowser.config import config, configfiles
@@ -236,7 +236,7 @@ class _BackendProblemChecker:
         if os.environ.get('QUTE_SKIP_WAYLAND_WEBGL_CHECK'):
             return
 
-        platform = QApplication.instance().platformName()
+        platform = objects.qapp.platformName()
         if platform not in ['wayland', 'wayland-egl']:
             return
 
