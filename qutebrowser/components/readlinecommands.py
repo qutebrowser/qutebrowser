@@ -39,7 +39,11 @@ class _ReadlineBridge:
 
     def _widget(self) -> Optional[QLineEdit]:
         """Get the currently active QLineEdit."""
-        w = QApplication.instance().focusWidget()
+        # FIXME add this to api.utils or so
+        qapp = QApplication.instance()
+        assert qapp is not None
+        w = qapp.focusWidget()
+
         if isinstance(w, QLineEdit):
             return w
         else:

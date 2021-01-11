@@ -37,7 +37,6 @@ from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QFileDevice, QSaveFile, QT_VERSION_STR,
                           PYQT_VERSION_STR, QObject, QUrl)
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QApplication
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
@@ -126,7 +125,7 @@ def is_single_process() -> bool:
     if objects.backend == usertypes.Backend.QtWebKit:
         return False
     assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend
-    args = QApplication.instance().arguments()
+    args = objects.qapp.arguments()
     return '--single-process' in args
 
 

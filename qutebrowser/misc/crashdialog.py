@@ -33,12 +33,12 @@ from typing import List, Tuple
 from PyQt5.QtCore import pyqtSlot, Qt, QSize
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout, QCheckBox,
-                             QDialogButtonBox, QApplication, QMessageBox)
+                             QDialogButtonBox, QMessageBox)
 
 import qutebrowser
 from qutebrowser.utils import version, log, utils
 from qutebrowser.misc import (miscwidgets, autoupdate, msgbox, httpclient,
-                              pastebin)
+                              pastebin, objects)
 from qutebrowser.config import config, configfiles
 from qutebrowser.browser import history
 
@@ -241,8 +241,7 @@ class _CrashDialog(QDialog):
             exc: An exception tuple (type, value, traceback)
         """
         try:
-            application = QApplication.instance()
-            launch_time = application.launch_time.ctime()
+            launch_time = objects.qapp.launch_time.ctime()
             crash_time = datetime.datetime.now().ctime()
             text = 'Launch: {}\nCrash: {}'.format(launch_time, crash_time)
             self._crash_info.append(('Timestamps', text))

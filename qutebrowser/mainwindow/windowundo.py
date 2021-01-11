@@ -24,10 +24,10 @@ from typing import MutableSequence, cast
 
 import attr
 from PyQt5.QtCore import QObject
-from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.config import config
 from qutebrowser.mainwindow import mainwindow
+from qutebrowser.misc import objects
 
 
 instance = cast('WindowUndoManager', None)
@@ -49,7 +49,7 @@ class WindowUndoManager(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._undos: MutableSequence[_WindowUndoEntry] = collections.deque()
-        QApplication.instance().window_closing.connect(self._on_window_closing)
+        objects.qapp.window_closing.connect(self._on_window_closing)
         config.instance.changed.connect(self._on_config_changed)
 
     @config.change_filter('tabs.undo_stack_size')
@@ -88,4 +88,4 @@ class WindowUndoManager(QObject):
 
 def init():
     global instance
-    instance = WindowUndoManager(parent=QApplication.instance())
+    instance = WindowUndoManager(parent=objects.qapp)

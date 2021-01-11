@@ -116,13 +116,7 @@ class FakeQApplication:
     UNSET = object()
 
     def __init__(self, *, style=None, all_widgets=None, active_window=None,
-                 instance=UNSET, arguments=None, platform_name=None):
-
-        if instance is self.UNSET:
-            self.instance = mock.Mock(return_value=self)
-        else:
-            self.instance = mock.Mock(return_value=instance)
-
+                 arguments=None, platform_name=None):
         self.style = mock.Mock(spec=QCommonStyle)
         self.style().metaObject().className.return_value = style
 

@@ -49,11 +49,20 @@ _qute_scheme_handler = None
 
 # Set hypothesis settings
 hypothesis.settings.register_profile(
-    'default', hypothesis.settings(deadline=600))
+    'default', hypothesis.settings(
+        deadline=600,
+        suppress_health_check=[hypothesis.HealthCheck.function_scoped_fixture],
+    )
+)
 hypothesis.settings.register_profile(
     'ci', hypothesis.settings(
         deadline=None,
-        suppress_health_check=[hypothesis.HealthCheck.too_slow]))
+        suppress_health_check=[
+            hypothesis.HealthCheck.function_scoped_fixture,
+            hypothesis.HealthCheck.too_slow,
+        ]
+    )
+)
 hypothesis.settings.load_profile('ci' if testutils.ON_CI else 'default')
 
 

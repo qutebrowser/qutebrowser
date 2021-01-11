@@ -529,8 +529,7 @@ def _backend() -> str:
 
 
 def _uptime() -> datetime.timedelta:
-    launch_time = QApplication.instance().launch_time
-    time_delta = datetime.datetime.now() - launch_time
+    time_delta = datetime.datetime.now() - objects.qapp.launch_time
     # Round off microseconds
     time_delta -= datetime.timedelta(microseconds=time_delta.microseconds)
     return time_delta
@@ -576,11 +575,10 @@ def version_info() -> str:
                                      if QSslSocket.supportsSsl() else 'no'),
     ]
 
-    qapp = QApplication.instance()
-    if qapp:
-        style = qapp.style()
+    if objects.qapp:
+        style = objects.qapp.style()
         lines.append('Style: {}'.format(style.metaObject().className()))
-        lines.append('Platform plugin: {}'.format(qapp.platformName()))
+        lines.append('Platform plugin: {}'.format(objects.qapp.platformName()))
         lines.append('OpenGL: {}'.format(opengl_info()))
 
     importpath = os.path.dirname(os.path.abspath(qutebrowser.__file__))

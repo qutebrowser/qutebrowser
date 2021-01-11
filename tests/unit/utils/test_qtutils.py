@@ -122,7 +122,7 @@ def test_is_new_qtwebkit(monkeypatch, version, is_new):
 ])
 def test_is_single_process(monkeypatch, stubs, backend, arguments, single_process):
     qapp = stubs.FakeQApplication(arguments=arguments)
-    monkeypatch.setattr(qtutils, 'QApplication', qapp)
+    monkeypatch.setattr(qtutils.objects, 'qapp', qapp)
     monkeypatch.setattr(qtutils.objects, 'backend', backend)
     assert qtutils.is_single_process() == single_process
 
