@@ -29,7 +29,7 @@ from typing import Optional
 from PyQt5.QtCore import Qt
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(order=True)
 class Key:
 
     """A key with expected values.
@@ -56,7 +56,7 @@ class Key:
             self.name = self.attribute
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(order=True)
 class Modifier:
 
     """A modifier with expected values.

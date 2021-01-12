@@ -336,7 +336,7 @@ def _parse_single_key(keystr: str) -> str:
     return 'Shift+' + keystr if keystr.isupper() else keystr
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, order=True)
 class KeyInfo:
 
     """A key with optional modifiers.

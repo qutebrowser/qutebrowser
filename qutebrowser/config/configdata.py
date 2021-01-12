@@ -39,7 +39,7 @@ MIGRATIONS = cast('Migrations', None)
 _BackendDict = Mapping[str, Union[str, bool]]
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(order=True)
 class Option:
 
     """Description of an Option in the config.

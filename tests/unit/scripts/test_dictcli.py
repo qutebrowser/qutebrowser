@@ -89,7 +89,8 @@ def test_available_languages(dict_tmp_path, monkeypatch):
     monkeypatch.setattr(dictcli, 'language_list_from_api', lambda: [
         (lang.code, lang.remote_filename) for lang in langs()
     ])
-    assert sorted(dictcli.available_languages()) == [
+    languages = sorted(dictcli.available_languages(), key=lambda lang: lang.code)
+    assert languages == [
         dictcli.Language(
             code='af-ZA',
             name='Afrikaans (South Africa)',
