@@ -59,11 +59,10 @@ class ModuleInfo:
     This gets used by qutebrowser.api.hook.
     """
 
-    _ConfigChangedHooksType = List[Tuple[Optional[str], Callable]]
-
     skip_hooks: bool = False
     init_hook: Optional[Callable] = None
-    config_changed_hooks: _ConfigChangedHooksType = dataclasses.field(default_factory=list)
+    config_changed_hooks: List[Tuple[Optional[str], Callable]] = dataclasses.field(
+        default_factory=list)
 
 
 @dataclasses.dataclass
