@@ -20,7 +20,7 @@
 """Completer attached to a CompletionView."""
 
 import dataclasses
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
@@ -29,6 +29,8 @@ from qutebrowser.commands import runners
 from qutebrowser.misc import objects
 from qutebrowser.utils import log, utils, debug, objreg
 from qutebrowser.completion.models import miscmodels
+if TYPE_CHECKING:
+    from qutebrowser.browser import browsertab
 
 
 @dataclasses.dataclass
@@ -36,10 +38,10 @@ class CompletionInfo:
 
     """Context passed into all completion functions."""
 
-    config: Any  # FIXME
-    keyconf: Any  # FIXME
+    config: config.Config
+    keyconf: config.KeyConfig
     win_id: int
-    cur_tab: Any  # FIXME
+    cur_tab: 'browsertab.AbstractTab'
 
 
 class Completer(QObject):

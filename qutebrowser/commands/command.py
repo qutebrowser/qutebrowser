@@ -24,13 +24,15 @@ import collections
 import traceback
 import typing
 import dataclasses
-from typing import Any, MutableMapping, MutableSequence, Tuple, Union, List, Optional
+from typing import (Any, MutableMapping, MutableSequence, Tuple, Union, List, Optional,
+                    Callable)
 
 from qutebrowser.api import cmdutils
 from qutebrowser.commands import cmdexc, argparser
 from qutebrowser.utils import log, message, docutils, objreg, usertypes, utils
 from qutebrowser.utils import debug as debug_utils
 from qutebrowser.misc import objects
+from qutebrowser.completion.models import completionmodel
 
 
 @dataclasses.dataclass
@@ -42,8 +44,8 @@ class ArgInfo:
     hide: bool = False
     metavar: Optional[str] = None
     flag: Optional[str] = None
-    completion: Any = None   # FIXME
-    choices: List[str] = None
+    completion: Optional[Callable[..., completionmodel.CompletionModel]] = None
+    choices: Optional[List[str]] = None
 
 
 class Command:

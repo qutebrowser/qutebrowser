@@ -27,7 +27,7 @@ import enum
 import shutil
 import argparse
 import dataclasses
-from typing import Any, List, Sequence, Tuple, Optional
+from typing import Any, List, Sequence, Tuple, Optional, cast
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QDialog, QPushButton, QHBoxLayout, QVBoxLayout, QLabel,
@@ -157,8 +157,8 @@ class _BackendImports:
 
     webkit_available: Optional[bool] = None
     webengine_available: Optional[bool] = None
-    webkit_error: Optional[str] = None
-    webengine_error: Optional[str] = None
+    webkit_error: str = cast(str, None)  # FIXME
+    webengine_error: str = cast(str, None)  # FIXME
 
 
 class _BackendProblemChecker:

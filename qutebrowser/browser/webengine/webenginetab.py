@@ -1529,6 +1529,7 @@ class WebEngineTab(browsertab.AbstractTab):
         # However, self.url() is not available yet and the requested URL
         # might not match the URL we get from the error - so we just apply a
         # heuristic here.
+        assert self.data.last_navigation is not None
         if (show_non_overr_cert_error and
                 url.matches(self.data.last_navigation.url, QUrl.RemoveScheme)):
             self._show_error_page(url, str(error))

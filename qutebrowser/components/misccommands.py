@@ -339,6 +339,7 @@ def devtools(tab: apitypes.Tab,
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 def devtools_focus(tab: apitypes.Tab) -> None:
     """Toggle focus between the devtools/tab."""
+    assert tab.data.splitter is not None
     try:
         tab.data.splitter.cycle_focus()
     except apitypes.InspectorError as e:

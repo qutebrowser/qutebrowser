@@ -869,6 +869,7 @@ class AbstractTabPrivate:
         """Show/hide (and if needed, create) the web inspector for this tab."""
         tabdata = self._tab.data
         if tabdata.inspector is None:
+            assert tabdata.splitter is not None
             tabdata.inspector = inspector.create(
                 splitter=tabdata.splitter,
                 win_id=self._tab.win_id)

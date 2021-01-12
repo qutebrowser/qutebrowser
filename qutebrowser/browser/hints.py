@@ -28,7 +28,7 @@ import enum
 import dataclasses
 from string import ascii_lowercase
 from typing import (TYPE_CHECKING, Callable, Dict, Iterable, Iterator, List, Mapping,
-                    MutableSequence, Optional, Sequence, Set)
+                    MutableSequence, Optional, Sequence, Set, cast)
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt, QUrl
 from PyQt5.QtWidgets import QLabel
@@ -183,15 +183,15 @@ class HintContext:
 
     all_labels: List[HintLabel] = dataclasses.field(default_factory=list)
     labels: Dict[str, HintLabel] = dataclasses.field(default_factory=dict)
-    target: Optional[Target] = None
-    baseurl: Optional[QUrl] = None
+    target: Target = cast(Target, None)  # FIXME
+    baseurl: QUrl = cast(QUrl, None)  # FIXME
     to_follow: Optional[str] = None
     rapid: bool = False
     first_run: bool = True
     add_history: bool = False
-    filterstr: Optional[str] = None
+    filterstr: str = cast(str, None)  # FIXME
     args: List[str] = dataclasses.field(default_factory=list)
-    tab: Optional['browsertab.AbstractTab'] = None
+    tab: 'browsertab.AbstractTab' = cast('browsertab.AbstractTab', None)   # FIXME
     group: Optional[str] = None
     hint_mode: Optional[str] = None
     first: bool = False

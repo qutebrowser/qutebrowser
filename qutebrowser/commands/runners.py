@@ -30,7 +30,7 @@ from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config
-from qutebrowser.commands import cmdexc
+from qutebrowser.commands import cmdexc, command
 from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 from qutebrowser.misc import split, objects
 from qutebrowser.keyinput import macros, modeman
@@ -48,7 +48,7 @@ class ParseResult:
 
     """The result of parsing a commandline."""
 
-    cmd: Optional[str]
+    cmd: Optional[command.Command]
     args: Optional[List[str]]
     cmdline: List[str]
 
