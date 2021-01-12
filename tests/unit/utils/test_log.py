@@ -24,8 +24,8 @@ import argparse
 import itertools
 import sys
 import warnings
-
 import dataclasses
+
 import pytest
 import _pytest.logging
 from PyQt5 import QtCore

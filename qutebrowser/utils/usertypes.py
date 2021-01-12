@@ -21,9 +21,9 @@
 
 import operator
 import enum
+import dataclasses
 from typing import Any, Optional, Sequence, TypeVar, Union
 
-import dataclasses
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 from PyQt5.QtCore import QUrl
 

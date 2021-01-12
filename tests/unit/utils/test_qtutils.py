@@ -23,10 +23,10 @@
 import io
 import os
 import os.path
+import dataclasses
 import unittest
 import unittest.mock
 
-import dataclasses
 import pytest
 from PyQt5.QtCore import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
                           QTimer, QBuffer, QFile, QProcess, QFileDevice)

@@ -20,9 +20,8 @@
 """Infrastructure for intercepting requests."""
 
 import enum
-from typing import Callable, List, Optional
-
 import dataclasses
+from typing import Callable, List, Optional
 
 from PyQt5.QtCore import QUrl
 

@@ -24,9 +24,9 @@ import sys
 import json
 import os.path
 import socket
+import dataclasses
 from http import HTTPStatus
 
-import dataclasses
 import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl
 

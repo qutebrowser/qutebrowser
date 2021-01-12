@@ -21,9 +21,9 @@
 
 import collections
 import html
+import dataclasses
 from typing import TYPE_CHECKING, Dict, MutableMapping, Optional, Sequence
 
-import dataclasses
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QUrl, QByteArray
 from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslSocket,
                              QSslError, QNetworkProxy)

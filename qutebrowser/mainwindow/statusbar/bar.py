@@ -21,6 +21,7 @@
 
 import enum
 import dataclasses
+
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot,  # type: ignore[attr-defined]
                           pyqtProperty, Qt, QSize, QTimer)
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy

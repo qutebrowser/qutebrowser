@@ -22,8 +22,8 @@
 import re
 import time
 import warnings
-
 import dataclasses
+
 import pytest
 import pytestqt.plugin
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QProcess, QObject,

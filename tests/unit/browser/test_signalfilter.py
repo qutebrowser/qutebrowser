@@ -20,8 +20,8 @@
 """Tests for browser.signalfilter."""
 
 import logging
-
 import dataclasses
+
 import pytest
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 

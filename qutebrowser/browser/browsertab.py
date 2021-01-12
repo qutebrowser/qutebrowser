@@ -22,10 +22,10 @@
 import enum
 import itertools
 import functools
+import dataclasses
 from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional,
                     Sequence, Set, Type, Union)
 
-import dataclasses
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
                           QEvent, QPoint)
 from PyQt5.QtGui import QKeyEvent, QIcon

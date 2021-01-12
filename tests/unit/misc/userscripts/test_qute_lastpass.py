@@ -20,10 +20,10 @@
 """Tests for misc.userscripts.qute-lastpass."""
 
 import json
+import dataclasses
 from types import SimpleNamespace
 from unittest.mock import ANY, call
 
-import dataclasses
 import pytest
 
 from helpers import utils

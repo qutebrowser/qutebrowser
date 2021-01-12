@@ -22,9 +22,9 @@
 import re
 import argparse
 import functools
+import dataclasses
 from typing import Any, Callable, Dict, Optional
 
-import dataclasses
 from PyQt5.QtCore import QUrl, pyqtSlot, qVersion
 from PyQt5.QtGui import QFont
 

@@ -21,9 +21,9 @@
 
 import os.path
 import logging
+import dataclasses
 import urllib.parse
 
-import dataclasses
 from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QNetworkProxy
 import pytest

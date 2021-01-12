@@ -19,10 +19,10 @@
 
 """A throttle for throttling function calls."""
 
+import dataclasses
 import time
 from typing import Any, Callable, Mapping, Optional, Sequence
 
-import dataclasses
 from PyQt5.QtCore import QObject
 
 from qutebrowser.utils import usertypes

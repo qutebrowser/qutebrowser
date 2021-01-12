@@ -19,10 +19,11 @@
 
 """Tests for qutebrowser.utils.javascript."""
 
+import dataclasses
+
 import pytest
 import hypothesis
 import hypothesis.strategies
-import dataclasses
 
 from qutebrowser.utils import javascript, usertypes
 

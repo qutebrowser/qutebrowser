@@ -25,9 +25,8 @@ import sys
 import pathlib
 import importlib
 import argparse
-from typing import Callable, Iterator, List, Optional, Set, Tuple
-
 import dataclasses
+from typing import Callable, Iterator, List, Optional, Set, Tuple
 
 from PyQt5.QtCore import pyqtSlot
 

@@ -23,8 +23,8 @@ import inspect
 import collections
 import traceback
 import typing
-from typing import Any, MutableMapping, MutableSequence, Tuple, Union, List, Optional
 import dataclasses
+from typing import Any, MutableMapping, MutableSequence, Tuple, Union, List, Optional
 
 from qutebrowser.api import cmdutils
 from qutebrowser.commands import cmdexc, argparser

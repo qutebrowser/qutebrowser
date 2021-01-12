@@ -32,9 +32,9 @@ handle what we actually think we do.
 """
 
 import itertools
+import dataclasses
 from typing import cast, overload, Iterable, Iterator, List, Mapping, Optional, Union
 
-import dataclasses
 from PyQt5.QtCore import Qt, QEvent
 from PyQt5.QtGui import QKeySequence, QKeyEvent
 

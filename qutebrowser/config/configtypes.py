@@ -50,10 +50,10 @@ import itertools
 import functools
 import operator
 import json
+import dataclasses
 from typing import (Any, Callable, Dict as DictType, Iterable, Iterator,
                     List as ListType, Optional, Pattern, Sequence, Tuple, Union)
 
-import dataclasses
 import yaml
 from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QColor

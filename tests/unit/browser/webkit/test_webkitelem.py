@@ -24,8 +24,8 @@ from unittest import mock
 import collections.abc
 import operator
 import itertools
-
 import dataclasses
+
 import pytest
 from PyQt5.QtCore import QRect, QPoint, QUrl
 QWebElement = pytest.importorskip('PyQt5.QtWebKit').QWebElement

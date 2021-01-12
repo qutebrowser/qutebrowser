@@ -21,9 +21,9 @@
 
 import string
 import types
+import dataclasses
 from typing import Mapping, MutableMapping, Optional, Sequence
 
-import dataclasses
 from PyQt5.QtCore import pyqtSignal, QObject, Qt
 from PyQt5.QtGui import QKeySequence, QKeyEvent
 

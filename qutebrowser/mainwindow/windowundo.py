@@ -20,9 +20,9 @@
 """Code for :undo --window."""
 
 import collections
+import dataclasses
 from typing import Any, MutableSequence, cast
 
-import dataclasses
 from PyQt5.QtCore import QObject, QByteArray
 
 from qutebrowser.config import config

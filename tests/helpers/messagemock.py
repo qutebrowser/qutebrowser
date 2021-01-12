@@ -20,8 +20,8 @@
 """pytest helper to monkeypatch the message module."""
 
 import logging
-
 import dataclasses
+
 import pytest
 
 from qutebrowser.utils import usertypes, message

@@ -21,9 +21,9 @@
 
 import functools
 import contextlib
+import dataclasses
 from typing import Optional, cast
 
-import dataclasses
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint,
                           QTimer, QUrl)
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,

@@ -27,8 +27,8 @@ DATA: A dict of Option objects after init() has been called.
 from typing import (Any, Dict, Iterable, List, Mapping, MutableMapping, Optional,
                     Sequence, Tuple, Union, cast)
 import functools
-
 import dataclasses
+
 from qutebrowser.config import configtypes
 from qutebrowser.utils import usertypes, qtutils, utils
 from qutebrowser.misc import debugcachestats

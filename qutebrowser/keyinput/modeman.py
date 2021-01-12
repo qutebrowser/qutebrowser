@@ -20,9 +20,9 @@
 """Mode manager (per window) which handles the current keyboard mode."""
 
 import functools
+import dataclasses
 from typing import Mapping, Callable, MutableMapping, Union, Set, cast
 
-import dataclasses
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
 from PyQt5.QtGui import QKeyEvent
 

@@ -23,8 +23,8 @@ import io
 import os.path
 import shutil
 import functools
-from typing import Dict, IO, Optional
 import dataclasses
+from typing import Dict, IO, Optional
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, QUrl
 from PyQt5.QtWidgets import QApplication

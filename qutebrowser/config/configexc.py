@@ -19,9 +19,9 @@
 
 """Exceptions related to config parsing."""
 
+import dataclasses
 from typing import Any, Mapping, Optional, Sequence, Union
 
-import dataclasses
 from qutebrowser.utils import usertypes, log
 
 

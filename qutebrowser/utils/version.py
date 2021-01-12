@@ -31,9 +31,9 @@ import enum
 import datetime
 import getpass
 import functools
+import dataclasses
 from typing import Mapping, Optional, Sequence, Tuple, cast
 
-import dataclasses
 from PyQt5.QtCore import PYQT_VERSION_STR, QLibraryInfo
 from PyQt5.QtNetwork import QSslSocket
 from PyQt5.QtGui import (QOpenGLContext, QOpenGLVersionProfile,

@@ -33,8 +33,8 @@ import unittest.mock
 import types
 import mimetypes
 import os.path
-
 import dataclasses
+
 import pytest
 import py.path  # pylint: disable=no-name-in-module
 from PyQt5.QtCore import QSize, Qt

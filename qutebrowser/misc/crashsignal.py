@@ -29,8 +29,8 @@ import argparse
 import functools
 import threading
 import faulthandler
-from typing import TYPE_CHECKING, Optional, MutableMapping, cast, List
 import dataclasses
+from typing import TYPE_CHECKING, Optional, MutableMapping, cast, List
 
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
