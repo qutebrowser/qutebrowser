@@ -54,6 +54,8 @@ Major changes
   Python versions up to and including 3.8. Note that the stdlib
   `importlib.resources` module for Python 3.7 and 3.8 is missing the needed APIs,
   thus requiring the backports for those versions as well.
+- The former dependency on the `attrs`/`attr` package is now dropped.
+- On Python 3.6, a new dependency on the `dataclasses` backport is now required.
 
 Removed
 ~~~~~~~

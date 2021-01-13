@@ -714,7 +714,7 @@ class TestModuleVersions:
         ('pygments', True),
         ('yaml', True),
         ('adblock', True),
-        ('attr', True),
+        ('dataclasses', False),
     ])
     def test_existing_attributes(self, name, has_version):
         """Check if all dependencies have an expected __version__ attribute.
