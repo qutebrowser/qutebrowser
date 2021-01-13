@@ -22,10 +22,12 @@
 import dataclasses
 from typing import Any
 
-from PyQt5.QtCore import QUrl, QPoint
 import pytest
+pytest.importorskip('PyQt5.QtWebKit')
+from PyQt5.QtCore import QUrl, QPoint
+from PyQt5.QtWebKit import QWebHistory
 
-tabhistory = pytest.importorskip('qutebrowser.browser.webkit.tabhistory')
+from qutebrowser.browser.webkit import tabhistory
 from qutebrowser.misc.sessions import TabHistoryItem as Item
 from qutebrowser.utils import qtutils
 
@@ -55,8 +57,8 @@ ITEMS = [
 @dataclasses.dataclass
 class Objects:
 
-    history: Any  # FIXME
-    user_data: Any  # FIXME
+    history: QWebHistory
+    user_data: Any
 
 
 @pytest.fixture
