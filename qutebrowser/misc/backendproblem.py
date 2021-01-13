@@ -155,10 +155,8 @@ class _BackendImports:
 
     """Whether backend modules could be imported."""
 
-    webkit_available: Optional[bool] = None
-    webengine_available: Optional[bool] = None
-    webkit_error: str = cast(str, None)  # FIXME
-    webengine_error: str = cast(str, None)  # FIXME
+    webkit_error: Optional[str] = None
+    webengine_error: Optional[str] = None
 
 
 class _BackendProblemChecker:
@@ -284,29 +282,15 @@ class _BackendProblemChecker:
             from PyQt5.QtWebKit import qWebKitVersion
             from PyQt5 import QtWebKitWidgets
         except (ImportError, ValueError) as e:
-            results.webkit_available = False
             results.webkit_error = str(e)
         else:
-            if qtutils.is_new_qtwebkit():
-                results.webkit_available = True
-            else:
-                results.webkit_available = False
+            if not qtutils.is_new_qtwebkit():
                 results.webkit_error = "Unsupported legacy QtWebKit found"
 
         try:
             from PyQt5 import QtWebEngineWidgets
         except (ImportError, ValueError) as e:
-            results.webengine_available = False
             results.webengine_error = str(e)
-        else:
-            results.webengine_available = True
-
-        assert results.webkit_available is not None
-        assert results.webengine_available is not None
-        if not results.webkit_available:
-            assert results.webkit_error is not None
-        if not results.webengine_available:
-            assert results.webengine_error is not None
 
         return results
 
@@ -348,9 +332,9 @@ class _BackendProblemChecker:
         """Check for the modules needed for QtWebKit/QtWebEngine."""
         imports = self._try_import_backends()
 
-        if imports.webkit_available and imports.webengine_available:
+        if not imports.webkit_error and not imports.webengine_error:
             return
-        elif not imports.webkit_available and not imports.webengine_available:
+        elif imports.webkit_error and imports.webengine_error:
             text = ("<p>qutebrowser needs QtWebKit or QtWebEngine, but "
                     "neither could be imported!</p>"
                     "<p>The errors encountered were:<ul>"
@@ -367,9 +351,8 @@ class _BackendProblemChecker:
             errbox.exec()
             sys.exit(usertypes.Exit.err_init)
         elif objects.backend == usertypes.Backend.QtWebKit:
-            if imports.webkit_available:
+            if not imports.webkit_error:
                 return
-            assert imports.webengine_available
             self._show_dialog(
                 backend=usertypes.Backend.QtWebKit,
                 because="QtWebKit could not be imported",
@@ -377,9 +360,8 @@ class _BackendProblemChecker:
                     html.escape(imports.webkit_error))
             )
         elif objects.backend == usertypes.Backend.QtWebEngine:
-            if imports.webengine_available:
+            if not imports.webengine_error:
                 return
-            assert imports.webkit_available
             self._show_dialog(
                 backend=usertypes.Backend.QtWebEngine,
                 because="QtWebEngine could not be imported",
