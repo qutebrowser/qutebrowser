@@ -28,7 +28,7 @@ import enum
 import dataclasses
 from string import ascii_lowercase
 from typing import (TYPE_CHECKING, Callable, Dict, Iterable, Iterator, List, Mapping,
-                    MutableSequence, Optional, Sequence, Set, cast)
+                    MutableSequence, Optional, Sequence, Set)
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt, QUrl
 from PyQt5.QtWidgets import QLabel
@@ -181,20 +181,21 @@ class HintContext:
         group: The group of web elements to hint.
     """
 
+    tab: 'browsertab.AbstractTab'
+    target: Target
+    rapid: bool
+    hint_mode: str
+    add_history: bool
+    first: bool
+    baseurl: QUrl
+    args: List[str]
+    group: str
+
     all_labels: List[HintLabel] = dataclasses.field(default_factory=list)
     labels: Dict[str, HintLabel] = dataclasses.field(default_factory=dict)
-    target: Target = cast(Target, None)  # FIXME
-    baseurl: QUrl = cast(QUrl, None)  # FIXME
     to_follow: Optional[str] = None
-    rapid: bool = False
     first_run: bool = True
-    add_history: bool = False
-    filterstr: str = cast(str, None)  # FIXME
-    args: List[str] = dataclasses.field(default_factory=list)
-    tab: 'browsertab.AbstractTab' = cast('browsertab.AbstractTab', None)   # FIXME
-    group: Optional[str] = None
-    hint_mode: Optional[str] = None
-    first: bool = False
+    filterstr: Optional[str] = None
 
     def get_args(self, urlstr: str) -> Sequence[str]:
         """Get the arguments, with {hint-url} replaced by the given URL."""
@@ -590,7 +591,7 @@ class HintManager(QObject):
                 raise cmdutils.CommandError(
                     "'args' is only allowed with target userscript/spawn.")
 
-    def _filter_matches(self, filterstr: str, elemstr: str) -> bool:
+    def _filter_matches(self, filterstr: Optional[str], elemstr: str) -> bool:
         """Return True if `filterstr` matches `elemstr`."""
         # Empty string and None always match
         if not filterstr:
@@ -758,19 +759,23 @@ class HintManager(QObject):
                                             "with target {}!".format(name))
 
         self._check_args(target, *args)
-        self._context = HintContext()
-        self._context.tab = tab
-        self._context.target = target
-        self._context.rapid = rapid
-        self._context.hint_mode = self._get_hint_mode(mode)
-        self._context.add_history = add_history
-        self._context.first = first
+
         try:
-            self._context.baseurl = tabbed_browser.current_url()
+            baseurl = tabbed_browser.current_url()
         except qtutils.QtValueError:
             raise cmdutils.CommandError("No URL set for this page yet!")
-        self._context.args = list(args)
-        self._context.group = group
+
+        self._context = HintContext(
+            tab=tab,
+            target=target,
+            rapid=rapid,
+            hint_mode=self._get_hint_mode(mode),
+            add_history=add_history,
+            first=first,
+            baseurl=baseurl,
+            args=list(args),
+            group=group,
+        )
 
         try:
             selector = webelem.css_selector(self._context.group,
