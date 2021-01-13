@@ -45,11 +45,14 @@ class _UndoEntry:
     """Information needed for :undo."""
 
     url: QUrl
-    history: bytes  # FIXME
+    history: bytes
     index: int
     pinned: bool
     created_at: datetime.datetime = dataclasses.field(
         default_factory=datetime.datetime.now)
+
+
+UndoStackType = MutableSequence[MutableSequence[_UndoEntry]]
 
 
 class TabDeque:
@@ -222,8 +225,7 @@ class TabbedBrowser(QWidget):
 
         # This init is never used, it is immediately thrown away in the next
         # line.
-        self.undo_stack: MutableSequence[MutableSequence[_UndoEntry]] = (
-            collections.deque())
+        self.undo_stack: UndoStackType = collections.deque()
         self._update_stack_size()
         self._filter = signalfilter.SignalFilter(win_id, self)
         self._now_focused = None
