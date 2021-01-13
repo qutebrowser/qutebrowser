@@ -20,7 +20,7 @@
 """Completer attached to a CompletionView."""
 
 import dataclasses
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 

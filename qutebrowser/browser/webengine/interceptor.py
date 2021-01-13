@@ -19,9 +19,6 @@
 
 """A request interceptor taking care of adblocking and custom headers."""
 
-import dataclasses
-from typing import Optional, Set
-
 from PyQt5.QtCore import QUrl, QByteArray
 from PyQt5.QtWebEngineCore import (QWebEngineUrlRequestInterceptor,
                                    QWebEngineUrlRequestInfo)

@@ -27,7 +27,7 @@ import enum
 import shutil
 import argparse
 import dataclasses
-from typing import Any, List, Sequence, Tuple, Optional, cast
+from typing import Any, List, Sequence, Tuple, Optional
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QDialog, QPushButton, QHBoxLayout, QVBoxLayout, QLabel,
