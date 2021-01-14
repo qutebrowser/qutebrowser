@@ -19,37 +19,46 @@
 
 import glob
 import os
+from typing import Any
+import urllib.parse
 
 from PyQt5.QtCore import (QAbstractListModel, QModelIndex)
+
 
 class FilePathCategory(QAbstractListModel):
     """Represent filesystem paths matching a pattern."""
 
-    def __init__(self, name: str, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, name: str):
+        super().__init__()
         self._paths: list = []
         self.name = name
         self.columns_to_filter = [0]
 
-    def set_pattern(self, val):
+    def set_pattern(self, val: str) -> None:
         """Setter for pattern.
 
         Args:
-            val: The value to set.
+            val: The user's partially typed URL/path.
         """
-        glob_str = os.path.expanduser(glob.escape(val)) + '*'
-        self._paths = sorted(glob.glob(glob_str))
 
-    def data(self, index: QModelIndex):
-        """Implement abstract method in QAbstractListModel.
-        """
+        if val == '':
+            self._paths = [os.path.expanduser('~') ]
+        elif len(val) >= 1 and val[0] in ['~', '/']:
+            glob_str = os.path.expanduser(glob.escape(val)) + '*'
+            self._paths = sorted(glob.glob(glob_str))
+        elif len(val) >= 8 and val[:8] == 'file:///':
+            glob_str = os.path.expanduser(urllib.parse.unquote(val[7:])) + '*'
+            self._paths = sorted(glob.glob(glob_str))
+        else:
+            self._paths = []
+
+    def data(self, index: QModelIndex) -> str:
+        """Implement abstract method in QAbstractListModel."""
         if index.column() == 0:
             return self._paths[index.row()]
         else:
             return ''
 
-    def rowCount(self, *_args):
-        """Implement abstract method in QAbstractListModel.
-        """
+    def rowCount(self, *_args: Any) -> int:
+        """Implement abstract method in QAbstractListModel."""
         return len(self._paths)
-
