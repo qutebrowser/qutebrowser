@@ -17,37 +17,29 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
 import json
-import textwrap
-import os
-import signal
-import time
 
-import pytest
 import pytest_bdd as bdd
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QFileSystemWatcher
 bdd.scenarios('fileselect.feature')
-
-from qutebrowser.utils import utils
 
 
 @bdd.when(bdd.parsers.parse('I set up a fake single file fileselector '
                             'selecting "{choosefile}"'))
 def set_up_single_fileselector(quteproc, server, tmpdir, choosefile):
-    """Set up fileselect.single_file.command to select the file `chosenfile`."""
-    fileselect_cmd = json.dumps(['cat', choosefile, '|', '{}'])
+    """Set up fileselect.single_file.command to select the file."""
+    fileselect_cmd = json.dumps(['echo', choosefile, '>', '{}'])
     quteproc.set_setting('fileselect.handler', 'external')
     quteproc.set_setting('fileselect.single_file.command', fileselect_cmd)
 
 
-@bdd.when('I trigger to upload a file')
-def trigger_upload_file(quteproc, server, tmpdir):
-    """Trigger to upload a file."""
-    raise NotImplementedError
-
-
-@bdd.then(bdd.parsers.parse('"{chosenfile}" should be uploaded'))
-def check_chosen_file(quteproc, server, tmpdir, chosenfile):
-    """Check correct file is chosen."""
-    raise NotImplementedError
+@bdd.when(bdd.parsers.parse('I set up a fake multiple files fileselector '
+                            'selecting "{choosefiles}"'))
+def set_up_multiple_fileselector(quteproc, server, tmpdir, choosefiles):
+    """Set up fileselect.multiple_file.command to select the files."""
+    fileselect_cmd = json.dumps([
+        'echo', choosefiles, '|',
+        'tr', '" "', '"\n"',
+        '>', '{}',
+    ])
+    quteproc.set_setting('fileselect.handler', 'external')
+    quteproc.set_setting('fileselect.multiple_file.command', fileselect_cmd)

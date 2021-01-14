@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Testing fileselection</title>
+        <script type="text/javascript">
+            function onLoad() {
+                const input = document.querySelector('#file_upload');
+                input.addEventListener('input', function (e) {
+                    for (i = 0; i < input.files.length; i++) {
+                        console.log("File selected: ", input.files[i].name);
+                    }
+                });
+            }
+        </script>
+    </head>
+    <body onload="onLoad()">
+        <input type="file" id="file_upload" name="file_upload" accept=".txt" multiple>
+    </body>
+</html>
