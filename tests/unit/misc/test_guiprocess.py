@@ -237,6 +237,18 @@ def test_exit_unsuccessful(qtbot, proc, message_mock, py_proc, caplog):
     assert msg.text == expected
 
 
+def test_exit_crash(qtbot, proc, message_mock, py_proc, caplog):
+    with caplog.at_level(logging.ERROR):
+        with qtbot.waitSignal(proc.finished, timeout=10000):
+            proc.start(*py_proc("""
+                import os, signal
+                os.kill(os.getpid(), signal.SIGSEGV)
+            """))
+
+    msg = message_mock.getmsg(usertypes.MessageLevel.error)
+    assert msg.text == "Testprocess crashed."
+
+
 @pytest.mark.parametrize('stream', ['stdout', 'stderr'])
 def test_exit_unsuccessful_output(qtbot, proc, caplog, py_proc, stream):
     """When a process fails, its output should be logged."""
