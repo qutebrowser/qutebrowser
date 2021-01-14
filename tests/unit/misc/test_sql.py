@@ -255,6 +255,26 @@ def test_len():
     assert len(table) == 3
 
 
+def test_bool():
+    table = sql.SqlTable('Foo', ['name'])
+    assert not table
+    table.insert({'name': 'one'})
+    assert table
+
+
+def test_bool_benchmark(benchmark):
+    table = sql.SqlTable('Foo', ['number'])
+
+    # Simulate a history table
+    table.create_index('NumberIndex', 'number')
+    table.insert_batch({'number': [str(i) for i in range(100_000)]})
+
+    def run():
+        assert table
+
+    benchmark(run)
+
+
 def test_contains():
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
     table.insert({'name': 'one', 'val': 1, 'lucky': False})

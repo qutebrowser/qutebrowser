@@ -394,6 +394,12 @@ class SqlTable(QObject):
         q.run()
         return q.value()
 
+    def __bool__(self):
+        """Check whether there's any data in the table."""
+        q = Query(f"SELECT 1 FROM {self._name} LIMIT 1")
+        q.run()
+        return q.query.next()
+
     def delete(self, field, value, *, optional=False, like=False):
         """Remove all rows for which `field` equals `value`.
 
