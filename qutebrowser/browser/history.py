@@ -178,10 +178,7 @@ class WebHistory(sql.SqlTable):
             # - but version changes happen very infrequently, rebuilding everything
             # gives us less corner-cases to deal with, and we can run a VACUUM to make
             # things smaller.
-            #
-            # If no history exists, we skip cleaning it up.
-            if self:
-                self._cleanup_history()
+            self._cleanup_history()
             rebuild_completion = True
 
         # Get a string of all patterns
