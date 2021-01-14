@@ -21,6 +21,20 @@ v2.0.0 (unreleased)
 Major changes
 ~~~~~~~~~~~~~
 
+- Quick checklist for packagers:
+  - Ensure you're providing at least Python 3.6.1
+  - Ensure you're providing at least Qt 5.12 and PyQt 5.12
+  - Add a new optional dependency on the Python `adblock` library (if packaged -
+    if not, consider packaging it, albeit optional it's very useful for users)
+  - Remove the `cssutils` optional dependency (if present)
+  - Remove the `attrs` (`attr`) dependency
+  - Move the `pygments` dependency from required to optional
+  - TODO: Move the `setuptools` dependency from runtime (for `pkg_resources`) to
+    build-time.
+  - For Python 3.6, 3.7 or 3.8, add a dependency on the `importlib_resources`
+    backport.
+  - For Python 3.6 only, add a dependency on the `dataclasses` backport.
+  - TODO complete?
 - At least Python 3.6.1 is now required to run qutebrowser, support for Python
   3.5 (and 3.6.0) is dropped. Note that Python 3.5 is
   https://www.python.org/downloads/release/python-3510/[no longer supported
