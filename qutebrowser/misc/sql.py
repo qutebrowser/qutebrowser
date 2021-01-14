@@ -307,7 +307,11 @@ class Query:
         return self.query.record().value(0)
 
     def rows_affected(self):
-        return self.query.numRowsAffected()
+        assert not self.query.isSelect(), self
+        assert self.query.isActive(), self
+        rows = self.query.numRowsAffected()
+        assert rows != -1
+        return rows
 
     def bound_values(self):
         return self.query.boundValues()
