@@ -214,6 +214,10 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             re.compile(r'Q_(ENUM|FLAG)'),
             "Q_ENUM and Q_FLAG are removed in PyQt 6",
         ),
+        (
+            re.compile(r'attr\.(s|ib)($|\()'),
+            "attrs have been replaced by dataclasses in qutebrowser.",
+        ),
     ]
 
     # Files which should be ignored, e.g. because they come from another
