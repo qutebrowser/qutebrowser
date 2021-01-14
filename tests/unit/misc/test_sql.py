@@ -232,18 +232,6 @@ def test_delete_optional(qtbot):
     table.delete('name', 'doesnotexist', optional=True)
 
 
-def test_delete_like(qtbot):
-    table = sql.SqlTable('Foo', ['val'])
-    table.insert({'val': 'helloworld'})
-
-    with pytest.raises(KeyError):
-        table.delete('val', 'hello%')
-
-    with qtbot.waitSignal(table.changed):
-        table.delete('val', 'hello%', like=True)
-    assert not list(table)
-
-
 def test_len():
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
     assert len(table) == 0
