@@ -368,7 +368,7 @@ def choose_file(multiple: bool) -> List[str]:
 
         loop = qtutils.EventLoop()
         proc.finished.connect(lambda _code, _status: loop.exit())
-        loop.exec_()
+        loop.exec()
 
         selected_files = tmpfile.read().splitlines()
 
