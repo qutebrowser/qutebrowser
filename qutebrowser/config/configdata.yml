@@ -1141,7 +1141,7 @@ downloads.location.suggestion:
 completion.open_categories:
   type:
     name: FlagList
-    valid_values: [searchengines, quickmarks, bookmarks, history]
+    valid_values: [searchengines, quickmarks, bookmarks, history, filesystem]
     none_ok: true
   default:
     - searchengines
