@@ -46,15 +46,11 @@ class HistoryProgress:
     """
 
     def __init__(self):
-        self._reset()
-
-    def _reset(self):
-        self._progress = None
+        self._progress = QProgressDialog()
         self._value = 0
 
     def start(self, text):
         """Start showing a progress dialog."""
-        self._progress = QProgressDialog()
         self._progress.setMaximum(0)  # unknown
         self._progress.setMinimumDuration(0)
         self._progress.setLabelText(text)
@@ -71,18 +67,13 @@ class HistoryProgress:
     def tick(self):
         """Increase the displayed progress value."""
         self._value += 1
-        if self._progress is not None:
-            self._progress.setValue(self._value)
-            QApplication.processEvents()
+        self._progress.setValue(self._value)
+        QApplication.processEvents()
 
     def finish(self):
-        """Finish showing the progress dialog.
-
-        After this is called, the object can be reused.
-        """
-        if self._progress is not None:
-            self._progress.hide()
-        self._reset()
+        """Finish showing the progress dialog."""
+        self._progress.hide()
+        self._progress.deleteLater()
 
 
 class CompletionMetaInfo(sql.SqlTable):
