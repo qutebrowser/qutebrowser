@@ -40,9 +40,8 @@ class FilePathCategory(QAbstractListModel):
         Args:
             val: The user's partially typed URL/path.
         """
-
-        if val == '':
-            self._paths = [os.path.expanduser('~') ]
+        if not val:
+            self._paths = [os.path.expanduser('~')]
         elif len(val) >= 1 and val[0] in ['~', '/']:
             glob_str = os.path.expanduser(glob.escape(val)) + '*'
             self._paths = sorted(glob.glob(glob_str))
