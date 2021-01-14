@@ -422,7 +422,7 @@ def _init_site_specific_quirks():
     user_agents = {
         # Needed to avoid a ""WhatsApp works with Google Chrome 36+" error
         # page which doesn't allow to use WhatsApp Web at all. Also see the
-        # additional JS quirk: qutebrowser/javascript/whatsapp_web_quirk.user.js
+        # additional JS quirk: qutebrowser/javascript/quirks/whatsapp_web.user.js
         # https://github.com/qutebrowser/qutebrowser/issues/4445
         'https://web.whatsapp.com/': no_qtwe_ua,
 

@@ -37,7 +37,6 @@ from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QFileDevice, QSaveFile, QT_VERSION_STR,
                           PYQT_VERSION_STR, QObject, QUrl)
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QApplication
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
@@ -126,7 +125,7 @@ def is_single_process() -> bool:
     if objects.backend == usertypes.Backend.QtWebKit:
         return False
     assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend
-    args = QApplication.instance().arguments()
+    args = objects.qapp.arguments()
     return '--single-process' in args
 
 
@@ -450,14 +449,14 @@ class EventLoop(QEventLoop):
 
     """A thin wrapper around QEventLoop.
 
-    Raises an exception when doing exec_() multiple times.
+    Raises an exception when doing exec() multiple times.
     """
 
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
         self._executing = False
 
-    def exec_(
+    def exec(
             self,
             flags: QEventLoop.ProcessEventsFlags =
             cast(QEventLoop.ProcessEventsFlags, QEventLoop.AllEvents)
@@ -466,7 +465,7 @@ class EventLoop(QEventLoop):
         if self._executing:
             raise AssertionError("Eventloop is already running!")
         self._executing = True
-        status = super().exec_(flags)
+        status = super().exec(flags)
         self._executing = False
         return status
 

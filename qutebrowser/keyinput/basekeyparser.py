@@ -21,9 +21,9 @@
 
 import string
 import types
+import dataclasses
 from typing import Mapping, MutableMapping, Optional, Sequence
 
-import attr
 from PyQt5.QtCore import pyqtSignal, QObject, Qt
 from PyQt5.QtGui import QKeySequence, QKeyEvent
 
@@ -32,16 +32,16 @@ from qutebrowser.utils import usertypes, log, utils
 from qutebrowser.keyinput import keyutils
 
 
-@attr.s(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class MatchResult:
 
     """The result of matching a keybinding."""
 
-    match_type: QKeySequence.SequenceMatch = attr.ib()
-    command: Optional[str] = attr.ib()
-    sequence: keyutils.KeySequence = attr.ib()
+    match_type: QKeySequence.SequenceMatch
+    command: Optional[str]
+    sequence: keyutils.KeySequence
 
-    def __attrs_post_init__(self) -> None:
+    def __post_init__(self) -> None:
         if self.match_type == QKeySequence.ExactMatch:
             assert self.command is not None
         else:

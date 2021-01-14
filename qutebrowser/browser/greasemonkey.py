@@ -26,9 +26,9 @@ import fnmatch
 import functools
 import glob
 import textwrap
+import dataclasses
 from typing import cast, List, Sequence
 
-import attr
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
 from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
@@ -198,15 +198,15 @@ class GreasemonkeyScript:
         self._code = "\n".join([textwrap.indent(source, "    "), self._code])
 
 
-@attr.s
+@dataclasses.dataclass
 class MatchingScripts:
 
     """All userscripts registered to run on a particular url."""
 
-    url = attr.ib()
-    start = attr.ib(default=attr.Factory(list))
-    end = attr.ib(default=attr.Factory(list))
-    idle = attr.ib(default=attr.Factory(list))
+    url: QUrl
+    start: List[GreasemonkeyScript] = dataclasses.field(default_factory=list)
+    end: List[GreasemonkeyScript] = dataclasses.field(default_factory=list)
+    idle: List[GreasemonkeyScript] = dataclasses.field(default_factory=list)
 
 
 class GreasemonkeyMatcher:

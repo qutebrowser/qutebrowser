@@ -23,28 +23,29 @@ import inspect
 import collections
 import traceback
 import typing
-from typing import Any, MutableMapping, MutableSequence, Tuple, Union
-
-import attr
+import dataclasses
+from typing import (Any, MutableMapping, MutableSequence, Tuple, Union, List, Optional,
+                    Callable)
 
 from qutebrowser.api import cmdutils
 from qutebrowser.commands import cmdexc, argparser
 from qutebrowser.utils import log, message, docutils, objreg, usertypes, utils
 from qutebrowser.utils import debug as debug_utils
 from qutebrowser.misc import objects
+from qutebrowser.completion.models import completionmodel
 
 
-@attr.s
+@dataclasses.dataclass
 class ArgInfo:
 
     """Information about an argument."""
 
-    value = attr.ib(None)
-    hide = attr.ib(False)
-    metavar = attr.ib(None)
-    flag = attr.ib(None)
-    completion = attr.ib(None)
-    choices = attr.ib(None)
+    value: Optional[usertypes.CommandValue] = None
+    hide: bool = False
+    metavar: Optional[str] = None
+    flag: Optional[str] = None
+    completion: Optional[Callable[..., completionmodel.CompletionModel]] = None
+    choices: Optional[List[str]] = None
 
 
 class Command:

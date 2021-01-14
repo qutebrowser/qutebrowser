@@ -23,12 +23,12 @@ import io
 import os.path
 import shutil
 import functools
+import dataclasses
 from typing import Dict, IO, Optional
 
-import attr
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, QUrl
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
+from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply, QNetworkAccessManager
 
 from qutebrowser.config import config, websettings
 from qutebrowser.utils import message, usertypes, log, urlutils, utils, debug, objreg
@@ -38,11 +38,11 @@ from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
 
 
-@attr.s
+@dataclasses.dataclass
 class _RetryInfo:
 
-    request = attr.ib()
-    manager = attr.ib()
+    request: QNetworkRequest
+    manager: QNetworkAccessManager
 
 
 class DownloadItem(downloads.AbstractDownloadItem):

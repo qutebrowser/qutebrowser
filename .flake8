@@ -50,7 +50,7 @@ ignore =
     A003,
     W503, W504
     FI15
-min-version = 3.6.0
+min-version = 3.6.1
 max-complexity = 12
 per-file-ignores =
     qutebrowser/api/hook.py : N801

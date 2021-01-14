@@ -22,8 +22,9 @@
 import urllib.parse
 import string
 import re
+import dataclasses
+from typing import Optional
 
-import attr
 import pypeg2 as peg
 
 from qutebrowser.utils import utils
@@ -210,13 +211,13 @@ class ContentDispositionValue:
                peg.optional(';'))
 
 
-@attr.s
+@dataclasses.dataclass
 class LangTagged:
 
     """A string with an associated language."""
 
-    string = attr.ib()
-    langtag = attr.ib()
+    string: str
+    langtag: Optional[str]
 
 
 class Error(Exception):

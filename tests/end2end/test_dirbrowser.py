@@ -21,8 +21,9 @@
 """Test the built-in directory browser."""
 
 import os
+import dataclasses
+from typing import List
 
-import attr
 import pytest
 import bs4
 
@@ -104,21 +105,21 @@ class DirLayout:
         return os.path.normpath(str(self.base))
 
 
-@attr.s
+@dataclasses.dataclass
 class Parsed:
 
-    path = attr.ib()
-    parent = attr.ib()
-    folders = attr.ib()
-    files = attr.ib()
+    path: str
+    parent: str
+    folders: List[str]
+    files: List[str]
 
 
-@attr.s
+@dataclasses.dataclass
 class Item:
 
-    path = attr.ib()
-    link = attr.ib()
-    text = attr.ib()
+    path: str
+    link: str
+    text: str
 
 
 def parse(quteproc):

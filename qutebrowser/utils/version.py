@@ -31,9 +31,9 @@ import enum
 import datetime
 import getpass
 import functools
+import dataclasses
 from typing import Mapping, Optional, Sequence, Tuple, cast
 
-import attr
 from PyQt5.QtCore import PYQT_VERSION_STR, QLibraryInfo
 from PyQt5.QtNetwork import QSslSocket
 from PyQt5.QtGui import (QOpenGLContext, QOpenGLVersionProfile,
@@ -76,15 +76,15 @@ _LOGO = r'''
 '''
 
 
-@attr.s
+@dataclasses.dataclass
 class DistributionInfo:
 
     """Information about the running distribution."""
 
-    id: Optional[str] = attr.ib()
-    parsed: 'Distribution' = attr.ib()
-    version: Optional[utils.VersionNumber] = attr.ib()
-    pretty: str = attr.ib()
+    id: Optional[str]
+    parsed: 'Distribution'
+    version: Optional[utils.VersionNumber]
+    pretty: str
 
 
 pastebin_url = None
@@ -365,7 +365,7 @@ MODULE_INFO: Mapping[str, ModuleInfo] = collections.OrderedDict([
         ('pygments', ['__version__']),
         ('yaml', ['__version__']),
         ('adblock', ['__version__'], "0.3.2"),
-        ('attr', ['__version__']),
+        ('dataclasses', []),
         ('importlib_resources', []),
         ('PyQt5.QtWebEngineWidgets', []),
         ('PyQt5.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
@@ -529,8 +529,7 @@ def _backend() -> str:
 
 
 def _uptime() -> datetime.timedelta:
-    launch_time = QApplication.instance().launch_time
-    time_delta = datetime.datetime.now() - launch_time
+    time_delta = datetime.datetime.now() - objects.qapp.launch_time
     # Round off microseconds
     time_delta -= datetime.timedelta(microseconds=time_delta.microseconds)
     return time_delta
@@ -576,11 +575,10 @@ def version_info() -> str:
                                      if QSslSocket.supportsSsl() else 'no'),
     ]
 
-    qapp = QApplication.instance()
-    if qapp:
-        style = qapp.style()
+    if objects.qapp:
+        style = objects.qapp.style()
         lines.append('Style: {}'.format(style.metaObject().className()))
-        lines.append('Platform plugin: {}'.format(qapp.platformName()))
+        lines.append('Platform plugin: {}'.format(objects.qapp.platformName()))
         lines.append('OpenGL: {}'.format(opengl_info()))
 
     importpath = os.path.dirname(os.path.abspath(qutebrowser.__file__))
@@ -625,27 +623,27 @@ def version_info() -> str:
     return '\n'.join(lines)
 
 
-@attr.s
+@dataclasses.dataclass
 class OpenGLInfo:
 
     """Information about the OpenGL setup in use."""
 
     # If we're using OpenGL ES. If so, no further information is available.
-    gles: bool = attr.ib(False)
+    gles: bool = False
 
     # The name of the vendor. Examples:
     # - nouveau
     # - "Intel Open Source Technology Center", "Intel", "Intel Inc."
-    vendor: Optional[str] = attr.ib(None)
+    vendor: Optional[str] = None
 
     # The OpenGL version as a string. See tests for examples.
-    version_str: Optional[str] = attr.ib(None)
+    version_str: Optional[str] = None
 
     # The parsed version as a (major, minor) tuple of ints
-    version: Optional[Tuple[int, ...]] = attr.ib(None)
+    version: Optional[Tuple[int, ...]] = None
 
     # The vendor specific information following the version number
-    vendor_specific: Optional[str] = attr.ib(None)
+    vendor_specific: Optional[str] = None
 
     def __str__(self) -> str:
         if self.gles:

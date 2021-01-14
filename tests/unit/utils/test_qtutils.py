@@ -23,10 +23,10 @@
 import io
 import os
 import os.path
+import dataclasses
 import unittest
 import unittest.mock
 
-import attr
 import pytest
 from PyQt5.QtCore import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
                           QTimer, QBuffer, QFile, QProcess, QFileDevice)
@@ -122,7 +122,7 @@ def test_is_new_qtwebkit(monkeypatch, version, is_new):
 ])
 def test_is_single_process(monkeypatch, stubs, backend, arguments, single_process):
     qapp = stubs.FakeQApplication(arguments=arguments)
-    monkeypatch.setattr(qtutils, 'QApplication', qapp)
+    monkeypatch.setattr(qtutils.objects, 'qapp', qapp)
     monkeypatch.setattr(qtutils.objects, 'backend', backend)
     assert qtutils.is_single_process() == single_process
 
@@ -920,14 +920,14 @@ class TestEventLoop:
     def _double_exec(self):
         """Slot which gets called from timers to assert double-exec fails."""
         with pytest.raises(AssertionError):
-            self.loop.exec_()
+            self.loop.exec()
 
     def test_normal_exec(self):
         """Test exec_ without double-executing."""
         self.loop = qtutils.EventLoop()
         QTimer.singleShot(100, self._assert_executing)
         QTimer.singleShot(200, self.loop.quit)
-        self.loop.exec_()
+        self.loop.exec()
         assert not self.loop._executing
 
     def test_double_exec(self):
@@ -937,7 +937,7 @@ class TestEventLoop:
         QTimer.singleShot(200, self._double_exec)
         QTimer.singleShot(300, self._assert_executing)
         QTimer.singleShot(400, self.loop.quit)
-        self.loop.exec_()
+        self.loop.exec()
         assert not self.loop._executing
 
 
@@ -953,11 +953,11 @@ class Color(QColor):
 
 class TestInterpolateColor:
 
-    @attr.s
+    @dataclasses.dataclass
     class Colors:
 
-        white = attr.ib()
-        black = attr.ib()
+        white: Color
+        black: Color
 
     @pytest.fixture
     def colors(self):

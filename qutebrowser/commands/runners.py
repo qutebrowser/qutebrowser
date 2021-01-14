@@ -22,14 +22,15 @@
 import traceback
 import re
 import contextlib
-from typing import TYPE_CHECKING, Callable, Dict, Iterator, Mapping, MutableMapping
+import dataclasses
+from typing import (TYPE_CHECKING, Callable, Dict, Iterator, Mapping, MutableMapping,
+                    List, Optional)
 
-import attr
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config
-from qutebrowser.commands import cmdexc
+from qutebrowser.commands import cmdexc, command
 from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 from qutebrowser.misc import split, objects
 from qutebrowser.keyinput import macros, modeman
@@ -42,14 +43,14 @@ _ReplacementFunction = Callable[['tabbedbrowser.TabbedBrowser'], str]
 last_command = {}
 
 
-@attr.s
+@dataclasses.dataclass
 class ParseResult:
 
     """The result of parsing a commandline."""
 
-    cmd = attr.ib()
-    args = attr.ib()
-    cmdline = attr.ib()
+    cmd: Optional[command.Command]
+    args: Optional[List[str]]
+    cmdline: List[str]
 
 
 def _url(tabbed_browser):

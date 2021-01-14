@@ -25,11 +25,11 @@ import os
 import re
 import html
 import enum
+import dataclasses
 from string import ascii_lowercase
 from typing import (TYPE_CHECKING, Callable, Dict, Iterable, Iterator, List, Mapping,
                     MutableSequence, Optional, Sequence, Set)
 
-import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt, QUrl
 from PyQt5.QtWidgets import QLabel
 
@@ -150,7 +150,7 @@ class HintLabel(QLabel):
         self.deleteLater()
 
 
-@attr.s
+@dataclasses.dataclass
 class HintContext:
 
     """Context namespace used for hinting.
@@ -181,20 +181,21 @@ class HintContext:
         group: The group of web elements to hint.
     """
 
-    all_labels: List[HintLabel] = attr.ib(attr.Factory(list))
-    labels: Dict[str, HintLabel] = attr.ib(attr.Factory(dict))
-    target: Target = attr.ib(None)
-    baseurl: QUrl = attr.ib(None)
-    to_follow: str = attr.ib(None)
-    rapid: bool = attr.ib(False)
-    first_run: bool = attr.ib(True)
-    add_history: bool = attr.ib(False)
-    filterstr: str = attr.ib(None)
-    args: List[str] = attr.ib(attr.Factory(list))
-    tab: 'browsertab.AbstractTab' = attr.ib(None)
-    group: str = attr.ib(None)
-    hint_mode: str = attr.ib(None)
-    first: bool = attr.ib(False)
+    tab: 'browsertab.AbstractTab'
+    target: Target
+    rapid: bool
+    hint_mode: str
+    add_history: bool
+    first: bool
+    baseurl: QUrl
+    args: List[str]
+    group: str
+
+    all_labels: List[HintLabel] = dataclasses.field(default_factory=list)
+    labels: Dict[str, HintLabel] = dataclasses.field(default_factory=dict)
+    to_follow: Optional[str] = None
+    first_run: bool = True
+    filterstr: Optional[str] = None
 
     def get_args(self, urlstr: str) -> Sequence[str]:
         """Get the arguments, with {hint-url} replaced by the given URL."""
@@ -590,7 +591,7 @@ class HintManager(QObject):
                 raise cmdutils.CommandError(
                     "'args' is only allowed with target userscript/spawn.")
 
-    def _filter_matches(self, filterstr: str, elemstr: str) -> bool:
+    def _filter_matches(self, filterstr: Optional[str], elemstr: str) -> bool:
         """Return True if `filterstr` matches `elemstr`."""
         # Empty string and None always match
         if not filterstr:
@@ -758,19 +759,23 @@ class HintManager(QObject):
                                             "with target {}!".format(name))
 
         self._check_args(target, *args)
-        self._context = HintContext()
-        self._context.tab = tab
-        self._context.target = target
-        self._context.rapid = rapid
-        self._context.hint_mode = self._get_hint_mode(mode)
-        self._context.add_history = add_history
-        self._context.first = first
+
         try:
-            self._context.baseurl = tabbed_browser.current_url()
+            baseurl = tabbed_browser.current_url()
         except qtutils.QtValueError:
             raise cmdutils.CommandError("No URL set for this page yet!")
-        self._context.args = list(args)
-        self._context.group = group
+
+        self._context = HintContext(
+            tab=tab,
+            target=target,
+            rapid=rapid,
+            hint_mode=self._get_hint_mode(mode),
+            add_history=add_history,
+            first=first,
+            baseurl=baseurl,
+            args=list(args),
+            group=group,
+        )
 
         try:
             selector = webelem.css_selector(self._context.group,

@@ -179,7 +179,7 @@ class WebView(QWebView):
         self.shutting_down.connect(menu.close)
         mm = modeman.instance(self.win_id)
         mm.entered.connect(menu.close)
-        menu.exec_(e.globalPos())
+        menu.exec(e.globalPos())
 
     def showEvent(self, e):
         """Extend showEvent to set the page visibility state to visible.

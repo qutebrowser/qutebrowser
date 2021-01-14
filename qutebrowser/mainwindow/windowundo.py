@@ -20,26 +20,28 @@
 """Code for :undo --window."""
 
 import collections
-from typing import MutableSequence, cast
+import dataclasses
+from typing import MutableSequence, cast, TYPE_CHECKING
 
-import attr
-from PyQt5.QtCore import QObject
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import QObject, QByteArray
 
 from qutebrowser.config import config
 from qutebrowser.mainwindow import mainwindow
+from qutebrowser.misc import objects
+if TYPE_CHECKING:
+    from qutebrowser.mainwindow import tabbedbrowser
 
 
 instance = cast('WindowUndoManager', None)
 
 
-@attr.s
+@dataclasses.dataclass
 class _WindowUndoEntry:
 
     """Information needed for :undo -w."""
 
-    geometry = attr.ib()
-    tab_stack = attr.ib()
+    geometry: QByteArray
+    tab_stack: 'tabbedbrowser.UndoStackType'
 
 
 class WindowUndoManager(QObject):
@@ -49,7 +51,7 @@ class WindowUndoManager(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._undos: MutableSequence[_WindowUndoEntry] = collections.deque()
-        QApplication.instance().window_closing.connect(self._on_window_closing)
+        objects.qapp.window_closing.connect(self._on_window_closing)
         config.instance.changed.connect(self._on_config_changed)
 
     @config.change_filter('tabs.undo_stack_size')
@@ -88,4 +90,4 @@ class WindowUndoManager(QObject):
 
 def init():
     global instance
-    instance = WindowUndoManager(parent=QApplication.instance())
+    instance = WindowUndoManager(parent=objects.qapp)

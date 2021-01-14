@@ -21,9 +21,9 @@
 
 import os.path
 import logging
+import dataclasses
 import urllib.parse
 
-import attr
 from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QNetworkProxy
 import pytest
@@ -50,10 +50,10 @@ class FakeDNS:
                 when fromname_mock is called.
     """
 
-    @attr.s
+    @dataclasses.dataclass
     class FakeDNSAnswer:
 
-        error = attr.ib()
+        error: bool
 
     def __init__(self):
         self.used = False
@@ -350,14 +350,14 @@ def test_get_search_url_invalid(url):
         urlutils._get_search_url(url)
 
 
-@attr.s
+@dataclasses.dataclass
 class UrlParams:
 
-    url = attr.ib()
-    is_url = attr.ib(True)
-    is_url_no_autosearch = attr.ib(True)
-    use_dns = attr.ib(True)
-    is_url_in_schemeless = attr.ib(False)
+    url: QUrl
+    is_url: bool = True
+    is_url_no_autosearch: bool = True
+    use_dns: bool = True
+    is_url_in_schemeless: bool = False
 
 
 @pytest.mark.parametrize('auto_search',

@@ -33,9 +33,9 @@ import email.encoders
 import email.mime.multipart
 import email.message
 import quopri
-from typing import MutableMapping, Set, Tuple
+import dataclasses
+from typing import MutableMapping, Set, Tuple, Callable
 
-import attr
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import downloads
@@ -44,13 +44,13 @@ from qutebrowser.utils import log, objreg, message, usertypes, utils, urlutils
 from qutebrowser.extensions import interceptors
 
 
-@attr.s
+@dataclasses.dataclass
 class _File:
 
-    content = attr.ib()
-    content_type = attr.ib()
-    content_location = attr.ib()
-    transfer_encoding = attr.ib()
+    content: bytes
+    content_type: str
+    content_location: str
+    transfer_encoding: Callable[[email.message.Message], None]
 
 
 _CSS_URL_PATTERNS = [re.compile(x) for x in [

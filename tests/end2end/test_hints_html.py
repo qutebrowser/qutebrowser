@@ -22,8 +22,9 @@
 import os
 import os.path
 import textwrap
+import dataclasses
+from typing import Optional
 
-import attr
 import pytest
 import bs4
 
@@ -37,11 +38,11 @@ def collect_tests():
     return files
 
 
-@attr.s
+@dataclasses.dataclass
 class ParsedFile:
 
-    target = attr.ib()
-    qtwebengine_todo = attr.ib()
+    target: str
+    qtwebengine_todo: Optional[str]
 
 
 class InvalidFile(Exception):

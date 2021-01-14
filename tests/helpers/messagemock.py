@@ -20,20 +20,20 @@
 """pytest helper to monkeypatch the message module."""
 
 import logging
+import dataclasses
 
-import attr
 import pytest
 
 from qutebrowser.utils import usertypes, message
 
 
-@attr.s
+@dataclasses.dataclass
 class Message:
 
     """Information about a shown message."""
 
-    level = attr.ib()
-    text = attr.ib()
+    level: usertypes.MessageLevel
+    text: str
 
 
 class MessageMock:

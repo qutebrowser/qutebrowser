@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
 {{ super() }}
+{% if preamble is defined %}
+    <p>{{ preamble }}</p>
+{% endif %}
 <pre>
 {{ content }}
 </pre>

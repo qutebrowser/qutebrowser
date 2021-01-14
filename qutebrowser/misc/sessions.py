@@ -28,7 +28,6 @@ import shutil
 from typing import Any, Iterable, MutableMapping, MutableSequence, Optional, Union, cast
 
 from PyQt5.QtCore import Qt, QUrl, QObject, QPoint, QTimer, QDateTime
-from PyQt5.QtWidgets import QApplication
 import yaml
 
 from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,
@@ -38,6 +37,7 @@ from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.qt import sip
+from qutebrowser.misc import objects
 
 
 _JsonType = MutableMapping[str, Any]
@@ -283,7 +283,7 @@ class SessionManager(QObject):
                 continue
 
             win_data: _JsonType = {}
-            active_window = QApplication.instance().activeWindow()
+            active_window = objects.qapp.activeWindow()
             if getattr(active_window, 'win_id', None) == win_id:
                 win_data['active'] = True
             win_data['geometry'] = bytes(main_window.saveGeometry())

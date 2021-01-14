@@ -28,7 +28,7 @@ import pytest
 from qutebrowser.misc import checkpyver
 
 
-TEXT = (r"At least Python 3.6 is required to run qutebrowser, but it's "
+TEXT = (r"At least Python 3.6.1 is required to run qutebrowser, but it's "
         r"running with \d+\.\d+\.\d+.")
 
 

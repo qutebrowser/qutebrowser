@@ -29,9 +29,9 @@ import argparse
 import functools
 import threading
 import faulthandler
-from typing import TYPE_CHECKING, Optional, MutableMapping, cast
+import dataclasses
+from typing import TYPE_CHECKING, Optional, MutableMapping, cast, List
 
-import attr
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
 from PyQt5.QtWidgets import QApplication
@@ -44,14 +44,14 @@ if TYPE_CHECKING:
     from qutebrowser.misc import quitter
 
 
-@attr.s
+@dataclasses.dataclass
 class ExceptionInfo:
 
     """Information stored when there was an exception."""
 
-    pages = attr.ib()
-    cmd_history = attr.ib()
-    objects = attr.ib()
+    pages: List[List[str]]
+    cmd_history: List[str]
+    objects: str
 
 
 crash_handler = cast('CrashHandler', None)
@@ -295,7 +295,7 @@ class CrashHandler(QObject):
             self._crash_dialog = crashdialog.ExceptionCrashDialog(
                 self._args.debug, info.pages, info.cmd_history, exc,
                 info.objects)
-            ret = self._crash_dialog.exec_()
+            ret = self._crash_dialog.exec()
             if ret == crashdialog.Result.restore:
                 self._quitter.restart(info.pages)
 

@@ -102,7 +102,7 @@ jobs:
         include:
           ### PyQt 5.12 (Python 3.6)
           - testenv: py36-pyqt512
-            os: ubuntu-20.04
+            os: ubuntu-18.04
             python: 3.6
           ### PyQt 5.13 (Python 3.7)
           - testenv: py37-pyqt513
@@ -126,10 +126,10 @@ jobs:
             python: 3.7
             args: "tests/unit"  # Only run unit tests on macOS
           ### macOS Big Sur
-          - testenv: py37-pyqt515
-            os: macos-11.0
-            python: 3.7
-            args: "tests/unit"  # Only run unit tests on macOS
+          # - testenv: py37-pyqt515
+          #   os: macos-11.0
+          #   python: 3.7
+          #   args: "tests/unit"  # Only run unit tests on macOS
           ### Windows: PyQt 5.15 (Python 3.7 to match PyInstaller env)
           - testenv: py37-pyqt515
             os: windows-2019

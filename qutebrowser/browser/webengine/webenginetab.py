@@ -1140,16 +1140,16 @@ class _WebEngineScripts(QObject):
         page_scripts = self._widget.page().scripts()
         quirks = [
             (
-                'whatsapp_web_quirk',
+                'whatsapp_web',
                 QWebEngineScript.DocumentReady,
                 QWebEngineScript.ApplicationWorld,
             ),
         ]
         if not qtutils.version_check('5.13'):
-            quirks.append(('globalthis_quirk',
+            quirks.append(('globalthis',
                            QWebEngineScript.DocumentCreation,
                            QWebEngineScript.MainWorld))
-            quirks.append(('object_fromentries_quirk',
+            quirks.append(('object_fromentries',
                            QWebEngineScript.DocumentCreation,
                            QWebEngineScript.MainWorld))
 
@@ -1158,7 +1158,7 @@ class _WebEngineScripts(QObject):
             script.setName(filename)
             script.setWorldId(world)
             script.setInjectionPoint(injection_point)
-            src = utils.read_file("javascript/{}.user.js".format(filename))
+            src = utils.read_file("javascript/quirks/{}.user.js".format(filename))
             script.setSourceCode(src)
             page_scripts.insert(script)
 
@@ -1529,6 +1529,7 @@ class WebEngineTab(browsertab.AbstractTab):
         # However, self.url() is not available yet and the requested URL
         # might not match the URL we get from the error - so we just apply a
         # heuristic here.
+        assert self.data.last_navigation is not None
         if (show_non_overr_cert_error and
                 url.matches(self.data.last_navigation.url, QUrl.RemoveScheme)):
             self._show_error_page(url, str(error))

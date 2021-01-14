@@ -31,7 +31,7 @@ class DummyBox:
 
     """A dummy QMessageBox returned when --no-err-windows is used."""
 
-    def exec_(self):
+    def exec(self):
         pass
 
 

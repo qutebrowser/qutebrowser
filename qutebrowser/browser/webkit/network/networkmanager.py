@@ -21,13 +21,12 @@
 
 import collections
 import html
+import dataclasses
 from typing import TYPE_CHECKING, Dict, MutableMapping, Optional, Sequence
 
-import attr
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QCoreApplication, QUrl,
-                          QByteArray)
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QUrl, QByteArray
 from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslSocket,
-                             QSslError)
+                             QSslError, QNetworkProxy)
 
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg,
@@ -48,14 +47,14 @@ HOSTBLOCK_ERROR_STRING = '%HOSTBLOCK%'
 _proxy_auth_cache: Dict['ProxyId', 'prompt.AuthInfo'] = {}
 
 
-@attr.s(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class ProxyId:
 
     """Information identifying a proxy server."""
 
-    type = attr.ib()
-    hostname = attr.ib()
-    port = attr.ib()
+    type: QNetworkProxy.ProxyType
+    hostname: str
+    port: int
 
 
 def _is_secure_cipher(cipher):
@@ -155,7 +154,12 @@ class NetworkManager(QNetworkAccessManager):
 
     def __init__(self, *, win_id, tab_id, private, parent=None):
         log.init.debug("Initializing NetworkManager")
-        super().__init__(parent)
+        with log.disable_qt_msghandler():
+            # WORKAROUND for a hang when a message is printed - See:
+            # http://www.riverbankcomputing.com/pipermail/pyqt/2014-November/035045.html
+            #
+            # Still needed on Qt/PyQt 5.15.2 according to #6010.
+            super().__init__(parent)
         log.init.debug("NetworkManager init done")
         self.adopted_downloads = 0
         self._win_id = win_id
@@ -188,8 +192,7 @@ class NetworkManager(QNetworkAccessManager):
         # We have a shared cookie jar - we restore its parent so we don't
         # take ownership of it.
         self.setCookieJar(cookie_jar)
-        app = QCoreApplication.instance()
-        cookie_jar.setParent(app)
+        cookie_jar.setParent(objects.qapp)
 
     def _set_cache(self):
         """Set the cache of the NetworkManager correctly."""
@@ -197,9 +200,8 @@ class NetworkManager(QNetworkAccessManager):
             return
         # We have a shared cache - we restore its parent so we don't take
         # ownership of it.
-        app = QCoreApplication.instance()
         self.setCache(cache.diskcache)
-        cache.diskcache.setParent(app)
+        cache.diskcache.setParent(objects.qapp)
 
     def _get_abort_signals(self, owner=None):
         """Get a list of signals which should abort a question."""

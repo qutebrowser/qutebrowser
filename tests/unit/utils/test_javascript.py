@@ -19,20 +19,21 @@
 
 """Tests for qutebrowser.utils.javascript."""
 
+import dataclasses
+
 import pytest
 import hypothesis
 import hypothesis.strategies
-import attr
 
 from qutebrowser.utils import javascript, usertypes
 
 
-@attr.s
+@dataclasses.dataclass
 class Case:
 
-    original = attr.ib()
-    replacement = attr.ib()
-    webkit_only = attr.ib(False)
+    original: str
+    replacement: str
+    webkit_only: bool = False
 
     def __str__(self):
         return self.original

@@ -19,7 +19,7 @@
 
 """Things which need to be done really early (e.g. before importing Qt).
 
-At this point we can be sure we have all python 3.6 features available.
+At this point we can be sure we have all python 3.6.1 features available.
 """
 
 try:
@@ -95,7 +95,7 @@ def _die(message, exception=None):
                              message)
         msgbox.setTextFormat(Qt.RichText)
         msgbox.resize(msgbox.sizeHint())
-        msgbox.exec_()
+        msgbox.exec()
     app.quit()
     sys.exit(1)
 
@@ -228,9 +228,8 @@ def check_libraries():
         'pkg_resources': _missing_str("pkg_resources/setuptools"),
         'pypeg2': _missing_str("pypeg2"),
         'jinja2': _missing_str("jinja2"),
-        'pygments': _missing_str("pygments"),
         'yaml': _missing_str("PyYAML"),
-        'attr': _missing_str("attrs"),
+        'dataclasses': _missing_str("dataclasses"),
         'PyQt5.QtQml': _missing_str("PyQt5.QtQml"),
         'PyQt5.QtSql': _missing_str("PyQt5.QtSql"),
         'PyQt5.QtOpenGL': _missing_str("PyQt5.QtOpenGL"),

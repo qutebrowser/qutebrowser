@@ -31,8 +31,8 @@ import importlib
 import logging
 import textwrap
 import datetime
+import dataclasses
 
-import attr
 import pytest
 import hypothesis
 import hypothesis.strategies
@@ -714,7 +714,7 @@ class TestModuleVersions:
         ('pygments', True),
         ('yaml', True),
         ('adblock', True),
-        ('attr', True),
+        ('dataclasses', False),
     ])
     def test_existing_attributes(self, name, has_version):
         """Check if all dependencies have an expected __version__ attribute.
@@ -943,18 +943,18 @@ class TestChromiumVersion:
         assert version._chromium_version() == 'avoided'
 
 
-@attr.s
+@dataclasses.dataclass
 class VersionParams:
 
-    name = attr.ib()
-    git_commit = attr.ib(True)
-    frozen = attr.ib(False)
-    qapp = attr.ib(True)
-    with_webkit = attr.ib(True)
-    known_distribution = attr.ib(True)
-    ssl_support = attr.ib(True)
-    autoconfig_loaded = attr.ib(True)
-    config_py_loaded = attr.ib(True)
+    name: str
+    git_commit: bool = True
+    frozen: bool = False
+    qapp: bool = True
+    with_webkit: bool = True
+    known_distribution: bool = True
+    ssl_support: bool = True
+    autoconfig_loaded: bool = True
+    config_py_loaded: bool = True
 
 
 @pytest.mark.parametrize('params', [
@@ -989,10 +989,8 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
         'platform.architecture': lambda: ('ARCHITECTURE', ''),
         '_os_info': lambda: ['OS INFO 1', 'OS INFO 2'],
         '_path_info': lambda: {'PATH DESC': 'PATH NAME'},
-        'QApplication': (stubs.FakeQApplication(style='STYLE',
-                                                platform_name='PLATFORM')
-                         if params.qapp else
-                         stubs.FakeQApplication(instance=None)),
+        'objects.qapp': (stubs.FakeQApplication(style='STYLE', platform_name='PLATFORM')
+                         if params.qapp else None),
         'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
         'sql.version': lambda: 'SQLITE VERSION',
         '_uptime': lambda: datetime.timedelta(hours=1, minutes=23, seconds=45),
@@ -1214,6 +1212,8 @@ def test_pastebin_version_error(pbclient, caplog, message_mock, monkeypatch):
 
 def test_uptime(monkeypatch, qapp):
     """Test _uptime runs and check if microseconds are dropped."""
+    monkeypatch.setattr(objects, 'qapp', qapp)
+
     launch_time = datetime.datetime(1, 1, 1, 1, 1, 1, 1)
     monkeypatch.setattr(qapp, "launch_time", launch_time, raising=False)
 

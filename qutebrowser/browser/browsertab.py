@@ -22,10 +22,10 @@
 import enum
 import itertools
 import functools
+import dataclasses
 from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional,
                     Sequence, Set, Type, Union)
 
-import attr
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
                           QEvent, QPoint)
 from PyQt5.QtGui import QKeyEvent, QIcon
@@ -38,14 +38,10 @@ if TYPE_CHECKING:
     from PyQt5.QtWebKitWidgets import QWebPage
     from PyQt5.QtWebEngineWidgets import QWebEngineHistory, QWebEnginePage
 
-import pygments
-import pygments.lexers
-import pygments.formatters
-
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
-                               urlutils, message)
+                               urlutils, message, jinja)
 from qutebrowser.misc import miscwidgets, objects, sessions
 from qutebrowser.browser import eventfilter, inspector
 from qutebrowser.qt import sip
@@ -112,7 +108,7 @@ class TerminationStatus(enum.Enum):
     killed = 3
 
 
-@attr.s
+@dataclasses.dataclass
 class TabData:
 
     """A simple namespace with a fixed set of attributes.
@@ -134,17 +130,17 @@ class TabData:
         splitter: InspectorSplitter used to show inspector inside the tab.
     """
 
-    keep_icon: bool = attr.ib(False)
-    viewing_source: bool = attr.ib(False)
-    inspector: Optional['AbstractWebInspector'] = attr.ib(None)
-    open_target: usertypes.ClickTarget = attr.ib(usertypes.ClickTarget.normal)
-    override_target: Optional[usertypes.ClickTarget] = attr.ib(None)
-    pinned: bool = attr.ib(False)
-    fullscreen: bool = attr.ib(False)
-    netrc_used: bool = attr.ib(False)
-    input_mode: usertypes.KeyMode = attr.ib(usertypes.KeyMode.normal)
-    last_navigation: usertypes.NavigationRequest = attr.ib(None)
-    splitter: miscwidgets.InspectorSplitter = attr.ib(None)
+    keep_icon: bool = False
+    viewing_source: bool = False
+    inspector: Optional['AbstractWebInspector'] = None
+    open_target: usertypes.ClickTarget = usertypes.ClickTarget.normal
+    override_target: Optional[usertypes.ClickTarget] = None
+    pinned: bool = False
+    fullscreen: bool = False
+    netrc_used: bool = False
+    input_mode: usertypes.KeyMode = usertypes.KeyMode.normal
+    last_navigation: Optional[usertypes.NavigationRequest] = None
+    splitter: Optional[miscwidgets.InspectorSplitter] = None
 
     def should_show_icon(self) -> bool:
         return (config.val.tabs.favicons.show == 'always' or
@@ -177,30 +173,52 @@ class AbstractAction:
             raise WebTabError("{} is not a valid web action!".format(name))
         self._widget.triggerPageAction(member)
 
-    def show_source(
-            self,
-            pygments: bool = False  # pylint: disable=redefined-outer-name
-    ) -> None:
+    def show_source(self, pygments: bool = False) -> None:
         """Show the source of the current page in a new tab."""
         raise NotImplementedError
+
+    def _show_html_source(self, html: str) -> None:
+        """Show the given HTML as source page."""
+        tb = objreg.get('tabbed-browser', scope='window', window=self._tab.win_id)
+        new_tab = tb.tabopen(background=False, related=True)
+        new_tab.set_html(html, self._tab.url())
+        new_tab.data.viewing_source = True
+
+    def _show_source_fallback(self, source: str) -> None:
+        """Show source with pygments unavailable."""
+        html = jinja.render(
+            'pre.html',
+            title='Source',
+            content=source,
+            preamble="Note: The optional Pygments dependency wasn't found - "
+            "showing unhighlighted source.",
+        )
+        self._show_html_source(html)
 
     def _show_source_pygments(self) -> None:
 
         def show_source_cb(source: str) -> None:
             """Show source as soon as it's ready."""
-            # WORKAROUND for https://github.com/PyCQA/pylint/issues/491
-            # pylint: disable=no-member
-            lexer = pygments.lexers.HtmlLexer()
-            formatter = pygments.formatters.HtmlFormatter(
-                full=True, linenos='table')
-            # pylint: enable=no-member
-            highlighted = pygments.highlight(source, lexer, formatter)
+            try:
+                import pygments
+                import pygments.lexers
+                import pygments.formatters
+            except ImportError:
+                # Pygments is an optional dependency
+                self._show_source_fallback(source)
+                return
 
-            tb = objreg.get('tabbed-browser', scope='window',
-                            window=self._tab.win_id)
-            new_tab = tb.tabopen(background=False, related=True)
-            new_tab.set_html(highlighted, self._tab.url())
-            new_tab.data.viewing_source = True
+            try:
+                lexer = pygments.lexers.HtmlLexer()
+                formatter = pygments.formatters.HtmlFormatter(
+                    full=True, linenos='table')
+            except AttributeError:
+                # Remaining namespace package from Pygments
+                self._show_source_fallback(source)
+                return
+
+            html = pygments.highlight(source, lexer, formatter)
+            self._show_html_source(html)
 
         self._tab.dump_async(show_source_cb)
 
@@ -259,7 +277,7 @@ class AbstractPrinting:
         diag = QPrintDialog(self._tab)
         if utils.is_mac:
             # For some reason we get a segfault when using open() on macOS
-            ret = diag.exec_()
+            ret = diag.exec()
             if ret == QDialog.Accepted:
                 do_print()
         else:
@@ -851,6 +869,7 @@ class AbstractTabPrivate:
         """Show/hide (and if needed, create) the web inspector for this tab."""
         tabdata = self._tab.data
         if tabdata.inspector is None:
+            assert tabdata.splitter is not None
             tabdata.inspector = inspector.create(
                 splitter=tabdata.splitter,
                 win_id=self._tab.win_id)

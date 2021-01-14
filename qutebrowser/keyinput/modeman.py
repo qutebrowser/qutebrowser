@@ -20,12 +20,11 @@
 """Mode manager (per window) which handles the current keyboard mode."""
 
 import functools
+import dataclasses
 from typing import Mapping, Callable, MutableMapping, Union, Set, cast
 
-import attr
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
 from PyQt5.QtGui import QKeyEvent
-from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.commands import runners
 from qutebrowser.keyinput import modeparsers, basekeyparser
@@ -33,6 +32,7 @@ from qutebrowser.config import config
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.browser import hints
+from qutebrowser.misc import objects
 
 INPUT_MODES = [usertypes.KeyMode.insert, usertypes.KeyMode.passthrough]
 PROMPT_MODES = [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]
@@ -40,7 +40,7 @@ PROMPT_MODES = [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]
 ParserDictType = MutableMapping[usertypes.KeyMode, basekeyparser.BaseKeyParser]
 
 
-@attr.s(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class KeyEvent:
 
     """A small wrapper over a QKeyEvent storing its data.
@@ -54,8 +54,8 @@ class KeyEvent:
         text: A string (QKeyEvent::text).
     """
 
-    key: Qt.Key = attr.ib()
-    text: str = attr.ib()
+    key: Qt.Key
+    text: str
 
     @classmethod
     def from_event(cls, event: QKeyEvent) -> 'KeyEvent':
@@ -307,7 +307,7 @@ class ModeManager(QObject):
             self._releaseevents_to_pass.add(KeyEvent.from_event(event))
 
         if curmode != usertypes.KeyMode.insert:
-            focus_widget = QApplication.instance().focusWidget()
+            focus_widget = objects.qapp.focusWidget()
             log.modes.debug("match: {}, forward_unbound_keys: {}, "
                             "passthrough: {}, is_non_alnum: {}, dry_run: {} "
                             "--> filter: {} (focused: {!r})".format(

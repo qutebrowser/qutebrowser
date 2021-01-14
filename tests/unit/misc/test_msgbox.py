@@ -95,7 +95,7 @@ def test_information(qtbot):
 def test_no_err_windows(fake_args, capsys):
     fake_args.no_err_windows = True
     box = msgbox.information(parent=None, title='foo', text='bar')
-    box.exec_()  # should do nothing
+    box.exec()  # should do nothing
     out, err = capsys.readouterr()
     assert not out
     assert err == 'Message box: foo; bar\n'

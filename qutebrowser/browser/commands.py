@@ -65,7 +65,7 @@ class CommandDispatcher:
 
     def _new_tabbed_browser(self, private):
         """Get a tabbed-browser from a new window."""
-        args = QApplication.instance().arguments()
+        args = objects.qapp.arguments()
         if private and '--single-process' in args:
             raise cmdutils.CommandError("Private windows are unavailable with "
                                         "the single-process process model.")
@@ -1343,6 +1343,7 @@ class CommandDispatcher:
                       the case for QtWebKit. For QtWebEngine it may display
                       slightly different source.
                       Some JavaScript processing may be applied.
+                      Needs the optional Pygments dependency for highlighting.
         """
         tab = self._current_widget()
         try:
