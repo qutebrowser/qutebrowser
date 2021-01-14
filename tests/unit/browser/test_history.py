@@ -498,22 +498,35 @@ class TestCompletionMetaInfo:
         assert metainfo['excluded_patterns'] == value
 
 
-def test_history_progress(qtbot):
-    progress = history.HistoryProgress()
-    progress.start("Hello World")
-    dialog = progress._progress
-    qtbot.add_widget(dialog)
-    progress.tick()
+class TestHistoryProgress:
 
-    assert dialog.isVisible()
-    assert dialog.labelText() == "Hello World"
-    assert dialog.minimum() == 0
-    assert dialog.value() == 1
-    assert dialog.minimumDuration() == 0
+    @pytest.fixture
+    def progress(self):
+        return history.HistoryProgress()
 
-    assert dialog.maximum() == 0
-    progress.set_maximum(42)
-    assert dialog.maximum() == 42
+    def test_no_start(self, progress):
+        """Test calling tick/finish without start."""
+        progress.tick()
+        assert progress._value == 1
+        progress.finish()
+        assert progress._progress is None
+        assert progress._value == 0
 
-    progress.finish()
-    assert not dialog.isVisible()
+    def test_gui(self, qtbot, progress):
+        progress.start("Hello World")
+        dialog = progress._progress
+        qtbot.add_widget(dialog)
+        progress.tick()
+
+        assert dialog.isVisible()
+        assert dialog.labelText() == "Hello World"
+        assert dialog.minimum() == 0
+        assert dialog.value() == 1
+        assert dialog.minimumDuration() == 0
+
+        assert dialog.maximum() == 0
+        progress.set_maximum(42)
+        assert dialog.maximum() == 42
+
+        progress.finish()
+        assert not dialog.isVisible()
