@@ -39,9 +39,9 @@ class UserVersion:
 
     Instead, we now (ab)use the fact that the user_version in sqlite is a 32-bit integer
     to store both a major and a minor part. If only the minor part changed, we can deal
-    with it (there are only new URLs to clean up or somesuch). If the major part changed,
-    there are backwards-incompatible changes in how the database works, so newer
-    databases are not compatible with older qutebrowser versions.
+    with it (there are only new URLs to clean up or somesuch). If the major part
+    changed, there are backwards-incompatible changes in how the database works, so
+    newer databases are not compatible with older qutebrowser versions.
     """
 
     major: int = attr.ib()
@@ -182,8 +182,8 @@ def init(db_path):
         raise_sqlite_error(msg, error)
 
     global db_user_version
-    version = Query('pragma user_version').run().value()
-    db_user_version = UserVersion.from_int(version)
+    version_int = Query('pragma user_version').run().value()
+    db_user_version = UserVersion.from_int(version_int)
 
     if db_user_version.major > USER_VERSION.major:
         raise KnownError(
@@ -307,6 +307,7 @@ class Query:
         return self.query.record().value(0)
 
     def rows_affected(self):
+        """Return how many rows were affected by a non-SELECT query."""
         assert not self.query.isSelect(), self
         assert self.query.isActive(), self
         rows = self.query.numRowsAffected()

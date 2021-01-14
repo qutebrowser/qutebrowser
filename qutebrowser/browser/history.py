@@ -240,8 +240,8 @@ class WebHistory(sql.SqlTable):
         accordingly as well.
         """
         return (
-            url.scheme() in ['data', 'view-source'] or
-            (url.scheme() == 'qute' and url.host() in ['back', 'pdfjs'])
+            url.scheme() in {'data', 'view-source'} or
+            (url.scheme() == 'qute' and url.host() in {'back', 'pdfjs'})
         )
 
     def _cleanup_history(self):
