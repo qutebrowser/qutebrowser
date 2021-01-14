@@ -25,7 +25,7 @@ import pytest
 from PyQt5.QtCore import QProcess
 
 from qutebrowser.misc import guiprocess
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, utils
 from qutebrowser.browser import qutescheme
 
 
@@ -245,8 +245,12 @@ def test_exit_crash(qtbot, proc, message_mock, py_proc, caplog):
                 os.kill(os.getpid(), signal.SIGSEGV)
             """))
 
+    expected = (
+        "Testprocess exited with status 11, see :messages for details."
+        if utils.is_windows else "Testprocess crashed."
+    )
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
-    assert msg.text == "Testprocess crashed."
+    assert msg.text == expected
 
 
 @pytest.mark.parametrize('stream', ['stdout', 'stderr'])

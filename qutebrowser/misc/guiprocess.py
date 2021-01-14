@@ -25,7 +25,7 @@ import shlex
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
                           QProcessEnvironment)
 
-from qutebrowser.utils import message, log
+from qutebrowser.utils import message, log, utils
 from qutebrowser.browser import qutescheme
 
 
@@ -78,7 +78,7 @@ class GUIProcess(QObject):
     @pyqtSlot(QProcess.ProcessError)
     def _on_error(self, error):
         """Show a message if there was an error while spawning."""
-        if error == QProcess.Crashed:
+        if error == QProcess.Crashed and not utils.is_windows:
             # Already handled via ExitStatus in _on_finished
             return
         msg = self._proc.errorString()
