@@ -376,10 +376,24 @@ class TestSqlQuery:
                            match='No result for single-result query'):
             q.value()
 
-    def test_num_rows_affected(self):
-        q = sql.Query('SELECT 0')
+    def test_num_rows_affected_not_active(self):
+        with pytest.raises(AssertionError):
+            q = sql.Query('SELECT 0')
+            q.rows_affected()
+
+    def test_num_rows_affected_select(self):
+        with pytest.raises(AssertionError):
+            q = sql.Query('SELECT 0')
+            q.run()
+            q.rows_affected()
+
+    @pytest.mark.parametrize('condition', [0, 1])
+    def test_num_rows_affected(self, condition):
+        table = sql.SqlTable('Foo', ['name'])
+        table.insert({'name': 'helloworld'})
+        q = sql.Query(f'DELETE FROM Foo WHERE {condition}')
         q.run()
-        assert q.rows_affected() == 0
+        assert q.rows_affected() == condition
 
     def test_bound_values(self):
         q = sql.Query('SELECT :answer')
