@@ -75,9 +75,12 @@ class GUIProcess(QObject):
                 procenv.insert(k, v)
             self._proc.setProcessEnvironment(procenv)
 
-    @pyqtSlot()
-    def _on_error(self):
+    @pyqtSlot(QProcess.ProcessError)
+    def _on_error(self, error):
         """Show a message if there was an error while spawning."""
+        if error == QProcess.Crashed:
+            # Already handled via ExitStatus in _on_finished
+            return
         msg = self._proc.errorString()
         message.error("Error while spawning {}: {}".format(self._what, msg))
 
@@ -101,7 +104,7 @@ class GUIProcess(QObject):
                 message.error(stderr.strip())
 
         if status == QProcess.CrashExit:
-            exitinfo = "{} crashed!".format(self._what.capitalize())
+            exitinfo = "{} crashed.".format(self._what.capitalize())
             message.error(exitinfo)
         elif status == QProcess.NormalExit and code == 0:
             exitinfo = "{} exited successfully.".format(
