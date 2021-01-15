@@ -57,21 +57,6 @@ Feature: Page history
         And I run :click-element id open-invalid
         Then "load status for * LoadStatus.success" should be logged
 
-    Scenario: History with data URL
-        When I open data/data_link.html
-        And I run :click-element id link
-        And I wait until data:;base64,cXV0ZWJyb3dzZXI= is loaded
-        Then the history should contain:
-            http://localhost:(port)/data/data_link.html data: link
-
-    @qtwebkit_skip
-    Scenario: History with view-source URL
-        When I open data/title.html
-        And I run :view-source
-        And I wait for regex "Changing title for idx \d+ to 'view-source:(http://)?localhost:\d+/data/title.html'" in the log
-        Then the history should contain:
-            http://localhost:(port)/data/title.html Test title
-
     Scenario: Clearing history
         When I run :tab-only
         And I open data/title.html

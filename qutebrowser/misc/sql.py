@@ -21,10 +21,57 @@
 
 import collections
 
+import attr
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtSql import QSqlDatabase, QSqlQuery, QSqlError
 
 from qutebrowser.utils import log, debug
+
+
+@attr.s
+class UserVersion:
+
+    """The version of data stored in the history database.
+
+    When we originally started using user_version, we only used it to signify that the
+    completion database should be regenerated. However, sometimes there are
+    backwards-incompatible changes.
+
+    Instead, we now (ab)use the fact that the user_version in sqlite is a 32-bit integer
+    to store both a major and a minor part. If only the minor part changed, we can deal
+    with it (there are only new URLs to clean up or somesuch). If the major part
+    changed, there are backwards-incompatible changes in how the database works, so
+    newer databases are not compatible with older qutebrowser versions.
+    """
+
+    major: int = attr.ib()
+    minor: int = attr.ib()
+
+    @classmethod
+    def from_int(cls, num):
+        """Parse a number from sqlite into a major/minor user version."""
+        assert 0 <= num <= 0x7FFF_FFFF, num  # signed integer, but shouldn't be negative
+        major = (num & 0x7FFF_0000) >> 16
+        minor = num & 0x0000_FFFF
+        return cls(major, minor)
+
+    def to_int(self):
+        """Get a sqlite integer from a major/minor user version."""
+        assert 0 <= self.major <= 0x7FFF  # signed integer
+        assert 0 <= self.minor <= 0xFFFF
+        return self.major << 16 | self.minor
+
+    def __str__(self):
+        return f'{self.major}.{self.minor}'
+
+
+_db_user_version = None   # The user version we got from the database
+_USER_VERSION = UserVersion(0, 3)    # The current / newest user version
+
+
+def user_version_changed():
+    """Whether the version stored in the database is different from the current one."""
+    return _db_user_version != _USER_VERSION
 
 
 class SqliteErrorCode:
@@ -134,10 +181,29 @@ def init(db_path):
                                                                 error.text())
         raise_sqlite_error(msg, error)
 
-    # Enable write-ahead-logging and reduce disk write frequency
-    # see https://sqlite.org/pragma.html and issues #2930 and #3507
-    Query("PRAGMA journal_mode=WAL").run()
-    Query("PRAGMA synchronous=NORMAL").run()
+    global _db_user_version
+    version_int = Query('pragma user_version').run().value()
+    _db_user_version = UserVersion.from_int(version_int)
+
+    if _db_user_version.major > _USER_VERSION.major:
+        raise KnownError(
+            "Database is too new for this qutebrowser version (database version "
+            f"{_db_user_version}, but {_USER_VERSION.major}.x is supported)")
+
+    if user_version_changed():
+        log.sql.debug(f"Migrating from version {_db_user_version} to {_USER_VERSION}")
+        # Note we're *not* updating the _db_user_version global here. We still want
+        # user_version_changed() to return True, as other modules (such as history.py)
+        # use it to create the initial table structure.
+        Query(f'PRAGMA user_version = {_USER_VERSION.to_int()}').run()
+
+        # Enable write-ahead-logging and reduce disk write frequency
+        # see https://sqlite.org/pragma.html and issues #2930 and #3507
+        #
+        # We might already have done this (without a migration) in earlier versions, but
+        # as those are idempotent, let's make sure we run them once again.
+        Query("PRAGMA journal_mode=WAL").run()
+        Query("PRAGMA synchronous=NORMAL").run()
 
 
 def close():
@@ -172,7 +238,7 @@ class Query:
         """
         self.query = QSqlQuery(QSqlDatabase.database())
 
-        log.sql.debug('Preparing SQL query: "{}"'.format(querystr))
+        log.sql.vdebug(f'Preparing: {querystr}')  # type: ignore[attr-defined]
         ok = self.query.prepare(querystr)
         self._check_ok('prepare', ok)
         self.query.setForwardOnly(forward_only)
@@ -200,16 +266,20 @@ class Query:
     def _bind_values(self, values):
         for key, val in values.items():
             self.query.bindValue(':{}'.format(key), val)
-        if any(val is None for val in self.bound_values().values()):
+
+        bound_values = self.bound_values()
+        if None in bound_values.values():
             raise BugError("Missing bound values!")
+
+        return bound_values
 
     def run(self, **values):
         """Execute the prepared query."""
-        log.sql.debug('Running SQL query: "{}"'.format(
-            self.query.lastQuery()))
+        log.sql.debug(self.query.lastQuery())
 
-        self._bind_values(values)
-        log.sql.debug('query bindings: {}'.format(self.bound_values()))
+        bound_values = self._bind_values(values)
+        if bound_values:
+            log.sql.debug(f'    {bound_values}')
 
         ok = self.query.exec()
         self._check_ok('exec', ok)
@@ -245,7 +315,12 @@ class Query:
         return self.query.record().value(0)
 
     def rows_affected(self):
-        return self.query.numRowsAffected()
+        """Return how many rows were affected by a non-SELECT query."""
+        assert not self.query.isSelect(), self
+        assert self.query.isActive(), self
+        rows = self.query.numRowsAffected()
+        assert rows != -1
+        return rows
 
     def bound_values(self):
         return self.query.boundValues()
@@ -265,9 +340,7 @@ class SqlTable(QObject):
     changed = pyqtSignal()
 
     def __init__(self, name, fields, constraints=None, parent=None):
-        """Create a new table in the SQL database.
-
-        Does nothing if the table already exists.
+        """Wrapper over a table in the SQL database.
 
         Args:
             name: Name of the table.
@@ -276,22 +349,34 @@ class SqlTable(QObject):
         """
         super().__init__(parent)
         self._name = name
+        self._create_table(fields, constraints)
+
+    def _create_table(self, fields, constraints):
+        """Create the table if the database is uninitialized.
+
+        If the table already exists, this does nothing, so it can e.g. be called on
+        every user_version change.
+        """
+        if not user_version_changed():
+            return
 
         constraints = constraints or {}
         column_defs = ['{} {}'.format(field, constraints.get(field, ''))
                        for field in fields]
         q = Query("CREATE TABLE IF NOT EXISTS {name} ({column_defs})"
-                  .format(name=name, column_defs=', '.join(column_defs)))
-
+                  .format(name=self._name, column_defs=', '.join(column_defs)))
         q.run()
 
     def create_index(self, name, field):
-        """Create an index over this table.
+        """Create an index over this table if the database is uninitialized.
 
         Args:
             name: Name of the index, should be unique.
             field: Name of the field to index.
         """
+        if not user_version_changed():
+            return
+
         q = Query("CREATE INDEX IF NOT EXISTS {name} ON {table} ({field})"
                   .format(name=name, table=self._name, field=field))
         q.run()
@@ -318,6 +403,12 @@ class SqlTable(QObject):
         q.run()
         return q.value()
 
+    def __bool__(self):
+        """Check whether there's any data in the table."""
+        q = Query(f"SELECT 1 FROM {self._name} LIMIT 1")
+        q.run()
+        return q.query.next()
+
     def delete(self, field, value, *, optional=False):
         """Remove all rows for which `field` equals `value`.
 
@@ -329,8 +420,7 @@ class SqlTable(QObject):
         Return:
             The number of rows deleted.
         """
-        q = Query("DELETE FROM {table} where {field} = :val"
-                  .format(table=self._name, field=field))
+        q = Query(f"DELETE FROM {self._name} where {field} = :val")
         q.run(val=value)
         if not q.rows_affected():
             if optional:

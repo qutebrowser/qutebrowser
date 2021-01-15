@@ -628,8 +628,11 @@ class FakeHistoryProgress:
         self._finished = False
         self._value = 0
 
-    def start(self, _text, _maximum):
+    def start(self, _text):
         self._started = True
+
+    def set_maximum(self, _maximum):
+        pass
 
     def tick(self):
         self._value += 1

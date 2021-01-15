@@ -21,12 +21,63 @@
 
 import pytest
 
+import hypothesis
+from hypothesis import strategies
 from PyQt5.QtSql import QSqlError
 
 from qutebrowser.misc import sql
 
 
 pytestmark = pytest.mark.usefixtures('init_sql')
+
+
+class TestUserVersion:
+
+    @pytest.mark.parametrize('val, major, minor', [
+        (0x0008_0001, 8, 1),
+        (0x7FFF_FFFF, 0x7FFF, 0xFFFF),
+    ])
+    def test_from_int(self, val, major, minor):
+        version = sql.UserVersion.from_int(val)
+        assert version.major == major
+        assert version.minor == minor
+
+    @pytest.mark.parametrize('major, minor, val', [
+        (8, 1, 0x0008_0001),
+        (0x7FFF, 0xFFFF, 0x7FFF_FFFF),
+    ])
+    def test_to_int(self, major, minor, val):
+        version = sql.UserVersion(major, minor)
+        assert version.to_int() == val
+
+    @pytest.mark.parametrize('val', [0x8000_0000, -1])
+    def test_from_int_invalid(self, val):
+        with pytest.raises(AssertionError):
+            sql.UserVersion.from_int(val)
+
+    @pytest.mark.parametrize('major, minor', [
+        (-1, 0),
+        (0, -1),
+        (0, 0x10000),
+        (0x8000, 0),
+    ])
+    def test_to_int_invalid(self, major, minor):
+        version = sql.UserVersion(major, minor)
+        with pytest.raises(AssertionError):
+            version.to_int()
+
+    @hypothesis.given(val=strategies.integers(min_value=0, max_value=0x7FFF_FFFF))
+    def test_from_int_hypothesis(self, val):
+        version = sql.UserVersion.from_int(val)
+        assert version.to_int() == val
+
+    @hypothesis.given(
+        major=strategies.integers(min_value=0, max_value=0x7FFF),
+        minor=strategies.integers(min_value=0, max_value=0xFFFF)
+    )
+    def test_to_int_hypothesis(self, major, minor):
+        version = sql.UserVersion(major, minor)
+        assert version.from_int(version.to_int()) == version
 
 
 @pytest.mark.parametrize('klass', [sql.KnownError, sql.BugError])
@@ -192,6 +243,26 @@ def test_len():
     assert len(table) == 3
 
 
+def test_bool():
+    table = sql.SqlTable('Foo', ['name'])
+    assert not table
+    table.insert({'name': 'one'})
+    assert table
+
+
+def test_bool_benchmark(benchmark):
+    table = sql.SqlTable('Foo', ['number'])
+
+    # Simulate a history table
+    table.create_index('NumberIndex', 'number')
+    table.insert_batch({'number': [str(i) for i in range(100_000)]})
+
+    def run():
+        assert table
+
+    benchmark(run)
+
+
 def test_contains():
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
     table.insert({'name': 'one', 'val': 1, 'lucky': False})
@@ -293,10 +364,24 @@ class TestSqlQuery:
                            match='No result for single-result query'):
             q.value()
 
-    def test_num_rows_affected(self):
-        q = sql.Query('SELECT 0')
+    def test_num_rows_affected_not_active(self):
+        with pytest.raises(AssertionError):
+            q = sql.Query('SELECT 0')
+            q.rows_affected()
+
+    def test_num_rows_affected_select(self):
+        with pytest.raises(AssertionError):
+            q = sql.Query('SELECT 0')
+            q.run()
+            q.rows_affected()
+
+    @pytest.mark.parametrize('condition', [0, 1])
+    def test_num_rows_affected(self, condition):
+        table = sql.SqlTable('Foo', ['name'])
+        table.insert({'name': 'helloworld'})
+        q = sql.Query(f'DELETE FROM Foo WHERE {condition}')
         q.run()
-        assert q.rows_affected() == 0
+        assert q.rows_affected() == condition
 
     def test_bound_values(self):
         q = sql.Query('SELECT :answer')

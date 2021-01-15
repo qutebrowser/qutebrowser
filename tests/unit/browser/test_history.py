@@ -210,9 +210,20 @@ class TestAdd:
         (logging.DEBUG, 'a.com', 'b.com', [('a.com', 'title', 12345, False),
                                            ('b.com', 'title', 12345, True)]),
         (logging.WARNING, 'a.com', '', [('a.com', 'title', 12345, False)]),
+
         (logging.WARNING, '', '', []),
+
         (logging.WARNING, 'data:foo', '', []),
         (logging.WARNING, 'a.com', 'data:foo', []),
+
+        (logging.WARNING, 'view-source:foo', '', []),
+        (logging.WARNING, 'a.com', 'view-source:foo', []),
+
+        (logging.WARNING, 'qute://back', '', []),
+        (logging.WARNING, 'a.com', 'qute://back', []),
+
+        (logging.WARNING, 'qute://pdfjs/', '', []),
+        (logging.WARNING, 'a.com', 'qute://pdfjs/', []),
     ])
     def test_from_tab(self, web_history, caplog, mock_time,
                       level, url, req_url, expected):
@@ -357,33 +368,12 @@ class TestDump:
 
 class TestRebuild:
 
-    def test_delete(self, web_history, stubs):
-        web_history.insert({'url': 'example.com/1', 'title': 'example1',
-                            'redirect': False, 'atime': 1})
-        web_history.insert({'url': 'example.com/1', 'title': 'example1',
-                            'redirect': False, 'atime': 2})
-        web_history.insert({'url': 'example.com/2%203', 'title': 'example2',
-                            'redirect': False, 'atime': 3})
-        web_history.insert({'url': 'example.com/3', 'title': 'example3',
-                            'redirect': True, 'atime': 4})
-        web_history.insert({'url': 'example.com/2 3', 'title': 'example2',
-                            'redirect': False, 'atime': 5})
-        web_history.completion.delete_all()
-
-        hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
-        assert list(hist2.completion) == [
-            ('example.com/1', 'example1', 2),
-            ('example.com/2 3', 'example2', 5),
-        ]
-
-    def test_no_rebuild(self, web_history, stubs):
-        """Ensure that completion is not regenerated unless empty."""
-        web_history.add_url(QUrl('example.com/1'), redirect=False, atime=1)
-        web_history.add_url(QUrl('example.com/2'), redirect=False, atime=2)
-        web_history.completion.delete('url', 'example.com/2')
-
-        hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
-        assert list(hist2.completion) == [('example.com/1', '', 1)]
+    # FIXME: Some of those tests might be a bit misleading, as creating a new
+    # history.WebHistory will regenerate the completion either way with the SQL changes
+    # in v2.0.0 (because the user version changed from 0 -> 3).
+    #
+    # They should be revisited once we can actually create two independent sqlite
+    # databases and copy the data over, for a "real" test.
 
     def test_user_version(self, web_history, stubs, monkeypatch):
         """Ensure that completion is regenerated if user_version changes."""
@@ -391,11 +381,12 @@ class TestRebuild:
         web_history.add_url(QUrl('example.com/2'), redirect=False, atime=2)
         web_history.completion.delete('url', 'example.com/2')
 
-        hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
-        assert list(hist2.completion) == [('example.com/1', '', 1)]
+        # User version always changes, so this won't work
+        # hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
+        # assert list(hist2.completion) == [('example.com/1', '', 1)]
 
-        monkeypatch.setattr(history, '_USER_VERSION',
-                            history._USER_VERSION + 1)
+        monkeypatch.setattr(sql, 'user_version_changed', lambda: True)
+
         hist3 = history.WebHistory(progress=stubs.FakeHistoryProgress())
         assert list(hist3.completion) == [
             ('example.com/1', '', 1),
@@ -439,22 +430,18 @@ class TestRebuild:
             ('http://example.org', '', 2)
         ]
 
-    @pytest.mark.parametrize('patch_threshold', [True, False])
-    def test_progress(self, web_history, config_stub, monkeypatch, stubs,
-                      patch_threshold):
+    def test_progress(self, monkeypatch, web_history, config_stub, stubs):
         web_history.add_url(QUrl('example.com/1'), redirect=False, atime=1)
         web_history.add_url(QUrl('example.com/2'), redirect=False, atime=2)
-        # Change cached patterns to trigger a completion rebuild
-        web_history.metainfo['excluded_patterns'] = 'http://example.org'
 
-        if patch_threshold:
-            monkeypatch.setattr(history.WebHistory, '_PROGRESS_THRESHOLD', 1)
+        # Trigger a completion rebuild
+        monkeypatch.setattr(sql, 'user_version_changed', lambda: True)
 
         progress = stubs.FakeHistoryProgress()
         history.WebHistory(progress=progress)
         assert progress._value == 2
+        assert progress._started
         assert progress._finished
-        assert progress._started == patch_threshold
 
 
 class TestCompletionMetaInfo:
@@ -501,12 +488,12 @@ class TestHistoryProgress:
     def test_no_start(self, progress):
         """Test calling tick/finish without start."""
         progress.tick()
+        assert progress._value == 1
         progress.finish()
         assert progress._progress is None
-        assert progress._value == 1
 
     def test_gui(self, qtbot, progress):
-        progress.start("Hello World", 42)
+        progress.start("Hello World")
         dialog = progress._progress
         qtbot.add_widget(dialog)
         progress.tick()
@@ -514,9 +501,12 @@ class TestHistoryProgress:
         assert dialog.isVisible()
         assert dialog.labelText() == "Hello World"
         assert dialog.minimum() == 0
-        assert dialog.maximum() == 42
         assert dialog.value() == 1
-        assert dialog.minimumDuration() == 500
+        assert dialog.minimumDuration() == 0
+
+        assert dialog.maximum() == 0
+        progress.set_maximum(42)
+        assert dialog.maximum() == 42
 
         progress.finish()
         assert not dialog.isVisible()
