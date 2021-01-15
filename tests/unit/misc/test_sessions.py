@@ -144,10 +144,10 @@ class FakeMainWindow(QObject):
 @pytest.fixture
 def fake_window(tabbed_browser_stubs):
     """Fixture which provides a fake main windows with a tabbedbrowser."""
-    win0 = FakeMainWindow(b'fake-geometry-0', win_id=0)
-    objreg.register('main-window', win0, scope='window', window=0)
+    win1 = FakeMainWindow(b'fake-geometry-0', win_id=1)
+    objreg.register('main-window', win1, scope='window', window=1)
     yield
-    objreg.delete('main-window', scope='window', window=0)
+    objreg.delete('main-window', scope='window', window=1)
 
 
 class TestSaveAll:
@@ -184,8 +184,8 @@ class TestSave:
     @pytest.fixture
     def fake_history(self, stubs, tabbed_browser_stubs, monkeypatch, webview):
         """Fixture which provides a window with a fake history."""
-        win = FakeMainWindow(b'fake-geometry-0', win_id=0)
-        objreg.register('main-window', win, scope='window', window=0)
+        win = FakeMainWindow(b'fake-geometry-0', win_id=1)
+        objreg.register('main-window', win, scope='window', window=1)
 
         browser = tabbed_browser_stubs[0]
         qapp = stubs.FakeQApplication(active_window=win)
@@ -200,8 +200,8 @@ class TestSave:
 
         yield set_data
 
-        objreg.delete('main-window', scope='window', window=0)
-        objreg.delete('tabbed-browser', scope='window', window=0)
+        objreg.delete('main-window', scope='window', window=1)
+        objreg.delete('tabbed-browser', scope='window', window=1)
 
     def test_no_state_config(self, sess_man, tmp_path, state_config):
         session_path = tmp_path / 'foo.yml'

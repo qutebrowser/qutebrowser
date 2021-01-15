@@ -462,7 +462,7 @@ class CommandDispatcher:
         Args:
             win_id: The window ID of the window to give the current tab to.
             keep: If given, keep the old tab around.
-            count: Overrides win_id (index starts at 1 for win_id=0).
+            count: Overrides win_id.
             private: If the tab should be detached into a private instance.
         """
         if config.val.tabs.tabs_are_windows:
@@ -470,7 +470,7 @@ class CommandDispatcher:
                                         "windows as tabs")
 
         if count is not None:
-            win_id = count - 1
+            win_id = count
 
         if win_id == self._win_id:
             raise cmdutils.CommandError("Can't give a tab to the same window")

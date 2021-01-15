@@ -172,7 +172,7 @@ class TestRegister:
             assert not args
         cmd = objects.commands['fun']
         cmd.namespace = cmd.parser.parse_args([])
-        args, kwargs = cmd._get_call_args(win_id=0)
+        args, kwargs = cmd._get_call_args(win_id=1)
         fun(*args, **kwargs)
 
     def test_star_args_optional_annotated(self):
@@ -182,7 +182,7 @@ class TestRegister:
 
         cmd = objects.commands['fun']
         cmd.namespace = cmd.parser.parse_args([])
-        cmd._get_call_args(win_id=0)
+        cmd._get_call_args(win_id=1)
 
     @pytest.mark.parametrize('inp, expected', [
         (['--arg'], True), (['-a'], True), ([], False)])
@@ -208,7 +208,7 @@ class TestRegister:
 
         cmd.namespace = cmd.parser.parse_args(['-b'])
         assert cmd.namespace.arg
-        args, kwargs = cmd._get_call_args(win_id=0)
+        args, kwargs = cmd._get_call_args(win_id=1)
         fun(*args, **kwargs)
 
     def test_self_without_instance(self):
@@ -328,9 +328,9 @@ class TestRegister:
 
         if expected is cmdexc.ArgumentTypeError:
             with pytest.raises(cmdexc.ArgumentTypeError):
-                cmd._get_call_args(win_id=0)
+                cmd._get_call_args(win_id=1)
         else:
-            args, kwargs = cmd._get_call_args(win_id=0)
+            args, kwargs = cmd._get_call_args(win_id=1)
             assert args == [expected]
             assert kwargs == {}
             fun(*args, **kwargs)
@@ -346,7 +346,7 @@ class TestRegister:
         cmd.namespace = cmd.parser.parse_args(['fish'])
 
         with pytest.raises(cmdexc.ArgumentTypeError):
-            cmd._get_call_args(win_id=0)
+            cmd._get_call_args(win_id=1)
 
     def test_choices_no_annotation_kwonly(self):
         # https://github.com/qutebrowser/qutebrowser/issues/1871
@@ -359,7 +359,7 @@ class TestRegister:
         cmd.namespace = cmd.parser.parse_args(['--arg=fish'])
 
         with pytest.raises(cmdexc.ArgumentTypeError):
-            cmd._get_call_args(win_id=0)
+            cmd._get_call_args(win_id=1)
 
     def test_pos_arg_info(self):
         @cmdutils.register()
@@ -474,15 +474,15 @@ class TestRun:
         monkeypatch.setattr(command.objects, 'backend', used)
         cmd = _get_cmd(backend=backend)
         if ok:
-            cmd.run(win_id=0)
+            cmd.run(win_id=1)
         else:
             with pytest.raises(cmdexc.PrerequisitesError,
                                match=r'.* backend\.'):
-                cmd.run(win_id=0)
+                cmd.run(win_id=1)
 
     def test_no_args(self):
         cmd = _get_cmd()
-        cmd.run(win_id=0)
+        cmd.run(win_id=1)
 
     def test_instance_unavailable_with_backend(self, monkeypatch):
         """Test what happens when a backend doesn't have an objreg object.
@@ -500,4 +500,4 @@ class TestRun:
                             usertypes.Backend.QtWebKit)
         cmd = objects.commands['fun']
         with pytest.raises(cmdexc.PrerequisitesError, match=r'.* backend\.'):
-            cmd.run(win_id=0)
+            cmd.run(win_id=1)

@@ -43,7 +43,7 @@ class TestsNormalKeyParser:
 
     @pytest.fixture
     def keyparser(self, commandrunner):
-        kp = modeparsers.NormalKeyParser(win_id=0, commandrunner=commandrunner)
+        kp = modeparsers.NormalKeyParser(win_id=1, commandrunner=commandrunner)
         return kp
 
     def test_keychain(self, keyparser, commandrunner):
@@ -91,7 +91,7 @@ class TestHintKeyParser:
     @pytest.fixture
     def keyparser(self, config_stub, key_config_stub, commandrunner,
                   hintmanager):
-        return modeparsers.HintKeyParser(win_id=0,
+        return modeparsers.HintKeyParser(win_id=1,
                                          hintmanager=hintmanager,
                                          commandrunner=commandrunner)
 

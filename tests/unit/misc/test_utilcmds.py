@@ -37,7 +37,7 @@ def test_repeat_command_initial(mocker, mode_manager):
     objreg_mock.get.return_value = mode_manager
     with pytest.raises(cmdutils.CommandError,
                        match="You didn't do anything yet."):
-        utilcmds.repeat_command(win_id=0)
+        utilcmds.repeat_command(win_id=1)
 
 
 class FakeWindow:
@@ -60,7 +60,7 @@ def test_window_only(mocker, monkeypatch):
     winreg_mock.window_registry = test_windows
     sip_mock = mocker.patch('qutebrowser.misc.utilcmds.sip')
     sip_mock.isdeleted.side_effect = lambda window: window.deleted
-    utilcmds.window_only(current_win_id=0)
+    utilcmds.window_only(current_win_id=1)
     assert not test_windows[0].closed
     assert not test_windows[1].closed
     assert test_windows[2].closed
@@ -75,5 +75,5 @@ def tabbed_browser(stubs, win_registry):
 
 
 def test_version(tabbed_browser, qapp):
-    utilcmds.version(win_id=0)
+    utilcmds.version(win_id=1)
     assert tabbed_browser.loaded_url == QUrl('qute://version/')

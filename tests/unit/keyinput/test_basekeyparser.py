@@ -34,7 +34,7 @@ def keyseq(s):
 
 
 def _create_keyparser(mode):
-    kp = basekeyparser.BaseKeyParser(mode=mode, win_id=0)
+    kp = basekeyparser.BaseKeyParser(mode=mode, win_id=1)
     kp.execute = mock.Mock()
     return kp
 
@@ -84,7 +84,7 @@ class TestDebugLog:
 ])
 def test_split_count(config_stub, key_config_stub,
                      input_key, supports_count, count, command):
-    kp = basekeyparser.BaseKeyParser(mode=usertypes.KeyMode.normal, win_id=0,
+    kp = basekeyparser.BaseKeyParser(mode=usertypes.KeyMode.normal, win_id=1,
                                      supports_count=supports_count)
 
     for info in keyseq(input_key):

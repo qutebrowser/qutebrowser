@@ -143,20 +143,20 @@ def fake_statusbar(widget_container):
 
 @pytest.fixture
 def win_registry():
-    """Fixture providing a window registry for win_id 0 and 1."""
+    """Fixture providing a window registry for win_id 1."""
     helper = WinRegistryHelper()
-    helper.add_window(0)
+    helper.add_window(1)
     yield helper
     helper.cleanup()
 
 
 @pytest.fixture
 def tab_registry(win_registry):
-    """Fixture providing a tab registry for win_id 0."""
+    """Fixture providing a tab registry for win_id 1."""
     registry = objreg.ObjectRegistry()
-    objreg.register('tab-registry', registry, scope='window', window=0)
+    objreg.register('tab-registry', registry, scope='window', window=1)
     yield registry
-    objreg.delete('tab-registry', scope='window', window=0)
+    objreg.delete('tab-registry', scope='window', window=1)
 
 
 @pytest.fixture
@@ -217,7 +217,7 @@ def webkit_tab(web_tab_setup, qtbot, cookiejar_and_cache, mode_manager,
 
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
 
-    tab = webkittab.WebKitTab(win_id=0, mode_manager=mode_manager,
+    tab = webkittab.WebKitTab(win_id=1, mode_manager=mode_manager,
                               private=False)
     tab.backend = usertypes.Backend.QtWebKit
     widget_container.set_widget(tab)
@@ -241,7 +241,7 @@ def webengine_tab(web_tab_setup, qtbot, redirect_webengine_data,
     webenginetab = pytest.importorskip(
         'qutebrowser.browser.webengine.webenginetab')
 
-    tab = webenginetab.WebEngineTab(win_id=0, mode_manager=mode_manager,
+    tab = webenginetab.WebEngineTab(win_id=1, mode_manager=mode_manager,
                                     private=False)
     tab.backend = usertypes.Backend.QtWebEngine
     widget_container.set_widget(tab)
@@ -392,14 +392,14 @@ def session_manager_stub(stubs, monkeypatch):
 
 @pytest.fixture
 def tabbed_browser_stubs(qapp, stubs, win_registry):
-    """Fixture providing a fake tabbed-browser object on win_id 0 and 1."""
-    win_registry.add_window(1)
+    """Fixture providing a fake tabbed-browser object on win_id 1 and 2."""
+    win_registry.add_window(2)
     stubs = [stubs.TabbedBrowserStub(), stubs.TabbedBrowserStub()]
-    objreg.register('tabbed-browser', stubs[0], scope='window', window=0)
-    objreg.register('tabbed-browser', stubs[1], scope='window', window=1)
+    objreg.register('tabbed-browser', stubs[0], scope='window', window=1)
+    objreg.register('tabbed-browser', stubs[1], scope='window', window=2)
     yield stubs
-    objreg.delete('tabbed-browser', scope='window', window=0)
     objreg.delete('tabbed-browser', scope='window', window=1)
+    objreg.delete('tabbed-browser', scope='window', window=2)
 
 
 @pytest.fixture
@@ -535,9 +535,9 @@ def fake_args(request, monkeypatch):
 
 @pytest.fixture
 def mode_manager(win_registry, config_stub, key_config_stub, qapp):
-    mm = modeman.init(win_id=0, parent=qapp)
+    mm = modeman.init(win_id=1, parent=qapp)
     yield mm
-    objreg.delete('mode-manager', scope='window', window=0)
+    objreg.delete('mode-manager', scope='window', window=1)
 
 
 def standarddir_tmpdir(folder, monkeypatch, tmpdir):

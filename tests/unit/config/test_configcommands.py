@@ -58,7 +58,7 @@ class TestSet:
         """Run ':set'.
 
         Should open qute://settings."""
-        commands.set(win_id=0)
+        commands.set(win_id=1)
         assert tabbed_browser_stubs[0].loaded_url == QUrl('qute://settings')
 
     @pytest.mark.parametrize('option', ['url.auto_search?', 'url.auto_search'])
@@ -68,7 +68,7 @@ class TestSet:
         Should show the value.
         """
         config_stub.val.url.auto_search = 'never'
-        commands.set(win_id=0, option=option)
+        commands.set(win_id=1, option=option)
         msg = message_mock.getmsg(usertypes.MessageLevel.info)
         assert msg.text == 'url.auto_search = never'
 
@@ -191,7 +191,7 @@ class TestSet:
         See https://github.com/qutebrowser/qutebrowser/issues/1109
         """
         with pytest.raises(cmdutils.CommandError, match="No option '?'"):
-            commands.set(win_id=0, option='?')
+            commands.set(win_id=1, option='?')
 
     def test_toggle(self, commands):
         """Try toggling a value.
@@ -201,7 +201,7 @@ class TestSet:
         with pytest.raises(cmdutils.CommandError,
                            match="Toggling values was moved to the "
                                  ":config-cycle command"):
-            commands.set(win_id=0, option='javascript.enabled!')
+            commands.set(win_id=1, option='javascript.enabled!')
 
     def test_invalid(self, commands):
         """Run ':set foo?'.
@@ -209,14 +209,14 @@ class TestSet:
         Should show an error.
         """
         with pytest.raises(cmdutils.CommandError, match="No option 'foo'"):
-            commands.set(win_id=0, option='foo?')
+            commands.set(win_id=1, option='foo?')
 
 
 def test_diff(commands, tabbed_browser_stubs):
     """Run ':config-diff'.
 
     Should open qute://configdiff."""
-    commands.config_diff(win_id=0)
+    commands.config_diff(win_id=1)
     assert tabbed_browser_stubs[0].loaded_url == QUrl('qute://configdiff')
 
 
@@ -698,7 +698,7 @@ class TestBind:
         Should open qute://bindings."""
         config_stub.val.bindings.default = no_bindings
         config_stub.val.bindings.commands = no_bindings
-        commands.bind(win_id=0)
+        commands.bind(win_id=1)
         assert tabbed_browser_stubs[0].loaded_url == QUrl('qute://bindings')
 
     @pytest.mark.parametrize('command', ['nop', 'nope'])

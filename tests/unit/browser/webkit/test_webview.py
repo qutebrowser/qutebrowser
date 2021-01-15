@@ -23,7 +23,7 @@ webview = pytest.importorskip('qutebrowser.browser.webkit.webview')
 
 @pytest.fixture
 def real_webview(webkit_tab, qtbot):
-    wv = webview.WebView(win_id=0, tab_id=0, tab=webkit_tab, private=False)
+    wv = webview.WebView(win_id=1, tab_id=0, tab=webkit_tab, private=False)
     qtbot.add_widget(wv)
     return wv
 

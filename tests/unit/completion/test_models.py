@@ -221,7 +221,7 @@ def web_history_populated(web_history):
 def info(config_stub, key_config_stub):
     return completer.CompletionInfo(config=config_stub,
                                     keyconf=key_config_stub,
-                                    win_id=0,
+                                    win_id=1,
                                     cur_tab=None)
 
 
@@ -833,7 +833,7 @@ def test_other_buffer_completion(qtmodeltester, fake_web_tab, win_registry,
     tabbed_browser_stubs[1].widget.tabs = [
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
-    info.win_id = 1
+    info.win_id = 2
     model = miscmodels.other_buffer(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
@@ -857,7 +857,7 @@ def test_other_buffer_completion_id0(qtmodeltester, fake_web_tab,
     tabbed_browser_stubs[1].widget.tabs = [
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
-    info.win_id = 0
+    info.win_id = 1
     model = miscmodels.other_buffer(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
@@ -879,7 +879,7 @@ def test_tab_focus_completion(qtmodeltester, fake_web_tab, win_registry,
     tabbed_browser_stubs[1].widget.tabs = [
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
-    info.win_id = 1
+    info.win_id = 2
     model = miscmodels.tab_focus(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
@@ -915,7 +915,7 @@ def test_window_completion(qtmodeltester, fake_web_tab, tabbed_browser_stubs,
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0)
     ]
 
-    info.win_id = 1
+    info.win_id = 2
     model = miscmodels.window(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)

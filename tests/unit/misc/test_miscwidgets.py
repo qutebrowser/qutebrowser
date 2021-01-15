@@ -145,7 +145,7 @@ class TestInspectorSplitter:
     @pytest.fixture
     def splitter(self, qtbot, fake_webview):
         inspector_splitter = miscwidgets.InspectorSplitter(
-            win_id=0, main_webview=fake_webview)
+            win_id=1, main_webview=fake_webview)
         qtbot.add_widget(inspector_splitter)
         return inspector_splitter
 

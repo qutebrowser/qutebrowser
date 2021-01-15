@@ -27,6 +27,6 @@ pytestmark = pytest.mark.usefixtures('cookiejar_and_cache')
 
 
 def test_init_with_private_mode(fake_args):
-    nam = networkmanager.NetworkManager(win_id=0, tab_id=0, private=True)
+    nam = networkmanager.NetworkManager(win_id=1, tab_id=0, private=True)
     assert isinstance(nam.cookieJar(), cookies.RAMCookieJar)
     assert nam.cache() is None

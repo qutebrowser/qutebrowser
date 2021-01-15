@@ -51,7 +51,7 @@ def test_show_benchmark(benchmark, tabbed_browser, qtbot, mode_manager):
     with qtbot.wait_signal(tab.load_finished):
         tab.load_url(QUrl('qute://testdata/data/hints/benchmark.html'))
 
-    manager = qutebrowser.browser.hints.HintManager(win_id=0)
+    manager = qutebrowser.browser.hints.HintManager(win_id=1)
 
     def bench():
         with qtbot.wait_signal(mode_manager.entered):
@@ -72,7 +72,7 @@ def test_match_benchmark(benchmark, tabbed_browser, qtbot, mode_manager, qapp,
         tab.load_url(QUrl('qute://testdata/data/hints/benchmark.html'))
 
     config_stub.val.hints.scatter = False
-    manager = qutebrowser.browser.hints.HintManager(win_id=0)
+    manager = qutebrowser.browser.hints.HintManager(win_id=1)
 
     with qtbot.wait_signal(mode_manager.entered):
         manager.start()
@@ -101,7 +101,7 @@ def test_scattered_hints_count(min_len, num_chars, num_elements):
     2. There can only be two hint lengths, only 1 apart
     3. There are no unique prefixes for long hints, such as 'la' with no 'l<x>'
     """
-    manager = qutebrowser.browser.hints.HintManager(win_id=0)
+    manager = qutebrowser.browser.hints.HintManager(win_id=1)
     chars = string.ascii_lowercase[:num_chars]
 
     hints = manager._hint_scattered(min_len, chars,

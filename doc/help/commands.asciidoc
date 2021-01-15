@@ -610,7 +610,7 @@ Syntax: +:help [*--tab*] [*--bg*] [*--window*] ['topic']+
 Show help about a command or setting.
 
 ==== positional arguments
-* +'topic'+: The topic to show help for. 
+* +'topic'+: The topic to show help for.
 
  - :__command__ for commands.
  - __section__.__option__ for settings.
@@ -628,20 +628,20 @@ Syntax: +:hint [*--mode* 'mode'] [*--add-history*] [*--rapid*] [*--first*] ['gro
 Start hinting.
 
 ==== positional arguments
-* +'group'+: The element types to hint. 
+* +'group'+: The element types to hint.
 
  - `all`: All clickable elements.
  - `links`: Only links.
  - `images`: Only images.
  - `inputs`: Only input fields.
- 
+
 
  Custom groups can be added via the `hints.selectors` setting
  and also used here.
- 
 
 
-* +'target'+: What to do with the selected element. 
+
+* +'target'+: What to do with the selected element.
 
  - `normal`: Open the link.
  - `current`: Open the link in the current tab.
@@ -662,10 +662,10 @@ Start hinting.
  link.
  - `spawn`: Spawn a command.
  - `delete`: Delete the selected element.
- 
 
 
-* +'args'+: Arguments for spawn/userscript/run/fill. 
+
+* +'args'+: Arguments for spawn/userscript/run/fill.
 
  - With `spawn`: The executable and arguments to spawn.
  `{hint-url}` will get replaced by the selected
@@ -682,13 +682,13 @@ Start hinting.
 
 
 ==== optional arguments
-* +*-m*+, +*--mode*+: The hinting mode to use. 
+* +*-m*+, +*--mode*+: The hinting mode to use.
 
  - `number`: Use numeric hints.
  - `letter`: Use the chars in the hints.chars setting.
  - `word`: Use hint words based on the html elements and the
  extra words.
- 
+
 
 
 * +*-a*+, +*--add-history*+: Whether to add the spawned or yanked link to the browsing history.
@@ -758,7 +758,7 @@ Evaluate a JavaScript string.
 * +*-u*+, +*--url*+: Interpret js-code as a `javascript:...` URL.
 * +*-q*+, +*--quiet*+: Don't show resulting JS object.
 * +*-w*+, +*--world*+: Ignored on QtWebKit. On QtWebEngine, a world ID or name to run the snippet in. Predefined world names are:
- 
+
 
  - `main` (same world as the web page's JavaScript and
  Greasemonkey, unless overridden via `@qute-js-world`)
@@ -855,7 +855,7 @@ Open typical prev/next links or navigate using the URL path.
 This tries to automatically click on typical _Previous Page_ or _Next Page_ links using some heuristics. Alternatively it can navigate by changing the current URL.
 
 ==== positional arguments
-* +'where'+: What to open. 
+* +'where'+: What to open.
 
  - `prev`: Open a _previous_ link.
  - `next`: Open a _next_ link.
@@ -869,7 +869,7 @@ This tries to automatically click on typical _Previous Page_ or _Next Page_ link
  link:settings{outsuffix}#url.incdec_segments[url.incdec_segments]
  config option.
  - `strip`: Strip query and fragment from the current URL.
- 
+
 
 
 
@@ -1387,7 +1387,7 @@ If no win_id is given, the tab will get detached into a new window.
 * +*-p*+, +*--private*+: If the tab should be detached into a private instance.
 
 ==== count
-Overrides win_id (index starts at 1 for win_id=0).
+Overrides win_id.
 
 [[tab-move]]
 === tab-move
@@ -1529,7 +1529,7 @@ Syntax: +:yank [*--sel*] [*--keep*] [*--quiet*] ['what'] ['inline']+
 Yank (copy) something to the clipboard or primary selection.
 
 ==== positional arguments
-* +'what'+: What to yank. 
+* +'what'+: What to yank.
 
  - `url`: The current URL.
  - `pretty-url`: The URL in pretty decoded form.
@@ -1537,7 +1537,7 @@ Yank (copy) something to the clipboard or primary selection.
  - `domain`: The current scheme, domain, and port number.
  - `selection`: The selection under the cursor.
  - `inline`: Yank the text contained in the 'inline' argument.
- 
+
 
 
 * +'inline'+: A block of text, to be yanked if 'what' is inline and ignored otherwise.

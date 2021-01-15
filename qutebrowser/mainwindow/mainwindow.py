@@ -43,7 +43,7 @@ from qutebrowser.misc import crashsignal, keyhintwidget, sessions, objects
 from qutebrowser.qt import sip
 
 
-win_id_gen = itertools.count(0)
+win_id_gen = itertools.count(1)
 
 
 def get_window(*, via_ipc: bool,
@@ -285,7 +285,7 @@ class MainWindow(QWidget):
         """Initialize the window geometry or load it from disk."""
         if geometry is not None:
             self._load_geometry(geometry)
-        elif self.win_id == 0:
+        elif self.win_id == 1:
             self._load_state_geometry()
         else:
             self._set_default_geometry()
