@@ -40,8 +40,10 @@ window._qutebrowser.webelem = (function() {
     const funcs = {};
     const elements = [];
 
+    const utils = window._qutebrowser.utils;
+
     function get_frame_offset(frame) {
-        if (frame === null) {
+        if (frame === null || !frame.frameElement) {
             // Dummy object with zero offset
             return {
                 "top": 0,
@@ -191,17 +193,6 @@ window._qutebrowser.webelem = (function() {
         return Boolean(rect);
     }
 
-    // Returns true if the iframe is accessible without
-    // cross domain errors, else false.
-    function iframe_same_domain(frame) {
-        try {
-            frame.document; // eslint-disable-line no-unused-expressions
-            return true;
-        } catch (err) {
-            return false;
-        }
-    }
-
     funcs.find_css = (selector, only_visible) => {
         let elems;
 
@@ -222,7 +213,7 @@ window._qutebrowser.webelem = (function() {
 
         // Recurse into frames and add them
         for (let i = 0; i < subelem_frames.length; i++) {
-            if (iframe_same_domain(subelem_frames[i])) {
+            if (utils.iframe_same_domain(subelem_frames[i])) {
                 const frame = subelem_frames[i];
                 const subelems = frame.document.
                     querySelectorAll(selector);
@@ -243,7 +234,7 @@ window._qutebrowser.webelem = (function() {
     function run_frames(func) {
         for (let i = 0; i < window.frames.length; ++i) {
             const frame = window.frames[i];
-            if (iframe_same_domain(frame)) {
+            if (utils.iframe_same_domain(frame)) {
                 const result = func(frame);
                 if (result) {
                     return result;
@@ -271,20 +262,6 @@ window._qutebrowser.webelem = (function() {
         return null;
     };
 
-    // Check if elem is an iframe, and if so, return the result of func on it.
-    // If no iframes match, return null
-    function call_if_frame(elem, func) {
-        // Check if elem is a frame, and if so, call func on the window
-        if ("contentWindow" in elem) {
-            const frame = elem.contentWindow;
-            if (iframe_same_domain(frame) &&
-                "frameElement" in elem.contentWindow) {
-                return func(frame);
-            }
-        }
-        return null;
-    }
-
     funcs.find_focused = () => {
         const elem = document.activeElement;
 
@@ -294,33 +271,23 @@ window._qutebrowser.webelem = (function() {
             return null;
         }
 
-        // Check if we got an iframe, and if so, recurse inside of it
-        const frame_elem = call_if_frame(elem,
-            (frame) => serialize_elem(frame.document.activeElement, frame));
-
-        if (frame_elem !== null) {
-            return frame_elem;
-        }
-        return serialize_elem(elem);
+        // Get the window of the frame/root
+        const frame_win = utils.get_frame_window(elem);
+        return serialize_elem(frame_win.document.activeElement, frame_win);
     };
 
     funcs.find_at_pos = (x, y) => {
         const elem = document.elementFromPoint(x, y);
 
+        const frame_win = utils.get_frame_window(elem);
 
-        // Check if we got an iframe, and if so, recurse inside of it
-        const frame_elem = call_if_frame(elem,
-            (frame) => {
-                // Subtract offsets due to being in an iframe
-                const frame_offset_rect =
-                      frame.frameElement.getBoundingClientRect();
-                return serialize_elem(frame.document.
-                    elementFromPoint(x - frame_offset_rect.left,
-                        y - frame_offset_rect.top), frame);
-            });
-
-        if (frame_elem !== null) {
-            return frame_elem;
+        if (frame_win !== window) {
+            // Subtract offsets due to being in an iframe
+            const frame_offset_rect =
+                  frame_win.frameElement.getBoundingClientRect();
+            return serialize_elem(frame_win.document.
+                elementFromPoint(x - frame_offset_rect.left,
+                    y - frame_offset_rect.top), frame_win);
         }
         return serialize_elem(elem);
     };

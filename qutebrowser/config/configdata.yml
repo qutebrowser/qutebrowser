@@ -1590,7 +1590,7 @@ scrolling.smooth:
   desc: >-
     Enable smooth scrolling for web pages.
 
-    Note smooth scrolling does not work with the `:scroll-px` command.
+    Note smooth scrolling does not work with the `:scroll-*` commands on webkit or webengine<5.10.
 
 ## spellcheck
 
