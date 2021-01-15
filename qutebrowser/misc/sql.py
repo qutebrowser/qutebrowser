@@ -20,6 +20,7 @@
 """Provides access to an in-memory sqlite database."""
 
 import collections
+import dataclasses
 
 import attr
 from PyQt5.QtCore import QObject, pyqtSignal
@@ -28,7 +29,7 @@ from PyQt5.QtSql import QSqlDatabase, QSqlQuery, QSqlError
 from qutebrowser.utils import log, debug
 
 
-@attr.s
+@dataclasses.dataclass
 class UserVersion:
 
     """The version of data stored in the history database.
@@ -44,8 +45,8 @@ class UserVersion:
     newer databases are not compatible with older qutebrowser versions.
     """
 
-    major: int = attr.ib()
-    minor: int = attr.ib()
+    major: int
+    minor: int
 
     @classmethod
     def from_int(cls, num):
