@@ -268,7 +268,7 @@ class Query:
             self.query.bindValue(':{}'.format(key), val)
 
         bound_values = self.bound_values()
-        if any(val is None for val in bound_values.values()):
+        if None in bound_values.values():
             raise BugError("Missing bound values!")
 
         return bound_values
