@@ -368,33 +368,12 @@ class TestDump:
 
 class TestRebuild:
 
-    def test_delete(self, web_history, stubs):
-        web_history.insert({'url': 'example.com/1', 'title': 'example1',
-                            'redirect': False, 'atime': 1})
-        web_history.insert({'url': 'example.com/1', 'title': 'example1',
-                            'redirect': False, 'atime': 2})
-        web_history.insert({'url': 'example.com/2%203', 'title': 'example2',
-                            'redirect': False, 'atime': 3})
-        web_history.insert({'url': 'example.com/3', 'title': 'example3',
-                            'redirect': True, 'atime': 4})
-        web_history.insert({'url': 'example.com/2 3', 'title': 'example2',
-                            'redirect': False, 'atime': 5})
-        web_history.completion.delete_all()
-
-        hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
-        assert list(hist2.completion) == [
-            ('example.com/1', 'example1', 2),
-            ('example.com/2 3', 'example2', 5),
-        ]
-
-    def test_no_rebuild(self, web_history, stubs):
-        """Ensure that completion is not regenerated unless empty."""
-        web_history.add_url(QUrl('example.com/1'), redirect=False, atime=1)
-        web_history.add_url(QUrl('example.com/2'), redirect=False, atime=2)
-        web_history.completion.delete('url', 'example.com/2')
-
-        hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
-        assert list(hist2.completion) == [('example.com/1', '', 1)]
+    # FIXME: Some of those tests might be a bit misleading, as creating a new
+    # history.WebHistory will regenerate the completion either way with the SQL changes
+    # in v2.0.0 (because the user version changed from 0 -> 3).
+    #
+    # They should be revisited once we can actually create two independent sqlite
+    # databases and copy the data over, for a "real" test.
 
     def test_user_version(self, web_history, stubs, monkeypatch):
         """Ensure that completion is regenerated if user_version changes."""
@@ -402,11 +381,12 @@ class TestRebuild:
         web_history.add_url(QUrl('example.com/2'), redirect=False, atime=2)
         web_history.completion.delete('url', 'example.com/2')
 
-        hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
-        assert list(hist2.completion) == [('example.com/1', '', 1)]
+        # User version always changes, so this won't work
+        # hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
+        # assert list(hist2.completion) == [('example.com/1', '', 1)]
 
-        monkeypatch.setattr(history, '_USER_VERSION',
-                            history._USER_VERSION + 1)
+        monkeypatch.setattr(sql, 'user_version_changed', lambda: True)
+
         hist3 = history.WebHistory(progress=stubs.FakeHistoryProgress())
         assert list(hist3.completion) == [
             ('example.com/1', '', 1),
@@ -450,11 +430,12 @@ class TestRebuild:
             ('http://example.org', '', 2)
         ]
 
-    def test_progress(self, web_history, config_stub, stubs):
+    def test_progress(self, monkeypatch, web_history, config_stub, stubs):
         web_history.add_url(QUrl('example.com/1'), redirect=False, atime=1)
         web_history.add_url(QUrl('example.com/2'), redirect=False, atime=2)
-        # Change cached patterns to trigger a completion rebuild
-        web_history.metainfo['excluded_patterns'] = 'http://example.org'
+
+        # Trigger a completion rebuild
+        monkeypatch.setattr(sql, 'user_version_changed', lambda: True)
 
         progress = stubs.FakeHistoryProgress()
         history.WebHistory(progress=progress)
