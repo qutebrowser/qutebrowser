@@ -72,7 +72,6 @@ Major changes
 - The former dependency on the `attrs`/`attr` package is now dropped.
 - On Python 3.6, a new dependency on the `dataclasses` backport is now required.
 - Windows 7 is not supported anymore by the Windows binaries.
-- TODO: The Windows and macOS binaries are now updated to Python 3.9.
 
 Removed
 ~~~~~~~
@@ -115,6 +114,12 @@ Changed
 - `config.py` files now are required to have either
   `config.load_autoconfig(False)` (don't load `autoconfig.yml`) or
   `config.load_autoconfig()` (do load `autoconfig.yml`) in them.
+- On the first start, the history completion database is regenerated to remove
+  a few problematic entries (such as long `qute://pdfjs` URLs). This might take
+  a couple of minutes, but is a one-time operation.
+- qutebrowser now shows an error if its history database version is newer than
+  expected. This currently should never happen, but allows for potentially
+  backwards-incompatible changes in future versions.
 - (TODO) Windows and macOS releases now ship Python 3.9 rather than 3.7.
 - The `colors.webpage.darkmode.*` settings are now also supported with older Qt
   versions (Qt 5.12 and 5.13) rather than just with Qt 5.14 and above.
@@ -153,6 +158,7 @@ Changed
   set from JavaScript, as it would be if `content.headers.custom` wasn't set.
 - The `:buffer` completion now shows the underlying renderer process PID if
   doing so is supported (QtWebEngine 5.15).
+- Various performance improvements, including for the startup time.
 
 Fixed
 ~~~~~
@@ -175,10 +181,8 @@ Fixed
   stack.
 - When `:tab-only` is run before a tab is available, an error is now shown
   instead of crashing.
-- TODO: Due to a long-standing bug in the `pkg_resources` dependency, it caused
-  qutebrowser's startup to slow down by around 150ms-1s (heavily depending on
-  the system). Since the dependency is now removed, qutebrowser's startup time
-  thus improved.
+- A couple of long URLs (such as `qute://pdfjs` URLs) are now not added to the
+  history database anymore.
 
 v1.14.1 (2020-12-04)
 --------------------
