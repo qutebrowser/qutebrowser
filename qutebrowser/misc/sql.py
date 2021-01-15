@@ -192,6 +192,11 @@ def init(db_path):
 
     if user_version_changed():
         log.sql.debug(f"Migrating from version {_db_user_version} to {_USER_VERSION}")
+        # Note we're *not* updating the _db_user_version global here. We still want
+        # user_version_changed() to return True, as other modules (such as history.py)
+        # use it to create the initial table structure.
+        Query(f'PRAGMA user_version = {_USER_VERSION.to_int()}').run()
+
         # Enable write-ahead-logging and reduce disk write frequency
         # see https://sqlite.org/pragma.html and issues #2930 and #3507
         #
@@ -199,7 +204,6 @@ def init(db_path):
         # as those are idempotent, let's make sure we run them once again.
         Query("PRAGMA journal_mode=WAL").run()
         Query("PRAGMA synchronous=NORMAL").run()
-        Query(f'PRAGMA user_version = {_USER_VERSION.to_int()}').run()
 
 
 def close():
