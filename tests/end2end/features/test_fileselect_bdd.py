@@ -22,31 +22,43 @@ import json
 import pytest_bdd as bdd
 bdd.scenarios('fileselect.feature')
 
-FILE_SELECTOR_SCRIPT = r"""
-import sys
-tmp_file = sys.argv[1]
-choosenfiles = {}
-with open(tmp_file, 'w') as f:
-    for choosenfile in choosenfiles:
-        f.write(choosenfile)
-"""
 
 
 @bdd.when(bdd.parsers.parse('I set up a fake single file fileselector '
                             'selecting "{choosefile}"'))
 def set_up_single_fileselector(quteproc, py_proc, choosefile):
     """Set up fileselect.single_file.command to select the file."""
-    cmd, args = py_proc(FILE_SELECTOR_SCRIPT.format(repr([choosefile])))
-    fileselect_cmd = json.dumps([cmd, *args, '{}'])
-    quteproc.set_setting('fileselect.handler', 'external')
-    quteproc.set_setting('fileselect.single_file.command', fileselect_cmd)
+    set_up_fileselector(
+        quteproc=quteproc,
+        py_proc=py_proc,
+        choosefiles=[choosefile],
+        setting_cmd='fileselect.single_file.command'
+    )
 
 
 @bdd.when(bdd.parsers.parse('I set up a fake multiple files fileselector '
                             'selecting "{choosefiles}"'))
 def set_up_multiple_fileselector(quteproc, py_proc, choosefiles):
     """Set up fileselect.multiple_file.command to select the files."""
-    cmd, args = py_proc(FILE_SELECTOR_SCRIPT.format(repr(choosefiles)))
+    set_up_fileselector(
+        quteproc=quteproc,
+        py_proc=py_proc,
+        choosefiles=choosefiles,
+        setting_cmd='fileselect.multiple_files.command'
+    )
+
+
+def set_up_fileselector(quteproc, py_proc, choosefiles, setting_cmd):
+    """Set up fileselect.xxx.command to select the file(s)."""
+    file_selector_script = r"""
+    import sys
+    tmp_file = sys.argv[1]
+    choosenfiles = {}
+    with open(tmp_file, 'w') as f:
+        for choosenfile in choosenfiles:
+            f.write(choosenfile)
+    """
+    cmd, args = py_proc(file_selector_script.format(repr(choosefiles)))
     fileselect_cmd = json.dumps([cmd, *args, '{}'])
     quteproc.set_setting('fileselect.handler', 'external')
-    quteproc.set_setting('fileselect.multiple_files.command', fileselect_cmd)
+    quteproc.set_setting(setting_cmd, fileselect_cmd)
