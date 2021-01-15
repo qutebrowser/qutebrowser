@@ -238,7 +238,7 @@ class Query:
         """
         self.query = QSqlQuery(QSqlDatabase.database())
 
-        log.sql.vdebug(f'Preparing: {querystr}')
+        log.sql.vdebug(f'Preparing: {querystr}')  # type: ignore[attr-defined]
         ok = self.query.prepare(querystr)
         self._check_ok('prepare', ok)
         self.query.setForwardOnly(forward_only)
