@@ -65,13 +65,13 @@ class UserVersion:
         return f'{self.major}.{self.minor}'
 
 
-db_user_version = None   # The user version we got from the database
-USER_VERSION = UserVersion(0, 3)    # The current / newest user version
+_db_user_version = None   # The user version we got from the database
+_USER_VERSION = UserVersion(0, 3)    # The current / newest user version
 
 
 def user_version_changed():
     """Whether the version stored in the database is different from the current one."""
-    return db_user_version != USER_VERSION
+    return _db_user_version != _USER_VERSION
 
 
 class SqliteErrorCode:
@@ -181,17 +181,17 @@ def init(db_path):
                                                                 error.text())
         raise_sqlite_error(msg, error)
 
-    global db_user_version
+    global _db_user_version
     version_int = Query('pragma user_version').run().value()
-    db_user_version = UserVersion.from_int(version_int)
+    _db_user_version = UserVersion.from_int(version_int)
 
-    if db_user_version.major > USER_VERSION.major:
+    if _db_user_version.major > _USER_VERSION.major:
         raise KnownError(
             "Database is too new for this qutebrowser version (database version "
-            f"{db_user_version}, but {USER_VERSION.major}.x is supported)")
+            f"{_db_user_version}, but {_USER_VERSION.major}.x is supported)")
 
     if user_version_changed():
-        log.sql.debug(f"Migrating from version {db_user_version} to {USER_VERSION}")
+        log.sql.debug(f"Migrating from version {_db_user_version} to {_USER_VERSION}")
         # Enable write-ahead-logging and reduce disk write frequency
         # see https://sqlite.org/pragma.html and issues #2930 and #3507
         #
@@ -199,7 +199,7 @@ def init(db_path):
         # as those are idempotent, let's make sure we run them once again.
         Query("PRAGMA journal_mode=WAL").run()
         Query("PRAGMA synchronous=NORMAL").run()
-        Query(f'PRAGMA user_version = {USER_VERSION.to_int()}').run()
+        Query(f'PRAGMA user_version = {_USER_VERSION.to_int()}').run()
 
 
 def close():

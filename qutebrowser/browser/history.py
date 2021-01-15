@@ -170,7 +170,7 @@ class WebHistory(sql.SqlTable):
 
         rebuild_completion = False
 
-        if sql.db_user_version != sql.USER_VERSION:
+        if sql.user_version_changed():
             # If the DB user version changed, run a full cleanup and rebuild the
             # completion history.
             #
