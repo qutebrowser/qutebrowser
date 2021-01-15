@@ -764,7 +764,8 @@ class CommandDispatcher:
         """
         cmdutils.check_exclusive((prev, next_), 'pn')
         cur_idx = self._tabbed_browser.widget.currentIndex()
-        assert cur_idx != -1
+        if cur_idx == -1:
+            raise cmdutils.CommandError("Failed to get current tab for :tab-only")
 
         def _to_close(i):
             """Helper method to check if a tab should be closed or not."""
