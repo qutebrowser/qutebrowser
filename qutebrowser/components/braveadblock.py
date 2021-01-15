@@ -108,7 +108,7 @@ _RESOURCE_TYPE_STRINGS = {
 }
 
 
-def resource_type_to_string(resource_type: Optional[ResourceType]) -> str:
+def _resource_type_to_string(resource_type: Optional[ResourceType]) -> str:
     return _RESOURCE_TYPE_STRINGS.get(resource_type, "other")
 
 
@@ -157,7 +157,7 @@ class BraveAdBlocker:
         result = self._engine.check_network_urls(
             request_url.toString(),
             first_party_url.toString(),
-            resource_type_to_string(resource_type),
+            _resource_type_to_string(resource_type),
         )
 
         if not result.matched:
