@@ -238,7 +238,7 @@ class Query:
         """
         self.query = QSqlQuery(QSqlDatabase.database())
 
-        log.sql.debug('Preparing SQL query: "{}"'.format(querystr))
+        log.sql.vdebug(f'Preparing: {querystr}')
         ok = self.query.prepare(querystr)
         self._check_ok('prepare', ok)
         self.query.setForwardOnly(forward_only)
@@ -266,16 +266,20 @@ class Query:
     def _bind_values(self, values):
         for key, val in values.items():
             self.query.bindValue(':{}'.format(key), val)
-        if any(val is None for val in self.bound_values().values()):
+
+        bound_values = self.bound_values()
+        if any(val is None for val in bound_values.values()):
             raise BugError("Missing bound values!")
+
+        return bound_values
 
     def run(self, **values):
         """Execute the prepared query."""
-        log.sql.debug('Running SQL query: "{}"'.format(
-            self.query.lastQuery()))
+        log.sql.debug(self.query.lastQuery())
 
-        self._bind_values(values)
-        log.sql.debug('query bindings: {}'.format(self.bound_values()))
+        bound_values = self._bind_values(values)
+        if bound_values:
+            log.sql.debug(f'    {bound_values}')
 
         ok = self.query.exec()
         self._check_ok('exec', ok)
