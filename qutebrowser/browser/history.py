@@ -46,9 +46,6 @@ class HistoryProgress:
     """
 
     def __init__(self):
-        self._reset()
-
-    def _reset(self):
         self._progress = None
         self._value = 0
 
@@ -65,6 +62,7 @@ class HistoryProgress:
 
     def set_maximum(self, maximum):
         """Set the progress maximum as soon as we know about it."""
+        assert self._progress is not None
         self._progress.setMaximum(maximum)
         QApplication.processEvents()
 
@@ -82,7 +80,6 @@ class HistoryProgress:
         """
         if self._progress is not None:
             self._progress.hide()
-        self._reset()
 
 
 class CompletionMetaInfo(sql.SqlTable):

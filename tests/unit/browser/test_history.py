@@ -491,7 +491,6 @@ class TestHistoryProgress:
         assert progress._value == 1
         progress.finish()
         assert progress._progress is None
-        assert progress._value == 0
 
     def test_gui(self, qtbot, progress):
         progress.start("Hello World")
