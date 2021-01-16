@@ -307,6 +307,9 @@ window._qutebrowser.webelem = (function() {
     funcs.find_at_pos = (x, y) => {
         const elem = document.elementFromPoint(x, y);
 
+        if (!elem) {
+            return null;
+        }
 
         // Check if we got an iframe, and if so, recurse inside of it
         const frame_elem = call_if_frame(elem,
