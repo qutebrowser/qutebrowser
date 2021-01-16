@@ -422,6 +422,8 @@ class TestQtArgs:
     ])
     def test_installedapp_workaround(self, parser, monkeypatch, qt_version, has_workaround):
         monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: qt_version)
+        monkeypatch.setattr(qtargs.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
 
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
