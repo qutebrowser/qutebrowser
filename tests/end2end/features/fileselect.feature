@@ -11,14 +11,13 @@ Feature: Selecting files
         When I set up a fake single file fileselector selecting "tests/end2end/data/numbers/1.txt"
         And I open data/fileselect/fileselect.html
         And I run :click-element id single_file
-        Then the javascript message "File selected: 1.txt" should be logged
+        Then the javascript message "Files: 1.txt" should be logged
 
     Scenario: Select two files with single command
         When I set up a fake single file fileselector selecting "tests/end2end/data/numbers/1.txt tests/end2end/data/numbers/2.txt"
         And I open data/fileselect/fileselect.html
         And I run :click-element id single_file
-        Then the javascript message "File selected: 1.txt" should be logged
-        Then the javascript message "File selected: 2.txt" should not be logged
+        Then the javascript message "Files: 1.txt" should be logged
 
     ## select multiple files
 
@@ -26,11 +25,10 @@ Feature: Selecting files
         When I set up a fake multiple files fileselector selecting "tests/end2end/data/numbers/1.txt"
         And I open data/fileselect/fileselect.html
         And I run :click-element id multiple_files
-        Then the javascript message "File selected: 1.txt" should be logged
+        Then the javascript message "Files: 1.txt" should be logged
 
     Scenario: Select two files with multiple command
         When I set up a fake multiple files fileselector selecting "tests/end2end/data/numbers/1.txt tests/end2end/data/numbers/2.txt"
         And I open data/fileselect/fileselect.html
         And I run :click-element id multiple_files
-        Then the javascript message "File selected: 1.txt" should be logged
-        And the javascript message "File selected: 2.txt" should be logged
+        Then the javascript message "Files: 1.txt, 2.txt" should be logged

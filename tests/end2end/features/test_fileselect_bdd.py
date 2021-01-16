@@ -25,13 +25,13 @@ bdd.scenarios('fileselect.feature')
 
 
 @bdd.when(bdd.parsers.parse('I set up a fake single file fileselector '
-                            'selecting "{choosefile}"'))
-def set_up_single_fileselector(quteproc, py_proc, choosefile):
+                            'selecting "{choosefiles}"'))
+def set_up_single_fileselector(quteproc, py_proc, choosefiles):
     """Set up fileselect.single_file.command to select the file."""
     set_up_fileselector(
         quteproc=quteproc,
         py_proc=py_proc,
-        choosefiles=[choosefile],
+        choosefiles=choosefiles,
         setting_cmd='fileselect.single_file.command'
     )
 
@@ -43,7 +43,7 @@ def set_up_multiple_fileselector(quteproc, py_proc, choosefiles):
     set_up_fileselector(
         quteproc=quteproc,
         py_proc=py_proc,
-        choosefiles=choosefiles.split(' '),
+        choosefiles=choosefiles,
         setting_cmd='fileselect.multiple_files.command'
     )
 
@@ -58,6 +58,6 @@ def set_up_fileselector(quteproc, py_proc, choosefiles, setting_cmd):
             for choosenfile in sys.argv[2:]:
                 f.write(os.path.abspath(choosenfile) + "\n")
     """)
-    fileselect_cmd = json.dumps([cmd, *args, '{}', *choosefiles])
+    fileselect_cmd = json.dumps([cmd, *args, '{}', *choosefiles.split(' ')])
     quteproc.set_setting('fileselect.handler', 'external')
     quteproc.set_setting(setting_cmd, fileselect_cmd)
