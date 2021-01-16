@@ -8,7 +8,7 @@
                 for (let id of ['#single_file', '#multiple_files']) {
                     const input = document.querySelector(id);
                     input.addEventListener('input', function (e) {
-                        console.log(`Files: ${JSON.stringify(input.files)}`);
+                        console.log(`Files: ${Array.from(input.files).map(f => f.name).join(", ")}`);
                     });
                 }
             }
