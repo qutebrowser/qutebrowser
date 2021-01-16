@@ -68,10 +68,7 @@ class _ContentDisposition:
         """Used internally after parsing the header."""
         self.disposition = disposition
         self.assocs = dict(assocs)  # So we can change values
-        if 'filename*' in self.assocs:
-            param = self.assocs['filename*']
-            assert isinstance(param, ExtDispositionParm)
-            self.assocs['filename*'] = parse_ext_value(param.value).string
+        assert 'filename*' not in self.assocs  # Handled by headerregistry
 
     def filename(self):
         """The filename from the Content-Disposition header or None.
@@ -85,12 +82,8 @@ class _ContentDisposition:
         well, due to a certain browser using the part after the dot for
         mime-sniffing.  Saving it to a database is fine by itself though.
         """
-        if 'filename*' in self.assocs:
-            return self.assocs['filename*']
-        elif 'filename' in self.assocs:
-            # XXX Reject non-ascii (parsed via qdtext) here?
-            return self.assocs['filename']
-        return None
+        # XXX Reject non-ascii (parsed via qdtext) here?
+        return self.assocs.get('filename')
 
     def is_inline(self):
         """Return if the file should be handled inline.
@@ -115,6 +108,7 @@ def parse_headers(content_disposition):
     # filename parameter. But it does mean we occasionally give
     # less-than-certain values for some legacy senders.
     content_disposition = content_disposition.decode('iso-8859-1')
+
     # Our parsing is relaxed in these regards:
     # - The grammar allows a final ';' in the header;
     # - We do LWS-folding, and possibly normalise other broken
@@ -130,8 +124,9 @@ def parse_headers(content_disposition):
 
     if parsed.defects:
         raise Error(parsed.defects)
-    return _ContentDisposition(disposition=parsed._content_disposition,
-                               assocs=parsed._params)
+
+    return _ContentDisposition(disposition=parsed.content_disposition,
+                               assocs=parsed.params)
 
 
 def parse_ext_value(val):

@@ -51,7 +51,7 @@ def parse_content_disposition(reply):
                 value))
             content_disposition = rfc6266.parse_headers(value)
             filename = content_disposition.filename()
-        except (SyntaxError, UnicodeDecodeError, rfc6266.Error):
+        except (UnicodeDecodeError, rfc6266.Error):
             log.rfc6266.exception("Error while parsing filename")
         else:
             is_inline = content_disposition.is_inline()
