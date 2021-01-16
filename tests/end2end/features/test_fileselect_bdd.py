@@ -43,7 +43,7 @@ def set_up_multiple_fileselector(quteproc, py_proc, choosefiles):
     set_up_fileselector(
         quteproc=quteproc,
         py_proc=py_proc,
-        choosefiles=choosefiles,
+        choosefiles=choosefiles.split(' '),
         setting_cmd='fileselect.multiple_files.command'
     )
 
@@ -56,7 +56,7 @@ def set_up_fileselector(quteproc, py_proc, choosefiles, setting_cmd):
         tmp_file = sys.argv[1]
         with open(tmp_file, 'w') as f:
             for choosenfile in sys.argv[2:]:
-                f.write(os.path.abspath(choosenfile))
+                f.write(os.path.abspath(choosenfile) + "\n")
     """)
     fileselect_cmd = json.dumps([cmd, *args, '{}', *choosefiles])
     quteproc.set_setting('fileselect.handler', 'external')
