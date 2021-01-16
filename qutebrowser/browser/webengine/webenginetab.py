@@ -1002,10 +1002,11 @@ class _WebEngineScripts(QObject):
 
     def _inject_js(self, name, js_code, *,
                    world=QWebEngineScript.ApplicationWorld,
+                   injection_point=QWebEngineScript.DocumentCreation,
                    subframes=False):
         """Inject the given script to run early on a page load."""
         script = QWebEngineScript()
-        script.setInjectionPoint(QWebEngineScript.DocumentCreation)
+        script.setInjectionPoint(injection_point)
         script.setSourceCode(js_code)
         script.setWorldId(world)
         script.setRunsOnSubFrames(subframes)
@@ -1137,7 +1138,6 @@ class _WebEngineScripts(QObject):
         if not config.val.content.site_specific_quirks:
             return
 
-        page_scripts = self._widget.page().scripts()
         quirks = [
             (
                 'whatsapp_web',
@@ -1154,13 +1154,11 @@ class _WebEngineScripts(QObject):
                            QWebEngineScript.MainWorld))
 
         for filename, injection_point, world in quirks:
-            script = QWebEngineScript()
-            script.setName(filename)
-            script.setWorldId(world)
-            script.setInjectionPoint(injection_point)
-            src = utils.read_file("javascript/quirks/{}.user.js".format(filename))
-            script.setSourceCode(src)
-            page_scripts.insert(script)
+            src = utils.read_file(f'javascript/quirks/{filename}.user.js')
+            self._inject_js(
+                f'quirk_{filename}', src,
+                world=world, injection_point=injection_point
+            )
 
 
 class WebEngineTabPrivate(browsertab.AbstractTabPrivate):
