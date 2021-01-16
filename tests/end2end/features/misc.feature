@@ -539,13 +539,13 @@ Feature: Various utility commands.
     # https://github.com/qutebrowser/qutebrowser/issues/5721
     @qtwebkit_skip @qt!=5.15.1
     Scenario: WebRTC renderer process crash
-        When I open data/crashers/webrtc.html
+        When I open data/crashers/webrtc.html in a new tab
         And I run :reload
         And I wait until data/crashers/webrtc.html is loaded
         Then "Renderer process crashed" should not be logged
 
     Scenario: InstalledApps crash
-        When I open data/crashers/installedapp.html
+        When I open data/crashers/installedapp.html in a new tab
         Then "Renderer process was killed" should not be logged
 
     ## Other
