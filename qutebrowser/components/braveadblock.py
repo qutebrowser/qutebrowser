@@ -141,7 +141,11 @@ class BraveAdBlocker:
             # use of this adblocking module.
             return False
 
-        if first_party_url is None or not first_party_url.isValid():
+        if (
+            first_party_url is None
+            or not first_party_url.isValid()
+            or first_party_url.scheme() == "file"
+        ):
             # FIXME: It seems that when `first_party_url` is None, every URL
             # I try is blocked. This may have been a result of me incorrectly
             # using the upstream library, or an upstream bug. For now we don't

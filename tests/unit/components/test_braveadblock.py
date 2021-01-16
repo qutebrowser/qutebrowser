@@ -91,6 +91,12 @@ NOT_OKAY_URLS = [
 BUGGY_URLS = [
     # https://github.com/brave/adblock-rust/issues/146
     ("https://example.org/example.png", None, ResourceType.image),
+    # https://github.com/qutebrowser/qutebrowser/issues/6000
+    (
+        "https://wikimedia.org/api/rest_v1/media/math/render/svg/57f8",
+        "file:///home/user/src/qutebrowser/reproc.html",
+        ResourceType.image,
+    ),
 ]
 
 
