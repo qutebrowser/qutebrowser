@@ -391,12 +391,12 @@ class TestQtArgs:
 
     @pytest.mark.parametrize('via_commandline', [True, False])
     @pytest.mark.parametrize('passed_features', [
-        'CustomFeature',
-        'CustomFeature1,CustomFeature2',
+        ['CustomFeature'],
+        ['CustomFeature1', 'CustomFeature2'],
     ])
     def test_disable_features_passthrough(self, config_stub, parser, feature_flag_patch,
                                           via_commandline, passed_features):
-        flag = qtargs._DISABLE_FEATURES + passed_features
+        flag = qtargs._DISABLE_FEATURES + ','.join(passed_features)
 
         config_flag = flag.lstrip('-')
         config_stub.val.qt.args = ([] if via_commandline else [config_flag])
@@ -408,7 +408,30 @@ class TestQtArgs:
             arg for arg in args
             if arg.startswith(qtargs._DISABLE_FEATURES)
         ]
-        assert disable_features_args == [flag]
+        assert len(disable_features_args) == 1
+        features = set(disable_features_args[0].split('=')[1].split(','))
+        features -= {'InstalledApp'}
+        assert features == set(passed_features)
+
+    @pytest.mark.parametrize('qt_version, has_workaround', [
+        ('5.14.0', False),
+        ('5.15.1', False),
+        ('5.15.2', True),
+        ('5.15.3', False),
+        ('6.0.0', False),
+    ])
+    def test_installedapp_workaround(self, parser, monkeypatch, qt_version, has_workaround):
+        monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: qt_version)
+
+        parsed = parser.parse_args([])
+        args = qtargs.qt_args(parsed)
+        disable_features_args = [
+            arg for arg in args
+            if arg.startswith(qtargs._DISABLE_FEATURES)
+        ]
+
+        expected = ['--disable-features=InstalledApp'] if has_workaround else []
+        assert disable_features_args == expected
 
     def test_blink_settings(self, config_stub, monkeypatch, parser):
         from qutebrowser.browser.webengine import darkmode

@@ -544,6 +544,10 @@ Feature: Various utility commands.
         And I wait until data/crashers/webrtc.html is loaded
         Then "Renderer process crashed" should not be logged
 
+    Scenario: InstalledApps crash
+        When I open data/crashers/installedapp.html
+        Then "Renderer process was killed" should not be logged
+
     ## Other
 
     Scenario: Resource with invalid URL

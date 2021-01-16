@@ -132,6 +132,12 @@ def _qtwebengine_features(
         # https://chromium-review.googlesource.com/c/chromium/src/+/2545444
         enabled_features.append('ReducedReferrerGranularity')
 
+    if qtutils.version_check('5.15.2', compiled=False, exact=True):
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-89740
+        # FIXME Not needed anymore with QtWebEngne 5.15.3 (or Qt 6), but we'll probably
+        # have no way to detect that...
+        disabled_features.append('InstalledApp')
+
     return (enabled_features, disabled_features)
 
 

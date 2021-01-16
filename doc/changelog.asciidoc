@@ -183,6 +183,9 @@ Fixed
   instead of crashing.
 - A couple of long URLs (such as `qute://pdfjs` URLs) are now not added to the
   history database anymore.
+- A bug in QtWebEngine 5.15.2 causes "renderer process killed" errors on
+  websites like LinkedIn and TradingView. There is now a workaround in qutebrowser
+  to prevent this from happening.
 
 v1.14.1 (2020-12-04)
 --------------------
