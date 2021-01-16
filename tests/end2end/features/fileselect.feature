@@ -18,6 +18,7 @@ Feature: Selecting files
         And I open data/fileselect/fileselect.html
         And I run :click-element id single_file
         Then the javascript message "Files: 1.txt" should be logged
+        And the warning "More than one files choosen, using only the first" should be shown
 
     ## select multiple files
 
