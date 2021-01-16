@@ -92,16 +92,6 @@ Feature: Downloading things from a website.
         And I run :leave-mode
         Then no crash should happen
 
-    @qtwebkit_skip
-    Scenario: Downloading a data: link via QtWebEngine (issue 1214)
-        When I set downloads.location.suggestion to filename
-        And I set downloads.location.prompt to true
-        And I open data/data_link.html
-        And I hint with args "links" and follow s
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='download.pdf' mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
-        And I run :leave-mode
-        Then no crash should happen
-
     Scenario: Aborting a download in a different window (issue 3378)
         When I set downloads.location.suggestion to filename
         And I set downloads.location.prompt to true

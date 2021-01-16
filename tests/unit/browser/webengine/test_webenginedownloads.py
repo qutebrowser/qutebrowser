@@ -42,45 +42,84 @@ def test_get_suggested_filename(path, expected):
     assert webenginedownloads._get_suggested_filename(path) == expected
 
 
-@pytest.mark.parametrize('with_slash', [True, False])
-def test_data_url_workaround_needed(qapp, qtbot, webengineview, with_slash):
+class TestDataUrlWorkaround:
+
     """With data URLs, we get rather weird base64 filenames back from QtWebEngine.
 
-    This test verifies that our workaround for this is still needed, i.e. if we get
-    those base64-filenames rather than a "download.pdf" like with Chromium.
+    See https://bugreports.qt.io/browse/QTBUG-90355
     """
-    # https://stackoverflow.com/a/17280876/2085149
-    pdf_source = [
-        '%PDF-1.0',
-        '1 0 obj<</Pages 2 0 R>>endobj',
-        '2 0 obj<</Kids[3 0 R]/Count 1>>endobj',
-        '3 0 obj<</MediaBox[0 0 3 3]>>endobj',
-        'trailer<</Root 1 0 R>>',
-    ]
 
-    if with_slash:
-        pdf_source.insert(1, '% ?')  # this results in a slash in base64
+    @pytest.fixture(params=[True, False])
+    def pdf_bytes(self, request):
+        with_slash = request.param
 
-    pdf_data = '\n'.join(pdf_source).encode('ascii')
-    base64_data = base64.b64encode(pdf_data).decode('ascii')
+        # https://stackoverflow.com/a/17280876/2085149
+        pdf_source = [
+            '%PDF-1.0',
+            '1 0 obj<</Pages 2 0 R>>endobj',
+            '2 0 obj<</Kids[3 0 R]/Count 1>>endobj',
+            '3 0 obj<</MediaBox[0 0 3 3]>>endobj',
+            'trailer<</Root 1 0 R>>',
+        ]
 
-    if with_slash:
-        assert '/' in base64_data
-        expected = base64_data.split('/')[1]
-    else:
-        assert '/' not in base64_data
-        expected = 'pdf'  # from the mimetype
+        if with_slash:
+            pdf_source.insert(1, '% ?')  # this results in a slash in base64
 
-    def check_item(item):
-        assert item.mimeType() == 'application/pdf'
-        assert item.url().scheme() == 'data'
-        assert os.path.basename(item.path()) == expected
-        return True
+        return '\n'.join(pdf_source).encode('ascii')
 
-    profile = QWebEngineProfile.defaultProfile()
-    profile.setParent(qapp)
+    @pytest.fixture
+    def pdf_url(self, pdf_bytes):
+        return urlutils.data_url('application/pdf', pdf_bytes)
 
-    url = urlutils.data_url('application/pdf', pdf_data)
+    @pytest.fixture
+    def webengine_profile(self, qapp):
+        profile = QWebEngineProfile.defaultProfile()
+        profile.setParent(qapp)
+        return profile
 
-    with qtbot.waitSignal(profile.downloadRequested, check_params_cb=check_item):
-        webengineview.load(url)
+    @pytest.fixture
+    def download_manager(self, qapp, qtbot, webengine_profile, download_tmpdir,
+                         config_stub):
+        config_stub.val.downloads.location.suggestion = 'filename'
+        manager = webenginedownloads.DownloadManager(parent=qapp)
+        manager.install(webengine_profile)
+        yield manager
+        webengine_profile.downloadRequested.disconnect()
+
+    def test_workaround(self, webengine_tab, message_mock, qtbot,
+                        pdf_url, download_manager):
+        """Verify our workaround works properly."""
+        with qtbot.waitSignal(message_mock.got_question):
+            webengine_tab.load_url(pdf_url)
+
+        question = message_mock.get_question()
+        assert question.default == 'download.pdf'
+
+    @pytest.fixture
+    def expected_wrong_filename(self, pdf_bytes):
+        with_slash = b'% ?' in pdf_bytes
+        base64_data = base64.b64encode(pdf_bytes).decode('ascii')
+
+        if with_slash:
+            assert '/' in base64_data
+            return base64_data.split('/')[1]
+        else:
+            assert '/' not in base64_data
+            return 'pdf'  # from the mimetype
+
+    def test_workaround_needed(self, qtbot, webengineview,
+                               pdf_url, expected_wrong_filename, webengine_profile):
+        """Verify that our workaround for this is still needed.
+
+        In other words, check whether we get those base64-filenames rather than a
+        "download.pdf" like with Chromium.
+        """
+        def check_item(item):
+            assert item.mimeType() == 'application/pdf'
+            assert item.url().scheme() == 'data'
+            assert os.path.basename(item.path()) == expected_wrong_filename
+            return True
+
+        with qtbot.waitSignal(webengine_profile.downloadRequested,
+                              check_params_cb=check_item):
+            webengineview.load(pdf_url)
