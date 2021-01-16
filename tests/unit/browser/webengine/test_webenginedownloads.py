@@ -24,12 +24,11 @@ import pytest
 pytest.importorskip('PyQt5.QtWebEngineWidgets')
 from PyQt5.QtWebEngineWidgets import QWebEngineProfile
 
-from qutebrowser.utils import urlutils
+from qutebrowser.utils import urlutils, usertypes
 from qutebrowser.browser.webengine import webenginedownloads
 
 
 @pytest.mark.parametrize('path, expected', [
-    (os.path.join('subfolder', 'foo'), 'foo'),
     ('foo(1)', 'foo'),
     ('foo (1)', 'foo'),
     ('foo - 1970-01-01T00:00:00.000Z', 'foo'),
@@ -38,8 +37,8 @@ from qutebrowser.browser.webengine import webenginedownloads
     ('foo%20bar', 'foo%20bar'),
     ('foo%2Fbar', 'foo%2Fbar'),
 ])
-def test_get_suggested_filename(path, expected):
-    assert webenginedownloads._get_suggested_filename(path) == expected
+def test_strip_suffix(path, expected):
+    assert webenginedownloads._strip_suffix(path) == expected
 
 
 class TestDataUrlWorkaround:
@@ -94,6 +93,24 @@ class TestDataUrlWorkaround:
 
         question = message_mock.get_question()
         assert question.default == 'download.pdf'
+
+    def test_explicit_filename(self, webengine_tab, message_mock, qtbot,
+                               pdf_url, download_manager):
+        """If a website sets an explicit filename, we should respect that."""
+        pdf_url_str = pdf_url.toDisplayString()
+        html = f'<a href="{pdf_url_str}" download="filename.pdf" id="link">'
+
+        with qtbot.waitSignal(webengine_tab.load_finished):
+            webengine_tab.set_html(html)
+
+        with qtbot.waitSignal(message_mock.got_question):
+            webengine_tab.elements.find_id(
+                "link",
+                lambda elem: elem.click(usertypes.ClickTarget.normal),
+            )
+
+        question = message_mock.get_question()
+        assert question.default == 'filename.pdf'
 
     @pytest.fixture
     def expected_wrong_filename(self, pdf_bytes):

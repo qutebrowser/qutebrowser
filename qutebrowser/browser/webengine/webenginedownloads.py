@@ -201,7 +201,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         return None
 
 
-def _get_suggested_filename(path):
+def _strip_suffix(filename):
     """Convert a path we got from chromium to a suggested filename.
 
     Chromium thinks we want to download stuff to ~/Download, so even if we
@@ -211,8 +211,6 @@ def _get_suggested_filename(path):
 
     See https://bugreports.qt.io/browse/QTBUG-56978
     """
-    filename = os.path.basename(path)
-
     suffix_re = re.compile(r"""
       \ ?  # Optional space between filename and suffix
       (
@@ -249,15 +247,28 @@ class DownloadManager(downloads.AbstractDownloadManager):
     @pyqtSlot(QWebEngineDownloadItem)
     def handle_download(self, qt_item):
         """Start a download coming from a QWebEngineProfile."""
-        if qt_item.url().scheme().lower() == 'data':
-            # WORKAROUND for an unknown QtWebEngine bug (?) which gives us base64 data
-            # as filename.
-            suggested_filename = urlutils.filename_from_url(
-                qt_item.url(), fallback='qutebrowser-download')
-        else:
-            suggested_filename = _get_suggested_filename(qt_item.path())
+        qt_filename = os.path.basename(qt_item.path())   # FIXME use 5.14 API
+        mime_type = qt_item.mimeType()
+        url = qt_item.url()
 
-        use_pdfjs = pdfjs.should_use_pdfjs(qt_item.mimeType(), qt_item.url())
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-90355
+        if url.scheme().lower() == 'data':
+            if '/' in url.path().split(',')[-1]:  # e.g. a slash in base64
+                wrong_filename = url.path().split('/')[-1]
+            else:
+                wrong_filename = mime_type.split('/')[1]
+
+            needs_workaround = qt_filename == wrong_filename
+        else:
+            needs_workaround = False
+
+        if needs_workaround:
+            suggested_filename = urlutils.filename_from_url(
+                url, fallback='qutebrowser-download')
+        else:
+            suggested_filename = _strip_suffix(qt_filename)
+
+        use_pdfjs = pdfjs.should_use_pdfjs(mime_type, url)
 
         download = DownloadItem(qt_item, manager=self)
         self._init_item(download, auto_remove=use_pdfjs,
