@@ -536,6 +536,14 @@ Feature: Various utility commands.
         And I open data/numbers/3.txt
         Then no crash should happen
 
+    # https://github.com/qutebrowser/qutebrowser/issues/5721
+    @qtwebkit_skip @qt!=5.15.1
+    Scenario: WebRTC renderer process crash
+        When I open data/crashers/webrtc.html
+        And I run :reload
+        And I wait until data/crashers/webrtc.html is loaded
+        Then "Renderer process crashed" should not be logged
+
     ## Other
 
     Scenario: Resource with invalid URL
