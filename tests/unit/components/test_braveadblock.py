@@ -88,6 +88,12 @@ NOT_OKAY_URLS = [
 ]
 
 
+BUGGY_URLS = [
+    # https://github.com/brave/adblock-rust/issues/146
+    ("https://example.org/example.png", None, ResourceType.image),
+]
+
+
 def run_function_on_dataset(given_function):
     """Run the given function on a bunch of urls.
 
@@ -366,3 +372,44 @@ def test_update_empty_directory_blocklist(ad_blocker, config_stub, empty_dir, ca
 
     # There are no filters, so no ads should be blocked.
     assert_none_blocked(ad_blocker)
+
+
+@pytest.mark.parametrize('url_str, source_url_str, resource_type', BUGGY_URLS)
+def test_buggy_url_workaround(ad_blocker, config_stub, easylist_easyprivacy,
+                              url_str, source_url_str, resource_type):
+    """Make sure our workaround for buggy brave-adblock URLs works."""
+    config_stub.val.content.blocking.adblock.lists = easylist_easyprivacy
+    ad_blocker.adblock_update()
+
+    url = QUrl(url_str)
+    assert url.isValid()
+    if source_url_str is None:
+        source_url = None
+    else:
+        source_url = QUrl(source_url_str)
+        assert source_url.isValid()
+
+    assert not ad_blocker._is_blocked(url, source_url, resource_type)
+
+
+@pytest.mark.parametrize('url_str, source_url_str, resource_type', BUGGY_URLS)
+def test_buggy_url_workaround_needed(ad_blocker, config_stub, easylist_easyprivacy,
+                                     url_str, source_url_str, resource_type):
+    """Make sure our workaround for buggy brave-adblock URLs is still needed.
+
+    If this test fails, https://github.com/brave/adblock-rust/issues/146 was likely
+    fixed and we should remove the workaround (if the `adblock` version is new enough).
+    """
+    config_stub.val.content.blocking.adblock.lists = easylist_easyprivacy
+    ad_blocker.adblock_update()
+
+    resource_type_str = braveadblock._resource_type_to_string(resource_type)
+    if source_url_str is None:
+        source_url_str = ""
+
+    result = ad_blocker._engine.check_network_urls(
+        url=url_str,
+        source_url=source_url_str,
+        request_type=resource_type_str
+    )
+    assert result.matched
