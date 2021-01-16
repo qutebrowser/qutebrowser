@@ -23,7 +23,6 @@ import pytest_bdd as bdd
 bdd.scenarios('fileselect.feature')
 
 
-
 @bdd.when(bdd.parsers.parse('I set up a fake single file fileselector '
                             'selecting "{choosefiles}"'))
 def set_up_single_fileselector(quteproc, py_proc, choosefiles):
