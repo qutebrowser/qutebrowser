@@ -1000,9 +1000,9 @@ class _WebEngineScripts(QObject):
         code = javascript.assemble('stylesheet', 'set_css', css)
         self._tab.run_js_async(code)
 
-    def _inject_early_js(self, name, js_code, *,
-                         world=QWebEngineScript.ApplicationWorld,
-                         subframes=False):
+    def _inject_js(self, name, js_code, *,
+                   world=QWebEngineScript.ApplicationWorld,
+                   subframes=False):
         """Inject the given script to run early on a page load."""
         script = QWebEngineScript()
         script.setInjectionPoint(QWebEngineScript.DocumentCreation)
@@ -1012,7 +1012,7 @@ class _WebEngineScripts(QObject):
         script.setName(f'_qute_{name}')
         self._widget.page().scripts().insert(script)
 
-    def _remove_early_js(self, name):
+    def _remove_js(self, name):
         """Remove an early QWebEngineScript."""
         scripts = self._widget.page().scripts()
         script = scripts.findScript(f'_qute_{name}')
@@ -1028,7 +1028,7 @@ class _WebEngineScripts(QObject):
             utils.read_file('javascript/caret.js'),
         )
         # FIXME:qtwebengine what about subframes=True?
-        self._inject_early_js('js', js_code, subframes=True)
+        self._inject_js('js', js_code, subframes=True)
         self._init_stylesheet()
 
         self._greasemonkey.scripts_reloaded.connect(
@@ -1042,14 +1042,14 @@ class _WebEngineScripts(QObject):
         Partially inspired by QupZilla:
         https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/app/mainapplication.cpp#L1063-L1101
         """
-        self._remove_early_js('stylesheet')
+        self._remove_js('stylesheet')
         css = shared.get_user_stylesheet()
         js_code = javascript.wrap_global(
             'stylesheet',
             utils.read_file('javascript/stylesheet.js'),
             javascript.assemble('stylesheet', 'set_css', css),
         )
-        self._inject_early_js('stylesheet', js_code, subframes=True)
+        self._inject_js('stylesheet', js_code, subframes=True)
 
     @pyqtSlot()
     def _inject_all_greasemonkey_scripts(self):
