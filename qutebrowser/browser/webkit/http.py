@@ -92,6 +92,9 @@ class ContentDisposition:
             # WORKAROUND for https://bugs.python.org/issue37491
             # Fixed in Python 3.7.5 and 3.8.0.
             raise ContentDispositionError("Missing closing quote character")
+        except ValueError:  # pragma: no cover
+            # WORKAROUND for https://bugs.python.org/issue42946
+            raise ContentDispositionError("Non-ASCII digit")
 
         if parsed.defects:
             defects = list(parsed.defects)
