@@ -838,3 +838,18 @@ def mimetype_extension(mimetype: str) -> Optional[str]:
     if mimetype in overrides:
         return overrides[mimetype]
     return mimetypes.guess_extension(mimetype, strict=False)
+
+
+@contextlib.contextmanager
+def cleanup_file(filename: str) -> Iterator[None]:
+    try:
+        yield
+    finally:
+        try:
+            # TODO fail if non-existing?
+            if os.path.isfile(filename):
+                os.remove(filename)
+        except OSError as e:
+            # TODO message.error?
+            # message.error(f"Failed to delete tempfile {filename} ({e})!")
+            log.misc.error(f"Failed to delete tempfile {filename} ({e})!")

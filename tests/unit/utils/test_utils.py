@@ -878,3 +878,31 @@ def test_parse_duration_hypothesis(duration):
 ])
 def test_mimetype_extension(mimetype, extension):
     assert utils.mimetype_extension(mimetype) == extension
+
+
+class TestCleanupFileContext:
+
+    def test_no_file(self, tmpdir):
+        tmpfile = tmpdir / 'tmp.txt'
+        with utils.cleanup_file(tmpfile):
+            pass
+        assert not os.path.exists(tmpfile)
+
+    def test_no_error(self, tmpdir):
+        tmpfile = tmpdir / 'tmp.txt'
+        with tmpfile.open('w'):
+            pass
+        with utils.cleanup_file(tmpfile):
+            pass
+        assert not os.path.exists(tmpfile)
+
+    def test_error(self, tmpdir):
+        tmpfile = tmpdir / 'tmp.txt'
+        with tmpfile.open('w'):
+            pass
+        try:
+            with utils.cleanup_file(tmpfile):
+                raise RuntimeError
+        except RuntimeError:
+            pass
+        assert not os.path.exists(tmpfile)

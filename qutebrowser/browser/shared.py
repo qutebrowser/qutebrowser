@@ -355,8 +355,10 @@ def choose_file(multiple: bool) -> List[str]:
         A list of selected file paths, or empty list if no file is selected.
         If multiple is False, the return value will have at most 1 item.
     """
-    encoding = sys.getfilesystemencoding()
-    with tempfile.NamedTemporaryFile(mode='w+', encoding=encoding) as tmpfile:
+    handle = tempfile.NamedTemporaryFile(prefix='qutebrowser-fileselect-', delete=False)
+    handle.close()
+    tmpfilename = handle.name
+    with utils.cleanup_file(tmpfilename):
         if multiple:
             command = config.val.fileselect.multiple_files.command
         else:
@@ -364,13 +366,14 @@ def choose_file(multiple: bool) -> List[str]:
 
         proc = guiprocess.GUIProcess(what='choose-file')
         proc.start(command[0],
-                   [arg.replace('{}', tmpfile.name) for arg in command[1:]])
+                   [arg.replace('{}', tmpfilename) for arg in command[1:]])
 
         loop = qtutils.EventLoop()
         proc.finished.connect(lambda _code, _status: loop.exit())
         loop.exec()
 
-        selected_files = tmpfile.read().splitlines()
+        with open(tmpfilename, mode='r', encoding=sys.getfilesystemencoding()) as f:
+            selected_files = f.read().splitlines()
 
     if not multiple:
         if len(selected_files) > 1:
