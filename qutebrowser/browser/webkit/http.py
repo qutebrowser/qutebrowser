@@ -88,7 +88,7 @@ class ContentDisposition:
         reg = email.headerregistry.HeaderRegistry()
         try:
             parsed = reg('Content-Disposition', decoded)
-        except IndexError:
+        except IndexError:  # pragma: no cover
             # WORKAROUND for https://bugs.python.org/issue37491
             # Fixed in Python 3.7.5 and 3.8.0.
             raise ContentDispositionError("Missing closing quote character")
