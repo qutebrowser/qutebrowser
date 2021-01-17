@@ -113,7 +113,13 @@ def parse_headers(content_disposition):
         raise Error(e)
 
     reg = email.headerregistry.HeaderRegistry()
-    parsed = reg('Content-Disposition', content_disposition)
+
+    try:
+        parsed = reg('Content-Disposition', content_disposition)
+    except IndexError:
+        # WORKAROUND for https://bugs.python.org/issue37491
+        # Fixed in Python 3.7.5 and 3.8.0.
+        raise Error("Missing closing quote character")
 
     if parsed.defects:
         defects = list(parsed.defects)
