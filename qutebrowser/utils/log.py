@@ -134,7 +134,6 @@ keyboard = logging.getLogger('keyboard')
 downloads = logging.getLogger('downloads')
 js = logging.getLogger('js')  # Javascript console messages
 qt = logging.getLogger('qt')  # Warnings produced by Qt
-rfc6266 = logging.getLogger('rfc6266')
 ipc = logging.getLogger('ipc')
 shlexer = logging.getLogger('shlexer')
 save = logging.getLogger('save')
@@ -153,7 +152,7 @@ LOGGER_NAMES = [
     'destroy', 'modes', 'webview', 'misc',
     'mouse', 'procs', 'hints', 'keyboard',
     'commands', 'signals', 'downloads',
-    'js', 'qt', 'rfc6266', 'ipc', 'shlexer',
+    'js', 'qt', 'ipc', 'shlexer',
     'save', 'message', 'config', 'sessions',
     'webelem', 'prompt', 'network', 'sql',
     'greasemonkey', 'extensions',

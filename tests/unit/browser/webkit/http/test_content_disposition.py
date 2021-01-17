@@ -54,8 +54,7 @@ class HeaderChecker:
         """Check if the passed header is ignored."""
         reply = self.stubs.FakeNetworkReply(
             headers={'Content-Disposition': header})
-        with self.caplog.at_level(logging.ERROR, 'rfc6266'):
-            # with self.assertLogs(log.rfc6266, logging.ERROR):
+        with self.caplog.at_level(logging.ERROR, 'network'):
             cd_inline, cd_filename = http.parse_content_disposition(reply)
         assert cd_filename == DEFAULT_NAME
         assert cd_inline

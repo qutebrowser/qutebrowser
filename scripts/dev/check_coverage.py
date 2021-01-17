@@ -90,8 +90,6 @@ PERFECT_FILES = [
      'qutebrowser/browser/pdfjs.py'),
     ('tests/unit/browser/webkit/http/test_http.py',
      'qutebrowser/browser/webkit/http.py'),
-    ('tests/unit/browser/webkit/http/test_content_disposition.py',
-     'qutebrowser/browser/webkit/rfc6266.py'),
     # ('tests/unit/browser/webkit/test_webkitelem.py',
     #  'qutebrowser/browser/webkit/webkitelem.py'),
     # ('tests/unit/browser/webkit/test_webkitelem.py',
