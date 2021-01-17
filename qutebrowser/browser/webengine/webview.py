@@ -247,8 +247,10 @@ class WebEnginePage(QWebEnginePage):
         accepted_mimetypes: Iterable[str],
     ) -> List[str]:
         """Override chooseFiles to (optionally) invoke custom file uploader."""
-        if config.val.fileselect.handler == "default":
+        handler = config.val.fileselect.handler
+        if handler == "default":
             return super().chooseFiles(mode, old_files, accepted_mimetypes)
 
+        assert handler == "external"
         return shared.choose_file(
             multiple=(mode == QWebEnginePage.FileSelectOpenMultiple))
