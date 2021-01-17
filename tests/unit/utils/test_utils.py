@@ -904,3 +904,10 @@ class TestCleanupFileContext:
             with utils.cleanup_file(tmpfile):
                 raise RuntimeError
         assert not tmpfile.exists()
+
+    def test_directory(self, tmp_path, caplog):
+        assert tmp_path.is_dir()
+        # removal of file fails since it's a directory
+        with caplog.at_level(logging.ERROR, 'misc'):
+            with utils.cleanup_file(tmp_path):
+                pass
