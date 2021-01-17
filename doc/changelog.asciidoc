@@ -22,14 +22,16 @@ Major changes
 ~~~~~~~~~~~~~
 
 - Quick checklist for packagers:
-  * Ensure you're providing at least Python 3.6.1
-  * Ensure you're providing at least Qt 5.12 and PyQt 5.12
+  * Ensure you're providing at least Python 3.6.1.
+  * Ensure you're providing at least Qt 5.12 and PyQt 5.12.
   * Add a new optional dependency on the Python `adblock` library (if packaged -
-    if not, consider packaging it, albeit optional it's very useful for users)
-  * Remove the `cssutils` optional dependency (if present)
-  * Remove the `attrs` (`attr`) dependency
-  * Remove the `pypeg2` dependency
-  * Move the `pygments` dependency from required to optional
+    if not, consider packaging it, albeit optional it's very useful for users).
+  * Remove the `cssutils` optional dependency (if present).
+  * Remove the `attrs` (`attr`) dependency.
+  * Remove the `pypeg2` dependency (and perhaps consider dropping the package
+    if not used elsewhere - it's https://fdik.org/pyPEG2/[inactive upstream]
+    and the repository was removed by Bitbucket).
+  * Move the `pygments` dependency from required to optional.
   * TODO: Move the `setuptools` dependency from runtime (for `pkg_resources`) to
     build-time.
   * For Python 3.6, 3.7 or 3.8, add a dependency on the `importlib_resources`
