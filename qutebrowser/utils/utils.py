@@ -841,15 +841,20 @@ def mimetype_extension(mimetype: str) -> Optional[str]:
 
 
 @contextlib.contextmanager
-def cleanup_file(filename: str) -> Iterator[None]:
+def cleanup_file(filepath: str) -> Iterator[None]:
+    """Context that deletes a file upon exit or error.
+
+    Args:
+        filepath: The file path
+    """
     try:
         yield
     finally:
         try:
             # TODO fail if non-existing?
-            if os.path.isfile(filename):
-                os.remove(filename)
+            if os.path.isfile(filepath):
+                os.remove(filepath)
         except OSError as e:
             # TODO message.error?
-            # message.error(f"Failed to delete tempfile {filename} ({e})!")
-            log.misc.error(f"Failed to delete tempfile {filename} ({e})!")
+            # message.error(f"Failed to delete tempfile {filepath} ({e})!")
+            log.misc.error(f"Failed to delete tempfile {filepath} ({e})!")
