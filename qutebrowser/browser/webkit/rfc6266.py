@@ -20,39 +20,13 @@
 """pyPEG parsing for the RFC 6266 (Content-Disposition) header."""
 
 import email.headerregistry
-import urllib.parse
-import string
-import re
-import dataclasses
-from typing import Optional
-
-import pypeg2 as peg
 
 from qutebrowser.utils import utils
-
-
-@dataclasses.dataclass
-class LangTagged:
-
-    """A string with an associated language."""
-
-    string: str
-    langtag: Optional[str]
 
 
 class Error(Exception):
 
     """Base class for RFC6266 errors."""
-
-
-class DuplicateParamError(Error):
-
-    """Exception raised when a parameter has been given twice."""
-
-
-class InvalidISO8859Error(Error):
-
-    """Exception raised when a byte is invalid in ISO-8859-1."""
 
 
 class _ContentDisposition:
@@ -127,19 +101,3 @@ def parse_headers(content_disposition):
 
     return _ContentDisposition(disposition=parsed.content_disposition,
                                params=parsed.params)
-
-
-def parse_ext_value(val):
-    """Parse the value of an extended attribute."""
-    if len(val) == 3:
-        charset, langtag, coded = val
-    else:
-        charset, coded = val
-        langtag = None
-    decoded = urllib.parse.unquote(coded, charset, errors='strict')
-    if charset == 'iso-8859-1':
-        # Fail if the filename contains an invalid ISO-8859-1 char
-        for c in decoded:
-            if 0x7F <= ord(c) <= 0x9F:
-                raise InvalidISO8859Error(c)
-    return LangTagged(decoded, langtag)
