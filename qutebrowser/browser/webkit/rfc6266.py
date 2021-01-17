@@ -56,7 +56,6 @@ class _ContentDisposition:
         well, due to a certain browser using the part after the dot for
         mime-sniffing.  Saving it to a database is fine by itself though.
         """
-        # XXX Reject non-ascii (parsed via qdtext) here?
         return self.params.get('filename')
 
     def is_inline(self):
@@ -82,16 +81,6 @@ def parse_headers(content_disposition):
     # filename parameter. But it does mean we occasionally give
     # less-than-certain values for some legacy senders.
     content_disposition = content_disposition.decode('iso-8859-1')
-
-    # Our parsing is relaxed in these regards:
-    # - The grammar allows a final ';' in the header;
-    # - We do LWS-folding, and possibly normalise other broken
-    #   whitespace, instead of rejecting non-lws-safe text.
-    # XXX Would prefer to accept only the quoted whitespace
-    # case, rather than normalising everything.
-
-    if not content_disposition.strip():
-        raise Error("Empty value!")
 
     reg = email.headerregistry.HeaderRegistry()
     parsed = reg('Content-Disposition', content_disposition)
