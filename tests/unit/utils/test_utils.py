@@ -882,27 +882,25 @@ def test_mimetype_extension(mimetype, extension):
 
 class TestCleanupFileContext:
 
-    def test_no_file(self, tmpdir):
-        tmpfile = tmpdir / 'tmp.txt'
+    def test_no_file(self, tmp_path):
+        tmpfile = tmp_path / 'tmp.txt'
         with utils.cleanup_file(tmpfile):
             pass
-        assert not os.path.exists(tmpfile)
+        assert not tmpfile.exists()
 
-    def test_no_error(self, tmpdir):
-        tmpfile = tmpdir / 'tmp.txt'
+    def test_no_error(self, tmp_path):
+        tmpfile = tmp_path / 'tmp.txt'
         with tmpfile.open('w'):
             pass
         with utils.cleanup_file(tmpfile):
             pass
-        assert not os.path.exists(tmpfile)
+        assert not tmpfile.exists()
 
-    def test_error(self, tmpdir):
-        tmpfile = tmpdir / 'tmp.txt'
+    def test_error(self, tmp_path):
+        tmpfile = tmp_path / 'tmp.txt'
         with tmpfile.open('w'):
             pass
-        try:
+        with pytest.raises(RuntimeError):
             with utils.cleanup_file(tmpfile):
                 raise RuntimeError
-        except RuntimeError:
-            pass
-        assert not os.path.exists(tmpfile)
+        assert not tmpfile.exists()

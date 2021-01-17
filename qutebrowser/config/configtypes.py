@@ -1530,7 +1530,7 @@ class ShellCommand(List):
 
     def complete(self) -> _Completions:
         if self._completions is not None:
-            return self._completions
+            return self._completions  # pragma: no cover
         else:
             return super().complete()
 
