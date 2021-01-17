@@ -92,7 +92,7 @@ class _ContentDisposition:
         than the standard inline and attachment, it should be handled
         as an attachment.
         """
-        return self.disposition is None or self.disposition.lower() == 'inline'
+        return self.disposition in {None, 'inline'}
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True,

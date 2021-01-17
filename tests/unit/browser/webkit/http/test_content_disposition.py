@@ -74,6 +74,12 @@ def header_checker(caplog, stubs):
     return HeaderChecker(caplog, stubs)
 
 
+def test_inline_caps(header_checker):
+    """'inline' in upper-case."""
+    header_checker.check_filename(
+        'INLINE; filename="foo.html"', 'foo.html', expected_inline=True)
+
+
 def test_att_double_space(header_checker):
     """'attachment' with double space in the filename."""
     header_checker.check_filename('attachment; filename="foo  bar.html"',
