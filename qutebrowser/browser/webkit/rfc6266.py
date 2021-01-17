@@ -64,11 +64,11 @@ class _ContentDisposition:
     in the download case.
     """
 
-    def __init__(self, disposition, assocs):
+    def __init__(self, disposition, params):
         """Used internally after parsing the header."""
         self.disposition = disposition
-        self.assocs = dict(assocs)  # So we can change values
-        assert 'filename*' not in self.assocs  # Handled by headerregistry
+        self.params = params
+        assert 'filename*' not in self.params  # Handled by headerregistry
 
     def filename(self):
         """The filename from the Content-Disposition header or None.
@@ -83,7 +83,7 @@ class _ContentDisposition:
         mime-sniffing.  Saving it to a database is fine by itself though.
         """
         # XXX Reject non-ascii (parsed via qdtext) here?
-        return self.assocs.get('filename')
+        return self.params.get('filename')
 
     def is_inline(self):
         """Return if the file should be handled inline.
@@ -96,7 +96,7 @@ class _ContentDisposition:
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True,
-                              disposition=self.disposition, assocs=self.assocs)
+                              disposition=self.disposition, params=self.params)
 
 
 def parse_headers(content_disposition):
@@ -126,7 +126,7 @@ def parse_headers(content_disposition):
         raise Error(parsed.defects)
 
     return _ContentDisposition(disposition=parsed.content_disposition,
-                               assocs=parsed.params)
+                               params=parsed.params)
 
 
 def parse_ext_value(val):
