@@ -47,7 +47,7 @@ class DefectWrapper:
         )
 
 
-class _ContentDisposition:
+class ContentDisposition:
 
     """Records various indications and hints about content disposition.
 
@@ -56,11 +56,51 @@ class _ContentDisposition:
     in the download case.
     """
 
+    # Ignoring this defect fixes the attfnboth2 test case. It does *not* fix attfnboth
+    # one which has a slightly different wording ("duplicate(s) ignored" instead of
+    # "duplicate ignored"), because even if we did ignore that one, it still wouldn't
+    # work properly...
+    _IGNORED_DEFECT = DefectWrapper(
+        email.errors.InvalidHeaderDefect,  # type: ignore[attr-defined]
+        'duplicate parameter name; duplicate ignored'
+    )
+
     def __init__(self, disposition, params):
         """Used internally after parsing the header."""
         self.disposition = disposition
         self.params = params
         assert 'filename*' not in self.params  # Handled by headerregistry
+
+    @classmethod
+    def parse(cls, value):
+        """Build a _ContentDisposition from header values."""
+        # We allow non-ascii here (it will only be parsed inside of qdtext, and
+        # rejected by the grammar if it appears in other places), although parsing
+        # it can be ambiguous.  Parsing it ensures that a non-ambiguous filename*
+        # value won't get dismissed because of an unrelated ambiguity in the
+        # filename parameter. But it does mean we occasionally give
+        # less-than-certain values for some legacy senders.
+        try:
+           decoded = value.decode('iso-8859-1')
+        except UnicodeDecodeError as e:
+            raise Error(e)
+
+        reg = email.headerregistry.HeaderRegistry()
+
+        try:
+            parsed = reg('Content-Disposition', decoded)
+        except IndexError:
+            # WORKAROUND for https://bugs.python.org/issue37491
+            # Fixed in Python 3.7.5 and 3.8.0.
+            raise Error("Missing closing quote character")
+
+        if parsed.defects:
+            defects = list(parsed.defects)
+            if defects != [cls._IGNORED_DEFECT]:  # type: ignore[comparison-overlap]
+                raise Error(defects)
+
+        assert isinstance(parsed, email.headerregistry.ContentDispositionHeader), parsed
+        return cls(disposition=parsed.content_disposition, params=parsed.params)
 
     def filename(self):
         """The filename from the Content-Disposition header or None.
@@ -88,44 +128,3 @@ class _ContentDisposition:
     def __repr__(self):
         return utils.get_repr(self, constructor=True,
                               disposition=self.disposition, params=self.params)
-
-
-# Ignoring this defect fixes the attfnboth2 test case. It does *not* fix attfnboth one
-# which has a slightly different wording ("duplicate(s) ignored" instead of "duplicate
-# ignored"), because even if we did ignore that one, it still wouldn't work properly...
-_IGNORED_DEFECT = DefectWrapper(
-    email.errors.InvalidHeaderDefect,  # type: ignore[attr-defined]
-    'duplicate parameter name; duplicate ignored'
-)
-
-
-def parse_headers(content_disposition):
-    """Build a _ContentDisposition from header values."""
-    # We allow non-ascii here (it will only be parsed inside of qdtext, and
-    # rejected by the grammar if it appears in other places), although parsing
-    # it can be ambiguous.  Parsing it ensures that a non-ambiguous filename*
-    # value won't get dismissed because of an unrelated ambiguity in the
-    # filename parameter. But it does mean we occasionally give
-    # less-than-certain values for some legacy senders.
-    try:
-        content_disposition = content_disposition.decode('iso-8859-1')
-    except UnicodeDecodeError as e:
-        raise Error(e)
-
-    reg = email.headerregistry.HeaderRegistry()
-
-    try:
-        parsed = reg('Content-Disposition', content_disposition)
-    except IndexError:
-        # WORKAROUND for https://bugs.python.org/issue37491
-        # Fixed in Python 3.7.5 and 3.8.0.
-        raise Error("Missing closing quote character")
-
-    if parsed.defects:
-        defects = list(parsed.defects)
-        if defects != [_IGNORED_DEFECT]:  # type: ignore[comparison-overlap]
-            raise Error(defects)
-
-    assert isinstance(parsed, email.headerregistry.ContentDispositionHeader), parsed
-    return _ContentDisposition(disposition=parsed.content_disposition,
-                               params=parsed.params)

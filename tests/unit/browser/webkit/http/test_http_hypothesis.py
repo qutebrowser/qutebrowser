@@ -45,9 +45,9 @@ def test_parse_content_disposition(caplog, template, stubs, s):
 
 @hypothesis.given(strategies.binary())
 def test_content_disposition_directly(s):
-    """Test rfc6266.parse_headers directly with binary data."""
+    """Test rfc6266 parsing directly with binary data."""
     try:
-        cd = rfc6266.parse_headers(s)
+        cd = rfc6266.ContentDisposition.parse(s)
         cd.filename()
     except (SyntaxError, UnicodeDecodeError, rfc6266.Error):
         pass
