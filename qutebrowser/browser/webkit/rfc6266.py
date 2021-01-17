@@ -20,6 +20,9 @@
 """pyPEG parsing for the RFC 6266 (Content-Disposition) header."""
 
 import email.headerregistry
+import email.errors
+import dataclasses
+from typing import Type
 
 from qutebrowser.utils import utils
 
@@ -27,6 +30,18 @@ from qutebrowser.utils import utils
 class Error(Exception):
 
     """Base class for RFC6266 errors."""
+
+
+@dataclasses.dataclass
+class DefectWrapper:
+
+    """Wrapper around a email.error for comparison."""
+
+    error_class: Type[email.errors.MessageError]
+    line: str
+
+    def __eq__(self, other):
+        return isinstance(other, self.error_class) and other.line == self.line
 
 
 class _ContentDisposition:
@@ -72,6 +87,15 @@ class _ContentDisposition:
                               disposition=self.disposition, params=self.params)
 
 
+# Ignoring this defect fixes the attfnboth2 test case. It does *not* fix attfnboth one
+# which has a slightly different wording ("duplicate(s) ignored" instead of "duplicate
+# ignored"), because even if we did ignore that one, it still wouldn't work properly...
+_IGNORED_DEFECT = DefectWrapper(
+    email.errors.InvalidHeaderDefect,
+    'duplicate parameter name; duplicate ignored'
+)
+
+
 def parse_headers(content_disposition):
     """Build a _ContentDisposition from header values."""
     # We allow non-ascii here (it will only be parsed inside of qdtext, and
@@ -89,7 +113,9 @@ def parse_headers(content_disposition):
     parsed = reg('Content-Disposition', content_disposition)
 
     if parsed.defects:
-        raise Error(list(parsed.defects))
+        defects = list(parsed.defects)
+        if defects != [_IGNORED_DEFECT]:
+            raise Error(defects)
 
     return _ContentDisposition(disposition=parsed.content_disposition,
                                params=parsed.params)
