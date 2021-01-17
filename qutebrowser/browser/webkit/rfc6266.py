@@ -80,13 +80,16 @@ def parse_headers(content_disposition):
     # value won't get dismissed because of an unrelated ambiguity in the
     # filename parameter. But it does mean we occasionally give
     # less-than-certain values for some legacy senders.
-    content_disposition = content_disposition.decode('iso-8859-1')
+    try:
+        content_disposition = content_disposition.decode('iso-8859-1')
+    except UnicodeDecodeError as e:
+        raise Error(e)
 
     reg = email.headerregistry.HeaderRegistry()
     parsed = reg('Content-Disposition', content_disposition)
 
     if parsed.defects:
-        raise Error(parsed.defects)
+        raise Error(list(parsed.defects))
 
     return _ContentDisposition(disposition=parsed.content_disposition,
                                params=parsed.params)
