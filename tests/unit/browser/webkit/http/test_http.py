@@ -67,7 +67,7 @@ def test_content_disposition_directly_hypothesis(s):
     try:
         cd = http.ContentDisposition.parse(s)
         cd.filename()
-    except (SyntaxError, UnicodeDecodeError, http.ContentDispositionError):
+    except http.ContentDispositionError:
         pass
 
 

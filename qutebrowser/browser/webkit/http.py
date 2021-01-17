@@ -83,13 +83,9 @@ class ContentDisposition:
         # value won't get dismissed because of an unrelated ambiguity in the
         # filename parameter. But it does mean we occasionally give
         # less-than-certain values for some legacy senders.
-        try:
-            decoded = value.decode('iso-8859-1')
-        except UnicodeDecodeError as e:
-            raise ContentDispositionError(e)
+        decoded = value.decode('iso-8859-1')
 
         reg = email.headerregistry.HeaderRegistry()
-
         try:
             parsed = reg('Content-Disposition', decoded)
         except IndexError:
