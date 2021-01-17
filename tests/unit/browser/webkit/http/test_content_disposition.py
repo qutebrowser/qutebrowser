@@ -81,9 +81,16 @@ def test_inline_caps(header_checker):
 
 
 def test_att_double_space(header_checker):
-    """'attachment' with double space in the filename."""
-    header_checker.check_filename('attachment; filename="foo  bar.html"',
-                                  'foo bar.html')
+    """'attachment' with double space in the filename.
+
+    It's unclear how this should be handled exactly. The original test expected 'foo
+    bar.html' as filename, but there doesn't seem to be a place in the RFC actually
+    specifying that. The test was added in 8ce779261f08b20fd3f6e889204eb88e6a6800c1 but
+    without further explanations why. Thus, it's now updated to expect the original
+    filename, with two spaces.
+    """
+    header_checker.check_filename(
+        'attachment; filename="foo  bar.html"', 'foo  bar.html')
 
 
 def test_iso2231_langtag(header_checker):
