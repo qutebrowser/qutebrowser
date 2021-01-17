@@ -37,11 +37,14 @@ class DefectWrapper:
 
     """Wrapper around a email.error for comparison."""
 
-    error_class: Type[email.errors.MessageError]
+    error_class: Type[email.errors.MessageDefect]
     line: str
 
     def __eq__(self, other):
-        return isinstance(other, self.error_class) and other.line == self.line
+        return (
+            isinstance(other, self.error_class)
+            and other.line == self.line  # type: ignore[attr-defined]
+        )
 
 
 class _ContentDisposition:
@@ -91,7 +94,7 @@ class _ContentDisposition:
 # which has a slightly different wording ("duplicate(s) ignored" instead of "duplicate
 # ignored"), because even if we did ignore that one, it still wouldn't work properly...
 _IGNORED_DEFECT = DefectWrapper(
-    email.errors.InvalidHeaderDefect,
+    email.errors.InvalidHeaderDefect,  # type: ignore[attr-defined]
     'duplicate parameter name; duplicate ignored'
 )
 
@@ -114,8 +117,9 @@ def parse_headers(content_disposition):
 
     if parsed.defects:
         defects = list(parsed.defects)
-        if defects != [_IGNORED_DEFECT]:
+        if defects != [_IGNORED_DEFECT]:  # type: ignore[comparison-overlap]
             raise Error(defects)
 
+    assert isinstance(parsed, email.headerregistry.ContentDispositionHeader), parsed
     return _ContentDisposition(disposition=parsed.content_disposition,
                                params=parsed.params)
