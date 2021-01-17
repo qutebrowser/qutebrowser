@@ -188,3 +188,32 @@ Feature: Opening external editors
         And I run :edit-command
         Then the error "command must start with one of :/?" should be shown
         And "Leaving mode KeyMode.command *" should not be logged
+
+    ## select single file
+
+    Scenario: Select one file with single command
+        When I set up a fake "single_file" fileselector selecting "tests/end2end/data/numbers/1.txt"
+        And I open data/fileselect.html
+        And I run :click-element id single_file
+        Then the javascript message "Files: 1.txt" should be logged
+
+    Scenario: Select two files with single command
+        When I set up a fake "single_file" fileselector selecting "tests/end2end/data/numbers/1.txt tests/end2end/data/numbers/2.txt"
+        And I open data/fileselect.html
+        And I run :click-element id single_file
+        Then the javascript message "Files: 1.txt" should be logged
+        And the warning "More than one files choosen, using only the first" should be shown
+
+    ## select multiple files
+
+    Scenario: Select one file with multiple command
+        When I set up a fake "multiple_files" fileselector selecting "tests/end2end/data/numbers/1.txt"
+        And I open data/fileselect.html
+        And I run :click-element id multiple_files
+        Then the javascript message "Files: 1.txt" should be logged
+
+    Scenario: Select two files with multiple command
+        When I set up a fake "multiple_files" fileselector selecting "tests/end2end/data/numbers/1.txt tests/end2end/data/numbers/2.txt"
+        And I open data/fileselect.html
+        And I run :click-element id multiple_files
+        Then the javascript message "Files: 1.txt, 2.txt" should be logged
