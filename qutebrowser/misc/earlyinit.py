@@ -200,7 +200,6 @@ def _check_modules(modules):
 
     for name, text in modules.items():
         try:
-            # https://bitbucket.org/fdik/pypeg/commits/dd15ca462b532019c0a3be1d39b8ee2f3fa32f4e
             # pylint: disable=bad-continuation
             with log.py_warning_filter(
                 category=DeprecationWarning,
@@ -226,7 +225,6 @@ def check_libraries():
     """Check if all needed Python libraries are installed."""
     modules = {
         'pkg_resources': _missing_str("pkg_resources/setuptools"),
-        'pypeg2': _missing_str("pypeg2"),
         'jinja2': _missing_str("jinja2"),
         'yaml': _missing_str("PyYAML"),
         'dataclasses': _missing_str("dataclasses"),

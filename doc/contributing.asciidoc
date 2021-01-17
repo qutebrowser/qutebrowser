@@ -228,7 +228,6 @@ Documentation of used Python libraries:
 
 * http://jinja.pocoo.org/docs/dev/[jinja2]
 * http://pygments.org/docs/[pygments]
-* http://fdik.org/pyPEG/index.html[pyPEG2]
 * http://pythonhosted.org/setuptools/[setuptools]
 * http://www.pyinstaller.org/[PyInstaller]
 * https://pypi.python.org/pypi/colorama[colorama]

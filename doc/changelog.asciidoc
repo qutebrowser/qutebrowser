@@ -28,6 +28,7 @@ Major changes
     if not, consider packaging it, albeit optional it's very useful for users)
   * Remove the `cssutils` optional dependency (if present)
   * Remove the `attrs` (`attr`) dependency
+  * Remove the `pypeg2` dependency
   * Move the `pygments` dependency from required to optional
   * TODO: Move the `setuptools` dependency from runtime (for `pkg_resources`) to
     build-time.
@@ -71,6 +72,9 @@ Major changes
   thus requiring the backports for those versions as well.
 - The former dependency on the `attrs`/`attr` package is now dropped.
 - On Python 3.6, a new dependency on the `dataclasses` backport is now required.
+- The former dependency on the `pypeg2` package is now dropped. This might cause
+  some changes for certain corner-cases for suggested filenames when downloading
+  files with the QtWebKit backend.
 - Windows 7 is not supported anymore by the Windows binaries.
 
 Removed

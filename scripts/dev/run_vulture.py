@@ -33,7 +33,6 @@ import qutebrowser.app  # pylint: disable=unused-import
 from qutebrowser.extensions import loader
 from qutebrowser.misc import objects
 from qutebrowser.utils import utils, version
-from qutebrowser.browser.webkit import rfc6266
 # To run the decorators from there
 # pylint: disable=unused-import
 from qutebrowser.browser.webkit.network import webkitqutescheme
@@ -49,13 +48,6 @@ def whitelist_generator():  # noqa: C901
     # qutebrowser commands
     for cmd in objects.commands.values():
         yield utils.qualname(cmd.handler)
-
-    # pyPEG2 classes
-    for name, member in inspect.getmembers(rfc6266, inspect.isclass):
-        for attr in ['grammar', 'regex']:
-            if hasattr(member, attr):
-                yield 'qutebrowser.browser.webkit.rfc6266.{}.{}'.format(name,
-                                                                        attr)
 
     # PyQt properties
     yield 'qutebrowser.mainwindow.statusbar.bar.StatusBar.color_flags'

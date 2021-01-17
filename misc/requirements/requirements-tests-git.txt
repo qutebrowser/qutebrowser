@@ -30,6 +30,5 @@ git+https://github.com/tartley/colorama.git
 git+https://github.com/pallets/jinja.git
 git+https://github.com/pallets/markupsafe.git
 hg+http://bitbucket.org/birkenfeld/pygments-main
-hg+https://bitbucket.org/fdik/pypeg
 git+https://github.com/python-attrs/attrs.git
 git+https://github.com/yaml/pyyaml.git

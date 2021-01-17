@@ -218,8 +218,6 @@ sbopkg -V 14.2
 sbopkg -r
 ----
 
-The pyPEG2 and MarkupSafe dependencies both need building for python3. You can either set PYTHON3=yes in the shell or set those as options in the dialog menu for each.
-
 Generate a queue file for qutebrowser and dependencies:
 
 ----

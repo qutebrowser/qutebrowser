@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""pyPEG parsing for the RFC 6266 (Content-Disposition) header."""
+"""Parsing for the RFC 6266 (Content-Disposition) header."""
 
 import email.headerregistry
 import email.errors

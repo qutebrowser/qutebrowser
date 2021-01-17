@@ -360,7 +360,6 @@ MODULE_INFO: Mapping[str, ModuleInfo] = collections.OrderedDict([
     [
         ('sip', ['SIP_VERSION_STR']),
         ('colorama', ['VERSION', '__version__']),
-        ('pypeg2', ['__version__']),
         ('jinja2', ['__version__']),
         ('pygments', ['__version__']),
         ('yaml', ['__version__']),

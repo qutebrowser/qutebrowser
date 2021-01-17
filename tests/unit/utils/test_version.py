@@ -709,7 +709,6 @@ class TestModuleVersions:
     @pytest.mark.parametrize('name, has_version', [
         ('sip', False),
         ('colorama', True),
-        ('pypeg2', True),
         ('jinja2', True),
         ('pygments', True),
         ('yaml', True),

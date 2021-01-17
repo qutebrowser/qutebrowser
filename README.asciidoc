@@ -92,7 +92,6 @@ The following software and libraries are required to run qutebrowser:
   for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools] (being
   phased out for qutebrowser v2.0.0)
-* https://fdik.org/pyPEG/[pyPEG2]
 * http://jinja.pocoo.org/[jinja2]
 * http://pygments.org/[pygments]
 * https://github.com/yaml/pyyaml[PyYAML]

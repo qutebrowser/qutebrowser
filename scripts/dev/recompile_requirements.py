@@ -174,7 +174,6 @@ CHANGELOG_URLS = {
     'mypy-extensions': 'https://github.com/python/mypy_extensions/commits/master',
     'pyroma': 'https://github.com/regebro/pyroma/blob/master/HISTORY.txt',
     'adblock': 'https://github.com/ArniDagur/python-adblock/blob/master/CHANGELOG.md',
-    'pyPEG2': None,
     'importlib-resources': 'https://importlib-resources.readthedocs.io/en/latest/history.html',
     'dataclasses': 'https://github.com/ericvsmith/dataclasses#release-history',
 }
