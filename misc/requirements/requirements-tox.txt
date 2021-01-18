@@ -9,5 +9,5 @@ py==1.10.0
 pyparsing==2.4.7
 six==1.15.0
 toml==0.10.2
-tox==3.21.0
-virtualenv==20.3.0
+tox==3.21.1
+virtualenv==20.3.1
