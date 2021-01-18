@@ -251,6 +251,6 @@ class WebEnginePage(QWebEnginePage):
         if handler == "default":
             return super().chooseFiles(mode, old_files, accepted_mimetypes)
 
-        assert handler == "external"
+        assert handler == "external", handler
         return shared.choose_file(
             multiple=(mode == QWebEnginePage.FileSelectOpenMultiple))

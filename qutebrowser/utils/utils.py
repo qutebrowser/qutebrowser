@@ -851,7 +851,6 @@ def cleanup_file(filepath: str) -> Iterator[None]:
         yield
     finally:
         try:
-            if os.path.exists(filepath):
-                os.remove(filepath)
+            os.remove(filepath)
         except OSError as e:
             log.misc.error(f"Failed to delete tempfile {filepath} ({e})!")

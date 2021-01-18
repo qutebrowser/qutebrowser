@@ -882,10 +882,13 @@ def test_mimetype_extension(mimetype, extension):
 
 class TestCleanupFileContext:
 
-    def test_no_file(self, tmp_path):
+    def test_no_file(self, tmp_path, caplog):
         tmpfile = tmp_path / 'tmp.txt'
-        with utils.cleanup_file(tmpfile):
-            pass
+        with caplog.at_level(logging.ERROR, 'misc'):
+            with utils.cleanup_file(tmpfile):
+                pass
+        assert len(caplog.messages) == 1
+        assert caplog.messages[0].startswith("Failed to delete tempfile")
         assert not tmpfile.exists()
 
     def test_no_error(self, tmp_path):
@@ -911,3 +914,5 @@ class TestCleanupFileContext:
         with caplog.at_level(logging.ERROR, 'misc'):
             with utils.cleanup_file(tmp_path):
                 pass
+        assert len(caplog.messages) == 1
+        assert caplog.messages[0].startswith("Failed to delete tempfile")

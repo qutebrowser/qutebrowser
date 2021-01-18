@@ -198,7 +198,7 @@ class BrowserPage(QWebPage):
         if handler == "default":
             return super().chooseFile(parent_frame, suggested_file)
 
-        assert handler == "external"
+        assert handler == "external", handler
         selected = shared.choose_file(multiple=False)
         if not selected:
             return ''
@@ -228,7 +228,7 @@ class BrowserPage(QWebPage):
                 None, None, suggested_file)  # type: ignore[arg-type]
             return True
 
-        assert handler == "external"
+        assert handler == "external", handler
         files.fileNames = shared.choose_file(multiple=True)
         return True
 
