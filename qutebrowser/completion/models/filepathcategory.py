@@ -35,7 +35,7 @@ class FilePathCategory(QAbstractListModel):
         self.columns_to_filter = [0]
 
     def set_pattern(self, val: str) -> None:
-        """Compute list of suggested paths. (Called from `CompletionModel`.)
+        """Compute list of suggested paths (called from `CompletionModel`).
 
         Args:
             val: The user's partially typed URL/path.
