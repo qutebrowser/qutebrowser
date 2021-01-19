@@ -83,8 +83,10 @@ def test_unused_func(vultdir):
         def foo():
             pass
     """)
-    msg = "foo.py:2: unused function 'foo' (60% confidence)"
-    assert vultdir.run() == [msg]
+    msg = "*/foo.py:2: unused function 'foo' (60% confidence)"
+    msgs = vultdir.run()
+    assert len(msgs) == 1
+    assert utils.pattern_match(pattern=msg, value=msgs[0])
 
 
 def test_unused_method_camelcase(vultdir):
