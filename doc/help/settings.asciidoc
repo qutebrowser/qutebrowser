@@ -2797,7 +2797,8 @@ Default:
 
 - +pass:[xterm]+
 - +pass:[-e]+
-- +pass:[ranger --choosefiles={}]+
+- +pass:[ranger]+
+- +pass:[--choosefiles={}]+
 
 [[fileselect.single_file.command]]
 === fileselect.single_file.command
@@ -2811,7 +2812,8 @@ Default:
 
 - +pass:[xterm]+
 - +pass:[-e]+
-- +pass:[ranger --choosefile={}]+
+- +pass:[ranger]+
+- +pass:[--choosefile={}]+
 
 [[fonts.completion.category]]
 === fonts.completion.category
