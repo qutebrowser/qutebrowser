@@ -19,10 +19,9 @@
 
 import glob
 import os
-from typing import Any
-import urllib.parse
+from typing import List
 
-from PyQt5.QtCore import QAbstractListModel, QModelIndex
+from PyQt5.QtCore import QAbstractListModel, QModelIndex, QObject, QUrl
 
 
 class FilePathCategory(QAbstractListModel):
@@ -30,7 +29,7 @@ class FilePathCategory(QAbstractListModel):
 
     def __init__(self, name: str, parent: QObject = None) -> None:
         super().__init__(parent)
-        self._paths: list = []
+        self._paths: List[str] = []
         self.name = name
         self.columns_to_filter = [0]
 
@@ -42,11 +41,11 @@ class FilePathCategory(QAbstractListModel):
         """
         if not val:
             self._paths = [os.path.expanduser('~')]
-        elif len(val) >= 1 and val[0] in ['~', '/']:
-            glob_str = os.path.expanduser(glob.escape(val)) + '*'
-            self._paths = sorted(glob.glob(glob_str))
         elif val.startswith('file:///'):
-            glob_str = os.path.expanduser(urllib.parse.unquote(val[7:])) + '*'
+            glob_str = QUrl(val).path() + '*'
+            self._paths = sorted(glob.glob(glob_str))
+        elif os.path.isabs(os.path.expanduser(val)):
+            glob_str = glob.escape(os.path.expanduser(val)) + '*'
             self._paths = sorted(glob.glob(glob_str))
         else:
             self._paths = []
@@ -58,6 +57,9 @@ class FilePathCategory(QAbstractListModel):
         else:
             return ''
 
-    def rowCount(self, *_args: Any) -> int:
+    def rowCount(self, parent: QModelIndex=QModelIndex()) -> int:
         """Implement abstract method in QAbstractListModel."""
-        return len(self._paths)
+        if parent.isValid():
+            return 0
+        else:
+            return len(self._paths)
