@@ -24,6 +24,8 @@ from typing import Any, List
 
 from PyQt5.QtCore import QAbstractListModel, QModelIndex, QObject, Qt, QUrl
 
+from qutebrowser.config import config
+
 
 class FilePathCategory(QAbstractListModel):
     """Represent filesystem paths matching a pattern."""
@@ -44,8 +46,7 @@ class FilePathCategory(QAbstractListModel):
             return str(head / Path(path).relative_to(Path(head).expanduser()))
 
         if not val:
-            # TODO: give list of favorite paths from config
-            self._paths = []
+            self._paths = config.val.completion.favorite_paths or []
         elif val.startswith('file:///'):
             glob_str = QUrl(val).toLocalFile() + '*'
             self._paths = sorted(QUrl.fromLocalFile(path).toString()

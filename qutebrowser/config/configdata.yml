@@ -1151,6 +1151,15 @@ completion.open_categories:
     - filesystem
   desc: Which categories to show (in which order) in the :open completion.
 
+completion.favorite_paths:
+  type:
+    name: List
+    none_ok: true
+    valtype:
+      name: String
+  default: []
+  desc: Default filesystem autocomplete suggestions for :open.
+
 downloads.open_dispatcher:
   type:
     name: String
