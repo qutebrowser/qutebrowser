@@ -20,9 +20,9 @@
 import glob
 import os
 from pathlib import Path
-from typing import List
+from typing import Any, List
 
-from PyQt5.QtCore import QAbstractListModel, QModelIndex, QObject, QUrl
+from PyQt5.QtCore import QAbstractListModel, QModelIndex, QObject, Qt, QUrl
 
 
 class FilePathCategory(QAbstractListModel):
@@ -55,9 +55,8 @@ class FilePathCategory(QAbstractListModel):
             if os.path.isabs(expanded):
                 glob_str = glob.escape(expanded) + '*'
                 expanded_paths = sorted(glob.glob(glob_str))
-
-                head = Path(val).parts[0]
                 # if ~ or ~user was expanded, contract it in `_paths`
+                head = Path(val).parts[0]
                 if head.startswith('~'):
                     self._paths = [_contractuser(expanded_path, head) for
                         expanded_path in expanded_paths]
@@ -66,12 +65,14 @@ class FilePathCategory(QAbstractListModel):
             else:
                 self._paths = []
 
-    def data(self, index: QModelIndex) -> str:
+    def data(
+        self, index: QModelIndex, role: int = Qt.ItemDataRole.DisplayRole
+    ) -> Any:
         """Implement abstract method in QAbstractListModel."""
-        if index.column() == 0:
+        if role == Qt.DisplayRole and index.column() == 0:
             return self._paths[index.row()]
         else:
-            return ''
+            return None
 
     def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:
         """Implement abstract method in QAbstractListModel."""
