@@ -1222,9 +1222,9 @@ fileselect.single_file.command:
     name: ShellCommand
     placeholder: true
     completions:
-      - ['["xterm", "-e", "ranger --choosefile={}"]', "Ranger in xterm"]
+      - ['["xterm", "-e", "ranger", "--choosefile={}"]', "Ranger in xterm"]
       - ['["xterm", "-e", "vifm", "--choose-file", "{}"]', "vifm in xterm"]
-  default: ['xterm', '-e', 'ranger --choosefile={}']
+  default: ['xterm', '-e', 'ranger', '--choosefile={}']
   desc: >-
     Command (and arguments) to use for selecting a single file in forms.
     The command should write the selected file path to the specified file.
@@ -1238,9 +1238,9 @@ fileselect.multiple_files.command:
     name: ShellCommand
     placeholder: true
     completions:
-      - ['["xterm", "-e", "ranger --choosefiles={}"]', "Ranger in xterm"]
+      - ['["xterm", "-e", "ranger", "--choosefiles={}"]', "Ranger in xterm"]
       - ['["xterm", "-e", "vifm", "--choose-files", "{}"]', "vifm in xterm"]
-  default: ['xterm', '-e', 'ranger --choosefiles={}']
+  default: ['xterm', '-e', 'ranger', '--choosefiles={}']
   desc: >-
     Command (and arguments) to use for selecting multiple files in forms.
     The command should write the selected file paths to the specified file,
