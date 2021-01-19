@@ -168,6 +168,8 @@ Changed
   set from JavaScript, as it would be if `content.headers.custom` wasn't set.
 - The `:buffer` completion now shows the underlying renderer process PID if
   doing so is supported (QtWebEngine 5.15).
+- If `tabs.favicons.show` is set to `never`, favicons aren't unnecessarily
+  downloaded anymore.
 - Various performance improvements, including for the startup time.
 
 Fixed

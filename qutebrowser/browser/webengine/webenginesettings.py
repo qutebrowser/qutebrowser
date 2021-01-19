@@ -153,6 +153,10 @@ class WebEngineSettings(websettings.AbstractSettings):
 
         'content.dns_prefetch':
             Attr(QWebEngineSettings.DnsPrefetchEnabled),
+
+        'tabs.favicons.show':
+            Attr(QWebEngineSettings.AutoLoadIconsForPage,
+                 converter=lambda val: val != 'never'),
     }
 
     _FONT_SIZES = {
