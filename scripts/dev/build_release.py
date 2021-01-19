@@ -258,7 +258,7 @@ def _get_windows_python_path(x64):
         return fallback
 
 
-def build_windows(*, skip_packaging):
+def build_windows(*, skip_packaging, skip_32bit):
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
     update_3rdparty.run(nsis=True, ace=False, pdfjs=True, fancy_dmg=False)
@@ -266,32 +266,35 @@ def build_windows(*, skip_packaging):
     utils.print_title("Building Windows binaries")
 
     python_x64 = _get_windows_python_path(x64=True)
-    python_x86 = _get_windows_python_path(x64=False)
+    python_x86 = None if skip_32bit else _get_windows_python_path(x64=False)
 
     out_pyinstaller = os.path.join('dist', 'qutebrowser')
-    out_32 = os.path.join('dist',
-                          'qutebrowser-{}-x86'.format(qutebrowser.__version__))
-    out_64 = os.path.join('dist',
-                          'qutebrowser-{}-x64'.format(qutebrowser.__version__))
-
     artifacts = []
 
     from scripts.dev import gen_versioninfo
     utils.print_title("Updating VersionInfo file")
     gen_versioninfo.main()
 
-    utils.print_title("Running pyinstaller 32bit")
-    _maybe_remove(out_32)
-    call_tox('pyinstaller-32', '-r', python=python_x86)
-    shutil.move(out_pyinstaller, out_32)
+    if skip_32bit:
+        out_32 = None
+    else:
+        utils.print_title("Running pyinstaller 32bit")
+        out_32 = os.path.join(
+            'dist', 'qutebrowser-{}-x86'.format(qutebrowser.__version__))
+        _maybe_remove(out_32)
+        call_tox('pyinstaller-32', '-r', python=python_x86)
+        shutil.move(out_pyinstaller, out_32)
 
     utils.print_title("Running pyinstaller 64bit")
+    out_64 = os.path.join(
+        'dist', 'qutebrowser-{}-x64'.format(qutebrowser.__version__))
     _maybe_remove(out_64)
     call_tox('pyinstaller-64', '-r', python=python_x64)
     shutil.move(out_pyinstaller, out_64)
 
-    utils.print_title("Running 32bit smoke test")
-    smoke_test(os.path.join(out_32, 'qutebrowser.exe'))
+    if not skip_32bit:
+        utils.print_title("Running 32bit smoke test")
+        smoke_test(os.path.join(out_32, 'qutebrowser.exe'))
     utils.print_title("Running 64bit smoke test")
     smoke_test(os.path.join(out_64, 'qutebrowser.exe'))
 
@@ -307,31 +310,36 @@ def _package_windows(out_32, out_64):
     subprocess.run(['makensis.exe',
                     '/DVERSION={}'.format(qutebrowser.__version__),
                     'misc/nsis/qutebrowser.nsi'], check=True)
-    subprocess.run(['makensis.exe',
-                    '/DX86',
-                    '/DVERSION={}'.format(qutebrowser.__version__),
-                    'misc/nsis/qutebrowser.nsi'], check=True)
 
-    name_32 = 'qutebrowser-{}-win32.exe'.format(qutebrowser.__version__)
+    if out_32 is not None:
+        subprocess.run(['makensis.exe',
+                        '/DX86',
+                        '/DVERSION={}'.format(qutebrowser.__version__),
+                        'misc/nsis/qutebrowser.nsi'], check=True)
+
     name_64 = 'qutebrowser-{}-amd64.exe'.format(qutebrowser.__version__)
-
     artifacts = [
-        (os.path.join('dist', name_32),
-         'application/vnd.microsoft.portable-executable',
-         'Windows 32bit installer'),
         (os.path.join('dist', name_64),
          'application/vnd.microsoft.portable-executable',
          'Windows 64bit installer'),
     ]
 
-    utils.print_title("Zipping 32bit standalone...")
-    template = 'qutebrowser-{}-windows-standalone-{}'
-    name = os.path.join('dist',
-                        template.format(qutebrowser.__version__, 'win32'))
-    shutil.make_archive(name, 'zip', 'dist', os.path.basename(out_32))
-    artifacts.append(('{}.zip'.format(name),
-                      'application/zip',
-                      'Windows 32bit standalone'))
+    if out_32 is not None:
+        name_32 = 'qutebrowser-{}-win32.exe'.format(qutebrowser.__version__)
+        artifacts += [
+            (os.path.join('dist', name_32),
+             'application/vnd.microsoft.portable-executable',
+             'Windows 32bit installer'),
+        ]
+
+        utils.print_title("Zipping 32bit standalone...")
+        template = 'qutebrowser-{}-windows-standalone-{}'
+        name = os.path.join('dist',
+                            template.format(qutebrowser.__version__, 'win32'))
+        shutil.make_archive(name, 'zip', 'dist', os.path.basename(out_32))
+        artifacts.append(('{}.zip'.format(name),
+                          'application/zip',
+                          'Windows 32bit standalone'))
 
     utils.print_title("Zipping 64bit standalone...")
     name = os.path.join('dist',
@@ -482,6 +490,8 @@ def main():
                         help="Toggle to upload the release to GitHub.")
     parser.add_argument('--skip-packaging', action='store_true', required=False,
                         help="Skip Windows installer/zip generation.")
+    parser.add_argument('--skip-32bit', action='store_true', required=False,
+                        help="Skip Windows 32 bit build.")
     args = parser.parse_args()
     utils.change_cwd()
 
@@ -503,7 +513,10 @@ def main():
         run_asciidoc2html(args)
 
     if os.name == 'nt':
-        artifacts = build_windows(skip_packaging=args.skip_packaging)
+        artifacts = build_windows(
+            skip_packaging=args.skip_packaging,
+            skip_32bit=args.skip_32bit,
+        )
     elif sys.platform == 'darwin':
         artifacts = build_mac()
     else:
