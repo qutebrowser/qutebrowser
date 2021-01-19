@@ -24,8 +24,6 @@ from typing import Any, List
 
 from PyQt5.QtCore import QAbstractListModel, QModelIndex, QObject, Qt, QUrl
 
-from qutebrowser.config import config
-
 
 class FilePathCategory(QAbstractListModel):
     """Represent filesystem paths matching a pattern."""
