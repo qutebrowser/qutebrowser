@@ -1148,6 +1148,7 @@ completion.open_categories:
     - quickmarks
     - bookmarks
     - history
+    - filesystem
   desc: Which categories to show (in which order) in the :open completion.
 
 downloads.open_dispatcher:

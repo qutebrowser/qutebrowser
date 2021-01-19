@@ -57,7 +57,7 @@ class FilePathCategory(QAbstractListModel):
                 expanded_paths = sorted(glob.glob(glob_str))
 
                 head = Path(val).parts[0]
-                # if ~ or ~user was expanded, contract it in _paths
+                # if ~ or ~user was expanded, contract it in `_paths`
                 if head.startswith('~'):
                     self._paths = [_contractuser(expanded_path, head) for
                         expanded_path in expanded_paths]
