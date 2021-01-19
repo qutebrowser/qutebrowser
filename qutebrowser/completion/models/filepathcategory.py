@@ -19,6 +19,7 @@
 
 import glob
 import os
+from pathlib import Path
 from typing import List
 
 from PyQt5.QtCore import QAbstractListModel, QModelIndex, QObject, QUrl
@@ -39,16 +40,31 @@ class FilePathCategory(QAbstractListModel):
         Args:
             val: The user's partially typed URL/path.
         """
+        def _contractuser(path: str, head: str) -> str:
+            return str(head / Path(path).relative_to(Path(head).expanduser()))
+
         if not val:
-            self._paths = [os.path.expanduser('~')]
-        elif val.startswith('file:///'):
-            glob_str = QUrl(val).path() + '*'
-            self._paths = sorted(glob.glob(glob_str))
-        elif os.path.isabs(os.path.expanduser(val)):
-            glob_str = glob.escape(os.path.expanduser(val)) + '*'
-            self._paths = sorted(glob.glob(glob_str))
-        else:
+            # TODO: give list of favorite paths from config
             self._paths = []
+        elif val.startswith('file:///'):
+            glob_str = QUrl(val).toLocalFile() + '*'
+            self._paths = sorted([QUrl.fromLocalFile(path).toString()
+                for path in glob.glob(glob_str)])
+        else:
+            expanded = os.path.expanduser(val)
+            if os.path.isabs(expanded):
+                glob_str = glob.escape(expanded) + '*'
+                expanded_paths = sorted(glob.glob(glob_str))
+
+                head = Path(val).parts[0]
+                # if ~ or ~user was expanded, contract it in _paths
+                if head.startswith('~'):
+                    self._paths = [_contractuser(expanded_path, head) for
+                        expanded_path in expanded_paths]
+                else:
+                    self._paths = expanded_paths
+            else:
+                self._paths = []
 
     def data(self, index: QModelIndex) -> str:
         """Implement abstract method in QAbstractListModel."""
@@ -57,7 +73,7 @@ class FilePathCategory(QAbstractListModel):
         else:
             return ''
 
-    def rowCount(self, parent: QModelIndex=QModelIndex()) -> int:
+    def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:
         """Implement abstract method in QAbstractListModel."""
         if parent.isValid():
             return 0
