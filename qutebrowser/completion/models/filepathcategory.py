@@ -24,6 +24,8 @@ from typing import Any, List
 
 from PyQt5.QtCore import QAbstractListModel, QModelIndex, QObject, Qt, QUrl
 
+from qutebrowser.config import config
+
 
 class FilePathCategory(QAbstractListModel):
     """Represent filesystem paths matching a pattern."""
@@ -48,8 +50,8 @@ class FilePathCategory(QAbstractListModel):
             self._paths = []
         elif val.startswith('file:///'):
             glob_str = QUrl(val).toLocalFile() + '*'
-            self._paths = sorted([QUrl.fromLocalFile(path).toString()
-                for path in glob.glob(glob_str)])
+            self._paths = sorted(QUrl.fromLocalFile(path).toString()
+                for path in glob.glob(glob_str))
         else:
             expanded = os.path.expanduser(val)
             if os.path.isabs(expanded):
@@ -66,7 +68,7 @@ class FilePathCategory(QAbstractListModel):
                 self._paths = []
 
     def data(
-        self, index: QModelIndex, role: int = Qt.ItemDataRole.DisplayRole
+        self, index: QModelIndex, role: int = Qt.DisplayRole
     ) -> Any:
         """Implement abstract method in QAbstractListModel."""
         if role == Qt.DisplayRole and index.column() == 0:
