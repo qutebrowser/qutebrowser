@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Testing fileselection</title>
+        <script type="text/javascript">
+            function onLoad() {
+                for (let id of ['#single_file', '#multiple_files']) {
+                    const input = document.querySelector(id);
+                    input.addEventListener('change', function (e) {
+                        console.log(`Files: ${Array.from(input.files).map(f => f.name).join(", ")}`);
+                    });
+                }
+            }
+        </script>
+    </head>
+    <body onload="onLoad()">
+        <input type="file" id="single_file" name="single_file" accept=".txt">
+        <input type="file" id="multiple_files" name="multiple_files" accept=".txt" multiple>
+    </body>
+</html>

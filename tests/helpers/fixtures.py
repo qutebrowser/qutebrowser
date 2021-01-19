@@ -503,13 +503,19 @@ def cookiejar_and_cache(stubs, monkeypatch):
 
 
 @pytest.fixture
-def py_proc():
+def py_proc(tmp_path):
     """Get a python executable and args list which executes the given code."""
     if getattr(sys, 'frozen', False):
         pytest.skip("Can't be run when frozen")
 
     def func(code):
-        return (sys.executable, ['-c', textwrap.dedent(code.strip('\n'))])
+        code = textwrap.dedent(code.strip('\n'))
+        if '\n' in code:
+            py_file = tmp_path / 'py_proc.py'
+            py_file.write_text(code)
+            return (sys.executable, [str(py_file)])
+        else:
+            return (sys.executable, ['-c', code])
 
     return func
 

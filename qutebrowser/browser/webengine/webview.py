@@ -19,6 +19,7 @@
 
 """The main browser widget for QtWebEngine."""
 
+from typing import List, Iterable
 
 from PyQt5.QtCore import pyqtSignal, QUrl
 from PyQt5.QtGui import QPalette
@@ -238,3 +239,18 @@ class WebEnginePage(QWebEnginePage):
             is_main_frame=is_main_frame)
         self.navigation_request.emit(navigation)
         return navigation.accepted
+
+    def chooseFiles(
+        self,
+        mode: QWebEnginePage.FileSelectionMode,
+        old_files: Iterable[str],
+        accepted_mimetypes: Iterable[str],
+    ) -> List[str]:
+        """Override chooseFiles to (optionally) invoke custom file uploader."""
+        handler = config.val.fileselect.handler
+        if handler == "default":
+            return super().chooseFiles(mode, old_files, accepted_mimetypes)
+
+        assert handler == "external", handler
+        return shared.choose_file(
+            multiple=(mode == QWebEnginePage.FileSelectOpenMultiple))

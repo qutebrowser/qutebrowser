@@ -878,3 +878,41 @@ def test_parse_duration_hypothesis(duration):
 ])
 def test_mimetype_extension(mimetype, extension):
     assert utils.mimetype_extension(mimetype) == extension
+
+
+class TestCleanupFileContext:
+
+    def test_no_file(self, tmp_path, caplog):
+        tmpfile = tmp_path / 'tmp.txt'
+        with caplog.at_level(logging.ERROR, 'misc'):
+            with utils.cleanup_file(tmpfile):
+                pass
+        assert len(caplog.messages) == 1
+        assert caplog.messages[0].startswith("Failed to delete tempfile")
+        assert not tmpfile.exists()
+
+    def test_no_error(self, tmp_path):
+        tmpfile = tmp_path / 'tmp.txt'
+        with tmpfile.open('w'):
+            pass
+        with utils.cleanup_file(tmpfile):
+            pass
+        assert not tmpfile.exists()
+
+    def test_error(self, tmp_path):
+        tmpfile = tmp_path / 'tmp.txt'
+        with tmpfile.open('w'):
+            pass
+        with pytest.raises(RuntimeError):
+            with utils.cleanup_file(tmpfile):
+                raise RuntimeError
+        assert not tmpfile.exists()
+
+    def test_directory(self, tmp_path, caplog):
+        assert tmp_path.is_dir()
+        # removal of file fails since it's a directory
+        with caplog.at_level(logging.ERROR, 'misc'):
+            with utils.cleanup_file(tmp_path):
+                pass
+        assert len(caplog.messages) == 1
+        assert caplog.messages[0].startswith("Failed to delete tempfile")

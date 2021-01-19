@@ -1522,9 +1522,17 @@ class ShellCommand(List):
     _show_valtype = False
 
     def __init__(self, placeholder: bool = False,
+                 completions: _Completions = None,
                  none_ok: bool = False) -> None:
         super().__init__(valtype=String(), none_ok=none_ok)
         self.placeholder = placeholder
+        self._completions = completions
+
+    def complete(self) -> _Completions:
+        if self._completions is not None:
+            return self._completions  # pragma: no cover
+        else:
+            return super().complete()
 
     def to_py(
             self,
