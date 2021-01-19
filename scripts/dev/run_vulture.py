@@ -156,8 +156,7 @@ def report(items):
     properties which get used for the items.
     """
     output = []
-    for item in sorted(items,
-                       key=lambda e: (e.filename.lower(), e.first_lineno)):
+    for item in sorted(items, key=lambda e: (str(e.filename).lower(), e.first_lineno)):
         output.append(item.get_report())
     return output
 
