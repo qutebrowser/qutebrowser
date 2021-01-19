@@ -311,6 +311,18 @@ class TestAll:
             for value, _desc in completions:
                 typ.from_str(value)
 
+    def test_custom_completions(self, klass):
+        """Make sure we can pass custom completions."""
+        completions = [('1', 'one'), ('2', 'two')]
+        typ = klass(completions=completions)
+        assert typ.complete() == completions
+
+    def test_signature(self, klass):
+        """Make sure flag arguments are kw-only."""
+        sig = inspect.signature(klass)
+        for name in ['none_ok', 'completions']:
+            assert sig.parameters[name].kind == inspect.Parameter.KEYWORD_ONLY
+
 
 class TestBaseType:
 
@@ -534,8 +546,7 @@ class ListSubclass(configtypes.List):
             elemtype = configtypes.String(none_ok=none_ok_inner)
         super().__init__(elemtype, none_ok=none_ok_outer, length=length)
         if set_valid_values:
-            self.valtype.valid_values = configtypes.ValidValues(
-                'foo', 'bar', 'baz')
+            self.valtype.valid_values = configtypes.ValidValues('foo', 'bar', 'baz')
 
 
 class FlagListSubclass(configtypes.FlagList):
