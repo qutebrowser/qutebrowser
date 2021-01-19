@@ -20,7 +20,7 @@
 import glob
 import os
 from pathlib import Path
-from typing import Any, List
+from typing import List, Optional
 
 from PyQt5.QtCore import QAbstractListModel, QModelIndex, QObject, Qt, QUrl
 
@@ -68,7 +68,7 @@ class FilePathCategory(QAbstractListModel):
 
     def data(
         self, index: QModelIndex, role: int = Qt.DisplayRole
-    ) -> Any:
+    ) -> Optional[str]:
         """Implement abstract method in QAbstractListModel."""
         if role == Qt.DisplayRole and index.column() == 0:
             return self._paths[index.row()]
