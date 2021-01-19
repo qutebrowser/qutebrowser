@@ -22,7 +22,7 @@ import os
 from typing import Any
 import urllib.parse
 
-from PyQt5.QtCore import (QAbstractListModel, QModelIndex)
+from PyQt5.QtCore import QAbstractListModel, QModelIndex
 
 
 class FilePathCategory(QAbstractListModel):
