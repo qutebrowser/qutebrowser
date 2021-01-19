@@ -45,7 +45,7 @@ class FilePathCategory(QAbstractListModel):
         elif len(val) >= 1 and val[0] in ['~', '/']:
             glob_str = os.path.expanduser(glob.escape(val)) + '*'
             self._paths = sorted(glob.glob(glob_str))
-        elif len(val) >= 8 and val[:8] == 'file:///':
+        elif val.startswith('file:///'):
             glob_str = os.path.expanduser(urllib.parse.unquote(val[7:])) + '*'
             self._paths = sorted(glob.glob(glob_str))
         else:
