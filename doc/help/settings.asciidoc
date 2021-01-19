@@ -3871,6 +3871,7 @@ Default: +pass:[1.0]+
 [[tabs.favicons.show]]
 === tabs.favicons.show
 When to show favicons in the tab bar.
+When switching this from never to always/pinned, note that favicons might not be loaded yet, thus tabs might require a reload to display them.
 
 Type: <<types,String>>
 
