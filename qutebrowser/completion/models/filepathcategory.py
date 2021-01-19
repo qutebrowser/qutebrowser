@@ -28,8 +28,8 @@ from PyQt5.QtCore import QAbstractListModel, QModelIndex
 class FilePathCategory(QAbstractListModel):
     """Represent filesystem paths matching a pattern."""
 
-    def __init__(self, name: str):
-        super().__init__()
+    def __init__(self, name: str, parent: QObject = None) -> None:
+        super().__init__(parent)
         self._paths: list = []
         self.name = name
         self.columns_to_filter = [0]
