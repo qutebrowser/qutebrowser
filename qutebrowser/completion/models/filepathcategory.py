@@ -17,11 +17,18 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Completion category for filesystem paths."""
+"""Completion category for filesystem paths.
+
+NOTE: This module deliberatly uses os.path rather than pathlib, because of how
+it interacts with the completion, which operates on strings. For example, we
+need to be able to tell the difference between "~/input" and "~/input/". Also,
+if we get "~/input", we want to glob "~/input*" rather than "~/input/*" which
+is harder to achieve via pathlib.
+"""
 
 import glob
 import os
-import pathlib
+import os.path
 from typing import List, Optional, Iterable
 
 from PyQt5.QtCore import QAbstractListModel, QModelIndex, QObject, Qt, QUrl
@@ -48,8 +55,8 @@ class FilePathCategory(QAbstractListModel):
         """
         if not val.startswith('~'):
             return path
-        head = pathlib.Path(pathlib.Path(val).parts[0])
-        return str(head / pathlib.Path(path).relative_to(head.expanduser()))
+        head = val.split(os.sep)[0]
+        return path.replace(os.path.expanduser(head), head, 1)
 
     def _glob(self, val: str) -> Iterable[str]:
         """Find paths based on the given pattern."""
