@@ -560,7 +560,7 @@ def regenerate_cheatsheet():
     ]
 
     for filename, x, y in files:
-        subprocess.run(['inkscape', '-e', filename, '-b', 'white',
+        subprocess.run(['inkscape', '-o', filename, '-b', 'white',
                         '-w', str(x), '-h', str(y),
                         'misc/cheatsheet.svg'], check=True)
         subprocess.run(['optipng', filename], check=True)
