@@ -1200,7 +1200,7 @@ editor.command:
     placeholder: true
   default: ["gvim", "-f", "{file}", "-c", "normal {line}G{column0}l"]
   desc: |
-    Editor (and arguments) to use for the `open-editor` command.
+    Editor (and arguments) to use for the `edit-*` commands.
     The following placeholders are defined:
 
     * `{file}`: Filename of the file to be edited.
@@ -3389,7 +3389,7 @@ bindings.default:
       tCu: config-cycle -p -u {url} content.cookies.accept
         all no-3rdparty never ;; reload
     insert:
-      <Ctrl-E>: open-editor
+      <Ctrl-E>: edit-text
       <Shift-Ins>: insert-text -- {primary}
       <Escape>: leave-mode
     hint:

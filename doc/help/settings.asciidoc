@@ -203,7 +203,7 @@
 |<<downloads.open_dispatcher,downloads.open_dispatcher>>|Default program used to open downloads.
 |<<downloads.position,downloads.position>>|Where to show the downloaded files.
 |<<downloads.remove_finished,downloads.remove_finished>>|Duration (in milliseconds) to wait before removing finished downloads.
-|<<editor.command,editor.command>>|Editor (and arguments) to use for the `open-editor` command.
+|<<editor.command,editor.command>>|Editor (and arguments) to use for the `edit-*` commands.
 |<<editor.encoding,editor.encoding>>|Encoding to use for the editor.
 |<<fileselect.handler,fileselect.handler>>|Handler for selecting file(s) in forms. If `external`, then the commands specified by `fileselect.single_file.command` and `fileselect.multiple_files.command` are used to select one or multiple files respectively.
 |<<fileselect.multiple_files.command,fileselect.multiple_files.command>>|Command (and arguments) to use for selecting multiple files in forms. The command should write the selected file paths to the specified file, separated by newlines.
@@ -532,7 +532,7 @@ Default:
 * +pass:[&lt;Return&gt;]+: +pass:[follow-hint]+
 - +pass:[insert]+:
 
-* +pass:[&lt;Ctrl-E&gt;]+: +pass:[open-editor]+
+* +pass:[&lt;Ctrl-E&gt;]+: +pass:[edit-text]+
 * +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
 * +pass:[&lt;Shift-Ins&gt;]+: +pass:[insert-text -- {primary}]+
 - +pass:[normal]+:
@@ -2756,7 +2756,7 @@ Default: +pass:[-1]+
 
 [[editor.command]]
 === editor.command
-Editor (and arguments) to use for the `open-editor` command.
+Editor (and arguments) to use for the `edit-*` commands.
 The following placeholders are defined:
 
 * `{file}`: Filename of the file to be edited.

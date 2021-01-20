@@ -1447,8 +1447,8 @@ class CommandDispatcher:
 
         self._open(url, tab, bg, window)
 
-    def _open_editor_cb(self, elem):
-        """Open editor after the focus elem was found in open_editor."""
+    def _edit_text_cb(self, elem):
+        """Open editor after the focus elem was found in edit_text."""
         if elem is None:
             message.error("No element focused!")
             return
@@ -1472,14 +1472,14 @@ class CommandDispatcher:
         ed.edit(text, caret_position)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def open_editor(self):
+    def edit_text(self):
         """Open an external editor with the currently selected form field.
 
         The editor which should be launched can be configured via the
         `editor.command` config option.
         """
         tab = self._current_widget()
-        tab.elements.find_focused(self._open_editor_cb)
+        tab.elements.find_focused(self._edit_text_cb)
 
     def on_file_updated(self, ed, elem, text):
         """Write the editor text into the form field and clean up tempfile.

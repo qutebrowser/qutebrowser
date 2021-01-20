@@ -178,6 +178,7 @@ Changed
   * `run-macro` -> `macro-run`
   * `record-macro` -> `macro-record`
   * `buffer` -> `tab-select`
+  * `open-editor` -> `edit-text`
 - Various performance improvements, including for the startup time.
 
 Fixed
