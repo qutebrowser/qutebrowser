@@ -1601,7 +1601,7 @@ How many steps to zoom out.
 |<<completion-item-del,completion-item-del>>|Delete the current completion item.
 |<<completion-item-focus,completion-item-focus>>|Shift the focus of the completion menu to another item.
 |<<completion-item-yank,completion-item-yank>>|Yank the current completion item into the clipboard.
-|<<follow-hint,follow-hint>>|Follow a hint.
+|<<hint-follow,hint-follow>>|Follow a hint.
 |<<leave-mode,leave-mode>>|Leave the mode we're currently in.
 |<<move-to-end-of-document,move-to-end-of-document>>|Move the cursor or selection to the end of the document.
 |<<move-to-end-of-line,move-to-end-of-line>>|Move the cursor or selection to the end of line.
@@ -1685,9 +1685,9 @@ Yank the current completion item into the clipboard.
 ==== optional arguments
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
 
-[[follow-hint]]
-=== follow-hint
-Syntax: +:follow-hint [*--select*] ['keystring']+
+[[hint-follow]]
+=== hint-follow
+Syntax: +:hint-follow [*--select*] ['keystring']+
 
 Follow a hint.
 

@@ -48,7 +48,7 @@ Feature: Downloading things from a website.
         When I set downloads.location.prompt to true
         And I open data/downloads/downloads.html
         And I hint with args "--rapid links download" and follow a
-        And I run :follow-hint s
+        And I run :hint-follow s
         And I wait until the download download.bin is finished
         And I wait until the download download2.bin is finished
         Then the downloaded file download.bin should exist
@@ -667,7 +667,7 @@ Feature: Downloading things from a website.
     Scenario: user-agent when using hints
         When I open /
         And I run :hint links download
-        And I run :follow-hint a
+        And I run :hint-follow a
         And I wait until the download is finished
         Then the downloaded file user-agent should contain Safari/
 

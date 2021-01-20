@@ -3393,7 +3393,7 @@ bindings.default:
       <Shift-Ins>: insert-text -- {primary}
       <Escape>: leave-mode
     hint:
-      <Return>: follow-hint
+      <Return>: hint-follow
       <Ctrl-R>: hint --rapid links tab-bg
       <Ctrl-F>: hint links
       <Ctrl-B>: hint all tab-bg

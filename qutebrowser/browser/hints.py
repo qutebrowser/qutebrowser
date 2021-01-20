@@ -838,7 +838,7 @@ class HintManager(QObject):
         else:
             follow = False
             # save the keystr of the only one visible hint to be picked up
-            # later by self.follow_hint
+            # later by self.hint_follow
             self._context.to_follow = list(visible.keys())[0]
 
         if follow:
@@ -1001,7 +1001,7 @@ class HintManager(QObject):
 
     @cmdutils.register(instance='hintmanager', scope='window',
                        modes=[usertypes.KeyMode.hint])
-    def follow_hint(self, select: bool = False, keystring: str = None) -> None:
+    def hint_follow(self, select: bool = False, keystring: str = None) -> None:
         """Follow a hint.
 
         Args:

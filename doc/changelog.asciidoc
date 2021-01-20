@@ -185,6 +185,7 @@ Changed
   * `drop-selection` -> `selection-drop`
   * `reverse-selection` -> `selection-reverse`
   * `follow-selected` -> `selection-follow`
+  * `follow-hint` -> `hint-follow`
 - Various performance improvements, including for the startup time.
 
 Fixed

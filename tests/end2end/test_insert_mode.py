@@ -85,7 +85,7 @@ def test_auto_leave_insert_mode(quteproc):
     quteproc.wait_for(message='hints: *')
 
     # Select the disabled input box to leave insert mode
-    quteproc.send_cmd(':follow-hint s')
+    quteproc.send_cmd(':hint-follow s')
     quteproc.wait_for(message='Clicked non-editable element!')
 
 
