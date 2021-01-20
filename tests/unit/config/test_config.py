@@ -761,6 +761,23 @@ class TestContainer:
         assert error.text == "While getting 'tabs.foobar'"
         assert str(error.exception) == "No option 'tabs.foobar'"
 
+    def test_confapi_missing_prefix(self, container):
+        configapi = types.SimpleNamespace(errors=[])
+        container._configapi = configapi
+        container.content.host_blocking.lists = []
+
+        assert len(configapi.errors) == 2
+
+        error1 = configapi.errors[0]
+        assert error1.text == "While getting 'content.host_blocking'"
+        assert str(error1.exception) == "No option 'content.host_blocking'"
+
+        error2 = configapi.errors[1]
+        assert error2.text == "While setting 'content.host_blocking.lists'"
+        assert str(error2.exception) == (
+            "No option 'content.host_blocking.lists' (this option was renamed to "
+            "'content.blocking.hosts.lists')")
+
     def test_pattern_no_configapi(self, config_stub):
         pattern = urlmatch.UrlPattern('https://example.com/')
         with pytest.raises(TypeError,

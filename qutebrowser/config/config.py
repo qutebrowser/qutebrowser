@@ -603,6 +603,13 @@ class ConfigContainer:
                 return self._config.get_mutable_obj(
                     name, pattern=self._pattern)
 
+        # If we arrived here, there was an error while getting the config option. Most
+        # likely, someone did something like "c.content.host_blocking.lists" but
+        # "c.content.host_blocking" doesn't actually exist. To avoid an AttributeError
+        # which leads to a confusing error message, return another ConfigContainer so
+        # that the chain can keep going.
+        return self._with_prefix(name)
+
     def __setattr__(self, attr: str, value: Any) -> None:
         """Set the given option in the config."""
         if attr.startswith('_'):
