@@ -94,8 +94,7 @@ def url(*, info):
         models['history'] = hist_cat
 
     if 'filesystem' in categories:
-        models['filesystem'] = filepathcategory.FilePathCategory(
-            name='Filesystem')
+        models['filesystem'] = filepathcategory.FilePathCategory(name='Filesystem')
 
     for category in categories:
         if category in models:

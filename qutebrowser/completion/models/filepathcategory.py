@@ -66,18 +66,14 @@ class FilePathCategory(QAbstractListModel):
             else:
                 self._paths = []
 
-    def data(
-        self, index: QModelIndex, role: int = Qt.DisplayRole
-    ) -> Optional[str]:
+    def data(self, index: QModelIndex, role: int = Qt.DisplayRole) -> Optional[str]:
         """Implement abstract method in QAbstractListModel."""
         if role == Qt.DisplayRole and index.column() == 0:
             return self._paths[index.row()]
-        else:
-            return None
+        return None
 
     def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:
         """Implement abstract method in QAbstractListModel."""
         if parent.isValid():
             return 0
-        else:
-            return len(self._paths)
+        return len(self._paths)

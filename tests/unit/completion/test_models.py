@@ -425,8 +425,8 @@ def test_filesystem_completion(qtmodeltester, config_stub, info,
 
 
 def test_default_filesystem_completion(qtmodeltester, config_stub, info,
-                               web_history_populated, quickmarks, bookmarks,
-                               local_files_path):
+                                       web_history_populated, quickmarks, bookmarks,
+                                       local_files_path):
     config_stub.val.completion.open_categories = ['filesystem']
     config_stub.val.completion.favorite_paths = [str(local_files_path)]
     model = urlmodel.url(info=info)
