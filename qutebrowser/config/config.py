@@ -569,6 +569,15 @@ class ConfigContainer:
             text = "While {} '{}'".format(action, name)
             self._configapi.errors.append(configexc.ConfigErrorDesc(text, e))
 
+    def _with_prefix(self, prefix: str) -> 'ConfigContainer':
+        """Get a new ConfigContainer for the given prefix."""
+        return ConfigContainer(
+            config=self._config,
+            configapi=self._configapi,
+            pattern=self._pattern,
+            prefix=prefix,
+        )
+
     def __getattr__(self, attr: str) -> Any:
         """Get an option or a new ConfigContainer with the added prefix.
 
@@ -583,9 +592,7 @@ class ConfigContainer:
 
         name = self._join(attr)
         if configdata.is_valid_prefix(name):
-            return ConfigContainer(config=self._config,
-                                   configapi=self._configapi,
-                                   prefix=name, pattern=self._pattern)
+            return self._with_prefix(name)
 
         with self._handle_error('getting', name):
             if self._configapi is None:
@@ -610,5 +617,4 @@ class ConfigContainer:
         """Get the prefix joined with the given attribute."""
         if self._prefix:
             return '{}.{}'.format(self._prefix, attr)
-        else:
-            return attr
+        return attr
