@@ -1158,7 +1158,11 @@ completion.favorite_paths:
     valtype:
       name: String
   default: []
-  desc: Default filesystem autocomplete suggestions for :open.
+  desc: >-
+    Default filesystem autocomplete suggestions for :open.
+
+    The elements of this list show up in the completion window under the Filesystem
+    category when the command line contains `:open` but no argument.
 
 downloads.open_dispatcher:
   type:

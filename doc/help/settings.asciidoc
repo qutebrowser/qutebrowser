@@ -1763,8 +1763,8 @@ Default: +pass:[0]+
 
 [[completion.favorite_paths]]
 === completion.favorite_paths
-The elements of this list show up in the completion window under the
-Filesystem category when the command line contains :open but no argument.
+Default filesystem autocomplete suggestions for :open.
+The elements of this list show up in the completion window under the Filesystem category when the command line contains `:open` but no argument.
 
 Type: <<types,List of String>>
 

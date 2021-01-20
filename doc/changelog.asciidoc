@@ -112,6 +112,10 @@ Added
 - New `--desktop-file-name` commandline argument, which can be used to customize
   the desktop filename passed to Qt (which is used to set the `app_id` on
   Wayland).
+- The `:open` completion now also completes local file paths and `file://` URLs,
+  via a new `filesystem` entry in `completion.open_categories`. Also, a new
+  `completion.favorite_paths` setting was added which can be used to add paths to
+  show when `:open` is used without any input.
 - New userscripts:
   * `kodi` to play videos in Kodi
   * `qr` to generate a QR code of the current URL
