@@ -6,7 +6,7 @@ Feature: Caret mode
     Background:
         Given I open data/caret.html
         And I run :tab-only
-        And I also run :enter-mode caret
+        And I also run :mode-enter caret
 
     # :yank selection
 
@@ -49,7 +49,7 @@ Feature: Caret mode
     Scenario: :selection-follow with --tab (with JS)
         When I set content.javascript.enabled to true
         And I run :tab-only
-        And I run :enter-mode caret
+        And I run :mode-enter caret
         And I run :selection-toggle
         And I run :move-to-end-of-word
         And I run :selection-follow --tab
@@ -61,7 +61,7 @@ Feature: Caret mode
     Scenario: :selection-follow with --tab (without JS)
         When I set content.javascript.enabled to false
         And I run :tab-only
-        And I run :enter-mode caret
+        And I run :mode-enter caret
         And I run :selection-toggle
         And I run :move-to-end-of-word
         And I run :selection-follow --tab
@@ -73,7 +73,7 @@ Feature: Caret mode
     @flaky
     Scenario: :selection-follow with link tabbing (without JS)
         When I set content.javascript.enabled to false
-        And I run :leave-mode
+        And I run :mode-leave
         And I run :jseval document.activeElement.blur();
         And I run :fake-key <tab>
         And I run :selection-follow
@@ -82,7 +82,7 @@ Feature: Caret mode
     @flaky
     Scenario: :selection-follow with link tabbing (with JS)
         When I set content.javascript.enabled to true
-        And I run :leave-mode
+        And I run :mode-leave
         And I run :jseval document.activeElement.blur();
         And I run :fake-key <tab>
         And I run :selection-follow
@@ -91,7 +91,7 @@ Feature: Caret mode
     @flaky
     Scenario: :selection-follow with link tabbing in a tab (without JS)
         When I set content.javascript.enabled to false
-        And I run :leave-mode
+        And I run :mode-leave
         And I run :jseval document.activeElement.blur();
         And I run :fake-key <tab>
         And I run :selection-follow --tab
@@ -100,7 +100,7 @@ Feature: Caret mode
     @flaky
     Scenario: :selection-follow with link tabbing in a tab (with JS)
         When I set content.javascript.enabled to true
-        And I run :leave-mode
+        And I run :mode-leave
         And I run :jseval document.activeElement.blur();
         And I run :fake-key <tab>
         And I run :selection-follow --tab

@@ -121,7 +121,7 @@ Feature: Keyboard input
         And I run :macro-record a
         And I run :hint links normal
         And I wait for "hints: *" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         And I run :macro-record a
         And I run :macro-run
         And I press the key "a"
@@ -150,7 +150,7 @@ Feature: Keyboard input
         Given I set tabs.mode_on_change to normal
         And I clean up open tabs
         When I open data/hello.txt
-        And I run :enter-mode insert
+        And I run :mode-enter insert
         And I wait for "Entering mode KeyMode.insert (reason: command)" in the log
         And I open data/hello2.txt in a new background tab
         And I run :tab-focus 2
@@ -162,7 +162,7 @@ Feature: Keyboard input
         Given I set tabs.mode_on_change to persist
         And I clean up open tabs
         When I open data/hello.txt
-        And I run :enter-mode insert
+        And I run :mode-enter insert
         And I wait for "Entering mode KeyMode.insert (reason: command)" in the log
         And I open data/hello2.txt in a new background tab
         And I run :tab-focus 2
@@ -174,13 +174,13 @@ Feature: Keyboard input
         Given I set tabs.mode_on_change to restore
         And I clean up open tabs
         When I open data/hello.txt
-        And I run :enter-mode insert
+        And I run :mode-enter insert
         And I wait for "Entering mode KeyMode.insert (reason: command)" in the log
         And I open data/hello2.txt in a new background tab
         And I run :tab-focus 2
         And I wait for "Mode before tab change: insert (mode_on_change = restore)" in the log
         And I wait for "Mode after tab change: normal (mode_on_change = restore)" in the log
-        And I run :enter-mode passthrough
+        And I run :mode-enter passthrough
         And I wait for "Entering mode KeyMode.passthrough (reason: command)" in the log
         And I run :tab-focus 1
         Then "Mode before tab change: passthrough (mode_on_change = restore)" should be logged

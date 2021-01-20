@@ -177,5 +177,5 @@ Feature: Javascript stuff
         And I open data/hints/html/simple.html
         And I run :hint all
         And I wait for "hints: a" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         Then "There was an error while getting hint elements" should not be logged

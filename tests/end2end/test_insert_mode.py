@@ -50,7 +50,7 @@ def test_insert_mode(file_name, elem_id, source, input_text, zoom,
         raise ValueError("Invalid source {!r}".format(source))
 
     quteproc.wait_for_js('contents: {}'.format(input_text))
-    quteproc.send_cmd(':leave-mode')
+    quteproc.send_cmd(':mode-leave')
 
 
 @pytest.mark.parametrize('auto_load, background, insert_mode', [
@@ -67,7 +67,7 @@ def test_auto_load(quteproc, auto_load, background, insert_mode):
     log_message = 'Entering mode KeyMode.insert (reason: *)'
     if insert_mode:
         quteproc.wait_for(message=log_message)
-        quteproc.send_cmd(':leave-mode')
+        quteproc.send_cmd(':mode-leave')
     else:
         quteproc.ensure_not_logged(message=log_message)
 
@@ -96,7 +96,7 @@ def test_auto_leave_insert_mode_reload(quteproc, leave_on_load):
 
     quteproc.set_setting('input.insert_mode.leave_on_load',
                          str(leave_on_load).lower())
-    quteproc.send_cmd(':enter-mode insert')
+    quteproc.send_cmd(':mode-enter insert')
     quteproc.wait_for(message='Entering mode KeyMode.insert (reason: *)')
     quteproc.send_cmd(':reload')
     if leave_on_load:

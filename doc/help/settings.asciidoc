@@ -464,7 +464,7 @@ Default:
 * +pass:[$]+: +pass:[move-to-end-of-line]+
 * +pass:[0]+: +pass:[move-to-start-of-line]+
 * +pass:[&lt;Ctrl-Space&gt;]+: +pass:[selection-drop]+
-* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Escape&gt;]+: +pass:[mode-leave]+
 * +pass:[&lt;Return&gt;]+: +pass:[yank selection]+
 * +pass:[&lt;Space&gt;]+: +pass:[selection-toggle]+
 * +pass:[G]+: +pass:[move-to-end-of-document]+
@@ -477,7 +477,7 @@ Default:
 * +pass:[[]+: +pass:[move-to-start-of-prev-block]+
 * +pass:[]]+: +pass:[move-to-start-of-next-block]+
 * +pass:[b]+: +pass:[move-to-prev-word]+
-* +pass:[c]+: +pass:[enter-mode normal]+
+* +pass:[c]+: +pass:[mode-enter normal]+
 * +pass:[e]+: +pass:[move-to-end-of-word]+
 * +pass:[gg]+: +pass:[move-to-start-of-document]+
 * +pass:[h]+: +pass:[move-to-prev-char]+
@@ -515,7 +515,7 @@ Default:
 * +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-unix-word-rubout]+
 * +pass:[&lt;Ctrl-Y&gt;]+: +pass:[rl-yank]+
 * +pass:[&lt;Down&gt;]+: +pass:[completion-item-focus --history next]+
-* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Escape&gt;]+: +pass:[mode-leave]+
 * +pass:[&lt;PgDown&gt;]+: +pass:[completion-item-focus next-page]+
 * +pass:[&lt;PgUp&gt;]+: +pass:[completion-item-focus prev-page]+
 * +pass:[&lt;Return&gt;]+: +pass:[command-accept]+
@@ -528,16 +528,16 @@ Default:
 * +pass:[&lt;Ctrl-B&gt;]+: +pass:[hint all tab-bg]+
 * +pass:[&lt;Ctrl-F&gt;]+: +pass:[hint links]+
 * +pass:[&lt;Ctrl-R&gt;]+: +pass:[hint --rapid links tab-bg]+
-* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Escape&gt;]+: +pass:[mode-leave]+
 * +pass:[&lt;Return&gt;]+: +pass:[hint-follow]+
 - +pass:[insert]+:
 
 * +pass:[&lt;Ctrl-E&gt;]+: +pass:[edit-text]+
-* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Escape&gt;]+: +pass:[mode-leave]+
 * +pass:[&lt;Shift-Ins&gt;]+: +pass:[insert-text -- {primary}]+
 - +pass:[normal]+:
 
-* +pass:[&#x27;]+: +pass:[enter-mode jump_mark]+
+* +pass:[&#x27;]+: +pass:[mode-enter jump_mark]+
 * +pass:[+]+: +pass:[zoom-in]+
 * +pass:[-]+: +pass:[zoom-out]+
 * +pass:[.]+: +pass:[repeat-command]+
@@ -584,7 +584,7 @@ Default:
 * +pass:[&lt;Ctrl-T&gt;]+: +pass:[open -t]+
 * +pass:[&lt;Ctrl-Tab&gt;]+: +pass:[tab-focus last]+
 * +pass:[&lt;Ctrl-U&gt;]+: +pass:[scroll-page 0 -0.5]+
-* +pass:[&lt;Ctrl-V&gt;]+: +pass:[enter-mode passthrough]+
+* +pass:[&lt;Ctrl-V&gt;]+: +pass:[mode-enter passthrough]+
 * +pass:[&lt;Ctrl-W&gt;]+: +pass:[tab-close]+
 * +pass:[&lt;Ctrl-X&gt;]+: +pass:[navigate decrement]+
 * +pass:[&lt;Ctrl-^&gt;]+: +pass:[tab-focus last]+
@@ -620,12 +620,12 @@ Default:
 * +pass:[Ss]+: +pass:[open qute://settings]+
 * +pass:[T]+: +pass:[tab-focus]+
 * +pass:[U]+: +pass:[undo -w]+
-* +pass:[V]+: +pass:[enter-mode caret ;; selection-toggle --line]+
+* +pass:[V]+: +pass:[mode-enter caret ;; selection-toggle --line]+
 * +pass:[ZQ]+: +pass:[quit]+
 * +pass:[ZZ]+: +pass:[quit --save]+
 * +pass:[[[]+: +pass:[navigate prev]+
 * +pass:[]]]+: +pass:[navigate next]+
-* +pass:[`]+: +pass:[enter-mode set_mark]+
+* +pass:[`]+: +pass:[mode-enter set_mark]+
 * +pass:[ad]+: +pass:[download-cancel]+
 * +pass:[b]+: +pass:[set-cmd-text -s :quickmark-load]+
 * +pass:[cd]+: +pass:[download-clear]+
@@ -653,7 +653,7 @@ Default:
 * +pass:[gt]+: +pass:[set-cmd-text -s :tab-select]+
 * +pass:[gu]+: +pass:[navigate up]+
 * +pass:[h]+: +pass:[scroll left]+
-* +pass:[i]+: +pass:[enter-mode insert]+
+* +pass:[i]+: +pass:[mode-enter insert]+
 * +pass:[j]+: +pass:[scroll down]+
 * +pass:[k]+: +pass:[scroll up]+
 * +pass:[l]+: +pass:[scroll right]+
@@ -695,7 +695,7 @@ Default:
 * +pass:[tsh]+: +pass:[config-cycle -p -t -u *://{url:host}/* content.javascript.enabled ;; reload]+
 * +pass:[tsu]+: +pass:[config-cycle -p -t -u {url} content.javascript.enabled ;; reload]+
 * +pass:[u]+: +pass:[undo]+
-* +pass:[v]+: +pass:[enter-mode caret]+
+* +pass:[v]+: +pass:[mode-enter caret]+
 * +pass:[wB]+: +pass:[set-cmd-text -s :bookmark-load -w]+
 * +pass:[wIf]+: +pass:[devtools-focus]+
 * +pass:[wIh]+: +pass:[devtools left]+
@@ -728,7 +728,7 @@ Default:
 * +pass:[}}]+: +pass:[navigate next -t]+
 - +pass:[passthrough]+:
 
-* +pass:[&lt;Shift-Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Shift-Escape&gt;]+: +pass:[mode-leave]+
 - +pass:[prompt]+:
 
 * +pass:[&lt;Alt-B&gt;]+: +pass:[rl-backward-word]+
@@ -750,19 +750,19 @@ Default:
 * +pass:[&lt;Ctrl-X&gt;]+: +pass:[prompt-open-download]+
 * +pass:[&lt;Ctrl-Y&gt;]+: +pass:[rl-yank]+
 * +pass:[&lt;Down&gt;]+: +pass:[prompt-item-focus next]+
-* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Escape&gt;]+: +pass:[mode-leave]+
 * +pass:[&lt;Return&gt;]+: +pass:[prompt-accept]+
 * +pass:[&lt;Shift-Tab&gt;]+: +pass:[prompt-item-focus prev]+
 * +pass:[&lt;Tab&gt;]+: +pass:[prompt-item-focus next]+
 * +pass:[&lt;Up&gt;]+: +pass:[prompt-item-focus prev]+
 - +pass:[register]+:
 
-* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Escape&gt;]+: +pass:[mode-leave]+
 - +pass:[yesno]+:
 
 * +pass:[&lt;Alt-Shift-Y&gt;]+: +pass:[prompt-yank --sel]+
 * +pass:[&lt;Alt-Y&gt;]+: +pass:[prompt-yank]+
-* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Escape&gt;]+: +pass:[mode-leave]+
 * +pass:[&lt;Return&gt;]+: +pass:[prompt-accept]+
 * +pass:[N]+: +pass:[prompt-accept --save no]+
 * +pass:[Y]+: +pass:[prompt-accept --save yes]+

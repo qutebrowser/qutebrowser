@@ -1590,10 +1590,10 @@ Feature: Tab management
         When I open data/hints/link_input.html
         And I run :click-element id qute-input-existing
         And I wait for "Entering mode KeyMode.insert *" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         And I hint with args "all tab-bg" and follow a
         And I wait until data/hello.txt is loaded
-        And I run :enter-mode insert
+        And I run :mode-enter insert
         And I run :fake-key -g new
         Then the javascript message "contents: existingnew" should be logged
 
@@ -1601,9 +1601,9 @@ Feature: Tab management
         When I open data/hints/link_input.html
         And I run :click-element id qute-input-existing
         And I wait for "Entering mode KeyMode.insert *" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         And I open data/hello.txt in a new background tab
-        And I run :enter-mode insert
+        And I run :mode-enter insert
         And I run :fake-key -g new
         Then the javascript message "contents: existingnew" should be logged
 

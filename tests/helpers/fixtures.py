@@ -284,7 +284,7 @@ def _generate_cmdline_tests():
 
     separators = [';;', ' ;; ', ';; ', ' ;;']
     invalid = ['foo', '']
-    valid = ['leave-mode', 'hint all']
+    valid = ['mode-leave', 'hint all']
     # Valid command only -> valid
     for item in valid:
         yield TestCase(''.join(item), True)

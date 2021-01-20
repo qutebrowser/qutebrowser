@@ -327,7 +327,7 @@ class StatusBar(QWidget):
         if mode == 'passthrough':
             key_instance = config.key_instance
             all_bindings = key_instance.get_reverse_bindings_for('passthrough')
-            bindings = all_bindings.get('leave-mode')
+            bindings = all_bindings.get('mode-leave')
             if bindings:
                 suffix = ' ({} to leave)'.format(' or '.join(bindings))
             else:

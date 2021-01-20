@@ -235,7 +235,7 @@ def run(args):
 
     username, password = candidate_to_secret(selection)
 
-    insert_mode = ';; enter-mode insert' if args.insert_mode else ''
+    insert_mode = ';; mode-enter insert' if args.insert_mode else ''
     if args.username_fill_only:
         qute_command('insert-text {}{}'.format(username, insert_mode))
     elif args.password_fill_only:

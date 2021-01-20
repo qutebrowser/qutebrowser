@@ -62,7 +62,6 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<edit-command,edit-command>>|Open an editor to modify the current command.
 |<<edit-text,edit-text>>|Open an external editor with the currently selected form field.
 |<<edit-url,edit-url>>|Navigate to a url formed in an external editor.
-|<<enter-mode,enter-mode>>|Enter a key mode.
 |<<fake-key,fake-key>>|Send a fake keypress or key string to the website or qutebrowser.
 |<<forward,forward>>|Go forward in the history of the current tab.
 |<<fullscreen,fullscreen>>|Toggle fullscreen mode.
@@ -82,6 +81,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<message-info,message-info>>|Show an info message in the statusbar.
 |<<message-warning,message-warning>>|Show a warning message in the statusbar.
 |<<messages,messages>>|Show a log of past messages.
+|<<mode-enter,mode-enter>>|Enter a key mode.
 |<<navigate,navigate>>|Open typical prev/next links or navigate using the URL path.
 |<<nop,nop>>|Do nothing.
 |<<open,open>>|Open a URL in the current/[count]th tab.
@@ -517,17 +517,6 @@ The editor which should be launched can be configured via the `editor.command` c
 * +*-r*+, +*--related*+: If opening a new tab, position the tab as related to the current one (like clicking on a link).
 
 
-[[enter-mode]]
-=== enter-mode
-Syntax: +:enter-mode 'mode'+
-
-Enter a key mode.
-
-==== positional arguments
-* +'mode'+: The mode to enter. See `:help bindings.commands` for the available modes, but note that hint/command/yesno/prompt mode
- can't be entered manually.
-
-
 [[fake-key]]
 === fake-key
 Syntax: +:fake-key [*--global*] 'keystring'+
@@ -844,6 +833,17 @@ Show a log of past messages.
 * +*-w*+, +*--window*+: Open in a new window.
 * +*-f*+, +*--logfilter*+: A comma-separated filter string of logging categories. If the filter string starts with an exclamation mark, it
  is negated.
+
+
+[[mode-enter]]
+=== mode-enter
+Syntax: +:mode-enter 'mode'+
+
+Enter a key mode.
+
+==== positional arguments
+* +'mode'+: The mode to enter. See `:help bindings.commands` for the available modes, but note that hint/command/yesno/prompt mode
+ can't be entered manually.
 
 
 [[navigate]]
@@ -1602,7 +1602,7 @@ How many steps to zoom out.
 |<<completion-item-focus,completion-item-focus>>|Shift the focus of the completion menu to another item.
 |<<completion-item-yank,completion-item-yank>>|Yank the current completion item into the clipboard.
 |<<hint-follow,hint-follow>>|Follow a hint.
-|<<leave-mode,leave-mode>>|Leave the mode we're currently in.
+|<<mode-leave,mode-leave>>|Leave the mode we're currently in.
 |<<move-to-end-of-document,move-to-end-of-document>>|Move the cursor or selection to the end of the document.
 |<<move-to-end-of-line,move-to-end-of-line>>|Move the cursor or selection to the end of line.
 |<<move-to-end-of-next-block,move-to-end-of-next-block>>|Move the cursor or selection to the end of next block.
@@ -1697,8 +1697,8 @@ Follow a hint.
 ==== optional arguments
 * +*-s*+, +*--select*+: Only select the given hint, don't necessarily follow it.
 
-[[leave-mode]]
-=== leave-mode
+[[mode-leave]]
+=== mode-leave
 Leave the mode we're currently in.
 
 [[move-to-end-of-document]]

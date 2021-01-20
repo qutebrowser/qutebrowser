@@ -315,7 +315,7 @@ Feature: Various utility commands.
         And I wait for "Entering mode KeyMode.prompt *" in the log
         And I press the key "<Tab>"
         And I press the key "<Ctrl-C>"
-        And I run :leave-mode
+        And I run :mode-leave
         Then no crash should happen
 
     ## Custom headers
@@ -504,10 +504,10 @@ Feature: Various utility commands.
         And I run :command-accept
         Then the error "No command given" should be shown
 
-    ## Modes blacklisted for :enter-mode
+    ## Modes blacklisted for :mode-enter
 
-    Scenario: Trying to enter command mode with :enter-mode
-        When I run :enter-mode command
+    Scenario: Trying to enter command mode with :mode-enter
+        When I run :mode-enter command
         Then the error "Mode command can't be entered manually!" should be shown
 
     ## Renderer crashes

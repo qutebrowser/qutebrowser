@@ -109,7 +109,7 @@ Feature: Opening external editors
         And I open data/editor.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         And I wait for "Leaving mode KeyMode.insert (reason: leave current)" in the log
         And I run :edit-text
         And I wait for "Read back: foobar" in the log
@@ -149,13 +149,13 @@ Feature: Opening external editors
         And I open data/editor.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         And I wait for "Leaving mode KeyMode.insert (reason: leave current)" in the log
-        And I run :enter-mode caret
+        And I run :mode-enter caret
         And I wait for "Entering mode KeyMode.caret (reason: command)" in the log
         And I run :edit-text
         And I wait for "Read back: foobar" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         Then the javascript message "text: foobar" should be logged
 
     Scenario: Spawning an editor with existing text

@@ -193,7 +193,7 @@ Feature: Special qute:// pages
         And I wait for "[qute://pdfjs/*] PDF * (PDF.js: *)" in the log
         And I run :jseval document.getElementById("download").click()
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=* mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         Then no crash should happen
 
     # :pyeval

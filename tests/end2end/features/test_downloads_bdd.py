@@ -127,7 +127,7 @@ def download_contents(filename, text, tmpdir):
 def download_prompt(tmpdir, quteproc, path):
     full_path = path.replace('(tmpdir)', str(tmpdir)).replace('/', os.sep)
     quteproc.wait_for(message=PROMPT_MSG.format(full_path))
-    quteproc.send_cmd(':leave-mode')
+    quteproc.send_cmd(':mode-leave')
 
 
 @bdd.when("I set a test python open_dispatcher")

@@ -3260,11 +3260,11 @@ bindings.default:
       G: scroll-to-perc
       n: search-next
       N: search-prev
-      i: enter-mode insert
-      v: enter-mode caret
-      V: enter-mode caret ;; selection-toggle --line
-      "`": enter-mode set_mark
-      "'": enter-mode jump_mark
+      i: mode-enter insert
+      v: mode-enter caret
+      V: mode-enter caret ;; selection-toggle --line
+      "`": mode-enter set_mark
+      "'": mode-enter jump_mark
       yy: yank
       yY: yank -s
       yt: yank title
@@ -3319,7 +3319,7 @@ bindings.default:
       <Ctrl-Tab>: tab-focus last
       <Ctrl-Shift-Tab>: nop
       <Ctrl-^>: tab-focus last
-      <Ctrl-V>: enter-mode passthrough
+      <Ctrl-V>: mode-enter passthrough
       <Ctrl-Q>: quit
       ZQ: quit
       ZZ: quit --save
@@ -3391,15 +3391,15 @@ bindings.default:
     insert:
       <Ctrl-E>: edit-text
       <Shift-Ins>: insert-text -- {primary}
-      <Escape>: leave-mode
+      <Escape>: mode-leave
     hint:
       <Return>: hint-follow
       <Ctrl-R>: hint --rapid links tab-bg
       <Ctrl-F>: hint links
       <Ctrl-B>: hint all tab-bg
-      <Escape>: leave-mode
+      <Escape>: mode-leave
     passthrough:
-      <Shift-Escape>: leave-mode
+      <Shift-Escape>: mode-leave
     command:
       <Ctrl-P>: command-history-prev
       <Ctrl-N>: command-history-next
@@ -3431,7 +3431,7 @@ bindings.default:
       <Ctrl-Y>: rl-yank
       <Ctrl-?>: rl-delete-char
       <Ctrl-H>: rl-backward-delete-char
-      <Escape>: leave-mode
+      <Escape>: mode-leave
     prompt:
       <Return>: prompt-accept
       <Ctrl-X>: prompt-open-download
@@ -3456,7 +3456,7 @@ bindings.default:
       <Ctrl-?>: rl-delete-char
       <Ctrl-H>: rl-backward-delete-char
       <Ctrl-Y>: rl-yank
-      <Escape>: leave-mode
+      <Escape>: mode-leave
     yesno:
       <Return>: prompt-accept
       y: prompt-accept yes
@@ -3465,13 +3465,13 @@ bindings.default:
       N: prompt-accept --save no
       <Alt-Y>: prompt-yank
       <Alt-Shift-Y>: prompt-yank --sel
-      <Escape>: leave-mode
+      <Escape>: mode-leave
     caret:
       v: selection-toggle
       V: selection-toggle --line
       <Space>: selection-toggle
       <Ctrl-Space>: selection-drop
-      c: enter-mode normal
+      c: mode-enter normal
       j: move-to-next-line
       k: move-to-prev-line
       l: move-to-next-char
@@ -3495,9 +3495,9 @@ bindings.default:
       J: scroll down
       K: scroll up
       L: scroll right
-      <Escape>: leave-mode
+      <Escape>: mode-leave
     register:
-      <Escape>: leave-mode
+      <Escape>: mode-leave
   type:
     name: Dict
     none_ok: true

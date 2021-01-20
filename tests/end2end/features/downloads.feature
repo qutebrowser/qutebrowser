@@ -89,7 +89,7 @@ Feature: Downloading things from a website.
         And I open data/data_link.html
         And I hint with args "links download" and follow s
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='download.pdf' mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         Then no crash should happen
 
     Scenario: Aborting a download in a different window (issue 3378)
@@ -98,7 +98,7 @@ Feature: Downloading things from a website.
         And I open data/downloads/download.bin in a new window without waiting
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> *" in the log
         And I run :window-only
-        And I run :leave-mode
+        And I run :mode-leave
         Then no crash should happen
 
     Scenario: Closing window with downloads.remove_finished timeout (issue 1242)
@@ -166,7 +166,7 @@ Feature: Downloading things from a website.
         And I open data/downloads/download.bin without waiting
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> option=None text='Please enter a location for <b>http://localhost:*/data/downloads/download.bin</b>' title='Save file to:'>, *" in the log
         And I run :prompt-accept COM1
-        And I run :leave-mode
+        And I run :mode-leave
         Then the error "Invalid filename" should be shown
 
     @windows
@@ -175,7 +175,7 @@ Feature: Downloading things from a website.
         And I open data/downloads/download.bin without waiting
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> option=None text='Please enter a location for <b>http://localhost:*/data/downloads/download.bin</b>' title='Save file to:'>, *" in the log
         And I run :prompt-accept C:foobar
-        And I run :leave-mode
+        And I run :mode-leave
         Then the error "Invalid filename" should be shown
 
     @windows

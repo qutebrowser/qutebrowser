@@ -140,7 +140,7 @@ Feature: Using hints
         And I hint with args "links yank --rapid"
         And I run :hint-follow a
         And I run :hint-follow s
-        And I run :leave-mode
+        And I run :mode-leave
         Then the clipboard should contain "http://localhost:(port)/data/hello.txt(linesep)http://localhost:(port)/data/hello2.txt"
 
     Scenario: Rapid hinting
@@ -149,7 +149,7 @@ Feature: Using hints
         And I hint with args "all tab-bg --rapid"
         And I run :hint-follow a
         And I run :hint-follow s
-        And I run :leave-mode
+        And I run :mode-leave
         And I wait until data/hello.txt is loaded
         And I wait until data/hello2.txt is loaded
         # We should check what the active tab is, but for some reason that makes
@@ -183,7 +183,7 @@ Feature: Using hints
         When I open data/hints/input.html
         And I hint with args "inputs" and follow a
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         # The actual check is already done above
         Then no crash should happen
 
@@ -223,7 +223,7 @@ Feature: Using hints
         When I open data/hints/input.html
         And I hint with args "inputs" and follow s
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         # The actual check is already done above
         Then no crash should happen
 
@@ -231,7 +231,7 @@ Feature: Using hints
         When I open data/hints/ace/ace.html
         And I hint with args "inputs" and follow a
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         # The actual check is already done above
         Then no crash should happen
 
@@ -268,7 +268,7 @@ Feature: Using hints
         When I open data/hints/iframe_input.html
         And I hint with args "inputs" and follow a
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         # The actual check is already done above
         Then no crash should happen
 
@@ -417,7 +417,7 @@ Feature: Using hints
         When I open data/hints/number.html
         And I set hints.mode to number
         And I hint with args "--rapid"
-        And I run :leave-mode
+        And I run :mode-leave
         And I hint with args "--rapid" and follow 00
         Then data/numbers/1.txt should be loaded
 
@@ -599,14 +599,14 @@ Feature: Using hints
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         # ensure we clicked the first element
         And I run :jseval console.log(document.activeElement.id == "qute-input");
-        And I run :leave-mode
+        And I run :mode-leave
         Then the javascript message "true" should be logged
 
     Scenario: Hinting contenteditable inputs
         When I open data/hints/input.html
         And I hint with args "inputs" and follow f
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         # The actual check is already done above
         Then no crash should happen
 
@@ -618,7 +618,7 @@ Feature: Using hints
 
     Scenario: Statusbar text when entering hint mode from other mode
         When I open data/hints/html/simple.html
-        And I run :enter-mode insert
+        And I run :mode-enter insert
         And I hint with args "all"
         And I run :debug-pyeval objreg.get('main-window', window='current', scope='window').status.txt.text()
         # Changing tabs will leave hint mode
