@@ -1512,7 +1512,7 @@ input.insert_mode.plugins:
   desc: Switch to insert mode when clicking flash and other plugins.
 
 input.insert_mode.leave_on_load:
-  default: true
+  default: false
   type: Bool
   supports_pattern: true
   desc: >-
@@ -1541,7 +1541,7 @@ input.mouse.rocker_gestures:
     This disables the context menu.
 
 input.partial_timeout:
-  default: 5000
+  default: 0
   type:
     name: Int
     minval: 0
@@ -1551,6 +1551,8 @@ input.partial_timeout:
 
     If the current input forms only partial matches, the keystring will be
     cleared after this time.
+
+    If set to 0, partially typed bindings are never cleared.
 
 input.rocker_gestures:
   renamed: input.mouse.rocker_gestures
@@ -1762,7 +1764,7 @@ statusbar.widgets:
 ## tabs
 
 tabs.background:
-  default: false
+  default: true
   type: Bool
   desc: Open new tabs (middleclick/ctrl+click) in the background.
 
@@ -1982,7 +1984,7 @@ tabs.width.bar:
   renamed: tabs.width
 
 tabs.width:
-  default: 20%
+  default: 15%
   type:
     name: PercOrInt
     minperc: 0
@@ -3212,8 +3214,8 @@ bindings.default:
       co: tab-only
       T: tab-focus
       gm: tab-move
-      gl: tab-move -
-      gr: tab-move +
+      gK: tab-move -
+      gJ: tab-move +
       J: tab-next
       <Ctrl-PgDown>: tab-next
       K: tab-prev

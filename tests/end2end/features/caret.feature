@@ -68,7 +68,7 @@ Feature: Caret mode
         Then data/hello.txt should be loaded
         And the following tabs should be open:
             - data/caret.html
-            - data/hello.txt (active)
+            - data/hello.txt
 
     @flaky
     Scenario: :selection-follow with link tabbing (without JS)

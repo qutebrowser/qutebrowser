@@ -291,8 +291,8 @@ Feature: Using hints
         And I hint with args "links tab" and follow s
         And I wait until data/hello2.txt is loaded
         Then the following tabs should be open:
-            - data/hints/iframe_target.html
-            - data/hello2.txt (active)
+            - data/hints/iframe_target.html (active)
+            - data/hello2.txt
 
     Scenario: Clicking on iframe with :hint all current
         When I open data/hints/iframe.html
