@@ -64,7 +64,6 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<edit-url,edit-url>>|Navigate to a url formed in an external editor.
 |<<enter-mode,enter-mode>>|Enter a key mode.
 |<<fake-key,fake-key>>|Send a fake keypress or key string to the website or qutebrowser.
-|<<follow-selected,follow-selected>>|Follow the selected text.
 |<<forward,forward>>|Go forward in the history of the current tab.
 |<<fullscreen,fullscreen>>|Toggle fullscreen mode.
 |<<greasemonkey-reload,greasemonkey-reload>>|Re-read Greasemonkey scripts from disk.
@@ -107,6 +106,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<search,search>>|Search for a text on the current page. With no text, clear results.
 |<<search-next,search-next>>|Continue the search to the ([count]th) next term.
 |<<search-prev,search-prev>>|Continue the search to the ([count]th) previous term.
+|<<selection-follow,selection-follow>>|Follow the selected text.
 |<<session-delete,session-delete>>|Delete a session.
 |<<session-load,session-load>>|Load a session.
 |<<session-save,session-save>>|Save a session.
@@ -541,15 +541,6 @@ Send a fake keypress or key string to the website or qutebrowser.
 
 ==== optional arguments
 * +*-g*+, +*--global*+: If given, the keys are sent to the qutebrowser UI.
-
-[[follow-selected]]
-=== follow-selected
-Syntax: +:follow-selected [*--tab*]+
-
-Follow the selected text.
-
-==== optional arguments
-* +*-t*+, +*--tab*+: Load the selected link in a new tab.
 
 [[forward]]
 === forward
@@ -1178,6 +1169,15 @@ Continue the search to the ([count]th) previous term.
 ==== count
 How many elements to ignore.
 
+[[selection-follow]]
+=== selection-follow
+Syntax: +:selection-follow [*--tab*]+
+
+Follow the selected text.
+
+==== optional arguments
+* +*-t*+, +*--tab*+: Load the selected link in a new tab.
+
 [[session-delete]]
 === session-delete
 Syntax: +:session-delete [*--force*] 'name'+
@@ -1601,7 +1601,6 @@ How many steps to zoom out.
 |<<completion-item-del,completion-item-del>>|Delete the current completion item.
 |<<completion-item-focus,completion-item-focus>>|Shift the focus of the completion menu to another item.
 |<<completion-item-yank,completion-item-yank>>|Yank the current completion item into the clipboard.
-|<<drop-selection,drop-selection>>|Drop selection and keep selection mode enabled.
 |<<follow-hint,follow-hint>>|Follow a hint.
 |<<leave-mode,leave-mode>>|Leave the mode we're currently in.
 |<<move-to-end-of-document,move-to-end-of-document>>|Move the cursor or selection to the end of the document.
@@ -1623,7 +1622,6 @@ How many steps to zoom out.
 |<<prompt-item-focus,prompt-item-focus>>|Shift the focus of the prompt file completion menu to another item.
 |<<prompt-open-download,prompt-open-download>>|Immediately open a download.
 |<<prompt-yank,prompt-yank>>|Yank URL to clipboard or primary selection.
-|<<reverse-selection,reverse-selection>>|Swap the stationary and moving end of the current selection.
 |<<rl-backward-char,rl-backward-char>>|Move back a character.
 |<<rl-backward-delete-char,rl-backward-delete-char>>|Delete the character before the cursor.
 |<<rl-backward-kill-word,rl-backward-kill-word>>|Remove chars from the cursor to the beginning of the word.
@@ -1639,7 +1637,9 @@ How many steps to zoom out.
 |<<rl-unix-line-discard,rl-unix-line-discard>>|Remove chars backward from the cursor to the beginning of the line.
 |<<rl-unix-word-rubout,rl-unix-word-rubout>>|Remove chars from the cursor to the beginning of the word.
 |<<rl-yank,rl-yank>>|Paste the most recently deleted text.
-|<<toggle-selection,toggle-selection>>|Toggle caret selection mode.
+|<<selection-drop,selection-drop>>|Drop selection and keep selection mode enabled.
+|<<selection-reverse,selection-reverse>>|Swap the stationary and moving end of the current selection.
+|<<selection-toggle,selection-toggle>>|Toggle caret selection mode.
 |==============
 [[command-accept]]
 === command-accept
@@ -1684,10 +1684,6 @@ Yank the current completion item into the clipboard.
 
 ==== optional arguments
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
-
-[[drop-selection]]
-=== drop-selection
-Drop selection and keep selection mode enabled.
 
 [[follow-hint]]
 === follow-hint
@@ -1849,10 +1845,6 @@ Yank URL to clipboard or primary selection.
 ==== optional arguments
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
 
-[[reverse-selection]]
-=== reverse-selection
-Swap the stationary and moving end of the current selection.
-
 [[rl-backward-char]]
 === rl-backward-char
 Move back a character.
@@ -1943,9 +1935,17 @@ Paste the most recently deleted text.
 
 This acts like readline's yank.
 
-[[toggle-selection]]
-=== toggle-selection
-Syntax: +:toggle-selection [*--line*]+
+[[selection-drop]]
+=== selection-drop
+Drop selection and keep selection mode enabled.
+
+[[selection-reverse]]
+=== selection-reverse
+Swap the stationary and moving end of the current selection.
+
+[[selection-toggle]]
+=== selection-toggle
+Syntax: +:selection-toggle [*--line*]+
 
 Toggle caret selection mode.
 

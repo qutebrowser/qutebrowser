@@ -458,7 +458,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
     def _toggle_sel_translate(self, state_str):
         if self._mode_manager.mode != usertypes.KeyMode.caret:
             # This may happen if the user switches to another mode after
-            # `:toggle-selection` is executed and before this callback function
+            # `:selection-toggle` is executed and before this callback function
             # is asynchronously called.
             log.misc.debug("Ignoring caret selection callback in {}".format(
                 self._mode_manager.mode))

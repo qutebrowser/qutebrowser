@@ -463,16 +463,16 @@ Default:
 
 * +pass:[$]+: +pass:[move-to-end-of-line]+
 * +pass:[0]+: +pass:[move-to-start-of-line]+
-* +pass:[&lt;Ctrl-Space&gt;]+: +pass:[drop-selection]+
+* +pass:[&lt;Ctrl-Space&gt;]+: +pass:[selection-drop]+
 * +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
 * +pass:[&lt;Return&gt;]+: +pass:[yank selection]+
-* +pass:[&lt;Space&gt;]+: +pass:[toggle-selection]+
+* +pass:[&lt;Space&gt;]+: +pass:[selection-toggle]+
 * +pass:[G]+: +pass:[move-to-end-of-document]+
 * +pass:[H]+: +pass:[scroll left]+
 * +pass:[J]+: +pass:[scroll down]+
 * +pass:[K]+: +pass:[scroll up]+
 * +pass:[L]+: +pass:[scroll right]+
-* +pass:[V]+: +pass:[toggle-selection --line]+
+* +pass:[V]+: +pass:[selection-toggle --line]+
 * +pass:[Y]+: +pass:[yank selection -s]+
 * +pass:[[]+: +pass:[move-to-start-of-prev-block]+
 * +pass:[]]+: +pass:[move-to-start-of-next-block]+
@@ -484,8 +484,8 @@ Default:
 * +pass:[j]+: +pass:[move-to-next-line]+
 * +pass:[k]+: +pass:[move-to-prev-line]+
 * +pass:[l]+: +pass:[move-to-next-char]+
-* +pass:[o]+: +pass:[reverse-selection]+
-* +pass:[v]+: +pass:[toggle-selection]+
+* +pass:[o]+: +pass:[selection-reverse]+
+* +pass:[v]+: +pass:[selection-toggle]+
 * +pass:[w]+: +pass:[move-to-next-word]+
 * +pass:[y]+: +pass:[yank selection]+
 * +pass:[{]+: +pass:[move-to-end-of-prev-block]+
@@ -576,7 +576,7 @@ Default:
 * +pass:[&lt;Ctrl-PgDown&gt;]+: +pass:[tab-next]+
 * +pass:[&lt;Ctrl-PgUp&gt;]+: +pass:[tab-prev]+
 * +pass:[&lt;Ctrl-Q&gt;]+: +pass:[quit]+
-* +pass:[&lt;Ctrl-Return&gt;]+: +pass:[follow-selected -t]+
+* +pass:[&lt;Ctrl-Return&gt;]+: +pass:[selection-follow -t]+
 * +pass:[&lt;Ctrl-Shift-N&gt;]+: +pass:[open -p]+
 * +pass:[&lt;Ctrl-Shift-T&gt;]+: +pass:[undo]+
 * +pass:[&lt;Ctrl-Shift-Tab&gt;]+: +pass:[nop]+
@@ -594,7 +594,7 @@ Default:
 * +pass:[&lt;Escape&gt;]+: +pass:[clear-keychain ;; search ;; fullscreen --leave]+
 * +pass:[&lt;F11&gt;]+: +pass:[fullscreen]+
 * +pass:[&lt;F5&gt;]+: +pass:[reload]+
-* +pass:[&lt;Return&gt;]+: +pass:[follow-selected]+
+* +pass:[&lt;Return&gt;]+: +pass:[selection-follow]+
 * +pass:[&lt;back&gt;]+: +pass:[back]+
 * +pass:[&lt;forward&gt;]+: +pass:[forward]+
 * +pass:[=]+: +pass:[zoom]+
@@ -620,7 +620,7 @@ Default:
 * +pass:[Ss]+: +pass:[open qute://settings]+
 * +pass:[T]+: +pass:[tab-focus]+
 * +pass:[U]+: +pass:[undo -w]+
-* +pass:[V]+: +pass:[enter-mode caret ;; toggle-selection --line]+
+* +pass:[V]+: +pass:[enter-mode caret ;; selection-toggle --line]+
 * +pass:[ZQ]+: +pass:[quit]+
 * +pass:[ZZ]+: +pass:[quit --save]+
 * +pass:[[[]+: +pass:[navigate prev]+

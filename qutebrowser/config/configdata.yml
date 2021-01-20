@@ -3262,7 +3262,7 @@ bindings.default:
       N: search-prev
       i: enter-mode insert
       v: enter-mode caret
-      V: enter-mode caret ;; toggle-selection --line
+      V: enter-mode caret ;; selection-toggle --line
       "`": enter-mode set_mark
       "'": enter-mode jump_mark
       yy: yank
@@ -3346,8 +3346,8 @@ bindings.default:
       Sb: open qute://bookmarks#bookmarks
       Sq: open qute://bookmarks
       Sh: open qute://history
-      <Return>: follow-selected
-      <Ctrl-Return>: follow-selected -t
+      <Return>: selection-follow
+      <Ctrl-Return>: selection-follow -t
       .: repeat-command
       <Ctrl-p>: tab-pin
       <Alt-m>: tab-mute
@@ -3467,10 +3467,10 @@ bindings.default:
       <Alt-Shift-Y>: prompt-yank --sel
       <Escape>: leave-mode
     caret:
-      v: toggle-selection
-      V: toggle-selection --line
-      <Space>: toggle-selection
-      <Ctrl-Space>: drop-selection
+      v: selection-toggle
+      V: selection-toggle --line
+      <Space>: selection-toggle
+      <Ctrl-Space>: selection-drop
       c: enter-mode normal
       j: move-to-next-line
       k: move-to-prev-line
@@ -3479,7 +3479,7 @@ bindings.default:
       e: move-to-end-of-word
       w: move-to-next-word
       b: move-to-prev-word
-      o: reverse-selection
+      o: selection-reverse
       "]": move-to-start-of-next-block
       "[": move-to-start-of-prev-block
       "}": move-to-end-of-next-block

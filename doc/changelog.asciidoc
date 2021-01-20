@@ -179,6 +179,10 @@ Changed
   * `record-macro` -> `macro-record`
   * `buffer` -> `tab-select`
   * `open-editor` -> `edit-text`
+  * `toggle-selection` -> `selection-toggle`
+  * `drop-selection` -> `selection-drop`
+  * `reverse-selection` -> `selection-reverse`
+  * `follow-selected` -> `selection-follow`
 - Various performance improvements, including for the startup time.
 
 Fixed
