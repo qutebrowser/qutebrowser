@@ -3315,7 +3315,7 @@ bindings.default:
       ad: download-cancel
       cd: download-clear
       gf: view-source
-      gt: set-cmd-text -s :buffer
+      gt: set-cmd-text -s :tab-select
       <Ctrl-Tab>: tab-focus last
       <Ctrl-Shift-Tab>: nop
       <Ctrl-^>: tab-focus last

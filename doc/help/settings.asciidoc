@@ -650,7 +650,7 @@ Default:
 * +pass:[gm]+: +pass:[tab-move]+
 * +pass:[go]+: +pass:[set-cmd-text :open {url:pretty}]+
 * +pass:[gr]+: +pass:[tab-move +]+
-* +pass:[gt]+: +pass:[set-cmd-text -s :buffer]+
+* +pass:[gt]+: +pass:[set-cmd-text -s :tab-select]+
 * +pass:[gu]+: +pass:[navigate up]+
 * +pass:[h]+: +pass:[scroll left]+
 * +pass:[i]+: +pass:[enter-mode insert]+

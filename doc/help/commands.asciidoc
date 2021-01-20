@@ -35,7 +35,6 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<bookmark-add,bookmark-add>>|Save the current page as a bookmark, or a specific url.
 |<<bookmark-del,bookmark-del>>|Delete a bookmark.
 |<<bookmark-load,bookmark-load>>|Load a bookmark.
-|<<buffer,buffer>>|Select tab by index or url/title best match.
 |<<clear-keychain,clear-keychain>>|Clear the currently entered key chain.
 |<<clear-messages,clear-messages>>|Clear all message notifications.
 |<<click-element,click-element>>|Click the element matching the given filter.
@@ -126,6 +125,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<tab-only,tab-only>>|Close all tabs except for the current one.
 |<<tab-pin,tab-pin>>|Pin/Unpin the current/[count]th tab.
 |<<tab-prev,tab-prev>>|Switch to the previous tab, or switch [count] tabs back.
+|<<tab-select,tab-select>>|Select tab by index or url/title best match.
 |<<tab-take,tab-take>>|Take a tab from another window.
 |<<unbind,unbind>>|Unbind a keychain.
 |<<undo,undo>>|Re-open the last closed tab(s) or window.
@@ -225,24 +225,6 @@ Load a bookmark.
 * +*-b*+, +*--bg*+: Load the bookmark in a new background tab.
 * +*-w*+, +*--window*+: Load the bookmark in a new window.
 * +*-d*+, +*--delete*+: Whether to delete the bookmark afterwards.
-
-==== note
-* This command does not split arguments after the last argument and handles quotes literally.
-
-[[buffer]]
-=== buffer
-Syntax: +:buffer ['index']+
-
-Select tab by index or url/title best match.
-
-Focuses window if necessary when index is given. If both index and count are given, use count. With neither index nor count given, open the qute://tabs page.
-
-==== positional arguments
-* +'index'+: The [win_id/]index of the tab to focus. Or a substring in which case the closest match will be focused.
-
-
-==== count
-The tab index to focus, starting with 1.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
@@ -1447,6 +1429,24 @@ Switch to the previous tab, or switch [count] tabs back.
 
 ==== count
 How many tabs to switch back.
+
+[[tab-select]]
+=== tab-select
+Syntax: +:tab-select ['index']+
+
+Select tab by index or url/title best match.
+
+Focuses window if necessary when index is given. If both index and count are given, use count. With neither index nor count given, open the qute://tabs page.
+
+==== positional arguments
+* +'index'+: The [win_id/]index of the tab to focus. Or a substring in which case the closest match will be focused.
+
+
+==== count
+The tab index to focus, starting with 1.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
 
 [[tab-take]]
 === tab-take

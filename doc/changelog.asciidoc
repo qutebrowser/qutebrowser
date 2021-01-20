@@ -177,6 +177,7 @@ Changed
 - Renamed commands:
   * `run-macro` -> `macro-run`
   * `record-macro` -> `macro-record`
+  * `buffer` -> `tab-select`
 - Various performance improvements, including for the startup time.
 
 Fixed
