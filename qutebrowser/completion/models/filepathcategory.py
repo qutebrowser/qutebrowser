@@ -19,8 +19,8 @@
 
 import glob
 import os
-from pathlib import Path
-from typing import List, Optional
+import pathlib
+from typing import List, Optional, Iterable
 
 from PyQt5.QtCore import QAbstractListModel, QModelIndex, QObject, Qt, QUrl
 
@@ -36,35 +36,48 @@ class FilePathCategory(QAbstractListModel):
         self.name = name
         self.columns_to_filter = [0]
 
+    def _contract_user(self, val: str, path: str) -> str:
+        """Contract ~/... and ~user/... in results.
+
+        Arguments:
+            val: The user's partially typed path.
+            path: The found path based on the input.
+        """
+        if not val.startswith('~'):
+            return path
+        head = pathlib.Path(pathlib.Path(val).parts[0])
+        return str(head / pathlib.Path(path).relative_to(head.expanduser()))
+
+    def _glob(self, val: str) -> Iterable[str]:
+        """Find paths based on the given pattern."""
+        if not os.path.isabs(val):
+            return []
+        return glob.glob(glob.escape(val) + '*')
+
+    def _url_to_path(self, val: str) -> str:
+        """Get a path from a file:/// URL."""
+        url = QUrl(val)
+        assert url.isValid(), url
+        assert url.scheme() == 'file', url
+        return url.toLocalFile()
+
     def set_pattern(self, val: str) -> None:
         """Compute list of suggested paths (called from `CompletionModel`).
 
         Args:
             val: The user's partially typed URL/path.
         """
-        def _contractuser(path: str, head: str) -> str:
-            return str(head / Path(path).relative_to(Path(head).expanduser()))
-
         if not val:
             self._paths = config.val.completion.favorite_paths or []
         elif val.startswith('file:///'):
-            glob_str = QUrl(val).toLocalFile() + '*'
-            self._paths = sorted(QUrl.fromLocalFile(path).toString()
-                for path in glob.glob(glob_str))
+            url_path = self._url_to_path(val)
+            self._paths = sorted(
+                QUrl.fromLocalFile(path).toString()
+                for path in self._glob(url_path)
+            )
         else:
-            expanded = os.path.expanduser(val)
-            if os.path.isabs(expanded):
-                glob_str = glob.escape(expanded) + '*'
-                expanded_paths = sorted(glob.glob(glob_str))
-                # if ~ or ~user was expanded, contract it in `_paths`
-                head = Path(val).parts[0]
-                if head.startswith('~'):
-                    self._paths = [_contractuser(expanded_path, head) for
-                        expanded_path in expanded_paths]
-                else:
-                    self._paths = expanded_paths
-            else:
-                self._paths = []
+            paths = self._glob(os.path.expanduser(val))
+            self._paths = sorted(self._contract_user(val, path) for path in paths)
 
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole) -> Optional[str]:
         """Implement abstract method in QAbstractListModel."""
