@@ -208,6 +208,8 @@ PERFECT_FILES = [
      'qutebrowser/completion/models/urlmodel.py'),
     ('tests/unit/completion/test_models.py',
      'qutebrowser/completion/models/configmodel.py'),
+    ('tests/unit/completion/test_models.py',
+     'qutebrowser/completion/models/filepathcategory.py'),
     ('tests/unit/completion/test_histcategory.py',
      'qutebrowser/completion/models/histcategory.py'),
     ('tests/unit/completion/test_listcategory.py',
