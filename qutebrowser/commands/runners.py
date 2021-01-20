@@ -376,8 +376,7 @@ class CommandRunner(AbstractCommandRunner):
             if result.cmdline[0] == 'repeat-command':
                 record_last_command = False
 
-            if result.cmdline[0] in ['record-macro', 'run-macro',
-                                     'set-cmd-text']:
+            if result.cmdline[0] in ['macro-record', 'macro-run', 'set-cmd-text']:
                 record_macro = False
 
         if record_last_command:

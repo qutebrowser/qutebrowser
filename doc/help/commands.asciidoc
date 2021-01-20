@@ -77,6 +77,8 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<jseval,jseval>>|Evaluate a JavaScript string.
 |<<jump-mark,jump-mark>>|Jump to the mark named by `key`.
 |<<later,later>>|Execute a command after some time.
+|<<macro-record,macro-record>>|Start or stop recording a macro.
+|<<macro-run,macro-run>>|Run a recorded macro.
 |<<message-error,message-error>>|Show an error message in the statusbar.
 |<<message-info,message-info>>|Show an info message in the statusbar.
 |<<message-warning,message-warning>>|Show a warning message in the statusbar.
@@ -91,13 +93,11 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<quickmark-load,quickmark-load>>|Load a quickmark.
 |<<quickmark-save,quickmark-save>>|Save the current page as a quickmark.
 |<<quit,quit>>|Quit qutebrowser.
-|<<record-macro,record-macro>>|Start or stop recording a macro.
 |<<reload,reload>>|Reload the current/[count]th tab.
 |<<repeat,repeat>>|Repeat a given command.
 |<<repeat-command,repeat-command>>|Repeat the last executed command.
 |<<report,report>>|Report a bug in qutebrowser.
 |<<restart,restart>>|Restart qutebrowser while keeping existing tabs open.
-|<<run-macro,run-macro>>|Run a recorded macro.
 |<<run-with-count,run-with-count>>|Run a command with the given count.
 |<<save,save>>|Save configs and state.
 |<<scroll,scroll>>|Scroll the current tab in the given direction.
@@ -797,6 +797,27 @@ Execute a command after some time.
 * With this command, +;;+ is interpreted literally instead of splitting off a second command.
 * This command does not replace variables like +\{url\}+.
 
+[[macro-record]]
+=== macro-record
+Syntax: +:macro-record ['register']+
+
+Start or stop recording a macro.
+
+==== positional arguments
+* +'register'+: Which register to store the macro in.
+
+[[macro-run]]
+=== macro-run
+Syntax: +:macro-run ['register']+
+
+Run a recorded macro.
+
+==== positional arguments
+* +'register'+: Which macro to run.
+
+==== count
+How many times to run the macro.
+
 [[message-error]]
 === message-error
 Syntax: +:message-error 'text'+
@@ -991,15 +1012,6 @@ Quit qutebrowser.
 * +*-s*+, +*--save*+: When given, save the open windows even if auto_save.session is turned off.
 
 
-[[record-macro]]
-=== record-macro
-Syntax: +:record-macro ['register']+
-
-Start or stop recording a macro.
-
-==== positional arguments
-* +'register'+: Which register to store the macro in.
-
 [[reload]]
 === reload
 Syntax: +:reload [*--force*]+
@@ -1051,18 +1063,6 @@ Report a bug in qutebrowser.
 [[restart]]
 === restart
 Restart qutebrowser while keeping existing tabs open.
-
-[[run-macro]]
-=== run-macro
-Syntax: +:run-macro ['register']+
-
-Run a recorded macro.
-
-==== positional arguments
-* +'register'+: Which macro to run.
-
-==== count
-How many times to run the macro.
 
 [[run-with-count]]
 === run-with-count
