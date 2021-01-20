@@ -27,6 +27,7 @@ from typing import List, Optional, Iterable
 from PyQt5.QtCore import QAbstractListModel, QModelIndex, QObject, Qt, QUrl
 
 from qutebrowser.config import config
+from qutebrowser.utils import log
 
 
 class FilePathCategory(QAbstractListModel):
@@ -54,7 +55,12 @@ class FilePathCategory(QAbstractListModel):
         """Find paths based on the given pattern."""
         if not os.path.isabs(val):
             return []
-        return glob.glob(glob.escape(val) + '*')
+        try:
+            return glob.glob(glob.escape(val) + '*')
+        except ValueError as e:  # pragma: no cover
+            # e.g. "embedded null byte" with \x00 on Python 3.6 and 3.7
+            log.completion.debug(f"Failed to glob: {e}")
+            return []
 
     def _url_to_path(self, val: str) -> str:
         """Get a path from a file:/// URL."""
