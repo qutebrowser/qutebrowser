@@ -123,6 +123,7 @@
 |<<colors.webpage.prefers_color_scheme_dark,colors.webpage.prefers_color_scheme_dark>>|Force `prefers-color-scheme: dark` colors for websites.
 |<<completion.cmd_history_max_items,completion.cmd_history_max_items>>|Number of commands to save in the command history.
 |<<completion.delay,completion.delay>>|Delay (in milliseconds) before updating completions after typing a character.
+|<<completion.favorite_paths,completion.favorite_paths>>|Default filesystem autocomplete suggestions for :open.
 |<<completion.height,completion.height>>|Height (in pixels or as percentage of the window) of the completion.
 |<<completion.min_chars,completion.min_chars>>|Minimum amount of characters needed to update completions.
 |<<completion.open_categories,completion.open_categories>>|Which categories to show (in which order) in the :open completion.
@@ -1760,6 +1761,15 @@ Type: <<types,Int>>
 
 Default: +pass:[0]+
 
+[[completion.favorite_paths]]
+=== completion.favorite_paths
+The elements of this list show up in the completion window under the
+Filesystem category when the command line contains :open but no argument.
+
+Type: <<types,List of String>>
+
+Default: empty
+
 [[completion.height]]
 === completion.height
 Height (in pixels or as percentage of the window) of the completion.
@@ -1788,6 +1798,7 @@ Valid values:
  * +quickmarks+
  * +bookmarks+
  * +history+
+ * +filesystem+
 
 Default: 
 
@@ -1795,6 +1806,7 @@ Default:
 - +pass:[quickmarks]+
 - +pass:[bookmarks]+
 - +pass:[history]+
+- +pass:[filesystem]+
 
 [[completion.quick]]
 === completion.quick

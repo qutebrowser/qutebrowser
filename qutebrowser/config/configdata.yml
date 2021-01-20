@@ -1141,14 +1141,24 @@ downloads.location.suggestion:
 completion.open_categories:
   type:
     name: FlagList
-    valid_values: [searchengines, quickmarks, bookmarks, history]
+    valid_values: [searchengines, quickmarks, bookmarks, history, filesystem]
     none_ok: true
   default:
     - searchengines
     - quickmarks
     - bookmarks
     - history
+    - filesystem
   desc: Which categories to show (in which order) in the :open completion.
+
+completion.favorite_paths:
+  type:
+    name: List
+    none_ok: true
+    valtype:
+      name: String
+  default: []
+  desc: Default filesystem autocomplete suggestions for :open.
 
 downloads.open_dispatcher:
   type:
