@@ -23,8 +23,8 @@ import enum
 import itertools
 import functools
 import dataclasses
-from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional,
-                    Sequence, Set, Type, Union)
+from typing import (cast, TYPE_CHECKING, Any, Callable, Dict, Iterator, Iterable,
+                    List, Optional, Sequence, Set, Type, Union)
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
                           QEvent, QPoint)
@@ -49,12 +49,14 @@ from qutebrowser.qt import sip
 if TYPE_CHECKING:
     from qutebrowser.browser import webelem
     from qutebrowser.browser.inspector import AbstractWebInspector
+    from PyQt5.QtWebEngineWidgets import (QWebEngineHistory,
+                                          QWebEngineHistoryItem)
 
 
 tab_id_gen = itertools.count(0)
 
-TypeHistoryItem = typing.Union['QWebEngineHistoryItem',
-                               'QWebHistoryItem']
+TypeHistoryItem = Union['QWebEngineHistoryItem',
+                        'QWebHistoryItem']
 
 
 def create(win_id: int,
@@ -656,7 +658,8 @@ class AbstractHistoryItem:
 
     def __init__(self, url: QUrl, title: str, *, original_url: QUrl = None,
                  active: bool = False,
-                 user_data: typing.Dict[str, typing.Any] = None) -> None:
+                 user_data: Dict[str, Any] = None,
+                 last_visited: bool = None) -> None:
         self.url = url
         if original_url is None:
             self.original_url = url
@@ -665,6 +668,7 @@ class AbstractHistoryItem:
         self.title = title
         self.active = active
         self.user_data = user_data
+        self.last_visited = last_visited
 
     def __repr__(self) -> str:
         return utils.get_repr(self, constructor=True, url=self.url,
@@ -698,7 +702,7 @@ class AbstractHistory:
 
         return len(self._history)
 
-    def __iter__(self) -> typing.Iterator:
+    def __iter__(self) -> Iterator:
         if self.to_load:
             return iter(self.to_load)
 
@@ -773,7 +777,7 @@ class AbstractHistory:
         self.loaded = True
         self.load_on_focus = False
 
-    def load_items(self, entries: typing.List[AbstractHistoryItem],
+    def load_items(self, entries: List[AbstractHistoryItem],
                    lazy: bool = True) -> None:
         """Add a list of AbstractHistoryItems to the tab's history.
 
@@ -1344,7 +1348,7 @@ class AbstractTab(QWidget):
     def new_history_item(
             self, url: QUrl, original_url: QUrl,
             title: str, active: bool,
-            user_data: typing.Dict[str, typing.Any]
+            user_data: Dict[str, Any]
     ) -> AbstractHistoryItem:
         """Create `AbstractHistoryItem` from history item data."""
         raise NotImplementedError

@@ -38,7 +38,7 @@ from qutebrowser.config import config, configfiles
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.qt import sip
 from qutebrowser.misc import objects
-
+from qutebrowser.utils import log, message, objreg, qtutils, standarddir, utils
 
 _JsonType = MutableMapping[str, Any]
 
@@ -108,37 +108,6 @@ class SessionNotFoundError(SessionError):
     """Exception raised when a session to be loaded was not found."""
 
 
-class TabHistoryItem:
-
-    """A single item in the tab history.
-
-    Attributes:
-        url: The QUrl of this item.
-        original_url: The QUrl of this item which was originally requested.
-        title: The title as string of this item.
-        active: Whether this item is the item currently navigated to.
-        user_data: The user data for this item.
-    """
-
-    def __init__(self, url, title, *, original_url=None, active=False,
-                 user_data=None, last_visited=None):
-        self.url = url
-        if original_url is None:
-            self.original_url = url
-        else:
-            self.original_url = original_url
-        self.title = title
-        self.active = active
-        self.user_data = user_data
-        self.last_visited = last_visited
-
-    def __repr__(self):
-        return utils.get_repr(self, constructor=True, url=self.url,
-                              original_url=self.original_url, title=self.title,
-                              active=self.active, user_data=self.user_data,
-                              last_visited=self.last_visited)
-
-
 class SessionManager(QObject):
 
     """Manager for sessions.
@@ -197,7 +166,7 @@ class SessionManager(QObject):
             A dict with the saved data for this item.
         """
         data: _JsonType = {
-            'url': bytes(item.url().toEncoded()).decode('ascii'),
+            'url': bytes(item.url.toEncoded()).decode('ascii'),
         }
 
         if item.title:
@@ -218,7 +187,7 @@ class SessionManager(QObject):
 
         user_data = item.user_data
 
-        data['last_visited'] = item.lastVisited().toString(Qt.ISODate)
+        data['last_visited'] = item.last_visited
 
         if tab.history.current_idx() == idx:
             pos = tab.scroller.pos_px()
@@ -368,18 +337,7 @@ class SessionManager(QObject):
     def _load_tab(self, new_tab, data):  # noqa: C901
         """Load yaml data into a newly opened tab."""
         entries = []
-        lazy_load: MutableSequence[_JsonType] = []
-        # use len(data['history'])
-        # -> dropwhile empty if not session.lazy_session
-        lazy_index = len(data['history'])
-        gen = itertools.chain(
-            itertools.takewhile(lambda _: not lazy_load,
-                                enumerate(data['history'])),
-            enumerate(lazy_load),
-            itertools.dropwhile(lambda i: i[0] < lazy_index,
-                                enumerate(data['history'])))
-
-        for i, histentry in gen:
+        for histentry in data['history']:
             user_data = {}
 
             if 'zoom' in data:
@@ -420,10 +378,15 @@ class SessionManager(QObject):
             else:
                 last_visited = None
 
-            entry = TabHistoryItem(url=url, original_url=orig_url,
-                                   title=histentry['title'], active=active,
-                                   user_data=user_data,
-                                   last_visited=last_visited)
+            entry = new_tab.new_history_item(
+                url=url,
+                original_url=orig_url,
+                title=histentry['title'],
+                active=active,
+                user_data=user_data,
+                last_visited=last_visited,
+            )
+
             entries.append(entry)
 
             if active:

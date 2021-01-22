@@ -25,7 +25,7 @@ import re
 import html as html_utils
 from typing import cast, Union, Optional
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl, QObject
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl, QObject, QTimer
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript, QWebEngineHistory
