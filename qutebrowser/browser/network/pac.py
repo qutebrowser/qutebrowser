@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,7 +21,7 @@
 
 import sys
 import functools
-import typing
+from typing import Optional
 
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QUrl
 from PyQt5.QtNetwork import (QNetworkProxy, QNetworkRequest, QHostInfo,
@@ -65,7 +65,9 @@ def _js_slot(*args):
                 # pylint: disable=protected-access
                 return self._error_con.callAsConstructor([e])
                 # pylint: enable=protected-access
-        return pyqtSlot(*args, result=QJSValue)(new_method)
+
+        deco = pyqtSlot(*args, result=QJSValue)
+        return deco(new_method)
     return _decorator
 
 
@@ -215,10 +217,10 @@ class PACResolver:
         if from_file:
             string_flags = QUrl.PrettyDecoded
         else:
-            string_flags = QUrl.RemoveUserInfo  # type: ignore
+            string_flags = QUrl.RemoveUserInfo  # type: ignore[assignment]
             if query.url().scheme() == 'https':
-                string_flags |= QUrl.RemovePath  # type: ignore
-                string_flags |= QUrl.RemoveQuery  # type: ignore
+                string_flags |= QUrl.RemovePath  # type: ignore[assignment]
+                string_flags |= QUrl.RemoveQuery  # type: ignore[assignment]
 
         result = self._resolver.call([query.url().toString(string_flags),
                                       query.peerHostName()])
@@ -249,8 +251,7 @@ class PACFetcher(QObject):
         url.setScheme(url.scheme()[len(pac_prefix):])
 
         self._pac_url = url
-        self._manager = QNetworkAccessManager(
-        )  # type: typing.Optional[QNetworkAccessManager]
+        self._manager: Optional[QNetworkAccessManager] = QNetworkAccessManager()
         self._manager.setProxy(QNetworkProxy(QNetworkProxy.NoProxy))
         self._pac = None
         self._error_message = None
@@ -266,7 +267,8 @@ class PACFetcher(QObject):
         """Fetch the proxy from the remote URL."""
         assert self._manager is not None
         self._reply = self._manager.get(QNetworkRequest(self._pac_url))
-        self._reply.finished.connect(self._finish)  # type: ignore
+        self._reply.finished.connect(  # type: ignore[attr-defined]
+            self._finish)
 
     @pyqtSlot()
     def _finish(self):
@@ -299,7 +301,7 @@ class PACFetcher(QObject):
         if self._manager is not None:
             loop = qtutils.EventLoop()
             self.finished.connect(loop.quit)
-            loop.exec_()
+            loop.exec()
 
     def fetch_error(self):
         """Check if PAC script is successfully fetched.

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2020 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2017-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -20,19 +20,14 @@
 """Completion category that uses a list of tuples as a data source."""
 
 import re
-import typing
+from typing import Iterable, Tuple
 
-from PyQt5.QtCore import Qt, QSortFilterProxyModel, QRegExp
+from PyQt5.QtCore import QSortFilterProxyModel, QRegularExpression
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import QWidget
 
 from qutebrowser.completion.models import util
 from qutebrowser.utils import qtutils, log
-
-
-_ItemType = typing.Union[typing.Tuple[str],
-                         typing.Tuple[str, str],
-                         typing.Tuple[str, str, str]]
 
 
 class ListCategory(QSortFilterProxyModel):
@@ -41,7 +36,7 @@ class ListCategory(QSortFilterProxyModel):
 
     def __init__(self,
                  name: str,
-                 items: typing.Iterable[_ItemType],
+                 items: Iterable[Tuple[str, ...]],
                  sort: bool = True,
                  delete_func: util.DeleteFuncType = None,
                  parent: QWidget = None):
@@ -64,12 +59,16 @@ class ListCategory(QSortFilterProxyModel):
         Args:
             val: The value to set.
         """
+        if len(val) > 5000:  # avoid crash on huge search terms (#5973)
+            log.completion.warning(f"Trimming {len(val)}-char pattern to 5000")
+            val = val[:5000]
         self._pattern = val
         val = re.sub(r' +', r' ', val)  # See #1919
         val = re.escape(val)
         val = val.replace(r'\ ', '.*')
-        rx = QRegExp(val, Qt.CaseInsensitive)
-        self.setFilterRegExp(rx)
+        rx = QRegularExpression(val, QRegularExpression.CaseInsensitiveOption)
+        qtutils.ensure_valid(rx)
+        self.setFilterRegularExpression(rx)
         self.invalidate()
         sortcol = 0
         self.sort(sortcol)

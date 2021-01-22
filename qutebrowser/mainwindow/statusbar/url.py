@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,16 +21,27 @@
 
 import enum
 
-from PyQt5.QtCore import pyqtSlot, pyqtProperty, QUrl
+from PyQt5.QtCore import (pyqtSlot, pyqtProperty,  # type: ignore[attr-defined]
+                          QUrl)
 
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.config import stylesheet
 from qutebrowser.utils import usertypes, urlutils
 
 
-# Note this has entries for success/error/warn from widgets.webview:LoadStatus
-UrlType = enum.Enum('UrlType', ['success', 'success_https', 'error', 'warn',
-                                'hover', 'normal'])
+class UrlType(enum.Enum):
+
+    """The type/color of the URL being shown.
+
+    Note this has entries for success/error/warn from widgets.webview:LoadStatus.
+    """
+
+    success = enum.auto()
+    success_https = enum.auto()
+    error = enum.auto()
+    warn = enum.auto()
+    hover = enum.auto()
+    normal = enum.auto()
 
 
 class UrlText(textbase.TextBase):

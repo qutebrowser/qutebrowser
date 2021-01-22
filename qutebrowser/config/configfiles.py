@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,8 +27,9 @@ import textwrap
 import traceback
 import configparser
 import contextlib
-import typing
 import re
+from typing import (TYPE_CHECKING, Any, Dict, Iterable, Iterator, List, Mapping,
+                    MutableMapping, Optional, cast)
 
 import yaml
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QSettings, qVersion
@@ -39,15 +40,15 @@ from qutebrowser.config import (configexc, config, configdata, configutils,
 from qutebrowser.keyinput import keyutils
 from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.misc import savemanager
 
 
 # The StateConfig instance
-state = typing.cast('StateConfig', None)
+state = cast('StateConfig', None)
 
 
-_SettingsType = typing.Dict[str, typing.Dict[str, typing.Any]]
+_SettingsType = Dict[str, Dict[str, Any]]
 
 
 class StateConfig(configparser.ConfigParser):
@@ -68,15 +69,20 @@ class StateConfig(configparser.ConfigParser):
         else:
             self.qt_version_changed = False
 
-        for sect in ['general', 'geometry']:
+        for sect in ['general', 'geometry', 'inspector']:
             try:
                 self.add_section(sect)
             except configparser.DuplicateSectionError:
                 pass
 
-        deleted_keys = ['fooled', 'backend-warning-shown']
-        for key in deleted_keys:
-            self['general'].pop(key, None)
+        deleted_keys = [
+            ('general', 'fooled'),
+            ('general', 'backend-warning-shown'),
+            ('general', 'old-qt-warning-shown'),
+            ('geometry', 'inspector'),
+        ]
+        for sect, key in deleted_keys:
+            self[sect].pop(key, None)
 
         self['general']['qt_version'] = qt_version
         self['general']['version'] = qutebrowser.__version__
@@ -113,7 +119,7 @@ class YamlConfig(QObject):
                                       'autoconfig.yml')
         self._dirty = False
 
-        self._values = {}  # type: typing.Dict[str, configutils.Values]
+        self._values: Dict[str, configutils.Values] = {}
         for name, opt in configdata.DATA.items():
             self._values[name] = configutils.Values(opt)
 
@@ -126,7 +132,7 @@ class YamlConfig(QObject):
         """
         save_manager.add_saveable('yaml-config', self._save, self.changed)
 
-    def __iter__(self) -> typing.Iterator[configutils.Values]:
+    def __iter__(self) -> Iterator[configutils.Values]:
         """Iterate over configutils.Values items."""
         yield from self._values.values()
 
@@ -141,7 +147,7 @@ class YamlConfig(QObject):
         if not self._dirty:
             return
 
-        settings = {}  # type: _SettingsType
+        settings: _SettingsType = {}
         for name, values in sorted(self._values.items()):
             if not values:
                 continue
@@ -161,12 +167,9 @@ class YamlConfig(QObject):
                 # Instead, create a config.py - see :help for details.
 
             """.lstrip('\n')))
-            utils.yaml_dump(data, f)  # type: ignore
+            utils.yaml_dump(data, f)
 
-    def _pop_object(self,
-                    yaml_data: typing.Any,
-                    key: str,
-                    typ: type) -> typing.Any:
+    def _pop_object(self, yaml_data: Any, key: str, typ: type) -> Any:
         """Get a global object from the given data."""
         if not isinstance(yaml_data, dict):
             desc = configexc.ConfigErrorDesc("While loading data",
@@ -220,22 +223,21 @@ class YamlConfig(QObject):
         migrations.changed.connect(self._mark_changed)
         migrations.migrate()
 
-        self._validate(settings)
+        self._validate_names(settings)
         self._build_values(settings)
 
-    def _load_settings_object(self, yaml_data: typing.Any) -> '_SettingsType':
+    def _load_settings_object(self, yaml_data: Any) -> '_SettingsType':
         """Load the settings from the settings: key."""
         return self._pop_object(yaml_data, 'settings', dict)
 
-    def _load_legacy_settings_object(self,
-                                     yaml_data: typing.Any) -> '_SettingsType':
+    def _load_legacy_settings_object(self, yaml_data: Any) -> '_SettingsType':
         data = self._pop_object(yaml_data, 'global', dict)
         settings = {}
         for name, value in data.items():
             settings[name] = {'global': value}
         return settings
 
-    def _build_values(self, settings: typing.Mapping) -> None:
+    def _build_values(self, settings: Mapping) -> None:
         """Build up self._values from the values in the given dict."""
         errors = []
         for name, yaml_values in settings.items():
@@ -268,7 +270,7 @@ class YamlConfig(QObject):
         if errors:
             raise configexc.ConfigFileErrors('autoconfig.yml', errors)
 
-    def _validate(self, settings: _SettingsType) -> None:
+    def _validate_names(self, settings: _SettingsType) -> None:
         """Make sure all settings exist."""
         unknown = []
         for name in settings:
@@ -281,7 +283,7 @@ class YamlConfig(QObject):
                       for e in sorted(unknown)]
             raise configexc.ConfigFileErrors('autoconfig.yml', errors)
 
-    def set_obj(self, name: str, value: typing.Any, *,
+    def set_obj(self, name: str, value: Any, *,
                 pattern: urlmatch.UrlPattern = None) -> None:
         """Set the given setting to the given value."""
         self._values[name].add(value, pattern)
@@ -319,7 +321,7 @@ class YamlMigrations(QObject):
         self._migrate_font_replacements()
 
         self._migrate_bool('tabs.favicons.show', 'always', 'never')
-        self._migrate_bool('scrolling.bar', 'always', 'when-searching')
+        self._migrate_bool('scrolling.bar', 'always', 'overlay')
         self._migrate_bool('qt.force_software_rendering',
                            'software-opengl', 'none')
         self._migrate_renamed_bool(
@@ -332,6 +334,11 @@ class YamlMigrations(QObject):
             new_name='tabs.mode_on_change',
             true_value='persist',
             false_value='normal')
+        self._migrate_renamed_bool(
+            old_name='statusbar.hide',
+            new_name='statusbar.show',
+            true_value='never',
+            false_value='always')
 
         for setting in ['tabs.title.format',
                         'tabs.title.format_pinned',
@@ -340,9 +347,20 @@ class YamlMigrations(QObject):
                                        r'(?<!{)\{title\}(?!})',
                                        r'{current_title}')
 
+        self._migrate_to_multiple('fonts.tabs',
+                                  ('fonts.tabs.selected',
+                                   'fonts.tabs.unselected'))
+
+        self._migrate_to_multiple('content.media_capture',
+                                  ('content.media.audio_capture',
+                                   'content.media.audio_video_capture',
+                                   'content.media.video_capture'))
+
         # content.headers.user_agent can't be empty to get the default anymore.
         setting = 'content.headers.user_agent'
         self._migrate_none(setting, configdata.DATA[setting].default)
+
+        self._remove_empty_patterns()
 
     def _migrate_configdata(self) -> None:
         """Migrate simple renamed/deleted options."""
@@ -394,16 +412,19 @@ class YamlMigrations(QObject):
 
     def _migrate_font_replacements(self) -> None:
         """Replace 'monospace' replacements by 'default_family'."""
-        for name in self._settings:
+        for name, values in self._settings.items():
+            if not isinstance(values, dict):
+                continue
+
             try:
                 opt = configdata.DATA[name]
             except KeyError:
                 continue
 
-            if not isinstance(opt.typ, configtypes.Font):
+            if not isinstance(opt.typ, configtypes.FontBase):
                 continue
 
-            for scope, val in self._settings[name].items():
+            for scope, val in values.items():
                 if isinstance(val, str) and val.endswith(' monospace'):
                     new_val = val.replace('monospace', 'default_family')
                     self._settings[name][scope] = new_val
@@ -415,7 +436,11 @@ class YamlMigrations(QObject):
         if name not in self._settings:
             return
 
-        for scope, val in self._settings[name].items():
+        values = self._settings[name]
+        if not isinstance(values, dict):
+            return
+
+        for scope, val in values.items():
             if isinstance(val, bool):
                 new_value = true_value if val else false_value
                 self._settings[name][scope] = new_value
@@ -441,10 +466,26 @@ class YamlMigrations(QObject):
         if name not in self._settings:
             return
 
-        for scope, val in self._settings[name].items():
+        values = self._settings[name]
+        if not isinstance(values, dict):
+            return
+
+        for scope, val in values.items():
             if val is None:
                 self._settings[name][scope] = value
                 self.changed.emit()
+
+    def _migrate_to_multiple(self, old_name: str, new_names: Iterable[str]) -> None:
+        if old_name not in self._settings:
+            return
+
+        for new_name in new_names:
+            self._settings[new_name] = {}
+            for scope, val in self._settings[old_name].items():
+                self._settings[new_name][scope] = val
+
+        del self._settings[old_name]
+        self.changed.emit()
 
     def _migrate_string_value(self, name: str,
                               source: str,
@@ -452,12 +493,30 @@ class YamlMigrations(QObject):
         if name not in self._settings:
             return
 
-        for scope, val in self._settings[name].items():
+        values = self._settings[name]
+        if not isinstance(values, dict):
+            return
+
+        for scope, val in values.items():
             if isinstance(val, str):
                 new_val = re.sub(source, target, val)
                 if new_val != val:
                     self._settings[name][scope] = new_val
                     self.changed.emit()
+
+    def _remove_empty_patterns(self) -> None:
+        """Remove *. host patterns from the config.
+
+        Those used to be valid (and could be accidentally produced by using tSH
+        on about:blank), but aren't anymore.
+        """
+        scope = '*://*./*'
+        for name, values in self._settings.items():
+            if not isinstance(values, dict):
+                continue
+            if scope in values:
+                del self._settings[name][scope]
+                self.changed.emit()
 
 
 class ConfigAPI:
@@ -479,12 +538,12 @@ class ConfigAPI:
     def __init__(self, conf: config.Config, keyconfig: config.KeyConfig):
         self._config = conf
         self._keyconfig = keyconfig
-        self.errors = []  # type: typing.List[configexc.ConfigErrorDesc]
+        self.errors: List[configexc.ConfigErrorDesc] = []
         self.configdir = pathlib.Path(standarddir.config())
         self.datadir = pathlib.Path(standarddir.data())
 
     @contextlib.contextmanager
-    def _handle_error(self, action: str, name: str) -> typing.Iterator[None]:
+    def _handle_error(self, action: str, name: str) -> Iterator[None]:
         """Catch config-related exceptions and save them in self.errors."""
         try:
             yield
@@ -504,28 +563,35 @@ class ConfigAPI:
 
     def finalize(self) -> None:
         """Do work which needs to be done after reading config.py."""
+        if self._config.warn_autoconfig:
+            desc = configexc.ConfigErrorDesc(
+                "autoconfig loading not specified",
+                ("Your config.py should call either `config.load_autoconfig()`"
+                 " (to load settings configured via the GUI) or "
+                 "`config.load_autoconfig(False)` (to not do so)"))
+            self.errors.append(desc)
         self._config.update_mutables()
 
-    def load_autoconfig(self) -> None:
+    def load_autoconfig(self, load_config: bool = True) -> None:
         """Load the autoconfig.yml file which is used for :set/:bind/etc."""
-        with self._handle_error('reading', 'autoconfig.yml'):
-            read_autoconfig()
+        self._config.warn_autoconfig = False
+        if load_config:
+            with self._handle_error('reading', 'autoconfig.yml'):
+                read_autoconfig()
 
-    def get(self, name: str, pattern: str = None) -> typing.Any:
+    def get(self, name: str, pattern: str = None) -> Any:
         """Get a setting value from the config, optionally with a pattern."""
         with self._handle_error('getting', name):
             urlpattern = urlmatch.UrlPattern(pattern) if pattern else None
             return self._config.get_mutable_obj(name, pattern=urlpattern)
 
-    def set(self, name: str, value: typing.Any, pattern: str = None) -> None:
+    def set(self, name: str, value: Any, pattern: str = None) -> None:
         """Set a setting value in the config, optionally with a pattern."""
         with self._handle_error('setting', name):
             urlpattern = urlmatch.UrlPattern(pattern) if pattern else None
             self._config.set_obj(name, value, pattern=urlpattern)
 
-    def bind(self, key: str,
-             command: typing.Optional[str],
-             mode: str = 'normal') -> None:
+    def bind(self, key: str, command: Optional[str], mode: str = 'normal') -> None:
         """Bind a key to a command, with an optional key mode."""
         with self._handle_error('binding', key):
             seq = keyutils.KeySequence.parse(key)
@@ -544,7 +610,9 @@ class ConfigAPI:
     def source(self, filename: str) -> None:
         """Read the given config file from disk."""
         if not os.path.isabs(filename):
-            filename = str(self.configdir / filename)
+            # We don't use self.configdir here so we get the proper file when starting
+            # with a --config-py argument given.
+            filename = os.path.join(os.path.dirname(standarddir.config_py()), filename)
 
         try:
             read_config_py(filename)
@@ -552,7 +620,7 @@ class ConfigAPI:
             self.errors += e.errors
 
     @contextlib.contextmanager
-    def pattern(self, pattern: str) -> typing.Iterator[config.ConfigContainer]:
+    def pattern(self, pattern: str) -> Iterator[config.ConfigContainer]:
         """Get a ConfigContainer for the given pattern."""
         # We need to propagate the exception so we don't need to return
         # something.
@@ -568,9 +636,8 @@ class ConfigPyWriter:
 
     def __init__(
             self,
-            options: typing.List,
-            bindings: typing.MutableMapping[
-                str, typing.Mapping[str, typing.Optional[str]]],
+            options: List,
+            bindings: MutableMapping[str, Mapping[str, Optional[str]]],
             *, commented: bool) -> None:
         self._options = options
         self._bindings = bindings
@@ -591,7 +658,7 @@ class ConfigPyWriter:
         else:
             return line
 
-    def _gen_lines(self) -> typing.Iterator[str]:
+    def _gen_lines(self) -> Iterator[str]:
         """Generate a config.py with the given settings/bindings.
 
         Yields individual lines.
@@ -600,9 +667,20 @@ class ConfigPyWriter:
         yield from self._gen_options()
         yield from self._gen_bindings()
 
-    def _gen_header(self) -> typing.Iterator[str]:
+    def _gen_header(self) -> Iterator[str]:
         """Generate the initial header of the config."""
         yield self._line("# Autogenerated config.py")
+        yield self._line("#")
+
+        note = ("NOTE: config.py is intended for advanced users who are "
+                "comfortable with manually migrating the config file on "
+                "qutebrowser upgrades. If you prefer, you can also configure "
+                "qutebrowser using the :set/:bind/:config-* commands without "
+                "having to write a config.py file.")
+        for line in textwrap.wrap(note):
+            yield self._line("# {}".format(line))
+
+        yield self._line("#")
         yield self._line("# Documentation:")
         yield self._line("#   qute://help/configuring.html")
         yield self._line("#   qute://help/settings.html")
@@ -614,15 +692,15 @@ class ConfigPyWriter:
                              "still loaded.")
             yield self._line("# Remove it to not load settings done via the "
                              "GUI.")
-            yield self._line("config.load_autoconfig()")
+            yield self._line("config.load_autoconfig(True)")
             yield ''
         else:
-            yield self._line("# Uncomment this to still load settings "
+            yield self._line("# Change the argument to True to still load settings "
                              "configured via autoconfig.yml")
-            yield self._line("# config.load_autoconfig()")
+            yield self._line("config.load_autoconfig(False)")
             yield ''
 
-    def _gen_options(self) -> typing.Iterator[str]:
+    def _gen_options(self) -> Iterator[str]:
         """Generate the options part of the config."""
         for pattern, opt, value in self._options:
             if opt.name in ['bindings.commands', 'bindings.default']:
@@ -650,7 +728,7 @@ class ConfigPyWriter:
                     opt.name, value, str(pattern)))
             yield ''
 
-    def _gen_bindings(self) -> typing.Iterator[str]:
+    def _gen_bindings(self) -> Iterator[str]:
         """Generate the bindings part of the config."""
         normal_bindings = self._bindings.pop('normal', {})
         if normal_bindings:
@@ -692,8 +770,8 @@ def read_config_py(filename: str, raising: bool = False) -> None:
     basename = os.path.basename(filename)
 
     module = types.ModuleType('config')
-    module.config = api  # type: ignore
-    module.c = container  # type: ignore
+    module.config = api  # type: ignore[attr-defined]
+    module.c = container  # type: ignore[attr-defined]
     module.__file__ = filename
 
     try:
@@ -751,7 +829,7 @@ def read_autoconfig() -> None:
 
 
 @contextlib.contextmanager
-def saved_sys_properties() -> typing.Iterator[None]:
+def saved_sys_properties() -> Iterator[None]:
     """Save various sys properties such as sys.path and sys.modules."""
     old_path = sys.path.copy()
     old_modules = sys.modules.copy()

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -172,10 +172,57 @@ class TestIncDec:
 
     def test_invalid_url(self):
         with pytest.raises(urlutils.InvalidUrlError):
-            navigate.incdec(QUrl(""), 1, "increment")
+            navigate.incdec(QUrl(), 1, "increment")
 
     def test_wrong_mode(self):
         """Test if incdec rejects a wrong parameter for inc_or_dec."""
         valid_url = QUrl("http://example.com/0")
         with pytest.raises(ValueError):
             navigate.incdec(valid_url, 1, "foobar")
+
+
+class TestUp:
+
+    @pytest.mark.parametrize('url_suffix, count, expected_suffix', [
+        ('/one/two/three', 1, '/one/two'),
+        ('/one/two/three?foo=bar', 1, '/one/two'),
+        ('/one/two/three', 2, '/one'),
+        ('/one/two%2Fthree', 1, '/one'),
+        ('/one/two%2Fthree/four', 1, '/one/two%2Fthree'),
+    ])
+    def test_up(self, url_suffix, count, expected_suffix):
+        url_base = 'https://example.com'
+        url = QUrl(url_base + url_suffix)
+        assert url.isValid()
+
+        new = navigate.path_up(url, count)
+        assert new == QUrl(url_base + expected_suffix)
+
+    def test_invalid_url(self):
+        with pytest.raises(urlutils.InvalidUrlError):
+            navigate.path_up(QUrl(), count=1)
+
+
+class TestStrip:
+
+    @pytest.mark.parametrize('url_suffix', [
+        '?foo=bar',
+        '#label',
+        '?foo=bar#label',
+    ])
+    def test_strip(self, url_suffix):
+        url_base = 'https://example.com/test'
+        url = QUrl(url_base + url_suffix)
+        assert url.isValid()
+
+        stripped = navigate.strip(url, count=1)
+        assert stripped.isValid()
+        assert stripped == QUrl(url_base)
+
+    def test_count(self):
+        with pytest.raises(navigate.Error, match='Count is not supported'):
+            navigate.strip(QUrl('https://example.com/'), count=2)
+
+    def test_invalid_url(self):
+        with pytest.raises(urlutils.InvalidUrlError):
+            navigate.strip(QUrl(), count=1)

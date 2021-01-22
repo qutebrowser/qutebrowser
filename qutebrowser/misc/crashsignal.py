@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,15 +27,11 @@ import pdb  # noqa: T002
 import signal
 import argparse
 import functools
+import threading
 import faulthandler
-import typing
-try:
-    # WORKAROUND for segfaults when using pdb in pytest for some reason...
-    import readline  # pylint: disable=unused-import
-except ImportError:
-    pass
+import dataclasses
+from typing import TYPE_CHECKING, Optional, MutableMapping, cast, List
 
-import attr
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
 from PyQt5.QtWidgets import QApplication
@@ -43,21 +39,22 @@ from PyQt5.QtWidgets import QApplication
 from qutebrowser.api import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog, ipc, objects
 from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
-if typing.TYPE_CHECKING:
+from qutebrowser.qt import sip
+if TYPE_CHECKING:
     from qutebrowser.misc import quitter
 
 
-@attr.s
+@dataclasses.dataclass
 class ExceptionInfo:
 
     """Information stored when there was an exception."""
 
-    pages = attr.ib()
-    cmd_history = attr.ib()
-    objects = attr.ib()
+    pages: List[List[str]]
+    cmd_history: List[str]
+    objects: str
 
 
-crash_handler = typing.cast('CrashHandler', None)
+crash_handler = cast('CrashHandler', None)
 
 
 class CrashHandler(QObject):
@@ -160,14 +157,25 @@ class CrashHandler(QObject):
             earlyinit.init_faulthandler(self._crash_log_file)
 
     @cmdutils.register(instance='crash-handler')
-    def report(self):
-        """Report a bug in qutebrowser."""
+    def report(self, info=None, contact=None):
+        """Report a bug in qutebrowser.
+
+        Args:
+            info: Information about the bug report. If given, no report dialog
+                  shows up.
+            contact: Contact information for the report.
+        """
         pages = self._recover_pages()
         cmd_history = objreg.get('command-history')[-5:]
         all_objects = debug.get_all_objects()
+
         self._crash_dialog = crashdialog.ReportDialog(pages, cmd_history,
                                                       all_objects)
-        self._crash_dialog.show()
+
+        if info is None:
+            self._crash_dialog.show()
+        else:
+            self._crash_dialog.report(info=info, contact=contact)
 
     @pyqtSlot()
     def shutdown(self):
@@ -183,7 +191,7 @@ class CrashHandler(QObject):
         if sys.__stderr__ is not None:
             faulthandler.enable(sys.__stderr__)
         else:
-            faulthandler.disable()  # type: ignore
+            faulthandler.disable()  # type: ignore[unreachable]
         try:
             self._crash_log_file.close()
             os.remove(self._crash_log_file.name)
@@ -215,18 +223,19 @@ class CrashHandler(QObject):
             all_objects = ""
         return ExceptionInfo(pages, cmd_history, all_objects)
 
-    def exception_hook(self, exctype, excvalue, tb):
-        """Handle uncaught python exceptions.
+    def _handle_early_exits(self, exc):
+        """Handle some special cases for the exception hook.
 
-        It'll try very hard to write all open tabs to a file, and then exit
-        gracefully.
+        Return value:
+            True: Exception hook should be aborted.
+            False: Continue handling exception.
         """
-        exc = (exctype, excvalue, tb)
+        exctype, _excvalue, tb = exc
 
         if not self._quitter.quit_status['crash']:
             log.misc.error("ARGH, there was an exception while the crash "
                            "dialog is already shown:", exc_info=exc)
-            return
+            return True
 
         log.misc.error("Uncaught exception", exc_info=exc)
 
@@ -242,6 +251,24 @@ class CrashHandler(QObject):
         if is_ignored_exception or 'pdb-postmortem' in objects.debug_flags:
             # pdb exit, KeyboardInterrupt, ...
             sys.exit(usertypes.Exit.exception)
+
+        if threading.current_thread() != threading.main_thread():
+            log.misc.error("Ignoring exception outside of main thread... "
+                           "Please report this as a bug.")
+            return True
+
+        return False
+
+    def exception_hook(self, exctype, excvalue, tb):
+        """Handle uncaught python exceptions.
+
+        It'll try very hard to write all open tabs to a file, and then exit
+        gracefully.
+        """
+        exc = (exctype, excvalue, tb)
+
+        if self._handle_early_exits(exc):
+            return
 
         self._quitter.quit_status['crash'] = False
         info = self._get_exception_info()
@@ -268,7 +295,7 @@ class CrashHandler(QObject):
             self._crash_dialog = crashdialog.ExceptionCrashDialog(
                 self._args.debug, info.pages, info.cmd_history, exc,
                 info.objects)
-            ret = self._crash_dialog.exec_()
+            ret = self._crash_dialog.exec()
             if ret == crashdialog.Result.restore:
                 self._quitter.restart(info.pages)
 
@@ -305,10 +332,9 @@ class SignalHandler(QObject):
         self._quitter = quitter
         self._notifier = None
         self._timer = usertypes.Timer(self, 'python_hacks')
-        self._orig_handlers = {
-        }  # type: typing.MutableMapping[int, signal._HANDLER]
+        self._orig_handlers: MutableMapping[int, 'signal._HANDLER'] = {}
         self._activated = False
-        self._orig_wakeup_fd = None  # type: typing.Optional[int]
+        self._orig_wakeup_fd: Optional[int] = None
 
     def activate(self):
         """Set up signal handlers.
@@ -331,9 +357,10 @@ class SignalHandler(QObject):
             for fd in [read_fd, write_fd]:
                 flags = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-            self._notifier = QSocketNotifier(read_fd, QSocketNotifier.Read,
+            self._notifier = QSocketNotifier(cast(sip.voidptr, read_fd),
+                                             QSocketNotifier.Read,
                                              self)
-            self._notifier.activated.connect(  # type: ignore
+            self._notifier.activated.connect(  # type: ignore[attr-defined]
                 self.handle_signal_wakeup)
             self._orig_wakeup_fd = signal.set_wakeup_fd(write_fd)
             # pylint: enable=import-error,no-member,useless-suppression

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -26,8 +26,7 @@ import sys
 import argparse
 import subprocess
 import tempfile
-
-import attr
+import dataclasses
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
@@ -35,18 +34,18 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 from scripts import utils
 
 
-@attr.s
+@dataclasses.dataclass
 class Line:
 
     """A line in "coredumpctl list"."""
 
-    time = attr.ib()
-    pid = attr.ib()
-    uid = attr.ib()
-    gid = attr.ib()
-    sig = attr.ib()
-    present = attr.ib()
-    exe = attr.ib()
+    time: str
+    pid: int
+    uid: int
+    gid: int
+    sig: int
+    present: bool
+    exe: str
 
 
 def _convert_present(data):

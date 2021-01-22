@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -87,7 +87,7 @@ def _pac_noexcept_test(call):
     _pac_common_test(test_str_f.format(call))
 
 
-# pylint: disable=line-too-long, invalid-name
+# pylint: disable=invalid-name
 
 
 @pytest.mark.parametrize("domain, expected", [

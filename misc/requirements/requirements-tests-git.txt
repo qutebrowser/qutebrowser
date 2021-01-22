@@ -18,7 +18,6 @@ git+https://github.com/pytest-dev/pytest-mock.git
 git+https://github.com/pytest-dev/pytest-qt.git
 git+https://github.com/pytest-dev/pytest-repeat.git
 git+https://github.com/pytest-dev/pytest-rerunfailures.git
-git+https://github.com/abusalimov/pytest-travis-fold.git
 git+https://github.com/The-Compiler/pytest-xvfb.git
 hg+https://bitbucket.org/gutworth/six
 hg+https://bitbucket.org/jendrikseipp/vulture
@@ -28,10 +27,8 @@ git+https://github.com/pallets/werkzeug.git
 ## qutebrowser dependencies
 
 git+https://github.com/tartley/colorama.git
-hg+https://bitbucket.org/cthedot/cssutils
 git+https://github.com/pallets/jinja.git
 git+https://github.com/pallets/markupsafe.git
 hg+http://bitbucket.org/birkenfeld/pygments-main
-hg+https://bitbucket.org/fdik/pypeg
 git+https://github.com/python-attrs/attrs.git
 git+https://github.com/yaml/pyyaml.git

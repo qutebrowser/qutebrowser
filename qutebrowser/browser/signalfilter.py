@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -50,7 +50,7 @@ class SignalFilter(QObject):
         """Factory for partial _filter_signals functions.
 
         Args:
-            signal: The pyqtSignal to filter.
+            signal: The pyqtBoundSignal to filter.
             tab: The WebView to create filters for.
 
         Return:

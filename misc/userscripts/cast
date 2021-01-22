@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Behaviour
+# Behavior
 #   Userscript for qutebrowser which casts the url passed in $1 to the default
 #   ChromeCast device in the network using the program `castnow`
 #

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,39 +17,55 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import types
 import logging
 
 import pytest
 
-pytest.importorskip('PyQt5.QtWebEngineWidgets')
+QtWebEngineWidgets = pytest.importorskip('PyQt5.QtWebEngineWidgets')
 
 from qutebrowser.browser.webengine import webenginesettings
-from qutebrowser.utils import usertypes, qtutils
-from qutebrowser.misc import objects
+from qutebrowser.utils import usertypes
 
 
-@pytest.fixture(autouse=True)
-def init(qapp, config_stub, cache_tmpdir, data_tmpdir, monkeypatch):
-    monkeypatch.setattr(webenginesettings.webenginequtescheme, 'init',
-                        lambda: None)
-    monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
-    init_args = types.SimpleNamespace(enable_webengine_inspector=False)
-    webenginesettings.init(init_args)
-    config_stub.changed.disconnect(webenginesettings._update_settings)
+@pytest.fixture
+def global_settings(monkeypatch, default_profile):
+    wrapper = webenginesettings._SettingsWrapper()
+    settings = webenginesettings.WebEngineSettings(wrapper)
+    settings.init_settings()
+    monkeypatch.setattr(webenginesettings, '_global_settings', settings)
 
 
-def test_big_cache_size(config_stub):
+@pytest.fixture
+def default_profile(monkeypatch):
+    """A profile to use which is set as default_profile.
+
+    Note we use a "private" profile here to avoid actually storing data during tests.
+    """
+    profile = QtWebEngineWidgets.QWebEngineProfile()
+    profile.setter = webenginesettings.ProfileSetter(profile)
+    monkeypatch.setattr(profile, 'isOffTheRecord', lambda: False)
+    monkeypatch.setattr(webenginesettings, 'default_profile', profile)
+    return profile
+
+
+@pytest.fixture
+def private_profile(monkeypatch):
+    """A profile to use which is set as private_profile."""
+    profile = QtWebEngineWidgets.QWebEngineProfile()
+    profile.setter = webenginesettings.ProfileSetter(profile)
+    monkeypatch.setattr(webenginesettings, 'private_profile', profile)
+    return profile
+
+
+def test_big_cache_size(config_stub, default_profile):
     """Make sure a too big cache size is handled correctly."""
     config_stub.val.content.cache.size = 2 ** 63 - 1
-    profile = webenginesettings.default_profile
-    profile.setter.set_http_cache_size()
-    assert profile.httpCacheMaximumSize() == 2 ** 31 - 1
+    default_profile.setter.set_http_cache_size()
+    assert default_profile.httpCacheMaximumSize() == 2 ** 31 - 1
 
 
-@pytest.mark.skipif(
-    not qtutils.version_check('5.8'), reason="Needs Qt 5.8 or newer")
-def test_non_existing_dict(config_stub, monkeypatch, message_mock, caplog):
+def test_non_existing_dict(config_stub, monkeypatch, message_mock, caplog,
+                           global_settings):
     monkeypatch.setattr(webenginesettings.spell, 'local_filename',
                         lambda _code: None)
     config_stub.val.spellcheck.languages = ['af-ZA']
@@ -63,31 +79,23 @@ def test_non_existing_dict(config_stub, monkeypatch, message_mock, caplog):
     assert msg.text == expected
 
 
-@pytest.mark.skipif(
-    not qtutils.version_check('5.8'), reason="Needs Qt 5.8 or newer")
-def test_existing_dict(config_stub, monkeypatch):
+def test_existing_dict(config_stub, monkeypatch, global_settings,
+                       default_profile, private_profile):
     monkeypatch.setattr(webenginesettings.spell, 'local_filename',
                         lambda _code: 'en-US-8-0')
     config_stub.val.spellcheck.languages = ['en-US']
     webenginesettings._update_settings('spellcheck.languages')
-    for profile in [webenginesettings.default_profile,
-                    webenginesettings.private_profile]:
+    for profile in [default_profile, private_profile]:
         assert profile.isSpellCheckEnabled()
         assert profile.spellCheckLanguages() == ['en-US-8-0']
 
 
-@pytest.mark.skipif(
-    not qtutils.version_check('5.8'), reason="Needs Qt 5.8 or newer")
-def test_spell_check_disabled(config_stub, monkeypatch):
+def test_spell_check_disabled(config_stub, monkeypatch, global_settings,
+                              default_profile, private_profile):
     config_stub.val.spellcheck.languages = []
     webenginesettings._update_settings('spellcheck.languages')
-    for profile in [webenginesettings.default_profile,
-                    webenginesettings.private_profile]:
+    for profile in [default_profile, private_profile]:
         assert not profile.isSpellCheckEnabled()
-
-
-def test_default_user_agent_saved():
-    assert webenginesettings.parsed_user_agent is not None
 
 
 def test_parsed_user_agent(qapp):

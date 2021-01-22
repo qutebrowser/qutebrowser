@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -28,6 +28,13 @@ from PyQt5.QtGui import QStandardItemModel
 from qutebrowser.completion import completer
 from qutebrowser.commands import command
 from qutebrowser.api import cmdutils
+
+
+@pytest.fixture(autouse=True)
+def setup_cur_tab(tabbed_browser_stubs, fake_web_tab):
+    # Make sure completions can access the current tab
+    tabbed_browser_stubs[0].widget.tabs = [fake_web_tab()]
+    tabbed_browser_stubs[0].widget.current_index = 0
 
 
 class FakeCompletionModel(QStandardItemModel):
@@ -89,7 +96,7 @@ def miscmodels_patch(mocker):
     m.quickmark = func('quickmark')
     m.bookmark = func('bookmark')
     m.session = func('session')
-    m.buffer = func('buffer')
+    m.tabs = func('tabs')
     m.bind = func('bind')
     m.url = func('url')
     m.section = func('section')

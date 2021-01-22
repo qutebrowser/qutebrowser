@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -48,7 +48,7 @@ def handler(request, operation, current_url):
     if ((url.scheme(), url.host(), url.path()) ==
             ('qute', 'settings', '/set')):
         if current_url != QUrl('qute://settings/'):
-            log.webview.warning("Blocking malicious request from {} to {}"
+            log.network.warning("Blocking malicious request from {} to {}"
                                 .format(current_url.toDisplayString(),
                                         url.toDisplayString()))
             return networkreply.ErrorNetworkReply(

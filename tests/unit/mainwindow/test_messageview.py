@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -35,6 +35,7 @@ def view(qtbot, config_stub):
 @pytest.mark.parametrize('level', [usertypes.MessageLevel.info,
                                    usertypes.MessageLevel.warning,
                                    usertypes.MessageLevel.error])
+@pytest.mark.flaky  # on macOS
 def test_single_message(qtbot, view, level):
     with qtbot.waitExposed(view, timeout=5000):
         view.show_message(level, 'test')
@@ -56,6 +57,26 @@ def test_size_hint(view):
     view.show_message(usertypes.MessageLevel.info, 'test2')
     height2 = view.sizeHint().height()
     assert height2 == height1 * 2
+
+
+def test_word_wrap(view, qtbot):
+    """A long message should be wrapped."""
+    with qtbot.waitSignal(view._clear_timer.timeout):
+        view.show_message(usertypes.MessageLevel.info, 'short')
+        height1 = view.sizeHint().height()
+        assert height1 > 0
+
+    text = ("Athene, the bright-eyed goddess, answered him at once: Father of "
+            "us all, Son of Cronos, Highest King, clearly that man deserved to be "
+            "destroyed: so let all be destroyed who act as he did. But my heart aches "
+            "for Odysseus, wise but ill fated, who suffers far from his friends on an "
+            "island deep in the sea.")
+
+    view.show_message(usertypes.MessageLevel.info, text)
+    height2 = view.sizeHint().height()
+
+    assert height2 > height1
+    assert view._messages[0].wordWrap()
 
 
 def test_show_message_twice(view):

@@ -1,4 +1,4 @@
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 #
@@ -115,7 +115,7 @@ def test_not_found(caplog):
 
 
 def test_utf8():
-    """Test rendering with an UTF8 template.
+    """Test rendering with a UTF8 template.
 
     This was an attempt to get a failing test case for #127 but it seems
     the issue is elsewhere.

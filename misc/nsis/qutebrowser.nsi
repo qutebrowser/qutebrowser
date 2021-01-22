@@ -1,4 +1,5 @@
 # Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# encoding: iso-8859-1
 #
 # This file is part of qutebrowser.
 #

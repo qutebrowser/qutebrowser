@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -23,12 +23,16 @@ See:
 https://developer.chrome.com/apps/match_patterns
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern.cc
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern.h
+
+Based on the following commit in Chromium:
+https://chromium.googlesource.com/chromium/src/+/6f4a6681eae01c2036336c18b06303e16a304a7c
+(October 10 2020, newest commit as per October 28th 2020)
 """
 
 import ipaddress
 import fnmatch
-import typing
 import urllib.parse
+from typing import Any, Optional, Tuple
 
 from PyQt5.QtCore import QUrl
 
@@ -69,11 +73,11 @@ class UrlPattern:
         # Make sure all attributes are initialized if we exit early.
         self._pattern = pattern
         self._match_all = False
-        self._match_subdomains = False  # type: bool
-        self._scheme = None  # type: typing.Optional[str]
-        self.host = None  # type: typing.Optional[str]
-        self._path = None  # type: typing.Optional[str]
-        self._port = None  # type: typing.Optional[int]
+        self._match_subdomains: bool = False
+        self._scheme: Optional[str] = None
+        self.host: Optional[str] = None
+        self._path: Optional[str] = None
+        self._port: Optional[int] = None
 
         # > The special pattern <all_urls> matches any URL that starts with a
         # > permitted scheme.
@@ -100,7 +104,7 @@ class UrlPattern:
         self._init_path(parsed)
         self._init_port(parsed)
 
-    def _to_tuple(self) -> typing.Tuple:
+    def _to_tuple(self) -> Tuple:
         """Get a pattern with information used for __eq__/__hash__."""
         return (self._match_all, self._match_subdomains, self._scheme,
                 self.host, self._path, self._port)
@@ -108,7 +112,7 @@ class UrlPattern:
     def __hash__(self) -> int:
         return hash(self._to_tuple())
 
-    def __eq__(self, other: typing.Any) -> bool:
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, UrlPattern):
             return NotImplemented
         return self._to_tuple() == other._to_tuple()
@@ -121,7 +125,7 @@ class UrlPattern:
 
     def _fixup_pattern(self, pattern: str) -> str:
         """Make sure the given pattern is parseable by urllib.parse."""
-        if pattern.startswith('*:'):  # Any scheme, but *:// is unparseable
+        if pattern.startswith('*:'):  # Any scheme, but *:// is unparsable
             pattern = 'any:' + pattern[2:]
 
         schemes = tuple(s + ':' for s in self._SCHEMES_WITHOUT_HOST)
@@ -174,6 +178,8 @@ class UrlPattern:
 
         Deviation from Chromium:
         - http://:1234/ is not a valid URL because it has no host.
+        - We don't allow patterns for dot/space hosts which QUrl considers
+          invalid.
         """
         if parsed.hostname is None or not parsed.hostname.strip():
             if self._scheme not in self._SCHEMES_WITHOUT_HOST:
@@ -190,24 +196,27 @@ class UrlPattern:
             self.host = url.host()
             return
 
-        # FIXME what about multiple dots?
-        host_parts = parsed.hostname.rstrip('.').split('.')
-        if host_parts[0] == '*':
-            host_parts = host_parts[1:]
+        if parsed.hostname == '*':
             self._match_subdomains = True
+            hostname = None
+        elif parsed.hostname.startswith('*.'):
+            if len(parsed.hostname) == 2:
+                # We don't allow just '*.' as a host.
+                raise ParseError("Pattern without host")
+            self._match_subdomains = True
+            hostname = parsed.hostname[2:]
+        elif set(parsed.hostname) in {frozenset('.'), frozenset('. ')}:
+            raise ParseError("Invalid host")
+        else:
+            hostname = parsed.hostname
 
-        if not host_parts:
+        if hostname is None:
             self.host = None
-            return
-
-        self.host = '.'.join(host_parts)
-
-        if self.host.endswith('.*'):
-            # Special case to have a nicer error
-            raise ParseError("TLD wildcards are not implemented yet")
-        if '*' in self.host:
+        elif '*' in hostname:
             # Only * or *.foo is allowed as host.
             raise ParseError("Invalid host wildcard")
+        else:
+            self.host = hostname.rstrip('.')
 
     def _init_port(self, parsed: urllib.parse.ParseResult) -> None:
         """Parse the port from the given URL.
@@ -276,6 +285,12 @@ class UrlPattern:
         return self._port is None or self._port == port
 
     def _matches_path(self, path: str) -> bool:
+        """Match the URL's path.
+
+        Deviations from Chromium:
+        - Chromium only matches <all_urls> with "javascript:" (pathless); but
+          we also match *://*/* and friends.
+        """
         if self._path is None:
             return True
 

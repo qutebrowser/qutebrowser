@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: ❓ Support Question
+    url: https://github.com/qutebrowser/qutebrowser/discussions
+    about: Use GitHub's new discussions feature for questions

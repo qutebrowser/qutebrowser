@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,13 +20,15 @@
 """Tests for qutebrowser.misc.ipc."""
 
 import os
+import pathlib
 import getpass
 import logging
 import json
 import hashlib
+import dataclasses
 from unittest import mock
+from typing import Optional, List
 
-import attr
 import pytest
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtNetwork import QLocalServer, QLocalSocket, QAbstractSocket
@@ -35,7 +37,7 @@ from PyQt5.QtTest import QSignalSpy
 import qutebrowser
 from qutebrowser.misc import ipc
 from qutebrowser.utils import standarddir, utils
-from helpers import stubs
+from helpers import stubs, utils as testutils
 
 
 pytestmark = pytest.mark.usefixtures('qapp')
@@ -197,6 +199,14 @@ class TestSocketName:
         socketname = ipc._get_socketname_windows(basedir)
         assert socketname == expected
 
+    def test_windows_broken_getpass(self, monkeypatch):
+        def _fake_username():
+            raise ImportError
+        monkeypatch.setattr(ipc.getpass, 'getuser', _fake_username)
+
+        with pytest.raises(ipc.Error, match='USERNAME'):
+            ipc._get_socketname_windows(basedir=None)
+
     @pytest.mark.mac
     @pytest.mark.parametrize('basedir, expected', [
         (None, 'i-{}'.format(md5('testusername'))),
@@ -297,10 +307,10 @@ class TestListen:
     def test_permissions_posix(self, ipc_server):
         ipc_server.listen()
         sockfile = ipc_server._server.fullServerName()
-        sockdir = os.path.dirname(sockfile)
+        sockdir = pathlib.Path(sockfile).parent
 
         file_stat = os.stat(sockfile)
-        dir_stat = os.stat(sockdir)
+        dir_stat = sockdir.stat()
 
         # pylint: disable=no-member,useless-suppression
         file_owner_ok = file_stat.st_uid == os.getuid()
@@ -319,7 +329,7 @@ class TestListen:
 
     @pytest.mark.posix
     def test_atime_update(self, qtbot, ipc_server):
-        ipc_server._atime_timer.setInterval(500)  # We don't want to wait 6h
+        ipc_server._atime_timer.setInterval(500)  # We don't want to wait
         ipc_server.listen()
         old_atime = os.stat(ipc_server._server.fullServerName()).st_atime_ns
 
@@ -346,6 +356,25 @@ class TestListen:
         """This should never happen, but let's handle it gracefully."""
         ipc_server._atime_timer.timeout.disconnect(ipc_server.update_atime)
         ipc_server.shutdown()
+
+    @pytest.mark.posix
+    def test_vanished_runtime_file(self, qtbot, caplog, ipc_server):
+        ipc_server._atime_timer.setInterval(500)  # We don't want to wait
+        ipc_server.listen()
+
+        sockfile = pathlib.Path(ipc_server._server.fullServerName())
+        sockfile.unlink()
+
+        with caplog.at_level(logging.ERROR):
+            with qtbot.waitSignal(ipc_server._atime_timer.timeout,
+                                  timeout=2000):
+                pass
+
+        msg = 'Failed to update IPC socket, trying to re-listen...'
+        assert caplog.messages[-1] == msg
+
+        assert ipc_server._server.isListening()
+        assert sockfile.exists()
 
 
 class TestOnError:
@@ -504,7 +533,7 @@ class TestSendToRunningInstance:
 
     @pytest.mark.parametrize('has_cwd', [True, False])
     @pytest.mark.linux(reason="Causes random trouble on Windows and macOS")
-    def test_normal(self, qtbot, tmpdir, ipc_server, mocker, has_cwd):
+    def test_normal(self, qtbot, tmp_path, ipc_server, mocker, has_cwd):
         ipc_server.listen()
 
         with qtbot.assertNotEmitted(ipc_server.got_invalid_data):
@@ -512,7 +541,7 @@ class TestSendToRunningInstance:
                                   timeout=5000) as blocker:
                 with qtbot.waitSignal(ipc_server.got_raw,
                                       timeout=5000) as raw_blocker:
-                    with tmpdir.as_cwd():
+                    with testutils.change_cwd(tmp_path):
                         if not has_cwd:
                             m = mocker.patch('qutebrowser.misc.ipc.os')
                             m.getcwd.side_effect = OSError
@@ -521,7 +550,7 @@ class TestSendToRunningInstance:
 
         assert sent
 
-        expected_cwd = str(tmpdir) if has_cwd else ''
+        expected_cwd = str(tmp_path) if has_cwd else ''
 
         assert blocker.args == [['foo'], '', expected_cwd]
 
@@ -529,7 +558,7 @@ class TestSendToRunningInstance:
                         'version': qutebrowser.__version__,
                         'protocol_version': ipc.PROTOCOL_VERSION}
         if has_cwd:
-            raw_expected['cwd'] = str(tmpdir)
+            raw_expected['cwd'] = str(tmp_path)
 
         assert len(raw_blocker.args) == 1
         parsed = json.loads(raw_blocker.args[0].decode('utf-8'))
@@ -588,13 +617,13 @@ def test_ipcserver_socket_none_error(ipc_server, caplog):
 
 class TestSendOrListen:
 
-    @attr.s
+    @dataclasses.dataclass
     class Args:
 
-        no_err_windows = attr.ib()
-        basedir = attr.ib()
-        command = attr.ib()
-        target = attr.ib()
+        no_err_windows: bool
+        basedir: str
+        command: List[str]
+        target: Optional[str]
 
     @pytest.fixture
     def args(self):
@@ -705,7 +734,7 @@ class TestSendOrListen:
             '',
             'title: Error while connecting to running instance!',
             'pre_text: ',
-            'post_text: Maybe another instance is running but frozen?',
+            'post_text: ',
             'exception text: {}'.format(exc_msg),
         ]
         assert caplog.messages == ['\n'.join(error_msgs)]
@@ -726,7 +755,7 @@ class TestSendOrListen:
             '',
             'title: Error while connecting to running instance!',
             'pre_text: ',
-            'post_text: Maybe another instance is running but frozen?',
+            'post_text: ',
             ('exception text: Error while listening to IPC server: Error '
              'string (error 4)'),
         ]
@@ -739,7 +768,7 @@ def test_long_username(monkeypatch):
     """See https://github.com/qutebrowser/qutebrowser/issues/888."""
     username = 'alexandercogneau'
     basedir = '/this_is_a_long_basedir'
-    monkeypatch.setattr('getpass.getuser', lambda: username)
+    monkeypatch.setattr(getpass, 'getuser', lambda: username)
     name = ipc._get_socketname(basedir=basedir)
     server = ipc.IPCServer(name)
     expected_md5 = md5('{}-{}'.format(username, basedir))

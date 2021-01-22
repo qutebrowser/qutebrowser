@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,7 +19,7 @@
 
 """Command history for the status bar."""
 
-import typing
+from typing import MutableSequence
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
@@ -60,7 +60,7 @@ class History(QObject):
         super().__init__(parent)
         self._tmphist = None
         if history is None:
-            self.history = []  # type: typing.MutableSequence[str]
+            self.history: MutableSequence[str] = []
         else:
             self.history = history
 
@@ -82,9 +82,9 @@ class History(QObject):
         """
         log.misc.debug("Preset text: '{}'".format(text))
         if text:
-            items = [
+            items: MutableSequence[str] = [
                 e for e in self.history
-                if e.startswith(text)]  # type: typing.MutableSequence[str]
+                if e.startswith(text)]
         else:
             items = self.history
         if not items:

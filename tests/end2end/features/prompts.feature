@@ -1,7 +1,7 @@
 # vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
 
 Feature: Prompts
-    Various prompts (javascript, SSL errors, authentification, etc.)
+    Various prompts (javascript, SSL errors, authentication, etc.)
 
     # Javascript
 
@@ -36,10 +36,9 @@ Feature: Prompts
         When I open data/prompt/jsconfirm.html
         And I run :click-element id button
         And I wait for a prompt
-        And I run :leave-mode
+        And I run :mode-leave
         Then the javascript message "confirm reply: false" should be logged
 
-    @js_prompt
     Scenario: Javascript prompt
         When I open data/prompt/jsprompt.html
         And I run :click-element id button
@@ -48,7 +47,6 @@ Feature: Prompts
         And I run :prompt-accept
         Then the javascript message "Prompt reply: prompt test" should be logged
 
-    @js_prompt
     Scenario: Javascript prompt with default
         When I open data/prompt/jsprompt.html
         And I run :click-element id button-default
@@ -56,13 +54,12 @@ Feature: Prompts
         And I run :prompt-accept
         Then the javascript message "Prompt reply: default" should be logged
 
-    @js_prompt
     Scenario: Rejected javascript prompt
         When I open data/prompt/jsprompt.html
         And I run :click-element id button
         And I wait for a prompt
         And I press the keys "prompt test"
-        And I run :leave-mode
+        And I run :mode-leave
         Then the javascript message "Prompt reply: null" should be logged
 
     # Multiple prompts
@@ -137,7 +134,6 @@ Feature: Prompts
 
     # Shift-Insert with prompt (issue 1299)
 
-    @js_prompt
     Scenario: Pasting via shift-insert in prompt mode
         When selection is supported
         And I put "insert test" into the primary selection
@@ -148,7 +144,6 @@ Feature: Prompts
         And I run :prompt-accept
         Then the javascript message "Prompt reply: insert test" should be logged
 
-    @js_prompt
     Scenario: Pasting via shift-insert without it being supported
         When selection is not supported
         And I put "insert test" into the primary selection
@@ -160,7 +155,6 @@ Feature: Prompts
         And I run :prompt-accept
         Then the javascript message "Prompt reply: clipboard test" should be logged
 
-    @js_prompt
     Scenario: Using content.javascript.prompt
         When I set content.javascript.prompt to false
         And I open data/prompt/jsprompt.html
@@ -205,7 +199,7 @@ Feature: Prompts
         And I set content.ssl_strict to ask
         And I load an SSL page
         And I wait for a prompt
-        And I run :leave-mode
+        And I run :mode-leave
         Then a SSL error page should be shown
 
     # Geolocation
@@ -238,7 +232,7 @@ Feature: Prompts
         And I open data/prompt/geolocation.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
-        And I run :leave-mode
+        And I run :mode-leave
         Then the javascript message "geolocation permission denied" should be logged
 
     # Notifications
@@ -309,7 +303,7 @@ Feature: Prompts
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
-        And I run :leave-mode
+        And I run :mode-leave
         Then the javascript message "notification permission aborted" should be logged
 
     @qtwebengine_notifications
@@ -325,7 +319,7 @@ Feature: Prompts
 
     # Page authentication
 
-    Scenario: Successful webpage authentification
+    Scenario: Successful webpage authentication
         When I open basic-auth/user1/password1 without waiting
         And I wait for a prompt
         And I press the keys "user1"
@@ -378,10 +372,10 @@ Feature: Prompts
             }
 
     @qtwebengine_skip
-    Scenario: Cancellling webpage authentification with QtWebKit
+    Scenario: Cancellling webpage authentication with QtWebKit
         When I open basic-auth/user6/password6 without waiting
         And I wait for a prompt
-        And I run :leave-mode
+        And I run :mode-leave
         Then basic-auth/user6/password6 should be loaded
 
     # :prompt-accept with value argument
@@ -396,7 +390,6 @@ Feature: Prompts
         Then the javascript message "Alert done" should be logged
         And the error "No value is permitted with alert prompts!" should be shown
 
-    @js_prompt
     Scenario: Javascript prompt with value
         When I set content.javascript.prompt to true
         And I open data/prompt/jsprompt.html

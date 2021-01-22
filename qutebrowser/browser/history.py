@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -22,7 +22,7 @@
 import os
 import time
 import contextlib
-import typing
+from typing import cast, Mapping, MutableSequence
 
 from PyQt5.QtCore import pyqtSlot, QUrl, pyqtSignal
 from PyQt5.QtWidgets import QProgressDialog, QApplication
@@ -33,9 +33,7 @@ from qutebrowser.utils import utils, log, usertypes, message, qtutils
 from qutebrowser.misc import objects, sql
 
 
-# increment to indicate that HistoryCompletion must be regenerated
-_USER_VERSION = 2
-web_history = typing.cast('WebHistory', None)
+web_history = cast('WebHistory', None)
 
 
 class HistoryProgress:
@@ -51,14 +49,21 @@ class HistoryProgress:
         self._progress = None
         self._value = 0
 
-    def start(self, text, maximum):
+    def start(self, text):
         """Start showing a progress dialog."""
         self._progress = QProgressDialog()
-        self._progress.setMinimumDuration(500)
+        self._progress.setMaximum(0)  # unknown
+        self._progress.setMinimumDuration(0)
         self._progress.setLabelText(text)
-        self._progress.setMaximum(maximum)
-        self._progress.setCancelButton(None)  # type: ignore
+        self._progress.setCancelButton(None)
+        self._progress.setAutoClose(False)
         self._progress.show()
+        QApplication.processEvents()
+
+    def set_maximum(self, maximum):
+        """Set the progress maximum as soon as we know about it."""
+        assert self._progress is not None
+        self._progress.setMaximum(maximum)
         QApplication.processEvents()
 
     def tick(self):
@@ -69,7 +74,10 @@ class HistoryProgress:
             QApplication.processEvents()
 
     def finish(self):
-        """Finish showing the progress dialog."""
+        """Finish showing the progress dialog.
+
+        After this is called, the object can be reused.
+        """
         if self._progress is not None:
             self._progress.hide()
 
@@ -79,19 +87,25 @@ class CompletionMetaInfo(sql.SqlTable):
     """Table containing meta-information for the completion."""
 
     KEYS = {
-        'force_rebuild': False,
+        'excluded_patterns': '',
     }
 
     def __init__(self, parent=None):
         super().__init__("CompletionMetaInfo", ['key', 'value'],
                          constraints={'key': 'PRIMARY KEY'})
-        for key, default in self.KEYS.items():
-            if key not in self:
-                self[key] = default
+        if sql.user_version_changed():
+            self._init_default_values()
+            # force_rebuild is not in use anymore
+            self.delete('key', 'force_rebuild', optional=True)
 
     def _check_key(self, key):
         if key not in self.KEYS:
             raise KeyError(key)
+
+    def _init_default_values(self):
+        for key, default in self.KEYS.items():
+            if key not in self:
+                self[key] = default
 
     def __contains__(self, key):
         self._check_key(key)
@@ -130,17 +144,12 @@ class WebHistory(sql.SqlTable):
         completion: A CompletionHistory instance.
         metainfo: A CompletionMetaInfo instance.
         _progress: A HistoryProgress instance.
-
-    Class attributes:
-        _PROGRESS_THRESHOLD: When to start showing progress dialogs.
     """
 
     # All web history cleared
     history_cleared = pyqtSignal()
     # one url cleared
     url_cleared = pyqtSignal(QUrl)
-
-    _PROGRESS_THRESHOLD = 1000
 
     def __init__(self, progress, parent=None):
         super().__init__("History", ['url', 'title', 'atime', 'redirect'],
@@ -150,20 +159,36 @@ class WebHistory(sql.SqlTable):
                                       'redirect': 'NOT NULL'},
                          parent=parent)
         self._progress = progress
-        # Store the last saved url to avoid duplicate immedate saves.
+        # Store the last saved url to avoid duplicate immediate saves.
         self._last_url = None
 
         self.completion = CompletionHistory(parent=self)
         self.metainfo = CompletionMetaInfo(parent=self)
 
-        if sql.Query('pragma user_version').run().value() < _USER_VERSION:
-            self.completion.delete_all()
-        if self.metainfo['force_rebuild']:
-            self.completion.delete_all()
-            self.metainfo['force_rebuild'] = False
+        rebuild_completion = False
 
-        if not self.completion:
-            # either the table is out-of-date or the user wiped it manually
+        if sql.user_version_changed():
+            # If the DB user version changed, run a full cleanup and rebuild the
+            # completion history.
+            #
+            # In the future, this could be improved to only be done when actually needed
+            # - but version changes happen very infrequently, rebuilding everything
+            # gives us less corner-cases to deal with, and we can run a VACUUM to make
+            # things smaller.
+            self._cleanup_history()
+            rebuild_completion = True
+
+        # Get a string of all patterns
+        patterns = config.instance.get_str('completion.web_history.exclude')
+
+        # If patterns changed, update them in database and rebuild completion
+        if self.metainfo['excluded_patterns'] != patterns:
+            self.metainfo['excluded_patterns'] = patterns
+            rebuild_completion = True
+
+        if rebuild_completion and self.completion:
+            # If no completion history exists, we don't need to spawn a dialog for
+            # cleaning it up.
             self._rebuild_completion()
 
         self.create_index('HistoryIndex', 'url')
@@ -183,59 +208,103 @@ class WebHistory(sql.SqlTable):
                                        'ORDER BY atime desc '
                                        'limit :limit offset :offset')
 
-        config.instance.changed.connect(self._on_config_changed)
-
     def __repr__(self):
         return utils.get_repr(self, length=len(self))
 
     def __contains__(self, url):
         return self._contains_query.run(val=url).value()
 
-    @config.change_filter('completion.web_history.exclude')
-    def _on_config_changed(self):
-        self.metainfo['force_rebuild'] = True
-
     @contextlib.contextmanager
     def _handle_sql_errors(self):
         try:
             yield
         except sql.KnownError as e:
-            message.error("Failed to write history: {}".format(e.text()))
+            message.error(f"Failed to write history: {e.text()}")
 
-    def _is_excluded(self, url):
+    def _is_excluded_from_completion(self, url):
         """Check if the given URL is excluded from the completion."""
         patterns = config.cache['completion.web_history.exclude']
         return any(pattern.matches(url) for pattern in patterns)
 
+    def _is_excluded_entirely(self, url):
+        """Check if the given URL is excluded from the entire history.
+
+        This is the case for URLs which can't be visited at a later point; or which are
+        usually excessively long.
+
+        NOTE: If you add new filters here, it might be a good idea to adjust the
+        _USER_VERSION code and _cleanup_history so that older histories get cleaned up
+        accordingly as well.
+        """
+        return (
+            url.scheme() in {'data', 'view-source'} or
+            (url.scheme() == 'qute' and url.host() in {'back', 'pdfjs'})
+        )
+
+    def _cleanup_history(self):
+        """Do a one-time cleanup of the entire history.
+
+        This is run only once after the v2.0.0 upgrade, based on the database's
+        user_version.
+        """
+        terms = [
+            'data:%',
+            'view-source:%',
+            'qute://back%',
+            'qute://pdfjs%',
+        ]
+        where_clause = ' OR '.join(f"url LIKE '{term}'" for term in terms)
+        q = sql.Query(f'DELETE FROM History WHERE {where_clause}')
+        entries = q.run()
+        log.sql.debug(f"Cleanup removed {entries.rows_affected()} items")
+
     def _rebuild_completion(self):
-        data = {
+        data: Mapping[str, MutableSequence[str]] = {
             'url': [],
             'title': [],
             'last_atime': []
-        }  # type: typing.Mapping[str, typing.MutableSequence[str]]
-        # select the latest entry for each url
-        q = sql.Query('SELECT url, title, max(atime) AS atime FROM History '
-                      'WHERE NOT redirect and url NOT LIKE "qute://back%" '
-                      'GROUP BY url ORDER BY atime asc')
-        entries = list(q.run())
+        }
 
-        if len(entries) > self._PROGRESS_THRESHOLD:
-            self._progress.start("Rebuilding completion...", len(entries))
+        self._progress.start(
+            "<b>Rebuilding completion...</b><br>"
+            "This is a one-time operation and happens because the database version "
+            "or <i>completion.web_history.exclude</i> was changed."
+        )
+
+        # Delete old entries
+        self.completion.delete_all()
+        QApplication.processEvents()
+
+        # Select the latest entry for each url
+        q = sql.Query('SELECT url, title, max(atime) AS atime FROM History '
+                      'WHERE NOT redirect '
+                      'GROUP BY url ORDER BY atime asc')
+        result = q.run()
+        QApplication.processEvents()
+        entries = list(result)
+
+        self._progress.set_maximum(len(entries))
 
         for entry in entries:
             self._progress.tick()
 
             url = QUrl(entry.url)
-            if self._is_excluded(url):
+            if self._is_excluded_from_completion(url):
                 continue
             data['url'].append(self._format_completion_url(url))
             data['title'].append(entry.title)
             data['last_atime'].append(entry.atime)
 
-        self._progress.finish()
+        self._progress.set_maximum(0)
+
+        # We might have caused fragmentation - let's clean up.
+        sql.Query('VACUUM').run()
+        QApplication.processEvents()
 
         self.completion.insert_batch(data, replace=True)
-        sql.Query('pragma user_version = {}'.format(_USER_VERSION)).run()
+        QApplication.processEvents()
+
+        self._progress.finish()
 
     def get_recent(self):
         """Get the most recent history entries."""
@@ -287,9 +356,7 @@ class WebHistory(sql.SqlTable):
     @pyqtSlot(QUrl, QUrl, str)
     def add_from_tab(self, url, requested_url, title):
         """Add a new history entry as slot, called from a BrowserTab."""
-        if any(url.scheme() in ('data', 'view-source') or
-               (url.scheme(), url.host()) == ('qute', 'back')
-               for url in (url, requested_url)):
+        if self._is_excluded_entirely(url) or self._is_excluded_entirely(requested_url):
             return
         if url.isEmpty():
             # things set via setHtml
@@ -329,7 +396,7 @@ class WebHistory(sql.SqlTable):
                          'atime': atime,
                          'redirect': redirect})
 
-            if redirect or self._is_excluded(url):
+            if redirect or self._is_excluded_from_completion(url):
                 return
 
             self.completion.insert({
@@ -372,20 +439,15 @@ def debug_dump_history(dest):
     """
     dest = os.path.expanduser(dest)
 
-    lines = ('{}{} {} {}'.format(int(x.atime),
-                                 '-r' * x.redirect,
-                                 x.url,
-                                 x.title)
-             for x in web_history.select(sort_by='atime',
-                                         sort_order='asc'))
+    lines = (f'{int(x.atime)}{"-r" * x.redirect} {x.url} {x.title}'
+             for x in web_history.select(sort_by='atime', sort_order='asc'))
 
     try:
         with open(dest, 'w', encoding='utf-8') as f:
             f.write('\n'.join(lines))
-        message.info("Dumped history to {}".format(dest))
+        message.info(f"Dumped history to {dest}")
     except OSError as e:
-        raise cmdutils.CommandError('Could not write history: {}'
-                                    .format(e))
+        raise cmdutils.CommandError(f'Could not write history: {e}')
 
 
 def init(parent=None):
@@ -401,3 +463,5 @@ def init(parent=None):
     if objects.backend == usertypes.Backend.QtWebKit:  # pragma: no cover
         from qutebrowser.browser.webkit import webkithistory
         webkithistory.init(web_history)
+        return
+    assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend

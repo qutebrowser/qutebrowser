@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,9 +20,4 @@
 """Wrappers around Qt/PyQt code."""
 
 # pylint: disable=unused-import
-# PyQt 5.11 comes with a bundled sip,
-# for older PyQt versions it's a separate module.
-try:
-    from PyQt5 import sip
-except ImportError:
-    import sip  # type: ignore
+from PyQt5 import sip

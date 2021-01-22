@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,12 +19,13 @@
 
 """Tests for the webelement utils."""
 
+from typing import TYPE_CHECKING
 from unittest import mock
 import collections.abc
 import operator
 import itertools
+import dataclasses
 
-import attr
 import pytest
 from PyQt5.QtCore import QRect, QPoint, QUrl
 QWebElement = pytest.importorskip('PyQt5.QtWebKit').QWebElement
@@ -33,6 +34,8 @@ from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webkitelem
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes
+if TYPE_CHECKING:
+    from helpers import stubs
 
 
 def get_webelem(geometry=None, frame=None, *, null=False, style=None,
@@ -263,6 +266,8 @@ class TestWebKitElement:
         pytest.param(lambda e: e.remove_blank_target(),
                      id='remove_blank_target'),
         pytest.param(lambda e: e.outer_xml(), id='outer_xml'),
+        pytest.param(lambda e: e.is_content_editable_prop(),
+                     id='is_content_editable_prop'),
         pytest.param(lambda e: e.tag_name(), id='tag_name'),
         pytest.param(lambda e: e.rect_on_view(), id='rect_on_view'),
         pytest.param(lambda e: e._is_visible(None), id='is_visible'),
@@ -525,12 +530,12 @@ class TestIsVisibleIframe:
         elem1-elem4: FakeWebElements to test.
     """
 
-    @attr.s
+    @dataclasses.dataclass
     class Objects:
 
-        frame = attr.ib()
-        iframe = attr.ib()
-        elems = attr.ib()
+        frame: 'stubs.FakeWebFrame'
+        iframe: 'stubs.FakeWebFrame'
+        elems: webkitelem.WebKitElement
 
     @pytest.fixture
     def objects(self, stubs):
@@ -741,8 +746,8 @@ class TestGetChildFrames:
     def test_one_level(self, stubs):
         r"""Test get_child_frames with one level of children.
 
-                  o   parent
-                 / \
+                  o    parent
+                 / \   ------
         child1  o   o  child2
         """
         child1 = stubs.FakeChildrenFrame()
@@ -761,9 +766,9 @@ class TestGetChildFrames:
         r"""Test get_child_frames with multiple levels of children.
 
             o      root
-           / \
+           / \     ------
           o   o    first
-         /\   /\
+         /\   /\   ------
         o  o o  o  second
         """
         second = [stubs.FakeChildrenFrame() for _ in range(4)]
@@ -816,7 +821,19 @@ class TestIsEditable:
     ])
     def test_is_editable(self, tagname, attributes, editable):
         elem = get_webelem(tagname=tagname, attributes=attributes)
+        elem._elem.evaluateJavaScript.return_value = False
         assert elem.is_editable() == editable
+
+    @pytest.mark.parametrize('strict, attributes, expected', [
+        (False, {}, True),
+        (False, {'disabled': 'true'}, False),
+        (False, {'readonly': 'true'}, False),
+        (True, {}, False),
+    ])
+    def test_is_editable_content_editable(self, strict, attributes, expected):
+        elem = get_webelem(tagname='foobar', attributes=attributes)
+        elem._elem.evaluateJavaScript.return_value = True
+        assert elem.is_editable(strict=strict) == expected
 
     @pytest.mark.parametrize('classes, editable', [
         (None, False),
@@ -827,6 +844,7 @@ class TestIsEditable:
     ])
     def test_is_editable_div(self, classes, editable):
         elem = get_webelem(tagname='div', classes=classes)
+        elem._elem.evaluateJavaScript.return_value = False
         assert elem.is_editable() == editable
 
     @pytest.mark.parametrize('setting, tagname, attributes, editable', [
@@ -845,6 +863,7 @@ class TestIsEditable:
                                 setting, tagname, attributes, editable):
         config_stub.val.input.insert_mode.plugins = setting
         elem = get_webelem(tagname=tagname, attributes=attributes)
+        elem._elem.evaluateJavaScript.return_value = False
         assert elem.is_editable() == editable
 
 

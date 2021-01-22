@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2017-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -28,7 +28,7 @@ from PyQt5.QtCore import QSettings
 
 from qutebrowser.config import (config, configfiles, configexc, configdata,
                                 configtypes)
-from qutebrowser.utils import utils, usertypes, urlmatch
+from qutebrowser.utils import utils, usertypes, urlmatch, standarddir
 from qutebrowser.keyinput import keyutils
 
 
@@ -83,6 +83,8 @@ def autoconfig(config_tmpdir):
      'version = 1.2.3\n'
      '\n'
      '[geometry]\n'
+     '\n'
+     '[inspector]\n'
      '\n'),
     ('[general]\n'
      'fooled = true',
@@ -92,6 +94,8 @@ def autoconfig(config_tmpdir):
      'version = 1.2.3\n'
      '\n'
      '[geometry]\n'
+     '\n'
+     '[inspector]\n'
      '\n'),
     ('[general]\n'
      'foobar = 42',
@@ -102,6 +106,8 @@ def autoconfig(config_tmpdir):
      'version = 1.2.3\n'
      '\n'
      '[geometry]\n'
+     '\n'
+     '[inspector]\n'
      '\n'),
     (None,
      True,
@@ -111,6 +117,8 @@ def autoconfig(config_tmpdir):
      'newval = 23\n'
      '\n'
      '[geometry]\n'
+     '\n'
+     '[inspector]\n'
      '\n'),
 ])
 def test_state_config(fake_save_manager, data_tmpdir, monkeypatch,
@@ -322,6 +330,18 @@ class TestYaml:
         assert str(error.exception).splitlines()[0] == exception
         assert error.traceback is None
 
+    @pytest.mark.parametrize('value', [
+        42,  # value is not a dict
+        {'https://': True},  # Invalid pattern
+        {True: True},  # No string pattern
+    ])
+    def test_invalid_in_migrations(self, value, yaml, autoconfig):
+        """Make sure migrations work fine with an invalid structure."""
+        config = {key: value for key in configdata.DATA}
+        autoconfig.write(config)
+        with pytest.raises(configexc.ConfigFileErrors):
+            yaml.load()
+
     def test_legacy_migration(self, yaml, autoconfig, qtbot):
         autoconfig.write_toplevel({
             'config_version': 1,
@@ -501,7 +521,7 @@ class TestYamlMigrations:
         ('tabs.favicons.show', 'always', 'always'),
 
         ('scrolling.bar', True, 'always'),
-        ('scrolling.bar', False, 'when-searching'),
+        ('scrolling.bar', False, 'overlay'),
         ('scrolling.bar', 'always', 'always'),
 
         ('qt.force_software_rendering', True, 'software-opengl'),
@@ -578,8 +598,6 @@ class TestYamlMigrations:
     @pytest.mark.parametrize('setting, old, new', [
         # Font
         ('fonts.hints', '10pt monospace', '10pt default_family'),
-        # QtFont
-        ('fonts.debug_console', '10pt monospace', '10pt default_family'),
         # String
         ('content.headers.accept_language', 'x monospace', 'x monospace'),
         # Not at end of string
@@ -587,6 +605,51 @@ class TestYamlMigrations:
     ])
     def test_font_replacements(self, migration_test, setting, old, new):
         migration_test(setting, old, new)
+
+    def test_fonts_tabs(self, yaml, autoconfig):
+        val = '10pt default_family'
+        autoconfig.write({'fonts.tabs': {'global': val}})
+
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        assert data['fonts.tabs.unselected']['global'] == val
+        assert data['fonts.tabs.selected']['global'] == val
+
+    def test_content_media_capture(self, yaml, autoconfig):
+        val = 'ask'
+        autoconfig.write({'content.media_capture': {'global': val}})
+
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        for setting in ['content.media.audio_capture',
+                        'content.media.audio_video_capture',
+                        'content.media.video_capture']:
+            assert data[setting]['global'] == val
+
+    def test_empty_pattern(self, yaml, autoconfig):
+        valid_pattern = 'https://example.com/*'
+        invalid_pattern = '*://*./*'
+        setting = 'content.javascript.enabled'
+
+        autoconfig.write({
+            setting: {
+                'global': False,
+                invalid_pattern: True,
+                valid_pattern: True,
+            }
+        })
+
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        assert not data[setting]['global']
+        assert invalid_pattern not in data[setting]
+        assert data[setting][valid_pattern]
 
 
 class ConfPy:
@@ -596,6 +659,7 @@ class ConfPy:
     def __init__(self, tmpdir, filename: str = "config.py"):
         self._file = tmpdir / filename
         self.filename = str(self._file)
+        config.instance.warn_autoconfig = False
 
     def write(self, *lines):
         text = '\n'.join(lines)
@@ -744,9 +808,7 @@ class TestConfigPy:
     ])
     def test_get(self, confpy, set_first, get_line):
         """Test whether getting options works correctly."""
-        # pylint: disable=bad-config-option
-        config.val.colors.hints.fg = 'green'
-        # pylint: enable=bad-config-option
+        config.val.colors.hints.fg = 'green'  # pylint: disable=bad-config-option
         if set_first:
             confpy.write('c.colors.hints.fg = "red"',
                          'assert {} == "red"'.format(get_line))
@@ -887,7 +949,22 @@ class TestConfigPy:
         assert tblines[0] == "Traceback (most recent call last):"
         assert tblines[-1] == "SyntaxError: invalid syntax"
         assert "    +" in tblines
-        assert "    ^" in tblines
+        # Starting with the new PEG-based parser in Python 3.9, the caret
+        # points at the location *after* the +
+        assert "    ^" in tblines or "     ^" in tblines
+
+    def test_load_autoconfig_warning(self, confpy):
+        confpy.write('')
+        config.instance.warn_autoconfig = True
+        with pytest.raises(configexc.ConfigFileErrors) as excinfo:
+            configfiles.read_config_py(confpy.filename)
+        assert len(excinfo.value.errors) == 1
+        error = excinfo.value.errors[0]
+        assert error.text == "autoconfig loading not specified"
+        exception_text = ('Your config.py should call either `config.load_autoconfig()`'
+                          ' (to load settings configured via the GUI) or '
+                          '`config.load_autoconfig(False)` (to not do so)')
+        assert str(error.exception) == exception_text
 
     def test_unhandled_exception(self, confpy):
         confpy.write("1/0")
@@ -999,6 +1076,24 @@ class TestConfigPy:
 
         assert not config.instance.get_obj('content.javascript.enabled')
 
+    def test_source_configpy_arg(self, tmpdir, data_tmpdir, monkeypatch):
+        alt_filename = 'alt-config.py'
+
+        alt_confpy_dir = tmpdir / 'alt-confpy-dir'
+        alt_confpy_dir.ensure(dir=True)
+        monkeypatch.setattr(standarddir, 'config_py',
+                            lambda: str(alt_confpy_dir / alt_filename))
+
+        subfile = alt_confpy_dir / 'subfile.py'
+        subfile.write_text("c.content.javascript.enabled = False",
+                           encoding='utf-8')
+
+        alt_confpy = ConfPy(alt_confpy_dir, alt_filename)
+        alt_confpy.write("config.source('subfile.py')")
+        alt_confpy.read()
+
+        assert not config.instance.get_obj('content.javascript.enabled')
+
     def test_source_errors(self, tmpdir, confpy):
         subfile = tmpdir / 'config' / 'subfile.py'
         subfile.write_text("c.foo = 42", encoding='utf-8')
@@ -1050,12 +1145,19 @@ class TestConfigPyWriter:
 
         assert text == textwrap.dedent("""
             # Autogenerated config.py
+            #
+            # NOTE: config.py is intended for advanced users who are comfortable
+            # with manually migrating the config file on qutebrowser upgrades. If
+            # you prefer, you can also configure qutebrowser using the
+            # :set/:bind/:config-* commands without having to write a config.py
+            # file.
+            #
             # Documentation:
             #   qute://help/configuring.html
             #   qute://help/settings.html
 
-            # Uncomment this to still load settings configured via autoconfig.yml
-            # config.load_autoconfig()
+            # Change the argument to True to still load settings configured via autoconfig.yml
+            config.load_autoconfig(False)
 
             # This is an option description.  Nullam eu ante vel est convallis
             # dignissim. Fusce suscipit, wisi nec facilisis facilisis, est dui
@@ -1107,7 +1209,7 @@ class TestConfigPyWriter:
         lines = list(writer._gen_lines())
 
         assert "## Autogenerated config.py" in lines
-        assert "# config.load_autoconfig()" in lines
+        assert "# config.load_autoconfig(True)" in lines
         assert "# c.opt = 'val'" in lines
         assert "## Bindings for normal mode" in lines
         assert "# config.bind(',x', 'message-info normal')" in lines
@@ -1154,17 +1256,10 @@ class TestConfigPyWriter:
     def test_empty(self):
         writer = configfiles.ConfigPyWriter(options=[], bindings={},
                                             commented=False)
-        text = '\n'.join(writer._gen_lines())
-        expected = textwrap.dedent("""
-            # Autogenerated config.py
-            # Documentation:
-            #   qute://help/configuring.html
-            #   qute://help/settings.html
-
-            # Uncomment this to still load settings configured via autoconfig.yml
-            # config.load_autoconfig()
-        """).lstrip()
-        assert text == expected
+        lines = list(writer._gen_lines())
+        assert lines[0] == '# Autogenerated config.py'
+        assert lines[-2] == 'config.load_autoconfig(False)'
+        assert not lines[-1]
 
     def test_pattern(self):
         opt = configdata.Option(

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015-2018 lamarpavel
 #
 # This file is part of qutebrowser.
@@ -23,13 +23,6 @@ from PyQt5.QtCore import QUrl, QDateTime
 from PyQt5.QtNetwork import QNetworkDiskCache, QNetworkCacheMetaData
 
 from qutebrowser.browser.webkit import cache
-from qutebrowser.utils import qtutils
-
-
-pytestmark = pytest.mark.skipif(
-    qtutils.version_check('5.7.1', compiled=False) and
-    not qtutils.version_check('5.9', compiled=False),
-    reason="QNetworkDiskCache is broken on Qt 5.7.1 and 5.8")
 
 
 @pytest.fixture

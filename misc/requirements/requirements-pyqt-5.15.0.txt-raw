@@ -1,0 +1,4 @@
+#@ filter: PyQt5 == 5.15.0
+#@ filter: PyQtWebEngine == 5.15.0
+PyQt5 == 5.15.0
+PyQtWebEngine == 5.15.0

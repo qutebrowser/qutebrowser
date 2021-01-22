@@ -46,24 +46,25 @@ If you get stuck, you can get help in multiple ways:
 * The `:help` command inside qutebrowser shows the built-in documentation.
 Additionally, each command can be started with a `--help` flag to show its
 help.
-* IRC channel: irc://irc.freenode.org/#qutebrowser[`#qutebrowser`] on
+* Chat via the IRC channel: irc://irc.freenode.org/#qutebrowser[`#qutebrowser`] on
 http://freenode.net/[Freenode]
 (https://webchat.freenode.net/?channels=#qutebrowser[webchat])
-* Mailinglist: mailto:qutebrowser@lists.qutebrowser.org[] (
-https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[subscribe])
+* On Reddit: https://www.reddit.com/r/qutebrowser/[/r/qutebrowser]
+* Via https://github.com/qutebrowser/qutebrowser/discussions[GitHub Discussions]
+* Using the mailinglist: mailto:qutebrowser@lists.qutebrowser.org[]
+(https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[subscribe])
 
 Donating
 --------
 
-Working on qutebrowser is a very rewarding hobby, but like (nearly) all hobbies
-it also costs some money. Namely I have to pay for the server and domain, and
-do occasional hardware upgrades footnote:[It turned out a 160 GB SSD is rather
-small - the VMs and custom Qt builds I use for testing/developing qutebrowser
-need about 100 GB of space].
+qutebrowser's primary maintainer, The-Compiler, is currently working part-time on
+qutebrowser, funded by donations.
 
-If you want to give me a beer or a pizza back, I'm trying to make it as easy as
-possible for you to do so. If some other way would be easier for you, please
-get in touch!
+To sustain this for a long time, your help is needed! Check the
+https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] for more information.
+Depending on your sign-up date and how long you keep a certain level, you can get
+qutebrowser t-shirts, stickers and more!
 
-* PayPal: me@the-compiler.org
-* Bitcoin: link:bitcoin:1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE[1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE]
+Alternatively, there are also various options available for one-time donations, see the
+https://github.com/qutebrowser/qutebrowser/blob/master/README.asciidoc#donating[donation section]
+in the README for details.

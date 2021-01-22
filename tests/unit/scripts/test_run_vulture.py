@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -23,6 +23,8 @@ import textwrap
 
 import pytest
 
+from tests.helpers import utils
+
 try:
     from scripts.dev import run_vulture
 except ImportError:
@@ -41,29 +43,29 @@ class VultureDir:
     """Fixture similar to pytest's testdir fixture for vulture.
 
     Attributes:
-        _tmpdir: The pytest tmpdir fixture.
+        _tmp_path: The pytest tmp_path fixture.
     """
 
-    def __init__(self, tmpdir):
-        self._tmpdir = tmpdir
+    def __init__(self, tmp_path):
+        self._tmp_path = tmp_path
 
     def run(self):
         """Run vulture over all generated files and return the output."""
-        files = self._tmpdir.listdir()
-        assert files
-        with self._tmpdir.as_cwd():
-            return run_vulture.run([str(e.basename) for e in files])
+        names = [p.name for p in self._tmp_path.glob('*')]
+        assert names
+        with utils.change_cwd(self._tmp_path):
+            return run_vulture.run(names)
 
     def makepyfile(self, **kwargs):
         """Create a python file, similar to TestDir.makepyfile."""
         for filename, data in kwargs.items():
             text = textwrap.dedent(data)
-            (self._tmpdir / filename + '.py').write_text(text, 'utf-8')
+            (self._tmp_path / (filename + '.py')).write_text(text, 'utf-8')
 
 
 @pytest.fixture
-def vultdir(tmpdir):
-    return VultureDir(tmpdir)
+def vultdir(tmp_path):
+    return VultureDir(tmp_path)
 
 
 def test_used(vultdir):
@@ -81,8 +83,10 @@ def test_unused_func(vultdir):
         def foo():
             pass
     """)
-    msg = "foo.py:2: unused function 'foo' (60% confidence)"
-    assert vultdir.run() == [msg]
+    msg = "*test_unused_func*foo.py:2: unused function 'foo' (60% confidence)"
+    msgs = vultdir.run()
+    assert len(msgs) == 1
+    assert utils.pattern_match(pattern=msg, value=msgs[0])
 
 
 def test_unused_method_camelcase(vultdir):

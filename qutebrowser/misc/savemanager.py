@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,7 +21,7 @@
 
 import os.path
 import collections
-import typing
+from typing import MutableMapping
 
 from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
@@ -112,8 +112,7 @@ class SaveManager(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.saveables = collections.OrderedDict(
-        )  # type: typing.MutableMapping[str, Saveable]
+        self.saveables: MutableMapping[str, Saveable] = collections.OrderedDict()
         self._save_timer = usertypes.Timer(self, name='save-timer')
         self._save_timer.timeout.connect(self.autosave)
         self._set_autosave_interval()

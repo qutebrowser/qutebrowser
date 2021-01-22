@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -31,15 +31,31 @@ import traceback
 import functools
 import contextlib
 import posixpath
-import socket
 import shlex
 import glob
 import mimetypes
-import typing
+import ctypes
+import ctypes.util
+from typing import (Any, Callable, IO, Iterator, Optional, Sequence, Tuple, Type, Union,
+                    TYPE_CHECKING, cast)
+try:
+    # Protocol was added in Python 3.8
+    from typing import Protocol
+except ImportError:  # pragma: no cover
+    if not TYPE_CHECKING:
+        class Protocol:
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QColor, QClipboard, QDesktopServices
+            """Empty stub at runtime."""
+
+
+from PyQt5.QtCore import QUrl, QVersionNumber
+from PyQt5.QtGui import QClipboard, QDesktopServices
 from PyQt5.QtWidgets import QApplication
+# We cannot use the stdlib version on 3.7-3.8 because we need the files() API.
+if sys.version_info >= (3, 9):
+    import importlib.resources as importlib_resources
+else:  # pragma: no cover
+    import importlib_resources
 import pkg_resources
 import yaml
 try:
@@ -47,12 +63,12 @@ try:
                       CSafeDumper as YamlDumper)
     YAML_C_EXT = True
 except ImportError:  # pragma: no cover
-    from yaml import (SafeLoader as YamlLoader,  # type: ignore
+    from yaml import (SafeLoader as YamlLoader,  # type: ignore[misc]
                       SafeDumper as YamlDumper)
     YAML_C_EXT = False
 
 import qutebrowser
-from qutebrowser.utils import qtutils, log
+from qutebrowser.utils import log
 
 
 fake_clipboard = None
@@ -63,6 +79,24 @@ is_mac = sys.platform.startswith('darwin')
 is_linux = sys.platform.startswith('linux')
 is_windows = sys.platform.startswith('win')
 is_posix = os.name == 'posix'
+
+
+class SupportsLessThan(Protocol):
+
+    """Protocol for a "comparable" object."""
+
+    def __lt__(self, other: Any) -> bool:
+        ...
+
+
+if TYPE_CHECKING:
+    class VersionNumber(SupportsLessThan, QVersionNumber):
+
+        """WORKAROUND for incorrect PyQt stubs."""
+else:
+    class VersionNumber:
+
+        """We can't inherit from Protocol and QVersionNumber at runtime."""
 
 
 class Unreachable(Exception):
@@ -157,7 +191,7 @@ def preload_resources() -> None:
 
 
 # FIXME:typing Return value should be bytes/str
-def read_file(filename: str, binary: bool = False) -> typing.Any:
+def read_file(filename: str, binary: bool = False) -> Any:
     """Get the contents of a file contained with qutebrowser.
 
     Args:
@@ -179,19 +213,19 @@ def read_file(filename: str, binary: bool = False) -> typing.Any:
         # https://github.com/pyinstaller/pyinstaller/wiki/FAQ#misc
         fn = os.path.join(os.path.dirname(sys.executable), filename)
         if binary:
-            with open(fn, 'rb') as f:  # type: typing.IO
+            f: IO
+            with open(fn, 'rb') as f:
                 return f.read()
         else:
             with open(fn, 'r', encoding='utf-8') as f:
                 return f.read()
     else:
-        data = pkg_resources.resource_string(
-            qutebrowser.__name__, filename)
+        p = importlib_resources.files(qutebrowser) / filename
 
         if binary:
-            return data
+            return p.read_bytes()
 
-        return data.decode('UTF-8')
+        return p.read_text()
 
 
 def resource_filename(filename: str) -> str:
@@ -208,81 +242,10 @@ def resource_filename(filename: str) -> str:
     return pkg_resources.resource_filename(qutebrowser.__name__, filename)
 
 
-def _get_color_percentage(a_c1: int, a_c2: int, a_c3:
-                          int, b_c1: int, b_c2: int, b_c3: int,
-                          percent: int) -> typing.Tuple[int, int, int]:
-    """Get a color which is percent% interpolated between start and end.
-
-    Args:
-        a_c1, a_c2, a_c3: Start color components (R, G, B / H, S, V / H, S, L)
-        b_c1, b_c2, b_c3: End color components (R, G, B / H, S, V / H, S, L)
-        percent: Percentage to interpolate, 0-100.
-                 0: Start color will be returned.
-                 100: End color will be returned.
-
-    Return:
-        A (c1, c2, c3) tuple with the interpolated color components.
-    """
-    if not 0 <= percent <= 100:
-        raise ValueError("percent needs to be between 0 and 100!")
-    out_c1 = round(a_c1 + (b_c1 - a_c1) * percent / 100)
-    out_c2 = round(a_c2 + (b_c2 - a_c2) * percent / 100)
-    out_c3 = round(a_c3 + (b_c3 - a_c3) * percent / 100)
-    return (out_c1, out_c2, out_c3)
-
-
-def interpolate_color(
-        start: QColor,
-        end: QColor,
-        percent: int,
-        colorspace: typing.Optional[QColor.Spec] = QColor.Rgb
-) -> QColor:
-    """Get an interpolated color value.
-
-    Args:
-        start: The start color.
-        end: The end color.
-        percent: Which value to get (0 - 100)
-        colorspace: The desired interpolation color system,
-                    QColor::{Rgb,Hsv,Hsl} (from QColor::Spec enum)
-                    If None, start is used except when percent is 100.
-
-    Return:
-        The interpolated QColor, with the same spec as the given start color.
-    """
-    qtutils.ensure_valid(start)
-    qtutils.ensure_valid(end)
-
-    if colorspace is None:
-        if percent == 100:
-            return QColor(*end.getRgb())
-        else:
-            return QColor(*start.getRgb())
-
-    out = QColor()
-    if colorspace == QColor.Rgb:
-        a_c1, a_c2, a_c3, _alpha = start.getRgb()
-        b_c1, b_c2, b_c3, _alpha = end.getRgb()
-        components = _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3,
-                                           percent)
-        out.setRgb(*components)
-    elif colorspace == QColor.Hsv:
-        a_c1, a_c2, a_c3, _alpha = start.getHsv()
-        b_c1, b_c2, b_c3, _alpha = end.getHsv()
-        components = _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3,
-                                           percent)
-        out.setHsv(*components)
-    elif colorspace == QColor.Hsl:
-        a_c1, a_c2, a_c3, _alpha = start.getHsl()
-        b_c1, b_c2, b_c3, _alpha = end.getHsl()
-        components = _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3,
-                                           percent)
-        out.setHsl(*components)
-    else:
-        raise ValueError("Invalid colorspace!")
-    out = out.convertTo(start.spec())
-    qtutils.ensure_valid(out)
-    return out
+def parse_version(version: str) -> VersionNumber:
+    """Parse a version string."""
+    v_q, _suffix = QVersionNumber.fromString(version)
+    return cast(VersionNumber, v_q.normalized())
 
 
 def format_seconds(total_seconds: int) -> str:
@@ -301,9 +264,7 @@ def format_seconds(total_seconds: int) -> str:
     return prefix + ':'.join(chunks)
 
 
-def format_size(size: typing.Optional[float],
-                base: int = 1024,
-                suffix: str = '') -> str:
+def format_size(size: Optional[float], base: int = 1024, suffix: str = '') -> str:
     """Format a byte size so it's human readable.
 
     Inspired by http://stackoverflow.com/q/1094841
@@ -322,13 +283,13 @@ class FakeIOStream(io.TextIOBase):
 
     """A fake file-like stream which calls a function for write-calls."""
 
-    def __init__(self, write_func: typing.Callable[[str], int]) -> None:
+    def __init__(self, write_func: Callable[[str], int]) -> None:
         super().__init__()
-        self.write = write_func  # type: ignore
+        self.write = write_func  # type: ignore[assignment]
 
 
 @contextlib.contextmanager
-def fake_io(write_func: typing.Callable[[str], int]) -> typing.Iterator[None]:
+def fake_io(write_func: Callable[[str], int]) -> Iterator[None]:
     """Run code with stdout and stderr replaced by FakeIOStreams.
 
     Args:
@@ -338,21 +299,21 @@ def fake_io(write_func: typing.Callable[[str], int]) -> typing.Iterator[None]:
     old_stderr = sys.stderr
     fake_stderr = FakeIOStream(write_func)
     fake_stdout = FakeIOStream(write_func)
-    sys.stderr = fake_stderr  # type: ignore
-    sys.stdout = fake_stdout  # type: ignore
+    sys.stderr = fake_stderr  # type: ignore[assignment]
+    sys.stdout = fake_stdout  # type: ignore[assignment]
     try:
         yield
     finally:
         # If the code we did run did change sys.stdout/sys.stderr, we leave it
         # unchanged. Otherwise, we reset it.
-        if sys.stdout is fake_stdout:  # type: ignore
+        if sys.stdout is fake_stdout:  # type: ignore[comparison-overlap]
             sys.stdout = old_stdout
-        if sys.stderr is fake_stderr:  # type: ignore
+        if sys.stderr is fake_stderr:  # type: ignore[comparison-overlap]
             sys.stderr = old_stderr
 
 
 @contextlib.contextmanager
-def disabled_excepthook() -> typing.Iterator[None]:
+def disabled_excepthook() -> Iterator[None]:
     """Run code with the exception hook temporarily disabled."""
     old_excepthook = sys.excepthook
     sys.excepthook = sys.__excepthook__
@@ -385,7 +346,7 @@ class prevent_exceptions:  # noqa: N801,N806 pylint: disable=invalid-name
         _predicate: The condition which needs to be True to prevent exceptions
     """
 
-    def __init__(self, retval: typing.Any, predicate: bool = True) -> None:
+    def __init__(self, retval: Any, predicate: bool = True) -> None:
         """Save decorator arguments.
 
         Gets called on parse-time with the decorator arguments.
@@ -396,7 +357,7 @@ class prevent_exceptions:  # noqa: N801,N806 pylint: disable=invalid-name
         self._retval = retval
         self._predicate = predicate
 
-    def __call__(self, func: typing.Callable) -> typing.Callable:
+    def __call__(self, func: Callable) -> Callable:
         """Called when a function should be decorated.
 
         Args:
@@ -411,7 +372,7 @@ class prevent_exceptions:  # noqa: N801,N806 pylint: disable=invalid-name
         retval = self._retval
 
         @functools.wraps(func)
-        def wrapper(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             """Call the original function."""
             try:
                 return func(*args, **kwargs)
@@ -422,7 +383,7 @@ class prevent_exceptions:  # noqa: N801,N806 pylint: disable=invalid-name
         return wrapper
 
 
-def is_enum(obj: typing.Any) -> bool:
+def is_enum(obj: Any) -> bool:
     """Check if a given object is an enum."""
     try:
         return issubclass(obj, enum.Enum)
@@ -430,9 +391,7 @@ def is_enum(obj: typing.Any) -> bool:
         return False
 
 
-def get_repr(obj: typing.Any,
-             constructor: bool = False,
-             **attrs: typing.Any) -> str:
+def get_repr(obj: Any, constructor: bool = False, **attrs: Any) -> str:
     """Get a suitable __repr__ string for an object.
 
     Args:
@@ -455,7 +414,7 @@ def get_repr(obj: typing.Any,
             return '<{}>'.format(cls)
 
 
-def qualname(obj: typing.Any) -> str:
+def qualname(obj: Any) -> str:
     """Get the fully qualified name of an object.
 
     Based on twisted.python.reflect.fullyQualifiedName.
@@ -483,14 +442,10 @@ def qualname(obj: typing.Any) -> str:
         return repr(obj)
 
 
-# The string annotation is a WORKAROUND for a Python 3.5.2 bug:
-# https://github.com/python/typing/issues/266
+_ExceptionType = Union[Type[BaseException], Tuple[Type[BaseException]]]
 
-def raises(exc: ('typing.Union['  # pylint: disable=bad-docstring-quotes
-                 '    typing.Type[BaseException], '
-                 '    typing.Tuple[typing.Type[BaseException]]]'),
-           func: typing.Callable,
-           *args: typing.Any) -> bool:
+
+def raises(exc: _ExceptionType, func: Callable, *args: Any) -> bool:
     """Check if a function raises a given exception.
 
     Args:
@@ -518,7 +473,8 @@ def force_encoding(text: str, encoding: str) -> str:
 
 
 def sanitize_filename(name: str,
-                      replacement: typing.Optional[str] = '_') -> str:
+                      replacement: Optional[str] = '_',
+                      shorten: bool = False) -> str:
     """Replace invalid filename characters.
 
     Note: This should be used for the basename, as it also removes the path
@@ -527,6 +483,7 @@ def sanitize_filename(name: str,
     Args:
         name: The filename.
         replacement: The replacement character (or None).
+        shorten: Shorten the filename if it's too long for the filesystem.
     """
     if replacement is None:
         replacement = ''
@@ -548,6 +505,40 @@ def sanitize_filename(name: str,
 
     for bad_char in bad_chars:
         name = name.replace(bad_char, replacement)
+
+    if not shorten:
+        return name
+
+    # Truncate the filename if it's too long.
+    # Most filesystems have a maximum filename length of 255 bytes:
+    # https://en.wikipedia.org/wiki/Comparison_of_file_systems#Limits
+    # We also want to keep some space for QtWebEngine's ".download" suffix, as
+    # well as deduplication counters.
+    max_bytes = 255 - len("(123).download")
+    root, ext = os.path.splitext(name)
+    root = root[:max_bytes - len(ext)]
+    excess = len(os.fsencode(root + ext)) - max_bytes
+
+    while excess > 0 and root:
+        # Max 4 bytes per character is assumed.
+        # Integer division floors to -∞, not to 0.
+        root = root[:(-excess // 4)]
+        excess = len(os.fsencode(root + ext)) - max_bytes
+
+    if not root:
+        # Trimming the root is not enough. We must trim the extension.
+        # We leave one character in the root, so that the filename
+        # doesn't start with a dot, which makes the file hidden.
+        root = name[0]
+        excess = len(os.fsencode(root + ext)) - max_bytes
+        while excess > 0 and ext:
+            ext = ext[:(-excess // 4)]
+            excess = len(os.fsencode(root + ext)) - max_bytes
+
+        assert ext, name
+
+    name = root + ext
+
     return name
 
 
@@ -601,15 +592,6 @@ def get_clipboard(selection: bool = False, fallback: bool = False) -> str:
 def supports_selection() -> bool:
     """Check if the OS supports primary selection."""
     return QApplication.clipboard().supportsSelection()
-
-
-def random_port() -> int:
-    """Get a random free port."""
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(('localhost', 0))
-    port = sock.getsockname()[1]
-    sock.close()
-    return port
 
 
 def open_file(filename: str, cmdline: str = None) -> None:
@@ -670,7 +652,7 @@ def open_file(filename: str, cmdline: str = None) -> None:
     proc.start_detached(cmd, args)
 
 
-def unused(_arg: typing.Any) -> None:
+def unused(_arg: Any) -> None:
     """Function which does nothing to avoid pylint complaining."""
 
 
@@ -692,16 +674,22 @@ def expand_windows_drive(path: str) -> str:
         return path
 
 
-def yaml_load(f: typing.Union[str, typing.IO[str]]) -> typing.Any:
+def yaml_load(f: Union[str, IO[str]]) -> Any:
     """Wrapper over yaml.load using the C loader if possible."""
     start = datetime.datetime.now()
 
     # WORKAROUND for https://github.com/yaml/pyyaml/pull/181
-    with log.ignore_py_warnings(
+    with log.py_warning_filter(
             category=DeprecationWarning,
             message=r"Using or importing the ABCs from 'collections' instead "
             r"of from 'collections\.abc' is deprecated.*"):
-        data = yaml.load(f, Loader=YamlLoader)
+        try:
+            data = yaml.load(f, Loader=YamlLoader)
+        except ValueError as e:
+            if str(e).startswith('could not convert string to float'):
+                # WORKAROUND for https://github.com/yaml/pyyaml/issues/168
+                raise yaml.YAMLError(e)
+            raise  # pragma: no cover
 
     end = datetime.datetime.now()
 
@@ -722,8 +710,7 @@ def yaml_load(f: typing.Union[str, typing.IO[str]]) -> typing.Any:
     return data
 
 
-def yaml_dump(data: typing.Any,
-              f: typing.IO[str] = None) -> typing.Optional[str]:
+def yaml_dump(data: Any, f: IO[str] = None) -> Optional[str]:
     """Wrapper over yaml.dump using the C dumper if possible.
 
     Also returns a str instead of bytes.
@@ -736,7 +723,7 @@ def yaml_dump(data: typing.Any,
         return yaml_data.decode('utf-8')
 
 
-def chunk(elems: typing.Sequence, n: int) -> typing.Iterator[typing.Sequence]:
+def chunk(elems: Sequence, n: int) -> Iterator[Sequence]:
     """Yield successive n-sized chunks from elems.
 
     If elems % n != 0, the last chunk will be smaller.
@@ -776,3 +763,94 @@ def ceil_log(number: int, base: int) -> int:
         result += 1
         accum *= base
     return result
+
+
+def libgl_workaround() -> None:
+    """Work around QOpenGLShaderProgram issues, especially for Nvidia.
+
+    See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/941826
+    """
+    if os.environ.get('QUTE_SKIP_LIBGL_WORKAROUND'):
+        return
+
+    libgl = ctypes.util.find_library("GL")
+    if libgl is not None:  # pragma: no branch
+        ctypes.CDLL(libgl, mode=ctypes.RTLD_GLOBAL)
+
+
+def parse_duration(duration: str) -> int:
+    """Parse duration in format XhYmZs into milliseconds duration."""
+    if duration.isdigit():
+        # For backward compatibility return milliseconds
+        return int(duration)
+
+    match = re.fullmatch(
+        r'(?P<hours>[0-9]+(\.[0-9])?h)?\s*'
+        r'(?P<minutes>[0-9]+(\.[0-9])?m)?\s*'
+        r'(?P<seconds>[0-9]+(\.[0-9])?s)?',
+        duration
+    )
+    if not match or not match.group(0):
+        raise ValueError(
+            f"Invalid duration: {duration} - "
+            "expected XhYmZs or a number of milliseconds"
+        )
+    seconds_string = match.group('seconds') if match.group('seconds') else '0'
+    seconds = float(seconds_string.rstrip('s'))
+    minutes_string = match.group('minutes') if match.group('minutes') else '0'
+    minutes = float(minutes_string.rstrip('m'))
+    hours_string = match.group('hours') if match.group('hours') else '0'
+    hours = float(hours_string.rstrip('h'))
+    milliseconds = int((seconds + minutes * 60 + hours * 3600) * 1000)
+    return milliseconds
+
+
+def mimetype_extension(mimetype: str) -> Optional[str]:
+    """Get a suitable extension for a given mimetype.
+
+    This mostly delegates to Python's mimetypes.guess_extension(), but backports some
+    changes (via a simple override dict) which are missing from earlier Python versions.
+    Most likely, this can be dropped once the minimum Python version is raised to 3.7.
+    """
+    overrides = {
+        # Added around 3.8
+        "application/manifest+json": ".webmanifest",
+        "application/x-hdf5": ".h5",
+
+        # Added in Python 3.7
+        "application/wasm": ".wasm",
+
+        # Wrong values for Python 3.6
+        # https://bugs.python.org/issue1043134
+        # https://github.com/python/cpython/pull/14375
+        "application/octet-stream": ".bin",  # not .a
+        "application/postscript": ".ps",  # not .ai
+        "application/vnd.ms-excel": ".xls",  # not .xlb
+        "application/vnd.ms-powerpoint": ".ppt",  # not .pot
+        "application/xml": ".xsl",  # not .rdf
+        "audio/mpeg": ".mp3",  # not .mp2
+        "image/jpeg": ".jpg",  # not .jpe
+        "image/tiff": ".tiff",  # not .tif
+        "text/html": ".html",  # not .htm
+        "text/plain": ".txt",  # not .bat
+        "video/mpeg": ".mpeg",  # not .m1v
+    }
+    if mimetype in overrides:
+        return overrides[mimetype]
+    return mimetypes.guess_extension(mimetype, strict=False)
+
+
+@contextlib.contextmanager
+def cleanup_file(filepath: str) -> Iterator[None]:
+    """Context that deletes a file upon exit or error.
+
+    Args:
+        filepath: The file path
+    """
+    try:
+        yield
+    finally:
+        try:
+            os.remove(filepath)
+        except OSError as e:
+            log.misc.error(f"Failed to delete tempfile {filepath} ({e})!")

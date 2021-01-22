@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,13 +20,13 @@
 """Test starting qutebrowser with special arguments/environments."""
 
 import subprocess
-import socket
 import sys
 import logging
 import re
+import json
 
 import pytest
-from PyQt5.QtCore import QProcess, qVersion
+from PyQt5.QtCore import QProcess
 
 from helpers import utils
 
@@ -43,9 +43,10 @@ def _base_args(config):
         args += ['--backend', 'webengine']
     else:
         args += ['--backend', 'webkit']
-    if qVersion() == '5.7.1':
-        # https://github.com/qutebrowser/qutebrowser/issues/3163
-        args += ['--qt-flag', 'disable-seccomp-filter-sandbox']
+
+    if config.webengine:
+        args += utils.seccomp_args(qt_flag=True)
+
     args.append('about:blank')
     return args
 
@@ -69,7 +70,6 @@ def temp_basedir_env(tmpdir, short_tmpdir):
         '[general]',
         'quickstart-done = 1',
         'backend-warning-shown = 1',
-        'old-qt-warning-shown = 1',
         'webkit-warning-shown = 1',
     ]
 
@@ -143,6 +143,10 @@ def test_open_with_ascii_locale(request, server, tmpdir, quteproc_new, url):
     quteproc_new.wait_for(message="load status for <* tab_id=* "
                           "url='*/f%C3%B6%C3%B6.html'>: LoadStatus.error")
 
+    if request.config.webengine:
+        line = quteproc_new.wait_for(message='Load error: ERR_FILE_NOT_FOUND')
+        line.expected = True
+
 
 @pytest.mark.linux
 @ascii_locale
@@ -156,7 +160,7 @@ def test_open_command_line_with_ascii_locale(request, server, tmpdir,
     # all be called. No exception thrown means test success.
     args = (['--temp-basedir'] + _base_args(request.config) +
             ['/home/user/föö.html'])
-    quteproc_new.start(args, env={'LC_ALL': 'C'}, wait_focus=False)
+    quteproc_new.start(args, env={'LC_ALL': 'C'})
 
     if not request.config.webengine:
         line = quteproc_new.wait_for(message="Error while loading *: Error "
@@ -165,6 +169,10 @@ def test_open_command_line_with_ascii_locale(request, server, tmpdir,
 
     quteproc_new.wait_for(message="load status for <* tab_id=* "
                           "url='*/f*.html'>: LoadStatus.error")
+
+    if request.config.webengine:
+        line = quteproc_new.wait_for(message="Load error: ERR_FILE_NOT_FOUND")
+        line.expected = True
 
 
 @pytest.mark.linux
@@ -248,7 +256,8 @@ def test_version(request):
     assert ok
     assert proc.exitStatus() == QProcess.NormalExit
 
-    assert re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout) is not None
+    match = re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout, re.MULTILINE)
+    assert match is not None
 
 
 def test_qt_arg(request, quteproc_new, tmpdir):
@@ -263,23 +272,6 @@ def test_qt_arg(request, quteproc_new, tmpdir):
 
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
-
-
-@utils.skip_qt511
-def test_webengine_inspector(request, quteproc_new):
-    if not request.config.webengine:
-        pytest.skip()
-    args = (['--temp-basedir', '--enable-webengine-inspector'] +
-            _base_args(request.config))
-    quteproc_new.start(args)
-    line = quteproc_new.wait_for(
-        message='Remote debugging server started successfully. Try pointing a '
-                'Chromium-based browser to http://127.0.0.1:*')
-    port = int(line.message.split(':')[-1])
-
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect(('127.0.0.1', port))
-    s.close()
 
 
 @pytest.mark.linux
@@ -323,16 +315,17 @@ def test_command_on_start(request, quteproc_new):
     quteproc_new.wait_for_quit()
 
 
-def test_launching_with_python2():
+@pytest.mark.parametrize('python', ['python2', 'python3.5'])
+def test_launching_with_old_python(python):
     try:
         proc = subprocess.run(
-            ['python2', '-m', 'qutebrowser', '--no-err-windows'],
+            [python, '-m', 'qutebrowser', '--no-err-windows'],
             stderr=subprocess.PIPE,
             check=False)
     except FileNotFoundError:
-        pytest.skip("python2 not found")
+        pytest.skip(f"{python} not found")
     assert proc.returncode == 1
-    error = "At least Python 3.5.2 is required to run qutebrowser"
+    error = "At least Python 3.6.1 is required to run qutebrowser"
     assert proc.stderr.decode('ascii').startswith(error)
 
 
@@ -381,6 +374,9 @@ def test_qute_settings_persistence(short_tmpdir, request, quteproc_new):
     quteproc_new.send_cmd(':jseval --world main '
                           'cset("search.ignore_case", "always")')
     quteproc_new.wait_for(message='No output or error')
+    quteproc_new.wait_for(category='config',
+                          message='Config option changed: '
+                                  'search.ignore_case = always')
 
     assert quteproc_new.get_setting('search.ignore_case') == 'always'
 
@@ -392,3 +388,50 @@ def test_qute_settings_persistence(short_tmpdir, request, quteproc_new):
 
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
+
+
+@pytest.mark.parametrize('value, expected', [
+    ('always', 'http://localhost:(port2)/headers-link/(port)'),
+    ('never', None),
+    ('same-domain', 'http://localhost:(port2)/'),  # None with QtWebKit
+])
+def test_referrer(quteproc_new, server, server2, request, value, expected):
+    """Check referrer settings."""
+    args = _base_args(request.config) + [
+        '--temp-basedir',
+        '-s', 'content.headers.referer', value,
+    ]
+    quteproc_new.start(args)
+
+    quteproc_new.open_path(f'headers-link/{server.port}', port=server2.port)
+    quteproc_new.send_cmd(':click-element id link')
+    quteproc_new.wait_for_load_finished('headers')
+
+    content = quteproc_new.get_content()
+    data = json.loads(content)
+    print(data)
+    headers = data['headers']
+
+    if not request.config.webengine and value == 'same-domain':
+        # With QtWebKit and same-domain, we don't send a referer at all.
+        expected = None
+
+    if expected is not None:
+        for key, val in [('(port)', server.port), ('(port2)', server2.port)]:
+            expected = expected.replace(key, str(val))
+
+    assert headers.get('Referer') == expected
+
+
+@pytest.mark.qtwebkit_skip
+@utils.qt514
+def test_preferred_colorscheme(request, quteproc_new):
+    """Make sure the the preferred colorscheme is set."""
+    args = _base_args(request.config) + [
+        '--temp-basedir',
+        '-s', 'colors.webpage.prefers_color_scheme_dark', 'true',
+    ]
+    quteproc_new.start(args)
+
+    quteproc_new.send_cmd(':jseval matchMedia("(prefers-color-scheme: dark)").matches')
+    quteproc_new.wait_for(message='True')

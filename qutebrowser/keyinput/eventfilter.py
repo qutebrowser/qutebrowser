@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,12 +19,13 @@
 
 """Global Qt event filter which dispatches key events."""
 
+from typing import cast
+
 from PyQt5.QtCore import pyqtSlot, QObject, QEvent
 from PyQt5.QtGui import QKeyEvent, QWindow
-from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.keyinput import modeman
-from qutebrowser.misc import quitter
+from qutebrowser.misc import quitter, objects
 from qutebrowser.utils import objreg
 
 
@@ -48,11 +49,11 @@ class EventFilter(QObject):
         }
 
     def install(self) -> None:
-        QApplication.instance().installEventFilter(self)
+        objects.qapp.installEventFilter(self)
 
     @pyqtSlot()
     def shutdown(self) -> None:
-        QApplication.instance().removeEventFilter(self)
+        objects.qapp.removeEventFilter(self)
 
     def _handle_key_event(self, event: QKeyEvent) -> bool:
         """Handle a key press/release event.
@@ -63,7 +64,7 @@ class EventFilter(QObject):
         Return:
             True if the event should be filtered, False if it's passed through.
         """
-        active_window = QApplication.instance().activeWindow()
+        active_window = objects.qapp.activeWindow()
         if active_window not in objreg.window_registry.values():
             # Some other window (print dialog, etc.) is focused so we pass the
             # event through.
@@ -100,7 +101,7 @@ class EventFilter(QObject):
 
         handler = self._handlers[typ]
         try:
-            return handler(event)
+            return handler(cast(QKeyEvent, event))
         except:
             # If there is an exception in here and we leave the eventfilter
             # activated, we'll get an infinite loop and a stack overflow.
@@ -110,6 +111,6 @@ class EventFilter(QObject):
 
 def init() -> None:
     """Initialize the global EventFilter instance."""
-    event_filter = EventFilter(parent=QApplication.instance())
+    event_filter = EventFilter(parent=objects.qapp)
     event_filter.install()
     quitter.instance.shutting_down.connect(event_filter.shutdown)

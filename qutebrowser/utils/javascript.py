@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,10 +19,10 @@
 
 """Utilities related to javascript interaction."""
 
-import typing
+from typing import Sequence, Union
 
-_InnerJsArgType = typing.Union[None, str, bool, int, float]
-_JsArgType = typing.Union[_InnerJsArgType, typing.Sequence[_InnerJsArgType]]
+_InnerJsArgType = Union[None, str, bool, int, float]
+_JsArgType = Union[_InnerJsArgType, Sequence[_InnerJsArgType]]
 
 
 def string_escape(text: str) -> str:

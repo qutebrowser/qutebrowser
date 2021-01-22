@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,7 +27,8 @@ import pytest
     ('textarea.html', 'qute-textarea', 'keypress', 'superqutebrowser'),
     ('input.html', 'qute-input', 'clipboard', 'amazingqutebrowser'),
     ('input.html', 'qute-input', 'keypress', 'awesomequtebrowser'),
-    ('autofocus.html', 'qute-input-autofocus', 'keypress', 'cutebrowser'),
+    pytest.param('autofocus.html', 'qute-input-autofocus', 'keypress',
+                 'cutebrowser', marks=pytest.mark.flaky),
 ])
 @pytest.mark.parametrize('zoom', [100, 125, 250])
 def test_insert_mode(file_name, elem_id, source, input_text, zoom,
@@ -49,7 +50,7 @@ def test_insert_mode(file_name, elem_id, source, input_text, zoom,
         raise ValueError("Invalid source {!r}".format(source))
 
     quteproc.wait_for_js('contents: {}'.format(input_text))
-    quteproc.send_cmd(':leave-mode')
+    quteproc.send_cmd(':mode-leave')
 
 
 @pytest.mark.parametrize('auto_load, background, insert_mode', [
@@ -57,6 +58,7 @@ def test_insert_mode(file_name, elem_id, source, input_text, zoom,
     (True, False, True),  # enabled and foreground tab
     (True, True, False),  # background tab
 ])
+@pytest.mark.flaky
 def test_auto_load(quteproc, auto_load, background, insert_mode):
     quteproc.set_setting('input.insert_mode.auto_load', str(auto_load))
     url_path = 'data/insert_mode_settings/html/autofocus.html'
@@ -65,7 +67,7 @@ def test_auto_load(quteproc, auto_load, background, insert_mode):
     log_message = 'Entering mode KeyMode.insert (reason: *)'
     if insert_mode:
         quteproc.wait_for(message=log_message)
-        quteproc.send_cmd(':leave-mode')
+        quteproc.send_cmd(':mode-leave')
     else:
         quteproc.ensure_not_logged(message=log_message)
 
@@ -83,7 +85,7 @@ def test_auto_leave_insert_mode(quteproc):
     quteproc.wait_for(message='hints: *')
 
     # Select the disabled input box to leave insert mode
-    quteproc.send_cmd(':follow-hint s')
+    quteproc.send_cmd(':hint-follow s')
     quteproc.wait_for(message='Clicked non-editable element!')
 
 
@@ -94,7 +96,7 @@ def test_auto_leave_insert_mode_reload(quteproc, leave_on_load):
 
     quteproc.set_setting('input.insert_mode.leave_on_load',
                          str(leave_on_load).lower())
-    quteproc.send_cmd(':enter-mode insert')
+    quteproc.send_cmd(':mode-enter insert')
     quteproc.wait_for(message='Entering mode KeyMode.insert (reason: *)')
     quteproc.send_cmd(':reload')
     if leave_on_load:

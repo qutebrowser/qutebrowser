@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -28,7 +28,10 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.commands import argparser, cmdexc
 
 
-Enum = enum.Enum('Enum', ['foo', 'foo_bar'])
+class Enum(enum.Enum):
+
+    foo = enum.auto()
+    foo_bar = enum.auto()
 
 
 class TestArgumentParser:

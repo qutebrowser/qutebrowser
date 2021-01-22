@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015-2018 Daniel Schadt
 #
 # This file is part of qutebrowser.
@@ -94,8 +94,9 @@ class TestTabWidget:
             config_stub.val.tabs.position = "left"
 
         pinned_num = [1, num_tabs - 1]
-        for tab in pinned_num:
-            widget.set_tab_pinned(widget.widget(tab), True)
+        for num in pinned_num:
+            tab = widget.widget(num)
+            tab.set_pinned(True)
 
         first_size = widget.tabBar().tabSizeHint(0)
         first_size_min = widget.tabBar().minimumTabSizeHint(0)

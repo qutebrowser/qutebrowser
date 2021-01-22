@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,7 +21,7 @@
 
 import re
 import posixpath
-import typing
+from typing import Optional, Set
 
 from PyQt5.QtCore import QUrl
 
@@ -97,9 +97,9 @@ def incdec(url, count, inc_or_dec):
         window: Open the link in a new window.
     """
     urlutils.ensure_valid(url)
-    segments = (
+    segments: Optional[Set[str]] = (
         set(config.val.url.incdec_segments)
-    )  # type: typing.Optional[typing.Set[str]]
+    )
 
     if segments is None:
         segments = {'path', 'query'}
@@ -132,25 +132,40 @@ def path_up(url, count):
         url: The current url.
         count: The number of levels to go up in the url.
     """
-    path = url.path()
+    urlutils.ensure_valid(url)
+    url = url.adjusted(QUrl.RemoveFragment | QUrl.RemoveQuery)
+    path = url.path(QUrl.FullyEncoded)
     if not path or path == '/':
         raise Error("Can't go up!")
     for _i in range(0, min(count, path.count('/'))):
         path = posixpath.join(path, posixpath.pardir)
     path = posixpath.normpath(path)
-    url.setPath(path)
+    url.setPath(path, QUrl.StrictMode)
     return url
+
+
+def strip(url, count):
+    """Strip fragment/query from a URL."""
+    if count != 1:
+        raise Error("Count is not supported when stripping URL components")
+    urlutils.ensure_valid(url)
+    return url.adjusted(QUrl.RemoveFragment | QUrl.RemoveQuery)
 
 
 def _find_prevnext(prev, elems):
     """Find a prev/next element in the given list of elements."""
-    # First check for <link rel="prev(ious)|next">
+    # First check for <link rel="prev(ious)|next"> as well as
+    # e.g. <a class="nav-(prev|next)"> (Hugo)
     rel_values = {'prev', 'previous'} if prev else {'next'}
+    classes = {'nav-prev'} if prev else {'nav-next'}
     for e in elems:
-        if e.tag_name() not in ['link', 'a'] or 'rel' not in e:
+        if e.tag_name() not in ['link', 'a']:
             continue
-        if set(e['rel'].split(' ')) & rel_values:
+        if 'rel' in e and set(e['rel'].split(' ')) & rel_values:
             log.hints.debug("Found {!r} with rel={}".format(e, e['rel']))
+            return e
+        elif e.classes() & classes:
+            log.hints.debug("Found {!r} with class={}".format(e, e.classes()))
             return e
 
     # Then check for regular links/buttons.
@@ -159,11 +174,9 @@ def _find_prevnext(prev, elems):
     if not elems:
         return None
 
-    # pylint: disable=bad-config-option
     for regex in getattr(config.val.hints, option):
-        # pylint: enable=bad-config-option
-        log.hints.vdebug("== Checking regex '{}'."  # type: ignore
-                         .format(regex.pattern))
+        log.hints.vdebug(  # type: ignore[attr-defined]
+            "== Checking regex '{}'.".format(regex.pattern))
         for e in elems:
             text = str(e)
             if not text:
@@ -173,8 +186,8 @@ def _find_prevnext(prev, elems):
                     regex.pattern, text))
                 return e
             else:
-                log.hints.vdebug("No match on '{}'!"  # type: ignore
-                                 .format(text))
+                log.hints.vdebug(  # type: ignore[attr-defined]
+                    "No match on '{}'!".format(text))
     return None
 
 

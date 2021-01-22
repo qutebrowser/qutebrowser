@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2017-2018 Imran Sobir
 #
 # This file is part of qutebrowser.
@@ -28,6 +28,7 @@ from PyQt5.QtCore import QUrl, QUrlQuery
 import pytest
 
 from qutebrowser.browser import qutescheme, pdfjs, downloads
+from qutebrowser.utils import utils
 
 
 class TestJavascriptHandler:
@@ -51,7 +52,7 @@ class TestJavascriptHandler:
                     return content
             raise OSError("File not found {}!".format(path))
 
-        monkeypatch.setattr('qutebrowser.utils.utils.read_file', _read_file)
+        monkeypatch.setattr(utils, 'read_file', _read_file)
 
     @pytest.mark.parametrize("filename, content", js_files)
     def test_qutejavascript(self, filename, content):

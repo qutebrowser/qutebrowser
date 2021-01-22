@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -23,6 +23,7 @@ from PyQt5.QtCore import pyqtSlot, Qt
 
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.misc import throttle
+from qutebrowser.utils import utils
 
 
 class Percentage(textbase.TextBase):
@@ -47,13 +48,14 @@ class Percentage(textbase.TextBase):
         return strings
 
     @pyqtSlot(int, int)
-    def set_perc(self, x, y):  # pylint: disable=unused-argument
+    def set_perc(self, x, y):
         """Setter to be used as a Qt slot.
 
         Args:
             x: The x percentage (int), currently ignored.
             y: The y percentage (int)
         """
+        utils.unused(x)
         self._set_text(self._strings.get(y, '[???]'))
 
     def on_tab_changed(self, tab):

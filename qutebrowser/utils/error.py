@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -63,6 +63,7 @@ def handle_fatal_exc(exc: BaseException,
         ]
         log.misc.exception('\n'.join(lines))
     else:
+        log.misc.exception("Fatal exception:")
         if pre_text:
             msg_text = '{}: {}'.format(pre_text, exc)
         else:
@@ -70,4 +71,4 @@ def handle_fatal_exc(exc: BaseException,
         if post_text:
             msg_text += '\n\n{}'.format(post_text)
         msgbox = QMessageBox(QMessageBox.Critical, title, msg_text)
-        msgbox.exec_()
+        msgbox.exec()

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,10 +21,13 @@
 
 import os
 import os.path
-import typing
+import itertools
+import urllib
 import glob
 import shutil
+from typing import Any, Iterable, MutableMapping, MutableSequence, Optional, Union, cast
 
+from PyQt5.QtCore import Qt, QUrl, QObject, QPoint, QTimer, QDateTime
 import yaml
 from PyQt5.QtCore import QObject, QPoint, QTimer, QUrl, pyqtSlot
 from PyQt5.QtWidgets import QApplication
@@ -34,9 +37,10 @@ from qutebrowser.completion.models import miscmodels
 from qutebrowser.config import config, configfiles
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.qt import sip
-from qutebrowser.utils import log, message, objreg, qtutils, standarddir, utils
+from qutebrowser.misc import objects
 
-_JsonType = typing.MutableMapping[str, typing.Any]
+
+_JsonType = MutableMapping[str, Any]
 
 
 class Sentinel:
@@ -45,9 +49,9 @@ class Sentinel:
 
 
 default = Sentinel()
-session_manager = typing.cast('SessionManager', None)
+session_manager = cast('SessionManager', None)
 
-ArgType = typing.Union[str, Sentinel]
+ArgType = Union[str, Sentinel]
 
 
 def init(parent=None):
@@ -76,8 +80,21 @@ def init(parent=None):
     session_manager = SessionManager(base_path, parent)
 
 
-@pyqtSlot()
-def shutdown():
+def shutdown(session: Optional[ArgType], last_window: bool) -> None:
+    """Handle a shutdown by saving sessions and removing the autosave file."""
+    if session_manager is None:
+        return  # type: ignore[unreachable]
+
+    try:
+        if session is not None:
+            session_manager.save(session, last_window=last_window,
+                                 load_next_time=True)
+        elif config.val.auto_save.session:
+            session_manager.save(default, last_window=last_window,
+                                 load_next_time=True)
+    except SessionError as e:
+        log.sessions.error("Failed to save session: {}".format(e))
+
     session_manager.delete_autosave()
 
 
@@ -89,6 +106,37 @@ class SessionError(Exception):
 class SessionNotFoundError(SessionError):
 
     """Exception raised when a session to be loaded was not found."""
+
+
+class TabHistoryItem:
+
+    """A single item in the tab history.
+
+    Attributes:
+        url: The QUrl of this item.
+        original_url: The QUrl of this item which was originally requested.
+        title: The title as string of this item.
+        active: Whether this item is the item currently navigated to.
+        user_data: The user data for this item.
+    """
+
+    def __init__(self, url, title, *, original_url=None, active=False,
+                 user_data=None, last_visited=None):
+        self.url = url
+        if original_url is None:
+            self.original_url = url
+        else:
+            self.original_url = original_url
+        self.title = title
+        self.active = active
+        self.user_data = user_data
+        self.last_visited = last_visited
+
+    def __repr__(self):
+        return utils.get_repr(self, constructor=True, url=self.url,
+                              original_url=self.original_url, title=self.title,
+                              active=self.active, user_data=self.user_data,
+                              last_visited=self.last_visited)
 
 
 class SessionManager(QObject):
@@ -105,7 +153,7 @@ class SessionManager(QObject):
 
     def __init__(self, base_path, parent=None):
         super().__init__(parent)
-        self.current = None  # type: typing.Optional[str]
+        self.current: Optional[str] = None
         self._base_path = base_path
         self._last_window_session = None
         self.did_load = False
@@ -148,9 +196,9 @@ class SessionManager(QObject):
         Return:
             A dict with the saved data for this item.
         """
-        data = {
-            'url': bytes(item.url.toEncoded()).decode('ascii'),
-        }  # type: _JsonType
+        data: _JsonType = {
+            'url': bytes(item.url().toEncoded()).decode('ascii'),
+        }
 
         if item.title:
             data['title'] = item.title
@@ -169,6 +217,8 @@ class SessionManager(QObject):
             data['active'] = True
 
         user_data = item.user_data
+
+        data['last_visited'] = item.lastVisited().toString(Qt.ISODate)
 
         if tab.history.current_idx() == idx:
             pos = tab.scroller.pos_px()
@@ -192,7 +242,7 @@ class SessionManager(QObject):
             tab: The WebView to save.
             active: Whether the tab is currently active.
         """
-        data = {'history': []}  # type: _JsonType
+        data: _JsonType = {'history': []}
         if active:
             data['active'] = True
         for idx, item in enumerate(tab.history):
@@ -203,9 +253,9 @@ class SessionManager(QObject):
 
     def _save_all(self, *, only_window=None, with_private=False):
         """Get a dict with data for all windows/tabs."""
-        data = {'windows': []}  # type: _JsonType
+        data: _JsonType = {'windows': []}
         if only_window is not None:
-            winlist = [only_window]  # type: typing.Iterable[int]
+            winlist: Iterable[int] = [only_window]
         else:
             winlist = objreg.window_registry
 
@@ -222,8 +272,8 @@ class SessionManager(QObject):
             if tabbed_browser.is_private and not with_private:
                 continue
 
-            win_data = {}  # type: _JsonType
-            active_window = QApplication.instance().activeWindow()
+            win_data: _JsonType = {}
+            active_window = objects.qapp.activeWindow()
             if getattr(active_window, 'win_id', None) == win_id:
                 win_data['active'] = True
             win_data['geometry'] = bytes(main_window.saveGeometry())
@@ -281,10 +331,11 @@ class SessionManager(QObject):
         else:
             data = self._save_all(only_window=only_window,
                                   with_private=with_private)
-        log.sessions.vdebug("Saving data: {}".format(data))  # type: ignore
+        log.sessions.vdebug(  # type: ignore[attr-defined]
+            "Saving data: {}".format(data))
         try:
             with qtutils.savefile_open(path) as f:
-                utils.yaml_dump(data, f)  # type: ignore
+                utils.yaml_dump(data, f)
         except (OSError, UnicodeEncodeError, yaml.YAMLError) as e:
             raise SessionError(e)
 
@@ -314,11 +365,21 @@ class SessionManager(QObject):
         """Temporarily save the session for the last closed window."""
         self._last_window_session = self._save_all()
 
-    def _load_tab(self, new_tab, data):
+    def _load_tab(self, new_tab, data):  # noqa: C901
         """Load yaml data into a newly opened tab."""
         entries = []
+        lazy_load: MutableSequence[_JsonType] = []
+        # use len(data['history'])
+        # -> dropwhile empty if not session.lazy_session
+        lazy_index = len(data['history'])
+        gen = itertools.chain(
+            itertools.takewhile(lambda _: not lazy_load,
+                                enumerate(data['history'])),
+            enumerate(lazy_load),
+            itertools.dropwhile(lambda i: i[0] < lazy_index,
+                                enumerate(data['history'])))
 
-        for histentry in data['history']:
+        for i, histentry in gen:
             user_data = {}
 
             if 'zoom' in data:
@@ -344,18 +405,25 @@ class SessionManager(QObject):
 
             active = histentry.get('active', False)
             url = QUrl.fromEncoded(histentry['url'].encode('ascii'))
+
             if 'original-url' in histentry:
                 orig_url = QUrl.fromEncoded(
                     histentry['original-url'].encode('ascii'))
             else:
                 orig_url = url
 
-            entry = new_tab.new_history_item(
-                url=url,
-                original_url=orig_url,
-                title=histentry['title'],
-                active=active,
-                user_data=user_data)
+            if histentry.get("last_visited"):
+                last_visited: Optional[QDateTime] = QDateTime.fromString(
+                    histentry.get("last_visited"),
+                    Qt.ISODate,
+                )
+            else:
+                last_visited = None
+
+            entry = TabHistoryItem(url=url, original_url=orig_url,
+                                   title=histentry['title'], active=active,
+                                   user_data=user_data,
+                                   last_visited=last_visited)
             entries.append(entry)
 
             if active:
@@ -534,7 +602,7 @@ def session_save(name: ArgType = default, *,
 
 @cmdutils.register()
 @cmdutils.argument('name', completion=miscmodels.session)
-def session_delete(name, *, force: bool = False) -> None:
+def session_delete(name: str, *, force: bool = False) -> None:
     """Delete a session.
 
     Args:

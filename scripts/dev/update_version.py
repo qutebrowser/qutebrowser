@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2020 Andy Mender <andymenderunix@gmail.com>
-# Copyright 2019-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2021 Andy Mender <andymenderunix@gmail.com>
+# Copyright 2019-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -78,19 +78,12 @@ if __name__ == "__main__":
     print("* Create new release via GitHub (required to upload release "
           "artifacts)")
     print("* Linux: git fetch && git checkout v{v} && "
-          "./.venv/bin/python3 scripts/dev/build_release.py --upload"
+          "tox -e build-release -- --upload"
           .format(v=version))
     print("* Windows: git fetch; git checkout v{v}; "
-          "py -3 scripts\\dev\\build_release.py --asciidoc "
-          "C:\\Python27\\python "
-          "$env:userprofile\\bin\\asciidoc-8.6.10\\asciidoc.py --upload"
+          "py -3.7 -m tox -e build-release -- --asciidoc "
+          "$env:userprofile\\bin\\asciidoc-9.0.4\\asciidoc.py --upload"
           .format(v=version))
     print("* macOS: git fetch && git checkout v{v} && "
-          "python3 scripts/dev/build_release.py --upload"
+          "tox -e build-release -- --upload"
           .format(v=version))
-
-    print("* On server:")
-    print("  - bash download_release.sh {v}"
-          .format(v=version))
-    print("  - git pull github master && sudo python3 "
-          "scripts/asciidoc2html.py --website /srv/http/qutebrowser")

@@ -2,22 +2,38 @@ beautifulsoup4
 cheroot
 coverage
 Flask
-hunter
 hypothesis
 pytest
 pytest-bdd
 pytest-benchmark
-pytest-cov
 pytest-instafail
 pytest-mock
 pytest-qt
-pytest-repeat
 pytest-rerunfailures
-pytest-travis-fold
-pytest-xvfb
-vulture
-pygments
 
-#@ markers: jaraco.functools python_version>="3.6"
-#@ add: jaraco.functools==2.0; python_version<"3.6"  # rq.filter: <= 2.0
+## optional:
+# To test :debug-trace, gets skipped if hunter is not installed
+hunter
+# To test scripts/dev/run_vulture.py which is not part of the release tarball
+vulture
+# For colored pytest output (though also a direct qutebrowser dependency))
+pygments
+# --repeat switch (used to manually repeat tests)
+pytest-repeat
+# For coverage tests
+pytest-cov
+# To avoid windows from popping up
+pytest-xvfb
+PyVirtualDisplay
+# To run on multiple cores with -n
+pytest-xdist
+# For nicer output
+pytest-icdiff
+pytest-clarity
+
+# Needed to test misc/userscripts/qute-lastpass
+tldextract
+# https://github.com/urllib3/urllib3/issues/2071
+urllib3!=1.26.0,!=1.26.1,!=1.26.2
+
 #@ ignore: Jinja2, MarkupSafe, colorama

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -23,16 +23,16 @@ Defines a CompletionView which uses CompletionFiterModel and CompletionModel
 subclasses to provide completions.
 """
 
-import typing
+from typing import TYPE_CHECKING, Optional
 
 from PyQt5.QtWidgets import QTreeView, QSizePolicy, QStyleFactory, QWidget
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
 from qutebrowser.config import config, stylesheet
 from qutebrowser.completion import completiondelegate
-from qutebrowser.utils import utils, usertypes, debug, log
+from qutebrowser.utils import utils, usertypes, debug, log, qtutils
 from qutebrowser.api import cmdutils
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.mainwindow.statusbar import command
 
 
@@ -115,7 +115,7 @@ class CompletionView(QTreeView):
                  win_id: int,
                  parent: QWidget = None) -> None:
         super().__init__(parent)
-        self.pattern = None  # type: typing.Optional[str]
+        self.pattern: Optional[str] = None
         self._win_id = win_id
         self._cmd = cmd
         self._active = False
@@ -162,13 +162,13 @@ class CompletionView(QTreeView):
         pixel_widths = [(width * perc // 100) for perc in column_widths]
 
         delta = self.verticalScrollBar().sizeHint().width()
-        if pixel_widths[-1] > delta:
-            pixel_widths[-1] -= delta
-        else:
-            pixel_widths[-2] -= delta
+        for i, width in reversed(list(enumerate(pixel_widths))):
+            if width > delta:
+                pixel_widths[i] -= delta
+                break
 
         for i, w in enumerate(pixel_widths):
-            assert w >= 0, i
+            assert w >= 0, (i, w)
             self.setColumnWidth(i, w)
 
     def _next_idx(self, upwards):
@@ -205,6 +205,50 @@ class CompletionView(QTreeView):
 
         raise utils.Unreachable
 
+    def _next_page(self, upwards):
+        """Return the index a page away from the selected index.
+
+        Args:
+            upwards: Get previous item, not next.
+
+        Return:
+            A QModelIndex.
+        """
+        old_idx = self.selectionModel().currentIndex()
+        idx = old_idx
+        model = self.model()
+
+        if not idx.isValid():
+            # No item selected yet
+            return model.last_item() if upwards else model.first_item()
+
+        # Find height of each CompletionView element
+        rect = self.visualRect(idx)
+        qtutils.ensure_valid(rect)
+        page_length = self.height() // rect.height()
+
+        # Skip one pageful, except leave one old line visible
+        offset = -(page_length - 1) if upwards else page_length - 1
+        idx = model.sibling(old_idx.row() + offset, old_idx.column(), old_idx)
+
+        # Skip category headers
+        while idx.isValid() and not idx.parent().isValid():
+            idx = self.indexAbove(idx) if upwards else self.indexBelow(idx)
+
+        if idx.isValid():
+            return idx
+
+        border_item = model.first_item() if upwards else model.last_item()
+
+        # Wrap around if we were already at the beginning/end
+        if old_idx == border_item:
+            return self._next_idx(upwards)
+
+        # Select the first/last item before wrapping around
+        if upwards:
+            self.scrollTo(border_item.parent())
+        return border_item
+
     def _next_category_idx(self, upwards):
         """Get the index of the previous/next category.
 
@@ -238,14 +282,17 @@ class CompletionView(QTreeView):
 
     @cmdutils.register(instance='completion',
                        modes=[usertypes.KeyMode.command], scope='window')
-    @cmdutils.argument('which', choices=['next', 'prev', 'next-category',
-                                         'prev-category'])
+    @cmdutils.argument('which', choices=['next', 'prev',
+                                         'next-category', 'prev-category',
+                                         'next-page', 'prev-page'])
     @cmdutils.argument('history', flag='H')
     def completion_item_focus(self, which, history=False):
         """Shift the focus of the completion menu to another item.
 
         Args:
-            which: 'next', 'prev', 'next-category', or 'prev-category'.
+            which: 'next', 'prev',
+                   'next-category', 'prev-category',
+                   'next-page', or 'prev-page'.
             history: Navigate through command history if no text was typed.
         """
         if history:
@@ -266,23 +313,26 @@ class CompletionView(QTreeView):
 
         selmodel = self.selectionModel()
         indices = {
-            'next': self._next_idx(upwards=False),
-            'prev': self._next_idx(upwards=True),
-            'next-category': self._next_category_idx(upwards=False),
-            'prev-category': self._next_category_idx(upwards=True),
+            'next': lambda: self._next_idx(upwards=False),
+            'prev': lambda: self._next_idx(upwards=True),
+            'next-category': lambda: self._next_category_idx(upwards=False),
+            'prev-category': lambda: self._next_category_idx(upwards=True),
+            'next-page': lambda: self._next_page(upwards=False),
+            'prev-page': lambda: self._next_page(upwards=True),
         }
-        idx = indices[which]
+        idx = indices[which]()
 
         if not idx.isValid():
             return
 
         selmodel.setCurrentIndex(
             idx,
-            QItemSelectionModel.ClearAndSelect |  # type: ignore
+            QItemSelectionModel.ClearAndSelect |  # type: ignore[arg-type]
             QItemSelectionModel.Rows)
 
         # if the last item is focused, try to fetch more
-        if idx.row() == self.model().rowCount(idx.parent()) - 1:
+        next_idx = self.indexBelow(idx)
+        if not self.visualRect(next_idx).isValid():
             self.expandAll()
 
         count = self.model().count()
@@ -424,4 +474,8 @@ class CompletionView(QTreeView):
             if not index.isValid():
                 raise cmdutils.CommandError("No item selected!")
             text = self.model().data(index)
+
+        if not utils.supports_selection():
+            sel = False
+
         utils.set_clipboard(text, selection=sel)

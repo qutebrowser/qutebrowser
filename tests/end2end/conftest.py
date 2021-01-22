@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -28,13 +28,14 @@ import sys
 import shutil
 import pstats
 import operator
+import pathlib
 
 import pytest
-from PyQt5.QtCore import PYQT_VERSION
+from PyQt5.QtCore import PYQT_VERSION, QCoreApplication
 
 pytest.register_assert_rewrite('end2end.fixtures')
 
-from end2end.fixtures.webserver import server, server_per_test, ssl_server
+from end2end.fixtures.webserver import server, server_per_test, server2, ssl_server
 from end2end.fixtures.quteprocess import (quteproc_process, quteproc,
                                           quteproc_new)
 from end2end.fixtures.testprocess import pytest_runtest_makereport
@@ -137,6 +138,13 @@ if not getattr(sys, 'frozen', False):
 
 def pytest_collection_modifyitems(config, items):
     """Apply @qtwebengine_* markers; skip unittests with QUTE_BDD_WEBENGINE."""
+    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-75884
+    # (note this isn't actually fixed properly before Qt 5.15)
+    header_bug_fixed = qtutils.version_check('5.15', compiled=False)
+
+    lib_path = pathlib.Path(QCoreApplication.libraryPaths()[0])
+    qpdf_image_plugin = lib_path / 'imageformats' / 'libqpdf.so'
+
     markers = [
         ('qtwebengine_todo', 'QtWebEngine TODO', pytest.mark.xfail,
          config.webengine),
@@ -152,6 +160,13 @@ def pytest_collection_modifyitems(config, items):
          config.webengine),
         ('qtwebengine_mac_xfail', 'Fails on macOS with QtWebEngine',
          pytest.mark.xfail, config.webengine and utils.is_mac),
+        ('js_headers', 'Sets headers dynamically via JS',
+         pytest.mark.skipif,
+         config.webengine and not header_bug_fixed),
+        ('qtwebkit_pdf_imageformat_skip',
+         'Skipped with QtWebKit if PDF image plugin is available',
+         pytest.mark.skipif,
+         not config.webengine and qpdf_image_plugin.exists()),
     ]
 
     for item in items:

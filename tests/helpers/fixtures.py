@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -33,8 +33,8 @@ import unittest.mock
 import types
 import mimetypes
 import os.path
+import dataclasses
 
-import attr
 import pytest
 import py.path  # pylint: disable=no-name-in-module
 from PyQt5.QtCore import QSize, Qt
@@ -50,6 +50,7 @@ from qutebrowser.browser import greasemonkey, history, qutescheme
 from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.misc import savemanager, sql, objects, sessions
 from qutebrowser.keyinput import modeman
+from qutebrowser.qt import sip
 
 
 _qute_scheme_handler = None
@@ -64,14 +65,17 @@ class WidgetContainer(QWidget):
         self._qtbot = qtbot
         self.vbox = QVBoxLayout(self)
         qtbot.add_widget(self)
+        self._widget = None
 
     def set_widget(self, widget):
         self.vbox.addWidget(widget)
         widget.container = self
+        self._widget = widget
 
     def expose(self):
         with self._qtbot.waitExposed(self):
             self.show()
+        self._widget.setFocus()
 
 
 @pytest.fixture
@@ -83,15 +87,19 @@ class WinRegistryHelper:
 
     """Helper class for win_registry."""
 
-    @attr.s
+    @dataclasses.dataclass
     class FakeWindow:
 
         """A fake window object for the registry."""
 
-        registry = attr.ib()
+        registry: objreg.ObjectRegistry
 
         def windowTitle(self):
             return 'window title - qutebrowser'
+
+        @property
+        def tabbed_browser(self):
+            return self.registry['tabbed-browser']
 
     def __init__(self):
         self._ids = []
@@ -158,7 +166,7 @@ def fake_web_tab(stubs, tab_registry, mode_manager, qapp):
 
 
 @pytest.fixture
-def greasemonkey_manager(monkeypatch, data_tmpdir):
+def greasemonkey_manager(monkeypatch, data_tmpdir, config_tmpdir):
     gm_manager = greasemonkey.GreasemonkeyManager()
     monkeypatch.setattr(greasemonkey, 'gm_manager', gm_manager)
 
@@ -204,19 +212,28 @@ def web_tab_setup(qtbot, tab_registry, session_manager_stub,
 
 @pytest.fixture
 def webkit_tab(web_tab_setup, qtbot, cookiejar_and_cache, mode_manager,
-               widget_container, webpage):
+               widget_container, download_stub, webpage, monkeypatch):
     webkittab = pytest.importorskip('qutebrowser.browser.webkit.webkittab')
+
+    monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
 
     tab = webkittab.WebKitTab(win_id=0, mode_manager=mode_manager,
                               private=False)
+    tab.backend = usertypes.Backend.QtWebKit
     widget_container.set_widget(tab)
 
-    return tab
+    yield tab
+
+    # Make sure the tab shuts itself down properly
+    tab.private_api.shutdown()
 
 
 @pytest.fixture
 def webengine_tab(web_tab_setup, qtbot, redirect_webengine_data,
-                  tabbed_browser_stubs, mode_manager, widget_container):
+                  tabbed_browser_stubs, mode_manager, widget_container,
+                  monkeypatch):
+    monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
+
     tabwidget = tabbed_browser_stubs[0].widget
     tabwidget.current_index = 0
     tabwidget.index_of = 0
@@ -226,11 +243,22 @@ def webengine_tab(web_tab_setup, qtbot, redirect_webengine_data,
 
     tab = webenginetab.WebEngineTab(win_id=0, mode_manager=mode_manager,
                                     private=False)
+    tab.backend = usertypes.Backend.QtWebEngine
     widget_container.set_widget(tab)
+
     yield tab
+
     # If a page is still loading here, _on_load_finished could get called
     # during teardown when session_manager_stub is already deleted.
     tab.stop()
+
+    # Make sure the tab shuts itself down properly
+    tab.private_api.shutdown()
+
+    # If we wait for the GC to clean things up, there's a segfault inside
+    # QtWebEngine sometimes (e.g. if we only run
+    # tests/unit/browser/test_caret.py).
+    sip.delete(tab._widget)
 
 
 @pytest.fixture(params=['webkit', 'webengine'])
@@ -248,15 +276,15 @@ def web_tab(request):
 
 def _generate_cmdline_tests():
     """Generate testcases for test_split_binding."""
-    @attr.s
+    @dataclasses.dataclass
     class TestCase:
 
-        cmd = attr.ib()
-        valid = attr.ib()
+        cmd: str
+        valid: bool
 
     separators = [';;', ' ;; ', ';; ', ' ;;']
     invalid = ['foo', '']
-    valid = ['leave-mode', 'hint all']
+    valid = ['mode-leave', 'hint all']
     # Valid command only -> valid
     for item in valid:
         yield TestCase(''.join(item), True)
@@ -315,7 +343,7 @@ def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub, qapp):
     monkeypatch.setattr(config, 'cache', cache)
 
     try:
-        configtypes.Font.set_defaults(None, '10pt')
+        configtypes.FontBase.set_defaults(None, '10pt')
     except configexc.NoOptionError:
         # Completion tests patch configdata so fonts.default_family is
         # unavailable.
@@ -416,13 +444,15 @@ def webengineview(qtbot, monkeypatch, web_tab_setup):
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
     view = QtWebEngineWidgets.QWebEngineView()
     qtbot.add_widget(view)
-    return view
+    yield view
+    view.setPage(None)  # Avoid warning if using QWebEngineProfile
 
 
 @pytest.fixture
-def webpage(qnam):
+def webpage(qnam, monkeypatch):
     """Get a new QWebPage object."""
     QtWebKitWidgets = pytest.importorskip('PyQt5.QtWebKitWidgets')
+    monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
 
     class WebPageStub(QtWebKitWidgets.QWebPage):
 
@@ -444,10 +474,9 @@ def webpage(qnam):
 
 
 @pytest.fixture
-def webview(qtbot, webpage, monkeypatch):
+def webview(qtbot, webpage):
     """Get a new QWebView object."""
     QtWebKitWidgets = pytest.importorskip('PyQt5.QtWebKitWidgets')
-    monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
 
     view = QtWebKitWidgets.QWebView()
     qtbot.add_widget(view)
@@ -474,13 +503,19 @@ def cookiejar_and_cache(stubs, monkeypatch):
 
 
 @pytest.fixture
-def py_proc():
+def py_proc(tmp_path):
     """Get a python executable and args list which executes the given code."""
     if getattr(sys, 'frozen', False):
         pytest.skip("Can't be run when frozen")
 
     def func(code):
-        return (sys.executable, ['-c', textwrap.dedent(code.strip('\n'))])
+        code = textwrap.dedent(code.strip('\n'))
+        if '\n' in code:
+            py_file = tmp_path / 'py_proc.py'
+            py_file.write_text(code)
+            return (sys.executable, [str(py_file)])
+        else:
+            return (sys.executable, ['-c', code])
 
     return func
 
@@ -654,3 +689,39 @@ def web_history(fake_save_manager, tmpdir, init_sql, config_stub, stubs,
     web_history = history.WebHistory(stubs.FakeHistoryProgress())
     monkeypatch.setattr(history, 'web_history', web_history)
     return web_history
+
+
+@pytest.fixture
+def blue_widget(qtbot):
+    widget = QWidget()
+    widget.setStyleSheet('background-color: blue;')
+    qtbot.add_widget(widget)
+    return widget
+
+
+@pytest.fixture
+def red_widget(qtbot):
+    widget = QWidget()
+    widget.setStyleSheet('background-color: red;')
+    qtbot.add_widget(widget)
+    return widget
+
+
+@pytest.fixture
+def state_config(data_tmpdir, monkeypatch):
+    state = configfiles.StateConfig()
+    monkeypatch.setattr(configfiles, 'state', state)
+    return state
+
+
+@pytest.fixture
+def unwritable_tmp_path(tmp_path):
+    tmp_path.chmod(0)
+    if os.access(str(tmp_path), os.W_OK):
+        # Docker container or similar
+        pytest.skip("Directory was still writable")
+
+    yield tmp_path
+
+    # Make sure pytest can clean up the tmp_path
+    tmp_path.chmod(0o755)

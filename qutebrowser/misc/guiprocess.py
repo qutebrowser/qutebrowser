@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,7 +25,7 @@ import shlex
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
                           QProcessEnvironment)
 
-from qutebrowser.utils import message, log
+from qutebrowser.utils import message, log, utils
 from qutebrowser.browser import qutescheme
 
 
@@ -62,12 +62,12 @@ class GUIProcess(QObject):
         self.args = None
 
         self._proc = QProcess(self)
-        self._proc.errorOccurred.connect(self._on_error)  # type: ignore
-        self._proc.errorOccurred.connect(self.error)  # type: ignore
-        self._proc.finished.connect(self._on_finished)  # type: ignore
-        self._proc.finished.connect(self.finished)  # type: ignore
-        self._proc.started.connect(self._on_started)  # type: ignore
-        self._proc.started.connect(self.started)  # type: ignore
+        self._proc.errorOccurred.connect(self._on_error)
+        self._proc.errorOccurred.connect(self.error)
+        self._proc.finished.connect(self._on_finished)
+        self._proc.finished.connect(self.finished)
+        self._proc.started.connect(self._on_started)
+        self._proc.started.connect(self.started)
 
         if additional_env is not None:
             procenv = QProcessEnvironment.systemEnvironment()
@@ -75,9 +75,12 @@ class GUIProcess(QObject):
                 procenv.insert(k, v)
             self._proc.setProcessEnvironment(procenv)
 
-    @pyqtSlot()
-    def _on_error(self):
+    @pyqtSlot(QProcess.ProcessError)
+    def _on_error(self, error):
         """Show a message if there was an error while spawning."""
+        if error == QProcess.Crashed and not utils.is_windows:
+            # Already handled via ExitStatus in _on_finished
+            return
         msg = self._proc.errorString()
         message.error("Error while spawning {}: {}".format(self._what, msg))
 
@@ -89,9 +92,9 @@ class GUIProcess(QObject):
             code, status))
 
         encoding = locale.getpreferredencoding(do_setlocale=False)
-        stderr = bytes(self._proc.readAllStandardError()).decode(
+        stderr = self._proc.readAllStandardError().data().decode(
             encoding, 'replace')
-        stdout = bytes(self._proc.readAllStandardOutput()).decode(
+        stdout = self._proc.readAllStandardOutput().data().decode(
             encoding, 'replace')
 
         if self._output_messages:
@@ -101,7 +104,7 @@ class GUIProcess(QObject):
                 message.error(stderr.strip())
 
         if status == QProcess.CrashExit:
-            exitinfo = "{} crashed!".format(self._what.capitalize())
+            exitinfo = "{} crashed.".format(self._what.capitalize())
             message.error(exitinfo)
         elif status == QProcess.NormalExit and code == 0:
             exitinfo = "{} exited successfully.".format(
@@ -163,7 +166,8 @@ class GUIProcess(QObject):
         """Convenience wrapper around QProcess::startDetached."""
         log.procs.debug("Starting detached.")
         self._pre_start(cmd, args)
-        ok, _pid = self._proc.startDetached(cmd, args, None)  # type: ignore
+        ok, _pid = self._proc.startDetached(
+            cmd, args, None)  # type: ignore[call-arg]
 
         if not ok:
             message.error("Error while spawning {}".format(self._what))

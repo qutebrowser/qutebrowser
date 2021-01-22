@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -18,37 +18,31 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
+import pathlib
 import pytest
 from scripts import importer
 
-_samples = 'tests/unit/scripts/importer_sample'
+_samples = pathlib.Path('tests/unit/scripts/importer_sample')
 
 
 def qm_expected(input_format):
     """Read expected quickmark-formatted output."""
-    with open(os.path.join(_samples, input_format, 'quickmarks'),
-              'r', encoding='utf-8') as f:
-        return f.read()
+    return (_samples / input_format / 'quickmarks').read_text(encoding='utf-8')
 
 
 def bm_expected(input_format):
     """Read expected bookmark-formatted output."""
-    with open(os.path.join(_samples, input_format, 'bookmarks'),
-              'r', encoding='utf-8') as f:
-        return f.read()
+    return (_samples / input_format / 'bookmarks').read_text(encoding='utf-8')
 
 
 def search_expected(input_format):
     """Read expected search-formatted (config.py) output."""
-    with open(os.path.join(_samples, input_format, 'config_py'),
-              'r', encoding='utf-8') as f:
-        return f.read()
+    return (_samples / input_format / 'config_py').read_text(encoding='utf-8')
 
 
 def sample_input(input_format):
     """Get the sample input path."""
-    return os.path.join(_samples, input_format, 'input')
+    return str(_samples / input_format / 'input')
 
 
 def test_opensearch_convert():
@@ -100,25 +94,25 @@ def test_chrome_searches(capsys):
     assert imported == search_expected('chrome')
 
 
-def test_netscape_bookmarks(capsys):
-    importer.import_netscape_bookmarks(
-        sample_input('netscape'), ['bookmark', 'keyword'], 'bookmark')
+def test_html_bookmarks(capsys):
+    importer.import_html_bookmarks(
+        sample_input('html'), ['bookmark', 'keyword'], 'bookmark')
     imported = capsys.readouterr()[0]
-    assert imported == bm_expected('netscape')
+    assert imported == bm_expected('html')
 
 
-def test_netscape_quickmarks(capsys):
-    importer.import_netscape_bookmarks(
-        sample_input('netscape'), ['bookmark', 'keyword'], 'quickmark')
+def test_html_quickmarks(capsys):
+    importer.import_html_bookmarks(
+        sample_input('html'), ['bookmark', 'keyword'], 'quickmark')
     imported = capsys.readouterr()[0]
-    assert imported == qm_expected('netscape')
+    assert imported == qm_expected('html')
 
 
-def test_netscape_searches(capsys):
-    importer.import_netscape_bookmarks(
-        sample_input('netscape'), ['search'], 'search')
+def test_html_searches(capsys):
+    importer.import_html_bookmarks(
+        sample_input('html'), ['search'], 'search')
     imported = capsys.readouterr()[0]
-    assert imported == search_expected('netscape')
+    assert imported == search_expected('html')
 
 
 def test_mozilla_bookmarks(capsys):

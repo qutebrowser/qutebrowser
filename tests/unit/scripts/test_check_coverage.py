@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -19,7 +19,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-import os.path
+import pathlib
 
 import pytest
 
@@ -51,10 +51,12 @@ class CovtestHelper:
         """Run pytest with coverage for the given module.py."""
         coveragerc = str(self._testdir.tmpdir / 'coveragerc')
         self._monkeypatch.delenv('PYTEST_ADDOPTS', raising=False)
-        return self._testdir.runpytest('--cov=module',
-                                       '--cov-config={}'.format(coveragerc),
-                                       '--cov-report=xml',
-                                       plugins=['no:faulthandler'])
+        res = self._testdir.runpytest('--cov=module',
+                                      '--cov-config={}'.format(coveragerc),
+                                      '--cov-report=xml',
+                                      plugins=['no:faulthandler', 'no:xvfb'])
+        assert res.ret == 0
+        return res
 
     def check(self, perfect_files=None):
         """Run check_coverage.py and run its return value."""
@@ -92,6 +94,15 @@ def covtest(testdir, monkeypatch):
         def test_module():
             func()
     """)
+
+    # Check if coverage plugin is available
+    res = testdir.runpytest('--version', '--version')
+    assert res.ret == 0
+    output = res.stderr.str()
+    assert 'This is pytest version' in output
+    if 'pytest-cov' not in output:
+        pytest.skip("cov plugin not available")
+
     return CovtestHelper(testdir, monkeypatch)
 
 
@@ -216,15 +227,14 @@ def test_skipped_non_linux(covtest):
 def _generate_files():
     """Get filenames from WHITELISTED_/PERFECT_FILES."""
     for src_file in check_coverage.WHITELISTED_FILES:
-        yield os.path.join('qutebrowser', src_file)
+        yield pathlib.Path(src_file)
     for test_file, src_file in check_coverage.PERFECT_FILES:
         if test_file is not None:
-            yield test_file
-        yield os.path.join('qutebrowser', src_file)
+            yield pathlib.Path(test_file)
+        yield pathlib.Path(src_file)
 
 
 @pytest.mark.parametrize('filename', list(_generate_files()))
 def test_files_exist(filename):
-    basedir = os.path.join(os.path.dirname(check_coverage.__file__),
-                           os.pardir, os.pardir)
-    assert os.path.exists(os.path.join(basedir, filename))
+    basedir = pathlib.Path(check_coverage.__file__).parents[2]
+    assert (basedir / filename).exists()

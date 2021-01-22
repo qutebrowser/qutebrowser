@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -351,7 +351,7 @@ def test_set(quteproc, value):
 
 
 @pytest.mark.parametrize('message, ignored', [
-    # Unparseable
+    # Unparsable
     ('Hello World', False),
     # Without process/thread ID
     ('[0606/135039:ERROR:cert_verify_proc_nss.cc(925)] CERT_PKIXVerifyCert '

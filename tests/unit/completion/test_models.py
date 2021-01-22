@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -20,22 +20,35 @@
 """Tests for completion models."""
 
 import collections
+import os
 import random
 import string
+import time
 from datetime import datetime
+from unittest import mock
 
+import hypothesis
+import hypothesis.strategies
 import pytest
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QDateTime
+try:
+    from PyQt5.QtWebEngineWidgets import (
+        QWebEngineHistory, QWebEngineHistoryItem
+    )
+except ImportError:
+    pass
 
 from qutebrowser.misc import objects
 from qutebrowser.completion import completer
-from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
+from qutebrowser.completion.models import (
+    configmodel, listcategory, miscmodels, urlmodel, filepathcategory)
 from qutebrowser.config import configdata, configtypes
 from qutebrowser.utils import usertypes
+from qutebrowser.mainwindow import tabbedbrowser
 
 
 def _check_completions(model, expected):
-    """Check that a model contains the expected items in any order.
+    """Check that a model contains the expected items in order.
 
     Args:
         expected: A dict of form
@@ -59,7 +72,6 @@ def _check_completions(model, expected):
             actual[catname].append((name, desc, misc))
     assert actual == expected
     # sanity-check the column_widths
-    assert len(model.column_widths) == 3
     assert sum(model.column_widths) == 100
 
 
@@ -116,7 +128,7 @@ def configdata_stub(config_stub, monkeypatch, configdata_init):
             no_autoconfig=True)),
         ('bindings.commands', configdata.Option(
             name='bindings.commands',
-            description='Default keybindings',
+            description='Custom keybindings',
             typ=configtypes.Dict(
                 keytype=configtypes.String(),
                 valtype=configtypes.Dict(
@@ -186,6 +198,15 @@ def bookmarks(bookmark_manager_stub):
 
 
 @pytest.fixture
+def local_files_path(tmp_path):
+    files_dir = tmp_path / 'files'
+    files_dir.mkdir()
+    (files_dir / 'file1.txt').touch()
+    (files_dir / 'file2.txt').touch()
+    return files_dir
+
+
+@pytest.fixture
 def web_history_populated(web_history):
     """Pre-populate the web-history database."""
     web_history.add_url(
@@ -210,7 +231,8 @@ def web_history_populated(web_history):
 def info(config_stub, key_config_stub):
     return completer.CompletionInfo(config=config_stub,
                                     keyconf=key_config_stub,
-                                    win_id=0)
+                                    win_id=0,
+                                    cur_tab=None)
 
 
 def test_command_completion(qtmodeltester, cmdutils_stub, configdata_stub,
@@ -260,13 +282,38 @@ def test_help_completion(qtmodeltester, cmdutils_stub, key_config_stub,
             (':tab-close', 'Close the current tab.', ''),
         ],
         "Settings": [
-            ('aliases', 'Aliases for commands.', None),
-            ('bindings.commands', 'Default keybindings', None),
-            ('bindings.default', 'Default keybindings', None),
-            ('completion.open_categories', 'Which categories to show (in '
-             'which order) in the :open completion.', None),
-            ('content.javascript.enabled', 'Enable/Disable JavaScript', None),
-            ('url.searchengines', 'searchengines list', None),
+            (
+                'aliases',
+                'Aliases for commands.',
+                '{"q": "quit"}',
+            ),
+            (
+                'bindings.commands',
+                'Custom keybindings',
+                ('{"normal": {"<Ctrl+q>": "quit", "I": "invalid", "ZQ": "quit", '
+                 '"d": "scroll down"}}'),
+            ),
+            (
+                'bindings.default',
+                'Default keybindings',
+                '{"normal": {"<Ctrl+q>": "quit", "d": "tab-close"}}',
+            ),
+            (
+                'completion.open_categories',
+                'Which categories to show (in which order) in the :open completion.',
+                '["searchengines", "quickmarks", "bookmarks", "history"]',
+            ),
+            (
+                'content.javascript.enabled',
+                'Enable/Disable JavaScript',
+                'true'
+            ),
+            (
+                'url.searchengines',
+                'searchengines list',
+                ('{"DEFAULT": "https://duckduckgo.com/?q={}", '
+                 '"google": "https://google.com/?q={}"}'),
+            ),
         ],
     })
 
@@ -357,6 +404,82 @@ def test_open_categories_remove_one(qtmodeltester, config_stub, web_history_popu
             ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
             ('http://qutebrowser.org', 'qutebrowser', '2015-09-05'),
         ],
+    })
+
+
+@pytest.mark.parametrize('method', ['normal', 'url', 'home'])
+def test_filesystem_completion(qtmodeltester, config_stub, info,
+                               web_history_populated, quickmarks, bookmarks,
+                               local_files_path, monkeypatch, method):
+    file_1 = local_files_path / 'file1.txt'
+    file_2 = local_files_path / 'file2.txt'
+
+    if method == 'normal':
+        base = str(local_files_path)
+        expected_1 = str(file_1)
+        expected_2 = str(file_2)
+    elif method == 'url':
+        base = local_files_path.as_uri()
+        expected_1 = file_1.as_uri()
+        expected_2 = file_2.as_uri()
+    elif method == 'home':
+        monkeypatch.setenv('HOME', str(local_files_path))
+        base = '~'
+        expected_1 = os.path.join('~', 'file1.txt')
+        expected_2 = os.path.join('~', 'file2.txt')
+
+    config_stub.val.completion.open_categories = ['filesystem']
+    model = urlmodel.url(info=info)
+    model.set_pattern(base + os.sep)
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        "Filesystem": [
+            (expected_1, None, None),
+            (expected_2, None, None),
+        ]
+    })
+
+
+def test_filesystem_completion_model_interface(info, local_files_path):
+    model = filepathcategory.FilePathCategory('filepaths')
+    model.set_pattern(str(local_files_path) + os.sep)
+
+    index = model.index(0, 0)
+    assert index.isValid()
+    assert model.rowCount(parent=index) == 0
+
+    index2 = model.index(0, 5)
+    assert not index2.isValid()
+    assert model.data(index2) is None
+
+
+@hypothesis.given(
+    as_uri=hypothesis.strategies.booleans(),
+    add_sep=hypothesis.strategies.booleans(),
+    text=hypothesis.strategies.text(),
+)
+def test_filesystem_completion_hypothesis(info, as_uri, add_sep, text):
+    if as_uri:
+        text = 'file:///' + text
+    if add_sep:
+        text += os.sep
+
+    model = filepathcategory.FilePathCategory('filepaths')
+    model.set_pattern(text)
+
+
+def test_default_filesystem_completion(qtmodeltester, config_stub, info,
+                                       web_history_populated, quickmarks, bookmarks,
+                                       local_files_path):
+    config_stub.val.completion.open_categories = ['filesystem']
+    config_stub.val.completion.favorite_paths = [str(local_files_path)]
+    model = urlmodel.url(info=info)
+    model.set_pattern('')
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        "Filesystem": [(str(local_files_path), None, None)]
     })
 
 
@@ -529,6 +652,7 @@ def test_url_completion_no_quickmarks(qtmodeltester, web_history_populated,
             ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
             ('http://qutebrowser.org', 'qutebrowser', '2015-09-05'),
         ],
+        'Filesystem': [],
     })
 
 
@@ -550,6 +674,7 @@ def test_url_completion_no_bookmarks(qtmodeltester, web_history_populated,
             ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
             ('http://qutebrowser.org', 'qutebrowser', '2015-09-05'),
         ],
+        'Filesystem': [],
     })
 
 
@@ -687,7 +812,7 @@ def test_tab_completion(qtmodeltester, fake_web_tab, win_registry,
     tabbed_browser_stubs[1].widget.tabs = [
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
-    model = miscmodels.buffer()
+    model = miscmodels.tabs()
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -714,7 +839,7 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, win_registry,
     tabbed_browser_stubs[1].widget.tabs = [
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
-    model = miscmodels.buffer()
+    model = miscmodels.tabs()
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -748,7 +873,7 @@ def test_tab_completion_not_sorted(qtmodeltester, fake_web_tab, win_registry,
         fake_web_tab(QUrl(tab[1]), tab[2], idx)
         for idx, tab in enumerate(expected)
     ]
-    model = miscmodels.buffer()
+    model = miscmodels.tabs()
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -772,7 +897,7 @@ def test_tab_completion_tabs_are_windows(qtmodeltester, fake_web_tab,
     ]
 
     config_stub.val.tabs.tabs_are_windows = True
-    model = miscmodels.buffer()
+    model = miscmodels.tabs()
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -786,8 +911,8 @@ def test_tab_completion_tabs_are_windows(qtmodeltester, fake_web_tab,
     })
 
 
-def test_other_buffer_completion(qtmodeltester, fake_web_tab, win_registry,
-                                 tabbed_browser_stubs, info):
+def test_other_tabs_completion(qtmodeltester, fake_web_tab, win_registry,
+                               tabbed_browser_stubs, info):
     tabbed_browser_stubs[0].widget.tabs = [
         fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
         fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
@@ -797,7 +922,7 @@ def test_other_buffer_completion(qtmodeltester, fake_web_tab, win_registry,
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     info.win_id = 1
-    model = miscmodels.other_buffer(info=info)
+    model = miscmodels.other_tabs(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -810,8 +935,8 @@ def test_other_buffer_completion(qtmodeltester, fake_web_tab, win_registry,
     })
 
 
-def test_other_buffer_completion_id0(qtmodeltester, fake_web_tab,
-                                     win_registry, tabbed_browser_stubs, info):
+def test_other_tabs_completion_id0(qtmodeltester, fake_web_tab,
+                                   win_registry, tabbed_browser_stubs, info):
     tabbed_browser_stubs[0].widget.tabs = [
         fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
         fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
@@ -821,7 +946,7 @@ def test_other_buffer_completion_id0(qtmodeltester, fake_web_tab,
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     info.win_id = 0
-    model = miscmodels.other_buffer(info=info)
+    model = miscmodels.other_tabs(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -829,6 +954,41 @@ def test_other_buffer_completion_id0(qtmodeltester, fake_web_tab,
         '1': [
             ('1/1', 'https://wiki.archlinux.org', 'ArchWiki'),
         ],
+    })
+
+
+def test_tab_focus_completion(qtmodeltester, fake_web_tab, win_registry,
+                              tabbed_browser_stubs, info):
+    tabbed_browser_stubs[0].widget.tabs = [
+        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
+        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
+    ]
+    tabbed_browser_stubs[1].widget.tabs = [
+        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
+    ]
+    info.win_id = 1
+    model = miscmodels.tab_focus(info=info)
+    model.set_pattern('')
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        'Tabs': [
+            ('1', 'https://wiki.archlinux.org', 'ArchWiki'),
+        ],
+        'Special': [
+            ("last",
+             "Focus the last-focused tab",
+             None),
+
+            ("stack-next",
+             "Go forward through a stack of focused tabs",
+             None),
+
+            ("stack-prev",
+             "Go backward through a stack of focused tabs",
+             None),
+        ]
     })
 
 
@@ -865,7 +1025,7 @@ def test_setting_option_completion(qtmodeltester, config_stub,
     _check_completions(model, {
         "Options": [
             ('aliases', 'Aliases for commands.', '{"q": "quit"}'),
-            ('bindings.commands', 'Default keybindings', (
+            ('bindings.commands', 'Custom keybindings', (
                 '{"normal": {"<Ctrl+q>": "quit", "I": "invalid", '
                 '"ZQ": "quit", "d": "scroll down"}}')),
             ('completion.open_categories', 'Which categories to show (in '
@@ -889,7 +1049,7 @@ def test_setting_dict_option_completion(qtmodeltester, config_stub,
     _check_completions(model, {
         "Dict options": [
             ('aliases', 'Aliases for commands.', '{"q": "quit"}'),
-            ('bindings.commands', 'Default keybindings', (
+            ('bindings.commands', 'Custom keybindings', (
                 '{"normal": {"<Ctrl+q>": "quit", "I": "invalid", '
                 '"ZQ": "quit", "d": "scroll down"}}')),
             ('url.searchengines', 'searchengines list',
@@ -1144,3 +1304,145 @@ def test_url_completion_benchmark(benchmark, info,
         model.set_pattern('ex 123')
 
     benchmark(bench)
+
+
+@pytest.fixture
+def tab_with_history(fake_web_tab, tabbed_browser_stubs, info, monkeypatch):
+    """Returns a fake tab with some fake history items."""
+    pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    tab = fake_web_tab(QUrl('https://github.com'), 'GitHub', 0)
+    current_idx = 2
+    monkeypatch.setattr(
+        tab.history, 'current_idx',
+        lambda: current_idx,
+    )
+
+    history = []
+    now = time.time()
+    for url, title, ts in [
+            ("http://example.com/index", "list of things", now),
+            ("http://example.com/thing1", "thing1 detail", now+5),
+            ("http://example.com/thing2", "thing2 detail", now+10),
+            ("http://example.com/thing3", "thing3 detail", now+15),
+            ("http://example.com/thing4", "thing4 detail", now+20),
+    ]:
+        entry = mock.Mock(spec=QWebEngineHistoryItem)
+        entry.url.return_value = QUrl(url)
+        entry.title.return_value = title
+        dt = QDateTime.fromMSecsSinceEpoch(int(ts * 1000))
+        entry.lastVisited.return_value = dt
+        history.append(entry)
+    tab.history._history = mock.Mock(spec=QWebEngineHistory)
+    tab.history._history.items.return_value = history
+    monkeypatch.setattr(
+        tab.history, 'back_items',
+        lambda *_args: (
+            entry for idx, entry in enumerate(tab.history._history.items())
+            if idx < current_idx
+        ),
+    )
+    monkeypatch.setattr(
+        tab.history, 'forward_items',
+        lambda *_args: (
+            entry for idx, entry in enumerate(tab.history._history.items())
+            if idx > current_idx
+        ),
+    )
+
+    tabbed_browser_stubs[0].widget.tabs = [tab]
+    tabbed_browser_stubs[0].widget.current_index = 0
+
+    info.cur_tab = tab
+    return tab
+
+
+def test_back_completion(tab_with_history, info):
+    """Test back tab history completion."""
+    model = miscmodels.back(info=info)
+    model.set_pattern('')
+
+    _check_completions(model, {
+        "History": [
+            ("1", "http://example.com/thing1", "thing1 detail"),
+            ("0", "http://example.com/index", "list of things"),
+        ],
+    })
+
+
+def test_forward_completion(tab_with_history, info):
+    """Test forward tab history completion."""
+    model = miscmodels.forward(info=info)
+    model.set_pattern('')
+
+    _check_completions(model, {
+        "History": [
+            ("3", "http://example.com/thing3", "thing3 detail"),
+            ("4", "http://example.com/thing4", "thing4 detail"),
+        ],
+    })
+
+
+def test_undo_completion(tabbed_browser_stubs, info):
+    """Test :undo completion."""
+    entry1 = tabbedbrowser._UndoEntry(url=QUrl('https://example.org/'),
+                                      history=None, index=None, pinned=None,
+                                      created_at=datetime(2020, 1, 1))
+    entry2 = tabbedbrowser._UndoEntry(url=QUrl('https://example.com/'),
+                                      history=None, index=None, pinned=None,
+                                      created_at=datetime(2020, 1, 2))
+    entry3 = tabbedbrowser._UndoEntry(url=QUrl('https://example.net/'),
+                                      history=None, index=None, pinned=None,
+                                      created_at=datetime(2020, 1, 2))
+
+    # Most recently closed is at the end
+    tabbed_browser_stubs[0].undo_stack = [
+        [entry1],
+        [entry2, entry3],
+    ]
+
+    model = miscmodels.undo(info=info)
+    model.set_pattern('')
+
+    # Most recently closed is at the top, indices are used like "-x" for the
+    # undo stack.
+    _check_completions(model, {
+        "Closed tabs": [
+            ("1",
+             "https://example.com/, https://example.net/",
+             "2020-01-02 00:00"),
+            ("2",
+             "https://example.org/",
+             "2020-01-01 00:00"),
+        ],
+    })
+
+
+def undo_completion_retains_sort_order(tabbed_browser_stubs, info):
+    """Test :undo completion sort order with > 10 entries."""
+    created_dt = datetime(2020, 1, 1)
+    created_str = "2020-01-02 00:00"
+
+    tabbed_browser_stubs[0].undo_stack = [
+        tabbedbrowser._UndoEntry(
+            url=QUrl(f'https://example.org/{idx}'),
+            history=None, index=None, pinned=None,
+            created_at=created_dt,
+        )
+        for idx in range(1, 11)
+    ]
+
+    model = miscmodels.undo(info=info)
+    model.set_pattern('')
+
+    expected = [
+        (str(idx), f'https://example.org/{idx}', created_str)
+        for idx in range(1, 11)
+    ]
+    _check_completions(model, {"Closed tabs": expected})
+
+
+@hypothesis.given(text=hypothesis.strategies.text())
+def test_listcategory_hypothesis(text):
+    """Make sure we can't produce invalid patterns."""
+    cat = listcategory.ListCategory("test", [])
+    cat.set_pattern(text)

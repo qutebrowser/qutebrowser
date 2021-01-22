@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015 Daniel Schadt
 #
 # This file is part of qutebrowser.
@@ -24,10 +24,21 @@ import os
 
 from PyQt5.QtCore import QUrl, QUrlQuery
 
-from qutebrowser.utils import (utils, javascript, jinja, qtutils, usertypes,
-                               standarddir, log)
-from qutebrowser.misc import objects
+from qutebrowser.utils import utils, javascript, jinja, standarddir, log
 from qutebrowser.config import config
+
+
+_SYSTEM_PATHS = [
+    # Debian pdf.js-common
+    # Arch Linux pdfjs (AUR)
+    '/usr/share/pdf.js/',
+    # Flatpak (Flathub)
+    '/app/share/pdf.js/',
+    # Arch Linux pdf.js (AUR)
+    '/usr/share/javascript/pdf.js/',
+    # Debian libjs-pdf
+    '/usr/share/javascript/pdf/',
+]
 
 
 class PDFJSNotFound(Exception):
@@ -84,33 +95,24 @@ def _generate_pdfjs_script(filename):
     url_query.addQueryItem('filename', filename)
     url.setQuery(url_query)
 
+    js_url = javascript.to_js(
+        url.toString(QUrl.FullyEncoded))  # type: ignore[arg-type]
+
     return jinja.js_environment.from_string("""
         document.addEventListener("DOMContentLoaded", function() {
           if (typeof window.PDFJS !== 'undefined') {
               // v1.x
-              {% if disable_create_object_url %}
-              window.PDFJS.disableCreateObjectURL = true;
-              {% endif %}
               window.PDFJS.verbosity = window.PDFJS.VERBOSITY_LEVELS.info;
           } else {
               // v2.x
               const options = window.PDFViewerApplicationOptions;
-              {% if disable_create_object_url %}
-              options.set('disableCreateObjectURL', true);
-              {% endif %}
               options.set('verbosity', pdfjsLib.VerbosityLevel.INFOS);
           }
 
           const viewer = window.PDFView || window.PDFViewerApplication;
           viewer.open({{ url }});
         });
-    """).render(
-        url=javascript.to_js(url.toString(QUrl.FullyEncoded)),  # type: ignore
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70420
-        disable_create_object_url=(
-            not qtutils.version_check('5.12') and
-            not qtutils.version_check('5.7.1', exact=True, compiled=False) and
-            objects.backend == usertypes.Backend.QtWebEngine))
+    """).render(url=js_url)
 
 
 def get_pdfjs_res_and_path(path):
@@ -127,16 +129,7 @@ def get_pdfjs_res_and_path(path):
     content = None
     file_path = None
 
-    system_paths = [
-        # Debian pdf.js-common
-        # Arch Linux pdfjs (AUR)
-        '/usr/share/pdf.js/',
-        # Flatpak (Flathub)
-        '/app/share/pdf.js/',
-        # Arch Linux pdf.js (AUR)
-        '/usr/share/javascript/pdf.js/',
-        # Debian libjs-pdf
-        '/usr/share/javascript/pdf/',
+    system_paths = _SYSTEM_PATHS + [
         # fallback
         os.path.join(standarddir.data(), 'pdfjs'),
         # hardcoded fallback for --temp-basedir
@@ -221,6 +214,7 @@ def is_available():
     """Return true if a pdfjs installation is available."""
     try:
         get_pdfjs_res('build/pdf.js')
+        get_pdfjs_res('web/viewer.html')
     except PDFJSNotFound:
         return False
     else:
@@ -243,7 +237,7 @@ def get_main_url(filename: str, original_url: QUrl) -> QUrl:
     query = QUrlQuery()
     query.addQueryItem('filename', filename)  # read from our JS
     query.addQueryItem('file', '')  # to avoid pdfjs opening the default PDF
-    urlstr = original_url.toString(QUrl.FullyEncoded)  # type: ignore
+    urlstr = original_url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
     query.addQueryItem('source', urlstr)
     url.setQuery(query)
     return url

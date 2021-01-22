@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,11 +19,16 @@
 
 """Tests for webelement.tabhistory."""
 
-import attr
-import pytest
-from PyQt5.QtCore import QPoint, QUrl
+import dataclasses
+from typing import Any
 
-from qutebrowser.browser.browsertab import AbstractHistoryItem as Item
+import pytest
+pytest.importorskip('PyQt5.QtWebKit')
+from PyQt5.QtCore import QUrl, QPoint
+from PyQt5.QtWebKit import QWebHistory
+
+from qutebrowser.browser.webkit import tabhistory
+from qutebrowser.misc.sessions import TabHistoryItem as Item
 from qutebrowser.utils import qtutils
 
 tabhistory = pytest.importorskip('qutebrowser.browser.webkit.tabhistory')
@@ -34,7 +39,8 @@ pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open')
 
 ITEMS = [
     Item(QUrl('https://www.heise.de/'), 'heise'),
-    Item(QUrl('http://example.com/%E2%80%A6'), 'percent', active=True),
+    Item(QUrl('about:blank'), 'blank', active=True),
+    Item(QUrl('http://example.com/%E2%80%A6'), 'percent'),
     Item(QUrl('http://example.com/?foo=bar'), 'arg',
          original_url=QUrl('http://original.url.example.com/'),
          user_data={'foo': 23, 'bar': 42}),
@@ -50,11 +56,11 @@ ITEMS = [
 ]
 
 
-@attr.s
+@dataclasses.dataclass
 class Objects:
 
-    history = attr.ib()
-    user_data = attr.ib()
+    history: QWebHistory
+    user_data: Any
 
 
 @pytest.fixture

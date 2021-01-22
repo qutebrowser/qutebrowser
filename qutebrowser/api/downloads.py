@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -75,4 +75,6 @@ def download_temp(url: QUrl) -> TempDownload:
     fobj.name = 'temporary: ' + url.host()
     target = downloads.FileObjDownloadTarget(fobj)
     download_manager = objreg.get('qtnetwork-download-manager')
-    return download_manager.get(url, target=target, auto_remove=True)
+    # cache=False is set as a WORKAROUND for MS Defender thinking we're a trojan
+    # downloader when caching the hostblock list...
+    return download_manager.get(url, target=target, auto_remove=True, cache=False)

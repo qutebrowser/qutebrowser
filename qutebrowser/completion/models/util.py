@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2020 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2017-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -19,13 +19,13 @@
 
 """Utility functions for completion models."""
 
-import typing
+from typing import Callable, Sequence
 
 from qutebrowser.utils import usertypes
 from qutebrowser.misc import objects
 
 
-DeleteFuncType = typing.Callable[[typing.Sequence[str]], None]
+DeleteFuncType = Callable[[Sequence[str]], None]
 
 
 def get_cmd_completions(info, include_hidden, include_aliases, prefix=''):

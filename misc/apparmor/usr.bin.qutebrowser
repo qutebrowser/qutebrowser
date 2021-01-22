@@ -1,41 +1,79 @@
-# AppArmor profile for qutebrowser
-# Tested on Debian jessie
-
 #include <tunables/global>
 
 profile qutebrowser /usr/{local/,}bin/qutebrowser {
-
     #include <abstractions/base>
+    #include <abstractions/python>
+    #include <abstractions/audio>
+    #include <abstractions/dri-common>
+    #include <abstractions/mesa>
+    #include <abstractions/X>
+    #include <abstractions/wayland>
+    #include <abstractions/qt5>
+    #include <abstractions/fonts>
+
+    #include <abstractions/dbus-session-strict>
     #include <abstractions/nameservice>
     #include <abstractions/openssl>
     #include <abstractions/ssl_certs>
-    #include <abstractions/audio>
-    #include <abstractions/fonts>
-    #include <abstractions/kde>
+
+    #include <abstractions/freedesktop.org>
     #include <abstractions/user-download>
-    #include <abstractions/X>
+    #include <abstractions/user-tmp>
 
-    capability dac_override,
 
-    /usr/{local/,}bin/ r,
-    /usr/{local/,}bin/qutebrowser rix,
-    /usr/bin/python3.? r,
+    # not nice but required for chromium sandbox
+    capability sys_admin,
+    capability sys_chroot,
+    capability sys_ptrace,
 
-    /usr/lib/python3/ mr,
-    /usr/lib/python3/** mr,
-    /usr/lib/python3.?/ r,
-    /usr/lib/python3.?/** mr,
-    /usr/local/lib/python3.?/** r,
+    /dev/ r,
+    /dev/video* r,
+    /etc/mime.types r,
+    /usr/bin/ r,
+    /usr/bin/ldconfig ix,
+    /usr/bin/uname ix,
+    /usr/bin/qutebrowser rix,
+    /usr/lib/qt/libexec/QtWebEngineProcess mrix,
+    /usr/share/pdf.js/** r,
+    /usr/share/qt/translations/qtwebengine_locales/* r,
+    /usr/share/qt/qtwebengine_dictionaries r,
+    /usr/share/qt/qtwebengine_dictionaries/* r,
+    /usr/share/qt/resources/* r,
 
-    /proc/*/mounts r,
-    owner /tmp/** rwkl,
-    owner /run/user/*/ rw,
-    owner /run/user/*/** krw,
+    owner @{HOME}/ r,
+    owner /dev/shm/.org.chromium* rw,
+    owner @{HOME}/.cache/{qtshadercache,qutebrowser}/** rwlk,
+    owner @{HOME}/.cache/qtshadercache** rwl,
+    owner @{HOME}/.config/qutebrowser/** rwlk,
+    owner @{HOME}/.local/share/.org.chromium.Chromium* rw,
+    owner @{HOME}/.local/share/mime/generic-icons r,
+    owner @{HOME}/.local/share/qutebrowser/ r,
+    owner @{HOME}/.local/share/qutebrowser/** rwkl,
+    owner @{HOME}/.pki/nssdb/* rwk,
+    owner @{HOME}/#[0-9]* rwm,
+    owner /run/user/*/qutebrowser/ rw,
+    owner /run/user/*/qutebrowser/* rw,
+    owner /run/user/*/qutebrowser*slave-socket rwl,
+    owner /run/user/*/#* rw,
 
-    @{HOME}/.config/qutebrowser/** krw,
-    @{HOME}/.local/share/qutebrowser/** krw,
-    @{HOME}/.cache/qutebrowser/** krw,
-    @{HOME}/.gstreamer-0.10/* r,
+    # qt/kde
+    @{PROC} r,
+    @{PROC}/sys/fs/inotify/max_user_watches r,
+    @{PROC}/sys/kernel/random/boot_id r,
+    @{PROC}/sys/kernel/core_pattern r,
+    @{PROC}/sys/kernel/yama/ptrace_scope r,
+    /sys/{class,bus}/ r,
+    /sys/bus/pci/devices/ r,
+    /sys/devices/**/{class,config,device,resource,revision,removable,uevent} r,
+    /sys/devices/**/{vendor,subsystem_device,subsystem_vendor} r,
+
+    owner @{PROC}/@{pid}/{fd,stat,task,mounts}/ r,
+    owner @{PROC}/@{pid}/stat r,
+    owner @{PROC}/@{pid}/task/@{pid}/status r,
+    owner @{PROC}/@{pid}/{setgroups,gid_map,oom_score_adj,uid_map} rw,
+    owner @{PROC}/@{pid}/{oom_score_adj,uid_map} rw,
+
+    # allow execution of userscripts
+    /usr/share/qutebrowser/userscripts/* Ux,
 
 }
-

@@ -14,12 +14,10 @@ Feature: :spawn
         When I run :spawn -u this_does_not_exist
         Then the error "Userscript 'this_does_not_exist' not found in userscript directories *" should be shown
 
-    Scenario: Starting a userscript with absoloute path which doesn't exist
+    Scenario: Starting a userscript with absolute path which doesn't exist
         When I run :spawn -u /this_does_not_exist
         Then the error "Userscript '/this_does_not_exist' not found" should be shown
 
-    # https://github.com/qutebrowser/qutebrowser/issues/1614
-    @posix
     Scenario: Running :spawn with invalid quoting
         When I run :spawn ""'""
         Then the error "Error while splitting command: No closing quotation" should be shown

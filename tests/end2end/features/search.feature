@@ -269,7 +269,7 @@ Feature: Searching on a page
         When I run :search follow
         And I wait for "search found follow" in the log
         And I wait 0.5s
-        And I run :follow-selected
+        And I run :selection-follow
         Then data/hello.txt should be loaded
 
     @skip  # Too flaky
@@ -278,7 +278,7 @@ Feature: Searching on a page
         And I run :search follow
         And I wait for "search found follow" in the log
         And I wait 0.5s
-        And I run :follow-selected -t
+        And I run :selection-follow -t
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/search.html
@@ -288,7 +288,7 @@ Feature: Searching on a page
         When I run :window-only
         And I run :search foo
         And I wait for "search found foo" in the log
-        And I run :follow-selected
+        And I run :selection-follow
         Then the following tabs should be open:
             - data/search.html (active)
 
@@ -296,19 +296,19 @@ Feature: Searching on a page
         When I run :window-only
         And I run :search foo
         And I wait for "search found foo" in the log
-        And I run :follow-selected -t
+        And I run :selection-follow -t
         Then the following tabs should be open:
             - data/search.html (active)
 
     Scenario: Follow a manually selected link
         When I run :jseval --file (testdata)/search_select.js
-        And I run :follow-selected
+        And I run :selection-follow
         Then data/hello.txt should be loaded
 
     Scenario: Follow a manually selected link in a new tab
         When I run :window-only
         And I run :jseval --file (testdata)/search_select.js
-        And I run :follow-selected -t
+        And I run :selection-follow -t
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/search.html
@@ -321,7 +321,7 @@ Feature: Searching on a page
         And I run :tab-only
         And I run :search follow
         And I wait for "search found follow" in the log
-        And I run :follow-selected
+        And I run :selection-follow
         Then "navigation request: url http://localhost:*/data/hello.txt, type Type.link_clicked, is_main_frame False" should be logged
 
     # Too flaky
@@ -331,7 +331,7 @@ Feature: Searching on a page
         And I run :tab-only
         And I run :search follow
         And I wait for "search found follow" in the log
-        And I run :follow-selected -t
+        And I run :selection-follow -t
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/iframe_search.html

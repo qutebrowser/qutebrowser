@@ -138,10 +138,10 @@ Feature: Miscellaneous utility commands exposed to the user.
         When I open data/hints/link_blank.html
         And I run :tab-only
         And I hint with args "all tab-fg"
-        And I run :leave-mode
+        And I run :mode-leave
         And I run :repeat-command
         And I wait for "hints: *" in the log
-        And I run :follow-hint a
+        And I run :hint-follow a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/hints/link_blank.html
@@ -166,17 +166,13 @@ Feature: Miscellaneous utility commands exposed to the user.
     # Other :debug-log-{level,filter} features are tested in
     # unit/utils/test_log.py as using them would break end2end tests.
 
-    Scenario: Using debug-log-level with invalid level
-        When I run :debug-log-level hello
-        Then the error "level: Invalid value hello - expected one of: vdebug, debug, info, warning, error, critical" should be shown
-
     Scenario: Using debug-log-filter with invalid filter
         When I run :debug-log-filter blah
-        Then the error "filters: Invalid value blah - expected one of: statusbar, *" should be shown
+        Then the error "Invalid log category blah - valid categories: statusbar, *" should be shown
 
     Scenario: Using debug-log-filter
         When I run :debug-log-filter commands,ipc,webview
-        And I run :enter-mode insert
+        And I run :mode-enter insert
         And I run :debug-log-filter none
-        And I run :leave-mode
+        And I run :mode-leave
         Then "Entering mode KeyMode.insert *" should not be logged

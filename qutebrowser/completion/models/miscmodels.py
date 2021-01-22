@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,11 +19,13 @@
 
 """Functions that return miscellaneous completion models."""
 
-import typing
+import datetime
+from typing import List, Sequence, Tuple
 
 from qutebrowser.config import config, configdata
-from qutebrowser.utils import objreg, log
+from qutebrowser.utils import objreg, log, utils
 from qutebrowser.completion.models import completionmodel, listcategory, util
+from qutebrowser.browser import inspector
 
 
 def command(*, info):
@@ -37,11 +39,11 @@ def command(*, info):
 
 def helptopic(*, info):
     """A CompletionModel filled with help topics."""
-    model = completionmodel.CompletionModel()
+    model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
 
     cmdlist = util.get_cmd_completions(info, include_aliases=False,
                                        include_hidden=True, prefix=':')
-    settings = ((opt.name, opt.description)
+    settings = ((opt.name, opt.description, info.config.get_str(opt.name))
                 for opt in configdata.DATA.values())
 
     model.add_category(listcategory.ListCategory("Commands", cmdlist))
@@ -49,15 +51,16 @@ def helptopic(*, info):
     return model
 
 
-def quickmark(*, info=None):  # pylint: disable=unused-argument
+def quickmark(*, info=None):
     """A CompletionModel filled with all quickmarks."""
-    def delete(data: typing.Sequence[str]) -> None:
+    def delete(data: Sequence[str]) -> None:
         """Delete a quickmark from the completion menu."""
         name = data[0]
         quickmark_manager = objreg.get('quickmark-manager')
         log.completion.debug('Deleting quickmark {}'.format(name))
         quickmark_manager.delete(name)
 
+    utils.unused(info)
     model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
     marks = objreg.get('quickmark-manager').marks.items()
     model.add_category(listcategory.ListCategory('Quickmarks', marks,
@@ -66,15 +69,16 @@ def quickmark(*, info=None):  # pylint: disable=unused-argument
     return model
 
 
-def bookmark(*, info=None):  # pylint: disable=unused-argument
+def bookmark(*, info=None):
     """A CompletionModel filled with all bookmarks."""
-    def delete(data: typing.Sequence[str]) -> None:
+    def delete(data: Sequence[str]) -> None:
         """Delete a bookmark from the completion menu."""
         urlstr = data[0]
         log.completion.debug('Deleting bookmark {}'.format(urlstr))
         bookmark_manager = objreg.get('bookmark-manager')
         bookmark_manager.delete(urlstr)
 
+    utils.unused(info)
     model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
     marks = objreg.get('bookmark-manager').marks.items()
     model.add_category(listcategory.ListCategory('Bookmarks', marks,
@@ -83,9 +87,10 @@ def bookmark(*, info=None):  # pylint: disable=unused-argument
     return model
 
 
-def session(*, info=None):  # pylint: disable=unused-argument
+def session(*, info=None):
     """A CompletionModel filled with session names."""
     from qutebrowser.misc import sessions
+    utils.unused(info)
     model = completionmodel.CompletionModel()
     try:
         sess = ((name,) for name
@@ -97,67 +102,96 @@ def session(*, info=None):  # pylint: disable=unused-argument
     return model
 
 
-def _buffer(skip_win_id=None):
-    """Helper to get the completion model for buffer/other_buffer.
+def _tabs(*, win_id_filter=lambda _win_id: True, add_win_id=True):
+    """Helper to get the completion model for tabs/other_tabs.
 
     Args:
-        skip_win_id: The id of the window to skip, or None to include all.
+        win_id_filter: A filter function for window IDs to include.
+                       Should return True for all included windows.
+        add_win_id: Whether to add the window ID to the completion items.
     """
-    def delete_buffer(data):
+    def delete_tab(data):
         """Close the selected tab."""
         win_id, tab_index = data[0].split('/')
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=int(win_id))
         tabbed_browser.on_tab_close_requested(int(tab_index) - 1)
 
-    model = completionmodel.CompletionModel(column_widths=(6, 40, 54))
+    model = completionmodel.CompletionModel(column_widths=(6, 40, 46, 8))
 
     tabs_are_windows = config.val.tabs.tabs_are_windows
     # list storing all single-tabbed windows when tabs_are_windows
-    windows = []  # type: typing.List[typing.Tuple[str, str, str]]
+    windows: List[Tuple[str, str, str, str]] = []
 
     for win_id in objreg.window_registry:
-        if skip_win_id is not None and win_id == skip_win_id:
+        if not win_id_filter(win_id):
             continue
+
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=win_id)
-        if tabbed_browser.shutting_down:
+        if tabbed_browser.is_shutting_down:
             continue
-        tabs = []  # type: typing.List[typing.Tuple[str, str, str]]
+        tab_entries: List[Tuple[str, str, str, str]] = []
         for idx in range(tabbed_browser.widget.count()):
             tab = tabbed_browser.widget.widget(idx)
-            tabs.append(("{}/{}".format(win_id, idx + 1),
-                         tab.url().toDisplayString(),
-                         tabbed_browser.widget.page_title(idx)))
+            tab_str = ("{}/{}".format(win_id, idx + 1) if add_win_id
+                       else str(idx + 1))
+
+            pid = tab.renderer_process_pid()
+
+            tab_entries.append((
+                tab_str,
+                tab.url().toDisplayString(),
+                tabbed_browser.widget.page_title(idx),
+                "" if pid is None else f"PID {pid}",
+            ))
+
         if tabs_are_windows:
-            windows += tabs
+            windows += tab_entries
         else:
+            title = str(win_id) if add_win_id else "Tabs"
             cat = listcategory.ListCategory(
-                str(win_id), tabs, delete_func=delete_buffer, sort=False)
+                title, tab_entries, delete_func=delete_tab, sort=False)
             model.add_category(cat)
 
     if tabs_are_windows:
         win = listcategory.ListCategory(
-            "Windows", windows, delete_func=delete_buffer, sort=False)
+            "Windows", windows, delete_func=delete_tab, sort=False)
         model.add_category(win)
 
     return model
 
 
-def buffer(*, info=None):  # pylint: disable=unused-argument
+def tabs(*, info=None):
     """A model to complete on open tabs across all windows.
 
-    Used for switching the buffer command.
+    Used for the tab-select command (and others).
     """
-    return _buffer()
+    utils.unused(info)
+    return _tabs()
 
 
-def other_buffer(*, info):
+def other_tabs(*, info):
     """A model to complete on open tabs across all windows except the current.
 
     Used for the tab-take command.
     """
-    return _buffer(skip_win_id=info.win_id)
+    return _tabs(win_id_filter=lambda win_id: win_id != info.win_id)
+
+
+def tab_focus(*, info):
+    """A model to complete on open tabs in the current window."""
+    model = _tabs(win_id_filter=lambda win_id: win_id == info.win_id,
+                  add_win_id=False)
+
+    special = [
+        ("last", "Focus the last-focused tab"),
+        ("stack-next", "Go forward through a stack of focused tabs"),
+        ("stack-prev", "Go backward through a stack of focused tabs"),
+    ]
+    model.add_category(listcategory.ListCategory("Special", special))
+
+    return model
 
 
 def window(*, info):
@@ -178,4 +212,93 @@ def window(*, info):
 
     model.add_category(listcategory.ListCategory("Windows", windows))
 
+    return model
+
+
+def inspector_position(*, info):
+    """A model for possible inspector positions."""
+    utils.unused(info)
+    model = completionmodel.CompletionModel(column_widths=(100, 0, 0))
+    positions = [(e.name,) for e in inspector.Position]
+    category = listcategory.ListCategory("Position (optional)", positions)
+    model.add_category(category)
+    return model
+
+
+def _qdatetime_to_completion_format(qdate):
+    if not qdate.isValid():
+        ts = 0
+    else:
+        ts = qdate.toMSecsSinceEpoch()
+        if ts < 0:
+            ts = 0
+    pydate = datetime.datetime.fromtimestamp(ts / 1000)
+    return pydate.strftime(config.val.completion.timestamp_format)
+
+
+def _back_forward(info, go_forward):
+    history = info.cur_tab.history
+    current_idx = history.current_idx()
+    model = completionmodel.CompletionModel(column_widths=(5, 36, 50, 9))
+
+    if go_forward:
+        start = current_idx + 1
+        items = history.forward_items()
+    else:
+        start = 0
+        items = history.back_items()
+
+    entries = [
+        (
+            str(idx),
+            entry.url().toDisplayString(),
+            entry.title(),
+            _qdatetime_to_completion_format(entry.lastVisited())
+        )
+        for idx, entry in enumerate(items, start)
+    ]
+    if not go_forward:
+        # make sure the most recent is at the top for :back
+        entries.reverse()
+
+    cat = listcategory.ListCategory("History", entries, sort=False)
+    model.add_category(cat)
+    return model
+
+
+def forward(*, info):
+    """A model to complete on history of the current tab.
+
+    Used for the :forward command.
+    """
+    return _back_forward(info, go_forward=True)
+
+
+def back(*, info):
+    """A model to complete on history of the current tab.
+
+    Used for the :back command.
+    """
+    return _back_forward(info, go_forward=False)
+
+
+def undo(*, info):
+    """A model to complete undo entries."""
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window=info.win_id)
+    model = completionmodel.CompletionModel(column_widths=(6, 84, 10))
+    timestamp_format = config.val.completion.timestamp_format
+
+    entries = [
+        (
+            str(idx),
+            ', '.join(entry.url.toDisplayString() for entry in group),
+            group[-1].created_at.strftime(timestamp_format)
+        )
+        for idx, group in
+        enumerate(reversed(tabbed_browser.undo_stack), start=1)
+    ]
+
+    cat = listcategory.ListCategory("Closed tabs", entries, sort=False)
+    model.add_category(cat)
     return model

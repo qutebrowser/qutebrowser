@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,13 +21,12 @@
 
 import collections
 import html
-import typing
+import dataclasses
+from typing import TYPE_CHECKING, Dict, MutableMapping, Optional, Sequence
 
-import attr
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QCoreApplication, QUrl,
-                          QByteArray)
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QUrl, QByteArray
 from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslSocket,
-                             QSslError)
+                             QSslError, QNetworkProxy)
 
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg,
@@ -40,22 +39,22 @@ from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
                                                 filescheme)
 from qutebrowser.misc import objects
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.mainwindow import prompt
 
 
 HOSTBLOCK_ERROR_STRING = '%HOSTBLOCK%'
-_proxy_auth_cache = {}  # type: typing.Dict[ProxyId, prompt.AuthInfo]
+_proxy_auth_cache: Dict['ProxyId', 'prompt.AuthInfo'] = {}
 
 
-@attr.s(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class ProxyId:
 
     """Information identifying a proxy server."""
 
-    type = attr.ib()
-    hostname = attr.ib()
-    port = attr.ib()
+    type: QNetworkProxy.ProxyType
+    hostname: str
+    port: int
 
 
 def _is_secure_cipher(cipher):
@@ -105,8 +104,9 @@ def _is_secure_cipher(cipher):
 def init():
     """Disable insecure SSL ciphers on old Qt versions."""
     default_ciphers = QSslSocket.defaultCiphers()
-    log.init.debug("Default Qt ciphers: {}".format(
-        ', '.join(c.name() for c in default_ciphers)))
+    log.init.vdebug(  # type: ignore[attr-defined]
+        "Default Qt ciphers: {}".format(
+            ', '.join(c.name() for c in default_ciphers)))
 
     good_ciphers = []
     bad_ciphers = []
@@ -116,13 +116,13 @@ def init():
         else:
             bad_ciphers.append(cipher)
 
-    log.init.debug("Disabling bad ciphers: {}".format(
-        ', '.join(c.name() for c in bad_ciphers)))
-    QSslSocket.setDefaultCiphers(good_ciphers)
+    if bad_ciphers:
+        log.init.debug("Disabling bad ciphers: {}".format(
+            ', '.join(c.name() for c in bad_ciphers)))
+        QSslSocket.setDefaultCiphers(good_ciphers)
 
 
-_SavedErrorsType = typing.MutableMapping[urlutils.HostTupleType,
-                                         typing.Sequence[QSslError]]
+_SavedErrorsType = MutableMapping[urlutils.HostTupleType, Sequence[QSslError]]
 
 
 class NetworkManager(QNetworkAccessManager):
@@ -157,6 +157,8 @@ class NetworkManager(QNetworkAccessManager):
         with log.disable_qt_msghandler():
             # WORKAROUND for a hang when a message is printed - See:
             # http://www.riverbankcomputing.com/pipermail/pyqt/2014-November/035045.html
+            #
+            # Still needed on Qt/PyQt 5.15.2 according to #6010.
             super().__init__(parent)
         log.init.debug("NetworkManager init done")
         self.adopted_downloads = 0
@@ -169,14 +171,13 @@ class NetworkManager(QNetworkAccessManager):
         }
         self._set_cookiejar()
         self._set_cache()
-        self.sslErrors.connect(self.on_ssl_errors)  # type: ignore
-        self._rejected_ssl_errors = collections.defaultdict(
-            list)  # type: _SavedErrorsType
-        self._accepted_ssl_errors = collections.defaultdict(
-            list)  # type: _SavedErrorsType
-        self.authenticationRequired.connect(  # type: ignore
+        self.sslErrors.connect(  # type: ignore[attr-defined]
+            self.on_ssl_errors)
+        self._rejected_ssl_errors: _SavedErrorsType = collections.defaultdict(list)
+        self._accepted_ssl_errors: _SavedErrorsType = collections.defaultdict(list)
+        self.authenticationRequired.connect(  # type: ignore[attr-defined]
             self.on_authentication_required)
-        self.proxyAuthenticationRequired.connect(  # type: ignore
+        self.proxyAuthenticationRequired.connect(  # type: ignore[attr-defined]
             self.on_proxy_authentication_required)
         self.netrc_used = False
 
@@ -191,8 +192,7 @@ class NetworkManager(QNetworkAccessManager):
         # We have a shared cookie jar - we restore its parent so we don't
         # take ownership of it.
         self.setCookieJar(cookie_jar)
-        app = QCoreApplication.instance()
-        cookie_jar.setParent(app)
+        cookie_jar.setParent(objects.qapp)
 
     def _set_cache(self):
         """Set the cache of the NetworkManager correctly."""
@@ -200,9 +200,8 @@ class NetworkManager(QNetworkAccessManager):
             return
         # We have a shared cache - we restore its parent so we don't take
         # ownership of it.
-        app = QCoreApplication.instance()
         self.setCache(cache.diskcache)
-        cache.diskcache.setParent(app)
+        cache.diskcache.setParent(objects.qapp)
 
     def _get_abort_signals(self, owner=None):
         """Get a list of signals which should abort a question."""
@@ -235,11 +234,11 @@ class NetworkManager(QNetworkAccessManager):
             errors: A list of errors.
         """
         errors = [certificateerror.CertificateErrorWrapper(e) for e in errors]
-        log.webview.debug("Certificate errors: {!r}".format(
+        log.network.debug("Certificate errors: {!r}".format(
             ' / '.join(str(err) for err in errors)))
         try:
-            host_tpl = urlutils.host_tuple(
-                reply.url())  # type: typing.Optional[urlutils.HostTupleType]
+            host_tpl: Optional[urlutils.HostTupleType] = urlutils.host_tuple(
+                reply.url())
         except ValueError:
             host_tpl = None
             is_accepted = False
@@ -251,7 +250,7 @@ class NetworkManager(QNetworkAccessManager):
             is_rejected = set(errors).issubset(
                 self._rejected_ssl_errors[host_tpl])
 
-        log.webview.debug("Already accepted: {} / "
+        log.network.debug("Already accepted: {} / "
                           "rejected {}".format(is_accepted, is_rejected))
 
         if is_rejected:
@@ -368,13 +367,6 @@ class NetworkManager(QNetworkAccessManager):
             # https://www.playstation.com/ for example.
             pass
 
-    # WORKAROUND for:
-    # http://www.riverbankcomputing.com/pipermail/pyqt/2014-September/034806.html
-    #
-    # By returning False, we provoke a TypeError because of a wrong return
-    # type, which does *not* trigger a segfault but invoke our return handler
-    # immediately.
-    @utils.prevent_exceptions(False)
     def createRequest(self, op, req, outgoing_data):
         """Return a new QNetworkReply object.
 
@@ -392,6 +384,13 @@ class NetworkManager(QNetworkAccessManager):
                 return networkreply.ErrorNetworkReply(
                     req, proxy_error, QNetworkReply.UnknownProxyError,
                     self)
+
+        if not req.url().isValid():
+            log.network.debug("Ignoring invalid requested URL: {}".format(
+                req.url().errorString()))
+            return networkreply.ErrorNetworkReply(
+                req, "Invalid request URL", QNetworkReply.HostNotFoundError,
+                self)
 
         for header, value in shared.custom_headers(url=req.url()):
             req.setRawHeader(header, value)
@@ -424,7 +423,7 @@ class NetworkManager(QNetworkAccessManager):
         if 'log-requests' in objects.debug_flags:
             operation = debug.qenum_key(QNetworkAccessManager, op)
             operation = operation.replace('Operation', '').upper()
-            log.webview.debug("{} {}, first-party {}".format(
+            log.network.debug("{} {}, first-party {}".format(
                 operation,
                 req.url().toDisplayString(),
                 current_url.toDisplayString()))

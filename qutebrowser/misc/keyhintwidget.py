@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -82,8 +82,8 @@ class KeyHintView(QLabel):
         self.update_geometry.emit()
         super().showEvent(e)
 
-    @pyqtSlot(str)
-    def update_keyhint(self, modename, prefix):
+    @pyqtSlot(usertypes.KeyMode, str)
+    def update_keyhint(self, mode, prefix):
         """Show hints for the given prefix (or hide if prefix is empty).
 
         Args:
@@ -108,7 +108,7 @@ class KeyHintView(QLabel):
             cmd = objects.commands.get(cmdname)
             return cmd and cmd.takes_count()
 
-        bindings_dict = config.key_instance.get_bindings_for(modename)
+        bindings_dict = config.key_instance.get_bindings_for(mode.name)
         bindings = [(k, v) for (k, v) in sorted(bindings_dict.items())
                     if keyutils.KeySequence.parse(prefix).matches(k) and
                     not blacklisted(str(k)) and
