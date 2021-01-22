@@ -1144,6 +1144,13 @@ class _WebEngineScripts(QObject):
                 QWebEngineScript.DocumentReady,
                 QWebEngineScript.ApplicationWorld,
             ),
+            # FIXME not needed with 5.15.3 most likely, but how do we check for
+            # that?
+            (
+                'string_replaceall',
+                QWebEngineScript.DocumentCreation,
+                QWebEngineScript.MainWorld,
+            ),
         ]
         if not qtutils.version_check('5.13'):
             quirks.append(('globalthis',

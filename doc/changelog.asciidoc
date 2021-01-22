@@ -230,6 +230,10 @@ Fixed
 - A bug in QtWebEngine 5.15.2 causes "renderer process killed" errors on
   websites like LinkedIn and TradingView. There is now a workaround in qutebrowser
   to prevent this from happening.
+- Nextcloud Calendars started using `String.replaceAll` which was only added to
+  Chromium recently (Chrome 85), so won't work with current QtWebEngine
+  versions. This release includes a workaround (a polyfill as a
+  site-specific-quirk).
 
 v1.14.1 (2020-12-04)
 --------------------
