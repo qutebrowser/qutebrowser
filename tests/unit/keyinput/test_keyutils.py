@@ -267,6 +267,7 @@ class TestKeySequence:
     @pytest.mark.parametrize('orig, normalized', [
         ('<Control+x>', '<Ctrl+x>'),
         ('<Windows+x>', '<Meta+x>'),
+        ('<Super+x>', '<Meta+x>'),
         ('<Mod4+x>', '<Meta+x>'),
         ('<Command+x>', '<Meta+x>'),
         ('<Cmd+x>', '<Meta+x>'),

@@ -202,6 +202,7 @@ Changed
   * The default bindings for moving tabs (`tab-move -` and `tab-move +`) were
     changed from `gl` and `gr` to `gK` and `gJ`, to be consistent with the tab
     switching bindings.
+- "Super" is now understood as a modifier (i.e. as alias to "Meta")
 - Various performance improvements, including for the startup time.
 
 Fixed

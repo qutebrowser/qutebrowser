@@ -319,6 +319,7 @@ def _parse_special_key(keystr: str) -> str:
         ('mod4', 'meta'),
         ('command', 'meta'),
         ('cmd', 'meta'),
+        ('super', 'meta'),
         ('mod1', 'alt'),
         ('less', '<'),
         ('greater', '>'),
