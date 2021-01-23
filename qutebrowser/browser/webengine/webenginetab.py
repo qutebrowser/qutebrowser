@@ -1432,13 +1432,14 @@ class WebEngineTab(browsertab.AbstractTab):
                              active: bool = False) -> WebEngineHistoryItem:
         return WebEngineHistoryItem.from_qt(item, active)
 
-    def new_history_item(self, url, original_url, title, active, user_data):
+    def new_history_item(self, url, original_url, title, active, user_data, last_visited):
         return WebEngineHistoryItem(
             url=url,
             original_url=original_url,
             title=title,
             active=active,
-            user_data=user_data
+            user_data=user_data,
+            last_visited=last_visited,
         )
 
     @pyqtSlot()

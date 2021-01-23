@@ -20,6 +20,7 @@
 """Base class for a wrapper over QWebView/QWebEngineView."""
 
 import enum
+import datetime
 import itertools
 import functools
 import dataclasses
@@ -1348,7 +1349,8 @@ class AbstractTab(QWidget):
     def new_history_item(
             self, url: QUrl, original_url: QUrl,
             title: str, active: bool,
-            user_data: Dict[str, Any]
+            user_data: Dict[str, Any],
+            last_visited: datetime.datetime,
     ) -> AbstractHistoryItem:
         """Create `AbstractHistoryItem` from history item data."""
         raise NotImplementedError

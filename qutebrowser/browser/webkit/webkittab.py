@@ -21,6 +21,7 @@
 
 import re
 import functools
+import datetime
 import typing
 import xml.etree.ElementTree
 from typing import cast, Iterable, Optional
@@ -932,13 +933,16 @@ class WebKitTab(browsertab.AbstractTab):
     def new_history_item(
             self, url: QUrl, original_url: QUrl,
             title: str, active: bool,
-            user_data: typing.Dict[str, typing.Any]) -> WebKitHistoryItem:
+            user_data: typing.Dict[str, typing.Any],
+            last_visited: datetime.datetime,
+    ) -> WebKitHistoryItem:
         return WebKitHistoryItem(
             url=url,
             original_url=original_url,
             title=title,
             active=active,
-            user_data=user_data
+            user_data=user_data,
+            last_visited=last_visited,
         )
 
     def renderer_process_pid(self) -> Optional[int]:
