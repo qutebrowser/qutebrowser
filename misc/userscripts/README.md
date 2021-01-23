@@ -17,6 +17,8 @@ The following userscripts are included in the current directory.
   current website.
 - [qute-keepass](./qute-keepass): Insertion of usernames and passwords from keepass
   databases using pykeepass.
+- [qute-keepassxc](./qute-keepassxc): Insert credentials from open KeepassXC database
+  using keepassxc-browser protocol.
 - [qute-pass](./qute-pass): Insert login information using pass and a
   dmenu-compatible application (e.g. dmenu, rofi -dmenu, ...).
 - [qute-lastpass](./qute-lastpass): Similar to qute-pass, for Lastpass.
