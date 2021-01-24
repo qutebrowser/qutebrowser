@@ -24,7 +24,7 @@ class Error(Exception):
     (ValueError('exception'), 'ValueError', 'exception'),
     (ValueError, 'ValueError', 'none'),
     # "qutebrowser." stripped
-    (ipc.Error, 'misc.ipc.Error', 'none'),
+    (ipc.Error, 'misc.ipcclient.Error', 'none'),
     (Error, 'test_error.Error', 'none'),
 ])
 def test_no_err_windows(caplog, exc, name, exc_text):
