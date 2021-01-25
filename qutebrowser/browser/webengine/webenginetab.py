@@ -1598,7 +1598,7 @@ class WebEngineTab(browsertab.AbstractTab):
         parsed_url = urllib.parse.urlparse(self.url().toString())
         trigger_lifecycle_transitions = (
             not config.val.tabs.lifecycle_exclude_domains or
-            parsed_url.netloc not in config.val.tabs.lifecycle_exclude_domains,
+            parsed_url.netloc not in config.val.tabs.lifecycle_exclude_domains
         )
         if qtutils.version_check("5.14") and trigger_lifecycle_transitions:
             self._check_lifecycle_state_timer = QTimer()
