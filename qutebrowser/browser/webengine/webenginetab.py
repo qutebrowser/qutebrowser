@@ -1600,7 +1600,7 @@ class WebEngineTab(browsertab.AbstractTab):
             not config.val.tabs.lifecycle_exclude_domains or
             parsed_url.netloc not in config.val.tabs.lifecycle_exclude_domains,
         )
-        if qtutils.version_check("5.14"):
+        if qtutils.version_check("5.14") and trigger_lifecycle_transitions:
             self._check_lifecycle_state_timer = QTimer()
             self._check_lifecycle_state_timer.timeout.connect(
                 self._check_recommended_lifecycle_state
