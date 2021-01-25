@@ -122,7 +122,7 @@ def _walk_pyinstaller() -> Iterator[ExtensionInfo]:
     toc: Set[str] = set()
     for importer in pkgutil.iter_importers('qutebrowser'):
         if hasattr(importer, 'toc'):
-            toc |= importer.toc
+            toc |= importer.toc  # type: ignore[union-attr]
     for name in toc:
         if name.startswith(components.__name__ + '.'):
             yield ExtensionInfo(name=name)

@@ -491,8 +491,7 @@ def qt_message_handler(msg_type: QtCore.QtMsgType,
     else:
         func = context.function
 
-    if (context.category is None or  # type: ignore[unreachable]
-            context.category == 'default'):
+    if context.category is None or context.category == 'default':
         name = 'qt'
     else:
         name = 'qt-' + context.category
