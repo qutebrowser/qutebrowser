@@ -23,6 +23,7 @@ import math
 import functools
 import re
 import html as html_utils
+import urllib.parse
 from typing import cast, Union, Optional
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl, QObject, QTimer
@@ -1593,6 +1594,12 @@ class WebEngineTab(browsertab.AbstractTab):
                 self._error_page_workaround,
                 self.settings.test_attribute('content.javascript.enabled')))
 
+
+        parsed_url = urllib.parse.urlparse(self.url().toString())
+        trigger_lifecycle_transitions = (
+            not config.val.tabs.lifecycle_exclude_domains or
+            parsed_url.netloc not in config.val.tabs.lifecycle_exclude_domains,
+        )
         if qtutils.version_check("5.14"):
             self._check_lifecycle_state_timer = QTimer()
             self._check_lifecycle_state_timer.timeout.connect(
@@ -1604,6 +1611,7 @@ class WebEngineTab(browsertab.AbstractTab):
         if sip.isdeleted(self._widget):
             log.webview.debug("Ignoring page lifecycle check for deleted widget")
             return
+
         recommended_state = self.recommended_lifecycle_state()
         current_state = self.lifecycle_state()
 

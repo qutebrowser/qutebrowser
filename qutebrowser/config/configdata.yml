@@ -1848,6 +1848,15 @@ tabs.lifecycle_discard_delay:
   desc: "Duration (in milliseconds) to wait before discarding
     tabs."
 
+tabs.lifecycle_exclude_domains:
+  type:
+    name: List
+    valtype: String
+    none_ok: true
+  default: []
+  desc: "The list of subdomains where lifecycle changes are
+    not applied."
+
 tabs.mousewheel_switching:
   default: true
   type: Bool
