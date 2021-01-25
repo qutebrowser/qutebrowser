@@ -18,14 +18,12 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Introduction
-============
+# Introduction
 
 This is a [qutebrowser][2] [userscript][5] to fill website credentials from a [KeepassXC][1] password database.
 
 
-Installation
-============
+# Installation
 
 First, you need to enable [KeepassXC-Browser][6] extensions in your KeepassXC config.
 
@@ -46,8 +44,7 @@ config.bind('pw', 'spawn --userscript qute-keepassxc --key ABC1234', mode='norma
 ```
 
 
-Usage
-=====
+# Usage
 
 If you are on a webpage with a login form, simply activate one of the configured key-bindings.
 
@@ -55,8 +52,7 @@ The first time you run this script, KeepassXC will ask you for authentication li
 Just provide a name of your choice and accept the request if nothing looks fishy.
 
 
-How it works
-============
+# How it works
 
 This script will talk to KeepassXC using the native [KeepassXC-Browser protocol][4].
 
