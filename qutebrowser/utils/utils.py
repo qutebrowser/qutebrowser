@@ -32,7 +32,6 @@ import functools
 import contextlib
 import posixpath
 import shlex
-import glob
 import mimetypes
 import ctypes
 import ctypes.util
@@ -56,7 +55,6 @@ if sys.version_info >= (3, 9):
     import importlib.resources as importlib_resources
 else:  # pragma: no cover
     import importlib_resources
-import pkg_resources
 import yaml
 try:
     from yaml import (CSafeLoader as YamlLoader,
@@ -183,10 +181,11 @@ def compact_text(text: str, elidelength: int = None) -> str:
 
 def preload_resources() -> None:
     """Load resource files into the cache."""
+    resource_path = importlib_resources.files(qutebrowser)
     for subdir, pattern in [('html', '*.html'), ('javascript', '*.js')]:
-        path = resource_filename(subdir)
-        for full_path in glob.glob(os.path.join(path, pattern)):
-            sub_path = '/'.join([subdir, os.path.basename(full_path)])
+        path = resource_path / subdir
+        for full_path in path.glob(pattern):
+            sub_path = str(full_path.relative_to(resource_path))
             _resource_cache[sub_path] = read_file(sub_path)
 
 
@@ -226,20 +225,6 @@ def read_file(filename: str, binary: bool = False) -> Any:
             return p.read_bytes()
 
         return p.read_text()
-
-
-def resource_filename(filename: str) -> str:
-    """Get the absolute filename of a file contained with qutebrowser.
-
-    Args:
-        filename: The filename.
-
-    Return:
-        The absolute filename.
-    """
-    if hasattr(sys, 'frozen'):
-        return os.path.join(os.path.dirname(sys.executable), filename)
-    return pkg_resources.resource_filename(qutebrowser.__name__, filename)
 
 
 def parse_version(version: str) -> VersionNumber:

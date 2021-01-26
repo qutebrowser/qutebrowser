@@ -140,14 +140,6 @@ class TestReadFile:
         assert content.splitlines()[0] == b"Hello World!"
 
 
-@pytest.mark.usefixtures('freezer')
-def test_resource_filename():
-    """Read a test file."""
-    filename = utils.resource_filename(os.path.join('utils', 'testfile'))
-    with open(filename, 'r', encoding='utf-8') as f:
-        assert f.read().splitlines()[0] == "Hello World!"
-
-
 @pytest.mark.parametrize('seconds, out', [
     (-1, '-0:01'),
     (0, '0:00'),
