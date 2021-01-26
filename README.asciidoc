@@ -82,12 +82,13 @@ The following software and libraries are required to run qutebrowser:
   - QtSQL (part of qtbase in some distributions)
   - QtOpenGL
   - QtWebEngine, or
-  - alternatively QtWebKit - only the
-    link:https://github.com/qtwebkit/qtwebkit/wiki[updated fork] (5.212) is
-    supported. **Note: The latest QtWebKit release is based on old WebKit
-    revision with known unpatched vulnerabilities. Please use it carefully and
-    avoid visiting untrusted websites and using it for transmission of
-    sensitive data.**
+  - alternatively QtWebKit (5.212) - **This is not recommended** due to known security
+    issues in QtWebKit, you most likely want to use qutebrowser with the
+    default QtWebEngine backend (based on Chromium) instead. Quoting the
+    https://github.com/qtwebkit/qtwebkit/releases[QtWebKit releases page]:
+    _[The latest QtWebKit] release is based on [an] old WebKit revision with known
+unpatched vulnerabilities. Please use it carefully and avoid visiting untrusted
+websites and using it for transmission of sensitive data._
 * https://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.12.0 or newer
   for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools] (being
