@@ -21,23 +21,21 @@
 
 import collections
 import functools
-import math
 import os
 import re
 import html
 import enum
 import dataclasses
-import time
 from string import ascii_lowercase
 from typing import (TYPE_CHECKING, Callable, Dict, Iterable, Iterator, List, Mapping,
                     MutableSequence, Optional, Sequence, Set)
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QPoint, Qt, QRect, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt, QUrl
 from PyQt5.QtWidgets import QLabel
 
 from qutebrowser.config import config, configexc
 from qutebrowser.keyinput import modeman, modeparsers, basekeyparser
-from qutebrowser.browser import webelem, history
+from qutebrowser.browser import webelem, hint_positions, history
 from qutebrowser.commands import userscripts, runners
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
@@ -359,111 +357,6 @@ class HintActions:
 _ElemsType = Sequence[webelem.AbstractWebElement]
 _HintStringsType = MutableSequence[str]
 
-def _adjust_positions(labels: List[QLabel]) -> None:
-    '''
-    TODO:
-    modify `lookup` for `MAX_OVERLAP`, i.e. the grid can be slightly optimized
-        given that we're only interested in overlaps of a certain size
-    draw lines to where the element is if the label ends up far away
-    timeout?
-    disable for labels at (0,0)? on youtube.com it's a mess
-        or do something different for labels that are right on top of each other
-        like initializing them to a brick wall pattern
-        then treat the brick wall as one object?
-        however, just because they're in the same place doesn't mean their
-            click areas are the same
-    refactor (own module?), tests
-    '''
-    def _overlap(r1: QRect, r2: QRect):
-        hor_overlap = max(0,
-            (min(r1.right(), r2.right()) - max(r1.left(), r2.left()))
-        )
-        vert_overlap = max(0,
-            (min(r1.bottom(), r2.bottom()) - max(r1.top(), r2.top()))
-        )
-        return hor_overlap > 0 or vert_overlap > 0
-    def _min_overlap(r1: QRect, r2: QRect):
-        hor_overlap = max(0,
-            (min(r1.right(), r2.right()) - max(r1.left(), r2.left()))
-        )
-        vert_overlap = max(0,
-            (min(r1.bottom(), r2.bottom()) - max(r1.top(), r2.top()))
-        )
-        return min(hor_overlap, vert_overlap)
-    def _length(p: QPoint) -> float:
-        return math.sqrt(QPoint.dotProduct(p, p))
-
-    log.hints.debug('num of (0,0) labels: {}'.format(len([label for label
-        in labels if label.pos() == QPoint(0,0)]))
-    )
-
-    max_width = max(label.width() for label in labels)
-    max_height = max(label.height() for label in labels)
-
-    # Suppose we tile the viewport with cells of shape max_width x max_height.
-    # Then `lookup` maps (i,j) to set of labels that intersect cell (i, j).
-    # alternatives: R-tree, quadtree
-    lookup = collections.defaultdict(set)
-    def _corners(label: QLabel) -> List[QPoint]:
-        return [
-            label.geometry().topLeft(), label.geometry().topRight(),
-            label.geometry().bottomLeft(), label.geometry().bottomRight(),
-        ]
-    def _register_to_lookup(label: QLabel) -> None:
-        for corner in _corners(label):
-            lookup[(
-                math.floor(corner.x() / max_width),
-                math.floor(corner.y() / max_height),
-            )].add(label)
-    def _deregister_from_lookup(label: QLabel) -> None:
-        for corner in _corners(label):
-            lookup[(
-                math.floor(corner.x() / max_width),
-                math.floor(corner.y() / max_height),
-            )].difference_update([label])
-    def _overlappings(label: QLabel) -> Iterable[QLabel]:
-        cands = set()
-        for corner in _corners(label):
-            cands.update(lookup[(
-                math.floor(corner.x() / max_width),
-                math.floor(corner.y() / max_height),
-            )])
-        cands.difference_update([label])
-        return [
-            cand for cand in cands
-            if _overlap(cand.geometry(), label.geometry())
-        ]
-    def _to_viewport(rect: QRect, push: QPoint, bounds: QRect) -> QPoint:
-        push.setX(max(push.x(), bounds.left() - rect.left()))
-        push.setX(min(push.x(), bounds.right() - rect.right()))
-        push.setY(max(push.y(), bounds.top() - rect.top()))
-        push.setY(min(push.y(), bounds.bottom() - rect.bottom()))
-        return push
-
-    for label in labels:
-        _register_to_lookup(label)
-
-    push_size = max_height/6.5
-    max_overlap = max_height/5
-    NUM_ITERATIONS = 20
-    for _ in range(NUM_ITERATIONS):
-        for label in labels:
-            agg_push = QPoint(0, 0)
-            for overlapping in _overlappings(label):
-                disp = label.pos() - overlapping.pos()
-                if not(_length(disp)):
-                    disp = QPoint(1, 1)
-                overlap = _min_overlap(label.geometry(), overlapping.geometry())
-                if overlap > max_overlap:
-                    agg_push += disp * (push_size / _length(disp))
-            agg_push = _to_viewport(
-                label.geometry(), agg_push, label.parent().geometry())
-            if agg_push != QPoint(0, 0):
-                _deregister_from_lookup(label)
-                label.move(label.pos() + agg_push)
-                _register_to_lookup(label)
-
-
 class HintManager(QObject):
 
     """Manage drawing hints over links or other elements.
@@ -752,7 +645,7 @@ class HintManager(QObject):
             self._context.all_labels.append(label)
             self._context.labels[string] = label
 
-        _adjust_positions(self._context.all_labels)
+        hint_positions.adjust_positions(self._context.all_labels)
 
         keyparser = self._get_keyparser(usertypes.KeyMode.hint)
         keyparser.update_bindings(strings)
