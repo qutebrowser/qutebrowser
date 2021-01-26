@@ -120,10 +120,10 @@ def smoke_test(executable):
 
         (r'[0-9:]* WARNING: The available OpenGL surface format was either not '
          r'version 3\.2 or higher or not a Core Profile\.'),
-        'Chromium on macOS will fall back to software rendering in this case\.',
-        'Hardware acceleration and features such as WebGL will not be available\.',
-        'Unable to create basic Accelerated OpenGL renderer\.',
-        'Core Image is now using the software OpenGL renderer\. This will be slow\.',
+        r'Chromium on macOS will fall back to software rendering in this case\.',
+        r'Hardware acceleration and features such as WebGL will not be available\.',
+        r'Unable to create basic Accelerated OpenGL renderer\.',
+        r'Core Image is now using the software OpenGL renderer\. This will be slow\.',
 
         # Windows N:
         # https://github.com/microsoft/playwright/issues/2901
