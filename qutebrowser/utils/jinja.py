@@ -105,13 +105,16 @@ class Environment(jinja2.Environment):
         self._autoescape = True
 
     def _resource_url(self, path: str) -> str:
-        """Load images from a relative path (to qutebrowser).
+        """Load qutebrowser resource files.
 
         Arguments:
-            path: The relative path to the image
+            path: The relative path to the resource.
         """
-        image = utils.resource_filename(path)
-        url = QUrl.fromLocalFile(image)
+        if not os.path.isabs(path):
+            path = '/' + path
+        url = QUrl('qute://resource')
+        url.setPath(path)
+        urlutils.ensure_valid(url)
         urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
         return urlstr
 

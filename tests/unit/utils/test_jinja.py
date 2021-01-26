@@ -27,15 +27,13 @@ import jinja2.exceptions
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils, jinja
+from qutebrowser.utils import jinja
 from qutebrowser.config import configexc
 
 
 @pytest.fixture(autouse=True)
 def patch_read_file(monkeypatch):
     """pytest fixture to patch utils.read_file."""
-    real_resource_filename = utils.resource_filename
-
     def _read_file(path, binary=False):
         """A read_file which returns a simple template if the path is right."""
         if path == os.path.join('html', 'test.html'):
@@ -59,16 +57,7 @@ def patch_read_file(monkeypatch):
         else:
             raise IOError("Invalid path {}!".format(path))
 
-    def _resource_filename(path):
-        if path == 'utils/testfile':
-            return real_resource_filename(path)
-        elif path == 'testfile.txt':
-            return path
-        else:
-            raise IOError("Invalid path {}!".format(path))
-
     monkeypatch.setattr(jinja.utils, 'read_file', _read_file)
-    monkeypatch.setattr(jinja.utils, 'resource_filename', _resource_filename)
 
 
 def test_simple_template():
@@ -83,16 +72,7 @@ def test_resource_url():
     print(data)
     url = QUrl(data)
     assert url.isValid()
-    assert url.scheme() == 'file'
-
-    path = url.path()
-
-    if utils.is_windows:
-        path = path.lstrip('/')
-        path = path.replace('/', os.sep)
-
-    with open(path, 'r', encoding='utf-8') as f:
-        assert f.read().splitlines()[0] == "Hello World!"
+    assert url.toDisplayString() == 'qute://resource/utils/testfile'
 
 
 def test_data_url():

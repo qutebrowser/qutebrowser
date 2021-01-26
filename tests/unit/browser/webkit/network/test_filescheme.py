@@ -173,9 +173,6 @@ class TestDirbrowserHtml:
 
     def test_icons(self, monkeypatch):
         """Make sure icon paths are correct file:// URLs."""
-        monkeypatch.setattr(filescheme.jinja.utils, 'resource_filename',
-                            lambda name: '/test path/foo.svg')
-
         html = filescheme.dirbrowser_html(os.getcwd()).decode('utf-8')
         soup = bs4.BeautifulSoup(html, 'html.parser')
 
@@ -183,7 +180,7 @@ class TestDirbrowserHtml:
             print(soup.prettify())
 
         css = soup.html.head.style.string
-        assert "background-image: url('file:///test%20path/foo.svg');" in css
+        assert "background-image: url('qute://resource/img/folder.svg');" in css
 
     def test_empty(self, tmpdir, parser):
         parsed = parser(str(tmpdir))

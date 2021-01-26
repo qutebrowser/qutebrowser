@@ -566,3 +566,15 @@ def qute_warning(url: QUrl) -> _HandlerRet:
     else:
         raise NotFoundError("Invalid warning page {}".format(path))
     return 'text/html', src
+
+
+@add_handler('resource')
+def qute_resource(url: QUrl) -> _HandlerRet:
+    """Handler for qute://resource."""
+    path = url.path().lstrip('/')
+    mimetype = utils.guess_mimetype(path, fallback=True)
+    try:
+        data = utils.read_file(path, binary=True)
+    except FileNotFoundError as e:
+        raise NotFoundError(str(e))
+    return mimetype, data
