@@ -32,7 +32,7 @@ Major changes
     if not used elsewhere - it's https://fdik.org/pyPEG2/[inactive upstream]
     and the repository was removed by Bitbucket).
   * Move the `pygments` dependency from required to optional.
-  * TODO: Move the `setuptools` dependency from runtime (for `pkg_resources`) to
+  * Move the `setuptools` dependency from runtime (for `pkg_resources`) to
     build-time.
   * For Python 3.6, 3.7 or 3.8, add a dependency on the `importlib_resources`
     backport.
@@ -66,8 +66,7 @@ Major changes
   used when using `:view-source` with QtWebKit, or when forcing it via
   `:view-source --pygments` on QtWebEngine. If it is unavailable, an
   unhighlighted fallback version of the page's source is shown.
-- TODO: The former dependency on the `pkg_resources` module (part of the
-  `setuptools` project) got dropped.
+- The former dependency on the `pkg_resources` module (part of the `setuptools`project) got dropped.
 - A new dependency on the `importlib_resources` module got introduced for
   Python versions up to and including 3.8. Note that the stdlib
   `importlib.resources` module for Python 3.7 and 3.8 is missing the needed APIs,

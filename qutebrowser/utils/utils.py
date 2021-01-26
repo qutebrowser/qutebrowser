@@ -208,8 +208,8 @@ def read_file(filename: str, binary: bool = False) -> Any:
         return _resource_cache[filename]
 
     if hasattr(sys, 'frozen'):
-        # PyInstaller doesn't support pkg_resources :(
-        # https://github.com/pyinstaller/pyinstaller/wiki/FAQ#misc
+        # For PyInstaller, where we can't store resource files in a qutebrowser/ folder
+        # because the executable is already named "qutebrowser" (at least on macOS).
         fn = os.path.join(os.path.dirname(sys.executable), filename)
         if binary:
             f: IO

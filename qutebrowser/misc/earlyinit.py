@@ -224,7 +224,6 @@ def _check_modules(modules):
 def check_libraries():
     """Check if all needed Python libraries are installed."""
     modules = {
-        'pkg_resources': _missing_str("pkg_resources/setuptools"),
         'jinja2': _missing_str("jinja2"),
         'yaml': _missing_str("PyYAML"),
         'dataclasses': _missing_str("dataclasses"),
