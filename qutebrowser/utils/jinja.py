@@ -120,7 +120,7 @@ class Environment(jinja2.Environment):
 
     def _data_url(self, path: str) -> str:
         """Get a data: url for the broken qutebrowser logo."""
-        data = utils.read_file(path, binary=True)
+        data = utils.read_file_binary(path)
         mimetype = utils.guess_mimetype(path)
         return urlutils.data_url(mimetype, data).toString()
 

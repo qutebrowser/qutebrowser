@@ -135,8 +135,7 @@ class TestReadFile:
 
     def test_readfile_binary(self):
         """Read a test file in binary mode."""
-        content = utils.read_file(os.path.join('utils', 'testfile'),
-                                  binary=True)
+        content = utils.read_file_binary(os.path.join('utils', 'testfile'))
         assert content.splitlines()[0] == b"Hello World!"
 
 

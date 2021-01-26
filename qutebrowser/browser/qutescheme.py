@@ -270,7 +270,7 @@ def qute_javascript(url: QUrl) -> _HandlerRet:
     path = url.path()
     if path:
         path = "javascript" + os.sep.join(path.split('/'))
-        return 'text/html', utils.read_file(path, binary=False)
+        return 'text/html', utils.read_file(path)
     else:
         raise UrlInvalidError("No file specified")
 
@@ -371,7 +371,7 @@ def qute_help(url: QUrl) -> _HandlerRet:
     path = 'html/doc/{}'.format(urlpath)
     if not urlpath.endswith('.html'):
         try:
-            bdata = utils.read_file(path, binary=True)
+            bdata = utils.read_file_binary(path)
         except OSError as e:
             raise SchemeOSError(e)
         mimetype = utils.guess_mimetype(urlpath)
@@ -574,7 +574,7 @@ def qute_resource(url: QUrl) -> _HandlerRet:
     path = url.path().lstrip('/')
     mimetype = utils.guess_mimetype(path, fallback=True)
     try:
-        data = utils.read_file(path, binary=True)
+        data = utils.read_file_binary(path)
     except FileNotFoundError as e:
         raise NotFoundError(str(e))
     return mimetype, data

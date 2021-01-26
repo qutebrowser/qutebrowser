@@ -44,9 +44,8 @@ class TestJavascriptHandler:
     @pytest.fixture(autouse=True)
     def patch_read_file(self, monkeypatch):
         """Patch utils.read_file to return few fake JS files."""
-        def _read_file(path, binary=False):
+        def _read_file(path):
             """Faked utils.read_file."""
-            assert not binary
             for filename, content in self.js_files:
                 if path == os.path.join('javascript', filename):
                     return content
@@ -158,13 +157,16 @@ class TestHelpHandler:
     @pytest.fixture
     def data_patcher(self, monkeypatch):
         def _patch(path, data):
-            def _read_file(name, binary=False):
+            def _read_file(name):
                 assert path == name
-                if binary:
-                    return data
                 return data.decode('utf-8')
 
+            def _read_file_binary(name):
+                assert path == name
+                return data
+
             monkeypatch.setattr(qutescheme.utils, 'read_file', _read_file)
+            monkeypatch.setattr(qutescheme.utils, 'read_file_binary', _read_file_binary)
         return _patch
 
     def test_unknown_file_type(self, data_patcher):

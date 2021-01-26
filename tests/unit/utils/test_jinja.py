@@ -34,30 +34,29 @@ from qutebrowser.config import configexc
 @pytest.fixture(autouse=True)
 def patch_read_file(monkeypatch):
     """pytest fixture to patch utils.read_file."""
-    def _read_file(path, binary=False):
+    def _read_file(path):
         """A read_file which returns a simple template if the path is right."""
         if path == os.path.join('html', 'test.html'):
-            assert not binary
             return """Hello {{var}}"""
         elif path == os.path.join('html', 'test2.html'):
-            assert not binary
             return """{{ resource_url('utils/testfile') }}"""
         elif path == os.path.join('html', 'test3.html'):
-            assert not binary
             return """{{ data_url('testfile.txt') }}"""
-        elif path == 'testfile.txt':
-            assert binary
-            return b'foo'
         elif path == os.path.join('html', 'undef.html'):
-            assert not binary
             return """{{ does_not_exist() }}"""
         elif path == os.path.join('html', 'attributeerror.html'):
-            assert not binary
             return """{{ obj.foobar }}"""
         else:
-            raise IOError("Invalid path {}!".format(path))
+            raise OSError("Invalid path {}!".format(path))
+
+    def _read_file_binary(path):
+        if path == 'testfile.txt':
+            return b'foo'
+        else:
+            raise OSError("Invalid path {}!".format(path))
 
     monkeypatch.setattr(jinja.utils, 'read_file', _read_file)
+    monkeypatch.setattr(jinja.utils, 'read_file_binary', _read_file_binary)
 
 
 def test_simple_template():

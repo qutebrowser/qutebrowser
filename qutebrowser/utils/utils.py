@@ -33,6 +33,7 @@ import contextlib
 import posixpath
 import shlex
 import mimetypes
+import pathlib
 import ctypes
 import ctypes.util
 from typing import (Any, Callable, IO, Iterator, Optional, Sequence, Tuple, Type, Union,
@@ -179,9 +180,22 @@ def compact_text(text: str, elidelength: int = None) -> str:
     return out
 
 
+def _resource_path(filename: str) -> pathlib.Path:
+    """Get a pathlib.Path object for a resource."""
+    assert not posixpath.isabs(filename), filename
+    assert os.path.pardir not in filename.split(posixpath.sep), filename
+
+    if hasattr(sys, 'frozen'):
+        # For PyInstaller, where we can't store resource files in a qutebrowser/ folder
+        # because the executable is already named "qutebrowser" (at least on macOS).
+        return pathlib.Path(sys.executable).parent / filename
+
+    return importlib_resources.files(qutebrowser) / filename
+
+
 def preload_resources() -> None:
     """Load resource files into the cache."""
-    resource_path = importlib_resources.files(qutebrowser)
+    resource_path = _resource_path('')
     for subdir, pattern in [('html', '*.html'), ('javascript', '*.js')]:
         path = resource_path / subdir
         for full_path in path.glob(pattern):
@@ -189,42 +203,33 @@ def preload_resources() -> None:
             _resource_cache[sub_path] = read_file(sub_path)
 
 
-# FIXME:typing Return value should be bytes/str
-def read_file(filename: str, binary: bool = False) -> Any:
+def read_file(filename: str) -> str:
     """Get the contents of a file contained with qutebrowser.
 
     Args:
         filename: The filename to open as string.
-        binary: Whether to return a binary string.
-                If False, the data is UTF-8-decoded.
 
     Return:
         The file contents as string.
     """
-    assert not posixpath.isabs(filename), filename
-    assert os.path.pardir not in filename.split(posixpath.sep), filename
-
-    if not binary and filename in _resource_cache:
+    if filename in _resource_cache:
         return _resource_cache[filename]
 
-    if hasattr(sys, 'frozen'):
-        # For PyInstaller, where we can't store resource files in a qutebrowser/ folder
-        # because the executable is already named "qutebrowser" (at least on macOS).
-        fn = os.path.join(os.path.dirname(sys.executable), filename)
-        if binary:
-            f: IO
-            with open(fn, 'rb') as f:
-                return f.read()
-        else:
-            with open(fn, 'r', encoding='utf-8') as f:
-                return f.read()
-    else:
-        p = importlib_resources.files(qutebrowser) / filename
+    path = _resource_path(filename)
+    return path.read_text(encoding='utf-8')
 
-        if binary:
-            return p.read_bytes()
 
-        return p.read_text()
+def read_file_binary(filename: str) -> bytes:
+    """Get the contents of a binary file contained with qutebrowser.
+
+    Args:
+        filename: The filename to open as string.
+
+    Return:
+        The file contents as a bytes object.
+    """
+    path = _resource_path(filename)
+    return path.read_bytes()
 
 
 def parse_version(version: str) -> VersionNumber:
