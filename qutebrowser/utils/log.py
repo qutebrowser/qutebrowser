@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Loggers and utilities related to logging."""
 
@@ -81,7 +81,7 @@ LOG_COLORS = {
 }
 
 # We first monkey-patch logging to support our VDEBUG level before getting the
-# loggers.  Based on http://stackoverflow.com/a/13638084
+# loggers.  Based on https://stackoverflow.com/a/13638084
 # mypy doesn't know about this, so we need to ignore it.
 VDEBUG_LEVEL = 9
 logging.addLevelName(VDEBUG_LEVEL, 'VDEBUG')

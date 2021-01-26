@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Utilities to get and initialize data/config paths."""
 
@@ -344,7 +344,7 @@ def init(args: Optional[argparse.Namespace]) -> None:
 def _init_cachedir_tag() -> None:
     """Create CACHEDIR.TAG if it doesn't exist.
 
-    See http://www.brynosaurus.com/cachedir/spec.html
+    See https://bford.info/cachedir/
     """
     cachedir_tag = os.path.join(cache(), 'CACHEDIR.TAG')
     if not os.path.exists(cachedir_tag):
@@ -354,7 +354,6 @@ def _init_cachedir_tag() -> None:
                 f.write("# This file is a cache directory tag created by "
                         "qutebrowser.\n")
                 f.write("# For information about cache directory tags, see:\n")
-                f.write("#  http://www.brynosaurus.com/"
-                        "cachedir/\n")
+                f.write("#  https://bford.info/cachedir/\n")
         except OSError:
             log.init.exception("Failed to create CACHEDIR.TAG")

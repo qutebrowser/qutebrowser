@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Fixtures to run qutebrowser in a QProcess and communicate."""
 
@@ -60,7 +60,7 @@ def is_ignored_lowlevel_message(message):
         # ???
         'Xlib: sequence lost*',
         # Started appearing with Qt 5.8...
-        # http://patchwork.sourceware.org/patch/10255/
+        # https://patchwork.sourceware.org/patch/10255/
         ("*_dl_allocate_tls_init: Assertion `listp->slotinfo[cnt].gen <= "
          "GL(dl_tls_generation)' failed!*"),
         # ???

@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Base text widgets for statusbar."""
 
@@ -33,7 +33,7 @@ class TextBase(QLabel):
     Unlike QLabel, the text will get elided.
 
     Eliding is loosely based on
-    http://gedgedev.blogspot.ch/2010/12/elided-labels-in-qt.html
+    https://gedgedev.blogspot.ch/2010/12/elided-labels-in-qt.html
 
     Attributes:
         _elidemode: Where to elide the text.

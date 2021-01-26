@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Various commands."""
 
@@ -220,8 +220,8 @@ def debug_webaction(tab: apitypes.Tab, action: str, count: int = 1) -> None:
     """Execute a webaction.
 
     Available actions:
-    http://doc.qt.io/archives/qt-5.5/qwebpage.html#WebAction-enum (WebKit)
-    http://doc.qt.io/qt-5/qwebenginepage.html#WebAction-enum (WebEngine)
+    https://doc.qt.io/archives/qt-5.5/qwebpage.html#WebAction-enum (WebKit)
+    https://doc.qt.io/qt-5/qwebenginepage.html#WebAction-enum (WebEngine)
 
     Args:
         action: The action to execute, e.g. MoveToNextChar.

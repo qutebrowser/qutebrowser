@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.utils.version."""
 
@@ -381,7 +381,7 @@ class TestGitStrSubprocess:
             if utils.is_windows:
                 # If we don't call this with shell=True it might fail under
                 # some environments on Windows...
-                # http://bugs.python.org/issue24493
+                # https://bugs.python.org/issue24493
                 subprocess.run(
                     'git -C "{}" {}'.format(tmpdir, ' '.join(args)),
                     env=env, check=True, shell=True)

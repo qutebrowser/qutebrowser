@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Other utilities which don't fit anywhere else."""
 
@@ -267,7 +267,7 @@ def format_seconds(total_seconds: int) -> str:
 def format_size(size: Optional[float], base: int = 1024, suffix: str = '') -> str:
     """Format a byte size so it's human readable.
 
-    Inspired by http://stackoverflow.com/q/1094841
+    Inspired by https://stackoverflow.com/q/1094841
     """
     prefixes = ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
     if size is None:

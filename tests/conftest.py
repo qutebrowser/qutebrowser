@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 # pylint: disable=unused-import,wildcard-import,unused-wildcard-import
 
@@ -153,7 +153,7 @@ def pytest_collection_modifyitems(config, items):
                a python test that will be executed.
 
     Reference:
-        http://pytest.org/latest/plugins.html
+        https://pytest.org/latest/plugins.html
     """
     remaining_items = []
     deselected_items = []
@@ -299,7 +299,7 @@ def check_yaml_c_exts():
 def pytest_runtest_makereport(item, call):
     """Make test information available in fixtures.
 
-    See http://pytest.org/latest/example/simple.html#making-test-result-information-available-in-fixtures
+    See https://pytest.org/latest/example/simple.html#making-test-result-information-available-in-fixtures
     """
     outcome = yield
     rep = outcome.get_result()

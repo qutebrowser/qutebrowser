@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Utilities to show various version information."""
 
@@ -458,7 +458,7 @@ def _chromium_version() -> str:
     """Get the Chromium version for QtWebEngine.
 
     This can also be checked by looking at this file with the right Qt tag:
-    http://code.qt.io/cgit/qt/qtwebengine.git/tree/tools/scripts/version_resolver.py#n41
+    https://code.qt.io/cgit/qt/qtwebengine.git/tree/tools/scripts/version_resolver.py#n41
 
     Quick reference:
 

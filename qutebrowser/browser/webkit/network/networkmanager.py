@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Our own QNetworkAccessManager."""
 
@@ -68,19 +68,19 @@ def _is_secure_cipher(cipher):
         # https://weakdh.org/
         return False
     elif cipher.encryptionMethod().upper().startswith('RC4'):
-        # http://en.wikipedia.org/wiki/RC4#Security
+        # https://en.wikipedia.org/wiki/RC4#Security
         # https://codereview.qt-project.org/#/c/148906/
         return False
     elif cipher.encryptionMethod().upper().startswith('DES'):
-        # http://en.wikipedia.org/wiki/Data_Encryption_Standard#Security_and_cryptanalysis
+        # https://en.wikipedia.org/wiki/Data_Encryption_Standard#Security_and_cryptanalysis
         return False
     elif 'MD5' in tokens:
-        # http://www.win.tue.nl/hashclash/rogue-ca/
+        # https://www.win.tue.nl/hashclash/rogue-ca/
         return False
     # OpenSSL should already protect against this in a better way
     # elif (('CBC3' in tokens or 'CBC' in tokens) and (cipher.protocol() not in
     #         [QSsl.TlsV1_0, QSsl.TlsV1_1, QSsl.TlsV1_2])):
-    #     # http://en.wikipedia.org/wiki/POODLE
+    #     # https://en.wikipedia.org/wiki/POODLE
     #     return False
     ### These things should never happen as those are already filtered out by
     ### either the SSL libraries or Qt - but let's be sure.
@@ -156,7 +156,7 @@ class NetworkManager(QNetworkAccessManager):
         log.init.debug("Initializing NetworkManager")
         with log.disable_qt_msghandler():
             # WORKAROUND for a hang when a message is printed - See:
-            # http://www.riverbankcomputing.com/pipermail/pyqt/2014-November/035045.html
+            # https://www.riverbankcomputing.com/pipermail/pyqt/2014-November/035045.html
             #
             # Still needed on Qt/PyQt 5.15.2 according to #6010.
             super().__init__(parent)

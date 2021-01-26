@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.utils.javascript."""
 
@@ -55,14 +55,13 @@ class TestStringEscape:
         Case('𐀀\x00𐀀\x00', r'𐀀\x00𐀀\x00', webkit_only=True),
         Case('𐀀\ufeff', r'𐀀\ufeff'),
         Case('\ufeff', r'\ufeff', webkit_only=True),
-        # http://stackoverflow.com/questions/2965293/
+        # https://stackoverflow.com/questions/2965293/
         Case('\u2028', r'\u2028'),
         Case('\u2029', r'\u2029'),
     ]
 
     # Once there was this warning here:
     #   load glyph failed err=6 face=0x2680ba0, glyph=1912
-    # http://qutebrowser.org:8010/builders/debian-jessie/builds/765/steps/unittests/
     # Should that be ignored?
 
     @pytest.mark.parametrize('case', TESTS, ids=str)

@@ -205,9 +205,9 @@ There are prebuilt RPMs available at https://software.opensuse.org/download.html
 On Slackware
 ------------
 
-qutebrowser is available in the 3rd party repository at http://slackbuilds.org[slackbuilds.org]
+qutebrowser is available in the 3rd party repository at https://slackbuilds.org[slackbuilds.org]
 
-An easy way to install it is with sbopkg (frontend for slackbuilds.org) available at http://sbopkg.org[sbopkg.org]
+An easy way to install it is with sbopkg (frontend for slackbuilds.org) available at https://sbopkg.org[sbopkg.org]
 
 sbopkg can be run with a dialog screen interface, or via command line options.
 
@@ -301,7 +301,7 @@ C:\> scoop install qutebrowser
 Manual install
 ~~~~~~~~~~~~~~
 
-Use the installer from http://www.python.org/downloads[python.org] to get
+Use the installer from https://www.python.org/downloads[python.org] to get
 Python 3 (be sure to install pip).
 
 Then <<tox,install qutebrowser via virtualenv>>.
@@ -335,7 +335,7 @@ Manual Install
 ~~~~~~~~~~~~~~
 
 Alternatively, you can install the dependencies via a package manager (like
-http://brew.sh/[Homebrew] or https://www.macports.org/[MacPorts]) and run
+https://brew.sh/[Homebrew] or https://www.macports.org/[MacPorts]) and run
 qutebrowser from source.
 
 ==== Homebrew
@@ -388,7 +388,7 @@ The next couple of sections will explain the most common use-cases - run
 Getting the repository
 ~~~~~~~~~~~~~~~~~~~~~~
 
-First of all, clone the repository using http://git-scm.org/[git] and switch
+First of all, clone the repository using https://git-scm.org/[git] and switch
 into the repository folder:
 
 ----

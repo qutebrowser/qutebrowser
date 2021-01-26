@@ -144,7 +144,7 @@ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
-this program.  If not, see <http://www.gnu.org/licenses/>.
+this program.  If not, see <https://www.gnu.org/licenses/>.
 
 == RESOURCES
 * Website: https://www.qutebrowser.org/
@@ -153,7 +153,7 @@ https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser
 * Announce-only mailinglist: mailto:qutebrowser-announce@lists.qutebrowser.org[] /
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce
 * IRC: irc://irc.freenode.org/#qutebrowser[`#qutebrowser`] on
-http://freenode.net/[Freenode]
+https://freenode.net/[Freenode]
 * Github: https://github.com/qutebrowser/qutebrowser
 
 == AUTHOR

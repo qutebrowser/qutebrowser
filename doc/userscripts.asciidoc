@@ -76,13 +76,13 @@ you should append to the file (`>>` in bash) rather than overwrite it (`>`).
 Examples
 --------
 
-Opening the currently selected word on http://www.dict.cc/[dict.cc]:
+Opening the currently selected word on https://www.dict.cc/[dict.cc]:
 
 [source,bash]
 ----
 #!/bin/bash
 
-echo "open -t http://www.dict.cc/?s=$QUTE_SELECTED_TEXT" >> "$QUTE_FIFO"
+echo "open -t https://www.dict.cc/?s=$QUTE_SELECTED_TEXT" >> "$QUTE_FIFO"
 ----
 
 Libraries

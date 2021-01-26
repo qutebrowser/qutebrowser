@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """The main browser widgets."""
 
@@ -274,7 +274,7 @@ class BrowserPage(QWebPage):
         correct for some common errors the server do.
 
         At some point we might want to implement the MIME Sniffing standard
-        here: http://mimesniff.spec.whatwg.org/
+        here: https://mimesniff.spec.whatwg.org/
         """
         inline, suggested_filename = http.parse_content_disposition(reply)
         download_manager = objreg.get('qtnetwork-download-manager')

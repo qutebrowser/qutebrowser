@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
 
@@ -111,7 +111,7 @@ def test_iso2231_iso8859_invalid_chars(header_checker):
         "attachment; filename*=iso-8859-1''foo-%80.html")
 
 
-# All following test cases are based on http://greenbytes.de/tech/tc2231/
+# All following test cases are based on https://greenbytes.de/tech/tc2231/
 
 
 class TestInline:
@@ -405,7 +405,7 @@ class TestAttachment:
         Should be treated as extension parameter, therefore almost any behavior
         is acceptable.
 
-        [1] http://www.imc.org/ietf-smtp/mail-archive/msg05023.html
+        [1] https://web.archive.org/web/20150317023040/http://www.imc.org/ietf-smtp/mail-archive/msg05023.html
         """
         header_checker.check_unnamed('attachment; name="foo-%41.html"')
 
@@ -634,7 +634,7 @@ class TestAttachment:
 
         Note that test results under Operating Systems other than Windows vary
         (see
-        http://lists.w3.org/Archives/Public/ietf-http-wg/2011JanMar/0112.html);
+        https://lists.w3.org/Archives/Public/ietf-http-wg/2011JanMar/0112.html);
         apparently some UAs consider the backslash a legitimate filename
         character.
         """
@@ -649,7 +649,7 @@ class TestAttachment:
 
         Note that test results under Operating Systems other than Windows vary
         (see
-        http://lists.w3.org/Archives/Public/ietf-http-wg/2011JanMar/0112.html);
+        https://lists.w3.org/Archives/Public/ietf-http-wg/2011JanMar/0112.html);
         apparently some UAs consider the backslash a legitimate filename
         character.
         """

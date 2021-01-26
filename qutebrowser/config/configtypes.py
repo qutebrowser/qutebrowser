@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Types for options in qutebrowser's configuration.
 
@@ -1089,7 +1089,7 @@ class QtColor(BaseType):
 
     * `#RGB`/`#RRGGBB`/`#AARRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB`
     * An SVG color name as specified in
-      http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification].
+      https://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification].
     * transparent (no color)
     * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages)
     * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
@@ -1160,12 +1160,12 @@ class QssColor(BaseType):
 
     * `#RGB`/`#RRGGBB`/`#AARRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB`
     * An SVG color name as specified in
-      http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification].
+      https://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification].
     * transparent (no color)
     * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages)
     * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
     * A gradient as explained in
-      http://doc.qt.io/qt-5/stylesheet-reference.html#list-of-property-types[the Qt documentation]
+      https://doc.qt.io/qt-5/stylesheet-reference.html#list-of-property-types[the Qt documentation]
       under ``Gradient''
     """
 

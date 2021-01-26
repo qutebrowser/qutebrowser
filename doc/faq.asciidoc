@@ -92,7 +92,7 @@ https://github.com/qutebrowser/qutebrowser/issues/4039[#4039] for more details.
 Security issues in qutebrowser's code happen very rarely (as per September 2019,
 there have been three security issues caused by qutebrowser in almost 6 years).
 Those were handled appropriately
-(http://seclists.org/oss-sec/2018/q3/29[example]) and fixed timely. To report
+(https://seclists.org/oss-sec/2018/q3/29[example]) and fixed timely. To report
 security bugs, please contact me directly at mail@qutebrowser.org, GPG ID
 https://www.the-compiler.org/pubkey.asc[0x916eb0c8fd55a072].
 

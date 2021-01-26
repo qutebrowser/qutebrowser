@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Various small code checkers."""
 
@@ -217,6 +217,10 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
         (
             re.compile(r'attr\.(s|ib)($|\()'),
             "attrs have been replaced by dataclasses in qutebrowser.",
+        ),
+        (
+            re.compile(r'http://www\.gnu\.org/licenses/'),
+            "use https:// URL.",
         ),
     ]
 

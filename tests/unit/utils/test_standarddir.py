@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.utils.standarddir."""
 
@@ -304,7 +304,7 @@ class TestInitCacheDirTag:
             Signature: 8a477f597d28d172789f06886806bc55
             # This file is a cache directory tag created by qutebrowser.
             # For information about cache directory tags, see:
-            #  http://www.brynosaurus.com/cachedir/
+            #  https://bford.info/cachedir/
         """).lstrip()
 
     def test_open_oserror(self, caplog, unwritable_tmp_path, monkeypatch):

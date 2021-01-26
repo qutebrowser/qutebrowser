@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """The tab widget used for TabbedBrowser from browser.py."""
 
@@ -739,7 +739,7 @@ class TabBarStyle(QCommonStyle):
 
     Based on:
 
-    http://stackoverflow.com/a/17294081
+    https://stackoverflow.com/a/17294081
     https://code.google.com/p/makehuman/source/browse/trunk/makehuman/lib/qtgui.py
     """
 

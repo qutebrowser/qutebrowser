@@ -1,10 +1,10 @@
 Change Log
 ===========
 
-// http://keepachangelog.com/
+// https://keepachangelog.com/
 
 All notable changes to this project will be documented in this file.
-This project adheres to http://semver.org/[Semantic Versioning], though minor
+This project adheres to https://semver.org/[Semantic Versioning], though minor
 breaking changes (such as renamed commands) can happen in minor releases.
 
 // tags:
@@ -1471,7 +1471,7 @@ Changed
 
 - Windows and macOS releases now bundle Python 3.7, PyQt 5.11.3 and Qt 5.11.2.
   QtWebEngine includes security fixes up to Chromium 68.0.3440.75 and
-  http://code.qt.io/cgit/qt/qtwebengine.git/tree/dist/changes-5.11.2/?h=v5.11.2[various other fixes].
+  https://code.qt.io/cgit/qt/qtwebengine.git/tree/dist/changes-5.11.2/?h=v5.11.2[various other fixes].
 - Various performance improvements when many tabs are opened.
 - The `content.headers.referer` setting now works on QtWebEngine.
 - The `:repeat` command now takes a count which is multiplied with the given
@@ -2231,7 +2231,7 @@ Major changes
   * Support for Python 3.4 is dropped.
   * Support for Qt before 5.7.1 and PyQt before 5.7 is dropped.
   * New dependency on the QtSql module and Qt sqlite support.
-  * New dependency on the http://www.attrs.org/[attrs] project (packaged as
+  * New dependency on the https://www.attrs.org/[attrs] project (packaged as
     `python-attr` in some distributions).
   * The depedency on PyOpenGL (when using QtWebEngine) got removed. Note
     that PyQt5.QtOpenGL is still a dependency.
@@ -3283,7 +3283,7 @@ Added
 - New (hidden) command `:clear-keychain` to clear a partially entered keychain (bound to `<Escape>` by default, in addition to clearing search).
 - New setting `ui -> smooth-scrolling`.
 - New setting `content -> webgl` to enable/disable https://www.khronos.org/webgl/[WebGL].
-- New setting `content -> css-regions` to enable/disable support for http://dev.w3.org/csswg/css-regions/[CSS Regions].
+- New setting `content -> css-regions` to enable/disable support for https://dev.w3.org/csswg/css-regions/[CSS Regions].
 - New setting `content -> hyperlink-auditing` to enable/disable support for https://html.spec.whatwg.org/multipage/semantics.html#hyperlink-auditing[hyperlink auditing].
 - New setting `tabs -> mousewheel-tab-switching` to control mousewheel behavior on the tab bar.
 - New arguments `--datadir` and `--cachedir` to set the data/cache location.
@@ -3457,11 +3457,11 @@ Changed
 - Add tab index display to the statusbar.
 - Keep progress bar height fixed when the statusbar is multiline.
 - Many improvements to tests and related infrastructure:
-    * `init_venv.py` and `run_checks.py` have been replaced by http://tox.readthedocs.org/[tox]. Install tox and run `tox -e mkvenv` instead.
-    * The tests now use http://pytest.org/[pytest]
+    * `init_venv.py` and `run_checks.py` have been replaced by https://tox.readthedocs.org/[tox]. Install tox and run `tox -e mkvenv` instead.
+    * The tests now use https://pytest.org/[pytest]
     * Many new tests added
     * Mac Mini buildbot to run the tests on macOS.
-    * Coverage recording via http://nedbatchelder.com/code/coverage/[coverage.py].
+    * Coverage recording via https://coverage.readthedocs.io/[coverage.py].
     * New `--pdb-postmortem argument` to drop into the pdb debugger on exceptions.
     * Use https://github.com/ionelmc/python-hunter[hunter] for line tracing instead of a selfmade solution.
 
@@ -3476,7 +3476,7 @@ Deprecated
 Removed
 ~~~~~~~
 
-- `init_venv.py` and `run_checks.py` have been replaced by http://tox.readthedocs.org/[tox]. Install tox and run `tox -e mkvenv` instead..
+- `init_venv.py` and `run_checks.py` have been replaced by https://tox.readthedocs.org/[tox]. Install tox and run `tox -e mkvenv` instead..
 
 Fixed
 ~~~~~

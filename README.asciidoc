@@ -92,8 +92,8 @@ The following software and libraries are required to run qutebrowser:
   for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools] (being
   phased out for qutebrowser v2.0.0)
-* http://jinja.pocoo.org/[jinja2]
-* http://pygments.org/[pygments]
+* https://palletsprojects.com/p/jinja/[jinja2]
+* https://pygments.org/[pygments]
 * https://github.com/yaml/pyyaml[PyYAML]
 
 On older Python versions (3.6/3.7/3.8), the following backports are also required:
@@ -106,7 +106,7 @@ The following libraries are optional:
 * https://pypi.org/project/adblock/[adblock] (for improved adblocking using ABP syntax)
 * On Windows, https://pypi.python.org/pypi/colorama/[colorama] for colored log
   output.
-* http://asciidoc.org/[asciidoc] to generate the documentation for the `:help`
+* https://asciidoc.org/[asciidoc] to generate the documentation for the `:help`
   command, when using the git repository (rather than a release).
 
 See link:doc/install.asciidoc[the documentation] for directions on how to
@@ -185,7 +185,7 @@ Active
 
 * https://fanglingsu.github.io/vimb/[vimb] (C, GTK+ with WebKit2)
 * https://luakit.github.io/luakit/[luakit] (C/Lua, GTK+ with WebKit2)
-* https://nyxt.atlas.engineer/[Nyxt browser] (formerly "Next browser", Lisp, Emacs-like but also offers Vim bindings, QtWebKit or GTK+/WebKit2 - note there was a http://jgkamat.gitlab.io/blog/next-rce.html[critical remote code execution] which was handled quite badly)
+* https://nyxt.atlas.engineer/[Nyxt browser] (formerly "Next browser", Lisp, Emacs-like but also offers Vim bindings, QtWebKit or GTK+/WebKit2 - note there was a https://jgkamat.gitlab.io/blog/next-rce.html[critical remote code execution] which was handled quite badly)
 * https://vieb.dev/[Vieb] (JavaScript, Electron)
 * Chrome/Chromium addons:
   https://vimium.github.io/[Vimium],

@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Script to regenerate requirements files in misc/requirements."""
 
@@ -39,7 +39,7 @@ REQ_DIR = os.path.join(REPO_DIR, 'misc', 'requirements')
 
 CHANGELOG_URLS = {
     'pyparsing': 'https://github.com/pyparsing/pyparsing/blob/master/CHANGES',
-    'pylint': 'http://pylint.pycqa.org/en/latest/whatsnew/changelog.html',
+    'pylint': 'https://pylint.pycqa.org/en/latest/whatsnew/changelog.html',
     'isort': 'https://pycqa.github.io/isort/CHANGELOG/',
     'lazy-object-proxy': 'https://github.com/ionelmc/python-lazy-object-proxy/blob/master/CHANGELOG.rst',
     'mccabe': 'https://github.com/PyCQA/mccabe#changes',
@@ -75,7 +75,7 @@ CHANGELOG_URLS = {
     'virtualenv': 'https://virtualenv.pypa.io/en/latest/changelog.html',
     'packaging': 'https://packaging.pypa.io/en/latest/changelog.html',
     'build': 'https://github.com/pypa/build/commits/master',
-    'attrs': 'http://www.attrs.org/en/stable/changelog.html',
+    'attrs': 'https://www.attrs.org/en/stable/changelog.html',
     'Jinja2': 'https://github.com/pallets/jinja/blob/master/CHANGES.rst',
     'MarkupSafe': 'https://markupsafe.palletsprojects.com/en/1.1.x/changes/',
     'flake8': 'https://gitlab.com/pycqa/flake8/tree/master/docs/source/release-notes',
@@ -103,7 +103,7 @@ CHANGELOG_URLS = {
     'hunter': 'https://github.com/ionelmc/python-hunter/blob/master/CHANGELOG.rst',
     'uritemplate': 'https://github.com/python-hyper/uritemplate/blob/master/HISTORY.rst',
     'more-itertools': 'https://github.com/erikrose/more-itertools/blob/master/docs/versions.rst',
-    'pydocstyle': 'http://www.pydocstyle.org/en/latest/release_notes.html',
+    'pydocstyle': 'https://www.pydocstyle.org/en/latest/release_notes.html',
     'Sphinx': 'https://www.sphinx-doc.org/en/master/changes.html',
     'Babel': 'https://github.com/python-babel/babel/blob/master/CHANGES',
     'alabaster': 'https://alabaster.readthedocs.io/en/latest/changelog.html',

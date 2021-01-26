@@ -360,7 +360,7 @@ content.cache.maximum_pages:
     _n_ pages.
 
     For more information about the feature, please refer to:
-    http://webkit.org/blog/427/webkit-page-cache-i-the-basics/
+    https://webkit.org/blog/427/webkit-page-cache-i-the-basics/
 
 content.cache.appcache:
   default: true

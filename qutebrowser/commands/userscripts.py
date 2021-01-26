@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Functions to execute a userscript."""
 
@@ -54,7 +54,7 @@ class _QtFIFOReader(QObject):
         super().__init__(parent)
         self._filepath = filepath
         # We open as R/W so we never get EOF and have to reopen the pipe.
-        # See http://www.outflux.net/blog/archives/2008/03/09/using-select-on-a-fifo/
+        # See https://www.outflux.net/blog/archives/2008/03/09/using-select-on-a-fifo/
         # We also use os.open and os.fdopen rather than built-in open so we
         # can add O_NONBLOCK.
         # pylint: disable=no-member,useless-suppression

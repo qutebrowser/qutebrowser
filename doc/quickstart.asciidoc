@@ -47,7 +47,7 @@ If you get stuck, you can get help in multiple ways:
 Additionally, each command can be started with a `--help` flag to show its
 help.
 * Chat via the IRC channel: irc://irc.freenode.org/#qutebrowser[`#qutebrowser`] on
-http://freenode.net/[Freenode]
+https://freenode.net/[Freenode]
 (https://webchat.freenode.net/?channels=#qutebrowser[webchat])
 * On Reddit: https://www.reddit.com/r/qutebrowser/[/r/qutebrowser]
 * Via https://github.com/qutebrowser/qutebrowser/discussions[GitHub Discussions]
