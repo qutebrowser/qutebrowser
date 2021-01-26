@@ -176,6 +176,9 @@ CHANGELOG_URLS = {
     'adblock': 'https://github.com/ArniDagur/python-adblock/blob/master/CHANGELOG.md',
     'importlib-resources': 'https://importlib-resources.readthedocs.io/en/latest/history.html',
     'dataclasses': 'https://github.com/ericvsmith/dataclasses#release-history',
+    'pip': 'https://pip.pypa.io/en/stable/news/',
+    'wheel': 'https://wheel.readthedocs.io/en/stable/news.html',
+    'setuptools': 'https://setuptools.readthedocs.io/en/latest/history.html',
 }
 
 
@@ -466,7 +469,8 @@ def build_requirements(name):
                   requirements=filename,
                   pre=comments['pre'])
         with utils.gha_group('Freezing requirements'):
-            proc = run_pip(tmpdir, 'freeze', stdout=subprocess.PIPE)
+            args = ['--all'] if name == 'tox' else []
+            proc = run_pip(tmpdir, 'freeze', *args, stdout=subprocess.PIPE)
             reqs = proc.stdout.decode('utf-8')
             if utils.ON_CI:
                 print(reqs.strip())
