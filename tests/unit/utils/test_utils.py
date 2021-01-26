@@ -129,7 +129,7 @@ class TestReadFile:
                                           'html/error.html'])
     def test_read_cached_file(self, mocker, filename):
         utils.preload_resources()
-        m = mocker.patch('pkg_resources.resource_string')
+        m = mocker.patch('qutebrowser.utils.utils.importlib_resources.files')
         utils.read_file(filename)
         m.assert_not_called()
 
