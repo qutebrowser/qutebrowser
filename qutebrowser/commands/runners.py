@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -376,8 +376,7 @@ class CommandRunner(AbstractCommandRunner):
             if result.cmdline[0] == 'repeat-command':
                 record_last_command = False
 
-            if result.cmdline[0] in ['record-macro', 'run-macro',
-                                     'set-cmd-text']:
+            if result.cmdline[0] in ['macro-record', 'macro-run', 'set-cmd-text']:
                 record_macro = False
 
         if record_last_command:

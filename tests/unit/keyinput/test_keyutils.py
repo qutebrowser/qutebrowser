@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -267,6 +267,7 @@ class TestKeySequence:
     @pytest.mark.parametrize('orig, normalized', [
         ('<Control+x>', '<Ctrl+x>'),
         ('<Windows+x>', '<Meta+x>'),
+        ('<Super+x>', '<Meta+x>'),
         ('<Mod4+x>', '<Meta+x>'),
         ('<Command+x>', '<Meta+x>'),
         ('<Cmd+x>', '<Meta+x>'),

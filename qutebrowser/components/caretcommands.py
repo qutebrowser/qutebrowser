@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -185,7 +185,7 @@ def move_to_end_of_document(tab: apitypes.Tab) -> None:
 
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-def toggle_selection(tab: apitypes.Tab, line: bool = False) -> None:
+def selection_toggle(tab: apitypes.Tab, line: bool = False) -> None:
     """Toggle caret selection mode.
 
     Args:
@@ -196,14 +196,14 @@ def toggle_selection(tab: apitypes.Tab, line: bool = False) -> None:
 
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-def drop_selection(tab: apitypes.Tab) -> None:
+def selection_drop(tab: apitypes.Tab) -> None:
     """Drop selection and keep selection mode enabled."""
     tab.caret.drop_selection()
 
 
 @cmdutils.register()
 @cmdutils.argument('tab_obj', value=cmdutils.Value.cur_tab)
-def follow_selected(tab_obj: apitypes.Tab, *, tab: bool = False) -> None:
+def selection_follow(tab_obj: apitypes.Tab, *, tab: bool = False) -> None:
     """Follow the selected text.
 
     Args:
@@ -217,6 +217,6 @@ def follow_selected(tab_obj: apitypes.Tab, *, tab: bool = False) -> None:
 
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-def reverse_selection(tab: apitypes.Tab) -> None:
+def selection_reverse(tab: apitypes.Tab) -> None:
     """Swap the stationary and moving end of the current selection."""
     tab.caret.reverse_selection()

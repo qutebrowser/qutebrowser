@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2016-2018 Jan Verbeek (blyxxyz) <ring@openmailbox.org>
 #
 # This file is part of qutebrowser.
@@ -52,9 +52,9 @@ class MacroRecorder:
         self._macro_count: Dict[int, int] = {}
         self._last_register: Optional[str] = None
 
-    @cmdutils.register(instance='macro-recorder', name='record-macro')
+    @cmdutils.register(instance='macro-recorder')
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
-    def record_macro_command(self, win_id: int, register: str = None) -> None:
+    def macro_record(self, win_id: int, register: str = None) -> None:
         """Start or stop recording a macro.
 
         Args:
@@ -77,12 +77,10 @@ class MacroRecorder:
         self._macros[register] = []
         self._recording_macro = register
 
-    @cmdutils.register(instance='macro-recorder', name='run-macro')
+    @cmdutils.register(instance='macro-recorder')
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def run_macro_command(self, win_id: int,
-                          count: int = 1,
-                          register: str = None) -> None:
+    def macro_run(self, win_id: int, count: int = 1, register: str = None) -> None:
         """Run a recorded macro.
 
         Args:

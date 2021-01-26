@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -26,6 +26,7 @@ from typing import cast, Any, MutableMapping, Tuple
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QSocketNotifier
 
+import qutebrowser
 from qutebrowser.utils import message, log, objreg, standarddir, utils
 from qutebrowser.commands import runners
 from qutebrowser.config import websettings
@@ -444,6 +445,7 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False,
     env['QUTE_DOWNLOAD_DIR'] = downloads.download_dir()
     env['QUTE_COMMANDLINE_TEXT'] = objreg.get('status-command', scope='window',
                                               window=win_id).text()
+    env['QUTE_VERSION'] = qutebrowser.__version__
 
     cmd_path = os.path.expanduser(cmd)
 

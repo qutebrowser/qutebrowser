@@ -116,6 +116,9 @@ Added
   via a new `filesystem` entry in `completion.open_categories`. Also, a new
   `completion.favorite_paths` setting was added which can be used to add paths to
   show when `:open` is used without any input.
+- New `QUTE_VERSION` variable for userscripts, which can be used to read
+  qutebrowser's version.
+- New "Copy URL" entry in the context menu for downloads.
 - New userscripts:
   * `kodi` to play videos in Kodi
   * `qr` to generate a QR code of the current URL
@@ -174,6 +177,33 @@ Changed
   doing so is supported (QtWebEngine 5.15).
 - If `tabs.favicons.show` is set to `never`, favicons aren't unnecessarily
   downloaded anymore.
+- Renamed commands:
+  * `run-macro` -> `macro-run`
+  * `record-macro` -> `macro-record`
+  * `buffer` -> `tab-select`
+  * `open-editor` -> `edit-text`
+  * `toggle-selection` -> `selection-toggle`
+  * `drop-selection` -> `selection-drop`
+  * `reverse-selection` -> `selection-reverse`
+  * `follow-selected` -> `selection-follow`
+  * `follow-hint` -> `hint-follow`
+  * `enter-mode` -> `mode-enter`
+  * `leave-mode` -> `mode-leave`
+- Changes to defailt settings:
+  * `tabs.background` is now `true` by default, so that new tabs get opened in the
+    background.
+  * `input.partial_timeout` is now set to 0 by default, so that partially typed
+    key strings are never cleared.
+  * `hints.leave_on_load` is now `false` by default, so that hint mode doesn't get
+    left when a page finishes loading. This can lead to stale hints persisting in
+    rare circumstances, but is better than leaving hint mode when the user entered
+    it before loading was completed.
+  * The default for `tabs.width` (tab bar width if vertical) is now 15% of the
+    window width rather than 20%.
+  * The default bindings for moving tabs (`tab-move -` and `tab-move +`) were
+    changed from `gl` and `gr` to `gK` and `gJ`, to be consistent with the tab
+    switching bindings.
+- "Super" is now understood as a modifier (i.e. as alias to "Meta")
 - Various performance improvements, including for the startup time.
 
 Fixed
@@ -202,6 +232,10 @@ Fixed
 - A bug in QtWebEngine 5.15.2 causes "renderer process killed" errors on
   websites like LinkedIn and TradingView. There is now a workaround in qutebrowser
   to prevent this from happening.
+- Nextcloud Calendars started using `String.replaceAll` which was only added to
+  Chromium recently (Chrome 85), so won't work with current QtWebEngine
+  versions. This release includes a workaround (a polyfill as a
+  site-specific-quirk).
 
 v1.14.1 (2020-12-04)
 --------------------

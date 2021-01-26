@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -386,7 +386,7 @@ class ModeManager(QObject):
         self.entered.emit(mode, self._win_id)
 
     @cmdutils.register(instance='mode-manager', scope='window')
-    def enter_mode(self, mode: str) -> None:
+    def mode_enter(self, mode: str) -> None:
         """Enter a key mode.
 
         Args:
@@ -438,9 +438,9 @@ class ModeManager(QObject):
             self.enter(self._prev_mode,
                        reason='restore mode before {}'.format(mode.name))
 
-    @cmdutils.register(instance='mode-manager', name='leave-mode',
+    @cmdutils.register(instance='mode-manager',
                        not_modes=[usertypes.KeyMode.normal], scope='window')
-    def leave_current_mode(self) -> None:
+    def mode_leave(self) -> None:
         """Leave the mode we're currently in."""
         if self.mode == usertypes.KeyMode.normal:
             raise ValueError("Can't leave normal mode!")

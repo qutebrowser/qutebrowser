@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2020 Árni Dagur <arni@dagur.eu>
+# Copyright 2020-2021 Árni Dagur <arni@dagur.eu>
 #
 # This file is part of qutebrowser.
 #

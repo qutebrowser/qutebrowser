@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -427,7 +427,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
-    @cmdutils.argument('index', completion=miscmodels.other_buffer)
+    @cmdutils.argument('index', completion=miscmodels.other_tabs)
     def tab_take(self, index, keep=False):
         """Take a tab from another window.
 
@@ -440,7 +440,7 @@ class CommandDispatcher:
             raise cmdutils.CommandError("Can't take tabs when using "
                                         "windows as tabs")
 
-        tabbed_browser, tab = self._resolve_buffer_index(index)
+        tabbed_browser, tab = self._resolve_tab_index(index)
 
         if tabbed_browser is self._tabbed_browser:
             raise cmdutils.CommandError("Can't take a tab from the same "
@@ -868,8 +868,8 @@ class CommandDispatcher:
         else:
             log.webview.debug("Last tab")
 
-    def _resolve_buffer_index(self, index):
-        """Resolve a buffer index to the tabbedbrowser and tab.
+    def _resolve_tab_index(self, index):
+        """Resolve a tab index to the tabbedbrowser and tab.
 
         Args:
             index: The [win_id/]index of the tab to be selected. Or a substring
@@ -881,7 +881,7 @@ class CommandDispatcher:
             for part in index_parts:
                 int(part)
         except ValueError:
-            model = miscmodels.buffer()
+            model = miscmodels.tabs()
             model.set_pattern(index)
             if model.count() > 0:
                 index = model.data(model.first_item())
@@ -916,9 +916,9 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
-    @cmdutils.argument('index', completion=miscmodels.buffer)
+    @cmdutils.argument('index', completion=miscmodels.tabs)
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def buffer(self, index=None, count=None):
+    def tab_select(self, index=None, count=None):
         """Select tab by index or url/title best match.
 
         Focuses window if necessary when index is given. If both index and
@@ -938,7 +938,7 @@ class CommandDispatcher:
         if count is not None:
             index = str(count)
 
-        tabbed_browser, tab = self._resolve_buffer_index(index)
+        tabbed_browser, tab = self._resolve_tab_index(index)
 
         window = tabbed_browser.widget.window()
         window.activateWindow()
@@ -1447,8 +1447,8 @@ class CommandDispatcher:
 
         self._open(url, tab, bg, window)
 
-    def _open_editor_cb(self, elem):
-        """Open editor after the focus elem was found in open_editor."""
+    def _edit_text_cb(self, elem):
+        """Open editor after the focus elem was found in edit_text."""
         if elem is None:
             message.error("No element focused!")
             return
@@ -1472,14 +1472,14 @@ class CommandDispatcher:
         ed.edit(text, caret_position)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def open_editor(self):
+    def edit_text(self):
         """Open an external editor with the currently selected form field.
 
         The editor which should be launched can be configured via the
         `editor.command` config option.
         """
         tab = self._current_widget()
-        tab.elements.find_focused(self._open_editor_cb)
+        tab.elements.find_focused(self._edit_text_cb)
 
     def on_file_updated(self, ed, elem, text):
         """Write the editor text into the form field and clean up tempfile.

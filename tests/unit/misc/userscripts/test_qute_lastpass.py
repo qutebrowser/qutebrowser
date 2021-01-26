@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2020-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -172,7 +172,7 @@ class TestQuteLastPassMain:
             call('fake-key \\f\\a\\k\\e\\@\\f\\a\\k\\e\\.\\c\\o\\m'),
             call('fake-key <Tab>'),
             call('fake-key \\f\\o\\o\\b\\a\\r'),
-            call('enter-mode insert')
+            call('mode-enter insert')
         ])
 
     def test_main_no_candidates(self, subprocess_mock, arguments_mock,
@@ -218,7 +218,7 @@ class TestQuteLastPassMain:
 
         qutecommand_mock.assert_has_calls([
             call('fake-key \\f\\a\\k\\e\\@\\f\\a\\k\\e\\.\\c\\o\\m'),
-            call('enter-mode insert')
+            call('mode-enter insert')
         ])
 
     def test_main_password_only_flag(self, subprocess_mock, arguments_mock,
@@ -232,7 +232,7 @@ class TestQuteLastPassMain:
 
         qutecommand_mock.assert_has_calls([
             call('fake-key \\f\\o\\o\\b\\a\\r'),
-            call('enter-mode insert')
+            call('mode-enter insert')
         ])
 
     def test_main_multiple_candidates(self, subprocess_mock, arguments_mock,
@@ -273,7 +273,7 @@ class TestQuteLastPassMain:
                 'fake-key \\j\\o\\h\\n\\.\\d\\o\\e\\@\\f\\a\\k\\e\\.\\c\\o\\m'),
             call('fake-key <Tab>'),
             call('fake-key \\b\\a\\r\\f\\o\\o'),
-            call('enter-mode insert')
+            call('mode-enter insert')
         ])
 
     def test_main_merge_candidates(self, subprocess_mock, arguments_mock,
@@ -344,5 +344,5 @@ class TestQuteLastPassMain:
                 'fake-key \\j\\o\\h\\n\\.\\d\\o\\e\\@\\f\\a\\k\\e\\.\\c\\o\\m'),
             call('fake-key <Tab>'),
             call('fake-key \\b\\a\\r\\f\\o\\o'),
-            call('enter-mode insert')
+            call('mode-enter insert')
         ])

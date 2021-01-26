@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -96,7 +96,7 @@ def miscmodels_patch(mocker):
     m.quickmark = func('quickmark')
     m.bookmark = func('bookmark')
     m.session = func('session')
-    m.buffer = func('buffer')
+    m.tabs = func('tabs')
     m.bind = func('bind')
     m.url = func('url')
     m.section = func('section')

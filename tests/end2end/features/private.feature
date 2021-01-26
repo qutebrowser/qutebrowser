@@ -214,7 +214,7 @@ Feature: Using private browsing
         And I open data/downloads/downloads.html in a private window
         And I run :click-element id download
         And I wait for "*PromptMode.download*" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         Then "Removed download *: download.bin *" should be logged
 
     Scenario: Adblocking after reiniting private profile

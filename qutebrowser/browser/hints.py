@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -946,7 +946,7 @@ class HintManager(QObject):
         else:
             follow = False
             # save the keystr of the only one visible hint to be picked up
-            # later by self.follow_hint
+            # later by self.hint_follow
             self._context.to_follow = list(visible.keys())[0]
 
         if follow:
@@ -1109,7 +1109,7 @@ class HintManager(QObject):
 
     @cmdutils.register(instance='hintmanager', scope='window',
                        modes=[usertypes.KeyMode.hint])
-    def follow_hint(self, select: bool = False, keystring: str = None) -> None:
+    def hint_follow(self, select: bool = False, keystring: str = None) -> None:
         """Follow a hint.
 
         Args:

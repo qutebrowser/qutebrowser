@@ -1200,7 +1200,7 @@ editor.command:
     placeholder: true
   default: ["gvim", "-f", "{file}", "-c", "normal {line}G{column0}l"]
   desc: |
-    Editor (and arguments) to use for the `open-editor` command.
+    Editor (and arguments) to use for the `edit-*` commands.
     The following placeholders are defined:
 
     * `{file}`: Filename of the file to be edited.
@@ -1512,7 +1512,7 @@ input.insert_mode.plugins:
   desc: Switch to insert mode when clicking flash and other plugins.
 
 input.insert_mode.leave_on_load:
-  default: true
+  default: false
   type: Bool
   supports_pattern: true
   desc: >-
@@ -1541,7 +1541,7 @@ input.mouse.rocker_gestures:
     This disables the context menu.
 
 input.partial_timeout:
-  default: 5000
+  default: 0
   type:
     name: Int
     minval: 0
@@ -1551,6 +1551,8 @@ input.partial_timeout:
 
     If the current input forms only partial matches, the keystring will be
     cleared after this time.
+
+    If set to 0, partially typed bindings are never cleared.
 
 input.rocker_gestures:
   renamed: input.mouse.rocker_gestures
@@ -1762,7 +1764,7 @@ statusbar.widgets:
 ## tabs
 
 tabs.background:
-  default: false
+  default: true
   type: Bool
   desc: Open new tabs (middleclick/ctrl+click) in the background.
 
@@ -1982,7 +1984,7 @@ tabs.width.bar:
   renamed: tabs.width
 
 tabs.width:
-  default: 20%
+  default: 15%
   type:
     name: PercOrInt
     minperc: 0
@@ -3212,8 +3214,8 @@ bindings.default:
       co: tab-only
       T: tab-focus
       gm: tab-move
-      gl: tab-move -
-      gr: tab-move +
+      gK: tab-move -
+      gJ: tab-move +
       J: tab-next
       <Ctrl-PgDown>: tab-next
       K: tab-prev
@@ -3260,11 +3262,11 @@ bindings.default:
       G: scroll-to-perc
       n: search-next
       N: search-prev
-      i: enter-mode insert
-      v: enter-mode caret
-      V: enter-mode caret ;; toggle-selection --line
-      "`": enter-mode set_mark
-      "'": enter-mode jump_mark
+      i: mode-enter insert
+      v: mode-enter caret
+      V: mode-enter caret ;; selection-toggle --line
+      "`": mode-enter set_mark
+      "'": mode-enter jump_mark
       yy: yank
       yY: yank -s
       yt: yank title
@@ -3315,11 +3317,11 @@ bindings.default:
       ad: download-cancel
       cd: download-clear
       gf: view-source
-      gt: set-cmd-text -s :buffer
+      gt: set-cmd-text -s :tab-select
       <Ctrl-Tab>: tab-focus last
       <Ctrl-Shift-Tab>: nop
       <Ctrl-^>: tab-focus last
-      <Ctrl-V>: enter-mode passthrough
+      <Ctrl-V>: mode-enter passthrough
       <Ctrl-Q>: quit
       ZQ: quit
       ZZ: quit --save
@@ -3346,14 +3348,14 @@ bindings.default:
       Sb: open qute://bookmarks#bookmarks
       Sq: open qute://bookmarks
       Sh: open qute://history
-      <Return>: follow-selected
-      <Ctrl-Return>: follow-selected -t
+      <Return>: selection-follow
+      <Ctrl-Return>: selection-follow -t
       .: repeat-command
       <Ctrl-p>: tab-pin
       <Alt-m>: tab-mute
       gD: tab-give
-      q: record-macro
-      "@": run-macro
+      q: macro-record
+      "@": macro-run
       tsh: config-cycle -p -t -u *://{url:host}/* content.javascript.enabled
         ;; reload
       tSh: config-cycle -p -u *://{url:host}/* content.javascript.enabled
@@ -3389,17 +3391,17 @@ bindings.default:
       tCu: config-cycle -p -u {url} content.cookies.accept
         all no-3rdparty never ;; reload
     insert:
-      <Ctrl-E>: open-editor
+      <Ctrl-E>: edit-text
       <Shift-Ins>: insert-text -- {primary}
-      <Escape>: leave-mode
+      <Escape>: mode-leave
     hint:
-      <Return>: follow-hint
+      <Return>: hint-follow
       <Ctrl-R>: hint --rapid links tab-bg
       <Ctrl-F>: hint links
       <Ctrl-B>: hint all tab-bg
-      <Escape>: leave-mode
+      <Escape>: mode-leave
     passthrough:
-      <Shift-Escape>: leave-mode
+      <Shift-Escape>: mode-leave
     command:
       <Ctrl-P>: command-history-prev
       <Ctrl-N>: command-history-next
@@ -3431,7 +3433,7 @@ bindings.default:
       <Ctrl-Y>: rl-yank
       <Ctrl-?>: rl-delete-char
       <Ctrl-H>: rl-backward-delete-char
-      <Escape>: leave-mode
+      <Escape>: mode-leave
     prompt:
       <Return>: prompt-accept
       <Ctrl-X>: prompt-open-download
@@ -3456,7 +3458,7 @@ bindings.default:
       <Ctrl-?>: rl-delete-char
       <Ctrl-H>: rl-backward-delete-char
       <Ctrl-Y>: rl-yank
-      <Escape>: leave-mode
+      <Escape>: mode-leave
     yesno:
       <Return>: prompt-accept
       y: prompt-accept yes
@@ -3465,13 +3467,13 @@ bindings.default:
       N: prompt-accept --save no
       <Alt-Y>: prompt-yank
       <Alt-Shift-Y>: prompt-yank --sel
-      <Escape>: leave-mode
+      <Escape>: mode-leave
     caret:
-      v: toggle-selection
-      V: toggle-selection --line
-      <Space>: toggle-selection
-      <Ctrl-Space>: drop-selection
-      c: enter-mode normal
+      v: selection-toggle
+      V: selection-toggle --line
+      <Space>: selection-toggle
+      <Ctrl-Space>: selection-drop
+      c: mode-enter normal
       j: move-to-next-line
       k: move-to-prev-line
       l: move-to-next-char
@@ -3479,7 +3481,7 @@ bindings.default:
       e: move-to-end-of-word
       w: move-to-next-word
       b: move-to-prev-word
-      o: reverse-selection
+      o: selection-reverse
       "]": move-to-start-of-next-block
       "[": move-to-start-of-prev-block
       "}": move-to-end-of-next-block
@@ -3495,9 +3497,9 @@ bindings.default:
       J: scroll down
       K: scroll up
       L: scroll right
-      <Escape>: leave-mode
+      <Escape>: mode-leave
     register:
-      <Escape>: leave-mode
+      <Escape>: mode-leave
   type:
     name: Dict
     none_ok: true

@@ -76,12 +76,12 @@ Feature: Keyboard input
     # Macros
 
     Scenario: Recording a simple macro
-        When I run :record-macro
+        When I run :macro-record
         And I press the key "a"
         And I run :message-info "foo 1"
         And I run :message-info "bar 1"
-        And I run :record-macro
-        And I run :run-macro with count 2
+        And I run :macro-record
+        And I run :macro-run with count 2
         And I press the key "a"
         Then the message "foo 1" should be shown
         And the message "bar 1" should be shown
@@ -91,11 +91,11 @@ Feature: Keyboard input
         And the message "bar 1" should be shown
 
     Scenario: Recording a named macro
-        When I run :record-macro foo
+        When I run :macro-record foo
         And I run :message-info "foo 2"
         And I run :message-info "bar 2"
-        And I run :record-macro foo
-        And I run :run-macro foo
+        And I run :macro-record foo
+        And I run :macro-run foo
         Then the message "foo 2" should be shown
         And the message "bar 2" should be shown
         And the message "foo 2" should be shown
@@ -104,7 +104,7 @@ Feature: Keyboard input
     Scenario: Running an invalid macro
         Given I open data/scroll/simple.html
         And I run :tab-only
-        When I run :run-macro
+        When I run :macro-run
         And I press the key "b"
         Then the error "No macro recorded in 'b'!" should be shown
         And no crash should happen
@@ -112,34 +112,34 @@ Feature: Keyboard input
     Scenario: Running an invalid named macro
         Given I open data/scroll/simple.html
         And I run :tab-only
-        When I run :run-macro bar
+        When I run :macro-run bar
         Then the error "No macro recorded in 'bar'!" should be shown
         And no crash should happen
 
     Scenario: Running a macro with a mode-switching command
         When I open data/hints/html/simple.html
-        And I run :record-macro a
+        And I run :macro-record a
         And I run :hint links normal
         And I wait for "hints: *" in the log
-        And I run :leave-mode
-        And I run :record-macro a
-        And I run :run-macro
+        And I run :mode-leave
+        And I run :macro-record a
+        And I run :macro-run
         And I press the key "a"
         And I wait for "hints: *" in the log
         Then no crash should happen
 
     Scenario: Cancelling key input
-        When I run :record-macro
+        When I run :macro-record
         And I press the key "<Escape>"
         Then "Leaving mode KeyMode.record_macro (reason: leave current)" should be logged
 
     Scenario: Ignoring non-register keys
-        When I run :record-macro
+        When I run :macro-record
         And I press the key "<Menu>"
         And I press the key "c"
         And I run :message-info "foo 3"
-        And I run :record-macro
-        And I run :run-macro
+        And I run :macro-record
+        And I run :macro-run
         And I press the key "c"
         Then the message "foo 3" should be shown
         And the message "foo 3" should be shown
@@ -150,7 +150,7 @@ Feature: Keyboard input
         Given I set tabs.mode_on_change to normal
         And I clean up open tabs
         When I open data/hello.txt
-        And I run :enter-mode insert
+        And I run :mode-enter insert
         And I wait for "Entering mode KeyMode.insert (reason: command)" in the log
         And I open data/hello2.txt in a new background tab
         And I run :tab-focus 2
@@ -162,7 +162,7 @@ Feature: Keyboard input
         Given I set tabs.mode_on_change to persist
         And I clean up open tabs
         When I open data/hello.txt
-        And I run :enter-mode insert
+        And I run :mode-enter insert
         And I wait for "Entering mode KeyMode.insert (reason: command)" in the log
         And I open data/hello2.txt in a new background tab
         And I run :tab-focus 2
@@ -174,13 +174,13 @@ Feature: Keyboard input
         Given I set tabs.mode_on_change to restore
         And I clean up open tabs
         When I open data/hello.txt
-        And I run :enter-mode insert
+        And I run :mode-enter insert
         And I wait for "Entering mode KeyMode.insert (reason: command)" in the log
         And I open data/hello2.txt in a new background tab
         And I run :tab-focus 2
         And I wait for "Mode before tab change: insert (mode_on_change = restore)" in the log
         And I wait for "Mode after tab change: normal (mode_on_change = restore)" in the log
-        And I run :enter-mode passthrough
+        And I run :mode-enter passthrough
         And I wait for "Entering mode KeyMode.passthrough (reason: command)" in the log
         And I run :tab-focus 1
         Then "Mode before tab change: passthrough (mode_on_change = restore)" should be logged

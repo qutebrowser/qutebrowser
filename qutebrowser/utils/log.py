@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -491,8 +491,7 @@ def qt_message_handler(msg_type: QtCore.QtMsgType,
     else:
         func = context.function
 
-    if (context.category is None or  # type: ignore[unreachable]
-            context.category == 'default'):
+    if context.category is None or context.category == 'default':
         name = 'qt'
     else:
         name = 'qt-' + context.category

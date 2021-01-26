@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -284,7 +284,7 @@ def _generate_cmdline_tests():
 
     separators = [';;', ' ;; ', ';; ', ' ;;']
     invalid = ['foo', '']
-    valid = ['leave-mode', 'hint all']
+    valid = ['mode-leave', 'hint all']
     # Valid command only -> valid
     for item in valid:
         yield TestCase(''.join(item), True)

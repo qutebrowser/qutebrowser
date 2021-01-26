@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -458,7 +458,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
     def _toggle_sel_translate(self, state_str):
         if self._mode_manager.mode != usertypes.KeyMode.caret:
             # This may happen if the user switches to another mode after
-            # `:toggle-selection` is executed and before this callback function
+            # `:selection-toggle` is executed and before this callback function
             # is asynchronously called.
             log.misc.debug("Ignoring caret selection callback in {}".format(
                 self._mode_manager.mode))
@@ -1143,6 +1143,13 @@ class _WebEngineScripts(QObject):
                 'whatsapp_web',
                 QWebEngineScript.DocumentReady,
                 QWebEngineScript.ApplicationWorld,
+            ),
+            # FIXME not needed with 5.15.3 most likely, but how do we check for
+            # that?
+            (
+                'string_replaceall',
+                QWebEngineScript.DocumentCreation,
+                QWebEngineScript.MainWorld,
             ),
         ]
         if not qtutils.version_check('5.13'):

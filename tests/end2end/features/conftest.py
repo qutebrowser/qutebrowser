@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -381,7 +381,7 @@ def hint_and_follow(quteproc, args, letter):
     args = args.replace('(python-executable)', sys.executable)
     quteproc.send_cmd(':hint {}'.format(args))
     quteproc.wait_for(message='hints: *')
-    quteproc.send_cmd(':follow-hint {}'.format(letter))
+    quteproc.send_cmd(':hint-follow {}'.format(letter))
 
 
 @bdd.when("I wait until the scroll position changed")

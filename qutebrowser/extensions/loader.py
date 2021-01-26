@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -122,7 +122,7 @@ def _walk_pyinstaller() -> Iterator[ExtensionInfo]:
     toc: Set[str] = set()
     for importer in pkgutil.iter_importers('qutebrowser'):
         if hasattr(importer, 'toc'):
-            toc |= importer.toc
+            toc |= importer.toc  # type: ignore[union-attr]
     for name in toc:
         if name.startswith(components.__name__ + '.'):
             yield ExtensionInfo(name=name)

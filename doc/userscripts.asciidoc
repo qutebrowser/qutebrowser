@@ -43,6 +43,9 @@ The following environment variables will be set when a userscript is launched:
   qutebrowser is still in command mode. If you want to receive arguments passed
   to your userscript via `:spawn`, use the normal way of getting commandline
   arguments (e.g. `$@` in bash or `sys.argv` / `argparse` / ... in Python).
+- `QUTE_VERSION`: The version of qutebrowser, as a string like "2.0.0". Note that this
+  was added in v2.0.0, thus older versions can only be detected by the absence of this
+  variable.
 
 In `command` mode:
 

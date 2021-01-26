@@ -35,7 +35,6 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<bookmark-add,bookmark-add>>|Save the current page as a bookmark, or a specific url.
 |<<bookmark-del,bookmark-del>>|Delete a bookmark.
 |<<bookmark-load,bookmark-load>>|Load a bookmark.
-|<<buffer,buffer>>|Select tab by index or url/title best match.
 |<<clear-keychain,clear-keychain>>|Clear the currently entered key chain.
 |<<clear-messages,clear-messages>>|Clear all message notifications.
 |<<click-element,click-element>>|Click the element matching the given filter.
@@ -61,10 +60,9 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<download-remove,download-remove>>|Remove the last/[count]th download from the list.
 |<<download-retry,download-retry>>|Retry the first failed/[count]th download.
 |<<edit-command,edit-command>>|Open an editor to modify the current command.
+|<<edit-text,edit-text>>|Open an external editor with the currently selected form field.
 |<<edit-url,edit-url>>|Navigate to a url formed in an external editor.
-|<<enter-mode,enter-mode>>|Enter a key mode.
 |<<fake-key,fake-key>>|Send a fake keypress or key string to the website or qutebrowser.
-|<<follow-selected,follow-selected>>|Follow the selected text.
 |<<forward,forward>>|Go forward in the history of the current tab.
 |<<fullscreen,fullscreen>>|Toggle fullscreen mode.
 |<<greasemonkey-reload,greasemonkey-reload>>|Re-read Greasemonkey scripts from disk.
@@ -77,27 +75,27 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<jseval,jseval>>|Evaluate a JavaScript string.
 |<<jump-mark,jump-mark>>|Jump to the mark named by `key`.
 |<<later,later>>|Execute a command after some time.
+|<<macro-record,macro-record>>|Start or stop recording a macro.
+|<<macro-run,macro-run>>|Run a recorded macro.
 |<<message-error,message-error>>|Show an error message in the statusbar.
 |<<message-info,message-info>>|Show an info message in the statusbar.
 |<<message-warning,message-warning>>|Show a warning message in the statusbar.
 |<<messages,messages>>|Show a log of past messages.
+|<<mode-enter,mode-enter>>|Enter a key mode.
 |<<navigate,navigate>>|Open typical prev/next links or navigate using the URL path.
 |<<nop,nop>>|Do nothing.
 |<<open,open>>|Open a URL in the current/[count]th tab.
-|<<open-editor,open-editor>>|Open an external editor with the currently selected form field.
 |<<print,print>>|Print the current/[count]th tab.
 |<<quickmark-add,quickmark-add>>|Add a new quickmark.
 |<<quickmark-del,quickmark-del>>|Delete a quickmark.
 |<<quickmark-load,quickmark-load>>|Load a quickmark.
 |<<quickmark-save,quickmark-save>>|Save the current page as a quickmark.
 |<<quit,quit>>|Quit qutebrowser.
-|<<record-macro,record-macro>>|Start or stop recording a macro.
 |<<reload,reload>>|Reload the current/[count]th tab.
 |<<repeat,repeat>>|Repeat a given command.
 |<<repeat-command,repeat-command>>|Repeat the last executed command.
 |<<report,report>>|Report a bug in qutebrowser.
 |<<restart,restart>>|Restart qutebrowser while keeping existing tabs open.
-|<<run-macro,run-macro>>|Run a recorded macro.
 |<<run-with-count,run-with-count>>|Run a command with the given count.
 |<<save,save>>|Save configs and state.
 |<<scroll,scroll>>|Scroll the current tab in the given direction.
@@ -108,6 +106,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<search,search>>|Search for a text on the current page. With no text, clear results.
 |<<search-next,search-next>>|Continue the search to the ([count]th) next term.
 |<<search-prev,search-prev>>|Continue the search to the ([count]th) previous term.
+|<<selection-follow,selection-follow>>|Follow the selected text.
 |<<session-delete,session-delete>>|Delete a session.
 |<<session-load,session-load>>|Load a session.
 |<<session-save,session-save>>|Save a session.
@@ -126,6 +125,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<tab-only,tab-only>>|Close all tabs except for the current one.
 |<<tab-pin,tab-pin>>|Pin/Unpin the current/[count]th tab.
 |<<tab-prev,tab-prev>>|Switch to the previous tab, or switch [count] tabs back.
+|<<tab-select,tab-select>>|Select tab by index or url/title best match.
 |<<tab-take,tab-take>>|Take a tab from another window.
 |<<unbind,unbind>>|Unbind a keychain.
 |<<undo,undo>>|Re-open the last closed tab(s) or window.
@@ -225,24 +225,6 @@ Load a bookmark.
 * +*-b*+, +*--bg*+: Load the bookmark in a new background tab.
 * +*-w*+, +*--window*+: Load the bookmark in a new window.
 * +*-d*+, +*--delete*+: Whether to delete the bookmark afterwards.
-
-==== note
-* This command does not split arguments after the last argument and handles quotes literally.
-
-[[buffer]]
-=== buffer
-Syntax: +:buffer ['index']+
-
-Select tab by index or url/title best match.
-
-Focuses window if necessary when index is given. If both index and count are given, use count. With neither index nor count given, open the qute://tabs page.
-
-==== positional arguments
-* +'index'+: The [win_id/]index of the tab to focus. Or a substring in which case the closest match will be focused.
-
-
-==== count
-The tab index to focus, starting with 1.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
@@ -510,6 +492,12 @@ Open an editor to modify the current command.
 ==== optional arguments
 * +*-r*+, +*--run*+: Run the command if the editor exits successfully.
 
+[[edit-text]]
+=== edit-text
+Open an external editor with the currently selected form field.
+
+The editor which should be launched can be configured via the `editor.command` config option.
+
 [[edit-url]]
 === edit-url
 Syntax: +:edit-url [*--bg*] [*--tab*] [*--window*] [*--private*] [*--related*] ['url']+
@@ -529,17 +517,6 @@ The editor which should be launched can be configured via the `editor.command` c
 * +*-r*+, +*--related*+: If opening a new tab, position the tab as related to the current one (like clicking on a link).
 
 
-[[enter-mode]]
-=== enter-mode
-Syntax: +:enter-mode 'mode'+
-
-Enter a key mode.
-
-==== positional arguments
-* +'mode'+: The mode to enter. See `:help bindings.commands` for the available modes, but note that hint/command/yesno/prompt mode
- can't be entered manually.
-
-
 [[fake-key]]
 === fake-key
 Syntax: +:fake-key [*--global*] 'keystring'+
@@ -553,15 +530,6 @@ Send a fake keypress or key string to the website or qutebrowser.
 
 ==== optional arguments
 * +*-g*+, +*--global*+: If given, the keys are sent to the qutebrowser UI.
-
-[[follow-selected]]
-=== follow-selected
-Syntax: +:follow-selected [*--tab*]+
-
-Follow the selected text.
-
-==== optional arguments
-* +*-t*+, +*--tab*+: Load the selected link in a new tab.
 
 [[forward]]
 === forward
@@ -797,6 +765,27 @@ Execute a command after some time.
 * With this command, +;;+ is interpreted literally instead of splitting off a second command.
 * This command does not replace variables like +\{url\}+.
 
+[[macro-record]]
+=== macro-record
+Syntax: +:macro-record ['register']+
+
+Start or stop recording a macro.
+
+==== positional arguments
+* +'register'+: Which register to store the macro in.
+
+[[macro-run]]
+=== macro-run
+Syntax: +:macro-run ['register']+
+
+Run a recorded macro.
+
+==== positional arguments
+* +'register'+: Which macro to run.
+
+==== count
+How many times to run the macro.
+
 [[message-error]]
 === message-error
 Syntax: +:message-error 'text'+
@@ -844,6 +833,17 @@ Show a log of past messages.
 * +*-w*+, +*--window*+: Open in a new window.
 * +*-f*+, +*--logfilter*+: A comma-separated filter string of logging categories. If the filter string starts with an exclamation mark, it
  is negated.
+
+
+[[mode-enter]]
+=== mode-enter
+Syntax: +:mode-enter 'mode'+
+
+Enter a key mode.
+
+==== positional arguments
+* +'mode'+: The mode to enter. See `:help bindings.commands` for the available modes, but note that hint/command/yesno/prompt mode
+ can't be entered manually.
 
 
 [[navigate]]
@@ -911,12 +911,6 @@ The tab index to open the URL in.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
-
-[[open-editor]]
-=== open-editor
-Open an external editor with the currently selected form field.
-
-The editor which should be launched can be configured via the `editor.command` config option.
 
 [[print]]
 === print
@@ -991,15 +985,6 @@ Quit qutebrowser.
 * +*-s*+, +*--save*+: When given, save the open windows even if auto_save.session is turned off.
 
 
-[[record-macro]]
-=== record-macro
-Syntax: +:record-macro ['register']+
-
-Start or stop recording a macro.
-
-==== positional arguments
-* +'register'+: Which register to store the macro in.
-
 [[reload]]
 === reload
 Syntax: +:reload [*--force*]+
@@ -1051,18 +1036,6 @@ Report a bug in qutebrowser.
 [[restart]]
 === restart
 Restart qutebrowser while keeping existing tabs open.
-
-[[run-macro]]
-=== run-macro
-Syntax: +:run-macro ['register']+
-
-Run a recorded macro.
-
-==== positional arguments
-* +'register'+: Which macro to run.
-
-==== count
-How many times to run the macro.
 
 [[run-with-count]]
 === run-with-count
@@ -1195,6 +1168,15 @@ Continue the search to the ([count]th) previous term.
 
 ==== count
 How many elements to ignore.
+
+[[selection-follow]]
+=== selection-follow
+Syntax: +:selection-follow [*--tab*]+
+
+Follow the selected text.
+
+==== optional arguments
+* +*-t*+, +*--tab*+: Load the selected link in a new tab.
 
 [[session-delete]]
 === session-delete
@@ -1448,6 +1430,24 @@ Switch to the previous tab, or switch [count] tabs back.
 ==== count
 How many tabs to switch back.
 
+[[tab-select]]
+=== tab-select
+Syntax: +:tab-select ['index']+
+
+Select tab by index or url/title best match.
+
+Focuses window if necessary when index is given. If both index and count are given, use count. With neither index nor count given, open the qute://tabs page.
+
+==== positional arguments
+* +'index'+: The [win_id/]index of the tab to focus. Or a substring in which case the closest match will be focused.
+
+
+==== count
+The tab index to focus, starting with 1.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+
 [[tab-take]]
 === tab-take
 Syntax: +:tab-take [*--keep*] 'index'+
@@ -1601,9 +1601,8 @@ How many steps to zoom out.
 |<<completion-item-del,completion-item-del>>|Delete the current completion item.
 |<<completion-item-focus,completion-item-focus>>|Shift the focus of the completion menu to another item.
 |<<completion-item-yank,completion-item-yank>>|Yank the current completion item into the clipboard.
-|<<drop-selection,drop-selection>>|Drop selection and keep selection mode enabled.
-|<<follow-hint,follow-hint>>|Follow a hint.
-|<<leave-mode,leave-mode>>|Leave the mode we're currently in.
+|<<hint-follow,hint-follow>>|Follow a hint.
+|<<mode-leave,mode-leave>>|Leave the mode we're currently in.
 |<<move-to-end-of-document,move-to-end-of-document>>|Move the cursor or selection to the end of the document.
 |<<move-to-end-of-line,move-to-end-of-line>>|Move the cursor or selection to the end of line.
 |<<move-to-end-of-next-block,move-to-end-of-next-block>>|Move the cursor or selection to the end of next block.
@@ -1623,7 +1622,6 @@ How many steps to zoom out.
 |<<prompt-item-focus,prompt-item-focus>>|Shift the focus of the prompt file completion menu to another item.
 |<<prompt-open-download,prompt-open-download>>|Immediately open a download.
 |<<prompt-yank,prompt-yank>>|Yank URL to clipboard or primary selection.
-|<<reverse-selection,reverse-selection>>|Swap the stationary and moving end of the current selection.
 |<<rl-backward-char,rl-backward-char>>|Move back a character.
 |<<rl-backward-delete-char,rl-backward-delete-char>>|Delete the character before the cursor.
 |<<rl-backward-kill-word,rl-backward-kill-word>>|Remove chars from the cursor to the beginning of the word.
@@ -1639,7 +1637,9 @@ How many steps to zoom out.
 |<<rl-unix-line-discard,rl-unix-line-discard>>|Remove chars backward from the cursor to the beginning of the line.
 |<<rl-unix-word-rubout,rl-unix-word-rubout>>|Remove chars from the cursor to the beginning of the word.
 |<<rl-yank,rl-yank>>|Paste the most recently deleted text.
-|<<toggle-selection,toggle-selection>>|Toggle caret selection mode.
+|<<selection-drop,selection-drop>>|Drop selection and keep selection mode enabled.
+|<<selection-reverse,selection-reverse>>|Swap the stationary and moving end of the current selection.
+|<<selection-toggle,selection-toggle>>|Toggle caret selection mode.
 |==============
 [[command-accept]]
 === command-accept
@@ -1685,13 +1685,9 @@ Yank the current completion item into the clipboard.
 ==== optional arguments
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
 
-[[drop-selection]]
-=== drop-selection
-Drop selection and keep selection mode enabled.
-
-[[follow-hint]]
-=== follow-hint
-Syntax: +:follow-hint [*--select*] ['keystring']+
+[[hint-follow]]
+=== hint-follow
+Syntax: +:hint-follow [*--select*] ['keystring']+
 
 Follow a hint.
 
@@ -1701,8 +1697,8 @@ Follow a hint.
 ==== optional arguments
 * +*-s*+, +*--select*+: Only select the given hint, don't necessarily follow it.
 
-[[leave-mode]]
-=== leave-mode
+[[mode-leave]]
+=== mode-leave
 Leave the mode we're currently in.
 
 [[move-to-end-of-document]]
@@ -1849,10 +1845,6 @@ Yank URL to clipboard or primary selection.
 ==== optional arguments
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
 
-[[reverse-selection]]
-=== reverse-selection
-Swap the stationary and moving end of the current selection.
-
 [[rl-backward-char]]
 === rl-backward-char
 Move back a character.
@@ -1943,9 +1935,17 @@ Paste the most recently deleted text.
 
 This acts like readline's yank.
 
-[[toggle-selection]]
-=== toggle-selection
-Syntax: +:toggle-selection [*--line*]+
+[[selection-drop]]
+=== selection-drop
+Drop selection and keep selection mode enabled.
+
+[[selection-reverse]]
+=== selection-reverse
+Swap the stationary and moving end of the current selection.
+
+[[selection-toggle]]
+=== selection-toggle
+Syntax: +:selection-toggle [*--line*]+
 
 Toggle caret selection mode.
 

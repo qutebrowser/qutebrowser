@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -127,7 +127,7 @@ def download_contents(filename, text, tmpdir):
 def download_prompt(tmpdir, quteproc, path):
     full_path = path.replace('(tmpdir)', str(tmpdir)).replace('/', os.sep)
     quteproc.wait_for(message=PROMPT_MSG.format(full_path))
-    quteproc.send_cmd(':leave-mode')
+    quteproc.send_cmd(':mode-leave')
 
 
 @bdd.when("I set a test python open_dispatcher")

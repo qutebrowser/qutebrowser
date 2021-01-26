@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -601,7 +601,7 @@ class LineEditPrompt(_BasePrompt):
         return True
 
     def _allowed_commands(self):
-        return [('prompt-accept', 'Accept'), ('leave-mode', 'Abort')]
+        return [('prompt-accept', 'Accept'), ('mode-leave', 'Abort')]
 
 
 class FilenamePrompt(_BasePrompt):
@@ -773,7 +773,7 @@ class FilenamePrompt(_BasePrompt):
         return idx
 
     def _allowed_commands(self):
-        return [('prompt-accept', 'Accept'), ('leave-mode', 'Abort')]
+        return [('prompt-accept', 'Accept'), ('mode-leave', 'Abort')]
 
 
 class DownloadFilenamePrompt(FilenamePrompt):
@@ -805,7 +805,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
     def _allowed_commands(self):
         cmds = [
             ('prompt-accept', 'Accept'),
-            ('leave-mode', 'Abort'),
+            ('mode-leave', 'Abort'),
             ('prompt-open-download', "Open download"),
             ('prompt-open-download --pdfjs', "Open download via PDF.js"),
             ('prompt-yank', "Yank URL"),
@@ -869,7 +869,7 @@ class AuthenticationPrompt(_BasePrompt):
 
     def _allowed_commands(self):
         return [('prompt-accept', "Accept"),
-                ('leave-mode', "Abort")]
+                ('mode-leave', "Abort")]
 
 
 class YesNoPrompt(_BasePrompt):
@@ -931,7 +931,7 @@ class YesNoPrompt(_BasePrompt):
             default = 'yes' if self.question.default else 'no'
             cmds.append(('prompt-accept', "Use default ({})".format(default)))
 
-        cmds.append(('leave-mode', "Abort"))
+        cmds.append(('mode-leave', "Abort"))
         cmds.append(('prompt-yank', "Yank URL"))
         return cmds
 
