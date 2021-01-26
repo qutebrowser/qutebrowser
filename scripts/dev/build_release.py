@@ -330,6 +330,7 @@ def _package_windows(out_32, out_64):
          'application/vnd.microsoft.portable-executable',
          'Windows 64bit installer'),
     ]
+    template = 'qutebrowser-{}-windows-standalone-{}'
 
     if out_32 is not None:
         name_32 = 'qutebrowser-{}-win32.exe'.format(qutebrowser.__version__)
@@ -340,7 +341,6 @@ def _package_windows(out_32, out_64):
         ]
 
         utils.print_title("Zipping 32bit standalone...")
-        template = 'qutebrowser-{}-windows-standalone-{}'
         name = os.path.join('dist',
                             template.format(qutebrowser.__version__, 'win32'))
         shutil.make_archive(name, 'zip', 'dist', os.path.basename(out_32))
