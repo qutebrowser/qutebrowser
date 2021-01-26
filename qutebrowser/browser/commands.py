@@ -1283,6 +1283,18 @@ class CommandDispatcher:
         message.info("Removed bookmark {}".format(url))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
+    def bookmark_list(self, tab=True, bg=False, window=False):
+        """Show all bookmarks/quickmarks.
+
+        Args:
+            tab: Open in a new tab.
+            bg: Open in a background tab.
+            window: Open in a new window.
+        """
+        url = QUrl('qute://bookmarks/')
+        self._open(url, tab, bg, window)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     def download(self, url=None, *, mhtml_=False, dest=None):
         """Download a given URL, or current page if no URL given.
 

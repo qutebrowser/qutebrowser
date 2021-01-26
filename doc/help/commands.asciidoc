@@ -34,6 +34,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<bind,bind>>|Bind a key to a command.
 |<<bookmark-add,bookmark-add>>|Save the current page as a bookmark, or a specific url.
 |<<bookmark-del,bookmark-del>>|Delete a bookmark.
+|<<bookmark-list,bookmark-list>>|Show all bookmarks/quickmarks.
 |<<bookmark-load,bookmark-load>>|Load a bookmark.
 |<<clear-keychain,clear-keychain>>|Clear the currently entered key chain.
 |<<clear-messages,clear-messages>>|Clear all message notifications.
@@ -210,6 +211,17 @@ Delete a bookmark.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
+
+[[bookmark-list]]
+=== bookmark-list
+Syntax: +:bookmark-list [*--tab*] [*--bg*] [*--window*]+
+
+Show all bookmarks/quickmarks.
+
+==== optional arguments
+* +*-t*+, +*--tab*+: Open in a new tab.
+* +*-b*+, +*--bg*+: Open in a background tab.
+* +*-w*+, +*--window*+: Open in a new window.
 
 [[bookmark-load]]
 === bookmark-load
