@@ -27,8 +27,9 @@ import html
 import enum
 import dataclasses
 from string import ascii_lowercase
+import time
 from typing import (TYPE_CHECKING, Callable, Dict, Iterable, Iterator, List, Mapping,
-                    MutableSequence, Optional, Sequence, Set)
+                    MutableSequence, Optional, Sequence, Set, Tuple)
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt, QUrl
 from PyQt5.QtWidgets import QLabel
@@ -357,6 +358,7 @@ class HintActions:
 _ElemsType = Sequence[webelem.AbstractWebElement]
 _HintStringsType = MutableSequence[str]
 
+
 class HintManager(QObject):
 
     """Manage drawing hints over links or other elements.
@@ -645,7 +647,8 @@ class HintManager(QObject):
             self._context.all_labels.append(label)
             self._context.labels[string] = label
 
-        hint_positions.adjust_positions(self._context.all_labels)
+        labels_tuple: Tuple[HintLabel, ...] = tuple(self._context.all_labels)
+        hint_positions.adjust_positions(labels_tuple)
 
         keyparser = self._get_keyparser(usertypes.KeyMode.hint)
         keyparser.update_bindings(strings)
