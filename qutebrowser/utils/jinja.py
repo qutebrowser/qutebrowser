@@ -21,6 +21,7 @@
 
 import os
 import os.path
+import posixpath
 import functools
 import contextlib
 import html
@@ -110,10 +111,9 @@ class Environment(jinja2.Environment):
         Arguments:
             path: The relative path to the resource.
         """
-        if not os.path.isabs(path):
-            path = '/' + path
+        assert not posixpath.isabs(path), path
         url = QUrl('qute://resource')
-        url.setPath(path)
+        url.setPath('/' + path)
         urlutils.ensure_valid(url)
         urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
         return urlstr
