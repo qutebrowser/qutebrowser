@@ -222,6 +222,10 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             re.compile(r'http://www\.gnu\.org/licenses/'),
             "use https:// URL.",
         ),
+        (
+            re.compile(r'IOError'),
+            "use OSError",
+        ),
     ]
 
     # Files which should be ignored, e.g. because they come from another

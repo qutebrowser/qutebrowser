@@ -1071,7 +1071,7 @@ class WordHinter:
                             hints.discard(word[:i + 1])
                         hints.add(word)
                     self.words.update(hints)
-            except IOError as e:
+            except OSError as e:
                 error = "Word hints requires reading the file at {}: {}"
                 raise HintingError(error.format(dictionary, str(e)))
 

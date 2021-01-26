@@ -48,7 +48,7 @@ class TestBaseLineParser:
         mocker.patch('builtins.open', mock.mock_open())
 
         with lineparser._open('r'):
-            with pytest.raises(IOError,
+            with pytest.raises(OSError,
                                match="Refusing to double-open LineParser."):
                 with lineparser._open('r'):
                     pass
@@ -106,7 +106,7 @@ class TestLineParser:
     def test_double_open(self, lineparser):
         """Test if save() bails on an already open file."""
         with lineparser._open('r'):
-            with pytest.raises(IOError,
+            with pytest.raises(OSError,
                                match="Refusing to double-open LineParser."):
                 lineparser.save()
 
