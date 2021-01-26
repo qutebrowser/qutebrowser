@@ -478,7 +478,7 @@ def upgrade_sdist_dependencies():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--no-asciidoc', action='store_true',
+    parser.add_argument('--skip-docs', action='store_true',
                         help="Don't generate docs")
     parser.add_argument('--asciidoc', help="Full path to asciidoc.py. "
                         "If not given, it's searched in PATH.",
@@ -507,7 +507,7 @@ def main():
         utils.print_error("Refusing to do a release with a dirty git tree")
         sys.exit(1)
 
-    if args.no_asciidoc:
+    if args.skip_docs:
         os.makedirs(os.path.join('qutebrowser', 'html', 'doc'), exist_ok=True)
     else:
         run_asciidoc2html(args)
