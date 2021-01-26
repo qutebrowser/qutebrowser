@@ -13,17 +13,16 @@ block_cipher = None
 
 def get_data_files():
     data_files = [
-        ('../qutebrowser/html', 'qutebrowser/html'),
-        ('../qutebrowser/img', 'qutebrowser/img'),
-        ('../qutebrowser/javascript', 'qutebrowser/javascript'),
-        ('../qutebrowser/html/doc', 'qutebrowser/html/doc'),
-        ('../qutebrowser/git-commit-id', 'qutebrowser/'),
-        ('../qutebrowser/config/configdata.yml', 'qutebrowser/config'),
+        ('../qutebrowser/html', 'html'),
+        ('../qutebrowser/img', 'img'),
+        ('../qutebrowser/javascript', 'javascript'),
+        ('../qutebrowser/html/doc', 'html/doc'),
+        ('../qutebrowser/git-commit-id', '.'),
+        ('../qutebrowser/config/configdata.yml', 'config'),
     ]
 
     if os.path.exists(os.path.join('qutebrowser', '3rdparty', 'pdfjs')):
-        data_files.append(
-            ('../qutebrowser/3rdparty/pdfjs', 'qutebrowser/3rdparty/pdfjs'))
+        data_files.append(('../qutebrowser/3rdparty/pdfjs', '3rdparty/pdfjs'))
     else:
         print("Warning: excluding pdfjs as it's not present!")
 
