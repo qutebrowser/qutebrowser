@@ -385,10 +385,9 @@ def parse_versioned_line(line):
     return name, version
 
 
-def _get_changes():
+def _get_changes(diff):
     """Get a list of changed versions from git."""
     changes_dict = {}
-    diff = git_diff()
     for line in diff:
         if not line.startswith('-') and not line.startswith('+'):
             continue
@@ -410,18 +409,22 @@ def _get_changes():
 
 def print_changed_files():
     """Output all changed files from this run."""
+    diff = git_diff()
+    if utils.ON_CI:
+        with utils.gha_group('Raw diff'):
+            print('\n'.join(diff))
+
     changed_files = _get_changed_files()
     files_text = '\n'.join('- ' + line for line in changed_files)
 
-    changes = _get_changes()
-    diff_text = '\n'.join(str(change) for change in changes)
+    changes = _get_changes(diff)
+    changes_text = '\n'.join(str(change) for change in changes)
 
-    utils.print_title('Changed')
     utils.print_subtitle('Files')
     print(files_text)
     print()
-    utils.print_subtitle('Diff')
-    print(diff_text)
+    utils.print_subtitle('Changes')
+    print(changes_text)
 
     if utils.ON_CI:
         print()
@@ -555,6 +558,7 @@ def main():
     else:
         test_tox()
 
+    utils.print_title('Changed')
     print_changed_files()
 
 
