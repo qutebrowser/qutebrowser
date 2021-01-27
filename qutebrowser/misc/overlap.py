@@ -37,18 +37,18 @@ def _overlap(r1: QRect, r2: QRect) -> bool:
     return hor_overlap > 0 or vert_overlap > 0
 
 
-def _corners(label: QWidget) -> List[QPoint]:
+def _corners(widget: QWidget) -> List[QPoint]:
     return [
-        label.geometry().topLeft(), label.geometry().topRight(),
-        label.geometry().bottomLeft(), label.geometry().bottomRight(),
+        widget.geometry().topLeft(), widget.geometry().topRight(),
+        widget.geometry().bottomLeft(), widget.geometry().bottomRight(),
     ]
 
 
 class OverlapLookup:
-    """Hold a collection of labels and compute overlaps.
+    """Hold a collection of widgets and compute overlaps.
 
     Suppose we tile the viewport with cells of shape max_width x max_height.
-    Then `self._lookup` maps (i,j) to set of labels that intersect cell (i, j).
+    Then `self._lookup` maps (i,j) to set of widgets that intersect cell (i, j).
     alternatives: R-tree, quadtree
     This could be modified slightly due to the fact that we only care about
     overlaps of at least a certain amount.
