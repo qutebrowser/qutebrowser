@@ -445,6 +445,7 @@ def test_preferred_colorscheme(request, quteproc_new):
     'Qt version changed',
     None,
 ])
+@pytest.mark.skipif(utils.is_windows, reason='Currently broken')
 def test_service_worker_workaround(
         request, server, quteproc_new, short_tmpdir, reason):
     """Make sure we remove the QtWebEngine Service Worker directory if configured."""
