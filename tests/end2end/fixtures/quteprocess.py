@@ -335,6 +335,10 @@ def is_ignored_chromium_message(line):
         'Accepting maxRetransmits = -1 for backwards compatibility',
         'Accepting maxRetransmitTime = -1 for backwards compatibility',
 
+        # Windows N:
+        # https://github.com/microsoft/playwright/issues/2901
+        (r'DXVAVDA fatal error: could not LoadLibrary: .*: The specified '
+         r'module could not be found. \(0x7E\)'),
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
