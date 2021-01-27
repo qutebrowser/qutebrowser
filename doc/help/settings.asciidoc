@@ -282,6 +282,7 @@
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
 |<<qt.low_end_device_mode,qt.low_end_device_mode>>|When to use Chromium's low-end device mode.
 |<<qt.process_model,qt.process_model>>|Which Chromium process model to use.
+|<<qt.workarounds.remove_service_workers,qt.workarounds.remove_service_workers>>|Delete the QtWebEngine Service Worker directory on every start.
 |<<scrolling.bar,scrolling.bar>>|When/how to show the scrollbar.
 |<<scrolling.smooth,scrolling.smooth>>|Enable smooth scrolling for web pages.
 |<<search.ignore_case,search.ignore_case>>|When to find text on a page case-insensitively.
@@ -3637,6 +3638,16 @@ Valid values:
 Default: +pass:[process-per-site-instance]+
 
 This setting is only available with the QtWebEngine backend.
+
+[[qt.workarounds.remove_service_workers]]
+=== qt.workarounds.remove_service_workers
+Delete the QtWebEngine Service Worker directory on every start.
+This workaround can help with certain crashes caused by an unknown QtWebEngine bug related to Service Workers. Those crashes happen seemingly immediately on Windows; after one hour of operation on other systems.
+Note however that enabling this option *can lead to data loss* on some pages (as Service Worker data isn't persisted) and will negatively impact start-up time.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[scrolling.bar]]
 === scrolling.bar

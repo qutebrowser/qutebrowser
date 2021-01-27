@@ -94,6 +94,10 @@ Added
 - New `:bookmark-list` command which lists all bookmarks/quickmarks. The
   corresponding `qute://bookmarks` URL already existed since v0.8.0, but it was
   never exposed as a command.
+- New `qt.workarounds.remove_service_workers` setting which can be used to
+  remove the "Service Workers" directory on every start. Usage of this option is
+  generally discouraged, except in situations where the underlying QtWebEngine bug
+  is a known cause for crashes.
 - New userscripts:
   * `kodi` to play videos in Kodi
   * `qr` to generate a QR code of the current URL

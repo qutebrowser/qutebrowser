@@ -19,6 +19,7 @@
 
 """Test starting qutebrowser with special arguments/environments."""
 
+import configparser
 import subprocess
 import sys
 import logging
@@ -435,3 +436,57 @@ def test_preferred_colorscheme(request, quteproc_new):
 
     quteproc_new.send_cmd(':jseval matchMedia("(prefers-color-scheme: dark)").matches')
     quteproc_new.wait_for(message='True')
+
+
+@pytest.mark.qtwebkit_skip
+@pytest.mark.parametrize('reason', [
+    'Explicitly enabled',
+    pytest.param('Qt 5.14', marks=utils.qt514),
+    'Qt version changed',
+    None,
+])
+def test_service_worker_workaround(
+        request, server, quteproc_new, short_tmpdir, reason):
+    """Make sure we remove the QtWebEngine Service Worker directory if configured."""
+    args = _base_args(request.config) + ['--basedir', str(short_tmpdir)]
+    if reason == 'Explicitly enabled':
+        settings_args = ['-s', 'qt.workarounds.remove_service_workers', 'true']
+    else:
+        settings_args = []
+
+    service_worker_dir = short_tmpdir / 'data' / 'webengine' / 'Service Worker'
+
+    # First invocation: Create directory
+    quteproc_new.start(args)
+    quteproc_new.open_path('data/service-worker/index.html')
+    server.wait_for(verb='GET', path='/data/service-worker/data.json')
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()
+    assert service_worker_dir.exists()
+
+    # Edit state file if needed
+    state_file = short_tmpdir / 'data' / 'state'
+    if reason == 'Qt 5.14':
+        state_file.remove()
+    elif reason == 'Qt version changed':
+        parser = configparser.ConfigParser()
+        parser.read(state_file)
+        del parser['general']['qt_version']
+        with state_file.open('w', encoding='utf-8') as f:
+            parser.write(f)
+
+    # Second invocation: Directory gets removed (if workaround enabled)
+    quteproc_new.start(args + settings_args)
+    if reason is not None:
+        quteproc_new.wait_for(
+            message=(f'Removing service workers at {service_worker_dir} '
+                     f'(reason: {reason})'))
+
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()
+
+    if reason is None:
+        assert service_worker_dir.exists()
+        quteproc_new.ensure_not_logged(message='Removing service workers at *')
+    else:
+        assert not service_worker_dir.exists()

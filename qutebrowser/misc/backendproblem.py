@@ -403,21 +403,22 @@ class _BackendProblemChecker:
             # Nuke the service worker directory once for every install with Qt
             # 5.14, given that it seems to cause a variety of segfaults.
             configfiles.state['general']['serviceworker_workaround'] = '514'
-            affected = True
+            reason = 'Qt 5.14'
+        elif configfiles.state.qt_version_changed:
+            reason = 'Qt version changed'
+        elif config.val.qt.workarounds.remove_service_workers:
+            reason = 'Explicitly enabled'
         else:
-            # Otherwise, just nuke it when the Qt version changed.
-            affected = configfiles.state.qt_version_changed
-
-        if not affected:
             return
 
-        service_worker_dir = os.path.join(standarddir.data(), 'webengine',
-                                          'Service Worker')
+        service_worker_dir = os.path.join(
+            standarddir.data(), 'webengine', 'Service Worker')
         bak_dir = service_worker_dir + '-bak'
         if not os.path.exists(service_worker_dir):
             return
 
-        log.init.info("Qt version changed, removing service workers")
+        log.init.info(
+            f"Removing service workers at {service_worker_dir} (reason: {reason})")
 
         # Keep one backup around - we're not 100% sure what persistent data
         # could be in there, but this folder can grow to ~300 MB.
