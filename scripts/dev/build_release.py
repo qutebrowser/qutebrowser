@@ -317,7 +317,14 @@ def build_windows(*, skip_packaging, skip_32bit, skip_64bit):
     return artifacts
 
 
-def _package_windows_single(*, nsis_flags, outdir, desc_arch, desc_suffix, filename_arch):
+def _package_windows_single(
+    *,
+    nsis_flags,
+    outdir,
+    desc_arch,
+    desc_suffix,
+    filename_arch,
+):
     """Build the given installer/zip for windows."""
     artifacts = []
 
