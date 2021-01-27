@@ -290,8 +290,9 @@ def _build_windows_single(*, x64, skip_packaging):
     return _package_windows_single(
         nsis_flags=[] if x64 else ['/DX86'],
         outdir=outdir,
-        human_readable_arch=human_arch,
         filename_arch='amd64' if x64 else 'win32',
+        desc_arch=human_arch,
+        desc_suffix='' if x64 else ' (not recommended)',
     )
 
 
@@ -316,11 +317,11 @@ def build_windows(*, skip_packaging, skip_32bit, skip_64bit):
     return artifacts
 
 
-def _package_windows_single(nsis_flags, outdir, human_readable_arch, filename_arch):
+def _package_windows_single(*, nsis_flags, outdir, desc_arch, desc_suffix, filename_arch):
     """Build the given installer/zip for windows."""
     artifacts = []
 
-    utils.print_subtitle(f"Building {human_readable_arch} installer...")
+    utils.print_subtitle(f"Building {desc_arch} installer...")
     subprocess.run(['makensis.exe',
                     f'/DVERSION={qutebrowser.__version__}', *nsis_flags,
                     'misc/nsis/qutebrowser.nsi'], check=True)
@@ -328,10 +329,10 @@ def _package_windows_single(nsis_flags, outdir, human_readable_arch, filename_ar
     artifacts.append((
         os.path.join('dist', name),
         'application/vnd.microsoft.portable-executable',
-        f'Windows {human_readable_arch} installer',
+        f'Windows {desc_arch} installer',
     ))
 
-    utils.print_subtitle(f"Zipping {human_readable_arch} standalone...")
+    utils.print_subtitle(f"Zipping {desc_arch} standalone...")
     zip_name = (
         f'qutebrowser-{qutebrowser.__version__}-windows-standalone-{filename_arch}')
     zip_path = os.path.join('dist', zip_name)
@@ -339,7 +340,7 @@ def _package_windows_single(nsis_flags, outdir, human_readable_arch, filename_ar
     artifacts.append((
         f'{zip_path}.zip',
         'application/zip',
-        f'Windows {human_readable_arch} standalone'
+        f'Windows {desc_arch} standalone{desc_suffix}'
     ))
 
     return artifacts
