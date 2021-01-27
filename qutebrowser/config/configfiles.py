@@ -60,14 +60,19 @@ class StateConfig(configparser.ConfigParser):
         self._filename = os.path.join(standarddir.data(), 'state')
         self.read(self._filename, encoding='utf-8')
         qt_version = qVersion()
+
         # We handle this here, so we can avoid setting qt_version_changed if
         # the config is brand new, but can still set it when qt_version wasn't
         # there before...
         if 'general' in self:
             old_qt_version = self['general'].get('qt_version', None)
+            old_qutebrowser_version = self['general'].get('version', None)
             self.qt_version_changed = old_qt_version != qt_version
+            self.qutebrowser_version_changed = (
+                old_qutebrowser_version != qutebrowser.__version__)
         else:
             self.qt_version_changed = False
+            self.qutebrowser_version_changed = False
 
         for sect in ['general', 'geometry', 'inspector']:
             try:

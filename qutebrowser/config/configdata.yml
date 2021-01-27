@@ -35,6 +35,11 @@ history_gap_interval:
     Items with less time between them are grouped when being displayed in
     `:history`. Use -1 to disable separation.
 
+changelog_after_upgrade:
+  type: Bool
+  default: true
+  desc: Whether to show a changelog after qutebrowser was upgraded.
+
 ignore_case:
   renamed: search.ignore_case
 

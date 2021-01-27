@@ -117,6 +117,8 @@ Added
   remove the "Service Workers" directory on every start. Usage of this option is
   generally discouraged, except in situations where the underlying QtWebEngine bug
   is a known cause for crashes.
+- Changelogs are now shown after qutebrowser was upgraded. This can be disabled
+  via a new `changelog_after_upgrade` setting.
 - New userscripts:
   * `kodi` to play videos in Kodi
   * `qr` to generate a QR code of the current URL

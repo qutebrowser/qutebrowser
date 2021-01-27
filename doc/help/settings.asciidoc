@@ -17,6 +17,7 @@
 |<<bindings.commands,bindings.commands>>|Keybindings mapping keys to commands in different modes.
 |<<bindings.default,bindings.default>>|Default keybindings. If you want to add bindings, modify `bindings.commands` instead.
 |<<bindings.key_mappings,bindings.key_mappings>>|This setting can be used to map keys to other keys.
+|<<changelog_after_upgrade,changelog_after_upgrade>>|Whether to show a changelog after qutebrowser was upgraded.
 |<<colors.completion.category.bg,colors.completion.category.bg>>|Background color of the completion widget category headers.
 |<<colors.completion.category.border.bottom,colors.completion.category.border.bottom>>|Bottom border color of the completion widget category headers.
 |<<colors.completion.category.border.top,colors.completion.category.border.top>>|Top border color of the completion widget category headers.
@@ -790,6 +791,14 @@ Default:
 - +pass:[&lt;Enter&gt;]+: +pass:[&lt;Return&gt;]+
 - +pass:[&lt;Shift-Enter&gt;]+: +pass:[&lt;Return&gt;]+
 - +pass:[&lt;Shift-Return&gt;]+: +pass:[&lt;Return&gt;]+
+
+[[changelog_after_upgrade]]
+=== changelog_after_upgrade
+Whether to show a changelog after qutebrowser was upgraded.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
 
 [[colors.completion.category.bg]]
 === colors.completion.category.bg

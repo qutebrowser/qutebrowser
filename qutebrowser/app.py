@@ -383,6 +383,28 @@ def _open_special_pages(args):
             tabbed_browser.tabopen(QUrl(url), background=False)
             general_sect[state] = '1'
 
+    # Show changelog on new releases
+    if not configfiles.state.qutebrowser_version_changed:
+        return
+    if not config.val.changelog_after_upgrade:
+        log.init.debug("Showing changelog is disabled")
+        return
+
+    try:
+        changelog = utils.read_file('html/doc/changelog.html')
+    except OSError as e:
+        log.init.warning(f"Not showing changelog due to {e}")
+        return
+
+    version = qutebrowser.__version__
+    if f'id="v{version}"' not in changelog:
+        log.init.warning("Not showing changelog (anchor not found)")
+        return
+
+    message.info(f"Showing changelog after upgrade to qutebrowser v{version}.")
+    changelog_url = f'qute://help/changelog.html#v{version}'
+    tabbed_browser.tabopen(QUrl(changelog_url), background=False)
+
 
 def on_focus_changed(_old, new):
     """Register currently focused main window in the object registry."""
