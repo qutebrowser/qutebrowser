@@ -384,10 +384,14 @@ def _open_special_pages(args):
             general_sect[state] = '1'
 
     # Show changelog on new releases
-    if not configfiles.state.qutebrowser_version_changed:
+    change = configfiles.state.qutebrowser_version_changed
+    if change == configfiles.VersionChange.equal:
         return
-    if not config.val.changelog_after_upgrade:
-        log.init.debug("Showing changelog is disabled")
+
+    setting = config.val.changelog_after_upgrade
+    if not change.matches_filter(setting):
+        log.init.debug(
+            f"Showing changelog is disabled (setting {setting}, change {change})")
         return
 
     try:
@@ -396,13 +400,13 @@ def _open_special_pages(args):
         log.init.warning(f"Not showing changelog due to {e}")
         return
 
-    version = qutebrowser.__version__
-    if f'id="v{version}"' not in changelog:
+    qbversion = qutebrowser.__version__
+    if f'id="v{qbversion}"' not in changelog:
         log.init.warning("Not showing changelog (anchor not found)")
         return
 
-    message.info(f"Showing changelog after upgrade to qutebrowser v{version}.")
-    changelog_url = f'qute://help/changelog.html#v{version}'
+    message.info(f"Showing changelog after upgrade to qutebrowser v{qbversion}.")
+    changelog_url = f'qute://help/changelog.html#v{qbversion}'
     tabbed_browser.tabopen(QUrl(changelog_url), background=False)
 
 

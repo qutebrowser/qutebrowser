@@ -17,7 +17,7 @@
 |<<bindings.commands,bindings.commands>>|Keybindings mapping keys to commands in different modes.
 |<<bindings.default,bindings.default>>|Default keybindings. If you want to add bindings, modify `bindings.commands` instead.
 |<<bindings.key_mappings,bindings.key_mappings>>|This setting can be used to map keys to other keys.
-|<<changelog_after_upgrade,changelog_after_upgrade>>|Whether to show a changelog after qutebrowser was upgraded.
+|<<changelog_after_upgrade,changelog_after_upgrade>>|When to show a changelog after qutebrowser was upgraded.
 |<<colors.completion.category.bg,colors.completion.category.bg>>|Background color of the completion widget category headers.
 |<<colors.completion.category.border.bottom,colors.completion.category.border.bottom>>|Bottom border color of the completion widget category headers.
 |<<colors.completion.category.border.top,colors.completion.category.border.top>>|Top border color of the completion widget category headers.
@@ -794,11 +794,18 @@ Default:
 
 [[changelog_after_upgrade]]
 === changelog_after_upgrade
-Whether to show a changelog after qutebrowser was upgraded.
+When to show a changelog after qutebrowser was upgraded.
 
-Type: <<types,Bool>>
+Type: <<types,String>>
 
-Default: +pass:[true]+
+Valid values:
+
+ * +major+: Show changelog for major upgrades (e.g. v2.0.0 -> v3.0.0).
+ * +minor+: Show changelog for major and minor upgrades (e.g. v2.0.0 -> v2.1.0).
+ * +patch+: Show changelog for major, minor and patch upgrades (e.g. v2.0.0 -> v2.0.1).
+ * +never+: Never show changelog after upgrades.
+
+Default: +pass:[minor]+
 
 [[colors.completion.category.bg]]
 === colors.completion.category.bg
