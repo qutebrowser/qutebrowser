@@ -3468,7 +3468,7 @@ Set to 0 to never clear messages.
 
 Type: <<types,Int>>
 
-Default: +pass:[2000]+
+Default: +pass:[3000]+
 
 [[new_instance_open_target]]
 === new_instance_open_target

@@ -1621,7 +1621,7 @@ messages.timeout:
   type:
     name: Int
     minval: 0
-  default: 2000
+  default: 3000
   desc: >-
     Duration (in milliseconds) to show messages in the statusbar for.
 

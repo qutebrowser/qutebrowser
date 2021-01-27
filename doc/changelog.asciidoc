@@ -148,6 +148,7 @@ Changed
     changed from `gl` and `gr` to `gK` and `gJ`, to be consistent with the tab
     switching bindings.
   * The text color for warning messages is now black instead of white, for increased contrast and thus readability.
+  * The default timeout for messages is now raised from 2s to 3s.
 - On the first start, the history completion database is regenerated to remove
   a few problematic entries (such as long `qute://pdfjs` URLs). This might take
   a couple of minutes, but is a one-time operation. This should result in a
