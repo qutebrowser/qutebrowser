@@ -1175,7 +1175,7 @@ Foreground color of a warning message.
 
 Type: <<types,QssColor>>
 
-Default: +pass:[white]+
+Default: +pass:[black]+
 
 [[colors.prompts.bg]]
 === colors.prompts.bg

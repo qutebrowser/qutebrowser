@@ -2534,7 +2534,7 @@ colors.messages.error.border:
   desc: Border color of an error message.
 
 colors.messages.warning.fg:
-  default: white
+  default: black
   type: QssColor
   desc: Foreground color of a warning message.
 
