@@ -1000,7 +1000,7 @@ class HintManager(QObject):
             self._context.first_run = False
 
     @cmdutils.register(instance='hintmanager', scope='window',
-                       modes=[usertypes.KeyMode.hint])
+                       modes=[usertypes.KeyMode.hint], deprecated_name='follow-hint')
     def hint_follow(self, select: bool = False, keystring: str = None) -> None:
         """Follow a hint.
 
