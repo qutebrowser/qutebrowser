@@ -167,6 +167,11 @@ def pytest_collection_modifyitems(config, items):
          'Skipped with QtWebKit if PDF image plugin is available',
          pytest.mark.skipif,
          not config.webengine and qpdf_image_plugin.exists()),
+        ('windows_skip',
+         'Skipped on Windows',
+         pytest.mark.skipif,
+         utils.is_windows),
+
     ]
 
     for item in items:
