@@ -30,6 +30,7 @@ import pytest
 from PyQt5.QtCore import QProcess
 
 from helpers import utils
+from qutebrowser.utils import utils as qbutils
 
 
 ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,
@@ -445,7 +446,7 @@ def test_preferred_colorscheme(request, quteproc_new):
     'Qt version changed',
     None,
 ])
-@pytest.mark.skipif(utils.is_windows, reason='Currently broken')
+@pytest.mark.skipif(qbutils.is_windows, reason='Currently broken')
 def test_service_worker_workaround(
         request, server, quteproc_new, short_tmpdir, reason):
     """Make sure we remove the QtWebEngine Service Worker directory if configured."""
