@@ -60,6 +60,12 @@ def send_data(path):
     data_dir = END2END_DIR / 'data'
     if (data_dir / path).is_dir():
         path += '/index.html'
+
+    if path == 'service-worker/worker.js':
+        # For some reason, Flask returns this with a text/plain mimetype on GitHub
+        # Actions with Windows?!
+        flask.send_file(path, mimetype='text/javascript')
+
     return flask.send_from_directory(data_dir, path)
 
 
