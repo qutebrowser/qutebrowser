@@ -368,6 +368,8 @@ def _get_changed_files():
 def parse_versioned_line(line):
     """Parse a requirements.txt line into name/version."""
     if '==' in line:
+        if line[0] == '#':  # ignored dependency
+            line = line[1:].strip()
         line = line.rsplit('#', maxsplit=1)[0]  # Strip comments
         name, version = line.split('==')
         if ';' in version:  # pip environment markers
