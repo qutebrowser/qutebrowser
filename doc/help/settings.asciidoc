@@ -616,10 +616,10 @@ Default:
 * +pass:[PP]+: +pass:[open -t -- {primary}]+
 * +pass:[Pp]+: +pass:[open -t -- {clipboard}]+
 * +pass:[R]+: +pass:[reload -f]+
-* +pass:[Sb]+: +pass:[open qute://bookmarks#bookmarks]+
-* +pass:[Sh]+: +pass:[open qute://history]+
-* +pass:[Sq]+: +pass:[open qute://bookmarks]+
-* +pass:[Ss]+: +pass:[open qute://settings]+
+* +pass:[Sb]+: +pass:[bookmark-list --jump]+
+* +pass:[Sh]+: +pass:[history]+
+* +pass:[Sq]+: +pass:[bookmark-list]+
+* +pass:[Ss]+: +pass:[set]+
 * +pass:[T]+: +pass:[tab-focus]+
 * +pass:[U]+: +pass:[undo -w]+
 * +pass:[V]+: +pass:[mode-enter caret ;; selection-toggle --line]+
@@ -1891,7 +1891,7 @@ Default: +pass:[false]+
 [[completion.web_history.exclude]]
 === completion.web_history.exclude
 A list of patterns which should not be shown in the history.
-This only affects the completion. Matching URLs are still saved in the history (and visible on the qute://history page), but hidden in the completion.
+This only affects the completion. Matching URLs are still saved in the history (and visible on the `:history` page), but hidden in the completion.
 Changing this setting will cause the completion history to be regenerated on the next start, which will take a short while.
 
 This setting requires a restart.

@@ -1088,7 +1088,7 @@ completion.web_history.exclude:
     A list of patterns which should not be shown in the history.
 
     This only affects the completion. Matching URLs are still saved in the
-    history (and visible on the qute://history page), but hidden in the
+    history (and visible on the `:history` page), but hidden in the
     completion.
 
     Changing this setting will cause the completion history to be regenerated
@@ -3369,10 +3369,10 @@ bindings.default:
       <Ctrl-h>: home
       <Ctrl-s>: stop
       <Ctrl-Alt-p>: print
-      Ss: open qute://settings
-      Sb: open qute://bookmarks#bookmarks
-      Sq: open qute://bookmarks
-      Sh: open qute://history
+      Ss: set
+      Sb: bookmark-list --jump
+      Sq: bookmark-list
+      Sh: history
       <Return>: selection-follow
       <Ctrl-Return>: selection-follow -t
       .: repeat-command
