@@ -292,7 +292,7 @@ def _build_windows_single(*, x64, skip_packaging):
         outdir=outdir,
         filename_arch='amd64' if x64 else 'win32',
         desc_arch=human_arch,
-        desc_suffix='' if x64 else ' (not recommended)',
+        desc_suffix='' if x64 else ' (only for 32-bit Windows!)',
     )
 
 
