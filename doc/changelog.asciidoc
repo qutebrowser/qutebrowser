@@ -21,7 +21,8 @@ v2.0.0 (unreleased)
 Major changes
 ~~~~~~~~~~~~~
 
-- Quick checklist for packagers:
+- Various dependency upgrades - a quick checklist for packagers (see "Changed"
+  below for details):
   * Ensure you're providing at least Python 3.6.1.
   * Ensure you're providing at least Qt 5.12 and PyQt 5.12.
   * Add a new optional dependency on the Python `adblock` library (if packaged -
@@ -37,46 +38,18 @@ Major changes
   * For Python 3.6, 3.7 or 3.8, add a dependency on the `importlib_resources`
     backport.
   * For Python 3.6 only, add a dependency on the `dataclasses` backport.
-  * TODO complete?
-- At least Python 3.6.1 is now required to run qutebrowser, support for Python
-  3.5 (and 3.6.0) is dropped. Note that Python 3.5 is
-  https://www.python.org/downloads/release/python-3510/[no longer supported
-  upstream] since September 2020.
-- At least Qt/PyQt 5.12 is now required to run qutebrowser, support for 5.7 to
-  5.11 (inclusive) is dropped. While Debian Buster ships Qt 5.11, it's based on a
-  Chromium version from 2018 with
-  https://www.debian.org/releases/buster/amd64/release-notes/ch-information.en.html#browser-security[no Debian security support]
-  and unsupported upstream since May 2019.
-  It also has compatibility issues with various websites (GitHub, Twitch, Android
-  Developer documentation, YouTube, ...). Since no newer Debian Stable is released
-  at the time of writing, it's recommended to
-  https://github.com/qutebrowser/qutebrowser/blob/master/doc/install.asciidoc#installing-qutebrowser-with-virtualenv[install qutebrowser in a virtualenv]
-  with a newer version of Qt/PyQt.
-- New optional dependency on the Python `adblock` library, which is now used to
-  integrate Brave's Rust adblocker library, if the `adblock` module is available.
+- If the Python `adblock` library is available, it is now used to
+  integrate Brave's Rust adblocker library for improved adblocking based on
+  ABP-like filter lists (such as EasyList).
   If it is unavailable, qutebrowser falls back to host-blocking, i.e. the same
-  blocking technique it used before this release.
-- The (formerly optional) `cssutils` dependency is now removed. It was only
-  needed for improved behavior in corner cases when using `:download --mhtml`
-  with the (non-default) QtWebKit backend, and as such it's unlikely anyone is
-  still relying on it. The `cssutils` project is also dead upstream, with its
-  repository being gone after Bitbucket
-  https://bitbucket.org/blog/sunsetting-mercurial-support-in-bitbucket[removed Mercurial support].
-- The (formerly required) `pygments` dependency is now optional. It is only
-  used when using `:view-source` with QtWebKit, or when forcing it via
-  `:view-source --pygments` on QtWebEngine. If it is unavailable, an
-  unhighlighted fallback version of the page's source is shown.
-- The former dependency on the `pkg_resources` module (part of the `setuptools`project) got dropped.
-- A new dependency on the `importlib_resources` module got introduced for
-  Python versions up to and including 3.8. Note that the stdlib
-  `importlib.resources` module for Python 3.7 and 3.8 is missing the needed APIs,
-  thus requiring the backports for those versions as well.
-- The former dependency on the `attrs`/`attr` package is now dropped.
-- On Python 3.6, a new dependency on the `dataclasses` backport is now required.
-- The former dependency on the `pypeg2` package is now dropped. This might cause
-  some changes for certain corner-cases for suggested filenames when downloading
-  files with the QtWebKit backend.
-- Windows 7 is not supported anymore by the Windows binaries.
+  blocking technique it used before this release. As part of this, various
+  settings got renamed, see "Changed" below.
+- Dropped support for old OS versions in binary releases:
+  * Support for Windows 7 is dropped in the Windows binaries, the minimum
+    required Windows version is now Windows 8.1.
+  * Support for macOS 10.13 High Sierra is dropped in the macOS binaries, the
+    minimum required macOS version is now macOS 10.14 Mojave.
+- Various renamed settings and commands, see "Changed" below.
 
 Removed
 ~~~~~~~
@@ -133,13 +106,86 @@ Changed
 - `config.py` files now are required to have either
   `config.load_autoconfig(False)` (don't load `autoconfig.yml`) or
   `config.load_autoconfig()` (do load `autoconfig.yml`) in them.
+- Various host-blocking settings have been renamed to accomodate the new ABP-like
+  adblocker:
+  * `content.host_blocking.enabled` -> `content.blocking.enabled` (controlling both blockers)
+  * `content.host_blocking.whitelist` -> `content.blocking.whitelist` (controlling both blockers)
+  * `content.host_blocking.lists` -> `content.blocking.hosts.lists`
+- Several commands have been renamed for consistency and/or easier grouping of
+  related commands:
+  * `run-macro` -> `macro-run`
+  * `record-macro` -> `macro-record`
+  * `buffer` -> `tab-select`
+  * `open-editor` -> `edit-text`
+  * `toggle-selection` -> `selection-toggle`
+  * `drop-selection` -> `selection-drop`
+  * `reverse-selection` -> `selection-reverse`
+  * `follow-selected` -> `selection-follow`
+  * `follow-hint` -> `hint-follow`
+  * `enter-mode` -> `mode-enter`
+  * `leave-mode` -> `mode-leave`
+- Changes to defailt settings:
+  * `tabs.background` is now `true` by default, so that new tabs get opened in the
+    background.
+  * `input.partial_timeout` is now set to 0 by default, so that partially typed
+    key strings are never cleared.
+  * `hints.leave_on_load` is now `false` by default, so that hint mode doesn't get
+    left when a page finishes loading. This can lead to stale hints persisting in
+    rare circumstances, but is better than leaving hint mode when the user entered
+    it before loading was completed.
+  * The default for `tabs.width` (tab bar width if vertical) is now 15% of the
+    window width rather than 20%.
+  * The default bindings for moving tabs (`tab-move -` and `tab-move +`) were
+    changed from `gl` and `gr` to `gK` and `gJ`, to be consistent with the tab
+    switching bindings.
 - On the first start, the history completion database is regenerated to remove
   a few problematic entries (such as long `qute://pdfjs` URLs). This might take
-  a couple of minutes, but is a one-time operation.
+  a couple of minutes, but is a one-time operation. This should result in a
+  performance improvement for the completion for affected users.
 - qutebrowser now shows an error if its history database version is newer than
   expected. This currently should never happen, but allows for potentially
   backwards-incompatible changes in future versions.
-- (TODO) Windows and macOS releases now ship Python 3.9 rather than 3.7.
+- At least Python 3.6.1 is now required to run qutebrowser, support for Python
+  3.5 (and 3.6.0) is dropped. Note that Python 3.5 is
+  https://www.python.org/downloads/release/python-3510/[no longer supported
+  upstream] since September 2020.
+- At least Qt/PyQt 5.12 is now required to run qutebrowser, support for 5.7 to
+  5.11 (inclusive) is dropped. While Debian Buster ships Qt 5.11, it's based on a
+  Chromium version from 2018 with
+  https://www.debian.org/releases/buster/amd64/release-notes/ch-information.en.html#browser-security[no Debian security support]
+  and unsupported upstream since May 2019.
+  It also has compatibility issues with various websites (GitHub, Twitch, Android
+  Developer documentation, YouTube, ...). Since no newer Debian Stable is released
+  at the time of writing, it's recommended to
+  https://github.com/qutebrowser/qutebrowser/blob/master/doc/install.asciidoc#installing-qutebrowser-with-virtualenv[install qutebrowser in a virtualenv]
+  with a newer version of Qt/PyQt.
+- New optional dependency on the Python `adblock` library, which is now used to
+  integrate Brave's Rust adblocker library, if the `adblock` module is available.
+  If it is unavailable, qutebrowser falls back to host-blocking, i.e. the same
+  blocking technique it used before this release.
+- The (formerly optional) `cssutils` dependency is now removed. It was only
+  needed for improved behavior in corner cases when using `:download --mhtml`
+  with the (non-default) QtWebKit backend, and as such it's unlikely anyone is
+  still relying on it. The `cssutils` project is also dead upstream, with its
+  repository being gone after Bitbucket
+  https://bitbucket.org/blog/sunsetting-mercurial-support-in-bitbucket[removed Mercurial support].
+- The (formerly required) `pygments` dependency is now optional. It is only
+  used when using `:view-source` with QtWebKit, or when forcing it via
+  `:view-source --pygments` on QtWebEngine. If it is unavailable, an
+  unhighlighted fallback version of the page's source is shown.
+- The former runtime dependency on the `pkg_resources` module (part of the
+  `setuptools` project) got dropped. Note that `setuptools` is still required
+  to run `setup.py`.
+- A new dependency on the `importlib_resources` module got introduced for
+  Python versions up to and including 3.8. Note that the stdlib
+  `importlib.resources` module for Python 3.7 and 3.8 is missing the needed APIs,
+  thus requiring the backports for those versions as well.
+- The former dependency on the `attrs`/`attr` package is now dropped.
+- On Python 3.6, a new dependency on the `dataclasses` backport is now required.
+- The former dependency on the `pypeg2` package is now dropped. This might cause
+  some changes for certain corner-cases for suggested filenames when downloading
+  files with the QtWebKit backend.
+- Windows and macOS releases now ship Python 3.9 rather than 3.7.
 - The `colors.webpage.darkmode.*` settings are now also supported with older Qt
   versions (Qt 5.12 and 5.13) rather than just with Qt 5.14 and above.
 - For regexes in the config (`hints.{prev,next}_regexes`), certain patterns
@@ -166,48 +212,18 @@ Changed
   was expanded to explain how to use it properly.
 - If `tabs.tabs_are_windows` is set, the `tabs.last_close` setting is now
   ignored and the window is always closed when using `:close` (`d`).
-- Various host-blocking settings have been renamed to accomodate the new ABP-like
-  adblocker:
-    * `content.host_blocking.enabled` -> `content.blocking.enabled` (controlling both blockers)
-    * `content.host_blocking.whitelist` -> `content.blocking.whitelist` (controlling both blockers)
-    * `content.host_blocking.lists` -> `content.blocking.hosts.lists`
 - With the (default) QtWebEngine backend, if a custom `accept` header is set via
   `content.headers.custom`, the custom value is now ignored for XHR
   (`XMLHttpRequest`) requests. Instead, the sent value is now `*/*` or the header
   set from JavaScript, as it would be if `content.headers.custom` wasn't set.
-- The `:buffer` completion now shows the underlying renderer process PID if
-  doing so is supported (QtWebEngine 5.15).
+- The `:tab-select` completion now shows the underlying renderer process PID if
+  doing so is supported (on QtWebEngine 5.15).
 - If `tabs.favicons.show` is set to `never`, favicons aren't unnecessarily
-  downloaded anymore.
-- Renamed commands:
-  * `run-macro` -> `macro-run`
-  * `record-macro` -> `macro-record`
-  * `buffer` -> `tab-select`
-  * `open-editor` -> `edit-text`
-  * `toggle-selection` -> `selection-toggle`
-  * `drop-selection` -> `selection-drop`
-  * `reverse-selection` -> `selection-reverse`
-  * `follow-selected` -> `selection-follow`
-  * `follow-hint` -> `hint-follow`
-  * `enter-mode` -> `mode-enter`
-  * `leave-mode` -> `mode-leave`
-- Changes to defailt settings:
-  * `tabs.background` is now `true` by default, so that new tabs get opened in the
-    background.
-  * `input.partial_timeout` is now set to 0 by default, so that partially typed
-    key strings are never cleared.
-  * `hints.leave_on_load` is now `false` by default, so that hint mode doesn't get
-    left when a page finishes loading. This can lead to stale hints persisting in
-    rare circumstances, but is better than leaving hint mode when the user entered
-    it before loading was completed.
-  * The default for `tabs.width` (tab bar width if vertical) is now 15% of the
-    window width rather than 20%.
-  * The default bindings for moving tabs (`tab-move -` and `tab-move +`) were
-    changed from `gl` and `gr` to `gK` and `gJ`, to be consistent with the tab
-    switching bindings.
-- "Super" is now understood as a modifier (i.e. as alias to "Meta")
-- Initial support for Python 3.10 (currently in Alpha stage)
-- Various performance improvements, including for the startup time
+  downloaded anymore. Thus, disabling favicons can help with a possible
+  https://www.ghacks.net/2021/01/22/favicons-may-be-used-to-track-users/[fingerprinting vector].
+- "Super" is now understood as a modifier (i.e. as alias to "Meta").
+- Initial support for Python 3.10 (currently in Alpha stage).
+- Various performance improvements, including for the startup time.
 
 Fixed
 ~~~~~
