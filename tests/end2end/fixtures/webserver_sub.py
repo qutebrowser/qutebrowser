@@ -30,6 +30,7 @@ import sys
 import json
 import time
 import threading
+import mimetypes
 import pathlib
 from http import HTTPStatus
 
@@ -60,12 +61,6 @@ def send_data(path):
     data_dir = END2END_DIR / 'data'
     if (data_dir / path).is_dir():
         path += '/index.html'
-
-    if path == 'service-worker/worker.js':
-        # For some reason, Flask returns this with a text/plain mimetype on GitHub
-        # Actions with Windows?!
-        flask.send_file(path, mimetype='text/javascript')
-
     return flask.send_from_directory(data_dir, path)
 
 
@@ -329,6 +324,11 @@ class WSGIServer(cheroot.wsgi.Server):
 def main():
     app.template_folder = END2END_DIR / 'templates'
     assert app.template_folder.is_dir(), app.template_folder
+
+    if mimetypes.guess_type('worker.js')[0] == 'text/plain':
+        # WORKAROUND for https://github.com/pallets/flask/issues/1045
+        # Needed for Windows on GitHub Actions for some reason...
+        mimetypes.add_type('application/javascript', '.js')
 
     port = int(sys.argv[1])
     server = WSGIServer(('127.0.0.1', port), app)
