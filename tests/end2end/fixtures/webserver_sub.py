@@ -30,6 +30,7 @@ import sys
 import json
 import time
 import threading
+import mimetypes
 import pathlib
 from http import HTTPStatus
 
@@ -323,6 +324,11 @@ class WSGIServer(cheroot.wsgi.Server):
 def main():
     app.template_folder = END2END_DIR / 'templates'
     assert app.template_folder.is_dir(), app.template_folder
+
+    if mimetypes.guess_type('worker.js')[0] == 'text/plain':
+        # WORKAROUND for https://github.com/pallets/flask/issues/1045
+        # Needed for Windows on GitHub Actions for some reason...
+        mimetypes.add_type('application/javascript', '.js')
 
     port = int(sys.argv[1])
     server = WSGIServer(('127.0.0.1', port), app)

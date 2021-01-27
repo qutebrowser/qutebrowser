@@ -128,10 +128,7 @@ class Command:
         self._signature = inspect.signature(handler)
         self._type_hints = typing.get_type_hints(handler)
 
-        # This is checked by future @cmdutils.argument calls so they fail
-        # (as they'd be silently ignored otherwise)
         self._qute_args = getattr(self.handler, 'qute_args', {})
-        self.handler.qute_args = None
 
         self._check_func()
         self._inspect_func()
@@ -152,8 +149,7 @@ class Command:
                 "backend.".format(self.name, self.backend.name))
 
         if self.deprecated:
-            message.warning('{} is deprecated - {}'.format(self.name,
-                                                           self.deprecated))
+            message.warning(f'{self.name} is deprecated - {self.deprecated}')
 
     def _check_func(self):
         """Make sure the function parameters don't violate any rules."""

@@ -214,11 +214,12 @@ Delete a bookmark.
 
 [[bookmark-list]]
 === bookmark-list
-Syntax: +:bookmark-list [*--tab*] [*--bg*] [*--window*]+
+Syntax: +:bookmark-list [*--jump*] [*--tab*] [*--bg*] [*--window*]+
 
 Show all bookmarks/quickmarks.
 
 ==== optional arguments
+* +*-j*+, +*--jump*+: Jump to the "bookmarks" header.
 * +*-t*+, +*--tab*+: Open in a new tab.
 * +*-b*+, +*--bg*+: Open in a background tab.
 * +*-w*+, +*--window*+: Open in a new window.

@@ -112,6 +112,7 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
     def __init__(self, *,
                  instance: str = None,
                  name: str = None,
+                 deprecated_name: str = None,
                  **kwargs: Any) -> None:
         """Save decorator arguments.
 
@@ -122,8 +123,10 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
         """
         # The object from the object registry to be used as "self".
         self._instance = instance
-        # The name (as string) or names (as list) of the command.
+        # The name of the command
         self._name = name
+        # A possible deprecated alias (old name) of the command
+        self._deprecated_name = deprecated_name
         # The arguments to pass to Command.
         self._kwargs = kwargs
 
@@ -147,9 +150,28 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
             assert isinstance(self._name, str), self._name
             name = self._name
 
-        cmd = command.Command(name=name, instance=self._instance,
-                              handler=func, **self._kwargs)
+        cmd = command.Command(
+            name=name,
+            instance=self._instance,
+            handler=func,
+            **self._kwargs,
+        )
         cmd.register()
+
+        if self._deprecated_name is not None:
+            deprecated_cmd = command.Command(
+                name=self._deprecated_name,
+                instance=self._instance,
+                handler=func,
+                deprecated=f"use {name} instead",
+                **self._kwargs,
+            )
+            deprecated_cmd.register()
+
+        # This is checked by future @cmdutils.argument calls so they fail
+        # (as they'd be silently ignored otherwise)
+        func.qute_args = None  # type: ignore[attr-defined]
+
         return func
 
 

@@ -512,3 +512,26 @@ class TestRun:
         cmd = objects.commands['fun']
         with pytest.raises(cmdexc.PrerequisitesError, match=r'.* backend\.'):
             cmd.run(win_id=0)
+
+    def test_deprecated(self, caplog, message_mock):
+        cmd = _get_cmd(deprecated='use something else')
+        with caplog.at_level(logging.WARNING):
+            cmd.run(win_id=0)
+
+        msg = message_mock.getmsg(usertypes.MessageLevel.warning)
+        assert msg.text == 'fun is deprecated - use something else'
+
+    def test_deprecated_name(self, caplog, message_mock):
+        @cmdutils.register(deprecated_name='dep')
+        def fun():
+            """Blah."""
+
+        original_cmd = objects.commands['fun']
+        original_cmd.run(win_id=0)
+
+        deprecated_cmd = objects.commands['dep']
+        with caplog.at_level(logging.WARNING):
+            deprecated_cmd.run(win_id=0)
+
+        msg = message_mock.getmsg(usertypes.MessageLevel.warning)
+        assert msg.text == 'dep is deprecated - use fun instead'

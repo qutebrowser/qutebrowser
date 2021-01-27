@@ -8,7 +8,7 @@ chardet==4.0.0
 cheroot==8.5.2
 click==7.1.2
 # colorama==0.4.4
-coverage==5.3.1
+coverage==5.4
 EasyProcess==0.3
 execnet==1.7.1
 filelock==3.0.12
@@ -35,7 +35,7 @@ py==1.10.0
 py-cpuinfo==7.0.0
 Pygments==2.7.4
 pyparsing==2.4.7
-pytest==6.2.1
+pytest==6.2.2
 pytest-bdd==4.0.2
 pytest-benchmark==3.2.3
 pytest-clarity==0.3.0a0
@@ -58,6 +58,6 @@ soupsieve==2.1
 termcolor==1.1.0
 tldextract==3.1.0
 toml==0.10.2
-urllib3==1.25.11
+urllib3==1.26.3
 vulture==2.3
 Werkzeug==1.0.1

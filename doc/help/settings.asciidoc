@@ -17,6 +17,7 @@
 |<<bindings.commands,bindings.commands>>|Keybindings mapping keys to commands in different modes.
 |<<bindings.default,bindings.default>>|Default keybindings. If you want to add bindings, modify `bindings.commands` instead.
 |<<bindings.key_mappings,bindings.key_mappings>>|This setting can be used to map keys to other keys.
+|<<changelog_after_upgrade,changelog_after_upgrade>>|When to show a changelog after qutebrowser was upgraded.
 |<<colors.completion.category.bg,colors.completion.category.bg>>|Background color of the completion widget category headers.
 |<<colors.completion.category.border.bottom,colors.completion.category.border.bottom>>|Bottom border color of the completion widget category headers.
 |<<colors.completion.category.border.top,colors.completion.category.border.top>>|Top border color of the completion widget category headers.
@@ -282,6 +283,7 @@
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
 |<<qt.low_end_device_mode,qt.low_end_device_mode>>|When to use Chromium's low-end device mode.
 |<<qt.process_model,qt.process_model>>|Which Chromium process model to use.
+|<<qt.workarounds.remove_service_workers,qt.workarounds.remove_service_workers>>|Delete the QtWebEngine Service Worker directory on every start.
 |<<scrolling.bar,scrolling.bar>>|When/how to show the scrollbar.
 |<<scrolling.smooth,scrolling.smooth>>|Enable smooth scrolling for web pages.
 |<<search.ignore_case,search.ignore_case>>|When to find text on a page case-insensitively.
@@ -614,10 +616,10 @@ Default:
 * +pass:[PP]+: +pass:[open -t -- {primary}]+
 * +pass:[Pp]+: +pass:[open -t -- {clipboard}]+
 * +pass:[R]+: +pass:[reload -f]+
-* +pass:[Sb]+: +pass:[open qute://bookmarks#bookmarks]+
-* +pass:[Sh]+: +pass:[open qute://history]+
-* +pass:[Sq]+: +pass:[open qute://bookmarks]+
-* +pass:[Ss]+: +pass:[open qute://settings]+
+* +pass:[Sb]+: +pass:[bookmark-list --jump]+
+* +pass:[Sh]+: +pass:[history]+
+* +pass:[Sq]+: +pass:[bookmark-list]+
+* +pass:[Ss]+: +pass:[set]+
 * +pass:[T]+: +pass:[tab-focus]+
 * +pass:[U]+: +pass:[undo -w]+
 * +pass:[V]+: +pass:[mode-enter caret ;; selection-toggle --line]+
@@ -789,6 +791,21 @@ Default:
 - +pass:[&lt;Enter&gt;]+: +pass:[&lt;Return&gt;]+
 - +pass:[&lt;Shift-Enter&gt;]+: +pass:[&lt;Return&gt;]+
 - +pass:[&lt;Shift-Return&gt;]+: +pass:[&lt;Return&gt;]+
+
+[[changelog_after_upgrade]]
+=== changelog_after_upgrade
+When to show a changelog after qutebrowser was upgraded.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +major+: Show changelog for major upgrades (e.g. v2.0.0 -> v3.0.0).
+ * +minor+: Show changelog for major and minor upgrades (e.g. v2.0.0 -> v2.1.0).
+ * +patch+: Show changelog for major, minor and patch upgrades (e.g. v2.0.0 -> v2.0.1).
+ * +never+: Never show changelog after upgrades.
+
+Default: +pass:[minor]+
 
 [[colors.completion.category.bg]]
 === colors.completion.category.bg
@@ -1174,7 +1191,7 @@ Foreground color of a warning message.
 
 Type: <<types,QssColor>>
 
-Default: +pass:[white]+
+Default: +pass:[black]+
 
 [[colors.prompts.bg]]
 === colors.prompts.bg
@@ -1874,7 +1891,7 @@ Default: +pass:[false]+
 [[completion.web_history.exclude]]
 === completion.web_history.exclude
 A list of patterns which should not be shown in the history.
-This only affects the completion. Matching URLs are still saved in the history (and visible on the qute://history page), but hidden in the completion.
+This only affects the completion. Matching URLs are still saved in the history (and visible on the `:history` page), but hidden in the completion.
 Changing this setting will cause the completion history to be regenerated on the next start, which will take a short while.
 
 This setting requires a restart.
@@ -3467,7 +3484,7 @@ Set to 0 to never clear messages.
 
 Type: <<types,Int>>
 
-Default: +pass:[2000]+
+Default: +pass:[3000]+
 
 [[new_instance_open_target]]
 === new_instance_open_target
@@ -3637,6 +3654,16 @@ Valid values:
 Default: +pass:[process-per-site-instance]+
 
 This setting is only available with the QtWebEngine backend.
+
+[[qt.workarounds.remove_service_workers]]
+=== qt.workarounds.remove_service_workers
+Delete the QtWebEngine Service Worker directory on every start.
+This workaround can help with certain crashes caused by an unknown QtWebEngine bug related to Service Workers. Those crashes happen seemingly immediately on Windows; after one hour of operation on other systems.
+Note however that enabling this option *can lead to data loss* on some pages (as Service Worker data isn't persisted) and will negatively impact start-up time.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[scrolling.bar]]
 === scrolling.bar

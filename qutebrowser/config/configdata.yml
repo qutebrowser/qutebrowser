@@ -35,6 +35,18 @@ history_gap_interval:
     Items with less time between them are grouped when being displayed in
     `:history`. Use -1 to disable separation.
 
+changelog_after_upgrade:
+  type:
+    name: String
+    valid_values:
+      - major: Show changelog for major upgrades (e.g. v2.0.0 -> v3.0.0).
+      - minor: Show changelog for major and minor upgrades (e.g. v2.0.0 -> v2.1.0).
+      - patch: Show changelog for major, minor and patch upgrades
+          (e.g. v2.0.0 -> v2.0.1).
+      - never: Never show changelog after upgrades.
+  default: minor
+  desc: When to show a changelog after qutebrowser was upgraded.
+
 ignore_case:
   renamed: search.ignore_case
 
@@ -285,6 +297,19 @@ qt.highdpi:
     It's off by default as it can cause issues with some bitmap fonts.
     As an alternative to this, it's possible to set font sizes and the
     `zoom.default` setting.
+
+qt.workarounds.remove_service_workers:
+  type: Bool
+  default: false
+  desc: >-
+    Delete the QtWebEngine Service Worker directory on every start.
+
+    This workaround can help with certain crashes caused by an unknown QtWebEngine bug
+    related to Service Workers. Those crashes happen seemingly immediately on Windows;
+    after one hour of operation on other systems.
+
+    Note however that enabling this option *can lead to data loss* on some pages (as
+    Service Worker data isn't persisted) and will negatively impact start-up time.
 
 ## auto_save
 
@@ -582,14 +607,14 @@ content.headers.user_agent:
       # Vim-protip: Place your cursor below this comment and run
       # :r!python scripts/dev/ua_fetch.py
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/86.0.4240.75 Safari/537.36"
-        - Chrome 86 Linux
+          Gecko) Chrome/87.0.4280.66 Safari/537.36"
+        - Chrome 87 Linux
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/86.0.4240.75 Safari/537.36"
-        - Chrome 86 Win10
+          like Gecko) Chrome/87.0.4280.66 Safari/537.36"
+        - Chrome 87 Win10
       - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
-          (KHTML, like Gecko) Chrome/86.0.4240.80 Safari/537.36"
-        - Chrome 86 macOS
+          (KHTML, like Gecko) Chrome/87.0.4280.67 Safari/537.36"
+        - Chrome 87 macOS
   supports_pattern: true
   desc: |
     User agent to send.
@@ -1063,7 +1088,7 @@ completion.web_history.exclude:
     A list of patterns which should not be shown in the history.
 
     This only affects the completion. Matching URLs are still saved in the
-    history (and visible on the qute://history page), but hidden in the
+    history (and visible on the `:history` page), but hidden in the
     completion.
 
     Changing this setting will cause the completion history to be regenerated
@@ -1608,7 +1633,7 @@ messages.timeout:
   type:
     name: Int
     minval: 0
-  default: 2000
+  default: 3000
   desc: >-
     Duration (in milliseconds) to show messages in the statusbar for.
 
@@ -2521,7 +2546,7 @@ colors.messages.error.border:
   desc: Border color of an error message.
 
 colors.messages.warning.fg:
-  default: white
+  default: black
   type: QssColor
   desc: Foreground color of a warning message.
 
@@ -3344,10 +3369,10 @@ bindings.default:
       <Ctrl-h>: home
       <Ctrl-s>: stop
       <Ctrl-Alt-p>: print
-      Ss: open qute://settings
-      Sb: open qute://bookmarks#bookmarks
-      Sq: open qute://bookmarks
-      Sh: open qute://history
+      Ss: set
+      Sb: bookmark-list --jump
+      Sq: bookmark-list
+      Sh: history
       <Return>: selection-follow
       <Ctrl-Return>: selection-follow -t
       .: repeat-command

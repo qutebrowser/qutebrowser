@@ -423,7 +423,11 @@ def test_filesystem_completion(qtmodeltester, config_stub, info,
         expected_1 = file_1.as_uri()
         expected_2 = file_2.as_uri()
     elif method == 'home':
-        monkeypatch.setenv('HOME', str(local_files_path))
+        homedir = str(local_files_path)
+        monkeypatch.setenv('HOME', homedir)  # POSIX
+        monkeypatch.setenv('USERPROFILE', homedir)  # Windows
+        assert os.path.expanduser('~') == homedir
+
         base = '~'
         expected_1 = os.path.join('~', 'file1.txt')
         expected_2 = os.path.join('~', 'file2.txt')

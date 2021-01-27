@@ -515,3 +515,4 @@ class Process(QObject):
         self.exit_expected = True
         with self._wait_signal(self.proc.finished, timeout=15000):
             pass
+        assert not self.is_running()
