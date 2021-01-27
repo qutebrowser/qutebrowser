@@ -3400,6 +3400,8 @@ bindings.default:
       <Ctrl-F>: hint links
       <Ctrl-B>: hint all tab-bg
       <Escape>: mode-leave
+      <Tab>: hints-cycle
+      <Shift-Tab>: hints-cycle --reverse
     passthrough:
       <Shift-Escape>: mode-leave
     command:

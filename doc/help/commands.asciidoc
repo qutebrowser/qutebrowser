@@ -1614,6 +1614,7 @@ How many steps to zoom out.
 |<<completion-item-focus,completion-item-focus>>|Shift the focus of the completion menu to another item.
 |<<completion-item-yank,completion-item-yank>>|Yank the current completion item into the clipboard.
 |<<hint-follow,hint-follow>>|Follow a hint.
+|<<hints-cycle,hints-cycle>>|Bring hints covered by other hints to the foreground.
 |<<mode-leave,mode-leave>>|Leave the mode we're currently in.
 |<<move-to-end-of-document,move-to-end-of-document>>|Move the cursor or selection to the end of the document.
 |<<move-to-end-of-line,move-to-end-of-line>>|Move the cursor or selection to the end of line.
@@ -1708,6 +1709,13 @@ Follow a hint.
 
 ==== optional arguments
 * +*-s*+, +*--select*+: Only select the given hint, don't necessarily follow it.
+
+[[hints-cycle]]
+=== hints-cycle
+Bring hints covered by other hints to the foreground.
+
+==== optional arguments
+* +*-r*+, +*--reverse*+: Cycle in reverse direction.
 
 [[mode-leave]]
 === mode-leave
