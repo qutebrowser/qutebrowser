@@ -49,7 +49,7 @@ Major changes
     required Windows version is now Windows 8.1.
   * Support for macOS 10.13 High Sierra is dropped in the macOS binaries, the
     minimum required macOS version is now macOS 10.14 Mojave.
-- Various renamed settings and commands, see "Changed" below.
+- Various renamed settings and commands, see "Deprecated" and "Changed" below.
 
 Removed
 ~~~~~~~
@@ -64,6 +64,24 @@ Removed
   migration to v1.0).
 - The `:inspector` command which was deprecated in v1.13.0 (in favor of
   `:devtools`) is now removed.
+
+Deprecated
+~~~~~~~~~~
+
+- Several commands have been renamed for consistency and/or easier grouping of
+  related commands. Their old names are still available, but deprecated and will
+  be removed in qutebrowser v2.1.0.
+  * `run-macro` -> `macro-run`
+  * `record-macro` -> `macro-record`
+  * `buffer` -> `tab-select`
+  * `open-editor` -> `edit-text`
+  * `toggle-selection` -> `selection-toggle`
+  * `drop-selection` -> `selection-drop`
+  * `reverse-selection` -> `selection-reverse`
+  * `follow-selected` -> `selection-follow`
+  * `follow-hint` -> `hint-follow`
+  * `enter-mode` -> `mode-enter`
+  * `leave-mode` -> `mode-leave`
 
 Added
 ~~~~~
@@ -115,20 +133,7 @@ Changed
   * `content.host_blocking.enabled` -> `content.blocking.enabled` (controlling both blockers)
   * `content.host_blocking.whitelist` -> `content.blocking.whitelist` (controlling both blockers)
   * `content.host_blocking.lists` -> `content.blocking.hosts.lists`
-- Several commands have been renamed for consistency and/or easier grouping of
-  related commands:
-  * `run-macro` -> `macro-run`
-  * `record-macro` -> `macro-record`
-  * `buffer` -> `tab-select`
-  * `open-editor` -> `edit-text`
-  * `toggle-selection` -> `selection-toggle`
-  * `drop-selection` -> `selection-drop`
-  * `reverse-selection` -> `selection-reverse`
-  * `follow-selected` -> `selection-follow`
-  * `follow-hint` -> `hint-follow`
-  * `enter-mode` -> `mode-enter`
-  * `leave-mode` -> `mode-leave`
-- Changes to defailt settings:
+- Changes to default settings:
   * `tabs.background` is now `true` by default, so that new tabs get opened in the
     background.
   * `input.partial_timeout` is now set to 0 by default, so that partially typed
