@@ -74,11 +74,15 @@ def _possibly_show_missing_dependency_warning() -> None:
             f"Installed version {adblock_info.get_version()} of the 'adblock' "
             f"dependency is too old. Minimum supported is {adblock_info.min_version}."
         )
-    else:
-        assert not adblock_info.is_installed(), adblock_info
+    elif not adblock_info.is_installed():
         message.warning(
             f"Ad blocking method is set to '{method}' but 'adblock' dependency is not "
             "installed."
+        )
+    else:
+        message.warning(
+            "The 'adblock' dependency was unavailable when qutebrowser was started, "
+            "but now seems to be installed. Please :restart qutebrowser to use it."
         )
 
 
