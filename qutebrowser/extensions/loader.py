@@ -108,6 +108,11 @@ def _walk_normal() -> Iterator[ExtensionInfo]:
             onerror=_on_walk_error):
         if ispkg:
             continue
+        if name == 'qutebrowser.components.adblock':
+            # WORKAROUND for packaging issues where the old adblock.py file is still
+            # lingering around.
+            log.extensions.debug("Ignoring stale 'adblock' component")
+            continue
         yield ExtensionInfo(name=name)
 
 
