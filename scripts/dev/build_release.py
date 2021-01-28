@@ -274,7 +274,7 @@ def _build_windows_single(*, x64, skip_packaging):
         'dist', f'qutebrowser-{qutebrowser.__version__}-{"x64" if x64 else "x86"}')
     _maybe_remove(outdir)
 
-    python = _get_windows_python_path(x64=True)
+    python = _get_windows_python_path(x64=x64)
     call_tox(f'pyinstaller-{"64" if x64 else "32"}', '-r', python=python)
 
     out_pyinstaller = os.path.join('dist', 'qutebrowser')
