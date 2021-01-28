@@ -34,7 +34,7 @@ def _overlap(r1: QRect, r2: QRect) -> bool:
     vert_overlap = max(0,
         (min(r1.bottom(), r2.bottom()) - max(r1.top(), r2.top()))
     )
-    return hor_overlap > 0 or vert_overlap > 0
+    return hor_overlap > 0 and vert_overlap > 0
 
 
 def _corners(widget: QWidget) -> List[QPoint]:
