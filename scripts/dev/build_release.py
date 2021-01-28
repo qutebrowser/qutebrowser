@@ -336,7 +336,7 @@ def _package_windows_single(
     artifacts.append((
         os.path.join('dist', name),
         'application/vnd.microsoft.portable-executable',
-        f'Windows {desc_arch} installer',
+        f'Windows {desc_arch} installer{desc_suffix}',
     ))
 
     utils.print_subtitle(f"Zipping {desc_arch} standalone...")
