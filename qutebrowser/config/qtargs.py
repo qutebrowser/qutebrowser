@@ -26,7 +26,7 @@ from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
-from qutebrowser.utils import usertypes, qtutils, utils
+from qutebrowser.utils import usertypes, qtutils, utils, log
 
 
 _ENABLE_FEATURES = '--enable-features='
@@ -256,6 +256,18 @@ def _qtwebengine_settings_args() -> Iterator[str]:
             yield arg
 
 
+def _warn_qtwe_flags_envvar() -> None:
+    """Warn about the QTWEBENGINE_CHROMIUM_FLAGS envvar if it is set."""
+    qtwe_flags_var = 'QTWEBENGINE_CHROMIUM_FLAGS'
+    qtwe_flags = os.environ.get(qtwe_flags_var)
+    if qtwe_flags is not None:
+        log.init.warning(
+            f"You have {qtwe_flags_var}={qtwe_flags!r} set in your environment. "
+            "This is currently unsupported and interferes with qutebrowser's own "
+            "flag handling (including workarounds for certain crashes). "
+            "Consider using the qt.args qutebrowser setting instead.")
+
+
 def init_envvars() -> None:
     """Initialize environment variables which need to be set early."""
     if objects.backend == usertypes.Backend.QtWebEngine:
@@ -266,6 +278,7 @@ def init_envvars() -> None:
             os.environ['QT_QUICK_BACKEND'] = 'software'
         elif software_rendering == 'chromium':
             os.environ['QT_WEBENGINE_DISABLE_NOUVEAU_WORKAROUND'] = '1'
+        _warn_qtwe_flags_envvar()
     else:
         assert objects.backend == usertypes.Backend.QtWebKit, objects.backend
 

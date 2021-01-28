@@ -15,8 +15,39 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+[[v2.0.1]]
+v2.0.1 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- If qutebrowser was installed as a Python egg (similar to a .zip file, via
+  `setup.py install` under certain conditions), a change in v2.0.0 caused it to
+  not start properly. This is now fixed.
+- If qutebrowser was set up (or packaged) in an unclean environment, this could
+  result in a stale `qutebrowser/components/adblock.py` file being picked up. That
+  file is not part of the release anymore, but if an old version is still around,
+  causes qutebrowser to crash. It's now explicitly blocked inside qutebrowser so
+  it gets ignored even if it still exists.
+- When the adblocking method was switched using `:set`, and the `adblock`
+  dependency was unavailable when qutebrowser started (but was installed while
+  qutebrowser was open), this resulted in a crash. Now a warning prompting for a
+  restart of qutebrowser is shown instead.
+
+Changed
+~~~~~~~
+
+- The `format_json` userscript now uses sh instead of bash again.
+- The `add-nextcloud-bookmarks`, `add-nextcloud-cookbook`, `readability` and
+  `ripbang` userscripts now use a `python3` rather than plain `python` shebang.
+- When `QTWEBENGINE_CHROMIUM_FLAGS` is set in the environment, this causes flag
+  handling (including workarounds for QtWebEngine crashes) inside qutebrowser to
+  break. This will be handled properly in a future version, but this release now
+  shows a warning on standard output if this is the case.
+
 [[v2.0.0]]
-v2.0.0 (unreleased)
+v2.0.0 (2021-01-28)
 -------------------
 
 Major changes

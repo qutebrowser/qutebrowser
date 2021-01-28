@@ -235,7 +235,8 @@ def build_mac():
                                       'MacOS', 'qutebrowser')
                 smoke_test(binary)
             finally:
-                time.sleep(5)
+                print("Waiting 10s for dmg to be detachable...")
+                time.sleep(10)
                 subprocess.run(['hdiutil', 'detach', tmpdir], check=False)
     except PermissionError as e:
         print("Failed to remove tempdir: {}".format(e))
@@ -274,7 +275,7 @@ def _build_windows_single(*, x64, skip_packaging):
         'dist', f'qutebrowser-{qutebrowser.__version__}-{"x64" if x64 else "x86"}')
     _maybe_remove(outdir)
 
-    python = _get_windows_python_path(x64=True)
+    python = _get_windows_python_path(x64=x64)
     call_tox(f'pyinstaller-{"64" if x64 else "32"}', '-r', python=python)
 
     out_pyinstaller = os.path.join('dist', 'qutebrowser')
@@ -292,7 +293,7 @@ def _build_windows_single(*, x64, skip_packaging):
         outdir=outdir,
         filename_arch='amd64' if x64 else 'win32',
         desc_arch=human_arch,
-        desc_suffix='' if x64 else ' (not recommended)',
+        desc_suffix='' if x64 else ' (only for 32-bit Windows!)',
     )
 
 
@@ -336,7 +337,7 @@ def _package_windows_single(
     artifacts.append((
         os.path.join('dist', name),
         'application/vnd.microsoft.portable-executable',
-        f'Windows {desc_arch} installer',
+        f'Windows {desc_arch} installer{desc_suffix}',
     ))
 
     utils.print_subtitle(f"Zipping {desc_arch} standalone...")

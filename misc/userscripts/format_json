@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/sh
+set -eu
 #
 # Behavior:
 #   Userscript for qutebrowser which will take the raw JSON text of the current
