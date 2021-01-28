@@ -18,6 +18,7 @@
 
 import sys
 import os
+import logging
 
 import pytest
 
@@ -552,3 +553,29 @@ class TestEnvVars:
         monkeypatch.setattr(qtargs.objects, 'backend',
                             usertypes.Backend.QtWebKit)
         qtargs.init_envvars()
+
+    @pytest.mark.parametrize('backend, value, expected', [
+        (usertypes.Backend.QtWebKit, None, None),
+        (usertypes.Backend.QtWebKit, '--test', None),
+
+        (usertypes.Backend.QtWebEngine, None, None),
+        (usertypes.Backend.QtWebEngine, '', "''"),
+        (usertypes.Backend.QtWebEngine, '--xyz', "'--xyz'"),
+    ])
+    def test_qtwe_flags_warning(self, monkeypatch, config_stub, caplog,
+                                backend, value, expected):
+        monkeypatch.setattr(qtargs.objects, 'backend', backend)
+        if value is None:
+            monkeypatch.delenv('QTWEBENGINE_CHROMIUM_FLAGS', raising=False)
+        else:
+            monkeypatch.setenv('QTWEBENGINE_CHROMIUM_FLAGS', value)
+
+        with caplog.at_level(logging.WARNING):
+            qtargs.init_envvars()
+
+        if expected is None:
+            assert not caplog.messages
+        else:
+            assert len(caplog.messages) == 1
+            msg = caplog.messages[0]
+            assert msg.startswith(f'You have QTWEBENGINE_CHROMIUM_FLAGS={expected} set')
