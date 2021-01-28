@@ -45,6 +45,8 @@ Changed
   handling (including workarounds for QtWebEngine crashes) inside qutebrowser to
   break. This will be handled properly in a future version, but this release now
   shows a warning on standard output if this is the case.
+- The config completion for `fileselect.*.command` now also includes the "nnn"
+  terminal file manager.
 
 [[v2.0.0]]
 v2.0.0 (2021-01-28)
