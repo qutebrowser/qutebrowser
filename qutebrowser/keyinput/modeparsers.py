@@ -215,7 +215,6 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
         if (self._command_parser.handle(e, dry_run=True) !=
                 QKeySequence.NoMatch):
             log.keyboard.debug("Handling key via command parser")
-            self.clear_keystring()
             return self._command_parser.handle(e)
 
         match = super().handle(e)
