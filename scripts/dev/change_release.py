@@ -1,3 +1,25 @@
+#!/usr/bin/env python3
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+
+# Copyright 2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# This file is part of qutebrowser.
+#
+# qutebrowser is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# qutebrowser is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+
+"""Change a description of a GitHub release."""
+
 import sys
 import argparse
 import os.path
@@ -35,7 +57,7 @@ def change_release_description(release, filename, description):
     assets = [asset for asset in release.assets() if asset.name == filename]
     if not assets:
         raise Error("No assets found for {filename}")
-    elif len(assets) > 1:
+    if len(assets) > 1:
         raise Error("Multiple assets found for {filename}: {assets}")
 
     asset = assets[0]
@@ -43,6 +65,7 @@ def change_release_description(release, filename, description):
 
 
 def parse_args():
+    """Parse command-line arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument('tag')
     parser.add_argument('filename')
