@@ -48,10 +48,13 @@ class OverlapLookup:
     """Hold a collection of widgets and compute overlaps.
 
     Suppose we tile the viewport with cells of shape max_width x max_height.
-    Then `self._lookup` maps (i,j) to set of widgets that intersect cell (i, j).
+    If a widget intersects a cell, at least one of its corners are in the cell.
+    Then `self._lookup` maps (i,j) to set of widgets that intersect cell (i,j).
+    If widget1 intersects widget2 then widget2 must intersect at least one
+    cell that widget1 intersects; this allows us to avoid checking every pair
+    of widgets to see if they intersect.
+
     alternatives: R-tree, quadtree
-    This could be modified slightly due to the fact that we only care about
-    overlaps of at least a certain amount.
     """
 
     def __init__(self, widgets: Iterable[QWidget]):
