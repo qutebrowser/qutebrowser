@@ -235,7 +235,8 @@ def build_mac():
                                       'MacOS', 'qutebrowser')
                 smoke_test(binary)
             finally:
-                time.sleep(5)
+                print("Waiting 10s for dmg to be detachable...")
+                time.sleep(10)
                 subprocess.run(['hdiutil', 'detach', tmpdir], check=False)
     except PermissionError as e:
         print("Failed to remove tempdir: {}".format(e))
