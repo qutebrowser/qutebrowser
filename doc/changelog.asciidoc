@@ -30,6 +30,10 @@ Fixed
   file is not part of the release anymore, but if an old version is still around,
   causes qutebrowser to crash. It's now explicitly blocked inside qutebrowser so
   it gets ignored even if it still exists.
+- When the adblocking method was switched using `:set`, and the `adblock`
+  dependency was unavailable when qutebrowser started (but was installed while
+  qutebrowser was open), this resulted in a crash. Now a warning prompting for a
+  restart of qutebrowser is shown instead.
 
 Changed
 ~~~~~~~
