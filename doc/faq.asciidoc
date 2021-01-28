@@ -99,7 +99,7 @@ https://www.the-compiler.org/pubkey.asc[0x916eb0c8fd55a072].
 Is there an ad blocker?::
     There is a simple host-based ad blocker that takes `/etc/hosts`-like lists. Host blocking blocks entire hosts.
 +
-While more advanced ad blockers can block first party ads (as long as the network request is blockable, there's no cosmetic filtering yet) they can have a big impact on browsing speed and https://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/[RAM usage], so implementing support for AdBlock Plus-like lists is not a priority.
+In addition, if the Python `adblock` library is available, it is now used to integrate Brave’s Rust adblocker library for improved adblocking based on ABP-like filter lists (such as EasyList). If it is unavailable, qutebrowser falls back to host-blocking. Note: If the `adblock` dependency is available, qutebrowser will ignore custom host blocking via the `blocked-hosts` config file or `file:///` URLs supplied as host blocking lists. You will need to either migrate those to ABP-like lists, or set `content.blocking.method` to `both`.
 
 How can I get No-Script-like behavior?::
     To disable JavaScript by default:
