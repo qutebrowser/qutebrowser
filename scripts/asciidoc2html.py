@@ -91,7 +91,7 @@ class AsciiDoc:
         # patch image links to use local copy
         replacements = [
             ("https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png",
-             "qute://help/img/cheatsheet-big.png"),
+             "link:qute://help/img/cheatsheet-big.png"),
             ("https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-small.png",
              "qute://help/img/cheatsheet-small.png")
         ]

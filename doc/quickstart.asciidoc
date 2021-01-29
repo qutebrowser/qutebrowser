@@ -22,7 +22,7 @@ Basic keybindings to get you started
 What to do now
 --------------
 
-* View the link:https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png[key binding cheatsheet]
+* View the https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png[key binding cheatsheet]
 to make yourself familiar with the key bindings: +
 image:https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png"]
 * There's also a https://www.shortcutfoo.com/app/dojos/qutebrowser[free training
