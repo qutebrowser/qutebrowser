@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """The dialog which gets shown when qutebrowser crashes."""
 
@@ -28,18 +28,17 @@ import fnmatch
 import traceback
 import datetime
 import enum
-import typing
+from typing import List, Tuple
 
-import pkg_resources
 from PyQt5.QtCore import pyqtSlot, Qt, QSize
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout, QCheckBox,
-                             QDialogButtonBox, QApplication, QMessageBox)
+                             QDialogButtonBox, QMessageBox)
 
 import qutebrowser
 from qutebrowser.utils import version, log, utils
 from qutebrowser.misc import (miscwidgets, autoupdate, msgbox, httpclient,
-                              pastebin)
+                              pastebin, objects)
 from qutebrowser.config import config, configfiles
 from qutebrowser.browser import history
 
@@ -84,7 +83,7 @@ def parse_fatal_stacktrace(text):
 def _get_environment_vars():
     """Gather environment variables for the crash info."""
     masks = ('DESKTOP_SESSION', 'DE', 'QT_*', 'PYTHON*', 'LC_*', 'LANG',
-             'XDG_*', 'QUTE_*', 'PATH')
+             'XDG_*', 'QUTE_*', 'PATH', 'XMODIFIERS', 'XIM_*')
     info = []
     for key, value in os.environ.items():
         for m in masks:
@@ -119,7 +118,7 @@ class _CrashDialog(QDialog):
         super().__init__(parent)
         # We don't set WA_DeleteOnClose here as on an exception, we'll get
         # closed anyways, and it only could have unintended side-effects.
-        self._crash_info = []  # type: typing.List[typing.Tuple[str, str]]
+        self._crash_info: List[Tuple[str, str]] = []
         self._btn_box = None
         self._paste_text = None
         self.setWindowTitle("Whoops!")
@@ -242,8 +241,7 @@ class _CrashDialog(QDialog):
             exc: An exception tuple (type, value, traceback)
         """
         try:
-            application = QApplication.instance()
-            launch_time = application.launch_time.ctime()
+            launch_time = objects.qapp.launch_time.ctime()
             crash_time = datetime.datetime.now().ctime()
             text = 'Launch: {}\nCrash: {}'.format(launch_time, crash_time)
             self._crash_info.append(('Timestamps', text))
@@ -320,7 +318,7 @@ class _CrashDialog(QDialog):
             log.misc.exception("Error while getting user")
             user = 'unknown'
         try:
-            # parent: http://p.cmpl.cc/90286958
+            # parent: https://p.cmpl.cc/90286958
             self._paste_client.paste(user, self._get_paste_title(),
                                      self._paste_text, parent='90286958')
         except Exception as e:
@@ -361,8 +359,8 @@ class _CrashDialog(QDialog):
         Args:
             newest: The newest version as a string.
         """
-        new_version = pkg_resources.parse_version(newest)
-        cur_version = pkg_resources.parse_version(qutebrowser.__version__)
+        new_version = utils.parse_version(newest)
+        cur_version = utils.parse_version(qutebrowser.__version__)
         lines = ['The report has been sent successfully. Thanks!']
         if new_version > cur_version:
             lines.append("<b>Note:</b> The newest available version is v{}, "
@@ -635,7 +633,7 @@ class ReportErrorDialog(QDialog):
         hbox = QHBoxLayout()
         hbox.addStretch()
         btn = QPushButton("Close")
-        btn.clicked.connect(self.close)  # type: ignore[arg-type]
+        btn.clicked.connect(self.close)
         hbox.addWidget(btn)
         vbox.addLayout(hbox)
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import sys
 import pathlib
@@ -51,10 +51,12 @@ class CovtestHelper:
         """Run pytest with coverage for the given module.py."""
         coveragerc = str(self._testdir.tmpdir / 'coveragerc')
         self._monkeypatch.delenv('PYTEST_ADDOPTS', raising=False)
-        return self._testdir.runpytest('--cov=module',
-                                       '--cov-config={}'.format(coveragerc),
-                                       '--cov-report=xml',
-                                       plugins=['no:faulthandler'])
+        res = self._testdir.runpytest('--cov=module',
+                                      '--cov-config={}'.format(coveragerc),
+                                      '--cov-report=xml',
+                                      plugins=['no:faulthandler', 'no:xvfb'])
+        assert res.ret == 0
+        return res
 
     def check(self, perfect_files=None):
         """Run check_coverage.py and run its return value."""
@@ -92,6 +94,15 @@ def covtest(testdir, monkeypatch):
         def test_module():
             func()
     """)
+
+    # Check if coverage plugin is available
+    res = testdir.runpytest('--version', '--version')
+    assert res.ret == 0
+    output = res.stderr.str()
+    assert 'This is pytest version' in output
+    if 'pytest-cov' not in output:
+        pytest.skip("cov plugin not available")
+
     return CovtestHelper(testdir, monkeypatch)
 
 
@@ -165,6 +176,9 @@ def test_untested_floats(covtest):
     assert covtest.check() == [expected]
 
 
+@pytest.mark.skipif(
+    sys.version_info[:4] == (3, 10, 0, 'alpha') and sys.version_info.serial < 5,
+    reason='Different results, see https://github.com/nedbat/coveragepy/issues/1106')
 def test_untested_branches(covtest):
     covtest.makefile("""
         def func2(arg):
@@ -216,11 +230,11 @@ def test_skipped_non_linux(covtest):
 def _generate_files():
     """Get filenames from WHITELISTED_/PERFECT_FILES."""
     for src_file in check_coverage.WHITELISTED_FILES:
-        yield pathlib.Path('qutebrowser') / src_file
+        yield pathlib.Path(src_file)
     for test_file, src_file in check_coverage.PERFECT_FILES:
         if test_file is not None:
             yield pathlib.Path(test_file)
-        yield pathlib.Path('qutebrowser') / src_file
+        yield pathlib.Path(src_file)
 
 
 @pytest.mark.parametrize('filename', list(_generate_files()))

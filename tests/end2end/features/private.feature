@@ -42,6 +42,25 @@ Feature: Using private browsing
 
     ## https://github.com/qutebrowser/qutebrowser/issues/1219
 
+    Scenario: Make sure private data is cleared when closing last private window
+        When I open about:blank in a private window
+        And I open cookies/set?cookie-to-delete=1 without waiting in a new tab
+        And I wait until cookies is loaded
+        And I run :close
+        And I open about:blank in a private window
+        And I open cookies
+        Then the cookie cookie-to-delete should not be set
+
+    Scenario: Make sure private data is not cleared when closing a private window but another remains
+        When I open about:blank in a private window
+        And I open about:blank in a private window
+        And I open cookies/set?cookie-to-preserve=1 without waiting in a new tab
+        And I wait until cookies is loaded
+        And I run :close
+        And I open about:blank in a private window
+        And I open cookies
+        Then the cookie cookie-to-preserve should be set to 1
+
     Scenario: Sharing cookies with private browsing
         When I open cookies/set?qute-test=42 without waiting in a private window
         And I wait until cookies is loaded
@@ -153,7 +172,7 @@ Feature: Using private browsing
                 - url: http://localhost:*/data/numbers/1.txt
                 - url: http://localhost:*/data/numbers/2.txt
 
-  @flaky
+  @skip  # Too flaky
   Scenario: Saving a private session with only-active-window
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
@@ -162,7 +181,12 @@ Feature: Using private browsing
         And I open data/numbers/5.txt in a new tab
         And I run :session-save --only-active-window window_session_name
         And I run :window-only
+        And I wait for "removed: tab" in the log
+        And I wait for "removed: tab" in the log
         And I run :tab-only
+        And I wait for "removed: tab" in the log
+        And I wait for "removed: tab" in the log
+        And I wait for "removed: tab" in the log
         And I run :session-load -c window_session_name
         And I wait until data/numbers/5.txt is loaded
         Then the session should look like:
@@ -175,3 +199,50 @@ Feature: Using private browsing
                     - history:
                         - active: true
                           url: http://localhost:*/data/numbers/5.txt
+
+    # https://github.com/qutebrowser/qutebrowser/issues/5810
+
+    Scenario: Using qute:// scheme after reiniting private profile
+        When I open about:blank in a private window
+        And I run :close
+        And I open qute://version in a private window
+        Then the page should contain the plaintext "Version info"
+
+    Scenario: Downloading after reiniting private profile
+        When I open about:blank in a private window
+        And I run :close
+        And I open data/downloads/downloads.html in a private window
+        And I run :click-element id download
+        And I wait for "*PromptMode.download*" in the log
+        And I run :mode-leave
+        Then "Removed download *: download.bin *" should be logged
+
+    Scenario: Adblocking after reiniting private profile
+        When I open about:blank in a private window
+        And I run :close
+        And I set content.blocking.hosts.lists to ["http://localhost:(port)/data/blocking/qutebrowser-hosts"]
+        And I set content.blocking.method to hosts
+        And I run :adblock-update
+        And I wait for the message "hostblock: Read 1 hosts from 1 sources."
+        And I open data/blocking/external_logo.html in a private window
+        Then "Request to qutebrowser.org blocked by host blocker." should be logged
+
+    @pyqt!=5.15.0   # cookie filtering is broken on QtWebEngine 5.15.0
+    Scenario: Cookie filtering after reiniting private profile
+        When I open about:blank in a private window
+        And I run :close
+        And I set content.cookies.accept to never
+        And I open data/title.html in a private window
+        And I open cookies/set?unsuccessful-cookie=1 without waiting in a new tab
+        And I wait until cookies is loaded
+        And I open cookies
+        Then the cookie unsuccessful-cookie should not be set
+
+    Scenario: Disabling JS after reiniting private profile
+        When I open about:blank in a new window
+        And I run :window-only
+        And I set content.javascript.enabled to false
+        And I open about:blank in a private window
+        And I run :close
+        And I open data/javascript/enabled.html in a private window
+        Then the page should contain the plaintext "JavaScript is disabled"

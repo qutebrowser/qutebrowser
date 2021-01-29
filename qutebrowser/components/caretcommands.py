@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Commands related to caret browsing."""
 
@@ -183,9 +183,9 @@ def move_to_end_of_document(tab: apitypes.Tab) -> None:
     tab.caret.move_to_end_of_document()
 
 
-@cmdutils.register(modes=[cmdutils.KeyMode.caret])
+@cmdutils.register(modes=[cmdutils.KeyMode.caret], deprecated_name='toggle-selection')
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-def toggle_selection(tab: apitypes.Tab, line: bool = False) -> None:
+def selection_toggle(tab: apitypes.Tab, line: bool = False) -> None:
     """Toggle caret selection mode.
 
     Args:
@@ -194,16 +194,16 @@ def toggle_selection(tab: apitypes.Tab, line: bool = False) -> None:
     tab.caret.toggle_selection(line)
 
 
-@cmdutils.register(modes=[cmdutils.KeyMode.caret])
+@cmdutils.register(modes=[cmdutils.KeyMode.caret], deprecated_name='drop-selection')
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-def drop_selection(tab: apitypes.Tab) -> None:
+def selection_drop(tab: apitypes.Tab) -> None:
     """Drop selection and keep selection mode enabled."""
     tab.caret.drop_selection()
 
 
-@cmdutils.register()
+@cmdutils.register(deprecated_name='follow-selected')
 @cmdutils.argument('tab_obj', value=cmdutils.Value.cur_tab)
-def follow_selected(tab_obj: apitypes.Tab, *, tab: bool = False) -> None:
+def selection_follow(tab_obj: apitypes.Tab, *, tab: bool = False) -> None:
     """Follow the selected text.
 
     Args:
@@ -215,8 +215,8 @@ def follow_selected(tab_obj: apitypes.Tab, *, tab: bool = False) -> None:
         raise cmdutils.CommandError(str(e))
 
 
-@cmdutils.register(modes=[cmdutils.KeyMode.caret])
+@cmdutils.register(modes=[cmdutils.KeyMode.caret], deprecated_name='reverse-selection')
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-def reverse_selection(tab: apitypes.Tab) -> None:
+def selection_reverse(tab: apitypes.Tab) -> None:
     """Swap the stationary and moving end of the current selection."""
     tab.caret.reverse_selection()

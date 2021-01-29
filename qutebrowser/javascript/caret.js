@@ -30,7 +30,7 @@ default-case */
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /**
- * Copyright 2018-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+ * Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
  *
  * This file is part of qutebrowser.
  *
@@ -45,7 +45,7 @@ default-case */
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+ * along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
@@ -53,7 +53,7 @@ default-case */
  * https://cs.chromium.org/chromium/src/ui/accessibility/extensions/caretbrowsing/
  *
  * The behavior is based on Mozilla's spec whenever possible:
- *   http://www.mozilla.org/access/keyboard/proposal
+ *   https://web.archive.org/web/20110818013741/http://www.mozilla.org/access/keyboard/proposal
  *
  * The one exception is that Esc is used to escape out of a form control,
  * rather than their proposed key (which doesn't seem to work in the
@@ -774,13 +774,6 @@ window._qutebrowser.caret = (function() {
     CaretBrowsing.isWindows = null;
 
     /**
-     * Whether we're running on on old Qt 5.7.1.
-     * There, we need to use -webkit-filter.
-     * @type {boolean}
-     */
-    CaretBrowsing.needsFilterPrefix = null;
-
-    /**
      * The id returned by window.setInterval for our stopAnimation function, so
      * we can cancel it when we call stopAnimation again.
      * @type {number?}
@@ -863,7 +856,6 @@ window._qutebrowser.caret = (function() {
     };
 
     CaretBrowsing.injectCaretStyles = function() {
-        const prefix = CaretBrowsing.needsFilterPrefix ? "-webkit-" : "";
         const style = `
             .CaretBrowsing_Caret {
               position: absolute;
@@ -875,7 +867,7 @@ window._qutebrowser.caret = (function() {
               background-color: var(--inherited-color, #000);
               color: var(--inherited-color, #000);
               mix-blend-mode: difference;
-              ${prefix}filter: invert(85%);
+              filter: invert(85%);
             }
             @keyframes blink {
               50% { visibility: hidden; }
@@ -1355,7 +1347,6 @@ window._qutebrowser.caret = (function() {
 
     funcs.setFlags = (flags) => {
         CaretBrowsing.isWindows = flags.includes("windows");
-        CaretBrowsing.needsFilterPrefix = flags.includes("filter-prefix");
     };
 
     funcs.disableCaret = () => {

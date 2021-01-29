@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,11 +15,11 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Generic web element related code."""
 
-import typing
+from typing import cast, TYPE_CHECKING, Iterator, Optional, Set, Union
 import collections.abc
 
 from PyQt5.QtCore import QUrl, Qt, QEvent, QTimer, QRect, QPoint
@@ -29,11 +29,11 @@ from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.browser import browsertab
 
 
-JsValueType = typing.Union[int, float, str, None]
+JsValueType = Union[int, float, str, None]
 
 
 class Error(Exception):
@@ -80,7 +80,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
     def __delitem__(self, key: str) -> None:
         raise NotImplementedError
 
-    def __iter__(self) -> typing.Iterator[str]:
+    def __iter__(self) -> Iterator[str]:
         raise NotImplementedError
 
     def __len__(self) -> int:
@@ -88,8 +88,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
 
     def __repr__(self) -> str:
         try:
-            html = utils.compact_text(
-                self.outer_xml(), 500)  # type: typing.Optional[str]
+            html: Optional[str] = utils.compact_text(self.outer_xml(), 500)
         except Error:
             html = None
         return utils.get_repr(self, html=html)
@@ -102,8 +101,8 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Get the geometry for this element."""
         raise NotImplementedError
 
-    def classes(self) -> typing.List[str]:
-        """Get a list of classes assigned to this element."""
+    def classes(self) -> Set[str]:
+        """Get a set of classes assigned to this element."""
         raise NotImplementedError
 
     def tag_name(self) -> str:
@@ -171,6 +170,18 @@ class AbstractWebElement(collections.abc.MutableMapping):
             return self['contenteditable'].lower() not in ['false', 'inherit']
         except KeyError:
             return False
+
+    def is_content_editable_prop(self) -> bool:
+        """Get the value of this element's isContentEditable property.
+
+        The is_content_editable() method above checks for the "contenteditable"
+        HTML attribute, which does not handle inheritance. However, the actual
+        attribute value is still needed for certain cases (like strict=True).
+
+        This instead gets the isContentEditable JS property, which handles
+        inheritance.
+        """
+        raise NotImplementedError
 
     def _is_editable_object(self) -> bool:
         """Check if an object-element is editable."""
@@ -251,6 +262,9 @@ class AbstractWebElement(collections.abc.MutableMapping):
         elif tag in ['embed', 'applet']:
             # Flash/Java/...
             return config.val.input.insert_mode.plugins and not strict
+        elif (not strict and self.is_content_editable_prop() and
+              self.is_writable()):
+            return True
         elif tag == 'object':
             return self._is_editable_object() and not strict
         elif tag in ['div', 'pre', 'span']:
@@ -267,7 +281,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Remove target from link."""
         raise NotImplementedError
 
-    def resolve_url(self, baseurl: QUrl) -> typing.Optional[QUrl]:
+    def resolve_url(self, baseurl: QUrl) -> Optional[QUrl]:
         """Resolve the URL in the element's src/href attribute.
 
         Args:
@@ -342,16 +356,12 @@ class AbstractWebElement(collections.abc.MutableMapping):
         else:
             target_modifiers[usertypes.ClickTarget.tab_bg] |= Qt.ShiftModifier
 
-        modifiers = typing.cast(Qt.KeyboardModifiers,
-                                target_modifiers[click_target])
+        modifiers = cast(Qt.KeyboardModifiers, target_modifiers[click_target])
 
         events = [
-            QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
-                        Qt.NoModifier),
-            QMouseEvent(QEvent.MouseButtonPress, pos, button, button,
-                        modifiers),
-            QMouseEvent(QEvent.MouseButtonRelease, pos, button, Qt.NoButton,
-                        modifiers),
+            QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton, Qt.NoModifier),
+            QMouseEvent(QEvent.MouseButtonPress, pos, button, button, modifiers),
+            QMouseEvent(QEvent.MouseButtonRelease, pos, button, Qt.NoButton, modifiers),
         ]
 
         for evt in events:
@@ -390,9 +400,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
             from qutebrowser.mainwindow import mainwindow
             window = mainwindow.MainWindow(private=tabbed_browser.is_private)
             window.show()
-            # FIXME:typing Why can't mypy determine the type of
-            # window.tabbed_browser?
-            window.tabbed_browser.tabopen(url)  # type: ignore[has-type]
+            window.tabbed_browser.tabopen(url)
         else:
             raise ValueError("Unknown ClickTarget {}".format(click_target))
 

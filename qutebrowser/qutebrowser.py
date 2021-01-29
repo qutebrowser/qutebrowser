@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Early initialization and main entry point.
 
@@ -77,22 +77,19 @@ def get_argparser():
                         action='store_true')
     parser.add_argument('--target', choices=['auto', 'tab', 'tab-bg',
                                              'tab-silent', 'tab-bg-silent',
-                                             'window'],
+                                             'window', 'private-window'],
                         help="How URLs should be opened if there is already a "
                              "qutebrowser instance running.")
     parser.add_argument('--backend', choices=['webkit', 'webengine'],
                         help="Which backend to use.")
-    parser.add_argument('--enable-webengine-inspector', action='store_true',
-                        help="Enable the web inspector / devtools for "
-                        "QtWebEngine. Note that this is a SECURITY RISK and "
-                        "you should not visit untrusted websites with the "
-                        "inspector turned on. See "
-                        "https://bugreports.qt.io/browse/QTBUG-50725 for more "
-                        "details. This is not needed anymore since Qt 5.11 "
-                        "where the inspector is always enabled and secure.")
 
     parser.add_argument('--json-args', help=argparse.SUPPRESS)
     parser.add_argument('--temp-basedir-restarted', help=argparse.SUPPRESS)
+    parser.add_argument('--desktop-file-name',
+                        default="org.qutebrowser.qutebrowser",
+                        help="Set the base name of the desktop entry for this "
+                        "application. Used to set the app_id under Wayland. See "
+                        "https://doc.qt.io/qt-5/qguiapplication.html#desktopFileName-prop")
 
     debug = parser.add_argument_group('debug arguments')
     debug.add_argument('-l', '--loglevel', dest='loglevel',
@@ -170,12 +167,14 @@ def debug_flag_error(flag):
         log-scroll-pos: Log all scrolling changes.
         stack: Enable Chromium stack logging.
         chromium: Enable Chromium logging.
+        wait-renderer-process: Wait for debugger in renderer process.
+        avoid-chromium-init: Enable `--version` without initializing Chromium.
         werror: Turn Python warnings into errors.
     """
     valid_flags = ['debug-exit', 'pdb-postmortem', 'no-sql-history',
                    'no-scroll-filtering', 'log-requests', 'log-cookies',
-                   'lost-focusproxy', 'log-scroll-pos', 'stack', 'chromium',
-                   'werror']
+                   'log-scroll-pos', 'stack', 'chromium',
+                   'wait-renderer-process', 'avoid-chromium-init', 'werror']
 
     if flag in valid_flags:
         return flag

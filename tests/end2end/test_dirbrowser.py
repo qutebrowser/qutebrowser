@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015-2018 Daniel Schadt
 #
 # This file is part of qutebrowser.
@@ -16,13 +16,14 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Test the built-in directory browser."""
 
 import os
+import dataclasses
+from typing import List
 
-import attr
 import pytest
 import bs4
 
@@ -104,21 +105,21 @@ class DirLayout:
         return os.path.normpath(str(self.base))
 
 
-@attr.s
+@dataclasses.dataclass
 class Parsed:
 
-    path = attr.ib()
-    parent = attr.ib()
-    folders = attr.ib()
-    files = attr.ib()
+    path: str
+    parent: str
+    folders: List[str]
+    files: List[str]
 
 
-@attr.s
+@dataclasses.dataclass
 class Item:
 
-    path = attr.ib()
-    link = attr.ib()
-    text = attr.ib()
+    path: str
+    link: str
+    text: str
 
 
 def parse(quteproc):
@@ -192,7 +193,7 @@ def test_enter_folder_smoke(dir_layout, quteproc):
     quteproc.open_url(dir_layout.file_url())
     quteproc.send_cmd(':hint all normal')
     # a is the parent link, s is the first listed folder/file
-    quteproc.send_cmd(':follow-hint s')
+    quteproc.send_cmd(':hint-follow s')
     expected_url = urlutils.file_url(dir_layout.path('folder0'))
     quteproc.wait_for_load_finished_url(expected_url)
     page = parse(quteproc)

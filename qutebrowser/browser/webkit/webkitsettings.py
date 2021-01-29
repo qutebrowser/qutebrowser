@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Bridge from QWebSettings to our own settings.
 
@@ -24,7 +24,7 @@ Module attributes:
                 constants.
 """
 
-import typing
+from typing import cast
 import os.path
 
 from PyQt5.QtCore import QUrl
@@ -39,7 +39,7 @@ from qutebrowser.browser import shared
 
 
 # The global WebKitSettings object
-global_settings = typing.cast('WebKitSettings', None)
+global_settings = cast('WebKitSettings', None)
 
 parsed_user_agent = None
 
@@ -172,7 +172,7 @@ def _init_user_agent():
     parsed_user_agent = websettings.UserAgent.parse(ua)
 
 
-def init(_args):
+def init():
     """Initialize the global QWebSettings."""
     cache_path = standarddir.cache()
     data_path = standarddir.data()

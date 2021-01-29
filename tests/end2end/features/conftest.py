@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Steps for bdd-like tests."""
 
@@ -73,7 +73,8 @@ def pytest_runtest_makereport(item, call):
         # non-BDD ones.
         return
 
-    if sys.stdout.isatty() and item.config.getoption('--color') != 'no':
+    if ((sys.stdout.isatty() or testutils.ON_CI) and
+            item.config.getoption('--color') != 'no'):
         colors = {
             'failed': log.COLOR_ESCAPES['red'],
             'passed': log.COLOR_ESCAPES['green'],
@@ -89,6 +90,9 @@ def pytest_runtest_makereport(item, call):
         }
 
     output = []
+    if testutils.ON_CI:
+        output.append(testutils.gha_group_begin('Scenario'))
+
     output.append("{kw_color}Feature:{reset} {name}".format(
         kw_color=colors['keyword'],
         name=report.scenario['feature']['name'],
@@ -113,6 +117,9 @@ def pytest_runtest_makereport(item, call):
                 duration=step['duration'],
                 reset=colors['reset'])
         )
+
+    if testutils.ON_CI:
+        output.append(testutils.gha_group_end())
 
     report.longrepr.addsection("BDD scenario", '\n'.join(output))
 
@@ -184,6 +191,11 @@ def clean_open_tabs(quteproc):
 def pdfjs_available(data_tmpdir):
     if not pdfjs.is_available():
         pytest.skip("No pdfjs installation found.")
+
+
+@bdd.given('I clear the log')
+def clear_log_lines(quteproc):
+    quteproc.clear_data()
 
 
 ## When
@@ -377,9 +389,10 @@ def hint(quteproc, args):
 @bdd.when(bdd.parsers.parse('I hint with args "{args}" and follow {letter}'))
 def hint_and_follow(quteproc, args, letter):
     args = args.replace('(testdata)', testutils.abs_datapath())
+    args = args.replace('(python-executable)', sys.executable)
     quteproc.send_cmd(':hint {}'.format(args))
     quteproc.wait_for(message='hints: *')
-    quteproc.send_cmd(':follow-hint {}'.format(letter))
+    quteproc.send_cmd(':hint-follow {}'.format(letter))
 
 
 @bdd.when("I wait until the scroll position changed")
@@ -560,6 +573,9 @@ def check_header(quteproc, header, value):
     print(data)
     if value == '<unset>':
         assert header not in data['headers']
+    elif value.startswith("'") and value.endswith("'"):  # literal match
+        actual = data['headers'][header]
+        assert actual == value[1:-1]
     else:
         actual = data['headers'][header]
         assert testutils.pattern_match(pattern=value, value=actual)

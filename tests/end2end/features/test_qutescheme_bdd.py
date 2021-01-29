@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest_bdd as bdd
 
@@ -47,7 +47,7 @@ def request_blocked(request, quteproc, kind):
     webkit_error_unsupported = (
         "Error while loading qute://settings/set?*: Unsupported request type")
 
-    if request.config.webengine and qtutils.version_check('5.12'):
+    if request.config.webengine:
         # On Qt 5.12, we mark qute:// as a local scheme, causing most requests
         # being blocked by Chromium internally (logging to the JS console).
         expected_messages = {
@@ -60,13 +60,6 @@ def request_blocked(request, quteproc, kind):
             # On Qt 5.15, Chromium blocks the redirect as ERR_UNSAFE_REDIRECT
             # instead.
             expected_messages['redirect'] = [unsafe_redirect_msg]
-    elif request.config.webengine:
-        expected_messages = {
-            'img': [blocking_csrf_msg],
-            'link': [blocking_set_msg, blocked_request_msg],
-            'redirect': [blocking_set_msg, blocked_request_msg],
-            'form': [blocking_set_msg, blocked_request_msg],
-        }
     else:  # QtWebKit
         expected_messages = {
             'img': [blocking_csrf_msg],

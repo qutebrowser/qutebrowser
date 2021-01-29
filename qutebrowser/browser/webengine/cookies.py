@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,12 +15,12 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Filter for QtWebEngine cookies."""
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils, qtutils, log
+from qutebrowser.utils import utils, log
 from qutebrowser.misc import objects
 
 
@@ -30,13 +30,6 @@ def _accept_cookie(request):
     url = request.firstPartyUrl
     if not url.isValid():
         url = None
-
-    if qtutils.version_check('5.11.3', compiled=False):
-        third_party = request.thirdParty
-    else:
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-71393
-        third_party = (request.thirdParty and
-                       not request.firstPartyUrl.isEmpty())
 
     accept = config.instance.get('content.cookies.accept',
                                  url=url)
@@ -48,13 +41,13 @@ def _accept_cookie(request):
                       else request.origin.toDisplayString())
         log.network.debug('Cookie from origin {} on {} (third party: {}) '
                           '-> applying setting {}'
-                          .format(origin_str, first_party_str, third_party,
+                          .format(origin_str, first_party_str, request.thirdParty,
                                   accept))
 
     if accept == 'all':
         return True
     elif accept in ['no-3rdparty', 'no-unknown-3rdparty']:
-        return not third_party
+        return not request.thirdParty
     elif accept == 'never':
         return False
     else:
@@ -62,12 +55,5 @@ def _accept_cookie(request):
 
 
 def install_filter(profile):
-    """Install the cookie filter on the given profile.
-
-    On Qt < 5.11, the filter isn't installed.
-    """
-    store = profile.cookieStore()
-    try:
-        store.setCookieFilter(_accept_cookie)
-    except AttributeError:
-        pass
+    """Install the cookie filter on the given profile."""
+    profile.cookieStore().setCookieFilter(_accept_cookie)

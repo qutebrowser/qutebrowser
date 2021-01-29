@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Misc. utility commands exposed to the user."""
 
@@ -24,7 +24,7 @@
 import functools
 import os
 import traceback
-import typing
+from typing import Optional
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QApplication
@@ -42,15 +42,17 @@ from qutebrowser.qt import sip
 
 @cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
-def later(ms: int, command: str, win_id: int) -> None:
+def later(duration: str, command: str, win_id: int) -> None:
     """Execute a command after some time.
 
     Args:
-        ms: How many milliseconds to wait.
+        duration: Duration to wait in format XhYmZs or a number for milliseconds.
         command: The command to run, with optional args.
     """
-    if ms < 0:
-        raise cmdutils.CommandError("I can't run something in the past!")
+    try:
+        ms = utils.parse_duration(duration)
+    except ValueError as e:
+        raise cmdutils.CommandError(e)
     commandrunner = runners.CommandRunner(win_id)
     timer = usertypes.Timer(name='later', parent=QApplication.instance())
     try:
@@ -274,14 +276,16 @@ def version(win_id: int, paste: bool = False) -> None:
         pastebin_version()
 
 
-_keytester_widget = None  # type: typing.Optional[miscwidgets.KeyTesterWidget]
+_keytester_widget: Optional[miscwidgets.KeyTesterWidget] = None
 
 
 @cmdutils.register(debug=True)
 def debug_keytester() -> None:
     """Show a keytester widget."""
     global _keytester_widget
-    if _keytester_widget and _keytester_widget.isVisible():
+    if (_keytester_widget and
+            not sip.isdeleted(_keytester_widget) and
+            _keytester_widget.isVisible()):
         _keytester_widget.close()
     else:
         _keytester_widget = miscwidgets.KeyTesterWidget()

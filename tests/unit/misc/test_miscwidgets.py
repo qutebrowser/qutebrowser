@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,13 +15,12 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-from unittest import mock
 
 from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import QWidget
 import pytest
 
 from qutebrowser.misc import miscwidgets
@@ -40,19 +39,6 @@ class TestCommandLineEdit:
         qtbot.add_widget(cmd_edit)
         assert cmd_edit.text() == ''
         yield cmd_edit
-
-    @pytest.fixture
-    def mock_clipboard(self, mocker):
-        """Fixture to mock QApplication.clipboard.
-
-        Return:
-            The mocked QClipboard object.
-        """
-        mocker.patch.object(QApplication, 'clipboard')
-        clipboard = mock.MagicMock()
-        clipboard.supportsSelection.return_value = True
-        QApplication.clipboard.return_value = clipboard
-        return clipboard
 
     def test_position(self, qtbot, cmd_edit):
         """Test cursor position based on the prompt."""
@@ -158,7 +144,8 @@ class TestInspectorSplitter:
 
     @pytest.fixture
     def splitter(self, qtbot, fake_webview):
-        inspector_splitter = miscwidgets.InspectorSplitter(fake_webview)
+        inspector_splitter = miscwidgets.InspectorSplitter(
+            win_id=0, main_webview=fake_webview)
         qtbot.add_widget(inspector_splitter)
         return inspector_splitter
 
@@ -170,6 +157,11 @@ class TestInspectorSplitter:
     def test_no_inspector_resize(self, splitter):
         splitter.show()
         splitter.resize(800, 600)
+
+    def test_cycle_focus_no_inspector(self, splitter):
+        with pytest.raises(inspector.Error,
+                           match='No inspector inside main window'):
+            splitter.cycle_focus()
 
     @pytest.mark.parametrize(
         'position, orientation, inspector_idx, webview_idx', [
@@ -191,6 +183,14 @@ class TestInspectorSplitter:
         assert splitter._main_idx == webview_idx
 
         assert splitter.orientation() == orientation
+
+    def test_cycle_focus_hidden_inspector(self, splitter, fake_inspector):
+        splitter.set_inspector(fake_inspector, inspector.Position.right)
+        splitter.show()
+        fake_inspector.hide()
+        with pytest.raises(inspector.Error,
+                           match='No inspector inside main window'):
+            splitter.cycle_focus()
 
     @pytest.mark.parametrize(
         'config, width, height, position, expected_size', [

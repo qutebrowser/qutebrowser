@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,19 +15,20 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Wrapper over our (QtWebKit) WebView."""
 
 import re
 import functools
 import xml.etree.ElementTree
+from typing import cast, Iterable, Optional
 
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
-from PyQt5.QtWebKit import QWebSettings
+from PyQt5.QtWebKit import QWebSettings, QWebHistory, QWebElement
 from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab, shared
@@ -55,15 +56,30 @@ class WebKitAction(browsertab.AbstractAction):
     def show_source(self, pygments=False):
         self._show_source_pygments()
 
+    def run_string(self, name: str) -> None:
+        """Add special cases for new API.
+
+        Those were added to QtWebKit 5.212 (which we enforce), but we don't get
+        the new API from PyQt. Thus, we'll need to use the raw numbers.
+        """
+        new_actions = {
+            # https://github.com/qtwebkit/qtwebkit/commit/a96d9ef5d24b02d996ad14ff050d0e485c9ddc97
+            'RequestClose': QWebPage.ToggleVideoFullscreen + 1,
+            # https://github.com/qtwebkit/qtwebkit/commit/96b9ba6269a5be44343635a7aaca4a153ea0366b
+            'Unselect': QWebPage.ToggleVideoFullscreen + 2,
+        }
+        if name in new_actions:
+            self._widget.triggerPageAction(new_actions[name])
+            return
+
+        super().run_string(name)
+
 
 class WebKitPrinting(browsertab.AbstractPrinting):
 
     """QtWebKit implementations related to printing."""
 
     def check_pdf_support(self):
-        pass
-
-    def check_printer_support(self):
         pass
 
     def check_preview_support(self):
@@ -182,8 +198,7 @@ class WebKitCaret(browsertab.AbstractCaret):
                  tab: 'WebKitTab',
                  mode_manager: modeman.ModeManager,
                  parent: QWidget = None) -> None:
-        super().__init__(mode_manager, parent)
-        self._tab = tab
+        super().__init__(tab, mode_manager, parent)
         self._selection_state = browsertab.SelectionState.none
 
     @pyqtSlot(usertypes.KeyMode)
@@ -604,6 +619,10 @@ class WebKitHistoryPrivate(browsertab.AbstractHistoryPrivate):
 
     """History-related methods which are not part of the extension API."""
 
+    def __init__(self, tab: 'WebKitTab') -> None:
+        self._tab = tab
+        self._history = cast(QWebHistory, None)
+
     def serialize(self):
         return qtutils.serialize(self._history)
 
@@ -618,6 +637,7 @@ class WebKitHistoryPrivate(browsertab.AbstractHistoryPrivate):
         qtutils.deserialize_stream(stream, self._history)
         for i, data in enumerate(user_data):
             self._history.itemAt(i).setUserData(data)
+
         cur_data = self._history.currentItem().userData()
         if cur_data is not None:
             if 'zoom' in cur_data:
@@ -658,14 +678,18 @@ class WebKitHistory(browsertab.AbstractHistory):
         self._tab.before_load_started.emit(item.url())
         self._history.goToItem(item)
 
+    def back_items(self):
+        return self._history.backItems(self._history.count())
+
+    def forward_items(self):
+        return self._history.forwardItems(self._history.count())
+
 
 class WebKitElements(browsertab.AbstractElements):
 
-    """QtWebKit implemementations related to elements on the page."""
+    """QtWebKit implementations related to elements on the page."""
 
-    def __init__(self, tab: 'WebKitTab') -> None:
-        super().__init__()
-        self._tab = tab
+    _tab: 'WebKitTab'
 
     def find_css(self, selector, callback, error_cb, *, only_visible=False):
         utils.unused(error_cb)
@@ -676,7 +700,8 @@ class WebKitElements(browsertab.AbstractElements):
         elems = []
         frames = webkitelem.get_child_frames(mainframe)
         for f in frames:
-            for elem in f.findAllElements(selector):
+            frame_elems = cast(Iterable[QWebElement], f.findAllElements(selector))
+            for elem in frame_elems:
                 elems.append(webkitelem.WebKitElement(elem, tab=self._tab))
 
         if only_visible:
@@ -740,7 +765,7 @@ class WebKitElements(browsertab.AbstractElements):
         except webkitelem.IsNullError:
             # For some reason, the hit result element can be a null element
             # sometimes (e.g. when clicking the timetable fields on
-            # http://www.sbb.ch/ ).
+            # https://www.sbb.ch/ ).
             log.webview.debug("Hit test result element is null!")
             callback(None)
             return
@@ -822,9 +847,8 @@ class WebKitTab(browsertab.AbstractTab):
         settings = widget.settings()
         settings.setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
 
-    def load_url(self, url, *, emit_before_load_started=True):
-        self._load_url_prepare(
-            url, emit_before_load_started=emit_before_load_started)
+    def load_url(self, url):
+        self._load_url_prepare(url)
         self._widget.load(url)
 
     def url(self, *, requested=False):
@@ -863,6 +887,9 @@ class WebKitTab(browsertab.AbstractTab):
 
     def title(self):
         return self._widget.title()
+
+    def renderer_process_pid(self) -> Optional[int]:
+        return None
 
     @pyqtSlot()
     def _on_history_trigger(self):

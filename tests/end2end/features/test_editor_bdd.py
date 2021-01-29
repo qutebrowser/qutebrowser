@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import sys
 import json
@@ -178,3 +178,20 @@ def save_editor_wait(tmpdir):
     # for posix, there IS a member so we need to ignore useless-suppression
     # pylint: disable=no-member,useless-suppression
     os.kill(pid, signal.SIGUSR2)
+
+
+@bdd.when(bdd.parsers.parse('I set up a fake "{kind}" fileselector '
+                            'selecting "{files}"'))
+def set_up_fileselector(quteproc, py_proc, kind, files):
+    """Set up fileselect.xxx.command to select the file(s)."""
+    cmd, args = py_proc(r"""
+        import os
+        import sys
+        tmp_file = sys.argv[1]
+        with open(tmp_file, 'w') as f:
+            for selected_file in sys.argv[2:]:
+                f.write(os.path.abspath(selected_file) + "\n")
+    """)
+    fileselect_cmd = json.dumps([cmd, *args, '{}', *files.split(' ')])
+    quteproc.set_setting('fileselect.handler', 'external')
+    quteproc.set_setting(f'fileselect.{kind}.command', fileselect_cmd)

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Various utilities used inside tests."""
 
@@ -26,23 +26,23 @@ import pprint
 import os.path
 import contextlib
 import pathlib
+import importlib.util
+import importlib.machinery
 
 import pytest
+
+from PyQt5.QtCore import qVersion
+try:
+    from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION_STR
+except ImportError:
+    PYQT_WEBENGINE_VERSION_STR = None
 
 from qutebrowser.utils import qtutils, log
 
 ON_CI = 'CI' in os.environ
 
-qt58 = pytest.mark.skipif(
-    qtutils.version_check('5.9'), reason="Needs Qt 5.8 or earlier")
-qt59 = pytest.mark.skipif(
-    not qtutils.version_check('5.9'), reason="Needs Qt 5.9 or newer")
-qt510 = pytest.mark.skipif(
-    not qtutils.version_check('5.10'), reason="Needs Qt 5.10 or newer")
 qt514 = pytest.mark.skipif(
     not qtutils.version_check('5.14'), reason="Needs Qt 5.14 or newer")
-skip_qt511 = pytest.mark.skipif(
-    qtutils.version_check('5.11'), reason="Needs Qt 5.10 or earlier")
 
 
 class PartialCompareOutcome:
@@ -123,6 +123,24 @@ def _partial_compare_eq(val1, val2, *, indent):
     return PartialCompareOutcome("{!r} != {!r}".format(val1, val2))
 
 
+def gha_group_begin(name):
+    """Get a string to begin a GitHub Actions group.
+
+    Should only be called on CI.
+    """
+    assert ON_CI
+    return '::group::' + name
+
+
+def gha_group_end():
+    """Get a string to end a GitHub Actions group.
+
+    Should only be called on CI.
+    """
+    assert ON_CI
+    return '::endgroup::'
+
+
 def partial_compare(val1, val2, *, indent=0):
     """Do a partial comparison between the given values.
 
@@ -132,6 +150,9 @@ def partial_compare(val1, val2, *, indent=0):
 
     This happens recursively.
     """
+    if ON_CI and indent == 0:
+        print(gha_group_begin('Comparison'))
+
     print_i("Comparing", indent)
     print_i(pprint.pformat(val1), indent + 1)
     print_i("|---- to ----", indent)
@@ -163,6 +184,10 @@ def partial_compare(val1, val2, *, indent=0):
         print_i("|======= Comparing via ==", indent)
         outcome = _partial_compare_eq(val1, val2, indent=indent)
     print_i("---> {}".format(outcome), indent)
+
+    if ON_CI and indent == 0:
+        print(gha_group_end())
+
     return outcome
 
 
@@ -201,13 +226,77 @@ def change_cwd(path):
 @contextlib.contextmanager
 def ignore_bs4_warning():
     """WORKAROUND for https://bugs.launchpad.net/beautifulsoup/+bug/1847592."""
-    with log.ignore_py_warnings(
+    with log.py_warning_filter(
             category=DeprecationWarning,
             message="Using or importing the ABCs from 'collections' instead "
             "of from 'collections.abc' is deprecated", module='bs4.element'):
         yield
 
 
+def _decompress_gzip_datafile(filename):
+    path = os.path.join(abs_datapath(), filename)
+    yield from io.TextIOWrapper(gzip.open(path), encoding="utf-8")
+
+
 def blocked_hosts():
-    path = os.path.join(abs_datapath(), 'blocked-hosts.gz')
-    yield from io.TextIOWrapper(gzip.open(path), encoding='utf-8')
+    return _decompress_gzip_datafile("blocked-hosts.gz")
+
+
+def adblock_dataset_tsv():
+    return _decompress_gzip_datafile("brave-adblock/ublock-matches.tsv.gz")
+
+
+def easylist_txt():
+    return _decompress_gzip_datafile("easylist.txt.gz")
+
+
+def easyprivacy_txt():
+    return _decompress_gzip_datafile("easyprivacy.txt.gz")
+
+
+def seccomp_args(qt_flag):
+    """Get necessary flags to disable the seccomp BPF sandbox.
+
+    This is needed for some QtWebEngine setups, with older Qt versions but
+    newer kernels.
+
+    Args:
+        qt_flag: Add a '--qt-flag' argument.
+    """
+    affected_versions = set()
+    for base, patch_range in [
+            # 5.12.0 to 5.12.7 (inclusive)
+            ('5.12', range(0, 8)),
+            # 5.13.0 to 5.13.2 (inclusive)
+            ('5.13', range(0, 3)),
+            # 5.14.0
+            ('5.14', [0]),
+    ]:
+        for patch in patch_range:
+            affected_versions.add('{}.{}'.format(base, patch))
+
+    version = (PYQT_WEBENGINE_VERSION_STR
+               if PYQT_WEBENGINE_VERSION_STR is not None
+               else qVersion())
+    if version in affected_versions:
+        disable_arg = 'disable-seccomp-filter-sandbox'
+        return ['--qt-flag', disable_arg] if qt_flag else ['--' + disable_arg]
+
+    return []
+
+
+def import_userscript(name):
+    """Import a userscript via importlib.
+
+    This is needed because userscripts don't have a .py extension and violate
+    Python's module naming convention.
+    """
+    repo_root = pathlib.Path(__file__).resolve().parents[2]
+    script_path = repo_root / 'misc' / 'userscripts' / name
+    module_name = name.replace('-', '_')
+    loader = importlib.machinery.SourceFileLoader(
+        module_name, str(script_path))
+    spec = importlib.util.spec_from_loader(module_name, loader)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module

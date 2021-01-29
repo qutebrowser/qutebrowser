@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import string
 import functools
@@ -30,10 +30,8 @@ import qutebrowser.browser.hints
 
 
 @pytest.fixture(autouse=True)
-def setup(benchmark, win_registry, mode_manager):
-    yield
-    # WORKAROUND for https://github.com/ionelmc/pytest-benchmark/issues/125
-    benchmark._mode = 'WORKAROUND'  # pylint: disable=protected-access
+def setup(win_registry, mode_manager):
+    pass
 
 
 @pytest.fixture
@@ -46,8 +44,7 @@ def tabbed_browser(tabbed_browser_stubs, web_tab):
     return tb
 
 
-def test_show_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
-                        mode_manager):
+def test_show_benchmark(benchmark, tabbed_browser, qtbot, mode_manager):
     """Benchmark showing/drawing of hint labels."""
     tab = tabbed_browser.widget.tabs[0]
 
@@ -66,8 +63,8 @@ def test_show_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
     benchmark(bench)
 
 
-def test_match_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
-                         mode_manager, qapp, config_stub):
+def test_match_benchmark(benchmark, tabbed_browser, qtbot, mode_manager, qapp,
+                         config_stub):
     """Benchmark matching of hint labels."""
     tab = tabbed_browser.widget.tabs[0]
 

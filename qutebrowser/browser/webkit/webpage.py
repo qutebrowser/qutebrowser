@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,13 +15,13 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """The main browser widgets."""
 
 import html
 import functools
-import typing
+from typing import cast
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QUrl, QPoint
 from PyQt5.QtGui import QDesktopServices
@@ -30,7 +30,7 @@ from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtPrintSupport import QPrintDialog
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 
-from qutebrowser.config import websettings
+from qutebrowser.config import websettings, config
 from qutebrowser.browser import pdfjs, shared, downloads, greasemonkey
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
@@ -192,6 +192,19 @@ class BrowserPage(QWebPage):
             errpage.encoding = 'utf-8'
             return True
 
+    def chooseFile(self, parent_frame: QWebFrame, suggested_file: str) -> str:
+        """Override chooseFile to (optionally) invoke custom file uploader."""
+        handler = config.val.fileselect.handler
+        if handler == "default":
+            return super().chooseFile(parent_frame, suggested_file)
+
+        assert handler == "external", handler
+        selected = shared.choose_file(multiple=False)
+        if not selected:
+            return ''
+        else:
+            return selected[0]
+
     def _handle_multiple_files(self, info, files):
         """Handle uploading of multiple files.
 
@@ -205,13 +218,18 @@ class BrowserPage(QWebPage):
         Return:
             True on success, the superclass return value on failure.
         """
-        suggested_file = ""
-        if info.suggestedFileNames:
-            suggested_file = info.suggestedFileNames[0]
+        handler = config.val.fileselect.handler
+        if handler == "default":
+            suggested_file = ""
+            if info.suggestedFileNames:
+                suggested_file = info.suggestedFileNames[0]
 
-        files.fileNames, _ = QFileDialog.getOpenFileNames(
-            None, None, suggested_file)  # type: ignore[arg-type]
+            files.fileNames, _ = QFileDialog.getOpenFileNames(
+                None, None, suggested_file)  # type: ignore[arg-type]
+            return True
 
+        assert handler == "external", handler
+        files.fileNames = shared.choose_file(multiple=True)
         return True
 
     def shutdown(self):
@@ -256,7 +274,7 @@ class BrowserPage(QWebPage):
         correct for some common errors the server do.
 
         At some point we might want to implement the MIME Sniffing standard
-        here: http://mimesniff.spec.whatwg.org/
+        here: https://mimesniff.spec.whatwg.org/
         """
         inline, suggested_filename = http.parse_content_disposition(reply)
         download_manager = objreg.get('qtnetwork-download-manager')
@@ -353,11 +371,11 @@ class BrowserPage(QWebPage):
             self.setFeaturePermission, frame, feature,
             QWebPage.PermissionDeniedByUser)
 
-        url = frame.url().adjusted(typing.cast(QUrl.FormattingOptions,
-                                               QUrl.RemoveUserInfo |
-                                               QUrl.RemovePath |
-                                               QUrl.RemoveQuery |
-                                               QUrl.RemoveFragment))
+        url = frame.url().adjusted(cast(QUrl.FormattingOptions,
+                                        QUrl.RemoveUserInfo |
+                                        QUrl.RemovePath |
+                                        QUrl.RemoveQuery |
+                                        QUrl.RemoveFragment))
         question = shared.feature_permission(
             url=url,
             option=options[feature], msg=messages[feature],
@@ -365,7 +383,7 @@ class BrowserPage(QWebPage):
             abort_on=[self.shutting_down, self.loadStarted])
 
         if question is not None:
-            self.featurePermissionRequestCanceled.connect(  # type: ignore
+            self.featurePermissionRequestCanceled.connect(  # type: ignore[attr-defined]
                 functools.partial(self._on_feature_permission_cancelled,
                                   question, frame, feature))
 

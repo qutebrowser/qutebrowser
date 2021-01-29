@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.misc.ipc."""
 
@@ -25,9 +25,10 @@ import getpass
 import logging
 import json
 import hashlib
+import dataclasses
 from unittest import mock
+from typing import Optional, List
 
-import attr
 import pytest
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtNetwork import QLocalServer, QLocalSocket, QAbstractSocket
@@ -197,6 +198,14 @@ class TestSocketName:
     def test_windows_on_posix(self, basedir, expected):
         socketname = ipc._get_socketname_windows(basedir)
         assert socketname == expected
+
+    def test_windows_broken_getpass(self, monkeypatch):
+        def _fake_username():
+            raise ImportError
+        monkeypatch.setattr(ipc.getpass, 'getuser', _fake_username)
+
+        with pytest.raises(ipc.Error, match='USERNAME'):
+            ipc._get_socketname_windows(basedir=None)
 
     @pytest.mark.mac
     @pytest.mark.parametrize('basedir, expected', [
@@ -608,13 +617,13 @@ def test_ipcserver_socket_none_error(ipc_server, caplog):
 
 class TestSendOrListen:
 
-    @attr.s
+    @dataclasses.dataclass
     class Args:
 
-        no_err_windows = attr.ib()
-        basedir = attr.ib()
-        command = attr.ib()
-        target = attr.ib()
+        no_err_windows: bool
+        basedir: str
+        command: List[str]
+        target: Optional[str]
 
     @pytest.fixture
     def args(self):
@@ -725,7 +734,7 @@ class TestSendOrListen:
             '',
             'title: Error while connecting to running instance!',
             'pre_text: ',
-            'post_text: Maybe another instance is running but frozen?',
+            'post_text: ',
             'exception text: {}'.format(exc_msg),
         ]
         assert caplog.messages == ['\n'.join(error_msgs)]
@@ -746,7 +755,7 @@ class TestSendOrListen:
             '',
             'title: Error while connecting to running instance!',
             'pre_text: ',
-            'post_text: Maybe another instance is running but frozen?',
+            'post_text: ',
             ('exception text: Error while listening to IPC server: Error '
              'string (error 4)'),
         ]
@@ -759,7 +768,7 @@ def test_long_username(monkeypatch):
     """See https://github.com/qutebrowser/qutebrowser/issues/888."""
     username = 'alexandercogneau'
     basedir = '/this_is_a_long_basedir'
-    monkeypatch.setattr('getpass.getuser', lambda: username)
+    monkeypatch.setattr(getpass, 'getuser', lambda: username)
     name = ipc._get_socketname(basedir=basedir)
     server = ipc.IPCServer(name)
     expected_md5 = md5('{}-{}'.format(username, basedir))

@@ -1,4 +1,4 @@
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.utils.jinja."""
 
@@ -27,48 +27,36 @@ import jinja2.exceptions
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils, jinja
+from qutebrowser.utils import jinja
 from qutebrowser.config import configexc
 
 
 @pytest.fixture(autouse=True)
 def patch_read_file(monkeypatch):
     """pytest fixture to patch utils.read_file."""
-    real_resource_filename = utils.resource_filename
-
-    def _read_file(path, binary=False):
+    def _read_file(path):
         """A read_file which returns a simple template if the path is right."""
         if path == os.path.join('html', 'test.html'):
-            assert not binary
             return """Hello {{var}}"""
         elif path == os.path.join('html', 'test2.html'):
-            assert not binary
             return """{{ resource_url('utils/testfile') }}"""
         elif path == os.path.join('html', 'test3.html'):
-            assert not binary
             return """{{ data_url('testfile.txt') }}"""
-        elif path == 'testfile.txt':
-            assert binary
-            return b'foo'
         elif path == os.path.join('html', 'undef.html'):
-            assert not binary
             return """{{ does_not_exist() }}"""
         elif path == os.path.join('html', 'attributeerror.html'):
-            assert not binary
             return """{{ obj.foobar }}"""
         else:
-            raise IOError("Invalid path {}!".format(path))
+            raise OSError("Invalid path {}!".format(path))
 
-    def _resource_filename(path):
-        if path == 'utils/testfile':
-            return real_resource_filename(path)
-        elif path == 'testfile.txt':
-            return path
+    def _read_file_binary(path):
+        if path == 'testfile.txt':
+            return b'foo'
         else:
-            raise IOError("Invalid path {}!".format(path))
+            raise OSError("Invalid path {}!".format(path))
 
     monkeypatch.setattr(jinja.utils, 'read_file', _read_file)
-    monkeypatch.setattr(jinja.utils, 'resource_filename', _resource_filename)
+    monkeypatch.setattr(jinja.utils, 'read_file_binary', _read_file_binary)
 
 
 def test_simple_template():
@@ -83,16 +71,7 @@ def test_resource_url():
     print(data)
     url = QUrl(data)
     assert url.isValid()
-    assert url.scheme() == 'file'
-
-    path = url.path()
-
-    if utils.is_windows:
-        path = path.lstrip('/')
-        path = path.replace('/', os.sep)
-
-    with open(path, 'r', encoding='utf-8') as f:
-        assert f.read().splitlines()[0] == "Hello World!"
+    assert url.toDisplayString() == 'qute://resource/utils/testfile'
 
 
 def test_data_url():
@@ -115,7 +94,7 @@ def test_not_found(caplog):
 
 
 def test_utf8():
-    """Test rendering with an UTF8 template.
+    """Test rendering with a UTF8 template.
 
     This was an attempt to get a failing test case for #127 but it seems
     the issue is elsewhere.

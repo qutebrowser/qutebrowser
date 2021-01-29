@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -14,7 +14,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.config.config."""
 
@@ -760,6 +760,23 @@ class TestContainer:
         error = configapi.errors[0]
         assert error.text == "While getting 'tabs.foobar'"
         assert str(error.exception) == "No option 'tabs.foobar'"
+
+    def test_confapi_missing_prefix(self, container):
+        configapi = types.SimpleNamespace(errors=[])
+        container._configapi = configapi
+        container.content.host_blocking.lists = []
+
+        assert len(configapi.errors) == 2
+
+        error1 = configapi.errors[0]
+        assert error1.text == "While getting 'content.host_blocking'"
+        assert str(error1.exception) == "No option 'content.host_blocking'"
+
+        error2 = configapi.errors[1]
+        assert error2.text == "While setting 'content.host_blocking.lists'"
+        assert str(error2.exception) == (
+            "No option 'content.host_blocking.lists' (this option was renamed to "
+            "'content.blocking.hosts.lists')")
 
     def test_pattern_no_configapi(self, config_stub):
         pattern = urlmatch.UrlPattern('https://example.com/')

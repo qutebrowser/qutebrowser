@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.misc.editor."""
 
@@ -37,9 +37,9 @@ def patch_things(config_stub, monkeypatch, stubs):
                         stubs.fake_qprocess())
 
 
-@pytest.fixture
-def editor(caplog, qtbot):
-    ed = editormod.ExternalEditor()
+@pytest.fixture(params=[True, False])
+def editor(caplog, qtbot, request):
+    ed = editormod.ExternalEditor(watch=request.param)
     yield ed
     with caplog.at_level(logging.ERROR):
         ed._remove_file = True
@@ -82,10 +82,12 @@ class TestFileHandling:
         editor._proc.finished.emit(0, QProcess.NormalExit)
         assert not filename.exists()
 
-    def test_existing_file(self, editor, tmp_path):
-        """Test editing an existing file."""
+    @pytest.mark.parametrize('touch', [True, False])
+    def test_with_filename(self, editor, tmp_path, touch):
+        """Test editing a file with an explicit path."""
         path = tmp_path / 'foo.txt'
-        path.touch()
+        if touch:
+            path.touch()
 
         editor.edit_file(str(path))
         editor._proc.finished.emit(0, QProcess.NormalExit)
@@ -134,17 +136,6 @@ class TestFileHandling:
         assert not filename.exists()
         msg = message_mock.getmsg(usertypes.MessageLevel.error)
         assert msg.text.startswith("Failed to read back edited file: ")
-
-    @pytest.fixture
-    def unwritable_tmp_path(self, tmp_path):
-        tmp_path.chmod(0)
-        if os.access(str(tmp_path), os.W_OK):
-            # Docker container or similar
-            pytest.skip("File was still writable")
-
-        yield tmp_path
-
-        tmp_path.chmod(0o755)
 
     def test_unwritable(self, monkeypatch, message_mock, editor,
                         unwritable_tmp_path, caplog):

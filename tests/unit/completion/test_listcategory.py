@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2020 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2017-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -15,9 +15,11 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for CompletionFilterModel."""
+
+import logging
 
 import pytest
 
@@ -57,3 +59,12 @@ def test_set_pattern(pattern, before, after, after_nosort, model_validator):
     model_validator.set_model(cat)
     cat.set_pattern(pattern)
     model_validator.validate(after_nosort)
+
+
+def test_long_pattern(caplog, model_validator):
+    """Validate that a huge pattern doesn't crash (#5973)."""
+    with caplog.at_level(logging.WARNING):
+        cat = listcategory.ListCategory('Foo', [('a' * 5000, '')])
+        model_validator.set_model(cat)
+        cat.set_pattern('a' * 50000)
+        model_validator.validate([('a' * 5000, '')])

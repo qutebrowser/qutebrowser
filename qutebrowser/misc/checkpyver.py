@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Check if qutebrowser is run with the correct python version.
 
@@ -31,7 +31,7 @@ except ImportError:  # pragma: no cover
     try:
         # Python2
         from Tkinter import Tk  # type: ignore[import, no-redef]
-        import tkMessageBox as messagebox  # type: ignore  # noqa: N813
+        import tkMessageBox as messagebox  # type: ignore[import, no-redef] # noqa: N813
     except ImportError:
         # Some Python without Tk
         Tk = None  # type: ignore[misc, assignment]
@@ -43,14 +43,13 @@ except ImportError:  # pragma: no cover
 # to stderr.
 def check_python_version():
     """Check if correct python version is run."""
-    if sys.hexversion < 0x03050200:
+    if sys.hexversion < 0x03060100:
         # We don't use .format() and print_function here just in case someone
         # still has < 2.6 installed.
         version_str = '.'.join(map(str, sys.version_info[:3]))
-        text = ("At least Python 3.5.2 is required to run qutebrowser, but " +
+        text = ("At least Python 3.6.1 is required to run qutebrowser, but " +
                 "it's running with " + version_str + ".\n")
-        if (Tk and  # type: ignore[unreachable]
-                '--no-err-windows' not in sys.argv):  # pragma: no cover
+        if Tk and '--no-err-windows' not in sys.argv:  # pragma: no cover
             root = Tk()
             root.withdraw()
             messagebox.showerror("qutebrowser: Fatal error!", text)

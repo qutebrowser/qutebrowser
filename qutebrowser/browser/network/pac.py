@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,13 +15,13 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Evaluation of PAC scripts."""
 
 import sys
 import functools
-import typing
+from typing import Optional
 
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QUrl
 from PyQt5.QtNetwork import (QNetworkProxy, QNetworkRequest, QHostInfo,
@@ -66,7 +66,7 @@ def _js_slot(*args):
                 return self._error_con.callAsConstructor([e])
                 # pylint: enable=protected-access
 
-        deco = pyqtSlot(*args, result=QJSValue)  # type: ignore[arg-type]
+        deco = pyqtSlot(*args, result=QJSValue)
         return deco(new_method)
     return _decorator
 
@@ -251,8 +251,7 @@ class PACFetcher(QObject):
         url.setScheme(url.scheme()[len(pac_prefix):])
 
         self._pac_url = url
-        self._manager = QNetworkAccessManager(
-        )  # type: typing.Optional[QNetworkAccessManager]
+        self._manager: Optional[QNetworkAccessManager] = QNetworkAccessManager()
         self._manager.setProxy(QNetworkProxy(QNetworkProxy.NoProxy))
         self._pac = None
         self._error_message = None
@@ -302,7 +301,7 @@ class PACFetcher(QObject):
         if self._manager is not None:
             loop = qtutils.EventLoop()
             self.finished.connect(loop.quit)
-            loop.exec_()
+            loop.exec()
 
     def fetch_error(self):
         """Check if PAC script is successfully fetched.

@@ -89,6 +89,7 @@ Feature: Special qute:// pages
         And I open qute://help/img/ without waiting
         Then "*Error while * qute://*" should be logged
         And "* url='qute://help/img'* LoadStatus.error" should be logged
+        And "Load error: ERR_FILE_NOT_FOUND" should be logged
 
     # :history
 
@@ -177,13 +178,13 @@ Feature: Special qute:// pages
         And I open data/misc/test.pdf without waiting
         Then the javascript message "PDF * [*] (PDF.js: *)" should be logged
 
+    @qtwebkit_pdf_imageformat_skip
     Scenario: pdfjs is not used when disabled
         When I set content.pdfjs to false
         And I set downloads.location.prompt to false
         And I open data/misc/test.pdf without waiting
         Then "Download test.pdf finished" should be logged
 
-    @qtwebengine_skip: Might work with Qt 5.12
     Scenario: Downloading a pdf via pdf.js button (issue 1214)
         Given pdfjs is available
         When I set content.pdfjs to true
@@ -191,8 +192,8 @@ Feature: Special qute:// pages
         And I open data/misc/test.pdf without waiting
         And I wait for "[qute://pdfjs/*] PDF * (PDF.js: *)" in the log
         And I run :jseval document.getElementById("download").click()
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=* mode=<PromptMode.download: 5> text=* title='Save file to:'>, *" in the log
-        And I run :leave-mode
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=* mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
+        And I run :mode-leave
         Then no crash should happen
 
     # :pyeval
@@ -281,7 +282,6 @@ Feature: Special qute:// pages
 
     Scenario: Using qute://log directly
         When I open qute://log without waiting
-        # With Qt 5.9, we don't get a loaded message?
         And I wait for "Changing title for idx * to 'log'" in the log
         Then no crash should happen
 

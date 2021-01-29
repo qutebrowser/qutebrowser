@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Types for options in qutebrowser's configuration.
 
@@ -47,17 +47,17 @@ import html
 import codecs
 import os.path
 import itertools
-import warnings
 import functools
 import operator
 import json
-import typing
+import dataclasses
+from typing import (Any, Callable, Dict as DictType, Iterable, Iterator,
+                    List as ListType, Optional, Pattern, Sequence, Tuple, Union)
 
-import attr
 import yaml
 from PyQt5.QtCore import QUrl, Qt
-from PyQt5.QtGui import QColor, QFontDatabase
-from PyQt5.QtWidgets import QTabWidget, QTabBar, QApplication
+from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QTabWidget, QTabBar
 from PyQt5.QtNetwork import QNetworkProxy
 
 from qutebrowser.misc import objects, debugcachestats
@@ -80,10 +80,10 @@ BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
                   '0': False, 'no': False, 'false': False, 'off': False}
 
 
-_Completions = typing.Optional[typing.Iterable[typing.Tuple[str, str]]]
-_StrUnset = typing.Union[str, usertypes.Unset]
-_UnsetNone = typing.Union[None, usertypes.Unset]
-_StrUnsetNone = typing.Union[str, _UnsetNone]
+_Completions = Optional[Iterable[Tuple[str, str]]]
+_StrUnset = Union[str, usertypes.Unset]
+_UnsetNone = Union[None, usertypes.Unset]
+_StrUnsetNone = Union[str, _UnsetNone]
 
 
 class ValidValues:
@@ -96,35 +96,40 @@ class ValidValues:
         generate_docs: Whether to show the values in the docs.
     """
 
-    def __init__(self,
-                 *values: typing.Union[str,
-                                       typing.Dict[str, str],
-                                       typing.Tuple[str, str]],
-                 generate_docs: bool = True) -> None:
+    def __init__(
+            self,
+            *values: Union[
+                str,
+                DictType[str, Optional[str]],
+                Tuple[str, Optional[str]],
+            ],
+            generate_docs: bool = True,
+    ) -> None:
         if not values:
             raise ValueError("ValidValues with no values makes no sense!")
-        self.descriptions = {}  # type: typing.Dict[str, str]
-        self.values = []  # type: typing.List[str]
+        self.descriptions: DictType[str, str] = {}
+        self.values: ListType[str] = []
         self.generate_docs = generate_docs
         for value in values:
             if isinstance(value, str):
                 # Value without description
-                self.values.append(value)
+                val = value
+                desc = None
             elif isinstance(value, dict):
                 # List of dicts from configdata.yml
                 assert len(value) == 1, value
-                value, desc = list(value.items())[0]
-                self.values.append(value)
-                self.descriptions[value] = desc
+                val, desc = list(value.items())[0]
             else:
-                # (value, description) tuple
-                self.values.append(value[0])
-                self.descriptions[value[0]] = value[1]
+                val, desc = value
+
+            self.values.append(val)
+            if desc is not None:
+                self.descriptions[val] = desc
 
     def __contains__(self, val: str) -> bool:
         return val in self.values
 
-    def __iter__(self) -> typing.Iterator[str]:
+    def __iter__(self) -> Iterator[str]:
         return self.values.__iter__()
 
     def __repr__(self) -> str:
@@ -143,27 +148,33 @@ class BaseType:
 
     Attributes:
         none_ok: Whether to allow None (or an empty string for :set) as value.
+        _completions: Override for completions for the given setting.
 
     Class attributes:
         valid_values: Possible values if they can be expressed as a fixed
                       string. ValidValues instance.
     """
 
-    def __init__(self, none_ok: bool = False) -> None:
+    def __init__(
+            self, *,
+            none_ok: bool = False,
+            completions: _Completions = None,
+    ) -> None:
+        self._completions = completions
         self.none_ok = none_ok
-        self.valid_values = None  # type: typing.Optional[ValidValues]
+        self.valid_values: Optional[ValidValues] = None
 
     def get_name(self) -> str:
         """Get a name for the type for documentation."""
         return self.__class__.__name__
 
-    def get_valid_values(self) -> typing.Optional[ValidValues]:
+    def get_valid_values(self) -> Optional[ValidValues]:
         """Get the type's valid values for documentation."""
         return self.valid_values
 
     def _basic_py_validation(
-            self, value: typing.Any,
-            pytype: typing.Union[type, typing.Tuple[type, ...]]) -> None:
+            self, value: Any,
+            pytype: Union[type, Tuple[type, ...]]) -> None:
         """Do some basic validation for Python values (emptyness, type).
 
         Arguments:
@@ -215,8 +226,7 @@ class BaseType:
             raise configexc.ValidationError(
                 value, "may not contain unprintable chars!")
 
-    def _validate_surrogate_escapes(self, full_value: typing.Any,
-                                    value: typing.Any) -> None:
+    def _validate_surrogate_escapes(self, full_value: Any, value: Any) -> None:
         """Make sure the given value doesn't contain surrogate escapes.
 
         This is used for values passed to json.dump, as it can't handle those.
@@ -242,7 +252,7 @@ class BaseType:
                     value,
                     "valid values: {}".format(', '.join(self.valid_values)))
 
-    def from_str(self, value: str) -> typing.Any:
+    def from_str(self, value: str) -> Any:
         """Get the setting value from a string.
 
         By default this invokes to_py() for validation and returns the
@@ -261,11 +271,11 @@ class BaseType:
             return None
         return value
 
-    def from_obj(self, value: typing.Any) -> typing.Any:
+    def from_obj(self, value: Any) -> Any:
         """Get the setting value from a config.py/YAML object."""
         return value
 
-    def to_py(self, value: typing.Any) -> typing.Any:
+    def to_py(self, value: Any) -> Any:
         """Get the setting value from a Python value.
 
         Args:
@@ -279,7 +289,7 @@ class BaseType:
         """
         raise NotImplementedError
 
-    def to_str(self, value: typing.Any) -> str:
+    def to_str(self, value: Any) -> str:
         """Get a string from the setting value.
 
         The resulting string should be parseable again by from_str.
@@ -289,7 +299,7 @@ class BaseType:
         assert isinstance(value, str), value
         return value
 
-    def to_doc(self, value: typing.Any, indent: int = 0) -> str:
+    def to_doc(self, value: Any, indent: int = 0) -> str:
         """Get a string with the given value for the documentation.
 
         This currently uses asciidoc syntax.
@@ -309,22 +319,17 @@ class BaseType:
         Return:
             A list of (value, description) tuples or None.
         """
-        if self.valid_values is None:
+        if self._completions is not None:
+            return self._completions
+        elif self.valid_values is None:
             return None
-        else:
-            out = []
-            for val in self.valid_values:
-                try:
-                    desc = self.valid_values.descriptions[val]
-                except KeyError:
-                    # Some values are self-explaining and don't need a
-                    # description.
-                    desc = ""
-                out.append((val, desc))
-            return out
+        return [
+            (val, self.valid_values.descriptions.get(val, ""))
+            for val in self.valid_values
+        ]
 
     def __repr__(self) -> str:
-        return utils.get_repr(self, none_ok=self.none_ok)
+        return utils.get_repr(self, none_ok=self.none_ok, completions=self._completions)
 
 
 class MappingType(BaseType):
@@ -332,24 +337,29 @@ class MappingType(BaseType):
     """Base class for any setting which has a mapping to the given values.
 
     Attributes:
-        MAPPING: The mapping to use.
+        MAPPING: A mapping from config values to (translated_value, docs) tuples.
     """
 
-    MAPPING = {}  # type: typing.Dict[str, typing.Any]
+    MAPPING: DictType[str, Tuple[Any, Optional[str]]] = {}
 
-    def __init__(self, none_ok: bool = False,
-                 valid_values: ValidValues = None) -> None:
-        super().__init__(none_ok)
-        self.valid_values = valid_values
+    def __init__(
+            self, *,
+            none_ok: bool = False,
+            completions: _Completions = None,
+    ) -> None:
+        super().__init__(none_ok=none_ok, completions=completions)
+        self.valid_values = ValidValues(
+            *[(key, doc) for (key, (_val, doc)) in self.MAPPING.items()])
 
-    def to_py(self, value: typing.Any) -> typing.Any:
+    def to_py(self, value: Any) -> Any:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
         self._validate_valid_values(value.lower())
-        return self.MAPPING[value.lower()]
+        mapped, _doc = self.MAPPING[value.lower()]
+        return mapped
 
     def __repr__(self) -> str:
         return utils.get_repr(self, none_ok=self.none_ok,
@@ -370,12 +380,18 @@ class String(BaseType):
         completions: completions to be used, or None
     """
 
-    def __init__(self, *, minlen: int = None, maxlen: int = None,
-                 forbidden: str = None, regex: str = None,
-                 encoding: str = None, none_ok: bool = False,
-                 completions: _Completions = None,
-                 valid_values: ValidValues = None) -> None:
-        super().__init__(none_ok)
+    def __init__(
+            self, *,
+            minlen: int = None,
+            maxlen: int = None,
+            forbidden: str = None,
+            regex: str = None,
+            encoding: str = None,
+            none_ok: bool = False,
+            completions: _Completions = None,
+            valid_values: ValidValues = None,
+    ) -> None:
+        super().__init__(none_ok=none_ok, completions=completions)
         self.valid_values = valid_values
 
         if minlen is not None and minlen < 1:
@@ -388,7 +404,6 @@ class String(BaseType):
         self.minlen = minlen
         self.maxlen = maxlen
         self.forbidden = forbidden
-        self._completions = completions
         self.encoding = encoding
         self.regex = regex
 
@@ -436,12 +451,6 @@ class String(BaseType):
 
         return value
 
-    def complete(self) -> _Completions:
-        if self._completions is not None:
-            return self._completions
-        else:
-            return super().complete()
-
     def __repr__(self) -> str:
         return utils.get_repr(self, none_ok=self.none_ok,
                               valid_values=self.valid_values,
@@ -479,10 +488,15 @@ class List(BaseType):
 
     _show_valtype = True
 
-    def __init__(self, valtype: BaseType,
-                 none_ok: bool = False,
-                 length: int = None) -> None:
-        super().__init__(none_ok)
+    def __init__(
+            self,
+            valtype: BaseType,
+            *,
+            length: int = None,
+            none_ok: bool = False,
+            completions: _Completions = None,
+    ) -> None:
+        super().__init__(none_ok=none_ok, completions=completions)
         self.valtype = valtype
         self.length = length
 
@@ -492,10 +506,10 @@ class List(BaseType):
             name += " of " + self.valtype.get_name()
         return name
 
-    def get_valid_values(self) -> typing.Optional[ValidValues]:
+    def get_valid_values(self) -> Optional[ValidValues]:
         return self.valtype.get_valid_values()
 
-    def from_str(self, value: str) -> typing.Optional[typing.List]:
+    def from_str(self, value: str) -> Optional[ListType]:
         self._basic_str_validation(value)
         if not value:
             return None
@@ -510,15 +524,15 @@ class List(BaseType):
         self.to_py(yaml_val)
         return yaml_val
 
-    def from_obj(self, value: typing.Optional[typing.List]) -> typing.List:
+    def from_obj(self, value: Optional[ListType]) -> ListType:
         if value is None:
             return []
         return [self.valtype.from_obj(v) for v in value]
 
     def to_py(
             self,
-            value: typing.Union[typing.List, usertypes.Unset]
-    ) -> typing.Union[typing.List, usertypes.Unset]:
+            value: Union[ListType, usertypes.Unset]
+    ) -> Union[ListType, usertypes.Unset]:
         self._basic_py_validation(value, list)
         if isinstance(value, usertypes.Unset):
             return value
@@ -533,13 +547,13 @@ class List(BaseType):
                                             "be set!".format(self.length))
         return [self.valtype.to_py(v) for v in value]
 
-    def to_str(self, value: typing.List) -> str:
+    def to_str(self, value: ListType) -> str:
         if not value:
             # An empty list is treated just like None -> empty string
             return ''
         return json.dumps(value)
 
-    def to_doc(self, value: typing.List, indent: int = 0) -> str:
+    def to_doc(self, value: ListType, indent: int = 0) -> str:
         if not value:
             return 'empty'
 
@@ -571,16 +585,20 @@ class ListOrValue(BaseType):
 
     _show_valtype = True
 
-    def __init__(self, valtype: BaseType, *,
-                 none_ok: bool = False,
-                 **kwargs: typing.Any) -> None:
-        super().__init__(none_ok)
+    def __init__(
+            self,
+            valtype: BaseType,
+            *,
+            none_ok: bool = False,
+            completions: _Completions = None,
+            **kwargs: Any,
+    ) -> None:
+        super().__init__(none_ok=none_ok, completions=completions)
         assert not isinstance(valtype, (List, ListOrValue)), valtype
-        self.listtype = List(valtype, none_ok=none_ok, **kwargs)
+        self.listtype = List(valtype=valtype, none_ok=none_ok, **kwargs)
         self.valtype = valtype
 
-    def _val_and_type(self,
-                      value: typing.Any) -> typing.Tuple[typing.Any, BaseType]:
+    def _val_and_type(self, value: Any) -> Tuple[Any, BaseType]:
         """Get the value and type to use for to_str/to_doc/from_str."""
         if isinstance(value, list):
             if len(value) == 1:
@@ -593,21 +611,21 @@ class ListOrValue(BaseType):
     def get_name(self) -> str:
         return self.listtype.get_name() + ', or ' + self.valtype.get_name()
 
-    def get_valid_values(self) -> typing.Optional[ValidValues]:
+    def get_valid_values(self) -> Optional[ValidValues]:
         return self.valtype.get_valid_values()
 
-    def from_str(self, value: str) -> typing.Any:
+    def from_str(self, value: str) -> Any:
         try:
             return self.listtype.from_str(value)
         except configexc.ValidationError:
             return self.valtype.from_str(value)
 
-    def from_obj(self, value: typing.Any) -> typing.Any:
+    def from_obj(self, value: Any) -> Any:
         if value is None:
             return []
         return value
 
-    def to_py(self, value: typing.Any) -> typing.Any:
+    def to_py(self, value: Any) -> Any:
         if isinstance(value, usertypes.Unset):
             return value
 
@@ -616,14 +634,14 @@ class ListOrValue(BaseType):
         except configexc.ValidationError:
             return self.listtype.to_py(value)
 
-    def to_str(self, value: typing.Any) -> str:
+    def to_str(self, value: Any) -> str:
         if value is None:
             return ''
 
         val, typ = self._val_and_type(value)
         return typ.to_str(val)
 
-    def to_doc(self, value: typing.Any, indent: int = 0) -> str:
+    def to_doc(self, value: Any, indent: int = 0) -> str:
         if value is None:
             return 'empty'
 
@@ -642,31 +660,43 @@ class FlagList(List):
     the valid values of the setting.
     """
 
-    combinable_values = None  # type: typing.Optional[typing.Sequence]
+    combinable_values: Optional[Sequence] = None
 
     _show_valtype = False
 
-    def __init__(self, none_ok: bool = False,
-                 valid_values: ValidValues = None,
-                 length: int = None) -> None:
-        super().__init__(valtype=String(), none_ok=none_ok, length=length)
+    def __init__(
+            self, *,
+            none_ok: bool = False,
+            completions: _Completions = None,
+            valid_values: ValidValues = None,
+            length: int = None,
+    ) -> None:
+        super().__init__(
+            valtype=String(),
+            none_ok=none_ok,
+            length=length,
+            completions=completions,
+        )
         self.valtype.valid_values = valid_values
 
-    def _check_duplicates(self, values: typing.List) -> None:
+    def _check_duplicates(self, values: ListType) -> None:
         if len(set(values)) != len(values):
             raise configexc.ValidationError(
                 values, "List contains duplicate values!")
 
     def to_py(
             self,
-            value: typing.Union[usertypes.Unset, typing.List],
-    ) -> typing.Union[usertypes.Unset, typing.List]:
+            value: Union[usertypes.Unset, ListType],
+    ) -> Union[usertypes.Unset, ListType]:
         vals = super().to_py(value)
         if not isinstance(vals, usertypes.Unset):
             self._check_duplicates(vals)
         return vals
 
     def complete(self) -> _Completions:
+        if self._completions is not None:
+            return self._completions
+
         valid_values = self.valtype.valid_values
         if valid_values is None:
             return None
@@ -700,17 +730,20 @@ class Bool(BaseType):
     while `0`, `no`, `off` and `false` count as false (case-insensitive).
     """
 
-    def __init__(self, none_ok: bool = False) -> None:
-        super().__init__(none_ok)
+    def __init__(
+            self, *,
+            none_ok: bool = False,
+            completions: _Completions = None
+    ) -> None:
+        super().__init__(none_ok=none_ok, completions=completions)
         self.valid_values = ValidValues('true', 'false', generate_docs=False)
 
-    def to_py(self,
-              value: typing.Union[bool, str, None]) -> typing.Optional[bool]:
+    def to_py(self, value: Union[bool, str, None]) -> Optional[bool]:
         self._basic_py_validation(value, bool)
         assert not isinstance(value, str)
         return value
 
-    def from_str(self, value: str) -> typing.Optional[bool]:
+    def from_str(self, value: str) -> Optional[bool]:
         self._basic_str_validation(value)
         if not value:
             return None
@@ -720,7 +753,7 @@ class Bool(BaseType):
         except KeyError:
             raise configexc.ValidationError(value, "must be a boolean!")
 
-    def to_str(self, value: typing.Optional[bool]) -> str:
+    def to_str(self, value: Optional[bool]) -> str:
         mapping = {
             None: '',
             True: 'true',
@@ -733,12 +766,16 @@ class BoolAsk(Bool):
 
     """Like `Bool`, but `ask` is allowed as additional value."""
 
-    def __init__(self, none_ok: bool = False) -> None:
-        super().__init__(none_ok)
+    def __init__(
+            self, *,
+            none_ok: bool = False,
+            completions: _Completions = None,
+    ) -> None:
+        super().__init__(none_ok=none_ok, completions=completions)
         self.valid_values = ValidValues('true', 'false', 'ask')
 
     def to_py(self,  # type: ignore[override]
-              value: typing.Union[bool, str]) -> typing.Union[bool, str, None]:
+              value: Union[bool, str]) -> Union[bool, str, None]:
         # basic validation unneeded if it's == 'ask' and done by Bool if we
         # call super().to_py
         if isinstance(value, str) and value.lower() == 'ask':
@@ -746,14 +783,14 @@ class BoolAsk(Bool):
         return super().to_py(value)
 
     def from_str(self,  # type: ignore[override]
-                 value: str) -> typing.Union[bool, str, None]:
+                 value: str) -> Union[bool, str, None]:
         # basic validation unneeded if it's == 'ask' and done by Bool if we
         # call super().from_str
         if value.lower() == 'ask':
             return 'ask'
         return super().from_str(value)
 
-    def to_str(self, value: typing.Union[bool, str, None]) -> str:
+    def to_str(self, value: Union[bool, str, None]) -> str:
         mapping = {
             None: '',
             True: 'true',
@@ -772,11 +809,15 @@ class _Numeric(BaseType):  # pylint: disable=abstract-method
         maxval: Maximum value (inclusive).
     """
 
-    def __init__(self, minval: int = None,
-                 maxval: int = None,
-                 zero_ok: bool = True,
-                 none_ok: bool = False) -> None:
-        super().__init__(none_ok)
+    def __init__(
+            self, *,
+            minval: int = None,
+            maxval: int = None,
+            zero_ok: bool = True,
+            none_ok: bool = False,
+            completions: _Completions = None,
+    ) -> None:
+        super().__init__(none_ok=none_ok, completions=completions)
         self.minval = self._parse_bound(minval)
         self.maxval = self._parse_bound(maxval)
         self.zero_ok = zero_ok
@@ -786,8 +827,8 @@ class _Numeric(BaseType):  # pylint: disable=abstract-method
                                  .format(self.minval, self.maxval))
 
     def _parse_bound(
-            self, bound: typing.Union[None, str, int, float]
-    ) -> typing.Union[None, int, float]:
+            self, bound: Union[None, str, int, float]
+    ) -> Union[None, int, float]:
         """Get a numeric bound from a string like 'maxint'."""
         if bound == 'maxint':
             return qtutils.MAXVALS['int']
@@ -799,7 +840,7 @@ class _Numeric(BaseType):  # pylint: disable=abstract-method
             return bound
 
     def _validate_bounds(self,
-                         value: typing.Union[int, float, _UnsetNone],
+                         value: Union[int, float, _UnsetNone],
                          suffix: str = '') -> None:
         """Validate self.minval and self.maxval."""
         if value is None:
@@ -815,7 +856,7 @@ class _Numeric(BaseType):  # pylint: disable=abstract-method
         elif not self.zero_ok and value == 0:
             raise configexc.ValidationError(value, "must not be 0!")
 
-    def to_str(self, value: typing.Union[None, int, float]) -> str:
+    def to_str(self, value: Union[None, int, float]) -> str:
         if value is None:
             return ''
         return str(value)
@@ -829,7 +870,7 @@ class Int(_Numeric):
 
     """Base class for an integer setting."""
 
-    def from_str(self, value: str) -> typing.Optional[int]:
+    def from_str(self, value: str) -> Optional[int]:
         self._basic_str_validation(value)
         if not value:
             return None
@@ -841,10 +882,7 @@ class Int(_Numeric):
         self.to_py(intval)
         return intval
 
-    def to_py(
-            self,
-            value: typing.Union[int, _UnsetNone]
-    ) -> typing.Union[int, _UnsetNone]:
+    def to_py(self, value: Union[int, _UnsetNone]) -> Union[int, _UnsetNone]:
         self._basic_py_validation(value, int)
         self._validate_bounds(value)
         return value
@@ -854,7 +892,7 @@ class Float(_Numeric):
 
     """Base class for a float setting."""
 
-    def from_str(self, value: str) -> typing.Optional[float]:
+    def from_str(self, value: str) -> Optional[float]:
         self._basic_str_validation(value)
         if not value:
             return None
@@ -868,8 +906,8 @@ class Float(_Numeric):
 
     def to_py(
             self,
-            value: typing.Union[int, float, _UnsetNone],
-    ) -> typing.Union[int, float, _UnsetNone]:
+            value: Union[int, float, _UnsetNone],
+    ) -> Union[int, float, _UnsetNone]:
         self._basic_py_validation(value, (int, float))
         self._validate_bounds(value)
         return value
@@ -881,8 +919,8 @@ class Perc(_Numeric):
 
     def to_py(
             self,
-            value: typing.Union[float, int, str, _UnsetNone]
-    ) -> typing.Union[float, int, _UnsetNone]:
+            value: Union[float, int, str, _UnsetNone]
+    ) -> Union[float, int, _UnsetNone]:
         self._basic_py_validation(value, (float, int, str))
         if isinstance(value, usertypes.Unset):
             return value
@@ -899,7 +937,7 @@ class Perc(_Numeric):
         self._validate_bounds(value, suffix='%')
         return value
 
-    def to_str(self, value: typing.Union[None, float, int, str]) -> str:
+    def to_str(self, value: Union[None, float, int, str]) -> str:
         if value is None:
             return ''
         elif isinstance(value, str):
@@ -919,10 +957,21 @@ class PercOrInt(_Numeric):
         maxint: Maximum value for integer (inclusive).
     """
 
-    def __init__(self, minperc: int = None, maxperc: int = None,
-                 minint: int = None, maxint: int = None,
-                 none_ok: bool = False) -> None:
-        super().__init__(minval=minint, maxval=maxint, none_ok=none_ok)
+    def __init__(
+            self, *,
+            minperc: int = None,
+            maxperc: int = None,
+            minint: int = None,
+            maxint: int = None,
+            none_ok: bool = False,
+            completions: _Completions = None,
+    ) -> None:
+        super().__init__(
+            minval=minint,
+            maxval=maxint,
+            none_ok=none_ok,
+            completions=completions,
+        )
         self.minperc = self._parse_bound(minperc)
         self.maxperc = self._parse_bound(maxperc)
         if (self.maxperc is not None and self.minperc is not None and
@@ -930,7 +979,7 @@ class PercOrInt(_Numeric):
             raise ValueError("minperc ({}) needs to be <= maxperc "
                              "({})!".format(self.minperc, self.maxperc))
 
-    def from_str(self, value: str) -> typing.Union[None, str, int]:
+    def from_str(self, value: str) -> Union[None, str, int]:
         self._basic_str_validation(value)
         if not value:
             return None
@@ -947,10 +996,7 @@ class PercOrInt(_Numeric):
         self.to_py(intval)
         return intval
 
-    def to_py(
-            self,
-            value: typing.Union[None, str, int]
-    ) -> typing.Union[None, str, int]:
+    def to_py(self, value: Union[None, str, int]) -> Union[None, str, int]:
         """Expect a value like '42%' as string, or 23 as int."""
         self._basic_py_validation(value, (int, str))
         if value is None:
@@ -996,6 +1042,9 @@ class Command(BaseType):
     """
 
     def complete(self) -> _Completions:
+        if self._completions is not None:
+            return self._completions
+
         out = []
         for cmdname, obj in objects.commands.items():
             out.append((cmdname, obj.desc))
@@ -1010,20 +1059,11 @@ class ColorSystem(MappingType):
 
     """The color system to use for color interpolation."""
 
-    def __init__(self, none_ok: bool = False) -> None:
-        super().__init__(
-            none_ok,
-            valid_values=ValidValues(
-                ('rgb', "Interpolate in the RGB color system."),
-                ('hsv', "Interpolate in the HSV color system."),
-                ('hsl', "Interpolate in the HSL color system."),
-                ('none', "Don't show a gradient.")))
-
     MAPPING = {
-        'rgb': QColor.Rgb,
-        'hsv': QColor.Hsv,
-        'hsl': QColor.Hsl,
-        'none': None,
+        'rgb': (QColor.Rgb, "Interpolate in the RGB color system."),
+        'hsv': (QColor.Hsv, "Interpolate in the HSV color system."),
+        'hsl': (QColor.Hsl, "Interpolate in the HSL color system."),
+        'none': (None, "Don't show a gradient."),
     }
 
 
@@ -1031,19 +1071,13 @@ class IgnoreCase(MappingType):
 
     """Whether to search case insensitively."""
 
-    def __init__(self, none_ok: bool = False) -> None:
-        super().__init__(
-            none_ok,
-            valid_values=ValidValues(
-                ('always', "Search case-insensitively."),
-                ('never', "Search case-sensitively."),
-                ('smart', ("Search case-sensitively if there are capital "
-                           "characters."))))
-
     MAPPING = {
-        'always': usertypes.IgnoreCase.always,
-        'never': usertypes.IgnoreCase.never,
-        'smart': usertypes.IgnoreCase.smart,
+        'always': (usertypes.IgnoreCase.always, "Search case-insensitively."),
+        'never': (usertypes.IgnoreCase.never, "Search case-sensitively."),
+        'smart': (
+            usertypes.IgnoreCase.smart,
+            "Search case-sensitively if there are capital characters."
+        ),
     }
 
 
@@ -1053,9 +1087,9 @@ class QtColor(BaseType):
 
     A value can be in one of the following formats:
 
-    * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB`
+    * `#RGB`/`#RRGGBB`/`#AARRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB`
     * An SVG color name as specified in
-      http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification].
+      https://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification].
     * transparent (no color)
     * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages)
     * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
@@ -1077,7 +1111,7 @@ class QtColor(BaseType):
         except ValueError:
             raise configexc.ValidationError(val, "must be a valid color value")
 
-    def to_py(self, value: _StrUnset) -> typing.Union[_UnsetNone, QColor]:
+    def to_py(self, value: _StrUnset) -> Union[_UnsetNone, QColor]:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value
@@ -1089,12 +1123,12 @@ class QtColor(BaseType):
             kind = value[:openparen]
             vals = value[openparen+1:-1].split(',')
 
-            converters = {
+            converters: DictType[str, Callable[..., QColor]] = {
                 'rgba': QColor.fromRgb,
                 'rgb': QColor.fromRgb,
                 'hsva': QColor.fromHsv,
                 'hsv': QColor.fromHsv,
-            }  # type: typing.Dict[str, typing.Callable[..., QColor]]
+            }
 
             conv = converters.get(kind)
             if not conv:
@@ -1124,14 +1158,14 @@ class QssColor(BaseType):
 
     A value can be in one of the following formats:
 
-    * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB`
+    * `#RGB`/`#RRGGBB`/`#AARRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB`
     * An SVG color name as specified in
-      http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification].
+      https://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification].
     * transparent (no color)
     * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages)
     * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
     * A gradient as explained in
-      http://doc.qt.io/qt-5/stylesheet-reference.html#list-of-property-types[the Qt documentation]
+      https://doc.qt.io/qt-5/stylesheet-reference.html#list-of-property-types[the Qt documentation]
       under ``Gradient''
     """
 
@@ -1160,8 +1194,8 @@ class FontBase(BaseType):
     """Base class for Font/FontFamily."""
 
     # Gets set when the config is initialized.
-    default_family = None  # type: str
-    default_size = None  # type: str
+    default_family: Optional[str] = None
+    default_size: Optional[str] = None
     font_regex = re.compile(r"""
         (
             (
@@ -1179,61 +1213,21 @@ class FontBase(BaseType):
         (?P<family>.+)  # mandatory font family""", re.VERBOSE)
 
     @classmethod
-    def set_defaults(cls, default_family: typing.List[str],
-                     default_size: str) -> None:
+    def set_defaults(cls, default_family: ListType[str], default_size: str) -> None:
         """Make sure default_family/default_size are available.
 
         If the given family value (fonts.default_family in the config) is
         unset, a system-specific default monospace font is used.
-
-        Note that (at least) three ways of getting the default monospace font
-        exist:
-
-        1) f = QFont()
-           f.setStyleHint(QFont.Monospace)
-           print(f.defaultFamily())
-
-        2) f = QFont()
-           f.setStyleHint(QFont.TypeWriter)
-           print(f.defaultFamily())
-
-        3) f = QFontDatabase.systemFont(QFontDatabase.FixedFont)
-           print(f.family())
-
-        They yield different results depending on the OS:
-
-                   QFont.Monospace  | QFont.TypeWriter    | QFontDatabase
-                   ------------------------------------------------------
-        Windows:   Courier New      | Courier New         | Courier New
-        Linux:     DejaVu Sans Mono | DejaVu Sans Mono    | monospace
-        macOS:     Menlo            | American Typewriter | Monaco
-
-        Test script: https://p.cmpl.cc/d4dfe573
-
-        On Linux, it seems like both actually resolve to the same font.
-
-        On macOS, "American Typewriter" looks like it indeed tries to imitate a
-        typewriter, so it's not really a suitable UI font.
-
-        Looking at those Wikipedia articles:
-
-        https://en.wikipedia.org/wiki/Monaco_(typeface)
-        https://en.wikipedia.org/wiki/Menlo_(typeface)
-
-        the "right" choice isn't really obvious. Thus, let's go for the
-        QFontDatabase approach here, since it's by far the simplest one.
         """
         if default_family:
             families = configutils.FontFamilies(default_family)
         else:
-            assert QApplication.instance() is not None
-            font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
-            families = configutils.FontFamilies([font.family()])
+            families = configutils.FontFamilies.from_system_default()
 
         cls.default_family = families.to_str(quote=True)
         cls.default_size = default_size
 
-    def to_py(self, value: typing.Any) -> typing.Any:
+    def to_py(self, value: Any) -> Any:
         raise NotImplementedError
 
 
@@ -1304,9 +1298,13 @@ class Regex(BaseType):
         _regex_type: The Python type of a regex object.
     """
 
-    def __init__(self, flags: str = None,
-                 none_ok: bool = False) -> None:
-        super().__init__(none_ok)
+    def __init__(
+            self, *,
+            flags: str = None,
+            none_ok: bool = False,
+            completions: _Completions = None,
+    ) -> None:
+        super().__init__(none_ok=none_ok, completions=completions)
         self._regex_type = type(re.compile(''))
         # Parse flags from configdata.yml
         if flags is None:
@@ -1316,40 +1314,29 @@ class Regex(BaseType):
                 operator.or_,
                 (getattr(re, flag.strip()) for flag in flags.split(' | ')))
 
-    def _compile_regex(self, pattern: str) -> typing.Pattern[str]:
+    def _compile_regex(self, pattern: str) -> Pattern[str]:
         """Check if the given regex is valid.
 
-        This is more complicated than it could be since there's a warning on
-        invalid escapes with newer Python versions, and we want to catch that
-        case and treat it as invalid.
+        Some semi-invalid regexes can also raise warnings - we also treat them as
+        invalid.
         """
-        with warnings.catch_warnings(record=True) as recorded_warnings:
-            warnings.simplefilter('always')
-            try:
+        try:
+            with log.py_warning_filter('error', category=FutureWarning):
                 compiled = re.compile(pattern, self.flags)
-            except re.error as e:
-                raise configexc.ValidationError(
-                    pattern, "must be a valid regex - " + str(e))
-            except RuntimeError:  # pragma: no cover
-                raise configexc.ValidationError(
-                    pattern, "must be a valid regex - recursion depth "
-                    "exceeded")
-
-        assert recorded_warnings is not None
-
-        for w in recorded_warnings:
-            if (issubclass(w.category, DeprecationWarning) and
-                    str(w.message).startswith('bad escape')):
-                raise configexc.ValidationError(
-                    pattern, "must be a valid regex - " + str(w.message))
-            warnings.warn(w.message)
+        except (re.error, FutureWarning) as e:
+            raise configexc.ValidationError(
+                pattern, "must be a valid regex - " + str(e))
+        except RuntimeError:  # pragma: no cover
+            raise configexc.ValidationError(
+                pattern, "must be a valid regex - recursion depth "
+                "exceeded")
 
         return compiled
 
     def to_py(
             self,
-            value: typing.Union[str, typing.Pattern[str], usertypes.Unset]
-    ) -> typing.Union[_UnsetNone, typing.Pattern[str]]:
+            value: Union[str, Pattern[str], usertypes.Unset]
+    ) -> Union[_UnsetNone, Pattern[str]]:
         """Get a compiled regex from either a string or a regex object."""
         self._basic_py_validation(value, (str, self._regex_type))
         if isinstance(value, usertypes.Unset):
@@ -1361,8 +1348,7 @@ class Regex(BaseType):
         else:
             return value
 
-    def to_str(self,
-               value: typing.Union[None, str, typing.Pattern[str]]) -> str:
+    def to_str(self, value: Union[None, str, Pattern[str]]) -> str:
         if value is None:
             return ''
         elif isinstance(value, self._regex_type):
@@ -1382,12 +1368,16 @@ class Dict(BaseType):
     When setting from a string, pass a json-like dict, e.g. `{"key", "value"}`.
     """
 
-    def __init__(self, keytype: typing.Union[String, 'Key'],
-                 valtype: BaseType, *,
-                 fixed_keys: typing.Iterable = None,
-                 required_keys: typing.Iterable = None,
-                 none_ok: bool = False) -> None:
-        super().__init__(none_ok)
+    def __init__(
+            self, *,
+            keytype: Union[String, 'Key'],
+            valtype: BaseType,
+            fixed_keys: Iterable = None,
+            required_keys: Iterable = None,
+            none_ok: bool = False,
+            completions: _Completions = None,
+    ) -> None:
+        super().__init__(none_ok=none_ok, completions=completions)
         # If the keytype is not a string, we'll get problems with showing it as
         # json in to_str() as json converts keys to strings.
         assert isinstance(keytype, (String, Key)), keytype
@@ -1396,7 +1386,7 @@ class Dict(BaseType):
         self.fixed_keys = fixed_keys
         self.required_keys = required_keys
 
-    def _validate_keys(self, value: typing.Dict) -> None:
+    def _validate_keys(self, value: DictType) -> None:
         if (self.fixed_keys is not None and not
                 set(value.keys()).issubset(self.fixed_keys)):
             raise configexc.ValidationError(
@@ -1407,7 +1397,7 @@ class Dict(BaseType):
             raise configexc.ValidationError(
                 value, "Required keys {}".format(self.required_keys))
 
-    def from_str(self, value: str) -> typing.Optional[typing.Dict]:
+    def from_str(self, value: str) -> Optional[DictType]:
         self._basic_str_validation(value)
         if not value:
             return None
@@ -1422,14 +1412,14 @@ class Dict(BaseType):
         self.to_py(yaml_val)
         return yaml_val
 
-    def from_obj(self, value: typing.Optional[typing.Dict]) -> typing.Dict:
+    def from_obj(self, value: Optional[DictType]) -> DictType:
         if value is None:
             return {}
 
         return {self.keytype.from_obj(key): self.valtype.from_obj(val)
                 for key, val in value.items()}
 
-    def _fill_fixed_keys(self, value: typing.Dict) -> typing.Dict:
+    def _fill_fixed_keys(self, value: DictType) -> DictType:
         """Fill missing fixed keys with a None-value."""
         if self.fixed_keys is None:
             return value
@@ -1440,8 +1430,8 @@ class Dict(BaseType):
 
     def to_py(
             self,
-            value: typing.Union[typing.Dict, _UnsetNone]
-    ) -> typing.Union[typing.Dict, usertypes.Unset]:
+            value: Union[DictType, _UnsetNone]
+    ) -> Union[DictType, usertypes.Unset]:
         self._basic_py_validation(value, dict)
         if isinstance(value, usertypes.Unset):
             return value
@@ -1457,13 +1447,13 @@ class Dict(BaseType):
              for key, val in value.items()}
         return self._fill_fixed_keys(d)
 
-    def to_str(self, value: typing.Dict) -> str:
+    def to_str(self, value: DictType) -> str:
         if not value:
             # An empty Dict is treated just like None -> empty string
             return ''
         return json.dumps(value, sort_keys=True)
 
-    def to_doc(self, value: typing.Dict, indent: int = 0) -> str:
+    def to_doc(self, value: DictType, indent: int = 0) -> str:
         if not value:
             return 'empty'
         lines = ['\n']
@@ -1486,8 +1476,13 @@ class File(BaseType):
 
     """A file on the local filesystem."""
 
-    def __init__(self, required: bool = True, **kwargs: typing.Any) -> None:
-        super().__init__(**kwargs)
+    def __init__(
+            self, *,
+            required: bool = True,
+            none_ok: bool = False,
+            completions: _Completions = None,
+    ) -> None:
+        super().__init__(none_ok=none_ok, completions=completions)
         self.required = required
 
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
@@ -1552,10 +1547,14 @@ class FormatString(BaseType):
         completions: completions to be used, or None
     """
 
-    def __init__(self, fields: typing.Iterable[str],
-                 none_ok: bool = False,
-                 completions: _Completions = None) -> None:
-        super().__init__(none_ok)
+    def __init__(
+            self, *,
+            fields: Iterable[str],
+            none_ok: bool = False,
+            completions: _Completions = None,
+    ) -> None:
+        super().__init__(
+            none_ok=none_ok, completions=completions)
         self.fields = fields
         self._completions = completions
 
@@ -1576,12 +1575,6 @@ class FormatString(BaseType):
 
         return value
 
-    def complete(self) -> _Completions:
-        if self._completions is not None:
-            return self._completions
-        else:
-            return super().complete()
-
     def __repr__(self) -> str:
         return utils.get_repr(self, none_ok=self.none_ok, fields=self.fields)
 
@@ -1598,15 +1591,19 @@ class ShellCommand(List):
 
     _show_valtype = False
 
-    def __init__(self, placeholder: bool = False,
-                 none_ok: bool = False) -> None:
-        super().__init__(valtype=String(), none_ok=none_ok)
+    def __init__(
+            self, *,
+            placeholder: bool = False,
+            none_ok: bool = False,
+            completions: _Completions = None,
+    ) -> None:
+        super().__init__(valtype=String(), none_ok=none_ok, completions=completions)
         self.placeholder = placeholder
 
     def to_py(
             self,
-            value: typing.Union[typing.List, usertypes.Unset],
-    ) -> typing.Union[typing.List, usertypes.Unset]:
+            value: Union[ListType, usertypes.Unset],
+    ) -> Union[ListType, usertypes.Unset]:
         py_value = super().to_py(value)
         if isinstance(py_value, usertypes.Unset):
             return py_value
@@ -1630,8 +1627,12 @@ class Proxy(BaseType):
 
     """A proxy URL, or `system`/`none`."""
 
-    def __init__(self, none_ok: bool = False) -> None:
-        super().__init__(none_ok)
+    def __init__(
+            self, *,
+            none_ok: bool = False,
+            completions: _Completions = None
+    ) -> None:
+        super().__init__(none_ok=none_ok, completions=completions)
         self.valid_values = ValidValues(
             ('system', "Use the system wide proxy."),
             ('none', "Don't use any proxy"))
@@ -1639,7 +1640,7 @@ class Proxy(BaseType):
     def to_py(
             self,
             value: _StrUnset
-    ) -> typing.Union[_UnsetNone, QNetworkProxy, _SystemProxy, pac.PACFetcher]:
+    ) -> Union[_UnsetNone, QNetworkProxy, _SystemProxy, pac.PACFetcher]:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value
@@ -1663,6 +1664,9 @@ class Proxy(BaseType):
             raise configexc.ValidationError(value, e)
 
     def complete(self) -> _Completions:
+        if self._completions is not None:
+            return self._completions
+
         assert self.valid_values is not None
         out = []
         for val in self.valid_values:
@@ -1709,7 +1713,7 @@ class FuzzyUrl(BaseType):
 
     """A URL which gets interpreted as search if needed."""
 
-    def to_py(self, value: _StrUnset) -> typing.Union[QUrl, _UnsetNone]:
+    def to_py(self, value: _StrUnset) -> Union[QUrl, _UnsetNone]:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value
@@ -1722,15 +1726,15 @@ class FuzzyUrl(BaseType):
             raise configexc.ValidationError(value, str(e))
 
 
-@attr.s
+@dataclasses.dataclass
 class PaddingValues:
 
     """Four padding values."""
 
-    top = attr.ib()  # type: int
-    bottom = attr.ib()  # type: int
-    left = attr.ib()  # type: int
-    right = attr.ib()  # type: int
+    top: int
+    bottom: int
+    left: int
+    right: int
 
 
 class Padding(Dict):
@@ -1739,16 +1743,23 @@ class Padding(Dict):
 
     _show_valtype = False
 
-    def __init__(self, none_ok: bool = False) -> None:
-        super().__init__(keytype=String(),
-                         valtype=Int(minval=0, none_ok=none_ok),
-                         fixed_keys=['top', 'bottom', 'left', 'right'],
-                         none_ok=none_ok)
+    def __init__(
+            self, *,
+            none_ok: bool = False,
+            completions: _Completions = None,
+    ) -> None:
+        super().__init__(
+            keytype=String(),
+            valtype=Int(minval=0, none_ok=none_ok),
+            fixed_keys=['top', 'bottom', 'left', 'right'],
+            none_ok=none_ok,
+            completions=completions
+        )
 
     def to_py(  # type: ignore[override]
             self,
-            value: typing.Union[typing.Dict, _UnsetNone],
-    ) -> typing.Union[usertypes.Unset, PaddingValues]:
+            value: Union[DictType, _UnsetNone],
+    ) -> Union[usertypes.Unset, PaddingValues]:
         d = super().to_py(value)
         if isinstance(d, usertypes.Unset):
             return d
@@ -1778,16 +1789,11 @@ class Position(MappingType):
     """The position of the tab bar."""
 
     MAPPING = {
-        'top': QTabWidget.North,
-        'bottom': QTabWidget.South,
-        'left': QTabWidget.West,
-        'right': QTabWidget.East,
+        'top': (QTabWidget.North, None),
+        'bottom': (QTabWidget.South, None),
+        'left': (QTabWidget.West, None),
+        'right': (QTabWidget.East, None),
     }
-
-    def __init__(self, none_ok: bool = False) -> None:
-        super().__init__(
-            none_ok,
-            valid_values=ValidValues('top', 'bottom', 'left', 'right'))
 
 
 class TextAlignment(MappingType):
@@ -1795,23 +1801,22 @@ class TextAlignment(MappingType):
     """Alignment of text."""
 
     MAPPING = {
-        'left': Qt.AlignLeft,
-        'right': Qt.AlignRight,
-        'center': Qt.AlignCenter,
+        'left': (Qt.AlignLeft, None),
+        'right': (Qt.AlignRight, None),
+        'center': (Qt.AlignCenter, None),
     }
-
-    def __init__(self, none_ok: bool = False) -> None:
-        super().__init__(
-            none_ok,
-            valid_values=ValidValues('left', 'right', 'center'))
 
 
 class VerticalPosition(String):
 
     """The position of the download bar."""
 
-    def __init__(self, none_ok: bool = False) -> None:
-        super().__init__(none_ok=none_ok)
+    def __init__(
+            self, *,
+            none_ok: bool = False,
+            completions: _Completions = None,
+    ) -> None:
+        super().__init__(none_ok=none_ok, completions=completions)
         self.valid_values = ValidValues('top', 'bottom')
 
 
@@ -1819,7 +1824,7 @@ class Url(BaseType):
 
     """A URL as a string."""
 
-    def to_py(self, value: _StrUnset) -> typing.Union[_UnsetNone, QUrl]:
+    def to_py(self, value: _StrUnset) -> Union[_UnsetNone, QUrl]:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value
@@ -1853,20 +1858,21 @@ class SelectOnRemove(MappingType):
     """Which tab to select when the focused tab is removed."""
 
     MAPPING = {
-        'prev': QTabBar.SelectLeftTab,
-        'next': QTabBar.SelectRightTab,
-        'last-used': QTabBar.SelectPreviousTab,
+        'prev': (
+            QTabBar.SelectLeftTab,
+            ("Select the tab which came before the closed one "
+             "(left in horizontal, above in vertical)."),
+        ),
+        'next': (
+            QTabBar.SelectRightTab,
+            ("Select the tab which came after the closed one "
+             "(right in horizontal, below in vertical)."),
+        ),
+        'last-used': (
+            QTabBar.SelectPreviousTab,
+            "Select the previously selected tab.",
+        ),
     }
-
-    def __init__(self, none_ok: bool = False) -> None:
-        super().__init__(
-            none_ok,
-            valid_values=ValidValues(
-                ('prev', "Select the tab which came before the closed one "
-                 "(left in horizontal, above in vertical)."),
-                ('next', "Select the tab which came after the closed one "
-                 "(right in horizontal, below in vertical)."),
-                ('last-used', "Select the previously selected tab.")))
 
 
 class ConfirmQuit(FlagList):
@@ -1876,8 +1882,12 @@ class ConfirmQuit(FlagList):
     # Values that can be combined with commas
     combinable_values = ('multiple-tabs', 'downloads')
 
-    def __init__(self, none_ok: bool = False) -> None:
-        super().__init__(none_ok)
+    def __init__(
+            self, *,
+            none_ok: bool = False,
+            completions: _Completions = None,
+    ) -> None:
+        super().__init__(none_ok=none_ok, completions=completions)
         self.valtype.none_ok = none_ok
         self.valtype.valid_values = ValidValues(
             ('always', "Always show a confirmation."),
@@ -1889,8 +1899,8 @@ class ConfirmQuit(FlagList):
 
     def to_py(
             self,
-            value: typing.Union[usertypes.Unset, typing.List],
-    ) -> typing.Union[typing.List, usertypes.Unset]:
+            value: Union[usertypes.Unset, ListType],
+    ) -> Union[ListType, usertypes.Unset]:
         values = super().to_py(value)
         if isinstance(values, usertypes.Unset):
             return values
@@ -1913,8 +1923,12 @@ class NewTabPosition(String):
 
     """How new tabs are positioned."""
 
-    def __init__(self, none_ok: bool = False) -> None:
-        super().__init__(none_ok=none_ok)
+    def __init__(
+            self, *,
+            none_ok: bool = False,
+            completions: _Completions = None,
+    ) -> None:
+        super().__init__(none_ok=none_ok, completions=completions)
         self.valid_values = ValidValues(
             ('prev', "Before the current tab."),
             ('next', "After the current tab."),
@@ -1926,8 +1940,12 @@ class LogLevel(String):
 
     """A logging level."""
 
-    def __init__(self, none_ok: bool = False) -> None:
-        super().__init__(none_ok=none_ok)
+    def __init__(
+            self, *,
+            none_ok: bool = False,
+            completions: _Completions = None,
+    ) -> None:
+        super().__init__(none_ok=none_ok, completions=completions)
         self.valid_values = ValidValues(*[level.lower()
                                           for level in log.LOG_LEVELS])
 
@@ -1954,7 +1972,7 @@ class Key(BaseType):
     def to_py(
             self,
             value: _StrUnset
-    ) -> typing.Union[_UnsetNone, keyutils.KeySequence]:
+    ) -> Union[_UnsetNone, keyutils.KeySequence]:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value
@@ -1978,7 +1996,7 @@ class UrlPattern(BaseType):
     def to_py(
             self,
             value: _StrUnset
-    ) -> typing.Union[_UnsetNone, urlmatch.UrlPattern]:
+    ) -> Union[_UnsetNone, urlmatch.UrlPattern]:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value

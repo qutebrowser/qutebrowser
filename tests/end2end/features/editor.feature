@@ -2,9 +2,6 @@
 
 Feature: Opening external editors
 
-    Background:
-        Given I have a fresh instance
-
     ## :edit-url
 
     Scenario: Editing a URL
@@ -26,6 +23,7 @@ Feature: Opening external editors
     Scenario: Editing a URL with -rt
         When I set tabs.new_position.related to prev
         And I open data/numbers/1.txt
+        And I run :tab-only
         And I set up a fake editor replacing "1.txt" by "2.txt"
         And I run :edit-url -rt
         Then data/numbers/2.txt should be loaded
@@ -44,7 +42,8 @@ Feature: Opening external editors
             - data/numbers/2.txt
 
     Scenario: Editing a URL with -w
-        When I open data/numbers/1.txt in a new tab
+        When I run :window-only
+        And I open data/numbers/1.txt in a new tab
         And I run :tab-only
         And I set up a fake editor replacing "1.txt" by "2.txt"
         And I run :edit-url -w
@@ -65,6 +64,7 @@ Feature: Opening external editors
     Scenario: Editing a URL with -p
         When I open data/numbers/1.txt in a new tab
         And I run :tab-only
+        And I run :window-only
         And I set up a fake editor replacing "1.txt" by "2.txt"
         And I run :edit-url -p
         Then data/numbers/2.txt should be loaded
@@ -95,11 +95,12 @@ Feature: Opening external editors
         Then the error "Invalid URL" should be shown
 
     Scenario: Spawning an editor successfully
+        Given I have a fresh instance
         When I set up a fake editor returning "foobar"
         And I open data/editor.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :open-editor
+        And I run :edit-text
         And I wait for "Read back: foobar" in the log
         Then the javascript message "text: foobar" should be logged
 
@@ -108,9 +109,9 @@ Feature: Opening external editors
         And I open data/editor.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         And I wait for "Leaving mode KeyMode.insert (reason: leave current)" in the log
-        And I run :open-editor
+        And I run :edit-text
         And I wait for "Read back: foobar" in the log
         Then the javascript message "text: foobar" should be logged
 
@@ -122,7 +123,7 @@ Feature: Opening external editors
         And I open data/editor.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :open-editor
+        And I run :edit-text
         And I wait until the editor has started
         And I set tabs.last_close to blank
         And I run :tab-close
@@ -137,7 +138,7 @@ Feature: Opening external editors
         And I open data/editor.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :open-editor
+        And I run :edit-text
         And I wait until the editor has started
         And I save without exiting the editor
         And I wait for "Read back: foobar" in the log
@@ -148,12 +149,13 @@ Feature: Opening external editors
         And I open data/editor.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         And I wait for "Leaving mode KeyMode.insert (reason: leave current)" in the log
-        And I run :enter-mode caret
+        And I run :mode-enter caret
         And I wait for "Entering mode KeyMode.caret (reason: command)" in the log
-        And I run :open-editor
+        And I run :edit-text
         And I wait for "Read back: foobar" in the log
+        And I run :mode-leave
         Then the javascript message "text: foobar" should be logged
 
     Scenario: Spawning an editor with existing text
@@ -163,7 +165,7 @@ Feature: Opening external editors
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :insert-text foo
         And I wait for "Inserting text into element *" in the log
-        And I run :open-editor
+        And I run :edit-text
         And I wait for "Read back: bar" in the log
         Then the javascript message "text: bar" should be logged
 
@@ -188,3 +190,32 @@ Feature: Opening external editors
         And I run :edit-command
         Then the error "command must start with one of :/?" should be shown
         And "Leaving mode KeyMode.command *" should not be logged
+
+    ## select single file
+
+    Scenario: Select one file with single command
+        When I set up a fake "single_file" fileselector selecting "tests/end2end/data/numbers/1.txt"
+        And I open data/fileselect.html
+        And I run :click-element id single_file
+        Then the javascript message "Files: 1.txt" should be logged
+
+    Scenario: Select two files with single command
+        When I set up a fake "single_file" fileselector selecting "tests/end2end/data/numbers/1.txt tests/end2end/data/numbers/2.txt"
+        And I open data/fileselect.html
+        And I run :click-element id single_file
+        Then the javascript message "Files: 1.txt" should be logged
+        And the warning "More than one file chosen, using only the first" should be shown
+
+    ## select multiple files
+
+    Scenario: Select one file with multiple command
+        When I set up a fake "multiple_files" fileselector selecting "tests/end2end/data/numbers/1.txt"
+        And I open data/fileselect.html
+        And I run :click-element id multiple_files
+        Then the javascript message "Files: 1.txt" should be logged
+
+    Scenario: Select two files with multiple command
+        When I set up a fake "multiple_files" fileselector selecting "tests/end2end/data/numbers/1.txt tests/end2end/data/numbers/2.txt"
+        And I open data/fileselect.html
+        And I run :click-element id multiple_files
+        Then the javascript message "Files: 1.txt, 2.txt" should be logged

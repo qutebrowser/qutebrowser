@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Misc. utilities related to Qt.
 
@@ -24,28 +24,29 @@ Module attributes:
              value.
     MINVALS: A dictionary of C/Qt types (as string) mapped to their minimum
              value.
-    MAX_WORLD_ID: The highest world ID allowed in this version of QtWebEngine.
+    MAX_WORLD_ID: The highest world ID allowed by QtWebEngine.
 """
 
 
 import io
 import operator
 import contextlib
-import typing
+from typing import TYPE_CHECKING, BinaryIO, IO, Iterator, Optional, Union, Tuple, cast
 
-import pkg_resources
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QFileDevice, QSaveFile, QT_VERSION_STR,
                           PYQT_VERSION_STR, QObject, QUrl)
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QApplication
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
+if TYPE_CHECKING:
+    from PyQt5.QtWebKit import QWebHistory
+    from PyQt5.QtWebEngineWidgets import QWebEngineHistory
 
 from qutebrowser.misc import objects
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, utils
 
 
 MAXVALS = {
@@ -71,7 +72,7 @@ class QtOSError(OSError):
         if msg is None:
             msg = dev.errorString()
 
-        self.qt_errno = None  # type: typing.Optional[QFileDevice.FileError]
+        self.qt_errno: Optional[QFileDevice.FileError] = None
         if isinstance(dev, QFileDevice):
             msg = self._init_filedev(dev, msg)
 
@@ -97,34 +98,34 @@ def version_check(version: str,
     if compiled and exact:
         raise ValueError("Can't use compiled=True with exact=True!")
 
-    parsed = pkg_resources.parse_version(version)
+    parsed = utils.parse_version(version)
     op = operator.eq if exact else operator.ge
-    result = op(pkg_resources.parse_version(qVersion()), parsed)
+    result = op(utils.parse_version(qVersion()), parsed)
     if compiled and result:
         # qVersion() ==/>= parsed, now check if QT_VERSION_STR ==/>= parsed.
-        result = op(pkg_resources.parse_version(QT_VERSION_STR), parsed)
+        result = op(utils.parse_version(QT_VERSION_STR), parsed)
     if compiled and result:
-        # FInally, check PYQT_VERSION_STR as well.
-        result = op(pkg_resources.parse_version(PYQT_VERSION_STR), parsed)
+        # Finally, check PYQT_VERSION_STR as well.
+        result = op(utils.parse_version(PYQT_VERSION_STR), parsed)
     return result
 
 
-# WORKAROUND for https://bugreports.qt.io/browse/QTBUG-69904
-MAX_WORLD_ID = 256 if version_check('5.11.2') else 11
+MAX_WORLD_ID = 256
 
 
 def is_new_qtwebkit() -> bool:
     """Check if the given version is a new QtWebKit."""
     assert qWebKitVersion is not None
-    return (pkg_resources.parse_version(qWebKitVersion()) >
-            pkg_resources.parse_version('538.1'))
+    return (utils.parse_version(qWebKitVersion()) >
+            utils.parse_version('538.1'))
 
 
 def is_single_process() -> bool:
     """Check whether QtWebEngine is running in single-process mode."""
     if objects.backend == usertypes.Backend.QtWebKit:
         return False
-    args = QApplication.instance().arguments()
+    assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend
+    args = objects.qapp.arguments()
     return '--single-process' in args
 
 
@@ -154,16 +155,15 @@ def check_overflow(arg: int, ctype: str, fatal: bool = True) -> int:
         return arg
 
 
-if typing.TYPE_CHECKING:
-    class Validatable(typing.Protocol):
+class Validatable(utils.Protocol):
 
-        """An object with an isValid() method (e.g. QUrl)."""
+    """An object with an isValid() method (e.g. QUrl)."""
 
-        def isValid(self) -> bool:
-            ...
+    def isValid(self) -> bool:
+        ...
 
 
-def ensure_valid(obj: 'Validatable') -> None:
+def ensure_valid(obj: Validatable) -> None:
     """Ensure a Qt object with an .isValid() method is valid."""
     if not obj.isValid():
         raise QtValueError(obj)
@@ -183,7 +183,13 @@ def check_qdatastream(stream: QDataStream) -> None:
         raise OSError(status_to_str[stream.status()])
 
 
-_QtSerializableType = typing.Union[QObject, QByteArray, QUrl]
+_QtSerializableType = Union[
+    QObject,
+    QByteArray,
+    QUrl,
+    'QWebEngineHistory',
+    'QWebHistory'
+]
 
 
 def serialize(obj: _QtSerializableType) -> QByteArray:
@@ -221,7 +227,7 @@ def savefile_open(
         filename: str,
         binary: bool = False,
         encoding: str = 'utf-8'
-) -> typing.Iterator[typing.IO]:
+) -> Iterator[IO]:
     """Context manager to easily use a QSaveFile."""
     f = QSaveFile(filename)
     cancelled = False
@@ -230,10 +236,10 @@ def savefile_open(
         if not open_ok:
             raise QtOSError(f)
 
-        dev = typing.cast(typing.BinaryIO, PyQIODevice(f))
+        dev = cast(BinaryIO, PyQIODevice(f))
 
         if binary:
-            new_f = dev  # type: typing.IO
+            new_f: IO = dev
         else:
             new_f = io.TextIOWrapper(dev, encoding=encoding)
 
@@ -351,21 +357,21 @@ class PyQIODevice(io.BufferedIOBase):
     def readable(self) -> bool:
         return self.dev.isReadable()
 
-    def readline(self, size: int = -1) -> bytes:
+    def readline(self, size: Optional[int] = -1) -> bytes:
         self._check_open()
         self._check_readable()
 
-        if size < 0:
+        if size is None or size < 0:
             qt_size = 0  # no maximum size
         elif size == 0:
             return b''
         else:
             qt_size = size + 1  # Qt also counts the NUL byte
 
-        buf = None  # type: typing.Union[QByteArray, bytes, None]
+        buf: Union[QByteArray, bytes, None] = None
         if self.dev.canReadLine():
             buf = self.dev.readLine(qt_size)
-        elif size < 0:
+        elif size is None or size < 0:
             buf = self.dev.readAll()
         else:
             buf = self.dev.read(size)
@@ -391,7 +397,10 @@ class PyQIODevice(io.BufferedIOBase):
     def writable(self) -> bool:
         return self.dev.isWritable()
 
-    def write(self, data: typing.Union[bytes, bytearray]) -> int:
+    def write(  # type: ignore[override]
+            self,
+            data: Union[bytes, bytearray]
+    ) -> int:
         self._check_open()
         self._check_writable()
         num = self.dev.write(data)
@@ -399,11 +408,11 @@ class PyQIODevice(io.BufferedIOBase):
             raise QtOSError(self.dev)
         return num
 
-    def read(self, size: typing.Optional[int] = None) -> bytes:
+    def read(self, size: Optional[int] = None) -> bytes:
         self._check_open()
         self._check_readable()
 
-        buf = None  # type: typing.Union[QByteArray, bytes, None]
+        buf: Union[QByteArray, bytes, None] = None
         if size in [None, -1]:
             buf = self.dev.readAll()
         else:
@@ -425,7 +434,7 @@ class QtValueError(ValueError):
 
     """Exception which gets raised by ensure_valid."""
 
-    def __init__(self, obj: 'Validatable') -> None:
+    def __init__(self, obj: Validatable) -> None:
         try:
             self.reason = obj.errorString()  # type: ignore[attr-defined]
         except AttributeError:
@@ -440,22 +449,97 @@ class EventLoop(QEventLoop):
 
     """A thin wrapper around QEventLoop.
 
-    Raises an exception when doing exec_() multiple times.
+    Raises an exception when doing exec() multiple times.
     """
 
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
         self._executing = False
 
-    def exec_(
+    def exec(
             self,
             flags: QEventLoop.ProcessEventsFlags =
-            typing.cast(QEventLoop.ProcessEventsFlags, QEventLoop.AllEvents)
+            cast(QEventLoop.ProcessEventsFlags, QEventLoop.AllEvents)
     ) -> int:
         """Override exec_ to raise an exception when re-running."""
         if self._executing:
             raise AssertionError("Eventloop is already running!")
         self._executing = True
-        status = super().exec_(flags)
+        status = super().exec(flags)
         self._executing = False
         return status
+
+
+def _get_color_percentage(x1: int, y1: int, z1: int, a1: int,
+                          x2: int, y2: int, z2: int, a2: int,
+                          percent: int) -> Tuple[int, int, int, int]:
+    """Get a color which is percent% interpolated between start and end.
+
+    Args:
+        x1, y1, z1, a1 : Start color components (R, G, B, A / H, S, V, A / H, S, L, A)
+        x2, y2, z2, a2 : End color components (R, G, B, A / H, S, V, A / H, S, L, A)
+        percent: Percentage to interpolate, 0-100.
+                 0: Start color will be returned.
+                 100: End color will be returned.
+
+    Return:
+        A (x, y, z, alpha) tuple with the interpolated color components.
+    """
+    if not 0 <= percent <= 100:
+        raise ValueError("percent needs to be between 0 and 100!")
+    x = round(x1 + (x2 - x1) * percent / 100)
+    y = round(y1 + (y2 - y1) * percent / 100)
+    z = round(z1 + (z2 - z1) * percent / 100)
+    a = round(a1 + (a2 - a1) * percent / 100)
+    return (x, y, z, a)
+
+
+def interpolate_color(
+        start: QColor,
+        end: QColor,
+        percent: int,
+        colorspace: Optional[QColor.Spec] = QColor.Rgb
+) -> QColor:
+    """Get an interpolated color value.
+
+    Args:
+        start: The start color.
+        end: The end color.
+        percent: Which value to get (0 - 100)
+        colorspace: The desired interpolation color system,
+                    QColor::{Rgb,Hsv,Hsl} (from QColor::Spec enum)
+                    If None, start is used except when percent is 100.
+
+    Return:
+        The interpolated QColor, with the same spec as the given start color.
+    """
+    ensure_valid(start)
+    ensure_valid(end)
+
+    if colorspace is None:
+        if percent == 100:
+            return QColor(*end.getRgb())
+        else:
+            return QColor(*start.getRgb())
+
+    out = QColor()
+    if colorspace == QColor.Rgb:
+        r1, g1, b1, a1 = start.getRgb()
+        r2, g2, b2, a2 = end.getRgb()
+        components = _get_color_percentage(r1, g1, b1, a1, r2, g2, b2, a2, percent)
+        out.setRgb(*components)
+    elif colorspace == QColor.Hsv:
+        h1, s1, v1, a1 = start.getHsv()
+        h2, s2, v2, a2 = end.getHsv()
+        components = _get_color_percentage(h1, s1, v1, a1, h2, s2, v2, a2, percent)
+        out.setHsv(*components)
+    elif colorspace == QColor.Hsl:
+        h1, s1, l1, a1 = start.getHsl()
+        h2, s2, l2, a2 = end.getHsl()
+        components = _get_color_percentage(h1, s1, l1, a1, h2, s2, l2, a2, percent)
+        out.setHsl(*components)
+    else:
+        raise ValueError("Invalid colorspace!")
+    out = out.convertTo(start.spec())
+    ensure_valid(out)
+    return out

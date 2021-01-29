@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """KeyChainParser for "hint" and "normal" modes.
 
@@ -23,9 +23,9 @@ Module attributes:
     STARTCHARS: Possible chars for starting a commandline input.
 """
 
-import typing
 import traceback
 import enum
+from typing import TYPE_CHECKING, Sequence
 
 from PyQt5.QtCore import pyqtSlot, Qt, QObject
 from PyQt5.QtGui import QKeySequence, QKeyEvent
@@ -35,12 +35,20 @@ from qutebrowser.commands import cmdexc
 from qutebrowser.config import config
 from qutebrowser.keyinput import basekeyparser, keyutils, macros
 from qutebrowser.utils import usertypes, log, message, objreg, utils
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.commands import runners
 
 
 STARTCHARS = ":/?"
-LastPress = enum.Enum('LastPress', ['none', 'filtertext', 'keystring'])
+
+
+class LastPress(enum.Enum):
+
+    """Whether the last keypress filtered a text or was part of a keystring."""
+
+    none = enum.auto()
+    filtertext = enum.auto()
+    keystring = enum.auto()
 
 
 class CommandKeyParser(basekeyparser.BaseKeyParser):
@@ -224,7 +232,7 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
 
         return match
 
-    def update_bindings(self, strings: typing.Sequence[str],
+    def update_bindings(self, strings: Sequence[str],
                         preserve_filter: bool = False) -> None:
         """Update bindings when the hint strings changed.
 

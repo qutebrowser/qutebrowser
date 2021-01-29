@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Clayton Craft (craftyguy) <craftyguy@gmail.com>
+# Copyright 2016-2021 Clayton Craft (craftyguy) <craftyguy@gmail.com>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 
 """Test Statusbar url."""
@@ -26,7 +26,6 @@ from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import usertypes, urlutils
 from qutebrowser.mainwindow.statusbar import url
-from helpers import utils
 
 
 @pytest.fixture
@@ -47,10 +46,7 @@ def url_widget(qtbot, monkeypatch, config_stub):
     ('http://username:secret%20password@test.com', 'http://username@test.com'),
     ('http://example.com%5b/', '(invalid URL!) http://example.com%5b/'),
     # https://bugreports.qt.io/browse/QTBUG-60364
-    pytest.param('http://www.xn--80ak6aa92e.com',
-                 '(unparseable URL!) http://www.аррӏе.com', marks=utils.qt58),
-    pytest.param('http://www.xn--80ak6aa92e.com',
-                 'http://www.xn--80ak6aa92e.com', marks=utils.qt59),
+    ('http://www.xn--80ak6aa92e.com', 'http://www.xn--80ak6aa92e.com'),
     # IDN URL
     ('http://www.ä.com', '(www.xn--4ca.com) http://www.ä.com'),
     (None, ''),

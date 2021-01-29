@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,14 +15,13 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Infrastructure for intercepting requests."""
 
-import typing
 import enum
-
-import attr
+import dataclasses
+from typing import Callable, List, Optional
 
 from PyQt5.QtCore import QUrl
 
@@ -59,32 +58,24 @@ class ResourceType(enum.Enum):
 
 
 class RedirectException(Exception):
-    """Raised when there was an error with redirection."""
-
-
-class RedirectFailedException(RedirectException):
     """Raised when the request was invalid, or a request was already made."""
 
 
-class RedirectUnsupportedException(RedirectException):
-    """Raised when redirection is currently unsupported."""
-
-
-@attr.s
+@dataclasses.dataclass
 class Request:
 
     """A request which can be intercepted/blocked."""
 
     #: The URL of the page being shown.
-    first_party_url = attr.ib()  # type: typing.Optional[QUrl]
+    first_party_url: Optional[QUrl]
 
     #: The URL of the file being requested.
-    request_url = attr.ib()  # type: QUrl
+    request_url: QUrl
 
-    is_blocked = attr.ib(False)  # type: bool
+    is_blocked: bool = False
 
     #: The resource type of the request. None if not supported on this backend.
-    resource_type = attr.ib(None)  # type: typing.Optional[ResourceType]
+    resource_type: Optional[ResourceType] = None
 
     def block(self) -> None:
         """Block this request."""
@@ -96,21 +87,20 @@ class Request:
         Only some types of requests can be successfully redirected.
         Improper use of this method can result in redirect loops.
 
-        This method will throw a RedirectFailedException if the request was not
-        possible.
+        This method will throw a RedirectException if the request was not possible.
 
         Args:
             url: The QUrl to try to redirect to.
         """
         # Will be overridden if the backend supports redirection
-        raise RedirectUnsupportedException("Unsupported backend.")
+        raise NotImplementedError
 
 
 #: Type annotation for an interceptor function.
-InterceptorType = typing.Callable[[Request], None]
+InterceptorType = Callable[[Request], None]
 
 
-_interceptors = []  # type: typing.List[InterceptorType]
+_interceptors: List[InterceptorType] = []
 
 
 def register(interceptor: InterceptorType) -> None:

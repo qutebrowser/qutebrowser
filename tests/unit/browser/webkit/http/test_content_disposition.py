@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
 
@@ -25,6 +25,7 @@ from qutebrowser.browser.webkit import http
 
 
 DEFAULT_NAME = 'qutebrowser-download'
+_STDLIB_XFAIL = pytest.mark.xfail(reason="Not handled properly by Python stdlib")
 
 
 class HeaderChecker:
@@ -53,8 +54,7 @@ class HeaderChecker:
         """Check if the passed header is ignored."""
         reply = self.stubs.FakeNetworkReply(
             headers={'Content-Disposition': header})
-        with self.caplog.at_level(logging.ERROR, 'rfc6266'):
-            # with self.assertLogs(log.rfc6266, logging.ERROR):
+        with self.caplog.at_level(logging.ERROR, 'network'):
             cd_inline, cd_filename = http.parse_content_disposition(reply)
         assert cd_filename == DEFAULT_NAME
         assert cd_inline
@@ -74,10 +74,23 @@ def header_checker(caplog, stubs):
     return HeaderChecker(caplog, stubs)
 
 
+def test_inline_caps(header_checker):
+    """'inline' in upper-case."""
+    header_checker.check_filename(
+        'INLINE; filename="foo.html"', 'foo.html', expected_inline=True)
+
+
 def test_att_double_space(header_checker):
-    """'attachment' with double space in the filename."""
-    header_checker.check_filename('attachment; filename="foo  bar.html"',
-                                  'foo bar.html')
+    """'attachment' with double space in the filename.
+
+    It's unclear how this should be handled exactly. The original test expected 'foo
+    bar.html' as filename, but there doesn't seem to be a place in the RFC actually
+    specifying that. The test was added in 8ce779261f08b20fd3f6e889204eb88e6a6800c1 but
+    without further explanations why. Thus, it's now updated to expect the original
+    filename, with two spaces.
+    """
+    header_checker.check_filename(
+        'attachment; filename="foo  bar.html"', 'foo  bar.html')
 
 
 def test_iso2231_langtag(header_checker):
@@ -91,13 +104,14 @@ def test_iso2231_langtag(header_checker):
         'foo-ä.html')
 
 
+@_STDLIB_XFAIL
 def test_iso2231_iso8859_invalid_chars(header_checker):
     """'attachment', specifying a filename with invalid ISO-8859-1 chars."""
     header_checker.check_ignored(
         "attachment; filename*=iso-8859-1''foo-%80.html")
 
 
-# All following test cases are based on http://greenbytes.de/tech/tc2231/
+# All following test cases are based on https://greenbytes.de/tech/tc2231/
 
 
 class TestInline:
@@ -318,6 +332,7 @@ class TestAttachment:
         """
         header_checker.check_ignored('attachment; filename=foo bar.html')
 
+    @_STDLIB_XFAIL
     def test_attwithfntokensq(self, header_checker):
         """'attachment', specifying a filename of 'foo.bar'
 
@@ -390,7 +405,7 @@ class TestAttachment:
         Should be treated as extension parameter, therefore almost any behavior
         is acceptable.
 
-        [1] http://www.imc.org/ietf-smtp/mail-archive/msg05023.html
+        [1] https://web.archive.org/web/20150317023040/http://www.imc.org/ietf-smtp/mail-archive/msg05023.html
         """
         header_checker.check_unnamed('attachment; name="foo-%41.html"')
 
@@ -447,6 +462,7 @@ class TestAttachment:
         """
         header_checker.check_ignored('attachment; filename=foo[1](2).html')
 
+    @_STDLIB_XFAIL
     def test_attfnbrokentokeniso(self, header_checker):
         """'attachment', specifying a filename of foo-ä.html.
 
@@ -457,6 +473,7 @@ class TestAttachment:
         """
         header_checker.check_ignored('attachment; filename=foo-ä.html')
 
+    @_STDLIB_XFAIL
     def test_attfnbrokentokenutf(self, header_checker):
         """'attachment', specifying a filename of foo-Ã¤.html.
 
@@ -617,7 +634,7 @@ class TestAttachment:
 
         Note that test results under Operating Systems other than Windows vary
         (see
-        http://lists.w3.org/Archives/Public/ietf-http-wg/2011JanMar/0112.html);
+        https://lists.w3.org/Archives/Public/ietf-http-wg/2011JanMar/0112.html);
         apparently some UAs consider the backslash a legitimate filename
         character.
         """
@@ -632,7 +649,7 @@ class TestAttachment:
 
         Note that test results under Operating Systems other than Windows vary
         (see
-        http://lists.w3.org/Archives/Public/ietf-http-wg/2011JanMar/0112.html);
+        https://lists.w3.org/Archives/Public/ietf-http-wg/2011JanMar/0112.html);
         apparently some UAs consider the backslash a legitimate filename
         character.
         """
@@ -731,6 +748,7 @@ class TestCharacterSet:
         header_checker.check_ignored(
             "attachment; filename*=utf-8''foo-%E4.html")
 
+    @_STDLIB_XFAIL
     def test_attwithfn2231ws1(self, header_checker):
         """'attachment', specifying a filename of foo-ä.html.
 
@@ -751,6 +769,7 @@ class TestCharacterSet:
             "attachment; filename*= UTF-8''foo-%c3%a4.html",
             'foo-ä.html')
 
+    @_STDLIB_XFAIL
     def test_attwithfn2231ws3(self, header_checker):
         """'attachment', specifying a filename of foo-ä.html.
 
@@ -791,6 +810,7 @@ class TestCharacterSet:
         header_checker.check_ignored(
             "attachment; filename*=UTF-8'foo-%c3%a4.html")
 
+    @_STDLIB_XFAIL
     def test_attwithfn2231nbadpct1(self, header_checker):
         """'attachment', specifying a filename of foo%.
 
@@ -799,6 +819,7 @@ class TestCharacterSet:
         """
         header_checker.check_ignored("attachment; filename*=UTF-8''foo%")
 
+    @_STDLIB_XFAIL
     def test_attwithfn2231nbadpct2(self, header_checker):
         """'attachment', specifying a filename of f%oo.html.
 
@@ -848,6 +869,9 @@ class TestEncodingFallback:
     both in traditional and RFC 2231/5987 extended format.
     """
 
+    # See https://bugs.python.org/issue42947
+
+    @_STDLIB_XFAIL  # FIXME this one could actually be a problem in the wild
     def test_attfnboth(self, header_checker):
         """'attachment', specifying a filename in both formats.
 
@@ -928,6 +952,7 @@ class TestRFC2047Encoding:
         header_checker.check_ignored(
             'attachment; filename==?ISO-8859-1?Q?foo-=E4.html?=')
 
+    @_STDLIB_XFAIL
     def test_attrfc2047quoted(self, header_checker):
         """Uses RFC 2047 style encoded word.
 

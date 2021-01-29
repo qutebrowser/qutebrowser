@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,14 +15,14 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Parser for line-based files like histories."""
 
 import os
 import os.path
 import contextlib
-import typing
+from typing import Sequence
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
@@ -88,14 +88,14 @@ class BaseLineParser(QObject):
             mode: The mode to use ('a'/'r'/'w')
 
         Raises:
-            IOError: if the file is already open
+            OSError: if the file is already open
 
         Yields:
             a file object for the config file
         """
         assert self._configfile is not None
         if self._opened:
-            raise IOError("Refusing to double-open LineParser.")
+            raise OSError("Refusing to double-open LineParser.")
         self._opened = True
         try:
             if self._binary:
@@ -150,7 +150,7 @@ class LineParser(BaseLineParser):
         """
         super().__init__(configdir, fname, binary=binary, parent=parent)
         if not os.path.isfile(self._configfile):
-            self.data = []  # type: typing.Sequence[str]
+            self.data: Sequence[str] = []
         else:
             log.init.debug("Reading {}".format(self._configfile))
             self._read()
@@ -172,7 +172,7 @@ class LineParser(BaseLineParser):
     def save(self):
         """Save the config file."""
         if self._opened:
-            raise IOError("Refusing to double-open LineParser.")
+            raise OSError("Refusing to double-open LineParser.")
         do_save = self._prepare_save()
         if not do_save:
             return

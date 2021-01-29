@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Handling of proxies."""
 
@@ -23,7 +23,7 @@ from PyQt5.QtCore import QUrl, pyqtSlot
 from PyQt5.QtNetwork import QNetworkProxy, QNetworkProxyFactory
 
 from qutebrowser.config import config, configtypes
-from qutebrowser.utils import message, usertypes, urlutils
+from qutebrowser.utils import message, usertypes, urlutils, utils
 from qutebrowser.misc import objects
 from qutebrowser.browser.network import pac
 
@@ -97,7 +97,7 @@ class ProxyFactory(QNetworkProxyFactory):
         if proxy is configtypes.SYSTEM_PROXY:
             # On Linux, use "export http_proxy=socks5://host:port" to manually
             # set system proxy.
-            # ref. http://doc.qt.io/qt-5/qnetworkproxyfactory.html#systemProxyForQuery
+            # ref. https://doc.qt.io/qt-5/qnetworkproxyfactory.html#systemProxyForQuery
             proxies = QNetworkProxyFactory.systemProxyForQuery(query)
         elif isinstance(proxy, pac.PACFetcher):
             if objects.backend == usertypes.Backend.QtWebEngine:
@@ -105,8 +105,10 @@ class ProxyFactory(QNetworkProxyFactory):
                 proxy = urlutils.proxy_from_url(QUrl('direct://'))
                 assert not isinstance(proxy, pac.PACFetcher)
                 proxies = [proxy]
-            else:
+            elif objects.backend == usertypes.Backend.QtWebKit:
                 proxies = proxy.resolve(query)
+            else:
+                raise utils.Unreachable(objects.backend)
         else:
             proxies = [proxy]
         for proxy in proxies:

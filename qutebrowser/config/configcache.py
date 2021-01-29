@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2020 Jay Kamat <jaygkamat@gmail.com>
+# Copyright 2018-2021 Jay Kamat <jaygkamat@gmail.com>
 #
 # This file is part of qutebrowser.
 #
@@ -15,12 +15,12 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 
 """Implementation of a basic config cache."""
 
-import typing
+from typing import Any, Dict
 
 from qutebrowser.config import config
 
@@ -38,14 +38,14 @@ class ConfigCache:
     """
 
     def __init__(self) -> None:
-        self._cache = {}  # type: typing.Dict[str, typing.Any]
+        self._cache: Dict[str, Any] = {}
         config.instance.changed.connect(self._on_config_changed)
 
     def _on_config_changed(self, attr: str) -> None:
         if attr in self._cache:
             del self._cache[attr]
 
-    def __getitem__(self, attr: str) -> typing.Any:
+    def __getitem__(self, attr: str) -> Any:
         try:
             return self._cache[attr]
         except KeyError:

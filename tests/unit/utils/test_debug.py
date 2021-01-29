@@ -1,4 +1,4 @@
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.utils.debug."""
 
@@ -29,6 +29,7 @@ from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QObject, QTimer
 from PyQt5.QtWidgets import QStyle, QFrame, QSpinBox
 
 from qutebrowser.utils import debug
+from qutebrowser.misc import objects
 
 
 @debug.log_events
@@ -271,7 +272,7 @@ class TestGetAllObjects:
         # pylint: disable=unused-variable
         widgets = [self.Object('Widget 1'), self.Object('Widget 2')]
         app = stubs.FakeQApplication(all_widgets=widgets)
-        monkeypatch.setattr(debug, 'QApplication', app)
+        monkeypatch.setattr(objects, 'qapp', app)
 
         root = QObject()
         o1 = self.Object('Object 1', root)
@@ -293,9 +294,9 @@ class TestGetAllObjects:
 
         assert debug.get_all_objects(start_obj=root) == expected
 
-    @pytest.mark.usefixtures('qapp')
-    def test_get_all_objects_qapp(self):
-        objects = debug.get_all_objects()
+    def test_get_all_objects_qapp(self, qapp, monkeypatch):
+        monkeypatch.setattr(objects, 'qapp', qapp)
+        objs = debug.get_all_objects()
         event_dispatcher = '<PyQt5.QtCore.QAbstractEventDispatcher object at'
         session_manager = '<PyQt5.QtGui.QSessionManager object at'
-        assert event_dispatcher in objects or session_manager in objects
+        assert event_dispatcher in objs or session_manager in objs

@@ -9,7 +9,7 @@ IMPORTANT: Bandwidth for pull request review is currently quite limited. If you
 want to contribute where it's most needed, please consider reviewing or testing
 open pull requests.
 
-I `&lt;3` footnote:[Of course, that says `<3` in HTML.] contributors!
+I `&lt;3` footnote:[`<3` in HTML] contributors!
 
 This document contains guidelines for contributing to qutebrowser, as well as
 useful hints when doing so.
@@ -27,7 +27,7 @@ several ways:
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[subscribe]
 first).
 * Join the IRC channel irc://irc.freenode.org/#qutebrowser[`#qutebrowser`] on
-http://freenode.net/[Freenode]
+https://freenode.net/[Freenode]
 (https://webchat.freenode.net/?channels=#qutebrowser[webchat]).
 
 Finding something to work on
@@ -60,14 +60,14 @@ There are also some things to do if you don't want to write code:
 Using git
 ---------
 
-qutebrowser uses http://git-scm.com/[git] for its development. You can clone
+qutebrowser uses https://git-scm.com/[git] for its development. You can clone
 the repo like this:
 
 ----
 git clone https://github.com/qutebrowser/qutebrowser.git
 ----
 
-If you don't know git, a http://git-scm.com/[git cheatsheet] might come in
+If you don't know git, a https://git-scm.com/[git cheatsheet] might come in
 handy. Of course, if using git is the issue which prevents you from
 contributing, feel free to send normal patches instead, e.g., generated via
 `diff -Nur`.
@@ -111,16 +111,16 @@ unittests and several linters/checkers.
 Currently, the following tox environments are available:
 
 * Tests using https://www.pytest.org[pytest]:
-  - `py35`, `py36`: Run pytest for python 3.5/3.6 with the system-wide PyQt.
-  - `py36-pyqt57`, ..., `py36-pyqt59`: Run pytest with the given PyQt version (`py35-*` also works).
-  - `py36-pyqt59-cov`: Run with coverage support (other Python/PyQt versions work too).
+  - `py36`, `py37`, ...: Run pytest for python 3.6/3.7/... with the system-wide PyQt.
+  - `py36-pyqt512`, ..., `py36-pyqt515`: Run pytest with the given PyQt version (`py35-*` also works).
+  - `py36-pyqt515-cov`: Run with coverage support (other Python/PyQt versions work too).
 * `flake8`: Run various linting checks via https://pypi.python.org/pypi/flake8[flake8].
 * `vulture`: Run https://pypi.python.org/pypi/vulture[vulture] to find
   unused code portions.
-* `pylint`: Run http://pylint.org/[pylint] static code analysis.
+* `pylint`: Run https://pylint.org/[pylint] static code analysis.
 * `pyroma`: Check packaging practices with
   https://pypi.python.org/pypi/pyroma/[pyroma].
-* `eslint`: Run http://eslint.org/[ESLint] javascript checker.
+* `eslint`: Run https://eslint.org/[ESLint] javascript checker.
 * `check-manifest`: Check MANIFEST.in completeness with
   https://github.com/mgedmin/check-manifest[check-manifest].
 * `mkvenv`: Bootstrap a virtualenv for testing.
@@ -193,8 +193,8 @@ qutebrowser instance, waits for it to exit and then shows the graph.
 Available methods for visualization are:
 
 * https://jiffyclub.github.io/snakeviz/[SnakeViz] (`--profile-tool=snakeviz`, the default)
-* https://pypi.python.org/pypi/pyprof2calltree/[pyprof2calltree] and http://kcachegrind.sourceforge.net/html/Home.html[KCacheGrind] (`--profile-tool=kcachegrind`)
-* https://github.com/jrfonseca/gprof2dot[gprof2dot] (`--profile-tool=gprof2dot`, needs `dot` from http://graphviz.org/[Graphviz] and http://feh.finalrewind.org/[feh])
+* https://pypi.python.org/pypi/pyprof2calltree/[pyprof2calltree] and https://kcachegrind.github.io/[KCacheGrind] (`--profile-tool=kcachegrind`)
+* https://github.com/jrfonseca/gprof2dot[gprof2dot] (`--profile-tool=gprof2dot`, needs `dot` from https://graphviz.org/[Graphviz] and https://feh.finalrewind.org/[feh])
 * https://github.com/nschloe/tuna[tuna] (`--profile-tool=tuna`)
 
 You can also save the binary profile data to a file (`--profile-tool=none`).
@@ -219,18 +219,16 @@ Useful websites
 
 Some resources which might be handy:
 
-* http://doc.qt.io/qt-5/classes.html[The Qt5 reference]
+* https://doc.qt.io/qt-5/classes.html[The Qt5 reference]
 * https://docs.python.org/3/library/index.html[The Python reference]
-* http://httpbin.org/[httpbin, a test service for HTTP requests/responses]
+* https://httpbin.org/[httpbin, a test service for HTTP requests/responses]
 * https://requestbin.com/[RequestBin, a service to inspect HTTP requests]
 
 Documentation of used Python libraries:
 
-* http://jinja.pocoo.org/docs/dev/[jinja2]
-* http://pygments.org/docs/[pygments]
-* http://fdik.org/pyPEG/index.html[pyPEG2]
-* http://pythonhosted.org/setuptools/[setuptools]
-* http://www.pyinstaller.org/[PyInstaller]
+* https://jinja.palletsprojects.com/[jinja2]
+* https://pygments.org/docs/[pygments]
+* https://www.pyinstaller.org/[PyInstaller]
 * https://pypi.python.org/pypi/colorama[colorama]
 
 Related RFCs and standards:
@@ -240,50 +238,49 @@ HTTP
 
 * https://tools.ietf.org/html/rfc2616[RFC 2616 - Hypertext Transfer Protocol
 -- HTTP/1.1]
-(http://www.rfc-editor.org/errata_search.php?rfc=2616[Errata])
+(https://www.rfc-editor.org/errata_search.php?rfc=2616[Errata])
 * https://tools.ietf.org/html/rfc7230[RFC 7230 - Hypertext Transfer Protocol
 (HTTP/1.1): Message Syntax and Routing]
-(http://www.rfc-editor.org/errata_search.php?rfc=7230[Errata])
+(https://www.rfc-editor.org/errata_search.php?rfc=7230[Errata])
 * https://tools.ietf.org/html/rfc7231[RFC 7231 - Hypertext Transfer Protocol
 (HTTP/1.1): Semantics and Content]
-(http://www.rfc-editor.org/errata_search.php?rfc=7231[Errata])
+(https://www.rfc-editor.org/errata_search.php?rfc=7231[Errata])
 * https://tools.ietf.org/html/rfc7232[RFC 7232 - Hypertext Transfer Protocol
 (HTTP/1.1): Conditional Requests]
-(http://www.rfc-editor.org/errata_search.php?rfc=7232[Errata])
+(https://www.rfc-editor.org/errata_search.php?rfc=7232[Errata])
 * https://tools.ietf.org/html/rfc7233[RFC 7233 - Hypertext Transfer Protocol
 (HTTP/1.1): Range Requests]
-(http://www.rfc-editor.org/errata_search.php?rfc=7233[Errata])
+(https://www.rfc-editor.org/errata_search.php?rfc=7233[Errata])
 * https://tools.ietf.org/html/rfc7234[RFC 7234 - Hypertext Transfer Protocol
 (HTTP/1.1): Caching]
-(http://www.rfc-editor.org/errata_search.php?rfc=7234[Errata])
+(https://www.rfc-editor.org/errata_search.php?rfc=7234[Errata])
 * https://tools.ietf.org/html/rfc7235[RFC 7235 - Hypertext Transfer Protocol
 (HTTP/1.1): Authentication]
-(http://www.rfc-editor.org/errata_search.php?rfc=7235[Errata])
+(https://www.rfc-editor.org/errata_search.php?rfc=7235[Errata])
 * https://tools.ietf.org/html/rfc5987[RFC 5987 - Character Set and Language
 Encoding for Hypertext Transfer Protocol (HTTP) Header Field Parameters]
-(http://www.rfc-editor.org/errata_search.php?rfc=5987[Errata])
+(https://www.rfc-editor.org/errata_search.php?rfc=5987[Errata])
 * https://tools.ietf.org/html/rfc6266[RFC 6266 - Use of the
 Content-Disposition Header Field in the Hypertext Transfer Protocol (HTTP)]
-(http://www.rfc-editor.org/errata_search.php?rfc=6266[Errata])
-* http://tools.ietf.org/html/rfc6265[RFC 6265 - HTTP State Management Mechanism
-(Cookies)] (http://www.rfc-editor.org/errata_search.php?rfc=6265[Errata])
+(https://www.rfc-editor.org/errata_search.php?rfc=6266[Errata])
+* https://tools.ietf.org/html/rfc6265[RFC 6265 - HTTP State Management Mechanism
+(Cookies)] (https://www.rfc-editor.org/errata_search.php?rfc=6265[Errata])
 * http://www.cookiecentral.com/faq/#3.5[Netscape Cookie Format]
 
 Other
 ^^^^^
 
 * https://tools.ietf.org/html/rfc5646[RFC 5646 - Tags for Identifying
-Languages] (http://www.rfc-editor.org/errata_search.php?rfc=5646[Errata])
-* http://www.w3.org/TR/CSS2/[Cascading Style Sheets Level 2 Revision 1 (CSS
+Languages] (https://www.rfc-editor.org/errata_search.php?rfc=5646[Errata])
+* https://www.w3.org/TR/CSS2/[Cascading Style Sheets Level 2 Revision 1 (CSS
 2.1) Specification]
-* http://doc.qt.io/qt-5/stylesheet-reference.html[Qt Style Sheets Reference]
-* http://mimesniff.spec.whatwg.org/[MIME Sniffing Standard]
-* http://spec.whatwg.org/[WHATWG specifications]
-* http://www.w3.org/html/wg/drafts/html/master/Overview.html[HTML 5.1 Nightly]
-* http://www.w3.org/TR/webstorage/[Web Storage]
-* http://www.brynosaurus.com/cachedir/spec.html[Cache directory tagging
-standard]
-* http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html[XDG
+* https://doc.qt.io/qt-5/stylesheet-reference.html[Qt Style Sheets Reference]
+* https://mimesniff.spec.whatwg.org/[MIME Sniffing Standard]
+* https://spec.whatwg.org/[WHATWG specifications]
+* https://www.w3.org/html/wg/drafts/html/master/Overview.html[HTML 5.1 Nightly]
+* https://www.w3.org/TR/webstorage/[Web Storage]
+* https://bford.info/cachedir/[Cache directory tagging standard]
+* https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html[XDG
 basedir specification]
 
 Hints
@@ -356,7 +353,7 @@ All objects can be printed by starting with the `--debug` flag and using the
 
 The registry is mainly used for <<commands,command handlers>>, but it can
 also be useful in places where using Qt's
-http://doc.qt.io/qt-5/signalsandslots.html[signals and slots] mechanism would
+https://doc.qt.io/qt-5/signalsandslots.html[signals and slots] mechanism would
 be difficult.
 
 Logging
@@ -436,7 +433,7 @@ e.g., an argument `foo=True` will be converted to a flag `-f`/`--foo` in
 qutebrowser's commandline.
 
 The type can be overridden using Python's
-http://legacy.python.org/dev/peps/pep-3107/[function annotations]:
+https://www.python.org/dev/peps/pep-3107/[function annotations]:
 
 [source,python]
 ----
@@ -523,7 +520,7 @@ Running valgrind on QtWebKit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you want to run qutebrowser (and thus QtWebKit) with
-http://valgrind.org/[valgrind], you'll need to pass `--smc-check=all` to it or
+https://valgrind.org/[valgrind], you'll need to pass `--smc-check=all` to it or
 recompile QtWebKit with the Javascript JIT disabled.
 
 This is needed so valgrind handles self-modifying code correctly:
@@ -586,9 +583,9 @@ can be useful for debugging:
 - chrome://gpuclean/ (crashes the current renderer process!)
 - chrome://ppapiflashcrash/
 - chrome://ppapiflashhang/
-- chrome://quota-internals/ (Qt 5.11)
-- chrome://taskscheduler-internals/ (Qt 5.11)
-- chrome://sandbox/ (Qt 5.11, Linux only)
+- chrome://quota-internals/
+- chrome://taskscheduler-internals/
+- chrome://sandbox/ (Linux only)
 
 QtWebEngine internals
 ~~~~~~~~~~~~~~~~~~~~~
@@ -601,20 +598,20 @@ The hierarchy of widgets when QtWebEngine is involved looks like this:
 - The `WebEngineTab` has a `_widget` attribute, which is the https://doc.qt.io/qt-5/qwebengineview.html[QWebEngineView]
 - That view has a https://doc.qt.io/qt-5/qwebenginepage.html[QWebEnginePage] for everything which doesn't require rendering.
 - The view also has a layout with exactly one element (which also is its `focusProxy()`)
-- That element is the  http://code.qt.io/cgit/qt/qtwebengine.git/tree/src/webenginewidgets/render_widget_host_view_qt_delegate_widget.cpp[RenderWidgetHostViewQtDelegateWidget] (it inherits https://doc.qt.io/qt-5/qquickwidget.html[QQuickWidget]) - also often referred to as RWHV or RWHVQDW. It can be obtained via `sip.cast(tab._widget.focusProxy(), QQuickWidget)`.
+- That element is the  https://code.qt.io/cgit/qt/qtwebengine.git/tree/src/webenginewidgets/render_widget_host_view_qt_delegate_widget.cpp[RenderWidgetHostViewQtDelegateWidget] (it inherits https://doc.qt.io/qt-5/qquickwidget.html[QQuickWidget]) - also often referred to as RWHV or RWHVQDW. It can be obtained via `sip.cast(tab._widget.focusProxy(), QQuickWidget)`.
 - Calling `rootObject()` on that gives us the https://doc.qt.io/qt-5/qquickitem.html[QQuickItem] where Chromium renders into (?). With it, we can do things like `.setRotation(20)`.
 
 Style conventions
 -----------------
 
 qutebrowser's coding conventions are based on
-http://legacy.python.org/dev/peps/pep-0008/[PEP8] and the https://google.github.io/styleguide/pyguide.html[Google Python style guidelines] with some additions:
+https://www.python.org/dev/peps/pep-0008/[PEP8] and the https://google.github.io/styleguide/pyguide.html[Google Python style guidelines] with some additions:
 
 * The _Raise:_ section is not added to the docstring.
 * Methods overriding Qt methods (obviously!) don't follow the naming schemes.
 * Everything else does though, even slots.
 * Docstrings should look like described in
-http://legacy.python.org/dev/peps/pep-0257/[PEP257] and the google guidelines.
+https://www.python.org/dev/peps/pep-0257/[PEP257] and the google guidelines.
 * Class docstrings have additional _Attributes:_, _Class attributes:_ and
   _Signals:_ sections.
 * In docstrings of command handlers (registered via `@cmdutils.register`), the
@@ -699,7 +696,7 @@ New PyQt release
 ~~~~~~~~~~~~~~~~
 
 * See above.
-* Update `tox.ini`/`.travis.yml`/`.appveyor.yml` to test new versions.
+* Update `tox.ini`/`.github/workflows/ci.yml` to test new versions.
 
 qutebrowser release
 ~~~~~~~~~~~~~~~~~~~

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Build a new release."""
 
@@ -78,10 +78,11 @@ def call_tox(toxenv, *args, python=sys.executable):
 def run_asciidoc2html(args):
     """Common buildsteps used for all OS'."""
     utils.print_title("Running asciidoc2html.py")
+    a2h_args = []
     if args.asciidoc is not None:
-        a2h_args = ['--asciidoc'] + args.asciidoc
-    else:
-        a2h_args = []
+        a2h_args += ['--asciidoc', args.asciidoc]
+    if args.asciidoc_python is not None:
+        a2h_args += ['--asciidoc-python', args.asciidoc_python]
     call_script('asciidoc2html.py', *a2h_args)
 
 
@@ -115,7 +116,20 @@ def smoke_test(executable):
         (r'\[.*:ERROR:mach_port_broker.mm\(48\)\] bootstrap_look_up '
          r'org\.chromium\.Chromium\.rohitfork\.1: Permission denied \(1100\)'),
         (r'\[.*:ERROR:mach_port_broker.mm\(43\)\] bootstrap_look_up: '
-         r'Unknown service name \(1102\)')
+         r'Unknown service name \(1102\)'),
+
+        (r'[0-9:]* WARNING: The available OpenGL surface format was either not '
+         r'version 3\.2 or higher or not a Core Profile\.'),
+        r'Chromium on macOS will fall back to software rendering in this case\.',
+        r'Hardware acceleration and features such as WebGL will not be available\.',
+        r'Unable to create basic Accelerated OpenGL renderer\.',
+        r'Core Image is now using the software OpenGL renderer\. This will be slow\.',
+
+        # Windows N:
+        # https://github.com/microsoft/playwright/issues/2901
+        (r'\[.*:ERROR:dxva_video_decode_accelerator_win.cc\(\d+\)\] '
+         r'DXVAVDA fatal error: could not LoadLibrary: .*: The specified '
+         r'module could not be found. \(0x7E\)'),
     ]
 
     proc = subprocess.run([executable, '--no-err-windows', '--nowindow',
@@ -201,7 +215,7 @@ def build_mac():
     utils.print_title("Updating 3rdparty content")
     update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False)
     utils.print_title("Building .app via pyinstaller")
-    call_tox('pyinstaller', '-r')
+    call_tox('pyinstaller-64', '-r')
     utils.print_title("Patching .app")
     patch_mac_app()
     utils.print_title("Building .dmg")
@@ -221,7 +235,8 @@ def build_mac():
                                       'MacOS', 'qutebrowser')
                 smoke_test(binary)
             finally:
-                time.sleep(5)
+                print("Waiting 10s for dmg to be detachable...")
+                time.sleep(10)
                 subprocess.run(['hdiutil', 'detach', tmpdir], check=False)
     except PermissionError as e:
         print("Failed to remove tempdir: {}".format(e))
@@ -251,21 +266,43 @@ def _get_windows_python_path(x64):
         return fallback
 
 
-def build_windows():
+def _build_windows_single(*, x64, skip_packaging):
+    """Build on Windows for a single architecture."""
+    human_arch = '64-bit' if x64 else '32-bit'
+    utils.print_title(f"Running pyinstaller {human_arch}")
+
+    outdir = os.path.join(
+        'dist', f'qutebrowser-{qutebrowser.__version__}-{"x64" if x64 else "x86"}')
+    _maybe_remove(outdir)
+
+    python = _get_windows_python_path(x64=x64)
+    call_tox(f'pyinstaller-{"64" if x64 else "32"}', '-r', python=python)
+
+    out_pyinstaller = os.path.join('dist', 'qutebrowser')
+    shutil.move(out_pyinstaller, outdir)
+
+    utils.print_title(f"Running {human_arch} smoke test")
+    smoke_test(os.path.join(outdir, 'qutebrowser.exe'))
+
+    if skip_packaging:
+        return []
+
+    utils.print_title(f"Packaging {human_arch}")
+    return _package_windows_single(
+        nsis_flags=[] if x64 else ['/DX86'],
+        outdir=outdir,
+        filename_arch='amd64' if x64 else 'win32',
+        desc_arch=human_arch,
+        desc_suffix='' if x64 else ' (only for 32-bit Windows!)',
+    )
+
+
+def build_windows(*, skip_packaging, skip_32bit, skip_64bit):
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
     update_3rdparty.run(nsis=True, ace=False, pdfjs=True, fancy_dmg=False)
 
     utils.print_title("Building Windows binaries")
-
-    python_x64 = _get_windows_python_path(x64=True)
-    python_x86 = _get_windows_python_path(x64=False)
-
-    out_pyinstaller = os.path.join('dist', 'qutebrowser')
-    out_32 = os.path.join('dist',
-                          'qutebrowser-{}-x86'.format(qutebrowser.__version__))
-    out_64 = os.path.join('dist',
-                          'qutebrowser-{}-x64'.format(qutebrowser.__version__))
 
     artifacts = []
 
@@ -273,57 +310,46 @@ def build_windows():
     utils.print_title("Updating VersionInfo file")
     gen_versioninfo.main()
 
-    utils.print_title("Running pyinstaller 32bit")
-    _maybe_remove(out_32)
-    call_tox('pyinstaller32', '-r', python=python_x86)
-    shutil.move(out_pyinstaller, out_32)
+    if not skip_64bit:
+        artifacts += _build_windows_single(x64=True, skip_packaging=skip_packaging)
+    if not skip_32bit:
+        artifacts += _build_windows_single(x64=False, skip_packaging=skip_packaging)
 
-    utils.print_title("Running pyinstaller 64bit")
-    _maybe_remove(out_64)
-    call_tox('pyinstaller', '-r', python=python_x64)
-    shutil.move(out_pyinstaller, out_64)
+    return artifacts
 
-    utils.print_title("Running 32bit smoke test")
-    smoke_test(os.path.join(out_32, 'qutebrowser.exe'))
-    utils.print_title("Running 64bit smoke test")
-    smoke_test(os.path.join(out_64, 'qutebrowser.exe'))
 
-    utils.print_title("Building installers")
+def _package_windows_single(
+    *,
+    nsis_flags,
+    outdir,
+    desc_arch,
+    desc_suffix,
+    filename_arch,
+):
+    """Build the given installer/zip for windows."""
+    artifacts = []
+
+    utils.print_subtitle(f"Building {desc_arch} installer...")
     subprocess.run(['makensis.exe',
-                    '/DVERSION={}'.format(qutebrowser.__version__),
+                    f'/DVERSION={qutebrowser.__version__}', *nsis_flags,
                     'misc/nsis/qutebrowser.nsi'], check=True)
-    subprocess.run(['makensis.exe',
-                    '/DX86',
-                    '/DVERSION={}'.format(qutebrowser.__version__),
-                    'misc/nsis/qutebrowser.nsi'], check=True)
+    name = f'qutebrowser-{qutebrowser.__version__}-{filename_arch}.exe'
+    artifacts.append((
+        os.path.join('dist', name),
+        'application/vnd.microsoft.portable-executable',
+        f'Windows {desc_arch} installer{desc_suffix}',
+    ))
 
-    name_32 = 'qutebrowser-{}-win32.exe'.format(qutebrowser.__version__)
-    name_64 = 'qutebrowser-{}-amd64.exe'.format(qutebrowser.__version__)
-
-    artifacts += [
-        (os.path.join('dist', name_32),
-         'application/vnd.microsoft.portable-executable',
-         'Windows 32bit installer'),
-        (os.path.join('dist', name_64),
-         'application/vnd.microsoft.portable-executable',
-         'Windows 64bit installer'),
-    ]
-
-    utils.print_title("Zipping 32bit standalone...")
-    name = 'qutebrowser-{}-windows-standalone-win32'.format(
-        qutebrowser.__version__)
-    shutil.make_archive(name, 'zip', 'dist', os.path.basename(out_32))
-    artifacts.append(('{}.zip'.format(name),
-                      'application/zip',
-                      'Windows 32bit standalone'))
-
-    utils.print_title("Zipping 64bit standalone...")
-    name = 'qutebrowser-{}-windows-standalone-amd64'.format(
-        qutebrowser.__version__)
-    shutil.make_archive(name, 'zip', 'dist', os.path.basename(out_64))
-    artifacts.append(('{}.zip'.format(name),
-                      'application/zip',
-                      'Windows 64bit standalone'))
+    utils.print_subtitle(f"Zipping {desc_arch} standalone...")
+    zip_name = (
+        f'qutebrowser-{qutebrowser.__version__}-windows-standalone-{filename_arch}')
+    zip_path = os.path.join('dist', zip_name)
+    shutil.make_archive(zip_path, 'zip', 'dist', os.path.basename(outdir))
+    artifacts.append((
+        f'{zip_path}.zip',
+        'application/zip',
+        f'Windows {desc_arch} standalone{desc_suffix}'
+    ))
 
     return artifacts
 
@@ -454,14 +480,22 @@ def upgrade_sdist_dependencies():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--no-asciidoc', action='store_true',
+    parser.add_argument('--skip-docs', action='store_true',
                         help="Don't generate docs")
-    parser.add_argument('--asciidoc', help="Full path to python and "
-                        "asciidoc.py. If not given, it's searched in PATH.",
-                        nargs=2, required=False,
-                        metavar=('PYTHON', 'ASCIIDOC'))
+    parser.add_argument('--asciidoc', help="Full path to asciidoc.py. "
+                        "If not given, it's searched in PATH.",
+                        nargs='?')
+    parser.add_argument('--asciidoc-python', help="Python to use for asciidoc."
+                        "If not given, the current Python interpreter is used.",
+                        nargs='?')
     parser.add_argument('--upload', action='store_true', required=False,
-                        help="Toggle to upload the release to GitHub")
+                        help="Toggle to upload the release to GitHub.")
+    parser.add_argument('--skip-packaging', action='store_true', required=False,
+                        help="Skip Windows installer/zip generation.")
+    parser.add_argument('--skip-32bit', action='store_true', required=False,
+                        help="Skip Windows 32 bit build.")
+    parser.add_argument('--skip-64bit', action='store_true', required=False,
+                        help="Skip Windows 64 bit build.")
     args = parser.parse_args()
     utils.change_cwd()
 
@@ -477,13 +511,17 @@ def main():
         utils.print_error("Refusing to do a release with a dirty git tree")
         sys.exit(1)
 
-    if args.no_asciidoc:
+    if args.skip_docs:
         os.makedirs(os.path.join('qutebrowser', 'html', 'doc'), exist_ok=True)
     else:
         run_asciidoc2html(args)
 
     if os.name == 'nt':
-        artifacts = build_windows()
+        artifacts = build_windows(
+            skip_packaging=args.skip_packaging,
+            skip_32bit=args.skip_32bit,
+            skip_64bit=args.skip_64bit,
+        )
     elif sys.platform == 'darwin':
         artifacts = build_mac()
     else:

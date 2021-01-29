@@ -282,7 +282,6 @@ Feature: Saving and loading sessions
     Then "Saved session quiet_session." should be logged with level debug
     And the session quiet_session should exist
 
-  @flaky
   Scenario: Saving session with --only-active-window
     When I open data/numbers/1.txt
     And I open data/numbers/2.txt in a new tab
@@ -293,6 +292,8 @@ Feature: Saving and loading sessions
     And I run :window-only
     And I run :tab-only
     And I run :session-load window_session_name
+    And I wait until data/numbers/3.txt is loaded
+    And I wait until data/numbers/4.txt is loaded
     And I wait until data/numbers/5.txt is loaded
     Then the session should look like:
       windows:
@@ -382,6 +383,7 @@ Feature: Saving and loading sessions
 
   # Test load/save of pinned tabs
 
+  @qtwebengine_flaky
   Scenario: Saving/Loading a session with pinned tabs
       When I open data/numbers/1.txt
       And I open data/numbers/2.txt in a new tab

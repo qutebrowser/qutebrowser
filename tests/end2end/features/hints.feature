@@ -6,11 +6,11 @@ Feature: Using hints
     Background:
         Given I clean up open tabs
 
-    Scenario: Using :follow-hint outside of hint mode (issue 1105)
-        When I run :follow-hint
-        Then the error "follow-hint: This command is only allowed in hint mode, not normal." should be shown
+    Scenario: Using :hint-follow outside of hint mode (issue 1105)
+        When I run :hint-follow
+        Then the error "hint-follow: This command is only allowed in hint mode, not normal." should be shown
 
-    Scenario: Using :follow-hint with an invalid index.
+    Scenario: Using :hint-follow with an invalid index.
         When I open data/hints/html/simple.html
         And I hint with args "links normal" and follow xyz
         Then the error "No hint xyz!" should be shown
@@ -26,8 +26,8 @@ Feature: Using hints
         And I wait for regex "hints: .*|Current tab changed \(\d* -> \d*\) before _start_cb is run\." in the log
         # 'hints: .*' is logged when _start_cb is called before tab-prev (on
         # qtwebkit, _start_cb is called synchronously)
-        And I run :follow-hint a
-        Then the error "follow-hint: This command is only allowed in hint mode, not normal." should be shown
+        And I run :hint-follow a
+        Then the error "hint-follow: This command is only allowed in hint mode, not normal." should be shown
 
     ### Opening in current or new tab
 
@@ -61,17 +61,17 @@ Feature: Using hints
 
     Scenario: Using :hint spawn with flags and -- (issue 797)
         When I open data/hints/html/simple.html
-        And I hint with args "-- all spawn -v python -c ''" and follow a
+        And I hint with args "-- all spawn -v (python-executable) -c ''" and follow a
         Then the message "Command exited successfully." should be shown
 
     Scenario: Using :hint spawn with flags (issue 797)
         When I open data/hints/html/simple.html
-        And I hint with args "all spawn -v python -c ''" and follow a
+        And I hint with args "all spawn -v (python-executable) -c ''" and follow a
         Then the message "Command exited successfully." should be shown
 
     Scenario: Using :hint spawn with flags and --rapid (issue 797)
         When I open data/hints/html/simple.html
-        And I hint with args "--rapid all spawn -v python -c ''" and follow a
+        And I hint with args "--rapid all spawn -v (python-executable) -c ''" and follow a
         Then the message "Command exited successfully." should be shown
 
     @posix
@@ -138,18 +138,18 @@ Feature: Using hints
         When I run :debug-set-fake-clipboard
         And I open data/hints/rapid.html
         And I hint with args "links yank --rapid"
-        And I run :follow-hint a
-        And I run :follow-hint s
-        And I run :leave-mode
+        And I run :hint-follow a
+        And I run :hint-follow s
+        And I run :mode-leave
         Then the clipboard should contain "http://localhost:(port)/data/hello.txt(linesep)http://localhost:(port)/data/hello2.txt"
 
     Scenario: Rapid hinting
         When I open data/hints/rapid.html in a new tab
         And I run :tab-only
         And I hint with args "all tab-bg --rapid"
-        And I run :follow-hint a
-        And I run :follow-hint s
-        And I run :leave-mode
+        And I run :hint-follow a
+        And I run :hint-follow s
+        And I run :mode-leave
         And I wait until data/hello.txt is loaded
         And I wait until data/hello2.txt is loaded
         # We should check what the active tab is, but for some reason that makes
@@ -167,9 +167,9 @@ Feature: Using hints
     Scenario: Using hint --rapid to hit multiple buttons
         When I open data/hints/buttons.html
         And I hint with args "--rapid"
-        And I run :follow-hint s
-        And I run :follow-hint d
-        And I run :follow-hint f
+        And I run :hint-follow s
+        And I run :hint-follow d
+        And I run :hint-follow f
         Then the javascript message "beep!" should be logged
         And the javascript message "bop!" should be logged
         And the javascript message "boop!" should be logged
@@ -179,23 +179,11 @@ Feature: Using hints
         And I hint with args "all run message-info {hint-url}" and follow a
         Then the message "http://localhost:(port)/data/hello.txt" should be shown
 
-    @qt<5.11
-    Scenario: Clicking an invalid link
-        When I open data/invalid_link.html
-        And I hint with args "all" and follow a
-        Then the error "Invalid link clicked - *" should be shown
-
-    @qt<5.11
-    Scenario: Clicking an invalid link opening in a new tab
-        When I open data/invalid_link.html
-        And I hint with args "all tab" and follow a
-        Then the error "Invalid link clicked - *" should be shown
-
     Scenario: Hinting inputs without type
         When I open data/hints/input.html
         And I hint with args "inputs" and follow a
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         # The actual check is already done above
         Then no crash should happen
 
@@ -235,7 +223,7 @@ Feature: Using hints
         When I open data/hints/input.html
         And I hint with args "inputs" and follow s
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         # The actual check is already done above
         Then no crash should happen
 
@@ -243,9 +231,15 @@ Feature: Using hints
         When I open data/hints/ace/ace.html
         And I hint with args "inputs" and follow a
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         # The actual check is already done above
         Then no crash should happen
+
+    Scenario: Hinting Twitter bootstrap checkbox
+        When I open data/hints/bootstrap/checkbox.html
+        And I hint with args "all" and follow a
+        # The actual check is already done above
+        Then "No elements found." should not be logged
 
     Scenario: Hinting invisible elements
         When I open data/hints/invisible.html
@@ -260,12 +254,12 @@ Feature: Using hints
         Then the javascript message "contents: existingnew" should be logged
 
     ### iframes
-    Scenario: Using :follow-hint inside an iframe
+    Scenario: Using :hint-follow inside an iframe
         When I open data/hints/iframe.html
         And I hint with args "links normal" and follow a
         Then "navigation request: url http://localhost:*/data/hello.txt, type Type.link_clicked, *" should be logged
 
-    Scenario: Using :follow-hint inside an iframe button
+    Scenario: Using :hint-follow inside an iframe button
         When I open data/hints/iframe_button.html
         And I hint with args "all normal" and follow s
         Then "navigation request: url http://localhost:*/data/hello.txt, *" should be logged
@@ -274,12 +268,12 @@ Feature: Using hints
         When I open data/hints/iframe_input.html
         And I hint with args "inputs" and follow a
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         # The actual check is already done above
         Then no crash should happen
 
     @flaky  # FIXME https://github.com/qutebrowser/qutebrowser/issues/1525
-    Scenario: Using :follow-hint inside a scrolled iframe
+    Scenario: Using :hint-follow inside a scrolled iframe
         When I open data/hints/iframe_scroll.html
         And I hint with args "all normal" and follow a
         And I run :scroll bottom
@@ -297,8 +291,8 @@ Feature: Using hints
         And I hint with args "links tab" and follow s
         And I wait until data/hello2.txt is loaded
         Then the following tabs should be open:
-            - data/hints/iframe_target.html
-            - data/hello2.txt (active)
+            - data/hints/iframe_target.html (active)
+            - data/hello2.txt
 
     Scenario: Clicking on iframe with :hint all current
         When I open data/hints/iframe.html
@@ -366,7 +360,7 @@ Feature: Using hints
         And I hint with args "all"
         And I press the key "s"
         And I wait for "Filtering hints on 's'" in the log
-        And I run :follow-hint 1
+        And I run :hint-follow 1
         Then data/numbers/7.txt should be loaded
 
     # https://github.com/qutebrowser/qutebrowser/issues/576
@@ -376,8 +370,8 @@ Feature: Using hints
         And I set hints.mode to number
         And I hint with args "all tab-bg --rapid"
         And I press the key "t"
-        And I run :follow-hint 0
-        And I run :follow-hint 1
+        And I run :hint-follow 0
+        And I run :hint-follow 1
         Then data/numbers/2.txt should be loaded
         And data/numbers/3.txt should be loaded
 
@@ -389,7 +383,7 @@ Feature: Using hints
         And I press the key "x"
         And I press the key "0"
         And I press the key "<Backspace>"
-        And I run :follow-hint 11
+        And I run :hint-follow 11
         Then the error "No hint 11!" should be shown
 
     # https://github.com/qutebrowser/qutebrowser/issues/674#issuecomment-165096744
@@ -423,7 +417,7 @@ Feature: Using hints
         When I open data/hints/number.html
         And I set hints.mode to number
         And I hint with args "--rapid"
-        And I run :leave-mode
+        And I run :mode-leave
         And I hint with args "--rapid" and follow 00
         Then data/numbers/1.txt should be loaded
 
@@ -444,7 +438,7 @@ Feature: Using hints
         And I hint with args "--mode number all"
         And I press the key "s"
         And I wait for "Filtering hints on 's'" in the log
-        And I run :follow-hint 1
+        And I run :hint-follow 1
         Then data/numbers/7.txt should be loaded
 
     ### hints.leave_on_load
@@ -592,6 +586,8 @@ Feature: Using hints
         And I press the key "<Enter>"
         Then data/hello.txt should be loaded
 
+    ## Other
+
     Scenario: Using --first with normal links
         When I open data/hints/html/simple.html
         And I hint with args "all --first"
@@ -603,12 +599,28 @@ Feature: Using hints
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         # ensure we clicked the first element
         And I run :jseval console.log(document.activeElement.id == "qute-input");
-        And I run :leave-mode
+        And I run :mode-leave
         Then the javascript message "true" should be logged
 
-    # Delete hint target
+    Scenario: Hinting contenteditable inputs
+        When I open data/hints/input.html
+        And I hint with args "inputs" and follow f
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
+        And I run :mode-leave
+        # The actual check is already done above
+        Then no crash should happen
+
     Scenario: Deleting a simple target
         When I open data/hints/html/simple.html
         And I hint with args "all delete" and follow a
         And I run :hint
         Then the error "No elements found." should be shown
+
+    Scenario: Statusbar text when entering hint mode from other mode
+        When I open data/hints/html/simple.html
+        And I run :mode-enter insert
+        And I hint with args "all"
+        And I run :debug-pyeval objreg.get('main-window', window='current', scope='window').status.txt.text()
+        # Changing tabs will leave hint mode
+        And I wait until qute://pyeval/ is loaded
+        Then the page should contain the plaintext "'Follow hint...'"

@@ -56,14 +56,14 @@ show it.
 *-R*, *--override-restore*::
     Don't restore a session even if one would be restored.
 
-*--target* '{auto,tab,tab-bg,tab-silent,tab-bg-silent,window}'::
+*--target* '{auto,tab,tab-bg,tab-silent,tab-bg-silent,window,private-window}'::
     How URLs should be opened if there is already a qutebrowser instance running.
 
 *--backend* '{webkit,webengine}'::
     Which backend to use.
 
-*--enable-webengine-inspector*::
-    Enable the web inspector / devtools for QtWebEngine. Note that this is a SECURITY RISK and you should not visit untrusted websites with the inspector turned on. See https://bugreports.qt.io/browse/QTBUG-50725 for more details. This is not needed anymore since Qt 5.11 where the inspector is always enabled and secure.
+*--desktop-file-name* 'DESKTOP_FILE_NAME'::
+    Set the base name of the desktop entry for this application. Used to set the app_id under Wayland. See https://doc.qt.io/qt-5/qguiapplication.html#desktopFileName-prop
 
 === debug arguments
 *-l* '{critical,error,warning,info,debug,vdebug}', *--loglevel* '{critical,error,warning,info,debug,vdebug}'::
@@ -144,7 +144,7 @@ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
-this program.  If not, see <http://www.gnu.org/licenses/>.
+this program.  If not, see <https://www.gnu.org/licenses/>.
 
 == RESOURCES
 * Website: https://www.qutebrowser.org/
@@ -153,7 +153,7 @@ https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser
 * Announce-only mailinglist: mailto:qutebrowser-announce@lists.qutebrowser.org[] /
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce
 * IRC: irc://irc.freenode.org/#qutebrowser[`#qutebrowser`] on
-http://freenode.net/[Freenode]
+https://freenode.net/[Freenode]
 * Github: https://github.com/qutebrowser/qutebrowser
 
 == AUTHOR

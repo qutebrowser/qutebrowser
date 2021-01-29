@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,14 +15,16 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Various utilities shared between webpage/webview subclasses."""
 
 import os
+import sys
 import html
 import netrc
-import typing
+from typing import Callable, Mapping, List
+import tempfile
 
 from PyQt5.QtCore import QUrl
 
@@ -30,6 +32,7 @@ from qutebrowser.config import config
 from qutebrowser.utils import (usertypes, message, log, objreg, jinja, utils,
                                qtutils)
 from qutebrowser.mainwindow import mainwindow
+from qutebrowser.misc import guiprocess
 
 
 class CallSuper(Exception):
@@ -76,15 +79,14 @@ def authentication_required(url, authenticator, abort_on):
     return answer
 
 
-def javascript_confirm(url, js_msg, abort_on, *, escape_msg=True):
+def javascript_confirm(url, js_msg, abort_on):
     """Display a javascript confirm prompt."""
     log.js.debug("confirm: {}".format(js_msg))
     if config.val.content.javascript.modal_dialog:
         raise CallSuper
 
-    js_msg = html.escape(js_msg) if escape_msg else js_msg
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
-                                          js_msg)
+                                          html.escape(js_msg))
     urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     ans = message.ask('Javascript confirm', msg,
                       mode=usertypes.PromptMode.yesno,
@@ -92,7 +94,7 @@ def javascript_confirm(url, js_msg, abort_on, *, escape_msg=True):
     return bool(ans)
 
 
-def javascript_prompt(url, js_msg, default, abort_on, *, escape_msg=True):
+def javascript_prompt(url, js_msg, default, abort_on):
     """Display a javascript prompt."""
     log.js.debug("prompt: {}".format(js_msg))
     if config.val.content.javascript.modal_dialog:
@@ -100,9 +102,8 @@ def javascript_prompt(url, js_msg, default, abort_on, *, escape_msg=True):
     if not config.val.content.javascript.prompt:
         return (False, "")
 
-    js_msg = html.escape(js_msg) if escape_msg else js_msg
     msg = '<b>{}</b> asks:<br/>{}'.format(html.escape(url.toDisplayString()),
-                                          js_msg)
+                                          html.escape(js_msg))
     urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     answer = message.ask('Javascript prompt', msg,
                          mode=usertypes.PromptMode.text,
@@ -115,7 +116,7 @@ def javascript_prompt(url, js_msg, default, abort_on, *, escape_msg=True):
         return (True, answer)
 
 
-def javascript_alert(url, js_msg, abort_on, *, escape_msg=True):
+def javascript_alert(url, js_msg, abort_on):
     """Display a javascript alert."""
     log.js.debug("alert: {}".format(js_msg))
     if config.val.content.javascript.modal_dialog:
@@ -124,9 +125,8 @@ def javascript_alert(url, js_msg, abort_on, *, escape_msg=True):
     if not config.val.content.javascript.alert:
         return
 
-    js_msg = html.escape(js_msg) if escape_msg else js_msg
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
-                                          js_msg)
+                                          html.escape(js_msg))
     urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     message.ask('Javascript alert', msg, mode=usertypes.PromptMode.alert,
                 abort_on=abort_on, url=urlstr)
@@ -134,13 +134,13 @@ def javascript_alert(url, js_msg, abort_on, *, escape_msg=True):
 
 # Needs to line up with the values allowed for the
 # content.javascript.log setting.
-_JS_LOGMAP = {
+_JS_LOGMAP: Mapping[str, Callable[[str], None]] = {
     'none': lambda arg: None,
     'debug': log.js.debug,
     'info': log.js.info,
     'warning': log.js.warning,
     'error': log.js.error,
-}  # type: typing.Mapping[str, typing.Callable[[str], None]]
+}
 
 
 def javascript_log_message(level, source, line, msg):
@@ -287,9 +287,7 @@ def get_user_stylesheet(searching=False):
             css += f.read()
 
     setting = config.val.scrolling.bar
-    overlay_bar_available = (qtutils.version_check('5.11', compiled=False) and
-                             not utils.is_mac)
-    if setting == 'overlay' and not overlay_bar_available:
+    if setting == 'overlay' and utils.is_mac:
         setting = 'when-searching'
 
     if setting == 'never' or setting == 'when-searching' and not searching:
@@ -345,3 +343,40 @@ def netrc_authentication(url, authenticator):
     authenticator.setPassword(password)
 
     return True
+
+
+def choose_file(multiple: bool) -> List[str]:
+    """Select file(s) for uploading, using external command defined in config.
+
+    Args:
+        multiple: Should selecting multiple files be allowed.
+
+    Return:
+        A list of selected file paths, or empty list if no file is selected.
+        If multiple is False, the return value will have at most 1 item.
+    """
+    handle = tempfile.NamedTemporaryFile(prefix='qutebrowser-fileselect-', delete=False)
+    handle.close()
+    tmpfilename = handle.name
+    with utils.cleanup_file(tmpfilename):
+        if multiple:
+            command = config.val.fileselect.multiple_files.command
+        else:
+            command = config.val.fileselect.single_file.command
+
+        proc = guiprocess.GUIProcess(what='choose-file')
+        proc.start(command[0],
+                   [arg.replace('{}', tmpfilename) for arg in command[1:]])
+
+        loop = qtutils.EventLoop()
+        proc.finished.connect(lambda _code, _status: loop.exit())
+        loop.exec()
+
+        with open(tmpfilename, mode='r', encoding=sys.getfilesystemencoding()) as f:
+            selected_files = f.read().splitlines()
+
+    if not multiple:
+        if len(selected_files) > 1:
+            message.warning("More than one file chosen, using only the first")
+            return selected_files[:1]
+    return selected_files

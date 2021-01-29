@@ -1,4 +1,5 @@
 # Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# encoding: iso-8859-1
 #
 # This file is part of qutebrowser.
 #
@@ -13,7 +14,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 # NSIS installer script. Uses NsisMultiUser plugin and contains portions of
 # its demo code, copyright 2017 Richard Drizin, Alex Mitev.

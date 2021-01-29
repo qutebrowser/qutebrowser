@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,12 +15,13 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """The main statusbar widget."""
 
 import enum
-import attr
+import dataclasses
+
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot,  # type: ignore[attr-defined]
                           pyqtProperty, Qt, QSize, QTimer)
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
@@ -31,11 +32,10 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.mainwindow.statusbar import (backforward, command, progress,
                                               keystring, percentage, url,
-                                              tabindex)
-from qutebrowser.mainwindow.statusbar import text as textwidget
+                                              tabindex, textbase)
 
 
-@attr.s
+@dataclasses.dataclass
 class ColorFlags:
 
     """Flags which change the appearance of the statusbar.
@@ -49,13 +49,20 @@ class ColorFlags:
         passthrough: If we're currently in passthrough-mode.
     """
 
-    CaretMode = enum.Enum('CaretMode', ['off', 'on', 'selection'])
-    prompt = attr.ib(False)
-    insert = attr.ib(False)
-    command = attr.ib(False)
-    caret = attr.ib(CaretMode.off)
-    private = attr.ib(False)
-    passthrough = attr.ib(False)
+    class CaretMode(enum.Enum):
+
+        """The current caret "sub-mode" we're in."""
+
+        off = enum.auto()
+        on = enum.auto()
+        selection = enum.auto()
+
+    prompt: bool = False
+    insert: bool = False
+    command: bool = False
+    caret: CaretMode = CaretMode.off
+    private: bool = False
+    passthrough: bool = False
 
     def to_stringlist(self):
         """Get a string list of set flags used in the stylesheet.
@@ -180,7 +187,7 @@ class StatusBar(QWidget):
         objreg.register('status-command', self.cmd, scope='window',
                         window=win_id)
 
-        self.txt = textwidget.Text()
+        self.txt = textbase.TextBase()
         self._stack.addWidget(self.txt)
 
         self.cmd.show_cmd.connect(self._show_cmd_widget)
@@ -320,7 +327,7 @@ class StatusBar(QWidget):
         if mode == 'passthrough':
             key_instance = config.key_instance
             all_bindings = key_instance.get_reverse_bindings_for('passthrough')
-            bindings = all_bindings.get('leave-mode')
+            bindings = all_bindings.get('mode-leave')
             if bindings:
                 suffix = ' ({} to leave)'.format(' or '.join(bindings))
             else:
@@ -328,7 +335,7 @@ class StatusBar(QWidget):
         else:
             suffix = ''
         text = "-- {} MODE --{}".format(mode.upper(), suffix)
-        self.txt.set_text(self.txt.Text.normal, text)
+        self.txt.setText(text)
 
     def _show_cmd_widget(self):
         """Show command widget instead of temporary text."""
@@ -342,9 +349,10 @@ class StatusBar(QWidget):
         self.maybe_hide()
 
     @pyqtSlot(str)
-    def set_text(self, val):
+    def set_text(self, text):
         """Set a normal (persistent) text in the status bar."""
-        self.txt.set_text(self.txt.Text.normal, val)
+        log.message.debug(text)
+        self.txt.setText(text)
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
@@ -372,7 +380,7 @@ class StatusBar(QWidget):
             if mode_manager.parsers[new_mode].passthrough:
                 self._set_mode_text(new_mode.name)
             else:
-                self.txt.set_text(self.txt.Text.normal, '')
+                self.txt.setText('')
         if old_mode in [usertypes.KeyMode.insert,
                         usertypes.KeyMode.command,
                         usertypes.KeyMode.caret,

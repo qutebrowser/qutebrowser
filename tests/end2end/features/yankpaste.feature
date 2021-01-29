@@ -315,7 +315,7 @@ Feature: Yanking and pasting.
 
     Scenario: Inserting text without a focused field
         When I open data/paste_primary.html
-        And I run :enter-mode insert
+        And I run :mode-enter insert
         And I run :insert-text test
         Then the error "No element focused!" should be shown
 
@@ -323,6 +323,6 @@ Feature: Yanking and pasting.
         When I open data/paste_primary.html
         And I run :click-element id qute-textarea-noedit
         And I wait for "Clicked non-editable element!" in the log
-        And I run :enter-mode insert
+        And I run :mode-enter insert
         And I run :insert-text test
         Then the error "Element is not editable!" should be shown

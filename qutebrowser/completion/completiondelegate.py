@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Completion item delegate for CompletionView.
 
@@ -26,7 +26,7 @@ import re
 import html
 
 from PyQt5.QtWidgets import QStyle, QStyleOptionViewItem, QStyledItemDelegate
-from PyQt5.QtCore import QRectF, QSize, Qt
+from PyQt5.QtCore import QRectF, QRegularExpression, QSize, Qt
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
                          QAbstractTextDocumentLayout, QSyntaxHighlighter,
                          QTextCharFormat)
@@ -41,14 +41,24 @@ class _Highlighter(QSyntaxHighlighter):
         super().__init__(doc)
         self._format = QTextCharFormat()
         self._format.setForeground(color)
-        self._pattern = pattern
+        words = pattern.split()
+        words.sort(key=len, reverse=True)
+        pat = "|".join(re.escape(word) for word in words)
+        self._expression = QRegularExpression(
+            pat, QRegularExpression.CaseInsensitiveOption
+        )
+        qtutils.ensure_valid(self._expression)
 
     def highlightBlock(self, text):
         """Override highlightBlock for custom highlighting."""
-        for match in re.finditer(self._pattern, text, re.IGNORECASE):
-            start, end = match.span()
-            length = end - start
-            self.setFormat(start, length, self._format)
+        match_iterator = self._expression.globalMatch(text)
+        while match_iterator.hasNext():
+            match = match_iterator.next()
+            self.setFormat(
+                match.capturedStart(),
+                match.capturedLength(),
+                self._format
+            )
 
 
 class CompletionItemDelegate(QStyledItemDelegate):
@@ -226,12 +236,11 @@ class CompletionItemDelegate(QStyledItemDelegate):
             pattern = view.pattern
             columns_to_filter = index.model().columns_to_filter(index)
             if index.column() in columns_to_filter and pattern:
-                pat = re.escape(pattern).replace(r'\ ', r'|')
                 if self._opt.state & QStyle.State_Selected:
                     color = config.val.colors.completion.item.selected.match.fg
                 else:
                     color = config.val.colors.completion.match.fg
-                _Highlighter(self._doc, pat, color)
+                _Highlighter(self._doc, pattern, color)
             self._doc.setPlainText(self._opt.text)
         else:
             self._doc.setHtml(

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2017-2018 Imran Sobir
 #
 # This file is part of qutebrowser.
@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import json
 import os
@@ -28,6 +28,7 @@ from PyQt5.QtCore import QUrl, QUrlQuery
 import pytest
 
 from qutebrowser.browser import qutescheme, pdfjs, downloads
+from qutebrowser.utils import utils
 
 
 class TestJavascriptHandler:
@@ -43,15 +44,14 @@ class TestJavascriptHandler:
     @pytest.fixture(autouse=True)
     def patch_read_file(self, monkeypatch):
         """Patch utils.read_file to return few fake JS files."""
-        def _read_file(path, binary=False):
+        def _read_file(path):
             """Faked utils.read_file."""
-            assert not binary
             for filename, content in self.js_files:
                 if path == os.path.join('javascript', filename):
                     return content
             raise OSError("File not found {}!".format(path))
 
-        monkeypatch.setattr('qutebrowser.utils.utils.read_file', _read_file)
+        monkeypatch.setattr(utils, 'read_file', _read_file)
 
     @pytest.mark.parametrize("filename, content", js_files)
     def test_qutejavascript(self, filename, content):
@@ -157,13 +157,16 @@ class TestHelpHandler:
     @pytest.fixture
     def data_patcher(self, monkeypatch):
         def _patch(path, data):
-            def _read_file(name, binary=False):
+            def _read_file(name):
                 assert path == name
-                if binary:
-                    return data
                 return data.decode('utf-8')
 
+            def _read_file_binary(name):
+                assert path == name
+                return data
+
             monkeypatch.setattr(qutescheme.utils, 'read_file', _read_file)
+            monkeypatch.setattr(qutescheme.utils, 'read_file_binary', _read_file_binary)
         return _patch
 
     def test_unknown_file_type(self, data_patcher):

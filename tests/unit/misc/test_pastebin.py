@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The-Compiler) <me@the-compiler.org>
+# Copyright 2016-2021 Florian Bruhin (The-Compiler) <me@the-compiler.org>
 # Copyright 2016-2018 Anna Kobak (avk) <awerk@onet.eu>:
 #
 # This file is part of qutebrowser.
@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
 from PyQt5.QtCore import QUrl

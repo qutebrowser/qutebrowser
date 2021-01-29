@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2020 Jay Kamat <jaygkamat@gmail.com>
+# Copyright 2018-2021 Jay Kamat <jaygkamat@gmail.com>
 #
 # This file is part of qutebrowser.
 #
@@ -15,24 +15,24 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """A throttle for throttling function calls."""
 
-import typing
+import dataclasses
 import time
+from typing import Any, Callable, Mapping, Optional, Sequence
 
-import attr
 from PyQt5.QtCore import QObject
 
 from qutebrowser.utils import usertypes
 
 
-@attr.s
+@dataclasses.dataclass
 class _CallArgs:
 
-    args = attr.ib()  # type: typing.Sequence[typing.Any]
-    kwargs = attr.ib()  # type: typing.Mapping[str, typing.Any]
+    args: Sequence[Any]
+    kwargs: Mapping[str, Any]
 
 
 class Throttle(QObject):
@@ -45,7 +45,7 @@ class Throttle(QObject):
     """
 
     def __init__(self,
-                 func: typing.Callable,
+                 func: Callable,
                  delay_ms: int,
                  parent: QObject = None) -> None:
         """Constructor.
@@ -59,8 +59,8 @@ class Throttle(QObject):
         super().__init__(parent)
         self._delay_ms = delay_ms
         self._func = func
-        self._pending_call = None  # type: typing.Optional[_CallArgs]
-        self._last_call_ms = None  # type: typing.Optional[int]
+        self._pending_call: Optional[_CallArgs] = None
+        self._last_call_ms: Optional[int] = None
         self._timer = usertypes.Timer(self, 'throttle-timer')
         self._timer.setSingleShot(True)
 
@@ -71,7 +71,7 @@ class Throttle(QObject):
         self._pending_call = None
         self._last_call_ms = int(time.monotonic() * 1000)
 
-    def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
         cur_time_ms = int(time.monotonic() * 1000)
         if self._pending_call is None:
             if (self._last_call_ms is None or

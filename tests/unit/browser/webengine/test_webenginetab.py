@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Test webenginetab."""
 
@@ -101,9 +101,6 @@ class TestWebengineScripts:
         """Make sure document-end is forced when needed."""
         monkeypatch.setattr(greasemonkey.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
-        monkeypatch.setattr(greasemonkey.qtutils, 'version_check',
-                            lambda version, exact=False, compiled=True:
-                            True)
 
         scripts = [
             greasemonkey.GreasemonkeyScript([

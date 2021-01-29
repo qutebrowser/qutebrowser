@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,11 +15,13 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.misc.split."""
 
-import attr
+import dataclasses
+from typing import List
+
 import pytest
 
 from qutebrowser.misc import split
@@ -109,12 +111,12 @@ def _parse_split_test_data_str():
     Returns:
         A list of TestCase objects with str attributes: inp, keep, no_keep
     """
-    @attr.s
+    @dataclasses.dataclass
     class TestCase:
 
-        inp = attr.ib()
-        keep = attr.ib()
-        no_keep = attr.ib()
+        inp: str
+        keep: List[str]
+        no_keep: List[str]
 
     for line in test_data_str.splitlines():
         if not line:

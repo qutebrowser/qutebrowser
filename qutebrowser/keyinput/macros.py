@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2016-2018 Jan Verbeek (blyxxyz) <ring@openmailbox.org>
 #
 # This file is part of qutebrowser.
@@ -16,11 +16,11 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Keyboard macro system."""
 
-import typing
+from typing import cast, Dict, List, Optional, Tuple
 
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
@@ -28,9 +28,9 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.utils import message, objreg, usertypes
 
 
-_CommandType = typing.Tuple[str, int]  # command, type
+_CommandType = Tuple[str, int]  # command, type
 
-macro_recorder = typing.cast('MacroRecorder', None)
+macro_recorder = cast('MacroRecorder', None)
 
 
 class MacroRecorder:
@@ -47,14 +47,14 @@ class MacroRecorder:
     """
 
     def __init__(self) -> None:
-        self._macros = {}  # type: typing.Dict[str, typing.List[_CommandType]]
-        self._recording_macro = None  # type: typing.Optional[str]
-        self._macro_count = {}  # type: typing.Dict[int, int]
-        self._last_register = None  # type: typing.Optional[str]
+        self._macros: Dict[str, List[_CommandType]] = {}
+        self._recording_macro: Optional[str] = None
+        self._macro_count: Dict[int, int] = {}
+        self._last_register: Optional[str] = None
 
-    @cmdutils.register(instance='macro-recorder', name='record-macro')
+    @cmdutils.register(instance='macro-recorder', deprecated_name='record-macro')
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
-    def record_macro_command(self, win_id: int, register: str = None) -> None:
+    def macro_record(self, win_id: int, register: str = None) -> None:
         """Start or stop recording a macro.
 
         Args:
@@ -77,12 +77,10 @@ class MacroRecorder:
         self._macros[register] = []
         self._recording_macro = register
 
-    @cmdutils.register(instance='macro-recorder', name='run-macro')
+    @cmdutils.register(instance='macro-recorder', deprecated_name='run-macro')
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def run_macro_command(self, win_id: int,
-                          count: int = 1,
-                          register: str = None) -> None:
+    def macro_run(self, win_id: int, count: int = 1, register: str = None) -> None:
         """Run a recorded macro.
 
         Args:

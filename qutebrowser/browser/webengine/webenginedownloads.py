@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,20 +15,19 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """QtWebEngine specific code for downloads."""
 
 import re
 import os.path
-import urllib
 import functools
 
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QObject
 from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
 
 from qutebrowser.browser import downloads, pdfjs
-from qutebrowser.utils import debug, usertypes, message, log, qtutils
+from qutebrowser.utils import debug, usertypes, message, log, objreg, urlutils
 
 
 class DownloadItem(downloads.AbstractDownloadItem):
@@ -40,8 +39,9 @@ class DownloadItem(downloads.AbstractDownloadItem):
     """
 
     def __init__(self, qt_item: QWebEngineDownloadItem,
+                 manager: downloads.AbstractDownloadManager,
                  parent: QObject = None) -> None:
-        super().__init__(parent)
+        super().__init__(manager=manager, parent=manager)
         self._qt_item = qt_item
         qt_item.downloadProgress.connect(  # type: ignore[attr-defined]
             self.stats.on_download_progress)
@@ -83,12 +83,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
             self.stats.finish()
         elif state == QWebEngineDownloadItem.DownloadInterrupted:
             self.successful = False
-            # https://bugreports.qt.io/browse/QTBUG-56839
-            try:
-                reason = self._qt_item.interruptReasonString()
-            except AttributeError:
-                # Qt < 5.9
-                reason = "Download failed"
+            reason = self._qt_item.interruptReasonString()
             self._die(reason)
         else:
             raise ValueError("_on_state_changed was called with unknown state "
@@ -101,22 +96,21 @@ class DownloadItem(downloads.AbstractDownloadItem):
             self._qt_item.cancel()
 
     def _do_cancel(self):
+        state = self._qt_item.state()
+        state_name = debug.qenum_key(QWebEngineDownloadItem, state)
+        assert state not in [QWebEngineDownloadItem.DownloadCompleted,
+                             QWebEngineDownloadItem.DownloadCancelled], state_name
         self._qt_item.cancel()
 
     def retry(self):
         state = self._qt_item.state()
         if state != QWebEngineDownloadItem.DownloadInterrupted:
             log.downloads.warning(
-                "Trying to retry download in state {}".format(
+                "Refusing to retry download in state {}".format(
                     debug.qenum_key(QWebEngineDownloadItem, state)))
             return
 
-        try:
-            self._qt_item.resume()
-        except AttributeError:
-            raise downloads.UnsupportedOperationError(
-                "Retrying downloads is unsupported with QtWebEngine on "
-                "Qt/PyQt < 5.10")
+        self._qt_item.resume()
 
     def _get_open_filename(self):
         return self._filename
@@ -140,14 +134,15 @@ class DownloadItem(downloads.AbstractDownloadItem):
                              "state {} (not in requested state)!".format(
                                  filename, self, state_name))
 
-    def _ask_confirm_question(self, title, msg):
+    def _ask_confirm_question(self, title, msg, *, custom_yes_action=None):
+        yes_action = custom_yes_action or self._after_set_filename
         no_action = functools.partial(self.cancel, remove_data=False)
         question = usertypes.Question()
         question.title = title
         question.text = msg
         question.url = 'file://{}'.format(self._filename)
         question.mode = usertypes.PromptMode.yesno
-        question.answered_yes.connect(self._after_set_filename)
+        question.answered_yes.connect(yes_action)
         question.answered_no.connect(no_action)
         question.cancelled.connect(no_action)
         self.cancelled.connect(question.abort)
@@ -185,8 +180,28 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
         self._qt_item.accept()
 
+    def _get_conflicting_download(self):
+        """Return another potential active download with the same name.
 
-def _get_suggested_filename(path):
+        webenginedownloads.DownloadItem needs to look for downloads both in its
+        manager and in qtnetwork-download-manager as both are used
+        simultaneously.
+
+        This method can be safely removed once #2328 is fixed.
+        """
+        conflicting_download = super()._get_conflicting_download()
+        if conflicting_download:
+            return conflicting_download
+
+        qtnetwork_download_manager = objreg.get(
+            'qtnetwork-download-manager')
+        for download in qtnetwork_download_manager.downloads:
+            if self._conflicts_with(download):
+                return download
+        return None
+
+
+def _strip_suffix(filename):
     """Convert a path we got from chromium to a suggested filename.
 
     Chromium thinks we want to download stuff to ~/Download, so even if we
@@ -196,8 +211,6 @@ def _get_suggested_filename(path):
 
     See https://bugreports.qt.io/browse/QTBUG-56978
     """
-    filename = os.path.basename(path)
-
     suffix_re = re.compile(r"""
       \ ?  # Optional space between filename and suffix
       (
@@ -211,14 +224,7 @@ def _get_suggested_filename(path):
       (?=\.|$)  # Begin of extension, or filename without extension
     """, re.VERBOSE)
 
-    filename = suffix_re.sub('', filename)
-    if not qtutils.version_check('5.9', compiled=False):
-        # https://bugreports.qt.io/browse/QTBUG-58155
-        filename = urllib.parse.unquote(filename)
-        # Doing basename a *second* time because there could be a %2F in
-        # there...
-        filename = os.path.basename(filename)
-    return filename
+    return suffix_re.sub('', filename)
 
 
 class DownloadManager(downloads.AbstractDownloadManager):
@@ -241,10 +247,30 @@ class DownloadManager(downloads.AbstractDownloadManager):
     @pyqtSlot(QWebEngineDownloadItem)
     def handle_download(self, qt_item):
         """Start a download coming from a QWebEngineProfile."""
-        suggested_filename = _get_suggested_filename(qt_item.path())
-        use_pdfjs = pdfjs.should_use_pdfjs(qt_item.mimeType(), qt_item.url())
+        qt_filename = os.path.basename(qt_item.path())   # FIXME use 5.14 API
+        mime_type = qt_item.mimeType()
+        url = qt_item.url()
 
-        download = DownloadItem(qt_item)
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-90355
+        if url.scheme().lower() == 'data':
+            if '/' in url.path().split(',')[-1]:  # e.g. a slash in base64
+                wrong_filename = url.path().split('/')[-1]
+            else:
+                wrong_filename = mime_type.split('/')[1]
+
+            needs_workaround = qt_filename == wrong_filename
+        else:
+            needs_workaround = False
+
+        if needs_workaround:
+            suggested_filename = urlutils.filename_from_url(
+                url, fallback='qutebrowser-download')
+        else:
+            suggested_filename = _strip_suffix(qt_filename)
+
+        use_pdfjs = pdfjs.should_use_pdfjs(mime_type, url)
+
+        download = DownloadItem(qt_item, manager=self)
         self._init_item(download, auto_remove=use_pdfjs,
                         suggested_filename=suggested_filename)
 

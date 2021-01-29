@@ -103,8 +103,6 @@ Feature: Setting positional marks
         And I wait until the scroll position changed to 20/15
         Then the page should be scrolled to 20 15
 
-    # FIXME:qtwebengine
-    @qtwebengine_skip: Does not find Grail on Travis for some reason?
     Scenario: Jumping back after search-next
         When I run :search Grail
         And I run :search-next
@@ -114,11 +112,11 @@ Feature: Setting positional marks
         Then the page should be scrolled to 0 0
 
     Scenario: Hovering a hint does not set the ' mark
-        When I run :scroll-px 30 20
-        And I wait until the scroll position changed to 30/20
-        And  I run :scroll-to-perc 0
+        When I run :scroll-px 10 20
+        And I wait until the scroll position changed to 10/20
+        And I run :scroll-to-perc 0
         And I wait until the scroll position changed
         And I hint with args "links hover" and follow s
         And I run :jump-mark "'"
-        And I wait until the scroll position changed to 30/20
-        Then the page should be scrolled to 30 20
+        And I wait until the scroll position changed to 10/20
+        Then the page should be scrolled to 10 20

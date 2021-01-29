@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Generate the html documentation based on the asciidoc files."""
 
@@ -31,11 +31,12 @@ import argparse
 import io
 import pathlib
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
+DOC_DIR = REPO_ROOT / 'qutebrowser' / 'html' / 'doc'
+
+sys.path.insert(0, str(REPO_ROOT))
 
 from scripts import utils
-
-DOC_DIR = pathlib.Path("qutebrowser/html/doc")
 
 
 class AsciiDoc:
@@ -45,14 +46,16 @@ class AsciiDoc:
     FILES = ['faq', 'changelog', 'contributing', 'quickstart', 'userscripts']
 
     def __init__(self,
-                 asciidoc: Optional[List[str]],
+                 asciidoc: Optional[str],
+                 asciidoc_python: Optional[str],
                  website: Optional[str]) -> None:
-        self._cmd = None        # type: Optional[List[str]]
+        self._cmd: Optional[List[str]] = None
         self._asciidoc = asciidoc
+        self._asciidoc_python = asciidoc_python
         self._website = website
-        self._homedir = None    # type: Optional[pathlib.Path]
-        self._themedir = None   # type: Optional[pathlib.Path]
-        self._tempdir = None    # type: Optional[pathlib.Path]
+        self._homedir: Optional[pathlib.Path] = None
+        self._themedir: Optional[pathlib.Path] = None
+        self._tempdir: Optional[pathlib.Path] = None
         self._failed = False
 
     def prepare(self) -> None:
@@ -79,9 +82,9 @@ class AsciiDoc:
 
     def _build_docs(self) -> None:
         """Render .asciidoc files to .html sites."""
-        files = [(pathlib.Path('doc/{}.asciidoc'.format(f)),
+        files = [((REPO_ROOT / 'doc' / '{}.asciidoc'.format(f)),
                   DOC_DIR / (f + ".html")) for f in self.FILES]
-        for src in pathlib.Path('doc/help/').glob('*.asciidoc'):
+        for src in (REPO_ROOT / 'doc' / 'help').glob('*.asciidoc'):
             dst = DOC_DIR / (src.stem + ".html")
             files.append((src, dst))
 
@@ -111,7 +114,7 @@ class AsciiDoc:
         dst_path = DOC_DIR / 'img'
         dst_path.mkdir(exist_ok=True)
         for filename in ['cheatsheet-big.png', 'cheatsheet-small.png']:
-            src = pathlib.Path('doc') / 'img' / filename
+            src = REPO_ROOT / 'doc' / 'img' / filename
             dst = dst_path / filename
             shutil.copy(str(src), str(dst))
 
@@ -120,12 +123,12 @@ class AsciiDoc:
         src = root / filename
         assert self._website is not None    # for mypy
         dst = pathlib.Path(self._website)
-        dst = dst / src.parent.relative_to('.') / (src.stem + ".html")
+        dst = dst / src.parent.relative_to(REPO_ROOT) / (src.stem + ".html")
         dst.parent.mkdir(exist_ok=True)
 
         assert self._tempdir is not None    # for mypy
         modified_src = self._tempdir / src.name
-        shutil.copy('www/header.asciidoc', modified_src)
+        shutil.copy(str(REPO_ROOT / 'www' / 'header.asciidoc'), modified_src)
 
         outfp = io.StringIO()
 
@@ -181,14 +184,14 @@ class AsciiDoc:
 
     def _build_website(self) -> None:
         """Prepare and build the website."""
-        theme_file = (pathlib.Path('www') / 'qute.css').resolve()
+        theme_file = REPO_ROOT / 'www' / 'qute.css'
         assert self._themedir is not None   # for mypy
         shutil.copy(theme_file, self._themedir)
 
         assert self._website is not None    # for mypy
         outdir = pathlib.Path(self._website)
 
-        for item_path in pathlib.Path().rglob('*.asciidoc'):
+        for item_path in pathlib.Path(REPO_ROOT).rglob('*.asciidoc'):
             if item_path.stem in ['header', 'OpenSans-License']:
                 continue
             self._build_website_file(item_path.parent, item_path.name)
@@ -196,17 +199,18 @@ class AsciiDoc:
         copy = {'icons': 'icons', 'doc/img': 'doc/img', 'www/media': 'media/'}
 
         for src, dest in copy.items():
+            full_src = REPO_ROOT / src
             full_dest = outdir / dest
             try:
                 shutil.rmtree(full_dest)
             except FileNotFoundError:
                 pass
-            shutil.copytree(src, full_dest)
+            shutil.copytree(full_src, full_dest)
 
         for dst, link_name in [
                 ('README.html', 'index.html'),
-                ((pathlib.Path('doc') / 'quickstart.html'),
-                 'quickstart.html')]:
+                ((pathlib.Path('doc') / 'quickstart.html'), 'quickstart.html'),
+        ]:
             assert isinstance(dst, (str, pathlib.Path))    # for mypy
             try:
                 (outdir / link_name).symlink_to(dst)
@@ -216,23 +220,20 @@ class AsciiDoc:
     def _get_asciidoc_cmd(self) -> List[str]:
         """Try to find out what commandline to use to invoke asciidoc."""
         if self._asciidoc is not None:
-            return self._asciidoc
+            python = (sys.executable if self._asciidoc_python is None
+                      else self._asciidoc_python)
+            return [python, self._asciidoc]
 
-        try:
-            subprocess.run(['asciidoc'], stdout=subprocess.DEVNULL,
-                           stderr=subprocess.DEVNULL, check=True)
-        except OSError:
-            pass
-        else:
-            return ['asciidoc']
-
-        try:
-            subprocess.run(['asciidoc.py'], stdout=subprocess.DEVNULL,
-                           stderr=subprocess.DEVNULL, check=True)
-        except OSError:
-            pass
-        else:
-            return ['asciidoc.py']
+        for executable in ['asciidoc', 'asciidoc.py']:
+            try:
+                subprocess.run([executable, '--version'],
+                               stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL,
+                               check=True)
+            except OSError:
+                pass
+            else:
+                return [executable]
 
         raise FileNotFoundError
 
@@ -251,9 +252,14 @@ class AsciiDoc:
             cmdline += ['--out-file', str(dst)]
         cmdline += args
         cmdline.append(str(src))
+
+        # So the virtualenv's Pygments is found
+        bin_path = pathlib.Path(sys.executable).parent
+
         try:
             env = os.environ.copy()
             env['HOME'] = str(self._homedir)
+            env['PATH'] = str(bin_path) + os.pathsep + env['PATH']
             subprocess.run(cmdline, check=True, env=env)
         except (subprocess.CalledProcessError, OSError) as e:
             self._failed = True
@@ -268,10 +274,12 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('--website', help="Build website into a given "
                         "directory.")
-    parser.add_argument('--asciidoc', help="Full path to python and "
-                        "asciidoc.py. If not given, it's searched in PATH.",
-                        nargs=2, required=False,
-                        metavar=('PYTHON', 'ASCIIDOC'))
+    parser.add_argument('--asciidoc', help="Full path to asciidoc.py. "
+                        "If not given, it's searched in PATH.",
+                        nargs='?')
+    parser.add_argument('--asciidoc-python', help="Python to use for asciidoc."
+                        "If not given, the current Python interpreter is used.",
+                        nargs='?')
     return parser.parse_args()
 
 
@@ -299,7 +307,8 @@ def main(colors: bool = False) -> None:
     utils.change_cwd()
     utils.use_color = colors
     args = parse_args()
-    run(asciidoc=args.asciidoc, website=args.website)
+    run(asciidoc=args.asciidoc, asciidoc_python=args.asciidoc_python,
+        website=args.website)
 
 
 if __name__ == '__main__':

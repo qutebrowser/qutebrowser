@@ -48,7 +48,7 @@ Feature: Downloading things from a website.
         When I set downloads.location.prompt to true
         And I open data/downloads/downloads.html
         And I hint with args "--rapid links download" and follow a
-        And I run :follow-hint s
+        And I run :hint-follow s
         And I wait until the download download.bin is finished
         And I wait until the download download2.bin is finished
         Then the downloaded file download.bin should exist
@@ -87,9 +87,9 @@ Feature: Downloading things from a website.
         When I set downloads.location.suggestion to filename
         And I set downloads.location.prompt to true
         And I open data/data_link.html
-        And I hint with args "links download" and follow a
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='binary blob' mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
-        And I run :leave-mode
+        And I hint with args "links download" and follow s
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='download.pdf' mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
+        And I run :mode-leave
         Then no crash should happen
 
     Scenario: Aborting a download in a different window (issue 3378)
@@ -98,20 +98,8 @@ Feature: Downloading things from a website.
         And I open data/downloads/download.bin in a new window without waiting
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> *" in the log
         And I run :window-only
-        And I run :leave-mode
+        And I run :mode-leave
         Then no crash should happen
-
-    # https://github.com/qutebrowser/qutebrowser/issues/4240
-    @qt<5.11.2
-    Scenario: Downloading with SSL errors (issue 1413)
-        When SSL is supported
-        And I clear SSL errors
-        And I set content.ssl_strict to ask
-        And I set downloads.location.prompt to false
-        And I download an SSL page
-        And I wait for "Entering mode KeyMode.* (reason: question asked)" in the log
-        And I run :prompt-accept
-        Then the error "Download error: SSL handshake failed" should be shown
 
     Scenario: Closing window with downloads.remove_finished timeout (issue 1242)
         When I set downloads.remove_finished to 500
@@ -121,8 +109,6 @@ Feature: Downloading things from a website.
         And I wait 0.5s
         Then no crash should happen
 
-    # This sometimes hangs on exit for some reason on Travis...
-    @windows
     Scenario: Quitting with finished downloads and confirm_quit=downloads (issue 846)
         Given I have a fresh instance
         When I set downloads.location.prompt to false
@@ -150,16 +136,16 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then the downloaded file download with spaces.bin should exist
 
-    @qtwebkit_skip @qt<5.9 @qt>=5.13
-    Scenario: Downloading a file with evil content-disposition header (Qt 5.8 or older and 5.13 and newer)
+    @qtwebkit_skip @qt>=5.13
+    Scenario: Downloading a file with evil content-disposition header (Qt 5.13 and newer)
         # Content-Disposition: download; filename=..%2Ffoo
         When I open response-headers?Content-Disposition=download;%20filename%3D..%252Ffoo without waiting
         And I wait until the download is finished
         Then the downloaded file ../foo should not exist
         And the downloaded file foo should exist
 
-    @qtwebkit_skip @qt<5.13 @qt>=5.9
-    Scenario: Downloading a file with evil content-disposition header (Qt 5.9 to 5.12)
+    @qtwebkit_skip @qt<5.13
+    Scenario: Downloading a file with evil content-disposition header (Qt 5.12)
         # Content-Disposition: download; filename=..%2Ffoo
         When I open response-headers?Content-Disposition=download;%20filename%3D..%252Ffoo without waiting
         And I wait until the download is finished
@@ -180,7 +166,7 @@ Feature: Downloading things from a website.
         And I open data/downloads/download.bin without waiting
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> option=None text='Please enter a location for <b>http://localhost:*/data/downloads/download.bin</b>' title='Save file to:'>, *" in the log
         And I run :prompt-accept COM1
-        And I run :leave-mode
+        And I run :mode-leave
         Then the error "Invalid filename" should be shown
 
     @windows
@@ -189,7 +175,7 @@ Feature: Downloading things from a website.
         And I open data/downloads/download.bin without waiting
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> option=None text='Please enter a location for <b>http://localhost:*/data/downloads/download.bin</b>' title='Save file to:'>, *" in the log
         And I run :prompt-accept C:foobar
-        And I run :leave-mode
+        And I run :mode-leave
         Then the error "Invalid filename" should be shown
 
     @windows
@@ -212,24 +198,6 @@ Feature: Downloading things from a website.
         Then the requests should be:
             does-not-exist
             does-not-exist
-
-    @qtwebkit_skip @qt<5.10
-    Scenario: Retrying a failed download with QtWebEngine (Qt < 5.10)
-        When I open data/downloads/issue2298.html
-        And I run :click-element id download
-        And I wait for "Download error: *" in the log
-        And I run :download-retry
-        Then the error "Retrying downloads is unsupported *" should be shown
-
-    @qtwebkit_skip @qt==5.10.1
-    Scenario: Retrying a failed download with QtWebEngine (Qt 5.10)
-        When I open data/downloads/issue2298.html
-        And I run :click-element id download
-        And I wait for "Download error: *" in the log
-        And I run :download-retry
-        # For some reason it doesn't actually try again here, but let's hope it
-        # works e.g. on a connection loss, which we can't test automatically.
-        Then "Retrying downloads is unsupported *" should not be logged
 
     @flaky
     Scenario: Retrying with count
@@ -699,7 +667,7 @@ Feature: Downloading things from a website.
     Scenario: user-agent when using hints
         When I open /
         And I run :hint links download
-        And I run :follow-hint a
+        And I run :hint-follow a
         And I wait until the download is finished
         Then the downloaded file user-agent should contain Safari/
 

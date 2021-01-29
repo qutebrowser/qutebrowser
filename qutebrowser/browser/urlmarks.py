@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015-2018 Antoni Boucher <bouanto@zoho.com>
 #
 # This file is part of qutebrowser.
@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Managers for bookmarks and quickmarks.
 
@@ -30,7 +30,7 @@ import os.path
 import html
 import functools
 import collections
-import typing
+from typing import MutableMapping
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
@@ -78,8 +78,7 @@ class UrlMarkManager(QObject):
         """Initialize and read quickmarks."""
         super().__init__(parent)
 
-        self.marks = collections.OrderedDict(
-        )  # type: typing.MutableMapping[str, str]
+        self.marks: MutableMapping[str, str] = collections.OrderedDict()
 
         self._init_lineparser()
         for line in self._lineparser:

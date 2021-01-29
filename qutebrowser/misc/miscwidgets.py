@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,11 +15,11 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Misc. widgets used at different places."""
 
-import typing
+from typing import Optional
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QTimer
 from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
@@ -28,10 +28,10 @@ from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
 from PyQt5.QtGui import QValidator, QPainter, QResizeEvent
 
 from qutebrowser.config import config, configfiles
-from qutebrowser.utils import utils, log
+from qutebrowser.utils import utils, log, usertypes
 from qutebrowser.misc import cmdhistory
 from qutebrowser.browser import inspector
-from qutebrowser.keyinput import keyutils
+from qutebrowser.keyinput import keyutils, modeman
 
 
 class MinimalLineEditMixin:
@@ -239,8 +239,8 @@ class WrapperLayout(QLayout):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._widget = None  # type: typing.Optional[QWidget]
-        self._container = None  # type: typing.Optional[QWidget]
+        self._widget: Optional[QWidget] = None
+        self._container: Optional[QWidget] = None
 
     def addItem(self, _widget):
         raise utils.Unreachable
@@ -282,47 +282,6 @@ class WrapperLayout(QLayout):
         self._widget.deleteLater()
         self._widget = None
         self._container.setFocusProxy(None)  # type: ignore[arg-type]
-
-
-class PseudoLayout(QLayout):
-
-    """A layout which isn't actually a real layout.
-
-    This is used to replace QWebEngineView's internal layout, as a WORKAROUND
-    for https://bugreports.qt.io/browse/QTBUG-68224 and other related issues.
-
-    This is partly inspired by https://codereview.qt-project.org/#/c/230894/
-    which does something similar as part of Qt.
-    """
-
-    def addItem(self, item):
-        assert self.parent() is not None
-        item.widget().setParent(self.parent())
-
-    def removeItem(self, item):
-        item.widget().setParent(None)
-
-    def count(self):
-        return 0
-
-    def itemAt(self, _pos):
-        return None
-
-    def widget(self):
-        return self.parent().render_widget()
-
-    def setGeometry(self, rect):
-        """Resize the render widget when the view is resized."""
-        widget = self.widget()
-        if widget is not None:
-            widget.setGeometry(rect)
-
-    def sizeHint(self):
-        """Make sure the view has the sizeHint of the render widget."""
-        widget = self.widget()
-        if widget is not None:
-            return widget.sizeHint()
-        return QSize()
 
 
 class FullscreenNotification(QLabel):
@@ -383,15 +342,38 @@ class InspectorSplitter(QSplitter):
     _PROTECTED_MAIN_SIZE = 150
     _SMALL_SIZE_THRESHOLD = 300
 
-    def __init__(self, main_webview: QWidget, parent: QWidget = None) -> None:
+    def __init__(self, win_id: int, main_webview: QWidget,
+                 parent: QWidget = None) -> None:
         super().__init__(parent)
+        self._win_id = win_id
         self.addWidget(main_webview)
         self.setFocusProxy(main_webview)
         self.splitterMoved.connect(self._on_splitter_moved)
-        self._main_idx = None  # type: typing.Optional[int]
-        self._inspector_idx = None  # type: typing.Optional[int]
-        self._position = None  # type: typing.Optional[inspector.Position]
-        self._preferred_size = None  # type: typing.Optional[int]
+        self._main_idx: Optional[int] = None
+        self._inspector_idx: Optional[int] = None
+        self._position: Optional[inspector.Position] = None
+        self._preferred_size: Optional[int] = None
+
+    def cycle_focus(self):
+        """Cycle keyboard focus between the main/inspector widget."""
+        if self.count() == 1:
+            raise inspector.Error("No inspector inside main window")
+
+        assert self._main_idx is not None
+        assert self._inspector_idx is not None
+
+        main_widget = self.widget(self._main_idx)
+        inspector_widget = self.widget(self._inspector_idx)
+
+        if not inspector_widget.isVisible():
+            raise inspector.Error("No inspector inside main window")
+
+        if main_widget.hasFocus():
+            inspector_widget.setFocus()
+            modeman.enter(self._win_id, usertypes.KeyMode.insert,
+                          reason='Inspector focused', only_if_normal=True)
+        elif inspector_widget.hasFocus():
+            main_widget.setFocus()
 
     def set_inspector(self, inspector_widget: inspector.AbstractWebInspector,
                       position: inspector.Position) -> None:

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,11 +15,11 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Bridge to provide readline-like shortcuts for QLineEdits."""
 
-import typing
+from typing import Iterable, Optional, MutableMapping
 
 from PyQt5.QtWidgets import QApplication, QLineEdit
 
@@ -35,11 +35,15 @@ class _ReadlineBridge:
     """
 
     def __init__(self) -> None:
-        self._deleted = {}  # type: typing.MutableMapping[QLineEdit, str]
+        self._deleted: MutableMapping[QLineEdit, str] = {}
 
-    def _widget(self) -> typing.Optional[QLineEdit]:
+    def _widget(self) -> Optional[QLineEdit]:
         """Get the currently active QLineEdit."""
-        w = QApplication.instance().focusWidget()
+        # FIXME add this to api.utils or so
+        qapp = QApplication.instance()
+        assert qapp is not None
+        w = qapp.focusWidget()
+
         if isinstance(w, QLineEdit):
             return w
         else:
@@ -86,7 +90,7 @@ class _ReadlineBridge:
     def kill_line(self) -> None:
         self._dispatch('end', mark=True, delete=True)
 
-    def _rubout(self, delim: typing.Iterable[str]) -> None:
+    def _rubout(self, delim: Iterable[str]) -> None:
         """Delete backwards using the characters in delim as boundaries."""
         widget = self._widget()
         if widget is None:

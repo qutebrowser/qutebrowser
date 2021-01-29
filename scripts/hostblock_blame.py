@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Check by which hostblock list a host was blocked."""
 
@@ -27,7 +27,7 @@ import os.path
 import urllib.request
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
-from qutebrowser.components import adblock
+from qutebrowser.components import hostblock
 from qutebrowser.config import configdata
 
 
@@ -39,11 +39,11 @@ def main():
 
     configdata.init()
 
-    for url in configdata.DATA['content.host_blocking.lists'].default:
+    for url in configdata.DATA['content.blocking.hosts.lists'].default:
         print("checking {}...".format(url))
         raw_file = urllib.request.urlopen(url)
         byte_io = io.BytesIO(raw_file.read())
-        f = adblock.get_fileobj(byte_io)
+        f = hostblock.get_fileobj(byte_io)
         for line in f:
             line = line.decode('utf-8')
             if sys.argv[1] in line:

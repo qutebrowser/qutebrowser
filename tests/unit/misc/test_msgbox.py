@@ -1,4 +1,4 @@
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # This file is part of qutebrowser.
@@ -14,7 +14,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.misc.msgbox."""
 
@@ -95,7 +95,7 @@ def test_information(qtbot):
 def test_no_err_windows(fake_args, capsys):
     fake_args.no_err_windows = True
     box = msgbox.information(parent=None, title='foo', text='bar')
-    box.exec_()  # should do nothing
+    box.exec()  # should do nothing
     out, err = capsys.readouterr()
     assert not out
     assert err == 'Message box: foo; bar\n'

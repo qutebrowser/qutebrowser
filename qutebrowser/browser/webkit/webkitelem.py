@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,11 +15,11 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """QtWebKit specific part of the web element API."""
 
-import typing
+from typing import cast, TYPE_CHECKING, Iterator, List, Optional, Set
 
 from PyQt5.QtCore import QRect, Qt
 from PyQt5.QtWebKit import QWebElement, QWebSettings
@@ -29,7 +29,7 @@ from qutebrowser.config import config
 from qutebrowser.utils import log, utils, javascript, usertypes
 from qutebrowser.browser import webelem
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.browser.webkit import webkittab
 
 
@@ -41,6 +41,8 @@ class IsNullError(webelem.Error):
 class WebKitElement(webelem.AbstractWebElement):
 
     """A wrapper around a QWebElement."""
+
+    _tab: 'webkittab.WebKitTab'
 
     def __init__(self, elem: QWebElement, tab: 'webkittab.WebKitTab') -> None:
         super().__init__(tab)
@@ -80,7 +82,7 @@ class WebKitElement(webelem.AbstractWebElement):
         self._check_vanished()
         return self._elem.hasAttribute(key)
 
-    def __iter__(self) -> typing.Iterator[str]:
+    def __iter__(self) -> Iterator[str]:
         self._check_vanished()
         yield from self._elem.attributeNames()
 
@@ -101,9 +103,9 @@ class WebKitElement(webelem.AbstractWebElement):
         self._check_vanished()
         return self._elem.geometry()
 
-    def classes(self) -> typing.List[str]:
+    def classes(self) -> Set[str]:
         self._check_vanished()
-        return self._elem.classes()
+        return set(self._elem.classes())
 
     def tag_name(self) -> str:
         """Get the tag name for the current element."""
@@ -114,6 +116,12 @@ class WebKitElement(webelem.AbstractWebElement):
         """Get the full HTML representation of this element."""
         self._check_vanished()
         return self._elem.toOuterXml()
+
+    def is_content_editable_prop(self) -> bool:
+        self._check_vanished()
+        val = self._elem.evaluateJavaScript('this.isContentEditable || false')
+        assert isinstance(val, bool)
+        return val
 
     def value(self) -> webelem.JsValueType:
         self._check_vanished()
@@ -168,21 +176,16 @@ class WebKitElement(webelem.AbstractWebElement):
             this.dispatchEvent(event);
         """.format(javascript.to_js(text)))
 
-    def _parent(self) -> typing.Optional['WebKitElement']:
+    def _parent(self) -> Optional['WebKitElement']:
         """Get the parent element of this element."""
         self._check_vanished()
-        elem = typing.cast(typing.Optional[QWebElement],
-                           self._elem.parent())
+        elem = cast(Optional[QWebElement], self._elem.parent())
         if elem is None or elem.isNull():
             return None
 
-        if typing.TYPE_CHECKING:
-            # pylint: disable=used-before-assignment
-            assert isinstance(self._tab, webkittab.WebKitTab)
-
         return WebKitElement(elem, tab=self._tab)
 
-    def _rect_on_view_js(self) -> typing.Optional[QRect]:
+    def _rect_on_view_js(self) -> Optional[QRect]:
         """Javascript implementation for rect_on_view."""
         # FIXME:qtwebengine maybe we can reuse this?
         rects = self._elem.evaluateJavaScript("this.getClientRects()")
@@ -211,29 +214,32 @@ class WebKitElement(webelem.AbstractWebElement):
                     height *= zoom
                 rect = QRect(int(rect["left"]), int(rect["top"]),
                              int(width), int(height))
-                frame = self._elem.webFrame()
+
+                frame = cast(Optional[QWebFrame], self._elem.webFrame())
                 while frame is not None:
                     # Translate to parent frames' position (scroll position
                     # is taken care of inside getClientRects)
                     rect.translate(frame.geometry().topLeft())
                     frame = frame.parentFrame()
+
                 return rect
 
         return None
 
-    def _rect_on_view_python(self,
-                             elem_geometry: typing.Optional[QRect]) -> QRect:
+    def _rect_on_view_python(self, elem_geometry: Optional[QRect]) -> QRect:
         """Python implementation for rect_on_view."""
         if elem_geometry is None:
             geometry = self._elem.geometry()
         else:
             geometry = elem_geometry
-        frame = self._elem.webFrame()
         rect = QRect(geometry)
+
+        frame = cast(Optional[QWebFrame], self._elem.webFrame())
         while frame is not None:
             rect.translate(frame.geometry().topLeft())
             rect.translate(frame.scrollPosition() * -1)
-            frame = frame.parentFrame()
+            frame = cast(Optional[QWebFrame], frame.parentFrame())
+
         return rect
 
     def rect_on_view(self, *, elem_geometry: QRect = None,
@@ -267,6 +273,20 @@ class WebKitElement(webelem.AbstractWebElement):
         # No suitable rects found via JS, try via the QWebElement API
         return self._rect_on_view_python(elem_geometry)
 
+    def _is_hidden_css(self) -> bool:
+        """Check if the given element is hidden via CSS."""
+        attr_values = {
+            attr: self._elem.styleProperty(attr, QWebElement.ComputedStyle)
+            for attr in ['visibility', 'display', 'opacity']
+        }
+        invisible = attr_values['visibility'] == 'hidden'
+        none_display = attr_values['display'] == 'none'
+        zero_opacity = attr_values['opacity'] == '0'
+
+        is_framework = ('ace_text-input' in self.classes() or
+                        'custom-control-input' in self.classes())
+        return invisible or none_display or (zero_opacity and not is_framework)
+
     def _is_visible(self, mainframe: QWebFrame) -> bool:
         """Check if the given element is visible in the given frame.
 
@@ -275,16 +295,8 @@ class WebKitElement(webelem.AbstractWebElement):
         the tab API.
         """
         self._check_vanished()
-        # CSS attributes which hide an element
-        hidden_attributes = {
-            'visibility': 'hidden',
-            'display': 'none',
-            'opacity': '0',
-        }
-        for k, v in hidden_attributes.items():
-            if (self._elem.styleProperty(k, QWebElement.ComputedStyle) == v and
-                    'ace_text-input' not in self.classes()):
-                return False
+        if self._is_hidden_css():
+            return False
 
         elem_geometry = self._elem.geometry()
         if not elem_geometry.isValid() and elem_geometry.x() == 0:
@@ -320,7 +332,7 @@ class WebKitElement(webelem.AbstractWebElement):
         return all([visible_on_screen, visible_in_frame])
 
     def remove_blank_target(self) -> None:
-        elem = self  # type: typing.Optional[WebKitElement]
+        elem: Optional[WebKitElement] = self
         for _ in range(5):
             if elem is None:
                 break
@@ -365,10 +377,10 @@ class WebKitElement(webelem.AbstractWebElement):
         super()._click_fake_event(click_target)
 
 
-def get_child_frames(startframe: QWebFrame) -> typing.List[QWebFrame]:
+def get_child_frames(startframe: QWebFrame) -> List[QWebFrame]:
     """Get all children recursively of a given QWebFrame.
 
-    Loosely based on http://blog.nextgenetics.net/?e=64
+    Loosely based on https://blog.nextgenetics.net/?e=64
 
     Args:
         startframe: The QWebFrame to start with.
@@ -379,7 +391,7 @@ def get_child_frames(startframe: QWebFrame) -> typing.List[QWebFrame]:
     results = []
     frames = [startframe]
     while frames:
-        new_frames = []  # type: typing.List[QWebFrame]
+        new_frames: List[QWebFrame] = []
         for frame in frames:
             results.append(frame)
             new_frames += frame.childFrames()

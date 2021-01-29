@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import sys
 import textwrap
@@ -83,8 +83,10 @@ def test_unused_func(vultdir):
         def foo():
             pass
     """)
-    msg = "foo.py:2: unused function 'foo' (60% confidence)"
-    assert vultdir.run() == [msg]
+    msg = "*test_unused_func*foo.py:2: unused function 'foo' (60% confidence)"
+    msgs = vultdir.run()
+    assert len(msgs) == 1
+    assert utils.pattern_match(pattern=msg, value=msgs[0])
 
 
 def test_unused_method_camelcase(vultdir):

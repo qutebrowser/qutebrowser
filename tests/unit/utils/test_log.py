@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.utils.log."""
 
@@ -24,8 +24,8 @@ import argparse
 import itertools
 import sys
 import warnings
+import dataclasses
 
-import attr
 import pytest
 import _pytest.logging
 from PyQt5 import QtCore
@@ -384,9 +384,9 @@ def test_stub(caplog, suffix, expected):
     assert caplog.messages == [expected]
 
 
-def test_ignore_py_warnings(caplog):
+def test_py_warning_filter(caplog):
     logging.captureWarnings(True)
-    with log.ignore_py_warnings(category=UserWarning):
+    with log.py_warning_filter(category=UserWarning):
         warnings.warn("hidden", UserWarning)
     with caplog.at_level(logging.WARNING):
         warnings.warn("not hidden", UserWarning)
@@ -395,17 +395,38 @@ def test_ignore_py_warnings(caplog):
     assert msg.endswith("UserWarning: not hidden")
 
 
+def test_py_warning_filter_error(caplog):
+    warnings.simplefilter('ignore')
+    warnings.warn("hidden", UserWarning)
+
+    with log.py_warning_filter('error'):
+        with pytest.raises(UserWarning):
+            warnings.warn("error", UserWarning)
+
+
+def test_warning_still_errors():
+    # Mainly a sanity check after the tests messing with warnings above.
+    with pytest.raises(UserWarning):
+        warnings.warn("error", UserWarning)
+
+
 class TestQtMessageHandler:
 
-    @attr.s
+    @dataclasses.dataclass
     class Context:
 
         """Fake QMessageLogContext."""
 
-        function = attr.ib(default=None)
-        category = attr.ib(default=None)
-        file = attr.ib(default=None)
-        line = attr.ib(default=None)
+        function: str = None
+        category: str = None
+        file: str = None
+        line: int = None
+
+    @pytest.fixture(autouse=True)
+    def init_args(self):
+        parser = qutebrowser.get_argparser()
+        args = parser.parse_args([])
+        log.init_log(args)
 
     def test_empty_message(self, caplog):
         """Make sure there's no crash with an empty message."""

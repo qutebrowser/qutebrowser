@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2018-2020 Jay Kamat <jaygkamat@gmail.com>
+# Copyright 2018-2021 Jay Kamat <jaygkamat@gmail.com>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """This userscript allows for insertion of usernames and passwords from keepass
 databases using pykeepass. Since it is a userscript, it must be run from
@@ -235,7 +235,7 @@ def run(args):
 
     username, password = candidate_to_secret(selection)
 
-    insert_mode = ';; enter-mode insert' if args.insert_mode else ''
+    insert_mode = ';; mode-enter insert' if args.insert_mode else ''
     if args.username_fill_only:
         qute_command('insert-text {}{}'.format(username, insert_mode))
     elif args.password_fill_only:

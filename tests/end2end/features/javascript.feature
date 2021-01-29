@@ -56,7 +56,7 @@ Feature: Javascript stuff
         And I open data/javascript/window_open.html in a new tab
         And I run :click-element id open-normal
         And I wait for "Changing title for idx 2 to 'about:blank'" in the log
-        And I run :buffer window_open.html
+        And I run :tab-select window_open.html
         And I run :click-element id close-twice
         And I wait for "Focus object changed: *" in the log
         And I wait for "[*] window closed" in the log
@@ -124,33 +124,11 @@ Feature: Javascript stuff
     # https://github.com/qutebrowser/qutebrowser/issues/1190
     # https://github.com/qutebrowser/qutebrowser/issues/2495
 
-    # Currently broken on Windows and on Qt 5.12
-    # https://github.com/qutebrowser/qutebrowser/issues/4230
-    @posix @qt<5.12
-    Scenario: Checking visible/invisible window size
-        When I run :tab-only
-        And I open data/javascript/windowsize.html in a new background tab
-        And I wait for "[*/data/javascript/windowsize.html:*] loaded" in the log
-        And I run :tab-next
-        Then the window sizes should be the same
-
-    @flaky @qt<5.12
-    Scenario: Checking visible/invisible window size with vertical tabbar
-        When I run :tab-only
-        And I set tabs.position to left
-        And I open data/javascript/windowsize.html in a new background tab
-        And I wait for "[*/data/javascript/windowsize.html:*] loaded" in the log
-        And I run :tab-next
-        Then the window sizes should be the same
-
     @flaky
     Scenario: Have a GreaseMonkey script run at page start
         When I have a GreaseMonkey file saved for document-start with noframes unset
         And I run :greasemonkey-reload
         And I open data/hints/iframe.html
-        # This second reload is required in webengine < 5.8 for scripts
-        # registered to run at document-start, some sort of timing issue.
-        And I run :reload
         Then the javascript message "Script is running on /data/hints/iframe.html" should be logged
 
     Scenario: Have a GreaseMonkey script running on frames
@@ -189,7 +167,7 @@ Feature: Javascript stuff
         Then "Showing error page for* 500" should be logged
         And "Load error: *500" should be logged
 
-    @flaky
+    @flaky @windows_skip
     Scenario: Using JS after window.open
         When I open data/hello.txt
         And I set content.javascript.can_open_tabs_automatically to true
@@ -199,5 +177,5 @@ Feature: Javascript stuff
         And I open data/hints/html/simple.html
         And I run :hint all
         And I wait for "hints: a" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         Then "There was an error while getting hint elements" should not be logged

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Showing prompts above the statusbar."""
 
@@ -23,9 +23,9 @@ import os.path
 import html
 import collections
 import functools
-import typing
+import dataclasses
+from typing import Deque, MutableSequence, Optional, cast
 
-import attr
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
                           QItemSelectionModel, QObject, QEventLoop)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
@@ -40,16 +40,16 @@ from qutebrowser.api import cmdutils
 from qutebrowser.utils import urlmatch
 
 
-prompt_queue = typing.cast('PromptQueue', None)
+prompt_queue = cast('PromptQueue', None)
 
 
-@attr.s
+@dataclasses.dataclass
 class AuthInfo:
 
     """Authentication info returned by a prompt."""
 
-    user = attr.ib()
-    password = attr.ib()
+    user: str
+    password: str
 
 
 class Error(Exception):
@@ -102,9 +102,8 @@ class PromptQueue(QObject):
         super().__init__(parent)
         self._question = None
         self._shutting_down = False
-        self._loops = []  # type: typing.MutableSequence[qtutils.EventLoop]
-        self._queue = collections.deque(
-        )  # type: typing.Deque[usertypes.Question]
+        self._loops: MutableSequence[qtutils.EventLoop] = []
+        self._queue: Deque[usertypes.Question] = collections.deque()
         message.global_bridge.mode_left.connect(self._on_mode_left)
 
     def __repr__(self):
@@ -195,11 +194,11 @@ class PromptQueue(QObject):
             loop.destroyed.connect(lambda: self._loops.remove(loop))
             question.completed.connect(loop.quit)
             question.completed.connect(loop.deleteLater)
-            log.prompt.debug("Starting loop.exec_() for {}".format(question))
-            flags = typing.cast(QEventLoop.ProcessEventsFlags,
-                                QEventLoop.ExcludeSocketNotifiers)
-            loop.exec_(flags)
-            log.prompt.debug("Ending loop.exec_() for {}".format(question))
+            log.prompt.debug("Starting loop.exec() for {}".format(question))
+            flags = cast(QEventLoop.ProcessEventsFlags,
+                         QEventLoop.ExcludeSocketNotifiers)
+            loop.exec(flags)
+            log.prompt.debug("Ending loop.exec() for {}".format(question))
 
             log.prompt.debug("Restoring old question {}".format(old_question))
             self._question = old_question
@@ -289,7 +288,7 @@ class PromptContainer(QWidget):
         self._layout = QVBoxLayout(self)
         self._layout.setContentsMargins(10, 10, 10, 10)
         self._win_id = win_id
-        self._prompt = None  # type: typing.Optional[_BasePrompt]
+        self._prompt: Optional[_BasePrompt] = None
 
         self.setObjectName('PromptContainer')
         self.setAttribute(Qt.WA_StyledBackground, True)
@@ -591,6 +590,7 @@ class LineEditPrompt(_BasePrompt):
         self._vbox.addWidget(self._lineedit)
         if question.default:
             self._lineedit.setText(question.default)
+            self._lineedit.selectAll()
         self.setFocusProxy(self._lineedit)
         self._init_key_label()
 
@@ -601,7 +601,7 @@ class LineEditPrompt(_BasePrompt):
         return True
 
     def _allowed_commands(self):
-        return [('prompt-accept', 'Accept'), ('leave-mode', 'Abort')]
+        return [('prompt-accept', 'Accept'), ('mode-leave', 'Abort')]
 
 
 class FilenamePrompt(_BasePrompt):
@@ -773,7 +773,7 @@ class FilenamePrompt(_BasePrompt):
         return idx
 
     def _allowed_commands(self):
-        return [('prompt-accept', 'Accept'), ('leave-mode', 'Abort')]
+        return [('prompt-accept', 'Accept'), ('mode-leave', 'Abort')]
 
 
 class DownloadFilenamePrompt(FilenamePrompt):
@@ -794,8 +794,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
 
     def download_open(self, cmdline, pdfjs):
         if pdfjs:
-            target = downloads.PDFJSDownloadTarget(
-            )  # type: downloads._DownloadTarget
+            target: 'downloads._DownloadTarget' = downloads.PDFJSDownloadTarget()
         else:
             target = downloads.OpenFileDownloadTarget(cmdline)
 
@@ -806,7 +805,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
     def _allowed_commands(self):
         cmds = [
             ('prompt-accept', 'Accept'),
-            ('leave-mode', 'Abort'),
+            ('mode-leave', 'Abort'),
             ('prompt-open-download', "Open download"),
             ('prompt-open-download --pdfjs', "Open download via PDF.js"),
             ('prompt-yank', "Yank URL"),
@@ -870,7 +869,7 @@ class AuthenticationPrompt(_BasePrompt):
 
     def _allowed_commands(self):
         return [('prompt-accept', "Accept"),
-                ('leave-mode', "Abort")]
+                ('mode-leave', "Abort")]
 
 
 class YesNoPrompt(_BasePrompt):
@@ -932,7 +931,7 @@ class YesNoPrompt(_BasePrompt):
             default = 'yes' if self.question.default else 'no'
             cmds.append(('prompt-accept', "Use default ({})".format(default)))
 
-        cmds.append(('leave-mode', "Abort"))
+        cmds.append(('mode-leave', "Abort"))
         cmds.append(('prompt-yank', "Yank URL"))
         return cmds
 

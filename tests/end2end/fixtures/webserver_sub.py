@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Web server for end2end tests.
 
@@ -29,9 +29,9 @@ parameters or headers with the same name properly.
 import sys
 import json
 import time
-import signal
-import os
 import threading
+import mimetypes
+import pathlib
 from http import HTTPStatus
 
 import cheroot.wsgi
@@ -39,6 +39,9 @@ import flask
 
 app = flask.Flask(__name__)
 _redirect_later_event = None
+
+
+END2END_DIR = pathlib.Path(__file__).resolve().parents[1]
 
 
 @app.route('/')
@@ -55,15 +58,8 @@ def send_data(path):
 
     If a directory is requested, its index.html is sent.
     """
-    if hasattr(sys, 'frozen'):
-        basedir = os.path.realpath(os.path.dirname(sys.executable))
-        data_dir = os.path.join(basedir, 'end2end', 'data')
-    else:
-        basedir = os.path.join(os.path.realpath(os.path.dirname(__file__)),
-                               '..')
-        data_dir = os.path.join(basedir, 'data')
-    print(basedir)
-    if os.path.isdir(os.path.join(data_dir, path)):
+    data_dir = END2END_DIR / 'data'
+    if (data_dir / path).is_dir():
         path += '/index.html'
     return flask.send_from_directory(data_dir, path)
 
@@ -249,6 +245,12 @@ def view_headers():
     return flask.jsonify(headers=dict(flask.request.headers))
 
 
+@app.route('/headers-link/<int:port>')
+def headers_link(port):
+    """Get a (possibly cross-origin) link to /headers."""
+    return flask.render_template('headers-link.html', port=port)
+
+
 @app.route('/response-headers')
 def response_headers():
     """Return a set of response headers from the query string."""
@@ -274,11 +276,9 @@ def view_user_agent():
 
 @app.route('/favicon.ico')
 def favicon():
-    basedir = os.path.join(os.path.realpath(os.path.dirname(__file__)),
-                           '..', '..', '..')
-    return flask.send_from_directory(os.path.join(basedir, 'icons'),
-                                     'qutebrowser.ico',
-                                     mimetype='image/vnd.microsoft.icon')
+    icon_dir = END2END_DIR.parents[1] / 'icons'
+    return flask.send_from_directory(
+        icon_dir, 'qutebrowser.ico', mimetype='image/vnd.microsoft.icon')
 
 
 @app.after_request
@@ -322,18 +322,17 @@ class WSGIServer(cheroot.wsgi.Server):
 
 
 def main():
-    if hasattr(sys, 'frozen'):
-        basedir = os.path.realpath(os.path.dirname(sys.executable))
-        app.template_folder = os.path.join(basedir, 'end2end', 'templates')
+    app.template_folder = END2END_DIR / 'templates'
+    assert app.template_folder.is_dir(), app.template_folder
+
+    if mimetypes.guess_type('worker.js')[0] == 'text/plain':
+        # WORKAROUND for https://github.com/pallets/flask/issues/1045
+        # Needed for Windows on GitHub Actions for some reason...
+        mimetypes.add_type('application/javascript', '.js')
+
     port = int(sys.argv[1])
     server = WSGIServer(('127.0.0.1', port), app)
-
-    signal.signal(signal.SIGTERM, lambda *args: server.stop())
-
-    try:
-        server.start()
-    except KeyboardInterrupt:
-        server.stop()
+    server.start()
 
 
 if __name__ == '__main__':

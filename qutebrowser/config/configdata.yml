@@ -35,6 +35,18 @@ history_gap_interval:
     Items with less time between them are grouped when being displayed in
     `:history`. Use -1 to disable separation.
 
+changelog_after_upgrade:
+  type:
+    name: String
+    valid_values:
+      - major: Show changelog for major upgrades (e.g. v2.0.0 -> v3.0.0).
+      - minor: Show changelog for major and minor upgrades (e.g. v2.0.0 -> v2.1.0).
+      - patch: Show changelog for major, minor and patch upgrades
+          (e.g. v2.0.0 -> v2.0.1).
+      - never: Never show changelog after upgrades.
+  default: minor
+  desc: When to show a changelog after qutebrowser was upgraded.
+
 ignore_case:
   renamed: search.ignore_case
 
@@ -45,18 +57,20 @@ search.ignore_case:
 
 search.incremental:
   type: Bool
-  default: True
-  desc: Find text on a page incrementally, renewing the search for each typed character.
+  default: true
+  desc: >-
+    Find text on a page incrementally, renewing the search for each typed
+    character.
 
 search.wrap:
   type: Bool
-  default: True
+  default: true
   backend:
     QtWebEngine: Qt 5.14
     QtWebKit: true
   desc: >-
-    Wrap around at the top and bottom of the page when advancing through text matches
-    using `:search-next` and `:search-prev`.
+    Wrap around at the top and bottom of the page when advancing through text
+    matches using `:search-next` and `:search-prev`.
 
 new_instance_open_target:
   type:
@@ -70,6 +84,7 @@ new_instance_open_target:
       - tab-bg-silent: Open a new background tab in the existing window without
           activating the window.
       - window: Open in a new window.
+      - private-window: Open in a new private window.
   default: tab
   desc: >-
     How to open links in an existing instance if a new one is launched.
@@ -115,23 +130,30 @@ backend:
   type:
     name: String
     valid_values:
-      - webengine: Use QtWebEngine (based on Chromium).
-      - webkit: Use QtWebKit (based on WebKit, similar to Safari).
+      - webengine: "Use QtWebEngine (based on Chromium - recommended)."
+      - webkit: "Use QtWebKit (based on WebKit, similar to Safari - many known security
+                issues!)."
   default: webengine
   restart: true
   desc: >-
     Backend to use to display websites.
 
     qutebrowser supports two different web rendering engines / backends,
-    QtWebKit and QtWebEngine.
+    QtWebEngine and QtWebKit (not recommended).
 
-    QtWebKit was discontinued by the Qt project with Qt 5.6, but picked up as a
-    well maintained fork: https://github.com/annulen/webkit/wiki - qutebrowser
-    only supports the fork.
+    QtWebEngine is Qt's official successor to QtWebKit, and both the default/recommended
+    backend. It's based on a stripped-down Chromium and regularly updated with security
+    fixes and new features by the Qt project: https://wiki.qt.io/QtWebEngine
 
-    QtWebEngine is Qt's official successor to QtWebKit. It's slightly more
-    resource hungry than QtWebKit and has a couple of missing features in
-    qutebrowser, but is generally the preferred choice.
+    QtWebKit was qutebrowser's original backend when the project was started. However,
+    support for QtWebKit was discontinued by the Qt project with Qt 5.6 in 2016. The
+    development of QtWebKit was picked up in an official fork:
+    https://github.com/qtwebkit/qtwebkit - however, the project seems to have stalled
+    again. The latest release (5.212.0 Alpha 4) from March 2020 is based on a WebKit
+    version from 2016, with many known security vulnerabilities. Additionally, there is
+    no process isolation and sandboxing. Due to all those issues, while support for
+    QtWebKit is still available in qutebrowser for now, using it is strongly
+    discouraged.
 
 
 ## qt
@@ -152,6 +174,21 @@ qt.args:
     With QtWebEngine, some Chromium arguments (see
     https://peter.sh/experiments/chromium-command-line-switches/ for a list)
     will work.
+
+qt.environ:
+  type:
+    name: Dict
+    keytype: String
+    valtype:
+      name: String
+      none_ok: true
+    none_ok: true
+  default: {}
+  restart: true
+  desc: >-
+    Additional environment variables to set.
+
+    Setting an environment variable to null/None will unset it.
 
 force_software_rendering:
   renamed: qt.force_software_rendering
@@ -261,6 +298,19 @@ qt.highdpi:
     As an alternative to this, it's possible to set font sizes and the
     `zoom.default` setting.
 
+qt.workarounds.remove_service_workers:
+  type: Bool
+  default: false
+  desc: >-
+    Delete the QtWebEngine Service Worker directory on every start.
+
+    This workaround can help with certain crashes caused by an unknown QtWebEngine bug
+    related to Service Workers. Those crashes happen seemingly immediately on Windows;
+    after one hour of operation on other systems.
+
+    Note however that enabling this option *can lead to data loss* on some pages (as
+    Service Worker data isn't persisted) and will negatively impact start-up time.
+
 ## auto_save
 
 auto_save.interval:
@@ -290,15 +340,10 @@ auto_save.session:
 content.autoplay:
   default: true
   type: Bool
-  backend:
-    QtWebEngine: Qt 5.10
-    QtWebKit: false
+  backend: QtWebEngine
   supports_pattern: true
   desc: >-
     Automatically start playing `<video>` elements.
-
-    Note: On Qt < 5.11, this option needs a restart and does not support URL
-    patterns.
 
 content.cache.size:
   default: null
@@ -340,7 +385,7 @@ content.cache.maximum_pages:
     _n_ pages.
 
     For more information about the feature, please refer to:
-    http://webkit.org/blog/427/webkit-page-cache-i-the-basics/
+    https://webkit.org/blog/427/webkit-page-cache-i-the-basics/
 
 content.cache.appcache:
   default: true
@@ -356,9 +401,6 @@ content.cache.appcache:
 
 content.cookies.accept:
   default: all
-  backend:
-    QtWebKit: true
-    QtWebEngine: Qt 5.11
   supports_pattern: true
   type:
     name: String
@@ -381,13 +423,13 @@ content.cookies.accept:
     values. Setting `no-3rdparty` or `no-unknown-3rdparty` per-domain on
     QtWebKit will have the same effect as `all`.
 
+    If this setting is used with URL patterns, the pattern gets applied to the
+    origin/first party URL of the page making the request, not the request URL.
+
 content.cookies.store:
   default: true
   type: Bool
-  desc: >-
-    Store cookies.
-
-    Note this option needs a restart with QtWebEngine on Qt < 5.9.
+  desc: Store cookies.
 
 content.default_encoding:
   type: String
@@ -411,9 +453,7 @@ content.unknown_url_scheme_policy:
       - allow-all: "Allows all navigation requests to URLs with unknown
           schemes."
   default: allow-from-user-interaction
-  backend:
-    QtWebEngine: Qt 5.11
-    QtWebKit: false
+  backend: QtWebEngine
   supports_pattern: true
   desc: >-
     How navigation requests to URLs with unknown schemes are handled.
@@ -442,11 +482,7 @@ content.desktop_capture:
   type: BoolAsk
   default: ask
   supports_pattern: true
-  desc: >-
-    Allow websites to share screen content.
-
-    On Qt < 5.10, a dialog box is always displayed, even if this is set to
-    "true".
+  desc: Allow websites to share screen content.
 
 content.developer_extras:
   deleted: true
@@ -454,9 +490,7 @@ content.developer_extras:
 content.dns_prefetch:
   default: true
   type: Bool
-  backend:
-    QtWebKit: true
-    QtWebEngine: Qt 5.12
+  backend: QtWebEngine
   supports_pattern: true
   desc: Try to pre-fetch DNS entries to speed up browsing.
 
@@ -489,9 +523,7 @@ content.mouse_lock:
   default: ask
   type: BoolAsk
   supports_pattern: true
-  backend:
-    QtWebKit: false
-    QtWebEngine: Qt 5.8
+  backend: QtWebEngine
   desc: Allow websites to lock your mouse pointer.
 
 content.headers.accept_language:
@@ -569,12 +601,20 @@ content.headers.user_agent:
       - qutebrowser_version
     completions:
       # See https://techblog.willshouse.com/2012/01/03/most-common-user-agents/
-      - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/83.0.4103.61 Safari/537.36"
-        - Chrome 83 Win10
+      #
+      # To update the following list of user agents, run the script
+      # 'ua_fetch.py'
+      # Vim-protip: Place your cursor below this comment and run
+      # :r!python scripts/dev/ua_fetch.py
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/83.0.4103.61 Safari/537.36"
-        - Chrome 83 Linux
+          Gecko) Chrome/87.0.4280.66 Safari/537.36"
+        - Chrome 87 Linux
+      - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
+          like Gecko) Chrome/87.0.4280.66 Safari/537.36"
+        - Chrome 87 Win10
+      - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
+          (KHTML, like Gecko) Chrome/87.0.4280.67 Safari/537.36"
+        - Chrome 87 macOS
   supports_pattern: true
   desc: |
     User agent to send.
@@ -586,7 +626,8 @@ content.headers.user_agent:
       with QtWebEngine).
     * `{qt_key}`: "Qt" for QtWebKit, "QtWebEngine" for QtWebEngine.
     * `{qt_version}`: The underlying Qt version.
-    * `{upstream_browser_key}`: "Version" for QtWebKit, "Chrome" for QtWebEngine.
+    * `{upstream_browser_key}`: "Version" for QtWebKit, "Chrome" for
+      QtWebEngine.
     * `{upstream_browser_version}`: The corresponding Safari/Chrome version.
     * `{qutebrowser_version}`: The currently running qutebrowser version.
 
@@ -598,12 +639,21 @@ content.headers.user_agent:
     to JavaScript requires a restart.
 
 content.host_blocking.enabled:
+  renamed: content.blocking.enabled
+
+content.host_blocking.lists:
+  renamed: content.blocking.hosts.lists
+
+content.host_blocking.whitelist:
+  renamed: content.blocking.whitelist
+
+content.blocking.enabled:
   default: true
   supports_pattern: true
   type: Bool
-  desc: Enable host blocking.
+  desc: Enable the ad/host blocker
 
-content.host_blocking.lists:
+content.blocking.hosts.lists:
   default:
     - "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
   type:
@@ -611,7 +661,9 @@ content.host_blocking.lists:
     valtype: Url
     none_ok: true
   desc: |
-    List of URLs of lists which contain hosts to block.
+    List of URLs to host blocklists for the host blocker.
+
+    Only used when the simple host-blocker is used (see `content.blocking.method`).
 
     The file can be in one of the following formats:
 
@@ -625,22 +677,59 @@ content.host_blocking.lists:
 
     The file `~/.config/qutebrowser/blocked-hosts` is always read if it exists.
 
-content.host_blocking.whitelist:
+content.blocking.method:
+  default: auto
+  type:
+    name: String
+    valid_values:
+      - auto: "Use Brave's ABP-style adblocker if available, host blocking
+        otherwise"
+      - adblock: Use Brave's ABP-style adblocker
+      - hosts: Use hosts blocking
+      - both: Use both hosts blocking and Brave's ABP-style adblocker
+  desc: |
+    Which method of blocking ads should be used.
+
+    Support for Adblock Plus (ABP) syntax blocklists using Brave's Rust library requires
+    the `adblock` Python package to be installed, which is an optional dependency of
+    qutebrowser. It is required when either `adblock` or `both` are selected.
+
+content.blocking.adblock.lists:
+  default:
+    - "https://easylist.to/easylist/easylist.txt"
+    - "https://easylist.to/easylist/easyprivacy.txt"
+  type:
+    name: List
+    valtype: Url
+    none_ok: true
+  desc: |
+    List of URLs to ABP-style adblocking rulesets.
+
+    Only used when Brave's ABP-style adblocker is used (see `content.blocking.method`).
+
+    You can find an overview of available lists here:
+    https://adblockplus.org/en/subscriptions - note that the special
+    `subscribe.adblockplus.org` links aren't handled by qutebrowser, you will instead
+    need to find the link to the raw `.txt` file (e.g. by extracting it from the
+    `location` parameter of the subscribe URL and URL-decoding it).
+
+content.blocking.whitelist:
   default: []
   type:
     name: List
     valtype: UrlPattern
     none_ok: true
   desc: >-
-    A list of patterns that should always be loaded, despite being ad-blocked.
+    A list of patterns that should always be loaded, despite being blocked by the
+    ad-/host-blocker.
 
-    Note this whitelists blocked hosts, not first-party URLs. As an example, if
-    `example.org` loads an ad from `ads.example.org`, the whitelisted host
-    should be `ads.example.org`. If you want to disable the adblocker on a
-    given page, use the `content.host_blocking.enabled` setting with a URL
-    pattern instead.
+    Local domains are always exempt from adblocking.
 
-    Local domains are always exempt from hostblocking.
+    Note this whitelists otherwise blocked requests, not first-party URLs. As
+    an example, if `example.org` loads an ad from `ads.example.org`, the
+    whitelist entry could be `https://ads.example.org/*`. If you want to
+    disable the adblocker on a given page, use the
+    `content.blocking.enabled` setting with a URL pattern instead.
 
 content.hyperlink_auditing:
   default: false
@@ -746,12 +835,26 @@ content.local_storage:
   supports_pattern: true
   desc: Enable support for HTML 5 local storage and Web SQL.
 
-content.media_capture:
+content.media.audio_capture:
   default: ask
   type: BoolAsk
   supports_pattern: true
   backend: QtWebEngine
-  desc: Allow websites to record audio/video.
+  desc: Allow websites to record audio.
+
+content.media.audio_video_capture:
+  default: ask
+  type: BoolAsk
+  supports_pattern: true
+  backend: QtWebEngine
+  desc: Allow websites to record audio and video.
+
+content.media.video_capture:
+  default: ask
+  type: BoolAsk
+  supports_pattern: true
+  backend: QtWebEngine
+  desc: Allow websites to record video.
 
 content.netrc_file:
   default: null
@@ -786,9 +889,7 @@ content.persistent_storage:
   default: ask
   type: BoolAsk
   supports_pattern: true
-  backend:
-    QtWebKit: false
-    QtWebEngine: Qt 5.11
+  backend: QtWebEngine
   desc: Allow websites to request persistent storage quota via
     `navigator.webkitPersistentStorage.requestQuota`.
 
@@ -801,9 +902,7 @@ content.plugins:
 content.print_element_backgrounds:
   type: Bool
   default: true
-  backend:
-    QtWebKit: true
-    QtWebEngine: Qt 5.8
+  backend: QtWebEngine
   supports_pattern: true
   desc: >-
     Draw the background color and images also when the page is printed.
@@ -823,6 +922,9 @@ content.proxy:
     In addition to the listed values, you can use a `socks://...` or
     `http://...` URL.
 
+    Note that with QtWebEngine, it will take a couple of seconds until the
+    change is applied, if this value is changed at runtime.
+
 content.proxy_dns_requests:
   default: true
   type: Bool
@@ -833,9 +935,7 @@ content.register_protocol_handler:
   default: ask
   type: BoolAsk
   supports_pattern: true
-  backend:
-    QtWebKit: false
-    QtWebEngine: Qt 5.11
+  backend: QtWebEngine
   desc: Allow websites to register protocol handlers via
     `navigator.registerProtocolHandler`.
 
@@ -849,7 +949,7 @@ content.user_stylesheets:
   type:
     name: ListOrValue
     valtype: File
-    none_ok: True
+    none_ok: true
   default: []
   desc: List of user stylesheet filenames to use.
 
@@ -860,7 +960,6 @@ content.webgl:
   desc: Enable WebGL.
 
 content.webrtc_ip_handling_policy:
-  default: all-interfaces
   type:
     name: String
     valid_values:
@@ -876,14 +975,10 @@ content.webrtc_ip_handling_policy:
             servers unless the proxy server supports UDP. This doesn't expose
             any local addresses either.
   default: all-interfaces
-  backend:
-    QtWebKit: false
-    QtWebEngine: Qt 5.9.2
+  backend: QtWebEngine
   restart: true
   desc: >-
     Which interfaces to expose via WebRTC.
-
-    On Qt 5.10, this option doesn't work because of a Qt bug.
 
 content.xss_auditing:
   type: Bool
@@ -973,11 +1068,14 @@ completion.timestamp_format:
   type:
     name: String
     none_ok: true
-  default: '%Y-%m-%d'
+  default: '%Y-%m-%d %H:%M'
   desc: >-
     Format of timestamps (e.g. for the history completion).
 
-    See https://sqlite.org/lang_datefunc.html for allowed substitutions.
+    See https://sqlite.org/lang_datefunc.html and
+    https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
+    for allowed substitutions, qutebrowser uses both sqlite and Python to
+    format its timestamps.
 
 completion.web_history.exclude:
   type:
@@ -990,7 +1088,7 @@ completion.web_history.exclude:
     A list of patterns which should not be shown in the history.
 
     This only affects the completion. Matching URLs are still saved in the
-    history (and visible on the qute://history page), but hidden in the
+    history (and visible on the `:history` page), but hidden in the
     completion.
 
     Changing this setting will cause the completion history to be regenerated
@@ -1068,14 +1166,28 @@ downloads.location.suggestion:
 completion.open_categories:
   type:
     name: FlagList
-    valid_values: [searchengines, quickmarks, bookmarks, history]
+    valid_values: [searchengines, quickmarks, bookmarks, history, filesystem]
     none_ok: true
   default:
     - searchengines
     - quickmarks
     - bookmarks
     - history
+    - filesystem
   desc: Which categories to show (in which order) in the :open completion.
+
+completion.favorite_paths:
+  type:
+    name: List
+    none_ok: true
+    valtype:
+      name: String
+  default: []
+  desc: >-
+    Default filesystem autocomplete suggestions for :open.
+
+    The elements of this list show up in the completion window under the Filesystem
+    category when the command line contains `:open` but no argument.
 
 downloads.open_dispatcher:
   type:
@@ -1113,7 +1225,7 @@ editor.command:
     placeholder: true
   default: ["gvim", "-f", "{file}", "-c", "normal {line}G{column0}l"]
   desc: |
-    Editor (and arguments) to use for the `open-editor` command.
+    Editor (and arguments) to use for the `edit-*` commands.
     The following placeholders are defined:
 
     * `{file}`: Filename of the file to be edited.
@@ -1127,6 +1239,57 @@ editor.encoding:
   type: Encoding
   default: utf-8
   desc: Encoding to use for the editor.
+
+## fileselect
+
+fileselect.handler:
+  default: default
+  type:
+    name: String
+    valid_values:
+      - default: "Use the default file selector."
+      - external: "Use an external command."
+  desc: >-
+      Handler for selecting file(s) in forms.
+      If `external`, then the commands specified by
+      `fileselect.single_file.command` and
+      `fileselect.multiple_files.command` are used to select one or
+      multiple files respectively.
+
+fileselect.single_file.command:
+  type:
+    name: ShellCommand
+    placeholder: true
+    completions:
+      - ['["xterm", "-e", "ranger", "--choosefile={}"]', "Ranger in xterm"]
+      - ['["xterm", "-e", "vifm", "--choose-file", "{}"]', "vifm in xterm"]
+      - ['["xterm", "-e", "nnn", "-p", "{}"]', "nnn in xterm"]
+  default: ['xterm', '-e', 'ranger', '--choosefile={}']
+  desc: >-
+    Command (and arguments) to use for selecting a single file in forms.
+    The command should write the selected file path to the specified file.
+
+    The following placeholders are defined:
+
+    * `{}`: Filename of the file to be written to.
+
+fileselect.multiple_files.command:
+  type:
+    name: ShellCommand
+    placeholder: true
+    completions:
+      - ['["xterm", "-e", "ranger", "--choosefiles={}"]', "Ranger in xterm"]
+      - ['["xterm", "-e", "vifm", "--choose-files", "{}"]', "vifm in xterm"]
+      - ['["xterm", "-e", "nnn", "-p", "{}"]', "nnn in xterm"]
+  default: ['xterm', '-e', 'ranger', '--choosefiles={}']
+  desc: >-
+    Command (and arguments) to use for selecting multiple files in forms.
+    The command should write the selected file paths to the specified file,
+    separated by newlines.
+
+    The following placeholders are defined:
+
+    * `{}`: Filename of the file to be written to.
 
 ## hints
 
@@ -1195,8 +1358,8 @@ hints.find_implementation:
   type:
     name: String
     valid_values:
-    - javascript: Better but slower
-    - python: Slightly worse but faster
+      - javascript: Better but slower
+      - python: Slightly worse but faster
   desc: Which implementation to use to find elements to hint.
 
 hints.hide_unmatched_rapid_hints:
@@ -1275,6 +1438,7 @@ hints.selectors:
       - 'img'
       - 'link'
       - 'summary'
+      - '[contenteditable]:not([contenteditable="false"])'
       - '[onclick]'
       - '[onmousedown]'
       - '[role="link"]'
@@ -1313,6 +1477,7 @@ hints.selectors:
       - 'input[type="url"]'
       - 'input[type="week"]'
       - 'input:not([type])'
+      - '[contenteditable]:not([contenteditable="false"])'
       - 'textarea'
   type:
     name: Dict
@@ -1339,7 +1504,7 @@ hints.leave_on_load:
 
 input.escape_quits_reporter:
   type: Bool
-  default: True
+  default: true
   desc: Allow Escape to quit the crash reporter.
 
 input.forward_unbound_keys:
@@ -1347,9 +1512,9 @@ input.forward_unbound_keys:
   type:
     name: String
     valid_values:
-    - all: "Forward all unbound keys."
-    - auto: "Forward unbound non-alphanumeric keys."
-    - none: "Don't forward any keys."
+      - all: "Forward all unbound keys."
+      - auto: "Forward unbound non-alphanumeric keys."
+      - none: "Don't forward any keys."
   desc: Which unbound keys to forward to the webview in normal mode.
 
 input.insert_mode.auto_load:
@@ -1374,7 +1539,7 @@ input.insert_mode.plugins:
   desc: Switch to insert mode when clicking flash and other plugins.
 
 input.insert_mode.leave_on_load:
-  default: true
+  default: false
   type: Bool
   supports_pattern: true
   desc: >-
@@ -1403,7 +1568,7 @@ input.mouse.rocker_gestures:
     This disables the context menu.
 
 input.partial_timeout:
-  default: 5000
+  default: 0
   type:
     name: Int
     minval: 0
@@ -1413,6 +1578,8 @@ input.partial_timeout:
 
     If the current input forms only partial matches, the keystring will be
     cleared after this time.
+
+    If set to 0, partially typed bindings are never cleared.
 
 input.rocker_gestures:
   renamed: input.mouse.rocker_gestures
@@ -1468,7 +1635,7 @@ messages.timeout:
   type:
     name: Int
     minval: 0
-  default: 2000
+  default: 3000
   desc: >-
     Duration (in milliseconds) to show messages in the statusbar for.
 
@@ -1501,7 +1668,7 @@ scrolling.bar:
       - never: Never show the scrollbar.
       - when-searching: Show the scrollbar when searching for text in the
             webpage. With the QtWebKit backend, this is equal to `never`.
-      - overlay: Show an overlay scrollbar. With Qt < 5.11 or on macOS, this is
+      - overlay: Show an overlay scrollbar. On macOS, this is
             unavailable and equal to `when-searching`; with the QtWebKit
             backend, this is equal to `never`. Enabling/disabling overlay
             scrollbars requires a restart.
@@ -1575,9 +1742,7 @@ spellcheck.languages:
 
     You can check for available languages and install dictionaries using
     scripts/dictcli.py. Run the script with -h/--help for instructions.
-  backend:
-    QtWebKit: false
-    QtWebEngine: Qt 5.8
+  backend: QtWebEngine
 
 ## statusbar
 
@@ -1586,9 +1751,9 @@ statusbar.show:
   type:
     name: String
     valid_values:
-    - always: Always show the statusbar.
-    - never: Always hide the statusbar.
-    - in-mode: Show the statusbar when in modes other than normal mode.
+      - always: Always show the statusbar.
+      - never: Always hide the statusbar.
+      - in-mode: Show the statusbar when in modes other than normal mode.
   desc: When to show the statusbar.
 
 statusbar.padding:
@@ -1614,7 +1779,8 @@ statusbar.widgets:
         - url: "Current page URL."
         - scroll: "Percentage of the current page position like `10%`."
         - scroll_raw: "Raw percentage of the current page position like `10`."
-        - history: "Display an arrow when possible to go back/forward in history."
+        - history: "Display an arrow when possible to go back/forward in
+          history."
         - tabs: "Current active tab, e.g. `2`."
         - keypress: "Display pressed keys when composing a vi command."
         - progress: "Progress bar for the current page loading."
@@ -1625,7 +1791,7 @@ statusbar.widgets:
 ## tabs
 
 tabs.background:
-  default: false
+  default: true
   type: Bool
   desc: Open new tabs (middleclick/ctrl+click) in the background.
 
@@ -1669,7 +1835,11 @@ tabs.favicons.show:
       - always: Always show favicons.
       - never: Always hide favicons.
       - pinned: Show favicons only on pinned tabs.
-  desc: When to show favicons in the tab bar.
+  desc: >-
+    When to show favicons in the tab bar.
+
+    When switching this from never to always/pinned, note that favicons might
+    not be loaded yet, thus tabs might require a reload to display them.
 
 tabs.last_close:
   default: ignore
@@ -1681,7 +1851,11 @@ tabs.last_close:
       - startpage: "Load the start page."
       - default-page: "Load the default page."
       - close: "Close the window."
-  desc: How to behave when the last tab is closed.
+  desc: >-
+    How to behave when the last tab is closed.
+
+    If the `tabs.tabs_are_windows` setting is set, this is ignored and the behavior is
+    always identical to the `close` value.
 
 tabs.mousewheel_switching:
   default: true
@@ -1763,7 +1937,7 @@ tabs.mode_on_change:
     valid_values:
       - persist: "Retain the current mode."
       - restore: "Restore previously saved mode."
-      - normal:  "Always revert to normal mode."
+      - normal: "Always revert to normal mode."
   desc: When switching tabs, what input mode is applied.
 
 tabs.position:
@@ -1781,10 +1955,10 @@ tabs.show:
   type:
     name: String
     valid_values:
-    - always: Always show the tab bar.
-    - never: Always hide the tab bar.
-    - multiple: Hide the tab bar if only one tab is open.
-    - switching: Show the tab bar when switching tabs.
+      - always: Always show the tab bar.
+      - never: Always hide the tab bar.
+      - multiple: Hide the tab bar if only one tab is open.
+      - switching: Show the tab bar when switching tabs.
   desc: When to show the tab bar.
 
 tabs.show_switching_delay:
@@ -1816,6 +1990,7 @@ tabs.title.format:
       - current_title
       - title_sep
       - index
+      - aligned_index
       - id
       - scroll_pos
       - host
@@ -1835,12 +2010,14 @@ tabs.title.format:
     * `{tree}`: The ASCII tree prefix of current tab.
     * `{perc_raw}`: Raw percentage, e.g. `10`.
     * `{current_title}`: Title of the current web page.
-    * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
+    * `{title_sep}`: The string `" - "` if a title is set, empty otherwise.
     * `{index}`: Index of this tab.
+    * `{aligned_index}`: Index of this tab padded with spaces to have the same
+      width.
     * `{id}`: Internal tab ID of this tab.
     * `{scroll_pos}`: Page scroll position.
     * `{host}`: Host of the current web page.
-    * `{backend}`: Either ''webkit'' or ''webengine''
+    * `{backend}`: Either `webkit` or `webengine`
     * `{private}`: Indicates when private mode is enabled.
     * `{current_url}`: URL of the current web page.
     * `{protocol}`: Protocol (http/https/...) of the current web page.
@@ -1856,6 +2033,7 @@ tabs.title.format_pinned:
       - current_title
       - title_sep
       - index
+      - aligned_index
       - id
       - scroll_pos
       - host
@@ -1873,7 +2051,7 @@ tabs.width.bar:
   renamed: tabs.width
 
 tabs.width:
-  default: 20%
+  default: 15%
   type:
     name: PercOrInt
     minperc: 0
@@ -1889,11 +2067,13 @@ tabs.min_width:
     minval: -1
     maxval: maxint
   desc: >-
-    Minimum width (in pixels) of tabs (-1 for the default minimum size behavior).
+    Minimum width (in pixels) of tabs (-1 for the default minimum size
+    behavior).
 
     This setting only applies when tabs are horizontal.
 
-    This setting does not apply to pinned tabs, unless `tabs.pinned.shrink` is False.
+    This setting does not apply to pinned tabs, unless `tabs.pinned.shrink` is
+    False.
 
 tabs.max_width:
   default: -1
@@ -1943,9 +2123,9 @@ tabs.pinned.shrink:
   desc: Shrink pinned tabs down to their contents.
 
 tabs.pinned.frozen:
-    type: Bool
-    default: True
-    desc: Force pinned tabs to stay at fixed URL.
+  type: Bool
+  default: true
+  desc: Force pinned tabs to stay at fixed URL.
 
 tabs.undo_stack_size:
   default: 100
@@ -1953,7 +2133,8 @@ tabs.undo_stack_size:
     name: Int
     minval: -1
     maxval: maxint
-  desc: Number of close tab actions to remember, per window (-1 for no maximum).
+  desc: Number of closed tabs (per window) and closed windows to remember for
+    :undo (-1 for no maximum).
 
 tabs.wrap:
   default: true
@@ -1992,7 +2173,8 @@ url.auto_search:
       - naive: Use simple/naive check.
       - dns: Use DNS requests (might be slow!).
       - never: Never search automatically.
-      - schemeless: Always search automatically unless URL explicitly contains a scheme.
+      - schemeless: Always search automatically unless URL explicitly contains
+          a scheme.
   default: naive
   desc: What search to start when something else than a URL is entered.
 
@@ -2015,7 +2197,8 @@ url.incdec_segments:
 url.open_base_url:
   type: Bool
   default: false
-  desc: Open base URL of the searchengine if a searchengine shortcut is invoked without parameters.
+  desc: Open base URL of the searchengine if a searchengine shortcut is invoked
+    without parameters.
 
 url.searchengines:
   default:
@@ -2045,6 +2228,7 @@ url.searchengines:
       expands to `slash%2Fand%26amp`).
     * `{unquoted}` quotes nothing (for `slash/and&amp` this placeholder
       expands to `slash/and&amp`).
+    * `{0}` means the same as `{}`, but can be used multiple times.
 
     The search engine named `DEFAULT` is used when `url.auto_search` is turned
     on and something else than a URL was entered to be opened. Other search
@@ -2105,6 +2289,19 @@ window.title_format:
   desc: |
     Format to use for the window title. The same placeholders like for
     `tabs.title.format` are defined.
+
+window.transparent:
+  type: Bool
+  default: false
+  desc: |
+    Set the main window background to transparent.
+
+    This allows having a transparent tab- or statusbar (might require a compositor such
+    as picom). However, it breaks some functionality such as dmenu embedding via its
+    `-w` option. On some systems, it was additionally reported that main window
+    transparency negatively affects performance.
+
+    Note this setting only affects windows opened after setting it.
 
 ## zoom
 
@@ -2397,7 +2594,7 @@ colors.messages.error.border:
   desc: Border color of an error message.
 
 colors.messages.warning.fg:
-  default: white
+  default: black
   type: QssColor
   desc: Foreground color of a warning message.
 
@@ -2685,6 +2882,7 @@ colors.webpage.prefers_color_scheme_dark:
   backend:
     QtWebEngine: Qt 5.14
     QtWebKit: false
+  restart: true
 
 ## dark mode
 
@@ -2710,19 +2908,20 @@ colors.webpage.darkmode.enabled:
     - "With selective inversion of everything": Combines the two variants
       above.
   restart: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
 
 colors.webpage.darkmode.algorithm:
   default: lightness-cielab
-  desc: "Which algorithm to use for modifying how colors are rendered with
-    darkmode."
+  desc: >-
+    Which algorithm to use for modifying how colors are rendered with darkmode.
+
+    The `lightness-cielab` value was added with QtWebEngine 5.14 and is treated
+    like `lightness-hsl` with older QtWebEngine versions.
   type:
     name: String
     valid_values:
       - lightness-cielab: Modify colors by converting them to CIELAB color
-            space and inverting the L value.
+            space and inverting the L value. Not available with Qt < 5.14.
       - lightness-hsl: Modify colors by converting them to the HSL color space
             and inverting the lightness (i.e. the "L" in HSL).
       - brightness-rgb: Modify colors by subtracting each of r, g, and b from
@@ -2731,9 +2930,7 @@ colors.webpage.darkmode.algorithm:
       # kInvertBrightness without gamma correction, and only available for
       # Chromium's automated tests
   restart: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
 
 colors.webpage.darkmode.contrast:
   default: 0.0
@@ -2747,28 +2944,26 @@ colors.webpage.darkmode.contrast:
     This only has an effect when `colors.webpage.darkmode.algorithm` is set to
     `lightness-hsl` or `brightness-rgb`.
   restart: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
 
 colors.webpage.darkmode.policy.images:
-  default: never
+  default: smart
   type:
     name: String
     valid_values:
       - always: Apply dark mode filter to all images.
       - never: Never apply dark mode filter to any images.
-      - smart: Apply dark mode based on image content.
+      - smart: "Apply dark mode based on image content. Not available with Qt
+        5.15.0."
   desc: >-
       Which images to apply dark mode to.
 
-      WARNING: On Qt 5.15.0, this setting can cause frequent renderer process
+      With QtWebEngine 5.15.0, this setting can cause frequent renderer process
       crashes due to a
-      https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug in Qt].
+      https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211[bug
+      in Qt].
   restart: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
 
 colors.webpage.darkmode.policy.page:
   default: smart
@@ -2829,9 +3024,7 @@ colors.webpage.darkmode.grayscale.all:
     This only has an effect when `colors.webpage.darkmode.algorithm` is set to
     `lightness-hsl` or `brightness-rgb`.
   restart: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
 
 colors.webpage.darkmode.grayscale.images:
   default: 0.0
@@ -2858,7 +3051,7 @@ fonts.default_family:
   type:
     name: ListOrValue
     valtype: Font
-    none_ok: True
+    none_ok: true
   desc: >-
     Default font families to use.
 
@@ -3094,8 +3287,8 @@ bindings.default:
       co: tab-only
       T: tab-focus
       gm: tab-move
-      gl: tab-move -
-      gr: tab-move +
+      gK: tab-move -
+      gJ: tab-move +
       J: tab-next
       <Ctrl-PgDown>: tab-next
       K: tab-prev
@@ -3136,16 +3329,17 @@ bindings.default:
       k: scroll up
       l: scroll right
       u: undo
+      U: undo -w
       <Ctrl-Shift-T>: undo
       gg: scroll-to-perc 0
       G: scroll-to-perc
       n: search-next
       N: search-prev
-      i: enter-mode insert
-      v: enter-mode caret
-      V: enter-mode caret ;; toggle-selection --line
-      "`": enter-mode set_mark
-      "'": enter-mode jump_mark
+      i: mode-enter insert
+      v: mode-enter caret
+      V: mode-enter caret ;; selection-toggle --line
+      "`": mode-enter set_mark
+      "'": mode-enter jump_mark
       yy: yank
       yY: yank -s
       yt: yank title
@@ -3191,15 +3385,16 @@ bindings.default:
       wIk: devtools top
       wIl: devtools right
       wIw: devtools window
+      wIf: devtools-focus
       gd: download
       ad: download-cancel
       cd: download-clear
       gf: view-source
-      gt: set-cmd-text -s :buffer
+      gt: set-cmd-text -s :tab-select
       <Ctrl-Tab>: tab-focus last
       <Ctrl-Shift-Tab>: nop
       <Ctrl-^>: tab-focus last
-      <Ctrl-V>: enter-mode passthrough
+      <Ctrl-V>: mode-enter passthrough
       <Ctrl-Q>: quit
       ZQ: quit
       ZZ: quit --save
@@ -3222,22 +3417,26 @@ bindings.default:
       <Ctrl-h>: home
       <Ctrl-s>: stop
       <Ctrl-Alt-p>: print
-      Ss: open qute://settings
-      Sb: open qute://bookmarks#bookmarks
-      Sq: open qute://bookmarks
-      Sh: open qute://history
-      <Return>: follow-selected
-      <Ctrl-Return>: follow-selected -t
+      Ss: set
+      Sb: bookmark-list --jump
+      Sq: bookmark-list
+      Sh: history
+      <Return>: selection-follow
+      <Ctrl-Return>: selection-follow -t
       .: repeat-command
       <Ctrl-p>: tab-pin
       <Alt-m>: tab-mute
       gD: tab-give
-      q: record-macro
-      "@": run-macro
-      tsh: config-cycle -p -t -u *://{url:host}/* content.javascript.enabled ;; reload
-      tSh: config-cycle -p -u *://{url:host}/* content.javascript.enabled ;; reload
-      tsH: config-cycle -p -t -u *://*.{url:host}/* content.javascript.enabled ;; reload
-      tSH: config-cycle -p -u *://*.{url:host}/* content.javascript.enabled ;; reload
+      q: macro-record
+      "@": macro-run
+      tsh: config-cycle -p -t -u *://{url:host}/* content.javascript.enabled
+        ;; reload
+      tSh: config-cycle -p -u *://{url:host}/* content.javascript.enabled
+        ;; reload
+      tsH: config-cycle -p -t -u *://*.{url:host}/* content.javascript.enabled
+        ;; reload
+      tSH: config-cycle -p -u *://*.{url:host}/* content.javascript.enabled
+        ;; reload
       tsu: config-cycle -p -t -u {url} content.javascript.enabled ;; reload
       tSu: config-cycle -p -u {url} content.javascript.enabled ;; reload
       tph: config-cycle -p -t -u *://{url:host}/* content.plugins ;; reload
@@ -3252,12 +3451,18 @@ bindings.default:
       tIH: config-cycle -p -u *://*.{url:host}/* content.images ;; reload
       tiu: config-cycle -p -t -u {url} content.images ;; reload
       tIu: config-cycle -p -u {url} content.images ;; reload
-      tch: config-cycle -p -t -u *://{url:host}/* content.cookies.accept all no-3rdparty never ;; reload
-      tCh: config-cycle -p -u *://{url:host}/* content.cookies.accept all no-3rdparty never ;; reload
-      tcH: config-cycle -p -t -u *://*.{url:host}/* content.cookies.accept all no-3rdparty never ;; reload
-      tCH: config-cycle -p -u *://*.{url:host}/* content.cookies.accept all no-3rdparty never ;; reload
-      tcu: config-cycle -p -t -u {url} content.cookies.accept all no-3rdparty never ;; reload
-      tCu: config-cycle -p -u {url} content.cookies.accept all no-3rdparty never ;; reload
+      tch: config-cycle -p -t -u *://{url:host}/* content.cookies.accept
+        all no-3rdparty never ;; reload
+      tCh: config-cycle -p -u *://{url:host}/* content.cookies.accept
+        all no-3rdparty never ;; reload
+      tcH: config-cycle -p -t -u *://*.{url:host}/* content.cookies.accept
+        all no-3rdparty never ;; reload
+      tCH: config-cycle -p -u *://*.{url:host}/* content.cookies.accept
+        all no-3rdparty never ;; reload
+      tcu: config-cycle -p -t -u {url} content.cookies.accept
+        all no-3rdparty never ;; reload
+      tCu: config-cycle -p -u {url} content.cookies.accept
+        all no-3rdparty never ;; reload
       zH: tree-tab-promote
       zL: tree-tab-demote
       zJ: tab-next -s
@@ -3270,17 +3475,17 @@ bindings.default:
       zo: set-cmd-text --space :open -tr
       zO: set-cmd-text --space :open -tS
     insert:
-      <Ctrl-E>: open-editor
+      <Ctrl-E>: edit-text
       <Shift-Ins>: insert-text -- {primary}
-      <Escape>: leave-mode
+      <Escape>: mode-leave
     hint:
-      <Return>: follow-hint
+      <Return>: hint-follow
       <Ctrl-R>: hint --rapid links tab-bg
       <Ctrl-F>: hint links
       <Ctrl-B>: hint all tab-bg
-      <Escape>: leave-mode
+      <Escape>: mode-leave
     passthrough:
-      <Shift-Escape>: leave-mode
+      <Shift-Escape>: mode-leave
     command:
       <Ctrl-P>: command-history-prev
       <Ctrl-N>: command-history-next
@@ -3290,6 +3495,8 @@ bindings.default:
       <Tab>: completion-item-focus next
       <Ctrl-Tab>: completion-item-focus next-category
       <Ctrl-Shift-Tab>: completion-item-focus prev-category
+      <PgDown>: completion-item-focus next-page
+      <PgUp>: completion-item-focus prev-page
       <Ctrl-D>: completion-item-del
       <Shift-Delete>: completion-item-del
       <Ctrl-C>: completion-item-yank
@@ -3310,7 +3517,7 @@ bindings.default:
       <Ctrl-Y>: rl-yank
       <Ctrl-?>: rl-delete-char
       <Ctrl-H>: rl-backward-delete-char
-      <Escape>: leave-mode
+      <Escape>: mode-leave
     prompt:
       <Return>: prompt-accept
       <Ctrl-X>: prompt-open-download
@@ -3335,7 +3542,7 @@ bindings.default:
       <Ctrl-?>: rl-delete-char
       <Ctrl-H>: rl-backward-delete-char
       <Ctrl-Y>: rl-yank
-      <Escape>: leave-mode
+      <Escape>: mode-leave
     yesno:
       <Return>: prompt-accept
       y: prompt-accept yes
@@ -3344,13 +3551,13 @@ bindings.default:
       N: prompt-accept --save no
       <Alt-Y>: prompt-yank
       <Alt-Shift-Y>: prompt-yank --sel
-      <Escape>: leave-mode
+      <Escape>: mode-leave
     caret:
-      v: toggle-selection
-      V: toggle-selection --line
-      <Space>: toggle-selection
-      <Ctrl-Space>: drop-selection
-      c: enter-mode normal
+      v: selection-toggle
+      V: selection-toggle --line
+      <Space>: selection-toggle
+      <Ctrl-Space>: selection-drop
+      c: mode-enter normal
       j: move-to-next-line
       k: move-to-prev-line
       l: move-to-next-char
@@ -3358,7 +3565,7 @@ bindings.default:
       e: move-to-end-of-word
       w: move-to-next-word
       b: move-to-prev-word
-      o: reverse-selection
+      o: selection-reverse
       "]": move-to-start-of-next-block
       "[": move-to-start-of-prev-block
       "}": move-to-end-of-next-block
@@ -3374,9 +3581,9 @@ bindings.default:
       J: scroll down
       K: scroll up
       L: scroll right
-      <Escape>: leave-mode
+      <Escape>: mode-leave
     register:
-      <Escape>: leave-mode
+      <Escape>: mode-leave
   type:
     name: Dict
     none_ok: true
@@ -3497,6 +3704,6 @@ logging.level.ram:
 logging.level.console:
   default: info
   type: LogLevel
-  desc:  >-
+  desc: >-
     Level for console (stdout/stderr) logs.
     Ignored if the `--loglevel` or `--debug` CLI flags are used.

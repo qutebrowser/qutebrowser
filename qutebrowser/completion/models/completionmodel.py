@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2020 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2017-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -15,15 +15,15 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """A model that proxies access to one or more completion categories."""
 
-import typing
+from typing import MutableSequence
 
 from PyQt5.QtCore import Qt, QModelIndex, QAbstractItemModel
 
-from qutebrowser.utils import log, qtutils
+from qutebrowser.utils import log, qtutils, utils
 from qutebrowser.api import cmdutils
 
 
@@ -43,8 +43,7 @@ class CompletionModel(QAbstractItemModel):
     def __init__(self, *, column_widths=(30, 70, 0), parent=None):
         super().__init__(parent)
         self.column_widths = column_widths
-        self._categories = [
-        ]  # type: typing.MutableSequence[QAbstractItemModel]
+        self._categories: MutableSequence[QAbstractItemModel] = []
 
     def _cat_from_idx(self, index):
         """Return the category pointed to by the given index.
@@ -153,8 +152,8 @@ class CompletionModel(QAbstractItemModel):
 
     def columnCount(self, parent=QModelIndex()):
         """Override QAbstractItemModel::columnCount."""
-        # pylint: disable=unused-argument
-        return 3
+        utils.unused(parent)
+        return len(self.column_widths)
 
     def canFetchMore(self, parent):
         """Override to forward the call to the categories."""
@@ -180,16 +179,10 @@ class CompletionModel(QAbstractItemModel):
             pattern: The filter pattern to set.
         """
         log.completion.debug("Setting completion pattern '{}'".format(pattern))
-        # WORKAROUND:
-        # layoutChanged is broken in PyQt 5.7.1, so we must use metaObject
-        # https://www.riverbankcomputing.com/pipermail/pyqt/2017-January/038483.html
-        meta = self.metaObject()
-        meta.invokeMethod(self,  # type: ignore[misc, call-overload]
-                          "layoutAboutToBeChanged")
+        self.layoutAboutToBeChanged.emit()  # type: ignore[attr-defined]
         for cat in self._categories:
             cat.set_pattern(pattern)
-        meta.invokeMethod(self,  # type: ignore[misc, call-overload]
-                          "layoutChanged")
+        self.layoutChanged.emit()  # type: ignore[attr-defined]
 
     def first_item(self):
         """Return the index of the first child (non-category) in the model."""

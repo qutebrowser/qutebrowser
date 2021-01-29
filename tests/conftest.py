@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 # pylint: disable=unused-import,wildcard-import,unused-wildcard-import
 
@@ -28,13 +28,13 @@ import pathlib
 
 import pytest
 import hypothesis
-from PyQt5.QtCore import qVersion, PYQT_VERSION
+from PyQt5.QtCore import PYQT_VERSION
 
 pytest.register_assert_rewrite('helpers')
 
 from helpers import logfail
 from helpers.logfail import fail_on_logging
-from helpers.messagemock import message_mock, message_bridge
+from helpers.messagemock import message_mock
 from helpers.fixtures import *  # noqa: F403
 from helpers import utils as testutils
 from qutebrowser.utils import qtutils, standarddir, usertypes, utils, version
@@ -48,10 +48,21 @@ _qute_scheme_handler = None
 
 
 # Set hypothesis settings
-hypothesis.settings.register_profile('default',
-                                     hypothesis.settings(deadline=600))
-hypothesis.settings.register_profile('ci',
-                                     hypothesis.settings(deadline=None))
+hypothesis.settings.register_profile(
+    'default', hypothesis.settings(
+        deadline=600,
+        suppress_health_check=[hypothesis.HealthCheck.function_scoped_fixture],
+    )
+)
+hypothesis.settings.register_profile(
+    'ci', hypothesis.settings(
+        deadline=None,
+        suppress_health_check=[
+            hypothesis.HealthCheck.function_scoped_fixture,
+            hypothesis.HealthCheck.too_slow,
+        ]
+    )
+)
 hypothesis.settings.load_profile('ci' if testutils.ON_CI else 'default')
 
 
@@ -99,13 +110,6 @@ def _apply_platform_markers(config, item):
          sys.getfilesystemencoding() == 'ascii',
          "Skipped because of ASCII locale"),
 
-        ('qtbug60673',
-         pytest.mark.xfail,
-         qtutils.version_check('5.8') and
-         not qtutils.version_check('5.10') and
-         config.webengine,
-         "Broken on webengine due to "
-         "https://bugreports.qt.io/browse/QTBUG-60673"),
         ('qtwebkit6021_xfail',
          pytest.mark.xfail,
          version.qWebKitVersion and  # type: ignore[unreachable]
@@ -149,7 +153,7 @@ def pytest_collection_modifyitems(config, items):
                a python test that will be executed.
 
     Reference:
-        http://pytest.org/latest/plugins.html
+        https://pytest.org/latest/plugins.html
     """
     remaining_items = []
     deselected_items = []
@@ -173,11 +177,6 @@ def pytest_collection_modifyitems(config, items):
         _apply_platform_markers(config, item)
         if list(item.iter_markers('xfail_norun')):
             item.add_marker(pytest.mark.xfail(run=False))
-        if list(item.iter_markers('js_prompt')):
-            if config.webengine:
-                item.add_marker(pytest.mark.skipif(
-                    PYQT_VERSION <= 0x050700,
-                    reason='JS prompts are not supported with PyQt 5.7'))
 
         if deselected:
             deselected_items.append(item)
@@ -197,12 +196,10 @@ def pytest_ignore_collect(path):
 
 @pytest.fixture(scope='session')
 def qapp_args():
-    """Make QtWebEngine unit tests run on Qt 5.7.1.
-
-    See https://github.com/qutebrowser/qutebrowser/issues/3163
-    """
-    if qVersion() == '5.7.1':
-        return [sys.argv[0], '--disable-seccomp-filter-sandbox']
+    """Make QtWebEngine unit tests run on older Qt versions + newer kernels."""
+    seccomp_args = testutils.seccomp_args(qt_flag=False)
+    if seccomp_args:
+        return [sys.argv[0]] + seccomp_args
     return []
 
 
@@ -224,8 +221,8 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     webengine_arg = config.getoption('--qute-bdd-webengine')
-    webengine_env = os.environ.get('QUTE_BDD_WEBENGINE', '')
-    config.webengine = bool(webengine_arg or webengine_env)
+    webengine_env = os.environ.get('QUTE_BDD_WEBENGINE', 'false')
+    config.webengine = webengine_arg or webengine_env == 'true'
     # Fail early if QtWebEngine is not available
     if config.webengine:
         import PyQt5.QtWebEngineWidgets
@@ -234,11 +231,6 @@ def pytest_configure(config):
 
 @pytest.fixture(scope='session', autouse=True)
 def check_display(request):
-    if (not request.config.getoption('--no-xvfb') and
-            'QUTE_BUILDBOT' in os.environ and
-            request.config.xvfb is not None):
-        raise Exception("Xvfb is running on buildbot!")
-
     if utils.is_linux and not os.environ.get('DISPLAY', ''):
         raise Exception("No display and no Xvfb available!")
 
@@ -286,16 +278,20 @@ def apply_fake_os(monkeypatch, request):
     else:
         raise ValueError("Invalid fake_os {}".format(name))
 
-    monkeypatch.setattr('qutebrowser.utils.utils.is_mac', mac)
-    monkeypatch.setattr('qutebrowser.utils.utils.is_linux', linux)
-    monkeypatch.setattr('qutebrowser.utils.utils.is_windows', windows)
-    monkeypatch.setattr('qutebrowser.utils.utils.is_posix', posix)
+    monkeypatch.setattr(utils, 'is_mac', mac)
+    monkeypatch.setattr(utils, 'is_linux', linux)
+    monkeypatch.setattr(utils, 'is_windows', windows)
+    monkeypatch.setattr(utils, 'is_posix', posix)
 
 
 @pytest.fixture(scope='session', autouse=True)
 def check_yaml_c_exts():
-    """Make sure PyYAML C extensions are available on CI."""
-    if 'CI' in os.environ:
+    """Make sure PyYAML C extensions are available on CI.
+
+    Not available yet with a nightly Python, see:
+    https://github.com/yaml/pyyaml/issues/416
+    """
+    if testutils.ON_CI and sys.version_info[:2] != (3, 10):
         from yaml import CLoader
 
 
@@ -303,8 +299,20 @@ def check_yaml_c_exts():
 def pytest_runtest_makereport(item, call):
     """Make test information available in fixtures.
 
-    See http://pytest.org/latest/example/simple.html#making-test-result-information-available-in-fixtures
+    See https://pytest.org/latest/example/simple.html#making-test-result-information-available-in-fixtures
     """
     outcome = yield
     rep = outcome.get_result()
     setattr(item, "rep_" + rep.when, rep)
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_terminal_summary(terminalreporter):
+    """Group benchmark results on CI."""
+    if testutils.ON_CI:
+        terminalreporter.write_line(
+            testutils.gha_group_begin('Benchmark results'))
+        yield
+        terminalreporter.write_line(testutils.gha_group_end())
+    else:
+        yield

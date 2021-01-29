@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,14 +15,14 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Base class for a QtWebKit/QtWebEngine web inspector."""
 
 import base64
 import binascii
-import typing
 import enum
+from typing import cast, Optional
 
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
@@ -30,7 +30,7 @@ from PyQt5.QtGui import QCloseEvent
 
 from qutebrowser.browser import eventfilter
 from qutebrowser.config import configfiles
-from qutebrowser.utils import log, usertypes
+from qutebrowser.utils import log, usertypes, utils
 from qutebrowser.keyinput import modeman
 from qutebrowser.misc import miscwidgets, objects
 
@@ -49,26 +49,22 @@ def create(*, splitter: 'miscwidgets.InspectorSplitter',
     # argument and to avoid circular imports.
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webengineinspector
-        if webengineinspector.supports_new():
-            return webengineinspector.WebEngineInspector(
-                splitter, win_id, parent)
-        else:
-            return webengineinspector.LegacyWebEngineInspector(
-                splitter, win_id, parent)
-    else:
+        return webengineinspector.WebEngineInspector(splitter, win_id, parent)
+    elif objects.backend == usertypes.Backend.QtWebKit:
         from qutebrowser.browser.webkit import webkitinspector
         return webkitinspector.WebKitInspector(splitter, win_id, parent)
+    raise utils.Unreachable(objects.backend)
 
 
 class Position(enum.Enum):
 
     """Where the inspector is shown."""
 
-    right = 1
-    left = 2
-    top = 3
-    bottom = 4
-    window = 5
+    right = enum.auto()
+    left = enum.auto()
+    top = enum.auto()
+    bottom = enum.auto()
+    window = enum.auto()
 
 
 class Error(Exception):
@@ -91,15 +87,12 @@ class _EventFilter(QObject):
       the QWebInspector.
     """
 
-    def __init__(self, win_id: int, parent: QObject) -> None:
-        super().__init__(parent)
-        self._win_id = win_id
+    clicked = pyqtSignal()
 
     def eventFilter(self, _obj: QObject, event: QEvent) -> bool:
-        """Enter insert mode if the inspector is clicked."""
+        """Translate mouse presses to a clicked signal."""
         if event.type() == QEvent.MouseButtonPress:
-            modeman.enter(self._win_id, usertypes.KeyMode.insert,
-                          reason='Inspector clicked')
+            self.clicked.emit()
         return False
 
 
@@ -121,14 +114,16 @@ class AbstractWebInspector(QWidget):
                  win_id: int,
                  parent: QWidget = None) -> None:
         super().__init__(parent)
-        self._widget = typing.cast(QWidget, None)
+        self._widget = cast(QWidget, None)
         self._layout = miscwidgets.WrapperLayout(self)
         self._splitter = splitter
-        self._position = None  # type: typing.Optional[Position]
-        self._event_filter = _EventFilter(win_id, parent=self)
+        self._position: Optional[Position] = None
+        self._win_id = win_id
+
+        self._event_filter = _EventFilter(parent=self)
+        self._event_filter.clicked.connect(self._on_clicked)
         self._child_event_filter = eventfilter.ChildEventFilter(
             eventfilter=self._event_filter,
-            win_id=win_id,
             parent=self)
 
     def _set_widget(self, widget: QWidget) -> None:
@@ -156,7 +151,14 @@ class AbstractWebInspector(QWidget):
         """
         return False
 
-    def set_position(self, position: typing.Optional[Position]) -> None:
+    @pyqtSlot()
+    def _on_clicked(self) -> None:
+        """Enter insert mode if a docked inspector was clicked."""
+        if self._position != Position.window:
+            modeman.enter(self._win_id, usertypes.KeyMode.insert,
+                          reason='Inspector clicked', only_if_normal=True)
+
+    def set_position(self, position: Optional[Position]) -> None:
         """Set the position of the inspector.
 
         If the position is None, the last known position is used.

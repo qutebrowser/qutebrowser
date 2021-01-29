@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2020-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
 
@@ -56,7 +56,8 @@ def inspector_widget(red_widget):
 
 @pytest.fixture
 def splitter(qtbot, webview_widget):
-    splitter = miscwidgets.InspectorSplitter(webview_widget)
+    splitter = miscwidgets.InspectorSplitter(
+        win_id=0, main_webview=webview_widget)
     qtbot.add_widget(splitter)
     return splitter
 

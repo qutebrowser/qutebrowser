@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Utilities for IPC with existing instances."""
 
@@ -31,6 +31,7 @@ from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
 
 import qutebrowser
 from qutebrowser.utils import log, usertypes, error, standarddir, utils
+from qutebrowser.qt import sip
 
 
 CONNECT_TIMEOUT = 100  # timeout for connecting/disconnecting
@@ -46,7 +47,19 @@ server = None
 
 def _get_socketname_windows(basedir):
     """Get a socketname to use for Windows."""
-    parts = ['qutebrowser', getpass.getuser()]
+    try:
+        username = getpass.getuser()
+    except ImportError:
+        # getpass.getuser() first tries a couple of environment variables. If
+        # none of those are set (i.e., USERNAME is missing), it tries to import
+        # the "pwd" module which is unavailable on Windows.
+        raise Error("Could not find username. This should only happen if "
+                    "there is a bug in the application launching qutebrowser, "
+                    "preventing the USERNAME environment variable from being "
+                    "passed. If you know more about when this happens, please "
+                    "report this to mail@qutebrowser.org.")
+
+    parts = ['qutebrowser', username]
     if basedir is not None:
         md5 = hashlib.md5(basedir.encode('utf-8')).hexdigest()
         parts.append(md5)
@@ -183,9 +196,14 @@ class IPCServer(QObject):
 
         self._socket = None
         self._old_socket = None
+
         if utils.is_windows:  # pragma: no cover
-            # If we use setSocketOptions on Unix with Qt < 5.4, we get a
-            # NameError while listening...
+            # As a WORKAROUND for a Qt bug, we can't use UserAccessOption on Unix. If we
+            # do, we don't get an AddressInUseError anymore:
+            # https://bugreports.qt.io/browse/QTBUG-48635
+            #
+            # Thus, we only do so on Windows, and handle permissions manually in
+            # listen() on Linux.
             log.ipc.debug("Calling setSocketOptions")
             self._server.setSocketOptions(QLocalServer.UserAccessOption)
         else:  # pragma: no cover
@@ -209,15 +227,9 @@ class IPCServer(QObject):
             if self._server.serverError() == QAbstractSocket.AddressInUseError:
                 raise AddressInUseError(self._server)
             raise ListenError(self._server)
+
         if not utils.is_windows:  # pragma: no cover
-            # If we use setSocketOptions on Unix with Qt < 5.4, we get a
-            # NameError while listening.
-            # (see b135569d5c6e68c735ea83f42e4baf51f7972281)
-            #
-            # Also, we don't get an AddressInUseError with Qt 5.5:
-            # https://bugreports.qt.io/browse/QTBUG-48635
-            #
-            # This means we only use setSocketOption on Windows...
+            # WORKAROUND for QTBUG-48635, see the comment in __init__ for details.
             try:
                 os.chmod(self._server.fullServerName(), 0o700)
             except FileNotFoundError:
@@ -256,8 +268,8 @@ class IPCServer(QObject):
                 "No new connection to handle.")
             return
         log.ipc.debug("Client connected (socket 0x{:x}).".format(id(socket)))
-        self._timer.start()
         self._socket = socket
+        self._timer.start()
         socket.readyRead.connect(  # type: ignore[attr-defined]
             self.on_ready_read)
         if socket.canReadLine():
@@ -297,7 +309,7 @@ class IPCServer(QObject):
         self._socket.disconnectFromServer()
 
     def _handle_data(self, data):
-        """Handle data (as bytes) we got from on_ready_ready_read."""
+        """Handle data (as bytes) we got from on_ready_read."""
         try:
             decoded = data.decode('utf-8')
         except UnicodeDecodeError:
@@ -358,6 +370,11 @@ class IPCServer(QObject):
             socket = self._old_socket
         else:
             socket = self._socket
+
+        if sip.isdeleted(socket):  # pragma: no cover
+            log.ipc.warning("Ignoring deleted IPC socket")
+            return
+
         self._timer.stop()
         while socket is not None and socket.canReadLine():
             data = bytes(socket.readLine())
@@ -365,14 +382,14 @@ class IPCServer(QObject):
             log.ipc.debug("Read from socket 0x{:x}: {!r}".format(
                 id(socket), data))
             self._handle_data(data)
-        self._timer.start()
+
+        if self._socket is not None:
+            self._timer.start()
 
     @pyqtSlot()
     def on_timeout(self):
         """Cancel the current connection if it was idle for too long."""
-        if self._socket is None:  # pragma: no cover
-            log.ipc.debug("on_timeout got called with None socket!")
-            return
+        assert self._socket is not None
         log.ipc.error("IPC connection timed out "
                       "(socket 0x{:x}).".format(id(self._socket)))
         self._socket.disconnectFromServer()
@@ -484,7 +501,6 @@ def display_error(exc, args):
     """Display a message box with an IPC error."""
     error.handle_fatal_exc(
         exc, "Error while connecting to running instance!",
-        post_text="Maybe another instance is running but frozen?",
         no_err_windows=args.no_err_windows)
 
 
@@ -499,8 +515,8 @@ def send_or_listen(args):
         None if an instance was running and received our request.
     """
     global server
-    socketname = _get_socketname(args.basedir)
     try:
+        socketname = _get_socketname(args.basedir)
         try:
             sent = send_to_running_instance(socketname, args.command,
                                             args.target)

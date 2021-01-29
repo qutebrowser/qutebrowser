@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015 Daniel Schadt
 #
 # This file is part of qutebrowser.
@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """pdf.js integration for qutebrowser."""
 
@@ -24,9 +24,7 @@ import os
 
 from PyQt5.QtCore import QUrl, QUrlQuery
 
-from qutebrowser.utils import (utils, javascript, jinja, qtutils, usertypes,
-                               standarddir, log)
-from qutebrowser.misc import objects
+from qutebrowser.utils import utils, javascript, jinja, standarddir, log
 from qutebrowser.config import config
 
 
@@ -104,29 +102,17 @@ def _generate_pdfjs_script(filename):
         document.addEventListener("DOMContentLoaded", function() {
           if (typeof window.PDFJS !== 'undefined') {
               // v1.x
-              {% if disable_create_object_url %}
-              window.PDFJS.disableCreateObjectURL = true;
-              {% endif %}
               window.PDFJS.verbosity = window.PDFJS.VERBOSITY_LEVELS.info;
           } else {
               // v2.x
               const options = window.PDFViewerApplicationOptions;
-              {% if disable_create_object_url %}
-              options.set('disableCreateObjectURL', true);
-              {% endif %}
               options.set('verbosity', pdfjsLib.VerbosityLevel.INFOS);
           }
 
           const viewer = window.PDFView || window.PDFViewerApplication;
           viewer.open({{ url }});
         });
-    """).render(
-        url=js_url,
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70420
-        disable_create_object_url=(
-            not qtutils.version_check('5.12') and
-            not qtutils.version_check('5.7.1', exact=True, compiled=False) and
-            objects.backend == usertypes.Backend.QtWebEngine))
+    """).render(url=js_url)
 
 
 def get_pdfjs_res_and_path(path):
@@ -163,7 +149,7 @@ def get_pdfjs_res_and_path(path):
     if content is None:
         res_path = '3rdparty/pdfjs/{}'.format(path)
         try:
-            content = utils.read_file(res_path, binary=True)
+            content = utils.read_file_binary(res_path)
         except FileNotFoundError:
             raise PDFJSNotFound(path) from None
         except OSError as e:

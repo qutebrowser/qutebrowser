@@ -6,6 +6,7 @@ Feature: Tab management
     Background:
         Given I clean up open tabs
         And I set tabs.tabs_are_windows to false
+        And I clear the log
 
     # :tab-close
 
@@ -737,15 +738,8 @@ Feature: Tab management
 
     # https://github.com/qutebrowser/qutebrowser/issues/2289
 
-    @qtwebkit_skip @qt<5.9
-    Scenario: Cloning a tab with a view-source URL
-        When I open /
-        And I open view-source:http://localhost:(port)
-        And I run :tab-clone
-        Then the error "Can't serialize special URL!" should be shown
-
-    @qtwebkit_skip @qt>=5.9
-    Scenario: Cloning a tab with a special URL (Qt 5.9)
+    @qtwebkit_skip
+    Scenario: Cloning a tab with a special URL
         When I open chrome://gpu
         And I run :tab-clone
         Then no crash should happen
@@ -755,7 +749,7 @@ Feature: Tab management
     Scenario: Undo without any closed tabs
         Given I have a fresh instance
         When I run :undo
-        Then the error "Nothing to undo!" should be shown
+        Then the error "Nothing to undo (use :undo --window to reopen a closed window)" should be shown
 
     Scenario: Undo closing a tab
         When I open data/numbers/1.txt
@@ -833,8 +827,8 @@ Feature: Tab management
         And I set url.default_page to about:blank
         And I run :undo
         And I run :undo
-        Then the error "Nothing to undo!" should be shown
-        And the error "Nothing to undo!" should be shown
+        Then the error "Nothing to undo (use :undo --window to reopen a closed window)" should be shown
+        And the error "Nothing to undo (use :undo --window to reopen a closed window)" should be shown
 
     Scenario: Undo a tab closed by index
         When I open data/numbers/1.txt
@@ -895,6 +889,129 @@ Feature: Tab management
             - data/numbers/1.txt (active)
             - data/numbers/2.txt
             - data/numbers/3.txt
+
+    # :undo --window
+
+    Scenario: Undo the closing of a window
+        Given I clear the log
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new window
+        And I run :close
+        And I wait for "removed: tabbed-browser" in the log
+        And I run :undo -w
+        And I wait for "Focus object changed: *" in the log
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+            - active: true
+              tabs:
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/2.txt
+
+    Scenario: Undo the closing of a window with multiple tabs
+        Given I clear the log
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new window
+        And I open data/numbers/3.txt in a new tab
+        And I run :close
+        And I wait for "removed: tabbed-browser" in the log
+        And I run :undo -w
+        And I wait for "Focus object changed: *" in the log
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+            - active: true
+              tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/3.txt
+
+    Scenario: Undo the closing of a window with multiple tabs with undo stack
+        Given I clear the log
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new window
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-close
+        And I run :close
+        And I wait for "removed: tabbed-browser" in the log
+        And I run :undo -w
+        And I run :undo
+        And I wait for "Focus object changed: *" in the log
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+            - active: true
+              tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/3.txt
+
+    Scenario: Undo the closing of a window with tabs are windows
+        Given I clear the log
+        When I set tabs.last_close to close
+        And I set tabs.tabs_are_windows to true
+        And I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-close
+        And I wait for "removed: tabbed-browser" in the log
+        And I run :undo -w
+        And I wait for "Focus object changed: *" in the log
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+            - tabs:
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/2.txt
+
+    # :undo with count
+
+    Scenario: Undo the second to last closed tab
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-close
+        And I run :tab-close
+        And I run :undo with count 2
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/3.txt (active)
+
+    Scenario: Undo with a too-high count
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-close
+        And I run :undo with count 100
+        Then the error "Nothing to undo" should be shown
+
+    Scenario: Undo with --window and count
+        When I run :undo --window with count 2
+        Then the error ":undo --window does not support a count/depth" should be shown
+
+    Scenario: Undo with --window and depth
+        When I run :undo --window 1
+        Then the error ":undo --window does not support a count/depth" should be shown
 
     # tabs.last_close
 
@@ -1063,35 +1180,35 @@ Feature: Tab management
             - data/navigate/next.html
             - data/navigate/index.html (active)
 
-    # :buffer
+    # :tab-select
 
-    Scenario: :buffer without args or count
-        When I run :buffer
+    Scenario: :tab-select without args or count
+        When I run :tab-select
         Then qute://tabs should be loaded
 
-    Scenario: :buffer with a matching title
+    Scenario: :tab-select with a matching title
         When I open data/title.html
         And I open data/search.html in a new tab
         And I open data/scroll/simple.html in a new tab
-        And I run :buffer Searching text
+        And I run :tab-select Searching text
         And I wait for "Current tab changed, focusing <qutebrowser.browser.* tab_id=* url='http://localhost:*/data/search.html'>" in the log
         Then the following tabs should be open:
             - data/title.html
             - data/search.html (active)
             - data/scroll/simple.html
 
-    Scenario: :buffer with no matching title
-        When I run :buffer invalid title
+    Scenario: :tab-select with no matching title
+        When I run :tab-select invalid title
         Then the error "No matching tab for: invalid title" should be shown
 
     @flaky
-    Scenario: :buffer with matching title and two windows
+    Scenario: :tab-select with matching title and two windows
         When I open data/title.html
         And I open data/search.html in a new tab
         And I open data/scroll/simple.html in a new tab
         And I open data/caret.html in a new window
         And I open data/paste_primary.html in a new tab
-        And I run :buffer Scrolling
+        And I run :tab-select Scrolling
         And I wait for "Focus object changed: *" in the log
         Then the session should look like:
             windows:
@@ -1112,18 +1229,18 @@ Feature: Tab management
                 history:
                 - url: http://localhost:*/data/paste_primary.html
 
-    Scenario: :buffer with no matching index
+    Scenario: :tab-select with no matching index
         When I open data/title.html
-        And I run :buffer 666
+        And I run :tab-select 666
         Then the error "There's no tab with index 666!" should be shown
 
-    Scenario: :buffer with no matching window index
+    Scenario: :tab-select with no matching window index
         When I open data/title.html
-        And I run :buffer 99/1
+        And I run :tab-select 99/1
         Then the error "There's no window with id 99!" should be shown
 
     @skip   # Too flaky
-    Scenario: :buffer with matching window index
+    Scenario: :tab-select with matching window index
         Given I have a fresh instance
         When I open data/title.html
         And I open data/search.html in a new tab
@@ -1131,7 +1248,7 @@ Feature: Tab management
         And I run :open -w http://localhost:(port)/data/caret.html
         And I open data/paste_primary.html in a new tab
         And I wait until data/caret.html is loaded
-        And I run :buffer 0/2
+        And I run :tab-select 0/2
         And I wait for "Focus object changed: *" in the log
         Then the session should look like:
             windows:
@@ -1152,31 +1269,31 @@ Feature: Tab management
                 history:
                 - url: http://localhost:*/data/paste_primary.html
 
-    Scenario: :buffer with wrong argument (-1)
+    Scenario: :tab-select with wrong argument (-1)
         When I open data/title.html
-        And I run :buffer -1
+        And I run :tab-select -1
         Then the error "There's no tab with index -1!" should be shown
 
-    Scenario: :buffer with wrong argument (/)
+    Scenario: :tab-select with wrong argument (/)
         When I open data/title.html
-        And I run :buffer /
+        And I run :tab-select /
         Then the following tabs should be open:
             - data/title.html (active)
 
-    Scenario: :buffer with wrong argument (//)
+    Scenario: :tab-select with wrong argument (//)
         When I open data/title.html
-        And I run :buffer //
+        And I run :tab-select //
         Then the following tabs should be open:
             - data/title.html (active)
 
-    Scenario: :buffer with wrong argument (0/x)
+    Scenario: :tab-select with wrong argument (0/x)
         When I open data/title.html
-        And I run :buffer 0/x
+        And I run :tab-select 0/x
         Then the error "No matching tab for: 0/x" should be shown
 
-    Scenario: :buffer with wrong argument (1/2/3)
+    Scenario: :tab-select with wrong argument (1/2/3)
         When I open data/title.html
-        And I run :buffer 1/2/3
+        And I run :tab-select 1/2/3
         Then the error "No matching tab for: 1/2/3" should be shown
 
     # :tab-take
@@ -1298,6 +1415,21 @@ Feature: Tab management
             - tabs:
               - history:
                 - url: http://localhost:*/data/hello.txt
+
+    Scenario: Closing tab with tabs_are_windows
+        When I set tabs.tabs_are_windows to true
+        And I set tabs.last_close to ignore
+        And I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-close
+        And I wait for "removed: tabbed-browser" in the log
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
 
     # :tab-pin
 
@@ -1458,10 +1590,10 @@ Feature: Tab management
         When I open data/hints/link_input.html
         And I run :click-element id qute-input-existing
         And I wait for "Entering mode KeyMode.insert *" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         And I hint with args "all tab-bg" and follow a
         And I wait until data/hello.txt is loaded
-        And I run :enter-mode insert
+        And I run :mode-enter insert
         And I run :fake-key -g new
         Then the javascript message "contents: existingnew" should be logged
 
@@ -1469,9 +1601,9 @@ Feature: Tab management
         When I open data/hints/link_input.html
         And I run :click-element id qute-input-existing
         And I wait for "Entering mode KeyMode.insert *" in the log
-        And I run :leave-mode
+        And I run :mode-leave
         And I open data/hello.txt in a new background tab
-        And I run :enter-mode insert
+        And I run :mode-enter insert
         And I run :fake-key -g new
         Then the javascript message "contents: existingnew" should be logged
 
@@ -1490,3 +1622,12 @@ Feature: Tab management
         And I open data/hello.txt in a new tab
         And I run :fake-key -g hello-world<enter>
         Then the message "hello-world" should be shown
+
+    Scenario: Undo after changing tabs_are_windows
+        When I open data/hello.txt
+        And I open data/hello.txt in a new tab
+        And I set tabs.tabs_are_windows to true
+        And I run :tab-close
+        And I run :undo
+        And I run :message-info "Still alive!"
+        Then the message "Still alive!" should be shown

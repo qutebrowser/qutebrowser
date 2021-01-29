@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 # pylint: disable=unused-variable
 
@@ -24,8 +24,8 @@
 import sys
 import logging
 import types
-import typing
 import enum
+import textwrap
 
 import pytest
 
@@ -159,7 +159,7 @@ class TestRegister:
 
         This isn't implemented, so be sure we catch it.
         """
-        with pytest.raises(AssertionError):
+        with pytest.raises(TypeError):
             @cmdutils.register()
             def fun(*args: int):
                 """Blah."""
@@ -290,34 +290,48 @@ class TestRegister:
         else:
             assert pos_args == [('arg', 'arg')]
 
-    Enum = enum.Enum('Test', ['x', 'y'])
+    class Enum(enum.Enum):
 
-    @pytest.mark.parametrize('typ, inp, choices, expected', [
-        (int, '42', None, 42),
-        (int, 'x', None, cmdexc.ArgumentTypeError),
-        (str, 'foo', None, 'foo'),
+        # pylint: disable=invalid-name
+        x = enum.auto()
+        y = enum.auto()
 
-        (typing.Union[str, int], 'foo', None, 'foo'),
-        (typing.Union[str, int], '42', None, 42),
+    @pytest.mark.parametrize('annotation, inp, choices, expected', [
+        ('int', '42', None, 42),
+        ('int', 'x', None, cmdexc.ArgumentTypeError),
+        ('str', 'foo', None, 'foo'),
+
+        ('Union[str, int]', 'foo', None, 'foo'),
+        ('Union[str, int]', '42', None, 42),
 
         # Choices
-        (str, 'foo', ['foo'], 'foo'),
-        (str, 'bar', ['foo'], cmdexc.ArgumentTypeError),
+        ('str', 'foo', ['foo'], 'foo'),
+        ('str', 'bar', ['foo'], cmdexc.ArgumentTypeError),
 
         # Choices with Union: only checked when it's a str
-        (typing.Union[str, int], 'foo', ['foo'], 'foo'),
-        (typing.Union[str, int], 'bar', ['foo'], cmdexc.ArgumentTypeError),
-        (typing.Union[str, int], '42', ['foo'], 42),
+        ('Union[str, int]', 'foo', ['foo'], 'foo'),
+        ('Union[str, int]', 'bar', ['foo'], cmdexc.ArgumentTypeError),
+        ('Union[str, int]', '42', ['foo'], 42),
 
-        (Enum, 'x', None, Enum.x),
-        (Enum, 'z', None, cmdexc.ArgumentTypeError),
+        ('Enum', 'x', None, Enum.x),
+        ('Enum', 'z', None, cmdexc.ArgumentTypeError),
     ])
-    def test_typed_args(self, typ, inp, choices, expected):
+    def test_typed_args(self, annotation, inp, choices, expected):
+        src = textwrap.dedent("""
+        from typing import Union
+        from qutebrowser.api import cmdutils
+
         @cmdutils.register()
         @cmdutils.argument('arg', choices=choices)
-        def fun(arg: typ):
-            """Blah."""
-            assert arg == expected
+        def fun(arg: {annotation}):
+            '''Blah.'''
+            return arg
+        """.format(annotation=annotation))
+        code = compile(src, '<string>', 'exec')
+        print(src)
+        ns = {'choices': choices, 'Enum': self.Enum}
+        exec(code, ns, ns)
+        fun = ns['fun']
 
         cmd = objects.commands['fun']
         cmd.namespace = cmd.parser.parse_args([inp])
@@ -329,7 +343,8 @@ class TestRegister:
             args, kwargs = cmd._get_call_args(win_id=0)
             assert args == [expected]
             assert kwargs == {}
-            fun(*args, **kwargs)
+            ret = fun(*args, **kwargs)
+            assert ret == expected
 
     def test_choices_no_annotation(self):
         # https://github.com/qutebrowser/qutebrowser/issues/1871
@@ -497,3 +512,26 @@ class TestRun:
         cmd = objects.commands['fun']
         with pytest.raises(cmdexc.PrerequisitesError, match=r'.* backend\.'):
             cmd.run(win_id=0)
+
+    def test_deprecated(self, caplog, message_mock):
+        cmd = _get_cmd(deprecated='use something else')
+        with caplog.at_level(logging.WARNING):
+            cmd.run(win_id=0)
+
+        msg = message_mock.getmsg(usertypes.MessageLevel.warning)
+        assert msg.text == 'fun is deprecated - use something else'
+
+    def test_deprecated_name(self, caplog, message_mock):
+        @cmdutils.register(deprecated_name='dep')
+        def fun():
+            """Blah."""
+
+        original_cmd = objects.commands['fun']
+        original_cmd.run(win_id=0)
+
+        deprecated_cmd = objects.commands['dep']
+        with caplog.at_level(logging.WARNING):
+            deprecated_cmd.run(win_id=0)
+
+        msg = message_mock.getmsg(usertypes.MessageLevel.warning)
+        assert msg.text == 'dep is deprecated - use fun instead'

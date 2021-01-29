@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>XHR headers test</title>
+        <script>
+            function xhr_headers() {
+                const xhr = new XMLHttpRequest();
+                xhr.open("GET", "/headers");
+                xhr.setRequestHeader("X-Qute-Test", "from XHR");
+
+                const elem = document.getElementById("output");
+                xhr.addEventListener("load", function(event) {
+                    if (xhr.status == 200) {
+                        elem.textContent = xhr.responseText;
+                        console.log("Got headers via XHR")
+                    } else {
+                        elem.textContent = xhr.statusText;
+                        console.warn(xhr.statusText, xhr.responseText);
+                    }
+                });
+                xhr.send();
+            }
+        </script>
+    </head>
+    <body onload="xhr_headers()">
+        <pre id="output">unknown</pre>
+    </body>
+</html>

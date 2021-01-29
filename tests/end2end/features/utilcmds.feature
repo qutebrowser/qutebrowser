@@ -138,10 +138,10 @@ Feature: Miscellaneous utility commands exposed to the user.
         When I open data/hints/link_blank.html
         And I run :tab-only
         And I hint with args "all tab-fg"
-        And I run :leave-mode
+        And I run :mode-leave
         And I run :repeat-command
         And I wait for "hints: *" in the log
-        And I run :follow-hint a
+        And I run :hint-follow a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/hints/link_blank.html
@@ -172,7 +172,7 @@ Feature: Miscellaneous utility commands exposed to the user.
 
     Scenario: Using debug-log-filter
         When I run :debug-log-filter commands,ipc,webview
-        And I run :enter-mode insert
+        And I run :mode-enter insert
         And I run :debug-log-filter none
-        And I run :leave-mode
+        And I run :mode-leave
         Then "Entering mode KeyMode.insert *" should not be logged

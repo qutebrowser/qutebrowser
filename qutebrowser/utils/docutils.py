@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Utilities used for the documentation and built-in help."""
 
@@ -25,7 +25,7 @@ import inspect
 import os.path
 import collections
 import enum
-import typing
+from typing import Callable, MutableMapping, Optional, List, Union
 
 import qutebrowser
 from qutebrowser.utils import log, utils
@@ -77,21 +77,29 @@ class DocstringParser:
         arg_descs: A dict of argument names to their descriptions
     """
 
-    State = enum.Enum('State', ['short', 'desc', 'desc_hidden',
-                                'arg_start', 'arg_inside', 'misc'])
+    class State(enum.Enum):
 
-    def __init__(self, func: typing.Callable) -> None:
+        """The current state of the parser."""
+
+        short = enum.auto()
+        desc = enum.auto()
+        desc_hidden = enum.auto()
+        arg_start = enum.auto()
+        arg_inside = enum.auto()
+        misc = enum.auto()
+
+    def __init__(self, func: Callable) -> None:
         """Constructor.
 
         Args:
             func: The function to parse the docstring for.
         """
         self._state = self.State.short
-        self._cur_arg_name = None  # type: typing.Optional[str]
-        self._short_desc_parts = []  # type: typing.List[str]
-        self._long_desc_parts = []  # type: typing.List[str]
-        self.arg_descs = collections.OrderedDict(
-        )  # type: typing.Dict[str, typing.Union[str, typing.List[str]]]
+        self._cur_arg_name: Optional[str] = None
+        self._short_desc_parts: List[str] = []
+        self._long_desc_parts: List[str] = []
+        self.arg_descs: MutableMapping[
+            str, Union[str, List[str]]] = collections.OrderedDict()
         doc = inspect.getdoc(func)
         handlers = {
             self.State.short: self._parse_short,

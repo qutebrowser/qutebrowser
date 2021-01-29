@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2020 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2017-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -15,11 +15,11 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """A completion category that queries the SQL history store."""
 
-import typing
+from typing import Optional
 
 from PyQt5.QtSql import QSqlQueryModel
 from PyQt5.QtWidgets import QWidget
@@ -40,12 +40,12 @@ class HistoryCategory(QSqlQueryModel):
         """Create a new History completion category."""
         super().__init__(parent=parent)
         self.name = "History"
-        self._query = None  # type: typing.Optional[sql.Query]
+        self._query: Optional[sql.Query] = None
 
         # advertise that this model filters by URL and title
         self.columns_to_filter = [0, 1]
         self.delete_func = delete_func
-        self._empty_prefix = None  # type: typing.Optional[str]
+        self._empty_prefix: Optional[str] = None
 
     def _atime_expr(self):
         """If max_items is set, return an expression to limit the query."""

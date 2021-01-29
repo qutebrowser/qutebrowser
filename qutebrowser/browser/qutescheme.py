@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Backend-independent qute://* code.
 
@@ -31,23 +31,16 @@ import time
 import textwrap
 import urllib
 import collections
-import base64
-import typing
-from typing import TypeVar, Callable, Union, Tuple
+import secrets
+from typing import TypeVar, Callable, Dict, List, Optional, Union, Sequence, Tuple
 
-try:
-    import secrets
-except ImportError:
-    # New in Python 3.6
-    secrets = None  # type: ignore[assignment]
-
-from PyQt5.QtCore import QUrlQuery, QUrl, qVersion
+from PyQt5.QtCore import QUrlQuery, QUrl
 
 import qutebrowser
 from qutebrowser.browser import pdfjs, downloads, history
-from qutebrowser.config import config, configdata, configexc, configdiff
+from qutebrowser.config import config, configdata, configexc
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
-                               objreg, urlutils, standarddir)
+                               objreg, standarddir)
 from qutebrowser.qt import sip
 
 
@@ -112,7 +105,7 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
 
     def __init__(self, name):
         self._name = name
-        self._function = None  # type: typing.Optional[typing.Callable]
+        self._function: Optional[Callable] = None
 
     def __call__(self, function: _Handler) -> _Handler:
         self._function = function
@@ -125,7 +118,7 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
         return self._function(*args, **kwargs)
 
 
-def data_for_url(url: QUrl) -> typing.Tuple[str, bytes]:
+def data_for_url(url: QUrl) -> Tuple[str, bytes]:
     """Get the data to show for the given URL.
 
     Args:
@@ -142,7 +135,7 @@ def data_for_url(url: QUrl) -> typing.Tuple[str, bytes]:
 
     path = url.path()
     host = url.host()
-    query = urlutils.query_string(url)
+    query = url.query()
     # A url like "qute:foo" is split as "scheme:path", not "scheme:host".
     log.misc.debug("url: {}, path: {}, host {}".format(
         url.toDisplayString(), path, host))
@@ -199,8 +192,7 @@ def qute_bookmarks(_url: QUrl) -> _HandlerRet:
 @add_handler('tabs')
 def qute_tabs(_url: QUrl) -> _HandlerRet:
     """Handler for qute://tabs. Display information about all open tabs."""
-    tabs = collections.defaultdict(
-        list)  # type: typing.Dict[str, typing.List[typing.Tuple[str, str]]]
+    tabs: Dict[str, List[Tuple[str, str]]] = collections.defaultdict(list)
     for win_id, window in objreg.window_registry.items():
         if sip.isdeleted(window):
             continue
@@ -221,7 +213,7 @@ def qute_tabs(_url: QUrl) -> _HandlerRet:
 def history_data(
         start_time: float,
         offset: int = None
-) -> typing.Sequence[typing.Dict[str, typing.Union[str, int]]]:
+) -> Sequence[Dict[str, Union[str, int]]]:
     """Return history data.
 
     Arguments:
@@ -278,7 +270,7 @@ def qute_javascript(url: QUrl) -> _HandlerRet:
     path = url.path()
     if path:
         path = "javascript" + os.sep.join(path.split('/'))
-        return 'text/html', utils.read_file(path, binary=False)
+        return 'text/html', utils.read_file(path)
     else:
         raise UrlInvalidError("No file specified")
 
@@ -355,7 +347,7 @@ def qute_gpl(_url: QUrl) -> _HandlerRet:
     return 'text/html', utils.read_file('html/license.html')
 
 
-def _asciidoc_fallback_path(html_path: str) -> typing.Optional[str]:
+def _asciidoc_fallback_path(html_path: str) -> Optional[str]:
     """Fall back to plaintext asciidoc if the HTML is unavailable."""
     path = html_path.replace('.html', '.asciidoc')
     try:
@@ -379,7 +371,7 @@ def qute_help(url: QUrl) -> _HandlerRet:
     path = 'html/doc/{}'.format(urlpath)
     if not urlpath.endswith('.html'):
         try:
-            bdata = utils.read_file(path, binary=True)
+            bdata = utils.read_file_binary(path)
         except OSError as e:
             raise SchemeOSError(e)
         mimetype = utils.guess_mimetype(urlpath)
@@ -449,12 +441,7 @@ def qute_settings(url: QUrl) -> _HandlerRet:
     # Requests to qute://settings/set should only be allowed from
     # qute://settings. As an additional security precaution, we generate a CSRF
     # token to use here.
-    if secrets:
-        csrf_token = secrets.token_urlsafe()
-    else:
-        # On Python < 3.6, from secrets.py
-        token = base64.urlsafe_b64encode(os.urandom(32))
-        csrf_token = token.rstrip(b'=').decode('ascii')
+    csrf_token = secrets.token_urlsafe()
 
     src = jinja.render('settings.html', title='settings',
                        configdata=configdata,
@@ -494,18 +481,10 @@ def qute_back(url: QUrl) -> _HandlerRet:
 
 
 @add_handler('configdiff')
-def qute_configdiff(url: QUrl) -> _HandlerRet:
+def qute_configdiff(_url: QUrl) -> _HandlerRet:
     """Handler for qute://configdiff."""
-    if url.path() == '/old':
-        try:
-            return 'text/html', configdiff.get_diff()
-        except OSError as e:
-            error = (b'Failed to read old config: ' +
-                     str(e.strerror).encode('utf-8'))
-            return 'text/plain', error
-    else:
-        data = config.instance.dump_userconfig().encode('utf-8')
-        return 'text/plain', data
+    data = config.instance.dump_userconfig().encode('utf-8')
+    return 'text/plain', data
 
 
 @add_handler('pastebin-version')
@@ -576,11 +555,7 @@ def qute_pdfjs(url: QUrl) -> _HandlerRet:
 def qute_warning(url: QUrl) -> _HandlerRet:
     """Handler for qute://warning."""
     path = url.path()
-    if path == '/old-qt':
-        src = jinja.render('warning-old-qt.html',
-                           title='Old Qt warning',
-                           qt_version=qVersion())
-    elif path == '/webkit':
+    if path == '/webkit':
         src = jinja.render('warning-webkit.html',
                            title='QtWebKit backend warning')
     elif path == '/sessions':
@@ -603,3 +578,15 @@ def qute_treegroup(url):
     src = jinja.render('tree_group.html',
                        title=url.path()[1:])
     return 'text/html', src
+
+
+@add_handler('resource')
+def qute_resource(url: QUrl) -> _HandlerRet:
+    """Handler for qute://resource."""
+    path = url.path().lstrip('/')
+    mimetype = utils.guess_mimetype(path, fallback=True)
+    try:
+        data = utils.read_file_binary(path)
+    except FileNotFoundError as e:
+        raise NotFoundError(str(e))
+    return mimetype, data

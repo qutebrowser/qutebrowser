@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The-Compiler) <me@the-compiler.org>
+# Copyright 2014-2021 Florian Bruhin (The-Compiler) <me@the-compiler.org>
 
 # this file is part of qutebrowser.
 #
@@ -16,7 +16,7 @@
 # gnu general public license for more details.
 #
 # you should have received a copy of the gnu general public license
-# along with qutebrowser.  if not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Generate Qt resources based on source files."""
 

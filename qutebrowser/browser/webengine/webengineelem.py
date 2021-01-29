@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,24 +15,21 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
-
-# FIXME:qtwebengine remove this once the stubs are gone
-# pylint: disable=unused-argument
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """QtWebEngine specific part of the web element API."""
 
-import typing
+from typing import (
+    TYPE_CHECKING, Any, Callable, Dict, Iterator, Optional, Set, Tuple, Union)
 
-from PyQt5.QtCore import QRect, Qt, QPoint, QEventLoop
-from PyQt5.QtGui import QMouseEvent
+from PyQt5.QtCore import QRect, QEventLoop
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEngineSettings
 
-from qutebrowser.utils import log, javascript, urlutils, usertypes
+from qutebrowser.utils import log, javascript, urlutils, usertypes, utils
 from qutebrowser.browser import webelem
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.browser.webengine import webenginetab
 
 
@@ -40,11 +37,11 @@ class WebEngineElement(webelem.AbstractWebElement):
 
     """A web element for QtWebEngine, using JS under the hood."""
 
-    def __init__(self, js_dict: typing.Dict[str, typing.Any],
+    def __init__(self, js_dict: Dict[str, Any],
                  tab: 'webenginetab.WebEngineTab') -> None:
         super().__init__(tab)
         # Do some sanity checks on the data we get from JS
-        js_dict_types = {
+        js_dict_types: Dict[str, Union[type, Tuple[type, ...]]] = {
             'id': int,
             'text': str,
             'value': (str, int, float),
@@ -53,8 +50,9 @@ class WebEngineElement(webelem.AbstractWebElement):
             'class_name': str,
             'rects': list,
             'attributes': dict,
+            'is_content_editable': bool,
             'caret_position': (int, type(None)),
-        }  # type: typing.Dict[str, typing.Union[type, typing.Tuple[type,...]]]
+        }
         assert set(js_dict.keys()).issubset(js_dict_types.keys())
         for name, typ in js_dict_types.items():
             if name in js_dict and not isinstance(js_dict[name], typ):
@@ -96,16 +94,17 @@ class WebEngineElement(webelem.AbstractWebElement):
         self._js_call('set_attribute', key, val)
 
     def __delitem__(self, key: str) -> None:
+        utils.unused(key)
         log.stub()
 
-    def __iter__(self) -> typing.Iterator[str]:
+    def __iter__(self) -> Iterator[str]:
         return iter(self._js_dict['attributes'])
 
     def __len__(self) -> int:
         return len(self._js_dict['attributes'])
 
     def _js_call(self, name: str, *args: webelem.JsValueType,
-                 callback: typing.Callable[[typing.Any], None] = None) -> None:
+                 callback: Callable[[Any], None] = None) -> None:
         """Wrapper to run stuff from webelem.js."""
         if self._tab.is_deleted():
             raise webelem.OrphanedError("Tab containing element vanished")
@@ -119,9 +118,9 @@ class WebEngineElement(webelem.AbstractWebElement):
         log.stub()
         return QRect()
 
-    def classes(self) -> typing.List[str]:
+    def classes(self) -> Set[str]:
         """Get a list of classes assigned to this element."""
-        return self._js_dict['class_name'].split()
+        return set(self._js_dict['class_name'].split())
 
     def tag_name(self) -> str:
         """Get the tag name of this element.
@@ -136,6 +135,9 @@ class WebEngineElement(webelem.AbstractWebElement):
         """Get the full HTML representation of this element."""
         return self._js_dict['outer_xml']
 
+    def is_content_editable_prop(self) -> bool:
+        return self._js_dict['is_content_editable']
+
     def value(self) -> webelem.JsValueType:
         return self._js_dict.get('value', None)
 
@@ -148,7 +150,7 @@ class WebEngineElement(webelem.AbstractWebElement):
                        composed: bool = False) -> None:
         self._js_call('dispatch_event', event, bubbles, cancelable, composed)
 
-    def caret_position(self) -> typing.Optional[int]:
+    def caret_position(self) -> Optional[int]:
         """Get the text caret position for the current element.
 
         If the element is not a text element, None is returned.
@@ -171,10 +173,12 @@ class WebEngineElement(webelem.AbstractWebElement):
 
         Args:
             elem_geometry: The geometry of the element, or None.
-                           Calling QWebElement::geometry is rather expensive so
-                           we want to avoid doing it twice.
-            no_js: Fall back to the Python implementation
+                           Ignored with QtWebEngine.
+            no_js: Fall back to the Python implementation.
+                   Ignored with QtWebEngine.
         """
+        utils.unused(elem_geometry)
+        utils.unused(no_js)
         rects = self._js_dict['rects']
         for rect in rects:
             # FIXME:qtwebengine
@@ -225,11 +229,7 @@ class WebEngineElement(webelem.AbstractWebElement):
         return url.scheme() not in urlutils.WEBENGINE_SCHEMES
 
     def _click_editable(self, click_target: usertypes.ClickTarget) -> None:
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58515
-        ev = QMouseEvent(QMouseEvent.MouseButtonPress, QPoint(0, 0),
-                         QPoint(0, 0), QPoint(0, 0), Qt.NoButton, Qt.NoButton,
-                         Qt.NoModifier, Qt.MouseEventSynthesizedBySystem)
-        self._tab.send_event(ev)
+        self._tab.setFocus()  # Needed as WORKAROUND on Qt 5.12
         # This actually "clicks" the element by calling focus() on it in JS.
         self._js_call('focus')
         self._move_text_cursor()
@@ -252,7 +252,7 @@ class WebEngineElement(webelem.AbstractWebElement):
             QEventLoop.ExcludeSocketNotifiers |
             QEventLoop.ExcludeUserInputEvents)
 
-        def reset_setting(_arg: typing.Any) -> None:
+        def reset_setting(_arg: Any) -> None:
             """Set the JavascriptCanOpenWindows setting to its old value."""
             assert view is not None
             try:

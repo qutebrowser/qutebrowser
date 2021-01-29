@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2021 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -15,18 +15,69 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Test the SQL API."""
 
 import pytest
 
+import hypothesis
+from hypothesis import strategies
 from PyQt5.QtSql import QSqlError
 
 from qutebrowser.misc import sql
 
 
 pytestmark = pytest.mark.usefixtures('init_sql')
+
+
+class TestUserVersion:
+
+    @pytest.mark.parametrize('val, major, minor', [
+        (0x0008_0001, 8, 1),
+        (0x7FFF_FFFF, 0x7FFF, 0xFFFF),
+    ])
+    def test_from_int(self, val, major, minor):
+        version = sql.UserVersion.from_int(val)
+        assert version.major == major
+        assert version.minor == minor
+
+    @pytest.mark.parametrize('major, minor, val', [
+        (8, 1, 0x0008_0001),
+        (0x7FFF, 0xFFFF, 0x7FFF_FFFF),
+    ])
+    def test_to_int(self, major, minor, val):
+        version = sql.UserVersion(major, minor)
+        assert version.to_int() == val
+
+    @pytest.mark.parametrize('val', [0x8000_0000, -1])
+    def test_from_int_invalid(self, val):
+        with pytest.raises(AssertionError):
+            sql.UserVersion.from_int(val)
+
+    @pytest.mark.parametrize('major, minor', [
+        (-1, 0),
+        (0, -1),
+        (0, 0x10000),
+        (0x8000, 0),
+    ])
+    def test_to_int_invalid(self, major, minor):
+        version = sql.UserVersion(major, minor)
+        with pytest.raises(AssertionError):
+            version.to_int()
+
+    @hypothesis.given(val=strategies.integers(min_value=0, max_value=0x7FFF_FFFF))
+    def test_from_int_hypothesis(self, val):
+        version = sql.UserVersion.from_int(val)
+        assert version.to_int() == val
+
+    @hypothesis.given(
+        major=strategies.integers(min_value=0, max_value=0x7FFF),
+        minor=strategies.integers(min_value=0, max_value=0xFFFF)
+    )
+    def test_to_int_hypothesis(self, major, minor):
+        version = sql.UserVersion(major, minor)
+        assert version.from_int(version.to_int()) == version
 
 
 @pytest.mark.parametrize('klass', [sql.KnownError, sql.BugError])
@@ -49,22 +100,8 @@ class TestSqlError:
         with pytest.raises(exception):
             sql.raise_sqlite_error("Message", sql_err)
 
-    def test_qtbug_70506(self):
-        """Test Qt's wrong handling of errors while opening the database.
-
-        Due to https://bugreports.qt.io/browse/QTBUG-70506 we get an error with
-        "out of memory" as string and -1 as error code.
-        """
-        sql_err = QSqlError("Error opening database",
-                            "out of memory",
-                            QSqlError.UnknownError,
-                            sql.SqliteErrorCode.UNKNOWN)
-        with pytest.raises(sql.KnownError):
-            sql.raise_sqlite_error("Message", sql_err)
-
     def test_logging(self, caplog):
-        sql_err = QSqlError("driver text", "db text", QSqlError.UnknownError,
-                            '23')
+        sql_err = QSqlError("driver text", "db text", QSqlError.UnknownError, '23')
         with pytest.raises(sql.BugError):
             sql.raise_sqlite_error("Message", sql_err)
 
@@ -190,6 +227,11 @@ def test_delete(qtbot):
     assert not list(table)
 
 
+def test_delete_optional(qtbot):
+    table = sql.SqlTable('Foo', ['name', 'val'])
+    table.delete('name', 'doesnotexist', optional=True)
+
+
 def test_len():
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
     assert len(table) == 0
@@ -199,6 +241,26 @@ def test_len():
     assert len(table) == 2
     table.insert({'name': 'thirteen', 'val': 13, 'lucky': True})
     assert len(table) == 3
+
+
+def test_bool():
+    table = sql.SqlTable('Foo', ['name'])
+    assert not table
+    table.insert({'name': 'one'})
+    assert table
+
+
+def test_bool_benchmark(benchmark):
+    table = sql.SqlTable('Foo', ['number'])
+
+    # Simulate a history table
+    table.create_index('NumberIndex', 'number')
+    table.insert_batch({'number': [str(i) for i in range(100_000)]})
+
+    def run():
+        assert table
+
+    benchmark(run)
 
 
 def test_contains():
@@ -302,10 +364,24 @@ class TestSqlQuery:
                            match='No result for single-result query'):
             q.value()
 
-    def test_num_rows_affected(self):
-        q = sql.Query('SELECT 0')
+    def test_num_rows_affected_not_active(self):
+        with pytest.raises(AssertionError):
+            q = sql.Query('SELECT 0')
+            q.rows_affected()
+
+    def test_num_rows_affected_select(self):
+        with pytest.raises(AssertionError):
+            q = sql.Query('SELECT 0')
+            q.run()
+            q.rows_affected()
+
+    @pytest.mark.parametrize('condition', [0, 1])
+    def test_num_rows_affected(self, condition):
+        table = sql.SqlTable('Foo', ['name'])
+        table.insert({'name': 'helloworld'})
+        q = sql.Query(f'DELETE FROM Foo WHERE {condition}')
         q.run()
-        assert q.rows_affected() == 0
+        assert q.rows_affected() == condition
 
     def test_bound_values(self):
         q = sql.Query('SELECT :answer')

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,14 +15,14 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Event handling for a browser tab."""
 
 from PyQt5.QtCore import QObject, QEvent, Qt, QTimer
 
 from qutebrowser.config import config
-from qutebrowser.utils import message, log, usertypes, qtutils, objreg
+from qutebrowser.utils import message, log, usertypes, qtutils
 from qutebrowser.misc import objects
 from qutebrowser.keyinput import modeman
 
@@ -39,43 +39,12 @@ class ChildEventFilter(QObject):
     Attributes:
         _filter: The event filter to install.
         _widget: The widget expected to send out childEvents.
-        _win_id: The window this ChildEventFilter lives in.
-        _focus_workaround: Whether to enable a workaround for QTBUG-68076.
     """
 
-    def __init__(self, *, eventfilter, win_id, focus_workaround=False,
-                 widget=None, parent=None):
+    def __init__(self, *, eventfilter, widget=None, parent=None):
         super().__init__(parent)
         self._filter = eventfilter
         self._widget = widget
-        self._win_id = win_id
-        self._focus_workaround = focus_workaround
-        if focus_workaround:
-            assert widget is not None
-
-    def _do_focus_workaround(self):
-        """WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076."""
-        if not self._focus_workaround:
-            return
-
-        assert self._widget is not None
-
-        pass_modes = [usertypes.KeyMode.command,
-                      usertypes.KeyMode.prompt,
-                      usertypes.KeyMode.yesno]
-
-        if modeman.instance(self._win_id).mode in pass_modes:
-            return
-
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=self._win_id)
-        current_index = tabbed_browser.widget.currentIndex()
-        try:
-            widget_index = tabbed_browser.widget.indexOf(self._widget.parent())
-        except RuntimeError:
-            widget_index = -1
-        if current_index == widget_index:
-            QTimer.singleShot(0, self._widget.setFocus)
 
     def eventFilter(self, obj, event):
         """Act on ChildAdded events."""
@@ -89,7 +58,6 @@ class ChildEventFilter(QObject):
                 assert obj is self._widget
 
             child.installEventFilter(self._filter)
-            self._do_focus_workaround()
         elif event.type() == QEvent.ChildRemoved:
             child = event.child()
             log.misc.debug("{}: removed child {}".format(obj, child))
@@ -116,7 +84,6 @@ class TabEventFilter(QObject):
             QEvent.MouseButtonPress: self._handle_mouse_press,
             QEvent.MouseButtonRelease: self._handle_mouse_release,
             QEvent.Wheel: self._handle_wheel,
-            QEvent.ContextMenu: self._handle_context_menu,
             QEvent.KeyRelease: self._handle_key_release,
         }
         self._ignore_wheel_event = False
@@ -200,26 +167,8 @@ class TabEventFilter(QObject):
             message.info("Zoom level: {}%".format(perc), replace=True)
             self._tab.zoom.set_factor(factor)
             return True
-        elif (e.modifiers() & Qt.ShiftModifier and
-              not qtutils.version_check('5.9', compiled=False)):
-            if e.angleDelta().y() > 0:
-                self._tab.scroller.left()
-            else:
-                self._tab.scroller.right()
-            return True
 
         return False
-
-    def _handle_context_menu(self, _e):
-        """Suppress context menus if rocker gestures are turned on.
-
-        Args:
-            e: The QContextMenuEvent.
-
-        Return:
-            True if the event should be filtered, False otherwise.
-        """
-        return config.val.input.mouse.rocker_gestures
 
     def _handle_key_release(self, e):
         """Ignore repeated key release events going to the website.
@@ -233,7 +182,6 @@ class TabEventFilter(QObject):
             True if the event should be filtered, False otherwise.
         """
         return (e.isAutoRepeat() and
-                qtutils.version_check('5.10', compiled=False) and
                 not qtutils.version_check('5.14', compiled=False) and
                 objects.backend == usertypes.Backend.QtWebEngine)
 

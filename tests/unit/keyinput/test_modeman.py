@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
 
@@ -23,6 +23,7 @@ from PyQt5.QtCore import Qt, QObject, pyqtSignal
 
 from qutebrowser.utils import usertypes
 from qutebrowser.keyinput import keyutils
+from qutebrowser.misc import objects
 
 
 class FakeKeyparser(QObject):
@@ -44,6 +45,11 @@ class FakeKeyparser(QObject):
 def modeman(mode_manager):
     mode_manager.register(usertypes.KeyMode.normal, FakeKeyparser())
     return mode_manager
+
+
+@pytest.fixture(autouse=True)
+def set_qapp(monkeypatch, qapp):
+    monkeypatch.setattr(objects, 'qapp', qapp)
 
 
 @pytest.mark.parametrize('key, modifiers, filtered', [

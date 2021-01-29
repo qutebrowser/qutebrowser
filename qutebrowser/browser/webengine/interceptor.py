@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,46 +15,43 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """A request interceptor taking care of adblocking and custom headers."""
-
-import attr
 
 from PyQt5.QtCore import QUrl, QByteArray
 from PyQt5.QtWebEngineCore import (QWebEngineUrlRequestInterceptor,
                                    QWebEngineUrlRequestInfo)
 
-from qutebrowser.config import websettings
+from qutebrowser.config import websettings, config
 from qutebrowser.browser import shared
 from qutebrowser.utils import utils, log, debug, qtutils
 from qutebrowser.extensions import interceptors
 from qutebrowser.misc import objects
 
 
-@attr.s
 class WebEngineRequest(interceptors.Request):
 
     """QtWebEngine-specific request interceptor functionality."""
 
     _WHITELISTED_REQUEST_METHODS = {QByteArray(b'GET'), QByteArray(b'HEAD')}
 
-    _webengine_info = attr.ib(default=None)  # type: QWebEngineUrlRequestInfo
-    #: If this request has been redirected already
-    _redirected = attr.ib(init=False, default=False)  # type: bool
+    def __init__(self, *args, webengine_info, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._webengine_info = webengine_info
+        self._redirected = False
 
     def redirect(self, url: QUrl) -> None:
         if self._redirected:
-            raise interceptors.RedirectFailedException(
-                "Request already redirected.")
+            raise interceptors.RedirectException("Request already redirected.")
         if self._webengine_info is None:
-            raise interceptors.RedirectFailedException(
-                "Request improperly initialized.")
+            raise interceptors.RedirectException("Request improperly initialized.")
+
         # Redirecting a request that contains payload data is not allowed.
         # To be safe, abort on any request not in a whitelist.
-        if (self._webengine_info.requestMethod()
-                not in self._WHITELISTED_REQUEST_METHODS):
-            raise interceptors.RedirectFailedException(
+        verb = self._webengine_info.requestMethod()
+        if verb not in self._WHITELISTED_REQUEST_METHODS:
+            raise interceptors.RedirectException(
                 "Request method does not support redirection.")
         self._webengine_info.redirect(url)
         self._redirected = True
@@ -129,7 +126,7 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
             # Qt >= 5.13, GUI thread
             profile.setUrlRequestInterceptor(self)
         except AttributeError:
-            # Qt <= 5.12, IO thread
+            # Qt 5.12, IO thread
             profile.setRequestInterceptor(self)
 
     # Gets called in the IO thread -> showing crash window will fail
@@ -179,11 +176,11 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
                                         info.resourceType())))
             resource_type = interceptors.ResourceType.unknown
 
+        is_xhr = info.resourceType() == QWebEngineUrlRequestInfo.ResourceTypeXhr
+
         if ((url.scheme(), url.host(), url.path()) ==
                 ('qute', 'settings', '/set')):
-            if (first_party != QUrl('qute://settings/') or
-                    info.resourceType() !=
-                    QWebEngineUrlRequestInfo.ResourceTypeXhr):
+            if first_party != QUrl('qute://settings/') or not is_xhr:
                 log.network.warning("Blocking malicious request from {} to {}"
                                     .format(first_party.toDisplayString(),
                                             url.toDisplayString()))
@@ -202,7 +199,21 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
             info.block(True)
 
         for header, value in shared.custom_headers(url=url):
+            if header.lower() == b'accept' and is_xhr:
+                # https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/setRequestHeader
+                # says: "If no Accept header has been set using this, an Accept header
+                # with the type "*/*" is sent with the request when send() is called."
+                #
+                # We shouldn't break that if someone sets a custom Accept header for
+                # normal requests.
+                continue
             info.setHttpHeader(header, value)
+
+        # Note this is ignored before Qt 5.12.4 and 5.13.1 due to
+        # https://bugreports.qt.io/browse/QTBUG-60203 - there, we set the
+        # commandline-flag in qtargs.py instead.
+        if config.cache['content.headers.referer'] == 'never':
+            info.setHttpHeader(b'Referer', b'')
 
         user_agent = websettings.user_agent(url)
         info.setHttpHeader(b'User-Agent', user_agent.encode('ascii'))

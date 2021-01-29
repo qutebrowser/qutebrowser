@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Dialogs shown when there was a problem with a backend choice."""
 
@@ -25,13 +25,13 @@ import functools
 import html
 import enum
 import shutil
-import typing
 import argparse
+import dataclasses
+from typing import Any, List, Sequence, Tuple, Optional
 
-import attr
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QApplication, QDialog, QPushButton, QHBoxLayout,
-                             QVBoxLayout, QLabel, QMessageBox, QWidget)
+from PyQt5.QtWidgets import (QDialog, QPushButton, QHBoxLayout, QVBoxLayout, QLabel,
+                             QMessageBox, QWidget)
 from PyQt5.QtNetwork import QSslSocket
 
 from qutebrowser.config import config, configfiles
@@ -50,20 +50,18 @@ class _Result(enum.IntEnum):
     restart_webengine = QDialog.Accepted + 4
 
 
-@attr.s
+@dataclasses.dataclass
 class _Button:
 
     """A button passed to BackendProblemDialog."""
 
-    text = attr.ib()  # type: str
-    setting = attr.ib()  # type: str
-    value = attr.ib()  # type: typing.Any
-    default = attr.ib(default=False)  # type: bool
+    text: str
+    setting: str
+    value: Any
+    default: bool = False
 
 
-def _other_backend(
-        backend: usertypes.Backend
-) -> typing.Tuple[usertypes.Backend, str]:
+def _other_backend(backend: usertypes.Backend) -> Tuple[usertypes.Backend, str]:
     """Get the other backend enum/setting for a given backend."""
     other_backend = {
         usertypes.Backend.QtWebKit: usertypes.Backend.QtWebEngine,
@@ -103,7 +101,7 @@ class _Dialog(QDialog):
     def __init__(self, *, because: str,
                  text: str,
                  backend: usertypes.Backend,
-                 buttons: typing.Sequence[_Button] = None,
+                 buttons: Sequence[_Button] = None,
                  parent: QWidget = None) -> None:
         super().__init__(parent)
         vbox = QVBoxLayout(self)
@@ -152,28 +150,18 @@ class _Dialog(QDialog):
             self.done(_Result.restart)
 
 
-@attr.s
+@dataclasses.dataclass
 class _BackendImports:
 
     """Whether backend modules could be imported."""
 
-    webkit_available = attr.ib(default=None)  # type: bool
-    webengine_available = attr.ib(default=None)  # type: bool
-    webkit_error = attr.ib(default=None)  # type: str
-    webengine_error = attr.ib(default=None)  # type: str
+    webkit_error: Optional[str] = None
+    webengine_error: Optional[str] = None
 
 
 class _BackendProblemChecker:
 
     """Check for various backend-specific issues."""
-
-    SOFTWARE_RENDERING_TEXT = (
-        "<p><b>Forcing software rendering</b></p>"
-        "<p>This allows you to use the newer QtWebEngine backend (based on "
-        "Chromium) but could have noticeable performance impact (depending on "
-        "your hardware). This sets the <i>qt.force_software_rendering = "
-        "'chromium'</i> option (if you have a <i>config.py</i> file, you'll "
-        "need to set this manually).</p>")
 
     def __init__(self, *,
                  no_err_windows: bool,
@@ -181,7 +169,7 @@ class _BackendProblemChecker:
         self._save_manager = save_manager
         self._no_err_windows = no_err_windows
 
-    def _show_dialog(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+    def _show_dialog(self, *args: Any, **kwargs: Any) -> None:
         """Show a dialog for a backend problem."""
         if self._no_err_windows:
             text = _error_text(*args, **kwargs)
@@ -190,7 +178,7 @@ class _BackendProblemChecker:
 
         dialog = _Dialog(*args, **kwargs)
 
-        status = dialog.exec_()
+        status = dialog.exec()
         self._save_manager.save_all(is_exit=True)
 
         if status in [_Result.quit, QDialog.Rejected]:
@@ -214,48 +202,7 @@ class _BackendProblemChecker:
         self._assert_backend(usertypes.Backend.QtWebEngine)
         utils.libgl_workaround()
 
-    def _handle_nouveau_graphics(self) -> None:
-        """Force software rendering when using the Nouveau driver.
-
-        WORKAROUND for
-        https://bugreports.qt.io/browse/QTBUG-41242
-        Should be fixed in Qt 5.10 via
-        https://codereview.qt-project.org/#/c/208664/
-        """
-        self._assert_backend(usertypes.Backend.QtWebEngine)
-
-        if os.environ.get('QUTE_SKIP_NOUVEAU_CHECK'):
-            return
-
-        if qtutils.version_check('5.10', compiled=False):
-            return
-
-        opengl_info = version.opengl_info()
-        if opengl_info is None or opengl_info.vendor != 'nouveau':
-            return
-
-        if (os.environ.get('LIBGL_ALWAYS_SOFTWARE') == '1' or
-                # qt.force_software_rendering = 'software-opengl'
-                'QT_XCB_FORCE_SOFTWARE_OPENGL' in os.environ or
-                # qt.force_software_rendering = 'chromium', also see:
-                # https://build.opensuse.org/package/view_file/openSUSE:Factory/libqt5-qtwebengine/disable-gpu-when-using-nouveau-boo-1005323.diff?expand=1
-                'QT_WEBENGINE_DISABLE_NOUVEAU_WORKAROUND' in os.environ):
-            return
-
-        button = _Button("Force software rendering",
-                         'qt.force_software_rendering',
-                         'chromium')
-        self._show_dialog(
-            backend=usertypes.Backend.QtWebEngine,
-            because="you're using Nouveau graphics",
-            text=("<p>There are two ways to fix this:</p>" +
-                  self.SOFTWARE_RENDERING_TEXT),
-            buttons=[button],
-        )
-
-        raise utils.Unreachable
-
-    def _xwayland_options(self) -> typing.Tuple[str, typing.List[_Button]]:
+    def _xwayland_options(self) -> Tuple[str, List[_Button]]:
         """Get buttons/text for a possible XWayland solution."""
         buttons = []
         text = "<p>You can work around this in one of the following ways:</p>"
@@ -277,36 +224,6 @@ class _BackendProblemChecker:
 
         return text, buttons
 
-    def _handle_wayland(self) -> None:
-        self._assert_backend(usertypes.Backend.QtWebEngine)
-
-        if os.environ.get('QUTE_SKIP_WAYLAND_CHECK'):
-            return
-
-        platform = QApplication.instance().platformName()
-        if platform not in ['wayland', 'wayland-egl']:
-            return
-
-        has_qt511 = qtutils.version_check('5.11', compiled=False)
-        if has_qt511 and config.val.qt.force_software_rendering == 'chromium':
-            return
-
-        if qtutils.version_check('5.11.2', compiled=False):
-            return
-
-        text, buttons = self._xwayland_options()
-
-        if has_qt511:
-            buttons.append(_Button("Force software rendering",
-                                   'qt.force_software_rendering',
-                                   'chromium'))
-            text += self.SOFTWARE_RENDERING_TEXT
-
-        self._show_dialog(backend=usertypes.Backend.QtWebEngine,
-                          because="you're using Wayland",
-                          text=text,
-                          buttons=buttons)
-
     def _handle_wayland_webgl(self) -> None:
         """On older graphic hardware, WebGL on Wayland causes segfaults.
 
@@ -317,7 +234,7 @@ class _BackendProblemChecker:
         if os.environ.get('QUTE_SKIP_WAYLAND_WEBGL_CHECK'):
             return
 
-        platform = QApplication.instance().platformName()
+        platform = objects.qapp.platformName()
         if platform not in ['wayland', 'wayland-egl']:
             return
 
@@ -365,29 +282,15 @@ class _BackendProblemChecker:
             from PyQt5.QtWebKit import qWebKitVersion
             from PyQt5 import QtWebKitWidgets
         except (ImportError, ValueError) as e:
-            results.webkit_available = False
             results.webkit_error = str(e)
         else:
-            if qtutils.is_new_qtwebkit():
-                results.webkit_available = True
-            else:
-                results.webkit_available = False
+            if not qtutils.is_new_qtwebkit():
                 results.webkit_error = "Unsupported legacy QtWebKit found"
 
         try:
             from PyQt5 import QtWebEngineWidgets
         except (ImportError, ValueError) as e:
-            results.webengine_available = False
             results.webengine_error = str(e)
-        else:
-            results.webengine_available = True
-
-        assert results.webkit_available is not None
-        assert results.webengine_available is not None
-        if not results.webkit_available:
-            assert results.webkit_error is not None
-        if not results.webengine_available:
-            assert results.webengine_error is not None
 
         return results
 
@@ -419,7 +322,7 @@ class _BackendProblemChecker:
                                    text="Could not initialize SSL support.",
                                    icon=QMessageBox.Critical,
                                    plain_text=False)
-            errbox.exec_()
+            errbox.exec()
             sys.exit(usertypes.Exit.err_init)
 
         assert not fatal
@@ -429,9 +332,9 @@ class _BackendProblemChecker:
         """Check for the modules needed for QtWebKit/QtWebEngine."""
         imports = self._try_import_backends()
 
-        if imports.webkit_available and imports.webengine_available:
+        if not imports.webkit_error and not imports.webengine_error:
             return
-        elif not imports.webkit_available and not imports.webengine_available:
+        elif imports.webkit_error and imports.webengine_error:
             text = ("<p>qutebrowser needs QtWebKit or QtWebEngine, but "
                     "neither could be imported!</p>"
                     "<p>The errors encountered were:<ul>"
@@ -445,12 +348,11 @@ class _BackendProblemChecker:
                                    text=text,
                                    icon=QMessageBox.Critical,
                                    plain_text=False)
-            errbox.exec_()
+            errbox.exec()
             sys.exit(usertypes.Exit.err_init)
         elif objects.backend == usertypes.Backend.QtWebKit:
-            if imports.webkit_available:
+            if not imports.webkit_error:
                 return
-            assert imports.webengine_available
             self._show_dialog(
                 backend=usertypes.Backend.QtWebKit,
                 because="QtWebKit could not be imported",
@@ -458,9 +360,8 @@ class _BackendProblemChecker:
                     html.escape(imports.webkit_error))
             )
         elif objects.backend == usertypes.Backend.QtWebEngine:
-            if imports.webengine_available:
+            if not imports.webengine_error:
                 return
-            assert imports.webkit_available
             self._show_dialog(
                 backend=usertypes.Backend.QtWebEngine,
                 because="QtWebEngine could not be imported",
@@ -482,9 +383,7 @@ class _BackendProblemChecker:
         # It seems these issues started with Qt 5.12.
         # They should be fixed with Qt 5.12.5:
         # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/265408
-        affected = (qtutils.version_check('5.12', compiled=False) and not
-                    qtutils.version_check('5.12.5', compiled=False))
-        if not affected:
+        if qtutils.version_check('5.12.5', compiled=False):
             return
 
         log.init.info("Qt version changed, nuking QtWebEngine cache")
@@ -504,21 +403,22 @@ class _BackendProblemChecker:
             # Nuke the service worker directory once for every install with Qt
             # 5.14, given that it seems to cause a variety of segfaults.
             configfiles.state['general']['serviceworker_workaround'] = '514'
-            affected = True
+            reason = 'Qt 5.14'
+        elif configfiles.state.qt_version_changed:
+            reason = 'Qt version changed'
+        elif config.val.qt.workarounds.remove_service_workers:
+            reason = 'Explicitly enabled'
         else:
-            # Otherwise, just nuke it when the Qt version changed.
-            affected = configfiles.state.qt_version_changed
-
-        if not affected:
             return
 
-        service_worker_dir = os.path.join(standarddir.data(), 'webengine',
-                                          'Service Worker')
+        service_worker_dir = os.path.join(
+            standarddir.data(), 'webengine', 'Service Worker')
         bak_dir = service_worker_dir + '-bak'
         if not os.path.exists(service_worker_dir):
             return
 
-        log.init.info("Qt version changed, removing service workers")
+        log.init.info(
+            f"Removing service workers at {service_worker_dir} (reason: {reason})")
 
         # Keep one backup around - we're not 100% sure what persistent data
         # could be in there, but this folder can grow to ~300 MB.
@@ -535,10 +435,8 @@ class _BackendProblemChecker:
         self._check_backend_modules()
         if objects.backend == usertypes.Backend.QtWebEngine:
             self._handle_ssl_support()
-            self._handle_wayland()
             self._nvidia_shader_workaround()
             self._handle_wayland_webgl()
-            self._handle_nouveau_graphics()
             self._handle_cache_nuking()
             self._handle_serviceworker_nuking()
         else:

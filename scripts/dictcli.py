@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2017-2018 Michal Siedlaczek <michal.siedlaczek@gmail.com>
 
 # This file is part of qutebrowser.
@@ -17,7 +17,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """A script installing Hunspell dictionaries.
 
@@ -31,14 +31,13 @@ import os
 import sys
 import re
 import urllib.request
-
-import attr
+import dataclasses
+from typing import Optional
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from qutebrowser.browser.webengine import spell
 from qutebrowser.config import configdata
-from qutebrowser.utils import standarddir, utils
-from scripts import utils as scriptutils
+from qutebrowser.utils import standarddir
 
 
 API_URL = 'https://chromium.googlesource.com/chromium/deps/hunspell_dictionaries.git/+/master/'
@@ -53,17 +52,17 @@ class InvalidLanguageError(Exception):
         super().__init__(msg)
 
 
-@attr.s
+@dataclasses.dataclass
 class Language:
 
     """Dictionary language specs."""
 
-    code = attr.ib()
-    name = attr.ib()
-    remote_filename = attr.ib()
-    local_filename = attr.ib(default=None)
+    code: str
+    name: str
+    remote_filename: str
+    local_filename: Optional[str] = None
 
-    def __attrs_post_init__(self):
+    def __post_init__(self):
         if self.local_filename is None:
             self.local_filename = spell.local_filename(self.code)
 
@@ -216,17 +215,8 @@ def install_lang(lang):
 def install(languages):
     """Install languages."""
     for lang in languages:
-        try:
-            print('Installing {}: {}'.format(lang.code, lang.name))
-            install_lang(lang)
-        except PermissionError as e:
-            msg = ("\n{}\n\nWith Qt < 5.10, you will need to run this script "
-                   "as root, as dictionaries need to be installed "
-                   "system-wide. If your qutebrowser uses a newer Qt version "
-                   "via a virtualenv, make sure you start this script with "
-                   "the virtualenv's Python.".format(e))
-            scriptutils.print_error(msg)
-            sys.exit(1)
+        print('Installing {}: {}'.format(lang.code, lang.name))
+        install_lang(lang)
 
 
 def update(languages):
@@ -250,24 +240,7 @@ def remove_old(languages):
             os.remove(os.path.join(spell.dictionary_dir(), old_file))
 
 
-def check_root():
-    """Ask for confirmation if running as root when unnecessary."""
-    if not utils.is_posix:
-        return
-
-    if spell.can_use_data_path() and os.geteuid() == 0:
-        print("You're running Qt >= 5.10 which means qutebrowser will "
-              "load dictionaries from a path in your home-directory. "
-              "Unless you run qutebrowser as root (bad idea!), you "
-              "most likely want to run this script as your user. ")
-        answer = input("Do you want to continue anyways? [y/N] ")
-        if answer not in ['y', 'Y']:
-            sys.exit(0)
-
-
 def main():
-    check_root()
-
     if configdata.DATA is None:
         configdata.init()
     standarddir.init(None)

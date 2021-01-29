@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Handlers for crashes and OS signals."""
 
@@ -29,14 +29,9 @@ import argparse
 import functools
 import threading
 import faulthandler
-import typing
-try:
-    # WORKAROUND for segfaults when using pdb in pytest for some reason...
-    import readline  # pylint: disable=unused-import
-except ImportError:
-    pass
+import dataclasses
+from typing import TYPE_CHECKING, Optional, MutableMapping, cast, List
 
-import attr
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
 from PyQt5.QtWidgets import QApplication
@@ -45,21 +40,21 @@ from qutebrowser.api import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog, ipc, objects
 from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
 from qutebrowser.qt import sip
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from qutebrowser.misc import quitter
 
 
-@attr.s
+@dataclasses.dataclass
 class ExceptionInfo:
 
     """Information stored when there was an exception."""
 
-    pages = attr.ib()
-    cmd_history = attr.ib()
-    objects = attr.ib()
+    pages: List[List[str]]
+    cmd_history: List[str]
+    objects: str
 
 
-crash_handler = typing.cast('CrashHandler', None)
+crash_handler = cast('CrashHandler', None)
 
 
 class CrashHandler(QObject):
@@ -300,7 +295,7 @@ class CrashHandler(QObject):
             self._crash_dialog = crashdialog.ExceptionCrashDialog(
                 self._args.debug, info.pages, info.cmd_history, exc,
                 info.objects)
-            ret = self._crash_dialog.exec_()
+            ret = self._crash_dialog.exec()
             if ret == crashdialog.Result.restore:
                 self._quitter.restart(info.pages)
 
@@ -337,10 +332,9 @@ class SignalHandler(QObject):
         self._quitter = quitter
         self._notifier = None
         self._timer = usertypes.Timer(self, 'python_hacks')
-        self._orig_handlers = {
-        }  # type: typing.MutableMapping[int, signal._HANDLER]
+        self._orig_handlers: MutableMapping[int, 'signal._HANDLER'] = {}
         self._activated = False
-        self._orig_wakeup_fd = None  # type: typing.Optional[int]
+        self._orig_wakeup_fd: Optional[int] = None
 
     def activate(self):
         """Set up signal handlers.
@@ -363,7 +357,7 @@ class SignalHandler(QObject):
             for fd in [read_fd, write_fd]:
                 flags = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-            self._notifier = QSocketNotifier(typing.cast(sip.voidptr, read_fd),
+            self._notifier = QSocketNotifier(cast(sip.voidptr, read_fd),
                                              QSocketNotifier.Read,
                                              self)
             self._notifier.activated.connect(  # type: ignore[attr-defined]

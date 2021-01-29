@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2019-2020 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2019-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
 
@@ -95,10 +95,10 @@ def test_user_agent(monkeypatch, config_stub, qapp):
 def test_config_init(request, monkeypatch, config_stub):
     if request.config.webengine:
         from qutebrowser.browser.webengine import webenginesettings
-        monkeypatch.setattr(webenginesettings, 'init', lambda _args: None)
+        monkeypatch.setattr(webenginesettings, 'init', lambda: None)
     else:
         from qutebrowser.browser.webkit import webkitsettings
-        monkeypatch.setattr(webkitsettings, 'init', lambda _args: None)
+        monkeypatch.setattr(webkitsettings, 'init', lambda: None)
 
     websettings.init(args=None)
     assert config_stub.dump_userconfig() == '<Default configuration>'
