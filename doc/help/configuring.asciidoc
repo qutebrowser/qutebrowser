@@ -180,7 +180,7 @@ with config.pattern('*://example.com/') as p:
 Binding keys
 ~~~~~~~~~~~~
 
-While it's possible to change the `bindings.commands` setting to bind keys, it's
+While it's possible to change the `bindings.commands` setting to customize the keyboard shortcuts, it's
 preferred to use the `config.bind` command. Doing so ensures the commands are
 valid and normalizes different expressions which map to the same key.
 
