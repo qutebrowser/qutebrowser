@@ -140,8 +140,10 @@ class DownloadView(QListView):
             actions.append(("Remove", item.remove))
         else:
             actions.append(("Cancel", item.cancel))
-        actions.append(("Copy URL", functools.partial(
-            utils.set_clipboard, item.url().toDisplayString())))
+
+        if item is not None:
+            actions.append(("Copy URL", functools.partial(
+                utils.set_clipboard, item.url().toDisplayString())))
         if model.can_clear():
             actions.append((None, None))
             actions.append(("Remove all finished", model.download_clear))

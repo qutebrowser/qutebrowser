@@ -1263,6 +1263,7 @@ fileselect.single_file.command:
     completions:
       - ['["xterm", "-e", "ranger", "--choosefile={}"]', "Ranger in xterm"]
       - ['["xterm", "-e", "vifm", "--choose-file", "{}"]', "vifm in xterm"]
+      - ['["xterm", "-e", "nnn", "-p", "{}"]', "nnn in xterm"]
   default: ['xterm', '-e', 'ranger', '--choosefile={}']
   desc: >-
     Command (and arguments) to use for selecting a single file in forms.
@@ -1279,6 +1280,7 @@ fileselect.multiple_files.command:
     completions:
       - ['["xterm", "-e", "ranger", "--choosefiles={}"]', "Ranger in xterm"]
       - ['["xterm", "-e", "vifm", "--choose-files", "{}"]', "vifm in xterm"]
+      - ['["xterm", "-e", "nnn", "-p", "{}"]', "nnn in xterm"]
   default: ['xterm', '-e', 'ranger', '--choosefiles={}']
   desc: >-
     Command (and arguments) to use for selecting multiple files in forms.
