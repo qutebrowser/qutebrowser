@@ -27,6 +27,9 @@ from qutebrowser.browser import downloads, qtnetworkdownloads, downloadview
 
 class FakeDownload(downloads.AbstractDownloadItem):
 
+    # As this is used for tests, we only override what's actually needed.
+    # pylint: disable=abstract-method
+
     def __init__(self, done: bool, successful: bool = False) -> None:
         super().__init__(manager=None)
         self.done = done
