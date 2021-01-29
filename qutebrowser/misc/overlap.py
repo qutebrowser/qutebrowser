@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,20 +27,9 @@ from PyQt5.QtCore import QPoint, QRect
 from PyQt5.QtWidgets import QWidget
 
 
-def _overlap(r1: QRect, r2: QRect) -> bool:
-    hor_overlap = max(0,
-        (min(r1.right(), r2.right()) - max(r1.left(), r2.left()))
-    )
-    vert_overlap = max(0,
-        (min(r1.bottom(), r2.bottom()) - max(r1.top(), r2.top()))
-    )
-    return hor_overlap > 0 and vert_overlap > 0
-
-
-def _corners(widget: QWidget) -> List[QPoint]:
+def _corners(rect: QRect) -> List[QPoint]:
     return [
-        widget.geometry().topLeft(), widget.geometry().topRight(),
-        widget.geometry().bottomLeft(), widget.geometry().bottomRight(),
+        rect.topLeft(), rect.topRight(), rect.bottomLeft(), rect.bottomRight()
     ]
 
 
@@ -74,23 +63,23 @@ class OverlapLookup:
 
     def register(self, widget: QWidget) -> None:
         """Add a widget."""
-        for corner in _corners(widget):
+        for corner in _corners(widget.geometry()):
             self._lookup[self._cell_index(corner)].add(widget)
 
     def deregister(self, widget: QWidget) -> None:
         """Remove a widget."""
-        for corner in _corners(widget):
+        for corner in _corners(widget.geometry()):
             self._lookup[self._cell_index(corner)].difference_update([widget])
 
     def overlappings(self, widget: QWidget) -> Iterable[QWidget]:
         """Get widgets that overlap with `widget`."""
         cands = set()
-        for corner in _corners(widget):
+        for corner in _corners(widget.geometry()):
             cands.update(self._lookup[self._cell_index(corner)])
         cands.difference_update([widget])
         return [
             cand for cand in cands
-            if _overlap(cand.geometry(), widget.geometry())
+            if cand.geometry().intersects(widget.geometry())
         ]
 
 
@@ -106,6 +95,8 @@ def cycle(widgets: Sequence[QWidget], reverse: bool = False) -> None:
 
     children = widgets[0].parent().children()
     widget_set = {widget for widget in widgets if widget.isVisible()}
+    if not widget_set:
+        return
     overlap_lookup = OverlapLookup(widget_set)
     # widget1 is above widget2 iff widget1 comes later in parent().children()
     widgets_in_order = [child for child in children if child in widget_set]

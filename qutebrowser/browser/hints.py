@@ -1032,11 +1032,9 @@ class HintManager(QObject):
         Args:
             reverse: Cycle in reverse direction.
         """
-        hintcontext = self._context
-        if hintcontext is None:
+        if self._context is None:
             raise cmdutils.CommandError("Hints not available.")
-        labels = hintcontext.all_labels
-        overlap.cycle(labels, reverse)
+        overlap.cycle(self._context.all_labels, reverse)
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode: usertypes.KeyMode) -> None:
