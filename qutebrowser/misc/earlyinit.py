@@ -231,6 +231,11 @@ def check_libraries():
         'PyQt5.QtSql': _missing_str("PyQt5.QtSql"),
         'PyQt5.QtOpenGL': _missing_str("PyQt5.QtOpenGL"),
     }
+    try:
+        import importlib.resources
+    except ImportError:
+        # Backport required
+        modules['importlib_resources'] = _missing_str("importlib_resources")
     _check_modules(modules)
 
 
