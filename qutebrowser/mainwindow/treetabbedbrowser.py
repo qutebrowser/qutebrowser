@@ -94,8 +94,12 @@ class TreeTabbedBrowser(TabbedBrowser):
         # to save descendents
         descendents = tuple(node.traverse(render_collapsed=True))
 
-        super()._remove_tab(tab, add_undo=add_undo, new_undo=new_undo,
+        super()._remove_tab(tab, add_undo=False, new_undo=False,
                             crashed=crashed)
+
+        if not tab.url().isEmpty() and tab.url().isValid() and add_undo:
+            idx = self.widget.indexOf(tab)
+            self._add_undo_entry(tab, idx, new_undo)
 
         parent = node.parent
 
@@ -128,7 +132,11 @@ class TreeTabbedBrowser(TabbedBrowser):
         self.widget.tree_tab_update()
 
     def _add_undo_entry(self, tab, idx, new_undo):
-        """Save undo entry with tree information."""
+        """
+        Save undo entry with tree information.
+        This function was removed in tabbedbrowser, but it is still useful here because
+        the mechanism is quite a bit more complex
+        """
         # TODO see if it's possible to remove duplicate code from
         # super()._add_undo_entry
         try:
@@ -145,10 +153,10 @@ class TreeTabbedBrowser(TabbedBrowser):
                 entry = TreeUndoEntry(tab.url(), history_data, idx,
                                       tab.data.pinned,
                                       uid, parent_uid, children, local_idx)
-                if new_undo or not self._undo_stack:
-                    self._undo_stack.append([entry])
+                if new_undo or not self.undo_stack:
+                    self.undo_stack.append([entry])
                 else:
-                    self._undo_stack[-1].append(entry)
+                    self.undo_stack[-1].append(entry)
             else:
                 entries = []
                 for descendent in node.traverse(notree.TraverseOrder.POST_R):
@@ -157,19 +165,19 @@ class TreeTabbedBrowser(TabbedBrowser):
                     descendent.parent = None  # FIXME: Find a way not to change
                     # the tree
                 if new_undo:
-                    self._undo_stack.append(entries)
+                    self.undo_stack.append(entries)
                 else:
-                    self._undo_stack[-1] += entries
+                    self.undo_stack[-1] += entries
 
-    def undo(self):
+    def undo(self, depth=1):
         """Undo removing of a tab or tabs."""
         # TODO find a way to remove dupe code
         # probably by getting entries from undo stack, THEN calling super
         # then post-processing the entries
 
         # save entries before super().undo() pops them
-        entries = list(self._undo_stack[-1])
-        new_tabs = super().undo()
+        entries = list(self.undo_stack[-depth])
+        new_tabs = super().undo(depth)
 
         for entry, tab in zip(reversed(entries), new_tabs):
             if not isinstance(entry, TreeUndoEntry):

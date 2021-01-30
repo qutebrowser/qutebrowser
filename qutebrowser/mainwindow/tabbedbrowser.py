@@ -516,6 +516,8 @@ class TabbedBrowser(QWidget):
         entries = self.undo_stack[-depth]
         del self.undo_stack[-depth]
 
+        # we return the tab list because tree_tabs needs it in post_processing
+        new_tabs = []
         for entry in reversed(entries):
             if use_current_tab:
                 newtab = self.widget.widget(0)
@@ -533,6 +535,8 @@ class TabbedBrowser(QWidget):
 
             newtab.history.private_api.deserialize(entry.history)
             newtab.set_pinned(entry.pinned)
+            new_tabs.append(newtab)
+        return new_tabs
 
     @pyqtSlot('QUrl', bool)
     def load_url(self, url, newtab):
