@@ -15,16 +15,17 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Subclass of TabbedBrowser to provide tree-tab functionality."""
 
 import collections
 
-import attr
+import dataclasses
 from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtCore import pyqtSlot, QUrl
 
+from typing import Dict
 from qutebrowser.config import config
 from qutebrowser.mainwindow.tabbedbrowser import TabbedBrowser
 from qutebrowser.mainwindow.treetabwidget import TreeTabWidget
@@ -32,18 +33,18 @@ from qutebrowser.browser import browsertab
 from qutebrowser.misc import notree
 
 
-@attr.s
+@dataclasses.dataclass
 class TreeUndoEntry:
     """Information needed for :undo."""
 
-    url = attr.ib()
-    history = attr.ib()
-    index = attr.ib()
-    pinned = attr.ib()
-    uid = attr.ib(None)
-    parent_node_uid = attr.ib(None)
-    children_node_uids = attr.ib(attr.Factory(list))
-    local_index = attr.ib(None)  # index of the tab relative to its siblings
+    url: QUrl
+    history = bytes
+    index = int
+    pinned = bool
+    uid = int
+    parent_node_uid = int
+    children_node_uids = int
+    local_index = int  # index of the tab relative to its siblings
 
     @classmethod
     def from_node(cls, node, idx):
@@ -77,11 +78,9 @@ class TreeTabbedBrowser(TabbedBrowser):
         super().__init__(win_id=win_id, private=private, parent=parent)
         self.is_treetabbedbrowser = True
         self.widget = TreeTabWidget(win_id, parent=self)
-        self.widget.tabCloseRequested.connect(  # type: ignore
-            self.on_tab_close_requested)
+        self.widget.tabCloseRequested.connect(self.on_tab_close_requested)
         self.widget.new_tab_requested.connect(self.tabopen)
-        self.widget.currentChanged.connect(  # type: ignore
-            self._on_current_changed)
+        self.widget.currentChanged.connect(self._on_current_changed)
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self._reset_stack_counters()
@@ -315,7 +314,7 @@ class TreeTabbedBrowser(TabbedBrowser):
         def rel_depth(n):
             return n.depth - node.depth
 
-        levels = collections.defaultdict(list)  # type: typing.Dict[int, list]
+        levels: Dict[int, list]= collections.defaultdict(list)
         for d in node.traverse(render_collapsed=False):
             r_depth = rel_depth(d)
             levels[r_depth].append(d)

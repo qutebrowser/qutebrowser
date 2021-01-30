@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Extension of TabWidget for tree-tab functionality."""
 
@@ -35,8 +35,7 @@ class TreeTabWidget(TabWidget):
         # root of the tab tree, common for all tabs in the window
         self.tree_root = Node(None)
         super().__init__(win_id, parent)
-        self.tabBar().tabMoved.disconnect(  # type: ignore
-            self.update_tab_titles)
+        self.tabBar().tabMoved.disconnect(self.update_tab_titles)
 
     def _init_config(self):
         super()._init_config()

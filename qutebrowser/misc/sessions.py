@@ -478,11 +478,11 @@ class SessionManager(QObject):
     def _load_tree(self, tabbed_browser, tree_data):
         tree_keys = list(tree_data.keys())
         if not tree_keys:
-            return
+            return None
 
         root_data = tree_data.get(tree_keys[0])
         if root_data is None:
-            return
+            return None
 
         root_node = tabbed_browser.widget.tree_root
         tab_to_focus = None

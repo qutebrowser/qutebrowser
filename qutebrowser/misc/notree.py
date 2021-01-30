@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tree library for tree-tabs.
 
@@ -47,7 +47,7 @@ render_tree(root)
 > ('└─', 'baz')
 """
 import enum
-import typing
+from typing import Optional, TypeVar, Sequence, List, Tuple, Iterable
 import itertools
 
 # For Node.render
@@ -92,17 +92,17 @@ class Node():
             root_node.children` will be True.
     """
 
-    sep = '/'  # type: str
-    __parent = None  # type: typing.Optional['Node']
+    sep: str = '/'
+    __parent: Optional['Node'] = None
     # this is a global 'static' class attribute
 
-    PARENT_TYPE = typing.TypeVar('PARENT_TYPE')
+    PARENT_TYPE = TypeVar('PARENT_TYPE')
 
     def __init__(self,
                  value: PARENT_TYPE,
-                 parent: typing.Optional['Node'] = None,
-                 childs: typing.Sequence['Node'] = (),
-                 uid: typing.Optional[int] = None) -> None:
+                 parent: Optional['Node'] = None,
+                 childs: Sequence['Node'] = (),
+                 uid: Optional[int] = None) -> None:
         if uid is not None:
             self.__uid = uid
         else:
@@ -110,14 +110,13 @@ class Node():
 
         self.value = value
         # set initial values so there's no need for AttributeError checks
-        self.__parent = None  # type: typing.Optional['Node']
-        self.__children = []  # type: typing.List['Node']
+        self.__parent: Optional['Node'] = None
+        self.__children: List['Node'] = []
 
         # For render memoization
         self.__modified = False
         self.__set_modified()  # not the same as line above
-        self.__rendered = ()  \
-            # type: typing.Tuple[typing.Tuple[str, 'Node'], ...]
+        self.__rendered: Tuple[Tuple[str, 'Node'], ...] = ()
 
         if parent:
             self.parent = parent  # calls setter
@@ -131,7 +130,7 @@ class Node():
         return self.__uid
 
     @property
-    def parent(self) -> typing.Optional['Node']:
+    def parent(self) -> Optional['Node']:
         return self.__parent
 
     @parent.setter
@@ -148,11 +147,11 @@ class Node():
         self.__set_modified()
 
     @property
-    def children(self) -> typing.Sequence['Node']:
+    def children(self) -> Sequence['Node']:
         return tuple(self.__children)
 
     @children.setter
-    def children(self, value: typing.Sequence['Node']):
+    def children(self, value: Sequence['Node']):
         """Set children property, preserving order.
 
         Also sets n.parent = self for n in value. Does not allow duplicates.
@@ -168,7 +167,7 @@ class Node():
         self.__set_modified()
 
     @property
-    def path(self) -> typing.List['Node']:
+    def path(self) -> List['Node']:
         """Get a list of all nodes from the root node to self."""
         if self.parent is None:
             return [self]
@@ -202,7 +201,7 @@ class Node():
         for node in self.path:
             node.__modified = True  # pylint: disable=protected-access
 
-    def render(self) -> typing.Iterable[typing.Tuple[str, "Node"]]:
+    def render(self) -> Iterable[Tuple[str, "Node"]]:
         """Render a tree with ascii symbols.
 
         Tabs appear in the same order as in traverse() with TraverseOrder.PRE
@@ -240,7 +239,7 @@ class Node():
         return tuple(result)
 
     def traverse(self, order: TraverseOrder = TraverseOrder.PRE,
-                 render_collapsed: bool = True) -> typing.Iterable['Node']:
+                 render_collapsed: bool = True) -> Iterable['Node']:
         """Generator for all descendants of `self`.
 
         Args:
@@ -344,8 +343,8 @@ class Node():
 
     def __repr__(self) -> str:
         try:
-            value = str(self.value.url().url())  # type: ignore
-        except:
+            value = str(self.value.url().url())
+        except Exception:
             value = str(self.value)
         return "<Node -%d- '%s'>" % (self.__uid, value)
 
