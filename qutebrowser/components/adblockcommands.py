@@ -25,7 +25,7 @@ from qutebrowser.components import braveadblock, hostblock
 
 @cmdutils.register()
 def adblock_update() -> None:
-    """Update block lists for both the host- and the Brave ad blocker."""
+    """Update block lists for both the hosts and the Brave ad blocker."""
     if braveadblock.ad_blocker is not None:
         braveadblock.ad_blocker.adblock_update()
     hostblock.host_blocker.adblock_update()
