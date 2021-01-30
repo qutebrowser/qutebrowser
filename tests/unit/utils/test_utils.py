@@ -171,6 +171,36 @@ class TestReadFile:
         content = utils.read_file_binary(os.path.join('utils', 'testfile'))
         assert content.splitlines()[0] == b"Hello World!"
 
+    @pytest.mark.parametrize('name', ['read_file', 'read_file_binary'])
+    @pytest.mark.parametrize('fake_exception', [KeyError, FileNotFoundError, None])
+    def test_not_found(self, name, fake_exception, monkeypatch):
+        """Test behavior when a resources file wasn't found.
+
+        With fake_exception, we emulate the rather odd error handling of certain Python
+        versions: https://bugs.python.org/issue43063
+        """
+        class BrokenFileFake:
+
+            def __init__(self, exc):
+                self.exc = exc
+
+            def read_bytes(self):
+                raise self.exc("File does not exist")
+
+            def read_text(self, encoding):
+                raise self.exc("File does not exist")
+
+            def __truediv__(self, _other):
+                return self
+
+        if fake_exception is not None:
+            monkeypatch.setattr(utils.importlib_resources, 'files',
+                                lambda _pkg: BrokenFileFake(fake_exception))
+
+        meth = getattr(utils, name)
+        with pytest.raises(FileNotFoundError):
+            meth('doesnotexist')
+
 
 @pytest.mark.parametrize('seconds, out', [
     (-1, '-0:01'),

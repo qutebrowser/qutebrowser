@@ -24,6 +24,10 @@ Fixed
 
 - When right-clicking an empty part of the downloads bar, qutebrowser v2.0.x
   would crash. This is now fixed.
+- If qutebrowser was installed as a Python egg with Python 3.8 or 3.9,
+  requesting unavailable resource files (such as PDF.js not being bundled, or a
+  missing changelog file) caused in a crash due to an inconsistent behavior in
+  those versions of Python. This is now handled properly by qutebrowser.
 
 [[v2.0.1]]
 v2.0.1 (2021-01-28)
