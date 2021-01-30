@@ -20,7 +20,6 @@
 """Subclass of TabbedBrowser to provide tree-tab functionality."""
 
 import collections
-import typing
 
 import attr
 from PyQt5.QtWidgets import QSizePolicy
@@ -133,9 +132,9 @@ class TreeTabbedBrowser(TabbedBrowser):
 
     def _add_undo_entry(self, tab, idx, new_undo):
         """
-        Save undo entry with tree information.
-        This function was removed in tabbedbrowser, but it is still useful here because
-        the mechanism is quite a bit more complex
+        Save undo entry with tree information.  This function was removed in
+        tabbedbrowser, but it is still useful here because the mechanism is
+        quite a bit more complex
         """
         # TODO see if it's possible to remove duplicate code from
         # super()._add_undo_entry
@@ -233,8 +232,6 @@ class TreeTabbedBrowser(TabbedBrowser):
             self.widget.tree_tab_update()
             return tab
 
-        toplevel = not sibling and not related
-
         # get pos
         if related:
             pos = config.val.tabs.new_position.tree.new_child
@@ -248,6 +245,21 @@ class TreeTabbedBrowser(TabbedBrowser):
             pos = config.val.tabs.new_position.tree.new_toplevel
             parent = self.widget.tree_root
 
+        self._position_tab(tab, pos, parent, sibling, related)
+
+        return tab
+
+    def _position_tab(
+        self,
+        tab: browsertab.AbstractTab,
+        pos: str,
+        background: bool = None,
+        related: bool = True,
+        sibling: bool = False,
+    ):
+        cur_tab = self.widget.currentWidget()
+        parent = tab.parent
+        toplevel = not sibling and not related
         siblings = list(parent.children)
         if tab.node in siblings:  # true if parent is tree_root
             # remove it and add it later in the right position
@@ -262,10 +274,7 @@ class TreeTabbedBrowser(TabbedBrowser):
         elif pos in ['prev', 'next'] and (sibling or toplevel):
             # pivot is the tab relative to which 'prev' or 'next' apply
             # it is always a member of 'siblings'
-            if sibling:
-                pivot = cur_tab.node
-            elif toplevel:
-                pivot = cur_tab.node.path[1]
+            pivot = cur_tab.node if sibling else cur_tab.node.path[1]
             direction = -1 if pos == 'prev' else 1
             rel_idx = 0 if pos == 'prev' else 1
             tgt_idx = siblings.index(pivot) + rel_idx
@@ -283,7 +292,6 @@ class TreeTabbedBrowser(TabbedBrowser):
         self.widget.tree_tab_update()
         if not background:
             self._reset_stack_counters()
-        return tab
 
     def _reset_stack_counters(self):
         self._tree_tab_child_rel_idx = 0
