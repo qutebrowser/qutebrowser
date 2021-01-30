@@ -204,7 +204,7 @@ def _resource_keyerror_workaround() -> Iterator[None]:
     try:
         yield
     except KeyError as e:
-        raise FileNotFoundError(str(e))
+        raise FileNotFoundError(str(e))  # pragma: no cover
 
 
 def _glob_resources(

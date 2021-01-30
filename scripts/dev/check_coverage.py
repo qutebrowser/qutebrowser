@@ -77,8 +77,6 @@ PERFECT_FILES = [
      'qutebrowser/api/message.py'),
     (None,
      'qutebrowser/api/qtutils.py'),
-    (None,
-     'qutebrowser/qt.py'),
 
     ('tests/unit/browser/webkit/test_cache.py',
      'qutebrowser/browser/webkit/cache.py'),
