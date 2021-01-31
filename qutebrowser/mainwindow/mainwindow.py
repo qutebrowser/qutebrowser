@@ -23,7 +23,7 @@ import binascii
 import base64
 import itertools
 import functools
-from typing import List, MutableSequence, Optional, Tuple, cast
+from typing import List, MutableSequence, Optional, Tuple, cast, Union
 
 from PyQt5.QtCore import (pyqtBoundSignal, pyqtSlot, QRect, QPoint, QTimer, Qt,
                           QCoreApplication, QEventLoop, QByteArray)
@@ -228,11 +228,13 @@ class MainWindow(QWidget):
 
         self.is_private = config.val.content.private_browsing or private
 
+        self.tabbed_browser: Union[tabbedbrowser.TabbedBrowser,
+                                   treetabbedbrowser.TreeTabbedBrowser]
         if config.val.tabs.tree_tabs:
             self.tabbed_browser = treetabbedbrowser.TreeTabbedBrowser(
                 win_id=self.win_id, private=self.is_private, parent=self)
         else:
-            self.tabbed_browser: tabbedbrowser.TabbedBrowser = tabbedbrowser.TabbedBrowser(
+            self.tabbed_browser = tabbedbrowser.TabbedBrowser(
                 win_id=self.win_id, private=self.is_private, parent=self)
         objreg.register('tabbed-browser', self.tabbed_browser, scope='window',
                         window=self.win_id)
@@ -501,8 +503,10 @@ class MainWindow(QWidget):
         mode_manager.keystring_updated.connect(
             self.status.keystring.on_keystring_updated)
         self.status.cmd.got_cmd[str].connect(self._commandrunner.run_safely)
-        self.status.cmd.got_cmd[str, int].connect(self._commandrunner.run_safely)
-        self.status.cmd.returnPressed.connect(self.tabbed_browser.on_cmd_return_pressed)
+        self.status.cmd.got_cmd[str, int].connect(
+            self._commandrunner.run_safely)
+        self.status.cmd.returnPressed.connect(
+            self.tabbed_browser.on_cmd_return_pressed)
         self.status.cmd.got_search.connect(self._command_dispatcher.search)
 
         # key hint popup

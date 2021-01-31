@@ -2099,7 +2099,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        tree_tab=True)
-    def tree_tab_create_group(self, *name: str, related=False,
+    def tree_tab_create_group(self, *name, related=False,
                               background=False):
         """Wrapper around :open qute://treegroup/name. Correctly escapes names.
 

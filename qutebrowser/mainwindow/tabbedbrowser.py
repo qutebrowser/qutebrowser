@@ -24,8 +24,8 @@ import functools
 import weakref
 import datetime
 import dataclasses
-from typing import (
-    cast, Any, Deque, List, Mapping, MutableMapping, MutableSequence, Optional, Tuple)
+from typing import (Any, Deque, List, Mapping,
+                    MutableMapping, MutableSequence, Optional, Tuple)
 
 from PyQt5.QtWidgets import QSizePolicy, QWidget, QApplication
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
@@ -524,13 +524,10 @@ class TabbedBrowser(QWidget):
                 use_current_tab = False
             else:
                 # FIXME:typing mypy thinks this is None due to @pyqtSlot
-                newtab = cast(
-                    browsertab.AbstractTab,
-                    self.tabopen(
-                        background=False,
-                        related=False,
-                        idx=entry.index
-                    )
+                newtab = self.tabopen(
+                    background=False,
+                    related=False,
+                    idx=entry.index
                 )
 
             newtab.history.private_api.deserialize(entry.history)

@@ -958,9 +958,9 @@ class AbstractTab(QWidget):
         self.backend: Optional[usertypes.Backend] = None
 
         if parent and isinstance(parent, TreeTabWidget):
-            self.node = Node(self, parent=parent.tree_root)
+            self.node: AbstractTab = Node(self, parent=parent.tree_root)
         else:
-            self.node = Node(self, parent=None)
+            self.node: AbstractTab = Node(self, parent=None)
 
         # If true, this tab has been requested to be removed (or is removed).
         self.pending_removal = False

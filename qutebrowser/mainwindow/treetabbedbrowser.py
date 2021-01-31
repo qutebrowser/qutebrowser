@@ -20,12 +20,11 @@
 """Subclass of TabbedBrowser to provide tree-tab functionality."""
 
 import collections
-
 import dataclasses
+from typing import List, Dict
 from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtCore import pyqtSlot, QUrl
 
-from typing import Dict
 from qutebrowser.config import config
 from qutebrowser.mainwindow.tabbedbrowser import TabbedBrowser
 from qutebrowser.mainwindow.treetabwidget import TreeTabWidget
@@ -34,20 +33,20 @@ from qutebrowser.misc import notree
 
 
 @dataclasses.dataclass
-class TreeUndoEntry:
+class _TreeUndoEntry():
     """Information needed for :undo."""
 
     url: QUrl
-    history = bytes
-    index = int
-    pinned = bool
-    uid = int
-    parent_node_uid = int
-    children_node_uids = int
-    local_index = int  # index of the tab relative to its siblings
+    history: bytes
+    index: int
+    pinned: bool
+    uid: int
+    parent_node_uid: int
+    children_node_uids: List[int]
+    local_index: int  # index of the tab relative to its siblings
 
-    @classmethod
-    def from_node(cls, node, idx):
+    @staticmethod
+    def from_node(node, idx):
         """Make a TreeUndoEntry from a Node."""
         url = node.value.url()
         try:
@@ -59,8 +58,14 @@ class TreeUndoEntry:
         parent_uid = node.parent.uid
         children = [n.uid for n in node.children]
         local_idx = node.index
-        return cls(url, history_data, idx, pinned,
-                   uid, parent_uid, children, local_idx)
+        return _TreeUndoEntry(url=url,
+                              history=history_data,
+                              index=idx,
+                              pinned=pinned,
+                              uid=uid,
+                              parent_node_uid=parent_uid,
+                              children_node_uids=children,
+                              local_index=local_idx)
 
 
 class TreeTabbedBrowser(TabbedBrowser):
@@ -130,11 +135,11 @@ class TreeTabbedBrowser(TabbedBrowser):
         self.widget.tree_tab_update()
 
     def _add_undo_entry(self, tab, idx, new_undo):
-        """
-        Save undo entry with tree information.  This function was removed in
+        """Save undo entry with tree information.  This function was removed in
         tabbedbrowser, but it is still useful here because the mechanism is
         quite a bit more complex
         """
+
         # TODO see if it's possible to remove duplicate code from
         # super()._add_undo_entry
         try:
@@ -148,9 +153,14 @@ class TreeTabbedBrowser(TabbedBrowser):
             if not node.collapsed:
                 children = [n.uid for n in node.children]
                 local_idx = node.index
-                entry = TreeUndoEntry(tab.url(), history_data, idx,
-                                      tab.data.pinned,
-                                      uid, parent_uid, children, local_idx)
+                entry = _TreeUndoEntry(url=tab.url(),
+                                       history=history_data,
+                                       index=idx,
+                                       pinned=tab.data.pinned,
+                                       uid=uid,
+                                       parent_node_uid=parent_uid,
+                                       children_node_uids=children,
+                                       local_index=local_idx)
                 if new_undo or not self.undo_stack:
                     self.undo_stack.append([entry])
                 else:
@@ -158,7 +168,7 @@ class TreeTabbedBrowser(TabbedBrowser):
             else:
                 entries = []
                 for descendent in node.traverse(notree.TraverseOrder.POST_R):
-                    entries.append(TreeUndoEntry.from_node(descendent, 0))
+                    entries.append(_TreeUndoEntry.from_node(descendent, 0))
                     # ensure descendent is not later saved as child as well
                     descendent.parent = None  # FIXME: Find a way not to change
                     # the tree
@@ -178,7 +188,7 @@ class TreeTabbedBrowser(TabbedBrowser):
         new_tabs = super().undo(depth)
 
         for entry, tab in zip(reversed(entries), new_tabs):
-            if not isinstance(entry, TreeUndoEntry):
+            if not isinstance(entry, _TreeUndoEntry):
                 continue
             root = self.widget.tree_root
             uid = entry.uid
@@ -195,10 +205,11 @@ class TreeTabbedBrowser(TabbedBrowser):
 
             # correctly reposition the tab
             local_idx = entry.local_index
-            new_siblings = list(tab.node.parent.children)
-            new_siblings.remove(tab.node)
-            new_siblings.insert(local_idx, tab.node)
-            tab.node.parent.children = new_siblings
+            if tab.node.parent:  # should always be true
+                new_siblings = list(tab.node.parent.children)
+                new_siblings.remove(tab.node)
+                new_siblings.insert(local_idx, tab.node)
+                tab.node.parent.children = new_siblings
 
         self.widget.tree_tab_update()
 
@@ -244,7 +255,7 @@ class TreeTabbedBrowser(TabbedBrowser):
             pos = config.val.tabs.new_position.tree.new_toplevel
             parent = self.widget.tree_root
 
-        self._position_tab(tab, pos, parent, sibling, related)
+        self._position_tab(tab, pos, parent, sibling, related, background)
 
         return tab
 
@@ -252,12 +263,12 @@ class TreeTabbedBrowser(TabbedBrowser):
         self,
         tab: browsertab.AbstractTab,
         pos: str,
-        background: bool = None,
-        related: bool = True,
+        parent: notree.Node,
         sibling: bool = False,
-    ):
+        related: bool = True,
+        background: bool = None,
+    ) -> None:
         cur_tab = self.widget.currentWidget()
-        parent = tab.parent
         toplevel = not sibling and not related
         siblings = list(parent.children)
         if tab.node in siblings:  # true if parent is tree_root
@@ -314,7 +325,7 @@ class TreeTabbedBrowser(TabbedBrowser):
         def rel_depth(n):
             return n.depth - node.depth
 
-        levels: Dict[int, list]= collections.defaultdict(list)
+        levels: Dict[int, list] = collections.defaultdict(list)
         for d in node.traverse(render_collapsed=False):
             r_depth = rel_depth(d)
             levels[r_depth].append(d)
