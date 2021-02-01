@@ -64,6 +64,8 @@ def test_start(proc, qtbot, message_mock, py_proc):
     assert not message_mock.messages
     assert qutescheme.spawn_output == expected
     assert proc.exit_status() == QProcess.NormalExit
+    assert proc.final_stdout().strip() == "test", proc.final_stdout()
+    assert proc.final_stderr().strip() == "", proc.final_stderr()
 
 
 def test_start_verbose(proc, qtbot, message_mock, py_proc):
