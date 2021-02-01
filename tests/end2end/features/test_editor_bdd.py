@@ -180,8 +180,8 @@ def save_editor_wait(tmpdir):
     os.kill(pid, signal.SIGUSR2)
 
 
-@bdd.when(bdd.parsers.parse('I setup a fake "{kind}" fileselector '
-                            'selecting "{files}" and writes to "{output_type}"'))
+@bdd.when(bdd.parsers.parse('I setup a fake {kind} fileselector '
+                            'selecting "{files}" and writes to {output_type}'))
 def set_up_fileselector(quteproc, py_proc, kind, files, output_type):
     """Set up fileselect.xxx.command to select the file(s)."""
     cmd, args = py_proc(r"""

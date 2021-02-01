@@ -367,24 +367,24 @@ def choose_file(multiple: bool) -> List[str]:
         )
         handle.close()
         tmpfilename = handle.name
-        command = (
-            command[:1] +
-            [arg.replace('{}', tmpfilename) for arg in command[1:]]
-        )
         with utils.cleanup_file(tmpfilename):
-            return execute_fileselect_command(
+            command = (
+                command[:1] +
+                [arg.replace('{}', tmpfilename) for arg in command[1:]]
+            )
+            return _execute_fileselect_command(
                 command=command,
                 multiple=multiple,
                 tmpfilename=tmpfilename,
             )
     else:
-        return execute_fileselect_command(
+        return _execute_fileselect_command(
             command=command,
             multiple=multiple,
         )
 
 
-def execute_fileselect_command(
+def _execute_fileselect_command(
     command: List[str],
     multiple: bool,
     tmpfilename: Optional[str] = None
@@ -407,7 +407,7 @@ def execute_fileselect_command(
     loop.exec()
 
     if tmpfilename is None:
-        selected_files = proc.final_stdout().splitlines()
+        selected_files = proc.final_stdout.splitlines()
     else:
         with open(tmpfilename, mode='r', encoding=sys.getfilesystemencoding()) as f:
             selected_files = f.read().splitlines()

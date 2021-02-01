@@ -64,8 +64,6 @@ def test_start(proc, qtbot, message_mock, py_proc):
     assert not message_mock.messages
     assert qutescheme.spawn_output == expected
     assert proc.exit_status() == QProcess.NormalExit
-    assert proc.final_stdout().strip() == "test", proc.final_stdout()
-    assert proc.final_stderr().strip() == "", proc.final_stderr()
 
 
 def test_start_verbose(proc, qtbot, message_mock, py_proc):
@@ -129,9 +127,11 @@ def test_start_output_message(proc, qtbot, caplog, message_mock, py_proc,
     if stdout_msg is not None:
         assert stdout_msg.level == usertypes.MessageLevel.info
         assert stdout_msg.text == 'stdout text'
+        assert proc.final_stdout.strip() == "stdout text", proc.final_stdout
     if stderr_msg is not None:
         assert stderr_msg.level == usertypes.MessageLevel.error
         assert stderr_msg.text == 'stderr text'
+        assert proc.final_stderr.strip() == "stderr text", proc.final_stderr
 
 
 def test_start_env(monkeypatch, qtbot, py_proc):

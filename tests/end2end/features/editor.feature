@@ -194,19 +194,19 @@ Feature: Opening external editors
     ## select single file
 
     Scenario: Select one file with single command
-        When I setup a fake "single_file" fileselector selecting "tests/end2end/data/numbers/1.txt" and writes to "a temporary file"
+        When I setup a fake single_file fileselector selecting "tests/end2end/data/numbers/1.txt" and writes to a temporary file
         And I open data/fileselect.html
         And I run :click-element id single_file
         Then the javascript message "Files: 1.txt" should be logged
 
     Scenario: Select one file with single command that writes to stdout
-        When I setup a fake "single_file" fileselector selecting "tests/end2end/data/numbers/1.txt" and writes to "stdout"
+        When I setup a fake single_file fileselector selecting "tests/end2end/data/numbers/1.txt" and writes to stdout
         And I open data/fileselect.html
         And I run :click-element id single_file
         Then the javascript message "Files: 1.txt" should be logged
 
     Scenario: Select two files with single command
-        When I setup a fake "single_file" fileselector selecting "tests/end2end/data/numbers/1.txt tests/end2end/data/numbers/2.txt" and writes to "a temporary file"
+        When I setup a fake single_file fileselector selecting "tests/end2end/data/numbers/1.txt tests/end2end/data/numbers/2.txt" and writes to a temporary file
 
         And I open data/fileselect.html
         And I run :click-element id single_file
@@ -216,14 +216,14 @@ Feature: Opening external editors
     ## select multiple files
 
     Scenario: Select one file with multiple command
-        When I setup a fake "multiple_files" fileselector selecting "tests/end2end/data/numbers/1.txt" and writes to "a temporary file"
+        When I setup a fake multiple_files fileselector selecting "tests/end2end/data/numbers/1.txt" and writes to a temporary file
 
         And I open data/fileselect.html
         And I run :click-element id multiple_files
         Then the javascript message "Files: 1.txt" should be logged
 
     Scenario: Select two files with multiple command
-        When I setup a fake "multiple_files" fileselector selecting "tests/end2end/data/numbers/1.txt tests/end2end/data/numbers/2.txt" and writes to "a temporary file"
+        When I setup a fake multiple_files fileselector selecting "tests/end2end/data/numbers/1.txt tests/end2end/data/numbers/2.txt" and writes to a temporary file
 
         And I open data/fileselect.html
         And I run :click-element id multiple_files
