@@ -361,10 +361,16 @@ def choose_file(multiple: bool) -> List[str]:
         command = config.val.fileselect.single_file.command
     use_tmp_file = '{}' in command
     if use_tmp_file:
-        handle = tempfile.NamedTemporaryFile(prefix='qutebrowser-fileselect-', delete=False)
+        handle = tempfile.NamedTemporaryFile(
+            prefix='qutebrowser-fileselect-',
+            delete=False,
+        )
         handle.close()
         tmpfilename = handle.name
-        command = command[:1] + [arg.replace('{}', tmpfilename) for arg in command[1:]]
+        command = (
+            command[:1] +
+            [arg.replace('{}', tmpfilename) for arg in command[1:]]
+        )
         with utils.cleanup_file(tmpfilename):
             return execute_fileselect_command(
                 command=command,
@@ -379,11 +385,11 @@ def choose_file(multiple: bool) -> List[str]:
 
 
 def execute_fileselect_command(
-    command,
+    command: List[str],
     multiple: bool,
-    tmpfilename: Optional[str]=None
+    tmpfilename: Optional[str] = None
 ) -> List[str]:
-    """Execute external command to choose file
+    """Execute external command to choose file.
 
     Args:
         multiple: Should selecting multiple files be allowed.
