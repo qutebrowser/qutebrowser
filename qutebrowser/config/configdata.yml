@@ -1259,7 +1259,7 @@ fileselect.handler:
 fileselect.single_file.command:
   type:
     name: ShellCommand
-    placeholder: true
+    placeholder: false
     completions:
       - ['["xterm", "-e", "ranger", "--choosefile={}"]', "Ranger in xterm"]
       - ['["xterm", "-e", "vifm", "--choose-file", "{}"]', "vifm in xterm"]
@@ -1276,7 +1276,7 @@ fileselect.single_file.command:
 fileselect.multiple_files.command:
   type:
     name: ShellCommand
-    placeholder: true
+    placeholder: false
     completions:
       - ['["xterm", "-e", "ranger", "--choosefiles={}"]', "Ranger in xterm"]
       - ['["xterm", "-e", "vifm", "--choose-files", "{}"]', "vifm in xterm"]

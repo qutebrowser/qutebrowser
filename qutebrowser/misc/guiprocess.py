@@ -61,6 +61,9 @@ class GUIProcess(QObject):
         self.cmd = None
         self.args = None
 
+        self._final_stdout = None
+        self._final_stderr = None
+
         self._proc = QProcess(self)
         self._proc.errorOccurred.connect(self._on_error)
         self._proc.errorOccurred.connect(self.error)
@@ -125,6 +128,8 @@ class GUIProcess(QObject):
                 log.procs.error("Process stderr:\n" + stderr.strip())
 
         qutescheme.spawn_output = self._spawn_format(exitinfo, stdout, stderr)
+        self._final_stdout = stdout
+        self._final_stderr = stderr
 
     def _spawn_format(self, exitinfo, stdout, stderr):
         """Produce a formatted string for spawn output."""
@@ -179,3 +184,9 @@ class GUIProcess(QObject):
 
     def exit_status(self):
         return self._proc.exitStatus()
+
+    def final_stdout(self):
+        return self._final_stdout
+
+    def final_stderr(self):
+        return self._final_stderr

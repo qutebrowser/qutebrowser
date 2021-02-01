@@ -23,7 +23,7 @@ import os
 import sys
 import html
 import netrc
-from typing import Callable, Mapping, List
+from typing import Callable, Mapping, List, Optional
 import tempfile
 
 from PyQt5.QtCore import QUrl
@@ -355,23 +355,54 @@ def choose_file(multiple: bool) -> List[str]:
         A list of selected file paths, or empty list if no file is selected.
         If multiple is False, the return value will have at most 1 item.
     """
-    handle = tempfile.NamedTemporaryFile(prefix='qutebrowser-fileselect-', delete=False)
-    handle.close()
-    tmpfilename = handle.name
-    with utils.cleanup_file(tmpfilename):
-        if multiple:
-            command = config.val.fileselect.multiple_files.command
-        else:
-            command = config.val.fileselect.single_file.command
+    if multiple:
+        command = config.val.fileselect.multiple_files.command
+    else:
+        command = config.val.fileselect.single_file.command
+    use_tmp_file = '{}' in command
+    if use_tmp_file:
+        handle = tempfile.NamedTemporaryFile(prefix='qutebrowser-fileselect-', delete=False)
+        handle.close()
+        tmpfilename = handle.name
+        command = command[:1] + [arg.replace('{}', tmpfilename) for arg in command[1:]]
+        with utils.cleanup_file(tmpfilename):
+            return execute_fileselect_command(
+                command=command,
+                multiple=multiple,
+                tmpfilename=tmpfilename,
+            )
+    else:
+        return execute_fileselect_command(
+            command=command,
+            multiple=multiple,
+        )
 
-        proc = guiprocess.GUIProcess(what='choose-file')
-        proc.start(command[0],
-                   [arg.replace('{}', tmpfilename) for arg in command[1:]])
 
-        loop = qtutils.EventLoop()
-        proc.finished.connect(lambda _code, _status: loop.exit())
-        loop.exec()
+def execute_fileselect_command(
+    command,
+    multiple: bool,
+    tmpfilename: Optional[str]=None
+) -> List[str]:
+    """Execute external command to choose file
 
+    Args:
+        multiple: Should selecting multiple files be allowed.
+        tmpfilename: Path to the temporary file if used, otherwise None.
+
+    Return:
+        A list of selected file paths, or empty list if no file is selected.
+        If multiple is False, the return value will have at most 1 item.
+    """
+    proc = guiprocess.GUIProcess(what='choose-file')
+    proc.start(command[0], command[1:])
+
+    loop = qtutils.EventLoop()
+    proc.finished.connect(lambda _code, _status: loop.exit())
+    loop.exec()
+
+    if tmpfilename is None:
+        selected_files = proc.final_stdout().splitlines()
+    else:
         with open(tmpfilename, mode='r', encoding=sys.getfilesystemencoding()) as f:
             selected_files = f.read().splitlines()
 
