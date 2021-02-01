@@ -79,6 +79,15 @@ def authentication_required(url, authenticator, abort_on):
     return answer
 
 
+def _format_msg(msg: str) -> str:
+    """Convert message to HTML suitable for rendering."""
+    ret = msg
+    ret = html.escape(ret)
+    ret = ret.strip()
+    ret = ret.replace('\n', '<br />')
+    return ret
+
+
 def javascript_confirm(url, js_msg, abort_on):
     """Display a javascript confirm prompt."""
     log.js.debug("confirm: {}".format(js_msg))
@@ -86,7 +95,7 @@ def javascript_confirm(url, js_msg, abort_on):
         raise CallSuper
 
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
-                                          html.escape(js_msg))
+                                          _format_msg(js_msg))
     urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     ans = message.ask('Javascript confirm', msg,
                       mode=usertypes.PromptMode.yesno,
@@ -103,7 +112,7 @@ def javascript_prompt(url, js_msg, default, abort_on):
         return (False, "")
 
     msg = '<b>{}</b> asks:<br/>{}'.format(html.escape(url.toDisplayString()),
-                                          html.escape(js_msg))
+                                          _format_msg(js_msg))
     urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     answer = message.ask('Javascript prompt', msg,
                          mode=usertypes.PromptMode.text,
@@ -126,7 +135,7 @@ def javascript_alert(url, js_msg, abort_on):
         return
 
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
-                                          html.escape(js_msg))
+                                          _format_msg(js_msg))
     urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     message.ask('Javascript alert', msg, mode=usertypes.PromptMode.alert,
                 abort_on=abort_on, url=urlstr)
