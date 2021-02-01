@@ -3168,7 +3168,7 @@ Default:
 - +pass:[\bnext\b]+
 - +pass:[\bmore\b]+
 - +pass:[\bnewer\b]+
-- +pass:[\b[&gt;→≫]\b]+
+- +pass:[\b[&gt;→≫\]\b]+
 - +pass:[\b(&gt;&gt;|»)\b]+
 - +pass:[\bcontinue\b]+
 
@@ -3196,7 +3196,7 @@ Default:
 - +pass:[\bprev(ious)?\b]+
 - +pass:[\bback\b]+
 - +pass:[\bolder\b]+
-- +pass:[\b[&lt;←≪]\b]+
+- +pass:[\b[&lt;←≪\]\b]+
 - +pass:[\b(&lt;&lt;|«)\b]+
 
 [[hints.radius]]
