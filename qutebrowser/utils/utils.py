@@ -889,3 +889,25 @@ def cleanup_file(filepath: str) -> Iterator[None]:
             os.remove(filepath)
         except OSError as e:
             log.misc.error(f"Failed to delete tempfile {filepath} ({e})!")
+
+
+def parse_int_set(s: str, universe: Iterable[int]) -> Iterable[int]:
+    """Parse a comma-separated list of numbers and range specifications.
+
+    The wildcard * is also allowed, in which case the `universe` is returned.
+
+    Args:
+        s: The string
+        universe: What to return if the wildcard is found
+    """
+    concatted = []
+    for range_ in s.split(','):
+        range_ = range_.strip()
+        if range_ == '*':
+            return universe
+        parts = [piece.strip() for piece in range_.split('-')]
+        if (len(parts) > 2 or not all(part.isdecimal() for part in parts)):
+            raise ValueError('Invalid range {}'.format(range_))
+        print('parts: {}'.format(parts))
+        concatted += list(range(int(parts[0]), int(parts[-1]) + 1))
+    return set(concatted)
