@@ -134,9 +134,11 @@ class DownloadItem(downloads.AbstractDownloadItem):
                              "state {} (not in requested state)!".format(
                                  filename, self, state_name))
 
-    def _ask_confirm_question(self, title, msg, *, custom_yes_action=None):
+    def _ask_confirm_question(self, title, msg, *, custom_yes_action=None,
+                              custom_no_action=None):
         yes_action = custom_yes_action or self._after_set_filename
-        no_action = functools.partial(self.cancel, remove_data=False)
+        no_action = custom_no_action or functools.partial(
+            self.cancel, remove_data=False)
         question = usertypes.Question()
         question.title = title
         question.text = msg
