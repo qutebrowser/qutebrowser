@@ -492,6 +492,7 @@ def test_service_worker_workaround(
         assert not service_worker_dir.exists()
 
 
+@utils.qt513  # Qt 5.12 doesn't store cookies immediately
 @pytest.mark.parametrize('store', [True, False])
 def test_cookies_store(quteproc_new, request, short_tmpdir, store):
     # Start test process
@@ -519,3 +520,6 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
     data = json.loads(content)
     expected_cookies = {'cookie': 'value'} if store else {}
     assert data == {'cookies': expected_cookies}
+
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()
