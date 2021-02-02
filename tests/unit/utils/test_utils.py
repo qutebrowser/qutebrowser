@@ -995,6 +995,11 @@ class TestCleanupFileContext:
         assert caplog.messages[0].startswith("Failed to delete tempfile")
 
 
-def test_parse_int_set():
+def test_parse_int_set_ranges():
     lhs = sorted(utils.parse_int_set('2-5,7,15-17,12', []))
     assert lhs == [2, 3, 4, 5, 7, 12, 15, 16, 17]
+
+
+def test_parse_int_set_wildcard():
+    lhs = sorted(utils.parse_int_set('*', [1, 2, 3]))
+    assert lhs == [1, 2, 3]
