@@ -492,6 +492,21 @@ class AbstractDownloadItem(QObject):
                         remaining=remaining, perc=perc, down=down,
                         total=total, errmsg=errmsg))
 
+    def _find_next_filename(self) -> None:
+        assert self._filename is not None
+        path = pathlib.Path(self._filename)
+        suffix = ''.join(path.suffixes)
+        base = path.name[:-len(suffix)]
+
+        i = 1
+        while True:
+            i += 1
+            path_to_try = path.parent / '{}_{}{}'.format(base, i, suffix)
+            self._filename = str(path_to_try)
+            if not (path_to_try.exists() or self._get_conflicting_download()):
+                break
+        self._set_filename(str(path_to_try))
+
     def _do_die(self):
         """Do cleanup steps after a download has died."""
         raise NotImplementedError
@@ -642,7 +657,8 @@ class AbstractDownloadItem(QObject):
         """Finish initialization based on self._filename."""
         raise NotImplementedError
 
-    def _ask_confirm_question(self, title, msg, *, custom_yes_action=None):
+    def _ask_confirm_question(self, title, msg, *, custom_yes_action=None,
+                              custom_no_action=None):
         """Ask a confirmation question for the download."""
         raise NotImplementedError
 
@@ -750,7 +766,8 @@ class AbstractDownloadItem(QObject):
             # overwritten.
             txt = "<b>{}</b> already exists. Overwrite?".format(
                 html.escape(self._filename))
-            self._ask_confirm_question("Overwrite existing file?", txt)
+            self._ask_confirm_question("Overwrite existing file?", txt,
+                custom_no_action=self._find_next_filename)
         # FIFO, device node, etc. Make sure we want to do this
         elif (os.path.exists(self._filename) and
               not os.path.isdir(self._filename)):
