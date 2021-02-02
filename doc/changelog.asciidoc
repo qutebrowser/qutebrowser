@@ -41,6 +41,9 @@ Fixed
   qutebrowser again.
 - The link to the keybinding cheatsheet on the internal `:help` page wasn't
   displayed correctly. This is now fixed.
+- Setting `content.cookies.store` to `false` only worked properly when this was
+  done after qutebrowser was already started due to a regression in v2.0.0. It now
+  works as expected again.
 
 [[v2.0.1]]
 v2.0.1 (2021-01-28)
