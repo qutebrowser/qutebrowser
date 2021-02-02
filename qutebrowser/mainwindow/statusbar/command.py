@@ -187,10 +187,11 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         Args:
             rapid: Run the command without closing or clearing the command bar.
         """
-        text = self.text()
-        self.history.append(text)
-
         was_search = self._handle_search()
+
+        text = self.text()
+        if not (self.prefix() == ':' and text[1:].startswith(' ')):
+            self.history.append(text)
 
         if not rapid:
             modeman.leave(self._win_id, usertypes.KeyMode.command,
