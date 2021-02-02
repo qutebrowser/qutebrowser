@@ -308,7 +308,7 @@ class BaseType:
         str_value = self.to_str(value)
         if not str_value:
             return 'empty'
-        return '+pass:[{}]+'.format(html.escape(str_value).replace(']', '\]'))
+        return '+pass:[{}]+'.format(html.escape(str_value).replace(']', '\\]'))
 
     def complete(self) -> _Completions:
         """Return a list of possible values for completion.
