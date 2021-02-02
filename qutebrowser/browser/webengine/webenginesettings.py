@@ -257,6 +257,7 @@ class ProfileSetter:
         self.set_http_headers()
         self.set_http_cache_size()
         self._set_hardcoded_settings()
+        self.set_persistent_cookie_policy()
         self.set_dictionary_language()
 
     def _set_hardcoded_settings(self):
