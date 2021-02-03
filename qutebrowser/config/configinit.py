@@ -62,7 +62,7 @@ def early_init(args: argparse.Namespace) -> None:
 
     try:
         if os.path.exists(config_file):
-            configfiles.read_config_py(config_file)
+            configfiles.read_config_py(config_file, warn_autoconfig=True)
         else:
             configfiles.read_autoconfig()
     except configexc.ConfigFileErrors as e:
