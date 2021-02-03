@@ -24,6 +24,9 @@ Fixed
 
 - When right-clicking an empty part of the downloads bar, qutebrowser v2.0.x
   would crash. This is now fixed.
+- Setting `content.cookies.store` to `false` only worked properly when this was
+  done after qutebrowser was already started due to a regression in v2.0.0. It now
+  works as expected again.
 - If qutebrowser was installed as a Python egg with Python 3.8 or 3.9,
   requesting unavailable resource files (such as PDF.js not being bundled, or a
   missing changelog file) caused in a crash due to an inconsistent behavior in
@@ -41,9 +44,10 @@ Fixed
   qutebrowser again.
 - The link to the keybinding cheatsheet on the internal `:help` page wasn't
   displayed correctly. This is now fixed.
-- Setting `content.cookies.store` to `false` only worked properly when this was
-  done after qutebrowser was already started due to a regression in v2.0.0. It now
-  works as expected again.
+- When the completion rebuilding process was interrupted, qutebrowser did not
+  detect this condition on the next start, thus resulting in a completion with
+  inconsistent data. This is now fixed, with another rebuild being forced with
+  this update, to ensure the data is consistent for all users.
 
 [[v2.0.1]]
 v2.0.1 (2021-01-28)
