@@ -72,5 +72,6 @@ class TestJsonArgs:
         """
         args = parser.parse_args(['--json-args', '{"debug": true}'])
         args = qutebrowser._unpack_json_args(args)
+        # pylint: disable=no-member
         assert args.debug
         assert not args.temp_basedir
