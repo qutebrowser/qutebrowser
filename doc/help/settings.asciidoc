@@ -3133,7 +3133,7 @@ Leave hint mode when starting a new page load.
 
 Type: <<types,Bool>>
 
-Default: +pass:[true]+
+Default: +pass:[false]+
 
 [[hints.min_chars]]
 === hints.min_chars
@@ -3360,7 +3360,7 @@ This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
-Default: +pass:[false]+
+Default: +pass:[true]+
 
 [[input.insert_mode.plugins]]
 === input.insert_mode.plugins

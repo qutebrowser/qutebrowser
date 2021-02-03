@@ -1496,7 +1496,7 @@ hints.uppercase:
   desc: Make characters in hint strings uppercase.
 
 hints.leave_on_load:
-  default: true
+  default: false
   type: Bool
   desc: Leave hint mode when starting a new page load.
 
@@ -1539,7 +1539,7 @@ input.insert_mode.plugins:
   desc: Switch to insert mode when clicking flash and other plugins.
 
 input.insert_mode.leave_on_load:
-  default: false
+  default: true
   type: Bool
   supports_pattern: true
   desc: >-
