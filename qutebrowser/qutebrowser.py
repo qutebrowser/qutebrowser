@@ -190,8 +190,10 @@ def _unpack_json_args(args):
     construct a "fake" argparse.Namespace here based on the data loaded
     from json.
     """
+    new_args = vars(args)
     data = json.loads(args.json_args)
-    return argparse.Namespace(**data)
+    new_args.update(data)
+    return argparse.Namespace(**new_args)
 
 
 def main():
