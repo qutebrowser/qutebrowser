@@ -508,6 +508,10 @@ class AbstractDownloadItem(QObject):
                         total=total, errmsg=errmsg))
 
     def _find_next_filename(self) -> None:
+        """Append unique numeric suffix to filename.
+
+        After finding a unique filename, restart the process of setting the
+        filename which will update the filename shown in the downloads list."""
         assert self._filename is not None
         path = pathlib.Path(self._filename)
         suffix = ''.join(path.suffixes)
