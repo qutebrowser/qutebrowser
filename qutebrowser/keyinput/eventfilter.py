@@ -69,6 +69,11 @@ class EventFilter(QObject):
             # Some other window (print dialog, etc.) is focused so we pass the
             # event through.
             return False
+
+        if objects.qapp.activePopupWidget() is not None:
+            # A context menu or similar is open, so we pass the even through.
+            return False
+
         try:
             man = modeman.instance('current')
             return man.handle_event(event)
