@@ -131,6 +131,10 @@ class TestReadFile:
         for filename in ['test1.html', 'test2.html', 'README', 'unrelatedhtml']:
             (path / filename).touch()
 
+        subdir = path / 'subdir'
+        subdir.mkdir()
+        (subdir / 'subdir-file.html').touch()
+
         return path
 
     @pytest.fixture
@@ -140,18 +144,37 @@ class TestReadFile:
 
         zip_path = tmp_path / 'qutebrowser.zip'
         with zipfile.ZipFile(zip_path, 'w') as zf:
-            for path in html_path.iterdir():
+            for path in html_path.rglob('*'):
                 zf.write(path, path.relative_to(tmp_path))
+
+            assert sorted(zf.namelist()) == [
+                'qutebrowser/html/README',
+                'qutebrowser/html/subdir/',
+                'qutebrowser/html/subdir/subdir-file.html',
+                'qutebrowser/html/test1.html',
+                'qutebrowser/html/test2.html',
+                'qutebrowser/html/unrelatedhtml',
+            ]
 
         yield zipfile.Path(zip_path) / 'qutebrowser'
 
-    def test_glob_resources_pathlib(self, html_path, package_path):
-        files = sorted(utils._glob_resources(package_path, 'html', '.html'))
+    @pytest.fixture(params=['pathlib', 'zipfile'])
+    def resource_root(self, request):
+        """Resource files packaged either directly or via a zip."""
+        if request.param == 'pathlib':
+            request.getfixturevalue('html_path')
+            return request.getfixturevalue('package_path')
+        elif request.param == 'zipfile':
+            return request.getfixturevalue('html_zip')
+        raise utils.Unreachable(request.param)
+
+    def test_glob_resources(self, resource_root):
+        files = sorted(utils._glob_resources(resource_root, 'html', '.html'))
         assert files == ['html/test1.html', 'html/test2.html']
 
-    def test_glob_resources_zipfile(self, html_zip):
-        files = sorted(utils._glob_resources(html_zip, 'html', '.html'))
-        assert files == ['html/test1.html', 'html/test2.html']
+    def test_glob_resources_subdir(self, resource_root):
+        files = sorted(utils._glob_resources(resource_root, 'html/subdir', '.html'))
+        assert files == ['html/subdir/subdir-file.html']
 
     def test_readfile(self):
         """Read a test file."""
@@ -170,6 +193,36 @@ class TestReadFile:
         """Read a test file in binary mode."""
         content = utils.read_file_binary(os.path.join('utils', 'testfile'))
         assert content.splitlines()[0] == b"Hello World!"
+
+    @pytest.mark.parametrize('name', ['read_file', 'read_file_binary'])
+    @pytest.mark.parametrize('fake_exception', [KeyError, FileNotFoundError, None])
+    def test_not_found(self, name, fake_exception, monkeypatch):
+        """Test behavior when a resources file wasn't found.
+
+        With fake_exception, we emulate the rather odd error handling of certain Python
+        versions: https://bugs.python.org/issue43063
+        """
+        class BrokenFileFake:
+
+            def __init__(self, exc):
+                self.exc = exc
+
+            def read_bytes(self):
+                raise self.exc("File does not exist")
+
+            def read_text(self, encoding):
+                raise self.exc("File does not exist")
+
+            def __truediv__(self, _other):
+                return self
+
+        if fake_exception is not None:
+            monkeypatch.setattr(utils.importlib_resources, 'files',
+                                lambda _pkg: BrokenFileFake(fake_exception))
+
+        meth = getattr(utils, name)
+        with pytest.raises(FileNotFoundError):
+            meth('doesnotexist')
 
 
 @pytest.mark.parametrize('seconds, out', [

@@ -41,6 +41,8 @@ from qutebrowser.utils import qtutils, log
 
 ON_CI = 'CI' in os.environ
 
+qt513 = pytest.mark.skipif(
+    not qtutils.version_check('5.13'), reason="Needs Qt 5.13 or newer")
 qt514 = pytest.mark.skipif(
     not qtutils.version_check('5.14'), reason="Needs Qt 5.14 or newer")
 
