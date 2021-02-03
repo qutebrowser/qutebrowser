@@ -477,7 +477,7 @@ Default:
 * +pass:[V]+: +pass:[selection-toggle --line]+
 * +pass:[Y]+: +pass:[yank selection -s]+
 * +pass:[[]+: +pass:[move-to-start-of-prev-block]+
-* +pass:[]]+: +pass:[move-to-start-of-next-block]+
+* +pass:[\]]+: +pass:[move-to-start-of-next-block]+
 * +pass:[b]+: +pass:[move-to-prev-word]+
 * +pass:[c]+: +pass:[mode-enter normal]+
 * +pass:[e]+: +pass:[move-to-end-of-word]+
@@ -626,7 +626,7 @@ Default:
 * +pass:[ZQ]+: +pass:[quit]+
 * +pass:[ZZ]+: +pass:[quit --save]+
 * +pass:[[[]+: +pass:[navigate prev]+
-* +pass:[]]]+: +pass:[navigate next]+
+* +pass:[\]\]]+: +pass:[navigate next]+
 * +pass:[`]+: +pass:[mode-enter set_mark]+
 * +pass:[ad]+: +pass:[download-cancel]+
 * +pass:[b]+: +pass:[set-cmd-text -s :quickmark-load]+
@@ -717,12 +717,12 @@ Default:
 * +pass:[xO]+: +pass:[set-cmd-text :open -b -r {url:pretty}]+
 * +pass:[xo]+: +pass:[set-cmd-text -s :open -b]+
 * +pass:[yD]+: +pass:[yank domain -s]+
-* +pass:[yM]+: +pass:[yank inline [{title}]({url}) -s]+
+* +pass:[yM]+: +pass:[yank inline [{title}\]({url}) -s]+
 * +pass:[yP]+: +pass:[yank pretty-url -s]+
 * +pass:[yT]+: +pass:[yank title -s]+
 * +pass:[yY]+: +pass:[yank -s]+
 * +pass:[yd]+: +pass:[yank domain]+
-* +pass:[ym]+: +pass:[yank inline [{title}]({url})]+
+* +pass:[ym]+: +pass:[yank inline [{title}\]({url})]+
 * +pass:[yp]+: +pass:[yank pretty-url]+
 * +pass:[yt]+: +pass:[yank title]+
 * +pass:[yy]+: +pass:[yank]+
@@ -3168,7 +3168,7 @@ Default:
 - +pass:[\bnext\b]+
 - +pass:[\bmore\b]+
 - +pass:[\bnewer\b]+
-- +pass:[\b[&gt;→≫]\b]+
+- +pass:[\b[&gt;→≫\]\b]+
 - +pass:[\b(&gt;&gt;|»)\b]+
 - +pass:[\bcontinue\b]+
 
@@ -3196,7 +3196,7 @@ Default:
 - +pass:[\bprev(ious)?\b]+
 - +pass:[\bback\b]+
 - +pass:[\bolder\b]+
-- +pass:[\b[&lt;←≪]\b]+
+- +pass:[\b[&lt;←≪\]\b]+
 - +pass:[\b(&lt;&lt;|«)\b]+
 
 [[hints.radius]]
@@ -3234,50 +3234,50 @@ Default:
 * +pass:[area]+
 * +pass:[textarea]+
 * +pass:[select]+
-* +pass:[input:not([type=&quot;hidden&quot;])]+
+* +pass:[input:not([type=&quot;hidden&quot;\])]+
 * +pass:[button]+
 * +pass:[frame]+
 * +pass:[iframe]+
 * +pass:[img]+
 * +pass:[link]+
 * +pass:[summary]+
-* +pass:[[contenteditable]:not([contenteditable=&quot;false&quot;])]+
-* +pass:[[onclick]]+
-* +pass:[[onmousedown]]+
-* +pass:[[role=&quot;link&quot;]]+
-* +pass:[[role=&quot;option&quot;]]+
-* +pass:[[role=&quot;button&quot;]]+
-* +pass:[[ng-click]]+
-* +pass:[[ngClick]]+
-* +pass:[[data-ng-click]]+
-* +pass:[[x-ng-click]]+
-* +pass:[[tabindex]]+
+* +pass:[[contenteditable\]:not([contenteditable=&quot;false&quot;\])]+
+* +pass:[[onclick\]]+
+* +pass:[[onmousedown\]]+
+* +pass:[[role=&quot;link&quot;\]]+
+* +pass:[[role=&quot;option&quot;\]]+
+* +pass:[[role=&quot;button&quot;\]]+
+* +pass:[[ng-click\]]+
+* +pass:[[ngClick\]]+
+* +pass:[[data-ng-click\]]+
+* +pass:[[x-ng-click\]]+
+* +pass:[[tabindex\]]+
 - +pass:[images]+:
 
 * +pass:[img]+
 - +pass:[inputs]+:
 
-* +pass:[input[type=&quot;text&quot;]]+
-* +pass:[input[type=&quot;date&quot;]]+
-* +pass:[input[type=&quot;datetime-local&quot;]]+
-* +pass:[input[type=&quot;email&quot;]]+
-* +pass:[input[type=&quot;month&quot;]]+
-* +pass:[input[type=&quot;number&quot;]]+
-* +pass:[input[type=&quot;password&quot;]]+
-* +pass:[input[type=&quot;search&quot;]]+
-* +pass:[input[type=&quot;tel&quot;]]+
-* +pass:[input[type=&quot;time&quot;]]+
-* +pass:[input[type=&quot;url&quot;]]+
-* +pass:[input[type=&quot;week&quot;]]+
-* +pass:[input:not([type])]+
-* +pass:[[contenteditable]:not([contenteditable=&quot;false&quot;])]+
+* +pass:[input[type=&quot;text&quot;\]]+
+* +pass:[input[type=&quot;date&quot;\]]+
+* +pass:[input[type=&quot;datetime-local&quot;\]]+
+* +pass:[input[type=&quot;email&quot;\]]+
+* +pass:[input[type=&quot;month&quot;\]]+
+* +pass:[input[type=&quot;number&quot;\]]+
+* +pass:[input[type=&quot;password&quot;\]]+
+* +pass:[input[type=&quot;search&quot;\]]+
+* +pass:[input[type=&quot;tel&quot;\]]+
+* +pass:[input[type=&quot;time&quot;\]]+
+* +pass:[input[type=&quot;url&quot;\]]+
+* +pass:[input[type=&quot;week&quot;\]]+
+* +pass:[input:not([type\])]+
+* +pass:[[contenteditable\]:not([contenteditable=&quot;false&quot;\])]+
 * +pass:[textarea]+
 - +pass:[links]+:
 
-* +pass:[a[href]]+
-* +pass:[area[href]]+
-* +pass:[link[href]]+
-* +pass:[[role=&quot;link&quot;][href]]+
+* +pass:[a[href\]]+
+* +pass:[area[href\]]+
+* +pass:[link[href\]]+
+* +pass:[[role=&quot;link&quot;\][href\]]+
 - +pass:[media]+:
 
 * +pass:[audio]+
@@ -3285,8 +3285,8 @@ Default:
 * +pass:[video]+
 - +pass:[url]+:
 
-* +pass:[[src]]+
-* +pass:[[href]]+
+* +pass:[[src\]]+
+* +pass:[[href\]]+
 
 [[hints.uppercase]]
 === hints.uppercase
