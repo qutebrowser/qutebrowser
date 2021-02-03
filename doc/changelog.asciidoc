@@ -41,7 +41,7 @@ Fixed
   `hints.leave_on_load` to `true`, and reversing the change to
   `input.insert_mode.leave_on_load` so it is set to `false` by default again.
 - When the `importlib_resources` package is required but was missing, users
-  would get a Python stacktrace rather than a proper error messages. This is now
+  would get a Python stacktrace rather than a proper error message. This is now
   fixed.
 - Site-specific quirk JavaScript files were loaded lazily rather than preloaded
   at the start of qutebrowser, causing a crash when e.g. switching between
@@ -53,16 +53,20 @@ Fixed
   detect this condition on the next start, thus resulting in a completion with
   inconsistent data. This is now fixed, with another rebuild being forced with
   this update, to ensure the data is consistent for all users.
+- In certain scenarios, qutebrowser v2.0.x warned about
+  `config.load_autoconfig(...)` being missing when loading a secondary config
+  (e.g. via `config.source(...)`). It now only shows those warnings for the main
+  `config.py` file.
+- The `--enable-webengine-inspector` flag is now accepted again, however it's
+  unused and undocumented. It purely exists to make it possible to use `:restart`
+  between pre-v2.0.x and v2.0.2+ versions.
 - When `hints.dictionary` pointed to a file not encoded as UTF-8, this resulted
   in a crash (also in versions before v2.0.0). It now properly displays an error
   instead.
 - When running qutebrowser with a single empty commandline argument, such as
   done by `open_url_in_instance.sh`, this would result in a partially initialized
-  window, causing a crash when interacted with (also in versions before v2.0.0).
-  Instead, the startpage is now shown properly.
-- The `--enable-webengine-inspector` flag is now accepted again, however it's
-  unused and undocumented. It purely exists to make it possible to use `:restart`
-  between pre-v2.0.x and v2.0.2 versions.
+  window. Interacting with that window results in a crash (also in versions before
+  v2.0.0). Instead, the startpage is now shown properly.
 
 [[v2.0.1]]
 v2.0.1 (2021-01-28)
