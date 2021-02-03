@@ -227,11 +227,6 @@ def test_delete(qtbot):
     assert not list(table)
 
 
-def test_delete_optional(qtbot):
-    table = sql.SqlTable('Foo', ['name', 'val'])
-    table.delete('name', 'doesnotexist', optional=True)
-
-
 def test_len():
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
     assert len(table) == 0

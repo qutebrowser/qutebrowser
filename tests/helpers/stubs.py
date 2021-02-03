@@ -623,10 +623,11 @@ class FakeHistoryProgress:
 
     """Fake for a WebHistoryProgress object."""
 
-    def __init__(self):
+    def __init__(self, *, raise_on_tick=False):
         self._started = False
         self._finished = False
         self._value = 0
+        self._raise_on_tick = raise_on_tick
 
     def start(self, _text):
         self._started = True
@@ -635,6 +636,8 @@ class FakeHistoryProgress:
         pass
 
     def tick(self):
+        if self._raise_on_tick:
+            raise Exception('tick-tock')
         self._value += 1
 
     def finish(self):
