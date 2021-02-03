@@ -60,6 +60,9 @@ Fixed
   done by `open_url_in_instance.sh`, this would result in a partially initialized
   window, causing a crash when interacted with (also in versions before v2.0.0).
   Instead, the startpage is now shown properly.
+- The `--enable-webengine-inspector` flag is now accepted again, however it's
+  unused and undocumented. It purely exists to make it possible to use `:restart`
+  between pre-v2.0.x and v2.0.2 versions.
 
 [[v2.0.1]]
 v2.0.1 (2021-01-28)
