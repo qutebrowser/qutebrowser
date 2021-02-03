@@ -183,17 +183,23 @@ def debug_flag_error(flag):
                                          .format(', '.join(valid_flags)))
 
 
+def _unpack_json_args(args):
+    """Restore arguments from --json-args after a restart.
+
+    When restarting, we serialize the argparse namespace into json, and
+    construct a "fake" argparse.Namespace here based on the data loaded
+    from json.
+    """
+    data = json.loads(args.json_args)
+    return argparse.Namespace(**data)
+
+
 def main():
     parser = get_argparser()
     argv = sys.argv[1:]
     args = parser.parse_args(argv)
     if args.json_args is not None:
-        # Restoring after a restart.
-        # When restarting, we serialize the argparse namespace into json, and
-        # construct a "fake" argparse.Namespace here based on the data loaded
-        # from json.
-        data = json.loads(args.json_args)
-        args = argparse.Namespace(**data)
+        args = _unpack_json_args(args)
     earlyinit.early_init(args)
     # We do this imports late as earlyinit needs to be run first (because of
     # version checking and other early initialization)
