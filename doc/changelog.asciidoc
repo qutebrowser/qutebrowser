@@ -35,6 +35,11 @@ Fixed
   `PyQt5.sip` was dropped, since upstream claims it should be used as `PyQt5.sip`
   ever since PyQt 5.11. However, some distributions still package sip as a global
   `sip` package. Thus, support for a global `sip` package is now reintroduced.
+- The changelog for v2.0.0 claimed that `hints.leave_on_load` was set to `true`
+  by default. However, the `input.insert_mode.leave_on_load` setting was instead
+  set to `true` accidentally. This is now fixed by actually setting
+  `hints.leave_on_load` to `true`, and reversing the change to
+  `input.insert_mode.leave_on_load` so it is set to `false` by default again.
 - When the `importlib_resources` package is required but was missing, users
   would get a Python stacktrace rather than a proper error messages. This is now
   fixed.
@@ -48,6 +53,9 @@ Fixed
   detect this condition on the next start, thus resulting in a completion with
   inconsistent data. This is now fixed, with another rebuild being forced with
   this update, to ensure the data is consistent for all users.
+- When `hints.dictionary` pointed to a file not encoded as UTF-8, this resulted
+  in a crash (also in versions before v2.0.0). It now properly displays an error
+  instead.
 
 [[v2.0.1]]
 v2.0.1 (2021-01-28)
