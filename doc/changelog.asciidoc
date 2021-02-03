@@ -15,17 +15,6 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-[[v2.1.0]]
-v2.1.0 (unreleased)
--------------------
-
-Changed
-~~~~~~~
-
-- When a context menu is open, qutebrowser now passes through keyboard input to
-  Qt. This allows to close those menus using the Escape key.
-
-
 [[v2.0.2]]
 v2.0.2 (unreleased)
 -------------------
