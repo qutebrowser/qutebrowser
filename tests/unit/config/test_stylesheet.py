@@ -45,8 +45,9 @@ def test_get_stylesheet(config_stub):
 @pytest.mark.parametrize('delete', [True, False])
 @pytest.mark.parametrize('stylesheet_param', [True, False])
 @pytest.mark.parametrize('update', [True, False])
-def test_set_register_stylesheet(delete, stylesheet_param, update, qtbot,
-                                 config_stub, caplog):
+@pytest.mark.parametrize('changed_option', ['colors.hints.fg', 'colors.hints.bg'])
+def test_set_register_stylesheet(delete, stylesheet_param, update, changed_option,
+                                 qtbot, config_stub, caplog):
     config_stub.val.colors.hints.fg = 'magenta'
     qss = "{{ conf.colors.hints.fg }}"
 
@@ -66,7 +67,8 @@ def test_set_register_stylesheet(delete, stylesheet_param, update, qtbot,
         with qtbot.waitSignal(obj.destroyed):
             obj.deleteLater()
 
-    config_stub.val.colors.hints.fg = 'yellow'
+    config_stub.set_obj(changed_option, 'yellow')
 
-    expected = 'magenta' if delete or not update else 'yellow'
+    expected = ('magenta' if delete or not update or changed_option != 'colors.hints.fg'
+                else 'yellow')
     assert obj.rendered_stylesheet == expected
