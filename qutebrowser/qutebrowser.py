@@ -85,6 +85,13 @@ def get_argparser():
 
     parser.add_argument('--json-args', help=argparse.SUPPRESS)
     parser.add_argument('--temp-basedir-restarted', help=argparse.SUPPRESS)
+
+    # WORKAROUND to be able to restart from older qutebrowser versions into this one.
+    # Should be removed at some point.
+    parser.add_argument('--enable-webengine-inspector',
+                        help=argparse.SUPPRESS,
+                        action='store_true')
+
     parser.add_argument('--desktop-file-name',
                         default="org.qutebrowser.qutebrowser",
                         help="Set the base name of the desktop entry for this "
