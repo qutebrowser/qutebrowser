@@ -56,6 +56,10 @@ Fixed
 - When `hints.dictionary` pointed to a file not encoded as UTF-8, this resulted
   in a crash (also in versions before v2.0.0). It now properly displays an error
   instead.
+- When running qutebrowser with a single empty commandline argument, such as
+  done by `open_url_in_instance.sh`, this would result in a partially initialized
+  window, causing a crash when interacted with (also in versions before v2.0.0).
+  Instead, the startpage is now shown properly.
 
 [[v2.0.1]]
 v2.0.1 (2021-01-28)
