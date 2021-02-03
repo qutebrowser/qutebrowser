@@ -769,7 +769,8 @@ class AbstractDownloadItem(QObject):
                    "re-download?".format(html.escape(self._filename)))
             self._ask_confirm_question(
                 "Cancel other download?", txt,
-                custom_yes_action=self._cancel_conflicting_download)
+                custom_yes_action=self._cancel_conflicting_download,
+                custom_no_action=self._find_next_filename)
         elif force_overwrite:
             self._after_set_filename()
         elif os.path.isfile(self._filename):
