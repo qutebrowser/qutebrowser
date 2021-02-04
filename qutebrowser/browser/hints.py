@@ -1032,6 +1032,7 @@ class HintManager(QObject):
         Args:
             reverse: Cycle in reverse direction.
         """
+        assert self._context is not None
         overlap.cycle(self._context.all_labels, reverse)
 
     @pyqtSlot(usertypes.KeyMode)

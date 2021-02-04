@@ -76,7 +76,7 @@ class OverlapLookup:
         cands = set()
         for corner in _corners(widget.geometry()):
             cands.update(self._lookup[self._cell_index(corner)])
-        cands.difference_update([widget])
+        cands.remove(widget)
         return [
             cand for cand in cands
             if cand.geometry().intersects(widget.geometry())
@@ -101,7 +101,7 @@ def cycle(widgets: Sequence[QWidget], reverse: bool = False) -> None:
     children = widgets[0].parent().children()
     widgets_in_order = [child for child in children if child in widget_set]
     if reverse:
-        widgets_in_order = list(reversed(widgets_in_order))
+        widgets_in_order.reverse()
 
     to_move: Set[QWidget] = set()
     excluded: Set[QWidget] = set()
