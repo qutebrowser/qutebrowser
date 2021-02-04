@@ -53,7 +53,7 @@ class OverlapLookup:
         self._max_width = max(widget.width() for widget in widgets)
         self._max_height = max(widget.height() for widget in widgets)
         for widget in widgets:
-            self.register(widget)
+            self._register(widget)
 
     def _cell_index(self, p: QPoint) -> Tuple[int, int]:
         return (
@@ -61,15 +61,10 @@ class OverlapLookup:
             math.floor(p.y() / self._max_height),
         )
 
-    def register(self, widget: QWidget) -> None:
+    def _register(self, widget: QWidget) -> None:
         """Add a widget."""
         for corner in _corners(widget.geometry()):
             self._lookup[self._cell_index(corner)].add(widget)
-
-    def deregister(self, widget: QWidget) -> None:
-        """Remove a widget."""
-        for corner in _corners(widget.geometry()):
-            self._lookup[self._cell_index(corner)].difference_update([widget])
 
     def overlappings(self, widget: QWidget) -> Iterable[QWidget]:
         """Get widgets that overlap with `widget`."""
