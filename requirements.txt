@@ -5,7 +5,7 @@ attrs==20.3.0
 colorama==0.4.4
 dataclasses==0.6 ; python_version<"3.7"
 importlib-resources==5.1.0 ; python_version<"3.9"
-Jinja2==2.11.2
+Jinja2==2.11.3
 MarkupSafe==1.1.1
 Pygments==2.7.4
 PyYAML==5.4.1

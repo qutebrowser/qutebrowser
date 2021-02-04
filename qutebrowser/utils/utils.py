@@ -192,6 +192,21 @@ def _resource_path(filename: str) -> pathlib.Path:
     return importlib_resources.files(qutebrowser) / filename
 
 
+@contextlib.contextmanager
+def _resource_keyerror_workaround() -> Iterator[None]:
+    """Re-raise KeyErrors as FileNotFoundErrors.
+
+    WORKAROUND for zipfile.Path resources raising KeyError when a file was notfound:
+    https://bugs.python.org/issue43063
+
+    Only needed for Python 3.8 and 3.9.
+    """
+    try:
+        yield
+    except KeyError as e:
+        raise FileNotFoundError(str(e))
+
+
 def _glob_resources(
     resource_path: pathlib.Path,
     subdir: str,
@@ -222,7 +237,11 @@ def _glob_resources(
 def preload_resources() -> None:
     """Load resource files into the cache."""
     resource_path = _resource_path('')
-    for subdir, ext in [('html', '.html'), ('javascript', '.js')]:
+    for subdir, ext in [
+            ('html', '.html'),
+            ('javascript', '.js'),
+            ('javascript/quirks', '.js'),
+    ]:
         for name in _glob_resources(resource_path, subdir, ext):
             _resource_cache[name] = read_file(name)
 
@@ -240,7 +259,8 @@ def read_file(filename: str) -> str:
         return _resource_cache[filename]
 
     path = _resource_path(filename)
-    return path.read_text(encoding='utf-8')
+    with _resource_keyerror_workaround():
+        return path.read_text(encoding='utf-8')
 
 
 def read_file_binary(filename: str) -> bytes:
@@ -253,7 +273,8 @@ def read_file_binary(filename: str) -> bytes:
         The file contents as a bytes object.
     """
     path = _resource_path(filename)
-    return path.read_bytes()
+    with _resource_keyerror_workaround():
+        return path.read_bytes()
 
 
 def parse_version(version: str) -> VersionNumber:

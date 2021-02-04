@@ -75,6 +75,7 @@ class Request(testprocess.Line):
             '/absolute-redirect': [HTTPStatus.FOUND],
 
             '/cookies/set': [HTTPStatus.FOUND],
+            '/cookies/set-custom': [HTTPStatus.FOUND],
 
             '/500-inline': [HTTPStatus.INTERNAL_SERVER_ERROR],
             '/500': [HTTPStatus.INTERNAL_SERVER_ERROR],
