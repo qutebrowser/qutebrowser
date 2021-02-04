@@ -15,6 +15,59 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+[[v2.0.2]]
+v2.0.2 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- When right-clicking an empty part of the downloads bar, qutebrowser v2.0.x
+  would crash. This is now fixed.
+- Setting `content.cookies.store` to `false` only worked properly when this was
+  done after qutebrowser was already started due to a regression in v2.0.0. It now
+  works as expected again.
+- If qutebrowser was installed as a Python egg with Python 3.8 or 3.9,
+  requesting unavailable resource files (such as PDF.js not being bundled, or a
+  missing changelog file) caused in a crash due to an inconsistent behavior in
+  those versions of Python. This is now handled properly by qutebrowser.
+- In v2.0.0, support for importing the `sip` dependency as `sip` rather than
+  `PyQt5.sip` was dropped, since upstream claims it should be used as `PyQt5.sip`
+  ever since PyQt 5.11. However, some distributions still package sip as a global
+  `sip` package. Thus, support for a global `sip` package is now reintroduced.
+- The changelog for v2.0.0 claimed that `hints.leave_on_load` was set to `true`
+  by default. However, the `input.insert_mode.leave_on_load` setting was instead
+  set to `true` accidentally. This is now fixed by actually setting
+  `hints.leave_on_load` to `true`, and reversing the change to
+  `input.insert_mode.leave_on_load` so it is set to `false` by default again.
+- When the `importlib_resources` package is required but was missing, users
+  would get a Python stacktrace rather than a proper error message. This is now
+  fixed.
+- Site-specific quirk JavaScript files were loaded lazily rather than preloaded
+  at the start of qutebrowser, causing a crash when e.g. switching between
+  versions while qutebrowser is open. Now they are preloaded at the start of
+  qutebrowser again.
+- The link to the keybinding cheatsheet on the internal `:help` page wasn't
+  displayed correctly. This is now fixed.
+- When the completion rebuilding process was interrupted, qutebrowser did not
+  detect this condition on the next start, thus resulting in a completion with
+  inconsistent data. This is now fixed, with another rebuild being forced with
+  this update, to ensure the data is consistent for all users.
+- In certain scenarios, qutebrowser v2.0.x warned about
+  `config.load_autoconfig(...)` being missing when loading a secondary config
+  (e.g. via `config.source(...)`). It now only shows those warnings for the main
+  `config.py` file.
+- The `--enable-webengine-inspector` flag is now accepted again, however it's
+  unused and undocumented. It purely exists to make it possible to use `:restart`
+  between pre-v2.0.x and v2.0.2+ versions.
+- When `hints.dictionary` pointed to a file not encoded as UTF-8, this resulted
+  in a crash (also in versions before v2.0.0). It now properly displays an error
+  instead.
+- When running qutebrowser with a single empty commandline argument, such as
+  done by `open_url_in_instance.sh`, this would result in a partially initialized
+  window. Interacting with that window results in a crash (also in versions before
+  v2.0.0). Instead, the startpage is now shown properly.
+
 [[v2.0.1]]
 v2.0.1 (2021-01-28)
 -------------------
