@@ -1316,13 +1316,8 @@ Feature: Tab management
               - history:
                 - url: http://localhost:*/data/numbers/1.txt
 
-    Scenario: Take a tab from the same window
-        Given I have a fresh instance
-        When I open data/numbers/1.txt
-        And I run :tab-take 0/1
-        Then the error "Can't take tabs from the same window" should be shown
-
     Scenario: Take a tab while using tabs_are_windows
+        Given I have a fresh instance
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new window
         And I set tabs.tabs_are_windows to true

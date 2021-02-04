@@ -432,27 +432,19 @@ class CommandDispatcher:
         """Take a tab from another window.
 
         Args:
-            index: The [win_id/]index of the tab to take. The window or tab ID
-                   may contain comma separated values and ranges including
-                   the special values "*", "first", and "last". Alternatively
-                   a substring in which case the closest match will be taken.
+            index: The [win_id/]index of the tab(s) to take. The window or
+                tab ID may contain comma separated values and ranges including
+                the special values "*", "first", and "last". Alternatively
+                a substring in which case the closest match will be taken.
             keep: If given, keep the old tab around.
         """
         if config.val.tabs.tabs_are_windows:
             raise cmdutils.CommandError("Can't take tabs when using "
                                         "windows as tabs")
 
-        resolution = self._resolve_tab_index(index)
-        tabbed_browsers = {tabbed_browser for tabbed_browser, _ in resolution}
-        if (
-            len(tabbed_browsers) == 1 and list(tabbed_browsers)[0] is
-            self._tabbed_browser
-        ):
-            raise cmdutils.CommandError("Can't take tabs from the same window")
-
+        # taking tabs to this window is a no-op, so exclude
+        resolution = self._resolve_tab_index(index, True, True)
         for tabbed_browser, tab in resolution:
-            if tabbed_browser is self._tabbed_browser:
-                continue
             self._open(tab.url(), tab=True)
             if not keep:
                 tabbed_browser.close_tab(tab, add_undo=False)
@@ -875,14 +867,14 @@ class CommandDispatcher:
         else:
             log.webview.debug("Last tab")
 
-    def _resolve_tab_index(self, index: str) -> List[Tuple[QWidget, QWidget]]:
-        """Resolve a tab index specification to list of tabbedbrowsers and tabs.
+    def _get_index_parts(self, index: str) -> Tuple[str, str]:
+        """Get window part and tab part of tab index/pattern.
 
         Args:
-            index: The [win_id/]index of the tab to take. The window or tab ID
-                   may contain comma separated values and ranges including
-                   the special values "*", "first", and "last". Alternatively
-                   a substring in which case the closest match will be taken.
+            index: The [win_id/]index of the tab(s). The window or tab ID
+                may contain comma separated values and ranges including
+                the special values "*", "first", and "last". Alternatively
+                a substring in which case the closest match will be taken.
         """
         index_parts = index.split('/')
 
@@ -891,8 +883,8 @@ class CommandDispatcher:
             is_pattern = True
         else:
             try:
-                utils.parse_int_set(index_parts[0], [])
-                utils.parse_int_set(index_parts[-1], [])
+                utils.parse_int_set(index_parts[0], [1])
+                utils.parse_int_set(index_parts[-1], [1])
             except ValueError:
                 is_pattern = True
 
@@ -913,20 +905,44 @@ class CommandDispatcher:
                     "No window specified and couldn't find active window!")
             index_parts = [str(active_win.win_id)] + index_parts
 
+        return (index_parts[0], index_parts[1])
+
+    def _resolve_tab_index(self, index: str, skip_on_error: bool = False,
+            exclude_self: bool = False) -> (List[Tuple[QWidget, QWidget]]):
+        """Resolve a tab index specification to list of tabbedbrowsers and tabs.
+
+        Args:
+            index: The [win_id/]index of the tab(s). The window or tab ID
+                may contain comma separated values and ranges including
+                the special values "*", "first", and "last". Alternatively
+                a substring in which case the closest match will be taken.
+            skip_on_error: Whether to show a message instead of an error
+                when a tab or window is not found.
+        """
+        index_parts = self._get_index_parts(index)
         ret = []
         win_ids = utils.parse_int_set(index_parts[0], objreg.window_registry)
+        if exclude_self and self._win_id in win_ids:
+            win_ids.remove(self._win_id)
         for win_id in win_ids:
             if win_id not in objreg.window_registry:
+                if skip_on_error:
+                    message.info(f'Skipping nonexistent window {win_id}')
+                    continue
                 raise cmdutils.CommandError(
-                    "There's no window with id {}!".format(win_id))
+                    f"There's no window with id {win_id}!")
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
             tab_nums = utils.parse_int_set(
                 index_parts[1],
-                list(range(1, tabbed_browser.widget.count() + 1)),
+                range(1, tabbed_browser.widget.count() + 1),
             )
             for tab_num in tab_nums:
                 if not 0 < tab_num <= tabbed_browser.widget.count():
+                    if skip_on_error:
+                        message.info(
+                            f'Skipping nonexistent tab {win_id}/{tab_num}')
+                        continue
                     raise cmdutils.CommandError(
                         "There's no tab with index {} in window {}!".format(
                             tab_num, win_id))
