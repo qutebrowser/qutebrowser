@@ -93,12 +93,12 @@ def cycle(widgets: Sequence[QWidget], reverse: bool = False) -> None:
     if not widgets:
         return
 
-    children = widgets[0].parent().children()
     widget_set = {widget for widget in widgets if widget.isVisible()}
     if not widget_set:
         return
     overlap_lookup = OverlapLookup(widget_set)
     # widget1 is above widget2 iff widget1 comes later in parent().children()
+    children = widgets[0].parent().children()
     widgets_in_order = [child for child in children if child in widget_set]
     if reverse:
         widgets_in_order = list(reversed(widgets_in_order))
