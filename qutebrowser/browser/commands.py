@@ -433,9 +433,9 @@ class CommandDispatcher:
 
         Args:
             index: The [win_id/]index of the tab to take. The window or tab ID
-                   may be the wildcard * and may contain comma separated
-                   values and ranges. Alternatively a substring in which
-                   case the closest match will be taken.
+                   may contain comma separated values and ranges including
+                   the special values "*", "first", and "last". Alternatively
+                   a substring in which case the closest match will be taken.
             keep: If given, keep the old tab around.
         """
         if config.val.tabs.tabs_are_windows:
@@ -880,9 +880,9 @@ class CommandDispatcher:
 
         Args:
             index: The [win_id/]index of the tab to take. The window or tab ID
-                   may be the wildcard * and may contain comma separated
-                   values and ranges. Alternatively a substring in which
-                   case the closest match will be taken.
+                   may contain comma separated values and ranges including
+                   the special values "*", "first", and "last". Alternatively
+                   a substring in which case the closest match will be taken.
         """
         index_parts = index.split('/')
 
