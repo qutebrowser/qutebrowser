@@ -46,7 +46,7 @@ class OverlapLookup:
     alternatives: R-tree, quadtree
     """
 
-    def __init__(self, widgets: Iterable[QWidget]):
+    def __init__(self, widgets: Iterable[QWidget]) -> None:
         self._lookup: Dict[
             Tuple[int, int], Set[QWidget]
         ] = collections.defaultdict(set)
