@@ -427,7 +427,7 @@ See the next section for an alternative install method which might help with
 those issues but result in an older Qt version.
 
 You can specify a Qt/PyQt version with the `--pyqt-version` flag, see
-`mkenv.py --help` for a list of available versions. By default, the latest
+`mkvenv.py --help` for a list of available versions. By default, the latest
 version which plays well with qutebrowser is used.
 
 NOTE: If the Qt smoke test fails with a _"This application failed to start
@@ -482,8 +482,10 @@ $ python3 scripts/asciidoc2html.py
 Updating
 ~~~~~~~~
 
-When you updated your local copy of the code (e.g. by pulling the git repo, or
-extracting a new version), the virtualenv should automatically use the updated
-code. However, dependencies won't be updated that way. Thus, it's recommended
-to run `mkvenv.py --update` instead, which will run `git pull` and recreate the
-virtualenv with updated dependencies.
+If you cloned the git repository, run `mkvenv.py --update` which will take care
+of updating the code (via `git pull`) and recreating the environment with the
+newest dependencies.
+
+Alternatively, you can update your local copy of the code (e.g. by pulling the
+git repo, or extracting a new version) and the virtualenv should automatically
+use the updated versions. However, dependencies won't be updated that way.
