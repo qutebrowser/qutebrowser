@@ -502,14 +502,14 @@ class AbstractDownloadItem(QObject):
         suffix = ''.join(path.suffixes)
         base = path.name[:-len(suffix)]
 
-        i = 1
-        while True:
-            i += 1
-            path_to_try = path.parent / '{}_{}{}'.format(base, i, suffix)
+        for i in range(2, 1000):
+            path_to_try = path.parent / f'{base}_{i}{suffix}'
             self._filename = str(path_to_try)
             if not (path_to_try.exists() or self._get_conflicting_download()):
+                self._set_filename(self._filename)
                 break
-        self._set_filename(str(path_to_try))
+        else:
+            self._die('Alternative filename not available.')
 
     def _do_die(self):
         """Do cleanup steps after a download has died."""
