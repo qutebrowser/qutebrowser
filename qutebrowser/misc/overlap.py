@@ -76,7 +76,7 @@ class OverlapLookup:
         cands = set()
         for corner in _corners(widget.geometry()):
             cands.update(self._lookup[self._cell_index(corner)])
-        cands.difference_update([widget])
+        cands.remove(widget)
         return [
             cand for cand in cands
             if cand.geometry().intersects(widget.geometry())
