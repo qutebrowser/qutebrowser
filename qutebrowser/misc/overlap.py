@@ -101,7 +101,7 @@ def cycle(widgets: Sequence[QWidget], reverse: bool = False) -> None:
     # widget1 is above widget2 iff widget1 comes later in parent().children()
     widgets_in_order = [child for child in children if child in widget_set]
     if reverse:
-        widgets_in_order = list(reversed(widgets_in_order))
+        widgets_in_order.reverse()
 
     to_move: Set[QWidget] = set()
     excluded: Set[QWidget] = set()
