@@ -1262,7 +1262,7 @@ fileselect.single_file.command:
     placeholder: true
     completions:
       - ['["xterm", "-e", "ranger", "--choosefile={}"]', "Ranger in xterm"]
-      - ['["xterm", "-e", "vifm", "--choose-file", "{}"]', "vifm in xterm"]
+      - ['["xterm", "-e", "vifm", "--choose-files", "{}"]', "vifm in xterm"]
       - ['["xterm", "-e", "nnn", "-p", "{}"]', "nnn in xterm"]
   default: ['xterm', '-e', 'ranger', '--choosefile={}']
   desc: >-
