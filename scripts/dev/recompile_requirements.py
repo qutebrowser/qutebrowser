@@ -74,7 +74,7 @@ CHANGELOG_URLS = {
     'snowballstemmer': 'https://github.com/snowballstem/snowball/blob/master/NEWS',
     'virtualenv': 'https://virtualenv.pypa.io/en/latest/changelog.html',
     'packaging': 'https://packaging.pypa.io/en/latest/changelog.html',
-    'build': 'https://github.com/pypa/build/commits/master',
+    'build': 'https://github.com/pypa/build/blob/master/CHANGELOG.rst',
     'attrs': 'https://www.attrs.org/en/stable/changelog.html',
     'Jinja2': 'https://github.com/pallets/jinja/blob/master/CHANGES.rst',
     'MarkupSafe': 'https://markupsafe.palletsprojects.com/en/1.1.x/changes/',
@@ -177,6 +177,8 @@ CHANGELOG_URLS = {
     'pip': 'https://pip.pypa.io/en/stable/news/',
     'wheel': 'https://wheel.readthedocs.io/en/stable/news.html',
     'setuptools': 'https://setuptools.readthedocs.io/en/latest/history.html',
+    'semantic-version': 'https://github.com/rbarrois/python-semanticversion/blob/master/ChangeLog',
+    'setuptools-rust': 'https://github.com/PyO3/setuptools-rust/blob/master/CHANGELOG.md',
 }
 
 
