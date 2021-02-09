@@ -37,7 +37,7 @@ import pathlib
 import ctypes
 import ctypes.util
 from typing import (Any, Callable, IO, Iterator, Optional, Sequence, Tuple, Type, Union,
-                    Iterable, TYPE_CHECKING, cast)
+                    Iterable, TypeVar, TYPE_CHECKING, cast)
 try:
     # Protocol was added in Python 3.8
     from typing import Protocol
@@ -78,17 +78,22 @@ is_linux = sys.platform.startswith('linux')
 is_windows = sys.platform.startswith('win')
 is_posix = os.name == 'posix'
 
+_C = TypeVar("_C", bound="Comparable")
 
-class SupportsLessThan(Protocol):
+
+class Comparable(Protocol):
 
     """Protocol for a "comparable" object."""
 
-    def __lt__(self, other: Any) -> bool:
+    def __lt__(self: _C, other: _C) -> bool:
+        ...
+
+    def __ge__(self: _C, other: _C) -> bool:
         ...
 
 
 if TYPE_CHECKING:
-    class VersionNumber(SupportsLessThan, QVersionNumber):
+    class VersionNumber(Comparable, QVersionNumber):
 
         """WORKAROUND for incorrect PyQt stubs."""
 else:
