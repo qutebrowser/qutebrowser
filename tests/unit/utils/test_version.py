@@ -913,11 +913,12 @@ class TestChromiumVersion:
         version.webenginesettings._init_user_agent_str(
             _QTWE_USER_AGENT.format(ver))
 
-        assert version._chromium_version() == ver
+        assert version.qtwebengine_versions().chromium == ver
 
     def test_no_webengine(self, monkeypatch):
         monkeypatch.setattr(version, 'webenginesettings', None)
-        assert version._chromium_version() == 'unavailable'
+        expected = version.WebEngineVersions.unknown('not installed')
+        assert version.qtwebengine_versions() == expected
 
     def test_prefers_saved_user_agent(self, monkeypatch):
         pytest.importorskip('PyQt5.QtWebEngineWidgets')
@@ -930,17 +931,16 @@ class TestChromiumVersion:
         monkeypatch.setattr(version.webenginesettings, 'QWebEngineProfile',
                             FakeProfile())
 
-        version._chromium_version()
+        version.qtwebengine_versions()
 
     def test_unpatched(self, qapp, cache_tmpdir, data_tmpdir, config_stub):
         pytest.importorskip('PyQt5.QtWebEngineWidgets')
-        unexpected = ['', 'unknown', 'unavailable', 'avoided']
-        assert version._chromium_version() not in unexpected
+        assert version.qtwebengine_versions().chromium is not None
 
     def test_avoided(self, monkeypatch):
         pytest.importorskip('PyQt5.QtWebEngineWidgets')
-        monkeypatch.setattr(objects, 'debug_flags', ['avoid-chromium-init'])
-        assert version._chromium_version() == 'avoided'
+        versions = version.qtwebengine_versions(avoid_init=True)
+        assert versions.source in ['ELF', 'old PyQt']
 
 
 @dataclasses.dataclass
@@ -1014,11 +1014,8 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
         'autoconfig_loaded': "yes" if params.autoconfig_loaded else "no",
     }
 
-    ua = _QTWE_USER_AGENT.format('CHROMIUMVERSION')
-    if version.webenginesettings is None:
-        patches['_chromium_version'] = lambda: 'CHROMIUMVERSION'
-    else:
-        version.webenginesettings._init_user_agent_str(ua)
+    patches['qtwebengine_versions'] = (
+        lambda avoid_init: version.WebEngineVersions.unknown('faked'))
 
     if params.config_py_loaded:
         substitutions["config_py_loaded"] = "{} has been loaded".format(
@@ -1034,7 +1031,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
     else:
         monkeypatch.delattr(version, 'qtutils.qWebKitVersion', raising=False)
         patches['objects.backend'] = usertypes.Backend.QtWebEngine
-        substitutions['backend'] = 'QtWebEngine (Chromium CHROMIUMVERSION)'
+        substitutions['backend'] = 'QtWebEngine unknown (faked)'
 
     if params.known_distribution:
         patches['distribution'] = lambda: version.DistributionInfo(
