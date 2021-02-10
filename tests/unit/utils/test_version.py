@@ -915,11 +915,6 @@ class TestChromiumVersion:
 
         assert version.qtwebengine_versions().chromium == ver
 
-    def test_no_webengine(self, monkeypatch):
-        monkeypatch.setattr(version, 'webenginesettings', None)
-        expected = version.WebEngineVersions.unknown('not installed')
-        assert version.qtwebengine_versions() == expected
-
     def test_prefers_saved_user_agent(self, monkeypatch):
         pytest.importorskip('PyQt5.QtWebEngineWidgets')
         version.webenginesettings._init_user_agent_str(_QTWE_USER_AGENT)
@@ -1015,7 +1010,12 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
     }
 
     patches['qtwebengine_versions'] = (
-        lambda avoid_init: version.WebEngineVersions.unknown('faked'))
+        lambda avoid_init: version.WebEngineVersions(
+            webengine=utils.VersionNumber(1, 2, 3),
+            chromium=None,
+            source='faked',
+        )
+    )
 
     if params.config_py_loaded:
         substitutions["config_py_loaded"] = "{} has been loaded".format(
@@ -1031,7 +1031,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
     else:
         monkeypatch.delattr(version, 'qtutils.qWebKitVersion', raising=False)
         patches['objects.backend'] = usertypes.Backend.QtWebEngine
-        substitutions['backend'] = 'QtWebEngine unknown (faked)'
+        substitutions['backend'] = 'QtWebEngine 1.2.3 (from faked)'
 
     if params.known_distribution:
         patches['distribution'] = lambda: version.DistributionInfo(

@@ -168,8 +168,6 @@ def test_customization(config_stub, monkeypatch, setting, value, exp_key, exp_va
 
 
 @pytest.mark.parametrize('webengine_version, expected', [
-    (None, darkmode.Variant.qt_511_to_513),
-
     ('5.13.0', darkmode.Variant.qt_511_to_513),
     ('5.14.0', darkmode.Variant.qt_514),
     ('5.15.0', darkmode.Variant.qt_515_0),
@@ -178,10 +176,7 @@ def test_customization(config_stub, monkeypatch, setting, value, exp_key, exp_va
     ('6.0.0', darkmode.Variant.qt_515_2),
 ])
 def test_variant(monkeypatch, webengine_version, expected):
-    if webengine_version is None:
-        versions = version.WebEngineVersions.unknown('simulated')
-    else:
-        versions = version.WebEngineVersions.from_pyqt(webengine_version)
+    versions = version.WebEngineVersions.from_pyqt(webengine_version)
     monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
     assert darkmode._variant() == expected
 
