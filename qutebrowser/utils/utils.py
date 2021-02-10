@@ -47,7 +47,7 @@ except ImportError:  # pragma: no cover
 
             """Empty stub at runtime."""
 
-from PyQt5.QtCore import QUrl, QVersionNumber
+from PyQt5.QtCore import QUrl, QVersionNumber, QRect
 from PyQt5.QtGui import QClipboard, QDesktopServices
 from PyQt5.QtWidgets import QApplication
 # We cannot use the stdlib version on 3.7-3.8 because we need the files() API.
@@ -906,3 +906,31 @@ def cleanup_file(filepath: str) -> Iterator[None]:
             os.remove(filepath)
         except OSError as e:
             log.misc.error(f"Failed to delete tempfile {filepath} ({e})!")
+
+
+_RECT_PATTERN = re.compile(r'(?P<w>\d+)x(?P<h>\d+)\+(?P<x>\d+)\+(?P<y>\d+)')
+
+
+def parse_rect(s: str) -> QRect:
+    """Parse a rectangle string like 20x20+5+3.
+
+    Negative offsets aren't supported, and neither is leaving off parts of the string.
+    """
+    match = _RECT_PATTERN.match(s)
+    if not match:
+        raise ValueError(f"String {s} does not match WxH+X+Y")
+
+    w = int(match.group('w'))
+    h = int(match.group('h'))
+    x = int(match.group('x'))
+    y = int(match.group('y'))
+
+    try:
+        rect = QRect(x, y, w, h)
+    except OverflowError as e:
+        raise ValueError(e)
+
+    if not rect.isValid():
+        raise ValueError("Invalid rectangle")
+
+    return rect
