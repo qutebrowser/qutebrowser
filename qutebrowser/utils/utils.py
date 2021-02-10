@@ -101,6 +101,10 @@ else:
 
         """We can't inherit from Protocol and QVersionNumber at runtime."""
 
+        def __repr__(self):
+            args = ", ".join(str(s) for s in self.segments())
+            return f'VersionNumber({args})'
+
 
 class Unreachable(Exception):
 
@@ -284,8 +288,8 @@ def read_file_binary(filename: str) -> bytes:
 
 def parse_version(version: str) -> VersionNumber:
     """Parse a version string."""
-    v_q, _suffix = QVersionNumber.fromString(version)
-    return cast(VersionNumber, v_q.normalized())
+    ver, _suffix = QVersionNumber.fromString(version)
+    return VersionNumber(ver.normalized())
 
 
 def format_seconds(total_seconds: int) -> str:
