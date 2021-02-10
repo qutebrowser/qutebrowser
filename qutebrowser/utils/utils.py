@@ -101,6 +101,14 @@ else:
 
         """We can't inherit from Protocol and QVersionNumber at runtime."""
 
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            normalized = self.normalized()
+            if normalized != self:
+                raise ValueError(
+                    f"Refusing to construct non-normalized version from {args} "
+                    f"(normalized: {tuple(normalized.segments())}).")
+
         def __repr__(self):
             args = ", ".join(str(s) for s in self.segments())
             return f'VersionNumber({args})'

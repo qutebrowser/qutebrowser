@@ -247,11 +247,11 @@ def _variant() -> Variant:
         return Variant.qt_515_2
     elif versions.webengine == utils.VersionNumber(5, 15, 1):
         return Variant.qt_515_1
-    elif versions.webengine == utils.VersionNumber(5, 15, 0):
+    elif versions.webengine == utils.VersionNumber(5, 15):
         return Variant.qt_515_0
-    elif versions.webengine >= utils.VersionNumber(5, 14, 0):
+    elif versions.webengine >= utils.VersionNumber(5, 14):
         return Variant.qt_514
-    elif versions.webengine >= utils.VersionNumber(5, 11, 0):
+    elif versions.webengine >= utils.VersionNumber(5, 11):
         return Variant.qt_511_to_513
     raise utils.Unreachable(versions.webengine)
 
