@@ -85,7 +85,7 @@ from typing import (Any, Iterable, Iterator, Mapping, MutableMapping, Optional, 
                     Tuple, Union)
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, qtutils, utils, log, version
+from qutebrowser.utils import usertypes, utils, log, version
 
 
 class Variant(enum.Enum):
@@ -264,8 +264,8 @@ def settings() -> Iterator[Tuple[str, str]]:
         if variant == Variant.qt_515_2:
             yield "preferredColorScheme", "1"
         elif variant == Variant.qt_515_3:
-            # With Chromium 85 (> Qt 5.15.2), the enumeration has changed in Blink and this
-            # will need to be set to '0' instead:
+            # With Chromium 85 (> Qt 5.15.2), the enumeration has changed in Blink and
+            # this will need to be set to '0' instead:
             # https://chromium-review.googlesource.com/c/chromium/src/+/2232922
             yield "preferredColorScheme", "0"
         # With older Qt versions, this is passed in qtargs.py as --force-dark-mode

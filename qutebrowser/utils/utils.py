@@ -37,7 +37,7 @@ import pathlib
 import ctypes
 import ctypes.util
 from typing import (Any, Callable, IO, Iterator, Optional, Sequence, Tuple, Type, Union,
-                    Iterable, TypeVar, TYPE_CHECKING, cast)
+                    Iterable, TypeVar, TYPE_CHECKING)
 try:
     # Protocol was added in Python 3.8
     from typing import Protocol

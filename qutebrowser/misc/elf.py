@@ -65,7 +65,7 @@ import re
 import dataclasses
 import mmap
 import pathlib
-from typing import IO, ClassVar, Dict, Optional, Union, cast
+from typing import IO, ClassVar, Dict, Optional, cast
 
 from PyQt5.QtCore import QLibraryInfo
 

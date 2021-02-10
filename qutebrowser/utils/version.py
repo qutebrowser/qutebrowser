@@ -524,14 +524,31 @@ class WebEngineVersions:
 
     @classmethod
     def from_ua(cls, ua: websettings.UserAgent) -> 'WebEngineVersions':
+        """Get the versions parsed from a user agent.
+
+        This is the most reliable and "default" way to get this information (at least
+        until QtWebEngine adds an API for it). However, it needs a fully initialized
+        QtWebEngine, and we sometimes need this information before that is available.
+        """
+        webengine_version = (None if ua.qt_version is None
+                             else utils.parse_version(ua.qt_version))
         return cls(
-            webengine=utils.parse_version(ua.qt_version),
+            webengine=webengine_version,
             chromium=ua.upstream_browser_version,
             source='UA',
         )
 
     @classmethod
     def from_elf(cls, versions: elf.Versions) -> 'WebEngineVersions':
+        """Get the versions based on an ELF file.
+
+        This only works on Linux, and even there, depends on various assumption on how
+        QtWebEngine is built (e.g. that the version string is in the .rodata section).
+
+        On Windows/macOS, we instead rely on from_pyqt, but especially on Linux, people
+        sometimes mix and match Qt/QtWebEngine versions, so this is a more reliable
+        (though hackish) way to get a more accurate result.
+        """
         return cls(
             webengine=utils.parse_version(versions.webengine),
             chromium=versions.chromium,
@@ -540,6 +557,7 @@ class WebEngineVersions:
 
     @classmethod
     def _infer_chromium_version(cls, pyqt_webengine_version: str) -> Optional[str]:
+        """Infer the Chromium version based on the PyQtWebEngine version."""
         chromium_version = cls._CHROMIUM_VERSIONS.get(pyqt_webengine_version)
         if chromium_version is not None:
             return chromium_version
@@ -549,6 +567,18 @@ class WebEngineVersions:
 
     @classmethod
     def from_pyqt(cls, pyqt_webengine_version: str) -> 'WebEngineVersions':
+        """Get the versions based on the PyQtWebEngine version.
+
+        This is the "last resort" if we don't want to fully initialize QtWebEngine (so
+        from_ua isn't possible) and we're not on Linux (or ELF parsing failed).
+
+        Here, we assume that the PyQtWebEngine version is the same as the QtWebEngine
+        version, and infer the Chromium version from that. This assumption isn't
+        generally true, but good enough for some scenarios, especially the prebuilt
+        Windows/macOS releases.
+
+        Note that this only works on PyQt 5.13 or newer.
+        """
         return cls(
             webengine=utils.parse_version(pyqt_webengine_version),
             chromium=cls._infer_chromium_version(pyqt_webengine_version),
@@ -557,6 +587,11 @@ class WebEngineVersions:
 
     @classmethod
     def unknown(cls, reason: str) -> 'WebEngineVersions':
+        """Construct an "unknown" versions object.
+
+        This gets used if QtWebEngine is not installed, or if none of the variants above
+        could give us an answer.
+        """
         return cls(
             webengine=None,
             chromium=None,
