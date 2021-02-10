@@ -183,7 +183,7 @@ def screenshot(
         raise cmdutils.CommandError(
             f"File {filename} already exists (use --force to overwrite)")
 
-    qrect = QRect() if rect is None else utils.parse_rect(rect)
+    qrect = None if rect is None else utils.parse_rect(rect)
 
     pic = tab.grab_pixmap(qrect)
     if pic is None:
