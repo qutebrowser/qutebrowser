@@ -585,6 +585,9 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
     ),
 ])
 def test_dark_mode(quteproc_new, request, algorithm, filename, colors):
+    if not request.config.webengine:
+        pytest.skip("QtWebEngine only")
+
     args = _base_args(request.config) + [
         '--temp-basedir',
         '-s', 'colors.webpage.darkmode.enabled', 'true',
