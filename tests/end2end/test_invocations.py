@@ -527,13 +527,64 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
     quteproc_new.wait_for_quit()
 
 
-@pytest.mark.parametrize('algorithm', [
-    'lightness-cielab',
-    'lightness-hsl',
-    'brightness-rgb',
+@pytest.mark.parametrize('filename, algorithm, colors', [
+    (
+        'blank',
+        'lightness-cielab',
+        {
+            '5.15': utils.Color(18, 18, 18),
+            '5.14': utils.Color(27, 27, 27),
+            'old': utils.Color(0, 0, 0),
+        }
+    ),
+    (
+        'blank',
+        'lightness-hsl',
+        {
+            '5.15': utils.Color(0, 0, 0),
+            '5.14': utils.Color(0, 0, 0),
+            'old': utils.Color(0, 0, 0),
+        }
+    ),
+    (
+        'blank',
+        'brightness-rgb',
+        {
+            '5.15': utils.Color(0, 0, 0),
+            '5.14': utils.Color(0, 0, 0),
+            'old': utils.Color(0, 0, 0),
+        }
+    ),
+
+    (
+        'yellow',
+        'lightness-cielab',
+        {
+            '5.15': utils.Color(35, 34, 0),
+            '5.14': utils.Color(35, 34, 0),
+            'old': utils.Color(204, 204, 0),
+        }
+    ),
+    (
+        'yellow',
+        'lightness-hsl',
+        {
+            '5.15': utils.Color(204, 204, 0),
+            '5.14': utils.Color(204, 204, 0),
+            'old': utils.Color(204, 204, 0),
+        }
+    ),
+    (
+        'yellow',
+        'brightness-rgb',
+        {
+            '5.15': utils.Color(0, 0, 204),
+            '5.14': utils.Color(0, 0, 204),
+            'old': utils.Color(0, 0, 204),
+        }
+    ),
 ])
-@pytest.mark.parametrize('filename', ['blank', 'yellow'])
-def test_dark_mode(quteproc_new, request, algorithm, filename):
+def test_dark_mode(quteproc_new, request, algorithm, filename, colors):
     args = _base_args(request.config) + [
         '--temp-basedir',
         '-s', 'colors.webpage.darkmode.enabled', 'true',
@@ -542,36 +593,11 @@ def test_dark_mode(quteproc_new, request, algorithm, filename):
     quteproc_new.start(args)
 
     if qtutils.version_check('5.15', compiled=False):
-        colors = {
-            ('blank', 'lightness-cielab'): utils.Color(18, 18, 18),
-            ('blank', 'lightness-hsl'): utils.Color(0, 0, 0),
-            ('blank', 'brightness-rgb'): utils.Color(0, 0, 0),
-
-            ('yellow', 'lightness-cielab'): utils.Color(35, 34, 0),
-            ('yellow', 'lightness-hsl'): utils.Color(204, 204, 0),
-            ('yellow', 'brightness-rgb'): utils.Color(0, 0, 204),
-        }
+        expected = colors['5.15']
     elif qtutils.version_check('5.14', compiled=False):
-        colors = {
-            ('blank', 'lightness-cielab'): utils.Color(27, 27, 27),
-            ('blank', 'lightness-hsl'): utils.Color(0, 0, 0),
-            ('blank', 'brightness-rgb'): utils.Color(0, 0, 0),
-
-            ('yellow', 'lightness-cielab'): utils.Color(35, 34, 0),
-            ('yellow', 'lightness-hsl'): utils.Color(204, 204, 0),
-            ('yellow', 'brightness-rgb'): utils.Color(0, 0, 204),
-        }
+        expected = colors['5.14']
     else:
-        colors = {
-            ('blank', 'lightness-cielab'): utils.Color(0, 0, 0),
-            ('blank', 'lightness-hsl'): utils.Color(0, 0, 0),
-            ('blank', 'brightness-rgb'): utils.Color(0, 0, 0),
-
-            ('yellow', 'lightness-cielab'): utils.Color(204, 204, 0),
-            ('yellow', 'lightness-hsl'): utils.Color(204, 204, 0),
-            ('yellow', 'brightness-rgb'): utils.Color(0, 0, 204),
-        }
-    expected = colors[filename, algorithm]
+        expected = colors['old']
 
     quteproc_new.open_path(f'data/darkmode/{filename}.html')
     for _ in range(3):
