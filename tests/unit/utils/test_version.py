@@ -38,9 +38,9 @@ import hypothesis
 import hypothesis.strategies
 
 import qutebrowser
-from qutebrowser.config import config
+from qutebrowser.config import config, websettings
 from qutebrowser.utils import version, usertypes, utils, standarddir
-from qutebrowser.misc import pastebin, objects
+from qutebrowser.misc import pastebin, objects, elf
 from qutebrowser.browser import pdfjs
 
 
@@ -867,6 +867,80 @@ class TestPDFJSVersion:
             pytest.skip("No pdfjs found")
         ver = version._pdfjs_version()
         assert ver.split()[0] not in ['no', 'unknown'], ver
+
+
+class TestWebEngineVersions:
+
+    @pytest.mark.parametrize('version, expected', [
+        (
+            version.WebEngineVersions(
+                webengine=utils.VersionNumber(5, 15, 2),
+                chromium=None,
+                source='UA'),
+            "QtWebEngine 5.15.2",
+        ),
+        (
+            version.WebEngineVersions(
+                webengine=utils.VersionNumber(5, 15, 2),
+                chromium='87.0.4280.144',
+                source='UA'),
+            "QtWebEngine 5.15.2, Chromium 87.0.4280.144",
+        ),
+        (
+            version.WebEngineVersions(
+                webengine=utils.VersionNumber(5, 15, 2),
+                chromium='87.0.4280.144',
+                source='faked'),
+            "QtWebEngine 5.15.2, Chromium 87.0.4280.144 (from faked)",
+        ),
+    ])
+    def test_str(self, version, expected):
+        assert str(version) == expected
+
+    def test_from_ua(self):
+        ua = websettings.UserAgent(
+            os_info='X11; Linux x86_64',
+            webkit_version='537.36',
+            upstream_browser_key='Chrome',
+            upstream_browser_version='83.0.4103.122',
+            qt_key='QtWebEngine',
+            qt_version='5.15.2',
+        )
+        expected = version.WebEngineVersions(
+            webengine=utils.VersionNumber(5, 15, 2),
+            chromium='83.0.4103.122',
+            source='UA',
+        )
+        assert version.WebEngineVersions.from_ua(ua) == expected
+
+    def test_from_elf(self):
+        elf_version = elf.Versions(webengine='5.15.2', chromium='83.0.4103.122')
+        expected = version.WebEngineVersions(
+            webengine=utils.VersionNumber(5, 15, 2),
+            chromium='83.0.4103.122',
+            source='ELF',
+        )
+        assert version.WebEngineVersions.from_elf(elf_version) == expected
+
+    def test_from_pyqt(self):
+        expected = version.WebEngineVersions(
+            webengine=utils.VersionNumber(5, 15, 2),
+            chromium='83.0.4103.122',
+            source='PyQt',
+        )
+        assert version.WebEngineVersions.from_pyqt('5.15.2') == expected
+
+    def test_real_chromium_version(self, qapp):
+        """Compare the inferred Chromium version with the real one."""
+        pytest.importorskip("PyQt5.QtWebEngine")
+        from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION_STR
+        from qutebrowser.browser.webengine import webenginesettings
+
+        webenginesettings.init_user_agent()
+        expected = webenginesettings.parsed_user_agent.upstream_browser_version
+
+        versions = version.WebEngineVersions.from_pyqt(PYQT_WEBENGINE_VERSION_STR)
+        assert versions.chromium == expected
 
 
 class FakeQSslSocket:

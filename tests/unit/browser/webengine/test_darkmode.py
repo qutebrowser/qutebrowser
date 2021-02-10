@@ -21,15 +21,25 @@ import logging
 import pytest
 
 from qutebrowser.config import configdata
-from qutebrowser.utils import usertypes, version
+from qutebrowser.utils import usertypes, version, utils
 from qutebrowser.browser.webengine import darkmode
 from qutebrowser.misc import objects
-from helpers import utils
+from helpers import utils as testutils
 
 
 @pytest.fixture(autouse=True)
 def patch_backend(monkeypatch):
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
+
+
+@pytest.fixture
+def gentoo_version_patch(monkeypatch):
+    versions = version.WebEngineVersions(
+        webengine=utils.VersionNumber(5, 15, 2),
+        chromium='87.0.4280.144',
+        source='faked',
+    )
+    monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
 
 
 @pytest.mark.parametrize('webengine_version, enabled, expected', [
@@ -45,12 +55,17 @@ def patch_backend(monkeypatch):
     ("5.15.1", True, []),
     ("5.15.2", True, [("preferredColorScheme", "1")]),
 ])
-@utils.qt514
+@testutils.qt514
 def test_colorscheme(config_stub, monkeypatch, webengine_version, enabled, expected):
     versions = version.WebEngineVersions.from_pyqt(webengine_version)
     monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
     config_stub.val.colors.webpage.prefers_color_scheme_dark = enabled
     assert list(darkmode.settings()) == expected
+
+
+def test_colorscheme_gentoo_workaround(config_stub, gentoo_version_patch):
+    config_stub.val.colors.webpage.prefers_color_scheme_dark = True
+    assert list(darkmode.settings()) == [("preferredColorScheme", "0")]
 
 
 @pytest.mark.parametrize('settings, expected', [
@@ -136,7 +151,7 @@ def test_qt_version_differences(config_stub, monkeypatch, qversion, expected):
     assert list(darkmode.settings()) == expected
 
 
-@utils.qt514
+@testutils.qt514
 @pytest.mark.parametrize('setting, value, exp_key, exp_val', [
     ('contrast', -0.5,
      'Contrast', '-0.5'),
@@ -179,6 +194,10 @@ def test_variant(monkeypatch, webengine_version, expected):
     versions = version.WebEngineVersions.from_pyqt(webengine_version)
     monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
     assert darkmode._variant() == expected
+
+
+def test_variant_gentoo_workaround(gentoo_version_patch):
+    assert darkmode._variant() == darkmode.Variant.qt_515_3
 
 
 @pytest.mark.parametrize('value, is_valid, expected', [

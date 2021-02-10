@@ -42,6 +42,22 @@ import qutebrowser.utils  # for test_qualname
 from qutebrowser.utils import utils, version, usertypes
 
 
+class TestVersionNumber:
+
+    @pytest.mark.parametrize('args, expected', [
+        ([5, 15, 2], 'VersionNumber(5, 15, 2)'),
+        ([5, 15], 'VersionNumber(5, 15)'),
+        ([5], 'VersionNumber(5)'),
+    ])
+    def test_repr(self, args, expected):
+        num = utils.VersionNumber(*args)
+        assert repr(num) == expected
+
+    def test_not_normalized(self):
+        with pytest.raises(ValueError, match='Refusing to construct'):
+            utils.VersionNumber(5, 15, 0)
+
+
 ELLIPSIS = '\u2026'
 
 
