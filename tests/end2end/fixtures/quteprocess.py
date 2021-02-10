@@ -337,11 +337,11 @@ def is_ignored_chromium_message(line):
 
         # Windows N:
         # https://github.com/microsoft/playwright/issues/2901
-        (r'DXVAVDA fatal error: could not LoadLibrary: .*: The specified '
-         r'module could not be found. \(0x7E\)'),
+        ('DXVAVDA fatal error: could not LoadLibrary: *: The specified '
+         'module could not be found. (0x7E)'),
 
         # Qt 5.15.3 dev build
-        r'Duplicate id found. Reassigning from \d+ to \d+',
+        r'Duplicate id found. Reassigning from * to *',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
