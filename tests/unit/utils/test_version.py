@@ -935,7 +935,7 @@ class TestChromiumVersion:
     def test_avoided(self, monkeypatch):
         pytest.importorskip('PyQt5.QtWebEngineWidgets')
         versions = version.qtwebengine_versions(avoid_init=True)
-        assert versions.source in ['ELF', 'old PyQt']
+        assert versions.source in ['ELF', 'PyQt']
 
 
 @dataclasses.dataclass

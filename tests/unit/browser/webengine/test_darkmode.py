@@ -227,7 +227,7 @@ def test_new_chromium():
     we can test whether dark mode still works manually, and adjust if not.
     """
     assert version.qtwebengine_versions().chromium in [
-        'unavailable',  # QtWebKit
+        None,  # QtWebKit
         '61.0.3163.140',  # Qt 5.10
         '65.0.3325.230',  # Qt 5.11
         '69.0.3497.128',  # Qt 5.12
