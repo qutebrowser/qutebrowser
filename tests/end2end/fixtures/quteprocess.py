@@ -34,6 +34,7 @@ import json
 import yaml
 import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl
+from PyQt5.QtGui import QImage
 
 from qutebrowser.misc import ipc
 from qutebrowser.utils import log, utils, javascript
@@ -886,6 +887,17 @@ class QuteProc(testprocess.Process):
 
             with open(path, 'r', encoding='utf-8') as f:
                 return f.read()
+
+    def get_screenshot(self):
+        """Get a screenshot of the current page."""
+        tmp_path = self.request.getfixturevalue('tmp_path')
+        path = tmp_path / 'screenshot.png'
+        self.send_cmd(f':screenshot --force {path}')
+        self.wait_for(message=f'Screenshot saved to {path}')
+
+        img = QImage(str(path))
+        assert not img.isNull()
+        return img
 
     def press_keys(self, keys):
         """Press the given keys using :fake-key."""
