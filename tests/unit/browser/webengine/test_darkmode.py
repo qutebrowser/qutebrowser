@@ -63,6 +63,7 @@ def test_colorscheme(config_stub, monkeypatch, webengine_version, enabled, expec
     assert list(darkmode.settings()) == expected
 
 
+@testutils.qt514
 def test_colorscheme_gentoo_workaround(config_stub, gentoo_version_patch):
     config_stub.val.colors.webpage.prefers_color_scheme_dark = True
     assert list(darkmode.settings()) == [("preferredColorScheme", "0")]
@@ -245,8 +246,10 @@ def test_new_chromium():
     Make this test fail deliberately with newer Chromium versions, so that
     we can test whether dark mode still works manually, and adjust if not.
     """
+    if version.webenginesettings is None:
+        pytest.skip("QtWebKit not available")
+
     assert version.qtwebengine_versions().chromium in [
-        None,  # QtWebKit
         '61.0.3163.140',  # Qt 5.10
         '65.0.3325.230',  # Qt 5.11
         '69.0.3497.128',  # Qt 5.12

@@ -932,10 +932,13 @@ class TestWebEngineVersions:
 
     def test_real_chromium_version(self, qapp):
         """Compare the inferred Chromium version with the real one."""
-        pytest.importorskip("PyQt5.QtWebEngine")
-        from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION_STR
-        from qutebrowser.browser.webengine import webenginesettings
+        try:
+            from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION_STR
+        except ImportError as e:
+            # QtWebKit or QtWebEngine < 5.13
+            pytest.skip(str(e))
 
+        from qutebrowser.browser.webengine import webenginesettings
         webenginesettings.init_user_agent()
         expected = webenginesettings.parsed_user_agent.upstream_browser_version
 
@@ -976,13 +979,12 @@ class TestChromiumVersion:
 
     @pytest.fixture(autouse=True)
     def clear_parsed_ua(self, monkeypatch):
+        pytest.importorskip('PyQt5.QtWebEngineWidgets')
         if version.webenginesettings is not None:
             # Not available with QtWebKit
             monkeypatch.setattr(version.webenginesettings, 'parsed_user_agent', None)
 
     def test_fake_ua(self, monkeypatch, caplog):
-        pytest.importorskip('PyQt5.QtWebEngineWidgets')
-
         ver = '77.0.3865.98'
         version.webenginesettings._init_user_agent_str(
             _QTWE_USER_AGENT.format(ver))
@@ -990,7 +992,6 @@ class TestChromiumVersion:
         assert version.qtwebengine_versions().chromium == ver
 
     def test_prefers_saved_user_agent(self, monkeypatch):
-        pytest.importorskip('PyQt5.QtWebEngineWidgets')
         version.webenginesettings._init_user_agent_str(_QTWE_USER_AGENT)
 
         class FakeProfile:
@@ -1003,13 +1004,22 @@ class TestChromiumVersion:
         version.qtwebengine_versions()
 
     def test_unpatched(self, qapp, cache_tmpdir, data_tmpdir, config_stub):
-        pytest.importorskip('PyQt5.QtWebEngineWidgets')
         assert version.qtwebengine_versions().chromium is not None
 
     def test_avoided(self, monkeypatch):
-        pytest.importorskip('PyQt5.QtWebEngineWidgets')
         versions = version.qtwebengine_versions(avoid_init=True)
         assert versions.source in ['ELF', 'PyQt']
+
+    def test_elf_fail_simulated(self, monkeypatch):
+        monkeypatch.setattr(elf, 'parse_webenginecore', lambda: None)
+        versions = version.qtwebengine_versions(avoid_init=True)
+        assert versions.source in ['PyQt', 'Qt']
+
+    def test_elf_fail_old_qt_simulated(self, monkeypatch):
+        monkeypatch.setattr(elf, 'parse_webenginecore', lambda: None)
+        monkeypatch.setattr(version, 'PYQT_WEBENGINE_VERSION_STR', None)
+        versions = version.qtwebengine_versions(avoid_init=True)
+        assert versions.source == 'Qt'
 
 
 @dataclasses.dataclass
