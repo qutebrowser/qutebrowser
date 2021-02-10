@@ -34,7 +34,7 @@ from PyQt5.QtGui import QColor
 
 from qutebrowser.utils import qtutils, utils, usertypes
 import overflow_test_cases
-from tests import utils as testutils
+from helpers import utils as testutils
 
 if utils.is_linux:
     # Those are not run on macOS because that seems to cause a hang sometimes.
