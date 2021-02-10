@@ -15,6 +15,27 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+[[v2.1.0]]
+v2.1.0 (unreleased)
+-------------------
+
+Changed
+~~~~~~~
+
+- Initial support for Qt 5.15.3
+- On Linux, qutebrowser now tries harder to find details about the installed
+  QtWebEngine version by inspecting the QtWebEngine binary. This should reduce
+  issues with dark mode not working when using differing (Py)QtWebEngine versions
+  and also prepare qutebrowser for QtWebEngine 5.15.3, which will get released
+  without an updated Qt.
+
+Fixed
+~~~~~
+
+- The `colors.webpage.prefers_color_scheme_dark` setting now works correctly
+  with the upcoming QtWebEngine 5.15.3 (and Gentoo, which at the time of writing
+  packages 5.15.3 disguised as 5.15.2).
+
 [[v2.0.2]]
 v2.0.2 (2021-02-04)
 -------------------
