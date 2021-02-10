@@ -1199,10 +1199,14 @@ class AbstractTab(QWidget):
         """
         raise NotImplementedError
 
-    def grab_pixmap(self, rect: QRect = QRect()) -> QPixmap:
-        """Grab a QPixmap of the displayed page."""
+    def grab_pixmap(self, rect: QRect = QRect()) -> Optional[QPixmap]:
+        """Grab a QPixmap of the displayed page.
+
+        Returns None if we got a null pixmap from Qt.
+        """
         pic = self._widget.grab(rect)
-        assert not pic.isNull()
+        if pic.isNull():
+            return None
         return pic
 
     def __repr__(self) -> str:

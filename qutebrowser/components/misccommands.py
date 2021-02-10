@@ -41,6 +41,9 @@ from qutebrowser.completion.models import miscmodels
 from qutebrowser.utils import utils
 
 
+_LOGGER = logging.getLogger('misc')
+
+
 @cmdutils.register(name='reload')
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
 def reloadpage(tab: Optional[apitypes.Tab],
@@ -93,7 +96,7 @@ def _print_pdf(tab: apitypes.Tab, filename: str) -> None:
     if directory and not os.path.exists(directory):
         os.mkdir(directory)
     tab.printing.to_pdf(filename)
-    logging.getLogger('misc').debug("Print to file: {}".format(filename))
+    _LOGGER.debug("Print to file: {}".format(filename))
 
 
 @cmdutils.register(name='print')
@@ -183,9 +186,14 @@ def screenshot(
     qrect = QRect() if rect is None else utils.parse_rect(rect)
 
     pic = tab.grab_pixmap(qrect)
+    if pic is None:
+        raise cmdutils.CommandError("Getting screenshot failed")
+
     ok = pic.save(str(expanded))
     if not ok:
         raise cmdutils.CommandError(f"Saving to {filename} failed")
+
+    _LOGGER.debug(f"Screenshot saved to {filename}")
 
 
 @cmdutils.register(maxsplit=0)
