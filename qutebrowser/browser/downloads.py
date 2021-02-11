@@ -500,7 +500,10 @@ class AbstractDownloadItem(QObject):
         assert self._filename is not None
         path = pathlib.Path(self._filename)
         suffix = ''.join(path.suffixes)
-        base = path.name[:-len(suffix)]
+        if suffix:
+            base = path.name[:-len(suffix)]
+        else:
+            base = path.name
 
         for i in range(2, 1000):
             path_to_try = path.parent / f'{base}_{i}{suffix}'
