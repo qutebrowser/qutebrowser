@@ -31,7 +31,7 @@ import pytest
 from PyQt5.QtCore import QProcess
 
 from helpers import utils
-from qutebrowser.utils import qtutils
+from qutebrowser.utils import version
 
 
 ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,
@@ -534,27 +534,11 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
         {
             '5.15': utils.Color(18, 18, 18),
             '5.14': utils.Color(27, 27, 27),
-            'old': utils.Color(0, 0, 0),
+            None: utils.Color(0, 0, 0),
         }
     ),
-    (
-        'blank',
-        'lightness-hsl',
-        {
-            '5.15': utils.Color(0, 0, 0),
-            '5.14': utils.Color(0, 0, 0),
-            'old': utils.Color(0, 0, 0),
-        }
-    ),
-    (
-        'blank',
-        'brightness-rgb',
-        {
-            '5.15': utils.Color(0, 0, 0),
-            '5.14': utils.Color(0, 0, 0),
-            'old': utils.Color(0, 0, 0),
-        }
-    ),
+    ('blank', 'lightness-hsl', {None: utils.Color(0, 0, 0)}),
+    ('blank', 'brightness-rgb', {None: utils.Color(0, 0, 0)}),
 
     (
         'yellow',
@@ -562,27 +546,11 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
         {
             '5.15': utils.Color(35, 34, 0),
             '5.14': utils.Color(35, 34, 0),
-            'old': utils.Color(204, 204, 0),
+            None: utils.Color(204, 204, 0),
         }
     ),
-    (
-        'yellow',
-        'lightness-hsl',
-        {
-            '5.15': utils.Color(204, 204, 0),
-            '5.14': utils.Color(204, 204, 0),
-            'old': utils.Color(204, 204, 0),
-        }
-    ),
-    (
-        'yellow',
-        'brightness-rgb',
-        {
-            '5.15': utils.Color(0, 0, 204),
-            '5.14': utils.Color(0, 0, 204),
-            'old': utils.Color(0, 0, 204),
-        }
-    ),
+    ('yellow', 'lightness-hsl', {None: utils.Color(204, 204, 0)}),
+    ('yellow', 'brightness-rgb', {None: utils.Color(0, 0, 204)}),
 ])
 def test_dark_mode(quteproc_new, request, algorithm, filename, colors):
     if not request.config.webengine:
@@ -595,12 +563,9 @@ def test_dark_mode(quteproc_new, request, algorithm, filename, colors):
     ]
     quteproc_new.start(args)
 
-    if qtutils.version_check('5.15', compiled=False):
-        expected = colors['5.15']
-    elif qtutils.version_check('5.14', compiled=False):
-        expected = colors['5.14']
-    else:
-        expected = colors['old']
+    ver = version.qtwebengine_versions().webengine
+    minor_version = f'{ver.majorVersion()}.{ver.minorVersion()}'
+    expected = colors.get(minor_version, colors[None])
 
     quteproc_new.open_path(f'data/darkmode/{filename}.html')
     for _ in range(3):
