@@ -2926,7 +2926,11 @@ colors.webpage.darkmode.policy.page:
     valid_values:
       - always: Apply dark mode filter to all frames, regardless of content.
       - smart: Apply dark mode filter to frames based on background color.
-  desc: Which pages to apply dark mode to.
+  desc: >-
+    Which pages to apply dark mode to.
+
+    The underlying Chromium setting has been removed in QtWebEngine 5.15.3, thus this
+    setting is ignored there. Instead, every element is now classified individually.
   restart: true
   backend:
     QtWebEngine: Qt 5.14

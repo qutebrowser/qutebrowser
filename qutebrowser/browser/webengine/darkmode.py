@@ -75,14 +75,30 @@ Prefix changed to "forceDarkMode".
 Qt 5.15.3
 ---------
 
-Dark mode settings seem to be the same, but "prefers color scheme dark" changed enum
-values.
+Settings split to new --dark-mode-settings switch:
+https://chromium-review.googlesource.com/c/chromium/src/+/2390588
+
+- Everything except forceDarkModeEnabled goes to the other switch.
+- Algorithm uses a different enum with kOff gone.
+- No "forceDarkMode" prefix anymore.
+
+Removed DarkModePagePolicy:
+https://chromium-review.googlesource.com/c/chromium/src/+/2323441
+
+"prefers color scheme dark" changed enum values:
+https://chromium-review.googlesource.com/c/chromium/src/+/2232922
+
+- Now needs to be 0 for dark and 1 for light
+  (before: 0 no preference / 1 dark / 2 light)
 """
 
 import os
+import copy
 import enum
 import dataclasses
-from typing import Any, Iterator, Mapping, MutableMapping, Optional, Set, Tuple, Union
+import collections
+from typing import (Any, Iterator, Mapping, MutableMapping, Optional, Set, Tuple, Union,
+                    Sequence, List)
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, utils, log, version
@@ -112,9 +128,17 @@ _ALGORITHMS = {
 # kInvertLightnessLAB is not available with Qt < 5.14
 _ALGORITHMS_BEFORE_QT_514 = _ALGORITHMS.copy()
 _ALGORITHMS_BEFORE_QT_514['lightness-cielab'] = _ALGORITHMS['lightness-hsl']
+# Qt >= 5.15.3, based on dark_mode_settings.h
+_ALGORITHMS_NEW = {
+    # 0: kSimpleInvertForTesting (not exposed)
+    'brightness-rgb': 1,  # kInvertBrightness
+    'lightness-hsl': 2,  # kInvertLightness
+    'lightness-cielab': 3,  # kInvertLightnessLAB
+}
 
 # Mapping from a colors.webpage.darkmode.policy.images setting value to
 # Chromium's DarkModeImagePolicy enum values.
+# Values line up with dark_mode_settings.h for 5.15.3+.
 _IMAGE_POLICIES = {
     'always': 0,  # kFilterAll
     'never': 1,  # kFilterNone
@@ -161,16 +185,42 @@ class _Setting:
 
 class _Definition:
 
-    """A collection of dark mode setting names for the given QtWebEngine version."""
+    """A collection of dark mode setting names for the given QtWebEngine version.
 
-    def __init__(self, *args: _Setting, mandatory: Set[str], prefix: str) -> None:
+    Attributes:
+        _settings: A list of _Setting objects for this definition.
+        mandatory: A set of settings which should always be passed to Chromium, even if
+                   not customized from the default.
+        prefix: A string prefix to add to all Chromium setting names.
+        switch_names: A dict mapping option names to the Chromium switch they belong to.
+                      None is used as fallback key, i.e. for settings not in the dict.
+    """
+
+    def __init__(
+            self,
+            *args: _Setting,
+            mandatory: Set[str],
+            prefix: str,
+            switch_names: Mapping[Optional[str], str] = None,
+    ) -> None:
         self._settings = args
         self.mandatory = mandatory
         self.prefix = prefix
 
-    def prefixed_settings(self) -> Iterator[_Setting]:
+        if switch_names is not None:
+            self._switch_names = switch_names
+        else:
+            self._switch_names = {None: 'blink-settings'}
+
+    def prefixed_settings(self) -> Iterator[Tuple[str, _Setting]]:
+        """Get all "prepared" settings.
+
+        Yields tuples which contain the Chromium setting key (e.g. 'blink-settings' or
+        'dark-mode-settings') and the corresponding _Settings object.
+        """
         for setting in self._settings:
-            yield setting.with_prefix(self.prefix)
+            switch = self._switch_names.get(setting.option, self._switch_names[None])
+            yield switch, setting.with_prefix(self.prefix)
 
     def with_mandatory(self, mandatory: Set[str]) -> '_Definition':
         """Get a new _Definition object with a changed set of mandatory settings.
@@ -178,7 +228,9 @@ class _Definition:
         NOTE: This does *not* copy the settings list. Both objects will reference the
         same list.
         """
-        return _Definition(*self._settings, mandatory=mandatory, prefix=self.prefix)
+        new = copy.copy(self)
+        new.mandatory = mandatory
+        return new
 
     def with_prefix(self, prefix: str) -> '_Definition':
         """Get a new _Definition object with a changed prefix.
@@ -186,7 +238,9 @@ class _Definition:
         NOTE: This does *not* copy the settings list. Both objects will reference the
         same list.
         """
-        return _Definition(*self._settings, mandatory=self.mandatory, prefix=prefix)
+        new = copy.copy(self)
+        new.prefix = prefix
+        return new
 
 
 # Our defaults for policy.images are different from Chromium's, so we mark it as
@@ -194,7 +248,25 @@ class _Definition:
 # workaround warning below if the setting wasn't explicitly customized.
 
 _DEFINITIONS: MutableMapping[Variant, _Definition] = {
-    # Qt 5.15.1, 5.15.2 and 5.15.3 get added below
+    Variant.qt_515_3: _Definition(
+        # Different switch for settings
+        _Setting('enabled', 'forceDarkModeEnabled', _BOOLS),
+        _Setting('algorithm', 'InversionAlgorithm', _ALGORITHMS_NEW),
+
+        _Setting('policy.images', 'ImagePolicy', _IMAGE_POLICIES),
+        _Setting('contrast', 'ContrastPercent'),
+        _Setting('grayscale.all', 'IsGrayScale', _BOOLS),
+
+        _Setting('threshold.text', 'TextBrightnessThreshold'),
+        _Setting('threshold.background', 'BackgroundBrightnessThreshold'),
+        _Setting('grayscale.images', 'ImageGrayScalePercent'),
+
+        mandatory={'enabled', 'policy.images'},
+        prefix='',
+        switch_names={'enabled': 'blink-settings', None: 'dark-mode-settings'},
+    ),
+
+    # Qt 5.15.1 and 5.15.2 get added below, since there are only minor differences.
 
     Variant.qt_515_0: _Definition(
         # 'policy.images' not mandatory because it's broken
@@ -245,7 +317,6 @@ _DEFINITIONS[Variant.qt_515_1] = _DEFINITIONS[Variant.qt_515_0].with_mandatory(
     {'enabled', 'policy.images'})
 _DEFINITIONS[Variant.qt_515_2] = _DEFINITIONS[Variant.qt_515_1].with_prefix(
     'forceDarkMode')
-_DEFINITIONS[Variant.qt_515_3] = _DEFINITIONS[Variant.qt_515_2]
 
 
 def _variant() -> Variant:
@@ -263,6 +334,8 @@ def _variant() -> Variant:
             versions.chromium.startswith('87.')):
         # WORKAROUND for Gentoo packaging something newer as 5.15.2...
         return Variant.qt_515_3
+    elif versions.webengine >= utils.VersionNumber(5, 15, 3):
+        return Variant.qt_515_3
     elif versions.webengine >= utils.VersionNumber(5, 15, 2):
         return Variant.qt_515_2
     elif versions.webengine == utils.VersionNumber(5, 15, 1):
@@ -276,27 +349,33 @@ def _variant() -> Variant:
     raise utils.Unreachable(versions.webengine)
 
 
-def settings() -> Iterator[Tuple[str, str]]:
-    """Get necessary blink settings to configure dark mode for QtWebEngine."""
+def settings() -> Mapping[str, Sequence[Tuple[str, str]]]:
+    """Get necessary blink settings to configure dark mode for QtWebEngine.
+
+    Results are a dict which maps Chromium switch names (blink-settings or
+    dark-mode-settings) to a sequence of tuples, each tuple being a key/value pair to
+    pass to that setting.
+    """
     variant = _variant()
+    result: Mapping[str, List[Tuple[str, str]]] = collections.defaultdict(list)
 
     if config.val.colors.webpage.prefers_color_scheme_dark:
         if variant == Variant.qt_515_2:
-            yield "preferredColorScheme", "1"
+            result['blink-settings'].append(("preferredColorScheme", "1"))
         elif variant == Variant.qt_515_3:
             # With Chromium 85 (> Qt 5.15.2), the enumeration has changed in Blink and
             # this will need to be set to '0' instead:
             # https://chromium-review.googlesource.com/c/chromium/src/+/2232922
-            yield "preferredColorScheme", "0"
+            result['blink-settings'].append(("preferredColorScheme", "0"))
         # With older Qt versions, this is passed in qtargs.py as --force-dark-mode
         # instead.
 
     if not config.val.colors.webpage.darkmode.enabled:
-        return
+        return result
 
     definition = _DEFINITIONS[variant]
 
-    for setting in definition.prefixed_settings():
+    for switch_name, setting in definition.prefixed_settings():
         # To avoid blowing up the commandline length, we only pass modified
         # settings to Chromium, as our defaults line up with Chromium's.
         # However, we always pass enabled/algorithm to make sure dark mode gets
@@ -315,4 +394,6 @@ def settings() -> Iterator[Tuple[str, str]]:
                              "because of Qt 5.15.0 bug")
             continue
 
-        yield setting.chromium_tuple(value)
+        result[switch_name].append(setting.chromium_tuple(value))
+
+    return result

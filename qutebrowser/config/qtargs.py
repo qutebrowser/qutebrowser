@@ -174,9 +174,8 @@ def _qtwebengine_args(
         yield '--renderer-startup-dialog'
 
     from qutebrowser.browser.webengine import darkmode
-    blink_settings = list(darkmode.settings())
-    if blink_settings:
-        yield '--blink-settings=' + ','.join(f'{k}={v}' for k, v in blink_settings)
+    for switch_name, values in darkmode.settings().items():
+        yield f'--{switch_name}=' + ','.join(f'{k}={v}' for k, v in values)
 
     enabled_features, disabled_features = _qtwebengine_features(feature_flags)
     if enabled_features:
