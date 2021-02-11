@@ -36,7 +36,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            webenginesettings, certificateerror)
 from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               message, jinja, debug)
+                               message, jinja, debug, version)
 from qutebrowser.qt import sip
 
 
@@ -1144,15 +1144,15 @@ class _WebEngineScripts(QObject):
                 QWebEngineScript.DocumentReady,
                 QWebEngineScript.ApplicationWorld,
             ),
-            # FIXME not needed with 5.15.3 most likely, but how do we check for
-            # that?
-            (
+        ]
+        versions = version.qtwebengine_versions()
+        if versions.webengine < utils.VersionNumber(5, 15, 3):
+            quirks.append((
                 'string_replaceall',
                 QWebEngineScript.DocumentCreation,
                 QWebEngineScript.MainWorld,
-            ),
-        ]
-        if not qtutils.version_check('5.13'):
+            ))
+        if versions.webengine < utils.VersionNumber(5, 13):
             quirks.append(('globalthis',
                            QWebEngineScript.DocumentCreation,
                            QWebEngineScript.MainWorld))
