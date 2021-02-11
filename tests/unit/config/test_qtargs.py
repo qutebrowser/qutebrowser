@@ -448,22 +448,32 @@ class TestWebEngineArgs:
         expected = ['--disable-features=InstalledApp'] if has_workaround else []
         assert disable_features_args == expected
 
-    def test_blink_settings(self, config_stub, monkeypatch, parser):
+    @pytest.mark.parametrize('variant, expected', [
+        (
+            'qt_515_2',
+            ['--blink-settings=forceDarkModeEnabled=true,forceDarkModeImagePolicy=2'],
+        ),
+        (
+            'qt_515_3',
+            [
+                '--blink-settings=forceDarkModeEnabled=true',
+                '--dark-mode-settings=ImagePolicy=2',
+            ]
+        ),
+    ])
+    def test_dark_mode_settings(self, config_stub, monkeypatch, parser,
+                                variant, expected):
         from qutebrowser.browser.webengine import darkmode
-        monkeypatch.setattr(qtargs.objects, 'backend',
-                            usertypes.Backend.QtWebEngine)
-        monkeypatch.setattr(darkmode, '_variant',
-                            lambda: darkmode.Variant.qt_515_2)
+        monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
+        monkeypatch.setattr(darkmode, '_variant', lambda: darkmode.Variant[variant])
 
         config_stub.val.colors.webpage.darkmode.enabled = True
 
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
 
-        expected = ('--blink-settings=forceDarkModeEnabled=true,'
-                    'forceDarkModeImagePolicy=2')
-
-        assert expected in args
+        for arg in expected:
+            assert arg in args
 
 
 class TestEnvVars:

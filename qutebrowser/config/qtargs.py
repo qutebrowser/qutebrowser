@@ -175,6 +175,9 @@ def _qtwebengine_args(
 
     from qutebrowser.browser.webengine import darkmode
     for switch_name, values in darkmode.settings().items():
+        # If we need to use other switches (say, --enable-features), we might need to
+        # refactor this so values still get combined with existing ones.
+        assert switch_name in ['dark-mode-settings', 'blink-settings'], switch_name
         yield f'--{switch_name}=' + ','.join(f'{k}={v}' for k, v in values)
 
     enabled_features, disabled_features = _qtwebengine_features(feature_flags)
