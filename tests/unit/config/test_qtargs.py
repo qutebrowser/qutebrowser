@@ -45,7 +45,8 @@ def version_patcher(monkeypatch):
     def run(ver):
         versions = version.WebEngineVersions.from_pyqt(ver)
         monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
-        monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
+        monkeypatch.setattr(version, 'qtwebengine_versions',
+                            lambda avoid_init: versions)
 
     return run
 
@@ -112,13 +113,18 @@ class TestWebEngineArgs:
         """Skip all tests if QtWebEngine is unavailable."""
         pytest.importorskip("PyQt5.QtWebEngine")
 
-    @pytest.mark.parametrize('backend, expected', [
-        (usertypes.Backend.QtWebEngine, True),
-        (usertypes.Backend.QtWebKit, False),
+    @pytest.mark.parametrize('backend, qt_version, expected', [
+        (usertypes.Backend.QtWebEngine, '5.13.0', False),
+        (usertypes.Backend.QtWebEngine, '5.14.0', True),
+        (usertypes.Backend.QtWebEngine, '5.14.1', True),
+        (usertypes.Backend.QtWebEngine, '5.15.0', False),
+        (usertypes.Backend.QtWebEngine, '5.15.1', False),
+
+        (usertypes.Backend.QtWebKit, '5.14.0', False),
     ])
     def test_shared_workers(self, config_stub, version_patcher, monkeypatch, parser,
-                            backend, expected):
-        version_patcher('5.14.0')
+                            qt_version, backend, expected):
+        version_patcher(qt_version)
         monkeypatch.setattr(qtargs.objects, 'backend', backend)
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
@@ -433,10 +439,7 @@ class TestWebEngineArgs:
             arg for arg in args
             if arg.startswith(qtargs._DISABLE_FEATURES)
         ]
-        assert len(disable_features_args) == 1
-        features = set(disable_features_args[0].split('=')[1].split(','))
-        features -= {'InstalledApp'}
-        assert features == set(passed_features)
+        assert disable_features_args == [flag]
 
     def test_blink_settings_passthrough(self, parser, config_stub, feature_flag_patch):
         config_stub.val.colors.webpage.darkmode.enabled = True
