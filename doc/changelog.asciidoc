@@ -48,6 +48,10 @@ Fixed
   which at the time of writing packages 5.15.3 disguised as 5.15.2).
 - When dark mode settings were set, existing `blink-features` arguments in
   `qt.args` (or `--qt-flag`) were overridden. They are now combined properly.
+- On QtWebEngine 5.15.2, auto detection for the `prefers-color-scheme` media
+  query is broken and always returns `no-preference`, which was removed from the
+  CSS WG Specification. This release contains a workaround to always return
+  `light` instead (as per the spec).
 
 
 [[v2.0.2]]

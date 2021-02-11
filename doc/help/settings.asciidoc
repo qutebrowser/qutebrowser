@@ -1751,6 +1751,8 @@ On QtWebKit, this setting is unavailable.
 [[colors.webpage.preferred_color_scheme]]
 === colors.webpage.preferred_color_scheme
 Value to use for `prefers-color-scheme:` for websites.
+The "light" value is only available with QtWebEngine 5.15.2+. On older versions, it is the same as "auto".
+The "auto" value is broken on QtWebEngine 5.15.2 due to a Qt bug. There, it will fall back to "light" unconditionally.
 
 This setting requires a restart.
 
@@ -1759,7 +1761,7 @@ Type: <<types,String>>
 Valid values:
 
  * +auto+: Use the system-wide color scheme setting.
- * +light+: Force a light theme. Only available with QtWebEngine 5.15.2+, same as 'auto' otherwise.
+ * +light+: Force a light theme.
  * +dark+: Force a dark theme.
 
 Default: +pass:[auto]+

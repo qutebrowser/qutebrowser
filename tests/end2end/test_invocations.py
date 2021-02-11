@@ -464,9 +464,10 @@ def test_preferred_colorscheme(request, quteproc_new, value):
         # environment.
         expected_values["light"].append(dark_text)
     elif qtutils.version_check('5.15.2', exact=True, compiled=False):
-        # https://bugreports.qt.io/browse/QTBUG-89753
+        # Test the WORKAROUND https://bugreports.qt.io/browse/QTBUG-89753
+        # With that workaround, we should always get the light preference.
         for key in ["auto", None]:
-            expected_values[key] = ["No preference detected."]
+            expected_values[key].remove(dark_text)
 
     quteproc_new.open_path('data/darkmode/prefers-color-scheme.html')
     content = quteproc_new.get_content()

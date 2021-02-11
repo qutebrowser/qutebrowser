@@ -320,6 +320,11 @@ _PREFERRED_COLOR_SCHEME_DEFINITIONS = {
     # 0: no-preference (not exposed)
     (Variant.qt_515_2, "dark"): "1",
     (Variant.qt_515_2, "light"): "2",
+    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-89753
+    # Fall back to "light" instead of "no preference" (which was removed from the
+    # standard)
+    (Variant.qt_515_2, "auto"): "2",
+    (Variant.qt_515_2, usertypes.UNSET): "2",
 
     ## Qt >= 5.15.3
     (Variant.qt_515_3, "dark"): "0",
@@ -380,7 +385,7 @@ def settings(special_flags: Sequence[str]) -> Mapping[str, Sequence[Tuple[str, s
 
     preferred_color_scheme_key = (
         variant,
-        config.val.colors.webpage.preferred_color_scheme,
+        config.instance.get("colors.webpage.preferred_color_scheme", fallback=False),
     )
     if preferred_color_scheme_key in _PREFERRED_COLOR_SCHEME_DEFINITIONS:
         value = _PREFERRED_COLOR_SCHEME_DEFINITIONS[preferred_color_scheme_key]
