@@ -222,24 +222,14 @@ class _Definition:
             switch = self._switch_names.get(setting.option, self._switch_names[None])
             yield switch, setting.with_prefix(self.prefix)
 
-    def with_mandatory(self, mandatory: Set[str]) -> '_Definition':
-        """Get a new _Definition object with a changed set of mandatory settings.
+    def copy_with(self, attr: str, value: Any) -> '_Definition':
+        """Get a new _Definition object with a changed attribute.
 
         NOTE: This does *not* copy the settings list. Both objects will reference the
         same list.
         """
         new = copy.copy(self)
-        new.mandatory = mandatory
-        return new
-
-    def with_prefix(self, prefix: str) -> '_Definition':
-        """Get a new _Definition object with a changed prefix.
-
-        NOTE: This does *not* copy the settings list. Both objects will reference the
-        same list.
-        """
-        new = copy.copy(self)
-        new.prefix = prefix
+        setattr(new, attr, value)
         return new
 
 
@@ -313,10 +303,10 @@ _DEFINITIONS: MutableMapping[Variant, _Definition] = {
         prefix='highContrast',
     ),
 }
-_DEFINITIONS[Variant.qt_515_1] = _DEFINITIONS[Variant.qt_515_0].with_mandatory(
-    {'enabled', 'policy.images'})
-_DEFINITIONS[Variant.qt_515_2] = _DEFINITIONS[Variant.qt_515_1].with_prefix(
-    'forceDarkMode')
+_DEFINITIONS[Variant.qt_515_1] = (
+    _DEFINITIONS[Variant.qt_515_0].copy_with('mandatory', {'enabled', 'policy.images'}))
+_DEFINITIONS[Variant.qt_515_2] = (
+    _DEFINITIONS[Variant.qt_515_1].copy_with('prefix', 'forceDarkMode'))
 
 
 def _variant() -> Variant:
