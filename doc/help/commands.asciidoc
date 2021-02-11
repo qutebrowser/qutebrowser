@@ -99,6 +99,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<restart,restart>>|Restart qutebrowser while keeping existing tabs open.
 |<<run-with-count,run-with-count>>|Run a command with the given count.
 |<<save,save>>|Save configs and state.
+|<<screenshot,screenshot>>|Take a screenshot of the currently shown part of the page.
 |<<scroll,scroll>>|Scroll the current tab in the given direction.
 |<<scroll-page,scroll-page>>|Scroll the frame page-wise.
 |<<scroll-px,scroll-px>>|Scroll the current tab by 'count * dx/dy' pixels.
@@ -1079,6 +1080,21 @@ Save configs and state.
 ==== positional arguments
 * +'what'+: What to save (`config`/`key-config`/`cookies`/...). If not given, everything is saved.
 
+
+[[screenshot]]
+=== screenshot
+Syntax: +:screenshot [*--rect* 'rect'] [*--force*] 'filename'+
+
+Take a screenshot of the currently shown part of the page.
+
+The file format is automatically determined based on the given file extension.
+
+==== positional arguments
+* +'filename'+: The file to save the screenshot to (~ gets expanded).
+
+==== optional arguments
+* +*-r*+, +*--rect*+: The rectangle to save, as a string like WxH+X+Y.
+* +*-f*+, +*--force*+: Overwrite existing files.
 
 [[scroll]]
 === scroll

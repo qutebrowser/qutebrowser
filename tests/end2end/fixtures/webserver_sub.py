@@ -199,6 +199,16 @@ def set_cookies():
     return r
 
 
+@app.route('/cookies/set-custom')
+def set_custom_cookie():
+    """Set a cookie with a custom max_age/expires."""
+    r = app.make_response(flask.redirect(flask.url_for('view_cookies')))
+    max_age = flask.request.args.get('max_age')
+    r.set_cookie(key='cookie', value='value',
+                 max_age=int(max_age) if max_age else None)
+    return r
+
+
 @app.route('/basic-auth/<user>/<passwd>')
 def basic_auth(user='user', passwd='passwd'):
     """Prompt the user for authorization using HTTP Basic Auth."""

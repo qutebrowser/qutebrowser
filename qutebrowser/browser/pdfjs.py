@@ -30,11 +30,11 @@ from qutebrowser.config import config
 
 _SYSTEM_PATHS = [
     # Debian pdf.js-common
-    # Arch Linux pdfjs (AUR)
+    # Arch Linux pdfjs
     '/usr/share/pdf.js/',
     # Flatpak (Flathub)
     '/app/share/pdf.js/',
-    # Arch Linux pdf.js (AUR)
+    # Arch Linux pdf.js (defunct)
     '/usr/share/javascript/pdf.js/',
     # Debian libjs-pdf
     '/usr/share/javascript/pdf/',

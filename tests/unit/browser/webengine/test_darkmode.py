@@ -21,10 +21,10 @@ import logging
 import pytest
 
 from qutebrowser.config import configdata
-from qutebrowser.utils import usertypes, version
+from qutebrowser.utils import usertypes, version, utils
 from qutebrowser.browser.webengine import darkmode
 from qutebrowser.misc import objects
-from helpers import utils
+from helpers import utils as testutils
 
 
 @pytest.fixture(autouse=True)
@@ -32,7 +32,17 @@ def patch_backend(monkeypatch):
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
 
 
-@pytest.mark.parametrize('qversion, enabled, expected', [
+@pytest.fixture
+def gentoo_version_patch(monkeypatch):
+    versions = version.WebEngineVersions(
+        webengine=utils.VersionNumber(5, 15, 2),
+        chromium='87.0.4280.144',
+        source='faked',
+    )
+    monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
+
+
+@pytest.mark.parametrize('webengine_version, enabled, expected', [
     # Disabled or nothing set
     ("5.14", False, []),
     ("5.15.0", False, []),
@@ -45,11 +55,18 @@ def patch_backend(monkeypatch):
     ("5.15.1", True, []),
     ("5.15.2", True, [("preferredColorScheme", "1")]),
 ])
-@utils.qt514
-def test_colorscheme(config_stub, monkeypatch, qversion, enabled, expected):
-    monkeypatch.setattr(darkmode.qtutils, 'qVersion', lambda: qversion)
+@testutils.qt514
+def test_colorscheme(config_stub, monkeypatch, webengine_version, enabled, expected):
+    versions = version.WebEngineVersions.from_pyqt(webengine_version)
+    monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
     config_stub.val.colors.webpage.prefers_color_scheme_dark = enabled
     assert list(darkmode.settings()) == expected
+
+
+@testutils.qt514
+def test_colorscheme_gentoo_workaround(config_stub, gentoo_version_patch):
+    config_stub.val.colors.webpage.prefers_color_scheme_dark = True
+    assert list(darkmode.settings()) == [("preferredColorScheme", "0")]
 
 
 @pytest.mark.parametrize('settings, expected', [
@@ -121,13 +138,8 @@ QT_515_2_SETTINGS = [
     ('5.15.2', QT_515_2_SETTINGS),
 ])
 def test_qt_version_differences(config_stub, monkeypatch, qversion, expected):
-    monkeypatch.setattr(darkmode.qtutils, 'qVersion', lambda: qversion)
-
-    major, minor, patch = [int(part) for part in qversion.split('.')]
-    hexversion = major << 16 | minor << 8 | patch
-    if major > 5 or minor >= 13:
-        # Added in Qt 5.13
-        monkeypatch.setattr(darkmode, 'PYQT_WEBENGINE_VERSION', hexversion)
+    versions = version.WebEngineVersions.from_pyqt(qversion)
+    monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
 
     settings = {
         'enabled': True,
@@ -140,7 +152,7 @@ def test_qt_version_differences(config_stub, monkeypatch, qversion, expected):
     assert list(darkmode.settings()) == expected
 
 
-@utils.qt514
+@testutils.qt514
 @pytest.mark.parametrize('setting, value, exp_key, exp_val', [
     ('contrast', -0.5,
      'Contrast', '-0.5'),
@@ -171,22 +183,22 @@ def test_customization(config_stub, monkeypatch, setting, value, exp_key, exp_va
     assert list(darkmode.settings()) == expected
 
 
-@pytest.mark.parametrize('qversion, webengine_version, expected', [
-    # Without PYQT_WEBENGINE_VERSION
-    ('5.12.9', None, darkmode.Variant.qt_511_to_513),
-
-    # With PYQT_WEBENGINE_VERSION
-    (None, 0x050d00, darkmode.Variant.qt_511_to_513),
-    (None, 0x050e00, darkmode.Variant.qt_514),
-    (None, 0x050f00, darkmode.Variant.qt_515_0),
-    (None, 0x050f01, darkmode.Variant.qt_515_1),
-    (None, 0x050f02, darkmode.Variant.qt_515_2),
-    (None, 0x060000, darkmode.Variant.qt_515_2),  # Qt 6
+@pytest.mark.parametrize('webengine_version, expected', [
+    ('5.13.0', darkmode.Variant.qt_511_to_513),
+    ('5.14.0', darkmode.Variant.qt_514),
+    ('5.15.0', darkmode.Variant.qt_515_0),
+    ('5.15.1', darkmode.Variant.qt_515_1),
+    ('5.15.2', darkmode.Variant.qt_515_2),
+    ('6.0.0', darkmode.Variant.qt_515_2),
 ])
-def test_variant(monkeypatch, qversion, webengine_version, expected):
-    monkeypatch.setattr(darkmode.qtutils, 'qVersion', lambda: qversion)
-    monkeypatch.setattr(darkmode, 'PYQT_WEBENGINE_VERSION', webengine_version)
+def test_variant(monkeypatch, webengine_version, expected):
+    versions = version.WebEngineVersions.from_pyqt(webengine_version)
+    monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
     assert darkmode._variant() == expected
+
+
+def test_variant_gentoo_workaround(gentoo_version_patch):
+    assert darkmode._variant() == darkmode.Variant.qt_515_3
 
 
 @pytest.mark.parametrize('value, is_valid, expected', [
@@ -194,8 +206,8 @@ def test_variant(monkeypatch, qversion, webengine_version, expected):
     ('qt_515_2', True, darkmode.Variant.qt_515_2),
 ])
 def test_variant_override(monkeypatch, caplog, value, is_valid, expected):
-    monkeypatch.setattr(darkmode.qtutils, 'qVersion', lambda: None)
-    monkeypatch.setattr(darkmode, 'PYQT_WEBENGINE_VERSION', 0x050f00)
+    versions = version.WebEngineVersions.from_pyqt('5.15.0')
+    monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
     monkeypatch.setenv('QUTE_DARKMODE_VARIANT', value)
 
     with caplog.at_level(logging.WARNING):
@@ -208,7 +220,8 @@ def test_variant_override(monkeypatch, caplog, value, is_valid, expected):
 def test_broken_smart_images_policy(config_stub, monkeypatch, caplog):
     config_stub.val.colors.webpage.darkmode.enabled = True
     config_stub.val.colors.webpage.darkmode.policy.images = 'smart'
-    monkeypatch.setattr(darkmode, 'PYQT_WEBENGINE_VERSION', 0x050f00)
+    versions = version.WebEngineVersions.from_pyqt('5.15.0')
+    monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
 
     with caplog.at_level(logging.WARNING):
         settings = list(darkmode.settings())
@@ -233,8 +246,10 @@ def test_new_chromium():
     Make this test fail deliberately with newer Chromium versions, so that
     we can test whether dark mode still works manually, and adjust if not.
     """
-    assert version._chromium_version() in [
-        'unavailable',  # QtWebKit
+    if version.webenginesettings is None:
+        pytest.skip("QtWebKit not available")
+
+    assert version.qtwebengine_versions().chromium in [
         '61.0.3163.140',  # Qt 5.10
         '65.0.3325.230',  # Qt 5.11
         '69.0.3497.128',  # Qt 5.12
