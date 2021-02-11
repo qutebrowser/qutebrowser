@@ -622,7 +622,7 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
     ('yellow', 'lightness-hsl', {None: utils.Color(204, 204, 0)}),
     ('yellow', 'brightness-rgb', {None: utils.Color(0, 0, 204)}),
 ])
-def test_dark_mode(quteproc_new, request, algorithm, filename, colors):
+def test_dark_mode(testdata_scheme, quteproc_new, request, algorithm, filename, colors):
     if not request.config.webengine:
         pytest.skip("QtWebEngine only")
 
@@ -633,6 +633,8 @@ def test_dark_mode(quteproc_new, request, algorithm, filename, colors):
     ]
     quteproc_new.start(args)
 
+    # Calling qtwebengine_versions() initializes QtWebEngine, so we depend on
+    # testdata_scheme here, to make sure that happens before.
     ver = version.qtwebengine_versions().webengine
     minor_version = f'{ver.majorVersion()}.{ver.minorVersion()}'
     expected = colors.get(minor_version, colors[None])
