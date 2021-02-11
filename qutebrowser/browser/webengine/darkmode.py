@@ -81,8 +81,8 @@ values.
 
 import os
 import enum
-from typing import (Any, Iterable, Iterator, Mapping, MutableMapping, Optional, Set,
-                    Tuple, Union)
+import dataclasses
+from typing import Any, Iterator, Mapping, MutableMapping, Optional, Set, Tuple, Union
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, utils, log, version
@@ -133,92 +133,114 @@ _BOOLS = {
     False: 'false',
 }
 
-_DarkModeSettingsType = Iterable[
-    Tuple[
-        str,  # qutebrowser option name
-        str,  # darkmode setting name
-        # Mapping from the config value to a string (or something convertible
-        # to a string) which gets passed to Chromium.
-        Optional[Mapping[Any, Union[str, int]]],
-    ],
-]
 
-_DarkModeDefinitionType = Tuple[_DarkModeSettingsType, Set[str]]
+@dataclasses.dataclass
+class _Setting:
+
+    """A single dark mode setting."""
+
+    option: str
+    chromium_key: str
+    mapping: Optional[Mapping[Any, Union[str, int]]] = None
+
+    def _value_str(self, value: Any) -> str:
+        if self.mapping is None:
+            return str(value)
+        return str(self.mapping[value])
+
+    def chromium_tuple(self, value: Any) -> Tuple[str, str]:
+        return self.chromium_key, self._value_str(value)
+
+
+class _Definition:
+
+    """A collection of dark mode setting names for the given QtWebEngine version."""
+
+    def __init__(self, *args: _Setting, mandatory: Set[str]) -> None:
+        self.settings = args
+        self.mandatory = mandatory
+
 
 # Our defaults for policy.images are different from Chromium's, so we mark it as
 # mandatory setting - except on Qt 5.15.0 where we don't, so we don't get the
 # workaround warning below if the setting wasn't explicitly customized.
 
-_DARK_MODE_DEFINITIONS: MutableMapping[Variant, _DarkModeDefinitionType] = {
-    Variant.qt_515_2: ([
+_DARK_MODE_DEFINITIONS: MutableMapping[Variant, _Definition] = {
+    Variant.qt_515_2: _Definition(
         # 'darkMode' renamed to 'forceDarkMode'
-        ('enabled', 'forceDarkModeEnabled', _BOOLS),
-        ('algorithm', 'forceDarkModeInversionAlgorithm', _ALGORITHMS),
+        _Setting('enabled', 'forceDarkModeEnabled', _BOOLS),
+        _Setting('algorithm', 'forceDarkModeInversionAlgorithm', _ALGORITHMS),
 
-        ('policy.images', 'forceDarkModeImagePolicy', _IMAGE_POLICIES),
-        ('contrast', 'forceDarkModeContrast', None),
-        ('grayscale.all', 'forceDarkModeGrayscale', _BOOLS),
+        _Setting('policy.images', 'forceDarkModeImagePolicy', _IMAGE_POLICIES),
+        _Setting('contrast', 'forceDarkModeContrast'),
+        _Setting('grayscale.all', 'forceDarkModeGrayscale', _BOOLS),
 
-        ('policy.page', 'forceDarkModePagePolicy', _PAGE_POLICIES),
-        ('threshold.text', 'forceDarkModeTextBrightnessThreshold', None),
-        (
-            'threshold.background',
-            'forceDarkModeBackgroundBrightnessThreshold',
-            None
-        ),
-        ('grayscale.images', 'forceDarkModeImageGrayscale', None),
-    ], {'enabled', 'policy.images'}),
+        _Setting('policy.page', 'forceDarkModePagePolicy', _PAGE_POLICIES),
+        _Setting('threshold.text', 'forceDarkModeTextBrightnessThreshold'),
+        _Setting('threshold.background', 'forceDarkModeBackgroundBrightnessThreshold'),
+        _Setting('grayscale.images', 'forceDarkModeImageGrayscale'),
 
-    Variant.qt_515_1: ([
+        mandatory={'enabled', 'policy.images'},
+    ),
+
+    Variant.qt_515_1: _Definition(
         # 'policy.images' mandatory again
-        ('enabled', 'darkModeEnabled', _BOOLS),
-        ('algorithm', 'darkModeInversionAlgorithm', _ALGORITHMS),
+        _Setting('enabled', 'darkModeEnabled', _BOOLS),
+        _Setting('algorithm', 'darkModeInversionAlgorithm', _ALGORITHMS),
 
-        ('policy.images', 'darkModeImagePolicy', _IMAGE_POLICIES),
-        ('contrast', 'darkModeContrast', None),
-        ('grayscale.all', 'darkModeGrayscale', _BOOLS),
+        _Setting('policy.images', 'darkModeImagePolicy', _IMAGE_POLICIES),
+        _Setting('contrast', 'darkModeContrast'),
+        _Setting('grayscale.all', 'darkModeGrayscale', _BOOLS),
 
-        ('policy.page', 'darkModePagePolicy', _PAGE_POLICIES),
-        ('threshold.text', 'darkModeTextBrightnessThreshold', None),
-        ('threshold.background', 'darkModeBackgroundBrightnessThreshold', None),
-        ('grayscale.images', 'darkModeImageGrayscale', None),
-    ], {'enabled', 'policy.images'}),
+        _Setting('policy.page', 'darkModePagePolicy', _PAGE_POLICIES),
+        _Setting('threshold.text', 'darkModeTextBrightnessThreshold'),
+        _Setting('threshold.background', 'darkModeBackgroundBrightnessThreshold'),
+        _Setting('grayscale.images', 'darkModeImageGrayscale'),
 
-    Variant.qt_515_0: ([
+        mandatory={'enabled', 'policy.images'},
+    ),
+
+    Variant.qt_515_0: _Definition(
         # 'policy.images' not mandatory because it's broken
-        ('enabled', 'darkModeEnabled', _BOOLS),
-        ('algorithm', 'darkModeInversionAlgorithm', _ALGORITHMS),
+        _Setting('enabled', 'darkModeEnabled', _BOOLS),
+        _Setting('algorithm', 'darkModeInversionAlgorithm', _ALGORITHMS),
 
-        ('policy.images', 'darkModeImagePolicy', _IMAGE_POLICIES),
-        ('contrast', 'darkModeContrast', None),
-        ('grayscale.all', 'darkModeGrayscale', _BOOLS),
+        _Setting('policy.images', 'darkModeImagePolicy', _IMAGE_POLICIES),
+        _Setting('contrast', 'darkModeContrast'),
+        _Setting('grayscale.all', 'darkModeGrayscale', _BOOLS),
 
-        ('policy.page', 'darkModePagePolicy', _PAGE_POLICIES),
-        ('threshold.text', 'darkModeTextBrightnessThreshold', None),
-        ('threshold.background', 'darkModeBackgroundBrightnessThreshold', None),
-        ('grayscale.images', 'darkModeImageGrayscale', None),
-    ], {'enabled'}),
+        _Setting('policy.page', 'darkModePagePolicy', _PAGE_POLICIES),
+        _Setting('threshold.text', 'darkModeTextBrightnessThreshold'),
+        _Setting('threshold.background', 'darkModeBackgroundBrightnessThreshold'),
+        _Setting('grayscale.images', 'darkModeImageGrayscale'),
 
-    Variant.qt_514: ([
-        ('algorithm', 'darkMode', _ALGORITHMS),  # new: kInvertLightnessLAB
+        mandatory={'enabled'},
+    ),
 
-        ('policy.images', 'darkModeImagePolicy', _IMAGE_POLICIES),
-        ('contrast', 'darkModeContrast', None),
-        ('grayscale.all', 'darkModeGrayscale', _BOOLS),
+    Variant.qt_514: _Definition(
+        _Setting('algorithm', 'darkMode', _ALGORITHMS),  # new: kInvertLightnessLAB
 
-        ('policy.page', 'darkModePagePolicy', _PAGE_POLICIES),
-        ('threshold.text', 'darkModeTextBrightnessThreshold', None),
-        ('threshold.background', 'darkModeBackgroundBrightnessThreshold', None),
-        ('grayscale.images', 'darkModeImageGrayscale', None),
-    ], {'algorithm', 'policy.images'}),
+        _Setting('policy.images', 'darkModeImagePolicy', _IMAGE_POLICIES),
+        _Setting('contrast', 'darkModeContrast'),
+        _Setting('grayscale.all', 'darkModeGrayscale', _BOOLS),
 
-    Variant.qt_511_to_513: ([
-        ('algorithm', 'highContrastMode', _ALGORITHMS_BEFORE_QT_514),
+        _Setting('policy.page', 'darkModePagePolicy', _PAGE_POLICIES),
+        _Setting('threshold.text', 'darkModeTextBrightnessThreshold'),
+        _Setting('threshold.background', 'darkModeBackgroundBrightnessThreshold'),
+        _Setting('grayscale.images', 'darkModeImageGrayscale'),
 
-        ('policy.images', 'highContrastImagePolicy', _IMAGE_POLICIES),  # new: smart
-        ('contrast', 'highContrastContrast', None),
-        ('grayscale.all', 'highContrastGrayscale', _BOOLS),
-    ], {'algorithm', 'policy.images'}),
+        mandatory={'algorithm', 'policy.images'},
+    ),
+
+    Variant.qt_511_to_513: _Definition(
+        _Setting('algorithm', 'highContrastMode', _ALGORITHMS_BEFORE_QT_514),
+
+        _Setting('policy.images', 'highContrastImagePolicy', _IMAGE_POLICIES),
+        _Setting('contrast', 'highContrastContrast'),
+        _Setting('grayscale.all', 'highContrastGrayscale', _BOOLS),
+
+        mandatory={'algorithm', 'policy.images'},
+    ),
 }
 _DARK_MODE_DEFINITIONS[Variant.qt_515_3] = _DARK_MODE_DEFINITIONS[Variant.qt_515_2]
 
@@ -269,20 +291,20 @@ def settings() -> Iterator[Tuple[str, str]]:
     if not config.val.colors.webpage.darkmode.enabled:
         return
 
-    setting_defs, mandatory_settings = _DARK_MODE_DEFINITIONS[variant]
+    definition = _DARK_MODE_DEFINITIONS[variant]
 
-    for setting, key, mapping in setting_defs:
+    for setting in definition.settings:
         # To avoid blowing up the commandline length, we only pass modified
         # settings to Chromium, as our defaults line up with Chromium's.
         # However, we always pass enabled/algorithm to make sure dark mode gets
         # actually turned on.
         value = config.instance.get(
-            'colors.webpage.darkmode.' + setting,
-            fallback=setting in mandatory_settings)
+            'colors.webpage.darkmode.' + setting.option,
+            fallback=setting.option in definition.mandatory)
         if isinstance(value, usertypes.Unset):
             continue
 
-        if (setting == 'policy.images' and value == 'smart' and
+        if (setting.option == 'policy.images' and value == 'smart' and
                 variant == Variant.qt_515_0):
             # WORKAROUND for
             # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211
@@ -290,7 +312,4 @@ def settings() -> Iterator[Tuple[str, str]]:
                              "because of Qt 5.15.0 bug")
             continue
 
-        if mapping is not None:
-            value = mapping[value]
-
-        yield key, str(value)
+        yield setting.chromium_tuple(value)
