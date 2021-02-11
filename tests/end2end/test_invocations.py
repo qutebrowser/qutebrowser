@@ -436,8 +436,9 @@ def test_preferred_colorscheme(request, quteproc_new):
     ]
     quteproc_new.start(args)
 
-    quteproc_new.send_cmd(':jseval matchMedia("(prefers-color-scheme: dark)").matches')
-    quteproc_new.wait_for(message='True')
+    quteproc_new.open_path('data/darkmode/prefers-color-scheme.html')
+    content = quteproc_new.get_content()
+    assert content == "Dark preference detected."
 
 
 @pytest.mark.qtwebkit_skip
