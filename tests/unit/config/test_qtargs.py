@@ -40,11 +40,20 @@ def parser(mocker):
 
 
 @pytest.fixture
-def reduce_args(monkeypatch, config_stub):
+def version_patcher(monkeypatch):
+    """Get a patching function to patch the QtWebEngine version."""
+    def run(ver):
+        versions = version.WebEngineVersions.from_pyqt(ver)
+        monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
+        monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
+
+    return run
+
+
+@pytest.fixture
+def reduce_args(config_stub, version_patcher):
     """Make sure no --disable-shared-workers/referer argument get added."""
-    monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: '5.15.0')
-    versions = version.WebEngineVersions.from_pyqt('5.15.0')
-    monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
+    version_patcher('5.15.0')
     config_stub.val.content.headers.referer = 'always'
 
 
@@ -107,31 +116,30 @@ class TestWebEngineArgs:
         (usertypes.Backend.QtWebEngine, True),
         (usertypes.Backend.QtWebKit, False),
     ])
-    def test_shared_workers(self, config_stub, monkeypatch, parser,
+    def test_shared_workers(self, config_stub, version_patcher, monkeypatch, parser,
                             backend, expected):
-        monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: '5.14.0')
+        version_patcher('5.14.0')
         monkeypatch.setattr(qtargs.objects, 'backend', backend)
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
         assert ('--disable-shared-workers' in args) == expected
 
-    @pytest.mark.parametrize('backend, version_check, debug_flag, expected', [
+    @pytest.mark.parametrize('backend, qt_version, debug_flag, expected', [
         # Qt >= 5.12.3: Enable with -D stack, do nothing without it.
-        (usertypes.Backend.QtWebEngine, True, True, True),
-        (usertypes.Backend.QtWebEngine, True, False, None),
+        (usertypes.Backend.QtWebEngine, '5.12.3', True, True),
+        (usertypes.Backend.QtWebEngine, '5.12.3', False, None),
         # Qt < 5.12.3: Do nothing with -D stack, disable without it.
-        (usertypes.Backend.QtWebEngine, False, True, None),
-        (usertypes.Backend.QtWebEngine, False, False, False),
+        (usertypes.Backend.QtWebEngine, '5.12.2', True, None),
+        (usertypes.Backend.QtWebEngine, '5.12.2', False, False),
         # QtWebKit: Do nothing
-        (usertypes.Backend.QtWebKit, True, True, None),
-        (usertypes.Backend.QtWebKit, True, False, None),
-        (usertypes.Backend.QtWebKit, False, True, None),
-        (usertypes.Backend.QtWebKit, False, False, None),
+        (usertypes.Backend.QtWebKit, '5.12.3', True, None),
+        (usertypes.Backend.QtWebKit, '5.12.3', False, None),
+        (usertypes.Backend.QtWebKit, '5.12.2', True, None),
+        (usertypes.Backend.QtWebKit, '5.12.2', False, None),
     ])
-    def test_in_process_stack_traces(self, monkeypatch, parser, backend,
-                                     version_check, debug_flag, expected):
-        monkeypatch.setattr(qtargs.qtutils, 'version_check',
-                            lambda version, compiled=False, exact=False: version_check)
+    def test_in_process_stack_traces(self, monkeypatch, parser, backend, version_patcher,
+                                     qt_version, debug_flag, expected):
+        version_patcher(qt_version)
         monkeypatch.setattr(qtargs.objects, 'backend', backend)
         parsed = parser.parse_args(['--debug-flag', 'stack'] if debug_flag
                                    else [])
@@ -153,8 +161,7 @@ class TestWebEngineArgs:
         (['--debug-flag', 'wait-renderer-process'], ['--renderer-startup-dialog']),
     ])
     def test_chromium_flags(self, monkeypatch, parser, flags, args):
-        monkeypatch.setattr(qtargs.objects, 'backend',
-                            usertypes.Backend.QtWebEngine)
+        monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
         parsed = parser.parse_args(flags)
         args = qtargs.qt_args(parsed)
 
@@ -172,10 +179,8 @@ class TestWebEngineArgs:
         ('software-opengl', False),
         ('chromium', True),
     ])
-    def test_disable_gpu(self, config, added,
-                         config_stub, monkeypatch, parser):
-        monkeypatch.setattr(qtargs.objects, 'backend',
-                            usertypes.Backend.QtWebEngine)
+    def test_disable_gpu(self, config, added, config_stub, monkeypatch, parser):
+        monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
         config_stub.val.qt.force_software_rendering = config
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
@@ -196,10 +201,8 @@ class TestWebEngineArgs:
          '--force-webrtc-ip-handling-policy='
          'disable_non_proxied_udp'),
     ])
-    def test_webrtc(self, config_stub, monkeypatch, parser,
-                    policy, arg):
-        monkeypatch.setattr(qtargs.objects, 'backend',
-                            usertypes.Backend.QtWebEngine)
+    def test_webrtc(self, config_stub, monkeypatch, parser, policy, arg):
+        monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
         config_stub.val.content.webrtc_ip_handling_policy = policy
 
         parsed = parser.parse_args([])
@@ -217,8 +220,7 @@ class TestWebEngineArgs:
     ])
     def test_canvas_reading(self, config_stub, monkeypatch, parser,
                             canvas_reading, added):
-        monkeypatch.setattr(qtargs.objects, 'backend',
-                            usertypes.Backend.QtWebEngine)
+        monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
 
         config_stub.val.content.canvas_reading = canvas_reading
         parsed = parser.parse_args([])
@@ -232,8 +234,7 @@ class TestWebEngineArgs:
     ])
     def test_process_model(self, config_stub, monkeypatch, parser,
                            process_model, added):
-        monkeypatch.setattr(qtargs.objects, 'backend',
-                            usertypes.Backend.QtWebEngine)
+        monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
 
         config_stub.val.qt.process_model = process_model
         parsed = parser.parse_args([])
@@ -254,8 +255,7 @@ class TestWebEngineArgs:
     ])
     def test_low_end_device_mode(self, config_stub, monkeypatch, parser,
                                  low_end_device_mode, arg):
-        monkeypatch.setattr(qtargs.objects, 'backend',
-                            usertypes.Backend.QtWebEngine)
+        monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
 
         config_stub.val.qt.low_end_device_mode = low_end_device_mode
         parsed = parser.parse_args([])
@@ -284,9 +284,10 @@ class TestWebEngineArgs:
         ('5.14.0', 'same-domain', '--enable-features=ReducedReferrerGranularity'),
         ('5.15.0', 'same-domain', '--enable-features=ReducedReferrerGranularity'),
     ])
-    def test_referer(self, config_stub, monkeypatch, parser, qt_version, referer, arg):
+    def test_referer(self, config_stub, monkeypatch, version_patcher, parser,
+                     qt_version, referer, arg):
         monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
-        monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: qt_version)
+        version_patcher(qt_version)
 
         # Avoid WebRTC pipewire feature
         monkeypatch.setattr(qtargs.utils, 'is_linux', False)
@@ -334,10 +335,8 @@ class TestWebEngineArgs:
     ])
     @utils.qt514
     def test_preferred_color_scheme(
-            self, config_stub, monkeypatch, parser, value, qt_version, added):
-        monkeypatch.setattr(qtargs.objects, 'backend',
-                            usertypes.Backend.QtWebEngine)
-        monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: qt_version)
+            self, config_stub, version_patcher, parser, value, qt_version, added):
+        version_patcher(qt_version)
 
         config_stub.val.colors.webpage.preferred_color_scheme = value
 
@@ -358,8 +357,7 @@ class TestWebEngineArgs:
     ])
     def test_overlay_scrollbar(self, config_stub, monkeypatch, parser,
                                bar, is_mac, added):
-        monkeypatch.setattr(qtargs.objects, 'backend',
-                            usertypes.Backend.QtWebEngine)
+        monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
         monkeypatch.setattr(qtargs.utils, 'is_mac', is_mac)
         # Avoid WebRTC pipewire feature
         monkeypatch.setattr(qtargs.utils, 'is_linux', False)
@@ -372,14 +370,10 @@ class TestWebEngineArgs:
         assert ('--enable-features=OverlayScrollbar' in args) == added
 
     @pytest.fixture
-    def feature_flag_patch(self, monkeypatch, config_stub):
+    def feature_flag_patch(self, monkeypatch, config_stub, version_patcher):
         """Patch away things affecting feature flags."""
         config_stub.val.scrolling.bar = 'never'
-        monkeypatch.setattr(qtargs.objects, 'backend',
-                            usertypes.Backend.QtWebEngine)
-        monkeypatch.setattr(qtargs.qtutils, 'version_check',
-                            lambda version, exact=False, compiled=True:
-                            True)
+        version_patcher('5.15.3')
         monkeypatch.setattr(qtargs.utils, 'is_mac', False)
         # Avoid WebRTC pipewire feature
         monkeypatch.setattr(qtargs.utils, 'is_linux', False)
@@ -465,10 +459,8 @@ class TestWebEngineArgs:
         ('5.15.3', False),
         ('6.0.0', False),
     ])
-    def test_installedapp_workaround(self, parser, monkeypatch, qt_version, has_workaround):
-        monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: qt_version)
-        monkeypatch.setattr(qtargs.objects, 'backend',
-                            usertypes.Backend.QtWebEngine)
+    def test_installedapp_workaround(self, parser, version_patcher, qt_version, has_workaround):
+        version_patcher(qt_version)
 
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)
@@ -507,7 +499,8 @@ class TestWebEngineArgs:
                                 variant, expected):
         from qutebrowser.browser.webengine import darkmode
         monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
-        monkeypatch.setattr(darkmode, '_variant', lambda: darkmode.Variant[variant])
+        monkeypatch.setattr(
+            darkmode, '_variant', lambda _versions: darkmode.Variant[variant])
 
         config_stub.val.colors.webpage.darkmode.enabled = True
 

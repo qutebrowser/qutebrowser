@@ -26,7 +26,7 @@ from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
-from qutebrowser.utils import usertypes, qtutils, utils, log
+from qutebrowser.utils import usertypes, qtutils, utils, log, version
 
 
 _ENABLE_FEATURES = '--enable-features='
@@ -67,11 +67,13 @@ def qt_args(namespace: argparse.Namespace) -> List[str]:
 
 
 def _qtwebengine_features(
+        versions: version.WebEngineVersions,
         special_flags: Sequence[str],
 ) -> Tuple[Sequence[str], Sequence[str]]:
     """Get a tuple of --enable-features/--disable-features flags for QtWebEngine.
 
     Args:
+        versions: The WebEngineVersions to get flags for.
         special_flags: Existing flags passed via the commandline.
     """
     enabled_features = []
@@ -89,7 +91,7 @@ def _qtwebengine_features(
         else:
             raise utils.Unreachable(flag)
 
-    if qtutils.version_check('5.15', compiled=False) and utils.is_linux:
+    if versions.webengine >= utils.VersionNumber(5, 15, 1) and utils.is_linux:
         # Enable WebRTC PipeWire for screen capturing on Wayland.
         #
         # This is disabled in Chromium by default because of the "dialog hell":
@@ -101,8 +103,7 @@ def _qtwebengine_features(
         #
         # In theory this would be supported with Qt 5.13 already, but
         # QtWebEngine only started picking up PipeWire correctly with Qt
-        # 5.15.1. Checking for 5.15 here to pick up Archlinux' patched package
-        # as well.
+        # 5.15.1.
         #
         # This only should be enabled on Wayland, but it's too early to check
         # that, as we don't have a QApplication available at this point. Thus,
@@ -125,20 +126,18 @@ def _qtwebengine_features(
         if config.val.scrolling.bar == 'overlay':
             enabled_features.append('OverlayScrollbar')
 
-    if (qtutils.version_check('5.14', compiled=False) and
+    if (versions.webengine >= utils.VersionNumber(5, 14) and
             config.val.content.headers.referer == 'same-domain'):
         # Handling of reduced-referrer-granularity in Chromium 76+
         # https://chromium-review.googlesource.com/c/chromium/src/+/1572699
         #
         # Note that this is removed entirely (and apparently the default) starting with
-        # Chromium 89 (Qt 5.15.x or 6.x):
+        # Chromium 89 (presumably arriving with Qt 6.2):
         # https://chromium-review.googlesource.com/c/chromium/src/+/2545444
         enabled_features.append('ReducedReferrerGranularity')
 
-    if qtutils.version_check('5.15.2', compiled=False, exact=True):
+    if versions.webengine == utils.VersionNumber(5, 15, 2):
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-89740
-        # FIXME Not needed anymore with QtWebEngne 5.15.3 (or Qt 6), but we'll probably
-        # have no way to detect that...
         disabled_features.append('InstalledApp')
 
     return (enabled_features, disabled_features)
@@ -149,10 +148,11 @@ def _qtwebengine_args(
         special_flags: Sequence[str],
 ) -> Iterator[str]:
     """Get the QtWebEngine arguments to use based on the config."""
-    is_qt_514 = (qtutils.version_check('5.14', compiled=False) and
-                 not qtutils.version_check('5.15', compiled=False))
+    versions = version.qtwebengine_versions(avoid_init=True)
 
-    if is_qt_514:
+    qt_514_ver = utils.VersionNumber(5, 14)
+    qt_515_ver = utils.VersionNumber(5, 15)
+    if qt_514_ver <= versions.webengine < qt_515_ver:
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-82105
         yield '--disable-shared-workers'
 
@@ -160,7 +160,7 @@ def _qtwebengine_args(
     # https://codereview.qt-project.org/c/qt/qtwebengine/+/256786
     # also see:
     # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/265753
-    if qtutils.version_check('5.12.3', compiled=False):
+    if versions.webengine >= utils.VersionNumber(5, 12, 3):
         if 'stack' in namespace.debug_flags:
             # Only actually available in Qt 5.12.5, but let's save another
             # check, as passing the option won't hurt.
@@ -177,22 +177,26 @@ def _qtwebengine_args(
         yield '--renderer-startup-dialog'
 
     from qutebrowser.browser.webengine import darkmode
-    for switch_name, values in darkmode.settings(special_flags).items():
+    darkmode_settings = darkmode.settings(
+        versions=versions,
+        special_flags=special_flags,
+    )
+    for switch_name, values in darkmode_settings.items():
         # If we need to use other switches (say, --enable-features), we might need to
         # refactor this so values still get combined with existing ones.
         assert switch_name in ['dark-mode-settings', 'blink-settings'], switch_name
         yield f'--{switch_name}=' + ','.join(f'{k}={v}' for k, v in values)
 
-    enabled_features, disabled_features = _qtwebengine_features(special_flags)
+    enabled_features, disabled_features = _qtwebengine_features(versions, special_flags)
     if enabled_features:
         yield _ENABLE_FEATURES + ','.join(enabled_features)
     if disabled_features:
         yield _DISABLE_FEATURES + ','.join(disabled_features)
 
-    yield from _qtwebengine_settings_args()
+    yield from _qtwebengine_settings_args(versions)
 
 
-def _qtwebengine_settings_args() -> Iterator[str]:
+def _qtwebengine_settings_args(versions: version.WebEngineVersions) -> Iterator[str]:
     settings: Dict[str, Dict[Any, Optional[str]]] = {
         'qt.force_software_rendering': {
             'software-opengl': None,
@@ -230,9 +234,9 @@ def _qtwebengine_settings_args() -> Iterator[str]:
             'always': None,
         }
     }
+    qt_514_ver = utils.VersionNumber(5, 14)
 
-    if (qtutils.version_check('5.14', compiled=False) and
-            not qtutils.version_check('5.15.2', compiled=False)):
+    if qt_514_ver <= versions.webengine < utils.VersionNumber(5, 15, 2):
         # In Qt 5.14 to 5.15.1, `--force-dark-mode` is used to set the
         # preferred colorscheme. In Qt 5.15.2, this is handled by a
         # blink-setting in browser/webengine/darkmode.py instead.
@@ -243,17 +247,17 @@ def _qtwebengine_settings_args() -> Iterator[str]:
         }
 
     referrer_setting = settings['content.headers.referer']
-    if qtutils.version_check('5.14', compiled=False):
+    if versions.webengine >= qt_514_ver:
         # Starting with Qt 5.14, this is handled via --enable-features
         referrer_setting['same-domain'] = None
     else:
         referrer_setting['same-domain'] = '--reduced-referrer-granularity'
 
-    can_override_referer = (
-        qtutils.version_check('5.12.4', compiled=False) and
-        not qtutils.version_check('5.13.0', compiled=False, exact=True)
-    )
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-60203
+    can_override_referer = (
+        versions.webengine >= utils.VersionNumber(5, 12, 4) and
+        versions.webengine != utils.VersionNumber(5, 13)
+    )
     referrer_setting['never'] = None if can_override_referer else '--no-referrers'
 
     for setting, args in sorted(settings.items()):

@@ -332,7 +332,7 @@ _PREFERRED_COLOR_SCHEME_DEFINITIONS = {
 }
 
 
-def _variant() -> Variant:
+def _variant(versions: version.WebEngineVersions) -> Variant:
     """Get the dark mode variant based on the underlying Qt version."""
     env_var = os.environ.get('QUTE_DARKMODE_VARIANT')
     if env_var is not None:
@@ -341,7 +341,6 @@ def _variant() -> Variant:
         except KeyError:
             log.init.warning(f"Ignoring invalid QUTE_DARKMODE_VARIANT={env_var}")
 
-    versions = version.qtwebengine_versions(avoid_init=True)
     if (versions.webengine == utils.VersionNumber(5, 15, 2) and
             versions.chromium is not None and
             versions.chromium.startswith('87.')):
@@ -362,7 +361,11 @@ def _variant() -> Variant:
     raise utils.Unreachable(versions.webengine)
 
 
-def settings(special_flags: Sequence[str]) -> Mapping[str, Sequence[Tuple[str, str]]]:
+def settings(
+        *,
+        versions: version.WebEngineVersions,
+        special_flags: Sequence[str],
+) -> Mapping[str, Sequence[Tuple[str, str]]]:
     """Get necessary blink settings to configure dark mode for QtWebEngine.
 
     Args:
@@ -373,7 +376,7 @@ def settings(special_flags: Sequence[str]) -> Mapping[str, Sequence[Tuple[str, s
         to a sequence of tuples, each tuple being a key/value pair to pass to that
         setting.
     """
-    variant = _variant()
+    variant = _variant(versions)
     result: Mapping[str, List[Tuple[str, str]]] = collections.defaultdict(list)
 
     blink_settings_flag = f'--{_BLINK_SETTINGS}='
