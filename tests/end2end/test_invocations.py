@@ -28,7 +28,7 @@ import json
 import time
 
 import pytest
-from PyQt5.QtCore import QProcess
+from PyQt5.QtCore import QProcess, QPoint
 
 from helpers import utils
 from qutebrowser.utils import version, qtutils
@@ -495,10 +495,9 @@ def test_preferred_colorscheme_with_dark_mode(request, quteproc_new):
     quteproc_new.open_path('data/darkmode/prefers-color-scheme.html')
     content = quteproc_new.get_content()
 
-    img = quteproc_new.get_screenshot()
-    # Position chosen by fair dice roll.
-    # https://xkcd.com/221/
-    color = utils.Color(img.pixelColor(4, 4))
+    pos = QPoint(0, 0)
+    img = quteproc_new.get_screenshot(probe=pos)
+    color = utils.Color(img.pixelColor(pos))
 
     if qtutils.version_check('5.15.2', exact=True, compiled=False):
         # Our workaround breaks when dark mode is enabled...
@@ -639,16 +638,13 @@ def test_dark_mode(quteproc_new, request, algorithm, filename, colors):
     expected = colors.get(minor_version, colors[None])
 
     quteproc_new.open_path(f'data/darkmode/{filename}.html')
-    for _ in range(3):
-        img = quteproc_new.get_screenshot()
-        # Position chosen by fair dice roll.
-        # https://xkcd.com/221/
-        color = utils.Color(img.pixelColor(4, 4))
-        if color == expected:
-            break
 
-        # Rendering might not be completed yet...
-        time.sleep(0.5)
+    # Position chosen by fair dice roll.
+    # https://xkcd.com/221/
+    pos = QPoint(4, 4)
+    black_expected = expected == utils.Color(0, 0, 0)
 
+    img = quteproc_new.get_screenshot(probe=None if black_expected else pos)
+    color = utils.Color(img.pixelColor(pos))
     # For pytest debug output
     assert color == expected
