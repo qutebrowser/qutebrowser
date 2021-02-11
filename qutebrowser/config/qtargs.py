@@ -31,6 +31,7 @@ from qutebrowser.utils import usertypes, qtutils, utils, log
 
 _ENABLE_FEATURES = '--enable-features='
 _DISABLE_FEATURES = '--disable-features='
+_BLINK_SETTINGS = '--blink-settings='
 
 
 def qt_args(namespace: argparse.Namespace) -> List[str]:
@@ -57,32 +58,34 @@ def qt_args(namespace: argparse.Namespace) -> List[str]:
         assert objects.backend == usertypes.Backend.QtWebKit, objects.backend
         return argv
 
-    feature_prefixes = (_ENABLE_FEATURES, _DISABLE_FEATURES)
-    feature_flags = [flag for flag in argv if flag.startswith(feature_prefixes)]
-    argv = [flag for flag in argv if not flag.startswith(feature_prefixes)]
-    argv += list(_qtwebengine_args(namespace, feature_flags))
+    special_prefixes = (_ENABLE_FEATURES, _DISABLE_FEATURES, _BLINK_SETTINGS)
+    special_flags = [flag for flag in argv if flag.startswith(special_prefixes)]
+    argv = [flag for flag in argv if not flag.startswith(special_prefixes)]
+    argv += list(_qtwebengine_args(namespace, special_flags))
 
     return argv
 
 
 def _qtwebengine_features(
-        feature_flags: Sequence[str],
+        special_flags: Sequence[str],
 ) -> Tuple[Sequence[str], Sequence[str]]:
     """Get a tuple of --enable-features/--disable-features flags for QtWebEngine.
 
     Args:
-        feature_flags: Existing flags passed via the commandline.
+        special_flags: Existing flags passed via the commandline.
     """
     enabled_features = []
     disabled_features = []
 
-    for flag in feature_flags:
+    for flag in special_flags:
         if flag.startswith(_ENABLE_FEATURES):
             flag = flag[len(_ENABLE_FEATURES):]
             enabled_features += flag.split(',')
         elif flag.startswith(_DISABLE_FEATURES):
             flag = flag[len(_DISABLE_FEATURES):]
             disabled_features += flag.split(',')
+        elif flag.startswith(_BLINK_SETTINGS):
+            pass
         else:
             raise utils.Unreachable(flag)
 
@@ -143,7 +146,7 @@ def _qtwebengine_features(
 
 def _qtwebengine_args(
         namespace: argparse.Namespace,
-        feature_flags: Sequence[str],
+        special_flags: Sequence[str],
 ) -> Iterator[str]:
     """Get the QtWebEngine arguments to use based on the config."""
     is_qt_514 = (qtutils.version_check('5.14', compiled=False) and
@@ -174,13 +177,13 @@ def _qtwebengine_args(
         yield '--renderer-startup-dialog'
 
     from qutebrowser.browser.webengine import darkmode
-    for switch_name, values in darkmode.settings().items():
+    for switch_name, values in darkmode.settings(special_flags).items():
         # If we need to use other switches (say, --enable-features), we might need to
         # refactor this so values still get combined with existing ones.
         assert switch_name in ['dark-mode-settings', 'blink-settings'], switch_name
         yield f'--{switch_name}=' + ','.join(f'{k}={v}' for k, v in values)
 
-    enabled_features, disabled_features = _qtwebengine_features(feature_flags)
+    enabled_features, disabled_features = _qtwebengine_features(special_flags)
     if enabled_features:
         yield _ENABLE_FEATURES + ','.join(enabled_features)
     if disabled_features:

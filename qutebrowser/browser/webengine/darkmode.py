@@ -104,6 +104,9 @@ from qutebrowser.config import config
 from qutebrowser.utils import usertypes, utils, log, version
 
 
+_BLINK_SETTINGS = 'blink-settings'
+
+
 class Variant(enum.Enum):
 
     """A dark mode variant."""
@@ -210,7 +213,7 @@ class _Definition:
         if switch_names is not None:
             self._switch_names = switch_names
         else:
-            self._switch_names = {None: 'blink-settings'}
+            self._switch_names = {None: _BLINK_SETTINGS}
 
     def prefixed_settings(self) -> Iterator[Tuple[str, _Setting]]:
         """Get all "prepared" settings.
@@ -253,7 +256,7 @@ _DEFINITIONS: MutableMapping[Variant, _Definition] = {
 
         mandatory={'enabled', 'policy.images'},
         prefix='',
-        switch_names={'enabled': 'blink-settings', None: 'dark-mode-settings'},
+        switch_names={'enabled': _BLINK_SETTINGS, None: 'dark-mode-settings'},
     ),
 
     # Qt 5.15.1 and 5.15.2 get added below, since there are only minor differences.
@@ -339,24 +342,35 @@ def _variant() -> Variant:
     raise utils.Unreachable(versions.webengine)
 
 
-def settings() -> Mapping[str, Sequence[Tuple[str, str]]]:
+def settings(special_flags: Sequence[str]) -> Mapping[str, Sequence[Tuple[str, str]]]:
     """Get necessary blink settings to configure dark mode for QtWebEngine.
 
-    Results are a dict which maps Chromium switch names (blink-settings or
-    dark-mode-settings) to a sequence of tuples, each tuple being a key/value pair to
-    pass to that setting.
+    Args:
+       Existing '--blink-settings=...' flags, if any.
+
+    Returns:
+        A dict which maps Chromium switch names (blink-settings or dark-mode-settings)
+        to a sequence of tuples, each tuple being a key/value pair to pass to that
+        setting.
     """
     variant = _variant()
     result: Mapping[str, List[Tuple[str, str]]] = collections.defaultdict(list)
 
+    blink_settings_flag = f'--{_BLINK_SETTINGS}='
+    for flag in special_flags:
+        if flag.startswith(blink_settings_flag):
+            for pair in flag[len(blink_settings_flag):].split(','):
+                key, val = pair.split('=', maxsplit=1)
+                result[_BLINK_SETTINGS].append((key, val))
+
     if config.val.colors.webpage.prefers_color_scheme_dark:
         if variant == Variant.qt_515_2:
-            result['blink-settings'].append(("preferredColorScheme", "1"))
+            result[_BLINK_SETTINGS].append(("preferredColorScheme", "1"))
         elif variant == Variant.qt_515_3:
             # With Chromium 85 (> Qt 5.15.2), the enumeration has changed in Blink and
             # this will need to be set to '0' instead:
             # https://chromium-review.googlesource.com/c/chromium/src/+/2232922
-            result['blink-settings'].append(("preferredColorScheme", "0"))
+            result[_BLINK_SETTINGS].append(("preferredColorScheme", "0"))
         # With older Qt versions, this is passed in qtargs.py as --force-dark-mode
         # instead.
 

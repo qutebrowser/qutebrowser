@@ -61,13 +61,13 @@ def test_colorscheme(config_stub, monkeypatch, webengine_version, enabled, expec
     versions = version.WebEngineVersions.from_pyqt(webengine_version)
     monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
     config_stub.val.colors.webpage.prefers_color_scheme_dark = enabled
-    assert darkmode.settings()['blink-settings'] == expected
+    assert darkmode.settings([])['blink-settings'] == expected
 
 
 @testutils.qt514
 def test_colorscheme_gentoo_workaround(config_stub, gentoo_version_patch):
     config_stub.val.colors.webpage.prefers_color_scheme_dark = True
-    assert darkmode.settings()['blink-settings'] == [("preferredColorScheme", "0")]
+    assert darkmode.settings([])['blink-settings'] == [("preferredColorScheme", "0")]
 
 
 @pytest.mark.parametrize('settings, expected', [
@@ -95,7 +95,7 @@ def test_basics(config_stub, monkeypatch, settings, expected):
     if expected:
         expected.append(('forceDarkModeImagePolicy', '2'))
 
-    assert darkmode.settings()['blink-settings'] == expected
+    assert darkmode.settings([])['blink-settings'] == expected
 
 
 QT_514_SETTINGS = {'blink-settings': [
@@ -161,7 +161,7 @@ def test_qt_version_differences(config_stub, monkeypatch, qversion, expected):
     for k, v in settings.items():
         config_stub.set_obj('colors.webpage.darkmode.' + k, v)
 
-    assert darkmode.settings() == expected
+    assert darkmode.settings([]) == expected
 
 
 @testutils.qt514
@@ -192,7 +192,7 @@ def test_customization(config_stub, monkeypatch, setting, value, exp_key, exp_va
         expected.append(('forceDarkModeImagePolicy', '2'))
     expected.append(('forceDarkMode' + exp_key, exp_val))
 
-    assert darkmode.settings()['blink-settings'] == expected
+    assert darkmode.settings([])['blink-settings'] == expected
 
 
 @pytest.mark.parametrize('webengine_version, expected', [
@@ -237,7 +237,7 @@ def test_broken_smart_images_policy(config_stub, monkeypatch, caplog):
     monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
 
     with caplog.at_level(logging.WARNING):
-        settings = darkmode.settings()['blink-settings']
+        settings = darkmode.settings([])['blink-settings']
 
     assert caplog.messages[-1] == (
         'Ignoring colors.webpage.darkmode.policy.images = smart because of '
@@ -248,6 +248,25 @@ def test_broken_smart_images_policy(config_stub, monkeypatch, caplog):
         [('darkMode', '4')],  # Qt 5.14
     ]
     assert settings in expected
+
+
+@pytest.mark.parametrize('flag, expected', [
+    ('--blink-settings=key=value', [('key', 'value')]),
+    ('--blink-settings=key=equal=rights', [('key', 'equal=rights')]),
+    ('--blink-settings=one=1,two=2', [('one', '1'), ('two', '2')]),
+    ('--enable-features=feat', []),
+])
+def test_pass_through_existing_settings(config_stub, monkeypatch, flag, expected):
+    config_stub.val.colors.webpage.darkmode.enabled = True
+    versions = version.WebEngineVersions.from_pyqt('5.15.2')
+    monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
+    settings = darkmode.settings([flag])
+
+    dark_mode_expected = [
+        ('forceDarkModeEnabled', 'true'),
+        ('forceDarkModeImagePolicy', '2'),
+    ]
+    assert settings['blink-settings'] == expected + dark_mode_expected
 
 
 def test_options(configdata_init):
