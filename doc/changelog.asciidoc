@@ -38,9 +38,12 @@ Changed
 Fixed
 ~~~~~
 
-- The `colors.webpage.prefers_color_scheme_dark` setting now works correctly
-  with the upcoming QtWebEngine 5.15.3 (and Gentoo, which at the time of writing
-  packages 5.15.3 disguised as 5.15.2).
+- The `colors.webpage.prefers_color_scheme_dark` and `colors.webpage.darkmode.*`
+  settings now work correctly with the upcoming QtWebEngine 5.15.3 (and Gentoo,
+  which at the time of writing packages 5.15.3 disguised as 5.15.2).
+- When dark mode settings were set, existing `blink-features` arguments in
+  `qt.args` (or `--qt-flag`) were overridden. They are now combined properly.
+
 
 [[v2.0.2]]
 v2.0.2 (2021-02-04)
