@@ -2826,13 +2826,16 @@ colors.webpage.bg:
   desc: "Background color for webpages if unset (or empty to use the theme's
     color)."
 
-colors.webpage.force_dark_color_scheme:
-  renamed: colors.webpage.prefers_color_scheme_dark
-
-colors.webpage.prefers_color_scheme_dark:
-  default: false
-  type: Bool
-  desc: "Force `prefers-color-scheme: dark` colors for websites."
+colors.webpage.preferred_color_scheme:
+  default: auto
+  type:
+    name: String
+    valid_values:
+      - auto: Use the system-wide color scheme setting.
+      - light: "Force a light theme. Only available with QtWebEngine 5.15.2+, same as
+            'auto' otherwise."
+      - dark: "Force a dark theme."
+  desc: "Value to use for `prefers-color-scheme:` for websites."
   backend:
     QtWebEngine: Qt 5.14
     QtWebKit: false

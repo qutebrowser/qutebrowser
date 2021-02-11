@@ -29,6 +29,11 @@ Changed
 ~~~~~~~
 
 - Initial support for Qt 5.15.3
+- The `colors.webpage.prefers_color_scheme_dark` setting got renamed to
+  `colors.webpage.preferred_color_scheme` and now takes the values `auto`, `light`
+  and `dark` (instead of being `True` for dark and `False` for auto).
+  Note that the `light` value is only supported with Qt 5.15.2+, falling back to
+  the same behavior as `auto` on older versions.
 - On Linux, qutebrowser now tries harder to find details about the installed
   QtWebEngine version by inspecting the QtWebEngine binary. This should reduce
   issues with dark mode not working when using differing (Py)QtWebEngine versions
@@ -38,7 +43,7 @@ Changed
 Fixed
 ~~~~~
 
-- The `colors.webpage.prefers_color_scheme_dark` and `colors.webpage.darkmode.*`
+- The `colors.webpage.preferred_color_scheme` and `colors.webpage.darkmode.*`
   settings now work correctly with the upcoming QtWebEngine 5.15.3 (and Gentoo,
   which at the time of writing packages 5.15.3 disguised as 5.15.2).
 - When dark mode settings were set, existing `blink-features` arguments in

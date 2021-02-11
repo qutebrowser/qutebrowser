@@ -302,27 +302,42 @@ class TestWebEngineArgs:
         else:
             assert arg in args
 
-    @pytest.mark.parametrize('dark, qt_version, added', [
-        (True, "5.13", False),  # not supported
-        (True, "5.14", True),
-        (True, "5.15.0", True),
-        (True, "5.15.1", True),
-        (True, "5.15.2", False),  # handled via blink setting
+    @pytest.mark.parametrize('value, qt_version, added', [
+        ("dark", "5.13", False),  # not supported
+        ("dark", "5.14", True),
+        ("dark", "5.15.0", True),
+        ("dark", "5.15.1", True),
+        # handled via blink setting
+        ("dark", "5.15.2", False),
+        ("dark", "5.15.3", False),
+        ("dark", "6.0.0", False),
 
-        (False, "5.13", False),
-        (False, "5.14", False),
-        (False, "5.15.0", False),
-        (False, "5.15.1", False),
-        (False, "5.15.2", False),
+        ("light", "5.13", False),
+        ("light", "5.14", False),
+        ("light", "5.15.0", False),
+        ("light", "5.15.1", False),
+        ("light", "5.15.2", False),
+        ("light", "5.15.2", False),
+        ("light", "5.15.3", False),
+        ("light", "6.0.0", False),
+
+        ("auto", "5.13", False),
+        ("auto", "5.14", False),
+        ("auto", "5.15.0", False),
+        ("auto", "5.15.1", False),
+        ("auto", "5.15.2", False),
+        ("auto", "5.15.2", False),
+        ("auto", "5.15.3", False),
+        ("auto", "6.0.0", False),
     ])
     @utils.qt514
-    def test_prefers_color_scheme_dark(self, config_stub, monkeypatch, parser,
-                                       dark, qt_version, added):
+    def test_preferred_color_scheme(
+            self, config_stub, monkeypatch, parser, value, qt_version, added):
         monkeypatch.setattr(qtargs.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
         monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: qt_version)
 
-        config_stub.val.colors.webpage.prefers_color_scheme_dark = dark
+        config_stub.val.colors.webpage.preferred_color_scheme = value
 
         parsed = parser.parse_args([])
         args = qtargs.qt_args(parsed)

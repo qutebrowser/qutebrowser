@@ -121,7 +121,7 @@
 |<<colors.webpage.darkmode.policy.page,colors.webpage.darkmode.policy.page>>|Which pages to apply dark mode to.
 |<<colors.webpage.darkmode.threshold.background,colors.webpage.darkmode.threshold.background>>|Threshold for inverting background elements with dark mode.
 |<<colors.webpage.darkmode.threshold.text,colors.webpage.darkmode.threshold.text>>|Threshold for inverting text with dark mode.
-|<<colors.webpage.prefers_color_scheme_dark,colors.webpage.prefers_color_scheme_dark>>|Force `prefers-color-scheme: dark` colors for websites.
+|<<colors.webpage.preferred_color_scheme,colors.webpage.preferred_color_scheme>>|Value to use for `prefers-color-scheme:` for websites.
 |<<completion.cmd_history_max_items,completion.cmd_history_max_items>>|Number of commands to save in the command history.
 |<<completion.delay,completion.delay>>|Delay (in milliseconds) before updating completions after typing a character.
 |<<completion.favorite_paths,completion.favorite_paths>>|Default filesystem autocomplete suggestions for :open.
@@ -1748,15 +1748,21 @@ On QtWebEngine, this setting requires Qt 5.14 or newer.
 
 On QtWebKit, this setting is unavailable.
 
-[[colors.webpage.prefers_color_scheme_dark]]
-=== colors.webpage.prefers_color_scheme_dark
-Force `prefers-color-scheme: dark` colors for websites.
+[[colors.webpage.preferred_color_scheme]]
+=== colors.webpage.preferred_color_scheme
+Value to use for `prefers-color-scheme:` for websites.
 
 This setting requires a restart.
 
-Type: <<types,Bool>>
+Type: <<types,String>>
 
-Default: +pass:[false]+
+Valid values:
+
+ * +auto+: Use the system-wide color scheme setting.
+ * +light+: Force a light theme. Only available with QtWebEngine 5.15.2+, same as 'auto' otherwise.
+ * +dark+: Force a dark theme.
+
+Default: +pass:[auto]+
 
 On QtWebEngine, this setting requires Qt 5.14 or newer.
 

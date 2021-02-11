@@ -319,9 +319,9 @@ described above.
 Is there a dark mode? How can I filter websites to be darker?::
 There is a total of four possible approaches to get dark websites:
 +
-- The `colors.webpage.prefers_color_scheme_dark` setting tells websites that you prefer
-  a dark theme. However, this requires websites to ship an appropriate dark style sheet.
-  The setting requires a restart and QtWebEngine with at least Qt 5.14.
+- The `colors.webpage.preferred_color_scheme` setting tells websites that you prefer
+  a light or dark theme. However, this requires websites to ship an appropriate dark
+  style sheet. The setting requires a restart and QtWebEngine with at least Qt 5.14.
 - The `colors.webpage.darkmode.*` settings enable the dark mode of the underlying
   Chromium. Those setting require a restart and QtWebEngine with at least Qt 5.14. It's
   unfortunately not possible (due to limitations

@@ -312,6 +312,21 @@ _DEFINITIONS[Variant.qt_515_2] = (
     _DEFINITIONS[Variant.qt_515_1].copy_with('prefix', 'forceDarkMode'))
 
 
+_PREFERRED_COLOR_SCHEME_DEFINITIONS = {
+    # With older Qt versions, this is passed in qtargs.py as --force-dark-mode
+    # instead.
+
+    ## Qt 5.15.2
+    # 0: no-preference (not exposed)
+    (Variant.qt_515_2, "dark"): "1",
+    (Variant.qt_515_2, "light"): "2",
+
+    ## Qt >= 5.15.3
+    (Variant.qt_515_3, "dark"): "0",
+    (Variant.qt_515_3, "light"): "1",
+}
+
+
 def _variant() -> Variant:
     """Get the dark mode variant based on the underlying Qt version."""
     env_var = os.environ.get('QUTE_DARKMODE_VARIANT')
@@ -363,16 +378,13 @@ def settings(special_flags: Sequence[str]) -> Mapping[str, Sequence[Tuple[str, s
                 key, val = pair.split('=', maxsplit=1)
                 result[_BLINK_SETTINGS].append((key, val))
 
-    if config.val.colors.webpage.prefers_color_scheme_dark:
-        if variant == Variant.qt_515_2:
-            result[_BLINK_SETTINGS].append(("preferredColorScheme", "1"))
-        elif variant == Variant.qt_515_3:
-            # With Chromium 85 (> Qt 5.15.2), the enumeration has changed in Blink and
-            # this will need to be set to '0' instead:
-            # https://chromium-review.googlesource.com/c/chromium/src/+/2232922
-            result[_BLINK_SETTINGS].append(("preferredColorScheme", "0"))
-        # With older Qt versions, this is passed in qtargs.py as --force-dark-mode
-        # instead.
+    preferred_color_scheme_key = (
+        variant,
+        config.val.colors.webpage.preferred_color_scheme,
+    )
+    if preferred_color_scheme_key in _PREFERRED_COLOR_SCHEME_DEFINITIONS:
+        value = _PREFERRED_COLOR_SCHEME_DEFINITIONS[preferred_color_scheme_key]
+        result[_BLINK_SETTINGS].append(("preferredColorScheme", value))
 
     if not config.val.colors.webpage.darkmode.enabled:
         return result

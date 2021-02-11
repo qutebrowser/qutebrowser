@@ -31,7 +31,7 @@ import pytest
 from PyQt5.QtCore import QProcess
 
 from helpers import utils
-from qutebrowser.utils import version
+from qutebrowser.utils import version, qtutils
 
 
 ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,
@@ -426,19 +426,51 @@ def test_referrer(quteproc_new, server, server2, request, value, expected):
     assert headers.get('Referer') == expected
 
 
+def test_preferred_colorscheme_unsupported(request, quteproc_new):
+    """Test versions without preferred-color-scheme support."""
+    if request.config.webengine and qtutils.version_check('5.14'):
+        pytest.skip("preferred-color-scheme is supported")
+
+    args = _base_args(request.config) + ['--temp-basedir']
+    quteproc_new.start(args)
+    quteproc_new.open_path('data/darkmode/prefers-color-scheme.html')
+    content = quteproc_new.get_content()
+    assert content == "Preference support missing."
+
+
 @pytest.mark.qtwebkit_skip
 @utils.qt514
-def test_preferred_colorscheme(request, quteproc_new):
+@pytest.mark.parametrize('value', ["dark", "light", "auto", None])
+def test_preferred_colorscheme(request, quteproc_new, value):
     """Make sure the the preferred colorscheme is set."""
-    args = _base_args(request.config) + [
-        '--temp-basedir',
-        '-s', 'colors.webpage.prefers_color_scheme_dark', 'true',
-    ]
+    args = _base_args(request.config) + ['--temp-basedir']
+    if value is not None:
+        args += ['-s', 'colors.webpage.preferred_color_scheme', value]
     quteproc_new.start(args)
+
+    dark_text = "Dark preference detected."
+    light_text = "Light preference detected."
+
+    expected_values = {
+        "dark": [dark_text],
+        "light": [light_text],
+
+        # Depends on the environment the test is running in.
+        "auto": [dark_text, light_text],
+        None: [dark_text, light_text],
+    }
+    if not qtutils.version_check('5.15.2', compiled=False):
+        # On older versions, "light" is not supported, so the result will depend on the
+        # environment.
+        expected_values["light"].append(dark_text)
+    elif qtutils.version_check('5.15.2', exact=True, compiled=False):
+        # https://bugreports.qt.io/browse/QTBUG-89753
+        for key in ["auto", None]:
+            expected_values[key] = ["No preference detected."]
 
     quteproc_new.open_path('data/darkmode/prefers-color-scheme.html')
     content = quteproc_new.get_content()
-    assert content == "Dark preference detected."
+    assert content in expected_values[value]
 
 
 @pytest.mark.qtwebkit_skip

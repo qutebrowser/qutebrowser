@@ -617,6 +617,24 @@ class TestYamlMigrations:
     def test_title_format(self, migration_test, setting, old, new):
         migration_test(setting, old, new)
 
+    @pytest.mark.parametrize('setting', [
+        'colors.webpage.force_dark_color_scheme',
+        'colors.webpage.prefers_color_scheme_dark',
+    ])
+    @pytest.mark.parametrize('old, new', [
+        (True, 'dark'),
+        (False, 'auto'),
+    ])
+    def test_preferred_color_scheme(self, autoconfig, yaml, setting, old, new):
+        autoconfig.write({setting: {'global': old}})
+
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        assert setting not in data
+        assert data['colors.webpage.preferred_color_scheme']['global'] == new
+
     @pytest.mark.parametrize('old, new', [
         (None, ('Mozilla/5.0 ({os_info}) '
                 'AppleWebKit/{webkit_version} (KHTML, like Gecko) '

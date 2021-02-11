@@ -42,31 +42,42 @@ def gentoo_version_patch(monkeypatch):
     monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
 
 
-@pytest.mark.parametrize('webengine_version, enabled, expected', [
-    # Disabled or nothing set
-    ("5.14", False, []),
-    ("5.15.0", False, []),
-    ("5.15.1", False, []),
-    ("5.15.2", False, []),
+@pytest.mark.parametrize('value, webengine_version, expected', [
+    # Auto
+    ("auto", "5.14", []),
+    ("auto", "5.15.0", []),
+    ("auto", "5.15.1", []),
+    ("auto", "5.15.2", []),
+    ("auto", "5.15.3", []),
+    ("auto", "6.0.0", []),
 
-    # Enabled in configuration
-    ("5.14", True, []),
-    ("5.15.0", True, []),
-    ("5.15.1", True, []),
-    ("5.15.2", True, [("preferredColorScheme", "1")]),
-    ("5.15.3", True, [("preferredColorScheme", "0")]),
+    # Dark
+    ("dark", "5.14", []),
+    ("dark", "5.15.0", []),
+    ("dark", "5.15.1", []),
+    ("dark", "5.15.2", [("preferredColorScheme", "1")]),
+    ("dark", "5.15.3", [("preferredColorScheme", "0")]),
+    ("dark", "6.0.0", [("preferredColorScheme", "0")]),
+
+    # Light
+    ("light", "5.14", []),
+    ("light", "5.15.0", []),
+    ("light", "5.15.1", []),
+    ("light", "5.15.2", [("preferredColorScheme", "2")]),
+    ("light", "5.15.3", [("preferredColorScheme", "1")]),
+    ("light", "6.0.0", [("preferredColorScheme", "1")]),
 ])
 @testutils.qt514
-def test_colorscheme(config_stub, monkeypatch, webengine_version, enabled, expected):
+def test_colorscheme(config_stub, monkeypatch, value, webengine_version, expected):
     versions = version.WebEngineVersions.from_pyqt(webengine_version)
     monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
-    config_stub.val.colors.webpage.prefers_color_scheme_dark = enabled
+    config_stub.val.colors.webpage.preferred_color_scheme = value
     assert darkmode.settings([])['blink-settings'] == expected
 
 
 @testutils.qt514
 def test_colorscheme_gentoo_workaround(config_stub, gentoo_version_patch):
-    config_stub.val.colors.webpage.prefers_color_scheme_dark = True
+    config_stub.val.colors.webpage.preferred_color_scheme = "dark"
     assert darkmode.settings([])['blink-settings'] == [("preferredColorScheme", "0")]
 
 

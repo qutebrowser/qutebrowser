@@ -236,9 +236,10 @@ def _qtwebengine_settings_args() -> Iterator[str]:
         # In Qt 5.14 to 5.15.1, `--force-dark-mode` is used to set the
         # preferred colorscheme. In Qt 5.15.2, this is handled by a
         # blink-setting in browser/webengine/darkmode.py instead.
-        settings['colors.webpage.prefers_color_scheme_dark'] = {
-            True: '--force-dark-mode',
-            False: None,
+        settings['colors.webpage.preferred_color_scheme'] = {
+            'dark': '--force-dark-mode',
+            'light': None,
+            'auto': None,
         }
 
     referrer_setting = settings['content.headers.referer']

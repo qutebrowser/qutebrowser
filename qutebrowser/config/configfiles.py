@@ -401,6 +401,15 @@ class YamlMigrations(QObject):
             true_value='never',
             false_value='always')
 
+        for setting in ['colors.webpage.force_dark_color_scheme',
+                        'colors.webpage.prefers_color_scheme_dark']:
+            self._migrate_renamed_bool(
+                old_name=setting,
+                new_name='colors.webpage.preferred_color_scheme',
+                true_value='dark',
+                false_value='auto',
+            )
+
         for setting in ['tabs.title.format',
                         'tabs.title.format_pinned',
                         'window.title_format']:
@@ -548,9 +557,7 @@ class YamlMigrations(QObject):
         del self._settings[old_name]
         self.changed.emit()
 
-    def _migrate_string_value(self, name: str,
-                              source: str,
-                              target: str) -> None:
+    def _migrate_string_value(self, name: str, source: str, target: str) -> None:
         if name not in self._settings:
             return
 
