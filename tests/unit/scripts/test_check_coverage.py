@@ -177,7 +177,7 @@ def test_untested_floats(covtest):
 
 
 @pytest.mark.skipif(
-    sys.version_info[:4] == (3, 10, 0, 'alpha') and sys.version_info.serial < 5,
+    sys.version_info[:4] == (3, 10, 0, 'alpha'),
     reason='Different results, see https://github.com/nedbat/coveragepy/issues/1106')
 def test_untested_branches(covtest):
     covtest.makefile("""

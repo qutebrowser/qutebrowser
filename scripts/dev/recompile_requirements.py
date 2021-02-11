@@ -74,7 +74,7 @@ CHANGELOG_URLS = {
     'snowballstemmer': 'https://github.com/snowballstem/snowball/blob/master/NEWS',
     'virtualenv': 'https://virtualenv.pypa.io/en/latest/changelog.html',
     'packaging': 'https://packaging.pypa.io/en/latest/changelog.html',
-    'build': 'https://github.com/pypa/build/commits/master',
+    'build': 'https://github.com/pypa/build/blob/master/CHANGELOG.rst',
     'attrs': 'https://www.attrs.org/en/stable/changelog.html',
     'Jinja2': 'https://github.com/pallets/jinja/blob/master/CHANGES.rst',
     'MarkupSafe': 'https://markupsafe.palletsprojects.com/en/1.1.x/changes/',
@@ -153,10 +153,8 @@ CHANGELOG_URLS = {
     'tldextract': 'https://github.com/john-kurkowski/tldextract/blob/master/CHANGELOG.md',
     'typing-extensions': 'https://github.com/python/typing/commits/master/typing_extensions',
     'diff-cover': 'https://github.com/Bachmann1234/diff_cover/blob/master/CHANGELOG',
-    'pytest-clarity': 'https://github.com/darrenburns/pytest-clarity/commits/master',
     'pytest-icdiff': 'https://github.com/hjwp/pytest-icdiff/blob/master/HISTORY.rst',
     'icdiff': 'https://github.com/jeffkaufman/icdiff/blob/master/ChangeLog',
-    'termcolor': 'https://pypi.org/project/termcolor/',
     'pprintpp': 'https://github.com/wolever/pprintpp/blob/master/CHANGELOG.txt',
     'beautifulsoup4': 'https://bazaar.launchpad.net/~leonardr/beautifulsoup/bs4/view/head:/CHANGELOG',
     'check-manifest': 'https://github.com/mgedmin/check-manifest/blob/master/CHANGES.rst',
@@ -179,6 +177,8 @@ CHANGELOG_URLS = {
     'pip': 'https://pip.pypa.io/en/stable/news/',
     'wheel': 'https://wheel.readthedocs.io/en/stable/news.html',
     'setuptools': 'https://setuptools.readthedocs.io/en/latest/history.html',
+    'semantic-version': 'https://github.com/rbarrois/python-semanticversion/blob/master/ChangeLog',
+    'setuptools-rust': 'https://github.com/PyO3/setuptools-rust/blob/master/CHANGELOG.md',
 }
 
 

@@ -28,23 +28,26 @@ from qutebrowser.utils import usertypes
 from helpers import utils
 
 
+@pytest.fixture
+def parser(mocker):
+    """Fixture to provide an argparser.
+
+    Monkey-patches .exit() of the argparser so it doesn't exit on errors.
+    """
+    parser = qutebrowser.get_argparser()
+    mocker.patch.object(parser, 'exit', side_effect=Exception)
+    return parser
+
+
+@pytest.fixture
+def reduce_args(monkeypatch, config_stub):
+    """Make sure no --disable-shared-workers/referer argument get added."""
+    monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: '5.15.0')
+    config_stub.val.content.headers.referer = 'always'
+
+
+@pytest.mark.usefixtures('reduce_args')
 class TestQtArgs:
-
-    @pytest.fixture
-    def parser(self, mocker):
-        """Fixture to provide an argparser.
-
-        Monkey-patches .exit() of the argparser so it doesn't exit on errors.
-        """
-        parser = qutebrowser.get_argparser()
-        mocker.patch.object(parser, 'exit', side_effect=Exception)
-        return parser
-
-    @pytest.fixture(autouse=True)
-    def reduce_args(self, monkeypatch, config_stub):
-        """Make sure no --disable-shared-workers/referer argument get added."""
-        monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: '5.15.0')
-        config_stub.val.content.headers.referer = 'always'
 
     @pytest.mark.parametrize('args, expected', [
         # No Qt arguments
@@ -88,6 +91,15 @@ class TestQtArgs:
         assert args[0] == sys.argv[0]
         for arg in ['--foo', '--bar']:
             assert arg in args
+
+
+@pytest.mark.usefixtures('reduce_args')
+class TestWebEngineArgs:
+
+    @pytest.fixture(autouse=True)
+    def ensure_webengine(self):
+        """Skip all tests if QtWebEngine is unavailable."""
+        pytest.importorskip("PyQt5.QtWebEngine")
 
     @pytest.mark.parametrize('backend, expected', [
         (usertypes.Backend.QtWebEngine, True),

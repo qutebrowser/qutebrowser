@@ -25,11 +25,13 @@ import sys
 import logging
 import re
 import json
+import time
 
 import pytest
 from PyQt5.QtCore import QProcess
 
 from helpers import utils
+from qutebrowser.utils import qtutils
 
 
 ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,
@@ -523,3 +525,94 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
 
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
+
+
+@pytest.mark.parametrize('filename, algorithm, colors', [
+    (
+        'blank',
+        'lightness-cielab',
+        {
+            '5.15': utils.Color(18, 18, 18),
+            '5.14': utils.Color(27, 27, 27),
+            'old': utils.Color(0, 0, 0),
+        }
+    ),
+    (
+        'blank',
+        'lightness-hsl',
+        {
+            '5.15': utils.Color(0, 0, 0),
+            '5.14': utils.Color(0, 0, 0),
+            'old': utils.Color(0, 0, 0),
+        }
+    ),
+    (
+        'blank',
+        'brightness-rgb',
+        {
+            '5.15': utils.Color(0, 0, 0),
+            '5.14': utils.Color(0, 0, 0),
+            'old': utils.Color(0, 0, 0),
+        }
+    ),
+
+    (
+        'yellow',
+        'lightness-cielab',
+        {
+            '5.15': utils.Color(35, 34, 0),
+            '5.14': utils.Color(35, 34, 0),
+            'old': utils.Color(204, 204, 0),
+        }
+    ),
+    (
+        'yellow',
+        'lightness-hsl',
+        {
+            '5.15': utils.Color(204, 204, 0),
+            '5.14': utils.Color(204, 204, 0),
+            'old': utils.Color(204, 204, 0),
+        }
+    ),
+    (
+        'yellow',
+        'brightness-rgb',
+        {
+            '5.15': utils.Color(0, 0, 204),
+            '5.14': utils.Color(0, 0, 204),
+            'old': utils.Color(0, 0, 204),
+        }
+    ),
+])
+def test_dark_mode(quteproc_new, request, algorithm, filename, colors):
+    if not request.config.webengine:
+        pytest.skip("QtWebEngine only")
+
+    args = _base_args(request.config) + [
+        '--temp-basedir',
+        '-s', 'colors.webpage.darkmode.enabled', 'true',
+        '-s', 'colors.webpage.darkmode.algorithm', algorithm,
+    ]
+    quteproc_new.start(args)
+
+    if qtutils.version_check('5.15', compiled=False):
+        expected = colors['5.15']
+    elif qtutils.version_check('5.14', compiled=False):
+        expected = colors['5.14']
+    else:
+        expected = colors['old']
+
+    quteproc_new.open_path(f'data/darkmode/{filename}.html')
+    for _ in range(3):
+        img = quteproc_new.get_screenshot()
+        # Position chosen by fair dice roll.
+        # https://xkcd.com/221/
+        color = utils.Color(img.pixelColor(4, 4))
+        if color == expected:
+            break
+
+        # Rendering might not be completed yet...
+        time.sleep(0.5)
+
+    # For pytest debug output
+    assert color == expected

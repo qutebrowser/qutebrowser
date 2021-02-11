@@ -27,8 +27,8 @@ from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional
                     Sequence, Set, Type, Union)
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
-                          QEvent, QPoint)
-from PyQt5.QtGui import QKeyEvent, QIcon
+                          QEvent, QPoint, QRect)
+from PyQt5.QtGui import QKeyEvent, QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QApplication, QDialog
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtNetwork import QNetworkAccessManager
@@ -1198,6 +1198,22 @@ class AbstractTab(QWidget):
         supported.
         """
         raise NotImplementedError
+
+    def grab_pixmap(self, rect: QRect = None) -> Optional[QPixmap]:
+        """Grab a QPixmap of the displayed page.
+
+        Returns None if we got a null pixmap from Qt.
+        """
+        if rect is None:
+            pic = self._widget.grab()
+        else:
+            qtutils.ensure_valid(rect)
+            pic = self._widget.grab(rect)
+
+        if pic.isNull():
+            return None
+
+        return pic
 
     def __repr__(self) -> str:
         try:

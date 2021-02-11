@@ -392,6 +392,25 @@ class TestRebuild:
             ('example.com/1', '', 1),
             ('example.com/2', '', 2),
         ]
+        assert not hist3.metainfo['force_rebuild']
+
+    def test_force_rebuild(self, web_history, stubs):
+        """Ensure that completion is regenerated if we force a rebuild."""
+        web_history.add_url(QUrl('example.com/1'), redirect=False, atime=1)
+        web_history.add_url(QUrl('example.com/2'), redirect=False, atime=2)
+        web_history.completion.delete('url', 'example.com/2')
+
+        hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
+        # User version always changes, so this won't work
+        # assert list(hist2.completion) == [('example.com/1', '', 1)]
+        hist2.metainfo['force_rebuild'] = True
+
+        hist3 = history.WebHistory(progress=stubs.FakeHistoryProgress())
+        assert list(hist3.completion) == [
+            ('example.com/1', '', 1),
+            ('example.com/2', '', 2),
+        ]
+        assert not hist3.metainfo['force_rebuild']
 
     def test_exclude(self, config_stub, web_history, stubs):
         """Ensure that patterns in completion.web_history.exclude are ignored.
@@ -443,6 +462,23 @@ class TestRebuild:
         assert progress._started
         assert progress._finished
 
+    def test_interrupted(self, stubs, web_history, monkeypatch):
+        """If we interrupt the rebuilding process, force_rebuild should still be set."""
+        web_history.add_url(QUrl('example.com/1'), redirect=False, atime=1)
+        progress = stubs.FakeHistoryProgress(raise_on_tick=True)
+
+        # Trigger a completion rebuild
+        monkeypatch.setattr(sql, 'user_version_changed', lambda: True)
+
+        with pytest.raises(Exception, match='tick-tock'):
+            history.WebHistory(progress=progress)
+
+        assert web_history.metainfo['force_rebuild']
+
+        # If we now try again, we should get another rebuild. But due to user_version
+        # always changing, we can't test this at the moment (see the FIXME in the
+        # docstring for details)
+
 
 class TestCompletionMetaInfo:
 
@@ -465,12 +501,6 @@ class TestCompletionMetaInfo:
 
     def test_contains(self, metainfo):
         assert 'excluded_patterns' in metainfo
-
-    def test_delete_old_key(self, monkeypatch, metainfo):
-        metainfo.insert({'key': 'force_rebuild', 'value': False})
-        info2 = history.CompletionMetaInfo()
-        monkeypatch.setitem(info2.KEYS, 'force_rebuild', False)
-        assert 'force_rebuild' not in info2
 
     def test_modify(self, metainfo):
         assert not metainfo['excluded_patterns']

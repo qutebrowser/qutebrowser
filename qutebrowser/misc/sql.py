@@ -66,7 +66,7 @@ class UserVersion:
 
 
 _db_user_version = None   # The user version we got from the database
-_USER_VERSION = UserVersion(0, 3)    # The current / newest user version
+_USER_VERSION = UserVersion(0, 4)    # The current / newest user version
 
 
 def user_version_changed():
@@ -409,13 +409,12 @@ class SqlTable(QObject):
         q.run()
         return q.query.next()
 
-    def delete(self, field, value, *, optional=False):
+    def delete(self, field, value):
         """Remove all rows for which `field` equals `value`.
 
         Args:
             field: Field to use as the key.
             value: Key value to delete.
-            optional: If set, non-existent values are ignored.
 
         Return:
             The number of rows deleted.
@@ -423,8 +422,6 @@ class SqlTable(QObject):
         q = Query(f"DELETE FROM {self._name} where {field} = :val")
         q.run(val=value)
         if not q.rows_affected():
-            if optional:
-                return
             raise KeyError('No row with {} = "{}"'.format(field, value))
         self.changed.emit()
 

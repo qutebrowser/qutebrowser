@@ -259,7 +259,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
 
     win_id: Optional[int] = None
 
-    if via_ipc and not args:
+    if via_ipc and (not args or args == ['']):
         win_id = mainwindow.get_window(via_ipc=via_ipc,
                                        target=new_window_target)
         _open_startpage(win_id)

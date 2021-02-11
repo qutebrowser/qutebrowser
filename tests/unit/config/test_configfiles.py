@@ -729,22 +729,28 @@ class ConfPy:
     def __init__(self, tmpdir, filename: str = "config.py"):
         self._file = tmpdir / filename
         self.filename = str(self._file)
-        config.instance.warn_autoconfig = False
 
     def write(self, *lines):
         text = '\n'.join(lines)
         self._file.write_text(text, 'utf-8', ensure=True)
 
-    def read(self, error=False):
+    def read(self, error=False, warn_autoconfig=False):
         """Read the config.py via configfiles and check for errors."""
         if error:
             with pytest.raises(configexc.ConfigFileErrors) as excinfo:
-                configfiles.read_config_py(self.filename)
+                configfiles.read_config_py(
+                    self.filename,
+                    warn_autoconfig=warn_autoconfig,
+                )
             errors = excinfo.value.errors
             assert len(errors) == 1
             return errors[0]
         else:
-            configfiles.read_config_py(self.filename, raising=True)
+            configfiles.read_config_py(
+                self.filename,
+                raising=True,
+                warn_autoconfig=warn_autoconfig,
+            )
             return None
 
     def write_qbmodule(self):
@@ -1025,9 +1031,8 @@ class TestConfigPy:
 
     def test_load_autoconfig_warning(self, confpy):
         confpy.write('')
-        config.instance.warn_autoconfig = True
         with pytest.raises(configexc.ConfigFileErrors) as excinfo:
-            configfiles.read_config_py(confpy.filename)
+            configfiles.read_config_py(confpy.filename, warn_autoconfig=True)
         assert len(excinfo.value.errors) == 1
         error = excinfo.value.errors[0]
         assert error.text == "autoconfig loading not specified"
@@ -1193,6 +1198,21 @@ class TestConfigPy:
 
         assert error.text == "Error while reading doesnotexist.py"
         assert isinstance(error.exception, FileNotFoundError)
+
+    @pytest.mark.parametrize('reverse', [True, False])
+    def test_source_warn_autoconfig(self, tmpdir, confpy, reverse):
+        subfile = tmpdir / 'config' / 'subfile.py'
+        subfile.write_text("c.content.javascript.enabled = False",
+                           encoding='utf-8')
+        lines = [
+            "config.source('subfile.py')",
+            "config.load_autoconfig(False)",
+        ]
+        if reverse:
+            lines.reverse()
+
+        confpy.write(*lines)
+        confpy.read(warn_autoconfig=True)
 
 
 class TestConfigPyWriter:

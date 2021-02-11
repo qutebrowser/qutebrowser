@@ -279,7 +279,7 @@ the following steps.
 1. Import the CA Certificate
 +
 ----
-certutil -D "sql:${HOME}/.pki/nssdb" -A -i <path_to_ca_cert.pem> -n "My Fancy CA" -t "TC,C,T"
+certutil -d "sql:${HOME}/.pki/nssdb" -A -i <path_to_ca_cert.pem> -n "My Fancy CA" -t "TC,C,T"
 ----
 +
 2. Merge your `<cert.crt>` and `<privkey.pem>` files into a single `PKCS#12`
@@ -522,8 +522,11 @@ privacy policies.
 
 When qutebrowser crashes or you use the `:report` command, you have the
 possibility to send a crash report. If you decide to do so, your crash report
-is stored on qutebrowser's server, where core qutebrowser developers (four
-people at the time of writing) can access it.
+is stored on qutebrowser's server, where qutebrowser's maintainer (Florian Bruhin / The
+Compiler) can access it. Before February 2021, other core qutebrowser developers (a
+maximum of four people total) could access the reports as well (access was restricted
+based on the sensitive nature of those reports, not because of any known issues with
+those individuals).
 
 If you select the option to include a debug log with your report, it's possible
 that sensitive information is contained in your report. You can show and edit
