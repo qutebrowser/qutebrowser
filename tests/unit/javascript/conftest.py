@@ -53,12 +53,13 @@ class JSTester:
             'warning': 'error'
         }
 
-    def load(self, path, **kwargs):
+    def load(self, path, base_url=QUrl(), **kwargs):
         """Load and display the given jinja test data.
 
         Args:
             path: The path to the test file, relative to the javascript/
                   folder.
+            base_url: The url to pass to set_html.
             **kwargs: Passed to jinja's template.render().
         """
         template = self._jinja_env.get_template(path)
@@ -66,14 +67,14 @@ class JSTester:
         try:
             with self.qtbot.waitSignal(self.tab.load_finished,
                                        timeout=2000) as blocker:
-                self.tab.set_html(template.render(**kwargs))
+                self.tab.set_html(template.render(**kwargs), base_url=base_url)
         except self.qtbot.TimeoutError:
             # Sometimes this fails for some odd reason on macOS, let's just try
             # again.
             print("Trying to load page again...")
             with self.qtbot.waitSignal(self.tab.load_finished,
                                        timeout=2000) as blocker:
-                self.tab.set_html(template.render(**kwargs))
+                self.tab.set_html(template.render(**kwargs), base_url=base_url)
 
         assert blocker.args == [True]
 
