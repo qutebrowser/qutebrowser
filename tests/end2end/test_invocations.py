@@ -459,6 +459,7 @@ def test_preferred_colorscheme(request, quteproc_new, value):
         "auto": [dark_text, light_text],
         None: [dark_text, light_text],
     }
+    xfail = False
     if not qtutils.version_check('5.15.2', compiled=False):
         # On older versions, "light" is not supported, so the result will depend on the
         # environment.
@@ -468,10 +469,46 @@ def test_preferred_colorscheme(request, quteproc_new, value):
         # With that workaround, we should always get the light preference.
         for key in ["auto", None]:
             expected_values[key].remove(dark_text)
+        xfail = value in ["auto", None]
 
     quteproc_new.open_path('data/darkmode/prefers-color-scheme.html')
     content = quteproc_new.get_content()
     assert content in expected_values[value]
+
+    if xfail:
+        # Unsatisfactory result, but expected based on a Qt bug.
+        pytest.xfail("QTBUG-89753")
+
+
+@pytest.mark.qtwebkit_skip
+@utils.qt514
+def test_preferred_colorscheme_with_dark_mode(request, quteproc_new):
+    """Test interaction between preferred-color-scheme and dark mode."""
+    args = _base_args(request.config) + [
+        '--temp-basedir',
+        '-s', 'colors.webpage.preferred_color_scheme', 'dark',
+        '-s', 'colors.webpage.darkmode.enabled', 'true',
+        '-s', 'colors.webpage.darkmode.algorithm', 'brightness-rgb',
+    ]
+    quteproc_new.start(args)
+
+    quteproc_new.open_path('data/darkmode/prefers-color-scheme.html')
+    content = quteproc_new.get_content()
+
+    img = quteproc_new.get_screenshot()
+    # Position chosen by fair dice roll.
+    # https://xkcd.com/221/
+    color = utils.Color(img.pixelColor(4, 4))
+
+    if qtutils.version_check('5.15.2', exact=True, compiled=False):
+        # Our workaround breaks when dark mode is enabled...
+        # Also, for some reason, dark mode doesn't work on that page either!
+        assert content == 'No preference detected.'
+        assert color == utils.Color(0, 170, 0)
+        pytest.xfail("QTBUG-89753")
+    else:
+        assert content == 'Dark preference detected.'
+        assert color == utils.Color(127, 127, 127)
 
 
 @pytest.mark.qtwebkit_skip

@@ -47,9 +47,17 @@ def gentoo_version_patch(monkeypatch):
     ("auto", "5.14", []),
     ("auto", "5.15.0", []),
     ("auto", "5.15.1", []),
-    ("auto", "5.15.2", []),
+    ("auto", "5.15.2", [("preferredColorScheme", "2")]),  # QTBUG-89753
     ("auto", "5.15.3", []),
     ("auto", "6.0.0", []),
+
+    # Unset
+    (None, "5.14", []),
+    (None, "5.15.0", []),
+    (None, "5.15.1", []),
+    (None, "5.15.2", [("preferredColorScheme", "2")]),  # QTBUG-89753
+    (None, "5.15.3", []),
+    (None, "6.0.0", []),
 
     # Dark
     ("dark", "5.14", []),
@@ -71,7 +79,8 @@ def gentoo_version_patch(monkeypatch):
 def test_colorscheme(config_stub, monkeypatch, value, webengine_version, expected):
     versions = version.WebEngineVersions.from_pyqt(webengine_version)
     monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
-    config_stub.val.colors.webpage.preferred_color_scheme = value
+    if value is not None:
+        config_stub.val.colors.webpage.preferred_color_scheme = value
     assert darkmode.settings([])['blink-settings'] == expected
 
 
@@ -86,25 +95,26 @@ def test_colorscheme_gentoo_workaround(config_stub, gentoo_version_patch):
     ({}, []),
 
     # Enabled without customization
-    ({'enabled': True}, [('forceDarkModeEnabled', 'true')]),
+    ({'enabled': True}, [('darkModeEnabled', 'true')]),
 
     # Algorithm
     (
         {'enabled': True, 'algorithm': 'brightness-rgb'},
         [
-            ('forceDarkModeEnabled', 'true'),
-            ('forceDarkModeInversionAlgorithm', '2')
+            ('darkModeEnabled', 'true'),
+            ('darkModeInversionAlgorithm', '2')
         ],
     ),
 ])
 def test_basics(config_stub, monkeypatch, settings, expected):
     for k, v in settings.items():
         config_stub.set_obj('colors.webpage.darkmode.' + k, v)
-    monkeypatch.setattr(darkmode, '_variant',
-                        lambda: darkmode.Variant.qt_515_2)
+
+    # Using Qt 5.15.1 because it has the least special cases.
+    monkeypatch.setattr(darkmode, '_variant', lambda: darkmode.Variant.qt_515_1)
 
     if expected:
-        expected.append(('forceDarkModeImagePolicy', '2'))
+        expected.append(('darkModeImagePolicy', '2'))
 
     assert darkmode.settings([])['blink-settings'] == expected
 
@@ -132,6 +142,7 @@ QT_515_1_SETTINGS = {'blink-settings': [
 
 
 QT_515_2_SETTINGS = {'blink-settings': [
+    ('preferredColorScheme', '2'),  # QTBUG-89753
     ('forceDarkModeEnabled', 'true'),
     ('forceDarkModeInversionAlgorithm', '2'),
     ('forceDarkModeImagePolicy', '2'),
@@ -195,13 +206,13 @@ def test_qt_version_differences(config_stub, monkeypatch, qversion, expected):
 def test_customization(config_stub, monkeypatch, setting, value, exp_key, exp_val):
     config_stub.val.colors.webpage.darkmode.enabled = True
     config_stub.set_obj('colors.webpage.darkmode.' + setting, value)
-    monkeypatch.setattr(darkmode, '_variant', lambda: darkmode.Variant.qt_515_2)
+    monkeypatch.setattr(darkmode, '_variant', lambda: darkmode.Variant.qt_515_1)
 
     expected = []
-    expected.append(('forceDarkModeEnabled', 'true'))
+    expected.append(('darkModeEnabled', 'true'))
     if exp_key != 'ImagePolicy':
-        expected.append(('forceDarkModeImagePolicy', '2'))
-    expected.append(('forceDarkMode' + exp_key, exp_val))
+        expected.append(('darkModeImagePolicy', '2'))
+    expected.append(('darkMode' + exp_key, exp_val))
 
     assert darkmode.settings([])['blink-settings'] == expected
 
@@ -269,13 +280,13 @@ def test_broken_smart_images_policy(config_stub, monkeypatch, caplog):
 ])
 def test_pass_through_existing_settings(config_stub, monkeypatch, flag, expected):
     config_stub.val.colors.webpage.darkmode.enabled = True
-    versions = version.WebEngineVersions.from_pyqt('5.15.2')
+    versions = version.WebEngineVersions.from_pyqt('5.15.1')
     monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
     settings = darkmode.settings([flag])
 
     dark_mode_expected = [
-        ('forceDarkModeEnabled', 'true'),
-        ('forceDarkModeImagePolicy', '2'),
+        ('darkModeEnabled', 'true'),
+        ('darkModeImagePolicy', '2'),
     ]
     assert settings['blink-settings'] == expected + dark_mode_expected
 

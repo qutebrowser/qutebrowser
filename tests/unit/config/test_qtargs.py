@@ -24,7 +24,7 @@ import pytest
 
 from qutebrowser import qutebrowser
 from qutebrowser.config import qtargs
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, version
 from helpers import utils
 
 
@@ -43,6 +43,8 @@ def parser(mocker):
 def reduce_args(monkeypatch, config_stub):
     """Make sure no --disable-shared-workers/referer argument get added."""
     monkeypatch.setattr(qtargs.qtutils, 'qVersion', lambda: '5.15.0')
+    versions = version.WebEngineVersions.from_pyqt('5.15.0')
+    monkeypatch.setattr(version, 'qtwebengine_versions', lambda avoid_init: versions)
     config_stub.val.content.headers.referer = 'always'
 
 
@@ -370,8 +372,9 @@ class TestWebEngineArgs:
         assert ('--enable-features=OverlayScrollbar' in args) == added
 
     @pytest.fixture
-    def feature_flag_patch(self, monkeypatch):
+    def feature_flag_patch(self, monkeypatch, config_stub):
         """Patch away things affecting feature flags."""
+        config_stub.val.scrolling.bar = 'never'
         monkeypatch.setattr(qtargs.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
         monkeypatch.setattr(qtargs.qtutils, 'version_check',
@@ -441,6 +444,20 @@ class TestWebEngineArgs:
         features -= {'InstalledApp'}
         assert features == set(passed_features)
 
+    def test_blink_settings_passthrough(self, parser, config_stub, feature_flag_patch):
+        config_stub.val.colors.webpage.darkmode.enabled = True
+
+        flag = qtargs._BLINK_SETTINGS + 'foo=bar'
+        parsed = parser.parse_args(['--qt-flag', flag.lstrip('-')])
+        args = qtargs.qt_args(parsed)
+
+        blink_settings_args = [
+            arg for arg in args
+            if arg.startswith(qtargs._BLINK_SETTINGS)
+        ]
+        assert len(blink_settings_args) == 1
+        assert blink_settings_args[0].startswith('--blink-settings=foo=bar,')
+
     @pytest.mark.parametrize('qt_version, has_workaround', [
         ('5.14.0', False),
         ('5.15.1', False),
@@ -465,8 +482,18 @@ class TestWebEngineArgs:
 
     @pytest.mark.parametrize('variant, expected', [
         (
+            'qt_515_1',
+            ['--blink-settings=darkModeEnabled=true,darkModeImagePolicy=2'],
+        ),
+        (
             'qt_515_2',
-            ['--blink-settings=forceDarkModeEnabled=true,forceDarkModeImagePolicy=2'],
+            [
+                (
+                    '--blink-settings=preferredColorScheme=2,'
+                    'forceDarkModeEnabled=true,'
+                    'forceDarkModeImagePolicy=2'
+                )
+            ],
         ),
         (
             'qt_515_3',
