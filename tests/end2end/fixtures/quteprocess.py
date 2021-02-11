@@ -888,12 +888,17 @@ class QuteProc(testprocess.Process):
             with open(path, 'r', encoding='utf-8') as f:
                 return f.read()
 
-    def get_screenshot(self, probe: QPoint = None) -> QImage:
+    def get_screenshot(
+            self,
+            *,
+            probe_pos: QPoint = None,
+            probe_color: QColor = testutils.Color(0, 0, 0),
+    ) -> QImage:
         """Get a screenshot of the current page.
 
         Arguments:
             probe: If given, only continue if the pixel at the given position isn't
-                   black.
+                   black (or whatever is specified by probe_color).
         """
         for _ in range(5):
             tmp_path = self.request.getfixturevalue('tmp_path')
@@ -904,13 +909,18 @@ class QuteProc(testprocess.Process):
             img = QImage(str(path))
             assert not img.isNull()
 
-            if probe is None or img.pixelColor(probe) != QColor(0, 0, 0):
+            if probe_pos is None:
+                return img
+
+            probed_color = testutils.Color(img.pixelColor(probe_pos))
+            if probed_color == probe_color:
                 return img
 
             # Rendering might not be completed yet...
             time.sleep(0.5)
 
-        raise ValueError("Pixel probing failed...")
+        raise ValueError(
+            f"Pixel probing for {probe_color} failed (got {probed_color} on last try)")
 
     def press_keys(self, keys):
         """Press the given keys using :fake-key."""

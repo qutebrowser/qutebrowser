@@ -25,7 +25,6 @@ import sys
 import logging
 import re
 import json
-import time
 
 import pytest
 from PyQt5.QtCore import QProcess, QPoint
@@ -495,19 +494,26 @@ def test_preferred_colorscheme_with_dark_mode(request, quteproc_new):
     quteproc_new.open_path('data/darkmode/prefers-color-scheme.html')
     content = quteproc_new.get_content()
 
-    pos = QPoint(0, 0)
-    img = quteproc_new.get_screenshot(probe=pos)
-    color = utils.Color(img.pixelColor(pos))
-
     if qtutils.version_check('5.15.2', exact=True, compiled=False):
         # Our workaround breaks when dark mode is enabled...
         # Also, for some reason, dark mode doesn't work on that page either!
-        assert content == 'No preference detected.'
-        assert color == utils.Color(0, 170, 0)
-        pytest.xfail("QTBUG-89753")
+        expected_text = 'No preference detected.'
+        expected_color = utils.Color(0, 170, 0)
+        xfail = True
     else:
-        assert content == 'Dark preference detected.'
-        assert color == utils.Color(127, 127, 127)
+        expected_text = 'Dark preference detected.'
+        expected_color = utils.Color(127, 127, 127)
+        xfail = False
+
+    pos = QPoint(0, 0)
+    img = quteproc_new.get_screenshot(probe_pos=pos, probe_color=expected_color)
+    color = utils.Color(img.pixelColor(pos))
+
+    assert content == expected_text
+    assert color == expected_color
+    if xfail:
+        # We still do some checks, but we want to mark the test outcome as xfail.
+        pytest.xfail("QTBUG-89753")
 
 
 @pytest.mark.qtwebkit_skip
@@ -644,9 +650,8 @@ def test_dark_mode(testdata_scheme, quteproc_new, request, algorithm, filename, 
     # Position chosen by fair dice roll.
     # https://xkcd.com/221/
     pos = QPoint(4, 4)
-    black_expected = expected == utils.Color(0, 0, 0)
+    img = quteproc_new.get_screenshot(probe_pos=pos, probe_color=expected)
 
-    img = quteproc_new.get_screenshot(probe=None if black_expected else pos)
     color = utils.Color(img.pixelColor(pos))
     # For pytest debug output
     assert color == expected
