@@ -36,9 +36,10 @@ Changed
   the same behavior as `auto` on older versions.
 - On Linux, qutebrowser now tries harder to find details about the installed
   QtWebEngine version by inspecting the QtWebEngine binary. This should reduce
-  issues with dark mode not working when using differing (Py)QtWebEngine versions
-  and also prepare qutebrowser for QtWebEngine 5.15.3, which will get released
-  without an updated Qt.
+  issues with dark mode (and some workarounds) not working when using differing
+  versions of QtWebEngine/PyQtWebEngine/Qt.
+  This change also prepares qutebrowser for QtWebEngine 5.15.3, which will get
+  released without an updated Qt.
 
 Fixed
 ~~~~~
