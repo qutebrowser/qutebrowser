@@ -172,47 +172,29 @@ class _Definition:
         for setting in self._settings:
             yield setting.with_prefix(self.prefix)
 
+    def with_mandatory(self, mandatory: Set[str]) -> '_Definition':
+        """Get a new _Definition object with a changed set of mandatory settings.
+
+        NOTE: This does *not* copy the settings list. Both objects will reference the
+        same list.
+        """
+        return _Definition(*self._settings, mandatory=mandatory, prefix=self.prefix)
+
+    def with_prefix(self, prefix: str) -> '_Definition':
+        """Get a new _Definition object with a changed prefix.
+
+        NOTE: This does *not* copy the settings list. Both objects will reference the
+        same list.
+        """
+        return _Definition(*self._settings, mandatory=self.mandatory, prefix=prefix)
+
 
 # Our defaults for policy.images are different from Chromium's, so we mark it as
 # mandatory setting - except on Qt 5.15.0 where we don't, so we don't get the
 # workaround warning below if the setting wasn't explicitly customized.
 
-_DARK_MODE_DEFINITIONS: MutableMapping[Variant, _Definition] = {
-    Variant.qt_515_2: _Definition(
-        # 'darkMode' renamed to 'forceDarkMode'
-        _Setting('enabled', 'Enabled', _BOOLS),
-        _Setting('algorithm', 'InversionAlgorithm', _ALGORITHMS),
-
-        _Setting('policy.images', 'ImagePolicy', _IMAGE_POLICIES),
-        _Setting('contrast', 'Contrast'),
-        _Setting('grayscale.all', 'Grayscale', _BOOLS),
-
-        _Setting('policy.page', 'PagePolicy', _PAGE_POLICIES),
-        _Setting('threshold.text', 'TextBrightnessThreshold'),
-        _Setting('threshold.background', 'BackgroundBrightnessThreshold'),
-        _Setting('grayscale.images', 'ImageGrayscale'),
-
-        mandatory={'enabled', 'policy.images'},
-        prefix='forceDarkMode',
-    ),
-
-    Variant.qt_515_1: _Definition(
-        # 'policy.images' mandatory again
-        _Setting('enabled', 'Enabled', _BOOLS),
-        _Setting('algorithm', 'InversionAlgorithm', _ALGORITHMS),
-
-        _Setting('policy.images', 'ImagePolicy', _IMAGE_POLICIES),
-        _Setting('contrast', 'Contrast'),
-        _Setting('grayscale.all', 'Grayscale', _BOOLS),
-
-        _Setting('policy.page', 'PagePolicy', _PAGE_POLICIES),
-        _Setting('threshold.text', 'TextBrightnessThreshold'),
-        _Setting('threshold.background', 'BackgroundBrightnessThreshold'),
-        _Setting('grayscale.images', 'ImageGrayscale'),
-
-        mandatory={'enabled', 'policy.images'},
-        prefix='darkMode',
-    ),
+_DEFINITIONS: MutableMapping[Variant, _Definition] = {
+    # Qt 5.15.1, 5.15.2 and 5.15.3 get added below
 
     Variant.qt_515_0: _Definition(
         # 'policy.images' not mandatory because it's broken
@@ -259,7 +241,11 @@ _DARK_MODE_DEFINITIONS: MutableMapping[Variant, _Definition] = {
         prefix='highContrast',
     ),
 }
-_DARK_MODE_DEFINITIONS[Variant.qt_515_3] = _DARK_MODE_DEFINITIONS[Variant.qt_515_2]
+_DEFINITIONS[Variant.qt_515_1] = _DEFINITIONS[Variant.qt_515_0].with_mandatory(
+    {'enabled', 'policy.images'})
+_DEFINITIONS[Variant.qt_515_2] = _DEFINITIONS[Variant.qt_515_1].with_prefix(
+    'forceDarkMode')
+_DEFINITIONS[Variant.qt_515_3] = _DEFINITIONS[Variant.qt_515_2]
 
 
 def _variant() -> Variant:
@@ -308,7 +294,7 @@ def settings() -> Iterator[Tuple[str, str]]:
     if not config.val.colors.webpage.darkmode.enabled:
         return
 
-    definition = _DARK_MODE_DEFINITIONS[variant]
+    definition = _DEFINITIONS[variant]
 
     for setting in definition.prefixed_settings():
         # To avoid blowing up the commandline length, we only pass modified
