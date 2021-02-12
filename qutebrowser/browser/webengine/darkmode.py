@@ -377,6 +377,8 @@ def settings(
         setting.
     """
     variant = _variant(versions)
+    log.init.debug(f"Darkmode variant: {variant.name}")
+
     result: Mapping[str, List[Tuple[str, str]]] = collections.defaultdict(list)
 
     blink_settings_flag = f'--{_BLINK_SETTINGS}='
