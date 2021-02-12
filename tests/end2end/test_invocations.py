@@ -502,7 +502,7 @@ def test_preferred_colorscheme_with_dark_mode(request, quteproc_new):
         xfail = True
     else:
         expected_text = 'Dark preference detected.'
-        expected_color = utils.Color(127, 127, 127)
+        expected_color = utils.Color(34, 34, 34)
         xfail = False
 
     pos = QPoint(0, 0)
