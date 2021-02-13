@@ -19,12 +19,13 @@
 
 import os.path
 import base64
+import dataclasses
 
 import pytest
 pytest.importorskip('PyQt5.QtWebEngineWidgets')
 from PyQt5.QtWebEngineWidgets import QWebEngineProfile
 
-from qutebrowser.utils import urlutils, usertypes
+from qutebrowser.utils import urlutils, usertypes, utils
 from qutebrowser.browser.webengine import webenginedownloads
 
 
@@ -39,6 +40,15 @@ from qutebrowser.browser.webengine import webenginedownloads
 ])
 def test_strip_suffix(path, expected):
     assert webenginedownloads._strip_suffix(path) == expected
+
+
+@dataclasses.dataclass
+class _ExpectedNames:
+
+    """The filenames used in the tests."""
+
+    before: str
+    after: str
 
 
 class TestDataUrlWorkaround:
@@ -71,6 +81,28 @@ class TestDataUrlWorkaround:
         return urlutils.data_url('application/pdf', pdf_bytes)
 
     @pytest.fixture
+    def expected_names(self, webengine_versions, pdf_bytes):
+        """Get the expected filenames before/after the workaround.
+
+        With QtWebEngine 5.15.3, this is handled correctly inside QtWebEngine
+        and we get a qwe_download.pdf instead.
+        """
+        if webengine_versions.webengine >= utils.VersionNumber(5, 15, 3):
+            return _ExpectedNames(before='qwe_download.pdf', after='qwe_download.pdf')
+
+        with_slash = b'% ?' in pdf_bytes
+        base64_data = base64.b64encode(pdf_bytes).decode('ascii')
+
+        if with_slash:
+            assert '/' in base64_data
+            before = base64_data.split('/')[1]
+        else:
+            assert '/' not in base64_data
+            before = 'pdf'  # from the mimetype
+
+        return _ExpectedNames(before=before, after='download.pdf')
+
+    @pytest.fixture
     def webengine_profile(self, qapp):
         profile = QWebEngineProfile.defaultProfile()
         profile.setParent(qapp)
@@ -86,13 +118,13 @@ class TestDataUrlWorkaround:
         webengine_profile.downloadRequested.disconnect()
 
     def test_workaround(self, webengine_tab, message_mock, qtbot,
-                        pdf_url, download_manager):
+                        pdf_url, download_manager, expected_names):
         """Verify our workaround works properly."""
         with qtbot.waitSignal(message_mock.got_question):
             webengine_tab.load_url(pdf_url)
 
         question = message_mock.get_question()
-        assert question.default == 'download.pdf'
+        assert question.default == expected_names.after
 
     def test_explicit_filename(self, webengine_tab, message_mock, qtbot,
                                pdf_url, download_manager):
@@ -112,20 +144,8 @@ class TestDataUrlWorkaround:
         question = message_mock.get_question()
         assert question.default == 'filename.pdf'
 
-    @pytest.fixture
-    def expected_wrong_filename(self, pdf_bytes):
-        with_slash = b'% ?' in pdf_bytes
-        base64_data = base64.b64encode(pdf_bytes).decode('ascii')
-
-        if with_slash:
-            assert '/' in base64_data
-            return base64_data.split('/')[1]
-        else:
-            assert '/' not in base64_data
-            return 'pdf'  # from the mimetype
-
     def test_workaround_needed(self, qtbot, webengineview,
-                               pdf_url, expected_wrong_filename, webengine_profile):
+                               pdf_url, expected_names, webengine_profile):
         """Verify that our workaround for this is still needed.
 
         In other words, check whether we get those base64-filenames rather than a
@@ -134,7 +154,7 @@ class TestDataUrlWorkaround:
         def check_item(item):
             assert item.mimeType() == 'application/pdf'
             assert item.url().scheme() == 'data'
-            assert os.path.basename(item.path()) == expected_wrong_filename
+            assert os.path.basename(item.path()) == expected_names.before
             return True
 
         with qtbot.waitSignal(webengine_profile.downloadRequested,
