@@ -36,6 +36,7 @@ import dataclasses
 import pytest
 import hypothesis
 import hypothesis.strategies
+from PyQt5.QtCore import PYQT_VERSION_STR
 
 import qutebrowser
 from qutebrowser.config import config, websettings
@@ -932,6 +933,9 @@ class TestWebEngineVersions:
 
     def test_real_chromium_version(self, qapp):
         """Compare the inferred Chromium version with the real one."""
+        if '.dev' in PYQT_VERSION_STR:
+            pytest.skip("dev version of PyQt5")
+
         try:
             from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION_STR
         except ImportError as e:
