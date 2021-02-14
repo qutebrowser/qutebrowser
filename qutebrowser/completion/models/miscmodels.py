@@ -21,85 +21,127 @@
 
 import datetime
 from typing import List, Sequence, Tuple
+from abc import ABC, abstractmethod
 
 from qutebrowser.config import config, configdata
 from qutebrowser.utils import objreg, log, utils
 from qutebrowser.completion.models import completionmodel, listcategory, util
 from qutebrowser.browser import inspector
+from qutebrowser.completion.completer import CompletionInfo
 
 
-def command(*, info):
+class DeletionUnsupportedError(Exception):
+    """Raises when the completion strategy does not support deletion"""
+
+
+class CompletionStrategy(ABC):
+    COLUMN_WIDTHS = (20, 70, 10)
+
+    def __init__(self):
+        self.model = completionmodel.CompletionModel(column_widths=self.COLUMN_WIDTHS)
+
+    @abstractmethod
+    def populate(self, *args: str, info: CompletionInfo) -> None:
+        pass
+
+    @classmethod
+    def delete(cls, data: Sequence[str]) -> None:
+        raise DeletionUnsupportedError(f"{cls} does not support deletion")
+
+
+class Command(CompletionStrategy):
+
     """A CompletionModel filled with non-hidden commands and descriptions."""
-    model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
-    cmdlist = util.get_cmd_completions(info, include_aliases=True,
-                                       include_hidden=False)
-    model.add_category(listcategory.ListCategory("Commands", cmdlist))
-    return model
+
+    COLUMN_WIDTHS = (20, 60, 20)
+
+    def populate(self, *args: str, info: CompletionInfo) -> None:
+        super().populate(*args, info=info)
+        cmdlist = util.get_cmd_completions(info, include_aliases=True,
+                                           include_hidden=False)
+        self.model.add_category(listcategory.ListCategory("Commands", cmdlist))
 
 
-def helptopic(*, info):
+class HelpTopic(CompletionStrategy):
+
     """A CompletionModel filled with help topics."""
-    model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
 
-    cmdlist = util.get_cmd_completions(info, include_aliases=False,
-                                       include_hidden=True, prefix=':')
-    settings = ((opt.name, opt.description, info.config.get_str(opt.name))
-                for opt in configdata.DATA.values())
+    def populate(self, *args: str, info: CompletionInfo) -> None:
+        super().populate(*args, info=info)
+        cmdlist = util.get_cmd_completions(info, include_aliases=False,
+                                           include_hidden=True, prefix=':')
+        settings = ((opt.name, opt.description, info.config.get_str(opt.name))
+                    for opt in configdata.DATA.values())
 
-    model.add_category(listcategory.ListCategory("Commands", cmdlist))
-    model.add_category(listcategory.ListCategory("Settings", settings))
-    return model
+        self.model.add_category(listcategory.ListCategory("Commands", cmdlist))
+        self.model.add_category(listcategory.ListCategory("Settings", settings))
 
 
-def quickmark(*, info=None):
+class QuickMark(CompletionStrategy):
+
     """A CompletionModel filled with all quickmarks."""
-    def delete(data: Sequence[str]) -> None:
+
+    COLUMN_WIDTHS = (30, 70, 0)
+
+    def populate(self, *args: str, info: CompletionInfo) -> None:
+        super().populate(*args, info=info)
+        utils.unused(info)
+        marks = objreg.get('quickmark-manager').marks.items()
+        self.model.add_category(listcategory.ListCategory('Quickmarks', marks,
+                                                     delete_func=self.delete,
+                                                     sort=False))
+
+    @classmethod
+    def delete(cls, data: Sequence[str]) -> None:
         """Delete a quickmark from the completion menu."""
         name = data[0]
         quickmark_manager = objreg.get('quickmark-manager')
         log.completion.debug('Deleting quickmark {}'.format(name))
         quickmark_manager.delete(name)
 
-    utils.unused(info)
-    model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
-    marks = objreg.get('quickmark-manager').marks.items()
-    model.add_category(listcategory.ListCategory('Quickmarks', marks,
-                                                 delete_func=delete,
-                                                 sort=False))
-    return model
 
+class BookMark(CompletionStrategy):
 
-def bookmark(*, info=None):
     """A CompletionModel filled with all bookmarks."""
-    def delete(data: Sequence[str]) -> None:
+
+    COLUMN_WIDTHS = (30, 70, 0)
+
+    def populate(self, *args: str, info: CompletionInfo) -> None:
+        super().populate(*args, info=info)
+        utils.unused(info)
+        marks = objreg.get('bookmark-manager').marks.items()
+        self.model.add_category(listcategory.ListCategory('Bookmarks', marks,
+                                                     delete_func=self.delete,
+                                                     sort=False))
+
+    @classmethod
+    def delete(cls, data: Sequence[str]) -> None:
         """Delete a bookmark from the completion menu."""
         urlstr = data[0]
         log.completion.debug('Deleting bookmark {}'.format(urlstr))
         bookmark_manager = objreg.get('bookmark-manager')
         bookmark_manager.delete(urlstr)
 
-    utils.unused(info)
-    model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
-    marks = objreg.get('bookmark-manager').marks.items()
-    model.add_category(listcategory.ListCategory('Bookmarks', marks,
-                                                 delete_func=delete,
-                                                 sort=False))
-    return model
 
+class Session(CompletionStrategy):
 
-def session(*, info=None):
     """A CompletionModel filled with session names."""
-    from qutebrowser.misc import sessions
-    utils.unused(info)
-    model = completionmodel.CompletionModel()
-    try:
-        sess = ((name,) for name
-                in sessions.session_manager.list_sessions()
-                if not name.startswith('_'))
-        model.add_category(listcategory.ListCategory("Sessions", sess))
-    except OSError:
-        log.completion.exception("Failed to list sessions!")
-    return model
+
+    COLUMN_WIDTHS = (30, 70, 0)
+
+    def populate(self, *args: str, info: CompletionInfo) -> None:
+        from qutebrowser.misc import sessions
+
+        super().populate(*args, info=info)
+        utils.unused(info)
+        model = completionmodel.CompletionModel()
+        try:
+            sess = ((name,) for name
+                    in sessions.session_manager.list_sessions()
+                    if not name.startswith('_'))
+            model.add_category(listcategory.ListCategory("Sessions", sess))
+        except OSError:
+            log.completion.exception("Failed to list sessions!")
 
 
 def _tabs(*, win_id_filter=lambda _win_id: True, add_win_id=True):
