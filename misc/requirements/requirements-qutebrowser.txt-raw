@@ -1,6 +1,5 @@
 Jinja2
 PyYAML
-attrs
 
 ## stdlib backports
 importlib-resources
