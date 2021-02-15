@@ -95,7 +95,7 @@ CHANGELOG_URLS = {
     'pep8-naming': 'https://github.com/PyCQA/pep8-naming/blob/master/CHANGELOG.rst',
     'pycodestyle': 'https://github.com/PyCQA/pycodestyle/blob/master/CHANGES.txt',
     'pyflakes': 'https://github.com/PyCQA/pyflakes/blob/master/NEWS.rst',
-    'cffi': 'https://cffi.readthedocs.io/en/latest/whatsnew.html',
+    'cffi': 'https://github.com/python-cffi/release-doc/blob/master/doc/source/whatsnew.rst',
     'astroid': 'https://github.com/PyCQA/astroid/blob/2.4/ChangeLog',
     'pytest-instafail': 'https://github.com/pytest-dev/pytest-instafail/blob/master/CHANGES.rst',
     'coverage': 'https://github.com/nedbat/coveragepy/blob/master/CHANGES.rst',
@@ -177,8 +177,6 @@ CHANGELOG_URLS = {
     'pip': 'https://pip.pypa.io/en/stable/news/',
     'wheel': 'https://wheel.readthedocs.io/en/stable/news.html',
     'setuptools': 'https://setuptools.readthedocs.io/en/latest/history.html',
-    'semantic-version': 'https://github.com/rbarrois/python-semanticversion/blob/master/ChangeLog',
-    'setuptools-rust': 'https://github.com/PyO3/setuptools-rust/blob/master/CHANGELOG.md',
 }
 
 
