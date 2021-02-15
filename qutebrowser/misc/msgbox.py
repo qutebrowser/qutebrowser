@@ -25,6 +25,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.misc import objects
+from qutebrowser.utils import log
 
 
 class DummyBox:
@@ -52,7 +53,7 @@ def msgbox(parent, title, text, *, icon, buttons=QMessageBox.Ok,
         A new QMessageBox.
     """
     if objects.args.no_err_windows:
-        print('Message box: {}; {}'.format(title, text), file=sys.stderr)
+        log.misc.info(f'{title}\n\n{text}')
         return DummyBox()
 
     box = QMessageBox(parent)
