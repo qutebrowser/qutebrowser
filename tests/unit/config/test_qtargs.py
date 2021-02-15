@@ -105,6 +105,23 @@ class TestQtArgs:
             assert arg in args
 
 
+def test_no_webengine_available(monkeypatch, config_stub, parser, stubs):
+    """Test that we don't fail if QtWebEngine is requested but unavailable.
+
+    Note this is not inside TestQtArgs because we don't want the reduce_args patching
+    here.
+    """
+    monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
+    monkeypatch.setattr(qtargs.version, 'webenginesettings', None)
+
+    fake = stubs.ImportFake({'qutebrowser.browser.webengine': False}, monkeypatch)
+    fake.patch()
+
+    parsed = parser.parse_args([])
+    args = qtargs.qt_args(parsed)
+    assert args == [sys.argv[0]]
+
+
 @pytest.mark.usefixtures('reduce_args')
 class TestWebEngineArgs:
 

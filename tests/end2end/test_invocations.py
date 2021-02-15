@@ -23,6 +23,7 @@ import configparser
 import subprocess
 import sys
 import logging
+import importlib
 import re
 import json
 
@@ -660,3 +661,45 @@ def test_dark_mode(webengine_versions, quteproc_new, request,
     color = testutils.Color(img.pixelColor(pos))
     # For pytest debug output
     assert color == expected
+
+
+def test_unavailable_backend(request, quteproc_new):
+    """Test starting with a backend which isn't available.
+
+    If we use --qute-bdd-webengine, we test with QtWebKit here; otherwise we test with
+    QtWebEngine. If both are available, the test is skipped.
+
+    This ensures that we don't accidentally use backend-specific code before checking
+    that the chosen backend is actually available - i.e., that the error message is
+    properly printed, rather than an unhandled exception.
+    """
+    qtwe_module = "PyQt5.QtWebEngineWidgets"
+    qtwk_module = "PyQt5.QtWebKitWidgets"
+    # Note we want to try the *opposite* backend here.
+    if request.config.webengine:
+        pytest.importorskip(qtwe_module)
+        module = qtwk_module
+        backend = 'webkit'
+    else:
+        pytest.importorskip(qtwk_module)
+        module = qtwe_module
+        backend = 'webengine'
+
+    try:
+        importlib.import_module(module)
+    except ImportError:
+        pass
+    else:
+        pytest.skip(f"{module} is available")
+
+    args = [
+        '--debug', '--json-logging', '--no-err-windows',
+        '--backend', backend,
+        '--temp-basedir'
+    ]
+    quteproc_new.exit_expected = True
+    quteproc_new.start(args)
+    line = quteproc_new.wait_for(
+        message=('*qutebrowser tried to start with the Qt* backend but failed '
+                 'because * could not be imported.*'))
+    line.expected = True

@@ -58,6 +58,19 @@ def qt_args(namespace: argparse.Namespace) -> List[str]:
         assert objects.backend == usertypes.Backend.QtWebKit, objects.backend
         return argv
 
+    try:
+        from qutebrowser.browser.webengine import webenginesettings
+    except ImportError:
+        # This code runs before a QApplication is available, so before
+        # backendproblem.py is run to actually inform the user of the missing
+        # backend. Thus, we could end up in a situation where we're here, but
+        # QtWebEngine isn't actually available.
+        # We shouldn't call _qtwebengine_args() in this case as it relies on
+        # QtWebEngine actually being importable, e.g. in
+        # version.qtwebengine_versions().
+        log.init.debug("QtWebEngine requested, but unavailable...")
+        return argv
+
     special_prefixes = (_ENABLE_FEATURES, _DISABLE_FEATURES, _BLINK_SETTINGS)
     special_flags = [flag for flag in argv if flag.startswith(special_prefixes)]
     argv = [flag for flag in argv if not flag.startswith(special_prefixes)]
