@@ -26,6 +26,9 @@ from unittest import mock
 import contextlib
 import shutil
 import dataclasses
+import builtins
+import importlib
+import types
 
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject, QUrl
 from PyQt5.QtGui import QIcon
@@ -679,3 +682,66 @@ class FakeCookieStore:
 
     def setCookieFilter(self, func):
         self.cookie_filter = func
+
+
+class ImportFake:
+
+    """A fake for __import__ which is used by the import_fake fixture.
+
+    Attributes:
+        modules: A dict mapping module names to bools. If True, the import will
+                 succeed. Otherwise, it'll fail with ImportError.
+        version_attribute: The name to use in the fake modules for the version
+                           attribute.
+        version: The version to use for the modules.
+        _real_import: Saving the real __import__ builtin so the imports can be
+                      done normally for modules not in self. modules.
+    """
+
+    def __init__(self, modules, monkeypatch):
+        self._monkeypatch = monkeypatch
+        self.modules = modules
+        self.version_attribute = '__version__'
+        self.version = '1.2.3'
+        self._real_import = builtins.__import__
+        self._real_importlib_import = importlib.import_module
+
+    def patch(self):
+        """Patch import functions."""
+        self._monkeypatch.setattr(builtins, '__import__', self.fake_import)
+        self._monkeypatch.setattr(
+            importlib, 'import_module', self.fake_importlib_import)
+
+    def _do_import(self, name):
+        """Helper for fake_import and fake_importlib_import to do the work.
+
+        Return:
+            The imported fake module, or None if normal importing should be
+            used.
+        """
+        if name not in self.modules:
+            # Not one of the modules to test -> use real import
+            return None
+        elif self.modules[name]:
+            ns = types.SimpleNamespace()
+            if self.version_attribute is not None:
+                setattr(ns, self.version_attribute, self.version)
+            return ns
+        else:
+            raise ImportError("Fake ImportError for {}.".format(name))
+
+    def fake_import(self, name, *args, **kwargs):
+        """Fake for the builtin __import__."""
+        module = self._do_import(name)
+        if module is not None:
+            return module
+        else:
+            return self._real_import(name, *args, **kwargs)
+
+    def fake_importlib_import(self, name):
+        """Fake for importlib.import_module."""
+        module = self._do_import(name)
+        if module is not None:
+            return module
+        else:
+            return self._real_importlib_import(name)
