@@ -336,8 +336,8 @@ There is a total of four possible approaches to get dark websites:
   https://github.com/alphapapa/solarized-everything-css/[Solarized Everything]. Despite
   the name, the repository also offers themes other than just Solarized. This approach
   often yields worse results compared to the above ones, but it's possible to toggle it
-  dynamically using a binding like `:bind ,d 'config-cycle content.user_stylesheets
-  ~/path/to/solarized-everything-css/css/gruvbox/gruvbox-all-sites.css ""'`
+  dynamically using a binding like `:bind ,d config-cycle content.user_stylesheets
+  ~/path/to/solarized-everything-css/css/gruvbox/gruvbox-all-sites.css ""`
 - Finally, qutebrowser's Greasemonkey support should allow for running a
   https://github.com/darkreader/darkreader/issues/926#issuecomment-575893299[stripped down version]
   of the Dark Reader extension. This is mostly untested, though.
