@@ -21,7 +21,6 @@
 
 import io
 import sys
-import collections
 import os.path
 import subprocess
 import contextlib

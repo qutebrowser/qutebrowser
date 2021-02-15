@@ -59,6 +59,7 @@ def qt_args(namespace: argparse.Namespace) -> List[str]:
         return argv
 
     try:
+        # pylint: disable=unused-import
         from qutebrowser.browser.webengine import webenginesettings
     except ImportError:
         # This code runs before a QApplication is available, so before
