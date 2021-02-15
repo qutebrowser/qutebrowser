@@ -15,12 +15,12 @@ filelock==3.0.12
 Flask==1.1.2
 glob2==0.7
 hunter==3.3.1
-hypothesis==6.1.1
+hypothesis==6.2.0
 icdiff==1.9.1
 idna==2.10
 iniconfig==1.1.1
 itsdangerous==1.1.0
-jaraco.functools==3.1.0
+jaraco.functools==3.2.0
 # Jinja2==2.11.3
 Mako==1.1.4
 manhole==1.6.0
@@ -33,7 +33,7 @@ pluggy==0.13.1
 pprintpp==0.4.0
 py==1.10.0
 py-cpuinfo==7.0.0
-Pygments==2.7.4
+Pygments==2.8.0
 pyparsing==2.4.7
 pytest==6.2.2
 pytest-bdd==4.0.2
@@ -46,14 +46,14 @@ pytest-mock==3.5.1
 pytest-qt==3.3.0
 pytest-repeat==0.9.1
 pytest-rerunfailures==9.1.1
-pytest-xdist==2.2.0
+pytest-xdist==2.2.1
 pytest-xvfb==2.0.0
 PyVirtualDisplay==2.0
 requests==2.25.1
 requests-file==1.5.1
 six==1.15.0
 sortedcontainers==2.3.0
-soupsieve==2.1
+soupsieve==2.2
 tldextract==3.1.0
 toml==0.10.2
 urllib3==1.26.3
