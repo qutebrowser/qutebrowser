@@ -11,7 +11,7 @@ MarkupSafe==1.1.1
 mypy==0.800
 mypy-extensions==0.4.3
 pluggy==0.13.1
-Pygments==2.7.4
+Pygments==2.8.0
 -e git+https://github.com/stlehmann/PyQt5-stubs.git@307eb693f63bd91ac67631ea57c4620e2c363435#egg=PyQt5_stubs
 typed-ast==1.4.2
 typing-extensions==3.7.4.3
