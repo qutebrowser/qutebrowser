@@ -443,6 +443,9 @@ def test_preferred_colorscheme_unsupported(request, quteproc_new):
 @pytest.mark.parametrize('value', ["dark", "light", "auto", None])
 def test_preferred_colorscheme(request, quteproc_new, value):
     """Make sure the the preferred colorscheme is set."""
+    if not request.config.webengine:
+        pytest.skip("Skipped with QtWebKit")
+
     args = _base_args(request.config) + ['--temp-basedir']
     if value is not None:
         args += ['-s', 'colors.webpage.preferred_color_scheme', value]
@@ -484,6 +487,9 @@ def test_preferred_colorscheme(request, quteproc_new, value):
 def test_preferred_colorscheme_with_dark_mode(
         request, quteproc_new, webengine_versions):
     """Test interaction between preferred-color-scheme and dark mode."""
+    if not request.config.webengine:
+        pytest.skip("Skipped with QtWebKit")
+
     args = _base_args(request.config) + [
         '--temp-basedir',
         '-s', 'colors.webpage.preferred_color_scheme', 'dark',
@@ -640,6 +646,9 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
 ])
 def test_dark_mode(webengine_versions, quteproc_new, request,
                    filename, algorithm, colors):
+    if not request.config.webengine:
+        pytest.skip("Skipped with QtWebKit")
+
     args = _base_args(request.config) + [
         '--temp-basedir',
         '-s', 'colors.webpage.darkmode.enabled', 'true',
