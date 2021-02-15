@@ -108,24 +108,21 @@ class Distribution(enum.Enum):
     ubuntu = enum.auto()
     debian = enum.auto()
     void = enum.auto()
-    arch = enum.auto()
+    arch = enum.auto()  # includes rolling-release derivatives
     gentoo = enum.auto()  # includes funtoo
     fedora = enum.auto()
     opensuse = enum.auto()
     linuxmint = enum.auto()
     manjaro = enum.auto()
     kde_flatpak = enum.auto()  # org.kde.Platform
+    neon = enum.auto()
+    nixos = enum.auto()
+    alpine = enum.auto()
+    solus = enum.auto()
 
 
-def distribution() -> Optional[DistributionInfo]:
-    """Get some information about the running Linux distribution.
-
-    Returns:
-        A DistributionInfo object, or None if no info could be determined.
-            parsed: A Distribution enum member
-            version: A Version object, or None
-            pretty: Always a string (might be "Unknown")
-    """
+def _parse_os_release() -> Optional[Dict[str, str]]:
+    """Parse an /etc/os-release file."""
     filename = os.environ.get('QUTE_FAKE_OS_RELEASE', '/etc/os-release')
     info = {}
     try:
@@ -139,32 +136,57 @@ def distribution() -> Optional[DistributionInfo]:
     except (OSError, UnicodeDecodeError):
         return None
 
+    return info
+
+
+def distribution() -> Optional[DistributionInfo]:
+    """Get some information about the running Linux distribution.
+
+    Returns:
+        A DistributionInfo object, or None if no info could be determined.
+            parsed: A Distribution enum member
+            version: A Version object, or None
+            pretty: Always a string (might be "Unknown")
+    """
+    info = _parse_os_release()
+    if info is None:
+        return None
+
     pretty = info.get('PRETTY_NAME', None)
     if pretty in ['Linux', None]:  # Funtoo has PRETTY_NAME=Linux
         pretty = info.get('NAME', 'Unknown')
     assert pretty is not None
 
-    if 'VERSION_ID' in info:
-        version_id = info['VERSION_ID']
-        dist_version: Optional[utils.VersionNumber] = utils.parse_version(version_id)
-    else:
-        dist_version = None
+    dist_version: Optional[utils.VersionNumber] = None
+    for version_key in ['VERSION', 'VERSION_ID']:
+        if version_key in info:
+            dist_version = utils.parse_version(info[version_key])
+            break
 
     dist_id = info.get('ID', None)
     id_mappings = {
         'funtoo': 'gentoo',  # does not have ID_LIKE=gentoo
+        'artix': 'arch',
         'org.kde.Platform': 'kde_flatpak',
     }
 
-    parsed = Distribution.unknown
+    ids = []
     if dist_id is not None:
+        ids.append(id_mappings.get(dist_id, dist_id))
+    if 'ID_LIKE' in info:
+        ids.extend(info['ID_LIKE'].split())
+
+    parsed = Distribution.unknown
+    for cur_id in ids:
         try:
-            parsed = Distribution[id_mappings.get(dist_id, dist_id)]
+            parsed = Distribution[cur_id]
         except KeyError:
             pass
+        else:
+            break
 
-    return DistributionInfo(parsed=parsed, version=dist_version, pretty=pretty,
-                            id=dist_id)
+    return DistributionInfo(
+        parsed=parsed, version=dist_version, pretty=pretty, id=dist_id)
 
 
 def is_sandboxed() -> bool:
