@@ -342,6 +342,12 @@ There is a total of four possible approaches to get dark websites:
   https://github.com/darkreader/darkreader/issues/926#issuecomment-575893299[stripped down version]
   of the Dark Reader extension. This is mostly untested, though.
 
+How do I make copy to clipboard buttons work?::
+You can `:set content.javascript.can_access_clipboard true`, or
+`:set -u some.domain content.javascript.can_access_clipboard true` if you want to limit
+the setting to `some.domain`.
+
+
 == Troubleshooting
 
 Unable to view Flash content.::
