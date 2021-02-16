@@ -492,12 +492,13 @@ def _init_modules(*, args):
 
     log.init.debug("Initializing command history...")
     cmdhistory.init()
-    log.init.debug("Initializing sessions...")
-    sessions.init(objects.qapp)
 
     log.init.debug("Initializing websettings...")
     websettings.init(args)
     quitter.instance.shutting_down.connect(websettings.shutdown)
+
+    log.init.debug("Initializing sessions...")
+    sessions.init(objects.qapp)
 
     if not args.no_err_windows:
         crashsignal.crash_handler.display_faulthandler()

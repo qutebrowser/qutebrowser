@@ -630,7 +630,8 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
         self._tab.load_url(url)
 
     def load_items(self, items):
-        if qtutils.version_check('5.15', compiled=False):
+        webengine_version = version.qtwebengine_versions().webengine
+        if webengine_version >= utils.VersionNumber(5, 15):
             self._load_items_workaround(items)
             return
 
