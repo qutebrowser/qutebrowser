@@ -21,6 +21,7 @@
 
 import math
 import functools
+import dataclasses
 import re
 import html as html_utils
 from typing import cast, Union, Optional
@@ -971,6 +972,16 @@ class _WebEnginePermissions(QObject):
             blocking=True)
 
 
+@dataclasses.dataclass
+class _Quirk:
+
+    filename: str
+    injection_point: QWebEngineScript.InjectionPoint = (
+        QWebEngineScript.DocumentCreation)
+    world: QWebEngineScript.ScriptWorldId = QWebEngineScript.MainWorld
+    predicate: bool = True
+
+
 class _WebEngineScripts(QObject):
 
     def __init__(self, tab, parent=None):
@@ -1138,33 +1149,36 @@ class _WebEngineScripts(QObject):
         if not config.val.content.site_specific_quirks:
             return
 
-        quirks = [
-            (
-                'whatsapp_web',
-                QWebEngineScript.DocumentReady,
-                QWebEngineScript.ApplicationWorld,
-            ),
-        ]
         versions = version.qtwebengine_versions()
-        if versions.webengine < utils.VersionNumber(5, 15, 3):
-            quirks.append((
+        quirks = [
+            _Quirk(
+                'whatsapp_web',
+                injection_point=QWebEngineScript.DocumentReady,
+                world=QWebEngineScript.ApplicationWorld,
+            ),
+            _Quirk(
                 'string_replaceall',
-                QWebEngineScript.DocumentCreation,
-                QWebEngineScript.MainWorld,
-            ))
-        if versions.webengine < utils.VersionNumber(5, 13):
-            quirks.append(('globalthis',
-                           QWebEngineScript.DocumentCreation,
-                           QWebEngineScript.MainWorld))
-            quirks.append(('object_fromentries',
-                           QWebEngineScript.DocumentCreation,
-                           QWebEngineScript.MainWorld))
+                predicate=versions.webengine < utils.VersionNumber(5, 15, 3),
+            ),
+            _Quirk(
+                'globalthis',
+                predicate=versions.webengine < utils.VersionNumber(5, 13),
+            ),
+            _Quirk(
+                'object_fromentries',
+                predicate=versions.webengine < utils.VersionNumber(5, 13),
+            )
+        ]
 
-        for filename, injection_point, world in quirks:
-            src = utils.read_file(f'javascript/quirks/{filename}.user.js')
+        for quirk in quirks:
+            if not quirk.predicate:
+                continue
+            src = utils.read_file(f'javascript/quirks/{quirk.filename}.user.js')
             self._inject_js(
-                f'quirk_{filename}', src,
-                world=world, injection_point=injection_point
+                f'quirk_{quirk.filename}',
+                src,
+                world=quirk.world,
+                injection_point=quirk.injection_point,
             )
 
 
