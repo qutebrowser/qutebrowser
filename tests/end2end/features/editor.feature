@@ -227,5 +227,6 @@ Feature: Opening external editors
         And I set fileselect.single_file.command to ['rm', '{}']
         And I open data/fileselect.html
         And I run :click-element id single_file
-        Then the warning "Failed to open tempfile .*" should be shown
-        And the javascript message "Files: 1.txt" should not be logged
+        Then the javascript message "Files: 1.txt" should not be logged
+        And the error "Failed to open tempfile *" should be shown
+        And "Failed to delete tempfile *" should be logged with level error

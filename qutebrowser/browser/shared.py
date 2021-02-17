@@ -376,7 +376,7 @@ def choose_file(multiple: bool) -> List[str]:
             with open(tmpfilename, mode='r', encoding=sys.getfilesystemencoding()) as f:
                 selected_files = f.read().splitlines()
         except OSError as e:
-            message.warning(f"Failed to open tempfile {tmpfilename} ({e})!")
+            message.error(f"Failed to open tempfile {tmpfilename} ({e})!")
             selected_files = []
 
     if not multiple:
