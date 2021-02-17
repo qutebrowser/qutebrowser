@@ -219,3 +219,13 @@ Feature: Opening external editors
         And I open data/fileselect.html
         And I run :click-element id multiple_files
         Then the javascript message "Files: 1.txt, 2.txt" should be logged
+
+    ## No temporary file created
+
+    Scenario: File selector deleting temporary file
+        When I set fileselect.handler to external
+        And I set fileselect.single_file.command to ['rm', '{}']
+        And I open data/fileselect.html
+        And I run :click-element id single_file
+        Then the warning "Failed to open tempfile .*" should be shown
+        And the javascript message "Files: 1.txt" should not be logged

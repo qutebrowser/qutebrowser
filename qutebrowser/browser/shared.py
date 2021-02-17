@@ -372,8 +372,12 @@ def choose_file(multiple: bool) -> List[str]:
         proc.finished.connect(lambda _code, _status: loop.exit())
         loop.exec()
 
-        with open(tmpfilename, mode='r', encoding=sys.getfilesystemencoding()) as f:
-            selected_files = f.read().splitlines()
+        try:
+            with open(tmpfilename, mode='r', encoding=sys.getfilesystemencoding()) as f:
+                selected_files = f.read().splitlines()
+        except OSError as e:
+            message.warning(f"Failed to open tempfile {tmpfilename} ({e})!")
+            selected_files = []
 
     if not multiple:
         if len(selected_files) > 1:
