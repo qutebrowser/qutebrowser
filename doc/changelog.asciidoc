@@ -53,6 +53,10 @@ Fixed
   query is broken and always returns `no-preference`, which was removed from the
   CSS WG Specification. This release contains a workaround to always return
   `light` instead (as per the spec).
+- When an external file selector deletes the temporary file (like `nnn` does
+  when quitting the terminal), qutebrowser would crash. It now displays an
+  error instead. The same applies if the temporary file is unreadable for any
+  other reason.
 
 
 [[v2.0.2]]
