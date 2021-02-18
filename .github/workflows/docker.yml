@@ -16,13 +16,6 @@ jobs:
           - archlinux-webengine
           - archlinux-webengine-unstable
     steps:
-      - name: Build latest runc to work around actions/virtual-environments#2698
-        run: |
-          sudo apt-get install libseccomp-dev
-          git clone https://github.com/opencontainers/runc
-          cd runc
-          make
-          sudo make install
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
