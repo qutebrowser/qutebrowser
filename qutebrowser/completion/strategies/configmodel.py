@@ -19,10 +19,14 @@
 
 """Functions that return config-related completion models."""
 
+from typing import Optional, Callable, Any
+
+from qutebrowser.completion.strategies.strategy import CompletionStrategy
 from qutebrowser.config import configdata, configexc
 from qutebrowser.completion.models import completionmodel, listcategory, util
 from qutebrowser.commands import runners, cmdexc
 from qutebrowser.keyinput import keyutils
+from qutebrowser.completion.completer import CompletionInfo
 
 
 def option(*, info):
@@ -56,7 +60,7 @@ def dict_option(*, info):
     return _option(info, "Dict options", predicate)
 
 
-def _option(info, title, predicate):
+class OptionMaker(CompletionStrategy):
     """A CompletionModel that is generated for several option sets.
 
     Args:
@@ -65,15 +69,22 @@ def _option(info, title, predicate):
         predicate: The function for filtering out the options. Takes a single
                    argument.
     """
-    model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
-    options = ((opt.name, opt.description, info.config.get_str(opt.name))
-               for opt in configdata.DATA.values()
-               if predicate(opt))
-    model.add_category(listcategory.ListCategory(title, options))
-    return model
+    COLUMN_WIDTHS = (20, 70, 10)
+
+    def __init__(self, title: str, predicate: Callable[[Optional[Any]], bool]):
+        super().__init__()
+        self.title = title
+        self.predicate = predicate
+
+    def populate(self, *args: str, info: Optional[CompletionInfo]) -> None:
+        super().populate(*args, info=info)
+        options = ((opt.name, opt.description, info.config.get_str(opt.name))
+                   for opt in configdata.DATA.values()
+                   if self.predicate(opt))
+        self.model.add_category(listcategory.ListCategory(self.title, options))
 
 
-def value(optname, *values, info):
+class Value(CompletionStrategy):
     """A CompletionModel filled with setting values.
 
     Args:
@@ -81,72 +92,83 @@ def value(optname, *values, info):
         values: The values already provided on the command line.
         info: A CompletionInfo instance.
     """
-    model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
+    COLUMN_WIDTHS = (30, 70, 0)
 
-    try:
-        current = info.config.get_str(optname)
-    except configexc.NoOptionError:
-        return None
+    def __init__(self, optname, *values):
+        super().__init__()
+        self.optname = optname
+        self.values = values
 
-    opt = info.config.get_opt(optname)
-    default = opt.typ.to_str(opt.default)
-    cur_def = []
-    if current not in values:
-        cur_def.append((current, "Current value"))
-    if default not in values:
-        cur_def.append((default, "Default value"))
-    if cur_def:
-        cur_cat = listcategory.ListCategory("Current/Default", cur_def)
-        model.add_category(cur_cat)
-
-    vals = opt.typ.complete() or []
-    vals = [x for x in vals if x[0] not in values]
-    if vals:
-        model.add_category(listcategory.ListCategory("Completions", vals))
-    return model
-
-
-def _bind_current_default(key, info):
-    """Get current/default data for the given key."""
-    data = []
-    try:
-        seq = keyutils.KeySequence.parse(key)
-    except keyutils.KeyParseError as e:
-        data.append(('', str(e), key))
-        return data
-
-    cmd_text = info.keyconf.get_command(seq, 'normal')
-    if cmd_text:
-        parser = runners.CommandParser()
+    def populate(self, *args: str, info: Optional[CompletionInfo]) -> None:
+        super().populate(*args, info=info)
         try:
-            cmd = parser.parse(cmd_text).cmd
-        except cmdexc.NoSuchCommandError:
-            data.append((cmd_text, '(Current) Invalid command!', key))
-        else:
-            data.append((cmd_text, '(Current) {}'.format(cmd.desc), key))
+            current = info.config.get_str(self.optname)
+        except configexc.NoOptionError:
+            return None
 
-    cmd_text = info.keyconf.get_command(seq, 'normal', default=True)
-    if cmd_text:
-        parser = runners.CommandParser()
-        cmd = parser.parse(cmd_text).cmd
-        data.append((cmd_text, '(Default) {}'.format(cmd.desc), key))
+        opt = info.config.get_opt(self.optname)
+        default = opt.typ.to_str(opt.default)
+        cur_def = []
+        if current not in self.values:
+            cur_def.append((current, "Current value"))
+        if default not in self.values:
+            cur_def.append((default, "Default value"))
+        if cur_def:
+            cur_cat = listcategory.ListCategory("Current/Default", cur_def)
+            self.model.add_category(cur_cat)
 
-    return data
+        vals = opt.typ.complete() or []
+        vals = [x for x in vals if x[0] not in self.values]
+        if vals:
+            self.model.add_category(listcategory.ListCategory("Completions", vals))
 
 
-def bind(key, *, info):
+class Bind(CompletionStrategy):
     """A CompletionModel filled with all bindable commands and descriptions.
 
     Args:
         key: the key being bound.
     """
-    model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
-    data = _bind_current_default(key, info)
+    COLUMN_WIDTHS = (20, 60, 20)
 
-    if data:
-        model.add_category(listcategory.ListCategory("Current/Default", data))
+    def __init__(self, key: str):
+        super().__init__()
+        self.key = key
 
-    cmdlist = util.get_cmd_completions(info, include_hidden=True,
-                                       include_aliases=True)
-    model.add_category(listcategory.ListCategory("Commands", cmdlist))
-    return model
+    def _bind_current_default(self, info):
+        """Get current/default data for the given key."""
+        data = []
+        try:
+            seq = keyutils.KeySequence.parse(self.key)
+        except keyutils.KeyParseError as e:
+            data.append(('', str(e), self.key))
+            return data
+
+        cmd_text = info.keyconf.get_command(seq, 'normal')
+        if cmd_text:
+            parser = runners.CommandParser()
+            try:
+                cmd = parser.parse(cmd_text).cmd
+            except cmdexc.NoSuchCommandError:
+                data.append((cmd_text, '(Current) Invalid command!', self.key))
+            else:
+                data.append((cmd_text, '(Current) {}'.format(cmd.desc), self.key))
+
+        cmd_text = info.keyconf.get_command(seq, 'normal', default=True)
+        if cmd_text:
+            parser = runners.CommandParser()
+            cmd = parser.parse(cmd_text).cmd
+            data.append((cmd_text, '(Default) {}'.format(cmd.desc), self.key))
+
+        return data
+
+    def populate(self, *args: str, info: Optional[CompletionInfo]) -> None:
+        super().populate(*args, info=info)
+        data = self._bind_current_default(info)
+
+        if data:
+            self.model.add_category(listcategory.ListCategory("Current/Default", data))
+
+        cmdlist = util.get_cmd_completions(info, include_hidden=True,
+                                           include_aliases=True)
+        self.model.add_category(listcategory.ListCategory("Commands", cmdlist))

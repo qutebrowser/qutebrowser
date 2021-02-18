@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Functions that return miscellaneous completion models."""
+"""Classes that return miscellaneous completion models."""
 
 import datetime
 from typing import List, Sequence, Tuple
@@ -25,28 +25,11 @@ from abc import ABC, abstractmethod
 
 from qutebrowser.config import config, configdata
 from qutebrowser.utils import objreg, log, utils
-from qutebrowser.completion.models import completionmodel, listcategory, util
+from qutebrowser.completion.categories import listcategory
+from qutebrowser.completion import completionmodel, util
 from qutebrowser.browser import inspector
 from qutebrowser.completion.completer import CompletionInfo
-
-
-class DeletionUnsupportedError(Exception):
-    """Raises when the completion strategy does not support deletion"""
-
-
-class CompletionStrategy(ABC):
-    COLUMN_WIDTHS = (20, 70, 10)
-
-    def __init__(self):
-        self.model = completionmodel.CompletionModel(column_widths=self.COLUMN_WIDTHS)
-
-    @abstractmethod
-    def populate(self, *args: str, info: CompletionInfo) -> None:
-        pass
-
-    @classmethod
-    def delete(cls, data: Sequence[str]) -> None:
-        raise DeletionUnsupportedError(f"{cls} does not support deletion")
+from qutebrowser.completion.strategies.strategy import CompletionStrategy
 
 
 class Command(CompletionStrategy):
