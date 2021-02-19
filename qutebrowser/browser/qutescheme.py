@@ -103,7 +103,7 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
         _name: The 'foo' part of qute://foo
     """
 
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         self._name = name
         self._function: Optional[Callable] = None
 
@@ -112,10 +112,10 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
         _HANDLERS[self._name] = self.wrapper
         return function
 
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self, url: QUrl) -> _HandlerRet:
         """Call the underlying function."""
         assert self._function is not None
-        return self._function(*args, **kwargs)
+        return self._function(url)
 
 
 def data_for_url(url: QUrl) -> Tuple[str, bytes]:
@@ -170,6 +170,7 @@ def data_for_url(url: QUrl) -> Tuple[str, bytes]:
     if mimetype == 'text/html' and isinstance(data, str):
         # We let handlers return HTML as text
         data = data.encode('utf-8', errors='xmlcharrefreplace')
+    assert isinstance(data, bytes)
 
     return mimetype, data
 
@@ -291,7 +292,7 @@ def qute_spawn_output(_url: QUrl) -> _HandlerRet:
 
 @add_handler('version')
 @add_handler('verizon')
-def qute_version(_url):
+def qute_version(_url: QUrl) -> _HandlerRet:
     """Handler for qute://version."""
     src = jinja.render('version.html', title='Version info',
                        version=version.version_info(),
