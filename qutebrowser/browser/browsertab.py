@@ -33,6 +33,8 @@ from PyQt5.QtWidgets import QWidget, QApplication, QDialog
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtNetwork import QNetworkAccessManager
 
+from abc import abstractmethod
+
 if TYPE_CHECKING:
     from PyQt5.QtWebKit import QWebHistory
     from PyQt5.QtWebKitWidgets import QWebPage
@@ -806,6 +808,10 @@ class AbstractTabPrivate:
         self._tab = tab
         self._mode_manager = mode_manager
 
+    @abstractmethod
+    def __init_inspector(self):
+        pass
+    
     def event_target(self) -> QWidget:
         """Return the widget events should be sent to."""
         raise NotImplementedError
