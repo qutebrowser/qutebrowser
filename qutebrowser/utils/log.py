@@ -211,12 +211,8 @@ def init_log(args: argparse.Namespace) -> None:
         root.addHandler(console)
     if ram is not None:
         root.addHandler(ram)
-    else:
-        # If we add no handler, we shouldn't process non visible logs at all
-        #
-        # disable blocks the current level (while setHandler shows the current
-        # level), so -1 to avoid blocking handled messages.
-        logging.disable(numeric_level - 1)
+        numeric_level = min(numeric_level, logging.DEBUG)
+    logging.disable(numeric_level - 1)
 
     global _log_inited, _args
     _args = args
@@ -555,19 +551,25 @@ def init_from_config(conf: 'configmodule.ConfigContainer') -> None:
     if _args.debug:
         init.debug("--debug flag overrides log configs")
         return
+    lowest_level = None
     if ram_handler:
         ramlevel = conf.logging.level.ram
         init.debug("Configuring RAM loglevel to {}", ramlevel)
         ram_handler.setLevel(LOG_LEVELS[ramlevel.upper()])
+        lowest_level = LOG_LEVELS[ramlevel.upper()]
     if console_handler:
         consolelevel = conf.logging.level.console
         if _args.loglevel:
             init.debug("--loglevel flag overrides logging.level.console")
+            level = LOG_LEVELS[consolelevel.upper()]
         else:
             init.debug("Configuring console loglevel to {}", consolelevel)
             level = LOG_LEVELS[consolelevel.upper()]
             console_handler.setLevel(level)
             change_console_formatter(level)
+        lowest_level = min(lowest_level, level) if lowest_level else level
+    if lowest_level:
+        logging.disable(lowest_level - 1)
 
 
 class QtWarningFilter(logging.Filter):
