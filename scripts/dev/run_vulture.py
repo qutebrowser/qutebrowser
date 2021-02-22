@@ -115,6 +115,7 @@ def whitelist_generator():  # noqa: C901
     for attr in ['_get_default_metavar_for_optional',
                  '_get_default_metavar_for_positional', '_metavar_formatter']:
         yield 'scripts.dev.src2asciidoc.UsageFormatter.' + attr
+    yield 'scripts.dev.build_release.pefile.PE.OPTIONAL_HEADER.CheckSum'
 
     for dist in version.Distribution:
         yield 'qutebrowser.utils.version.Distribution.{}'.format(dist.name)
