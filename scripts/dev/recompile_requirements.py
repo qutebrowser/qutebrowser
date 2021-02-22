@@ -140,7 +140,7 @@ CHANGELOG_URLS = {
     'PyQtWebEngine': 'https://www.riverbankcomputing.com/news',
     'PyQt-builder': 'https://www.riverbankcomputing.com/news',
     'PyQt5-sip': 'https://www.riverbankcomputing.com/news',
-    'PyQt5_stubs': 'https://github.com/stlehmann/PyQt5-stubs/blob/master/CHANGELOG.md',
+    'PyQt5-stubs': 'https://github.com/stlehmann/PyQt5-stubs/blob/master/CHANGELOG.md',
     'sip': 'https://www.riverbankcomputing.com/news',
     'Pygments': 'https://pygments.org/docs/changelog/',
     'vulture': 'https://github.com/jendrikseipp/vulture/blob/master/CHANGELOG.md',

@@ -171,7 +171,7 @@ class NetworkManager(QNetworkAccessManager):
         }
         self._set_cookiejar()
         self._set_cache()
-        self.sslErrors.connect( self.on_ssl_errors)
+        self.sslErrors.connect(self.on_ssl_errors)
         self._rejected_ssl_errors: _SavedErrorsType = collections.defaultdict(list)
         self._accepted_ssl_errors: _SavedErrorsType = collections.defaultdict(list)
         self.authenticationRequired.connect(self.on_authentication_required)
