@@ -167,7 +167,7 @@ Feature: Javascript stuff
         Then "Showing error page for* 500" should be logged
         And "Load error: *500" should be logged
 
-    @flaky @windows_skip
+    @skip   # Too flaky
     Scenario: Using JS after window.open
         When I open data/hello.txt
         And I set content.javascript.can_open_tabs_automatically to true
