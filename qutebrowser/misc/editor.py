@@ -70,7 +70,7 @@ class ExternalEditor(QObject):
                 self._watcher.files()):
             failed = self._watcher.removePaths(self._watcher.files())
             if failed:
-                log.procs.error("Failed to unwatch paths: {}".format(failed))
+                log.procs.error("Failed to unwatch paths: {}", failed)
 
         if self._filename is None or not self._remove_file:
             # Could not create initial file.
@@ -164,7 +164,7 @@ class ExternalEditor(QObject):
             # executed async.
             message.error("Failed to read back edited file: {}".format(e))
             return
-        log.procs.debug("Read back: {}".format(text))
+        log.procs.debug("Read back: {}", text)
         if self._content != text:
             self._content = text
             self.file_updated.emit(text)
@@ -195,13 +195,13 @@ class ExternalEditor(QObject):
             assert self._filename is not None
             ok = self._watcher.addPath(self._filename)
             if not ok:
-                log.procs.error("Failed to watch path: {}"
-                                .format(self._filename))
+                log.procs.error("Failed to watch path: {}",
+                                self._filename)
             self._watcher.fileChanged.connect(  # type: ignore[attr-defined]
                 self._on_file_changed)
 
         args = [self._sub_placeholder(arg, line, column) for arg in editor[1:]]
-        log.procs.debug("Calling \"{}\" with args {}".format(executable, args))
+        log.procs.debug("Calling \"{}\" with args {}", executable, args)
         self._proc.start(executable, args)
 
     def _calc_line_and_column(self, text, caret_position):

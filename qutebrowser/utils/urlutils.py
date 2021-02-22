@@ -102,7 +102,7 @@ def _parse_search_term(s: str) -> Tuple[Optional[str], Optional[str]]:
             engine = None
             term = s
 
-    log.url.debug("engine {}, term {!r}".format(engine, term))
+    log.url.debug("engine {}, term {!r}", engine, term)
     return (engine, term)
 
 
@@ -115,7 +115,7 @@ def _get_search_url(txt: str) -> QUrl:
     Return:
         The search URL as a QUrl.
     """
-    log.url.debug("Finding search engine for {!r}".format(txt))
+    log.url.debug("Finding search engine for {!r}", txt)
     engine, term = _parse_search_term(txt)
     if not engine:
         engine = 'DEFAULT'
@@ -185,7 +185,7 @@ def _is_url_dns(urlstr: str) -> bool:
     if not host:
         log.url.debug("URL has no host -> False")
         return False
-    log.url.debug("Doing DNS request for {}".format(host))
+    log.url.debug("Doing DNS request for {}", host)
     info = QHostInfo.fromName(host)
     return not info.error()
 
@@ -224,8 +224,8 @@ def fuzzy_url(urlstr: str,
     else:  # probably an address
         log.url.debug("URL is a fuzzy address")
         url = QUrl.fromUserInput(urlstr)
-    log.url.debug("Converting fuzzy term {!r} to URL -> {}".format(
-        urlstr, url.toDisplayString()))
+    log.url.debug("Converting fuzzy term {!r} to URL -> {}",
+                  urlstr, url.toDisplayString())
     ensure_valid(url)
     return url
 
@@ -268,8 +268,8 @@ def is_url(urlstr: str) -> bool:
     """
     autosearch = config.val.url.auto_search
 
-    log.url.debug("Checking if {!r} is a URL (autosearch={}).".format(
-        urlstr, autosearch))
+    log.url.debug("Checking if {!r} is a URL (autosearch={}).",
+        urlstr, autosearch)
 
     urlstr = urlstr.strip()
     qurl = QUrl(urlstr)
@@ -315,7 +315,7 @@ def is_url(urlstr: str) -> bool:
         url = ' ' not in qurl_userinput.userName() and _is_url_naive(urlstr)
     else:  # pragma: no cover
         raise ValueError("Invalid autosearch value")
-    log.url.debug("url = {}".format(url))
+    log.url.debug("url = {}", url)
     return url
 
 
@@ -363,7 +363,7 @@ def get_path_if_valid(pathstr: str,
         The path if it is a valid path, None otherwise.
     """
     pathstr = pathstr.strip()
-    log.url.debug("Checking if {!r} is a path".format(pathstr))
+    log.url.debug("Checking if {!r} is a path", pathstr)
     expanded = os.path.expanduser(pathstr)
 
     if os.path.isabs(expanded):

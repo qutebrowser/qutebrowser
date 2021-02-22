@@ -108,7 +108,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             text: The text to set as string.
         """
         self.setText(text)
-        log.modes.debug("Setting command text, focusing {!r}".format(self))
+        log.modes.debug("Setting command text, focusing {!r}", self)
         modeman.enter(self._win_id, usertypes.KeyMode.command, 'cmd focus')
         self.setFocus()
         self.show_cmd.emit()

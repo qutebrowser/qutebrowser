@@ -58,8 +58,8 @@ def local_files(code):
         parsed_version = version(matching_dict)
         if parsed_version is not None:
             filename = os.path.basename(matching_dict)
-            log.config.debug('Found file for dict {}: {}'
-                             .format(code, filename))
+            log.config.debug('Found file for dict {}: {}',
+                             code, filename)
             versioned_dicts.append((parsed_version, filename))
     return [filename for version, filename
             in sorted(versioned_dicts, reverse=True)]

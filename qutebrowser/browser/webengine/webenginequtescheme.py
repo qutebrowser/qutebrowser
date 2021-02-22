@@ -64,9 +64,9 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             return True
 
         if initiator.isValid() and initiator.scheme() != 'qute':
-            log.network.warning("Blocking malicious request from {} to {}"
-                                .format(initiator.toDisplayString(),
-                                        request_url.toDisplayString()))
+            log.network.warning("Blocking malicious request from {} to {}",
+                                initiator.toDisplayString(),
+                                request_url.toDisplayString())
             job.fail(QWebEngineUrlRequestJob.RequestDenied)
             return False
 
@@ -92,7 +92,7 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
 
         assert url.scheme() == 'qute'
 
-        log.network.debug("Got request for {}".format(url.toDisplayString()))
+        log.network.debug("Got request for {}", url.toDisplayString())
         try:
             mimetype, data = qutescheme.data_for_url(url)
         except qutescheme.Error as e:
@@ -109,14 +109,14 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
                     QWebEngineUrlRequestJob.RequestFailed,
             }
             exctype = type(e)
-            log.network.error("{} while handling qute://* URL".format(
-                exctype.__name__))
+            log.network.error("{} while handling qute://* URL",
+                exctype.__name__)
             job.fail(errors[exctype])
         except qutescheme.Redirect as e:
             qtutils.ensure_valid(e.url)
             job.redirect(e.url)
         else:
-            log.network.debug("Returning {} data".format(mimetype))
+            log.network.debug("Returning {} data", mimetype)
 
             # We can't just use the QBuffer constructor taking a QByteArray,
             # because that somehow segfaults...

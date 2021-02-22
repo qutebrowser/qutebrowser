@@ -1074,8 +1074,8 @@ class CommandDispatcher:
 
         args = runners.replace_variables(self._win_id, args)
 
-        log.procs.debug("Executing {} with args {}, userscript={}".format(
-            cmd, args, userscript))
+        log.procs.debug("Executing {} with args {}, userscript={}",
+            cmd, args, userscript)
 
         @pyqtSlot()
         def _on_proc_finished():
@@ -1851,5 +1851,5 @@ class CommandDispatcher:
         else:
             window.setWindowState(window.windowState() ^ Qt.WindowFullScreen)
 
-        log.misc.debug('state before fullscreen: {}'.format(
-            debug.qflags_key(Qt, window.state_before_fullscreen)))
+        log.misc.debug('state before fullscreen: {}',
+            debug.qflags_key(Qt, window.state_before_fullscreen))

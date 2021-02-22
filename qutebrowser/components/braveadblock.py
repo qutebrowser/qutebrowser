@@ -20,7 +20,6 @@
 """Functions related to the Brave adblocker."""
 
 import io
-import logging
 import pathlib
 import functools
 from typing import Optional, IO
@@ -37,14 +36,15 @@ from qutebrowser.api import (
 )
 from qutebrowser.api.interceptor import ResourceType
 from qutebrowser.components.utils import blockutils
-from qutebrowser.utils import version  # FIXME: Move needed parts into api namespace?
+# FIXME: Move needed parts into api namespace?
+from qutebrowser.utils import log, version
 
 try:
     import adblock
 except ImportError:
     adblock = None  # type: ignore[assignment]
 
-logger = logging.getLogger("network")
+logger = log.network
 ad_blocker: Optional["BraveAdBlocker"] = None
 
 
@@ -178,7 +178,7 @@ class BraveAdBlocker:
             # An `important` match means that exceptions should not apply and
             # no further checking is necessary--the request should be blocked.
             logger.debug(
-                "Excepting %s from being blocked by %s because of %s",
+                "Excepting {} from being blocked by {} because of {}",
                 request_url.toDisplayString(),
                 result.filter,
                 result.exception,
@@ -186,7 +186,7 @@ class BraveAdBlocker:
             return False
         elif blockutils.is_whitelisted_url(request_url):
             logger.debug(
-                "Request to %s is whitelisted, thus not blocked",
+                "Request to {} is whitelisted, thus not blocked",
                 request_url.toDisplayString(),
             )
             return False
@@ -196,7 +196,7 @@ class BraveAdBlocker:
         """Block the given request if necessary."""
         if self._is_blocked(info.request_url, info.first_party_url, info.resource_type):
             logger.debug(
-                "Request to %s blocked by ad blocker.",
+                "Request to {} blocked by ad blocker.",
                 info.request_url.toDisplayString(),
             )
             info.block()
@@ -204,7 +204,7 @@ class BraveAdBlocker:
     def read_cache(self) -> None:
         """Initialize the adblocking engine from cache file."""
         if self._cache_path.is_file():
-            logger.debug("Loading cached adblock data: %s", self._cache_path)
+            logger.debug("Loading cached adblock data: {}", self._cache_path)
             self._engine.deserialize_from_file(str(self._cache_path))
         else:
             if (
@@ -247,7 +247,7 @@ class BraveAdBlocker:
             except FileNotFoundError:
                 pass
             except OSError as e:
-                logger.exception("Failed to remove adblock cache file: %s", e)
+                logger.exception("Failed to remove adblock cache file: {}", e)
 
     def _on_download_finished(
         self, fileobj: IO[bytes], filter_set: "adblock.FilterSet"

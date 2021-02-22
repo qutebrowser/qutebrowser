@@ -191,7 +191,8 @@ def init(db_path):
             f"{_db_user_version}, but {_USER_VERSION.major}.x is supported)")
 
     if user_version_changed():
-        log.sql.debug(f"Migrating from version {_db_user_version} to {_USER_VERSION}")
+        log.sql.debug("Migrating from version {} to {}",
+                      _db_user_version, _USER_VERSION)
         # Note we're *not* updating the _db_user_version global here. We still want
         # user_version_changed() to return True, as other modules (such as history.py)
         # use it to create the initial table structure.
@@ -238,7 +239,7 @@ class Query:
         """
         self.query = QSqlQuery(QSqlDatabase.database())
 
-        log.sql.vdebug(f'Preparing: {querystr}')  # type: ignore[attr-defined]
+        log.sql.vdebug('Preparing: {}', querystr)
         ok = self.query.prepare(querystr)
         self._check_ok('prepare', ok)
         self.query.setForwardOnly(forward_only)
@@ -279,7 +280,7 @@ class Query:
 
         bound_values = self._bind_values(values)
         if bound_values:
-            log.sql.debug(f'    {bound_values}')
+            log.sql.debug('    {}', bound_values)
 
         ok = self.query.exec()
         self._check_ok('exec', ok)
@@ -288,8 +289,8 @@ class Query:
 
     def run_batch(self, values):
         """Execute the query in batch mode."""
-        log.sql.debug('Running SQL query (batch): "{}"'.format(
-            self.query.lastQuery()))
+        log.sql.debug('Running SQL query (batch): "{}"',
+                self.query.lastQuery())
 
         self._bind_values(values)
 

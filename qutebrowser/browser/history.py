@@ -255,7 +255,7 @@ class WebHistory(sql.SqlTable):
         where_clause = ' OR '.join(f"url LIKE '{term}'" for term in terms)
         q = sql.Query(f'DELETE FROM History WHERE {where_clause}')
         entries = q.run()
-        log.sql.debug(f"Cleanup removed {entries.rows_affected()} items")
+        log.sql.debug("Cleanup removed {} items", entries.rows_affected())
 
     def _rebuild_completion(self):
         # If this process was interrupted, make sure we trigger a rebuild again

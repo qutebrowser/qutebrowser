@@ -134,11 +134,11 @@ class WebKitElement(webelem.AbstractWebElement):
         if self._tab.is_deleted():
             raise webelem.OrphanedError("Tab containing element vanished")
         if self.is_content_editable():
-            log.webelem.debug("Filling {!r} via set_text.".format(self))
+            log.webelem.debug("Filling {!r} via set_text.", self)
             assert isinstance(value, str)
             self._elem.setPlainText(value)
         else:
-            log.webelem.debug("Filling {!r} via javascript.".format(self))
+            log.webelem.debug("Filling {!r} via javascript.", self)
             value = javascript.to_js(value)
             self._elem.evaluateJavaScript("this.value={}".format(value))
 
@@ -147,7 +147,7 @@ class WebKitElement(webelem.AbstractWebElement):
                        cancelable: bool = False,
                        composed: bool = False) -> None:
         self._check_vanished()
-        log.webelem.debug("Firing event on {!r} via javascript.".format(self))
+        log.webelem.debug("Firing event on {!r} via javascript.", self)
         self._elem.evaluateJavaScript(
             "this.dispatchEvent(new Event({}, "
             "{{'bubbles': {}, 'cancelable': {}, 'composed': {}}}))"
@@ -168,7 +168,7 @@ class WebKitElement(webelem.AbstractWebElement):
         self._check_vanished()
         if not self.is_editable(strict=True):
             raise webelem.Error("Element is not editable!")
-        log.webelem.debug("Inserting text into element {!r}".format(self))
+        log.webelem.debug("Inserting text into element {!r}", self)
         self._elem.evaluateJavaScript("""
             var text = {};
             var event = document.createEvent("TextEvent");
@@ -197,8 +197,7 @@ class WebKitElement(webelem.AbstractWebElement):
             return None
 
         text = utils.compact_text(self._elem.toOuterXml(), 500)
-        log.webelem.vdebug(  # type: ignore[attr-defined]
-            "Client rectangles of element '{}': {}".format(text, rects))
+        log.webelem.vdebug("Client rectangles of element '{}': {}", text, rects)
 
         for i in range(int(rects.get("length", 0))):
             rect = rects[str(i)]

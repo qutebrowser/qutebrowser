@@ -282,7 +282,7 @@ class GreasemonkeyManager(QObject):
 
         for scripts_dir in _scripts_dirs():
             scripts_dir = os.path.abspath(scripts_dir)
-            log.greasemonkey.debug("Reading scripts from: {}".format(scripts_dir))
+            log.greasemonkey.debug("Reading scripts from: {}", scripts_dir)
             for script_filename in glob.glob(os.path.join(scripts_dir, '*.js')):
                 if not os.path.isfile(script_filename):
                     continue
@@ -321,12 +321,12 @@ class GreasemonkeyManager(QObject):
             if script.run_at:
                 log.greasemonkey.warning("Script {} has invalid run-at "
                                          "defined, defaulting to "
-                                         "document-end"
-                                         .format(script.name))
+                                         "document-end",
+                                         script.name)
                 # Default as per
                 # https://wiki.greasespot.net/Metadata_Block#.40run-at
             self._run_end.append(script)
-        log.greasemonkey.debug("Loaded script: {}".format(script.name))
+        log.greasemonkey.debug("Loaded script: {}", script.name)
 
     def _required_url_to_file_path(self, url):
         requires_dir = os.path.join(_scripts_dirs()[0], 'requires')

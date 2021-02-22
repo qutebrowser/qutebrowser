@@ -40,9 +40,9 @@ def _accept_cookie(request):
         origin_str = ("<unknown>" if not request.origin.isValid()
                       else request.origin.toDisplayString())
         log.network.debug('Cookie from origin {} on {} (third party: {}) '
-                          '-> applying setting {}'
-                          .format(origin_str, first_party_str, request.thirdParty,
-                                  accept))
+                          '-> applying setting {}',
+                          origin_str, first_party_str, request.thirdParty,
+                          accept)
 
     if accept == 'all':
         return True

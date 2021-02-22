@@ -116,7 +116,7 @@ class PromptQueue(QObject):
 
     def _pop(self):
         """Pop a question from the queue and ask it, if there are any."""
-        log.prompt.debug("Popping from queue {}".format(self._queue))
+        log.prompt.debug("Popping from queue {}", self._queue)
         if self._queue:
             question = self._queue.popleft()
             if not question.is_aborted:
@@ -135,7 +135,7 @@ class PromptQueue(QObject):
             True if loops needed to be aborted,
             False otherwise.
         """
-        log.prompt.debug("Shutting down with loops {}".format(self._loops))
+        log.prompt.debug("Shutting down with loops {}", self._loops)
         self._shutting_down = True
         if self._loops:
             for loop in self._loops:
@@ -158,8 +158,7 @@ class PromptQueue(QObject):
             None if blocking=False.
         """
         log.prompt.debug("Asking question {}, blocking {}, loops {}, queue "
-                         "{}".format(question, blocking, self._loops,
-                                     self._queue))
+                         "{}", question, blocking, self._loops, self._queue)
 
         if self._shutting_down:
             # If we're currently shutting down we have to ignore this question
@@ -172,15 +171,14 @@ class PromptQueue(QObject):
         if self._question is not None and not blocking:
             # We got an async question, but we're already busy with one, so we
             # just queue it up for later.
-            log.prompt.debug("Adding {} to queue.".format(question))
+            log.prompt.debug("Adding {} to queue.", question)
             self._queue.append(question)
             return None
 
         if blocking:
             # If we're blocking we save the old question on the stack, so we
             # can restore it after exec, if exec gets called multiple times.
-            log.prompt.debug("New question is blocking, saving {}".format(
-                self._question))
+            log.prompt.debug("New question is blocking, saving {}", self._question)
             old_question = self._question
             if old_question is not None:
                 old_question.interrupted = True
@@ -194,13 +192,13 @@ class PromptQueue(QObject):
             loop.destroyed.connect(lambda: self._loops.remove(loop))
             question.completed.connect(loop.quit)
             question.completed.connect(loop.deleteLater)
-            log.prompt.debug("Starting loop.exec() for {}".format(question))
+            log.prompt.debug("Starting loop.exec() for {}", question)
             flags = cast(QEventLoop.ProcessEventsFlags,
                          QEventLoop.ExcludeSocketNotifiers)
             loop.exec(flags)
-            log.prompt.debug("Ending loop.exec() for {}".format(question))
+            log.prompt.debug("Ending loop.exec() for {}", question)
 
-            log.prompt.debug("Restoring old question {}".format(old_question))
+            log.prompt.debug("Restoring old question {}", old_question)
             self._question = old_question
             self.show_prompts.emit(old_question)
             if old_question is None:
@@ -222,12 +220,12 @@ class PromptQueue(QObject):
         if self._question is None:
             return
 
-        log.prompt.debug("Left mode {}, hiding {}".format(
-            mode, self._question))
+        log.prompt.debug("Left mode {}, hiding {}",
+            mode, self._question)
         self.show_prompts.emit(None)
         if self._question.answer is None and not self._question.is_aborted:
-            log.prompt.debug("Cancelling {} because {} was left".format(
-                self._question, mode))
+            log.prompt.debug("Cancelling {} because {} was left",
+                self._question, mode)
             self._question.cancel()
         self._question = None
 
@@ -311,7 +309,7 @@ class PromptContainer(QWidget):
         item = self._layout.takeAt(0)
         if item is not None:
             widget = item.widget()
-            log.prompt.debug("Deleting old prompt {}".format(widget))
+            log.prompt.debug("Deleting old prompt {}", widget)
             widget.hide()
             widget.deleteLater()
 
@@ -331,7 +329,7 @@ class PromptContainer(QWidget):
         klass = classes[question.mode]
         prompt = klass(question)
 
-        log.prompt.debug("Displaying prompt {}".format(prompt))
+        log.prompt.debug("Displaying prompt {}", prompt)
         self._prompt = prompt
 
         # If this question was interrupted, we already connected the signal
@@ -374,7 +372,7 @@ class PromptContainer(QWidget):
         item = self._layout.takeAt(0)
         if item is not None:
             widget = item.widget()
-            log.prompt.debug("Deleting prompt {}".format(widget))
+            log.prompt.debug("Deleting prompt {}", widget)
             widget.hide()
             widget.deleteLater()
 
@@ -683,7 +681,7 @@ class FilenamePrompt(_BasePrompt):
             # On Windows, when we have C:\foo and tab over .., we get C:\
             path = path.rstrip(os.sep)
 
-        log.prompt.debug('Inserting path {}'.format(path))
+        log.prompt.debug('Inserting path {}', path)
         self._lineedit.setText(path)
         self._lineedit.setFocus()
         self._set_fileview_root(path, tabbed=True)

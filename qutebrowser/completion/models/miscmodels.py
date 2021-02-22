@@ -57,7 +57,7 @@ def quickmark(*, info=None):
         """Delete a quickmark from the completion menu."""
         name = data[0]
         quickmark_manager = objreg.get('quickmark-manager')
-        log.completion.debug('Deleting quickmark {}'.format(name))
+        log.completion.debug('Deleting quickmark {}', name)
         quickmark_manager.delete(name)
 
     utils.unused(info)
@@ -74,7 +74,7 @@ def bookmark(*, info=None):
     def delete(data: Sequence[str]) -> None:
         """Delete a bookmark from the completion menu."""
         urlstr = data[0]
-        log.completion.debug('Deleting bookmark {}'.format(urlstr))
+        log.completion.debug('Deleting bookmark {}', urlstr)
         bookmark_manager = objreg.get('bookmark-manager')
         bookmark_manager.delete(urlstr)
 

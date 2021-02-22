@@ -591,9 +591,9 @@ class AbstractDownloadItem(QObject):
         try:
             if self._filename is not None and os.path.exists(self._filename):
                 os.remove(self._filename)
-                log.downloads.debug("Deleted {}".format(self._filename))
+                log.downloads.debug("Deleted {}", self._filename)
             else:
-                log.downloads.debug("Not deleting {}".format(self._filename))
+                log.downloads.debug("Not deleting {}", self._filename)
         except OSError:
             log.downloads.exception("Failed to remove partial file")
 
@@ -747,7 +747,7 @@ class AbstractDownloadItem(QObject):
         if remember_directory:
             last_used_directory = os.path.dirname(self._filename)
 
-        log.downloads.debug("Setting filename to {}".format(self._filename))
+        log.downloads.debug("Setting filename to {}", self._filename)
         if self._get_conflicting_download():
             txt = ("<b>{}</b> is already downloading. Cancel and "
                    "re-download?".format(html.escape(self._filename)))
@@ -800,16 +800,16 @@ class AbstractDownloadItem(QObject):
             cmdline: Passed to DownloadItem.open_file().
         """
         if not self.successful:
-            log.downloads.debug("{} finished but not successful, not opening!"
-                                .format(self))
+            log.downloads.debug("{} finished but not successful, not opening!",
+                                self)
             return
         self.open_file(cmdline)
 
     def _pdfjs_if_successful(self):
         """Open the file via PDF.js if downloading was successful."""
         if not self.successful:
-            log.downloads.debug("{} finished but not successful, not opening!"
-                                .format(self))
+            log.downloads.debug("{} finished but not successful, not opening!",
+                                self)
             return
 
         filename = self._get_open_filename()
@@ -962,7 +962,7 @@ class AbstractDownloadManager(QObject):
         self._update_indexes()
         if not self.downloads:
             self._update_timer.stop()
-        log.downloads.debug("Removed download {}".format(download))
+        log.downloads.debug("Removed download {}", download)
 
     def _update_indexes(self):
         """Update indexes of all DownloadItems."""
@@ -1032,7 +1032,7 @@ class DownloadModel(QAbstractListModel):
 
     def _on_begin_insert_row(self, idx, webengine=False):
         log.downloads.debug("_on_begin_insert_row with idx {}, "
-                            "webengine {}".format(idx, webengine))
+                            "webengine {}", idx, webengine)
         if idx == -1:
             self.beginInsertRows(QModelIndex(), 0, -1)
             return
@@ -1044,7 +1044,7 @@ class DownloadModel(QAbstractListModel):
 
     def _on_begin_remove_row(self, idx, webengine=False):
         log.downloads.debug("_on_begin_remove_row with idx {}, "
-                            "webengine {}".format(idx, webengine))
+                            "webengine {}", idx, webengine)
         if idx == -1:
             self.beginRemoveRows(QModelIndex(), 0, -1)
             return
@@ -1130,7 +1130,7 @@ class DownloadModel(QAbstractListModel):
                                         .format(count))
         download.delete()
         download.remove()
-        log.downloads.debug("deleted download {}".format(download))
+        log.downloads.debug("deleted download {}", download)
 
     @cmdutils.register(instance='download-model', scope='window', maxsplit=0)
     @cmdutils.argument('count', value=cmdutils.Value.count)

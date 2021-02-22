@@ -273,7 +273,7 @@ def _release_info() -> Sequence[Tuple[str, str]]:
                 if lines:
                     data.append((fn, '\n'.join(lines)))
         except OSError:
-            log.misc.exception("Error while reading {}.".format(fn))
+            log.misc.exception("Error while reading {}.", fn)
     return data
 
 
@@ -512,7 +512,7 @@ def _get_pyqt_webengine_qt_version() -> Optional[str]:
         try:
             return importlib_metadata.version(f'PyQtWebEngine-{suffix}')
         except importlib_metadata.PackageNotFoundError:
-            log.misc.debug(f"PyQtWebEngine-{suffix} not found")
+            log.misc.debug("PyQtWebEngine-{} not found", suffix)
 
     return None
 
@@ -856,7 +856,7 @@ class OpenGLInfo:
         """
         if ' ' not in version:
             log.misc.warning("Failed to parse OpenGL version (missing space): "
-                             "{}".format(version))
+                             "{}", version)
             return cls(vendor=vendor, version_str=version)
 
         num_str, vendor_specific = version.split(' ', maxsplit=1)
@@ -865,7 +865,7 @@ class OpenGLInfo:
             parsed_version = tuple(int(i) for i in num_str.split('.'))
         except ValueError:
             log.misc.warning("Failed to parse OpenGL version (parsing int): "
-                             "{}".format(version))
+                             "{}", version)
             return cls(vendor=vendor, version_str=version)
 
         return cls(vendor=vendor, version_str=version,
@@ -887,7 +887,7 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
 
     override = os.environ.get('QUTE_FAKE_OPENGL')
     if override is not None:
-        log.init.debug("Using override {}".format(override))
+        log.init.debug("Using override {}", override)
         vendor, version = override.split(', ', maxsplit=1)
         return OpenGLInfo.parse(vendor=vendor, version=version)
 
@@ -919,7 +919,7 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
         try:
             vf = ctx.versionFunctions(vp)
         except ImportError as e:
-            log.init.debug("Importing version functions failed: {}".format(e))
+            log.init.debug("Importing version functions failed: {}", e)
             return None
 
         if vf is None:

@@ -148,7 +148,7 @@ def _load_component(info: ExtensionInfo, *,
         skip_hooks: Whether to skip all hooks for this module.
                     This is used to only run @cmdutils.register decorators.
     """
-    log.extensions.debug("Importing {}".format(info.name))
+    log.extensions.debug("Importing {}", info.name)
     mod = importlib.import_module(info.name)
 
     mod_info = add_module_info(mod)
@@ -156,8 +156,8 @@ def _load_component(info: ExtensionInfo, *,
         mod_info.skip_hooks = True
 
     if mod_info.init_hook is not None and not skip_hooks:
-        log.extensions.debug("Running init hook {!r}"
-                             .format(mod_info.init_hook.__name__))
+        log.extensions.debug("Running init hook {!r}",
+                             mod_info.init_hook.__name__)
         mod_info.init_hook(_get_init_context())
 
     _module_infos.append(mod_info)

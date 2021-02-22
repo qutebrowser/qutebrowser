@@ -176,8 +176,8 @@ class NeighborList(Sequence[_T]):
         Return:
             The new item.
         """
-        log.misc.debug("{} items, idx {}, offset {}".format(
-            len(self._items), self._idx, offset))
+        log.misc.debug("{} items, idx {}, offset {}",
+            len(self._items), self._idx, offset)
         if not self._items:
             raise IndexError("No items found!")
         if self.fuzzyval is not None:

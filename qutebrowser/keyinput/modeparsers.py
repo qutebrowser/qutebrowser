@@ -172,13 +172,12 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
 
     def _handle_filter_key(self, e: QKeyEvent) -> QKeySequence.SequenceMatch:
         """Handle keys for string filtering."""
-        log.keyboard.debug("Got filter key 0x{:x} text {}".format(
-            e.key(), e.text()))
+        log.keyboard.debug("Got filter key 0x{:x} text {}",
+            e.key(), e.text())
         if e.key() == Qt.Key_Backspace:
             log.keyboard.debug("Got backspace, mode {}, filtertext '{}', "
-                               "sequence '{}'".format(self._last_press,
-                                                      self._filtertext,
-                                                      self._sequence))
+                               "sequence '{}'", self._last_press, self._filtertext,
+                               self._sequence)
             if self._last_press != LastPress.keystring and self._filtertext:
                 self._filtertext = self._filtertext[:-1]
                 self._hintmanager.filter_hints(self._filtertext)

@@ -537,7 +537,7 @@ def set_clipboard(data: str, selection: bool = False) -> None:
         raise SelectionUnsupportedError
     if log_clipboard:
         what = 'primary selection' if selection else 'clipboard'
-        log.misc.debug("Setting fake {}: {}".format(what, json.dumps(data)))
+        log.misc.debug("Setting fake {}: {}", what, json.dumps(data))
         fake_clipboard = data
     else:
         mode = QClipboard.Selection if selection else QClipboard.Clipboard
@@ -572,7 +572,7 @@ def get_clipboard(selection: bool = False, fallback: bool = False) -> str:
     target = "Primary selection" if selection else "Clipboard"
     if not data.strip():
         raise ClipboardEmptyError("{} is empty.".format(target))
-    log.misc.debug("{} contained: {!r}".format(target, data))
+    log.misc.debug("{} contained: {!r}", target, data)
 
     return data
 
@@ -619,8 +619,8 @@ def open_file(filename: str, cmdline: str = None) -> None:
     # precedence order: cmdline > downloads.open_dispatcher > openUrl
 
     if cmdline is None and not override:
-        log.misc.debug("Opening {} with the system application"
-                       .format(filename))
+        log.misc.debug("Opening {} with the system application",
+                       filename)
         url = QUrl.fromLocalFile(filename)
         QDesktopServices.openUrl(url)
         return
@@ -634,8 +634,7 @@ def open_file(filename: str, cmdline: str = None) -> None:
     args = [arg.replace('{}', filename) for arg in args]
     if '{}' not in cmdline:
         args.append(filename)
-    log.misc.debug("Opening {} with {}"
-                   .format(filename, [cmd] + args))
+    log.misc.debug("Opening {} with {}", filename, [cmd] + args)
     proc = guiprocess.GUIProcess(what='open-file')
     proc.start_detached(cmd, args)
 
@@ -841,7 +840,7 @@ def cleanup_file(filepath: str) -> Iterator[None]:
         try:
             os.remove(filepath)
         except OSError as e:
-            log.misc.error(f"Failed to delete tempfile {filepath} ({e})!")
+            log.misc.error("Failed to delete tempfile {} ({})!", filepath, e)
 
 
 _RECT_PATTERN = re.compile(r'(?P<w>\d+)x(?P<h>\d+)\+(?P<x>\d+)\+(?P<y>\d+)')

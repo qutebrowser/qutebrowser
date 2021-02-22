@@ -22,7 +22,6 @@
 import os.path
 import posixpath
 import zipfile
-import logging
 import pathlib
 from typing import cast, IO, Set
 
@@ -37,10 +36,11 @@ from qutebrowser.api import (
     qtutils,
 )
 from qutebrowser.components.utils import blockutils
-from qutebrowser.utils import version  # FIXME: Move needed parts into api namespace?
+# FIXME: Move needed parts into api namespace?
+from qutebrowser.utils import log, version
 
 
-logger = logging.getLogger("network")
+logger = log.network
 host_blocker = cast("HostBlocker", None)
 
 
@@ -76,8 +76,8 @@ def _should_be_used() -> bool:
     adblock_info = version.MODULE_INFO["adblock"]
     adblock_usable = adblock_info.is_usable()
 
-    logger.debug(f"Configured adblock method {method}, adblock library usable: "
-                 f"{adblock_usable}")
+    logger.debug("Configured adblock method {}, adblock library usable: {}",
+                 method, adblock_usable)
     return method in ("both", "hosts") or (method == "auto" and not adblock_usable)
 
 
@@ -135,7 +135,7 @@ class HostBlocker:
             request_url=info.request_url, first_party_url=info.first_party_url
         ):
             logger.debug(
-                "Request to {} blocked by host blocker.".format(info.request_url.host())
+                "Request to {} blocked by host blocker.", info.request_url.host()
             )
             info.block()
 
@@ -250,10 +250,10 @@ class HostBlocker:
             try:
                 self._blocked_hosts |= self._read_hosts_line(line)
             except UnicodeDecodeError:
-                logger.error("Failed to decode: {!r}".format(line))
+                logger.error("Failed to decode: {!r}", line)
                 error_count += 1
 
-        logger.debug("{}: read {} lines".format(byte_io.name, line_count))
+        logger.debug("{}: read {} lines", byte_io.name, line_count)
         if error_count > 0:
             message.error(
                 "hostblock: {} read errors for {}".format(error_count, byte_io.name)
@@ -281,7 +281,7 @@ class HostBlocker:
             except FileNotFoundError:
                 pass
             except OSError as e:
-                logger.exception("Failed to delete hosts file: {}".format(e))
+                logger.exception("Failed to delete hosts file: {}", e)
 
 
 @hook.config_changed("content.blocking.hosts.lists")

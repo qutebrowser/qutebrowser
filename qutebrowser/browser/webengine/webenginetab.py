@@ -148,8 +148,8 @@ class _WebEngineSearchWrapHandler:
         """
         self._active_match = result.activeMatch()
         self._total_matches = result.numberOfMatches()
-        log.webview.debug("Active search match: {}/{}"
-                          .format(self._active_match, self._total_matches))
+        log.webview.debug("Active search match: {}/{}",
+                          self._active_match, self._total_matches)
 
     def reset_match_data(self):
         """Reset match information.
@@ -215,8 +215,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
                 # See https://github.com/qutebrowser/qutebrowser/issues/2442
                 # and https://github.com/qt/qtwebengine/blob/5.10/src/core/web_contents_adapter.cpp#L924-L934
                 log.webview.debug("Ignoring cancelled search callback with "
-                                  "{} pending searches".format(
-                                      self._pending_searches))
+                                  "{} pending searches", self._pending_searches)
                 return
 
             if sip.isdeleted(self._widget):
@@ -246,7 +245,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
         # Don't go to next entry on duplicate search
         if self.text == text and self.search_displayed:
             log.webview.debug("Ignoring duplicate search request"
-                              " for {}".format(text))
+                              " for {}", text)
             return
 
         self.text = text
@@ -431,7 +430,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
         # Only click if we see a link
         if elem.is_link():
             log.webview.debug("Found link in selection, clicking. ClickTarget "
-                              "{}, elem {}".format(click_type, elem))
+                              "{}, elem {}", click_type, elem)
             try:
                 elem.click(click_type)
             except webelem.Error as e:
@@ -463,8 +462,8 @@ class WebEngineCaret(browsertab.AbstractCaret):
             # This may happen if the user switches to another mode after
             # `:selection-toggle` is executed and before this callback function
             # is asynchronously called.
-            log.misc.debug("Ignoring caret selection callback in {}".format(
-                self._mode_manager.mode))
+            log.misc.debug("Ignoring caret selection callback in {}",
+                self._mode_manager.mode)
             return
         if state_str is None:
             message.error("Error toggling caret selection")
@@ -508,12 +507,12 @@ class WebEngineScroller(browsertab.AbstractScroller):
             except ValueError:
                 # https://github.com/qutebrowser/qutebrowser/issues/3219
                 log.misc.debug("Got ValueError for perc_x!")
-                log.misc.debug("contents_size.width(): {}".format(
-                    contents_size.width()))
-                log.misc.debug("self._widget.width(): {}".format(
-                    self._widget.width()))
-                log.misc.debug("scrollable_x: {}".format(scrollable_x))
-                log.misc.debug("pos.x(): {}".format(pos.x()))
+                log.misc.debug("contents_size.width(): {}",
+                    contents_size.width())
+                log.misc.debug("self._widget.width(): {}",
+                    self._widget.width())
+                log.misc.debug("scrollable_x: {}", scrollable_x)
+                log.misc.debug("pos.x(): {}", pos.x())
                 raise
 
         scrollable_y = contents_size.height() - self._widget.height()
@@ -525,12 +524,12 @@ class WebEngineScroller(browsertab.AbstractScroller):
             except ValueError:
                 # https://github.com/qutebrowser/qutebrowser/issues/3219
                 log.misc.debug("Got ValueError for perc_y!")
-                log.misc.debug("contents_size.height(): {}".format(
-                    contents_size.height()))
-                log.misc.debug("self._widget.height(): {}".format(
-                    self._widget.height()))
-                log.misc.debug("scrollable_y: {}".format(scrollable_y))
-                log.misc.debug("pos.y(): {}".format(pos.y()))
+                log.misc.debug("contents_size.height(): {}",
+                    contents_size.height())
+                log.misc.debug("self._widget.height(): {}",
+                    self._widget.height())
+                log.misc.debug("scrollable_y: {}", scrollable_y)
+                log.misc.debug("pos.y(): {}", pos.y())
                 raise
 
         self._at_bottom = math.ceil(pos.y()) >= scrollable_y
@@ -739,7 +738,7 @@ class WebEngineElements(browsertab.AbstractElements):
         """
         debug_str = ('None' if js_elem is None
                      else utils.elide(repr(js_elem), 1000))
-        log.webview.debug("Got element from JS: {}".format(debug_str))
+        log.webview.debug("Got element from JS: {}", debug_str)
 
         if js_elem is None:
             callback(None)
@@ -913,8 +912,8 @@ class _WebEnginePermissions(QObject):
             return
 
         if feature not in self._options:
-            log.webview.error("Unhandled feature permission {}".format(
-                permission_str))
+            log.webview.error("Unhandled feature permission {}",
+                permission_str)
             deny_permission()
             return
 
@@ -1075,8 +1074,8 @@ class _WebEngineScripts(QObject):
         page_scripts = self._widget.page().scripts()
         for script in page_scripts.toList():
             if script.name().startswith("GM-"):
-                log.greasemonkey.debug('Removing script: {}'
-                                       .format(script.name()))
+                log.greasemonkey.debug('Removing script: {}',
+                                       script.name())
                 removed = page_scripts.remove(script)
                 assert removed, script.name()
 
@@ -1104,17 +1103,17 @@ class _WebEngineScripts(QObject):
                 world = int(script.jsworld)
                 if not 0 <= world <= qtutils.MAX_WORLD_ID:
                     log.greasemonkey.error(
-                        f"script {script.name} has invalid value for '@qute-js-world'"
-                        f": {script.jsworld}, should be between 0 and "
-                        f"{qtutils.MAX_WORLD_ID}")
+                        "script {} has invalid value for '@qute-js-world'"
+                        ": {}, should be between 0 and {}",
+                        script.name, script.jsworld, qtutils.MAX_WORLD_ID)
                     continue
             except ValueError:
                 try:
                     world = _JS_WORLD_MAP[usertypes.JsWorld[script.jsworld.lower()]]
                 except KeyError:
                     log.greasemonkey.error(
-                        f"script {script.name} has invalid value for '@qute-js-world'"
-                        f": {script.jsworld}")
+                        "script {} has invalid value for '@qute-js-world': {}",
+                        script.name, script.jsworld)
                     continue
             new_script.setWorldId(world)
 
@@ -1134,10 +1133,10 @@ class _WebEngineScripts(QObject):
 
             if script.needs_document_end_workaround():
                 log.greasemonkey.debug(
-                    f"Forcing @run-at document-end for {script.name}")
+                    "Forcing @run-at document-end for {}", script.name)
                 new_script.setInjectionPoint(QWebEngineScript.DocumentReady)
 
-            log.greasemonkey.debug(f'adding script: {new_script.name()}')
+            log.greasemonkey.debug('adding script: {}', new_script.name())
             page_scripts.insert(new_script)
 
     def _inject_site_specific_quirks(self):
@@ -1352,7 +1351,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def _show_error_page(self, url, error):
         """Show an error page in the tab."""
-        log.misc.debug("Showing error page for {}".format(error))
+        log.misc.debug("Showing error page for {}", error)
         url_string = url.toDisplayString()
         error_page = jinja.render(
             'error.html',
@@ -1411,8 +1410,8 @@ class WebEngineTab(browsertab.AbstractTab):
 
     @pyqtSlot(QUrl, 'QAuthenticator*')
     def _on_authentication_required(self, url, authenticator):
-        log.network.debug("Authentication requested for {}, netrc_used {}"
-                          .format(url.toDisplayString(), self.data.netrc_used))
+        log.network.debug("Authentication requested for {}, netrc_used {}",
+                          url.toDisplayString(), self.data.netrc_used)
 
         netrc_success = False
         if not self.data.netrc_used:
@@ -1439,8 +1438,8 @@ class WebEngineTab(browsertab.AbstractTab):
 
     @pyqtSlot('qint64')
     def _on_renderer_process_pid_changed(self, pid):
-        log.webview.debug("Renderer process PID for tab {}: {}"
-                          .format(self.tab_id, pid))
+        log.webview.debug("Renderer process PID for tab {}: {}",
+                          self.tab_id, pid)
 
     @pyqtSlot(QWebEnginePage.RenderProcessTerminationStatus, int)
     def _on_render_process_terminated(self, status, exitcode):
@@ -1479,7 +1478,7 @@ class WebEngineTab(browsertab.AbstractTab):
             return
 
         error = match.group(1)
-        log.webview.error("Load error: {}".format(error))
+        log.webview.error("Load error: {}", error)
 
         missing_jst = 'jstProcess(' in html and 'jstProcess=' not in html
         if js_enabled and not missing_jst:
@@ -1516,17 +1515,17 @@ class WebEngineTab(browsertab.AbstractTab):
         url = error.url()
         self._insecure_hosts.add(url.host())
 
-        log.network.debug("Certificate error: {}".format(error))
+        log.network.debug("Certificate error: {}", error)
 
         if error.is_overridable():
             error.ignore = shared.ignore_certificate_errors(
                 url, [error], abort_on=[self.abort_questions])
         else:
             log.network.error("Non-overridable certificate error: "
-                              "{}".format(error))
+                              "{}", error)
 
-        log.network.debug("ignore {}, URL {}, requested {}".format(
-            error.ignore, url, self.url(requested=True)))
+        log.network.debug("ignore {}, URL {}, requested {}",
+            error.ignore, url, self.url(requested=True))
 
         # WORKAROUND for https://codereview.qt-project.org/c/qt/qtwebengine/+/270556
         show_non_overr_cert_error = (

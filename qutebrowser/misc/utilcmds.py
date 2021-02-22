@@ -176,7 +176,7 @@ def debug_pyeval(s: str, file: bool = False, quiet: bool = False) -> None:
 
     qutescheme.pyeval_output = out
     if quiet:
-        log.misc.debug("pyeval output: {}".format(out))
+        log.misc.debug("pyeval output: {}", out)
     else:
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')

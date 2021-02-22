@@ -180,7 +180,7 @@ class QuickmarkManager(UrlMarkManager):
             """Really set the quickmark."""
             self.marks[name] = url
             self.changed.emit()
-            log.misc.debug("Added quickmark {} for {}".format(name, url))
+            log.misc.debug("Added quickmark {} for {}", name, url)
 
         if name in self.marks:
             message.confirm_async(

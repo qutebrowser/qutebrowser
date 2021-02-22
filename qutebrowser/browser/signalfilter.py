@@ -20,6 +20,7 @@
 """A filter for signals which either filters or passes them."""
 
 import functools
+import logging
 
 from PyQt5.QtCore import QObject
 
@@ -83,11 +84,11 @@ class SignalFilter(QObject):
             # The tab has been deleted already
             return
         if tabidx == tabbed_browser.widget.currentIndex():
-            if log_signal:
-                log.signals.debug("emitting: {} (tab {})".format(
-                    debug.dbg_signal(signal, args), tabidx))
+            if log_signal and log.signals.isEnabledFor(logging.DEBUG):
+                log.signals.debug("emitting: {} (tab {})",
+                    debug.dbg_signal(signal, args), tabidx)
             signal.emit(*args)
         else:
-            if log_signal:
-                log.signals.debug("ignoring: {} (tab {})".format(
-                    debug.dbg_signal(signal, args), tabidx))
+            if log_signal and log.signals.isEnabledFor(logging.DEBUG):
+                log.signals.debug("ignoring: {} (tab {})",
+                    debug.dbg_signal(signal, args), tabidx)

@@ -304,16 +304,16 @@ class StatusBar(QWidget):
         updated by Qt properly.
         """
         if mode == usertypes.KeyMode.insert:
-            log.statusbar.debug("Setting insert flag to {}".format(val))
+            log.statusbar.debug("Setting insert flag to {}", val)
             self._color_flags.insert = val
         if mode == usertypes.KeyMode.passthrough:
-            log.statusbar.debug("Setting passthrough flag to {}".format(val))
+            log.statusbar.debug("Setting passthrough flag to {}", val)
             self._color_flags.passthrough = val
         if mode == usertypes.KeyMode.command:
-            log.statusbar.debug("Setting command flag to {}".format(val))
+            log.statusbar.debug("Setting command flag to {}", val)
             self._color_flags.command = val
         elif mode in [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]:
-            log.statusbar.debug("Setting prompt flag to {}".format(val))
+            log.statusbar.debug("Setting prompt flag to {}", val)
             self._color_flags.prompt = val
         elif mode == usertypes.KeyMode.caret:
             if not val:
@@ -402,8 +402,8 @@ class StatusBar(QWidget):
     @pyqtSlot(browsertab.SelectionState)
     def on_caret_selection_toggled(self, selection_state):
         """Update the statusbar when entering/leaving caret selection mode."""
-        log.statusbar.debug("Setting caret selection {}"
-                            .format(selection_state))
+        log.statusbar.debug("Setting caret selection {}",
+                            selection_state)
         if selection_state is browsertab.SelectionState.normal:
             self._set_mode_text("caret selection")
             self._color_flags.caret = ColorFlags.CaretMode.selection

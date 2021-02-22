@@ -21,7 +21,6 @@
 
 import re
 import inspect
-import logging
 import functools
 import datetime
 import types
@@ -42,8 +41,8 @@ def log_events(klass: Type) -> Type:
     @functools.wraps(old_event)
     def new_event(self: Any, e: QEvent) -> bool:
         """Wrapper for event() which logs events."""
-        log.misc.debug("Event in {}: {}".format(utils.qualname(klass),
-                                                qenum_key(QEvent, e.type())))
+        log.misc.debug("Event in {}: {}", utils.qualname(klass),
+                       qenum_key(QEvent, e.type()))
         return old_event(self, e)
 
     klass.event = new_event
@@ -274,7 +273,7 @@ class log_time:  # noqa: N801,N806 pylint: disable=invalid-name
     Usable as context manager or as decorator.
     """
 
-    def __init__(self, logger: Union[logging.Logger, str],
+    def __init__(self, logger: Union[log.QuteLogAdapter, str],
                  action: str = 'operation') -> None:
         """Constructor.
 
@@ -283,7 +282,7 @@ class log_time:  # noqa: N801,N806 pylint: disable=invalid-name
             action: A description of what's being done.
         """
         if isinstance(logger, str):
-            self._logger = logging.getLogger(logger)
+            self._logger = log.get_logger(logger)
         else:
             self._logger = logger
         self._started: Optional[datetime.datetime] = None

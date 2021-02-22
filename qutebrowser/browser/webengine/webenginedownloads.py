@@ -61,15 +61,15 @@ class DownloadItem(downloads.AbstractDownloadItem):
     @pyqtSlot(QWebEngineDownloadItem.DownloadState)
     def _on_state_changed(self, state):
         state_name = debug.qenum_key(QWebEngineDownloadItem, state)
-        log.downloads.debug("State for {!r} changed to {}".format(
-            self, state_name))
+        log.downloads.debug("State for {!r} changed to {}",
+            self, state_name)
 
         if state == QWebEngineDownloadItem.DownloadRequested:
             pass
         elif state == QWebEngineDownloadItem.DownloadInProgress:
             pass
         elif state == QWebEngineDownloadItem.DownloadCompleted:
-            log.downloads.debug("Download {} finished".format(self.basename))
+            log.downloads.debug("Download {} finished", self.basename)
             if self._is_page_download():
                 # Same logging as QtWebKit mhtml downloads.
                 log.downloads.debug("File successfully written.")

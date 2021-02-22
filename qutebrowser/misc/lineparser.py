@@ -78,7 +78,7 @@ class BaseLineParser(QObject):
 
     def _after_save(self):
         """Log a message after saving is done."""
-        log.destroy.debug("Saved to {}".format(self._configfile))
+        log.destroy.debug("Saved to {}", self._configfile)
 
     @contextlib.contextmanager
     def _open(self, mode):
@@ -152,7 +152,7 @@ class LineParser(BaseLineParser):
         if not os.path.isfile(self._configfile):
             self.data: Sequence[str] = []
         else:
-            log.init.debug("Reading {}".format(self._configfile))
+            log.init.debug("Reading {}", self._configfile)
             self._read()
 
     def __iter__(self):

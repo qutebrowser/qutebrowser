@@ -76,8 +76,8 @@ class Loader(jinja2.BaseLoader):
         except OSError as e:
             source = html_fallback.replace("%ERROR%", html.escape(str(e)))
             source = source.replace("%FILE%", html.escape(template))
-            log.misc.exception("The {} template could not be loaded from {}"
-                               .format(template, path))
+            log.misc.exception("The {} template could not be loaded from {}",
+                               template, path)
         # Currently we don't implement auto-reloading, so we always return True
         # for up-to-date.
         return source, path, lambda: True

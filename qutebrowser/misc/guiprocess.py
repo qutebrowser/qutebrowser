@@ -91,8 +91,8 @@ class GUIProcess(QObject):
     def _on_finished(self, code, status):
         """Show a message when the process finished."""
         self._started = False
-        log.procs.debug("Process finished with code {}, status {}.".format(
-            code, status))
+        log.procs.debug("Process finished with code {}, status {}.",
+            code, status)
 
         encoding = locale.getpreferredencoding(do_setlocale=False)
         stderr = self._proc.readAllStandardError().data().decode(
@@ -156,7 +156,7 @@ class GUIProcess(QObject):
         self.cmd = cmd
         self.args = args
         fake_cmdline = ' '.join(shlex.quote(e) for e in [cmd] + list(args))
-        log.procs.debug("Executing: {}".format(fake_cmdline))
+        log.procs.debug("Executing: {}", fake_cmdline)
         if self.verbose:
             message.info('Executing: ' + fake_cmdline)
 

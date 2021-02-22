@@ -152,17 +152,17 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
             navigation_type_str = debug.qenum_key(QWebEngineUrlRequestInfo,
                                                   info.navigationType())
             log.network.debug("{} {}, first-party {}, resource {}, "
-                              "navigation {}".format(
-                                  bytes(info.requestMethod()).decode('ascii'),
-                                  info.requestUrl().toDisplayString(),
-                                  info.firstPartyUrl().toDisplayString(),
-                                  resource_type_str, navigation_type_str))
+                              "navigation {}",
+                              bytes(info.requestMethod()).decode('ascii'),
+                              info.requestUrl().toDisplayString(),
+                              info.firstPartyUrl().toDisplayString(),
+                              resource_type_str, navigation_type_str)
 
         url = info.requestUrl()
         first_party = info.firstPartyUrl()
         if not url.isValid():
-            log.network.debug("Ignoring invalid intercepted URL: {}".format(
-                url.errorString()))
+            log.network.debug("Ignoring invalid intercepted URL: {}",
+                    url.errorString())
             return
 
         # Per QWebEngineUrlRequestInfo::ResourceType documentation, if we fail
@@ -181,9 +181,9 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         if ((url.scheme(), url.host(), url.path()) ==
                 ('qute', 'settings', '/set')):
             if first_party != QUrl('qute://settings/') or not is_xhr:
-                log.network.warning("Blocking malicious request from {} to {}"
-                                    .format(first_party.toDisplayString(),
-                                            url.toDisplayString()))
+                log.network.warning("Blocking malicious request from {} to {}",
+                                    first_party.toDisplayString(),
+                                    url.toDisplayString())
                 info.block(True)
                 return
 

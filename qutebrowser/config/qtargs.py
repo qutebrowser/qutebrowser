@@ -207,21 +207,22 @@ def _get_lang_override(
     locales_path = pathlib.Path(
         QLibraryInfo.location(QLibraryInfo.TranslationsPath)) / 'qtwebengine_locales'
     if not locales_path.exists():
-        log.init.debug(f"{locales_path} not found, skipping workaround!")
+        log.init.debug("{} not found, skipping workaround!", locales_path)
         return None
 
     pak_path = _get_locale_pak_path(locales_path, locale_name)
     if pak_path.exists():
-        log.init.debug(f"Found {pak_path}, skipping workaround")
+        log.init.debug("Found {}, skipping workaround", pak_path)
         return None
 
     pak_name = _get_pak_name(locale_name)
     pak_path = _get_locale_pak_path(locales_path, pak_name)
     if pak_path.exists():
-        log.init.debug(f"Found {pak_path}, applying workaround")
+        log.init.debug("Found {}, applying workaround", pak_path)
         return pak_name
 
-    log.init.debug(f"Can't find pak in {locales_path} for {locale_name} or {pak_name}")
+    log.init.debug("Can't find pak in {} for {} or {}",
+                   locales_path, locale_name, pak_name)
     return 'en-US'
 
 

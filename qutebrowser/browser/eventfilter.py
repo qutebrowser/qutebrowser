@@ -50,8 +50,8 @@ class ChildEventFilter(QObject):
         """Act on ChildAdded events."""
         if event.type() == QEvent.ChildAdded:
             child = event.child()
-            log.misc.debug("{} got new child {}, installing filter"
-                           .format(obj, child))
+            log.misc.debug("{} got new child {}, installing filter",
+                           obj, child)
 
             # Additional sanity check, but optional
             if self._widget is not None:
@@ -60,7 +60,7 @@ class ChildEventFilter(QObject):
             child.installEventFilter(self._filter)
         elif event.type() == QEvent.ChildRemoved:
             child = event.child()
-            log.misc.debug("{}: removed child {}".format(obj, child))
+            log.misc.debug("{}: removed child {}", obj, child)
 
         return False
 
@@ -109,7 +109,7 @@ class TabEventFilter(QObject):
 
         pos = e.pos()
         if pos.x() < 0 or pos.y() < 0:
-            log.mouse.warning("Ignoring invalid click at {}".format(pos))
+            log.mouse.warning("Ignoring invalid click at {}", pos)
             return False
 
         if e.button() != Qt.NoButton:
@@ -267,7 +267,7 @@ class TabEventFilter(QObject):
         if evtype not in self._handlers:
             return False
         if obj is not self._tab.private_api.event_target():
-            log.mouse.debug("Ignoring {} to {}".format(
-                event.__class__.__name__, obj))
+            log.mouse.debug("Ignoring {} to {}",
+                event.__class__.__name__, obj)
             return False
         return self._handlers[evtype](event)

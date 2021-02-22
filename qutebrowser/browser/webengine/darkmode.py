@@ -339,7 +339,7 @@ def _variant(versions: version.WebEngineVersions) -> Variant:
         try:
             return Variant[env_var]
         except KeyError:
-            log.init.warning(f"Ignoring invalid QUTE_DARKMODE_VARIANT={env_var}")
+            log.init.warning("Ignoring invalid QUTE_DARKMODE_VARIANT={}", env_var)
 
     if (versions.webengine == utils.VersionNumber(5, 15, 2) and
             versions.chromium_major == 87):
@@ -376,7 +376,7 @@ def settings(
         setting.
     """
     variant = _variant(versions)
-    log.init.debug(f"Darkmode variant: {variant.name}")
+    log.init.debug("Darkmode variant: {}", variant.name)
 
     result: Mapping[str, List[Tuple[str, str]]] = collections.defaultdict(list)
 

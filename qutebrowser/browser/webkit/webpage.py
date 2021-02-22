@@ -104,8 +104,8 @@ class BrowserPage(QWebPage):
         Connect the signals used as triggers for injecting user
         JavaScripts into the passed QWebFrame.
         """
-        log.greasemonkey.debug("Connecting to frame {} ({})"
-                               .format(frame, frame.url().toDisplayString()))
+        log.greasemonkey.debug("Connecting to frame {} ({})",
+                               frame, frame.url().toDisplayString())
         frame.loadFinished.connect(
             functools.partial(self._inject_userjs, frame))
 
@@ -159,9 +159,9 @@ class BrowserPage(QWebPage):
             return True
         elif (info.domain, info.error) in ignored_errors:
             log.webview.debug("Ignored error on {}: {} (error domain: {}, "
-                              "error code: {})".format(
-                                  urlstr, info.errorString, info.domain,
-                                  info.error))
+                              "error code: {})",
+                              urlstr, info.errorString, info.domain,
+                              info.error)
             return False
         else:
             error_str = info.errorString
@@ -180,10 +180,10 @@ class BrowserPage(QWebPage):
             else:
                 self._ignore_load_started = True
                 self.error_occurred = True
-            log.webview.error("Error while loading {}: {}".format(
-                urlstr, error_str))
-            log.webview.debug("Error domain: {}, error code: {}".format(
-                info.domain, info.error))
+            log.webview.error("Error while loading {}: {}",
+                urlstr, error_str)
+            log.webview.debug("Error domain: {}, error code: {}",
+                info.domain, info.error)
             title = "Error loading page: {}".format(urlstr)
             error_html = jinja.render(
                 'error.html',
@@ -325,8 +325,8 @@ class BrowserPage(QWebPage):
         if url.isEmpty():
             url = frame.requestedUrl()
 
-        log.greasemonkey.debug("_inject_userjs called for {} ({})"
-                               .format(frame, url.toDisplayString()))
+        log.greasemonkey.debug("_inject_userjs called for {} ({})",
+                               frame, url.toDisplayString())
 
         scripts = greasemonkey.gm_manager.scripts_for(url)
         # QtWebKit has trouble providing us with signals representing
@@ -338,12 +338,12 @@ class BrowserPage(QWebPage):
             # This happens during normal usage like with view source but may
             # also indicate a bug.
             log.greasemonkey.debug("Not running scripts for frame with no "
-                                   "url: {}".format(frame))
+                                   "url: {}", frame)
             assert not toload, toload
 
         for script in toload:
             if frame is self.mainFrame() or script.runs_on_sub_frames:
-                log.webview.debug('Running GM script: {}'.format(script.name))
+                log.webview.debug('Running GM script: {}', script.name)
                 frame.evaluateJavaScript(script.code())
 
     @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
@@ -352,8 +352,8 @@ class BrowserPage(QWebPage):
         if not isinstance(frame, QWebFrame):  # pragma: no cover
             # This makes no sense whatsoever, but someone reported this being
             # called with a QBuffer...
-            log.misc.error("on_feature_permission_requested got called with "
-                           "{!r}!".format(frame))
+            log.misc.error("on_feature_permission_requested got called with ",
+                           "{!r}!", frame)
             return
 
         options = {
@@ -463,7 +463,7 @@ class BrowserPage(QWebPage):
         try:
             handler = self._extension_handlers[ext]
         except KeyError:
-            log.webview.warning("Extension {} not supported!".format(ext))
+            log.webview.warning("Extension {} not supported!", ext)
             return super().extension(ext, opt, out)
         return handler(opt, out)
 

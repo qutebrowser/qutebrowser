@@ -258,7 +258,7 @@ def _writable_location(typ: QStandardPaths.StandardLocation) -> str:
     with _unset_organization():
         path = QStandardPaths.writableLocation(typ)
 
-    log.misc.debug("writable location for {}: {}".format(typ_str, path))
+    log.misc.debug("writable location for {}: {}", typ_str, path)
     if not path:
         raise EmptyValueError("QStandardPaths returned an empty value!")
 
@@ -335,7 +335,7 @@ def init(args: Optional[argparse.Namespace]) -> None:
     """Initialize all standard dirs."""
     if args is not None:
         # args can be None during tests
-        log.init.debug("Base directory: {}".format(args.basedir))
+        log.init.debug("Base directory: {}", args.basedir)
 
     _init_dirs(args)
     _init_cachedir_tag()

@@ -246,7 +246,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         self._autoclose = autoclose
         try:
             self._read_timer.stop()
-            log.downloads.debug("buffer: {} bytes".format(self._buffer.tell()))
+            log.downloads.debug("buffer: {} bytes", self._buffer.tell())
             self._buffer.seek(0)
             shutil.copyfileobj(self._buffer, fileobj)
             self._buffer.close()
@@ -280,7 +280,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         self._reply = None
         self.finished.emit()
         self.done = True
-        log.downloads.debug("Download {} finished".format(self.basename))
+        log.downloads.debug("Download {} finished", self.basename)
         self.data_changed.emit()
 
     @pyqtSlot()
@@ -298,7 +298,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         is_redirected = self._handle_redirect()
         if is_redirected:
             return
-        log.downloads.debug("Reply finished, fileobj {}".format(self.fileobj))
+        log.downloads.debug("Reply finished, fileobj {}", self.fileobj)
         if self.fileobj is not None:
             # We can do a "delayed" write immediately to empty the buffer and
             # clean up.
@@ -373,7 +373,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
             self.delete()
             return True  # so on_reply_finished aborts
 
-        log.downloads.debug("{}: Handling redirect".format(self))
+        log.downloads.debug("{}: Handling redirect", self)
         self._redirects += 1
         new_request.setUrl(new_url)
 
@@ -386,8 +386,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
         if self.fileobj is not None:
             self.fileobj.seek(0)
 
-        log.downloads.debug("redirected: {} -> {}".format(
-            old_reply.url(), new_request.url()))
+        log.downloads.debug("redirected: {} -> {}",
+            old_reply.url(), new_request.url())
         new_reply = old_reply.manager().get(new_request)
         self._init_reply(new_reply)
 
@@ -544,8 +544,8 @@ class DownloadManager(downloads.AbstractDownloadManager):
                 suggested_filename = target.suggested_filename()
             except downloads.NoFilenameError:
                 _, suggested_filename = http.parse_content_disposition(reply)
-        log.downloads.debug("fetch: {} -> {}".format(reply.url(),
-                                                     suggested_filename))
+        log.downloads.debug("fetch: {} -> {}", reply.url(),
+                            suggested_filename)
         download = DownloadItem(reply, manager=self)
         self._init_item(download, auto_remove, suggested_filename)
 

@@ -289,8 +289,7 @@ class MainWindow(QWidget):
             self._load_state_geometry()
         else:
             self._set_default_geometry()
-        log.init.debug("Initial main window geometry: {}".format(
-            self.geometry()))
+        log.init.debug("Initial main window geometry: {}", self.geometry())
 
     def _add_overlay(self, widget, signal, *, centered=False, padding=0):
         self._overlays.append((widget, signal, centered, padding))
@@ -347,7 +346,7 @@ class MainWindow(QWidget):
             raise ValueError("Invalid position {}!".format(status_position))
 
         rect = QRect(topleft, bottomright)
-        log.misc.debug('new geometry for {!r}: {}'.format(widget, rect))
+        log.misc.debug('new geometry for {!r}: {}', widget, rect)
         if rect.isValid():
             widget.setGeometry(rect)
 
@@ -460,7 +459,7 @@ class MainWindow(QWidget):
 
         If loading fails, loads default geometry.
         """
-        log.init.debug("Loading mainwindow from {!r}".format(geom))
+        log.init.debug("Loading mainwindow from {!r}", geom)
         ok = self.restoreGeometry(geom)
         if not ok:
             log.init.warning("Error while loading geometry.")
@@ -577,8 +576,8 @@ class MainWindow(QWidget):
                     self.state_before_fullscreen)  # type: ignore[operator]
             elif self.isFullScreen():
                 self.setWindowState(self.state_before_fullscreen)
-        log.misc.debug('on: {}, state before fullscreen: {}'.format(
-            on, debug.qflags_key(Qt, self.state_before_fullscreen)))
+        log.misc.debug('on: {}, state before fullscreen: {}',
+                on, debug.qflags_key(Qt, self.state_before_fullscreen))
 
     @cmdutils.register(instance='main-window', scope='window')
     @pyqtSlot()
@@ -643,8 +642,7 @@ class MainWindow(QWidget):
 
             # Stop asking if the user cancels
             if not confirmed:
-                log.destroy.debug("Cancelling closing of window {}".format(
-                    self.win_id))
+                log.destroy.debug("Cancelling closing of window {}", self.win_id)
                 return False
 
         return True
@@ -684,5 +682,5 @@ class MainWindow(QWidget):
                               "private window")
             websettings.clear_private_data()
 
-        log.destroy.debug("Closing window {}".format(self.win_id))
+        log.destroy.debug("Closing window {}", self.win_id)
         self.tabbed_browser.shutdown()

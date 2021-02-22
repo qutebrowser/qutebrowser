@@ -162,10 +162,10 @@ def _find_prevnext(prev, elems):
         if e.tag_name() not in ['link', 'a']:
             continue
         if 'rel' in e and set(e['rel'].split(' ')) & rel_values:
-            log.hints.debug("Found {!r} with rel={}".format(e, e['rel']))
+            log.hints.debug("Found {!r} with rel={}", e, e['rel'])
             return e
         elif e.classes() & classes:
-            log.hints.debug("Found {!r} with class={}".format(e, e.classes()))
+            log.hints.debug("Found {!r} with class={}", e, e.classes())
             return e
 
     # Then check for regular links/buttons.
@@ -175,19 +175,17 @@ def _find_prevnext(prev, elems):
         return None
 
     for regex in getattr(config.val.hints, option):
-        log.hints.vdebug(  # type: ignore[attr-defined]
-            "== Checking regex '{}'.".format(regex.pattern))
+        log.hints.vdebug("== Checking regex '{}'.", regex.pattern)
         for e in elems:
             text = str(e)
             if not text:
                 continue
             if regex.search(text):
-                log.hints.debug("Regex '{}' matched on '{}'.".format(
-                    regex.pattern, text))
+                log.hints.debug("Regex '{}' matched on '{}'.",
+                    regex.pattern, text)
                 return e
             else:
-                log.hints.vdebug(  # type: ignore[attr-defined]
-                    "No match on '{}'!".format(text))
+                log.hints.vdebug("No match on '{}'!", text)
     return None
 
 

@@ -207,13 +207,13 @@ class CrashHandler(QObject):
         try:
             pages = self._recover_pages(forgiving=True)
         except Exception as e:
-            log.destroy.exception("Error while recovering pages: {}".format(e))
+            log.destroy.exception("Error while recovering pages: {}", e)
             pages = []
 
         try:
             cmd_history = objreg.get('command-history')[-5:]
         except Exception as e:
-            log.destroy.exception("Error while getting history: {}".format(e))
+            log.destroy.exception("Error while getting history: {}", e)
             cmd_history = []
 
         try:

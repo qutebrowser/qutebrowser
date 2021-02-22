@@ -187,7 +187,7 @@ class AbstractWebInspector(QWidget):
         except binascii.Error:
             log.misc.exception("Error while reading geometry")
         else:
-            log.init.debug("Loading geometry from {!r}".format(geom))
+            log.init.debug("Loading geometry from {!r}", geom)
             ok = self._widget.restoreGeometry(geom)
             if not ok:
                 log.init.warning("Error while loading geometry.")

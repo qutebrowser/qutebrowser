@@ -22,7 +22,6 @@
 import os
 import signal
 import functools
-import logging
 import pathlib
 from typing import Optional
 
@@ -38,10 +37,10 @@ from qutebrowser.api import cmdutils, apitypes, message, config
 
 # FIXME should be part of qutebrowser.api?
 from qutebrowser.completion.models import miscmodels
-from qutebrowser.utils import utils
+from qutebrowser.utils import log, utils
 
 
-_LOGGER = logging.getLogger('misc')
+_LOGGER = log.misc
 
 
 @cmdutils.register(name='reload')
@@ -96,7 +95,7 @@ def _print_pdf(tab: apitypes.Tab, filename: str) -> None:
     if directory and not os.path.exists(directory):
         os.mkdir(directory)
     tab.printing.to_pdf(filename)
-    _LOGGER.debug("Print to file: {}".format(filename))
+    _LOGGER.debug("Print to file: {}", filename)
 
 
 @cmdutils.register(name='print')
@@ -193,7 +192,7 @@ def screenshot(
     if not ok:
         raise cmdutils.CommandError(f"Saving to {filename} failed")
 
-    _LOGGER.debug(f"Screenshot saved to {filename}")
+    _LOGGER.debug("Screenshot saved to {}", filename)
 
 
 @cmdutils.register(maxsplit=0)

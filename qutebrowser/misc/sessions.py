@@ -95,7 +95,7 @@ def shutdown(session: Optional[ArgType], last_window: bool) -> None:
             session_manager.save(default, last_window=last_window,
                                  load_next_time=True)
     except SessionError as e:
-        log.sessions.error("Failed to save session: {}".format(e))
+        log.sessions.error("Failed to save session: {}", e)
 
     session_manager.delete_autosave()
 
@@ -333,7 +333,7 @@ class SessionManager(QObject):
         name = self._get_session_name(name)
         path = self._get_session_path(name)
 
-        log.sessions.debug("Saving session {} to {}...".format(name, path))
+        log.sessions.debug("Saving session {} to {}...", name, path)
         if last_window:
             data = self._last_window_session
             if data is None:
@@ -342,8 +342,7 @@ class SessionManager(QObject):
         else:
             data = self._save_all(only_window=only_window,
                                   with_private=with_private)
-        log.sessions.vdebug(  # type: ignore[attr-defined]
-            "Saving data: {}".format(data))
+        log.sessions.vdebug("Saving data: {}", data)
         try:
             with qtutils.savefile_open(path) as f:
                 utils.yaml_dump(data, f)
@@ -359,7 +358,7 @@ class SessionManager(QObject):
         try:
             self.save('_autosave')
         except SessionError as e:
-            log.sessions.error("Failed to save autosave session: {}".format(e))
+            log.sessions.error("Failed to save autosave session: {}", e)
 
     def delete_autosave(self):
         """Delete the autosave session."""
@@ -369,8 +368,8 @@ class SessionManager(QObject):
             # Exiting before the first load finished
             pass
         except SessionError as e:
-            log.sessions.error("Failed to delete autosave session: {}"
-                               .format(e))
+            log.sessions.error("Failed to delete autosave session: {}",
+                               e)
 
     def save_last_window_session(self):
         """Temporarily save the session for the last closed window."""
@@ -492,7 +491,7 @@ class SessionManager(QObject):
         except (OSError, UnicodeDecodeError, yaml.YAMLError) as e:
             raise SessionError(e)
 
-        log.sessions.debug("Loading session {} from {}...".format(name, path))
+        log.sessions.debug("Loading session {} from {}...", name, path)
         if data is None:
             raise SessionError("Got empty session file")
 
@@ -566,7 +565,7 @@ def session_load(name: str, *,
                 raise cmdutils.CommandError("Error while deleting session: {}"
                                             .format(e))
             else:
-                log.sessions.debug("Loaded & deleted session {}.".format(name))
+                log.sessions.debug("Loaded & deleted session {}.", name)
 
 
 @cmdutils.register()
@@ -609,7 +608,7 @@ def session_save(name: ArgType = default, *,
         raise cmdutils.CommandError("Error while saving session: {}".format(e))
     else:
         if quiet:
-            log.sessions.debug("Saved session {}.".format(name))
+            log.sessions.debug("Saved session {}.", name)
         else:
             message.info("Saved session {}.".format(name))
 
@@ -635,7 +634,7 @@ def session_delete(name: str, *, force: bool = False) -> None:
         raise cmdutils.CommandError("Error while deleting session: {}"
                                     .format(e))
     else:
-        log.sessions.debug("Deleted session {}.".format(name))
+        log.sessions.debug("Deleted session {}.", name)
 
 
 def load_default(name):

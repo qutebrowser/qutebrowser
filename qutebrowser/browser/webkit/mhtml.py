@@ -304,7 +304,7 @@ class _Downloader:
             return
         self.loaded_urls.add(url)
 
-        log.downloads.debug("loading asset at {}".format(url))
+        log.downloads.debug("loading asset at {}", url)
 
         # Using the download manager to download host-blocked urls might crash
         # qute, see the comments/discussion on
@@ -313,7 +313,7 @@ class _Downloader:
         request = interceptors.Request(first_party_url=None, request_url=url)
         interceptors.run(request)
         if request.is_blocked:
-            log.downloads.debug("Skipping {}, host-blocked".format(url))
+            log.downloads.debug("Skipping {}, host-blocked", url)
             # We still need an empty file in the output, QWebView can be pretty
             # picky about displaying a file correctly when not all assets are
             # at least referenced in the mhtml file.
@@ -362,7 +362,7 @@ class _Downloader:
             try:
                 css_string = item.fileobj.getvalue().decode('utf-8')
             except UnicodeDecodeError:
-                log.downloads.warning("Invalid UTF-8 data in {}".format(url))
+                log.downloads.warning("Invalid UTF-8 data in {}", url)
                 css_string = item.fileobj.getvalue().decode('utf-8', 'ignore')
             import_urls = _get_css_imports(css_string)
             for import_url in import_urls:
@@ -394,7 +394,7 @@ class _Downloader:
         except KeyError:
             # This might happen if .collect_zombies() calls .finished() and the
             # error handler will be called after .collect_zombies
-            log.downloads.debug("Oops! Download already gone: {}".format(item))
+            log.downloads.debug("Oops! Download already gone: {}", item)
             return
         item.fileobj.actual_close()
         # Add a stub file, see comment in .fetch_url() for more information
@@ -412,7 +412,7 @@ class _Downloader:
         """
         # This callback is called before _finished, so there's no need to
         # remove the item or close the fileobject.
-        log.downloads.debug("MHTML download cancelled by user: {}".format(url))
+        log.downloads.debug("MHTML download cancelled by user: {}", url)
         # Write an empty file instead
         item.fileobj.seek(0)
         item.fileobj.truncate()
@@ -463,7 +463,7 @@ class _Downloader:
         """
         items = {(url, item) for url, item in self.pending_downloads
                  if item.done}
-        log.downloads.debug("Zombie downloads: {}".format(items))
+        log.downloads.debug("Zombie downloads: {}", items)
         for url, item in items:
             self._finished(url, item)
 

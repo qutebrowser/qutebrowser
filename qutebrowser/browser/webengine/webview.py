@@ -86,15 +86,15 @@ class WebEngineView(QWebEngineView):
         debug_type = debug.qenum_key(QWebEnginePage, wintype)
         background = config.val.tabs.background
 
-        log.webview.debug("createWindow with type {}, background {}".format(
-            debug_type, background))
+        log.webview.debug("createWindow with type {}, background {}",
+            debug_type, background)
 
         if wintype == QWebEnginePage.WebBrowserWindow:
             # Shift-Alt-Click
             target = usertypes.ClickTarget.window
         elif wintype == QWebEnginePage.WebDialog:
             log.webview.warning("{} requested, but we don't support "
-                                "that!".format(debug_type))
+                                "that!", debug_type)
             target = usertypes.ClickTarget.tab
         elif wintype == QWebEnginePage.WebBrowserTab:
             # Middle-click / Ctrl-Click with Shift

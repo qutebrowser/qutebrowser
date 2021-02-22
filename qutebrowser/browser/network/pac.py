@@ -111,7 +111,7 @@ class _PACContext(QObject):
         ips = QHostInfo.fromName(host)
         if ips.error() != QHostInfo.NoError or not ips.addresses():
             err_f = "Failed to resolve host during PAC evaluation: {}"
-            log.network.info(err_f.format(host))
+            log.network.info(err_f, host)
             return QJSValue(QJSValue.NullValue)
         else:
             return ips.addresses()[0].toString()
@@ -325,7 +325,7 @@ class PACFetcher(QObject):
         try:
             return self._pac.resolve(query, from_file=from_file)
         except (EvalProxyError, ParseProxyError) as e:
-            log.network.exception("Error in PAC resolution: {}.".format(e))
+            log.network.exception("Error in PAC resolution: {}.", e)
             # .invalid is guaranteed to be inaccessible in RFC 6761.
             # Port 9 is for DISCARD protocol -- DISCARD servers act like
             # /dev/null.

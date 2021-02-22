@@ -51,7 +51,7 @@ def msgbox(parent, title, text, *, icon, buttons=QMessageBox.Ok,
         A new QMessageBox.
     """
     if objects.args.no_err_windows:
-        log.misc.info(f'{title}\n\n{text}')
+        log.misc.info('{}\n\n{}', title, text)
         return DummyBox()
 
     box = QMessageBox(parent)

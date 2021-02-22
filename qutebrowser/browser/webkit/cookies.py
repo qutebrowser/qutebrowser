@@ -59,8 +59,8 @@ class RAMCookieJar(QNetworkCookieJar):
         accept = config.instance.get('content.cookies.accept', url=url)
 
         if 'log-cookies' in objects.debug_flags:
-            log.network.debug('Cookie on {} -> applying setting {}'
-                              .format(url.toDisplayString(), accept))
+            log.network.debug('Cookie on {} -> applying setting {}',
+                              url.toDisplayString(), accept)
 
         if accept == 'never':
             return False

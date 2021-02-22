@@ -564,8 +564,7 @@ class AbstractScroller(QObject):
 
     @pyqtSlot()
     def _log_scroll_pos_change(self) -> None:
-        log.webview.vdebug(  # type: ignore[attr-defined]
-            "Scroll position changed to {}".format(self.pos_px()))
+        log.webview.vdebug("Scroll position changed to {}", self.pos_px())
 
     def _init_widget(self, widget: QWidget) -> None:
         self._widget = widget
@@ -1003,7 +1002,7 @@ class AbstractTab(QWidget):
         """Setter for load_status."""
         if not isinstance(val, usertypes.LoadStatus):
             raise TypeError("Type {} is no LoadStatus member!".format(val))
-        log.webview.debug("load status for {}: {}".format(repr(self), val))
+        log.webview.debug("load status for {}: {}", repr(self), val)
         self._load_status = val
         self.load_status_changed.emit(val)
 
@@ -1037,7 +1036,7 @@ class AbstractTab(QWidget):
         """Adjust the title if we are going to visit a URL soon."""
         qtutils.ensure_valid(url)
         url_string = url.toDisplayString()
-        log.webview.debug("Going to start loading: {}".format(url_string))
+        log.webview.debug("Going to start loading: {}", url_string)
         self.title_changed.emit(url_string)
 
     @pyqtSlot(QUrl)
@@ -1062,9 +1061,8 @@ class AbstractTab(QWidget):
         """Handle common acceptNavigationRequest code."""
         url = utils.elide(navigation.url.toDisplayString(), 100)
         log.webview.debug("navigation request: url {}, type {}, is_main_frame "
-                          "{}".format(url,
-                                      navigation.navigation_type,
-                                      navigation.is_main_frame))
+                          "{}", url, navigation.navigation_type,
+                          navigation.is_main_frame)
 
         if navigation.is_main_frame:
             self.data.last_navigation = navigation
@@ -1077,9 +1075,9 @@ class AbstractTab(QWidget):
                 self.data.open_target = usertypes.ClickTarget.normal
 
             log.webview.debug("Ignoring invalid URL {} in "
-                              "acceptNavigationRequest: {}".format(
-                                  navigation.url.toDisplayString(),
-                                  navigation.url.errorString()))
+                              "acceptNavigationRequest: {}",
+                              navigation.url.toDisplayString(),
+                              navigation.url.errorString())
             navigation.accepted = False
 
     @pyqtSlot(bool)

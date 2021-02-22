@@ -201,8 +201,7 @@ class KeyConfig:
                 'mode'.format(key, mode))
 
         self._validate(key, mode)
-        log.keyboard.vdebug(  # type: ignore[attr-defined]
-            "Adding binding {} -> {} in mode {}.".format(key, command, mode))
+        log.keyboard.vdebug("Adding binding {} -> {} in mode {}.", key, command, mode)
 
         bindings = self._config.get_mutable_obj('bindings.commands')
         if mode not in bindings:
@@ -315,8 +314,8 @@ class Config(QObject):
                                    pattern, hide_userconfig=hide_userconfig)
 
         self.changed.emit(opt.name)
-        log.config.debug("Config option changed: {} = {}".format(
-            opt.name, value))
+        log.config.debug("Config option changed: {} = {}",
+            opt.name, value)
 
     def _check_yaml(self, opt: 'configdata.Option', save_yaml: bool) -> None:
         """Make sure the given option may be set in autoconfig.yml."""
@@ -465,9 +464,8 @@ class Config(QObject):
         opt = self.get_opt(name)
         self._check_yaml(opt, save_yaml)
         converted = opt.typ.from_str(value)
-        log.config.debug("Setting {} (type {}) to {!r} (converted from {!r})"
-                         .format(name, opt.typ.__class__.__name__, converted,
-                                 value))
+        log.config.debug("Setting {} (type {}) to {!r} (converted from {!r})",
+                         name, opt.typ.__class__.__name__, converted, value)
         self._set_value(opt, converted, pattern=pattern)
         if save_yaml:
             self._yaml.set_obj(name, converted, pattern=pattern)
@@ -510,7 +508,7 @@ class Config(QObject):
         """
         for name, (old_value, new_value) in self._mutables.items():
             if old_value != new_value:
-                log.config.debug("{} was mutated, updating".format(name))
+                log.config.debug("{} was mutated, updating", name)
                 self.set_obj(name, new_value, save_yaml=save_yaml)
         self._mutables = {}
 

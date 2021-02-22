@@ -83,7 +83,7 @@ def run(args):
     if args.temp_basedir:
         args.basedir = tempfile.mkdtemp(prefix='qutebrowser-basedir-')
 
-    log.init.debug("Main process PID: {}".format(os.getpid()))
+    log.init.debug("Main process PID: {}", os.getpid())
 
     log.init.debug("Initializing directories...")
     standarddir.init(args)
@@ -185,7 +185,7 @@ def _init_icon():
         filename = ':/icons/qutebrowser-{size}x{size}.png'.format(size=size)
         pixmap = QPixmap(filename)
         if pixmap.isNull():
-            log.init.warning("Failed to load {}".format(filename))
+            log.init.warning("Failed to load {}", filename)
         else:
             fallback_icon.addPixmap(pixmap)
     icon = QIcon.fromTheme('qutebrowser', fallback_icon)
@@ -236,7 +236,7 @@ def _process_args(args):
     _open_special_pages(args)
 
     delta = datetime.datetime.now() - earlyinit.START_TIME
-    log.init.debug("Init finished after {}s".format(delta.total_seconds()))
+    log.init.debug("Init finished after {}s", delta.total_seconds())
 
 
 def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
@@ -271,7 +271,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
             if win_id is None:
                 win_id = mainwindow.get_window(via_ipc=via_ipc,
                                                target=command_target)
-            log.init.debug("Startup cmd {!r}".format(cmd))
+            log.init.debug("Startup cmd {!r}", cmd)
             commandrunner = runners.CommandRunner(win_id)
             commandrunner.run_safely(cmd[1:])
         elif not cmd:
@@ -312,7 +312,7 @@ def open_url(url, target=None, no_raise=False, via_ipc=True):
                                    no_raise=no_raise)
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    log.init.debug("About to open URL: {}".format(url.toDisplayString()))
+    log.init.debug("About to open URL: {}", url.toDisplayString())
     tabbed_browser.tabopen(url, background=background, related=False)
     return win_id
 
@@ -392,13 +392,13 @@ def _open_special_pages(args):
     setting = config.val.changelog_after_upgrade
     if not change.matches_filter(setting):
         log.init.debug(
-            f"Showing changelog is disabled (setting {setting}, change {change})")
+            "Showing changelog is disabled (setting {}, change {})", setting, change)
         return
 
     try:
         changelog = resources.read_file('html/doc/changelog.html')
     except OSError as e:
-        log.init.warning(f"Not showing changelog due to {e}")
+        log.init.warning("Not showing changelog due to {}", e)
         return
 
     qbversion = qutebrowser.__version__
@@ -417,8 +417,7 @@ def on_focus_changed(_old, new):
         return
 
     if not isinstance(new, QWidget):
-        log.misc.debug("on_focus_changed called with non-QWidget {!r}".format(
-            new))
+        log.misc.debug("on_focus_changed called with non-QWidget {!r}", new)
         return
 
     window = new.window()
@@ -554,9 +553,9 @@ class Application(QApplication):
         self._last_focus_object = None
 
         qt_args = qtargs.qt_args(args)
-        log.init.debug("Commandline args: {}".format(sys.argv[1:]))
-        log.init.debug("Parsed: {}".format(args))
-        log.init.debug("Qt arguments: {}".format(qt_args[1:]))
+        log.init.debug("Commandline args: {}", sys.argv[1:])
+        log.init.debug("Parsed: {}", args)
+        log.init.debug("Qt arguments: {}", qt_args[1:])
         super().__init__(qt_args)
 
         objects.args = args
@@ -580,7 +579,7 @@ class Application(QApplication):
         """Log when the focus object changed."""
         output = repr(obj)
         if self._last_focus_object != output:
-            log.misc.debug("Focus object changed: {}".format(output))
+            log.misc.debug("Focus object changed: {}", output)
         self._last_focus_object = output
 
     def event(self, e):

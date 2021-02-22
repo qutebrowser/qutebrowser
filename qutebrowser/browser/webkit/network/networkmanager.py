@@ -104,9 +104,8 @@ def _is_secure_cipher(cipher):
 def init():
     """Disable insecure SSL ciphers on old Qt versions."""
     default_ciphers = QSslSocket.defaultCiphers()
-    log.init.vdebug(  # type: ignore[attr-defined]
-        "Default Qt ciphers: {}".format(
-            ', '.join(c.name() for c in default_ciphers)))
+    log.init.vdebug("Default Qt ciphers: {}",
+                    ', '.join(c.name() for c in default_ciphers))
 
     good_ciphers = []
     bad_ciphers = []
@@ -117,8 +116,8 @@ def init():
             bad_ciphers.append(cipher)
 
     if bad_ciphers:
-        log.init.debug("Disabling bad ciphers: {}".format(
-            ', '.join(c.name() for c in bad_ciphers)))
+        log.init.debug("Disabling bad ciphers: {}",
+            ', '.join(c.name() for c in bad_ciphers))
         QSslSocket.setDefaultCiphers(good_ciphers)
 
 
@@ -231,8 +230,8 @@ class NetworkManager(QNetworkAccessManager):
             errors: A list of errors.
         """
         errors = [certificateerror.CertificateErrorWrapper(e) for e in errors]
-        log.network.debug("Certificate errors: {!r}".format(
-            ' / '.join(str(err) for err in errors)))
+        log.network.debug("Certificate errors: {!r}",
+            ' / '.join(str(err) for err in errors))
         try:
             host_tpl: Optional[urlutils.HostTupleType] = urlutils.host_tuple(
                 reply.url())
@@ -248,7 +247,7 @@ class NetworkManager(QNetworkAccessManager):
                 self._rejected_ssl_errors[host_tpl])
 
         log.network.debug("Already accepted: {} / "
-                          "rejected {}".format(is_accepted, is_rejected))
+                          "rejected {}", is_accepted, is_rejected)
 
         if is_rejected:
             return
@@ -288,8 +287,8 @@ class NetworkManager(QNetworkAccessManager):
     def on_authentication_required(self, reply, authenticator):
         """Called when a website needs authentication."""
         url = reply.url()
-        log.network.debug("Authentication requested for {}, netrc_used {}"
-                          .format(url.toDisplayString(), self.netrc_used))
+        log.network.debug("Authentication requested for {}, netrc_used {}",
+                          url.toDisplayString(), self.netrc_used)
 
         netrc_success = False
         if not self.netrc_used:
@@ -330,8 +329,8 @@ class NetworkManager(QNetworkAccessManager):
         See the description for adopted_downloads for details.
         """
         self.adopted_downloads -= 1
-        log.downloads.debug("Adopted download destroyed, {} left.".format(
-            self.adopted_downloads))
+        log.downloads.debug("Adopted download destroyed, {} left.",
+            self.adopted_downloads)
         assert self.adopted_downloads >= 0
         if self.adopted_downloads == 0:
             self.deleteLater()
@@ -340,8 +339,8 @@ class NetworkManager(QNetworkAccessManager):
     def adopt_download(self, download):
         """Adopt a new DownloadItem."""
         self.adopted_downloads += 1
-        log.downloads.debug("Adopted download, {} adopted.".format(
-            self.adopted_downloads))
+        log.downloads.debug("Adopted download, {} adopted.",
+            self.adopted_downloads)
         download.destroyed.connect(self.on_adopted_download_destroyed)
         download.adopt_download.connect(self.adopt_download)
 

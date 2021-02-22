@@ -418,7 +418,7 @@ class _BackendProblemChecker:
             return
 
         log.init.info(
-            f"Removing service workers at {service_worker_dir} (reason: {reason})")
+            "Removing service workers at {} (reason: {})", service_worker_dir, reason)
 
         # Keep one backup around - we're not 100% sure what persistent data
         # could be in there, but this folder can grow to ~300 MB.

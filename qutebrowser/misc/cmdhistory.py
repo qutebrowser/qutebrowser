@@ -80,7 +80,7 @@ class History(QObject):
         Args:
             text: The preset text.
         """
-        log.misc.debug("Preset text: '{}'".format(text))
+        log.misc.debug("Preset text: '{}'", text)
         if text:
             items: MutableSequence[str] = [
                 e for e in self.history

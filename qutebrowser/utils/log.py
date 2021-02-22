@@ -557,14 +557,14 @@ def init_from_config(conf: 'configmodule.ConfigContainer') -> None:
         return
     if ram_handler:
         ramlevel = conf.logging.level.ram
-        init.debug("Configuring RAM loglevel to %s", ramlevel)
+        init.debug("Configuring RAM loglevel to {}", ramlevel)
         ram_handler.setLevel(LOG_LEVELS[ramlevel.upper()])
     if console_handler:
         consolelevel = conf.logging.level.console
         if _args.loglevel:
             init.debug("--loglevel flag overrides logging.level.console")
         else:
-            init.debug("Configuring console loglevel to %s", consolelevel)
+            init.debug("Configuring console loglevel to {}", consolelevel)
             level = LOG_LEVELS[consolelevel.upper()]
             console_handler.setLevel(level)
             change_console_formatter(level)

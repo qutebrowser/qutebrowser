@@ -155,10 +155,10 @@ def multitype_conv(param, types, value, *, str_choices=None):
         types.append(str)
 
     for typ in types:
-        log.commands.debug("Trying to parse {!r} as {}".format(value, typ))
+        log.commands.debug("Trying to parse {!r} as {}", value, typ)
         try:
             return type_conv(param, typ, value, str_choices=str_choices)
         except cmdexc.ArgumentTypeError as e:
-            log.commands.debug("Got {} for {}".format(e, typ))
+            log.commands.debug("Got {} for {}", e, typ)
     raise cmdexc.ArgumentTypeError('{}: Invalid value {}'.format(
         param.name, value))

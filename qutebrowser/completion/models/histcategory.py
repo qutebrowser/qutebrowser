@@ -78,8 +78,8 @@ class HistoryCategory(QSqlQueryModel):
         if (self._empty_prefix is not None and raw_pattern.startswith(
                 self._empty_prefix)):
             log.sql.debug('Skipping query on {} due to '
-                          'prefix {} returning nothing.'
-                          .format(raw_pattern, self._empty_prefix))
+                          'prefix {} returning nothing.',
+                          raw_pattern, self._empty_prefix)
             return
         self._empty_prefix = None
 

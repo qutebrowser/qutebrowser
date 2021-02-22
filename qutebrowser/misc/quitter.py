@@ -152,7 +152,7 @@ class Quitter(QObject):
         data = json.dumps(argdict)
         args += ['--json-args', data]
 
-        log.destroy.debug("args: {}".format(args))
+        log.destroy.debug("args: {}", args)
 
         return args
 
@@ -177,10 +177,10 @@ class Quitter(QObject):
             True if the restart succeeded, False otherwise.
         """
         self._compile_modules()
-        log.destroy.debug("sys.executable: {}".format(sys.executable))
-        log.destroy.debug("sys.path: {}".format(sys.path))
-        log.destroy.debug("sys.argv: {}".format(sys.argv))
-        log.destroy.debug("frozen: {}".format(hasattr(sys, 'frozen')))
+        log.destroy.debug("sys.executable: {}", sys.executable)
+        log.destroy.debug("sys.path: {}", sys.path)
+        log.destroy.debug("sys.argv: {}", sys.argv)
+        log.destroy.debug("frozen: {}", hasattr(sys, 'frozen'))
 
         # Save the session if one is given.
         if session is not None:
@@ -217,8 +217,8 @@ class Quitter(QObject):
         if self._is_shutting_down:
             return
         self._is_shutting_down = True
-        log.destroy.debug("Shutting down with status {}, session {}...".format(
-            status, session))
+        log.destroy.debug("Shutting down with status {}, session {}...",
+            status, session)
 
         sessions.shutdown(session, last_window=last_window)
 

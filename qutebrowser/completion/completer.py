@@ -92,7 +92,7 @@ class Completer(QObject):
         if '--' in before_cursor or under_cursor.startswith('-'):
             # cursor on a flag or after an explicit split (--)
             return None
-        log.completion.debug("Before removing flags: {}".format(before_cursor))
+        log.completion.debug("Before removing flags: {}", before_cursor)
         if not before_cursor:
             # '|' or 'set|'
             log.completion.debug('Starting command completion')
@@ -100,17 +100,17 @@ class Completer(QObject):
         try:
             cmd = objects.commands[before_cursor[0]]
         except KeyError:
-            log.completion.debug("No completion for unknown command: {}"
-                                 .format(before_cursor[0]))
+            log.completion.debug("No completion for unknown command: {}",
+                                 before_cursor[0])
             return None
 
         before_cursor = [x for x in before_cursor if not x.startswith('-')]
-        log.completion.debug("After removing flags: {}".format(before_cursor))
+        log.completion.debug("After removing flags: {}", before_cursor)
         argpos = len(before_cursor) - 1
         try:
             func = cmd.get_pos_arg_info(argpos).completion
         except IndexError:
-            log.completion.debug("No completion in position {}".format(argpos))
+            log.completion.debug("No completion in position {}", argpos)
             return None
         return func
 
@@ -144,8 +144,7 @@ class Completer(QObject):
         parts = [x for x in result.cmdline if x]
         pos = self._cmd.cursorPosition() - len(self._cmd.prefix())
         pos = min(pos, len(text))  # Qt treats 2-byte UTF-16 chars as 2 chars
-        log.completion.debug('partitioning {} around position {}'.format(parts,
-                                                                         pos))
+        log.completion.debug('partitioning {} around position {}', parts, pos)
         for i, part in enumerate(parts):
             pos -= len(part)
             if pos <= 0:
@@ -174,7 +173,7 @@ class Completer(QObject):
         if text is None:
             return
         before, center, after = self._partition()
-        log.completion.debug("Changing {} to '{}'".format(center, text))
+        log.completion.debug("Changing {} to '{}'", center, text)
         try:
             maxsplit = objects.commands[before[0]].maxsplit
         except (KeyError, IndexError):
@@ -239,8 +238,8 @@ class Completer(QObject):
 
         before_cursor, pattern, after_cursor = self._partition()
 
-        log.completion.debug("Updating completion: {} {} {}".format(
-            before_cursor, pattern, after_cursor))
+        log.completion.debug("Updating completion: {} {} {}",
+            before_cursor, pattern, after_cursor)
 
         pattern = pattern.strip("'\"")
         func = self._get_new_completion(before_cursor, pattern)
@@ -294,7 +293,7 @@ class Completer(QObject):
         elif immediate:
             # pad with a space if quick-completing the last entry
             text += ' '
-        log.completion.debug("setting text = '{}', pos = {}".format(text, pos))
+        log.completion.debug("setting text = '{}', pos = {}", text, pos)
 
         # generally, we don't want to let self._cmd emit cursorPositionChanged,
         # because that'll schedule a completion update. That happens when

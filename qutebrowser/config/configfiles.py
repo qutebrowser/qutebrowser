@@ -131,7 +131,7 @@ class StateConfig(configparser.ConfigParser):
         try:
             old_version = utils.VersionNumber.parse(old_qutebrowser_version)
         except ValueError:
-            log.init.warning(f"Unable to parse old version {old_qutebrowser_version}")
+            log.init.warning("Unable to parse old version {}", old_qutebrowser_version)
             return
 
         new_version = utils.VersionNumber.parse(qutebrowser.__version__)
@@ -436,12 +436,12 @@ class YamlMigrations(QObject):
         for name in list(self._settings):
             if name in configdata.MIGRATIONS.renamed:
                 new_name = configdata.MIGRATIONS.renamed[name]
-                log.config.debug("Renaming {} to {}".format(name, new_name))
+                log.config.debug("Renaming {} to {}", name, new_name)
                 self._settings[new_name] = self._settings[name]
                 del self._settings[name]
                 self.changed.emit()
             elif name in configdata.MIGRATIONS.deleted:
-                log.config.debug("Removing {}".format(name))
+                log.config.debug("Removing {}", name)
                 del self._settings[name]
                 self.changed.emit()
 

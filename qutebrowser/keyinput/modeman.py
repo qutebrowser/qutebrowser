@@ -21,6 +21,7 @@
 
 import functools
 import dataclasses
+import logging
 from typing import Mapping, Callable, MutableMapping, Union, Set, cast
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
@@ -283,9 +284,10 @@ class ModeManager(QObject):
         """
         curmode = self.mode
         parser = self.parsers[curmode]
-        if curmode != usertypes.KeyMode.insert:
+        if (curmode != usertypes.KeyMode.insert and
+                log.modes.isEnabledFor(logging.DEBUG)):
             log.modes.debug("got keypress in mode {} - delegating to "
-                            "{}".format(curmode, utils.qualname(parser)))
+                            "{}", curmode, utils.qualname(parser))
         match = parser.handle(event, dry_run=dry_run)
 
         has_modifier = event.modifiers() not in [
@@ -311,10 +313,10 @@ class ModeManager(QObject):
             focus_widget = objects.qapp.focusWidget()
             log.modes.debug("match: {}, forward_unbound_keys: {}, "
                             "passthrough: {}, is_non_alnum: {}, dry_run: {} "
-                            "--> filter: {} (focused: {!r})".format(
-                                match, forward_unbound_keys,
-                                parser.passthrough, is_non_alnum, dry_run,
-                                filter_this, focus_widget))
+                            "--> filter: {} (focused: {!r})",
+                            match, forward_unbound_keys,
+                            parser.passthrough, is_non_alnum, dry_run,
+                            filter_this, focus_widget)
         return filter_this
 
     def _handle_keyrelease(self, event: QKeyEvent) -> bool:
@@ -334,7 +336,7 @@ class ModeManager(QObject):
         else:
             filter_this = True
         if self.mode != usertypes.KeyMode.insert:
-            log.modes.debug("filter: {}".format(filter_this))
+            log.modes.debug("filter: {}", filter_this)
         return filter_this
 
     def register(self, mode: usertypes.KeyMode,
@@ -360,22 +362,21 @@ class ModeManager(QObject):
             self.leave(self.mode, reason='enter normal: {}'.format(reason))
             return
 
-        log.modes.debug("Entering mode {}{}".format(
-            mode, '' if reason is None else ' (reason: {})'.format(reason)))
+        log.modes.debug("Entering mode {}{}",
+            mode, '' if reason is None else ' (reason: {})'.format(reason))
         if mode not in self.parsers:
             raise ValueError("No keyparser for mode {}".format(mode))
         if self.mode == mode or (self.mode in PROMPT_MODES and
                                  mode in PROMPT_MODES):
             log.modes.debug("Ignoring request as we're in mode {} "
-                            "already.".format(self.mode))
+                            "already.", self.mode)
             return
         if self.mode != usertypes.KeyMode.normal:
             if only_if_normal:
                 log.modes.debug("Ignoring request as we're in mode {} "
-                                "and only_if_normal is set..".format(
-                                    self.mode))
+                                "and only_if_normal is set..", self.mode)
                 return
-            log.modes.debug("Overriding mode {}.".format(self.mode))
+            log.modes.debug("Overriding mode {}.", self.mode)
             self.left.emit(self.mode, mode, self._win_id)
 
         if mode in PROMPT_MODES and self.mode in INPUT_MODES:
@@ -422,14 +423,13 @@ class ModeManager(QObject):
         if self.mode != mode:
             if maybe:
                 log.modes.debug("Ignoring leave request for {} (reason {}) as "
-                                "we're in mode {}".format(
-                                    mode, reason, self.mode))
+                                "we're in mode {}", mode, reason, self.mode)
                 return
             else:
                 raise NotInModeError("Not in mode {}!".format(mode))
 
-        log.modes.debug("Leaving mode {}{}".format(
-            mode, '' if reason is None else ' (reason: {})'.format(reason)))
+        log.modes.debug("Leaving mode {}{}",
+            mode, '' if reason is None else ' (reason: {})'.format(reason))
         # leaving a mode implies clearing keychain, see
         # https://github.com/qutebrowser/qutebrowser/issues/1805
         self.clear_keychain()

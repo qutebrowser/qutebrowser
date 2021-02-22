@@ -155,7 +155,7 @@ def parse_content_disposition(reply):
             content_disposition = ContentDisposition.parse(value)
             filename = content_disposition.filename()
         except ContentDispositionError as e:
-            log.network.error(f"Error while parsing filename: {e}")
+            log.network.error("Error while parsing filename: {}", e)
         else:
             is_inline = content_disposition.is_inline()
     # Then try to get filename from url

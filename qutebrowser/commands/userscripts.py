@@ -77,12 +77,12 @@ class _QtFIFOReader(QObject):
                     self.got_line.emit(line.rstrip('\r\n'))
                     self._notifier.setEnabled(True)
             except UnicodeDecodeError as e:
-                log.misc.error("Invalid unicode in userscript output: {}"
-                               .format(e))
+                log.misc.error("Invalid unicode in userscript output: {}",
+                               e)
         except RuntimeError as e:
             # For unknown reasons, read_line can still get called after the
             # QSocketNotifier was already deleted...
-            log.procs.debug("While reading userscript output: {}".format(e))
+            log.procs.debug("While reading userscript output: {}", e)
 
     def cleanup(self):
         """Clean up so the FIFO can be closed."""
@@ -189,7 +189,7 @@ class _BaseUserscriptRunner(QObject):
             tempfiles.append(self._env['QUTE_TEXT'])
 
         for fn in tempfiles:
-            log.procs.debug("Deleting temporary file {}.".format(fn))
+            log.procs.debug("Deleting temporary file {}.", fn)
             try:
                 os.remove(fn)
             except OSError as e:
@@ -318,8 +318,8 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
         except OSError:
             log.procs.exception("Failed to read command file!")
         except UnicodeDecodeError as e:
-            log.misc.error("Invalid unicode in userscript output: {}"
-                           .format(e))
+            log.misc.error("Invalid unicode in userscript output: {}",
+                           e)
 
         super()._cleanup()
         self.finished.emit()
@@ -436,7 +436,7 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False,
 
     runner.got_cmd.connect(
         lambda cmd:
-        log.commands.debug("Got userscript command: {}".format(cmd)))
+        log.commands.debug("Got userscript command: {}", cmd))
     runner.got_cmd.connect(commandrunner.run_safely)
 
     env['QUTE_USER_AGENT'] = websettings.user_agent()
@@ -452,11 +452,11 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False,
     # if cmd is not given as an absolute path, look it up
     # ~/.local/share/qutebrowser/userscripts (or $XDG_DATA_HOME)
     if not os.path.isabs(cmd_path):
-        log.misc.debug("{} is no absolute path".format(cmd_path))
+        log.misc.debug("{} is no absolute path", cmd_path)
         cmd_path = _lookup_path(cmd)
     elif not os.path.exists(cmd_path):
         raise NotFoundError(cmd_path)
-    log.misc.debug("Userscript to run: {}".format(cmd_path))
+    log.misc.debug("Userscript to run: {}", cmd_path)
 
     runner.finished.connect(commandrunner.deleteLater)
     runner.finished.connect(runner.deleteLater)

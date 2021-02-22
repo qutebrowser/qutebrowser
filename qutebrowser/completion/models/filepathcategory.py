@@ -66,7 +66,7 @@ class FilePathCategory(QAbstractListModel):
             return glob.glob(glob.escape(val) + '*')
         except ValueError as e:  # pragma: no cover
             # e.g. "embedded null byte" with \x00 on Python 3.6 and 3.7
-            log.completion.debug(f"Failed to glob: {e}")
+            log.completion.debug("Failed to glob: {}", e)
             return []
 
     def _url_to_path(self, val: str) -> str:

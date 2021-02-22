@@ -153,7 +153,7 @@ def get_pdfjs_res_and_path(path):
         except FileNotFoundError:
             raise PDFJSNotFound(path) from None
         except OSError as e:
-            log.misc.warning("OSError while reading PDF.js file: {}".format(e))
+            log.misc.warning("OSError while reading PDF.js file: {}", e)
             raise PDFJSNotFound(path) from None
 
     return content, file_path
@@ -205,7 +205,7 @@ def _read_from_system(system_path, names):
         except FileNotFoundError:
             continue
         except OSError as e:
-            log.misc.warning("OSError while reading PDF.js file: {}".format(e))
+            log.misc.warning("OSError while reading PDF.js file: {}", e)
             continue
     return (None, None)
 

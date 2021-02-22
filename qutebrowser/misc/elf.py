@@ -302,7 +302,7 @@ def _parse_from_file(f: IO[bytes]) -> Versions:
         ) as mmap_data:
             return _find_versions(cast(bytes, mmap_data))
     except (OSError, OverflowError) as e:
-        log.misc.debug(f"mmap failed ({e}), falling back to reading", exc_info=True)
+        log.misc.debug("mmap failed ({}), falling back to reading", e, exc_info=True)
         _safe_seek(f, sh.offset)
         data = _safe_read(f, sh.size)
         return _find_versions(data)
@@ -321,8 +321,8 @@ def parse_webenginecore() -> Optional[Versions]:
         with lib_file.open('rb') as f:
             versions = _parse_from_file(f)
 
-        log.misc.debug(f"Got versions from ELF: {versions}")
+        log.misc.debug("Got versions from ELF: {}", versions)
         return versions
     except ParseError as e:
-        log.misc.debug(f"Failed to parse ELF: {e}", exc_info=True)
+        log.misc.debug("Failed to parse ELF: {}", e, exc_info=True)
         return None

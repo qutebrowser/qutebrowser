@@ -24,6 +24,7 @@ import collections
 import traceback
 import typing
 import dataclasses
+import logging
 from typing import (Any, MutableMapping, MutableSequence, Tuple, Union, List, Optional,
                     Callable)
 
@@ -241,9 +242,8 @@ class Command:
             args = self._param_to_argparse_args(param, is_bool)
             callsig = debug_utils.format_call(self.parser.add_argument, args,
                                               kwargs, full=False)
-            log.commands.vdebug(  # type: ignore[attr-defined]
-                'Adding arg {} of type {} -> {}'
-                .format(param.name, typ, callsig))
+            log.commands.vdebug('Adding arg {} of type {} -> {}',
+                param.name, typ, callsig)
             self.parser.add_argument(*args, **kwargs)
             if param.kind == inspect.Parameter.VAR_POSITIONAL:
                 self._has_vararg = True
@@ -526,15 +526,19 @@ class Command:
             args: Arguments to the command.
             count: Command repetition count.
         """
-        dbgout = ["command called:", self.name]
-        if args:
-            dbgout.append(str(args))
-        elif args is None:
+        debug_enabled = log.commands.isEnabledFor(logging.DEBUG)
+        if debug_enabled:
+            dbgout = ["command called:", self.name]
+            if args:
+                dbgout.append(str(args))
+
+            if count is not None:
+                dbgout.append("(count={})".format(count))
+            log.commands.debug(' '.join(dbgout))
+
+        if args is None:
             args = []
 
-        if count is not None:
-            dbgout.append("(count={})".format(count))
-        log.commands.debug(' '.join(dbgout))
         try:
             self.namespace = self.parser.parse_args(args)
         except argparser.ArgumentParserError as e:
@@ -542,14 +546,15 @@ class Command:
                           stack=traceback.format_exc())
             return
         except argparser.ArgumentParserExit as e:
-            log.commands.debug("argparser exited with status {}: {}".format(
-                e.status, e))
+            log.commands.debug("argparser exited with status {}: {}",
+                e.status, e)
             return
         self._count = count
         self._check_prerequisites(win_id)
         posargs, kwargs = self._get_call_args(win_id)
-        log.commands.debug('Calling {}'.format(
-            debug_utils.format_call(self.handler, posargs, kwargs)))
+        if debug_enabled:
+            log.commands.debug('Calling {}',
+                debug_utils.format_call(self.handler, posargs, kwargs))
         self.handler(*posargs, **kwargs)
 
     def validate_mode(self, mode):
@@ -571,9 +576,8 @@ class Command:
 
     def register(self):
         """Register this command in objects.commands."""
-        log.commands.vdebug(  # type: ignore[attr-defined]
-            "Registering command {} (from {}:{})".format(
-                self.name, self.handler.__module__, self.handler.__qualname__))
+        log.commands.vdebug("Registering command {} (from {}:{})",
+            self.name, self.handler.__module__, self.handler.__qualname__)
         if self.name in objects.commands:
             raise ValueError("{} is already registered!".format(self.name))
         objects.commands[self.name] = self

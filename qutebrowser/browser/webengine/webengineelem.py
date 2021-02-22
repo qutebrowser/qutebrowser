@@ -160,7 +160,7 @@ class WebEngineElement(webelem.AbstractWebElement):
     def insert_text(self, text: str) -> None:
         if not self.is_editable(strict=True):
             raise webelem.Error("Element is not editable!")
-        log.webelem.debug("Inserting text into element {!r}".format(self))
+        log.webelem.debug("Inserting text into element {!r}", self)
         self._js_call('insert_text', text)
 
     def rect_on_view(self, *, elem_geometry: QRect = None,
@@ -203,8 +203,8 @@ class WebEngineElement(webelem.AbstractWebElement):
                 #     rect.translate(frame.geometry().topLeft())
                 #     frame = frame.parentFrame()
                 return rect
-        log.webelem.debug("Couldn't find rectangle for {!r} ({})".format(
-            self, rects))
+        log.webelem.debug("Couldn't find rectangle for {!r} ({})",
+            self, rects)
         return QRect()
 
     def remove_blank_target(self) -> None:

@@ -70,7 +70,7 @@ class Saveable:
 
     def mark_dirty(self):
         """Mark this saveable as dirty (having changes)."""
-        log.save.debug("Marking {} as dirty.".format(self._name))
+        log.save.debug("Marking {} as dirty.", self._name)
         self._dirty = True
 
     def save(self, is_exit=False, explicit=False, silent=False, force=False):
@@ -86,16 +86,16 @@ class Saveable:
                 (not config.instance.get(self._config_opt)) and
                 (not explicit) and (not force)):
             if not silent:
-                log.save.debug("Not saving {name} because autosaving has been "
-                               "disabled by {cfg[0]} -> {cfg[1]}.".format(
-                                   name=self._name, cfg=self._config_opt))
+                log.save.debug("Not saving {} because autosaving has been "
+                               "disabled by {} -> {}.",
+                               self._name, self._config_opt[0], self._config_opt[1])
             return
         do_save = self._dirty or (self._save_on_exit and is_exit) or force
         if not silent:
             log.save.debug("Save of {} requested - dirty {}, save_on_exit {}, "
-                           "is_exit {}, force {} -> {}".format(
-                               self._name, self._dirty, self._save_on_exit,
-                               is_exit, force, do_save))
+                           "is_exit {}, force {} -> {}",
+                           self._name, self._dirty, self._save_on_exit,
+                           is_exit, force, do_save)
         if do_save:
             self._save_handler()
             self._dirty = False
@@ -202,7 +202,7 @@ class SaveManager(QObject):
                     self.save(key, explicit=explicit, force=True)
                 except OSError as e:
                     message.error("Could not save {}: {}".format(key, e))
-        log.save.debug(":save saved {}".format(', '.join(what)))
+        log.save.debug(":save saved {}", ', '.join(what))
 
     @pyqtSlot()
     def shutdown(self):

@@ -137,8 +137,8 @@ def data_for_url(url: QUrl) -> Tuple[str, bytes]:
     host = url.host()
     query = url.query()
     # A url like "qute:foo" is split as "scheme:path", not "scheme:host".
-    log.misc.debug("url: {}, path: {}, host {}".format(
-        url.toDisplayString(), path, host))
+    log.misc.debug("url: {}, path: {}, host {}",
+        url.toDisplayString(), path, host)
     if not path or not host:
         new_url = QUrl()
         new_url.setScheme('qute')

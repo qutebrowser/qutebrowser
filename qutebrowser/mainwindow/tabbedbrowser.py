@@ -270,7 +270,7 @@ class TabbedBrowser(QWidget):
         try:
             idx = self.widget.indexOf(tab)
         except RuntimeError as e:
-            log.webview.debug("Got invalid tab ({})!".format(e))
+            log.webview.debug("Got invalid tab ({})!", e)
             raise TabDeletedError(e)
         if idx == -1:
             log.webview.debug("Got invalid tab (index is -1)!")
@@ -544,7 +544,7 @@ class TabbedBrowser(QWidget):
         tab = self.widget.widget(idx)
         if tab is None:
             log.webview.debug(  # type: ignore[unreachable]
-                "Got invalid tab {} for index {}!".format(tab, idx))
+                "Got invalid tab {} for index {}!", tab, idx)
             return
         self.tab_close_prompt_if_pinned(
             tab, False, lambda: self.close_tab(tab))
@@ -556,7 +556,7 @@ class TabbedBrowser(QWidget):
             self.close_tab(widget)
         except TabDeletedError:
             log.webview.debug("Requested to close {!r} which does not "
-                              "exist!".format(widget))
+                              "exist!", widget)
 
     @pyqtSlot('QUrl')
     @pyqtSlot('QUrl', bool)
@@ -591,8 +591,7 @@ class TabbedBrowser(QWidget):
         if url is not None:
             qtutils.ensure_valid(url)
         log.webview.debug("Creating new tab with URL {}, background {}, "
-                          "related {}, idx {}".format(
-                              url, background, related, idx))
+                          "related {}, idx {}", url, background, related, idx)
 
         prev_focus = QApplication.focusWidget()
 
@@ -678,9 +677,9 @@ class TabbedBrowser(QWidget):
         else:
             raise ValueError("Invalid tabs.new_position '{}'.".format(pos))
         log.webview.debug("tabs.new_position {} -> opening new tab at {}, "
-                          "next left: {} / right: {}".format(
-                              pos, idx, self._tab_insert_idx_left,
-                              self._tab_insert_idx_right))
+                          "next left: {} / right: {}",
+                          pos, idx, self._tab_insert_idx_left,
+                          self._tab_insert_idx_right)
         return idx
 
     def _update_favicons(self):
@@ -747,15 +746,15 @@ class TabbedBrowser(QWidget):
             text: The text to set.
         """
         if not text:
-            log.webview.debug("Ignoring title change to '{}'.".format(text))
+            log.webview.debug("Ignoring title change to '{}'.", text)
             return
         try:
             idx = self._tab_index(tab)
         except TabDeletedError:
             # We can get signals for tabs we already deleted...
             return
-        log.webview.debug("Changing title for idx {} to '{}'".format(
-            idx, text))
+        log.webview.debug("Changing title for idx {} to '{}'",
+            idx, text)
         self.widget.set_page_title(idx, text)
         if idx == self.widget.currentIndex():
             self._update_window_title()
@@ -809,8 +808,8 @@ class TabbedBrowser(QWidget):
         if widget is None:
             return  # type: ignore[unreachable]
         if mode in [usertypes.KeyMode.command] + modeman.PROMPT_MODES:
-            log.modes.debug("Left status-input mode, focusing {!r}".format(
-                widget))
+            log.modes.debug("Left status-input mode, focusing {!r}",
+                widget)
             widget.setFocus()
         if config.val.tabs.mode_on_change == 'restore':
             widget.data.input_mode = usertypes.KeyMode.normal
@@ -825,19 +824,19 @@ class TabbedBrowser(QWidget):
         tab = self.widget.widget(idx)
         if tab is None:
             log.webview.debug(  # type: ignore[unreachable]
-                "on_current_changed got called with invalid index {}"
-                .format(idx))
+                "on_current_changed got called with invalid index {}",
+                idx)
             return
 
-        log.modes.debug("Current tab changed, focusing {!r}".format(tab))
+        log.modes.debug("Current tab changed, focusing {!r}", tab)
         tab.setFocus()
 
         modes_to_leave = [usertypes.KeyMode.hint, usertypes.KeyMode.caret]
 
         mm_instance = modeman.instance(self._win_id)
         current_mode = mm_instance.mode
-        log.modes.debug("Mode before tab change: {} (mode_on_change = {})"
-                        .format(current_mode.name, mode_on_change))
+        log.modes.debug("Mode before tab change: {} (mode_on_change = {})",
+                        current_mode.name, mode_on_change)
         if mode_on_change == 'normal':
             modes_to_leave += modeman.INPUT_MODES
         for mode in modes_to_leave:
@@ -847,8 +846,8 @@ class TabbedBrowser(QWidget):
             modeman.enter(self._win_id, tab.data.input_mode, 'restore')
         if self._now_focused is not None:
             self.tab_deque.on_switch(self._now_focused)
-        log.modes.debug("Mode after tab change: {} (mode_on_change = {})"
-                        .format(current_mode.name, mode_on_change))
+        log.modes.debug("Mode after tab change: {} (mode_on_change = {})",
+                        current_mode.name, mode_on_change)
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
         QTimer.singleShot(0, self._update_window_title)
@@ -858,7 +857,7 @@ class TabbedBrowser(QWidget):
     @pyqtSlot()
     def on_cmd_return_pressed(self):
         """Set focus when the commandline closes."""
-        log.modes.debug("Commandline closed, focusing {!r}".format(self))
+        log.modes.debug("Commandline closed, focusing {!r}", self)
 
     def _on_load_progress(self, tab, perc):
         """Adjust tab indicator on load progress."""

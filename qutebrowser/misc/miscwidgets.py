@@ -420,7 +420,7 @@ class InspectorSplitter(QSplitter):
             # First start
             pass
         except ValueError as e:
-            log.misc.error("Could not read inspector size: {}".format(e))
+            log.misc.error("Could not read inspector size: {}", e)
         else:
             self._preferred_size = int(size)
 

@@ -178,7 +178,7 @@ class CompletionModel(QAbstractItemModel):
         Args:
             pattern: The filter pattern to set.
         """
-        log.completion.debug("Setting completion pattern '{}'".format(pattern))
+        log.completion.debug("Setting completion pattern '{}'", pattern)
         self.layoutAboutToBeChanged.emit()  # type: ignore[attr-defined]
         for cat in self._categories:
             cat.set_pattern(pattern)

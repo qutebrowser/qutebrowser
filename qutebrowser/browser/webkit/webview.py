@@ -105,7 +105,7 @@ class WebView(QWebView):
         self.shutting_down.emit()
         # We disable javascript because that prevents some segfaults when
         # quitting it seems.
-        log.destroy.debug("Shutting down {!r}.".format(self))
+        log.destroy.debug("Shutting down {!r}.", self)
         settings = self.settings()
         settings.setAttribute(QWebSettings.JavascriptEnabled, False)
         self.stop()
@@ -131,7 +131,7 @@ class WebView(QWebView):
             The new QWebView object.
         """
         debug_type = debug.qenum_key(QWebPage, wintype)
-        log.webview.debug("createWindow with type {}".format(debug_type))
+        log.webview.debug("createWindow with type {}", debug_type)
         if wintype == QWebPage.WebModalDialog:
             log.webview.warning("WebModalDialog requested, but we don't "
                                 "support that!")
@@ -219,8 +219,8 @@ class WebView(QWebView):
             else:
                 target = usertypes.ClickTarget.tab
             self._tabdata.open_target = target
-            log.mouse.debug("Ctrl/Middle click, setting target: {}".format(
-                target))
+            log.mouse.debug("Ctrl/Middle click, setting target: {}",
+                target)
         else:
             self._tabdata.open_target = usertypes.ClickTarget.normal
             log.mouse.debug("Normal click, setting normal target")

@@ -45,4 +45,4 @@ def debug_cache_stats() -> None:
     """Print LRU cache stats."""
     from qutebrowser.utils import log
     for name, fn in _CACHE_FUNCTIONS:
-        log.misc.info('{}: {}'.format(name, fn.cache_info()))
+        log.misc.info('{}: {}', name, fn.cache_info())

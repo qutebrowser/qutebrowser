@@ -139,7 +139,7 @@ class HintLabel(QLabel):
         """Reposition the label to its element."""
         if not self.elem.has_frame():
             # This sometimes happens for some reason...
-            log.hints.debug("Frame for {!r} vanished!".format(self))
+            log.hints.debug("Frame for {!r} vanished!", self)
             self.hide()
             return
         no_js = config.cache['hints.find_implementation'] != 'javascript'
@@ -640,7 +640,7 @@ class HintManager(QObject):
             return
 
         strings = self._hint_strings(elems)
-        log.hints.debug("hints: {}".format(', '.join(strings)))
+        log.hints.debug("hints: {}", ', '.join(strings))
 
         for elem, string in zip(elems, strings):
             label = HintLabel(elem, self._context)
@@ -857,7 +857,7 @@ class HintManager(QObject):
         if self._context is None:
             log.hints.debug("Got key without context!")
             return
-        log.hints.debug("Handling new keystring: '{}'".format(keystr))
+        log.hints.debug("Handling new keystring: '{}'", keystr)
         for string, label in self._context.labels.items():
             try:
                 if string.startswith(keystr):
@@ -893,7 +893,7 @@ class HintManager(QObject):
         else:
             self._context.filterstr = filterstr
 
-        log.hints.debug("Filtering hints on {!r}".format(filterstr))
+        log.hints.debug("Filtering hints on {!r}", filterstr)
 
         visible = []
         for label in self._context.all_labels:

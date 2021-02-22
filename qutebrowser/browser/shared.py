@@ -86,7 +86,7 @@ def _format_msg(msg: str) -> str:
 
 def javascript_confirm(url, js_msg, abort_on):
     """Display a javascript confirm prompt."""
-    log.js.debug("confirm: {}".format(js_msg))
+    log.js.debug("confirm: {}", js_msg)
     if config.val.content.javascript.modal_dialog:
         raise CallSuper
 
@@ -101,7 +101,7 @@ def javascript_confirm(url, js_msg, abort_on):
 
 def javascript_prompt(url, js_msg, default, abort_on):
     """Display a javascript prompt."""
-    log.js.debug("prompt: {}".format(js_msg))
+    log.js.debug("prompt: {}", js_msg)
     if config.val.content.javascript.modal_dialog:
         raise CallSuper
     if not config.val.content.javascript.prompt:
@@ -123,7 +123,7 @@ def javascript_prompt(url, js_msg, default, abort_on):
 
 def javascript_alert(url, js_msg, abort_on):
     """Display a javascript alert."""
-    log.js.debug("alert: {}".format(js_msg))
+    log.js.debug("alert: {}", js_msg)
     if config.val.content.javascript.modal_dialog:
         raise CallSuper
 
@@ -166,8 +166,8 @@ def ignore_certificate_errors(url, errors, abort_on):
         True if the error should be ignored, False otherwise.
     """
     ssl_strict = config.instance.get('content.ssl_strict', url=url)
-    log.network.debug("Certificate errors {!r}, strict {}".format(
-        errors, ssl_strict))
+    log.network.debug("Certificate errors {!r}, strict {}",
+        errors, ssl_strict)
 
     for error in errors:
         assert error.is_overridable(), repr(error)
@@ -346,9 +346,9 @@ def netrc_authentication(url, authenticator):
     except FileNotFoundError:
         log.misc.debug("No .netrc file found")
     except OSError as e:
-        log.misc.exception("Unable to read the netrc file: {}".format(e))
+        log.misc.exception("Unable to read the netrc file: {}", e)
     except netrc.NetrcParseError as e:
-        log.misc.exception("Error when parsing the netrc file: {}".format(e))
+        log.misc.exception("Error when parsing the netrc file: {}", e)
 
     if user is None:
         return False

@@ -60,7 +60,7 @@ class ListCategory(QSortFilterProxyModel):
             val: The value to set.
         """
         if len(val) > 5000:  # avoid crash on huge search terms (#5973)
-            log.completion.warning(f"Trimming {len(val)}-char pattern to 5000")
+            log.completion.warning("Trimming {}-char pattern to 5000", len(val))
             val = val[:5000]
         self._pattern = val
         val = re.sub(r' +', r' ', val)  # See #1919
@@ -95,8 +95,8 @@ class ListCategory(QSortFilterProxyModel):
         if left is None or right is None:  # pragma: no cover
             log.completion.warning("Got unexpected None value, "
                                    "left={!r} right={!r} "
-                                   "lindex={!r} rindex={!r}"
-                                   .format(left, right, lindex, rindex))
+                                   "lindex={!r} rindex={!r}",
+                                   left, right, lindex, rindex)
             return False
 
         leftstart = left.startswith(self._pattern)

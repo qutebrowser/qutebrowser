@@ -150,7 +150,7 @@ class WebKitSearch(browsertab.AbstractSearch):
         # Don't go to next entry on duplicate search
         if self.text == text and self.search_displayed:
             log.webview.debug("Ignoring duplicate search request"
-                              " for {}".format(text))
+                              " for {}", text)
             return
 
         # Clear old search results, this is done automatically on QtWebEngine.
@@ -744,7 +744,7 @@ class WebKitElements(browsertab.AbstractElements):
             # This happens when we click inside the webview, but not actually
             # on the QWebPage - for example when clicking the scrollbar
             # sometimes.
-            log.webview.debug("Hit test at {} but frame is None!".format(pos))
+            log.webview.debug("Hit test at {} but frame is None!", pos)
             callback(None)
             return
 
@@ -870,7 +870,7 @@ class WebKitTab(browsertab.AbstractTab):
 
     def run_js_async(self, code, callback=None, *, world=None):
         if world is not None and world != usertypes.JsWorld.jseval:
-            log.webview.warning("Ignoring world ID {}".format(world))
+            log.webview.warning("Ignoring world ID {}", world)
         result = self.private_api.run_js_sync(code)
         if callback is not None:
             callback(result)
@@ -952,8 +952,8 @@ class WebKitTab(browsertab.AbstractTab):
         if not navigation.accepted:
             return
 
-        log.webview.debug("target {} override {}".format(
-            self.data.open_target, self.data.override_target))
+        log.webview.debug("target {} override {}",
+            self.data.open_target, self.data.override_target)
 
         if self.data.override_target is not None:
             target = self.data.override_target
