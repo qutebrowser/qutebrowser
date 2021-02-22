@@ -97,55 +97,68 @@ LOG_LEVELS = {
 }
 
 
-def vdebug(self: logging.Logger,
-           msg: str,
-           *args: Any,
-           **kwargs: Any) -> None:
-    """Log with a VDEBUG level.
+class LogMessage:
+    """Helper class for enabling logging with {}-like format."""
 
-    VDEBUG is used when a debug message is rather verbose, and probably of
-    little use to the end user or for post-mortem debugging, i.e. the content
-    probably won't change unless the code changes.
-    """
-    if self.isEnabledFor(VDEBUG_LEVEL):
-        # pylint: disable=protected-access
-        self._log(VDEBUG_LEVEL, msg, args, **kwargs)
-        # pylint: enable=protected-access
+    def __init__(self, fmt: str, args: Any) -> None:
+        self.fmt = fmt
+        self.args = args
+
+    def __str__(self) -> str:
+        return self.fmt.format(*self.args) if self.args else self.fmt
 
 
-logging.Logger.vdebug = vdebug  # type: ignore[attr-defined]
+class QuteLogAdapter(logging.LoggerAdapter):
+    """LoggerAdapter wrapping log entries in LogMessage."""
+
+    def __init__(self, logger: logging.Logger, extra: Any = None) -> None:
+        super(QuteLogAdapter, self).__init__(logger, extra or {})
+
+    def vdebug(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        self.log(VDEBUG_LEVEL, msg, *args, **kwargs)
+
+    def log(self, level: int, msg: str, *args: Any, **kwargs: Any) -> None:
+        if self.isEnabledFor(level):
+            pmsg, pkwargs = self.process(msg, kwargs)
+            # pylint: disable=protected-access
+            self.logger._log(level, LogMessage(pmsg, args), (), **pkwargs)
+            # pylint: enable=protected-access
+
+
+def get_logger(name: str) -> QuteLogAdapter:
+    return QuteLogAdapter(logging.getLogger(name))
 
 
 # The different loggers used.
-statusbar = logging.getLogger('statusbar')
-completion = logging.getLogger('completion')
-destroy = logging.getLogger('destroy')
-modes = logging.getLogger('modes')
-webview = logging.getLogger('webview')
-mouse = logging.getLogger('mouse')
-misc = logging.getLogger('misc')
-url = logging.getLogger('url')
-procs = logging.getLogger('procs')
-commands = logging.getLogger('commands')
-init = logging.getLogger('init')
-signals = logging.getLogger('signals')
-hints = logging.getLogger('hints')
-keyboard = logging.getLogger('keyboard')
-downloads = logging.getLogger('downloads')
-js = logging.getLogger('js')  # Javascript console messages
+statusbar = get_logger('statusbar')
+completion = get_logger('completion')
+destroy = get_logger('destroy')
+modes = get_logger('modes')
+webview = get_logger('webview')
+mouse = get_logger('mouse')
+misc = get_logger('misc')
+url = get_logger('url')
+procs = get_logger('procs')
+commands = get_logger('commands')
+init = get_logger('init')
+signals = get_logger('signals')
+hints = get_logger('hints')
+keyboard = get_logger('keyboard')
+downloads = get_logger('downloads')
+js = get_logger('js')  # Javascript console messages
 qt = logging.getLogger('qt')  # Warnings produced by Qt
-ipc = logging.getLogger('ipc')
-shlexer = logging.getLogger('shlexer')
-save = logging.getLogger('save')
-message = logging.getLogger('message')
-config = logging.getLogger('config')
-sessions = logging.getLogger('sessions')
-webelem = logging.getLogger('webelem')
-prompt = logging.getLogger('prompt')
-network = logging.getLogger('network')
-sql = logging.getLogger('sql')
-greasemonkey = logging.getLogger('greasemonkey')
-extensions = logging.getLogger('extensions')
+ipc = get_logger('ipc')
+shlexer = get_logger('shlexer')
+save = get_logger('save')
+message = get_logger('message')
+config = get_logger('config')
+sessions = get_logger('sessions')
+webelem = get_logger('webelem')
+prompt = get_logger('prompt')
+network = get_logger('network')
+sql = get_logger('sql')
+greasemonkey = get_logger('greasemonkey')
+extensions = get_logger('extensions')
 
 LOGGER_NAMES = [
     'statusbar', 'completion', 'init', 'url',
