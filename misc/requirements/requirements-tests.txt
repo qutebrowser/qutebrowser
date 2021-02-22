@@ -15,12 +15,12 @@ filelock==3.0.12
 Flask==1.1.2
 glob2==0.7
 hunter==3.3.1
-hypothesis==6.2.0
+hypothesis==6.3.0
 icdiff==1.9.1
 idna==2.10
 iniconfig==1.1.1
 itsdangerous==1.1.0
-jaraco.functools==3.2.0
+jaraco.functools==3.2.1
 # Jinja2==2.11.3
 Mako==1.1.4
 manhole==1.6.0

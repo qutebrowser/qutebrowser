@@ -11,6 +11,6 @@ pyparsing==2.4.7
 setuptools==53.0.0
 six==1.15.0
 toml==0.10.2
-tox==3.21.4
+tox==3.22.0
 virtualenv==20.4.2
 wheel==0.36.2
