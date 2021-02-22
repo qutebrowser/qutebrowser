@@ -74,7 +74,7 @@ CHANGELOG_URLS = {
     'snowballstemmer': 'https://github.com/snowballstem/snowball/blob/master/NEWS',
     'virtualenv': 'https://virtualenv.pypa.io/en/latest/changelog.html',
     'packaging': 'https://packaging.pypa.io/en/latest/changelog.html',
-    'build': 'https://github.com/pypa/build/blob/master/CHANGELOG.rst',
+    'build': 'https://github.com/pypa/build/blob/main/CHANGELOG.rst',
     'attrs': 'https://www.attrs.org/en/stable/changelog.html',
     'Jinja2': 'https://github.com/pallets/jinja/blob/master/CHANGES.rst',
     'MarkupSafe': 'https://markupsafe.palletsprojects.com/en/1.1.x/changes/',
