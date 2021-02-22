@@ -177,6 +177,8 @@ CHANGELOG_URLS = {
     'pip': 'https://pip.pypa.io/en/stable/news/',
     'wheel': 'https://wheel.readthedocs.io/en/stable/news.html',
     'setuptools': 'https://setuptools.readthedocs.io/en/latest/history.html',
+    'future': 'https://python-future.org/whatsnew.html',
+    'pefile': 'https://github.com/erocarrera/pefile/commits/master',
 }
 
 
