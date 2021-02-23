@@ -57,14 +57,6 @@ li {
 }
 {% endblock %}
 
-{% block script %}
-{{ super() }}
-function tryagain()
-{
-    location.href = "{{ url|js_string_escape|safe }}";
-}
-{% endblock %}
-
 {% block content %}
 <div id="error-container">
 	<table>
@@ -77,9 +69,7 @@ function tryagain()
 				Error while opening {{ url | default('page', true) }}<br>
 				<p id="error-message-text" style="color: #a31a1a;">{{ error }}</p><br><br>
 
-				<form name="bl">
-					<input type="button" value="Try again" onclick="javascript:tryagain()" />
-				</form>
+				<a href="{{ url }}">Try again</a>
 			</td>
 		</tr>
 	</table>
