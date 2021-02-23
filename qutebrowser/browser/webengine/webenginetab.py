@@ -1206,7 +1206,17 @@ class WebEngineTabPrivate(browsertab.AbstractTabPrivate):
 
     def run_js_sync(self, code):
         raise browsertab.UnsupportedOperationError
-
+    
+    def _init_inspector(*, splitter, win_id, parent=None):
+        # Importing modules here so we don't depend on QtWebEngine without the
+        # argument and to avoid circular imports.
+        if objects.backend == usertypes.Backend.QtWebEngine:
+            from qutebrowser.browser.webengine import webengineinspector
+            return webengineinspector.WebEngineInspector(splitter, win_id, parent)
+        elif objects.backend == usertypes.Backend.QtWebKit:
+            from qutebrowser.browser.webkit import webkitinspector
+            return webkitinspector.WebKitInspector(splitter, win_id, parent)
+        raise utils.Unreachable(objects.backend)
 
 class WebEngineTab(browsertab.AbstractTab):
 

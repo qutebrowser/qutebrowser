@@ -33,8 +33,6 @@ from PyQt5.QtWidgets import QWidget, QApplication, QDialog
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtNetwork import QNetworkAccessManager
 
-from abc import abstractmethod
-
 if TYPE_CHECKING:
     from PyQt5.QtWebKit import QWebHistory
     from PyQt5.QtWebKitWidgets import QWebPage
@@ -808,10 +806,6 @@ class AbstractTabPrivate:
         self._tab = tab
         self._mode_manager = mode_manager
 
-    @abstractmethod
-    def __init_inspector(self):
-        pass
-    
     def event_target(self) -> QWidget:
         """Return the widget events should be sent to."""
         raise NotImplementedError
@@ -876,13 +870,26 @@ class AbstractTabPrivate:
         tabdata = self._tab.data
         if tabdata.inspector is None:
             assert tabdata.splitter is not None
-            tabdata.inspector = inspector.create(
+            tabdata.inspector = self._init_inspector(
                 splitter=tabdata.splitter,
                 win_id=self._tab.win_id)
             self._tab.shutting_down.connect(tabdata.inspector.shutdown)
             tabdata.inspector.recreate.connect(self._recreate_inspector)
             tabdata.inspector.inspect(self._widget.page())
         tabdata.inspector.set_position(position)
+
+    def _init_inspector(*, splitter: 'miscwidgets.InspectorSplitter',
+           win_id: int,
+           parent: QWidget = None) -> 'AbstractWebInspector':
+    """Get a WebKitInspector/WebEngineInspector.
+
+    Args:
+        splitter: InspectorSplitter where the inspector can be placed.
+        win_id: The window ID this inspector is associated with.
+        parent: The Qt parent to set.
+    """
+    raise NotImplementedError
+    
 
 
 class AbstractTab(QWidget):
