@@ -44,6 +44,12 @@ from qutebrowser.utils import usertypes
         id='replace-all-regex',
     ),
     pytest.param(
+        QUrl(),
+        '"This is a [test[".replaceAll("[", "<")',
+        "This is a <test<",
+        id='replace-all-reserved-string',
+    ),
+    pytest.param(
         QUrl('https://test.qutebrowser.org/test'),
         'typeof globalThis.setTimeout === "function"',
         True,

@@ -62,6 +62,9 @@ Fixed
   macOS) again.
 - On macOS, using `F` (`hint all tab`) sometimes would open a context menu
   instead of following a link. This is now fixed.
+- The quirk added for a missing `String.replaceAll` did not handle special
+  regexp characters correctly, thus breaking some sites. It now handles them
+  properly.
 
 [[v2.0.2]]
 v2.0.2 (2021-02-04)
