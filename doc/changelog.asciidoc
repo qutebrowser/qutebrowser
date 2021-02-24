@@ -57,7 +57,11 @@ Fixed
   when quitting the terminal), qutebrowser would crash. It now displays an
   error instead. The same applies if the temporary file is unreadable for any
   other reason.
-
+- On macOS, a change in v2.0.x caused certain shortcuts to not work with Cmd
+  anymore, using Ctrl instead. They now work correctly using Cmd (like usual on
+  macOS) again.
+- On macOS, using `F` (`hint all tab`) sometimes would open a context menu
+  instead of following a link. This is now fixed.
 
 [[v2.0.2]]
 v2.0.2 (2021-02-04)
