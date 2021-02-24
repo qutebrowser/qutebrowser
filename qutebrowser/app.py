@@ -565,9 +565,7 @@ class Application(QApplication):
         self.launch_time = datetime.datetime.now()
         self.focusObjectChanged.connect(  # type: ignore[attr-defined]
             self.on_focus_object_changed)
-
         self.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
-        self.setAttribute(Qt.AA_MacDontSwapCtrlAndMeta, True)
 
         self.new_window.connect(self._on_new_window)
 
