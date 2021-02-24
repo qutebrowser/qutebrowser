@@ -881,14 +881,14 @@ class AbstractTabPrivate:
     def _init_inspector(*, splitter: 'miscwidgets.InspectorSplitter',
            win_id: int,
            parent: QWidget = None) -> 'AbstractWebInspector':
-    """Get a WebKitInspector/WebEngineInspector.
+        """Get a WebKitInspector/WebEngineInspector.
 
-    Args:
-        splitter: InspectorSplitter where the inspector can be placed.
-        win_id: The window ID this inspector is associated with.
-        parent: The Qt parent to set.
-    """
-    raise NotImplementedError
+        Args:
+            splitter: InspectorSplitter where the inspector can be placed.
+            win_id: The window ID this inspector is associated with.
+            parent: The Qt parent to set.
+        """
+        raise NotImplementedError
     
 
 
