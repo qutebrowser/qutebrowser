@@ -970,11 +970,15 @@ class TestWebEngineVersions:
             # QtWebKit or QtWebEngine < 5.13
             pytest.skip(str(e))
 
+        pyqt_webengine_version = version._get_pyqt_webengine_qt_version()
+        if pyqt_webengine_version is None:
+            pyqt_webengine_version = PYQT_WEBENGINE_VERSION_STR
+
         from qutebrowser.browser.webengine import webenginesettings
         webenginesettings.init_user_agent()
         expected = webenginesettings.parsed_user_agent.upstream_browser_version
 
-        versions = version.WebEngineVersions.from_pyqt(PYQT_WEBENGINE_VERSION_STR)
+        versions = version.WebEngineVersions.from_pyqt(pyqt_webengine_version)
         assert versions.chromium == expected
 
 
@@ -1040,18 +1044,62 @@ class TestChromiumVersion:
 
     def test_avoided(self, monkeypatch):
         versions = version.qtwebengine_versions(avoid_init=True)
-        assert versions.source in ['ELF', 'PyQt']
+        assert versions.source in ['ELF', 'importlib', 'PyQt', 'Qt']
 
-    def test_elf_fail_simulated(self, monkeypatch):
+    @pytest.fixture
+    def patch_elf_fail(self, monkeypatch):
+        """Simulate parsing the version from ELF to fail."""
         monkeypatch.setattr(elf, 'parse_webenginecore', lambda: None)
-        versions = version.qtwebengine_versions(avoid_init=True)
-        assert versions.source in ['PyQt', 'Qt']
 
-    def test_elf_fail_old_qt_simulated(self, monkeypatch):
-        monkeypatch.setattr(elf, 'parse_webenginecore', lambda: None)
+    @pytest.fixture
+    def patch_old_pyqt(self, monkeypatch):
+        """Simulate an old PyQt without PYQT_WEBENGINE_VERSION_STR."""
         monkeypatch.setattr(version, 'PYQT_WEBENGINE_VERSION_STR', None)
+
+    @pytest.fixture
+    def patch_no_importlib(self, monkeypatch, stubs):
+        """Simulate missing importlib modules."""
+        import_fake = stubs.ImportFake({
+            'importlib_metadata': False,
+            'importlib.metadata': False,
+        }, monkeypatch)
+        import_fake.patch()
+
+    @pytest.fixture
+    def patch_importlib_no_package(self, monkeypatch):
+        """Simulate importlib not finding PyQtWebEngine-Qt."""
+        try:
+            import importlib.metadata as importlib_metadata
+        except ImportError:
+            importlib_metadata = pytest.importorskip("importlib_metadata")
+
+        def _fake_version(name):
+            assert name == 'PyQtWebEngine-Qt'
+            raise importlib_metadata.PackageNotFoundError(name)
+
+        monkeypatch.setattr(importlib_metadata, 'version', _fake_version)
+
+    @pytest.mark.parametrize('patches, sources', [
+        (['elf_fail'], ['importlib', 'PyQt', 'Qt']),
+        (['elf_fail', 'old_pyqt'], ['importlib', 'Qt']),
+        (['elf_fail', 'no_importlib'], ['PyQt', 'Qt']),
+        (['elf_fail', 'no_importlib', 'old_pyqt'], ['Qt']),
+        (['elf_fail', 'importlib_no_package'], ['PyQt', 'Qt']),
+        (['elf_fail', 'importlib_no_package', 'old_pyqt'], ['Qt']),
+    ], ids=','.join)
+    def test_simulated(self, request, patches, sources):
+        """Test various simulated error conditions.
+
+        This dynamically gets a list of fixtures (above) to do the patching. It then
+        checks whether the version it got is from one of the expected sources. Depending
+        on the environment this test is run in, some sources might fail "naturally",
+        i.e. without any patching related to them.
+        """
+        for patch in patches:
+            request.getfixturevalue(f'patch_{patch}')
+
         versions = version.qtwebengine_versions(avoid_init=True)
-        assert versions.source == 'Qt'
+        assert versions.source in sources
 
 
 @dataclasses.dataclass

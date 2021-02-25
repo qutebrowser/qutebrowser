@@ -483,6 +483,35 @@ def _pdfjs_version() -> str:
         return '{} ({})'.format(pdfjs_version, file_path)
 
 
+def _get_pyqt_webengine_qt_version() -> Optional[str]:
+    """Get the version of the PyQtWebEngine-Qt package.
+
+    With PyQtWebEngine 5.15.3, the QtWebEngine binary got split into its own
+    PyQtWebEngine-Qt PyPI package:
+
+    https://www.riverbankcomputing.com/pipermail/pyqt/2021-February/043591.html
+    https://www.riverbankcomputing.com/pipermail/pyqt/2021-February/043638.html
+
+    Here, we try to use importlib.metadata or its backport (optional dependency) to
+    figure out that version number. If PyQtWebEngine is installed via pip, this will
+    give us an accurate answer.
+    """
+    try:
+        import importlib_metadata
+    except ImportError:
+        try:
+            import importlib.metadata as importlib_metadata  # type: ignore[no-redef]
+        except ImportError:
+            log.misc.debug("Neither importlib.metadata nor backport available")
+            return None
+
+    try:
+        return importlib_metadata.version('PyQtWebEngine-Qt')
+    except importlib_metadata.PackageNotFoundError:
+        log.misc.debug("PyQtWebEngine-Qt not found")
+        return None
+
+
 @dataclasses.dataclass
 class WebEngineVersions:
 
@@ -639,6 +668,11 @@ def qtwebengine_versions(avoid_init: bool = False) -> WebEngineVersions:
     versions = elf.parse_webenginecore()
     if versions is not None:
         return WebEngineVersions.from_elf(versions)
+
+    pyqt_webengine_qt_version = _get_pyqt_webengine_qt_version()
+    if pyqt_webengine_qt_version is not None:
+        return WebEngineVersions.from_pyqt(
+            pyqt_webengine_qt_version, source='importlib')
 
     if PYQT_WEBENGINE_VERSION_STR is not None:
         return WebEngineVersions.from_pyqt(PYQT_WEBENGINE_VERSION_STR)
