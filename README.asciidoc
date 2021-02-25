@@ -105,6 +105,10 @@ The following libraries are optional:
 * https://pypi.org/project/adblock/[adblock] (for improved adblocking using ABP syntax)
 * On Windows, https://pypi.python.org/pypi/colorama/[colorama] for colored log
   output.
+* https://importlib-metadata.readthedocs.io/[importlib_resources] on Python 3.7
+  or older, to improve QtWebEngine version detection when PyQtWebEngine is
+  installed via pip (thus, this dependency usually isn't relevant for
+  packagers).
 * https://asciidoc.org/[asciidoc] to generate the documentation for the `:help`
   command, when using the git repository (rather than a release).
 

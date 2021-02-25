@@ -24,6 +24,9 @@ Added
 
 - New `:screenshot` command which can be used to screenshot the visible part of
   the page.
+- New optional dependency on the `importlib_metadata` project on Python 3.7 and
+  below. This is only relevant when PyQtWebEngine is installed via pip - thus,
+  this dependency usually isn't relevant for packagers.
 
 Changed
 ~~~~~~~

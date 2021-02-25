@@ -1,5 +1,8 @@
 mypy
 lxml  # For HTML reports
 diff-cover
-importlib_resources  # So stubs are available even on newer Python versions
 PyQt5-stubs
+
+# So stubs are available even on newer Python versions
+importlib_resources
+importlib_metadata

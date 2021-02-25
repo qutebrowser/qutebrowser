@@ -175,6 +175,8 @@ CHANGELOG_URLS = {
     'pyroma': 'https://github.com/regebro/pyroma/blob/master/HISTORY.txt',
     'adblock': 'https://github.com/ArniDagur/python-adblock/blob/master/CHANGELOG.md',
     'importlib-resources': 'https://importlib-resources.readthedocs.io/en/latest/history.html',
+    'importlib-metadata': 'https://github.com/python/importlib_metadata/blob/main/CHANGES.rst',
+    'zipp': 'https://github.com/jaraco/zipp/blob/main/CHANGES.rst',
     'dataclasses': 'https://github.com/ericvsmith/dataclasses#release-history',
     'pip': 'https://pip.pypa.io/en/stable/news/',
     'wheel': 'https://wheel.readthedocs.io/en/stable/news.html',
