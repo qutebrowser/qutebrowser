@@ -25,7 +25,7 @@ import pytest
 from qutebrowser import qutebrowser
 from qutebrowser.config import qtargs
 from qutebrowser.utils import usertypes, version
-from helpers import utils
+from helpers import testutils
 
 
 @pytest.fixture
@@ -356,7 +356,7 @@ class TestWebEngineArgs:
         ("auto", "5.15.3", False),
         ("auto", "6.0.0", False),
     ])
-    @utils.qt514
+    @testutils.qt514
     def test_preferred_color_scheme(
             self, config_stub, version_patcher, parser, value, qt_version, added):
         version_patcher(qt_version)

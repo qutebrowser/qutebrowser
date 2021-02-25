@@ -24,7 +24,7 @@ from qutebrowser.config import configdata
 from qutebrowser.utils import usertypes, version, utils
 from qutebrowser.browser.webengine import darkmode
 from qutebrowser.misc import objects
-from helpers import utils as testutils
+from helpers import testutils
 
 
 @pytest.fixture(autouse=True)

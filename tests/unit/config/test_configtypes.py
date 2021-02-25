@@ -39,7 +39,7 @@ from qutebrowser.config import configtypes, configexc
 from qutebrowser.utils import debug, utils, qtutils, urlmatch, usertypes
 from qutebrowser.browser.network import pac
 from qutebrowser.keyinput import keyutils
-from helpers import utils as testutils
+from helpers import testutils
 
 
 class Font(QFont):

@@ -38,7 +38,7 @@ from PyQt5.QtGui import QImage, QColor
 
 from qutebrowser.misc import ipc
 from qutebrowser.utils import log, utils, javascript
-from helpers import utils as testutils
+from helpers import testutils
 from end2end.fixtures import testprocess
 
 

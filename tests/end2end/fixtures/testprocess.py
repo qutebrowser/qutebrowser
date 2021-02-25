@@ -30,7 +30,7 @@ from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QProcess, QObject,
                           QElapsedTimer, QProcessEnvironment)
 from PyQt5.QtTest import QSignalSpy
 
-from helpers import utils
+from helpers import testutils
 
 from qutebrowser.utils import utils as quteutils
 
@@ -77,13 +77,13 @@ def _render_log(data, *, verbose, threshold=100):
     if (len(data) > threshold and
             not verbose and
             not is_exception and
-            not utils.ON_CI):
+            not testutils.ON_CI):
         msg = '[{} lines suppressed, use -v to show]'.format(
             len(data) - threshold)
         data = [msg] + data[-threshold:]
 
-    if utils.ON_CI:
-        data = [utils.gha_group_begin('Log')] + data + [utils.gha_group_end()]
+    if testutils.ON_CI:
+        data = [testutils.gha_group_begin('Log')] + data + [testutils.gha_group_end()]
 
     return '\n'.join(data)
 
@@ -233,7 +233,7 @@ class Process(QObject):
         self._started = True
         verbose = self.request.config.getoption('--verbose')
 
-        timeout = 60 if utils.ON_CI else 20
+        timeout = 60 if testutils.ON_CI else 20
         for _ in range(timeout):
             with self._wait_signal(self.ready, timeout=1000,
                                    raising=False) as blocker:
@@ -350,7 +350,7 @@ class Process(QObject):
         elif isinstance(expected, regex_type):
             return expected.search(value)
         elif isinstance(value, (bytes, str)):
-            return utils.pattern_match(pattern=expected, value=value)
+            return testutils.pattern_match(pattern=expected, value=value)
         else:
             return value == expected
 
@@ -475,7 +475,7 @@ class Process(QObject):
         if timeout is None:
             if do_skip:
                 timeout = 2000
-            elif utils.ON_CI:
+            elif testutils.ON_CI:
                 timeout = 15000
             else:
                 timeout = 5000
