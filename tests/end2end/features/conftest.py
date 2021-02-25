@@ -37,7 +37,7 @@ import pytest_bdd as bdd
 import qutebrowser
 from qutebrowser.utils import log, utils, docutils
 from qutebrowser.browser import pdfjs
-from helpers import utils as testutils
+from helpers import testutils
 
 
 def _get_echo_exe_path():
