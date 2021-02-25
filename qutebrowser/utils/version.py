@@ -608,7 +608,7 @@ class WebEngineVersions:
         chromium_version = cls._CHROMIUM_VERSIONS.get(pyqt_webengine_version)
         if chromium_version is not None:
             return chromium_version
-        # 5.15.2 -> 5.15
+        # 5.14.2 -> 5.14
         minor_version = pyqt_webengine_version.rsplit('.', maxsplit=1)[0]
         return cls._CHROMIUM_VERSIONS.get(minor_version)
 
