@@ -382,7 +382,7 @@ class TestFontFamilies:
         print(stylesheet)
         label.setStyleSheet(stylesheet)
 
-        with qtbot.waitExposed(label):
+        with qtbot.wait_exposed(label):
             # Needed so the font gets calculated
             label.show()
         info = label.fontInfo()
@@ -396,7 +396,7 @@ class TestFontFamilies:
         qtbot.add_widget(label)
         fallback_label.setText("fallback")
 
-        with qtbot.waitExposed(fallback_label):
+        with qtbot.wait_exposed(fallback_label):
             # Needed so the font gets calculated
             fallback_label.show()
 

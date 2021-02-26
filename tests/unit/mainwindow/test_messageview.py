@@ -37,14 +37,14 @@ def view(qtbot, config_stub):
                                    usertypes.MessageLevel.error])
 @pytest.mark.flaky  # on macOS
 def test_single_message(qtbot, view, level):
-    with qtbot.waitExposed(view, timeout=5000):
+    with qtbot.wait_exposed(view, timeout=5000):
         view.show_message(level, 'test')
     assert view._messages[0].isVisible()
 
 
 def test_message_hiding(qtbot, view):
     """Messages should be hidden after the timer times out."""
-    with qtbot.waitSignal(view._clear_timer.timeout):
+    with qtbot.wait_signal(view._clear_timer.timeout):
         view.show_message(usertypes.MessageLevel.info, 'test')
     assert not view._messages
 
@@ -61,7 +61,7 @@ def test_size_hint(view):
 
 def test_word_wrap(view, qtbot):
     """A long message should be wrapped."""
-    with qtbot.waitSignal(view._clear_timer.timeout):
+    with qtbot.wait_signal(view._clear_timer.timeout):
         view.show_message(usertypes.MessageLevel.info, 'short')
         height1 = view.sizeHint().height()
         assert height1 > 0
@@ -88,7 +88,7 @@ def test_show_message_twice(view):
 
 def test_show_message_twice_after_first_disappears(qtbot, view):
     """Show the same message twice after the first is gone."""
-    with qtbot.waitSignal(view._clear_timer.timeout):
+    with qtbot.wait_signal(view._clear_timer.timeout):
         view.show_message(usertypes.MessageLevel.info, 'test')
     # Just a sanity check
     assert not view._messages
@@ -101,7 +101,7 @@ def test_changing_timer_with_messages_shown(qtbot, view, config_stub):
     """When we change messages.timeout, the timer should be restarted."""
     config_stub.val.messages.timeout = 900000  # 15s
     view.show_message(usertypes.MessageLevel.info, 'test')
-    with qtbot.waitSignal(view._clear_timer.timeout):
+    with qtbot.wait_signal(view._clear_timer.timeout):
         config_stub.val.messages.timeout = 100
 
 

@@ -36,7 +36,7 @@ class TestTabWidget:
     @pytest.fixture
     def widget(self, qtbot, monkeypatch, config_stub):
         w = tabwidget.TabWidget(0)
-        qtbot.addWidget(w)
+        qtbot.add_widget(w)
         monkeypatch.setattr(tabwidget.objects, 'backend',
                             usertypes.Backend.QtWebKit)
         w.show()
@@ -53,7 +53,7 @@ class TestTabWidget:
         tab = fake_web_tab()
         widget.addTab(tab, icon, 'foobar')
 
-        with qtbot.waitExposed(widget):
+        with qtbot.wait_exposed(widget):
             widget.show()
 
     # Sizing tests
@@ -118,7 +118,7 @@ class TestTabWidget:
         for i in range(num_tabs):
             widget.addTab(fake_web_tab(), 'foobar' + str(i))
 
-        with qtbot.waitExposed(widget):
+        with qtbot.wait_exposed(widget):
             widget.show()
 
         benchmark(widget.update_tab_titles)

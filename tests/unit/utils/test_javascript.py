@@ -73,7 +73,7 @@ class TestStringEscape:
         """Test conversion by running JS in a tab."""
         escaped = javascript.string_escape(text)
 
-        with qtbot.waitCallback() as cb:
+        with qtbot.wait_callback() as cb:
             web_tab.run_js_async('"{}";'.format(escaped), cb)
 
         cb.assert_called_with(text)

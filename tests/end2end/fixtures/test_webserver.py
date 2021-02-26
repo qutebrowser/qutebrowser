@@ -34,7 +34,7 @@ import pytest
     ('/data/hello.txt', 'Hello World!', True),
 ])
 def test_server(server, qtbot, path, content, expected):
-    with qtbot.waitSignal(server.new_request, timeout=100):
+    with qtbot.wait_signal(server.new_request, timeout=100):
         url = 'http://localhost:{}{}'.format(server.port, path)
         try:
             response = urllib.request.urlopen(url)

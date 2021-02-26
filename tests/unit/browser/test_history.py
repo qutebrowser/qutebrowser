@@ -290,7 +290,7 @@ class TestHistoryInterface:
     def test_history_interface(self, qtbot, webview, hist_interface):
         html = b"<a href='about:blank'>foo</a>"
         url = urlutils.data_url('text/html', html)
-        with qtbot.waitSignal(webview.loadFinished):
+        with qtbot.wait_signal(webview.loadFinished):
             webview.load(url)
 
 

@@ -128,18 +128,18 @@ def test_init():
 
 def test_insert(qtbot):
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.insert({'name': 'one', 'val': 1, 'lucky': False})
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.insert({'name': 'wan', 'val': 1, 'lucky': False})
 
 
 def test_insert_replace(qtbot):
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'],
                          constraints={'name': 'PRIMARY KEY'})
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.insert({'name': 'one', 'val': 1, 'lucky': False}, replace=True)
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.insert({'name': 'one', 'val': 11, 'lucky': True}, replace=True)
     assert list(table) == [('one', 11, True)]
 
@@ -150,7 +150,7 @@ def test_insert_replace(qtbot):
 def test_insert_batch(qtbot):
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
 
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.insert_batch({'name': ['one', 'nine', 'thirteen'],
                             'val': [1, 9, 13],
                             'lucky': [False, False, True]})
@@ -164,12 +164,12 @@ def test_insert_batch_replace(qtbot):
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'],
                          constraints={'name': 'PRIMARY KEY'})
 
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.insert_batch({'name': ['one', 'nine', 'thirteen'],
                             'val': [1, 9, 13],
                             'lucky': [False, False, True]})
 
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.insert_batch({'name': ['one', 'nine'],
                             'val': [11, 19],
                             'lucky': [True, True]},
@@ -219,10 +219,10 @@ def test_delete(qtbot):
     table.insert({'name': 'thirteen', 'val': 13, 'lucky': True})
     with pytest.raises(KeyError):
         table.delete('name', 'nope')
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.delete('name', 'thirteen')
     assert list(table) == [('one', 1, False), ('nine', 9, False)]
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.delete('lucky', False)
     assert not list(table)
 
@@ -284,7 +284,7 @@ def test_delete_all(qtbot):
     table.insert({'name': 'one', 'val': 1, 'lucky': False})
     table.insert({'name': 'nine', 'val': 9, 'lucky': False})
     table.insert({'name': 'thirteen', 'val': 13, 'lucky': True})
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.delete_all()
     assert list(table) == []
 

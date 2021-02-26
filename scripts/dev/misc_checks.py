@@ -329,6 +329,81 @@ def check_userscript_shebangs(_args: argparse.Namespace) -> bool:
     return ok
 
 
+def _check_case_file(path, fobj, patterns):
+    ok = True
+    for num, line in enumerate(fobj, start=1):
+        for pattern, explanation in patterns:
+            if pattern.search(line):
+                ok = False
+                print(f'{path}:{num}: ', end='')
+                utils.print_col(f'Found "{pattern.pattern}" - {explanation}', 'blue')
+    return ok
+
+
+def check_case(args: argparse.Namespace) -> Optional[bool]:
+    """Check if the qtbot methods are in snake case."""
+    patterns = [
+        (
+            re.compile(r'qtbot.addWidget'),
+            "Snake-case available",
+        ),
+        (
+            re.compile(r'qtbot.waitActive'),
+            "Snake-case available",
+        ),
+        (
+            re.compile(r'qtbot.waitExposed'),
+            "Snake-case available",
+        ),
+        (
+            re.compile(r'qtbot.waitForWindowShown'),
+            "Snake-case available",
+        ),
+        (
+            re.compile(r'qtbot.waitSignal'),
+            "Snake-case available",
+        ),
+        (
+            re.compile(r'qtbot.waitSignals'),
+            "Snake-case available",
+        ),
+        (
+            re.compile(r'qtbot.assertNotEmitted'),
+            "Snake-case available",
+        ),
+        (
+            re.compile(r'qtbot.waitUntil'),
+            "Snake-case available",
+        ),
+        (
+            re.compile(r'qtbot.waitCallback'),
+            "Snake-case available",
+        )
+    ]
+
+    # Files which should be ignored, e.g. because they come from another
+    # package
+    hint_data = pathlib.Path('tests', 'end2end', 'data', 'hints')
+    ignored = [
+        pathlib.Path('scripts', 'dev', 'misc_checks.py'),
+        pathlib.Path('qutebrowser', '3rdparty', 'pdfjs'),
+        hint_data / 'ace' / 'ace.js',
+        hint_data / 'bootstrap' / 'bootstrap.css',
+    ]
+
+    try:
+        ok = True
+        for path in _get_files(verbose=args.verbose, ignored=ignored):
+            with tokenize.open(str(path)) as f:
+                if not _check_case_file(path, f, patterns):
+                    ok = False
+        print()
+        return ok
+    except Exception:
+        traceback.print_exc()
+        return None
+
+
 def main() -> int:
     checkers = {
         'git': check_git,
@@ -337,6 +412,7 @@ def main() -> int:
         'userscript-descriptions': check_userscripts_descriptions,
         'userscript-shebangs': check_userscript_shebangs,
         'changelog-urls': check_changelog_urls,
+        'snake-case': check_case
     }
 
     parser = argparse.ArgumentParser()

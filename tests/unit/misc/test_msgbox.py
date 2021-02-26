@@ -77,7 +77,7 @@ def test_finished_signal(qtbot):
 
     qtbot.add_widget(box)
 
-    with qtbot.waitSignal(box.finished):
+    with qtbot.wait_signal(box.finished):
         box.accept()
 
     assert signal_triggered
