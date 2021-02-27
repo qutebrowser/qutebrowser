@@ -175,10 +175,15 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             "Common misspelling or non-US spelling"
         ) for w in words
     ]
+
+    qtbot_methods = {'keyClick', 'keyClicks', 'mousePress', 'keyPress'}
+
+    excluding = '|'.join(qtbot_methods)
+
     patterns += [
         (
             re.compile(r'(?i)# noqa(?!: )'),
-            "Don't use a blanket 'noqa', use something like 'noqa: X123' instead.",
+            "Don't use a blanket 'noqa', use something like 'noqa: X123' instead."
         ),
         (
             re.compile(r'# type: ignore[^\[]'),
@@ -225,43 +230,11 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
         (
             re.compile(r'IOError'),
             "use OSError",
-        ),        (
-            re.compile(r'qtbot.addWidget'),
-            "Snake-case available",
         ),
         (
-            re.compile(r'qtbot.waitActive'),
-            "Snake-case available",
-        ),
-        (
-            re.compile(r'qtbot.waitExposed'),
-            "Snake-case available",
-        ),
-        (
-            re.compile(r'qtbot.waitForWindowShown'),
-            "Snake-case available",
-        ),
-        (
-            re.compile(r'qtbot.waitSignal'),
-            "Snake-case available",
-        ),
-        (
-            re.compile(r'qtbot.waitSignals'),
-            "Snake-case available",
-        ),
-        (
-            re.compile(r'qtbot.assertNotEmitted'),
-            "Snake-case available",
-        ),
-        (
-            re.compile(r'qtbot.waitUntil'),
-            "Snake-case available",
-        ),
-        (
-            re.compile(r'qtbot.waitCallback'),
+            re.compile(r'qtbot\.(?!{})[a-z]+[A-Z].*'.format(excluding)),
             "Snake-case available",
         )
- 
     ]
 
     # Files which should be ignored, e.g. because they come from another
