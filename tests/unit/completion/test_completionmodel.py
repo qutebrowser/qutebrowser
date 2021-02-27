@@ -26,7 +26,8 @@ from hypothesis import strategies
 import pytest
 from PyQt5.QtCore import QModelIndex
 
-from qutebrowser.completion.models import completionmodel, listcategory
+from qutebrowser.completion import completionmodel
+from qutebrowser.completion.categories import listcategory
 from qutebrowser.utils import qtutils
 from qutebrowser.api import cmdutils
 

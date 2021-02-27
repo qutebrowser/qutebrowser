@@ -28,7 +28,7 @@ from qutebrowser.config import config
 from qutebrowser.commands import runners
 from qutebrowser.misc import objects
 from qutebrowser.utils import log, utils, debug, objreg
-from qutebrowser.completion.models import miscmodels
+from qutebrowser.completion.strategies import miscmodels
 if TYPE_CHECKING:
     from qutebrowser.browser import browsertab
 

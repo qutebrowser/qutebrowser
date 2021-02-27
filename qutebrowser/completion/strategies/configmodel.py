@@ -19,45 +19,16 @@
 
 """Functions that return config-related completion models."""
 
-from typing import Optional, Callable, Any
+from typing import Optional, Callable, Any, Tuple
 
 from qutebrowser.completion.strategies.strategy import CompletionStrategy
 from qutebrowser.config import configdata, configexc
-from qutebrowser.completion.models import completionmodel, listcategory, util
+from qutebrowser.completion import completionmodel, util
+from qutebrowser.completion.categories import listcategory
 from qutebrowser.commands import runners, cmdexc
 from qutebrowser.keyinput import keyutils
 from qutebrowser.completion.completer import CompletionInfo
-
-
-def option(*, info):
-    """A CompletionModel filled with settings and their descriptions."""
-    return _option(info, "Options", lambda opt: not opt.no_autoconfig)
-
-
-def customized_option(*, info):
-    """A CompletionModel filled with set settings and their descriptions."""
-    model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
-    options = ((values.opt.name, values.opt.description,
-                info.config.get_str(values.opt.name))
-               for values in info.config
-               if values)
-    model.add_category(listcategory.ListCategory("Customized options",
-                                                 options))
-    return model
-
-
-def list_option(*, info):
-    """A CompletionModel filled with settings whose values are lists."""
-    predicate = lambda opt: (isinstance(info.config.get_obj(opt.name),
-                                        list) and not opt.no_autoconfig)
-    return _option(info, "List options", predicate)
-
-
-def dict_option(*, info):
-    """A CompletionModel filled with settings whose values are dicts."""
-    predicate = lambda opt: (isinstance(info.config.get_obj(opt.name),
-                                        dict) and not opt.no_autoconfig)
-    return _option(info, "Dict options", predicate)
+from qutebrowser.completion.completionmodel import CompletionModel
 
 
 class OptionMaker(CompletionStrategy):
@@ -71,17 +42,59 @@ class OptionMaker(CompletionStrategy):
     """
     COLUMN_WIDTHS = (20, 70, 10)
 
-    def __init__(self, title: str, predicate: Callable[[Optional[Any]], bool]):
+    def __init__(self, title: str, predicate: Optional[Callable[[Optional[Any]], bool]] = None):
         super().__init__()
         self.title = title
         self.predicate = predicate
 
-    def populate(self, *args: str, info: Optional[CompletionInfo]) -> None:
+    def populate(self, *args: str, info: Optional[CompletionInfo]) -> CompletionModel:
         super().populate(*args, info=info)
         options = ((opt.name, opt.description, info.config.get_str(opt.name))
                    for opt in configdata.DATA.values()
                    if self.predicate(opt))
         self.model.add_category(listcategory.ListCategory(self.title, options))
+        return self.model
+
+
+class Option(OptionMaker):
+    """A CompletionModel filled with settings and their descriptions."""
+    def __init__(self):
+        super().__init__("Options", lambda opt: not opt.no_autoconfig)
+
+
+class CustomizedOption(CompletionStrategy):
+    """A CompletionModel filled with set settings and their descriptions."""
+    COLUMN_WIDTHS = (20, 70, 10)
+
+    def populate(self, *args: str, info: Optional[CompletionInfo]) -> CompletionModel:
+        super().populate(*args, info=info)
+        options = ((values.opt.name, values.opt.description, info.config.get_str(values.opt.name))
+                   for values in info.config
+                   if values)
+        self.model.add_category(listcategory.ListCategory("Customized options", options))
+        return self.model
+
+
+class ListOption(OptionMaker):
+    """A CompletionModel filled with settings whose values are lists."""
+    def __init__(self):
+        super().__init__("List options")
+
+    def populate(self, *args: str, info: Optional[CompletionInfo]) -> CompletionModel:
+        self.predicate = lambda opt: (isinstance(info.config.get_obj(opt.name),
+                                            list) and not opt.no_autoconfig)
+        return super().populate(*args, info=info)
+
+
+class DictOption(OptionMaker):
+    """A CompletionModel filled with settings whose values are dicts."""
+    def __init__(self):
+        super().__init__("Dict options")
+
+    def populate(self, *args: str, info: Optional[CompletionInfo]) -> CompletionModel:
+        self.predicate = lambda opt: (isinstance(info.config.get_obj(opt.name),
+                                            dict) and not opt.no_autoconfig)
+        return super().populate(*args, info=info)
 
 
 class Value(CompletionStrategy):
@@ -94,33 +107,34 @@ class Value(CompletionStrategy):
     """
     COLUMN_WIDTHS = (30, 70, 0)
 
-    def __init__(self, optname, *values):
-        super().__init__()
-        self.optname = optname
-        self.values = values
-
-    def populate(self, *args: str, info: Optional[CompletionInfo]) -> None:
+    def populate(self, *args: str, info: Optional[CompletionInfo]) -> Optional[CompletionModel]:
         super().populate(*args, info=info)
+
+        optname: str = args[0]
+        values: Tuple[str, ...] = args[1:]
+
         try:
-            current = info.config.get_str(self.optname)
+            current = info.config.get_str(optname)
         except configexc.NoOptionError:
             return None
 
-        opt = info.config.get_opt(self.optname)
+        opt = info.config.get_opt(optname)
         default = opt.typ.to_str(opt.default)
         cur_def = []
-        if current not in self.values:
+        if current not in values:
             cur_def.append((current, "Current value"))
-        if default not in self.values:
+        if default not in values:
             cur_def.append((default, "Default value"))
         if cur_def:
             cur_cat = listcategory.ListCategory("Current/Default", cur_def)
             self.model.add_category(cur_cat)
 
         vals = opt.typ.complete() or []
-        vals = [x for x in vals if x[0] not in self.values]
+        vals = [x for x in vals if x[0] not in values]
         if vals:
             self.model.add_category(listcategory.ListCategory("Completions", vals))
+
+        return self.model
 
 
 class Bind(CompletionStrategy):
@@ -130,10 +144,6 @@ class Bind(CompletionStrategy):
         key: the key being bound.
     """
     COLUMN_WIDTHS = (20, 60, 20)
-
-    def __init__(self, key: str):
-        super().__init__()
-        self.key = key
 
     def _bind_current_default(self, info):
         """Get current/default data for the given key."""
@@ -162,8 +172,10 @@ class Bind(CompletionStrategy):
 
         return data
 
-    def populate(self, *args: str, info: Optional[CompletionInfo]) -> None:
+    def populate(self, *args: str, info: Optional[CompletionInfo]) -> Optional[CompletionModel]:
         super().populate(*args, info=info)
+        self.key: str = args[0]
+
         data = self._bind_current_default(info)
 
         if data:
@@ -172,3 +184,4 @@ class Bind(CompletionStrategy):
         cmdlist = util.get_cmd_completions(info, include_hidden=True,
                                            include_aliases=True)
         self.model.add_category(listcategory.ListCategory("Commands", cmdlist))
+        return self.model

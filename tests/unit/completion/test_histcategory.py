@@ -27,7 +27,7 @@ from hypothesis import strategies
 import pytest
 
 from qutebrowser.misc import sql
-from qutebrowser.completion.models import histcategory
+from qutebrowser.completion.categories import histcategory
 from qutebrowser.utils import usertypes
 
 

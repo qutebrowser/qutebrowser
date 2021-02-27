@@ -19,10 +19,10 @@
 
 """Classes that return miscellaneous completion models."""
 
-from typing import Sequence, Optional
+from typing import Sequence, Optional, Any, Callable, Tuple
 from abc import ABC, abstractmethod
 
-from qutebrowser.completion import completionmodel
+from qutebrowser.completion.completionmodel import CompletionModel
 from qutebrowser.completion.completer import CompletionInfo
 
 
@@ -31,13 +31,16 @@ class DeletionUnsupportedError(Exception):
 
 
 class CompletionStrategy(ABC):
-    COLUMN_WIDTHS = (20, 70, 10)
+    COLUMN_WIDTHS: Tuple[int, int, int] = (20, 70, 10)
 
     def __init__(self):
-        self.model = completionmodel.CompletionModel(column_widths=self.COLUMN_WIDTHS)
+        self.model = CompletionModel(column_widths=self.COLUMN_WIDTHS)
+
+    def __call__(self, *args: Any, **kwds: Any) -> Optional[CompletionModel]:
+        return self.populate(*args, **kwds)
 
     @abstractmethod
-    def populate(self, *args: str, info: Optional[CompletionInfo]) -> None:
+    def populate(self, *args: str, info: Optional[CompletionInfo]) -> Optional[CompletionModel]:
         pass
 
     @classmethod

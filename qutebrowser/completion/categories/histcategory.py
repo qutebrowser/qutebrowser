@@ -27,7 +27,7 @@ from PyQt5.QtWidgets import QWidget
 from qutebrowser.misc import sql
 from qutebrowser.utils import debug, message, log
 from qutebrowser.config import config
-from qutebrowser.completion.models import util
+from qutebrowser.completion import util
 
 
 class HistoryCategory(QSqlQueryModel):

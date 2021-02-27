@@ -23,7 +23,7 @@ import logging
 
 import pytest
 
-from qutebrowser.completion.models import listcategory
+from qutebrowser.completion.categories import listcategory
 
 
 @pytest.mark.parametrize('pattern, before, after, after_nosort', [
