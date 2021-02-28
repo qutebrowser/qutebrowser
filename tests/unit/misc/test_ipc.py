@@ -306,10 +306,9 @@ class TestListen:
     @pytest.mark.posix
     def test_permissions_posix(self, ipc_server):
         ipc_server.listen()
-        sockfile = ipc_server._server.fullServerName()
-        sockdir = pathlib.Path(sockfile).parent
+        sockfile_path = pathlib.Path(ipc_server._server.fullServerName())
+        sockdir = sockfile_path.parent
 
-        sockfile_path = pathlib.Path(sockfile)
         file_stat = sockfile_path.stat()
         dir_stat = sockdir.stat()
 
