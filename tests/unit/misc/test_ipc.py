@@ -309,7 +309,8 @@ class TestListen:
         sockfile = ipc_server._server.fullServerName()
         sockdir = pathlib.Path(sockfile).parent
 
-        file_stat = os.stat(sockfile)
+        sockfile_path = pathlib.Path(sockfile)
+        file_stat = sockfile_path.stat()
         dir_stat = sockdir.stat()
 
         # pylint: disable=no-member,useless-suppression
@@ -331,7 +332,9 @@ class TestListen:
     def test_atime_update(self, qtbot, ipc_server):
         ipc_server._atime_timer.setInterval(500)  # We don't want to wait
         ipc_server.listen()
-        old_atime = os.stat(ipc_server._server.fullServerName()).st_atime_ns
+
+        sockfile_path = pathlib.Path(ipc_server._server.fullServerName())
+        old_atime = sockfile_path.stat().st_atime_ns
 
         with qtbot.waitSignal(ipc_server._atime_timer.timeout, timeout=2000):
             pass
@@ -340,7 +343,7 @@ class TestListen:
         with qtbot.waitSignal(ipc_server._atime_timer.timeout, timeout=2000):
             pass
 
-        new_atime = os.stat(ipc_server._server.fullServerName()).st_atime_ns
+        new_atime = sockfile_path.stat().st_atime_ns
 
         assert old_atime != new_atime
 
