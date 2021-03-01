@@ -35,27 +35,6 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.misc import miscwidgets, objects
 
 
-def create(*, splitter: 'miscwidgets.InspectorSplitter',
-           win_id: int,
-           parent: QWidget = None) -> 'AbstractWebInspector':
-    """Get a WebKitInspector/WebEngineInspector.
-
-    Args:
-        splitter: InspectorSplitter where the inspector can be placed.
-        win_id: The window ID this inspector is associated with.
-        parent: The Qt parent to set.
-    """
-    # Importing modules here so we don't depend on QtWebEngine without the
-    # argument and to avoid circular imports.
-    if objects.backend == usertypes.Backend.QtWebEngine:
-        from qutebrowser.browser.webengine import webengineinspector
-        return webengineinspector.WebEngineInspector(splitter, win_id, parent)
-    elif objects.backend == usertypes.Backend.QtWebKit:
-        from qutebrowser.browser.webkit import webkitinspector
-        return webkitinspector.WebKitInspector(splitter, win_id, parent)
-    raise utils.Unreachable(objects.backend)
-
-
 class Position(enum.Enum):
 
     """Where the inspector is shown."""

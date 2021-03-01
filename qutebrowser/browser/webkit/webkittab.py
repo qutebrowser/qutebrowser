@@ -33,11 +33,11 @@ from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab, shared
 from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
-                                        webkitsettings)
+                                        webkitsettings,webkitinspector)
+
 from qutebrowser.utils import qtutils, usertypes, utils, log, debug
 from qutebrowser.keyinput import modeman
 from qutebrowser.qt import sip
-from qutebrowser.misc import miscwidgets, objects
 
 class WebKitAction(browsertab.AbstractAction):
 
@@ -808,16 +808,8 @@ class WebKitTabPrivate(browsertab.AbstractTabPrivate):
         result = document_element.evaluateJavaScript(code)
         return result
 
-    def _init_inspector(*, splitter, win_id, parent=None):
-        # Importing modules here so we don't depend on QtWebEngine without the
-        # argument and to avoid circular imports.
-        if objects.backend == usertypes.Backend.QtWebEngine:
-            from qutebrowser.browser.webengine import webengineinspector
-            return webengineinspector.WebEngineInspector(splitter, win_id, parent)
-        elif objects.backend == usertypes.Backend.QtWebKit:
-            from qutebrowser.browser.webkit import webkitinspector
-            return webkitinspector.WebKitInspector(splitter, win_id, parent)
-        raise utils.Unreachable(objects.backend)
+    def _init_inspector(self, splitter, win_id, parent=None):
+        return webkitinspector.WebKitInspector(splitter, win_id, parent)
 
 class WebKitTab(browsertab.AbstractTab):
 
