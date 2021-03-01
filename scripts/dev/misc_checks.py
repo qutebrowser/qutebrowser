@@ -176,9 +176,21 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
         ) for w in words
     ]
 
-    qtbot_methods = {'keyClick', 'keyClicks', 'mousePress', 'keyPress'}
+    qtbot_methods = {
+        'keyPress',
+        'keyRelease',
+        'keyClick',
+        'keyClicks',
+        'keyEvent',
+        'mousePress',
+        'mouseRelease',
+        'mouseClick',
+        'mouseMove',
+        'mouseDClick',
+        'keySequence',
+    }
 
-    excluding = '|'.join(qtbot_methods)
+    qtbot_excludes = '|'.join(qtbot_methods)
 
     patterns += [
         (
@@ -232,8 +244,8 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             "use OSError",
         ),
         (
-            re.compile(r'qtbot\.(?!{})[a-z]+[A-Z].*'.format(excluding)),
-            "Snake-case available",
+            re.compile(fr'qtbot\.(?!{qtbot_excludes})[a-z]+[A-Z].*'),
+            "use snake-case instead",
         )
     ]
 
