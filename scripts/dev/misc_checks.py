@@ -195,7 +195,7 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
     patterns += [
         (
             re.compile(r'(?i)# noqa(?!: )'),
-            "Don't use a blanket 'noqa', use something like 'noqa: X123' instead."
+            "Don't use a blanket 'noqa', use something like 'noqa: X123' instead.",
         ),
         (
             re.compile(r'# type: ignore[^\[]'),
