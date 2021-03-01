@@ -81,7 +81,7 @@ def authentication_required(url, authenticator, abort_on):
 
 def _format_msg(msg: str) -> str:
     """Convert message to HTML suitable for rendering."""
-    return html.escape(msg).strip().replace('\n', '<br />')
+    return html.escape(msg).replace('\n', '<br />')
 
 
 def javascript_confirm(url, js_msg, abort_on):
