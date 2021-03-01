@@ -374,10 +374,12 @@ def parse_versioned_line(line):
     if '==' in line:
         if line[0] == '#':  # ignored dependency
             line = line[1:].strip()
-        line = line.rsplit('#', maxsplit=1)[0]  # Strip comments
+
+        # Strip comments and pip environment markers
+        line = line.rsplit('#', maxsplit=1)[0]
+        line = line.split(';')[0].strip()
+
         name, version = line.split('==')
-        if ';' in version:  # pip environment markers
-            version = version.split(';')[0].strip()
     elif line.startswith('-e'):
         rest, name = line.split('#egg=')
         version = rest.split('@')[1][:7]
