@@ -878,7 +878,7 @@ class AbstractTabPrivate:
             tabdata.inspector.inspect(self._widget.page())
         tabdata.inspector.set_position(position)
 
-    def _init_inspector(*, splitter: 'miscwidgets.InspectorSplitter',
+    def _init_inspector(self, splitter: 'miscwidgets.InspectorSplitter',
            win_id: int,
            parent: QWidget = None) -> 'AbstractWebInspector':
         """Get a WebKitInspector/WebEngineInspector.
@@ -889,7 +889,6 @@ class AbstractTabPrivate:
             parent: The Qt parent to set.
         """
         raise NotImplementedError
-    
 
 
 class AbstractTab(QWidget):

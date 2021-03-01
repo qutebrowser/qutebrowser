@@ -34,11 +34,13 @@ from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript, QWebEngin
 from qutebrowser.config import config
 from qutebrowser.browser import browsertab, eventfilter, shared, webelem, greasemonkey
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
-                                           webenginesettings, certificateerror,webengineinspector)
+                                           webenginesettings, certificateerror,
+                                           webengineinspector)
 
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, jinja, debug, version)
 from qutebrowser.qt import sip
+from qutebrowser.misc import objects, miscwidgets
 
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.

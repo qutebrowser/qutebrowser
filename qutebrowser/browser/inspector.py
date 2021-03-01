@@ -32,7 +32,7 @@ from qutebrowser.browser import eventfilter
 from qutebrowser.config import configfiles
 from qutebrowser.utils import log, usertypes, utils
 from qutebrowser.keyinput import modeman
-from qutebrowser.misc import miscwidgets, objects
+from qutebrowser.misc import miscwidgets
 
 
 class Position(enum.Enum):
