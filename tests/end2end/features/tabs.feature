@@ -1535,9 +1535,10 @@ Feature: Tab management
         When I open data/numbers/1.txt
         And I run :tab-pin
         And I open data/numbers/2.txt without waiting
-        Then the message "Tab is pinned!" should be shown
+        Then the message "Tab is pinned!Opening in new tab" should be shown
         And the following tabs should be open:
             - data/numbers/1.txt (active) (pinned)
+            - data/numbers/2.txt
 
     Scenario: :tab-pin open url with tabs.pinned.frozen = false
         When I set tabs.pinned.frozen to false
