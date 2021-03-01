@@ -143,10 +143,11 @@ def _check_spelling_file(path, fobj, patterns):
     ok = True
     for num, line in enumerate(fobj, start=1):
         for pattern, explanation in patterns:
-            if pattern.search(line):
+            match = pattern.search(line)
+            if match:
                 ok = False
                 print(f'{path}:{num}: ', end='')
-                utils.print_col(f'Found "{pattern.pattern}" - {explanation}', 'blue')
+                utils.print_col(f'Found "{match.group(0)}" - {explanation}', 'blue')
     return ok
 
 
