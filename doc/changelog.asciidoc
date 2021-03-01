@@ -79,6 +79,8 @@ Fixed
 - The quirk added for a missing `String.replaceAll` did not handle special
   regexp characters correctly, thus breaking some sites. It now handles them
   properly.
+- The "try again" button on error pages now works correctly with JavaScript
+  disabled.
 
 [[v2.0.2]]
 v2.0.2 (2021-02-04)
