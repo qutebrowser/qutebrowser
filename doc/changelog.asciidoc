@@ -48,6 +48,10 @@ Changed
   QtWebEngine version.
 - When doing `:hint links yank --rapid`, the messages shown now replace each
   other, thus being less noisy.
+- Newlines in JavaScript messages (`confirm`, `prompt` and `alert`) are now
+  preserved.
+- Messages in prompts are now word-wrapped rather than displaying them in one
+  long line.
 
 Fixed
 ~~~~~
