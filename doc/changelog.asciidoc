@@ -52,6 +52,8 @@ Changed
   preserved.
 - Messages in prompts are now word-wrapped rather than displaying them in one
   long line.
+- If a command stats with space (e.g. `: open ...`, it's now not saved to
+  command history anymore (similar to how some shells work).
 
 Fixed
 ~~~~~
