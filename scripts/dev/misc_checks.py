@@ -175,10 +175,27 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             "Common misspelling or non-US spelling"
         ) for w in words
     ]
+
+    qtbot_methods = {
+        'keyPress',
+        'keyRelease',
+        'keyClick',
+        'keyClicks',
+        'keyEvent',
+        'mousePress',
+        'mouseRelease',
+        'mouseClick',
+        'mouseMove',
+        'mouseDClick',
+        'keySequence',
+    }
+
+    qtbot_excludes = '|'.join(qtbot_methods)
+
     patterns += [
         (
             re.compile(r'(?i)# noqa(?!: )'),
-            "Don't use a blanket 'noqa', use something like 'noqa: X123' instead.",
+            "Don't use a blanket 'noqa', use something like 'noqa: X123' instead."
         ),
         (
             re.compile(r'# type: ignore[^\[]'),
@@ -226,6 +243,10 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             re.compile(r'IOError'),
             "use OSError",
         ),
+        (
+            re.compile(fr'qtbot\.(?!{qtbot_excludes})[a-z]+[A-Z].*'),
+            "use snake-case instead",
+        )
     ]
 
     # Files which should be ignored, e.g. because they come from another

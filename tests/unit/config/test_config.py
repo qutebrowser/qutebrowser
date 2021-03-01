@@ -432,7 +432,7 @@ class TestConfig:
         assert conf.get_obj(name1) == 'never'
         assert conf.get_obj(name2) is True
 
-        with qtbot.waitSignals([conf.changed, conf.changed]) as blocker:
+        with qtbot.wait_signals([conf.changed, conf.changed]) as blocker:
             conf.clear(save_yaml=save_yaml)
 
         options = {e.args[0] for e in blocker.all_signals_and_args}

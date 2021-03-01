@@ -65,14 +65,14 @@ class JSTester:
         template = self._jinja_env.get_template(path)
 
         try:
-            with self.qtbot.waitSignal(self.tab.load_finished,
+            with self.qtbot.wait_signal(self.tab.load_finished,
                                        timeout=2000) as blocker:
                 self.tab.set_html(template.render(**kwargs), base_url=base_url)
         except self.qtbot.TimeoutError:
             # Sometimes this fails for some odd reason on macOS, let's just try
             # again.
             print("Trying to load page again...")
-            with self.qtbot.waitSignal(self.tab.load_finished,
+            with self.qtbot.wait_signal(self.tab.load_finished,
                                        timeout=2000) as blocker:
                 self.tab.set_html(template.render(**kwargs), base_url=base_url)
 
@@ -95,7 +95,7 @@ class JSTester:
             url: The QUrl to load.
             force: Whether to force loading even if the file is invalid.
         """
-        with self.qtbot.waitSignal(self.tab.load_finished,
+        with self.qtbot.wait_signal(self.tab.load_finished,
                                    timeout=2000) as blocker:
             self.tab.load_url(url)
         if not force:

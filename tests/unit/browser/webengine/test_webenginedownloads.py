@@ -120,7 +120,7 @@ class TestDataUrlWorkaround:
     def test_workaround(self, webengine_tab, message_mock, qtbot,
                         pdf_url, download_manager, expected_names):
         """Verify our workaround works properly."""
-        with qtbot.waitSignal(message_mock.got_question):
+        with qtbot.wait_signal(message_mock.got_question):
             webengine_tab.load_url(pdf_url)
 
         question = message_mock.get_question()
@@ -132,10 +132,10 @@ class TestDataUrlWorkaround:
         pdf_url_str = pdf_url.toDisplayString()
         html = f'<a href="{pdf_url_str}" download="filename.pdf" id="link">'
 
-        with qtbot.waitSignal(webengine_tab.load_finished):
+        with qtbot.wait_signal(webengine_tab.load_finished):
             webengine_tab.set_html(html)
 
-        with qtbot.waitSignal(message_mock.got_question):
+        with qtbot.wait_signal(message_mock.got_question):
             webengine_tab.elements.find_id(
                 "link",
                 lambda elem: elem.click(usertypes.ClickTarget.normal),
@@ -157,6 +157,6 @@ class TestDataUrlWorkaround:
             assert os.path.basename(item.path()) == expected_names.before
             return True
 
-        with qtbot.waitSignal(webengine_profile.downloadRequested,
+        with qtbot.wait_signal(webengine_profile.downloadRequested,
                               check_params_cb=check_item):
             webengineview.load(pdf_url)

@@ -36,7 +36,7 @@ def proc(qtbot, caplog):
     yield p
     if p._proc.state() == QProcess.Running:
         with caplog.at_level(logging.ERROR):
-            with qtbot.waitSignal(p.finished, timeout=10000,
+            with qtbot.wait_signal(p.finished, timeout=10000,
                                   raising=False) as blocker:
                 p._proc.terminate()
             if not blocker.signal_triggered:
@@ -54,7 +54,7 @@ def fake_proc(monkeypatch, stubs):
 
 def test_start(proc, qtbot, message_mock, py_proc):
     """Test simply starting a process."""
-    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
+    with qtbot.wait_signals([proc.started, proc.finished], timeout=10000,
                            order='strict'):
         argv = py_proc("import sys; print('test'); sys.exit(0)")
         proc.start(*argv)
@@ -70,7 +70,7 @@ def test_start_verbose(proc, qtbot, message_mock, py_proc):
     """Test starting a process verbosely."""
     proc.verbose = True
 
-    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
+    with qtbot.wait_signals([proc.started, proc.finished], timeout=10000,
                            order='strict'):
         argv = py_proc("import sys; print('test'); sys.exit(0)")
         proc.start(*argv)
@@ -99,7 +99,7 @@ def test_start_output_message(proc, qtbot, caplog, message_mock, py_proc,
     code.append("sys.exit(0)")
 
     with caplog.at_level(logging.ERROR, 'message'):
-        with qtbot.waitSignals([proc.started, proc.finished],
+        with qtbot.wait_signals([proc.started, proc.finished],
                                timeout=10000,
                                order='strict'):
             argv = py_proc(';'.join(code))
@@ -147,7 +147,7 @@ def test_start_env(monkeypatch, qtbot, py_proc):
         sys.exit(0)
     """)
 
-    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
+    with qtbot.wait_signals([proc.started, proc.finished], timeout=10000,
                            order='strict'):
         proc.start(*argv)
 
@@ -178,7 +178,7 @@ def test_start_detached_error(fake_proc, message_mock, caplog):
 
 def test_double_start(qtbot, proc, py_proc):
     """Test starting a GUIProcess twice."""
-    with qtbot.waitSignal(proc.started, timeout=10000):
+    with qtbot.wait_signal(proc.started, timeout=10000):
         argv = py_proc("import time; time.sleep(10)")
         proc.start(*argv)
     with pytest.raises(ValueError):
@@ -187,11 +187,11 @@ def test_double_start(qtbot, proc, py_proc):
 
 def test_double_start_finished(qtbot, proc, py_proc):
     """Test starting a GUIProcess twice (with the first call finished)."""
-    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
+    with qtbot.wait_signals([proc.started, proc.finished], timeout=10000,
                            order='strict'):
         argv = py_proc("import sys; sys.exit(0)")
         proc.start(*argv)
-    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
+    with qtbot.wait_signals([proc.started, proc.finished], timeout=10000,
                            order='strict'):
         argv = py_proc("import sys; sys.exit(0)")
         proc.start(*argv)
@@ -220,7 +220,7 @@ def test_start_logging(fake_proc, caplog):
 def test_error(qtbot, proc, caplog, message_mock):
     """Test the process emitting an error."""
     with caplog.at_level(logging.ERROR, 'message'):
-        with qtbot.waitSignal(proc.error, timeout=5000):
+        with qtbot.wait_signal(proc.error, timeout=5000):
             proc.start('this_does_not_exist_either', [])
 
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
@@ -229,7 +229,7 @@ def test_error(qtbot, proc, caplog, message_mock):
 
 def test_exit_unsuccessful(qtbot, proc, message_mock, py_proc, caplog):
     with caplog.at_level(logging.ERROR):
-        with qtbot.waitSignal(proc.finished, timeout=10000):
+        with qtbot.wait_signal(proc.finished, timeout=10000):
             proc.start(*py_proc('import sys; sys.exit(1)'))
 
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
@@ -239,7 +239,7 @@ def test_exit_unsuccessful(qtbot, proc, message_mock, py_proc, caplog):
 
 def test_exit_crash(qtbot, proc, message_mock, py_proc, caplog):
     with caplog.at_level(logging.ERROR):
-        with qtbot.waitSignal(proc.finished, timeout=10000):
+        with qtbot.wait_signal(proc.finished, timeout=10000):
             proc.start(*py_proc("""
                 import os, signal
                 os.kill(os.getpid(), signal.SIGSEGV)
@@ -257,7 +257,7 @@ def test_exit_crash(qtbot, proc, message_mock, py_proc, caplog):
 def test_exit_unsuccessful_output(qtbot, proc, caplog, py_proc, stream):
     """When a process fails, its output should be logged."""
     with caplog.at_level(logging.ERROR):
-        with qtbot.waitSignal(proc.finished, timeout=10000):
+        with qtbot.wait_signal(proc.finished, timeout=10000):
             proc.start(*py_proc("""
                 import sys
                 print("test", file=sys.{})
@@ -273,7 +273,7 @@ def test_exit_successful_output(qtbot, proc, py_proc, stream):
     The test doesn't actually check the log as it'd fail because of the error
     logging.
     """
-    with qtbot.waitSignal(proc.finished, timeout=10000):
+    with qtbot.wait_signal(proc.finished, timeout=10000):
         proc.start(*py_proc("""
             import sys
             print("test", file=sys.{})
@@ -283,7 +283,7 @@ def test_exit_successful_output(qtbot, proc, py_proc, stream):
 
 def test_stdout_not_decodable(proc, qtbot, message_mock, py_proc):
     """Test handling malformed utf-8 in stdout."""
-    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
+    with qtbot.wait_signals([proc.started, proc.finished], timeout=10000,
                            order='strict'):
         argv = py_proc(r"""
             import sys

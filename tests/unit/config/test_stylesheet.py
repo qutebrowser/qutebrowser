@@ -64,7 +64,7 @@ def test_set_register_stylesheet(delete, stylesheet_param, update, changed_optio
     assert obj.rendered_stylesheet == 'magenta'
 
     if delete:
-        with qtbot.waitSignal(obj.destroyed):
+        with qtbot.wait_signal(obj.destroyed):
             obj.deleteLater()
 
     config_stub.set_obj(changed_option, 'yellow')

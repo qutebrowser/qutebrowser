@@ -73,7 +73,7 @@ class WidgetContainer(QWidget):
         self._widget = widget
 
     def expose(self):
-        with self._qtbot.waitExposed(self):
+        with self._qtbot.wait_exposed(self):
             self.show()
         self._widget.setFocus()
 
@@ -407,7 +407,7 @@ def status_command_stub(stubs, qtbot, win_registry):
     """Fixture which provides a fake status-command object."""
     cmd = stubs.StatusBarCommandStub()
     objreg.register('status-command', cmd, scope='window', window=0)
-    qtbot.addWidget(cmd)
+    qtbot.add_widget(cmd)
     yield cmd
     objreg.delete('status-command', scope='window', window=0)
 

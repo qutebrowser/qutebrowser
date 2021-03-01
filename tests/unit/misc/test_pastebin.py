@@ -99,8 +99,8 @@ def test_paste_private(pbclient):
     "http://paste.the-compiler.org/view/3gjnwg4"
 ])
 def test_on_client_success(http, pbclient, qtbot):
-    with qtbot.assertNotEmitted(pbclient.error):
-        with qtbot.waitSignal(pbclient.success):
+    with qtbot.assert_not_emitted(pbclient.error):
+        with qtbot.wait_signal(pbclient.success):
             pbclient._client.success.emit(http)
 
 
@@ -110,12 +110,12 @@ def test_on_client_success(http, pbclient, qtbot):
     "http//invalid.com"
 ])
 def test_client_success_invalid_http(http, pbclient, qtbot):
-    with qtbot.assertNotEmitted(pbclient.success):
-        with qtbot.waitSignal(pbclient.error):
+    with qtbot.assert_not_emitted(pbclient.success):
+        with qtbot.wait_signal(pbclient.error):
             pbclient._client.success.emit(http)
 
 
 def test_client_error(pbclient, qtbot):
-    with qtbot.assertNotEmitted(pbclient.success):
-        with qtbot.waitSignal(pbclient.error):
+    with qtbot.assert_not_emitted(pbclient.success):
+        with qtbot.wait_signal(pbclient.error):
             pbclient._client.error.emit("msg")

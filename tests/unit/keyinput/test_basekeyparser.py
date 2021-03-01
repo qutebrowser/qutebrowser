@@ -312,7 +312,7 @@ class TestCount:
     def test_count_keystring_update(self, qtbot,
                                     handle_text, prompt_keyparser):
         """Make sure the keystring is updated correctly when entering count."""
-        with qtbot.waitSignals([
+        with qtbot.wait_signals([
                 prompt_keyparser.keystring_updated,
                 prompt_keyparser.keystring_updated]) as blocker:
             handle_text(prompt_keyparser, Qt.Key_4, Qt.Key_2)
@@ -335,7 +335,7 @@ def test_clear_keystring(qtbot, keyparser):
     """Test that the keystring is cleared and the signal is emitted."""
     keyparser._sequence = keyseq('test')
     keyparser._count = '23'
-    with qtbot.waitSignal(keyparser.keystring_updated):
+    with qtbot.wait_signal(keyparser.keystring_updated):
         keyparser.clear_keystring()
     assert not keyparser._sequence
     assert not keyparser._count

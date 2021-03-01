@@ -64,7 +64,7 @@ def test_resize(qtbot):
     long_string = 'Hello world! ' * 20
     label.setText(long_string)
 
-    with qtbot.waitExposed(label):
+    with qtbot.wait_exposed(label):
         label.show()
 
     text_1 = label._elided_text

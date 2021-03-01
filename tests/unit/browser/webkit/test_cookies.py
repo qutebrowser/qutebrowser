@@ -85,7 +85,7 @@ class TestSetCookies:
         """Test setCookiesFromUrl with cookies enabled."""
         config_stub.val.content.cookies.accept = 'all'
 
-        with qtbot.waitSignal(ram_jar.changed):
+        with qtbot.wait_signal(ram_jar.changed):
             assert ram_jar.setCookiesFromUrl([cookie], url)
 
         # assert the cookies are added correctly
@@ -100,7 +100,7 @@ class TestSetCookies:
         """Test setCookiesFromUrl when cookies are not accepted."""
         config_stub.val.content.cookies.accept = 'never'
 
-        with qtbot.assertNotEmitted(ram_jar.changed):
+        with qtbot.assert_not_emitted(ram_jar.changed):
             assert not ram_jar.setCookiesFromUrl([cookie], url)
         assert not ram_jar.cookiesForUrl(url)
 
@@ -112,11 +112,11 @@ class TestSetCookies:
 
         org_url = QUrl('http://example.org/')
 
-        with qtbot.waitSignal(ram_jar.changed):
+        with qtbot.wait_signal(ram_jar.changed):
             assert ram_jar.setCookiesFromUrl([cookie], org_url)
         assert ram_jar.cookiesForUrl(org_url)
 
-        with qtbot.assertNotEmitted(ram_jar.changed):
+        with qtbot.assert_not_emitted(ram_jar.changed):
             assert not ram_jar.setCookiesFromUrl([cookie], url)
         assert not ram_jar.cookiesForUrl(url)
 
@@ -175,7 +175,7 @@ def test_cookies_changed_emit(config_stub, fake_save_manager,
     monkeypatch.setattr(lineparser, 'LineParser', LineparserSaveStub)
     jar = cookies.CookieJar()
 
-    with qtbot.waitSignal(jar.changed):
+    with qtbot.wait_signal(jar.changed):
         config_stub.val.content.cookies.store = False
 
 
