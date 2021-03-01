@@ -34,3 +34,7 @@ pytest-icdiff
 tldextract
 
 #@ ignore: Jinja2, MarkupSafe, colorama
+
+# WORKAROUND for https://github.com/nedbat/coveragepy/issues/1129
+#@ markers: coverage python_version!="3.10"
+#@ add: coverage==5.4; python_version=="3.10"

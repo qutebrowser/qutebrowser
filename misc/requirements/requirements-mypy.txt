@@ -3,8 +3,8 @@
 chardet==4.0.0
 diff-cover==4.2.1
 importlib-metadata==3.7.0
-importlib-resources==5.1.0
-inflect==5.0.2
+importlib-resources==5.1.1
+inflect==5.2.0
 Jinja2==2.11.3
 jinja2-pluralize==0.3.0
 lxml==4.6.2
