@@ -46,6 +46,8 @@ Changed
 - When PyQtWebEngine >= 5.15.3 is installed via `pip` (as is e.g. the case with
   `mkvenv.py`), qutebrowser now queries the associated metadata to find out the
   QtWebEngine version.
+- When doing `:hint links yank --rapid`, the messages shown now replace each
+  other, thus being less noisy.
 
 Fixed
 ~~~~~

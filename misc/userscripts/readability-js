@@ -7,11 +7,19 @@
 //
 // # Prerequisites
 //
-//   - Setting NODE_PATH might be required to point qutebrowser to your global node libraries:
-//     export NODE_PATH=$NODE_PATH:$(npm root -g)
-//   - Mozilla's readability library (npm install -g @mozilla/readability)
-//   - jsdom (npm install -g jsdom)
-//   - qutejs (npm install -g qutejs)
+// - Mozilla's readability library (npm install -g @mozilla/readability)
+// - jsdom (npm install -g jsdom)
+// - qutejs (npm install -g qutejs)
+//
+// - Ensure that node knows where to find your globally installed modules by adding
+//   the following to ~/.profile or /etc/profile:
+//     
+//   export NODE_PATH=$NODE_PATH:$(npm root -g)
+//
+// *Note*: On some Linux distros and macOS, it may be easier to set NODE_PATH using qutebrowser's
+// qt.environ setting. For instance, if 'npm root -g' returns /usr/lib/node_modules, then run:
+//
+//   :set qt.environ '{"NODE_PATH": "/usr/lib/node_modules"}'
 //
 // # Usage
 //
