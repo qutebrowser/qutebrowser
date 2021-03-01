@@ -223,12 +223,13 @@ def _update_file(filename, contents):
     This might write the file multiple times, but different systems have
     different mtime's, so we can't be sure how long to wait otherwise.
     """
-    old_mtime = new_mtime = os.stat(filename).st_mtime
+    file_path = pathlib.Path(filename)
+    old_mtime = new_mtime = file_path.stat().st_mtime
     while old_mtime == new_mtime:
         time.sleep(0.1)
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(contents)
-        new_mtime = os.stat(filename).st_mtime
+        new_mtime = file_path.stat().st_mtime
 
 
 def test_modify_watch(qtbot):

@@ -306,10 +306,10 @@ class TestListen:
     @pytest.mark.posix
     def test_permissions_posix(self, ipc_server):
         ipc_server.listen()
-        sockfile = ipc_server._server.fullServerName()
-        sockdir = pathlib.Path(sockfile).parent
+        sockfile_path = pathlib.Path(ipc_server._server.fullServerName())
+        sockdir = sockfile_path.parent
 
-        file_stat = os.stat(sockfile)
+        file_stat = sockfile_path.stat()
         dir_stat = sockdir.stat()
 
         # pylint: disable=no-member,useless-suppression
@@ -322,7 +322,7 @@ class TestListen:
         print('sockdir: {} / owner {} / mode {:o}'.format(
             sockdir, dir_stat.st_uid, dir_stat.st_mode))
         print('sockfile: {} / owner {} / mode {:o}'.format(
-            sockfile, file_stat.st_uid, file_stat.st_mode))
+            sockfile_path, file_stat.st_uid, file_stat.st_mode))
 
         assert file_owner_ok or dir_owner_ok
         assert file_mode_ok or dir_mode_ok
@@ -331,7 +331,9 @@ class TestListen:
     def test_atime_update(self, qtbot, ipc_server):
         ipc_server._atime_timer.setInterval(500)  # We don't want to wait
         ipc_server.listen()
-        old_atime = os.stat(ipc_server._server.fullServerName()).st_atime_ns
+
+        sockfile_path = pathlib.Path(ipc_server._server.fullServerName())
+        old_atime = sockfile_path.stat().st_atime_ns
 
         with qtbot.waitSignal(ipc_server._atime_timer.timeout, timeout=2000):
             pass
@@ -340,7 +342,7 @@ class TestListen:
         with qtbot.waitSignal(ipc_server._atime_timer.timeout, timeout=2000):
             pass
 
-        new_atime = os.stat(ipc_server._server.fullServerName()).st_atime_ns
+        new_atime = sockfile_path.stat().st_atime_ns
 
         assert old_atime != new_atime
 
