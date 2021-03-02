@@ -54,6 +54,8 @@ Changed
   long line.
 - If a command stats with space (e.g. `: open ...`, it's now not saved to
   command history anymore (similar to how some shells work).
+- When a tab is pinned, running `:open` will now open a new tab instead of
+  displaying an error.
 
 Fixed
 ~~~~~
