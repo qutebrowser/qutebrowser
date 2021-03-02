@@ -34,11 +34,13 @@ from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript, QWebEngin
 from qutebrowser.config import config
 from qutebrowser.browser import browsertab, eventfilter, shared, webelem, greasemonkey
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
-                                           webenginesettings, certificateerror)
-from qutebrowser.misc import miscwidgets, objects
+                                           webenginesettings, certificateerror,
+                                           webengineinspector)
+
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, jinja, debug, version)
 from qutebrowser.qt import sip
+from qutebrowser.misc import objects, miscwidgets
 
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
@@ -1206,6 +1208,9 @@ class WebEngineTabPrivate(browsertab.AbstractTabPrivate):
 
     def run_js_sync(self, code):
         raise browsertab.UnsupportedOperationError
+
+    def _init_inspector(self, splitter, win_id, parent=None):
+        return webengineinspector.WebEngineInspector(splitter, win_id, parent)
 
 
 class WebEngineTab(browsertab.AbstractTab):
