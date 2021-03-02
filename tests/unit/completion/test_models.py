@@ -461,7 +461,8 @@ def test_filesystem_completion_model_interface(info, local_files_path):
 @hypothesis.given(
     as_uri=hst.booleans(),
     add_sep=hst.booleans(),
-    text=hst.text(alphabet=hst.characters(blacklist_categories=['Cc'], blacklist_characters='\x00')),
+    text=hst.text(alphabet=hst.characters(
+        blacklist_categories=['Cc'], blacklist_characters='\x00')),
 )
 def test_filesystem_completion_hypothesis(info, as_uri, add_sep, text):
     if as_uri:
