@@ -1208,7 +1208,7 @@ class WebEngineTabPrivate(browsertab.AbstractTabPrivate):
 
     def run_js_sync(self, code):
         raise browsertab.UnsupportedOperationError
-    
+
     def _init_inspector(self, splitter, win_id, parent=None):
         return webengineinspector.WebEngineInspector(splitter, win_id, parent)
 

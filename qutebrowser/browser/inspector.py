@@ -30,7 +30,7 @@ from PyQt5.QtGui import QCloseEvent
 
 from qutebrowser.browser import eventfilter
 from qutebrowser.config import configfiles
-from qutebrowser.utils import log, usertypes, utils
+from qutebrowser.utils import log, usertypes
 from qutebrowser.keyinput import modeman
 from qutebrowser.misc import miscwidgets
 

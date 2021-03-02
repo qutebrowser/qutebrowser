@@ -812,6 +812,7 @@ class WebKitTabPrivate(browsertab.AbstractTabPrivate):
     def _init_inspector(self, splitter, win_id, parent=None):
         return webkitinspector.WebKitInspector(splitter, win_id, parent)
 
+
 class WebKitTab(browsertab.AbstractTab):
 
     """A QtWebKit tab in the browser."""
