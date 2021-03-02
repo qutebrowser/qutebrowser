@@ -329,7 +329,7 @@ class CommandDispatcher:
                         # Explicit count with a tab that doesn't exist.
                         return
                 elif curtab.navigation_blocked():
-                    message.info("Tab is pinned! Opening in new tab")
+                    message.info("Tab is pinned! Opening in new tab.")
                     self._tabbed_browser.tabopen(cur_url)
 
                 else:

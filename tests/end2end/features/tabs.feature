@@ -1535,7 +1535,7 @@ Feature: Tab management
         When I open data/numbers/1.txt
         And I run :tab-pin
         And I open data/numbers/2.txt
-        Then the message "Tab is pinned! Opening in new tab" should be shown
+        Then the message "Tab is pinned! Opening in new tab." should be shown
         And the following tabs should be open:
             - data/numbers/1.txt (active) (pinned)
             - data/numbers/2.txt

@@ -396,7 +396,7 @@ Feature: Saving and loading sessions
       And I wait until data/numbers/3.txt is loaded
       And I run :tab-focus 2
       And I open data/numbers/4.txt
-      Then the message "Tab is pinned! Opening in new tab" should be shown
+      Then the message "Tab is pinned! Opening in new tab." should be shown
       And the following tabs should be open:
         - data/numbers/1.txt
         - data/numbers/2.txt (active) (pinned)
