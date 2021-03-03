@@ -359,7 +359,7 @@ def choose_file(multiple: bool) -> List[str]:
         command = config.val.fileselect.multiple_files.command
     else:
         command = config.val.fileselect.single_file.command
-    use_tmp_file = '{}' in command
+    use_tmp_file = any('{}' in arg for arg in command[1:])
     if use_tmp_file:
         handle = tempfile.NamedTemporaryFile(
             prefix='qutebrowser-fileselect-',

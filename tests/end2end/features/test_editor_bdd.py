@@ -187,18 +187,24 @@ def set_up_fileselector(quteproc, py_proc, kind, files, output_type):
     cmd, args = py_proc(r"""
         import os
         import sys
-        if '--' in sys.argv:
-            tmp_file = sys.argv[-1]
-            with open(tmp_file, 'w') as f:
-                for selected_file in sys.argv[1:-2]:
-                    f.write(os.path.abspath(selected_file) + '\n')
-        else:
-            for selected_file in sys.argv[1:]:
+        tmp_file = None
+        for i, arg in enumerate(sys.argv):
+            if arg.startswith('--file='):
+                tmp_file = arg[len('--file='):]
+                sys.argv.pop(i)
+                break
+        selected_files = sys.argv[1:]
+        if tmp_file is None:
+            for selected_file in selected_files:
                 print(os.path.abspath(selected_file))
+        else:
+            with open(tmp_file, 'w') as f:
+                for selected_file in selected_files:
+                    f.write(os.path.abspath(selected_file) + '\n')
     """)
     args += files.split(' ')
     if output_type == "a temporary file":
-        args += ['--', '{}']
+        args += ['--file={}']
     fileselect_cmd = json.dumps([cmd, *args])
     quteproc.set_setting('fileselect.handler', 'external')
     quteproc.set_setting(f'fileselect.{kind}.command', fileselect_cmd)
