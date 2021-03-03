@@ -56,6 +56,9 @@ Changed
   command history anymore (similar to how some shells work).
 - When a tab is pinned, running `:open` will now open a new tab instead of
   displaying an error.
+- The `fileselect.*.command` settings now support file selectors writing the
+  selected paths to stdout, which is used if no `{}` placeholder is contained in
+  the configured command.
 
 Fixed
 ~~~~~
