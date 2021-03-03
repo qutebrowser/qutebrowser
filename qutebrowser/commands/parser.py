@@ -20,7 +20,7 @@
 """Module for parsing commands entered into the browser."""
 
 import dataclasses
-from typing import Optional, List
+from typing import Optional, List, Mapping, Iterator, List, Union
 
 from qutebrowser.commands import cmdexc, command
 from qutebrowser.misc import split, objects
@@ -44,10 +44,10 @@ class CommandParser:
         _partial_match: Whether to allow partial command matches.
     """
 
-    def __init__(self, partial_match=False):
+    def __init__(self, partial_match: bool = False) -> None:
         self._partial_match = partial_match
 
-    def _get_alias(self, text, aliases, default=None):
+    def _get_alias(self, text: str, aliases: Mapping[str, str], *, default: str) -> str:
         """Get an alias from the config.
 
         Args:
@@ -72,7 +72,12 @@ class CommandParser:
             new_cmd += ' '
         return new_cmd
 
-    def _parse_all_gen(self, text, *args, aliases=None, **kwargs):
+    def _parse_all_gen(
+            self,
+            text: str,
+            aliases: Mapping[str, str] = None,
+            **kwargs: bool,
+    ) -> Iterator[ParseResult]:
         """Split a command on ;; and parse all parts.
 
         If the first command in the commandline is a non-split one, it only
@@ -81,7 +86,7 @@ class CommandParser:
         Args:
             text: Text to parse.
             aliases: A map of aliases to commands.
-            *args/**kwargs: Passed to parse().
+            **kwargs: Passed to parse().
 
         Yields:
             ParseResult tuples.
@@ -91,13 +96,13 @@ class CommandParser:
             raise cmdexc.NoSuchCommandError("No command given")
 
         if aliases:
-            text = self._get_alias(text, aliases, text)
+            text = self._get_alias(text, aliases, default=text)
 
         if ';;' in text:
             # Get the first command and check if it doesn't want to have ;;
             # split.
             first = text.split(';;')[0]
-            result = self.parse(first, *args, **kwargs)
+            result = self.parse(first, **kwargs)
             if result.cmd.no_cmd_split:
                 sub_texts = [text]
             else:
@@ -105,13 +110,20 @@ class CommandParser:
         else:
             sub_texts = [text]
         for sub in sub_texts:
-            yield self.parse(sub, *args, **kwargs)
+            yield self.parse(first, **kwargs)
 
-    def parse_all(self, *args, **kwargs):
+    def parse_all(self, text: str, **kwargs: bool) -> List[ParseResult]:
         """Wrapper over _parse_all_gen."""
-        return list(self._parse_all_gen(*args, **kwargs))
+        return list(self._parse_all_gen(text, **kwargs))
 
-    def parse(self, text, *, fallback=False, keep=False, use_best_match=False):
+    def parse(
+            self,
+            text: str,
+            *,
+            fallback: bool = False,
+            keep: bool = False,
+            use_best_match: bool = False,
+    ) -> ParseResult:
         """Split the commandline text into command and arguments.
 
         Args:
@@ -151,7 +163,7 @@ class CommandParser:
 
         return ParseResult(cmd=cmd, args=args, cmdline=cmdline)
 
-    def _completion_match(self, cmdstr, use_best_match):
+    def _completion_match(self, cmdstr: str, use_best_match: bool) -> str:
         """Replace cmdstr with a matching completion if there's only one match.
 
         Args:
@@ -169,7 +181,7 @@ class CommandParser:
             cmdstr = matches[0]
         return cmdstr
 
-    def _split_args(self, cmd, argstr, keep):
+    def _split_args(self, cmd: command.Command, argstr: str, keep: bool) -> List[str]:
         """Split the arguments from an arg string.
 
         Args:
