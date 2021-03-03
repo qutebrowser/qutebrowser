@@ -61,6 +61,7 @@ def whitelist_generator():  # noqa: C901
     yield 'scripts.utils.bg_colors'
     yield 'qutebrowser.misc.sql.SqliteErrorCode.CONSTRAINT'
     yield 'qutebrowser.misc.throttle.Throttle.set_delay'
+    yield 'qutebrowser.misc.guiprocess.GUIProcess.final_stderr'
 
     # Qt attributes
     yield 'PyQt5.QtWebKit.QWebPage.ErrorPageExtensionReturn().baseUrl'
@@ -80,7 +81,6 @@ def whitelist_generator():  # noqa: C901
     yield 'qutebrowser.utils.log.QtWarningFilter.filter'
     yield 'qutebrowser.browser.pdfjs.is_available'
     yield 'qutebrowser.misc.guiprocess.spawn_output'
-    yield 'qutebrowser.misc.guiprocess.GUIProcess.final_stderr'
     yield 'qutebrowser.utils.usertypes.ExitStatus.reserved'
     yield 'QEvent.posted'
     yield 'log_stack'  # from message.py
