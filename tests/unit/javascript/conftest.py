@@ -20,7 +20,7 @@
 """pytest conftest file for javascript tests."""
 
 import os
-import os.path
+import pathlib
 
 import pytest
 import jinja2
@@ -43,7 +43,7 @@ class JSTester:
     def __init__(self, tab, qtbot, config_stub):
         self.tab = tab
         self.qtbot = qtbot
-        loader = jinja2.FileSystemLoader(os.path.dirname(__file__))
+        loader = jinja2.FileSystemLoader(pathlib.Path(__file__).parent)
         self._jinja_env = jinja2.Environment(loader=loader, autoescape=True)
         # Make sure error logging via JS fails tests
         config_stub.val.content.javascript.log = {
@@ -86,7 +86,7 @@ class JSTester:
             force: Whether to force loading even if the file is invalid.
         """
         self.load_url(QUrl.fromLocalFile(
-            os.path.join(os.path.dirname(__file__), path)), force)
+            str(pathlib.Path(__file__).parent.joinpath(path))), force)
 
     def load_url(self, url: QUrl, force: bool = False):
         """Load a given QUrl.
@@ -108,8 +108,8 @@ class JSTester:
             path: The path to the JS file, relative to the qutebrowser package.
             expected: The value expected return from the javascript execution
         """
-        base_path = os.path.dirname(os.path.abspath(qutebrowser.__file__))
-        with open(os.path.join(base_path, path), 'r', encoding='utf-8') as f:
+        base_path = pathlib.Path(qutebrowser.__file__).resolve().parent
+        with open(pathlib.Path(base_path).joinpath(path), 'r', encoding='utf-8') as f:
             source = f.read()
         self.run(source, expected)
 
