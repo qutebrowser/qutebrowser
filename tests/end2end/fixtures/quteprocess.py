@@ -20,7 +20,7 @@
 """Fixtures to run qutebrowser in a QProcess and communicate."""
 
 import os
-import os.path
+import pathlib
 import re
 import sys
 import time
@@ -503,22 +503,20 @@ class QuteProc(testprocess.Process):
         if hasattr(sys, 'frozen'):
             if profile:
                 raise Exception("Can't profile with sys.frozen!")
-            executable = os.path.join(os.path.dirname(sys.executable),
-                                      'qutebrowser')
+            executable = pathlib.Path(sys.executable).parent.joinpath('qutebrowser')
             args = []
         else:
             executable = sys.executable
             if profile:
-                profile_dir = os.path.join(os.getcwd(), 'prof')
+                profile_dir = pathlib.Path(pathlib.Path.cwd() / 'prof')
                 profile_id = '{}_{}'.format(self._instance_id,
                                             next(self._run_counter))
-                profile_file = os.path.join(profile_dir,
-                                            '{}.pstats'.format(profile_id))
+                profile_file = pathlib.Path(profile_dir).joinpath('{}.pstats'.format(profile_id))
                 try:
-                    os.mkdir(profile_dir)
+                    pathlib.Path.mkdir(profile_dir)
                 except FileExistsError:
                     pass
-                args = [os.path.join('scripts', 'dev', 'run_profile.py'),
+                args = [pathlib.Path('scripts').joinpath('dev', 'run_profile.py'),
                         '--profile-tool', 'none',
                         '--profile-file', profile_file]
             else:
@@ -862,7 +860,7 @@ class QuteProc(testprocess.Process):
     def get_session(self):
         """Save the session and get the parsed session data."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            session = os.path.join(tmpdir, 'session.yml')
+            session = pathlib.Path(tmpdir / 'session.yml')
             self.send_cmd(':session-save --with-private "{}"'.format(session))
             self.wait_for(category='message', loglevel=logging.INFO,
                           message='Saved session {}.'.format(session))
@@ -875,7 +873,7 @@ class QuteProc(testprocess.Process):
     def get_content(self, plain=True):
         """Get the contents of the current page."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            path = os.path.join(tmpdir, 'page')
+            path = pathlib.Path(tmpdir / 'page')
 
             if plain:
                 self.send_cmd(':debug-dump-page --plain "{}"'.format(path))
