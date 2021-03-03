@@ -259,7 +259,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
 
     win_id: Optional[int] = None
 
-    if via_ipc and not args:
+    if via_ipc and (not args or args == ['']):
         win_id = mainwindow.get_window(via_ipc=via_ipc,
                                        target=new_window_target)
         _open_startpage(win_id)
@@ -492,12 +492,13 @@ def _init_modules(*, args):
 
     log.init.debug("Initializing command history...")
     cmdhistory.init()
-    log.init.debug("Initializing sessions...")
-    sessions.init(objects.qapp)
 
     log.init.debug("Initializing websettings...")
     websettings.init(args)
     quitter.instance.shutting_down.connect(websettings.shutdown)
+
+    log.init.debug("Initializing sessions...")
+    sessions.init(objects.qapp)
 
     if not args.no_err_windows:
         crashsignal.crash_handler.display_faulthandler()
@@ -564,9 +565,7 @@ class Application(QApplication):
         self.launch_time = datetime.datetime.now()
         self.focusObjectChanged.connect(  # type: ignore[attr-defined]
             self.on_focus_object_changed)
-
         self.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
-        self.setAttribute(Qt.AA_MacDontSwapCtrlAndMeta, True)
 
         self.new_window.connect(self._on_new_window)
 

@@ -21,13 +21,9 @@
 
 import io
 import sys
-import collections
 import os.path
 import subprocess
 import contextlib
-import builtins
-import types
-import importlib
 import logging
 import textwrap
 import datetime
@@ -36,11 +32,12 @@ import dataclasses
 import pytest
 import hypothesis
 import hypothesis.strategies
+from PyQt5.QtCore import PYQT_VERSION_STR
 
 import qutebrowser
-from qutebrowser.config import config
+from qutebrowser.config import config, websettings
 from qutebrowser.utils import version, usertypes, utils, standarddir
-from qutebrowser.misc import pastebin, objects
+from qutebrowser.misc import pastebin, objects, elf
 from qutebrowser.browser import pdfjs
 
 
@@ -76,7 +73,7 @@ from qutebrowser.browser import pdfjs
      """,
      version.DistributionInfo(
          id='ubuntu', parsed=version.Distribution.ubuntu,
-         version=utils.parse_version('14.4'),
+         version=utils.VersionNumber(14, 4, 5),
          pretty='Ubuntu 14.04.5 LTS')),
     # Ubuntu 17.04
     ("""
@@ -89,7 +86,7 @@ from qutebrowser.browser import pdfjs
      """,
      version.DistributionInfo(
          id='ubuntu', parsed=version.Distribution.ubuntu,
-         version=utils.parse_version('17.4'),
+         version=utils.VersionNumber(17, 4),
          pretty='Ubuntu 17.04')),
     # Debian Jessie
     ("""
@@ -101,7 +98,7 @@ from qutebrowser.browser import pdfjs
      """,
      version.DistributionInfo(
          id='debian', parsed=version.Distribution.debian,
-         version=utils.parse_version('8'),
+         version=utils.VersionNumber(8),
          pretty='Debian GNU/Linux 8 (jessie)')),
     # Void Linux
     ("""
@@ -132,7 +129,7 @@ from qutebrowser.browser import pdfjs
      """,
      version.DistributionInfo(
          id='fedora', parsed=version.Distribution.fedora,
-         version=utils.parse_version('25'),
+         version=utils.VersionNumber(25),
          pretty='Fedora 25 (Twenty Five)')),
     # OpenSUSE
     ("""
@@ -145,7 +142,7 @@ from qutebrowser.browser import pdfjs
      """,
      version.DistributionInfo(
          id='opensuse', parsed=version.Distribution.opensuse,
-         version=utils.parse_version('42.2'),
+         version=utils.VersionNumber(42, 2),
          pretty='openSUSE Leap 42.2')),
     # Linux Mint
     ("""
@@ -158,7 +155,7 @@ from qutebrowser.browser import pdfjs
      """,
      version.DistributionInfo(
          id='linuxmint', parsed=version.Distribution.linuxmint,
-         version=utils.parse_version('18.1'),
+         version=utils.VersionNumber(18, 1),
          pretty='Linux Mint 18.1')),
     # Manjaro
     ("""
@@ -178,6 +175,97 @@ from qutebrowser.browser import pdfjs
      version.DistributionInfo(
          id='funtoo', parsed=version.Distribution.gentoo,
          version=None, pretty='Funtoo GNU/Linux')),
+    # KDE neon
+    ("""
+        NAME="KDE neon"
+        VERSION="5.20"
+        ID=neon
+        ID_LIKE="ubuntu debian"
+        PRETTY_NAME="KDE neon User Edition 5.20"
+        VARIANT="User Edition"
+        VERSION_ID="20.04"
+    """,
+    version.DistributionInfo(
+        id='neon', parsed=version.Distribution.neon,
+        version=utils.VersionNumber(5, 20), pretty='KDE neon User Edition 5.20')),
+    # Archlinux ARM
+    ("""
+        NAME="Arch Linux ARM"
+        PRETTY_NAME="Arch Linux ARM"
+        ID=archarm
+        ID_LIKE=arch
+    """,
+    version.DistributionInfo(
+        id='archarm', parsed=version.Distribution.arch,
+        version=None, pretty='Arch Linux ARM')),
+    # Alpine
+    ("""
+        NAME="Alpine Linux"
+        ID=alpine
+        VERSION_ID=3.12_alpha20200122
+        PRETTY_NAME="Alpine Linux edge"
+    """,
+    version.DistributionInfo(
+        id='alpine', parsed=version.Distribution.alpine,
+        version=utils.VersionNumber(3, 12), pretty='Alpine Linux edge')),
+    # EndeavourOS
+    ("""
+        NAME="EndeavourOS"
+        PRETTY_NAME="EndeavourOS"
+        ID=endeavouros
+        ID_LIKE=arch
+        BUILD_ID=rolling
+        DOCUMENTATION_URL="https://endeavouros.com/wiki/"
+        LOGO=endeavouros
+    """,
+    version.DistributionInfo(
+        id='endeavouros', parsed=version.Distribution.arch,
+        version=None, pretty='EndeavourOS')),
+    # Manjaro ARM
+    ("""
+        NAME="Manjaro-ARM"
+        ID=manjaro-arm
+        ID_LIKE=manjaro arch
+        PRETTY_NAME="Manjaro ARM"
+    """,
+    version.DistributionInfo(
+        id='manjaro-arm', parsed=version.Distribution.manjaro,
+        version=None, pretty='Manjaro ARM')),
+    # Artix Linux
+    ("""
+        NAME="Artix Linux"
+        PRETTY_NAME="Artix Linux"
+        ID=artix
+    """,
+    version.DistributionInfo(
+        id='artix', parsed=version.Distribution.arch,
+        version=None, pretty='Artix Linux')),
+    # NixOS
+    ("""
+        NAME=NixOS
+        ID=nixos
+        VERSION="21.03pre268206.536fe36e23a (Okapi)"
+        VERSION_CODENAME=okapi
+        VERSION_ID="21.03pre268206.536fe36e23a"
+        PRETTY_NAME="NixOS 21.03 (Okapi)"
+    """,
+    version.DistributionInfo(
+        id='nixos', parsed=version.Distribution.nixos,
+        version=utils.VersionNumber(21, 3),
+        pretty='NixOS 21.03 (Okapi)')),
+    # SolusOS
+    ("""
+        NAME="Solus"
+        VERSION="4.2"
+        ID="solus"
+        VERSION_CODENAME=fortitude
+        VERSION_ID="4.2"
+        PRETTY_NAME="Solus 4.2 Fortitude"
+    """,
+    version.DistributionInfo(
+        id='solus', parsed=version.Distribution.solus,
+        version=utils.VersionNumber(4, 2),
+        pretty='Solus 4.2 Fortitude')),
     # KDE Platform
     ("""
         NAME=KDE
@@ -185,27 +273,27 @@ from qutebrowser.browser import pdfjs
         VERSION_ID="5.12"
         ID=org.kde.Platform
     """,
-     version.DistributionInfo(
-         id='org.kde.Platform', parsed=version.Distribution.kde_flatpak,
-         version=utils.parse_version('5.12'),
-         pretty='KDE')),
+    version.DistributionInfo(
+        id='org.kde.Platform', parsed=version.Distribution.kde_flatpak,
+        version=utils.VersionNumber(5, 12),
+        pretty='KDE')),
     # No PRETTY_NAME
     ("""
         NAME="Tux"
         ID=tux
-     """,
-     version.DistributionInfo(
-         id='tux', parsed=version.Distribution.unknown,
-         version=None, pretty='Tux')),
+    """,
+    version.DistributionInfo(
+        id='tux', parsed=version.Distribution.unknown,
+        version=None, pretty='Tux')),
     # Invalid multi-line value
     ("""
         ID=tux
         PRETTY_NAME="Multiline
         Text"
-     """,
-     version.DistributionInfo(
-         id='tux', parsed=version.Distribution.unknown,
-         version=None, pretty='Multiline')),
+    """,
+    version.DistributionInfo(
+        id='tux', parsed=version.Distribution.unknown,
+        version=None, pretty='Multiline')),
 ])
 def test_distribution(tmpdir, monkeypatch, os_release, expected):
     os_release_file = tmpdir / 'os-release'
@@ -220,7 +308,7 @@ def test_distribution(tmpdir, monkeypatch, os_release, expected):
     (None, False),
     (version.DistributionInfo(
         id='org.kde.Platform', parsed=version.Distribution.kde_flatpak,
-        version=utils.parse_version('5.12'),
+        version=utils.VersionNumber(5, 12),
         pretty='Unknown'), True),
     (version.DistributionInfo(
         id='arch', parsed=version.Distribution.arch, version=None,
@@ -538,70 +626,11 @@ def test_path_info(monkeypatch, equal):
         assert pathinfo['system data'] == 'SYSTEM DATA PATH'
 
 
-class ImportFake:
-
-    """A fake for __import__ which is used by the import_fake fixture.
-
-    Attributes:
-        modules: A dict mapping module names to bools. If True, the import will
-                 succeed. Otherwise, it'll fail with ImportError.
-        version_attribute: The name to use in the fake modules for the version
-                           attribute.
-        version: The version to use for the modules.
-        _real_import: Saving the real __import__ builtin so the imports can be
-                      done normally for modules not in self. modules.
-    """
-
-    def __init__(self):
-        self.modules = collections.OrderedDict(
-            [(mod, True) for mod in version.MODULE_INFO])
-        self.version_attribute = '__version__'
-        self.version = '1.2.3'
-        self._real_import = builtins.__import__
-        self._real_importlib_import = importlib.import_module
-
-    def _do_import(self, name):
-        """Helper for fake_import and fake_importlib_import to do the work.
-
-        Return:
-            The imported fake module, or None if normal importing should be
-            used.
-        """
-        if name not in self.modules:
-            # Not one of the modules to test -> use real import
-            return None
-        elif self.modules[name]:
-            ns = types.SimpleNamespace()
-            if self.version_attribute is not None:
-                setattr(ns, self.version_attribute, self.version)
-            return ns
-        else:
-            raise ImportError("Fake ImportError for {}.".format(name))
-
-    def fake_import(self, name, *args, **kwargs):
-        """Fake for the builtin __import__."""
-        module = self._do_import(name)
-        if module is not None:
-            return module
-        else:
-            return self._real_import(name, *args, **kwargs)
-
-    def fake_importlib_import(self, name):
-        """Fake for importlib.import_module."""
-        module = self._do_import(name)
-        if module is not None:
-            return module
-        else:
-            return self._real_importlib_import(name)
-
-
 @pytest.fixture
-def import_fake(monkeypatch):
+def import_fake(stubs, monkeypatch):
     """Fixture to patch imports using ImportFake."""
-    fake = ImportFake()
-    monkeypatch.setattr(builtins, '__import__', fake.fake_import)
-    monkeypatch.setattr(version.importlib, 'import_module',
-                        fake.fake_importlib_import)
+    fake = stubs.ImportFake({mod: True for mod in version.MODULE_INFO}, monkeypatch)
+    fake.patch()
     return fake
 
 
@@ -869,6 +898,103 @@ class TestPDFJSVersion:
         assert ver.split()[0] not in ['no', 'unknown'], ver
 
 
+class TestWebEngineVersions:
+
+    @pytest.mark.parametrize('version, expected', [
+        (
+            version.WebEngineVersions(
+                webengine=utils.VersionNumber(5, 15, 2),
+                chromium=None,
+                source='UA'),
+            "QtWebEngine 5.15.2",
+        ),
+        (
+            version.WebEngineVersions(
+                webengine=utils.VersionNumber(5, 15, 2),
+                chromium='87.0.4280.144',
+                source='UA'),
+            "QtWebEngine 5.15.2, Chromium 87.0.4280.144",
+        ),
+        (
+            version.WebEngineVersions(
+                webengine=utils.VersionNumber(5, 15, 2),
+                chromium='87.0.4280.144',
+                source='faked'),
+            "QtWebEngine 5.15.2, Chromium 87.0.4280.144 (from faked)",
+        ),
+    ])
+    def test_str(self, version, expected):
+        assert str(version) == expected
+
+    def test_from_ua(self):
+        ua = websettings.UserAgent(
+            os_info='X11; Linux x86_64',
+            webkit_version='537.36',
+            upstream_browser_key='Chrome',
+            upstream_browser_version='83.0.4103.122',
+            qt_key='QtWebEngine',
+            qt_version='5.15.2',
+        )
+        expected = version.WebEngineVersions(
+            webengine=utils.VersionNumber(5, 15, 2),
+            chromium='83.0.4103.122',
+            source='UA',
+        )
+        assert version.WebEngineVersions.from_ua(ua) == expected
+
+    def test_from_elf(self):
+        elf_version = elf.Versions(webengine='5.15.2', chromium='83.0.4103.122')
+        expected = version.WebEngineVersions(
+            webengine=utils.VersionNumber(5, 15, 2),
+            chromium='83.0.4103.122',
+            source='ELF',
+        )
+        assert version.WebEngineVersions.from_elf(elf_version) == expected
+
+    @pytest.mark.parametrize('qt_version, chromium_version', [
+        ('5.12.10', '69.0.3497.128'),
+        ('5.14.2', '77.0.3865.129'),
+        ('5.15.1', '80.0.3987.163'),
+        ('5.15.2', '83.0.4103.122'),
+    ])
+    def test_from_pyqt(self, qt_version, chromium_version):
+        expected = version.WebEngineVersions(
+            webengine=utils.parse_version(qt_version),
+            chromium=chromium_version,
+            source='PyQt',
+        )
+        assert version.WebEngineVersions.from_pyqt(qt_version) == expected
+
+    def test_real_chromium_version(self, qapp):
+        """Compare the inferred Chromium version with the real one."""
+        if '.dev' in PYQT_VERSION_STR:
+            pytest.skip("dev version of PyQt5")
+
+        try:
+            from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION_STR
+        except ImportError as e:
+            # QtWebKit or QtWebEngine < 5.13
+            pytest.skip(str(e))
+
+        pyqt_webengine_version = version._get_pyqt_webengine_qt_version()
+        if pyqt_webengine_version is None:
+            pyqt_webengine_version = PYQT_WEBENGINE_VERSION_STR
+
+        versions = version.WebEngineVersions.from_pyqt(pyqt_webengine_version)
+
+        if pyqt_webengine_version == '5.15.3':
+            # Transient situation - we expect to get QtWebEngine 5.15.3 soon,
+            # so this will line up again.
+            assert versions.chromium == '87.0.4280.144'
+            pytest.xfail("Transient situation")
+        else:
+            from qutebrowser.browser.webengine import webenginesettings
+            webenginesettings.init_user_agent()
+            expected = webenginesettings.parsed_user_agent.upstream_browser_version
+
+        assert versions.chromium == expected
+
+
 class FakeQSslSocket:
 
     """Fake for the QSslSocket Qt class.
@@ -902,25 +1028,19 @@ class TestChromiumVersion:
 
     @pytest.fixture(autouse=True)
     def clear_parsed_ua(self, monkeypatch):
+        pytest.importorskip('PyQt5.QtWebEngineWidgets')
         if version.webenginesettings is not None:
             # Not available with QtWebKit
             monkeypatch.setattr(version.webenginesettings, 'parsed_user_agent', None)
 
     def test_fake_ua(self, monkeypatch, caplog):
-        pytest.importorskip('PyQt5.QtWebEngineWidgets')
-
         ver = '77.0.3865.98'
         version.webenginesettings._init_user_agent_str(
             _QTWE_USER_AGENT.format(ver))
 
-        assert version._chromium_version() == ver
-
-    def test_no_webengine(self, monkeypatch):
-        monkeypatch.setattr(version, 'webenginesettings', None)
-        assert version._chromium_version() == 'unavailable'
+        assert version.qtwebengine_versions().chromium == ver
 
     def test_prefers_saved_user_agent(self, monkeypatch):
-        pytest.importorskip('PyQt5.QtWebEngineWidgets')
         version.webenginesettings._init_user_agent_str(_QTWE_USER_AGENT)
 
         class FakeProfile:
@@ -930,17 +1050,69 @@ class TestChromiumVersion:
         monkeypatch.setattr(version.webenginesettings, 'QWebEngineProfile',
                             FakeProfile())
 
-        version._chromium_version()
+        version.qtwebengine_versions()
 
     def test_unpatched(self, qapp, cache_tmpdir, data_tmpdir, config_stub):
-        pytest.importorskip('PyQt5.QtWebEngineWidgets')
-        unexpected = ['', 'unknown', 'unavailable', 'avoided']
-        assert version._chromium_version() not in unexpected
+        assert version.qtwebengine_versions().chromium is not None
 
     def test_avoided(self, monkeypatch):
-        pytest.importorskip('PyQt5.QtWebEngineWidgets')
-        monkeypatch.setattr(objects, 'debug_flags', ['avoid-chromium-init'])
-        assert version._chromium_version() == 'avoided'
+        versions = version.qtwebengine_versions(avoid_init=True)
+        assert versions.source in ['ELF', 'importlib', 'PyQt', 'Qt']
+
+    @pytest.fixture
+    def patch_elf_fail(self, monkeypatch):
+        """Simulate parsing the version from ELF to fail."""
+        monkeypatch.setattr(elf, 'parse_webenginecore', lambda: None)
+
+    @pytest.fixture
+    def patch_old_pyqt(self, monkeypatch):
+        """Simulate an old PyQt without PYQT_WEBENGINE_VERSION_STR."""
+        monkeypatch.setattr(version, 'PYQT_WEBENGINE_VERSION_STR', None)
+
+    @pytest.fixture
+    def patch_no_importlib(self, monkeypatch, stubs):
+        """Simulate missing importlib modules."""
+        import_fake = stubs.ImportFake({
+            'importlib_metadata': False,
+            'importlib.metadata': False,
+        }, monkeypatch)
+        import_fake.patch()
+
+    @pytest.fixture
+    def patch_importlib_no_package(self, monkeypatch):
+        """Simulate importlib not finding PyQtWebEngine-Qt."""
+        try:
+            import importlib.metadata as importlib_metadata
+        except ImportError:
+            importlib_metadata = pytest.importorskip("importlib_metadata")
+
+        def _fake_version(name):
+            assert name == 'PyQtWebEngine-Qt'
+            raise importlib_metadata.PackageNotFoundError(name)
+
+        monkeypatch.setattr(importlib_metadata, 'version', _fake_version)
+
+    @pytest.mark.parametrize('patches, sources', [
+        (['elf_fail'], ['importlib', 'PyQt', 'Qt']),
+        (['elf_fail', 'old_pyqt'], ['importlib', 'Qt']),
+        (['elf_fail', 'no_importlib'], ['PyQt', 'Qt']),
+        (['elf_fail', 'no_importlib', 'old_pyqt'], ['Qt']),
+        (['elf_fail', 'importlib_no_package'], ['PyQt', 'Qt']),
+        (['elf_fail', 'importlib_no_package', 'old_pyqt'], ['Qt']),
+    ], ids=','.join)
+    def test_simulated(self, request, patches, sources):
+        """Test various simulated error conditions.
+
+        This dynamically gets a list of fixtures (above) to do the patching. It then
+        checks whether the version it got is from one of the expected sources. Depending
+        on the environment this test is run in, some sources might fail "naturally",
+        i.e. without any patching related to them.
+        """
+        for patch in patches:
+            request.getfixturevalue(f'patch_{patch}')
+
+        versions = version.qtwebengine_versions(avoid_init=True)
+        assert versions.source in sources
 
 
 @dataclasses.dataclass
@@ -1014,11 +1186,13 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
         'autoconfig_loaded': "yes" if params.autoconfig_loaded else "no",
     }
 
-    ua = _QTWE_USER_AGENT.format('CHROMIUMVERSION')
-    if version.webenginesettings is None:
-        patches['_chromium_version'] = lambda: 'CHROMIUMVERSION'
-    else:
-        version.webenginesettings._init_user_agent_str(ua)
+    patches['qtwebengine_versions'] = (
+        lambda avoid_init: version.WebEngineVersions(
+            webengine=utils.VersionNumber(1, 2, 3),
+            chromium=None,
+            source='faked',
+        )
+    )
 
     if params.config_py_loaded:
         substitutions["config_py_loaded"] = "{} has been loaded".format(
@@ -1034,7 +1208,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
     else:
         monkeypatch.delattr(version, 'qtutils.qWebKitVersion', raising=False)
         patches['objects.backend'] = usertypes.Backend.QtWebEngine
-        substitutions['backend'] = 'QtWebEngine (Chromium CHROMIUMVERSION)'
+        substitutions['backend'] = 'QtWebEngine 1.2.3 (from faked)'
 
     if params.known_distribution:
         patches['distribution'] = lambda: version.DistributionInfo(

@@ -401,6 +401,15 @@ class YamlMigrations(QObject):
             true_value='never',
             false_value='always')
 
+        for setting in ['colors.webpage.force_dark_color_scheme',
+                        'colors.webpage.prefers_color_scheme_dark']:
+            self._migrate_renamed_bool(
+                old_name=setting,
+                new_name='colors.webpage.preferred_color_scheme',
+                true_value='dark',
+                false_value='auto',
+            )
+
         for setting in ['tabs.title.format',
                         'tabs.title.format_pinned',
                         'window.title_format']:
@@ -548,9 +557,7 @@ class YamlMigrations(QObject):
         del self._settings[old_name]
         self.changed.emit()
 
-    def _migrate_string_value(self, name: str,
-                              source: str,
-                              target: str) -> None:
+    def _migrate_string_value(self, name: str, source: str, target: str) -> None:
         if name not in self._settings:
             return
 
@@ -591,17 +598,24 @@ class ConfigAPI:
     Attributes:
         _config: The main Config object to use.
         _keyconfig: The KeyConfig object.
+        _warn_autoconfig: Whether to warn if autoconfig.yml wasn't loaded.
         errors: Errors which occurred while setting options.
         configdir: The qutebrowser config directory, as pathlib.Path.
         datadir: The qutebrowser data directory, as pathlib.Path.
     """
 
-    def __init__(self, conf: config.Config, keyconfig: config.KeyConfig):
+    def __init__(
+            self,
+            conf: config.Config,
+            keyconfig: config.KeyConfig,
+            warn_autoconfig: bool,
+    ):
         self._config = conf
         self._keyconfig = keyconfig
         self.errors: List[configexc.ConfigErrorDesc] = []
         self.configdir = pathlib.Path(standarddir.config())
         self.datadir = pathlib.Path(standarddir.data())
+        self._warn_autoconfig = warn_autoconfig
 
     @contextlib.contextmanager
     def _handle_error(self, action: str, name: str) -> Iterator[None]:
@@ -624,7 +638,7 @@ class ConfigAPI:
 
     def finalize(self) -> None:
         """Do work which needs to be done after reading config.py."""
-        if self._config.warn_autoconfig:
+        if self._warn_autoconfig:
             desc = configexc.ConfigErrorDesc(
                 "autoconfig loading not specified",
                 ("Your config.py should call either `config.load_autoconfig()`"
@@ -635,7 +649,7 @@ class ConfigAPI:
 
     def load_autoconfig(self, load_config: bool = True) -> None:
         """Load the autoconfig.yml file which is used for :set/:bind/etc."""
-        self._config.warn_autoconfig = False
+        self._warn_autoconfig = False
         if load_config:
             with self._handle_error('reading', 'autoconfig.yml'):
                 read_autoconfig()
@@ -815,18 +829,27 @@ class ConfigPyWriter:
             yield ''
 
 
-def read_config_py(filename: str, raising: bool = False) -> None:
+def read_config_py(
+        filename: str,
+        raising: bool = False,
+        warn_autoconfig: bool = False,
+) -> None:
     """Read a config.py file.
 
     Arguments;
         filename: The name of the file to read.
         raising: Raise exceptions happening in config.py.
                  This is needed during tests to use pytest's inspection.
+        warn_autoconfig: Whether to warn if config.load_autoconfig() wasn't specified.
     """
     assert config.instance is not None
     assert config.key_instance is not None
 
-    api = ConfigAPI(config.instance, config.key_instance)
+    api = ConfigAPI(
+        config.instance,
+        config.key_instance,
+        warn_autoconfig=warn_autoconfig,
+    )
     container = config.ConfigContainer(config.instance, configapi=api)
     basename = os.path.basename(filename)
 

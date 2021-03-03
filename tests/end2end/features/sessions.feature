@@ -395,9 +395,10 @@ Feature: Saving and loading sessions
       And I run :session-load -c pin_session
       And I wait until data/numbers/3.txt is loaded
       And I run :tab-focus 2
-      And I run :open hello world
-      Then the message "Tab is pinned!" should be shown
+      And I open data/numbers/4.txt
+      Then the message "Tab is pinned! Opening in new tab." should be shown
       And the following tabs should be open:
         - data/numbers/1.txt
         - data/numbers/2.txt (active) (pinned)
+        - data/numbers/4.txt
         - data/numbers/3.txt

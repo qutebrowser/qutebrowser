@@ -611,7 +611,7 @@ Feature: Downloading things from a website.
         When the unwritable dir is unwritable
         And I set downloads.location.prompt to false
         And I run :download http://localhost:(port)/data/downloads/download.bin --dest (tmpdir)/downloads/unwritable
-        Then the error "Download error: Permission denied" should be shown
+        Then the error "Download error: *" should be shown
 
     Scenario: Downloading 20MB file
         When I set downloads.location.prompt to false

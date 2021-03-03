@@ -30,7 +30,7 @@ import pytest
 from qutebrowser.api.interceptor import ResourceType
 from qutebrowser.components import braveadblock
 from qutebrowser.components.utils import blockutils
-from helpers import utils
+from helpers import testutils
 
 pytestmark = pytest.mark.usefixtures("qapp")
 
@@ -107,7 +107,7 @@ def run_function_on_dataset(given_function):
     contains tuples of (url, source_url, type) in each line. We give these
     to values to the given function, row by row.
     """
-    dataset = utils.adblock_dataset_tsv()
+    dataset = testutils.adblock_dataset_tsv()
     reader = csv.DictReader(dataset, delimiter="\t")
     for row in reader:
         url = QUrl(row["url"])
@@ -144,8 +144,8 @@ def easylist_easyprivacy_both(tmpdir):
     bl_dst_dir.mkdir()
     urls = []
     for blocklist, filename in [
-        (utils.easylist_txt(), "easylist.txt"),
-        (utils.easyprivacy_txt(), "easyprivacy.txt"),
+        (testutils.easylist_txt(), "easylist.txt"),
+        (testutils.easyprivacy_txt(), "easyprivacy.txt"),
     ]:
         bl_dst_path = bl_dst_dir / filename
         with open(bl_dst_path, "w", encoding="utf-8") as f:

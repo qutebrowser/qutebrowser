@@ -116,6 +116,7 @@ def whitelist_generator():  # noqa: C901
     for attr in ['_get_default_metavar_for_optional',
                  '_get_default_metavar_for_positional', '_metavar_formatter']:
         yield 'scripts.dev.src2asciidoc.UsageFormatter.' + attr
+    yield 'scripts.dev.build_release.pefile.PE.OPTIONAL_HEADER.CheckSum'
 
     for dist in version.Distribution:
         yield 'qutebrowser.utils.version.Distribution.{}'.format(dist.name)
@@ -138,6 +139,13 @@ def whitelist_generator():  # noqa: C901
     yield 'world_id_type'
     yield 'ParserDictType'
     yield 'qutebrowser.config.configutils.Values._VmapKeyType'
+
+    # ELF
+    yield 'qutebrowser.misc.elf.Endianness.big'
+    for name in ['phoff', 'ehsize', 'phentsize', 'phnum']:
+        yield f'qutebrowser.misc.elf.Header.{name}'
+    for name in ['addr', 'addralign', 'entsize']:
+        yield f'qutebrowser.misc.elf.SectionHeader.{name}'
 
 
 def filter_func(item):

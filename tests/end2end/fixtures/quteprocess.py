@@ -33,11 +33,12 @@ import json
 
 import yaml
 import pytest
-from PyQt5.QtCore import pyqtSignal, QUrl
+from PyQt5.QtCore import pyqtSignal, QUrl, QPoint
+from PyQt5.QtGui import QImage, QColor
 
 from qutebrowser.misc import ipc
 from qutebrowser.utils import log, utils, javascript
-from helpers import utils as testutils
+from helpers import testutils
 from end2end.fixtures import testprocess
 
 
@@ -337,8 +338,11 @@ def is_ignored_chromium_message(line):
 
         # Windows N:
         # https://github.com/microsoft/playwright/issues/2901
-        (r'DXVAVDA fatal error: could not LoadLibrary: .*: The specified '
-         r'module could not be found. \(0x7E\)'),
+        ('DXVAVDA fatal error: could not LoadLibrary: *: The specified '
+         'module could not be found. (0x7E)'),
+
+        # Qt 5.15.3 dev build
+        r'Duplicate id found. Reassigning from * to *',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -883,6 +887,40 @@ class QuteProc(testprocess.Process):
 
             with open(path, 'r', encoding='utf-8') as f:
                 return f.read()
+
+    def get_screenshot(
+            self,
+            *,
+            probe_pos: QPoint = None,
+            probe_color: QColor = testutils.Color(0, 0, 0),
+    ) -> QImage:
+        """Get a screenshot of the current page.
+
+        Arguments:
+            probe: If given, only continue if the pixel at the given position isn't
+                   black (or whatever is specified by probe_color).
+        """
+        for _ in range(5):
+            tmp_path = self.request.getfixturevalue('tmp_path')
+            path = tmp_path / 'screenshot.png'
+            self.send_cmd(f':screenshot --force {path}')
+            self.wait_for(message=f'Screenshot saved to {path}')
+
+            img = QImage(str(path))
+            assert not img.isNull()
+
+            if probe_pos is None:
+                return img
+
+            probed_color = testutils.Color(img.pixelColor(probe_pos))
+            if probed_color == probe_color:
+                return img
+
+            # Rendering might not be completed yet...
+            time.sleep(0.5)
+
+        raise ValueError(
+            f"Pixel probing for {probe_color} failed (got {probed_color} on last try)")
 
     def press_keys(self, keys):
         """Press the given keys using :fake-key."""

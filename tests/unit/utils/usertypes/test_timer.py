@@ -70,13 +70,13 @@ def test_start_overflow():
 def test_timeout_start(qtbot):
     """Make sure the timer works with start()."""
     t = usertypes.Timer()
-    with qtbot.waitSignal(t.timeout, timeout=3000):
+    with qtbot.wait_signal(t.timeout, timeout=3000):
         t.start(200)
 
 
 def test_timeout_set_interval(qtbot):
     """Make sure the timer works with setInterval()."""
     t = usertypes.Timer()
-    with qtbot.waitSignal(t.timeout, timeout=3000):
+    with qtbot.wait_signal(t.timeout, timeout=3000):
         t.setInterval(200)
         t.start()

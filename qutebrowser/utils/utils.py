@@ -37,7 +37,7 @@ import pathlib
 import ctypes
 import ctypes.util
 from typing import (Any, Callable, IO, Iterator, Optional, Sequence, Tuple, Type, Union,
-                    Iterable, TYPE_CHECKING, cast)
+                    Iterable, TypeVar, TYPE_CHECKING)
 try:
     # Protocol was added in Python 3.8
     from typing import Protocol
@@ -47,7 +47,7 @@ except ImportError:  # pragma: no cover
 
             """Empty stub at runtime."""
 
-from PyQt5.QtCore import QUrl, QVersionNumber
+from PyQt5.QtCore import QUrl, QVersionNumber, QRect
 from PyQt5.QtGui import QClipboard, QDesktopServices
 from PyQt5.QtWidgets import QApplication
 # We cannot use the stdlib version on 3.7-3.8 because we need the files() API.
@@ -78,23 +78,40 @@ is_linux = sys.platform.startswith('linux')
 is_windows = sys.platform.startswith('win')
 is_posix = os.name == 'posix'
 
+_C = TypeVar("_C", bound="Comparable")
 
-class SupportsLessThan(Protocol):
+
+class Comparable(Protocol):
 
     """Protocol for a "comparable" object."""
 
-    def __lt__(self, other: Any) -> bool:
+    def __lt__(self: _C, other: _C) -> bool:
+        ...
+
+    def __ge__(self: _C, other: _C) -> bool:
         ...
 
 
 if TYPE_CHECKING:
-    class VersionNumber(SupportsLessThan, QVersionNumber):
+    class VersionNumber(Comparable, QVersionNumber):
 
         """WORKAROUND for incorrect PyQt stubs."""
 else:
-    class VersionNumber:
+    class VersionNumber(QVersionNumber):
 
         """We can't inherit from Protocol and QVersionNumber at runtime."""
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            normalized = self.normalized()
+            if normalized != self:
+                raise ValueError(
+                    f"Refusing to construct non-normalized version from {args} "
+                    f"(normalized: {tuple(normalized.segments())}).")
+
+        def __repr__(self):
+            args = ", ".join(str(s) for s in self.segments())
+            return f'VersionNumber({args})'
 
 
 class Unreachable(Exception):
@@ -279,8 +296,8 @@ def read_file_binary(filename: str) -> bytes:
 
 def parse_version(version: str) -> VersionNumber:
     """Parse a version string."""
-    v_q, _suffix = QVersionNumber.fromString(version)
-    return cast(VersionNumber, v_q.normalized())
+    ver, _suffix = QVersionNumber.fromString(version)
+    return VersionNumber(ver.normalized())
 
 
 def format_seconds(total_seconds: int) -> str:
@@ -889,3 +906,31 @@ def cleanup_file(filepath: str) -> Iterator[None]:
             os.remove(filepath)
         except OSError as e:
             log.misc.error(f"Failed to delete tempfile {filepath} ({e})!")
+
+
+_RECT_PATTERN = re.compile(r'(?P<w>\d+)x(?P<h>\d+)\+(?P<x>\d+)\+(?P<y>\d+)')
+
+
+def parse_rect(s: str) -> QRect:
+    """Parse a rectangle string like 20x20+5+3.
+
+    Negative offsets aren't supported, and neither is leaving off parts of the string.
+    """
+    match = _RECT_PATTERN.match(s)
+    if not match:
+        raise ValueError(f"String {s} does not match WxH+X+Y")
+
+    w = int(match.group('w'))
+    h = int(match.group('h'))
+    x = int(match.group('x'))
+    y = int(match.group('y'))
+
+    try:
+        rect = QRect(x, y, w, h)
+    except OverflowError as e:
+        raise ValueError(e)
+
+    if not rect.isValid():
+        raise ValueError("Invalid rectangle")
+
+    return rect

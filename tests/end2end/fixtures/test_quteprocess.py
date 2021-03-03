@@ -104,7 +104,7 @@ def request_mock(quteproc, monkeypatch, server):
 ])
 def test_quteproc_error_message(qtbot, quteproc, cmd, request_mock):
     """Make sure the test fails with an unexpected error message."""
-    with qtbot.waitSignal(quteproc.got_error):
+    with qtbot.wait_signal(quteproc.got_error):
         quteproc.send_cmd(cmd)
     # Usually we wouldn't call this from inside a test, but here we force the
     # error to occur during the test rather than at teardown time.
@@ -115,7 +115,7 @@ def test_quteproc_error_message(qtbot, quteproc, cmd, request_mock):
 def test_quteproc_error_message_did_fail(qtbot, quteproc, request_mock):
     """Make sure the test does not fail on teardown if the main test failed."""
     request_mock.node.rep_call.failed = True
-    with qtbot.waitSignal(quteproc.got_error):
+    with qtbot.wait_signal(quteproc.got_error):
         quteproc.send_cmd(':message-error test')
     # Usually we wouldn't call this from inside a test, but here we force the
     # error to occur during the test rather than at teardown time.
@@ -142,13 +142,13 @@ def test_quteproc_skip_and_wait_for(qtbot, quteproc):
 
 def test_qt_log_ignore(qtbot, quteproc):
     """Make sure the test passes when logging a qt_log_ignore message."""
-    with qtbot.waitSignal(quteproc.got_error):
+    with qtbot.wait_signal(quteproc.got_error):
         quteproc.send_cmd(':message-error "SpellCheck: test"')
 
 
 def test_quteprocess_quitting(qtbot, quteproc_process):
     """When qutebrowser quits, after_test should fail."""
-    with qtbot.waitSignal(quteproc_process.proc.finished, timeout=15000):
+    with qtbot.wait_signal(quteproc_process.proc.finished, timeout=15000):
         quteproc_process.send_cmd(':quit')
     with pytest.raises(testprocess.ProcessExited):
         quteproc_process.after_test()

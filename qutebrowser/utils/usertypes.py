@@ -30,7 +30,7 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.utils import log, qtutils, utils
 
 
-_T = TypeVar('_T', bound=utils.SupportsLessThan)
+_T = TypeVar('_T', bound=utils.Comparable)
 
 
 class Unset:

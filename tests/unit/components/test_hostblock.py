@@ -29,7 +29,7 @@ from PyQt5.QtCore import QUrl
 
 from qutebrowser.components import hostblock
 from qutebrowser.utils import urlmatch
-from helpers import utils
+from helpers import testutils
 
 
 pytestmark = pytest.mark.usefixtures("qapp")
@@ -557,7 +557,7 @@ def test_add_directory(config_stub, tmpdir, host_blocker_factory):
 
 def test_adblock_benchmark(data_tmpdir, benchmark, host_blocker_factory):
     blocked_hosts = data_tmpdir / "blocked-hosts"
-    blocked_hosts.write_text("\n".join(utils.blocked_hosts()), encoding="utf-8")
+    blocked_hosts.write_text("\n".join(testutils.blocked_hosts()), encoding="utf-8")
 
     url = QUrl("https://www.example.org/")
     blocker = host_blocker_factory()

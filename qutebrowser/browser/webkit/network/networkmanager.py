@@ -171,14 +171,11 @@ class NetworkManager(QNetworkAccessManager):
         }
         self._set_cookiejar()
         self._set_cache()
-        self.sslErrors.connect(  # type: ignore[attr-defined]
-            self.on_ssl_errors)
+        self.sslErrors.connect(self.on_ssl_errors)
         self._rejected_ssl_errors: _SavedErrorsType = collections.defaultdict(list)
         self._accepted_ssl_errors: _SavedErrorsType = collections.defaultdict(list)
-        self.authenticationRequired.connect(  # type: ignore[attr-defined]
-            self.on_authentication_required)
-        self.proxyAuthenticationRequired.connect(  # type: ignore[attr-defined]
-            self.on_proxy_authentication_required)
+        self.authenticationRequired.connect(self.on_authentication_required)
+        self.proxyAuthenticationRequired.connect(self.on_proxy_authentication_required)
         self.netrc_used = False
 
     def _set_cookiejar(self):

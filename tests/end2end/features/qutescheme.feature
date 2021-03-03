@@ -54,7 +54,7 @@ Feature: Special qute:// pages
         And I run :tab-only
         And I open qute:help without waiting
         And I wait for "Changing title for idx 0 to 'qutebrowser help'" in the log
-        And I hint with args "links normal" and follow a
+        And I hint with args "links normal" and follow ls
         Then qute://help/quickstart.html should be loaded
 
     Scenario: Opening a link with qute://help
@@ -62,7 +62,7 @@ Feature: Special qute:// pages
         And I run :tab-only
         And I open qute://help without waiting
         And I wait until qute://help/ is loaded
-        And I hint with args "links normal" and follow a
+        And I hint with args "links normal" and follow ls
         Then qute://help/quickstart.html should be loaded
 
     Scenario: Opening a link with qute://help/index.html/..

@@ -23,6 +23,7 @@ import os
 import signal
 import functools
 import logging
+import pathlib
 from typing import Optional
 
 try:
@@ -37,6 +38,10 @@ from qutebrowser.api import cmdutils, apitypes, message, config
 
 # FIXME should be part of qutebrowser.api?
 from qutebrowser.completion.models import miscmodels
+from qutebrowser.utils import utils
+
+
+_LOGGER = logging.getLogger('misc')
 
 
 @cmdutils.register(name='reload')
@@ -91,7 +96,7 @@ def _print_pdf(tab: apitypes.Tab, filename: str) -> None:
     if directory and not os.path.exists(directory):
         os.mkdir(directory)
     tab.printing.to_pdf(filename)
-    logging.getLogger('misc').debug("Print to file: {}".format(filename))
+    _LOGGER.debug("Print to file: {}".format(filename))
 
 
 @cmdutils.register(name='print')
@@ -153,6 +158,42 @@ def debug_dump_page(tab: apitypes.Tab, dest: str, plain: bool = False) -> None:
             message.info("Dumped page to {}.".format(dest))
 
     tab.dump_async(callback, plain=plain)
+
+
+@cmdutils.register()
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
+def screenshot(
+        tab: apitypes.Tab,
+        filename: pathlib.Path,
+        *,
+        rect: str = None,
+        force: bool = False,
+) -> None:
+    """Take a screenshot of the currently shown part of the page.
+
+    The file format is automatically determined based on the given file extension.
+
+    Args:
+        filename: The file to save the screenshot to (~ gets expanded).
+        rect: The rectangle to save, as a string like WxH+X+Y.
+        force: Overwrite existing files.
+    """
+    expanded = filename.expanduser()
+    if expanded.exists() and not force:
+        raise cmdutils.CommandError(
+            f"File {filename} already exists (use --force to overwrite)")
+
+    qrect = None if rect is None else utils.parse_rect(rect)
+
+    pic = tab.grab_pixmap(qrect)
+    if pic is None:
+        raise cmdutils.CommandError("Getting screenshot failed")
+
+    ok = pic.save(str(expanded))
+    if not ok:
+        raise cmdutils.CommandError(f"Saving to {filename} failed")
+
+    _LOGGER.debug(f"Screenshot saved to {filename}")
 
 
 @cmdutils.register(maxsplit=0)

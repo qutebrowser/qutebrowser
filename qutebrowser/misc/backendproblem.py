@@ -173,7 +173,7 @@ class _BackendProblemChecker:
         """Show a dialog for a backend problem."""
         if self._no_err_windows:
             text = _error_text(*args, **kwargs)
-            print(text, file=sys.stderr)
+            log.init.error(text)
             sys.exit(usertypes.Exit.err_init)
 
         dialog = _Dialog(*args, **kwargs)

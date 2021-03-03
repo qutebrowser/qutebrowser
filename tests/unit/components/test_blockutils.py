@@ -76,7 +76,7 @@ def test_blocklist_dl(qtbot, pretend_blocklists):
     dl = blockutils.BlocklistDownloads(list_qurls)
     dl.single_download_finished.connect(on_single_download)
 
-    with qtbot.waitSignal(dl.all_downloads_finished) as blocker:
+    with qtbot.wait_signal(dl.all_downloads_finished) as blocker:
         dl.initiate()
         assert blocker.args == [total_expected]
 

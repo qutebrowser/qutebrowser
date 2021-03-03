@@ -44,7 +44,7 @@ class TestQtFIFOReader:
 
     def test_single_line(self, reader, qtbot):
         """Test QSocketNotifier with a single line of data."""
-        with qtbot.waitSignal(reader.got_line) as blocker:
+        with qtbot.wait_signal(reader.got_line) as blocker:
             with open(reader._filepath, 'w', encoding='utf-8') as f:
                 f.write('foobar\n')
 
@@ -74,8 +74,8 @@ def test_command(qtbot, py_proc, runner):
         with open(os.environ['QUTE_FIFO'], 'w') as f:
             f.write('foo\n')
     """)
-    with qtbot.waitSignal(runner.finished, timeout=10000):
-        with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
+    with qtbot.wait_signal(runner.finished, timeout=10000):
+        with qtbot.wait_signal(runner.got_cmd, timeout=10000) as blocker:
             runner.prepare_run(cmd, *args)
             runner.store_html('')
             runner.store_text('')
@@ -97,8 +97,8 @@ def test_custom_env(qtbot, monkeypatch, py_proc, runner):
             f.write('\n')
     """)
 
-    with qtbot.waitSignal(runner.finished, timeout=10000):
-        with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
+    with qtbot.wait_signal(runner.finished, timeout=10000):
+        with qtbot.wait_signal(runner.got_cmd, timeout=10000) as blocker:
             runner.prepare_run(cmd, *args, env=env)
             runner.store_html('')
             runner.store_text('')
@@ -131,8 +131,8 @@ def test_source(qtbot, py_proc, runner):
             f.write('\n')
     """)
 
-    with qtbot.waitSignal(runner.finished, timeout=10000):
-        with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
+    with qtbot.wait_signal(runner.finished, timeout=10000):
+        with qtbot.wait_signal(runner.got_cmd, timeout=10000) as blocker:
             runner.prepare_run(cmd, *args)
             runner.store_html('This is HTML')
             runner.store_text('This is text')
@@ -158,8 +158,8 @@ def test_command_with_error(qtbot, py_proc, runner, caplog):
     """)
 
     with caplog.at_level(logging.ERROR):
-        with qtbot.waitSignal(runner.finished, timeout=10000):
-            with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
+        with qtbot.wait_signal(runner.finished, timeout=10000):
+            with qtbot.wait_signal(runner.got_cmd, timeout=10000) as blocker:
                 runner.prepare_run(cmd, *args)
                 runner.store_text('Hello World')
                 runner.store_html('')
@@ -195,7 +195,7 @@ def test_killed_command(qtbot, tmpdir, py_proc, runner, caplog):
     """)
     args.append(str(data_file))
 
-    with qtbot.waitSignal(watcher.directoryChanged, timeout=10000):
+    with qtbot.wait_signal(watcher.directoryChanged, timeout=10000):
         runner.prepare_run(cmd, *args)
         runner.store_text('Hello World')
         runner.store_html('')
@@ -206,7 +206,7 @@ def test_killed_command(qtbot, tmpdir, py_proc, runner, caplog):
     data = json.load(data_file)
 
     with caplog.at_level(logging.ERROR):
-        with qtbot.waitSignal(runner.finished):
+        with qtbot.wait_signal(runner.finished):
             os.kill(int(data['pid']), signal.SIGTERM)
 
     assert not os.path.exists(data['text_file'])
@@ -220,7 +220,7 @@ def test_temporary_files_failed_cleanup(caplog, qtbot, py_proc, runner):
     """)
 
     with caplog.at_level(logging.ERROR):
-        with qtbot.waitSignal(runner.finished, timeout=10000):
+        with qtbot.wait_signal(runner.finished, timeout=10000):
             runner.prepare_run(cmd, *args)
             runner.store_text('')
             runner.store_html('')
@@ -237,7 +237,7 @@ def test_unicode_error(caplog, qtbot, py_proc, runner):
             f.write(b'\x80')
     """)
     with caplog.at_level(logging.ERROR):
-        with qtbot.waitSignal(runner.finished, timeout=10000):
+        with qtbot.wait_signal(runner.finished, timeout=10000):
             runner.prepare_run(cmd, *args)
             runner.store_text('')
             runner.store_html('')

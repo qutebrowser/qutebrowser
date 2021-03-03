@@ -21,6 +21,7 @@
 
 import math
 import functools
+import dataclasses
 import re
 import html as html_utils
 from typing import cast, Union, Optional
@@ -33,11 +34,13 @@ from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript, QWebEngin
 from qutebrowser.config import config
 from qutebrowser.browser import browsertab, eventfilter, shared, webelem, greasemonkey
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
-                                           webenginesettings, certificateerror)
-from qutebrowser.misc import miscwidgets, objects
+                                           webenginesettings, certificateerror,
+                                           webengineinspector)
+
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               message, jinja, debug)
+                               message, jinja, debug, version)
 from qutebrowser.qt import sip
+from qutebrowser.misc import objects, miscwidgets
 
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
@@ -629,7 +632,8 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
         self._tab.load_url(url)
 
     def load_items(self, items):
-        if qtutils.version_check('5.15', compiled=False):
+        webengine_version = version.qtwebengine_versions().webengine
+        if webengine_version >= utils.VersionNumber(5, 15):
             self._load_items_workaround(items)
             return
 
@@ -971,6 +975,16 @@ class _WebEnginePermissions(QObject):
             blocking=True)
 
 
+@dataclasses.dataclass
+class _Quirk:
+
+    filename: str
+    injection_point: QWebEngineScript.InjectionPoint = (
+        QWebEngineScript.DocumentCreation)
+    world: QWebEngineScript.ScriptWorldId = QWebEngineScript.MainWorld
+    predicate: bool = True
+
+
 class _WebEngineScripts(QObject):
 
     def __init__(self, tab, parent=None):
@@ -1138,33 +1152,36 @@ class _WebEngineScripts(QObject):
         if not config.val.content.site_specific_quirks:
             return
 
+        versions = version.qtwebengine_versions()
         quirks = [
-            (
+            _Quirk(
                 'whatsapp_web',
-                QWebEngineScript.DocumentReady,
-                QWebEngineScript.ApplicationWorld,
+                injection_point=QWebEngineScript.DocumentReady,
+                world=QWebEngineScript.ApplicationWorld,
             ),
-            # FIXME not needed with 5.15.3 most likely, but how do we check for
-            # that?
-            (
+            _Quirk(
                 'string_replaceall',
-                QWebEngineScript.DocumentCreation,
-                QWebEngineScript.MainWorld,
+                predicate=versions.webengine < utils.VersionNumber(5, 15, 3),
             ),
+            _Quirk(
+                'globalthis',
+                predicate=versions.webengine < utils.VersionNumber(5, 13),
+            ),
+            _Quirk(
+                'object_fromentries',
+                predicate=versions.webengine < utils.VersionNumber(5, 13),
+            )
         ]
-        if not qtutils.version_check('5.13'):
-            quirks.append(('globalthis',
-                           QWebEngineScript.DocumentCreation,
-                           QWebEngineScript.MainWorld))
-            quirks.append(('object_fromentries',
-                           QWebEngineScript.DocumentCreation,
-                           QWebEngineScript.MainWorld))
 
-        for filename, injection_point, world in quirks:
-            src = utils.read_file(f'javascript/quirks/{filename}.user.js')
+        for quirk in quirks:
+            if not quirk.predicate:
+                continue
+            src = utils.read_file(f'javascript/quirks/{quirk.filename}.user.js')
             self._inject_js(
-                f'quirk_{filename}', src,
-                world=world, injection_point=injection_point
+                f'quirk_{quirk.filename}',
+                src,
+                world=quirk.world,
+                injection_point=quirk.injection_point,
             )
 
 
@@ -1191,6 +1208,9 @@ class WebEngineTabPrivate(browsertab.AbstractTabPrivate):
 
     def run_js_sync(self, code):
         raise browsertab.UnsupportedOperationError
+
+    def _init_inspector(self, splitter, win_id, parent=None):
+        return webengineinspector.WebEngineInspector(splitter, win_id, parent)
 
 
 class WebEngineTab(browsertab.AbstractTab):

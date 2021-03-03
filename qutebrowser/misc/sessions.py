@@ -23,15 +23,15 @@ import os
 import os.path
 import itertools
 import urllib
-import glob
 import shutil
+import pathlib
 from typing import Any, Iterable, MutableMapping, MutableSequence, Optional, Union, cast
 
 from PyQt5.QtCore import Qt, QUrl, QObject, QPoint, QTimer, QDateTime
 import yaml
 
 from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,
-                               utils)
+                               utils, usertypes, version)
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
@@ -60,24 +60,26 @@ def init(parent=None):
     Args:
         parent: The parent to use for the SessionManager.
     """
-    base_path = os.path.join(standarddir.data(), 'sessions')
+    base_path = pathlib.Path(standarddir.data()) / 'sessions'
 
     # WORKAROUND for https://github.com/qutebrowser/qutebrowser/issues/5359
-    backup_path = os.path.join(base_path, 'before-qt-515')
-    if (os.path.exists(base_path) and
-            not os.path.exists(backup_path) and
-            qtutils.version_check('5.15', compiled=False)):
-        os.mkdir(backup_path)
-        for filename in glob.glob(os.path.join(base_path, '*.yml')):
-            shutil.copy(filename, backup_path)
+    backup_path = base_path / 'before-qt-515'
 
-    try:
-        os.mkdir(base_path)
-    except FileExistsError:
-        pass
+    if objects.backend == usertypes.Backend.QtWebEngine:
+        webengine_version = version.qtwebengine_versions().webengine
+        do_backup = webengine_version >= utils.VersionNumber(5, 15)
+    else:
+        do_backup = False
+
+    if base_path.exists() and not backup_path.exists() and do_backup:
+        backup_path.mkdir()
+        for path in base_path.glob('*.yml'):
+            shutil.copy(path, backup_path)
+
+    base_path.mkdir(exist_ok=True)
 
     global session_manager
-    session_manager = SessionManager(base_path, parent)
+    session_manager = SessionManager(str(base_path), parent)
 
 
 def shutdown(session: Optional[ArgType], last_window: bool) -> None:

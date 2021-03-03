@@ -92,7 +92,7 @@ def test_highlighted(qtbot):
 
     # Needed so the highlighting actually works.
     edit = QTextEdit()
-    qtbot.addWidget(edit)
+    qtbot.add_widget(edit)
     edit.setDocument(doc)
 
     colors = [f.foreground().color() for f in doc.allFormats()]

@@ -45,7 +45,7 @@ import helpers.stubs as stubsmod
 from qutebrowser.config import (config, configdata, configtypes, configexc,
                                 configfiles, configcache, stylesheet)
 from qutebrowser.api import config as configapi
-from qutebrowser.utils import objreg, standarddir, utils, usertypes
+from qutebrowser.utils import objreg, standarddir, utils, usertypes, version
 from qutebrowser.browser import greasemonkey, history, qutescheme
 from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.misc import savemanager, sql, objects, sessions
@@ -73,7 +73,7 @@ class WidgetContainer(QWidget):
         self._widget = widget
 
     def expose(self):
-        with self._qtbot.waitExposed(self):
+        with self._qtbot.wait_exposed(self):
             self.show()
         self._widget.setFocus()
 
@@ -407,7 +407,7 @@ def status_command_stub(stubs, qtbot, win_registry):
     """Fixture which provides a fake status-command object."""
     cmd = stubs.StatusBarCommandStub()
     objreg.register('status-command', cmd, scope='window', window=0)
-    qtbot.addWidget(cmd)
+    qtbot.add_widget(cmd)
     yield cmd
     objreg.delete('status-command', scope='window', window=0)
 
@@ -725,3 +725,14 @@ def unwritable_tmp_path(tmp_path):
 
     # Make sure pytest can clean up the tmp_path
     tmp_path.chmod(0o755)
+
+
+@pytest.fixture
+def webengine_versions(testdata_scheme):
+    """Get QtWebEngine version numbers.
+
+    Calling qtwebengine_versions() initializes QtWebEngine, so we depend on
+    testdata_scheme here, to make sure that happens before.
+    """
+    pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    return version.qtwebengine_versions()

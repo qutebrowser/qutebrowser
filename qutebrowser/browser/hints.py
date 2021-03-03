@@ -270,7 +270,7 @@ class HintActions:
         msg = "Yanked URL to {}: {}".format(
             "primary selection" if sel else "clipboard",
             urlstr)
-        message.info(msg)
+        message.info(msg, replace=context.rapid)
 
     def run_cmd(self, url: QUrl, context: HintContext) -> None:
         """Run the command based on a hint URL."""
@@ -1073,6 +1073,9 @@ class WordHinter:
                     self.words.update(hints)
             except OSError as e:
                 error = "Word hints requires reading the file at {}: {}"
+                raise HintingError(error.format(dictionary, str(e)))
+            except UnicodeDecodeError as e:
+                error = "Word hints expects the file at {} to be encoded as UTF-8: {}"
                 raise HintingError(error.format(dictionary, str(e)))
 
     def extract_tag_words(

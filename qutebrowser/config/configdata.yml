@@ -1262,7 +1262,7 @@ fileselect.single_file.command:
     placeholder: false
     completions:
       - ['["xterm", "-e", "ranger", "--choosefile={}"]', "Ranger in xterm"]
-      - ['["xterm", "-e", "vifm", "--choose-file", "{}"]', "vifm in xterm"]
+      - ['["xterm", "-e", "vifm", "--choose-files", "{}"]', "vifm in xterm"]
       - ['["xterm", "-e", "nnn", "-p", "{}"]', "nnn in xterm"]
   default: ['xterm', '-e', 'ranger', '--choosefile={}']
   desc: >-
@@ -1496,7 +1496,7 @@ hints.uppercase:
   desc: Make characters in hint strings uppercase.
 
 hints.leave_on_load:
-  default: true
+  default: false
   type: Bool
   desc: Leave hint mode when starting a new page load.
 
@@ -1539,7 +1539,7 @@ input.insert_mode.plugins:
   desc: Switch to insert mode when clicking flash and other plugins.
 
 input.insert_mode.leave_on_load:
-  default: false
+  default: true
   type: Bool
   supports_pattern: true
   desc: >-
@@ -2826,13 +2826,22 @@ colors.webpage.bg:
   desc: "Background color for webpages if unset (or empty to use the theme's
     color)."
 
-colors.webpage.force_dark_color_scheme:
-  renamed: colors.webpage.prefers_color_scheme_dark
+colors.webpage.preferred_color_scheme:
+  default: auto
+  type:
+    name: String
+    valid_values:
+      - auto: Use the system-wide color scheme setting.
+      - light: Force a light theme.
+      - dark: Force a dark theme.
+  desc: >-
+    Value to use for `prefers-color-scheme:` for websites.
 
-colors.webpage.prefers_color_scheme_dark:
-  default: false
-  type: Bool
-  desc: "Force `prefers-color-scheme: dark` colors for websites."
+    The "light" value is only available with QtWebEngine 5.15.2+. On older versions, it
+    is the same as "auto".
+
+    The "auto" value is broken on QtWebEngine 5.15.2 due to a Qt bug. There, it will
+    fall back to "light" unconditionally.
   backend:
     QtWebEngine: Qt 5.14
     QtWebKit: false
@@ -2926,7 +2935,11 @@ colors.webpage.darkmode.policy.page:
     valid_values:
       - always: Apply dark mode filter to all frames, regardless of content.
       - smart: Apply dark mode filter to frames based on background color.
-  desc: Which pages to apply dark mode to.
+  desc: >-
+    Which pages to apply dark mode to.
+
+    The underlying Chromium setting has been removed in QtWebEngine 5.15.3, thus this
+    setting is ignored there. Instead, every element is now classified individually.
   restart: true
   backend:
     QtWebEngine: Qt 5.14

@@ -30,7 +30,7 @@ import bs4
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import urlutils
-from helpers import utils as testutils
+from helpers import testutils
 
 
 pytestmark = pytest.mark.qtwebengine_skip("Title is empty when parsing for "

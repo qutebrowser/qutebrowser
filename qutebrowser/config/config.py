@@ -278,7 +278,6 @@ class Config(QObject):
         self._init_values()
         self.yaml_loaded = False
         self.config_py_loaded = False
-        self.warn_autoconfig = True
 
     def _init_values(self) -> None:
         """Populate the self._values dict."""

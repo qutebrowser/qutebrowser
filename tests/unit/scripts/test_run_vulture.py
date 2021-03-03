@@ -23,7 +23,7 @@ import textwrap
 
 import pytest
 
-from tests.helpers import utils
+from tests.helpers import testutils
 
 try:
     from scripts.dev import run_vulture
@@ -53,7 +53,7 @@ class VultureDir:
         """Run vulture over all generated files and return the output."""
         names = [p.name for p in self._tmp_path.glob('*')]
         assert names
-        with utils.change_cwd(self._tmp_path):
+        with testutils.change_cwd(self._tmp_path):
             return run_vulture.run(names)
 
     def makepyfile(self, **kwargs):
@@ -86,7 +86,7 @@ def test_unused_func(vultdir):
     msg = "*test_unused_func*foo.py:2: unused function 'foo' (60% confidence)"
     msgs = vultdir.run()
     assert len(msgs) == 1
-    assert utils.pattern_match(pattern=msg, value=msgs[0])
+    assert testutils.pattern_match(pattern=msg, value=msgs[0])
 
 
 def test_unused_method_camelcase(vultdir):

@@ -37,7 +37,7 @@ import pytest_bdd as bdd
 import qutebrowser
 from qutebrowser.utils import log, utils, docutils
 from qutebrowser.browser import pdfjs
-from helpers import utils as testutils
+from helpers import testutils
 
 
 def _get_echo_exe_path():
@@ -294,7 +294,7 @@ def run_command(quteproc, server, tmpdir, command):
 @bdd.when(bdd.parsers.parse("I reload"))
 def reload(qtbot, server, quteproc, command):
     """Reload and wait until a new request is received."""
-    with qtbot.waitSignal(server.new_request):
+    with qtbot.wait_signal(server.new_request):
         quteproc.send_cmd(':reload')
 
 

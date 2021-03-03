@@ -30,7 +30,7 @@ import shlex
 import math
 import zipfile
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QRect
 from PyQt5.QtGui import QClipboard
 import pytest
 import hypothesis
@@ -40,6 +40,22 @@ import yaml
 import qutebrowser
 import qutebrowser.utils  # for test_qualname
 from qutebrowser.utils import utils, version, usertypes
+
+
+class TestVersionNumber:
+
+    @pytest.mark.parametrize('args, expected', [
+        ([5, 15, 2], 'VersionNumber(5, 15, 2)'),
+        ([5, 15], 'VersionNumber(5, 15)'),
+        ([5], 'VersionNumber(5)'),
+    ])
+    def test_repr(self, args, expected):
+        num = utils.VersionNumber(*args)
+        assert repr(num) == expected
+
+    def test_not_normalized(self):
+        with pytest.raises(ValueError, match='Refusing to construct'):
+            utils.VersionNumber(5, 15, 0)
 
 
 ELLIPSIS = '\u2026'
@@ -993,3 +1009,53 @@ class TestCleanupFileContext:
                 pass
         assert len(caplog.messages) == 1
         assert caplog.messages[0].startswith("Failed to delete tempfile")
+
+
+class TestParseRect:
+
+    @pytest.mark.parametrize('value, expected', [
+        ('1x1+0+0', QRect(0, 0, 1, 1)),
+        ('123x789+12+34', QRect(12, 34, 123, 789)),
+    ])
+    def test_valid(self, value, expected):
+        assert utils.parse_rect(value) == expected
+
+    @pytest.mark.parametrize('value, message', [
+        ('0x0+1+1', "Invalid rectangle"),
+        ('1x1-1+1', "String 1x1-1+1 does not match WxH+X+Y"),
+        ('1x1+1-1', "String 1x1+1-1 does not match WxH+X+Y"),
+        ('1x1', "String 1x1 does not match WxH+X+Y"),
+        ('+1+2', "String +1+2 does not match WxH+X+Y"),
+        ('1e0x1+0+0', "String 1e0x1+0+0 does not match WxH+X+Y"),
+        ('¹x1+0+0', "String ¹x1+0+0 does not match WxH+X+Y"),
+    ])
+    def test_invalid(self, value, message):
+        with pytest.raises(ValueError) as excinfo:
+            utils.parse_rect(value)
+        assert str(excinfo.value) == message
+
+    @hypothesis.given(strategies.text())
+    def test_hypothesis_text(self, s):
+        try:
+            utils.parse_rect(s)
+        except ValueError as e:
+            print(e)
+
+    @hypothesis.given(strategies.tuples(
+        strategies.integers(),
+        strategies.integers(),
+        strategies.integers(),
+        strategies.integers(),
+    ).map(lambda tpl: '{}x{}+{}+{}'.format(*tpl)))
+    def test_hypothesis_sophisticated(self, s):
+        try:
+            utils.parse_rect(s)
+        except ValueError as e:
+            print(e)
+
+    @hypothesis.given(strategies.from_regex(utils._RECT_PATTERN))
+    def test_hypothesis_regex(self, s):
+        try:
+            utils.parse_rect(s)
+        except ValueError as e:
+            print(e)
