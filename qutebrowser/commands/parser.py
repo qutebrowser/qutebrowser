@@ -20,6 +20,7 @@
 """Module for parsing commands entered into the browser."""
 
 import dataclasses
+from typing import Optional, List
 
 from qutebrowser.commands import cmdexc, command
 from qutebrowser.misc import split, objects
