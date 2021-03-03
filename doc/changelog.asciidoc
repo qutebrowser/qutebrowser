@@ -27,6 +27,7 @@ Added
 - New optional dependency on the `importlib_metadata` project on Python 3.7 and
   below. This is only relevant when PyQtWebEngine is installed via pip - thus,
   this dependency usually isn't relevant for packagers.
+- New `qute-keepassxc` userscript integrating with the KeePassXC browser API.
 
 Changed
 ~~~~~~~
