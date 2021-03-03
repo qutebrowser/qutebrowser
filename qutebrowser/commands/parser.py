@@ -110,7 +110,7 @@ class CommandParser:
         """Wrapper over _parse_all_gen."""
         return list(self._parse_all_gen(*args, **kwargs))
 
-    def parse(self, text, *, fallback=False, keep=False, best_match=False):
+    def parse(self, text, *, fallback=False, keep=False, use_best_match=False):
         """Split the commandline text into command and arguments.
 
         Args:
@@ -118,6 +118,7 @@ class CommandParser:
             fallback: Whether to do a fallback splitting when the command was
                       unknown.
             keep: Whether to keep special chars and whitespace
+            use_best_match: Whether to use the best match even if incomplete.
 
         Return:
             A ParseResult tuple.
@@ -128,7 +129,7 @@ class CommandParser:
             raise cmdexc.NoSuchCommandError("No command given")
 
         if self._partial_match:
-            cmdstr = self._completion_match(cmdstr, best_match)
+            cmdstr = self._completion_match(cmdstr, use_best_match)
 
         try:
             cmd = objects.commands[cmdstr]
@@ -149,11 +150,12 @@ class CommandParser:
 
         return ParseResult(cmd=cmd, args=args, cmdline=cmdline)
 
-    def _completion_match(self, cmdstr, best):
+    def _completion_match(self, cmdstr, use_best_match):
         """Replace cmdstr with a matching completion if there's only one match.
 
         Args:
-            cmdstr: The string representing the entered command so far
+            cmdstr: The string representing the entered command so far.
+            use_best_match: Whether to use the best match even if incomplete.
 
         Return:
             cmdstr modified to the matching completion or unmodified
@@ -162,7 +164,7 @@ class CommandParser:
                    if cmdstr in cmd]
         if len(matches) == 1:
             cmdstr = matches[0]
-        elif len(matches) > 1 and best:
+        elif len(matches) > 1 and use_best_match:
             cmdstr = matches[0]
         return cmdstr
 

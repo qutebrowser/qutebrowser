@@ -173,7 +173,7 @@ class CommandRunner(AbstractCommandRunner):
         parsed = None
         with self._handle_error(safely):
             parsed = self._parser.parse_all(
-                text, best_match=config.val.completion.use_best_match)
+                text, use_best_match=config.val.completion.use_best_match)
 
         if parsed is None:
             return
