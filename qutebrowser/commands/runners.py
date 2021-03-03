@@ -22,7 +22,6 @@
 import traceback
 import re
 import contextlib
-import dataclasses
 from typing import (TYPE_CHECKING, Callable, Dict, Iterator, Mapping, MutableMapping,
                     List, Optional)
 

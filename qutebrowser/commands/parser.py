@@ -19,7 +19,7 @@
 
 """Module for parsing commands entered into the browser."""
 
-import attr
+import dataclasses
 
 from qutebrowser.commands import cmdexc, command
 from qutebrowser.misc import split, objects
