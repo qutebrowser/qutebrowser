@@ -89,6 +89,14 @@ def fake_runtime_dir(monkeypatch, short_tmpdir):
     return short_tmpdir
 
 
+@pytest.fixture
+def fake_qute_socket_path(monkeypatch, short_tmpdir):
+    qute_socket = str(short_tmpdir / "qutesocket")
+    monkeypatch.setenv('QUTE_SOCKET', qute_socket)
+    standarddir._init_runtime(args=None)
+    return qute_socket
+
+
 class FakeSocket(QObject):
 
     """A stub for a QLocalSocket.
@@ -226,6 +234,12 @@ class TestSocketName:
     def test_linux(self, basedir, fake_runtime_dir, expected):
         socketname = ipc._get_socketname(basedir)
         expected_path = str(fake_runtime_dir / 'qutebrowser' / expected)
+        assert socketname == expected_path
+
+    @pytest.mark.linux
+    def test_qute_socket_env(self, fake_qute_socket_path):
+        expected_path = str(fake_qute_socket_path)
+        socketname = ipc._get_socketname(None)
         assert socketname == expected_path
 
     def test_other_unix(self):

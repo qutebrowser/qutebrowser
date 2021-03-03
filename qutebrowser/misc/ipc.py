@@ -71,6 +71,9 @@ def _get_socketname(basedir):
     if utils.is_windows:  # pragma: no cover
         return _get_socketname_windows(basedir)
 
+    if os.getenv("QUTE_SOCKET"):
+        return os.getenv("QUTE_SOCKET")
+
     parts_to_hash = [getpass.getuser()]
     if basedir is not None:
         parts_to_hash.append(basedir)
