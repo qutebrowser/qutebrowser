@@ -1293,6 +1293,25 @@ fileselect.multiple_files.command:
     * `{}`: Filename of the file to be written to. If not contained in any argument, the
       standard output of the command is read instead.
 
+fileselect.folder.command:
+  type:
+    name: ShellCommand
+    placeholder: false
+    completions:
+      - ['["xterm", "-e", "ranger", "--choosedir={}"]', "Ranger in xterm"]
+      - ['["xterm", "-e", "vifm", "--choose-dir", "{}"]', "vifm in xterm"]
+      # TODO what is the nnn command?
+      # - ['["xterm", "-e", "nnn", "-p", "{}"]', "nnn in xterm"]
+  default: ['xterm', '-e', 'ranger', '--choosedir={}']
+  desc: >-
+    Command (and arguments) to use for selecting a single folder in forms.
+    The command should write the selected folder path to the specified file or stdout.
+
+    The following placeholders are defined:
+
+    * `{}`: Filename of the file to be written to. If not contained in any argument, the
+      standard output of the command is read instead.
+
 ## hints
 
 hints.auto_follow:

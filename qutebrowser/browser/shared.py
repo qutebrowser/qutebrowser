@@ -23,10 +23,12 @@ import os
 import sys
 import html
 import netrc
-from typing import Callable, Mapping, List, Optional
 import tempfile
+from enum import Enum, unique
+from typing import Callable, Mapping, List, Optional
 
 from PyQt5.QtCore import QUrl
+from PyQt5.QtWebEngineWidgets import QWebEnginePage
 
 from qutebrowser.config import config
 from qutebrowser.utils import (usertypes, message, log, objreg, jinja, utils,
@@ -350,20 +352,33 @@ def netrc_authentication(url, authenticator):
     return True
 
 
-def choose_file(multiple: bool) -> List[str]:
-    """Select file(s) for uploading, using external command defined in config.
+@unique
+class FileSelectionMode(Enum):
+    # TODO can one disable requirement for doc-string when it is not needed?
+    """File selection mode enum."""
+
+    SINGLE_FILE = QWebEnginePage.FileSelectOpen
+    MULTIPLE_FILES = QWebEnginePage.FileSelectOpenMultiple
+    FOLDER = 2  # TODO does it come from somewhere?
+
+
+# TODO should things that refer to file(s) be renamed?
+# Since they can also refer to folder?
+def choose_file(qb_mode: FileSelectionMode) -> List[str]:
+    """Select file(s)/folder for uploading, using external command defined in config.
 
     Args:
-        multiple: Should selecting multiple files be allowed.
+        qb_mode: File selection mode
 
     Return:
         A list of selected file paths, or empty list if no file is selected.
         If multiple is False, the return value will have at most 1 item.
     """
-    if multiple:
-        command = config.val.fileselect.multiple_files.command
-    else:
-        command = config.val.fileselect.single_file.command
+    command = {
+        FileSelectionMode.SINGLE_FILE: config.val.fileselect.single_file.command,
+        FileSelectionMode.MULTIPLE_FILES: config.val.fileselect.multiple_files.command,
+        FileSelectionMode.FOLDER: config.val.fileselect.folder.command,
+    }[qb_mode]
     use_tmp_file = any('{}' in arg for arg in command[1:])
     if use_tmp_file:
         handle = tempfile.NamedTemporaryFile(
@@ -379,19 +394,19 @@ def choose_file(multiple: bool) -> List[str]:
             )
             return _execute_fileselect_command(
                 command=command,
-                multiple=multiple,
+                qb_mode=qb_mode,
                 tmpfilename=tmpfilename,
             )
     else:
         return _execute_fileselect_command(
             command=command,
-            multiple=multiple,
+            qb_mode=qb_mode,
         )
 
 
 def _execute_fileselect_command(
     command: List[str],
-    multiple: bool,
+    qb_mode: FileSelectionMode,
     tmpfilename: Optional[str] = None
 ) -> List[str]:
     """Execute external command to choose file.
@@ -421,8 +436,9 @@ def _execute_fileselect_command(
             message.error(f"Failed to open tempfile {tmpfilename} ({e})!")
             selected_files = []
 
-    if not multiple:
+    if not qb_mode == FileSelectionMode.MULTIPLE_FILES:
+        # TODO should we assert if a file(s)/folder was actually chosen?
         if len(selected_files) > 1:
-            message.warning("More than one file chosen, using only the first")
+            message.warning("More than one file/folder chosen, using only the first")
             return selected_files[:1]
     return selected_files

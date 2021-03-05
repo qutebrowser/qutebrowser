@@ -242,6 +242,7 @@ class WebEnginePage(QWebEnginePage):
 
     def chooseFiles(
         self,
+        # TODO should this be int instead since it can take other values?
         mode: QWebEnginePage.FileSelectionMode,
         old_files: Iterable[str],
         accepted_mimetypes: Iterable[str],
@@ -250,7 +251,14 @@ class WebEnginePage(QWebEnginePage):
         handler = config.val.fileselect.handler
         if handler == "default":
             return super().chooseFiles(mode, old_files, accepted_mimetypes)
-
         assert handler == "external", handler
-        return shared.choose_file(
-            multiple=(mode == QWebEnginePage.FileSelectOpenMultiple))
+        try:
+            qb_mode = shared.FileSelectionMode(mode)
+        except ValueError:
+            log.webview.warning(
+                f"Got file selection mode {mode}, "
+                "but we don't support that!"
+            )
+            return super().chooseFiles(mode, old_files, accepted_mimetypes)
+
+        return shared.choose_file(qb_mode=qb_mode)
