@@ -135,6 +135,7 @@ class Session(CompletionStrategy):
 
 class TabMaker(CompletionStrategy):
     """Helper to get the completion model for tabs/other_tabs."""
+
     COLUMN_WIDTHS = (6, 40, 46, 8)
 
     """
@@ -206,6 +207,7 @@ class Tabs(TabMaker):
 
     Used for the tab-select command (and others).
     """
+
     def populate(self, *args: str, info: Optional[CompletionInfo] = None) -> Optional[CompletionModel]:
         utils.unused(info)
         return super().populate(*args, info=info)
@@ -224,6 +226,7 @@ class OtherTabs(TabMaker):
 
 class TabFocus(TabMaker):
     """A model to complete on open tabs in the current window."""
+
     def populate(self, *args: str, info: Optional[CompletionInfo] = None) -> Optional[CompletionModel]:
         self.win_id_filter = lambda win_id: win_id == info.win_id
         self.add_win_id = False
@@ -240,6 +243,7 @@ class TabFocus(TabMaker):
 
 class Window(CompletionStrategy):
     """A model to complete on all open windows."""
+
     COLUMN_WIDTHS = (6, 30, 64)
 
     def populate(self, *args: str, info: Optional[CompletionInfo]) -> Optional[CompletionModel]:
@@ -263,6 +267,7 @@ class Window(CompletionStrategy):
 
 class InspectorPosition(CompletionStrategy):
     """A model for possible inspector positions."""
+
     COLUMN_WIDTHS = (100, 0, 0)
 
     def populate(self, *args: str, info: Optional[CompletionInfo]) -> Optional[CompletionModel]:
@@ -286,6 +291,8 @@ def _qdatetime_to_completion_format(qdate):
 
 
 class HistoryStrategy(CompletionStrategy):
+    """A model to complete on history of the current tab."""
+
     COLUMN_WIDTHS = (5, 36, 50, 9)
 
     def __init__(self, go_forward: bool):
@@ -327,6 +334,7 @@ class Forward(HistoryStrategy):
 
     Used for the :forward command.
     """
+
     def __init__(self):
         super().__init__(True)
 
@@ -336,12 +344,14 @@ class Back(HistoryStrategy):
 
     Used for the :back command.
     """
+
     def __init__(self):
         super().__init__(False)
 
 
 class Undo(CompletionStrategy):
     """A model to complete undo entries."""
+
     COLUMN_WIDTHS = (6, 84, 10)
 
     def populate(self, *args: str, info: Optional[CompletionInfo]) -> Optional[CompletionModel]:

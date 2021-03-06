@@ -40,6 +40,7 @@ class OptionMaker(CompletionStrategy):
         predicate: The function for filtering out the options. Takes a single
                    argument.
     """
+
     COLUMN_WIDTHS = (20, 70, 10)
 
     def __init__(self, title: str, predicate: Optional[Callable[[Optional[Any]], bool]] = None):
@@ -58,12 +59,14 @@ class OptionMaker(CompletionStrategy):
 
 class Option(OptionMaker):
     """A CompletionModel filled with settings and their descriptions."""
+
     def __init__(self):
         super().__init__("Options", lambda opt: not opt.no_autoconfig)
 
 
 class CustomizedOption(CompletionStrategy):
     """A CompletionModel filled with set settings and their descriptions."""
+
     COLUMN_WIDTHS = (20, 70, 10)
 
     def populate(self, *args: str, info: Optional[CompletionInfo]) -> CompletionModel:
@@ -77,6 +80,7 @@ class CustomizedOption(CompletionStrategy):
 
 class ListOption(OptionMaker):
     """A CompletionModel filled with settings whose values are lists."""
+
     def __init__(self):
         super().__init__("List options")
 
@@ -88,6 +92,7 @@ class ListOption(OptionMaker):
 
 class DictOption(OptionMaker):
     """A CompletionModel filled with settings whose values are dicts."""
+
     def __init__(self):
         super().__init__("Dict options")
 
@@ -105,6 +110,7 @@ class Value(CompletionStrategy):
         values: The values already provided on the command line.
         info: A CompletionInfo instance.
     """
+
     COLUMN_WIDTHS = (30, 70, 0)
 
     def populate(self, *args: str, info: Optional[CompletionInfo]) -> Optional[CompletionModel]:
@@ -143,6 +149,7 @@ class Bind(CompletionStrategy):
     Args:
         key: the key being bound.
     """
+
     COLUMN_WIDTHS = (20, 60, 20)
 
     def _bind_current_default(self, info):

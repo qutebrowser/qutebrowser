@@ -68,6 +68,7 @@ class URL(CompletionStrategy):
 
     Used for the `open` command.
     """
+
     COLUMN_WIDTHS = (40, 50, 10)
 
     def populate(self, *args: str, info: Optional[CompletionInfo]) -> Optional[CompletionModel]:
