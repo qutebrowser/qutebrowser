@@ -881,7 +881,7 @@ class CommandDispatcher:
             for part in index_parts:
                 int(part)
         except ValueError:
-            model = miscmodels.tabs()
+            model = miscmodels.Tabs().populate()
             model.set_pattern(index)
             if model.count() > 0:
                 index = model.data(model.first_item())

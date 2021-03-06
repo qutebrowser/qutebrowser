@@ -148,7 +148,7 @@ class TabMaker(CompletionStrategy):
         self.win_id_filter = win_id_filter
         self.add_win_id = add_win_id
 
-    def populate(self, *args: str, info: Optional[CompletionInfo] = None) -> Optional[CompletionModel]:
+    def populate(self, *args: str, info: Optional[CompletionInfo]) -> Optional[CompletionModel]:
         super().populate(*args, info=info)
         tabs_are_windows = config.val.tabs.tabs_are_windows
         # list storing all single-tabbed windows when tabs_are_windows
@@ -217,14 +217,14 @@ class OtherTabs(TabMaker):
     Used for the tab-take command.
     """
 
-    def populate(self, *args: str, info: Optional[CompletionInfo]) -> Optional[CompletionModel]:
+    def populate(self, *args: str, info: Optional[CompletionInfo] = None) -> Optional[CompletionModel]:
         self.win_id_filter = lambda win_id: win_id != info.win_id
         return super().populate(*args, info=info)
 
 
 class TabFocus(TabMaker):
     """A model to complete on open tabs in the current window."""
-    def populate(self, *args: str, info: Optional[CompletionInfo]) -> Optional[CompletionModel]:
+    def populate(self, *args: str, info: Optional[CompletionInfo] = None) -> Optional[CompletionModel]:
         self.win_id_filter = lambda win_id: win_id == info.win_id
         self.add_win_id = False
         super().populate(*args, info=info)

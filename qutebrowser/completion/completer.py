@@ -96,7 +96,7 @@ class Completer(QObject):
         if not before_cursor:
             # '|' or 'set|'
             log.completion.debug('Starting command completion')
-            return miscmodels.command
+            return miscmodels.Command()
         try:
             cmd = objects.commands[before_cursor[0]]
         except KeyError:
