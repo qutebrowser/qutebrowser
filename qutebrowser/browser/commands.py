@@ -37,7 +37,7 @@ from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils, standarddir, debug)
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess, objects
-from qutebrowser.completion.models import urlmodel, miscmodels
+from qutebrowser.completion.strategies import urlmodel, miscmodels
 from qutebrowser.mainwindow import mainwindow, windowundo
 
 
@@ -282,7 +282,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', name='open',
                        maxsplit=0, scope='window')
-    @cmdutils.argument('url', completion=urlmodel.url)
+    @cmdutils.argument('url', completion=urlmodel.URL())
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def openurl(self, url=None, related=False,
                 bg=False, tab=False, window=False, count=None, secure=False,
@@ -427,7 +427,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
-    @cmdutils.argument('index', completion=miscmodels.other_tabs)
+    @cmdutils.argument('index', completion=miscmodels.OtherTabs())
     def tab_take(self, index, keep=False):
         """Take a tab from another window.
 
@@ -451,7 +451,7 @@ class CommandDispatcher:
             tabbed_browser.close_tab(tab, add_undo=False)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('win_id', completion=miscmodels.window)
+    @cmdutils.argument('win_id', completion=miscmodels.Window())
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_give(self, win_id: int = None, keep: bool = False,
                  count: int = None, private: bool = False) -> None:
@@ -529,7 +529,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    @cmdutils.argument('index', completion=miscmodels.back)
+    @cmdutils.argument('index', completion=miscmodels.Back())
     def back(self, tab: bool = False, bg: bool = False,
              window: bool = False, count: int = None,
              index: int = None) -> None:
@@ -546,7 +546,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    @cmdutils.argument('index', completion=miscmodels.forward)
+    @cmdutils.argument('index', completion=miscmodels.Forward())
     def forward(self, tab: bool = False, bg: bool = False,
                 window: bool = False, count: int = None,
                 index: int = None) -> None:
@@ -795,7 +795,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    @cmdutils.argument('depth', completion=miscmodels.undo)
+    @cmdutils.argument('depth', completion=miscmodels.Undo())
     def undo(self, window: bool = False,
              count: int = None, depth: int = None) -> None:
         """Re-open the last closed tab(s) or window.
@@ -916,7 +916,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, deprecated_name='buffer')
-    @cmdutils.argument('index', completion=miscmodels.tabs)
+    @cmdutils.argument('index', completion=miscmodels.Tabs())
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_select(self, index=None, count=None):
         """Select tab by index or url/title best match.
@@ -947,7 +947,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', choices=['last', 'stack-next', 'stack-prev'],
-                       completion=miscmodels.tab_focus)
+                       completion=miscmodels.TabFocus())
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_focus(self, index: Union[str, int] = None,
                   count: int = None, no_last: bool = False) -> None:
@@ -1161,7 +1161,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
-    @cmdutils.argument('name', completion=miscmodels.quickmark)
+    @cmdutils.argument('name', completion=miscmodels.QuickMark())
     def quickmark_load(self, name, tab=False, bg=False, window=False):
         """Load a quickmark.
 
@@ -1179,7 +1179,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
-    @cmdutils.argument('name', completion=miscmodels.quickmark)
+    @cmdutils.argument('name', completion=miscmodels.QuickMark())
     def quickmark_del(self, name=None):
         """Delete a quickmark.
 
@@ -1243,7 +1243,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
-    @cmdutils.argument('url', completion=miscmodels.bookmark)
+    @cmdutils.argument('url', completion=miscmodels.BookMark())
     def bookmark_load(self, url, tab=False, bg=False, window=False,
                       delete=False):
         """Load a bookmark.
@@ -1265,7 +1265,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
-    @cmdutils.argument('url', completion=miscmodels.bookmark)
+    @cmdutils.argument('url', completion=miscmodels.BookMark())
     def bookmark_del(self, url=None):
         """Delete a bookmark.
 
@@ -1391,7 +1391,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', name='help',
                        scope='window')
-    @cmdutils.argument('topic', completion=miscmodels.helptopic)
+    @cmdutils.argument('topic', completion=miscmodels.HelpTopic())
     def show_help(self, tab=False, bg=False, window=False, topic=None):
         r"""Show help about a command or setting.
 

@@ -40,8 +40,8 @@ except ImportError:
 
 from qutebrowser.misc import objects
 from qutebrowser.completion import completer
-from qutebrowser.completion.models import (
-    configmodel, listcategory, miscmodels, urlmodel, filepathcategory)
+from qutebrowser.completion.categories import (listcategory, filepathcategory)
+from qutebrowser.completion.strategies import (configmodel, miscmodels, urlmodel)
 from qutebrowser.config import configdata, configtypes
 from qutebrowser.utils import usertypes
 from qutebrowser.mainwindow import tabbedbrowser
@@ -245,7 +245,7 @@ def test_command_completion(qtmodeltester, cmdutils_stub, configdata_stub,
         - the binding (if any) is shown in the misc column
         - aliases are included
     """
-    model = miscmodels.command(info=info)
+    model = miscmodels.Command().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -270,7 +270,7 @@ def test_help_completion(qtmodeltester, cmdutils_stub, key_config_stub,
         - aliases are not included
         - only the first line of a multiline description is shown
     """
-    model = miscmodels.helptopic(info=info)
+    model = miscmodels.HelpTopic().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -336,7 +336,7 @@ def test_open_categories(qtmodeltester, config_stub, web_history_populated,
         "bookmarks",
         "history",
     ]
-    model = urlmodel.url(info=info)
+    model = urlmodel.URL().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -370,7 +370,7 @@ def test_open_categories_remove_all(qtmodeltester, config_stub, web_history_popu
         "google": "https://google.com/?q={}",
     }
     config_stub.val.completion.open_categories = []
-    model = urlmodel.url(info=info)
+    model = urlmodel.URL().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -386,7 +386,7 @@ def test_open_categories_remove_one(qtmodeltester, config_stub, web_history_popu
     }
     config_stub.val.completion.open_categories = [
         "searchengines", "quickmarks", "history"]
-    model = urlmodel.url(info=info)
+    model = urlmodel.URL().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -433,7 +433,7 @@ def test_filesystem_completion(qtmodeltester, config_stub, info,
         expected_2 = os.path.join('~', 'file2.txt')
 
     config_stub.val.completion.open_categories = ['filesystem']
-    model = urlmodel.url(info=info)
+    model = urlmodel.URL().populate(info=info)
     model.set_pattern(base + os.sep)
     qtmodeltester.check(model)
 
@@ -478,7 +478,7 @@ def test_default_filesystem_completion(qtmodeltester, config_stub, info,
                                        local_files_path):
     config_stub.val.completion.open_categories = ['filesystem']
     config_stub.val.completion.favorite_paths = [str(local_files_path)]
-    model = urlmodel.url(info=info)
+    model = urlmodel.URL().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -489,7 +489,7 @@ def test_default_filesystem_completion(qtmodeltester, config_stub, info,
 
 def test_quickmark_completion(qtmodeltester, quickmarks):
     """Test the results of quickmark completion."""
-    model = miscmodels.quickmark()
+    model = miscmodels.QuickMark().populate(info=None)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -509,7 +509,7 @@ def test_quickmark_completion(qtmodeltester, quickmarks):
 ])
 def test_quickmark_completion_delete(qtmodeltester, quickmarks, row, removed):
     """Test deleting a quickmark from the quickmark completion model."""
-    model = miscmodels.quickmark()
+    model = miscmodels.QuickMark().populate(info=None)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -524,7 +524,7 @@ def test_quickmark_completion_delete(qtmodeltester, quickmarks, row, removed):
 
 def test_bookmark_completion(qtmodeltester, bookmarks):
     """Test the results of bookmark completion."""
-    model = miscmodels.bookmark()
+    model = miscmodels.BookMark().populate(info=None)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -544,7 +544,7 @@ def test_bookmark_completion(qtmodeltester, bookmarks):
 ])
 def test_bookmark_completion_delete(qtmodeltester, bookmarks, row, removed):
     """Test deleting a quickmark from the quickmark completion model."""
-    model = miscmodels.bookmark()
+    model = miscmodels.BookMark().populate(info=None)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -577,7 +577,7 @@ def test_url_completion(qtmodeltester, config_stub, web_history_populated,
         "DEFAULT": "https://duckduckgo.com/?q={}",
         "google": "https://google.com/?q={}"
     }
-    model = urlmodel.url(info=info)
+    model = urlmodel.URL().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -615,7 +615,7 @@ def test_search_only_default(qtmodeltester, config_stub, web_history_populated,
     config_stub.val.url.searchengines = {
         "DEFAULT": "https://duckduckgo.com/?q={}",
     }
-    model = urlmodel.url(info=info)
+    model = urlmodel.URL().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -641,7 +641,7 @@ def test_search_only_default(qtmodeltester, config_stub, web_history_populated,
 def test_url_completion_no_quickmarks(qtmodeltester, web_history_populated,
                                       quickmark_manager_stub, bookmarks, info):
     """Test that the quickmark category is gone with no quickmarks."""
-    model = urlmodel.url(info=info)
+    model = urlmodel.URL().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -663,7 +663,7 @@ def test_url_completion_no_quickmarks(qtmodeltester, web_history_populated,
 def test_url_completion_no_bookmarks(qtmodeltester, web_history_populated,
                                      quickmarks, bookmark_manager_stub, info):
     """Test that the bookmarks category is gone with no bookmarks."""
-    model = urlmodel.url(info=info)
+    model = urlmodel.URL().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -705,7 +705,7 @@ def test_url_completion_pattern(web_history, quickmark_manager_stub,
                                 url, title, pattern, rowcount):
     """Test that url completion filters by url and title."""
     web_history.add_url(QUrl(url), title)
-    model = urlmodel.url(info=info)
+    model = urlmodel.URL().populate(info=info)
     model.set_pattern(pattern)
     # 2, 0 is History
     assert model.rowCount(model.index(0, 0)) == rowcount
@@ -714,7 +714,7 @@ def test_url_completion_pattern(web_history, quickmark_manager_stub,
 def test_url_completion_delete_bookmark(qtmodeltester, bookmarks,
                                         web_history, quickmarks, info):
     """Test deleting a bookmark from the url completion model."""
-    model = urlmodel.url(info=info)
+    model = urlmodel.URL().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -735,7 +735,7 @@ def test_url_completion_delete_bookmark(qtmodeltester, bookmarks,
 def test_url_completion_delete_quickmark(qtmodeltester, info, qtbot,
                                          quickmarks, web_history, bookmarks):
     """Test deleting a bookmark from the url completion model."""
-    model = urlmodel.url(info=info)
+    model = urlmodel.URL().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -757,7 +757,7 @@ def test_url_completion_delete_history(qtmodeltester, info,
                                        web_history_populated,
                                        quickmarks, bookmarks):
     """Test deleting a history entry."""
-    model = urlmodel.url(info=info)
+    model = urlmodel.URL().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -787,7 +787,7 @@ def test_url_completion_zero_limit(config_stub, web_history, quickmarks, info,
         "DEFAULT": "https://duckduckgo.com/?q={}",
         "google": "https://google.com/?q={}",
     }
-    model = urlmodel.url(info=info)
+    model = urlmodel.URL().populate(info=info)
     model.set_pattern('')
     category = model.index(3, 0)  # "History" normally
     assert model.data(category) is None
@@ -795,7 +795,7 @@ def test_url_completion_zero_limit(config_stub, web_history, quickmarks, info,
 
 def test_session_completion(qtmodeltester, session_manager_stub):
     session_manager_stub.sessions = ['default', '1', '2']
-    model = miscmodels.session()
+    model = miscmodels.Session().populate(info=None)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -816,7 +816,7 @@ def test_tab_completion(qtmodeltester, fake_web_tab, win_registry,
     tabbed_browser_stubs[1].widget.tabs = [
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
-    model = miscmodels.tabs()
+    model = miscmodels.Tabs().populate()
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -843,7 +843,7 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, win_registry,
     tabbed_browser_stubs[1].widget.tabs = [
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
-    model = miscmodels.tabs()
+    model = miscmodels.Tabs().populate()
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -877,7 +877,7 @@ def test_tab_completion_not_sorted(qtmodeltester, fake_web_tab, win_registry,
         fake_web_tab(QUrl(tab[1]), tab[2], idx)
         for idx, tab in enumerate(expected)
     ]
-    model = miscmodels.tabs()
+    model = miscmodels.Tabs().populate()
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -901,7 +901,7 @@ def test_tab_completion_tabs_are_windows(qtmodeltester, fake_web_tab,
     ]
 
     config_stub.val.tabs.tabs_are_windows = True
-    model = miscmodels.tabs()
+    model = miscmodels.Tabs().populate()
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -926,7 +926,7 @@ def test_other_tabs_completion(qtmodeltester, fake_web_tab, win_registry,
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     info.win_id = 1
-    model = miscmodels.other_tabs(info=info)
+    model = miscmodels.OtherTabs().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -950,7 +950,7 @@ def test_other_tabs_completion_id0(qtmodeltester, fake_web_tab,
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     info.win_id = 0
-    model = miscmodels.other_tabs(info=info)
+    model = miscmodels.OtherTabs().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -972,7 +972,7 @@ def test_tab_focus_completion(qtmodeltester, fake_web_tab, win_registry,
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     info.win_id = 1
-    model = miscmodels.tab_focus(info=info)
+    model = miscmodels.TabFocus().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -1008,7 +1008,7 @@ def test_window_completion(qtmodeltester, fake_web_tab, tabbed_browser_stubs,
     ]
 
     info.win_id = 1
-    model = miscmodels.window(info=info)
+    model = miscmodels.Window().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -1022,7 +1022,7 @@ def test_window_completion(qtmodeltester, fake_web_tab, tabbed_browser_stubs,
 
 def test_setting_option_completion(qtmodeltester, config_stub,
                                    configdata_stub, info):
-    model = configmodel.option(info=info)
+    model = configmodel.Option().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -1046,7 +1046,7 @@ def test_setting_option_completion(qtmodeltester, config_stub,
 
 def test_setting_dict_option_completion(qtmodeltester, config_stub,
                                         configdata_stub, info):
-    model = configmodel.dict_option(info=info)
+    model = configmodel.DictOption().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -1065,7 +1065,7 @@ def test_setting_dict_option_completion(qtmodeltester, config_stub,
 
 def test_setting_list_option_completion(qtmodeltester, config_stub,
                                         configdata_stub, info):
-    model = configmodel.list_option(info=info)
+    model = configmodel.ListOption().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -1082,7 +1082,7 @@ def test_setting_customized_option_completion(qtmodeltester, config_stub,
                                               configdata_stub, info):
     info.config.set_obj('aliases', {'foo': 'nop'})
 
-    model = configmodel.customized_option(info=info)
+    model = configmodel.CustomizedOption().populate(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -1095,7 +1095,7 @@ def test_setting_customized_option_completion(qtmodeltester, config_stub,
 
 def test_setting_value_completion(qtmodeltester, config_stub, configdata_stub,
                                   info):
-    model = configmodel.value(optname='content.javascript.enabled', info=info)
+    model = configmodel.Value().populate('content.javascript.enabled', info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -1113,7 +1113,7 @@ def test_setting_value_completion(qtmodeltester, config_stub, configdata_stub,
 
 def test_setting_value_no_completions(qtmodeltester, config_stub,
                                       configdata_stub, info):
-    model = configmodel.value(optname='aliases', info=info)
+    model = configmodel.Value().populate('aliases', info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -1126,7 +1126,7 @@ def test_setting_value_no_completions(qtmodeltester, config_stub,
 
 
 def test_setting_value_completion_invalid(info):
-    assert configmodel.value(optname='foobarbaz', info=info) is None
+    assert configmodel.Value().populate('foobarbaz', info=info) is None
 
 
 @pytest.mark.parametrize('args, expected', [
@@ -1160,7 +1160,7 @@ def test_setting_value_cycle(qtmodeltester, config_stub, configdata_stub,
                              info, args, expected):
     opt = 'content.javascript.enabled'
 
-    model = configmodel.value(opt, *args, info=info)
+    model = configmodel.Value().populate(opt, *args, info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
     _check_completions(model, expected)
@@ -1176,7 +1176,7 @@ def test_bind_completion(qtmodeltester, cmdutils_stub, config_stub,
         - the binding (if any) is shown in the misc column
         - aliases are included
     """
-    model = configmodel.bind('ZQ', info=info)
+    model = configmodel.Bind().populate('ZQ', info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -1197,7 +1197,7 @@ def test_bind_completion(qtmodeltester, cmdutils_stub, config_stub,
 def test_bind_completion_invalid(cmdutils_stub, config_stub, key_config_stub,
                                  configdata_stub, info):
     """Test command completion with an invalid command bound."""
-    model = configmodel.bind('I', info=info)
+    model = configmodel.Bind().populate('I', info=info)
     model.set_pattern('')
 
     _check_completions(model, {
@@ -1218,7 +1218,7 @@ def test_bind_completion_invalid_binding(cmdutils_stub, config_stub,
                                          key_config_stub, configdata_stub,
                                          info):
     """Test command completion with an invalid key binding."""
-    model = configmodel.bind('<blub>', info=info)
+    model = configmodel.Bind().populate('<blub>', info=info)
     model.set_pattern('')
 
     _check_completions(model, {
@@ -1238,7 +1238,7 @@ def test_bind_completion_invalid_binding(cmdutils_stub, config_stub,
 def test_bind_completion_no_binding(qtmodeltester, cmdutils_stub, config_stub,
                                     key_config_stub, configdata_stub, info):
     """Test keybinding completion with no current or default binding."""
-    model = configmodel.bind('x', info=info)
+    model = configmodel.Bind().populate('x', info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
 
@@ -1256,7 +1256,7 @@ def test_bind_completion_no_binding(qtmodeltester, cmdutils_stub, config_stub,
 def test_bind_completion_changed(cmdutils_stub, config_stub, key_config_stub,
                                  configdata_stub, info):
     """Test command completion with a non-default command bound."""
-    model = configmodel.bind('d', info=info)
+    model = configmodel.Bind().populate('d', info=info)
     model.set_pattern('')
 
     _check_completions(model, {
@@ -1298,7 +1298,7 @@ def test_url_completion_benchmark(benchmark, info,
         for i in range(1000)])
 
     def bench():
-        model = urlmodel.url(info=info)
+        model = urlmodel.URL().populate(info=info)
         model.set_pattern('')
         model.set_pattern('e')
         model.set_pattern('ex')
@@ -1362,7 +1362,7 @@ def tab_with_history(fake_web_tab, tabbed_browser_stubs, info, monkeypatch):
 
 def test_back_completion(tab_with_history, info):
     """Test back tab history completion."""
-    model = miscmodels.back(info=info)
+    model = miscmodels.Back().populate(info=info)
     model.set_pattern('')
 
     _check_completions(model, {
@@ -1375,7 +1375,7 @@ def test_back_completion(tab_with_history, info):
 
 def test_forward_completion(tab_with_history, info):
     """Test forward tab history completion."""
-    model = miscmodels.forward(info=info)
+    model = miscmodels.Forward().populate(info=info)
     model.set_pattern('')
 
     _check_completions(model, {
@@ -1404,7 +1404,7 @@ def test_undo_completion(tabbed_browser_stubs, info):
         [entry2, entry3],
     ]
 
-    model = miscmodels.undo(info=info)
+    model = miscmodels.Undo().populate(info=info)
     model.set_pattern('')
 
     # Most recently closed is at the top, indices are used like "-x" for the
@@ -1435,7 +1435,7 @@ def undo_completion_retains_sort_order(tabbed_browser_stubs, info):
         for idx in range(1, 11)
     ]
 
-    model = miscmodels.undo(info=info)
+    model = miscmodels.Undo().populate(info=info)
     model.set_pattern('')
 
     expected = [

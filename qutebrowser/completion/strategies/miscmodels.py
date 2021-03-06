@@ -39,18 +39,19 @@ class Command(CompletionStrategy):
 
     COLUMN_WIDTHS = (20, 60, 20)
 
-    def populate(self, *args: str, info: CompletionInfo) -> None:
+    def populate(self, *args: str, info: CompletionInfo) -> CompletionModel:
         super().populate(*args, info=info)
         cmdlist = util.get_cmd_completions(info, include_aliases=True,
                                            include_hidden=False)
         self.model.add_category(listcategory.ListCategory("Commands", cmdlist))
+        return self.model
 
 
 class HelpTopic(CompletionStrategy):
 
     """A CompletionModel filled with help topics."""
 
-    def populate(self, *args: str, info: CompletionInfo) -> None:
+    def populate(self, *args: str, info: CompletionInfo) -> CompletionModel:
         super().populate(*args, info=info)
         cmdlist = util.get_cmd_completions(info, include_aliases=False,
                                            include_hidden=True, prefix=':')
@@ -59,6 +60,7 @@ class HelpTopic(CompletionStrategy):
 
         self.model.add_category(listcategory.ListCategory("Commands", cmdlist))
         self.model.add_category(listcategory.ListCategory("Settings", settings))
+        return self.model
 
 
 class QuickMark(CompletionStrategy):
@@ -67,13 +69,14 @@ class QuickMark(CompletionStrategy):
 
     COLUMN_WIDTHS = (30, 70, 0)
 
-    def populate(self, *args: str, info: CompletionInfo) -> None:
+    def populate(self, *args: str, info: Optional[CompletionInfo]) -> CompletionModel:
         super().populate(*args, info=info)
         utils.unused(info)
         marks = objreg.get('quickmark-manager').marks.items()
         self.model.add_category(listcategory.ListCategory('Quickmarks', marks,
                                                      delete_func=self.delete,
                                                      sort=False))
+        return self.model
 
     @classmethod
     def delete(cls, data: Sequence[str]) -> None:
@@ -90,13 +93,14 @@ class BookMark(CompletionStrategy):
 
     COLUMN_WIDTHS = (30, 70, 0)
 
-    def populate(self, *args: str, info: CompletionInfo) -> None:
+    def populate(self, *args: str, info: Optional[CompletionInfo]) -> CompletionModel:
         super().populate(*args, info=info)
         utils.unused(info)
         marks = objreg.get('bookmark-manager').marks.items()
         self.model.add_category(listcategory.ListCategory('Bookmarks', marks,
                                                      delete_func=self.delete,
                                                      sort=False))
+        return self.model
 
     @classmethod
     def delete(cls, data: Sequence[str]) -> None:
@@ -113,19 +117,20 @@ class Session(CompletionStrategy):
 
     COLUMN_WIDTHS = (30, 70, 0)
 
-    def populate(self, *args: str, info: CompletionInfo) -> None:
+    def populate(self, *args: str, info: Optional[CompletionInfo]) -> CompletionModel:
         from qutebrowser.misc import sessions
 
         super().populate(*args, info=info)
         utils.unused(info)
-        model = completionmodel.CompletionModel()
         try:
             sess = ((name,) for name
                     in sessions.session_manager.list_sessions()
                     if not name.startswith('_'))
-            model.add_category(listcategory.ListCategory("Sessions", sess))
+            self.model.add_category(listcategory.ListCategory("Sessions", sess))
         except OSError:
             log.completion.exception("Failed to list sessions!")
+
+        return self.model
 
 
 class TabMaker(CompletionStrategy):
