@@ -19,12 +19,15 @@
 
 """Function to return the url completion model for the `open` command."""
 
-from typing import Dict, Sequence
+from qutebrowser.completion.strategies.strategy import CompletionStrategy
+from typing import Dict, Sequence, Optional
 
 from PyQt5.QtCore import QAbstractItemModel
 
-from qutebrowser.completion.models import (completionmodel, filepathcategory,
+from qutebrowser.completion.categories import (filepathcategory,
                                            listcategory, histcategory)
+from qutebrowser.completion.completionmodel import CompletionModel
+from qutebrowser.completion.completer import CompletionInfo
 from qutebrowser.browser import history
 from qutebrowser.utils import log, objreg
 from qutebrowser.config import config
@@ -54,7 +57,7 @@ def _delete_quickmark(data: Sequence[str]) -> None:
     quickmark_manager.delete(name)
 
 
-def url(*, info):
+class URL(CompletionStrategy):
     """A model which combines various URLs.
 
     This combines:
@@ -65,39 +68,41 @@ def url(*, info):
 
     Used for the `open` command.
     """
-    model = completionmodel.CompletionModel(column_widths=(40, 50, 10))
+    COLUMN_WIDTHS = (40, 50, 10)
 
-    quickmarks = [(url, name) for (name, url)
-                  in objreg.get('quickmark-manager').marks.items()]
-    bookmarks = objreg.get('bookmark-manager').marks.items()
-    searchengines = [(k, v) for k, v
-                     in sorted(config.val.url.searchengines.items())
-                     if k != 'DEFAULT']
-    categories = config.val.completion.open_categories
-    models: Dict[str, QAbstractItemModel] = {}
+    def populate(self, *args: str, info: Optional[CompletionInfo]) -> Optional[CompletionModel]:
+        super().populate(*args, info=info)
+        quickmarks = [(url, name) for (name, url)
+                      in objreg.get('quickmark-manager').marks.items()]
+        bookmarks = objreg.get('bookmark-manager').marks.items()
+        searchengines = [(k, v) for k, v
+                         in sorted(config.val.url.searchengines.items())
+                         if k != 'DEFAULT']
+        categories = config.val.completion.open_categories
+        models: Dict[str, QAbstractItemModel] = {}
 
-    if searchengines and 'searchengines' in categories:
-        models['searchengines'] = listcategory.ListCategory(
-            'Search engines', searchengines, sort=False)
+        if searchengines and 'searchengines' in categories:
+            models['searchengines'] = listcategory.ListCategory(
+                'Search engines', searchengines, sort=False)
 
-    if quickmarks and 'quickmarks' in categories:
-        models['quickmarks'] = listcategory.ListCategory(
-            'Quickmarks', quickmarks, delete_func=_delete_quickmark,
-            sort=False)
-    if bookmarks and 'bookmarks' in categories:
-        models['bookmarks'] = listcategory.ListCategory(
-            'Bookmarks', bookmarks, delete_func=_delete_bookmark, sort=False)
+        if quickmarks and 'quickmarks' in categories:
+            models['quickmarks'] = listcategory.ListCategory(
+                'Quickmarks', quickmarks, delete_func=_delete_quickmark,
+                sort=False)
+        if bookmarks and 'bookmarks' in categories:
+            models['bookmarks'] = listcategory.ListCategory(
+                'Bookmarks', bookmarks, delete_func=_delete_bookmark, sort=False)
 
-    history_disabled = info.config.get('completion.web_history.max_items') == 0
-    if not history_disabled and 'history' in categories:
-        hist_cat = histcategory.HistoryCategory(delete_func=_delete_history)
-        models['history'] = hist_cat
+        history_disabled = info.config.get('completion.web_history.max_items') == 0
+        if not history_disabled and 'history' in categories:
+            hist_cat = histcategory.HistoryCategory(delete_func=_delete_history)
+            models['history'] = hist_cat
 
-    if 'filesystem' in categories:
-        models['filesystem'] = filepathcategory.FilePathCategory(name='Filesystem')
+        if 'filesystem' in categories:
+            models['filesystem'] = filepathcategory.FilePathCategory(name='Filesystem')
 
-    for category in categories:
-        if category in models:
-            model.add_category(models[category])
+        for category in categories:
+            if category in models:
+                self.model.add_category(models[category])
 
-    return model
+        return self.model
