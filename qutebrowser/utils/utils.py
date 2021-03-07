@@ -30,14 +30,13 @@ import datetime
 import traceback
 import functools
 import contextlib
-import posixpath
 import shlex
 import mimetypes
-import pathlib
 import ctypes
 import ctypes.util
-from typing import (Any, Callable, IO, Iterator, Optional, Sequence, Tuple, Type, Union,
-                    Iterable, TypeVar, TYPE_CHECKING)
+from typing import (Any, Callable, IO, Iterator,
+                    Optional, Sequence, Tuple, Type, Union,
+                    TypeVar, TYPE_CHECKING)
 try:
     # Protocol was added in Python 3.8
     from typing import Protocol
@@ -50,11 +49,7 @@ except ImportError:  # pragma: no cover
 from PyQt5.QtCore import QUrl, QVersionNumber, QRect
 from PyQt5.QtGui import QClipboard, QDesktopServices
 from PyQt5.QtWidgets import QApplication
-# We cannot use the stdlib version on 3.7-3.8 because we need the files() API.
-if sys.version_info >= (3, 9):
-    import importlib.resources as importlib_resources
-else:  # pragma: no cover
-    import importlib_resources
+
 import yaml
 try:
     from yaml import (CSafeLoader as YamlLoader,
@@ -65,13 +60,10 @@ except ImportError:  # pragma: no cover
                       SafeDumper as YamlDumper)
     YAML_C_EXT = False
 
-import qutebrowser
 from qutebrowser.utils import log
-
 
 fake_clipboard = None
 log_clipboard = False
-_resource_cache = {}
 
 is_mac = sys.platform.startswith('darwin')
 is_linux = sys.platform.startswith('linux')
@@ -194,6 +186,7 @@ def compact_text(text: str, elidelength: int = None) -> str:
     if elidelength is not None:
         out = elide(out, elidelength)
     return out
+
 
 def parse_version(version: str) -> VersionNumber:
     """Parse a version string."""

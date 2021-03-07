@@ -33,7 +33,7 @@ from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab, shared
 from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
-                                        webkitsettings)
+                                        webkitsettings, webkitinspector)
 from qutebrowser.utils import qtutils, usertypes, utils, log, debug, resources
 from qutebrowser.keyinput import modeman
 from qutebrowser.qt import sip
