@@ -808,6 +808,9 @@ class WebKitTabPrivate(browsertab.AbstractTabPrivate):
         result = document_element.evaluateJavaScript(code)
         return result
 
+    def _init_inspector(self, splitter, win_id, parent=None):
+        return webkitinspector.WebKitInspector(splitter, win_id, parent)
+
 
 class WebKitTab(browsertab.AbstractTab):
 
