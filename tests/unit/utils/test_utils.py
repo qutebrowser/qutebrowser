@@ -39,7 +39,7 @@ import yaml
 
 import qutebrowser
 import qutebrowser.utils  # for test_qualname
-from qutebrowser.utils import utils, version, usertypes
+from qutebrowser.utils import utils, version, usertypes, resources
 
 
 class TestVersionNumber:
@@ -185,29 +185,29 @@ class TestReadFile:
         raise utils.Unreachable(request.param)
 
     def test_glob_resources(self, resource_root):
-        files = sorted(utils._glob_resources(resource_root, 'html', '.html'))
+        files = sorted(resources._glob_resources(resource_root, 'html', '.html'))
         assert files == ['html/test1.html', 'html/test2.html']
 
     def test_glob_resources_subdir(self, resource_root):
-        files = sorted(utils._glob_resources(resource_root, 'html/subdir', '.html'))
+        files = sorted(resources._glob_resources(resource_root, 'html/subdir', '.html'))
         assert files == ['html/subdir/subdir-file.html']
 
     def test_readfile(self):
         """Read a test file."""
-        content = utils.read_file(os.path.join('utils', 'testfile'))
+        content = resources.read_file(os.path.join('utils', 'testfile'))
         assert content.splitlines()[0] == "Hello World!"
 
     @pytest.mark.parametrize('filename', ['javascript/scroll.js',
                                           'html/error.html'])
     def test_read_cached_file(self, mocker, filename):
-        utils.preload_resources()
-        m = mocker.patch('qutebrowser.utils.utils.importlib_resources.files')
-        utils.read_file(filename)
+        resources.preload_resources()
+        m = mocker.patch('qutebrowser.utils.resources.importlib_resources.files')
+        resources.read_file(filename)
         m.assert_not_called()
 
     def test_readfile_binary(self):
         """Read a test file in binary mode."""
-        content = utils.read_file_binary(os.path.join('utils', 'testfile'))
+        content = resources.read_file_binary(os.path.join('utils', 'testfile'))
         assert content.splitlines()[0] == b"Hello World!"
 
     @pytest.mark.parametrize('name', ['read_file', 'read_file_binary'])
@@ -233,10 +233,10 @@ class TestReadFile:
                 return self
 
         if fake_exception is not None:
-            monkeypatch.setattr(utils.importlib_resources, 'files',
+            monkeypatch.setattr(resources.importlib_resources, 'files',
                                 lambda _pkg: BrokenFileFake(fake_exception))
 
-        meth = getattr(utils, name)
+        meth = getattr(resources, name)
         with pytest.raises(FileNotFoundError):
             meth('doesnotexist')
 

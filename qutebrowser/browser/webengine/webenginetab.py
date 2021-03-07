@@ -37,7 +37,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            webenginesettings, certificateerror)
 from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               message, jinja, debug, version)
+                               resources, message, jinja, debug, version)
 from qutebrowser.qt import sip
 
 
@@ -1036,9 +1036,9 @@ class _WebEngineScripts(QObject):
         """Initialize global qutebrowser JavaScript."""
         js_code = javascript.wrap_global(
             'scripts',
-            utils.read_file('javascript/scroll.js'),
-            utils.read_file('javascript/webelem.js'),
-            utils.read_file('javascript/caret.js'),
+            resources.read_file('javascript/scroll.js'),
+            resources.read_file('javascript/webelem.js'),
+            resources.read_file('javascript/caret.js'),
         )
         # FIXME:qtwebengine what about subframes=True?
         self._inject_js('js', js_code, subframes=True)
@@ -1059,7 +1059,7 @@ class _WebEngineScripts(QObject):
         css = shared.get_user_stylesheet()
         js_code = javascript.wrap_global(
             'stylesheet',
-            utils.read_file('javascript/stylesheet.js'),
+            resources.read_file('javascript/stylesheet.js'),
             javascript.assemble('stylesheet', 'set_css', css),
         )
         self._inject_js('stylesheet', js_code, subframes=True)
@@ -1174,7 +1174,7 @@ class _WebEngineScripts(QObject):
         for quirk in quirks:
             if not quirk.predicate:
                 continue
-            src = utils.read_file(f'javascript/quirks/{quirk.filename}.user.js')
+            src = resources.read_file(f'javascript/quirks/{quirk.filename}.user.js')
             self._inject_js(
                 f'quirk_{quirk.filename}',
                 src,
