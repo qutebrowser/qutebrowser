@@ -1080,18 +1080,11 @@ class _WebEngineScripts(QObject):
                 removed = page_scripts.remove(script)
                 assert removed, script.name()
 
-    def _inject_greasemonkey_scripts(self, scripts=None, injection_point=None,
-                                     remove_first=True):
+    def _inject_greasemonkey_scripts(self, scripts):
         """Register user JavaScript files with the current tab.
 
         Args:
-            scripts: A list of GreasemonkeyScripts, or None to add all
-                     known by the Greasemonkey subsystem.
-            injection_point: The QWebEngineScript::InjectionPoint stage
-                             to inject the script into, None to use
-                             auto-detection.
-            remove_first: Whether to remove all previously injected
-                          scripts before adding these ones.
+            scripts: A list of GreasemonkeyScripts.
         """
         if sip.isdeleted(self._widget):
             return
@@ -1102,11 +1095,7 @@ class _WebEngineScripts(QObject):
         # While, taking care not to remove any other scripts that might
         # have been added elsewhere, like the one for stylesheets.
         page_scripts = self._widget.page().scripts()
-        if remove_first:
-            self._remove_all_greasemonkey_scripts()
-
-        if not scripts:
-            return
+        self._remove_all_greasemonkey_scripts()
 
         for script in scripts:
             new_script = QWebEngineScript()
@@ -1114,37 +1103,29 @@ class _WebEngineScripts(QObject):
                 world = int(script.jsworld)
                 if not 0 <= world <= qtutils.MAX_WORLD_ID:
                     log.greasemonkey.error(
-                        "script {} has invalid value for '@qute-js-world'"
-                        ": {}, should be between 0 and {}"
-                        .format(
-                            script.name,
-                            script.jsworld,
-                            qtutils.MAX_WORLD_ID))
+                        f"script {script.name} has invalid value for '@qute-js-world'"
+                        f": {script.jsworld}, should be between 0 and "
+                        f"{qtutils.MAX_WORLD_ID}")
                     continue
             except ValueError:
                 try:
-                    world = _JS_WORLD_MAP[usertypes.JsWorld[
-                        script.jsworld.lower()]]
+                    world = _JS_WORLD_MAP[usertypes.JsWorld[script.jsworld.lower()]]
                 except KeyError:
                     log.greasemonkey.error(
-                        "script {} has invalid value for '@qute-js-world'"
-                        ": {}".format(script.name, script.jsworld))
+                        f"script {script.name} has invalid value for '@qute-js-world'"
+                        f": {script.jsworld}")
                     continue
             new_script.setWorldId(world)
             new_script.setSourceCode(script.code())
-            new_script.setName("GM-{}".format(script.name))
+            new_script.setName(f"GM-{script.name}")
             new_script.setRunsOnSubFrames(script.runs_on_sub_frames)
 
-            # Override the @run-at value parsed by QWebEngineScript if desired.
-            if injection_point:
-                new_script.setInjectionPoint(injection_point)
-            elif script.needs_document_end_workaround():
-                log.greasemonkey.debug("Forcing @run-at document-end for {}"
-                                       .format(script.name))
+            if script.needs_document_end_workaround():
+                log.greasemonkey.debug(
+                    f"Forcing @run-at document-end for {script.name}")
                 new_script.setInjectionPoint(QWebEngineScript.DocumentReady)
 
-            log.greasemonkey.debug('adding script: {}'
-                                   .format(new_script.name()))
+            log.greasemonkey.debug(f'adding script: {new_script.name()}')
             page_scripts.insert(new_script)
 
     def _inject_site_specific_quirks(self):
