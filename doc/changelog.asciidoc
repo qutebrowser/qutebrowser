@@ -60,6 +60,9 @@ Changed
 - The `fileselect.*.command` settings now support file selectors writing the
   selected paths to stdout, which is used if no `{}` placeholder is contained in
   the configured command.
+- The `readability` and `readability-js` userscripts now add a
+  `qute-readability` CSS class to the page, so that it can be styled easily via
+  a user stylesheet.
 
 Fixed
 ~~~~~
