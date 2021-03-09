@@ -1300,8 +1300,7 @@ fileselect.folder.command:
     completions:
       - ['["xterm", "-e", "ranger", "--choosedir={}"]', "Ranger in xterm"]
       - ['["xterm", "-e", "vifm", "--choose-dir", "{}"]', "vifm in xterm"]
-      # TODO what is the nnn command?
-      # - ['["xterm", "-e", "nnn", "-p", "{}"]', "nnn in xterm"]
+      - ['["xterm", "-e", "nnn", "-p", "{}"]', "nnn in xterm"]
   default: ['xterm', '-e', 'ranger', '--choosedir={}']
   desc: >-
     Command (and arguments) to use for selecting a single folder in forms.

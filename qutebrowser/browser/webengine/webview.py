@@ -31,6 +31,20 @@ from qutebrowser.config import config
 from qutebrowser.utils import log, debug, usertypes
 
 
+_QB_FILESELECTION_MODES = {
+    QWebEnginePage.FileSelectOpen: shared.FileSelectionMode.single_file,
+    QWebEnginePage.FileSelectOpenMultiple: shared.FileSelectionMode.multiple_files,
+    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-91489
+    #
+    # QtWebEngine doesn't expose this value from its internal
+    # FilePickerControllerPrivate::FileChooserMode enum (i.e. it's not included in
+    # the public QWebEnginePage::FileSelectionMode enum).
+    # However, QWebEnginePage::chooseFiles is still called with the matching value
+    # (2) when a file input with "webkitdirectory" is used.
+    QWebEnginePage.FileSelectionMode(2): shared.FileSelectionMode.folder,
+}
+
+
 class WebEngineView(QWebEngineView):
 
     """Custom QWebEngineView subclass with qutebrowser-specific features."""
@@ -242,7 +256,6 @@ class WebEnginePage(QWebEnginePage):
 
     def chooseFiles(
         self,
-        # TODO should this be int instead since it can take other values?
         mode: QWebEnginePage.FileSelectionMode,
         old_files: Iterable[str],
         accepted_mimetypes: Iterable[str],
@@ -253,11 +266,10 @@ class WebEnginePage(QWebEnginePage):
             return super().chooseFiles(mode, old_files, accepted_mimetypes)
         assert handler == "external", handler
         try:
-            qb_mode = shared.FileSelectionMode(mode)
-        except ValueError:
+            qb_mode = _QB_FILESELECTION_MODES[mode]
+        except KeyError:
             log.webview.warning(
-                f"Got file selection mode {mode}, "
-                "but we don't support that!"
+                f"Got file selection mode {mode}, but we don't support that!"
             )
             return super().chooseFiles(mode, old_files, accepted_mimetypes)
 
