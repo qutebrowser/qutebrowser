@@ -25,7 +25,7 @@ import pytest
 import py.path  # pylint: disable=no-name-in-module
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, version
 from qutebrowser.browser import greasemonkey
 from qutebrowser.misc import objects
 
@@ -77,8 +77,7 @@ def test_get_scripts_by_url(url, expected_matches):
     gm_manager = greasemonkey.GreasemonkeyManager()
 
     scripts = gm_manager.scripts_for(QUrl(url))
-    assert (len(scripts.start + scripts.end + scripts.idle) ==
-            expected_matches)
+    assert len(scripts.start + scripts.end + scripts.idle) == expected_matches
 
 
 @pytest.mark.parametrize("url, expected_matches", [
@@ -102,8 +101,7 @@ def test_regex_includes_scripts_for(url, expected_matches):
     gm_manager = greasemonkey.GreasemonkeyManager()
 
     scripts = gm_manager.scripts_for(QUrl(url))
-    assert (len(scripts.start + scripts.end + scripts.idle) ==
-            expected_matches)
+    assert len(scripts.start + scripts.end + scripts.idle) == expected_matches
 
 
 def test_no_metadata(caplog):
@@ -229,124 +227,87 @@ def test_required_scripts_are_included(download_stub, tmpdir):
     assert scripts[0].excludes
 
 
-class TestWindowIsolation:
+def test_window_isolation(js_tester, request):
     """Check that greasemonkey scripts get a shadowed global scope."""
+    # Change something in the global scope
+    setup_script = "window.$ = 'global'"
 
-    @pytest.fixture
-    def setup(self):
-        # pylint: disable=attribute-defined-outside-init
-        class SetupData:
-            pass
-        ret = SetupData()
-
-        # Change something in the global scope
-        ret.setup_script = "window.$ = 'global'"
-
-        # Greasemonkey script to report back on its scope.
-        test_script = greasemonkey.GreasemonkeyScript.parse(
-            textwrap.dedent("""
-                // ==UserScript==
-                // @name scopetest
-                // ==/UserScript==
-                // Check the thing the page set is set to the expected type
-                result.push(window.$);
-                result.push($);
-                // Now overwrite it
-                window.$ = 'shadowed';
-                // And check everything is how the script would expect it to be
-                // after just writing to the "global" scope
-                result.push(window.$);
-                result.push($);
-            """)
-        )
-
-        # The compiled source of that scripts with some additional setup
-        # bookending it.
-        ret.test_script = "\n".join([
-            """
-            const result = [];
-            """,
-            test_script.code(),
-            """
-            // Now check that the actual global scope has
-            // not been overwritten
+    # Greasemonkey script to report back on its scope.
+    test_gm_script = greasemonkey.GreasemonkeyScript.parse(
+        textwrap.dedent("""
+            // ==UserScript==
+            // @name scopetest
+            // ==/UserScript==
+            // Check the thing the page set is set to the expected type
             result.push(window.$);
             result.push($);
-            // And return our findings
-            result;
-            """
-        ])
+            // Now overwrite it
+            window.$ = 'shadowed';
+            // And check everything is how the script would expect it to be
+            // after just writing to the "global" scope
+            result.push(window.$);
+            result.push($);
+        """)
+    )
 
-        # What we expect the script to report back.
-        ret.expected = ["global", "global",
-                        "shadowed", "shadowed",
-                        "global", "global"]
-        return ret
+    # The compiled source of that scripts with some additional setup
+    # bookending it.
+    test_script = "\n".join([
+        """
+        const result = [];
+        """,
+        test_gm_script.code(),
+        """
+        // Now check that the actual global scope has
+        // not been overwritten
+        result.push(window.$);
+        result.push($);
+        // And return our findings
+        result;
+        """
+    ])
 
-    def test_webengine(self, qtbot, webengineview, setup):
-        page = webengineview.page()
-        page.runJavaScript(setup.setup_script)
-
-        with qtbot.wait_callback() as callback:
-            page.runJavaScript(setup.test_script, callback)
-        callback.assert_called_with(setup.expected)
+    # What we expect the script to report back.
+    expected = ["global", "global", "shadowed", "shadowed", "global", "global"]
 
     # The JSCore in 602.1 doesn't fully support Proxy.
-    @pytest.mark.qtwebkit6021_xfail
-    def test_webkit(self, webview, setup):
-        elem = webview.page().mainFrame().documentElement()
-        elem.evaluateJavaScript(setup.setup_script)
-        result = elem.evaluateJavaScript(setup.test_script)
-        assert result == setup.expected
+    xfail = False
+    if (js_tester.tab.backend == usertypes.Backend.QtWebKit and
+            version.qWebKitVersion() == '602.1'):
+        expected[-1] = 'shadowed'
+        expected[-2] = 'shadowed'
+        xfail = True
+
+    js_tester.run(setup_script)
+    js_tester.run(test_script, expected=expected)
+
+    if xfail:
+        pytest.xfail("Broken on WebKit 602.1")
 
 
-class TestSharedWindowProxy:
+def test_shared_window_proxy(js_tester):
     """Check that all scripts have access to the same window proxy."""
+    # Greasemonkey script to add a property to the window proxy.
+    test_script_a = greasemonkey.GreasemonkeyScript.parse(
+        textwrap.dedent("""
+            // ==UserScript==
+            // @name a
+            // ==/UserScript==
+            // Set a value from script a
+            window.$ = 'test';
+        """)
+    ).code()
 
-    @pytest.fixture
-    def setup(self):
-        # pylint: disable=attribute-defined-outside-init
-        class SetupData:
-            pass
-        ret = SetupData()
+    # Greasemonkey script to retrieve a property from the window proxy.
+    test_script_b = greasemonkey.GreasemonkeyScript.parse(
+        textwrap.dedent("""
+            // ==UserScript==
+            // @name b
+            // ==/UserScript==
+            // Check that the value is accessible from script b
+            return [window.$, $];
+        """)
+    ).code()
 
-        # Greasemonkey script to add a property to the window proxy.
-        ret.test_script_a = greasemonkey.GreasemonkeyScript.parse(
-            textwrap.dedent("""
-                // ==UserScript==
-                // @name a
-                // ==/UserScript==
-                // Set a value from script a
-                window.$ = 'test';
-            """)
-        ).code()
-
-        # Greasemonkey script to retrieve a property from the window proxy.
-        ret.test_script_b = greasemonkey.GreasemonkeyScript.parse(
-            textwrap.dedent("""
-                // ==UserScript==
-                // @name b
-                // ==/UserScript==
-                // Check that the value is accessible from script b
-                return [window.$, $];
-            """)
-        ).code()
-
-        # What we expect the script to report back.
-        ret.expected = ["test", "test"]
-        return ret
-
-    def test_webengine(self, qtbot, webengineview, setup):
-        page = webengineview.page()
-
-        with qtbot.wait_callback() as callback:
-            page.runJavaScript(setup.test_script_a, callback)
-        with qtbot.wait_callback() as callback:
-            page.runJavaScript(setup.test_script_b, callback)
-        callback.assert_called_with(setup.expected)
-
-    def test_webkit(self, webview, setup):
-        elem = webview.page().mainFrame().documentElement()
-        elem.evaluateJavaScript(setup.test_script_a)
-        result = elem.evaluateJavaScript(setup.test_script_b)
-        assert result == setup.expected
+    js_tester.run(test_script_a)
+    js_tester.run(test_script_b, expected=["test", "test"])

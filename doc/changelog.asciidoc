@@ -27,6 +27,7 @@ Added
 - New optional dependency on the `importlib_metadata` project on Python 3.7 and
   below. This is only relevant when PyQtWebEngine is installed via pip - thus,
   this dependency usually isn't relevant for packagers.
+- New `qute-keepassxc` userscript integrating with the KeePassXC browser API.
 
 Changed
 ~~~~~~~
@@ -54,6 +55,17 @@ Changed
   long line.
 - If a command stats with space (e.g. `: open ...`, it's now not saved to
   command history anymore (similar to how some shells work).
+- When a tab is pinned, running `:open` will now open a new tab instead of
+  displaying an error.
+- The `fileselect.*.command` settings now support file selectors writing the
+  selected paths to stdout, which is used if no `{}` placeholder is contained in
+  the configured command.
+- The `--debug-flag` argument now understands a new `log-sensitive-keys` value
+  which logs all keypresses (including those in insert/passthrough/prompt/...
+  mode) for debugging.
+- The `readability` and `readability-js` userscripts now add a
+  `qute-readability` CSS class to the page, so that it can be styled easily via
+  a user stylesheet.
 
 Fixed
 ~~~~~
@@ -81,6 +93,10 @@ Fixed
   properly.
 - The "try again" button on error pages now works correctly with JavaScript
   disabled.
+- If a GreaseMonkey script doesn't have a "@run-at" comment, qutebrowser
+  accidentally treated that as "@run-at document-idle". However, other
+  GreaseMonkey implementations default to "@run-at document-end" instead, which
+  is what qutebrowser now does, too.
 
 [[v2.0.2]]
 v2.0.2 (2021-02-04)
