@@ -104,7 +104,6 @@ class TestReadFile:
 
     @pytest.mark.parametrize('filename', ['javascript/scroll.js',
                                           'html/error.html'])
-
     def test_read_cached_file(self, mocker, filename):
         resources.preload()
         m = mocker.patch('qutebrowser.utils.resources.importlib_resources.files')
