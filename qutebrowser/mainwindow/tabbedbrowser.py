@@ -929,16 +929,12 @@ class TabbedBrowser(QWidget):
             return
 
         messages = {
-            browsertab.TerminationStatus.abnormal:
-                "Renderer process exited with status {}".format(code),
-            browsertab.TerminationStatus.crashed:
-                "Renderer process crashed",
-            browsertab.TerminationStatus.killed:
-                "Renderer process was killed",
-            browsertab.TerminationStatus.unknown:
-                "Renderer process did not start",
+            browsertab.TerminationStatus.abnormal: "Renderer process exited",
+            browsertab.TerminationStatus.crashed: "Renderer process crashed",
+            browsertab.TerminationStatus.killed: "Renderer process was killed",
+            browsertab.TerminationStatus.unknown: "Renderer process did not start",
         }
-        msg = messages[status]
+        msg = messages[status] + f" (status {code})"
 
         def show_error_page(html):
             tab.set_html(html)

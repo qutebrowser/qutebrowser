@@ -28,6 +28,7 @@ import jinja2
 from PyQt5.QtCore import QUrl
 
 import qutebrowser
+from qutebrowser.utils import usertypes
 
 
 class JSTester:
@@ -113,7 +114,7 @@ class JSTester:
             source = f.read()
         self.run(source, expected)
 
-    def run(self, source: str, expected, world=None) -> None:
+    def run(self, source: str, expected=usertypes.UNSET, world=None) -> None:
         """Run the given javascript source.
 
         Args:
@@ -123,7 +124,9 @@ class JSTester:
         """
         with self.qtbot.wait_callback() as callback:
             self.tab.run_js_async(source, callback, world=world)
-        callback.assert_called_with(expected)
+
+        if expected is not usertypes.UNSET:
+            callback.assert_called_with(expected)
 
 
 @pytest.fixture
