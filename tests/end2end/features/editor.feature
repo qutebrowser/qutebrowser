@@ -6,14 +6,14 @@ Feature: Opening external editors
 
     Scenario: Editing a URL
         When I open data/numbers/1.txt
-        And I set up a fake editor replacing "1.txt" by "2.txt"
+        And I setup a fake editor replacing "1.txt" by "2.txt"
         And I run :edit-url
         Then data/numbers/2.txt should be loaded
 
     Scenario: Editing a URL with -t
         When I run :tab-only
         And I open data/numbers/1.txt
-        And I set up a fake editor replacing "1.txt" by "2.txt"
+        And I setup a fake editor replacing "1.txt" by "2.txt"
         And I run :edit-url -t
         Then data/numbers/2.txt should be loaded
         And the following tabs should be open:
@@ -24,7 +24,7 @@ Feature: Opening external editors
         When I set tabs.new_position.related to prev
         And I open data/numbers/1.txt
         And I run :tab-only
-        And I set up a fake editor replacing "1.txt" by "2.txt"
+        And I setup a fake editor replacing "1.txt" by "2.txt"
         And I run :edit-url -rt
         Then data/numbers/2.txt should be loaded
         And the following tabs should be open:
@@ -34,7 +34,7 @@ Feature: Opening external editors
     Scenario: Editing a URL with -b
         When I run :tab-only
         And I open data/numbers/1.txt
-        And I set up a fake editor replacing "1.txt" by "2.txt"
+        And I setup a fake editor replacing "1.txt" by "2.txt"
         And I run :edit-url -b
         Then data/numbers/2.txt should be loaded
         And the following tabs should be open:
@@ -45,7 +45,7 @@ Feature: Opening external editors
         When I run :window-only
         And I open data/numbers/1.txt in a new tab
         And I run :tab-only
-        And I set up a fake editor replacing "1.txt" by "2.txt"
+        And I setup a fake editor replacing "1.txt" by "2.txt"
         And I run :edit-url -w
         Then data/numbers/2.txt should be loaded
         And the session should look like:
@@ -65,7 +65,7 @@ Feature: Opening external editors
         When I open data/numbers/1.txt in a new tab
         And I run :tab-only
         And I run :window-only
-        And I set up a fake editor replacing "1.txt" by "2.txt"
+        And I setup a fake editor replacing "1.txt" by "2.txt"
         And I run :edit-url -p
         Then data/numbers/2.txt should be loaded
         And the session should look like:
@@ -90,13 +90,13 @@ Feature: Opening external editors
     Scenario: Editing a URL with invalid URL
         When I set url.auto_search to never
         And I open data/hello.txt
-        And I set up a fake editor replacing "http://localhost:(port)/data/hello.txt" by "foo!"
+        And I setup a fake editor replacing "http://localhost:(port)/data/hello.txt" by "foo!"
         And I run :edit-url
         Then the error "Invalid URL" should be shown
 
     Scenario: Spawning an editor successfully
         Given I have a fresh instance
-        When I set up a fake editor returning "foobar"
+        When I setup a fake editor returning "foobar"
         And I open data/editor.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
@@ -105,7 +105,7 @@ Feature: Opening external editors
         Then the javascript message "text: foobar" should be logged
 
     Scenario: Spawning an editor in normal mode
-        When I set up a fake editor returning "foobar"
+        When I setup a fake editor returning "foobar"
         And I open data/editor.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
@@ -119,7 +119,7 @@ Feature: Opening external editors
     # There's no guarantee that the tab gets deleted...
     @posix
     Scenario: Spawning an editor and closing the tab
-        When I set up a fake editor that writes "foobar" on save
+        When I setup a fake editor that writes "foobar" on save
         And I open data/editor.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
@@ -134,7 +134,7 @@ Feature: Opening external editors
     # Could not get signals working on Windows
     @posix
     Scenario: Spawning an editor and saving
-        When I set up a fake editor that writes "foobar" on save
+        When I setup a fake editor that writes "foobar" on save
         And I open data/editor.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
@@ -145,7 +145,7 @@ Feature: Opening external editors
         Then the javascript message "text: foobar" should be logged
 
     Scenario: Spawning an editor in caret mode
-        When I set up a fake editor returning "foobar"
+        When I setup a fake editor returning "foobar"
         And I open data/editor.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
@@ -159,7 +159,7 @@ Feature: Opening external editors
         Then the javascript message "text: foobar" should be logged
 
     Scenario: Spawning an editor with existing text
-        When I set up a fake editor replacing "foo" by "bar"
+        When I setup a fake editor replacing "foo" by "bar"
         And I open data/editor.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
@@ -173,20 +173,20 @@ Feature: Opening external editors
 
     Scenario: Edit a command and run it
         When I run :set-cmd-text :message-info foo
-        And I set up a fake editor replacing "foo" by "bar"
+        And I setup a fake editor replacing "foo" by "bar"
         And I run :edit-command --run
         Then the message "bar" should be shown
         And "Leaving mode KeyMode.command (reason: cmd accept)" should be logged
 
     Scenario: Edit a command and omit the start char
-        When I set up a fake editor returning "message-info foo"
+        When I setup a fake editor returning "message-info foo"
         And I run :edit-command
         Then the error "command must start with one of :/?" should be shown
         And "Leaving mode KeyMode.command *" should not be logged
 
     Scenario: Edit a command to be empty
         When I run :set-cmd-text :
-        When I set up a fake editor returning empty text
+        When I setup a fake editor returning empty text
         And I run :edit-command
         Then the error "command must start with one of :/?" should be shown
         And "Leaving mode KeyMode.command *" should not be logged
@@ -194,13 +194,20 @@ Feature: Opening external editors
     ## select single file
 
     Scenario: Select one file with single command
-        When I set up a fake "single_file" fileselector selecting "tests/end2end/data/numbers/1.txt"
+        When I setup a fake single_file fileselector selecting "tests/end2end/data/numbers/1.txt" and writes to a temporary file
+        And I open data/fileselect.html
+        And I run :click-element id single_file
+        Then the javascript message "Files: 1.txt" should be logged
+
+    Scenario: Select one file with single command that writes to stdout
+        When I setup a fake single_file fileselector selecting "tests/end2end/data/numbers/1.txt" and writes to stdout
         And I open data/fileselect.html
         And I run :click-element id single_file
         Then the javascript message "Files: 1.txt" should be logged
 
     Scenario: Select two files with single command
-        When I set up a fake "single_file" fileselector selecting "tests/end2end/data/numbers/1.txt tests/end2end/data/numbers/2.txt"
+        When I setup a fake single_file fileselector selecting "tests/end2end/data/numbers/1.txt tests/end2end/data/numbers/2.txt" and writes to a temporary file
+
         And I open data/fileselect.html
         And I run :click-element id single_file
         Then the javascript message "Files: 1.txt" should be logged
@@ -209,13 +216,15 @@ Feature: Opening external editors
     ## select multiple files
 
     Scenario: Select one file with multiple command
-        When I set up a fake "multiple_files" fileselector selecting "tests/end2end/data/numbers/1.txt"
+        When I setup a fake multiple_files fileselector selecting "tests/end2end/data/numbers/1.txt" and writes to a temporary file
+
         And I open data/fileselect.html
         And I run :click-element id multiple_files
         Then the javascript message "Files: 1.txt" should be logged
 
     Scenario: Select two files with multiple command
-        When I set up a fake "multiple_files" fileselector selecting "tests/end2end/data/numbers/1.txt tests/end2end/data/numbers/2.txt"
+        When I setup a fake multiple_files fileselector selecting "tests/end2end/data/numbers/1.txt tests/end2end/data/numbers/2.txt" and writes to a temporary file
+
         And I open data/fileselect.html
         And I run :click-element id multiple_files
         Then the javascript message "Files: 1.txt, 2.txt" should be logged

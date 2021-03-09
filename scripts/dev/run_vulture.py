@@ -61,6 +61,7 @@ def whitelist_generator():  # noqa: C901
     yield 'scripts.utils.bg_colors'
     yield 'qutebrowser.misc.sql.SqliteErrorCode.CONSTRAINT'
     yield 'qutebrowser.misc.throttle.Throttle.set_delay'
+    yield 'qutebrowser.misc.guiprocess.GUIProcess.final_stderr'
 
     # Qt attributes
     yield 'PyQt5.QtWebKit.QWebPage.ErrorPageExtensionReturn().baseUrl'

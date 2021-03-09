@@ -20,6 +20,7 @@
 """Test webenginetab."""
 
 import logging
+import textwrap
 
 import pytest
 QtWebEngineWidgets = pytest.importorskip("PyQt5.QtWebEngineWidgets")
@@ -35,15 +36,38 @@ webenginetab = pytest.importorskip(
 pytestmark = pytest.mark.usefixtures('greasemonkey_manager')
 
 
+class ScriptsHelper:
+
+    """Helper to get the processed (usually Greasemonkey) scripts."""
+
+    def __init__(self, tab):
+        self._tab = tab
+
+    def get_scripts(self, prefix='GM-'):
+        return [
+            s for s in self._tab._widget.page().scripts().toList()
+            if s.name().startswith(prefix)
+        ]
+
+    def get_script(self):
+        scripts = self.get_scripts()
+        assert len(scripts) == 1
+        return scripts[0]
+
+    def inject(self, scripts):
+        self._tab._scripts._inject_greasemonkey_scripts(scripts)
+        return self.get_scripts()
+
+
 class TestWebengineScripts:
 
     """Test the _WebEngineScripts utility class."""
 
     @pytest.fixture
-    def webengine_scripts(self, webengine_tab):
-        return webengine_tab._scripts
+    def scripts_helper(self, webengine_tab):
+        return ScriptsHelper(webengine_tab)
 
-    def test_greasemonkey_undefined_world(self, webengine_scripts, caplog):
+    def test_greasemonkey_undefined_world(self, scripts_helper, caplog):
         """Make sure scripts with non-existent worlds are rejected."""
         scripts = [
             greasemonkey.GreasemonkeyScript(
@@ -51,18 +75,16 @@ class TestWebengineScripts:
         ]
 
         with caplog.at_level(logging.ERROR, 'greasemonkey'):
-            webengine_scripts._inject_greasemonkey_scripts(scripts)
+            injected = scripts_helper.inject(scripts)
 
         assert len(caplog.records) == 1
         msg = caplog.messages[0]
         assert "has invalid value for '@qute-js-world': Mars" in msg
-        collection = webengine_scripts._widget.page().scripts().toList()
-        assert not any(script.name().startswith('GM-')
-                       for script in collection)
+
+        assert not injected
 
     @pytest.mark.parametrize("worldid", [-1, 257])
-    def test_greasemonkey_out_of_range_world(self, worldid, webengine_scripts,
-                                             caplog):
+    def test_greasemonkey_out_of_range_world(self, worldid, scripts_helper, caplog):
         """Make sure scripts with out-of-range worlds are rejected."""
         scripts = [
             greasemonkey.GreasemonkeyScript(
@@ -70,19 +92,18 @@ class TestWebengineScripts:
         ]
 
         with caplog.at_level(logging.ERROR, 'greasemonkey'):
-            webengine_scripts._inject_greasemonkey_scripts(scripts)
+            injected = scripts_helper.inject(scripts)
 
         assert len(caplog.records) == 1
         msg = caplog.messages[0]
         assert "has invalid value for '@qute-js-world': " in msg
         assert "should be between 0 and" in msg
-        collection = webengine_scripts._widget.page().scripts().toList()
-        assert not any(script.name().startswith('GM-')
-                       for script in collection)
+
+        assert not injected
 
     @pytest.mark.parametrize("worldid", [0, 10])
     def test_greasemonkey_good_worlds_are_passed(self, worldid,
-                                                 webengine_scripts, caplog):
+                                                 scripts_helper, caplog):
         """Make sure scripts with valid worlds have it set."""
         scripts = [
             greasemonkey.GreasemonkeyScript(
@@ -91,13 +112,11 @@ class TestWebengineScripts:
         ]
 
         with caplog.at_level(logging.ERROR, 'greasemonkey'):
-            webengine_scripts._inject_greasemonkey_scripts(scripts)
+            scripts_helper.inject(scripts)
 
-        collection = webengine_scripts._widget.page().scripts()
-        assert collection.toList()[-1].worldId() == worldid
+        assert scripts_helper.get_script().worldId() == worldid
 
-    def test_greasemonkey_document_end_workaround(self, monkeypatch,
-                                                  webengine_scripts):
+    def test_greasemonkey_document_end_workaround(self, monkeypatch, scripts_helper):
         """Make sure document-end is forced when needed."""
         monkeypatch.setattr(greasemonkey.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
@@ -109,12 +128,41 @@ class TestWebengineScripts:
                 ('run-at', 'document-start'),
             ], None)
         ]
+        scripts_helper.inject(scripts)
 
-        webengine_scripts._inject_greasemonkey_scripts(scripts)
-
-        collection = webengine_scripts._widget.page().scripts()
-        script = collection.toList()[-1]
+        script = scripts_helper.get_script()
         assert script.injectionPoint() == QWebEngineScript.DocumentReady
+
+    @pytest.mark.parametrize('run_at, expected', [
+        # UserScript::DocumentElementCreation
+        ('document-start', QWebEngineScript.DocumentCreation),
+        # UserScript::DocumentLoadFinished
+        ('document-end', QWebEngineScript.DocumentReady),
+        # UserScript::AfterLoad
+        ('document-idle', QWebEngineScript.Deferred),
+        # default according to https://wiki.greasespot.net/Metadata_Block#.40run-at
+        (None, QWebEngineScript.DocumentReady),
+    ])
+    def test_greasemonkey_run_at_values(self, scripts_helper, run_at, expected):
+        if run_at is None:
+            script = """
+                // ==UserScript==
+                // @name qutebrowser test userscript
+                // ==/UserScript==
+            """
+        else:
+            script = f"""
+                // ==UserScript==
+                // @name qutebrowser test userscript
+                // @run-at {run_at}
+                // ==/UserScript==
+            """
+
+        script = textwrap.dedent(script.lstrip('\n'))
+        scripts = [greasemonkey.GreasemonkeyScript.parse(script)]
+        scripts_helper.inject(scripts)
+
+        assert scripts_helper.get_script().injectionPoint() == expected
 
 
 def test_notification_permission_workaround():
