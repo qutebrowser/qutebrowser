@@ -87,7 +87,7 @@ def run(args):
 
     log.init.debug("Initializing directories...")
     standarddir.init(args)
-    resources.preload_resources()
+    resources.preload()
 
     log.init.debug("Initializing config...")
     configinit.early_init(args)
