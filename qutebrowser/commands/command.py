@@ -32,7 +32,7 @@ from qutebrowser.commands import cmdexc, argparser
 from qutebrowser.utils import log, message, docutils, objreg, usertypes, utils
 from qutebrowser.utils import debug as debug_utils
 from qutebrowser.misc import objects
-from qutebrowser.completion.models import completionmodel
+from qutebrowser.completion import completionmodel
 
 
 @dataclasses.dataclass

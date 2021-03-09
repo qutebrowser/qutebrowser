@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING, Iterator, List, Optional
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.api import cmdutils
-from qutebrowser.completion.models import configmodel
+from qutebrowser.completion.strategies import configmodel
 from qutebrowser.utils import objreg, message, standarddir, urlmatch
 from qutebrowser.config import configtypes, configexc, configfiles, configdata
 from qutebrowser.misc import editor
@@ -83,8 +83,8 @@ class ConfigCommands:
         message.info(text)
 
     @cmdutils.register(instance='config-commands')
-    @cmdutils.argument('option', completion=configmodel.option)
-    @cmdutils.argument('value', completion=configmodel.value)
+    @cmdutils.argument('option', completion=configmodel.Option())
+    @cmdutils.argument('value', completion=configmodel.Value())
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
     @cmdutils.argument('pattern', flag='u')
     def set(self, win_id: int, option: str = None, value: str = None,
@@ -133,7 +133,7 @@ class ConfigCommands:
 
     @cmdutils.register(instance='config-commands', maxsplit=1,
                        no_cmd_split=True, no_replace_variables=True)
-    @cmdutils.argument('command', completion=configmodel.bind)
+    @cmdutils.argument('command', completion=configmodel.Bind())
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
     def bind(self, win_id: str, key: str = None, command: str = None, *,
              mode: str = 'normal', default: bool = False) -> None:
@@ -194,8 +194,8 @@ class ConfigCommands:
                                    save_yaml=True)
 
     @cmdutils.register(instance='config-commands', star_args_optional=True)
-    @cmdutils.argument('option', completion=configmodel.option)
-    @cmdutils.argument('values', completion=configmodel.value)
+    @cmdutils.argument('option', completion=configmodel.Option())
+    @cmdutils.argument('values', completion=configmodel.Value())
     @cmdutils.argument('pattern', flag='u')
     def config_cycle(self, option: str, *values: str,
                      pattern: str = None,
@@ -243,7 +243,7 @@ class ConfigCommands:
             self._print_value(option, pattern=parsed_pattern)
 
     @cmdutils.register(instance='config-commands')
-    @cmdutils.argument('option', completion=configmodel.customized_option)
+    @cmdutils.argument('option', completion=configmodel.CustomizedOption())
     def config_unset(self, option: str, temp: bool = False) -> None:
         """Unset an option.
 
@@ -267,7 +267,7 @@ class ConfigCommands:
         tabbed_browser.load_url(url, newtab=False)
 
     @cmdutils.register(instance='config-commands')
-    @cmdutils.argument('option', completion=configmodel.list_option)
+    @cmdutils.argument('option', completion=configmodel.ListOption())
     def config_list_add(self, option: str, value: str,
                         temp: bool = False) -> None:
         """Append a value to a config option that is a list.
@@ -290,7 +290,7 @@ class ConfigCommands:
             self._config.update_mutables(save_yaml=not temp)
 
     @cmdutils.register(instance='config-commands')
-    @cmdutils.argument('option', completion=configmodel.dict_option)
+    @cmdutils.argument('option', completion=configmodel.DictOption())
     def config_dict_add(self, option: str, key: str, value: str,
                         temp: bool = False, replace: bool = False) -> None:
         """Add a key/value pair to a dictionary option.
@@ -321,7 +321,7 @@ class ConfigCommands:
             self._config.update_mutables(save_yaml=not temp)
 
     @cmdutils.register(instance='config-commands')
-    @cmdutils.argument('option', completion=configmodel.list_option)
+    @cmdutils.argument('option', completion=configmodel.ListOption())
     def config_list_remove(self, option: str, value: str,
                            temp: bool = False) -> None:
         """Remove a value from a list.
@@ -350,7 +350,7 @@ class ConfigCommands:
             self._config.update_mutables(save_yaml=not temp)
 
     @cmdutils.register(instance='config-commands')
-    @cmdutils.argument('option', completion=configmodel.dict_option)
+    @cmdutils.argument('option', completion=configmodel.DictOption())
     def config_dict_remove(self, option: str, key: str,
                            temp: bool = False) -> None:
         """Remove a key from a dict.

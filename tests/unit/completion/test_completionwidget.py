@@ -25,7 +25,8 @@ import pytest
 from PyQt5.QtCore import QRect
 
 from qutebrowser.completion import completionwidget
-from qutebrowser.completion.models import completionmodel, listcategory
+from qutebrowser.completion import completionmodel
+from qutebrowser.completion.categories import listcategory
 from qutebrowser.api import cmdutils
 
 

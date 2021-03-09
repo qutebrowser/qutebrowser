@@ -34,7 +34,7 @@ from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,
                                utils, usertypes, version)
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config, configfiles
-from qutebrowser.completion.models import miscmodels
+from qutebrowser.completion.strategies import miscmodels
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.qt import sip
 from qutebrowser.misc import objects
@@ -528,7 +528,7 @@ class SessionManager(QObject):
 
 
 @cmdutils.register()
-@cmdutils.argument('name', completion=miscmodels.session)
+@cmdutils.argument('name', completion=miscmodels.Session())
 def session_load(name: str, *,
                  clear: bool = False,
                  temp: bool = False,
@@ -570,7 +570,7 @@ def session_load(name: str, *,
 
 
 @cmdutils.register()
-@cmdutils.argument('name', completion=miscmodels.session)
+@cmdutils.argument('name', completion=miscmodels.Session())
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
 @cmdutils.argument('with_private', flag='p')
 def session_save(name: ArgType = default, *,
@@ -615,7 +615,7 @@ def session_save(name: ArgType = default, *,
 
 
 @cmdutils.register()
-@cmdutils.argument('name', completion=miscmodels.session)
+@cmdutils.argument('name', completion=miscmodels.Session())
 def session_delete(name: str, *, force: bool = False) -> None:
     """Delete a session.
 

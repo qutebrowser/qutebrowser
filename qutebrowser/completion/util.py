@@ -19,7 +19,7 @@
 
 """Utility functions for completion models."""
 
-from typing import Callable, Sequence
+from typing import Callable, Sequence, List, Tuple
 
 from qutebrowser.utils import usertypes
 from qutebrowser.misc import objects
@@ -28,7 +28,7 @@ from qutebrowser.misc import objects
 DeleteFuncType = Callable[[Sequence[str]], None]
 
 
-def get_cmd_completions(info, include_hidden, include_aliases, prefix=''):
+def get_cmd_completions(info, include_hidden, include_aliases, prefix='') -> List[Tuple[str, str, str]]:
     """Get a list of completions info for commands, sorted by name.
 
     Args:

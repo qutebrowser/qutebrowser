@@ -42,7 +42,7 @@ from qutebrowser.api import cmdutils
 from qutebrowser.utils import log
 from qutebrowser.misc import sessions, ipc, objects
 from qutebrowser.mainwindow import prompt
-from qutebrowser.completion.models import miscmodels
+from qutebrowser.completion.strategies import miscmodels
 
 
 instance = cast('Quitter', None)
@@ -55,7 +55,7 @@ class Quitter(QObject):
     Attributes:
         quit_status: The current quitting status.
         _is_shutting_down: Whether we're currently shutting down.
-        _args: The argparse namespace.
+        _args: The argparse na.strategies.
     """
 
     shutting_down = pyqtSignal()  # Emitted immediately before shut down
@@ -270,7 +270,7 @@ class Quitter(QObject):
 
 
 @cmdutils.register(name='quit')
-@cmdutils.argument('session', completion=miscmodels.session)
+@cmdutils.argument('session', completion=miscmodels.Session())
 def quit_(save: bool = False,
           session: sessions.ArgType = None) -> None:
     """Quit qutebrowser.

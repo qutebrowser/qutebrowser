@@ -28,7 +28,7 @@ from qutebrowser.config import config
 from qutebrowser.commands import runners
 from qutebrowser.misc import objects
 from qutebrowser.utils import log, utils, debug, objreg
-from qutebrowser.completion.models import miscmodels
+from qutebrowser.completion.strategies import miscmodels
 if TYPE_CHECKING:
     from qutebrowser.browser import browsertab
 
@@ -96,7 +96,7 @@ class Completer(QObject):
         if not before_cursor:
             # '|' or 'set|'
             log.completion.debug('Starting command completion')
-            return miscmodels.command
+            return miscmodels.Command()
         try:
             cmd = objects.commands[before_cursor[0]]
         except KeyError:
