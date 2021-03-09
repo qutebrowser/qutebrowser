@@ -20,6 +20,7 @@
 """Test webenginetab."""
 
 import logging
+import textwrap
 
 import pytest
 QtWebEngineWidgets = pytest.importorskip("PyQt5.QtWebEngineWidgets")
@@ -115,6 +116,39 @@ class TestWebengineScripts:
         collection = webengine_scripts._widget.page().scripts()
         script = collection.toList()[-1]
         assert script.injectionPoint() == QWebEngineScript.DocumentReady
+
+    @pytest.mark.parametrize('run_at, expected', [
+        # UserScript::DocumentElementCreation
+        ('document-start', QWebEngineScript.DocumentCreation),
+        # UserScript::DocumentLoadFinished
+        ('document-end', QWebEngineScript.DocumentReady),
+        # UserScript::AfterLoad
+        ('document-idle', QWebEngineScript.Deferred),
+        # default according to https://wiki.greasespot.net/Metadata_Block#.40run-at
+        (None, QWebEngineScript.DocumentReady),
+    ])
+    def test_run_at_values(self, webengine_scripts, run_at, expected):
+        if run_at is None:
+            script = """
+                // ==UserScript==
+                // @name qutebrowser test userscript
+                // ==/UserScript==
+            """
+        else:
+            script = f"""
+                // ==UserScript==
+                // @name qutebrowser test userscript
+                // @run-at {run_at}
+                // ==/UserScript==
+            """
+
+        script = textwrap.dedent(script.lstrip('\n'))
+        scripts = [greasemonkey.GreasemonkeyScript.parse(script)]
+        webengine_scripts._inject_greasemonkey_scripts(scripts)
+
+        collection = webengine_scripts._widget.page().scripts()
+        script = collection.toList()[-1]
+        assert script.injectionPoint() == expected
 
 
 def test_notification_permission_workaround():

@@ -93,6 +93,10 @@ Fixed
   properly.
 - The "try again" button on error pages now works correctly with JavaScript
   disabled.
+- If a GreaseMonkey script doesn't have a "@run-at" comment, qutebrowser
+  accidentally treated that as "@run-at document-idle". However, other
+  GreaseMonkey implementations default to "@run-at document-end" instead, which
+  is what qutebrowser now does, too.
 
 [[v2.0.2]]
 v2.0.2 (2021-02-04)
