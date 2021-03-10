@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-import os.path
+import pathlib
 import base64
 import dataclasses
 
@@ -154,7 +154,7 @@ class TestDataUrlWorkaround:
         def check_item(item):
             assert item.mimeType() == 'application/pdf'
             assert item.url().scheme() == 'data'
-            assert os.path.basename(item.path()) == expected_names.before
+            assert str(pathlib.Path(item.path()).name) == expected_names.before
             return True
 
         with qtbot.wait_signal(webengine_profile.downloadRequested,

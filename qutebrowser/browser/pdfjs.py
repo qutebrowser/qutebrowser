@@ -20,7 +20,7 @@
 
 """pdf.js integration for qutebrowser."""
 
-import os
+import pathlib
 
 from PyQt5.QtCore import QUrl, QUrlQuery
 
@@ -65,11 +65,11 @@ def generate_pdfjs_page(filename, url):
         url: The URL being opened.
     """
     if not is_available():
-        pdfjs_dir = os.path.join(standarddir.data(), 'pdfjs')
+        pdfjs_dir = pathlib.Path(standarddir.data()).joinpath('pdfjs')
         return jinja.render('no_pdfjs.html',
                             url=url.toDisplayString(),
                             title="PDF.js not found",
-                            pdfjs_dir=pdfjs_dir)
+                            pdfjs_dir=str(pdfjs_dir))
     html = get_pdfjs_res('web/viewer.html').decode('utf-8')
 
     script = _generate_pdfjs_script(filename)
@@ -131,9 +131,9 @@ def get_pdfjs_res_and_path(path):
 
     system_paths = _SYSTEM_PATHS + [
         # fallback
-        os.path.join(standarddir.data(), 'pdfjs'),
+        str(pathlib.Path(standarddir.data()).joinpath('pdfjs')),
         # hardcoded fallback for --temp-basedir
-        os.path.expanduser('~/.local/share/qutebrowser/pdfjs/'),
+        str(pathlib.Path('~/.local/share/qutebrowser/pdfjs/').expanduser()),
     ]
 
     # First try a system wide installation
@@ -199,9 +199,9 @@ def _read_from_system(system_path, names):
     """
     for name in names:
         try:
-            full_path = os.path.join(system_path, name)
-            with open(full_path, 'rb') as f:
-                return (f.read(), full_path)
+            full_path = pathlib.Path(system_path).joinpath(name)
+            with full_path.open('rb') as f:
+                return (f.read(), str(full_path))
         except FileNotFoundError:
             continue
         except OSError as e:
