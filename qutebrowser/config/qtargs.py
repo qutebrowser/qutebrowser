@@ -165,6 +165,30 @@ def _get_locale_pak_path(locales_path: pathlib.Path, locale_name: str) -> pathli
     return locales_path / (locale_name + '.pak')
 
 
+def _get_pak_name(locale_name: str) -> str:
+    """Get the Chromium .pak name for a locale name.
+
+    Based on Chromium's behavior in l10n_util::CheckAndResolveLocale:
+    https://source.chromium.org/chromium/chromium/src/+/master:ui/base/l10n/l10n_util.cc;l=344-428;drc=43d5378f7f363dab9271ca37774c71176c9e7b69
+    """
+    if locale_name in {'en', 'en-PH', 'en-LR'}:
+        return 'en-US'
+    elif locale_name.startswith('en-'):
+        return 'en-GB'
+    elif locale_name.startswith('es-'):
+        return 'es-419'
+    elif locale_name == 'pt':
+        return 'pt-BR'
+    elif locale_name.startswith('pt-'):  # pragma: no cover
+        return 'pt-PT'
+    elif locale_name in {'zh-HK', 'zh-MO'}:
+        return 'zh-TW'
+    elif locale_name == 'zh' or locale_name.startswith('zh-'):
+        return 'zh-CN'
+
+    return locale_name.split('-')[0]
+
+
 def _get_lang_override(
         webengine_version: utils.VersionNumber,
         locale_name: str
@@ -191,25 +215,7 @@ def _get_lang_override(
         log.init.debug(f"Found {pak_path}, skipping workaround")
         return None
 
-    # Based on Chromium's behavior in l10n_util::CheckAndResolveLocale:
-    # https://source.chromium.org/chromium/chromium/src/+/master:ui/base/l10n/l10n_util.cc;l=344-428;drc=43d5378f7f363dab9271ca37774c71176c9e7b69
-    if locale_name in {'en', 'en-PH', 'en-LR'}:
-        pak_name = 'en-US'
-    elif locale_name.startswith('en-'):
-        pak_name = 'en-GB'
-    elif locale_name.startswith('es-'):
-        pak_name = 'es-419'
-    elif locale_name == 'pt':
-        pak_name = 'pt-BR'
-    elif locale_name.startswith('pt-'):
-        pak_name = 'pt-PT'
-    elif locale_name in {'zh-HK', 'zh-MO'}:
-        pak_name = 'zh-TW'
-    elif locale_name == 'zh' or locale_name.startswith('zh-'):
-        pak_name = 'zh-CN'
-    else:
-        pak_name = locale_name.split('-')[0]
-
+    pak_name = _get_pak_name(locale_name)
     pak_path = _get_locale_pak_path(locales_path, pak_name)
     if pak_path.exists():
         log.init.debug(f"Found {pak_path}, applying workaround")
