@@ -92,7 +92,6 @@ websites and using it for transmission of sensitive data._
 * https://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.12.0 or newer
   for Python 3
 * https://palletsprojects.com/p/jinja/[jinja2]
-* https://pygments.org/[pygments]
 * https://github.com/yaml/pyyaml[PyYAML]
 
 On older Python versions (3.6/3.7/3.8), the following backports are also required:
@@ -103,6 +102,9 @@ On older Python versions (3.6/3.7/3.8), the following backports are also require
 The following libraries are optional:
 
 * https://pypi.org/project/adblock/[adblock] (for improved adblocking using ABP syntax)
+* https://pygments.org/[pygments] for syntax highlighting with `:view-source`
+  on QtWebKit, or when using `:view-source --pygments` with the (default)
+  QtWebEngine backend.
 * On Windows, https://pypi.python.org/pypi/colorama/[colorama] for colored log
   output.
 * https://importlib-metadata.readthedocs.io/[importlib_resources] on Python 3.7

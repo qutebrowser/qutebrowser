@@ -870,13 +870,25 @@ class AbstractTabPrivate:
         tabdata = self._tab.data
         if tabdata.inspector is None:
             assert tabdata.splitter is not None
-            tabdata.inspector = inspector.create(
+            tabdata.inspector = self._init_inspector(
                 splitter=tabdata.splitter,
                 win_id=self._tab.win_id)
             self._tab.shutting_down.connect(tabdata.inspector.shutdown)
             tabdata.inspector.recreate.connect(self._recreate_inspector)
             tabdata.inspector.inspect(self._widget.page())
         tabdata.inspector.set_position(position)
+
+    def _init_inspector(self, splitter: 'miscwidgets.InspectorSplitter',
+           win_id: int,
+           parent: QWidget = None) -> 'AbstractWebInspector':
+        """Get a WebKitInspector/WebEngineInspector.
+
+        Args:
+            splitter: InspectorSplitter where the inspector can be placed.
+            win_id: The window ID this inspector is associated with.
+            parent: The Qt parent to set.
+        """
+        raise NotImplementedError
 
 
 class AbstractTab(QWidget):
