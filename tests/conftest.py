@@ -109,12 +109,6 @@ def _apply_platform_markers(config, item):
          pytest.mark.skipif,
          sys.getfilesystemencoding() == 'ascii',
          "Skipped because of ASCII locale"),
-
-        ('qtwebkit6021_xfail',
-         pytest.mark.xfail,
-         version.qWebKitVersion and  # type: ignore[unreachable]
-         version.qWebKitVersion() == '602.1',
-         "Broken on WebKit 602.1")
     ]
 
     for searched_marker, new_marker_kind, condition, default_reason in markers:

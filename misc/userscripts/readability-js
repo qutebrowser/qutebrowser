@@ -131,6 +131,9 @@ getDOM(target, domOpts).then(dom => {
     let article = reader.parse();
     let content = util.format(HEADER, article.title) + article.content;
 
+    // add a class to make styling the page easier
+    content = content.replace('<body>', '<body class="qute-readability">')
+
     fs.writeFile(tmpFile, content, (err) => {
         if (err) {
             qute.messageError([`"${err}"`])
