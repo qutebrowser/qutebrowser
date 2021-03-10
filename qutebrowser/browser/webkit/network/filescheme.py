@@ -42,7 +42,7 @@ def get_file_list(basedir, all_files, filterfunc):
     """
     items = []
     for filename in all_files:
-        absname = pathlib.Path(basedir).joinpath(filename)
+        absname = pathlib.Path(basedir / filename)
         if filterfunc(absname):
             items.append({'name': str(filename.name), 'absname': str(absname)})
     return sorted(items, key=lambda v: v['name'].lower())
@@ -77,7 +77,7 @@ def parent_dir(directory):
     Return:
         The path to the parent directory.
     """
-    return str(pathlib.Path(directory).joinpath(pathlib.Path(directory).parent))
+    return str(pathlib.Path(directory / pathlib.Path(directory).parent))
 
 
 def dirbrowser_html(path):

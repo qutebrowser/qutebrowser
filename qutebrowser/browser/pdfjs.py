@@ -65,7 +65,7 @@ def generate_pdfjs_page(filename, url):
         url: The URL being opened.
     """
     if not is_available():
-        pdfjs_dir = pathlib.Path(standarddir.data()).joinpath('pdfjs')
+        pdfjs_dir = pathlib.Path(standarddir.data()) / 'pdfjs'
         return jinja.render('no_pdfjs.html',
                             url=url.toDisplayString(),
                             title="PDF.js not found",
@@ -131,7 +131,7 @@ def get_pdfjs_res_and_path(path):
 
     system_paths = _SYSTEM_PATHS + [
         # fallback
-        str(pathlib.Path(standarddir.data()).joinpath('pdfjs')),
+        str(pathlib.Path(standarddir.data()) / 'pdfjs'),
         # hardcoded fallback for --temp-basedir
         str(pathlib.Path('~/.local/share/qutebrowser/pdfjs/').expanduser()),
     ]
@@ -199,7 +199,7 @@ def _read_from_system(system_path, names):
     """
     for name in names:
         try:
-            full_path = pathlib.Path(system_path).joinpath(name)
+            full_path = pathlib.Path(system_path) / name
             with full_path.open('rb') as f:
                 return (f.read(), str(full_path))
         except FileNotFoundError:

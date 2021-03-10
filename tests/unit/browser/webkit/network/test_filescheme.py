@@ -51,7 +51,7 @@ def test_get_file_list(tmp_path, create_file, create_dir, filterfunc, expected):
     if create_dir:
         path.mkdir(exist_ok=True)
 
-    all_files = list(pathlib.Path(tmp_path).iterdir())
+    all_files = list(tmp_path.iterdir())
 
     result = filescheme.get_file_list(tmp_path, all_files, filterfunc)
     item = {'name': 'foo', 'absname': str(path)}
