@@ -19,9 +19,7 @@
 
 """pytest conftest file for javascript tests."""
 
-import os
 import pathlib
-
 import pytest
 import jinja2
 

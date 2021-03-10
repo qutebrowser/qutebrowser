@@ -19,7 +19,6 @@
 
 """Tests for stylesheet.js."""
 
-import os
 import pathlib
 import pytest
 
