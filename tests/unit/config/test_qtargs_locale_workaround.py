@@ -129,6 +129,7 @@ pytest.importorskip('PyQt5.QtWebEngineWidgets')
     ("en_IE@euro.UTF-8", "en-GB"),
     ("en_IL.UTF-8", "en-GB"),
     ("en_IN.UTF-8", "en-GB"),
+    ("en_LR.UTF-8", "en-US"),  # locale not available on my system
     ("en_NG.UTF-8", "en-GB"),
     ("en_NZ.UTF-8", "en-GB"),
     ("en_PH.UTF-8", "en-US"),
@@ -290,6 +291,10 @@ pytest.importorskip('PyQt5.QtWebEngineWidgets')
     ("pt_BR.UTF-8", "pt-BR"),
     ("pt_PT.UTF-8", "pt-PT"),
     ("pt_PT@euro.UTF-8", "pt-PT"),
+    pytest.param(
+        "pt_XX.UTF-8", "pt-PT",
+        marks=pytest.mark.xfail(reason="Mapped to pt by Qt"),
+    ),  # locale not available on my system
     ("quz_PE.UTF-8", "en-US"),
     ("raj_IN.UTF-8", "en-US"),
     ("ro_RO.UTF-8", "ro"),
@@ -383,10 +388,14 @@ pytest.importorskip('PyQt5.QtWebEngineWidgets')
     ("zh_HK.UTF-8", "zh-TW"),
     ("zh_SG.UTF-8", "zh-CN"),
     ("zh_TW.UTF-8", "zh-TW"),
+    ("zh_MO.UTF-8", "zh-TW"),  # locale not available on my system
+    ("zh_XX.UTF-8", "zh-CN"),  # locale not available on my system
     ("zu_ZA.UTF-8", "en-US"),
 ])
 def test_lang_workaround_all_locales(lang, expected):
     locale_name = QLocale(lang).bcp47Name()
+    print(locale_name)
+
     override = qtargs._get_lang_override(
         webengine_version=utils.VersionNumber(5, 15, 3),
         locale_name=locale_name,

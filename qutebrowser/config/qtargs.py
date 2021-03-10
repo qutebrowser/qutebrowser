@@ -188,8 +188,9 @@ def _get_lang_override(
         log.init.debug(f"Found {pak_path}, skipping workaround")
         return None
 
-    # Based on Chromium's behavior
-    if locale_name in {'en', 'en-PH'}:
+    # Based on Chromium's behavior in l10n_util::CheckAndResolveLocale:
+    # https://source.chromium.org/chromium/chromium/src/+/master:ui/base/l10n/l10n_util.cc;l=344-428;drc=43d5378f7f363dab9271ca37774c71176c9e7b69
+    if locale_name in {'en', 'en-PH', 'en-LR'}:
         pak_name = 'en-US'
     elif locale_name.startswith('en-'):
         pak_name = 'en-GB'
@@ -197,10 +198,12 @@ def _get_lang_override(
         pak_name = 'es-419'
     elif locale_name == 'pt':
         pak_name = 'pt-BR'
-    elif locale_name in {'zh', 'zh-SG'}:
-        pak_name = 'zh-CN'
-    elif locale_name == 'zh-HK':
+    elif locale_name.startswith('pt-'):
+        pak_name = 'pt-PT'
+    elif locale_name in {'zh-HK', 'zh-MO'}:
         pak_name = 'zh-TW'
+    elif locale_name == 'zh' or locale_name.startswith('zh-'):
+        pak_name = 'zh-CN'
     else:
         pak_name = locale_name.split('-')[0]
 
