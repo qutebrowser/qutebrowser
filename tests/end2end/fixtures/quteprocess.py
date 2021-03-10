@@ -19,7 +19,6 @@
 
 """Fixtures to run qutebrowser in a QProcess and communicate."""
 
-import os
 import pathlib
 import re
 import sys
@@ -511,7 +510,8 @@ class QuteProc(testprocess.Process):
                 profile_dir = pathlib.Path(pathlib.Path.cwd() / 'prof')
                 profile_id = '{}_{}'.format(self._instance_id,
                                             next(self._run_counter))
-                profile_file = pathlib.Path(profile_dir).joinpath('{}.pstats'.format(profile_id))
+                profile_file = pathlib.Path(profile_dir).joinpath(
+                    '{}.pstats'.format(profile_id))
                 try:
                     pathlib.Path.mkdir(profile_dir)
                 except FileExistsError:
@@ -860,7 +860,7 @@ class QuteProc(testprocess.Process):
     def get_session(self):
         """Save the session and get the parsed session data."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            session = pathlib.Path(tmpdir / 'session.yml')
+            session = pathlib.Path(tmpdir).joinpath('session.yml')
             self.send_cmd(':session-save --with-private "{}"'.format(session))
             self.wait_for(category='message', loglevel=logging.INFO,
                           message='Saved session {}.'.format(session))
