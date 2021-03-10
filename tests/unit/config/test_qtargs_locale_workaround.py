@@ -28,6 +28,17 @@ from qutebrowser.config import qtargs
 pytest.importorskip('PyQt5.QtWebEngineWidgets')
 
 
+@pytest.fixture(autouse=True)
+def enable_workaround(config_stub):
+    config_stub.val.qt.workarounds.locale = True
+
+
+@pytest.fixture
+def qtwe_version():
+    """A version number needing the workaround."""
+    return utils.VersionNumber(5, 15, 3)
+
+
 @pytest.mark.parametrize('lang, expected', [
     ("POSIX.UTF-8", "en-US"),
     ("aa_DJ.UTF-8", "en-US"),
@@ -392,12 +403,12 @@ pytest.importorskip('PyQt5.QtWebEngineWidgets')
     ("zh_XX.UTF-8", "zh-CN"),  # locale not available on my system
     ("zu_ZA.UTF-8", "en-US"),
 ])
-def test_lang_workaround_all_locales(lang, expected):
+def test_lang_workaround_all_locales(lang, expected, qtwe_version):
     locale_name = QLocale(lang).bcp47Name()
     print(locale_name)
 
     override = qtargs._get_lang_override(
-        webengine_version=utils.VersionNumber(5, 15, 3),
+        webengine_version=qtwe_version,
         locale_name=locale_name,
     )
 
@@ -425,6 +436,11 @@ def test_different_qt_version(version):
 
 
 @pytest.mark.fake_os('windows')
-def test_non_linux():
-    version = utils.VersionNumber(5, 15, 3)
-    assert qtargs._get_lang_override(version, "de-CH") is None
+def test_non_linux(qtwe_version):
+    assert qtargs._get_lang_override(qtwe_version, "de-CH") is None
+
+
+@pytest.mark.fake_os('linux')
+def test_disabled(qtwe_version, config_stub):
+    config_stub.val.qt.workarounds.locale = False
+    assert qtargs._get_lang_override(qtwe_version, "de-CH") is None

@@ -174,6 +174,9 @@ def _get_lang_override(
     This is needed as a WORKAROUND for https://bugreports.qt.io/browse/QTBUG-91715
     There is no fix yet, but we assume it'll be fixed with QtWebEngine 5.15.4.
     """
+    if not config.val.qt.workarounds.locale:
+        return None
+
     if webengine_version != utils.VersionNumber(5, 15, 3) or not utils.is_linux:
         return None
 
