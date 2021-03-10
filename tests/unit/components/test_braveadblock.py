@@ -20,7 +20,6 @@
 import pathlib
 import logging
 import csv
-import os.path
 from typing import Iterable, Tuple
 
 from PyQt5.QtCore import QUrl
@@ -127,20 +126,20 @@ def assert_none_blocked(ad_blocker):
 
 
 @pytest.fixture
-def blocklist_invalid_utf8(tmpdir):
-    dest_path = tmpdir / "invalid_utf8.txt"
-    dest_path.write_binary(b"invalidutf8\xa0")
+def blocklist_invalid_utf8(tmp_path):
+    dest_path = tmp_path / "invalid_utf8.txt"
+    dest_path.write_bytes(b"invalidutf8\xa0")
     return QUrl.fromLocalFile(str(dest_path)).toString()
 
 
 @pytest.fixture
-def easylist_easyprivacy_both(tmpdir):
+def easylist_easyprivacy_both(tmp_path):
     """Put easyprivacy and easylist blocklists into a tempdir.
 
     Copy the easyprivacy and easylist blocklists into a temporary directory,
     then return both a list containing `file://` urls, and the residing dir.
     """
-    bl_dst_dir = tmpdir / "blocklists"
+    bl_dst_dir = tmp_path / "blocklists"
     bl_dst_dir.mkdir()
     urls = []
     for blocklist, filename in [
@@ -150,14 +149,14 @@ def easylist_easyprivacy_both(tmpdir):
         bl_dst_path = bl_dst_dir / filename
         with open(bl_dst_path, "w", encoding="utf-8") as f:
             f.write("\n".join(list(blocklist)))
-        assert os.path.isfile(bl_dst_path)
+        assert pathlib.Path(bl_dst_path).is_file()
         urls.append(QUrl.fromLocalFile(str(bl_dst_path)).toString())
     return urls, bl_dst_dir
 
 
 @pytest.fixture
-def empty_dir(tmpdir):
-    empty_dir_path = tmpdir / "empty_dir"
+def empty_dir(tmp_path):
+    empty_dir_path = tmp_path / "empty_dir"
     empty_dir_path.mkdir()
     return empty_dir_path
 
@@ -366,7 +365,7 @@ def test_update_empty_directory_blocklist(ad_blocker, config_stub, empty_dir, ca
     config_stub.val.content.blocking.whitelist = None
 
     # The temporary directory we created should be empty
-    assert len(empty_dir.listdir()) == 0
+    assert len(list(empty_dir.iterdir())) == 0
 
     with caplog.at_level(logging.INFO):
         ad_blocker.adblock_update()
