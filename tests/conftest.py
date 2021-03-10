@@ -25,7 +25,6 @@ import os
 import pathlib
 import sys
 import warnings
-import pathlib
 
 import pytest
 import hypothesis
