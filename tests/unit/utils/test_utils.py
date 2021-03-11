@@ -41,47 +41,48 @@ import yaml
 import qutebrowser
 import qutebrowser.utils  # for test_qualname
 from qutebrowser.utils import utils, version, usertypes
+from qutebrowser.utils.utils import VersionNumber
 
 
 class TestVersionNumber:
 
     @pytest.mark.parametrize('num, expected', [
-        (utils.VersionNumber(5, 15, 2), 'VersionNumber(5, 15, 2)'),
-        (utils.VersionNumber(5, 15), 'VersionNumber(5, 15)'),
-        (utils.VersionNumber(5), 'VersionNumber(5)'),
+        (VersionNumber(5, 15, 2), 'VersionNumber(5, 15, 2)'),
+        (VersionNumber(5, 15), 'VersionNumber(5, 15)'),
+        (VersionNumber(5), 'VersionNumber(5)'),
     ])
     def test_repr(self, num, expected):
         assert repr(num) == expected
 
     @pytest.mark.parametrize('num, expected', [
-        (utils.VersionNumber(5, 15, 2), '5.15.2'),
-        (utils.VersionNumber(5, 15), '5.15'),
-        (utils.VersionNumber(5), '5'),
+        (VersionNumber(5, 15, 2), '5.15.2'),
+        (VersionNumber(5, 15), '5.15'),
+        (VersionNumber(5), '5'),
     ])
     def test_str(self, num, expected):
         assert str(num) == expected
 
     def test_not_normalized(self):
         with pytest.raises(ValueError, match='Refusing to construct'):
-            utils.VersionNumber(5, 15, 0)
+            VersionNumber(5, 15, 0)
 
     @pytest.mark.parametrize('num, expected', [
-        (utils.VersionNumber(5, 15, 2), utils.VersionNumber(5, 15)),
-        (utils.VersionNumber(5, 15), utils.VersionNumber(5, 15)),
-        (utils.VersionNumber(6), utils.VersionNumber(6)),
+        (VersionNumber(5, 15, 2), VersionNumber(5, 15)),
+        (VersionNumber(5, 15), VersionNumber(5, 15)),
+        (VersionNumber(6), VersionNumber(6)),
     ])
     def test_strip_patch(self, num, expected):
         assert num.strip_patch() == expected
 
     @pytest.mark.parametrize('s, expected', [
-        ('1x6.2', utils.VersionNumber(1)),
-        ('6', utils.VersionNumber(6)),
-        ('5.15', utils.VersionNumber(5, 15)),
-        ('5.15.3', utils.VersionNumber(5, 15, 3)),
-        ('5.15.3.dev1234', utils.VersionNumber(5, 15, 3)),
+        ('1x6.2', VersionNumber(1)),
+        ('6', VersionNumber(6)),
+        ('5.15', VersionNumber(5, 15)),
+        ('5.15.3', VersionNumber(5, 15, 3)),
+        ('5.15.3.dev1234', VersionNumber(5, 15, 3)),
     ])
     def test_parse_valid(self, s, expected):
-        assert utils.VersionNumber.parse(s) == expected
+        assert VersionNumber.parse(s) == expected
 
     @pytest.mark.parametrize('s, message', [
         ('foo6', "Failed to parse foo6"),
@@ -90,64 +91,64 @@ class TestVersionNumber:
     ])
     def test_parse_invalid(self, s, message):
         with pytest.raises(ValueError, match=message):
-            utils.VersionNumber.parse(s)
+            VersionNumber.parse(s)
 
     @pytest.mark.parametrize('lhs, op, rhs, outcome', [
         # ==
-        (utils.VersionNumber(6), operator.eq, utils.VersionNumber(6), True),
-        (utils.VersionNumber(6), operator.eq, object(), False),
+        (VersionNumber(6), operator.eq, VersionNumber(6), True),
+        (VersionNumber(6), operator.eq, object(), False),
 
         # !=
-        (utils.VersionNumber(6), operator.ne, utils.VersionNumber(5), True),
-        (utils.VersionNumber(6), operator.ne, object(), True),
+        (VersionNumber(6), operator.ne, VersionNumber(5), True),
+        (VersionNumber(6), operator.ne, object(), True),
 
         # >=
-        (utils.VersionNumber(5, 14), operator.ge, utils.VersionNumber(5, 13, 5), True),
-        (utils.VersionNumber(5, 14), operator.ge, utils.VersionNumber(5, 14, 2), False),
-        (utils.VersionNumber(5, 14, 3), operator.ge, utils.VersionNumber(5, 14, 2), True),
-        (utils.VersionNumber(5, 14, 3), operator.ge, utils.VersionNumber(5, 14, 3), True),
-        (utils.VersionNumber(5, 14), operator.ge, utils.VersionNumber(5, 13), True),
-        (utils.VersionNumber(5, 14), operator.ge, utils.VersionNumber(5, 14), True),
-        (utils.VersionNumber(5, 14), operator.ge, utils.VersionNumber(5, 15), False),
-        (utils.VersionNumber(5, 14), operator.ge, utils.VersionNumber(4), True),
-        (utils.VersionNumber(5, 14), operator.ge, utils.VersionNumber(5), True),
-        (utils.VersionNumber(5, 14), operator.ge, utils.VersionNumber(6), False),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(5, 13, 5), True),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(5, 14, 2), False),
+        (VersionNumber(5, 14, 3), operator.ge, VersionNumber(5, 14, 2), True),
+        (VersionNumber(5, 14, 3), operator.ge, VersionNumber(5, 14, 3), True),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(5, 13), True),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(5, 14), True),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(5, 15), False),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(4), True),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(5), True),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(6), False),
 
         # >
-        (utils.VersionNumber(5, 14), operator.gt, utils.VersionNumber(5, 13, 5), True),
-        (utils.VersionNumber(5, 14), operator.gt, utils.VersionNumber(5, 14, 2), False),
-        (utils.VersionNumber(5, 14, 3), operator.gt, utils.VersionNumber(5, 14, 2), True),
-        (utils.VersionNumber(5, 14, 3), operator.gt, utils.VersionNumber(5, 14, 3), False),
-        (utils.VersionNumber(5, 14), operator.gt, utils.VersionNumber(5, 13), True),
-        (utils.VersionNumber(5, 14), operator.gt, utils.VersionNumber(5, 14), False),
-        (utils.VersionNumber(5, 14), operator.gt, utils.VersionNumber(5, 15), False),
-        (utils.VersionNumber(5, 14), operator.gt, utils.VersionNumber(4), True),
-        (utils.VersionNumber(5, 14), operator.gt, utils.VersionNumber(5), True),
-        (utils.VersionNumber(5, 14), operator.gt, utils.VersionNumber(6), False),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(5, 13, 5), True),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(5, 14, 2), False),
+        (VersionNumber(5, 14, 3), operator.gt, VersionNumber(5, 14, 2), True),
+        (VersionNumber(5, 14, 3), operator.gt, VersionNumber(5, 14, 3), False),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(5, 13), True),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(5, 14), False),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(5, 15), False),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(4), True),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(5), True),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(6), False),
 
         # <=
-        (utils.VersionNumber(5, 14), operator.le, utils.VersionNumber(5, 13, 5), False),
-        (utils.VersionNumber(5, 14), operator.le, utils.VersionNumber(5, 14, 2), True),
-        (utils.VersionNumber(5, 14, 3), operator.le, utils.VersionNumber(5, 14, 2), False),
-        (utils.VersionNumber(5, 14, 3), operator.le, utils.VersionNumber(5, 14, 3), True),
-        (utils.VersionNumber(5, 14), operator.le, utils.VersionNumber(5, 13), False),
-        (utils.VersionNumber(5, 14), operator.le, utils.VersionNumber(5, 14), True),
-        (utils.VersionNumber(5, 14), operator.le, utils.VersionNumber(5, 15), True),
-        (utils.VersionNumber(5, 14), operator.le, utils.VersionNumber(4), False),
-        (utils.VersionNumber(5, 14), operator.le, utils.VersionNumber(5), False),
-        (utils.VersionNumber(5, 14), operator.le, utils.VersionNumber(6), True),
+        (VersionNumber(5, 14), operator.le, VersionNumber(5, 13, 5), False),
+        (VersionNumber(5, 14), operator.le, VersionNumber(5, 14, 2), True),
+        (VersionNumber(5, 14, 3), operator.le, VersionNumber(5, 14, 2), False),
+        (VersionNumber(5, 14, 3), operator.le, VersionNumber(5, 14, 3), True),
+        (VersionNumber(5, 14), operator.le, VersionNumber(5, 13), False),
+        (VersionNumber(5, 14), operator.le, VersionNumber(5, 14), True),
+        (VersionNumber(5, 14), operator.le, VersionNumber(5, 15), True),
+        (VersionNumber(5, 14), operator.le, VersionNumber(4), False),
+        (VersionNumber(5, 14), operator.le, VersionNumber(5), False),
+        (VersionNumber(5, 14), operator.le, VersionNumber(6), True),
 
         # <
-        (utils.VersionNumber(5, 14), operator.lt, utils.VersionNumber(5, 13, 5), False),
-        (utils.VersionNumber(5, 14), operator.lt, utils.VersionNumber(5, 14, 2), True),
-        (utils.VersionNumber(5, 14, 3), operator.lt, utils.VersionNumber(5, 14, 2), False),
-        (utils.VersionNumber(5, 14, 3), operator.lt, utils.VersionNumber(5, 14, 3), False),
-        (utils.VersionNumber(5, 14), operator.lt, utils.VersionNumber(5, 13), False),
-        (utils.VersionNumber(5, 14), operator.lt, utils.VersionNumber(5, 14), False),
-        (utils.VersionNumber(5, 14), operator.lt, utils.VersionNumber(5, 15), True),
-        (utils.VersionNumber(5, 14), operator.lt, utils.VersionNumber(4), False),
-        (utils.VersionNumber(5, 14), operator.lt, utils.VersionNumber(5), False),
-        (utils.VersionNumber(5, 14), operator.lt, utils.VersionNumber(6), True),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(5, 13, 5), False),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(5, 14, 2), True),
+        (VersionNumber(5, 14, 3), operator.lt, VersionNumber(5, 14, 2), False),
+        (VersionNumber(5, 14, 3), operator.lt, VersionNumber(5, 14, 3), False),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(5, 13), False),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(5, 14), False),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(5, 15), True),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(4), False),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(5), False),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(6), True),
     ])
     def test_comparisons(self, lhs, op, rhs, outcome):
         assert op(lhs, rhs) == outcome
@@ -879,7 +880,7 @@ class TestOpenFile:
         info = version.DistributionInfo(
             id='org.kde.Platform',
             parsed=version.Distribution.kde_flatpak,
-            version=utils.VersionNumber.parse('5.12'),
+            version=VersionNumber.parse('5.12'),
             pretty='Unknown')
         monkeypatch.setattr(version, 'distribution',
                             lambda: info)
