@@ -956,6 +956,9 @@ class TestWebEngineVersions:
         ('5.14.2', '77.0.3865.129'),
         ('5.15.1', '80.0.3987.163'),
         ('5.15.2', '83.0.4103.122'),
+        ('5.15.3', '87.0.4280.144'),
+        ('5.15.4', '87.0.4280.144'),
+        ('5.15.5', '87.0.4280.144'),
     ])
     def test_from_pyqt(self, qt_version, chromium_version):
         expected = version.WebEngineVersions(
@@ -982,15 +985,9 @@ class TestWebEngineVersions:
 
         versions = version.WebEngineVersions.from_pyqt(pyqt_webengine_version)
 
-        if pyqt_webengine_version == '5.15.3':
-            # Transient situation - we expect to get QtWebEngine 5.15.3 soon,
-            # so this will line up again.
-            assert versions.chromium == '87.0.4280.144'
-            pytest.xfail("Transient situation")
-        else:
-            from qutebrowser.browser.webengine import webenginesettings
-            webenginesettings.init_user_agent()
-            expected = webenginesettings.parsed_user_agent.upstream_browser_version
+        from qutebrowser.browser.webengine import webenginesettings
+        webenginesettings.init_user_agent()
+        expected = webenginesettings.parsed_user_agent.upstream_browser_version
 
         assert versions.chromium == expected
 

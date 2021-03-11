@@ -611,11 +611,20 @@ class WebEngineVersions:
         chromium_version = cls._CHROMIUM_VERSIONS.get(pyqt_webengine_version)
         if chromium_version is not None:
             return chromium_version
-        # 5.14.2 -> 5.14
-        minor_version = utils.VersionNumber(
-            pyqt_webengine_version.majorVersion(),
-            pyqt_webengine_version.minorVersion(),
-        )
+
+        # 5.15 patch versions change their QtWebEngine version, but no changes are
+        # expected after 5.15.3.
+        v5_15_3 = utils.VersionNumber(5, 15, 3)
+        if v5_15_3 <= pyqt_webengine_version < utils.VersionNumber(6):
+            minor_version = v5_15_3
+        else:
+            # e.g. 5.14.2 -> 5.14
+            segments = pyqt_webengine_version.segments()[:2]
+            if segments[-1] == 0:
+                del segments[-1]
+
+            minor_version = utils.VersionNumber(*segments)
+
         return cls._CHROMIUM_VERSIONS.get(minor_version)
 
     @classmethod
