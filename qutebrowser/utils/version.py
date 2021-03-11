@@ -521,7 +521,7 @@ class WebEngineVersions:
     chromium: Optional[str]
     source: str
 
-    _CHROMIUM_VERSIONS: ClassVar[Dict[str, str]] = {
+    _CHROMIUM_VERSIONS: ClassVar[Dict[utils.VersionNumber, str]] = {
         # Qt 5.12: Chromium 69
         # (LTS)    69.0.3497.128 (~2018-09-11)
         #          5.12.0: Security fixes up to 70.0.3538.102 (~2018-10-24)
@@ -535,21 +535,21 @@ class WebEngineVersions:
         #          5.12.8: Security fixes up to 80.0.3987.149 (2020-03-18)
         #          5.12.9: Security fixes up to 83.0.4103.97  (2020-06-03)
         #          5.12.10: Security fixes up to 86.0.4240.75 (2020-10-06)
-        '5.12': '69.0.3497.128',
+        utils.VersionNumber(5, 12): '69.0.3497.128',
 
         # Qt 5.13: Chromium 73
         #          73.0.3683.105 (~2019-02-28)
         #          5.13.0: Security fixes up to 74.0.3729.157 (2019-05-14)
         #          5.13.1: Security fixes up to 76.0.3809.87  (2019-07-30)
         #          5.13.2: Security fixes up to 77.0.3865.120 (2019-10-10)
-        '5.13': '73.0.3683.105',
+        utils.VersionNumber(5, 13): '73.0.3683.105',
 
         # Qt 5.14: Chromium 77
         #          77.0.3865.129 (~2019-10-10)
         #          5.14.0: Security fixes up to 77.0.3865.129 (~2019-09-10)
         #          5.14.1: Security fixes up to 79.0.3945.117 (2020-01-07)
         #          5.14.2: Security fixes up to 80.0.3987.132 (2020-03-03)
-        '5.14': '77.0.3865.129',
+        utils.VersionNumber(5, 14): '77.0.3865.129',
 
         # Qt 5.15: Chromium 80
         #          80.0.3987.163 (2020-04-02)
@@ -557,9 +557,9 @@ class WebEngineVersions:
         #          5.15.1: Security fixes up to 85.0.4183.83  (2020-08-25)
         #          5.15.2: Updated to 83.0.4103.122           (~2020-06-24)
         #                  Security fixes up to 86.0.4240.183 (2020-11-02)
-        '5.15': '80.0.3987.163',
-        '5.15.2': '83.0.4103.122',
-        '5.15.3': '87.0.4280.144',
+        utils.VersionNumber(5, 15): '80.0.3987.163',
+        utils.VersionNumber(5, 15, 2): '83.0.4103.122',
+        utils.VersionNumber(5, 15, 3): '87.0.4280.144',
     }
 
     def __str__(self) -> str:
@@ -603,13 +603,19 @@ class WebEngineVersions:
         )
 
     @classmethod
-    def _infer_chromium_version(cls, pyqt_webengine_version: str) -> Optional[str]:
+    def _infer_chromium_version(
+            cls,
+            pyqt_webengine_version: utils.VersionNumber,
+    ) -> Optional[str]:
         """Infer the Chromium version based on the PyQtWebEngine version."""
         chromium_version = cls._CHROMIUM_VERSIONS.get(pyqt_webengine_version)
         if chromium_version is not None:
             return chromium_version
         # 5.14.2 -> 5.14
-        minor_version = pyqt_webengine_version.rsplit('.', maxsplit=1)[0]
+        minor_version = utils.VersionNumber(
+            pyqt_webengine_version.majorVersion(),
+            pyqt_webengine_version.minorVersion(),
+        )
         return cls._CHROMIUM_VERSIONS.get(minor_version)
 
     @classmethod
@@ -631,9 +637,10 @@ class WebEngineVersions:
         Note that we only can get the PyQtWebEngine version with PyQt 5.13 or newer.
         With Qt 5.12, we instead rely on qVersion().
         """
+        parsed = utils.parse_version(pyqt_webengine_version)
         return cls(
-            webengine=utils.parse_version(pyqt_webengine_version),
-            chromium=cls._infer_chromium_version(pyqt_webengine_version),
+            webengine=parsed,
+            chromium=cls._infer_chromium_version(parsed),
             source=source,
         )
 
