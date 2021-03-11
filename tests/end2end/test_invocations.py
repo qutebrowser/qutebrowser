@@ -662,7 +662,7 @@ def test_dark_mode(webengine_versions, quteproc_new, request,
     quteproc_new.start(args)
 
     ver = webengine_versions.webengine
-    minor_version = f'{ver.majorVersion()}.{ver.minorVersion()}'
+    minor_version = str(ver.strip_patch())
     expected = colors.get(minor_version, colors[None])
 
     quteproc_new.open_path(f'data/darkmode/{filename}.html')
