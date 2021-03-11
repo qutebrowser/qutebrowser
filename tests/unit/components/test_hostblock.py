@@ -76,7 +76,7 @@ def create_zipfile(directory, files, zipname="test"):
         files: list of filenames (relative to directory) to each file to add.
         zipname: name to give to the zip file.
     """
-    zipfile_path = directory / (zipname + ".zip")
+    zipfile_path = (directory / zipname).with_suffix(".zip")
     with zipfile.ZipFile(str(zipfile_path), "w") as new_zipfile:
         for file_path in files:
             new_zipfile.write(

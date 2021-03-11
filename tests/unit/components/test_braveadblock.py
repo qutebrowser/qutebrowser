@@ -147,9 +147,9 @@ def easylist_easyprivacy_both(tmp_path):
         (testutils.easyprivacy_txt(), "easyprivacy.txt"),
     ]:
         bl_dst_path = bl_dst_dir / filename
-        with open(bl_dst_path, "w", encoding="utf-8") as f:
+        with bl_dst_path.open("w", encoding="utf-8") as f:
             f.write("\n".join(list(blocklist)))
-        assert pathlib.Path(bl_dst_path).is_file()
+        assert bl_dst_path.is_file()
         urls.append(QUrl.fromLocalFile(str(bl_dst_path)).toString())
     return urls, bl_dst_dir
 
