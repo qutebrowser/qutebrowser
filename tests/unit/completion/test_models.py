@@ -430,8 +430,8 @@ def test_filesystem_completion(qtmodeltester, config_stub, info,
         assert str(pathlib.Path('~').expanduser()) == homedir
 
         base = '~'
-        expected_1 = str(pathlib.Path('~').joinpath('file1.txt'))
-        expected_2 = str(pathlib.Path('~').joinpath('file2.txt'))
+        expected_1 = str(pathlib.Path('~') / 'file1.txt')
+        expected_2 = str(pathlib.Path('~') / 'file2.txt')
 
     config_stub.val.completion.open_categories = ['filesystem']
     model = urlmodel.url(info=info)
