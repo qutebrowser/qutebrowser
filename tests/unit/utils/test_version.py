@@ -962,7 +962,7 @@ class TestWebEngineVersions:
     ])
     def test_from_pyqt(self, qt_version, chromium_version):
         expected = version.WebEngineVersions(
-            webengine=utils.parse_version(qt_version),
+            webengine=utils.VersionNumber.parse(qt_version),
             chromium=chromium_version,
             source='PyQt',
         )

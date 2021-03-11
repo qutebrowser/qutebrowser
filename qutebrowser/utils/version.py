@@ -160,7 +160,7 @@ def distribution() -> Optional[DistributionInfo]:
     dist_version: Optional[utils.VersionNumber] = None
     for version_key in ['VERSION', 'VERSION_ID']:
         if version_key in info:
-            dist_version = utils.parse_version(info[version_key])
+            dist_version = utils.VersionNumber.parse(info[version_key])
             break
 
     dist_id = info.get('ID', None)
@@ -568,7 +568,7 @@ class WebEngineVersions:
     }
 
     def __str__(self) -> str:
-        s = f'QtWebEngine {self.webengine.toString()}'
+        s = f'QtWebEngine {self.webengine}'
         if self.chromium is not None:
             s += f', Chromium {self.chromium}'
         if self.source != 'UA':
@@ -585,7 +585,7 @@ class WebEngineVersions:
         """
         assert ua.qt_version is not None, ua
         return cls(
-            webengine=utils.parse_version(ua.qt_version),
+            webengine=utils.VersionNumber.parse(ua.qt_version),
             chromium=ua.upstream_browser_version,
             source='UA',
         )
@@ -602,7 +602,7 @@ class WebEngineVersions:
         (though hackish) way to get a more accurate result.
         """
         return cls(
-            webengine=utils.parse_version(versions.webengine),
+            webengine=utils.VersionNumber.parse(versions.webengine),
             chromium=versions.chromium,
             source='ELF',
         )
@@ -624,11 +624,7 @@ class WebEngineVersions:
             minor_version = v5_15_3
         else:
             # e.g. 5.14.2 -> 5.14
-            segments = pyqt_webengine_version.segments()[:2]
-            if segments[-1] == 0:
-                del segments[-1]  # pragma: no cover
-
-            minor_version = utils.VersionNumber(*segments)
+            minor_version = pyqt_webengine_version.strip_patch()
 
         return cls._CHROMIUM_VERSIONS.get(minor_version)
 
@@ -651,7 +647,7 @@ class WebEngineVersions:
         Note that we only can get the PyQtWebEngine version with PyQt 5.13 or newer.
         With Qt 5.12, we instead rely on qVersion().
         """
-        parsed = utils.parse_version(pyqt_webengine_version)
+        parsed = utils.VersionNumber.parse(pyqt_webengine_version)
         return cls(
             webengine=parsed,
             chromium=cls._infer_chromium_version(parsed),

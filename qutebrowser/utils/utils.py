@@ -92,26 +92,74 @@ class Comparable(Protocol):
         ...
 
 
-if TYPE_CHECKING:
-    class VersionNumber(Comparable, QVersionNumber):
+class VersionNumber:
 
-        """WORKAROUND for incorrect PyQt stubs."""
-else:
-    class VersionNumber(QVersionNumber):
+    """A representation of a version number."""
 
-        """We can't inherit from Protocol and QVersionNumber at runtime."""
+    def __init__(self, *args: int) -> None:
+        self._ver = QVersionNumber(*args)
+        if self._ver.isNull():
+            raise ValueError("Can't construct a null version")
 
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            normalized = self.normalized()
-            if normalized != self:
-                raise ValueError(
-                    f"Refusing to construct non-normalized version from {args} "
-                    f"(normalized: {tuple(normalized.segments())}).")
+        normalized = self._ver.normalized()
+        if normalized != self._ver:
+            raise ValueError(
+                f"Refusing to construct non-normalized version from {args} "
+                f"(normalized: {tuple(normalized.segments())}).")
 
-        def __repr__(self):
-            args = ", ".join(str(s) for s in self.segments())
-            return f'VersionNumber({args})'
+        self.major = self._ver.majorVersion()
+        self.minor = self._ver.minorVersion()
+        self.patch = self._ver.microVersion()
+        self.segments = self._ver.segments()
+
+        assert len(self.segments) <= 3, self.segments
+
+    def __str__(self) -> str:
+        return ".".join(str(s) for s in self.segments)
+
+    def __repr__(self) -> str:
+        args = ", ".join(str(s) for s in self.segments)
+        return f'VersionNumber({args})'
+
+    def strip_patch(self) -> 'VersionNumber':
+        """Get a new VersionNumber with the patch version removed."""
+        return VersionNumber(*self.segments[:2])
+
+    @classmethod
+    def parse(cls, s: str) -> 'VersionNumber':
+        """Parse a version number from a string."""
+        ver, _suffix = QVersionNumber.fromString(s)
+        # FIXME: Should we support a suffix?
+
+        if ver.isNull():
+            raise ValueError(f"Failed to parse {s}")
+
+        return cls(*ver.normalized().segments())
+
+    def __hash__(self) -> int:
+        return hash(self._ver)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, VersionNumber):
+            return NotImplemented
+        return self._ver == other._ver
+
+    def __ne__(self, other: object) -> bool:
+        if not isinstance(other, VersionNumber):
+            return NotImplemented
+        return self._ver != other._ver
+
+    def __ge__(self, other: 'VersionNumber') -> bool:
+        return self._ver >= other._ver  # type: ignore[operator]
+
+    def __gt__(self, other: 'VersionNumber') -> bool:
+        return self._ver > other._ver  # type: ignore[operator]
+
+    def __le__(self, other: 'VersionNumber') -> bool:
+        return self._ver <= other._ver  # type: ignore[operator]
+
+    def __lt__(self, other: 'VersionNumber') -> bool:
+        return self._ver < other._ver  # type: ignore[operator]
 
 
 class Unreachable(Exception):
@@ -292,12 +340,6 @@ def read_file_binary(filename: str) -> bytes:
     path = _resource_path(filename)
     with _resource_keyerror_workaround():
         return path.read_bytes()
-
-
-def parse_version(version: str) -> VersionNumber:
-    """Parse a version string."""
-    ver, _suffix = QVersionNumber.fromString(version)
-    return VersionNumber(ver.normalized())
 
 
 def format_seconds(total_seconds: int) -> str:
