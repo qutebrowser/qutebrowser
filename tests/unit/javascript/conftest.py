@@ -30,6 +30,7 @@ from qutebrowser.utils import usertypes
 
 JS_DIR = pathlib.Path(__file__).parent
 
+
 class JSTester:
 
     """Common subclass providing basic functionality for all JS testers.
