@@ -98,15 +98,15 @@ def version_check(version: str,
     if compiled and exact:
         raise ValueError("Can't use compiled=True with exact=True!")
 
-    parsed = utils.parse_version(version)
+    parsed = utils.VersionNumber.parse(version)
     op = operator.eq if exact else operator.ge
-    result = op(utils.parse_version(qVersion()), parsed)
+    result = op(utils.VersionNumber.parse(qVersion()), parsed)
     if compiled and result:
         # qVersion() ==/>= parsed, now check if QT_VERSION_STR ==/>= parsed.
-        result = op(utils.parse_version(QT_VERSION_STR), parsed)
+        result = op(utils.VersionNumber.parse(QT_VERSION_STR), parsed)
     if compiled and result:
         # Finally, check PYQT_VERSION_STR as well.
-        result = op(utils.parse_version(PYQT_VERSION_STR), parsed)
+        result = op(utils.VersionNumber.parse(PYQT_VERSION_STR), parsed)
     return result
 
 
@@ -116,8 +116,8 @@ MAX_WORLD_ID = 256
 def is_new_qtwebkit() -> bool:
     """Check if the given version is a new QtWebKit."""
     assert qWebKitVersion is not None
-    return (utils.parse_version(qWebKitVersion()) >
-            utils.parse_version('538.1'))
+    return (utils.VersionNumber.parse(qWebKitVersion()) >
+            utils.VersionNumber.parse('538.1'))
 
 
 def is_single_process() -> bool:
