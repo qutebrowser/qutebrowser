@@ -427,7 +427,7 @@ def test_filesystem_completion(qtmodeltester, config_stub, info,
         homedir = str(local_files_path)
         monkeypatch.setenv('HOME', homedir)  # POSIX
         monkeypatch.setenv('USERPROFILE', homedir)  # Windows
-        assert str(pathlib.Path('~').expanduser()) == homedir
+        assert str(pathlib.Path.home()) == homedir
 
         base = '~'
         expected_1 = str(pathlib.Path('~') / 'file1.txt')
