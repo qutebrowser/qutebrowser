@@ -85,7 +85,7 @@ class JSTester:
             force: Whether to force loading even if the file is invalid.
         """
         self.load_url(QUrl.fromLocalFile(
-            str(pathlib.Path(__file__).parent.joinpath(path))), force)
+            str(pathlib.Path(__file__).parent / path)), force)
 
     def load_url(self, url: QUrl, force: bool = False):
         """Load a given QUrl.
@@ -108,7 +108,7 @@ class JSTester:
             expected: The value expected return from the javascript execution
         """
         base_path = pathlib.Path(qutebrowser.__file__).resolve().parent
-        with open(pathlib.Path(base_path).joinpath(path), 'r', encoding='utf-8') as f:
+        with (base_path / path).open('r', encoding='utf-8') as f:
             source = f.read()
         self.run(source, expected)
 
