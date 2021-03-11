@@ -262,6 +262,12 @@ def preload_resources() -> None:
         for name in _glob_resources(resource_path, subdir, ext):
             _resource_cache[name] = read_file(name)
 
+def read_qfile(filename: str) -> str:
+    from PyQt5.QtCore import QFile, QIODevice
+    file = QFile(filename)
+    if not file.open(QIODevice.ReadOnly):
+        raise SystemError(f"Failed to load qfile {filename}")
+    return bytes(file.readAll()).decode('utf-8')
 
 def read_file(filename: str) -> str:
     """Get the contents of a file contained with qutebrowser.

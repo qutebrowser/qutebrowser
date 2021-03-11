@@ -30,6 +30,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl, QObjec
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript, QWebEngineHistory
+from PyQt5.QtWebChannel import QWebChannel
 
 from qutebrowser.config import config
 from qutebrowser.browser import browsertab, eventfilter, shared, webelem, greasemonkey
@@ -41,6 +42,7 @@ from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, jinja, debug, version)
 from qutebrowser.qt import sip
 from qutebrowser.misc import objects, miscwidgets
+from qutebrowser.commands import runners
 
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
@@ -992,6 +994,9 @@ class _WebEngineScripts(QObject):
         self._tab = tab
         self._widget = cast(QWidget, None)
         self._greasemonkey = greasemonkey.gm_manager
+        self._channel = QWebChannel()
+        self._runner = runners.CommandRunner(self._tab.win_id)
+        self._channel.registerObject('handler', self)
 
     def connect_signals(self):
         """Connect signals to our private slots."""
@@ -1000,6 +1005,10 @@ class _WebEngineScripts(QObject):
         self._tab.search.cleared.connect(functools.partial(
             self._update_stylesheet, searching=False))
         self._tab.search.finished.connect(self._update_stylesheet)
+
+    @pyqtSlot(str, int)
+    def run_command(self, cmd, count=1):
+        self._runner.run_safely(cmd, count)
 
     @pyqtSlot(str)
     def _on_config_changed(self, option):
@@ -1044,7 +1053,21 @@ class _WebEngineScripts(QObject):
         )
         # FIXME:qtwebengine what about subframes=True?
         self._inject_js('js', js_code, subframes=True)
+
+        # Can only use web channel in the mainscript
+        # https://bugreports.qt.io/browse/QTBUG-88875
+        plugin_code = '\n'.join([
+            utils.read_qfile(':/qtwebchannel/qwebchannel.js'),
+            utils.read_file('javascript/plugin.js'),
+        ])
+        self._inject_js('plugin', plugin_code,
+            world=QWebEngineScript.MainWorld,
+            injection_point=QWebEngineScript.DocumentReady,
+            subframes=True)
+
         self._init_stylesheet()
+
+        self._widget.page().setWebChannel(self._channel)
 
         self._greasemonkey.scripts_reloaded.connect(
             self._inject_all_greasemonkey_scripts)
