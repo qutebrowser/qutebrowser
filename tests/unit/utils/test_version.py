@@ -357,14 +357,14 @@ class TestGitStr:
 
     @pytest.fixture
     def commit_file_mock(self, mocker):
-        """Fixture providing a mock for utils.read_file for git-commit-id.
+        """Fixture providing a mock for resources.read_file for git-commit-id.
 
         On fixture teardown, it makes sure it got called with git-commit-id as
         argument.
         """
         mocker.patch('qutebrowser.utils.version.subprocess',
                      side_effect=AssertionError)
-        m = mocker.patch('qutebrowser.utils.version.utils.read_file')
+        m = mocker.patch('qutebrowser.utils.version.resources.read_file')
         yield m
         m.assert_called_with('git-commit-id')
 
@@ -413,7 +413,7 @@ class TestGitStr:
         """Test with things raising OSError."""
         m = mocker.patch('qutebrowser.utils.version.os')
         m.path.join.side_effect = OSError
-        mocker.patch('qutebrowser.utils.version.utils.read_file',
+        mocker.patch('qutebrowser.utils.version.resources.read_file',
                      side_effect=OSError)
         with caplog.at_level(logging.ERROR, 'misc'):
             assert version._git_str() is None

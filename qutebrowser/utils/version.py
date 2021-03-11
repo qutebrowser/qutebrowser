@@ -53,7 +53,7 @@ except ImportError:  # pragma: no cover
 
 
 import qutebrowser
-from qutebrowser.utils import log, utils, standarddir, usertypes, message
+from qutebrowser.utils import log, utils, standarddir, usertypes, message, resources
 from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin, elf
 from qutebrowser.browser import pdfjs
 from qutebrowser.config import config, websettings
@@ -218,7 +218,7 @@ def _git_str() -> Optional[str]:
         return commit
     # If that fails, check the git-commit-id file.
     try:
-        return utils.read_file('git-commit-id')
+        return resources.read_file('git-commit-id')
     except (OSError, ImportError):
         return None
 
