@@ -32,7 +32,7 @@ from qutebrowser.utils import utils
 
 def collect_tests():
     basedir = pathlib.Path(__file__).parent
-    datadir = pathlib.Path(basedir).joinpath('data', 'hints', 'html')
+    datadir = basedir / 'data' / 'hints' / 'html'
     files = [str(f.name) for f in datadir.iterdir() if f.name != 'README.md']
     return files
 
@@ -54,8 +54,8 @@ class InvalidFile(Exception):
 
 def _parse_file(test_name):
     """Parse the given HTML file."""
-    file_path = pathlib.Path(__file__).parent.resolve().joinpath(
-        'data', 'hints', 'html', test_name)
+    file_path = (pathlib.Path(__file__).parent.resolve()
+                 / 'data' / 'hints' / 'html' / test_name)
     with file_path.open('r', encoding='utf-8') as html:
         soup = bs4.BeautifulSoup(html, 'html.parser')
 

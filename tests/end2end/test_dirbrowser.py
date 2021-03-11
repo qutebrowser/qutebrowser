@@ -182,7 +182,7 @@ def test_parent_with_slash(dir_layout, quteproc):
 
 def test_parent_in_root_dir(dir_layout, quteproc):
     # This actually works on windows
-    root_path = pathlib.Path.root
+    root_path = str(pathlib.Path('/'))
     urlstr = QUrl.fromLocalFile(root_path).toString(QUrl.FullyEncoded)
     quteproc.open_url(urlstr)
     page = parse(quteproc)
@@ -194,7 +194,7 @@ def test_enter_folder_smoke(dir_layout, quteproc):
     quteproc.send_cmd(':hint all normal')
     # a is the parent link, s is the first listed folder/file
     quteproc.send_cmd(':hint-follow s')
-    expected_url = urlutils.file_url(dir_layout.path('folder0'))
+    expected_url = urlutils.file_url(str(dir_layout.path('folder0')))
     quteproc.wait_for_load_finished_url(expected_url)
     page = parse(quteproc)
     assert page.path == dir_layout.path('folder0')
@@ -204,7 +204,7 @@ def test_enter_folder_smoke(dir_layout, quteproc):
 def test_enter_folder(dir_layout, quteproc, folder):
     quteproc.open_url(dir_layout.file_url())
     quteproc.click_element_by_text(text=folder)
-    expected_url = urlutils.file_url(dir_layout.path(folder))
+    expected_url = urlutils.file_url(str(dir_layout.path(folder)))
     quteproc.wait_for_load_finished_url(expected_url)
     page = parse(quteproc)
     assert page.path == dir_layout.path(folder)

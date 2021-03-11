@@ -56,8 +56,8 @@ def pytest_unconfigure(config):
     if config.getoption('--qute-profile-subprocs'):
         stats = pstats.Stats()
         for fn in pathlib.Path('prof').iterdir():
-            stats.add(pathlib.Path('prof').joinpath(fn))
-        stats.dump_stats(pathlib.Path('prof').joinpath('combined.pstats'))
+            stats.add((pathlib.Path('prof') / fn))
+        stats.dump_stats((pathlib.Path('prof') / 'combined.pstats'))
 
 
 def _get_version_tag(tag):

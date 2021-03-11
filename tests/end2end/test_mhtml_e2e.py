@@ -28,7 +28,7 @@ import pytest
 
 def collect_tests():
     basedir = pathlib.Path(__file__).parent
-    datadir = basedir.joinpath('data', 'downloads', 'mhtml')
+    datadir = basedir / 'data' / 'downloads' / 'mhtml'
     files = [x.name for x in datadir.iterdir()]
     return files
 
@@ -86,7 +86,7 @@ def download_dir(tmp_path, pytestconfig):
 
 
 def _test_mhtml_requests(test_dir, test_path, server):
-    with open(pathlib.Path(test_dir / 'requests'), encoding='utf-8') as f:
+    with (test_dir / 'requests').open(encoding='utf-8') as f:
         expected_requests = []
         for line in f:
             if line.startswith('#'):
@@ -107,18 +107,18 @@ def test_mhtml(request, test_name, download_dir, quteproc, server):
     quteproc.set_setting('downloads.location.directory', download_dir.location)
     quteproc.set_setting('downloads.location.prompt', 'false')
 
-    test_dir = pathlib.Path(__file__).parent.resolve().joinpath(
-        'data', 'downloads', 'mhtml', test_name)
+    test_dir = (pathlib.Path(__file__).parent.resolve()
+                / 'data' / 'downloads' / 'mhtml' / test_name)
     test_path = 'data/downloads/mhtml/{}'.format(test_name)
 
     url_path = '{}/{}.html'.format(test_path, test_name)
     quteproc.open_path(url_path)
 
-    download_dest = pathlib.Path(download_dir.location).joinpath(
-        '{}-downloaded.mht'.format(test_name))
+    download_dest = (pathlib.Path(download_dir.location)
+                     / '{}-downloaded.mht'.format(test_name))
 
     # Wait for favicon.ico to be loaded if there is one
-    if pathlib.Path(test_dir).joinpath('favicon.png').exists():
+    if (test_dir / 'favicon.png').exists():
         server.wait_for(path='/{}/favicon.png'.format(test_path))
 
     # Discard all requests that were necessary to display the page
@@ -132,7 +132,7 @@ def test_mhtml(request, test_name, download_dir, quteproc, server):
         return
 
     filename = test_name + '.mht'
-    expected_file = pathlib.Path(test_dir).joinpath(filename)
+    expected_file = test_dir / filename
 
     download_dir.compare_mhtml(expected_file)
     _test_mhtml_requests(test_dir, test_path, server)
