@@ -29,7 +29,7 @@ from PyQt5.QtCore import QUrl, QUrlQuery
 import pytest
 
 from qutebrowser.browser import qutescheme, pdfjs, downloads
-from qutebrowser.utils import utils
+from qutebrowser.utils import resources
 
 
 class TestJavascriptHandler:
@@ -44,15 +44,15 @@ class TestJavascriptHandler:
 
     @pytest.fixture(autouse=True)
     def patch_read_file(self, monkeypatch):
-        """Patch utils.read_file to return few fake JS files."""
+        """Patch resources.read_file to return few fake JS files."""
         def _read_file(path):
-            """Faked utils.read_file."""
+            """Faked resources.read_file."""
             for filename, content in self.js_files:
                 if path == str(pathlib.Path('javascript') / filename):
                     return content
             raise OSError("File not found {}!".format(path))
 
-        monkeypatch.setattr(utils, 'read_file', _read_file)
+        monkeypatch.setattr(resources, 'read_file', _read_file)
 
     @pytest.mark.parametrize("filename, content", js_files)
     def test_qutejavascript(self, filename, content):
@@ -166,8 +166,9 @@ class TestHelpHandler:
                 assert path == name
                 return data
 
-            monkeypatch.setattr(qutescheme.utils, 'read_file', _read_file)
-            monkeypatch.setattr(qutescheme.utils, 'read_file_binary', _read_file_binary)
+            monkeypatch.setattr(qutescheme.resources, 'read_file', _read_file)
+            monkeypatch.setattr(qutescheme.resources,
+                                'read_file_binary', _read_file_binary)
         return _patch
 
     def test_unknown_file_type(self, data_patcher):
