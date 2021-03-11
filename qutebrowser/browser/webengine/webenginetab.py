@@ -1050,24 +1050,16 @@ class _WebEngineScripts(QObject):
             utils.read_file('javascript/scroll.js'),
             utils.read_file('javascript/webelem.js'),
             utils.read_file('javascript/caret.js'),
+            utils.read_qfile(':/qtwebchannel/qwebchannel.js'),
+            utils.read_file('javascript/plugin.js'),
         )
         # FIXME:qtwebengine what about subframes=True?
         self._inject_js('js', js_code, subframes=True)
-
-        # Can only use web channel in the mainscript
-        # https://bugreports.qt.io/browse/QTBUG-88875
-        plugin_code = '\n'.join([
-            utils.read_qfile(':/qtwebchannel/qwebchannel.js'),
-            utils.read_file('javascript/plugin.js'),
-        ])
-        self._inject_js('plugin', plugin_code,
-            world=QWebEngineScript.MainWorld,
-            injection_point=QWebEngineScript.DocumentReady,
-            subframes=True)
+        self._widget.page().setWebChannel(self._channel,
+                                          QWebEngineScript.ApplicationWorld)
 
         self._init_stylesheet()
 
-        self._widget.page().setWebChannel(self._channel)
 
         self._greasemonkey.scripts_reloaded.connect(
             self._inject_all_greasemonkey_scripts)
