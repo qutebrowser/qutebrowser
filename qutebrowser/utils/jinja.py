@@ -31,7 +31,7 @@ import jinja2
 import jinja2.nodes
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils, urlutils, log, qtutils
+from qutebrowser.utils import utils, urlutils, log, qtutils, resources
 from qutebrowser.misc import debugcachestats
 
 
@@ -56,7 +56,7 @@ html_fallback = """
 
 class Loader(jinja2.BaseLoader):
 
-    """Jinja loader which uses utils.read_file to load templates.
+    """Jinja loader which uses resources.read_file to load templates.
 
     Attributes:
         _subdir: The subdirectory to find templates in.
@@ -72,7 +72,7 @@ class Loader(jinja2.BaseLoader):
     ) -> Tuple[str, str, Callable[[], bool]]:
         path = os.path.join(self._subdir, template)
         try:
-            source = utils.read_file(path)
+            source = resources.read_file(path)
         except OSError as e:
             source = html_fallback.replace("%ERROR%", html.escape(str(e)))
             source = source.replace("%FILE%", html.escape(template))
@@ -119,7 +119,7 @@ class Environment(jinja2.Environment):
 
     def _data_url(self, path: str) -> str:
         """Get a data: url for the broken qutebrowser logo."""
-        data = utils.read_file_binary(path)
+        data = resources.read_file_binary(path)
         mimetype = utils.guess_mimetype(path)
         return urlutils.data_url(mimetype, data).toString()
 
