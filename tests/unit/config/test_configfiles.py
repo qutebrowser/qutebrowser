@@ -1173,7 +1173,7 @@ class TestConfigPy:
         alt_filename = 'alt-config.py'
 
         alt_confpy_dir = tmp_path / 'alt-confpy-dir'
-        alt_confpy_dir.mkdir(exist_ok=True)
+        alt_confpy_dir.mkdir()
         monkeypatch.setattr(standarddir, 'config_py',
                             lambda: str(alt_confpy_dir / alt_filename))
 
