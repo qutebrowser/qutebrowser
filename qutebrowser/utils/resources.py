@@ -84,7 +84,7 @@ def _glob(
         # Union[pathlib.Path, zipfile.Path] because we set "python_version = 3.6" in
         # .mypy.ini, but the zipfiel stubs (correctly) only declare zipfile.Path with
         # Python 3.8...
-        assert glob_path.is_dir(), path  # type: ignore[unreachable]
+        assert glob_path.is_dir(), glob_path  # type: ignore[unreachable]
         for subpath in glob_path.iterdir():
             if subpath.name.endswith(ext):
                 yield posixpath.join(subdir, subpath.name)
