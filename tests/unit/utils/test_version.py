@@ -1076,18 +1076,34 @@ class TestChromiumVersion:
         import_fake.patch()
 
     @pytest.fixture
-    def patch_importlib_no_package(self, monkeypatch):
-        """Simulate importlib not finding PyQtWebEngine-Qt."""
-        try:
-            import importlib.metadata as importlib_metadata
-        except ImportError:
-            importlib_metadata = pytest.importorskip("importlib_metadata")
+    def importlib_patcher(self, monkeypatch):
+        """Patch the importlib module."""
+        def _patch(*, qt, qt5):
+            try:
+                import importlib.metadata as importlib_metadata
+            except ImportError:
+                importlib_metadata = pytest.importorskip("importlib_metadata")
 
-        def _fake_version(name):
-            assert name == 'PyQtWebEngine-Qt'
-            raise importlib_metadata.PackageNotFoundError(name)
+            def _fake_version(name):
+                if name == 'PyQtWebEngine-Qt':
+                    outcome = qt
+                elif name == 'PyQtWebEngine-Qt5':
+                    outcome = qt5
+                else:
+                    raise utils.Unreachable(outcome)
 
-        monkeypatch.setattr(importlib_metadata, 'version', _fake_version)
+                if outcome is None:
+                    raise importlib_metadata.PackageNotFoundError(name)
+                return outcome
+
+            monkeypatch.setattr(importlib_metadata, 'version', _fake_version)
+
+        return _patch
+
+    @pytest.fixture
+    def patch_importlib_no_package(self, importlib_patcher):
+        """Simulate importlib not finding PyQtWebEngine-Qt[5]."""
+        importlib_patcher(qt=None, qt5=None)
 
     @pytest.mark.parametrize('patches, sources', [
         (['elf_fail'], ['importlib', 'PyQt', 'Qt']),
@@ -1110,6 +1126,21 @@ class TestChromiumVersion:
 
         versions = version.qtwebengine_versions(avoid_init=True)
         assert versions.source in sources
+
+    @pytest.mark.parametrize('qt, qt5, expected', [
+        (None, '5.15.4', utils.VersionNumber(5, 15, 4)),
+        ('5.15.3', None, utils.VersionNumber(5, 15, 3)),
+        ('5.15.3', '5.15.4', utils.VersionNumber(5, 15, 4)),  # -Qt5 takes precedence
+    ])
+    def test_importlib(self, qt, qt5, expected, patch_elf_fail, importlib_patcher):
+        """Test the importlib version logic with different Qt packages.
+
+        With PyQtWebEngine 5.15.4, PyQtWebEngine-Qt was renamed to PyQtWebEngine-Qt5.
+        """
+        importlib_patcher(qt=qt, qt5=qt5)
+        versions = version.qtwebengine_versions(avoid_init=True)
+        assert versions.source == 'importlib'
+        assert versions.webengine == expected
 
 
 @dataclasses.dataclass
