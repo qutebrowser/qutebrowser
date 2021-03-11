@@ -28,6 +28,7 @@ from PyQt5.QtCore import QUrl
 import qutebrowser
 from qutebrowser.utils import usertypes
 
+JS_DIR = pathlib.Path(__file__).parent
 
 class JSTester:
 
@@ -42,7 +43,7 @@ class JSTester:
     def __init__(self, tab, qtbot, config_stub):
         self.tab = tab
         self.qtbot = qtbot
-        loader = jinja2.FileSystemLoader(pathlib.Path(__file__).parent)
+        loader = jinja2.FileSystemLoader(JS_DIR)
         self._jinja_env = jinja2.Environment(loader=loader, autoescape=True)
         # Make sure error logging via JS fails tests
         config_stub.val.content.javascript.log = {
@@ -85,7 +86,7 @@ class JSTester:
             force: Whether to force loading even if the file is invalid.
         """
         self.load_url(QUrl.fromLocalFile(
-            str(pathlib.Path(__file__).parent / path)), force)
+            str(JS_DIR / path)), force)
 
     def load_url(self, url: QUrl, force: bool = False):
         """Load a given QUrl.
