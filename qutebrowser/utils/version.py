@@ -492,6 +492,9 @@ def _get_pyqt_webengine_qt_version() -> Optional[str]:
     https://www.riverbankcomputing.com/pipermail/pyqt/2021-February/043591.html
     https://www.riverbankcomputing.com/pipermail/pyqt/2021-February/043638.html
 
+    PyQtWebEngine 5.15.4 renamed it to PyQtWebEngine-Qt5...:
+    https://www.riverbankcomputing.com/pipermail/pyqt/2021-March/043699.html
+
     Here, we try to use importlib.metadata or its backport (optional dependency) to
     figure out that version number. If PyQtWebEngine is installed via pip, this will
     give us an accurate answer.
@@ -505,11 +508,13 @@ def _get_pyqt_webengine_qt_version() -> Optional[str]:
             log.misc.debug("Neither importlib.metadata nor backport available")
             return None
 
-    try:
-        return importlib_metadata.version('PyQtWebEngine-Qt')
-    except importlib_metadata.PackageNotFoundError:
-        log.misc.debug("PyQtWebEngine-Qt not found")
-        return None
+    for suffix in ['Qt5', 'Qt']:
+        try:
+            return importlib_metadata.version(f'PyQtWebEngine-{suffix}')
+        except importlib_metadata.PackageNotFoundError:
+            log.misc.debug(f"PyQtWebEngine-{suffix} not found")
+
+    return None
 
 
 @dataclasses.dataclass
