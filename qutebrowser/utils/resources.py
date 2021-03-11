@@ -24,7 +24,7 @@ import sys
 import contextlib
 import posixpath
 import pathlib
-from typing import (Iterator, Iterable)
+from typing import Iterator, Iterable
 
 
 # We cannot use the stdlib version on 3.7-3.8 because we need the files() API.
@@ -34,9 +34,9 @@ else:  # pragma: no cover
     import importlib_resources
 
 import qutebrowser
-cache = {}
+_cache = {}
 
-def path(filename: str) -> pathlib.Path:
+def _path(filename: str) -> pathlib.Path:
     """Get a pathlib.Path object for a resource."""
     assert not posixpath.isabs(filename), filename
     assert os.path.pardir not in filename.split(posixpath.sep), filename
@@ -49,7 +49,7 @@ def path(filename: str) -> pathlib.Path:
     return importlib_resources.files(qutebrowser) / filename
 
 @contextlib.contextmanager
-def keyerror_workaround() -> Iterator[None]:
+def _keyerror_workaround() -> Iterator[None]:
     """Re-raise KeyErrors as FileNotFoundErrors.
 
     WORKAROUND for zipfile.Path resources raising KeyError when a file was notfound:
@@ -92,14 +92,14 @@ def _glob(
 
 def preload() -> None:
     """Load resource files into the cache."""
-    resource_path = path('')
+    resource_path = _path('')
     for subdir, ext in [
             ('html', '.html'),
             ('javascript', '.js'),
             ('javascript/quirks', '.js'),
     ]:
         for name in _glob(resource_path, subdir, ext):
-            cache[name] = read_file(name)
+            _cache[name] = read_file(name)
 
 
 def read_file(filename: str) -> str:
@@ -111,12 +111,12 @@ def read_file(filename: str) -> str:
     Return:
         The file contents as string.
     """
-    if filename in cache:
-        return cache[filename]
+    if filename in _cache:
+        return _cache[filename]
 
-    file_path = path(filename)
-    with keyerror_workaround():
-        return file_path.read_text(encoding='utf-8')
+    path = _path(filename)
+    with _keyerror_workaround():
+        return path.read_text(encoding='utf-8')
 
 
 def read_file_binary(filename: str) -> bytes:
@@ -128,6 +128,6 @@ def read_file_binary(filename: str) -> bytes:
     Return:
         The file contents as a bytes object.
     """
-    file_binary_path = path(filename)
-    with keyerror_workaround():
-        return file_binary_path.read_bytes()
+    path = _path(filename)
+    with _keyerror_workaround():
+        return path.read_bytes()
