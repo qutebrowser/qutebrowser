@@ -187,6 +187,8 @@ PERFECT_FILES = [
      'qutebrowser/utils/usertypes.py'),
     ('tests/unit/utils/test_utils.py',
      'qutebrowser/utils/utils.py'),
+    ('tests/unit/utils/test_resources.py',
+     'qutebrowser/utils/resources.py'),
     ('tests/unit/utils/test_version.py',
      'qutebrowser/utils/version.py'),
     ('tests/unit/utils/test_debug.py',

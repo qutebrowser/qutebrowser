@@ -24,7 +24,7 @@ import os
 
 from PyQt5.QtCore import QUrl, QUrlQuery
 
-from qutebrowser.utils import utils, javascript, jinja, standarddir, log
+from qutebrowser.utils import resources, javascript, jinja, standarddir, log
 from qutebrowser.config import config
 
 
@@ -149,7 +149,7 @@ def get_pdfjs_res_and_path(path):
     if content is None:
         res_path = '3rdparty/pdfjs/{}'.format(path)
         try:
-            content = utils.read_file_binary(res_path)
+            content = resources.read_file_binary(res_path)
         except FileNotFoundError:
             raise PDFJSNotFound(path) from None
         except OSError as e:

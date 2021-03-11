@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
 import pathlib
 
 import pytest
@@ -403,6 +404,7 @@ def qtwe_version():
     ("zh_XX.UTF-8", "zh-CN"),  # locale not available on my system
     ("zu_ZA.UTF-8", "en-US"),
 ])
+@pytest.mark.linux
 def test_lang_workaround_all_locales(lang, expected, qtwe_version):
     locale_name = QLocale(lang).bcp47Name()
     print(locale_name)
@@ -444,3 +446,12 @@ def test_non_linux(qtwe_version):
 def test_disabled(qtwe_version, config_stub):
     config_stub.val.qt.workarounds.locale = False
     assert qtargs._get_lang_override(qtwe_version, "de-CH") is None
+
+
+@pytest.mark.fake_os('linux')
+def test_no_locales_available(qtwe_version, monkeypatch, caplog):
+    monkeypatch.setattr(qtargs.QLibraryInfo, 'location', lambda _path: '/doesnotexist')
+    assert qtargs._get_lang_override(qtwe_version, "de-CH") is None
+    assert caplog.messages == [
+        f"{os.sep}doesnotexist{os.sep}qtwebengine_locales not found, skipping "
+        "workaround!"]
