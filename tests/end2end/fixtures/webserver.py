@@ -167,11 +167,13 @@ class WebserverProcess(testprocess.Process):
 
     def _executable_args(self):
         if hasattr(sys, 'frozen'):
-            executable = str(pathlib.Path(sys.executable).parent.joinpath(self._script))
+            executable = str(pathlib.Path(sys.executable).parent
+                             / self._script)
             args = []
         else:
             executable = sys.executable
-            py_file = str(pathlib.Path(__file__).parent.joinpath(self._script + '.py'))
+            py_file = str((pathlib.Path(__file__).parent
+                           / self._script).with_suffix('.py'))
             args = [py_file]
         return executable, args
 
