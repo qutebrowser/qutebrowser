@@ -453,5 +453,5 @@ def test_no_locales_available(qtwe_version, monkeypatch, caplog):
     monkeypatch.setattr(qtargs.QLibraryInfo, 'location', lambda _path: '/doesnotexist')
     assert qtargs._get_lang_override(qtwe_version, "de-CH") is None
     assert caplog.messages == [
-            f"{os.sep}doesnotexist{os.sep}qtwebengine_locales not found, skipping "
-            "workaround!"]
+        f"{os.sep}doesnotexist{os.sep}qtwebengine_locales not found, skipping "
+        "workaround!"]
