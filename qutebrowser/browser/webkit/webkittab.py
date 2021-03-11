@@ -34,8 +34,7 @@ from PyQt5.QtPrintSupport import QPrinter
 from qutebrowser.browser import browsertab, shared
 from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
                                         webkitsettings, webkitinspector)
-
-from qutebrowser.utils import qtutils, usertypes, utils, log, debug
+from qutebrowser.utils import qtutils, usertypes, utils, log, debug, resources
 from qutebrowser.keyinput import modeman
 from qutebrowser.qt import sip
 
@@ -228,7 +227,7 @@ class WebKitCaret(browsertab.AbstractCaret):
             # true in caret mode.
             if self._selection_state is browsertab.SelectionState.none:
                 self._widget.page().currentFrame().evaluateJavaScript(
-                    utils.read_file('javascript/position_caret.js'))
+                    resources.read_file('javascript/position_caret.js'))
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self, _mode):

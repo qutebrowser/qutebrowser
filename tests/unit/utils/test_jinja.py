@@ -33,7 +33,7 @@ from qutebrowser.config import configexc
 
 @pytest.fixture(autouse=True)
 def patch_read_file(monkeypatch):
-    """pytest fixture to patch utils.read_file."""
+    """pytest fixture to patch resources.read_file."""
     def _read_file(path):
         """A read_file which returns a simple template if the path is right."""
         if path == os.path.join('html', 'test.html'):
@@ -55,8 +55,8 @@ def patch_read_file(monkeypatch):
         else:
             raise OSError("Invalid path {}!".format(path))
 
-    monkeypatch.setattr(jinja.utils, 'read_file', _read_file)
-    monkeypatch.setattr(jinja.utils, 'read_file_binary', _read_file_binary)
+    monkeypatch.setattr(jinja.resources, 'read_file', _read_file)
+    monkeypatch.setattr(jinja.resources, 'read_file_binary', _read_file_binary)
 
 
 def test_simple_template():

@@ -128,22 +128,21 @@ class StateConfig(configparser.ConfigParser):
             # https://github.com/python/typeshed/issues/2093
             return  # type: ignore[unreachable]
 
-        old_version = utils.parse_version(old_qutebrowser_version)
-        new_version = utils.parse_version(qutebrowser.__version__)
-
-        if old_version.isNull():
+        try:
+            old_version = utils.VersionNumber.parse(old_qutebrowser_version)
+        except ValueError:
             log.init.warning(f"Unable to parse old version {old_qutebrowser_version}")
             return
 
-        assert not new_version.isNull(), qutebrowser.__version__
+        new_version = utils.VersionNumber.parse(qutebrowser.__version__)
 
         if old_version == new_version:
             self.qutebrowser_version_changed = VersionChange.equal
         elif new_version < old_version:
             self.qutebrowser_version_changed = VersionChange.downgrade
-        elif old_version.segments()[:2] == new_version.segments()[:2]:
+        elif old_version.segments[:2] == new_version.segments[:2]:
             self.qutebrowser_version_changed = VersionChange.patch
-        elif old_version.majorVersion() == new_version.majorVersion():
+        elif old_version.major == new_version.major:
             self.qutebrowser_version_changed = VersionChange.minor
         else:
             self.qutebrowser_version_changed = VersionChange.major
