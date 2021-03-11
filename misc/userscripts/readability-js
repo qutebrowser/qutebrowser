@@ -39,8 +39,8 @@ const HEADER = `
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1, text/html, charset=UTF-8" http-equiv="Content-Type">
-    </meta>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
     <title>%s</title>
     <style type="text/css">
         body {
