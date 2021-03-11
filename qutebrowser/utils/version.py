@@ -626,7 +626,7 @@ class WebEngineVersions:
             # e.g. 5.14.2 -> 5.14
             segments = pyqt_webengine_version.segments()[:2]
             if segments[-1] == 0:
-                del segments[-1]
+                del segments[-1]  # pragma: no cover
 
             minor_version = utils.VersionNumber(*segments)
 
