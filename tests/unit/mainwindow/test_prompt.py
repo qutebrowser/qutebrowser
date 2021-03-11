@@ -58,7 +58,7 @@ class TestFileCompletion:
         """Simply trying to tab through items."""
         testdir = tmp_path / 'test'
         for directory in 'abc':
-            (testdir / directory).mkdir(exist_ok=True, parents=True)
+            (testdir / directory).mkdir(parents=True)
 
         prompt = get_prompt(str(testdir) + os.sep)
 
@@ -72,7 +72,7 @@ class TestFileCompletion:
         testdir = tmp_path / 'test'
 
         for directory in ['bar', 'foo']:
-            (testdir / directory).mkdir(exist_ok=True, parents=True)
+            (testdir / directory).mkdir(parents=True)
 
         prompt = get_prompt(str(testdir / 'foo') + os.sep)
 
