@@ -283,6 +283,7 @@
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
 |<<qt.low_end_device_mode,qt.low_end_device_mode>>|When to use Chromium's low-end device mode.
 |<<qt.process_model,qt.process_model>>|Which Chromium process model to use.
+|<<qt.workarounds.locale,qt.workarounds.locale>>|Work around locale parsing issues in QtWebEngine 5.15.3.
 |<<qt.workarounds.remove_service_workers,qt.workarounds.remove_service_workers>>|Delete the QtWebEngine Service Worker directory on every start.
 |<<scrolling.bar,scrolling.bar>>|When/how to show the scrollbar.
 |<<scrolling.smooth,scrolling.smooth>>|Enable smooth scrolling for web pages.
@@ -3663,6 +3664,18 @@ Valid values:
  * +single-process+: Run all tabs in a single process. This should be used for debugging purposes only, and it disables `:open --private`.
 
 Default: +pass:[process-per-site-instance]+
+
+This setting is only available with the QtWebEngine backend.
+
+[[qt.workarounds.locale]]
+=== qt.workarounds.locale
+Work around locale parsing issues in QtWebEngine 5.15.3.
+With some locales, QtWebEngine 5.15.3 is unusable without this workaround. In affected scenarios, QtWebEngine will log "Network service crashed, restarting service." and only display a blank page.
+However, It is expected that distributions shipping QtWebEngine 5.15.3 follow up with a proper fix soon, so it is disabled by default.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 This setting is only available with the QtWebEngine backend.
 
