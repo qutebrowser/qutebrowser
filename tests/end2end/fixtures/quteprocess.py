@@ -858,8 +858,8 @@ class QuteProc(testprocess.Process):
 
     def get_session(self):
         """Save the session and get the parsed session data."""
-        with tempfile.TemporaryDirectory() as tmp_path:
-            session = tmp_path / 'session.yml'
+        with tempfile.TemporaryDirectory() as tdir:
+            session = pathlib.Path(tdir) / 'session.yml'
             self.send_cmd(':session-save --with-private "{}"'.format(session))
             self.wait_for(category='message', loglevel=logging.INFO,
                           message='Saved session {}.'.format(session))
@@ -871,8 +871,8 @@ class QuteProc(testprocess.Process):
 
     def get_content(self, plain=True):
         """Get the contents of the current page."""
-        with tempfile.TemporaryDirectory() as tmp_path:
-            path = tmp_path / 'page'
+        with tempfile.TemporaryDirectory() as tdir:
+            path = pathlib.Path(tdir) / 'page'
 
             if plain:
                 self.send_cmd(':debug-dump-page --plain "{}"'.format(path))
