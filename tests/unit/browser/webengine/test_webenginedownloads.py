@@ -154,7 +154,7 @@ class TestDataUrlWorkaround:
         def check_item(item):
             assert item.mimeType() == 'application/pdf'
             assert item.url().scheme() == 'data'
-            assert str(pathlib.Path(item.path()).name) == expected_names.before
+            assert pathlib.Path(item.path()).name == expected_names.before
             return True
 
         with qtbot.wait_signal(webengine_profile.downloadRequested,

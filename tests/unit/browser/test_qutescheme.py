@@ -48,7 +48,7 @@ class TestJavascriptHandler:
         def _read_file(path):
             """Faked utils.read_file."""
             for filename, content in self.js_files:
-                if path == str(pathlib.Path('javascript' + "/" + filename)):
+                if path == str(pathlib.Path('javascript') / filename):
                     return content
             raise OSError("File not found {}!".format(path))
 

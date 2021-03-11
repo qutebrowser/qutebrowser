@@ -42,9 +42,9 @@ def get_file_list(basedir, all_files, filterfunc):
     """
     items = []
     for filename in all_files:
-        absname = pathlib.Path(basedir / filename)
+        absname = pathlib.Path(basedir) / filename
         if filterfunc(absname):
-            items.append({'name': str(filename.name), 'absname': str(absname)})
+            items.append({'name': filename.name, 'absname': str(absname)})
     return sorted(items, key=lambda v: v['name'].lower())
 
 
@@ -77,7 +77,7 @@ def parent_dir(directory):
     Return:
         The path to the parent directory.
     """
-    return str(pathlib.Path(directory / pathlib.Path(directory).parent))
+    return str(pathlib.Path(directory).parent)
 
 
 def dirbrowser_html(path):
@@ -122,9 +122,9 @@ def handler(request, _operation, _current_url):
     Return:
         A QNetworkReply for directories, None for files.
     """
-    path = request.url().toLocalFile()
+    path = pathlib.Path(request.url().toLocalFile())
     try:
-        if pathlib.Path(path).is_dir():
+        if path.is_dir():
             data = dirbrowser_html(path)
             return networkreply.FixedDataNetworkReply(
                 request, data, 'text/html')
