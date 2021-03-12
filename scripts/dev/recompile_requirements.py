@@ -399,7 +399,13 @@ def _get_changes(diff):
     for line in diff:
         if not line.startswith('-') and not line.startswith('+'):
             continue
-        if line.startswith('+++ ') or line.startswith('--- '):
+        elif line.startswith('+++ ') or line.startswith('--- '):
+            continue
+        elif not line.strip():
+            # Could be newline changes on Windows
+            continue
+        elif line[1:].startswith('# This file is automatically'):
+            # Could be newline changes on Windows
             continue
 
         name, version = parse_versioned_line(line[1:])
