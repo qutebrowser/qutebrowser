@@ -645,6 +645,8 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
     ),
     ('yellow', 'lightness-hsl', {None: testutils.Color(204, 204, 0)}),
     ('yellow', 'brightness-rgb', {None: testutils.Color(0, 0, 204)}),
+
+    ('mathml', None, {None: testutils.Color(255, 255, 255)}),
 ])
 def test_dark_mode(webengine_versions, quteproc_new, request,
                    filename, algorithm, colors):
@@ -654,8 +656,9 @@ def test_dark_mode(webengine_versions, quteproc_new, request,
     args = _base_args(request.config) + [
         '--temp-basedir',
         '-s', 'colors.webpage.darkmode.enabled', 'true',
-        '-s', 'colors.webpage.darkmode.algorithm', algorithm,
     ]
+    if algorithm is not None:
+        args += ['-s', 'colors.webpage.darkmode.algorithm', algorithm]
     quteproc_new.start(args)
 
     ver = webengine_versions.webengine

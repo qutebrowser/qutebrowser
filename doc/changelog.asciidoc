@@ -122,6 +122,13 @@ Fixed
 - The `hist_importer.py` script didn't work correctly after qutebrowser v2.0.0
   and resulted in a history database qutebrowser couldn't read properly. It now
   works properly again.
+- With certain QtWebEngine versions (5.15.0 based on Chromium 80 and 5.15.3
+  based on Chromium 87), Chromium's dark mode doesn't invert certain SVG images,
+  even with `colors.wegpage.darkmode.policy.images` set to `smart`.
+  Most notably, this causes formulae on Wikipedia to display black on (almost)
+  black. If `content.site_specific_quirks` is enabled, qutebrowser now injects
+  some CSS as a workaround, which inverts all math formula images on Wikipedia
+  (and potentially other sites, if they use the same CSS class).
 
 [[v2.0.2]]
 v2.0.2 (2021-02-04)
