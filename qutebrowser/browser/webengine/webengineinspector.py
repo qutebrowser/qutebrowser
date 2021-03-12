@@ -28,7 +28,8 @@ from PyQt5.QtWidgets import QWidget
 from qutebrowser.browser import inspector
 from qutebrowser.browser.webengine import webenginesettings
 from qutebrowser.misc import miscwidgets
-from qutebrowser.utils import version
+from qutebrowser.utils import version, usertypes
+from qutebrowser.keyinput import modeman
 
 
 class WebEngineInspectorView(QWebEngineView):
@@ -65,7 +66,18 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         self._settings = webenginesettings.WebEngineSettings(view.settings())
         self._set_widget(view)
         page = view.page()
-        page.windowCloseRequested.connect(self.hide)  # type: ignore[attr-defined]
+        page.windowCloseRequested.connect(  # type: ignore[attr-defined]
+            self._on_window_close_requested)
+
+    def _on_window_close_requested(self) -> None:
+        """Called when the 'x' was clicked in the devtools."""
+        modeman.leave(
+            self._win_id,
+            usertypes.KeyMode.insert,
+            'devtools close requested',
+            maybe=True,
+        )
+        self.hide()
 
     def _check_devtools_resources(self) -> None:
         """Make sure that the devtools resources are available on Fedora.
