@@ -926,6 +926,25 @@ class TestWebEngineVersions:
     def test_str(self, version, expected):
         assert str(version) == expected
 
+    @pytest.mark.parametrize('version, expected', [
+        (
+            version.WebEngineVersions(
+                webengine=utils.VersionNumber(5, 15, 2),
+                chromium=None,
+                source='test'),
+            None,
+        ),
+        (
+            version.WebEngineVersions(
+                webengine=utils.VersionNumber(5, 15, 2),
+                chromium='87.0.4280.144',
+                source='test'),
+            87,
+        ),
+    ])
+    def test_chromium_major(self, version, expected):
+        assert version.chromium_major == expected
+
     def test_from_ua(self):
         ua = websettings.UserAgent(
             os_info='X11; Linux x86_64',

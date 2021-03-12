@@ -525,6 +525,7 @@ class WebEngineVersions:
     webengine: utils.VersionNumber
     chromium: Optional[str]
     source: str
+    chromium_major: Optional[int] = dataclasses.field(init=False)
 
     _CHROMIUM_VERSIONS: ClassVar[Dict[utils.VersionNumber, str]] = {
         # Qt 5.12: Chromium 69
@@ -562,10 +563,19 @@ class WebEngineVersions:
         #          5.15.1: Security fixes up to 85.0.4183.83  (2020-08-25)
         #          5.15.2: Updated to 83.0.4103.122           (~2020-06-24)
         #                  Security fixes up to 86.0.4240.183 (2020-11-02)
+        #          5.15.3: Updated to 87.0.4280.144           (~2020-12-02)
+        #                  Security fixes up to 88.0.4324.150 (2021-02-04)
         utils.VersionNumber(5, 15): '80.0.3987.163',
         utils.VersionNumber(5, 15, 2): '83.0.4103.122',
         utils.VersionNumber(5, 15, 3): '87.0.4280.144',
     }
+
+    def __post_init__(self):
+        """Set the major Chromium version."""
+        if self.chromium is None:
+            self.chromium_major = None
+        else:
+            self.chromium_major = int(self.chromium.split('.')[0])
 
     def __str__(self) -> str:
         s = f'QtWebEngine {self.webengine}'
