@@ -29,6 +29,7 @@ import logging
 import tempfile
 import contextlib
 import itertools
+import collections
 import json
 
 import yaml
@@ -453,6 +454,7 @@ class QuteProc(testprocess.Process):
         self.basedir = None
         self._instance_id = next(instance_counter)
         self._run_counter = itertools.count()
+        self._screenshot_counters = collections.defaultdict(itertools.count)
 
     def _process_line(self, log_line):
         """Check if the line matches any initial lines we're interested in."""
@@ -902,8 +904,10 @@ class QuteProc(testprocess.Process):
         """
         for _ in range(5):
             tmp_path = self.request.getfixturevalue('tmp_path')
-            path = tmp_path / 'screenshot.png'
-            self.send_cmd(f':screenshot --force {path}')
+            counter = self._screenshot_counters[self.request.node.nodeid]
+
+            path = tmp_path / f'screenshot-{next(counter)}.png'
+            self.send_cmd(f':screenshot {path}')
 
             screenshot_msg = f'Screenshot saved to {path}'
             self.wait_for(message=screenshot_msg)
