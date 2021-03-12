@@ -279,7 +279,7 @@ def run_pip(venv_dir, *args, quiet=False, **kwargs):
     arg_str = ' '.join(str(arg) for arg in args)
     utils.print_col('venv$ pip {}'.format(arg_str), 'blue')
 
-    venv_python = os.path.join(venv_dir, 'bin', 'python')
+    venv_python = get_venv_python(venv_dir)
     return subprocess.run([venv_python, '-m', 'pip'] + args, check=True, **kwargs)
 
 
@@ -458,6 +458,12 @@ def get_host_python(name):
         return sys.executable
 
 
+def get_venv_python(venv_dir):
+    """Get the path to Python inside a virtualenv."""
+    subdir = 'Scripts' if os.name == 'nt' else 'bin'
+    return os.path.join(venv_dir, subdir, 'python')
+
+
 def get_outfile(name):
     """Get the path to the output requirements.txt file."""
     if name == 'qutebrowser':
@@ -510,7 +516,7 @@ def test_tox():
     with tempfile.TemporaryDirectory() as tmpdir:
         venv_dir = os.path.join(tmpdir, 'venv')
         tox_workdir = os.path.join(tmpdir, 'tox-workdir')
-        venv_python = os.path.join(venv_dir, 'bin', 'python')
+        venv_python = get_venv_python(venv_dir)
         init_venv(host_python, venv_dir, req_path)
         list_proc = subprocess.run([venv_python, '-m', 'tox', '--listenvs'],
                                    check=True,
