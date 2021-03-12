@@ -299,7 +299,7 @@ def get_user_stylesheet(searching=False):
         css += '\nhtml > ::-webkit-scrollbar { width: 0px; height: 0px; }'
 
     if (objects.backend == usertypes.Backend.QtWebEngine and
-            version.qtwebengine_versions().chromium_major in [80, 87] and
+            version.qtwebengine_versions().chromium_major in [69, 73, 80, 87] and
             config.val.colors.webpage.darkmode.enabled and
             config.val.colors.webpage.darkmode.policy.images == 'smart' and
             config.val.content.site_specific_quirks):
