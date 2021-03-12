@@ -666,12 +666,10 @@ def test_dark_mode(webengine_versions, quteproc_new, request,
 
     # Position chosen by fair dice roll.
     # https://xkcd.com/221/
-    pos = QPoint(4, 4)
-    img = quteproc_new.get_screenshot(probe_pos=pos, probe_color=expected)
-
-    color = testutils.Color(img.pixelColor(pos))
-    # For pytest debug output
-    assert color == expected
+    quteproc_new.get_screenshot(
+        probe_pos=QPoint(4, 4),
+        probe_color=expected,
+    )
 
 
 def test_dark_mode_mathml(quteproc_new, request, qtbot):
@@ -689,14 +687,16 @@ def test_dark_mode_mathml(quteproc_new, request, qtbot):
     quteproc_new.wait_for_js('Image loaded')
 
     # First make sure loading finished by looking outside of the image
-    img = quteproc_new.get_screenshot(
+    quteproc_new.get_screenshot(
         probe_pos=QPoint(105, 0),
         probe_color=testutils.Color(0, 0, 204),
     )
 
-    # Then get the actual formula color
-    color = testutils.Color(img.pixelColor(QPoint(4, 4)))
-    assert color == testutils.Color(255, 255, 255)
+    # Then get the actual formula color, probing again in case it's not displayed yet...
+    quteproc_new.get_screenshot(
+        probe_pos=QPoint(4, 4),
+        probe_color=testutils.Color(255, 255, 255),
+    )
 
 
 def test_unavailable_backend(request, quteproc_new):

@@ -919,8 +919,8 @@ class QuteProc(testprocess.Process):
             # Rendering might not be completed yet...
             time.sleep(0.5)
 
-        raise ValueError(
-            f"Pixel probing for {probe_color} failed (got {probed_color} on last try)")
+        # Using assert again for pytest introspection
+        assert probed_color == probe_color, "Color probing failed, values on last try:"
 
     def press_keys(self, keys):
         """Press the given keys using :fake-key."""
