@@ -60,9 +60,11 @@ class WebEngineInspector(inspector.AbstractWebInspector):
                  parent: QWidget = None) -> None:
         super().__init__(splitter, win_id, parent)
         self._check_devtools_resources()
+
         view = WebEngineInspectorView()
         self._settings = webenginesettings.WebEngineSettings(view.settings())
         self._set_widget(view)
+        view.page().windowCloseRequested.connect(self.hide)
 
     def _check_devtools_resources(self) -> None:
         """Make sure that the devtools resources are available on Fedora.
