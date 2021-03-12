@@ -928,6 +928,7 @@ class QuteProc(testprocess.Process):
 
         # Using assert again for pytest introspection
         assert probed_color == probe_color, "Color probing failed, values on last try:"
+        raise utils.Unreachable()
 
     def press_keys(self, keys):
         """Press the given keys using :fake-key."""
