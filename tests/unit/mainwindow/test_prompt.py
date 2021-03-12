@@ -53,26 +53,26 @@ class TestFileCompletion:
         (2, 'next', 'a'),
         (2, 'prev', 'b'),
     ])
-    def test_simple_completion(self, tmpdir, get_prompt, steps, where,
+    def test_simple_completion(self, tmp_path, get_prompt, steps, where,
                                subfolder):
         """Simply trying to tab through items."""
-        testdir = tmpdir / 'test'
+        testdir = tmp_path / 'test'
         for directory in 'abc':
-            (testdir / directory).ensure(dir=True)
+            (testdir / directory).mkdir(parents=True)
 
         prompt = get_prompt(str(testdir) + os.sep)
 
         for _ in range(steps):
             prompt.item_focus(where)
 
-        assert prompt._lineedit.text() == str(testdir / subfolder)
+        assert prompt._lineedit.text() == str((testdir / subfolder).resolve())
 
-    def test_backspacing_path(self, qtbot, tmpdir, get_prompt):
+    def test_backspacing_path(self, qtbot, tmp_path, get_prompt):
         """When we start deleting a path we want to see the subdir."""
-        testdir = tmpdir / 'test'
+        testdir = tmp_path / 'test'
 
         for directory in ['bar', 'foo']:
-            (testdir / directory).ensure(dir=True)
+            (testdir / directory).mkdir(parents=True)
 
         prompt = get_prompt(str(testdir / 'foo') + os.sep)
 
