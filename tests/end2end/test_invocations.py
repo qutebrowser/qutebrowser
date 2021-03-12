@@ -645,8 +645,6 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
     ),
     ('yellow', 'lightness-hsl', {None: testutils.Color(204, 204, 0)}),
     ('yellow', 'brightness-rgb', {None: testutils.Color(0, 0, 204)}),
-
-    ('mathml', None, {None: testutils.Color(255, 255, 255)}),
 ])
 def test_dark_mode(webengine_versions, quteproc_new, request,
                    filename, algorithm, colors):
@@ -656,9 +654,8 @@ def test_dark_mode(webengine_versions, quteproc_new, request,
     args = _base_args(request.config) + [
         '--temp-basedir',
         '-s', 'colors.webpage.darkmode.enabled', 'true',
+        '-s', 'colors.webpage.darkmode.algorithm', algorithm,
     ]
-    if algorithm is not None:
-        args += ['-s', 'colors.webpage.darkmode.algorithm', algorithm]
     quteproc_new.start(args)
 
     ver = webengine_versions.webengine
@@ -675,6 +672,31 @@ def test_dark_mode(webengine_versions, quteproc_new, request,
     color = testutils.Color(img.pixelColor(pos))
     # For pytest debug output
     assert color == expected
+
+
+def test_dark_mode_mathml(quteproc_new, request, qtbot):
+    if not request.config.webengine:
+        pytest.skip("Skipped with QtWebKit")
+
+    args = _base_args(request.config) + [
+        '--temp-basedir',
+        '-s', 'colors.webpage.darkmode.enabled', 'true',
+        '-s', 'colors.webpage.darkmode.algorithm', 'brightness-rgb',
+    ]
+    quteproc_new.start(args)
+
+    quteproc_new.open_path('data/darkmode/mathml.html')
+    quteproc_new.wait_for_js('Image loaded')
+
+    # First make sure loading finished by looking outside of the image
+    img = quteproc_new.get_screenshot(
+        probe_pos=QPoint(105, 0),
+        probe_color=testutils.Color(0, 0, 204),
+    )
+
+    # Then get the actual formula color
+    color = testutils.Color(img.pixelColor(QPoint(4, 4)))
+    assert color == testutils.Color(255, 255, 255)
 
 
 def test_unavailable_backend(request, quteproc_new):
