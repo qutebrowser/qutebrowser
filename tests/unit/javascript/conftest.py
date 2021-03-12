@@ -110,8 +110,7 @@ class JSTester:
             expected: The value expected return from the javascript execution
         """
         base_path = pathlib.Path(qutebrowser.__file__).resolve().parent
-        with (base_path / path).open('r', encoding='utf-8') as f:
-            source = f.read()
+        source = (base_path / path).read_text(encoding='utf-8')
         self.run(source, expected)
 
     def run(self, source: str, expected=usertypes.UNSET, world=None) -> None:
