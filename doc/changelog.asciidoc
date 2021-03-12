@@ -19,6 +19,12 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v2.1.1 (unreleased)
 -------------------
 
+Changed
+~~~~~~~
+
+- Clicking the 'x' in the devtools window to hide it now also leaves insert
+  mode.
+
 Fixed
 ~~~~~
 
