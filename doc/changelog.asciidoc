@@ -129,6 +129,9 @@ Fixed
   black. If `content.site_specific_quirks` is enabled, qutebrowser now injects
   some CSS as a workaround, which inverts all math formula images on Wikipedia
   (and potentially other sites, if they use the same CSS class).
+- When a hint label text started with an apostrophe, it would show an escaped
+  text until the hints first character has been pressed. It now shows up
+  correctly.
 
 [[v2.0.2]]
 v2.0.2 (2021-02-04)

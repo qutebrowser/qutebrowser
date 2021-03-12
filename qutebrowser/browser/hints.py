@@ -92,6 +92,8 @@ class HintLabel(QLabel):
         self._context = context
         self.elem = elem
 
+        self.setTextFormat(Qt.RichText)
+
         # Make sure we can style the background via a style sheet, and we don't
         # get any extra text indent from Qt.
         # The real stylesheet lives in mainwindow.py for performance reasons..
