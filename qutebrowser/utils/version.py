@@ -570,7 +570,7 @@ class WebEngineVersions:
         utils.VersionNumber(5, 15, 3): '87.0.4280.144',
     }
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Set the major Chromium version."""
         if self.chromium is None:
             self.chromium_major = None

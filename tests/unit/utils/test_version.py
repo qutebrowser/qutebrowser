@@ -1057,7 +1057,7 @@ class TestChromiumVersion:
         assert version.qtwebengine_versions().chromium == ver
 
     def test_prefers_saved_user_agent(self, monkeypatch):
-        version.webenginesettings._init_user_agent_str(_QTWE_USER_AGENT)
+        version.webenginesettings._init_user_agent_str(_QTWE_USER_AGENT.format('87'))
 
         class FakeProfile:
             def defaultProfile(self):
