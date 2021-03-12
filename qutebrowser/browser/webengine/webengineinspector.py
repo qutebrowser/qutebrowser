@@ -64,7 +64,8 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         view = WebEngineInspectorView()
         self._settings = webenginesettings.WebEngineSettings(view.settings())
         self._set_widget(view)
-        view.page().windowCloseRequested.connect(self.hide)
+        page = view.page()
+        page.windowCloseRequested.connect(self.hide)  # type: ignore[attr-defined]
 
     def _check_devtools_resources(self) -> None:
         """Make sure that the devtools resources are available on Fedora.
