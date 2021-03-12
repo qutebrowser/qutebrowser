@@ -904,7 +904,10 @@ class QuteProc(testprocess.Process):
             tmp_path = self.request.getfixturevalue('tmp_path')
             path = tmp_path / 'screenshot.png'
             self.send_cmd(f':screenshot --force {path}')
-            self.wait_for(message=f'Screenshot saved to {path}')
+
+            screenshot_msg = f'Screenshot saved to {path}'
+            self.wait_for(message=screenshot_msg)
+            print(screenshot_msg)
 
             img = QImage(str(path))
             assert not img.isNull()
