@@ -9,7 +9,7 @@ qute://warning/sessions</span> to show it again at a later time.</span>
 
 <p>Since Qt doesn't provide an API to load the history of a tab, qutebrowser relies on a reverse-engineered binary serialization format to load tab history from session files. With Qt 5.15, unfortunately that format changed (due to the underlying Chromium upgrade), in a way which makes it impossible for qutebrowser to load tab history from existing session data.</p>
 
-<p>At the time of writing (January 2021), a new session format which stores part of the needed binary data in saved sessions is <a href="https://github.com/qutebrowser/qutebrowser/issues/5359">in development</a>. However, it unfortunately wasn't ready in time for qutebrowser v2.0.0, as it's a rather big refactoring. It's currently expected to be released as part of qutebrowser v2.1.0.</p>
+<p>At the time of writing (January 2021), a new session format which stores part of the needed binary data in saved sessions is <a href="https://github.com/qutebrowser/qutebrowser/issues/5359">in development</a>. However, it unfortunately wasn't ready in time for qutebrowser v2.0.0, as it's a rather big refactoring. It's currently expected to be released in a future v2.x.0 release.</p>
 
 <p>As a stop-gap measure:</p>
 
