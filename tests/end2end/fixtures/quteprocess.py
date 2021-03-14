@@ -863,8 +863,7 @@ class QuteProc(testprocess.Process):
             self.send_cmd(':session-save --with-private "{}"'.format(session))
             self.wait_for(category='message', loglevel=logging.INFO,
                           message='Saved session {}.'.format(session))
-            with session.open(encoding='utf-8') as f:
-                data = f.read()
+            session.read_text(encoding='utf-8')
 
         self._log('\nCurrent session data:\n' + data)
         return utils.yaml_load(data)
@@ -882,8 +881,7 @@ class QuteProc(testprocess.Process):
             self.wait_for(category='message', loglevel=logging.INFO,
                           message='Dumped page to {}.'.format(path))
 
-            with path.open('r', encoding='utf-8') as f:
-                return f.read()
+            return path.read_text(encoding='utf-8')
 
     def get_screenshot(
             self,
