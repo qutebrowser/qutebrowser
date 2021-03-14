@@ -4,6 +4,7 @@
 
 """Base class for a wrapper over QWebView/QWebEngineView."""
 
+import time
 import enum
 import pathlib
 import itertools
@@ -1000,7 +1001,12 @@ class AbstractTab(QWidget):
     # Signal emitted before shutting down
     shutting_down = pyqtSignal()
     # Signal emitted when a history item should be added
-    history_item_triggered = pyqtSignal(QUrl, QUrl, str)
+    # arg 0: Url accessed
+    # arg 1: Page title
+    # arg 2: Access time
+    # arg 3: Was this redirected to another url?
+    # arg 4: Is this an amendment to an existing entry?
+    history_item_triggered = pyqtSignal(QUrl, str, int, bool, bool)
     # Signal emitted when the underlying renderer process terminated.
     # arg 0: A TerminationStatus member.
     # arg 1: The exit code.
@@ -1050,6 +1056,11 @@ class AbstractTab(QWidget):
         self._tab_event_filter = eventfilter.TabEventFilter(
             self, parent=self)
         self.backend: Optional[usertypes.Backend] = None
+
+        self._last_history_url = None  # type: Optional[QUrl]
+        self._last_history_atime = None  # type: Optional[int]
+        self._last_history_title = None  # type: Optional[str]
+        self._last_history_requested_url = None  # type: Optional[QUrl]
 
         # If true, this tab has been requested to be removed (or is removed).
         self.pending_removal = False
@@ -1239,9 +1250,79 @@ class AbstractTab(QWidget):
         self._set_load_status(loadstatus)
 
     @pyqtSlot()
-    def _on_history_trigger(self) -> None:
-        """Emit history_item_triggered based on backend-specific signal."""
-        raise NotImplementedError
+    def _on_history_trigger(self, force_entry: bool = True) -> None:
+        """Add or update a history entry when required."""
+        try:
+            self._widget.page()
+        except RuntimeError:
+            # Looks like this slot can be triggered on destroyed tabs:
+            # https://crashes.qutebrowser.org/view/3abffbed (Qt 5.9.1)
+            # wrapped C/C++ object of type WebEngineView has been deleted
+            log.misc.debug("Ignoring history trigger for destroyed tab")
+            return
+
+        url = self.url()
+        requested_url = self.url(requested=True)
+
+        # Don't save the title if it's generated from the URL
+        title = self.title()
+        title_url = QUrl(url)
+        title_url.setScheme('')
+        title_url_str = title_url.toDisplayString(urlutils.FormatOption.REMOVE_SCHEME)
+        if title == title_url_str.strip('/'):
+            title = ""
+
+        # Don't add history entry if the URL is invalid anyways
+        if not url.isValid():
+            log.misc.debug("Ignoring invalid URL being added to history")
+            return
+
+        if url == self._last_history_url:
+            # Same page, but title might have changed
+            if title != self._last_history_title:
+                atime = self._last_history_atime
+                # redirect=False, update=True
+                self.history_item_triggered.emit(url, title, atime,
+                                                 False, True)
+                self._last_history_title = title
+
+            # Update this in case it changed.
+            self._last_history_requested_url = requested_url
+        elif force_entry or title != self._last_history_title:
+            # Don't add an entry if only the url has changed.
+            # This hopefully filters out unimportant url changes
+
+            atime = int(time.time())
+
+            no_formatting = QUrl.UrlFormattingOption.None_
+            if any(u is not None and
+                   requested_url.matches(u, no_formatting)
+                   for u in (self._last_history_requested_url,
+                             self._last_history_url)):
+                # This isn't a new request, so get old atime and mark
+                # previous url as a redirect
+                atime = self._last_history_atime
+                # redirect=True, update=True
+                self.history_item_triggered.emit(self._last_history_url,
+                                                 title, atime, True, True)
+            elif requested_url.isValid() \
+                    and not requested_url.matches(url, no_formatting) \
+                    and not url.scheme() == 'view-source':
+                # If the url of the page is different than the url of the link
+                # originally clicked, save them both.
+                # Check for 'view-source' here because WebEngine sets
+                # requested_url to the url of the original page.
+                # redirect=True, update=False
+                self.history_item_triggered.emit(requested_url,
+                                                 title, atime, True, False)
+
+            # redirect=False, update=False
+            self.history_item_triggered.emit(url, title, atime, False, False)
+
+            self._last_history_atime = atime
+            self._last_history_requested_url = requested_url
+            self._last_history_url = url
+            self._last_history_title = title
 
     @pyqtSlot(int)
     def _on_load_progress(self, perc: int) -> None:

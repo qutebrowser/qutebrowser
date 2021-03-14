@@ -18,11 +18,11 @@ Feature: Page history
             http://localhost:(port)/data/title.html Test title
 
     Scenario: History item with redirect
-        When I open redirect-to?url=data/title.html without waiting
-        And I wait until data/title.html is loaded
+        When I open redirect-to?url=data/hello.txt without waiting
+        And I wait until data/hello.txt is loaded
         Then the history should contain:
-            r http://localhost:(port)/redirect-to?url=data/title.html Test title
-            http://localhost:(port)/data/title.html Test title
+            r http://localhost:(port)/redirect-to?url=data/hello.txt
+            http://localhost:(port)/data/hello.txt
 
     Scenario: History item with spaces in URL
         When I open data/title with spaces.html

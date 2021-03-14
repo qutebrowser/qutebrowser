@@ -1414,35 +1414,6 @@ class WebEngineTab(browsertab.AbstractTab):
             url=url_string, error=error)
         self.set_html(error_page)
 
-    @pyqtSlot()
-    def _on_history_trigger(self):
-        try:
-            self._widget.page()
-        except RuntimeError:
-            # Looks like this slot can be triggered on destroyed tabs:
-            # https://crashes.qutebrowser.org/view/3abffbed (Qt 5.9.1)
-            # wrapped C/C++ object of type WebEngineView has been deleted
-            log.misc.debug("Ignoring history trigger for destroyed tab")
-            return
-
-        url = self.url()
-        requested_url = self.url(requested=True)
-
-        # Don't save the title if it's generated from the URL
-        title = self.title()
-        title_url = QUrl(url)
-        title_url.setScheme('')
-        title_url_str = title_url.toDisplayString(urlutils.FormatOption.REMOVE_SCHEME)
-        if title == title_url_str.strip('/'):
-            title = ""
-
-        # Don't add history entry if the URL is invalid anyways
-        if not url.isValid():
-            log.misc.debug("Ignoring invalid URL being added to history")
-            return
-
-        self.history_item_triggered.emit(url, requested_url, title)
-
     @pyqtSlot(QUrl, 'QAuthenticator*', 'QString')
     def _on_proxy_authentication_required(self, url, authenticator,
                                           proxy_host):
@@ -1678,7 +1649,11 @@ class WebEngineTab(browsertab.AbstractTab):
         page.selectClientCertificate.connect(self._on_select_client_certificate)
 
         view.titleChanged.connect(self.title_changed)
+        view.titleChanged.connect(
+            functools.partial(self._on_history_trigger, False))
         view.urlChanged.connect(self._on_url_changed)
+        view.urlChanged.connect(
+            functools.partial(self._on_history_trigger, False))
         view.renderProcessTerminated.connect(
             self._on_render_process_terminated)
         view.iconChanged.connect(self.icon_changed)

@@ -546,12 +546,38 @@ class SqlTable(QObject):
         q.run_batch(values)
         self.changed.emit()
 
+    def _update_query(self, filter_values, new_values):
+        assignments = ', '.join(
+            '{key} = :new{key}'.format(key=key) for key in new_values)
+        tests = ' AND '.join(
+            '{key} = :filter{key}'.format(key=key) for key in filter_values)
+        return self.database.query(
+            f"UPDATE {self._name} SET {assignments} WHERE {tests}"
+        )
+
+    def update(self, filter_values, new_values):
+        """Append a row to the table.
+
+        Args:
+            filter_values: A dict of (field name : value) pairs to filter by.
+            new_values: A dict of (filed name : value) pairs to update.
+            replace: If set, replace existing values.
+        """
+        q = self._update_query(filter_values, new_values)
+        values = {
+            "filter" + key: value for (key, value) in filter_values.items()}
+        values.update({
+            "new"+key: value for (key, value) in new_values.items()})
+        q.run(**values)
+        self.changed.emit()
+
     def delete_all(self) -> None:
         """Remove all rows from the table."""
         self.database.query(f"DELETE FROM {self._name}").run()
         self.changed.emit()
 
-    def select(self, sort_by: str, sort_order: str, limit: int = -1) -> Query:
+    def select(self, sort_by: str, sort_order: str, limit: int = -1,
+               filter_values: Dict[str, str] = None) -> Query:
         """Prepare, run, and return a select statement on this table.
 
         Args:
@@ -561,10 +587,19 @@ class SqlTable(QObject):
 
         Return: A prepared and executed select query.
         """
+        where = ""
+        values = {"limitparam": limit}
+
+        if filter_values is not None:
+            where = " WHERE " + " AND ".join(
+                f"{key} = :{key}" for key in filter_values)
+            values.update(filter_values)
+
         q = self.database.query(
-            f"SELECT * FROM {self._name} ORDER BY {sort_by} {sort_order} LIMIT :limit"
+            f"SELECT * FROM {self._name}{where} "
+            f"ORDER BY {sort_by} {sort_order} LIMIT :limitparam"
         )
-        q.run(limit=limit)
+        q.run(**values)
         return q
 
 
