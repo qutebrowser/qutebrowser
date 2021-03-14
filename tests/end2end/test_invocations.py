@@ -77,8 +77,8 @@ def temp_basedir_env(tmp_path, short_tmpdir):
     ]
 
     state_file = data_dir / 'qutebrowser' / 'state'
-    state_file.parent.mkdir(exist_ok=True, parents=True)
-    state_file.touch(exist_ok=True)
+    state_file.parent.mkdir(parents=True)
+    state_file.touch()
     state_file.write_text('\n'.join(lines), encoding='utf-8')
 
     env = {
@@ -189,12 +189,12 @@ def test_misconfigured_user_dirs(request, server, temp_basedir_env,
     https://github.com/qutebrowser/qutebrowser/issues/1269
     """
     home = tmp_path / 'home'
-    home.mkdir(exist_ok=True)
+    home.mkdir()
     temp_basedir_env['HOME'] = str(home)
     config_userdir_dir = (tmp_path / 'config')
-    config_userdir_dir.mkdir(parents=True, exist_ok=True)
+    config_userdir_dir.mkdir(parents=True)
     config_userdir_file = (tmp_path / 'config' / 'user-dirs.dirs')
-    config_userdir_file.touch(exist_ok=True)
+    config_userdir_file.touch()
 
     assert temp_basedir_env['XDG_CONFIG_HOME'] == str(tmp_path / 'config')
     config_userdir_file.write_text('XDG_DOWNLOAD_DIR="relative"')
@@ -289,7 +289,7 @@ def test_webengine_download_suffix(request, quteproc_new, tmp_path):
         pytest.skip()
 
     download_dir = tmp_path / 'downloads'
-    download_dir.mkdir(exist_ok=True)
+    download_dir.mkdir()
 
     (tmp_path / 'user-dirs.dirs').write_text(
         'XDG_DOWNLOAD_DIR={}'.format(download_dir))

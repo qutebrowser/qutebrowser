@@ -98,11 +98,11 @@ class DirLayout:
 
     def path(self, *parts):
         """Return the path to the given file inside the layout folder."""
-        return pathlib.Path(str(self.layout.join(*parts)))
+        return pathlib.Path(self.layout.join(*parts))
 
     def base_path(self):
         """Return the path of the base temporary folder."""
-        return pathlib.Path(str(self.base))
+        return pathlib.Path(self.base)
 
 
 @dataclasses.dataclass
