@@ -865,7 +865,7 @@ class QuteProc(testprocess.Process):
             self.send_cmd(':session-save --with-private "{}"'.format(session))
             self.wait_for(category='message', loglevel=logging.INFO,
                           message='Saved session {}.'.format(session))
-            session.read_text(encoding='utf-8')
+            data = session.read_text(encoding='utf-8')
 
         self._log('\nCurrent session data:\n' + data)
         return utils.yaml_load(data)
