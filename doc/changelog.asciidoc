@@ -15,9 +15,41 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-[[v2.1.0]]
-v2.1.0 (unreleased)
+[[v2.1.1]]
+v2.1.1 (unreleased)
 -------------------
+
+Changed
+~~~~~~~
+
+- Clicking the 'x' in the devtools window to hide it now also leaves insert
+  mode.
+
+Fixed
+~~~~~
+
+- The workaround for black on (almost) black formula images in dark mode now
+  also works with Qt 5.12 and 5.13.
+
+[[v2.1.0]]
+v2.1.0 (2021-03-12)
+-------------------
+
+Removed
+~~~~~~~
+
+- The following command aliases were deprecated in v2.0.0 and are now removed:
+  * `run-macro` -> `macro-run`
+  * `record-macro` -> `macro-record`
+  * `buffer` -> `tab-select`
+  * `open-editor` -> `edit-text`
+  * `toggle-selection` -> `selection-toggle`
+  * `drop-selection` -> `selection-drop`
+  * `reverse-selection` -> `selection-reverse`
+  * `follow-selected` -> `selection-follow`
+  * `follow-hint` -> `hint-follow`
+  * `enter-mode` -> `mode-enter`
+  * `leave-mode` -> `mode-leave`
 
 Added
 ~~~~~
@@ -32,7 +64,7 @@ Added
 Changed
 ~~~~~~~
 
-- Initial support for Qt 5.15.3 and PyQt 5.15.3
+- Initial support for QtWebEngine 5.15.3 and PyQt 5.15.3/.4
 - The `colors.webpage.prefers_color_scheme_dark` setting got renamed to
   `colors.webpage.preferred_color_scheme` and now takes the values `auto`, `light`
   and `dark` (instead of being `True` for dark and `False` for auto).
@@ -70,9 +102,15 @@ Changed
 Fixed
 ~~~~~
 
+- With QtWebEngine 5.15.3 and some locales, Chromium can't start its
+  subprocesses. As a result, qutebrowser only shows a blank page and logs
+  "Network service crashed, restarting service.".  This release adds a
+  `qt.workarounds.locale` setting working around the issue. It is disabled by
+  default since distributions shipping 5.15.3 will probably have a proper patch
+  for it backported very soon.
 - The `colors.webpage.preferred_color_scheme` and `colors.webpage.darkmode.*`
-  settings now work correctly with the upcoming QtWebEngine 5.15.3 (and Gentoo,
-  which at the time of writing packages 5.15.3 disguised as 5.15.2).
+  settings now work correctly with QtWebEngine 5.15.3 (and Gentoo, which at the
+  time of writing packages 5.15.3 disguised as 5.15.2).
 - When dark mode settings were set, existing `blink-features` arguments in
   `qt.args` (or `--qt-flag`) were overridden. They are now combined properly.
 - On QtWebEngine 5.15.2, auto detection for the `prefers-color-scheme` media
@@ -97,12 +135,19 @@ Fixed
   accidentally treated that as "@run-at document-idle". However, other
   GreaseMonkey implementations default to "@run-at document-end" instead, which
   is what qutebrowser now does, too.
-- With QtWebEngine 5.15.3 and some locales, Chromium can't start its
-  subprocesses. As a result, qutebrowser only shows a blank page and logs
-  "Network service crashed, restarting service.".  This release adds a
-  `qt.workarounds.locale` setting working around the issue. It is disabled by
-  default since distributions shipping 5.15.3 will probably have a proper patch
-  for it backported very soon.
+- The `hist_importer.py` script didn't work correctly after qutebrowser v2.0.0
+  and resulted in a history database qutebrowser couldn't read properly. It now
+  works properly again.
+- With certain QtWebEngine versions (5.15.0 based on Chromium 80 and 5.15.3
+  based on Chromium 87), Chromium's dark mode doesn't invert certain SVG images,
+  even with `colors.wegpage.darkmode.policy.images` set to `smart`.
+  Most notably, this causes formulae on Wikipedia to display black on (almost)
+  black. If `content.site_specific_quirks` is enabled, qutebrowser now injects
+  some CSS as a workaround, which inverts all math formula images on Wikipedia
+  (and potentially other sites, if they use the same CSS class).
+- When a hint label text started with an apostrophe, it would show an escaped
+  text until the hints first character has been pressed. It now shows up
+  correctly.
 
 [[v2.0.2]]
 v2.0.2 (2021-02-04)

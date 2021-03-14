@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>MathML-like SVG</title>
+    </head>
+    <body style="margin: 0; background-color: #ffff99">
+        <!--
+        Image based on: https://en.wikipedia.org/wiki/Pythagorean_theorem
+        with a black square added for testing.
+
+        onload based on:
+        https://stackoverflow.com/questions/53423742/waiting-for-an-image-to-finish-rendering
+        -->
+        <img
+            class="mwe-math-fallback-image-inline"
+            src="mathml.svg"
+            alt="Pythagorean theorem"
+            onload="requestAnimationFrame(() => requestAnimationFrame(() => console.log('Image loaded')));"
+        >
+        <!-- -->
+    </body>
+</html>

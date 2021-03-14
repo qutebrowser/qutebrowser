@@ -489,13 +489,16 @@ def init():
     from qutebrowser.misc import quitter
     quitter.instance.shutting_down.connect(_download_manager.shutdown)
 
+    log.init.debug("Initializing global settings...")
     global _global_settings
     _global_settings = WebEngineSettings(_SettingsWrapper())
 
+    log.init.debug("Initializing profiles...")
     _init_default_profile()
     init_private_profile()
     config.instance.changed.connect(_update_settings)
 
+    log.init.debug("Initializing site specific quirks...")
     _init_site_specific_quirks()
     _init_devtools_settings()
 
