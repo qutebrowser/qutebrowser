@@ -50,6 +50,9 @@ for ua_string in reversed(response.json()):
         continue
     if any(part.startswith("OPR/") or part.startswith("Edg/") for part in parts):
         continue
+    if 'Chrome/99.0.7113.93' in parts:
+        # Fake or false-positive entry
+        continue
 
     user_agent = qutebrowser.config.websettings.UserAgent.parse(ua_string)
 

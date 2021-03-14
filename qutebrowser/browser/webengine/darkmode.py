@@ -342,8 +342,7 @@ def _variant(versions: version.WebEngineVersions) -> Variant:
             log.init.warning(f"Ignoring invalid QUTE_DARKMODE_VARIANT={env_var}")
 
     if (versions.webengine == utils.VersionNumber(5, 15, 2) and
-            versions.chromium is not None and
-            versions.chromium.startswith('87.')):
+            versions.chromium_major == 87):
         # WORKAROUND for Gentoo packaging something newer as 5.15.2...
         return Variant.qt_515_3
     elif versions.webengine >= utils.VersionNumber(5, 15, 3):

@@ -99,6 +99,18 @@ def parse_args(argv: List[str] = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def _version_key(v):
+    """Sort PyQt requirement file prefixes.
+
+    If we have a filename like requirements-pyqt-pyinstaller.txt, that should
+    always be sorted after all others (hence we return a "999" key).
+    """
+    try:
+        return tuple(int(v) for c in v.split('.'))
+    except ValueError:
+        return 999
+
+
 def pyqt_versions() -> List[str]:
     """Get a list of all available PyQt versions.
 
@@ -110,8 +122,7 @@ def pyqt_versions() -> List[str]:
     for req in requirements_dir.glob('requirements-pyqt-*.txt'):
         version_set.add(req.stem.split('-')[-1])
 
-    versions = sorted(version_set,
-                      key=lambda v: [int(c) for c in v.split('.')])
+    versions = sorted(version_set, key=_version_key)
     return versions + ['auto']
 
 

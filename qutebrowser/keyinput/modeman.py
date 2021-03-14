@@ -386,11 +386,7 @@ class ModeManager(QObject):
         self.mode = mode
         self.entered.emit(mode, self._win_id)
 
-    @cmdutils.register(
-        instance='mode-manager',
-        scope='window',
-        deprecated_name='enter-mode',
-    )
+    @cmdutils.register(instance='mode-manager', scope='window')
     def mode_enter(self, mode: str) -> None:
         """Enter a key mode.
 
@@ -443,12 +439,8 @@ class ModeManager(QObject):
             self.enter(self._prev_mode,
                        reason='restore mode before {}'.format(mode.name))
 
-    @cmdutils.register(
-        instance='mode-manager',
-        not_modes=[usertypes.KeyMode.normal],
-        scope='window',
-        deprecated_name='leave-mode',
-    )
+    @cmdutils.register(instance='mode-manager',
+                       not_modes=[usertypes.KeyMode.normal], scope='window')
     def mode_leave(self) -> None:
         """Leave the mode we're currently in."""
         if self.mode == usertypes.KeyMode.normal:
