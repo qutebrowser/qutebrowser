@@ -29,6 +29,7 @@ import logging
 import tempfile
 import contextlib
 import itertools
+import collections
 import json
 
 import yaml
@@ -453,6 +454,7 @@ class QuteProc(testprocess.Process):
         self.basedir = None
         self._instance_id = next(instance_counter)
         self._run_counter = itertools.count()
+        self._screenshot_counters = collections.defaultdict(itertools.count)
 
     def _process_line(self, log_line):
         """Check if the line matches any initial lines we're interested in."""
@@ -902,9 +904,14 @@ class QuteProc(testprocess.Process):
         """
         for _ in range(5):
             tmp_path = self.request.getfixturevalue('tmp_path')
-            path = tmp_path / 'screenshot.png'
-            self.send_cmd(f':screenshot --force {path}')
-            self.wait_for(message=f'Screenshot saved to {path}')
+            counter = self._screenshot_counters[self.request.node.nodeid]
+
+            path = tmp_path / f'screenshot-{next(counter)}.png'
+            self.send_cmd(f':screenshot {path}')
+
+            screenshot_msg = f'Screenshot saved to {path}'
+            self.wait_for(message=screenshot_msg)
+            print(screenshot_msg)
 
             img = QImage(str(path))
             assert not img.isNull()
@@ -919,8 +926,9 @@ class QuteProc(testprocess.Process):
             # Rendering might not be completed yet...
             time.sleep(0.5)
 
-        raise ValueError(
-            f"Pixel probing for {probe_color} failed (got {probed_color} on last try)")
+        # Using assert again for pytest introspection
+        assert probed_color == probe_color, "Color probing failed, values on last try:"
+        raise utils.Unreachable()
 
     def press_keys(self, keys):
         """Press the given keys using :fake-key."""
