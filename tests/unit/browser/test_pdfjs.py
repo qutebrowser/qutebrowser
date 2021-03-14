@@ -101,8 +101,8 @@ class TestResources:
         for path in ['/usr/share/pdf.js/',
                      str(tmp_path / 'data' / 'pdfjs'),
                      # hardcoded for --temp-basedir
-                     str(pathlib.Path('~/.local/share/qutebrowser/pdfjs/')
-                         .expanduser())]:
+                     str(pathlib.Path.home()
+                         / '.local/share/qutebrowser/pdfjs/')]:
             read_system_mock.assert_any_call(path, ['web/test', 'test'])
 
     def test_get_pdfjs_res_not_found(self, read_system_mock, read_file_mock,

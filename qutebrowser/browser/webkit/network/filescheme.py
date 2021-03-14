@@ -23,13 +23,19 @@
 
 """Handler functions for file:... pages."""
 
+import os
 import pathlib
+from typing import List, Dict, Callable
 
 from qutebrowser.browser.webkit.network import networkreply
 from qutebrowser.utils import jinja
 
 
-def get_file_list(basedir, all_files, filterfunc):
+def get_file_list(
+        basedir: str,
+        all_files: List[pathlib.Path],
+        filterfunc: Callable[[pathlib.Path], bool]
+) -> List[Dict[str, str]]:
     """Get a list of files filtered by a filter function and sorted by name.
 
     Args:
@@ -48,7 +54,7 @@ def get_file_list(basedir, all_files, filterfunc):
     return sorted(items, key=lambda v: v['name'].lower())
 
 
-def is_root(directory):
+def is_root(directory: str) -> bool:
     """Check if the directory is the root directory.
 
     Args:
@@ -68,7 +74,7 @@ def is_root(directory):
     return str(pathlib.Path(directory).parent) == directory
 
 
-def parent_dir(directory):
+def parent_dir(directory: str) -> str:
     """Return the parent directory for the given directory.
 
     Args:
@@ -80,7 +86,7 @@ def parent_dir(directory):
     return str(pathlib.Path(directory).parent)
 
 
-def dirbrowser_html(path):
+def dirbrowser_html(path: str) -> bytes:
     """Get the directory browser web page.
 
     Args:
@@ -125,7 +131,8 @@ def handler(request, _operation, _current_url):
     path = pathlib.Path(request.url().toLocalFile())
     try:
         if path.is_dir():
-            data = dirbrowser_html(path)
+            # Os.sep used for windows
+            data = dirbrowser_html(str(path).replace(os.sep, '/'))
             return networkreply.FixedDataNetworkReply(
                 request, data, 'text/html')
         return None

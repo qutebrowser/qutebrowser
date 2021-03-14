@@ -22,6 +22,7 @@
 
 import pathlib
 
+from typing import Tuple, Union, Any, Optional, List
 from PyQt5.QtCore import QUrl, QUrlQuery
 
 from qutebrowser.utils import resources, javascript, jinja, standarddir, log
@@ -84,7 +85,7 @@ def generate_pdfjs_page(filename, url):
     return html
 
 
-def _generate_pdfjs_script(filename):
+def _generate_pdfjs_script(filename: str) -> str:
     """Generate the script that shows the pdf with pdf.js.
 
     Args:
@@ -115,7 +116,7 @@ def _generate_pdfjs_script(filename):
     """).render(url=js_url)
 
 
-def get_pdfjs_res_and_path(path):
+def get_pdfjs_res_and_path(path: str) -> Tuple[Union[bytes, Any], Optional[Any]]:
     """Get a pdf.js resource in binary format.
 
     Returns a (content, path) tuple, where content is the file content and path
@@ -133,7 +134,7 @@ def get_pdfjs_res_and_path(path):
         # fallback
         str(pathlib.Path(standarddir.data()) / 'pdfjs'),
         # hardcoded fallback for --temp-basedir
-        str(pathlib.Path('~/.local/share/qutebrowser/pdfjs/').expanduser()),
+        str(pathlib.Path.home() / '.local/share/qutebrowser/pdfjs/'),
     ]
 
     # First try a system wide installation
@@ -159,7 +160,7 @@ def get_pdfjs_res_and_path(path):
     return content, file_path
 
 
-def get_pdfjs_res(path):
+def get_pdfjs_res(path: str) -> Union[bytes, Any]:
     """Get a pdf.js resource in binary format.
 
     Args:
@@ -169,7 +170,7 @@ def get_pdfjs_res(path):
     return content
 
 
-def _remove_prefix(path):
+def _remove_prefix(path: str) -> str:
     """Remove the web/ or build/ prefix of a pdfjs-file-path.
 
     Args:
@@ -182,7 +183,9 @@ def _remove_prefix(path):
     return path
 
 
-def _read_from_system(system_path, names):
+def _read_from_system(system_path: str,
+                      names: List[str]
+                      ) -> Union[Tuple[None, None], Tuple[bytes, str]]:
     """Try to read a file with one of the given names in system_path.
 
     Returns a (content, path) tuple, where the path is the filepath that was
@@ -210,7 +213,7 @@ def _read_from_system(system_path, names):
     return (None, None)
 
 
-def is_available():
+def is_available() -> bool:
     """Return true if a pdfjs installation is available."""
     try:
         get_pdfjs_res('build/pdf.js')
@@ -221,7 +224,7 @@ def is_available():
         return True
 
 
-def should_use_pdfjs(mimetype, url):
+def should_use_pdfjs(mimetype: str, url: QUrl) -> bool:
     """Check whether PDF.js should be used."""
     # e.g. 'blob:qute%3A///b45250b3-787e-44d1-a8d8-c2c90f81f981'
     is_download_url = (url.scheme() == 'blob' and

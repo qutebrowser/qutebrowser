@@ -47,13 +47,13 @@ def test_get_file_list(tmp_path, create_file, create_dir, filterfunc, expected):
     """Test get_file_list."""
     path = tmp_path / 'foo'
     if create_file:
-        path.touch(exist_ok=True)
+        path.touch()
     if create_dir:
-        path.mkdir(exist_ok=True)
+        path.mkdir()
 
     all_files = list(tmp_path.iterdir())
 
-    result = filescheme.get_file_list(tmp_path, all_files, filterfunc)
+    result = filescheme.get_file_list(str(tmp_path), all_files, filterfunc)
     item = {'name': 'foo', 'absname': str(path)}
     assert (item in result) == expected
 
@@ -194,8 +194,8 @@ class TestDirbrowserHtml:
     def test_files(self, tmp_path, parser):
         foo_file = tmp_path / 'foo'
         bar_file = tmp_path / 'bar'
-        foo_file.touch(exist_ok=True)
-        bar_file.touch(exist_ok=True)
+        foo_file.touch()
+        bar_file.touch()
 
         parsed = parser(str(tmp_path))
         assert parsed.parent
@@ -206,7 +206,7 @@ class TestDirbrowserHtml:
 
     def test_html_special_chars(self, tmp_path, parser):
         special_file = tmp_path / 'foo&bar'
-        special_file.touch(exist_ok=True)
+        special_file.touch()
 
         parsed = parser(str(tmp_path))
         item = self.Item(_file_url(special_file),
@@ -216,8 +216,8 @@ class TestDirbrowserHtml:
     def test_dirs(self, tmp_path, parser):
         foo_dir = tmp_path / 'foo'
         bar_dir = tmp_path / 'bar'
-        foo_dir.mkdir(exist_ok=True)
-        bar_dir.mkdir(exist_ok=True)
+        foo_dir.mkdir()
+        bar_dir.mkdir()
 
         parsed = parser(str(tmp_path))
         assert parsed.parent
@@ -229,8 +229,8 @@ class TestDirbrowserHtml:
     def test_mixed(self, tmp_path, parser):
         foo_file = tmp_path / 'foo'
         bar_dir = tmp_path / 'bar'
-        foo_file.touch(exist_ok=True)
-        bar_dir.mkdir(exist_ok=True)
+        foo_file.touch()
+        bar_dir.mkdir()
 
         parsed = parser(str(tmp_path))
         foo_item = self.Item(_file_url(foo_file),
@@ -268,12 +268,12 @@ class TestFileSchemeHandler:
         reply = filescheme.handler(req, None, None)
         # The URL will always use /, even on Windows - so we force this here
         # too.
-        tmp_path_path = str(tmp_path).replace(os.sep, '/')
-        assert reply.readAll() == filescheme.dirbrowser_html(tmp_path_path)
+        tmpdir_path = str(tmp_path).replace(os.sep, '/')
+        assert reply.readAll() == filescheme.dirbrowser_html(tmpdir_path)
 
     def test_file(self, tmp_path):
         filename = tmp_path / 'foo'
-        filename.touch(exist_ok=True)
+        filename.touch()
         url = QUrl.fromLocalFile(str(filename))
         req = QNetworkRequest(url)
         reply = filescheme.handler(req, None, None)
