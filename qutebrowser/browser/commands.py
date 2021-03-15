@@ -756,12 +756,16 @@ class CommandDispatcher:
                               maybe=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def tab_only(self, prev=False, next_=False, force=False):
+    @cmdutils.argument('pinned', choices=['prompt', 'close', 'keep'], flag='P')
+    @cmdutils.argument('force', hide=True)
+    def tab_only(self, *, prev=False, next_=False, pinned='prompt', force=False):
         """Close all tabs except for the current one.
 
         Args:
             prev: Keep tabs before the current.
             next_: Keep tabs after the current.
+            pinned: What to do with pinned tabs.
+                    Valid values: prompt, close, keep.
             force: Avoid confirmation for pinned tabs.
         """
         cmdutils.check_exclusive((prev, next_), 'pn')
@@ -775,19 +779,23 @@ class CommandDispatcher:
                         (prev and i < cur_idx) or
                         (next_ and i > cur_idx))
 
+        if force:
+            message.warning("--force is deprecated, use --pinned close instead.")
+            pinned = 'close'
+
         # close as many tabs as we can
         first_tab = True
         pinned_tabs_cleanup = False
         for i, tab in enumerate(self._tabbed_browser.widgets()):
             if _to_close(i):
-                if force or not tab.data.pinned:
+                if pinned == 'close' or not tab.data.pinned:
                     self._tabbed_browser.close_tab(tab, new_undo=first_tab)
                     first_tab = False
                 else:
                     pinned_tabs_cleanup = tab
 
         # Check to see if we would like to close any pinned tabs
-        if pinned_tabs_cleanup:
+        if pinned_tabs_cleanup and pinned == 'prompt':
             self._tabbed_browser.tab_close_prompt_if_pinned(
                 pinned_tabs_cleanup,
                 force,
