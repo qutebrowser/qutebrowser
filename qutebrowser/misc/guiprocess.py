@@ -100,7 +100,7 @@ class GUIProcess(QObject):
         # https://bugreports.qt.io/browse/QTBUG-44769
         # However, it looks like those strings aren't actually translated?
         known_errors = ['No such file or directory', 'Permission denied']
-        if (': ' in error_string and
+        if (': ' in error_string and  # pragma: no branch
                 error_string.split(': ', maxsplit=1)[1] in known_errors):
             msg += f'\n(Hint: Make sure {self.cmd!r} exists and is executable)'
 
