@@ -157,6 +157,9 @@ def _qtwebengine_features(
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-89740
         disabled_features.append('InstalledApp')
 
+    if not config.val.input.media_keys:
+        disabled_features.append('HardwareMediaKeyHandling')
+
     return (enabled_features, disabled_features)
 
 
