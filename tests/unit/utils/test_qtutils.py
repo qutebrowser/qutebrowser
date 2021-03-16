@@ -439,8 +439,7 @@ class TestSavefileOpen:
     def test_utf8(self, data, tmp_path):
         """Test with UTF8 data."""
         filename = tmp_path / 'foo'
-        with filename.open('w', encoding='utf-8') as f:
-            filename.write_text("Old data")
+        filename.write_text("Old data", encoding="utf-8")
         with qtutils.savefile_open(str(filename)) as f:
             f.write(data)
         for x in tmp_path.iterdir():
@@ -459,8 +458,7 @@ class TestSavefileOpen:
     def test_exception(self, tmp_path):
         """Test with an exception in the block."""
         filename = tmp_path / 'foo'
-        with filename.open('w', encoding='utf-8') as f:
-            filename.write_text("Old content")
+        filename.write_text("Old content", encoding="utf-8")
         with pytest.raises(SavefileTestException):
             with qtutils.savefile_open(str(filename)) as f:
                 f.write("Hello World!")
