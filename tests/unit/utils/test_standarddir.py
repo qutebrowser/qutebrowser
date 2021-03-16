@@ -87,9 +87,8 @@ def test_unset_organization_no_qapp(monkeypatch):
 
 @pytest.mark.fake_os('mac')
 @pytest.mark.posix
-def test_fake_mac_config(tmp_path, monkeypatch):
+def test_fake_mac_config(tmp_path, fake_home_envvar):
     """Test standardir.config on a fake Mac."""
-    monkeypatch.setenv('HOME', str(tmp_path))
     expected = str(tmp_path) + '/.qute_test'  # always with /
     standarddir._init_config(args=None)
     assert standarddir.config() == expected
@@ -183,11 +182,8 @@ class TestStandardDir:
         (standarddir.download, ['Downloads']),
     ])
     @pytest.mark.linux
-    def test_linux_normal(self, monkeypatch, tmp_path, func, subdirs):
+    def test_linux_normal(self, fake_home_envvar, tmp_path, func, subdirs):
         """Test dirs with XDG_*_HOME not set."""
-        monkeypatch.setenv('HOME', str(tmp_path))
-        for var in ['DATA', 'CONFIG', 'CACHE']:
-            monkeypatch.delenv('XDG_{}_HOME'.format(var), raising=False)
         standarddir._init_dirs()
         assert func() == str(tmp_path.joinpath(*subdirs))
 
