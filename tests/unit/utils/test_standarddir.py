@@ -230,7 +230,7 @@ class TestStandardDir:
         (standarddir.data, 2, ['Application Support', APPNAME]),
         (lambda: standarddir.config(auto=True), 1, [APPNAME]),
         (standarddir.config, 0,
-         str(pathlib.Path('~').expanduser()).split(os.sep) + ['.qute_test']),
+         str(pathlib.Path.home()).split(os.sep) + ['.qute_test']),
         (standarddir.cache, 2, ['Caches', APPNAME]),
         (standarddir.download, 1, ['Downloads']),
     ])
