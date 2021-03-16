@@ -135,7 +135,8 @@ def insert_qb(history, dest):
         'INSERT INTO History (url,title,atime,redirect) VALUES (?,?,?,?)',
         history
     )
-    cursor.execute('DROP TABLE CompletionHistory')
+    cursor.execute('UPDATE CompletionMetaInfo SET value = 1 '
+                   'WHERE key = "force_rebuild"')
     conn.commit()
     conn.close()
 

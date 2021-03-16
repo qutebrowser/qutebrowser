@@ -77,7 +77,7 @@ class TestResources:
 
     @pytest.fixture
     def read_file_mock(self, mocker):
-        return mocker.patch.object(pdfjs.utils, 'read_file_binary', autospec=True)
+        return mocker.patch.object(pdfjs.resources, 'read_file_binary', autospec=True)
 
     def test_get_pdfjs_res_system(self, read_system_mock):
         read_system_mock.return_value = (b'content', 'path')

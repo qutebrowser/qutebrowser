@@ -311,6 +311,20 @@ qt.workarounds.remove_service_workers:
     Note however that enabling this option *can lead to data loss* on some pages (as
     Service Worker data isn't persisted) and will negatively impact start-up time.
 
+qt.workarounds.locale:
+  type: Bool
+  default: false
+  backend: QtWebEngine
+  desc: >-
+    Work around locale parsing issues in QtWebEngine 5.15.3.
+
+    With some locales, QtWebEngine 5.15.3 is unusable without this workaround.
+    In affected scenarios, QtWebEngine will log "Network service crashed,
+    restarting service." and only display a blank page.
+
+    However, It is expected that distributions shipping QtWebEngine 5.15.3
+    follow up with a proper fix soon, so it is disabled by default.
+
 ## auto_save
 
 auto_save.interval:
@@ -607,14 +621,14 @@ content.headers.user_agent:
       # Vim-protip: Place your cursor below this comment and run
       # :r!python scripts/dev/ua_fetch.py
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/87.0.4280.66 Safari/537.36"
-        - Chrome 87 Linux
+          Gecko) Chrome/88.0.4324.96 Safari/537.36"
+        - Chrome 88 Linux
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/87.0.4280.66 Safari/537.36"
-        - Chrome 87 Win10
+          like Gecko) Chrome/88.0.4324.104 Safari/537.36"
+        - Chrome 88 Win10
       - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
-          (KHTML, like Gecko) Chrome/87.0.4280.67 Safari/537.36"
-        - Chrome 87 macOS
+          (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36"
+        - Chrome 88 macOS
   supports_pattern: true
   desc: |
     User agent to send.
