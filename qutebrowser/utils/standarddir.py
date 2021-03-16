@@ -83,21 +83,21 @@ def _init_config(args: Optional[argparse.Namespace]) -> None:
         if utils.is_windows:
             app_data_path = _writable_location(
                 QStandardPaths.AppDataLocation)
-            path = pathlib.Path(app_data_path) / 'config'
+            path = str(pathlib.Path(app_data_path) / 'config')
         else:
             path = _writable_location(typ)
 
-    _create(str(path))
-    _locations[_Location.config] = str(path)
-    _locations[_Location.auto_config] = str(path)
+    _create(path)
+    _locations[_Location.config] = path
+    _locations[_Location.auto_config] = path
 
     # Override the normal (non-auto) config on macOS
     if utils.is_mac:
         path = _from_args(typ, args)
         if path is None:  # pragma: no branch
-            path = pathlib.Path.home() / ('.' + APPNAME)
-            _create(str(path))
-            _locations[_Location.config] = str(path)
+            path = str(pathlib.Path.home() / ('.' + APPNAME))
+            _create(path)
+            _locations[_Location.config] = path
 
     config_py_file = pathlib.Path(_locations[_Location.config]) / 'config.py'
     if getattr(args, 'config_py', None) is not None:
@@ -133,23 +133,23 @@ def _init_data(args: Optional[argparse.Namespace]) -> None:
     if path is None:
         if utils.is_windows:
             app_data_path = _writable_location(typ)  # same location as config
-            path = pathlib.Path(app_data_path) / 'data'
+            path = str(pathlib.Path(app_data_path) / 'data')
         elif sys.platform.startswith('haiku'):
             # HaikuOS returns an empty value for AppDataLocation
             config_path = _writable_location(QStandardPaths.ConfigLocation)
-            path = pathlib.Path(config_path) / 'data'
+            path = str(pathlib.Path(config_path) / 'data')
         else:
             path = _writable_location(typ)
 
-    _create(str(path))
-    _locations[_Location.data] = str(path)
+    _create(path)
+    _locations[_Location.data] = path
 
     # system_data
     _locations.pop(_Location.system_data, None)  # Remove old state
     if utils.is_linux:
-        path = pathlib.Path('/usr/share/') / APPNAME
-        if path.exists():
-            _locations[_Location.system_data] = str(path)
+        path = str(pathlib.Path('/usr/share/') / APPNAME)
+        if pathlib.Path(path).exists():
+            _locations[_Location.system_data] = path
 
 
 def data(system: bool = False) -> str:
@@ -174,12 +174,12 @@ def _init_cache(args: Optional[argparse.Namespace]) -> None:
         if utils.is_windows:
             # Local, not Roaming!
             data_path = _writable_location(QStandardPaths.AppLocalDataLocation)
-            path = pathlib.Path(data_path) / 'cache'
+            path = str(pathlib.Path(data_path) / 'cache')
         else:
             path = _writable_location(typ)
 
-    _create(str(path))
-    _locations[_Location.cache] = str(path)
+    _create(path)
+    _locations[_Location.cache] = path
 
 
 def cache() -> str:
@@ -270,9 +270,9 @@ def _writable_location(typ: QStandardPaths.StandardLocation) -> str:
     # QStandardsPaths not knowing the application name).
     if (typ != QStandardPaths.DownloadLocation and
             path.split(os.sep)[-1] != APPNAME):
-        path = pathlib.Path(path) / APPNAME
+        path = str(pathlib.Path(path) / APPNAME)
 
-    return str(path)
+    return path
 
 
 def _from_args(

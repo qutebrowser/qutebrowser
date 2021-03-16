@@ -199,7 +199,7 @@ class TestStandardDir:
     def test_linux_invalid_runtimedir(self, monkeypatch, tmp_path):
         """With invalid XDG_RUNTIME_DIR, fall back to TempLocation."""
         tmp_path_env = tmp_path / 'temp'
-        tmp_path_env.mkdir(exist_ok=True)
+        tmp_path_env.mkdir()
         monkeypatch.setenv('XDG_RUNTIME_DIR', str(tmp_path / 'does-not-exist'))
         monkeypatch.setenv('TMPDIR', str(tmp_path_env))
 
@@ -262,7 +262,7 @@ class TestArguments:
     def test_basedir_relative(self, tmp_path):
         """Test --basedir with a relative path."""
         basedir = (tmp_path / 'basedir')
-        basedir.mkdir(exist_ok=True)
+        basedir.mkdir()
         os.chdir(tmp_path)
         args = types.SimpleNamespace(basedir='basedir')
         standarddir._init_dirs(args)
@@ -270,7 +270,7 @@ class TestArguments:
 
     def test_config_py_arg(self, tmp_path):
         basedir = tmp_path / 'basedir'
-        basedir.mkdir(exist_ok=True)
+        basedir.mkdir()
         os.chdir(tmp_path)
         args = types.SimpleNamespace(
             basedir='foo', config_py='basedir/config.py')
@@ -279,7 +279,7 @@ class TestArguments:
 
     def test_config_py_no_arg(self, tmp_path):
         basedir = tmp_path / 'basedir'
-        basedir.mkdir(exist_ok=True)
+        basedir.mkdir()
         os.chdir(tmp_path)
         args = types.SimpleNamespace(basedir='basedir')
         standarddir._init_dirs(args)
@@ -357,7 +357,7 @@ class TestCreatingDir:
 
         See https://github.com/qutebrowser/qutebrowser/issues/942.
         """
-        (tmp_path / typ).mkdir(exist_ok=True)
+        (tmp_path / typ).mkdir()
 
         m = mocker.patch('qutebrowser.utils.standarddir.pathlib')
         m.Path.mkdir = pathlib.Path.mkdir
@@ -412,8 +412,6 @@ def test_init(tmp_path, args_kind, fake_home_envvar):
     """
     assert standarddir._locations == {}
 
-    monkeypatch.setenv('HOME', str(tmp_path))
-
     if args_kind == 'normal':
         args = types.SimpleNamespace(basedir=None)
     elif args_kind == 'basedir':
@@ -465,12 +463,12 @@ def test_no_qapplication(qapp, tmp_path, monkeypatch):
         monkeypatch.delenv('XDG_{}_HOME'.format(name), raising=False)
 
     runtime_dir = tmp_path / 'runtime'
-    runtime_dir.mkdir(exist_ok=True)
+    runtime_dir.mkdir()
     runtime_dir.chmod(0o0700)
     monkeypatch.setenv('XDG_RUNTIME_DIR', str(runtime_dir))
 
     home_dir = tmp_path / 'home'
-    home_dir.mkdir(exist_ok=True)
+    home_dir.mkdir()
     monkeypatch.setenv('HOME', str(home_dir))
 
     proc = subprocess.run([sys.executable, str(pyfile)] + sys.path,
