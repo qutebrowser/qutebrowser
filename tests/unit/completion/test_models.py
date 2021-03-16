@@ -21,6 +21,7 @@
 
 import collections
 import os
+import pathlib
 import random
 import string
 import time
@@ -426,11 +427,11 @@ def test_filesystem_completion(qtmodeltester, config_stub, info,
         homedir = str(local_files_path)
         monkeypatch.setenv('HOME', homedir)  # POSIX
         monkeypatch.setenv('USERPROFILE', homedir)  # Windows
-        assert os.path.expanduser('~') == homedir
+        assert str(pathlib.Path.home()) == homedir
 
         base = '~'
-        expected_1 = os.path.join('~', 'file1.txt')
-        expected_2 = os.path.join('~', 'file2.txt')
+        expected_1 = str(pathlib.Path('~') / 'file1.txt')
+        expected_2 = str(pathlib.Path('~') / 'file2.txt')
 
     config_stub.val.completion.open_categories = ['filesystem']
     model = urlmodel.url(info=info)

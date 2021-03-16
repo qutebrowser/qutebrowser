@@ -42,6 +42,14 @@ APPNAME = 'qute_test'
 pytestmark = pytest.mark.usefixtures('qapp')
 
 
+@pytest.fixture
+def fake_home_envvar(monkeypatch, tmp_path):
+    """Fake a different HOME via environment variables."""
+    for k in ['XDG_DATA_HOME', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME']:
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setenv('HOME', str(tmp_path))
+
+
 @pytest.fixture(autouse=True)
 def clear_standarddir_cache_and_patch(qapp, monkeypatch):
     """Make sure the standarddir cache is cleared before/after each test.
@@ -397,7 +405,7 @@ class TestSystemData:
 
 
 @pytest.mark.parametrize('args_kind', ['basedir', 'normal', 'none'])
-def test_init(tmp_path, monkeypatch, args_kind):
+def test_init(tmp_path, args_kind, fake_home_envvar):
     """Do some sanity checks for standarddir.init().
 
     Things like _init_cachedir_tag() are tested in more detail in other tests.

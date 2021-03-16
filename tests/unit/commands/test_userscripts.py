@@ -18,6 +18,7 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
+import pathlib
 import json
 import time
 import logging
@@ -34,8 +35,8 @@ from qutebrowser.utils import utils
 class TestQtFIFOReader:
 
     @pytest.fixture
-    def reader(self, tmpdir, qapp):
-        fifo_path = str(tmpdir / 'fifo')
+    def reader(self, tmp_path, qapp):
+        fifo_path = str(tmp_path / 'fifo')
         os.mkfifo(fifo_path)  # pylint: disable=no-member,useless-suppression
         reader = userscripts._QtFIFOReader(fifo_path)
         yield reader
@@ -142,8 +143,8 @@ def test_source(qtbot, py_proc, runner):
     assert parsed['text'] == 'This is text'
     assert parsed['html'] == 'This is HTML'
 
-    assert not os.path.exists(parsed['text_file'])
-    assert not os.path.exists(parsed['html_file'])
+    assert not pathlib.Path(parsed['text_file']).exists()
+    assert not pathlib.Path(parsed['html_file']).exists()
 
 
 def test_command_with_error(qtbot, py_proc, runner, caplog):
@@ -165,13 +166,13 @@ def test_command_with_error(qtbot, py_proc, runner, caplog):
                 runner.store_html('')
 
     data = json.loads(blocker.args[0])
-    assert not os.path.exists(data)
+    assert not pathlib.Path(data).exists()
 
 
-def test_killed_command(qtbot, tmpdir, py_proc, runner, caplog):
-    data_file = tmpdir / 'data'
+def test_killed_command(qtbot, tmp_path, py_proc, runner, caplog):
+    data_file = tmp_path / 'data'
     watcher = QFileSystemWatcher()
-    watcher.addPath(str(tmpdir))
+    watcher.addPath(str(tmp_path))
 
     cmd, args = py_proc(r"""
         import os
@@ -203,13 +204,14 @@ def test_killed_command(qtbot, tmpdir, py_proc, runner, caplog):
     # Make sure the PID was written to the file, not just the file created
     time.sleep(0.5)
 
-    data = json.load(data_file)
+    with data_file.open() as f:
+        data = json.load(f)
 
     with caplog.at_level(logging.ERROR):
         with qtbot.wait_signal(runner.finished):
             os.kill(int(data['pid']), signal.SIGTERM)
 
-    assert not os.path.exists(data['text_file'])
+    assert not pathlib.Path(data['text_file']).exists()
 
 
 def test_temporary_files_failed_cleanup(caplog, qtbot, py_proc, runner):

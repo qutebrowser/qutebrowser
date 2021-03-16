@@ -249,7 +249,7 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             "use snake-case instead",
         ),
         (
-            re.compile(r'\.joinpath\('),
+            re.compile(r'\.joinpath\((?!\*)'),
             "use the / operator for joining paths",
         ),
         (

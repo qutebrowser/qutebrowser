@@ -314,6 +314,9 @@ def _create(path: str) -> None:
         should not be changed.
     """
     if APPNAME == 'qute_test' and path.startswith('/home'):  # pragma: no cover
+        for k, v in os.environ.items():
+            if k == 'HOME' or k.startswith('XDG_'):
+                log.init.debug(f"{k} = {v}")
         raise Exception("Trying to create directory inside /home during "
                         "tests, this should not happen.")
     pathlib.Path(path).mkdir(0o700, exist_ok=True, parents=True)
