@@ -19,8 +19,7 @@
 
 """Tests for qutebrowser.utils.jinja."""
 
-import os
-import os.path
+import pathlib
 import logging
 
 import jinja2.exceptions
@@ -36,15 +35,15 @@ def patch_read_file(monkeypatch):
     """pytest fixture to patch resources.read_file."""
     def _read_file(path):
         """A read_file which returns a simple template if the path is right."""
-        if path == os.path.join('html', 'test.html'):
+        if path == str(pathlib.Path('html') / 'test.html'):
             return """Hello {{var}}"""
-        elif path == os.path.join('html', 'test2.html'):
+        elif path == str(pathlib.Path('html') / 'test2.html'):
             return """{{ resource_url('utils/testfile') }}"""
-        elif path == os.path.join('html', 'test3.html'):
+        elif path == str(pathlib.Path('html') / 'test3.html'):
             return """{{ data_url('testfile.txt') }}"""
-        elif path == os.path.join('html', 'undef.html'):
+        elif path == str(pathlib.Path('html') / 'undef.html'):
             return """{{ does_not_exist() }}"""
-        elif path == os.path.join('html', 'attributeerror.html'):
+        elif path == str(pathlib.Path('html') / 'attributeerror.html'):
             return """{{ obj.foobar }}"""
         else:
             raise OSError("Invalid path {}!".format(path))

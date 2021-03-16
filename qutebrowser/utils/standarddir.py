@@ -20,7 +20,7 @@
 """Utilities to get and initialize data/config paths."""
 
 import os
-import os.path
+import pathlib
 import sys
 import contextlib
 import enum
@@ -83,27 +83,27 @@ def _init_config(args: Optional[argparse.Namespace]) -> None:
         if utils.is_windows:
             app_data_path = _writable_location(
                 QStandardPaths.AppDataLocation)
-            path = os.path.join(app_data_path, 'config')
+            path = pathlib.Path(app_data_path) / 'config'
         else:
             path = _writable_location(typ)
 
-    _create(path)
-    _locations[_Location.config] = path
-    _locations[_Location.auto_config] = path
+    _create(str(path))
+    _locations[_Location.config] = str(path)
+    _locations[_Location.auto_config] = str(path)
 
     # Override the normal (non-auto) config on macOS
     if utils.is_mac:
         path = _from_args(typ, args)
         if path is None:  # pragma: no branch
-            path = os.path.expanduser('~/.' + APPNAME)
-            _create(path)
-            _locations[_Location.config] = path
+            path = pathlib.Path.home() / ('.' + APPNAME)
+            _create(str(path))
+            _locations[_Location.config] = str(path)
 
-    config_py_file = os.path.join(_locations[_Location.config], 'config.py')
+    config_py_file = pathlib.Path(_locations[_Location.config]) / 'config.py'
     if getattr(args, 'config_py', None) is not None:
         assert args is not None
-        config_py_file = os.path.abspath(args.config_py)
-    _locations[_Location.config_py] = config_py_file
+        config_py_file = pathlib.Path(args.config_py).resolve()
+    _locations[_Location.config_py] = str(config_py_file)
 
 
 def config(auto: bool = False) -> str:
@@ -133,23 +133,23 @@ def _init_data(args: Optional[argparse.Namespace]) -> None:
     if path is None:
         if utils.is_windows:
             app_data_path = _writable_location(typ)  # same location as config
-            path = os.path.join(app_data_path, 'data')
+            path = pathlib.Path(app_data_path) / 'data'
         elif sys.platform.startswith('haiku'):
             # HaikuOS returns an empty value for AppDataLocation
             config_path = _writable_location(QStandardPaths.ConfigLocation)
-            path = os.path.join(config_path, 'data')
+            path = pathlib.Path(config_path) / 'data'
         else:
             path = _writable_location(typ)
 
-    _create(path)
-    _locations[_Location.data] = path
+    _create(str(path))
+    _locations[_Location.data] = str(path)
 
     # system_data
     _locations.pop(_Location.system_data, None)  # Remove old state
     if utils.is_linux:
-        path = '/usr/share/' + APPNAME
-        if os.path.exists(path):
-            _locations[_Location.system_data] = path
+        path = pathlib.Path('/usr/share/') / APPNAME
+        if path.exists():
+            _locations[_Location.system_data] = str(path)
 
 
 def data(system: bool = False) -> str:
@@ -174,12 +174,12 @@ def _init_cache(args: Optional[argparse.Namespace]) -> None:
         if utils.is_windows:
             # Local, not Roaming!
             data_path = _writable_location(QStandardPaths.AppLocalDataLocation)
-            path = os.path.join(data_path, 'cache')
+            path = pathlib.Path(data_path) / 'cache'
         else:
             path = _writable_location(typ)
 
-    _create(path)
-    _locations[_Location.cache] = path
+    _create(str(path))
+    _locations[_Location.cache] = str(path)
 
 
 def cache() -> str:
@@ -270,9 +270,9 @@ def _writable_location(typ: QStandardPaths.StandardLocation) -> str:
     # QStandardsPaths not knowing the application name).
     if (typ != QStandardPaths.DownloadLocation and
             path.split(os.sep)[-1] != APPNAME):
-        path = os.path.join(path, APPNAME)
+        path = pathlib.Path(path) / APPNAME
 
-    return path
+    return str(path)
 
 
 def _from_args(
@@ -301,7 +301,7 @@ def _from_args(
         suffix = basedir_suffix[typ]
     except KeyError:  # pragma: no cover
         return None
-    return os.path.abspath(os.path.join(args.basedir, suffix))
+    return str((pathlib.Path(args.basedir) / suffix).resolve())
 
 
 def _create(path: str) -> None:
@@ -316,7 +316,7 @@ def _create(path: str) -> None:
     if APPNAME == 'qute_test' and path.startswith('/home'):  # pragma: no cover
         raise Exception("Trying to create directory inside /home during "
                         "tests, this should not happen.")
-    os.makedirs(path, 0o700, exist_ok=True)
+    pathlib.Path(path).mkdir(0o700, exist_ok=True, parents=True)
 
 
 def _init_dirs(args: argparse.Namespace = None) -> None:
@@ -346,14 +346,14 @@ def _init_cachedir_tag() -> None:
 
     See https://bford.info/cachedir/
     """
-    cachedir_tag = os.path.join(cache(), 'CACHEDIR.TAG')
-    if not os.path.exists(cachedir_tag):
-        try:
-            with open(cachedir_tag, 'w', encoding='utf-8') as f:
+    cachedir_tag = pathlib.Path(cache()) / 'CACHEDIR.TAG'
+    try:
+        if not cachedir_tag.exists():
+            with cachedir_tag.open('w', encoding='utf-8') as f:
                 f.write("Signature: 8a477f597d28d172789f06886806bc55\n")
                 f.write("# This file is a cache directory tag created by "
                         "qutebrowser.\n")
                 f.write("# For information about cache directory tags, see:\n")
                 f.write("#  https://bford.info/cachedir/\n")
-        except OSError:
-            log.init.exception("Failed to create CACHEDIR.TAG")
+    except OSError:
+        log.init.exception("Failed to create CACHEDIR.TAG")

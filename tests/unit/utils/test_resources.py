@@ -20,7 +20,7 @@
 """Tests for qutebrowser.utils.resources."""
 
 import sys
-import os.path
+import pathlib
 import zipfile
 import pytest
 import qutebrowser
@@ -99,7 +99,7 @@ class TestReadFile:
 
     def test_readfile(self):
         """Read a test file."""
-        content = resources.read_file(os.path.join('utils', 'testfile'))
+        content = resources.read_file(str(pathlib.Path('utils') / 'testfile'))
         assert content.splitlines()[0] == "Hello World!"
 
     @pytest.mark.parametrize('filename', ['javascript/scroll.js',
@@ -112,7 +112,7 @@ class TestReadFile:
 
     def test_readfile_binary(self):
         """Read a test file in binary mode."""
-        content = resources.read_file_binary(os.path.join('utils', 'testfile'))
+        content = resources.read_file_binary(str(pathlib.Path('utils') / 'testfile'))
         assert content.splitlines()[0] == b"Hello World!"
 
     @pytest.mark.parametrize('name', ['read_file', 'read_file_binary'])
