@@ -198,7 +198,11 @@ class _BackendProblemChecker:
         """Work around QOpenGLShaderProgram issues.
 
         See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/941826
+        and https://bugreports.qt.io/browse/QTBUG-71488
         """
+        # https://codereview.qt-project.org/c/qt/qtbase/+/245294
+        if qtutils.version_check('5.12.1', compiled=False):
+            return
         self._assert_backend(usertypes.Backend.QtWebEngine)
         utils.libgl_workaround()
 
