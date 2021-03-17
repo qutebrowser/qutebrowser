@@ -516,6 +516,7 @@ class TestWebEngineArgs:
             def bcp47Name(self):
                 return 'de-CH'
 
+        monkeypatch.setattr(qtargs.utils, 'is_linux', True)  # patched in reduce_args
         monkeypatch.setattr(qtargs, 'QLocale', FakeLocale)
         version_patcher('5.15.3')
 
