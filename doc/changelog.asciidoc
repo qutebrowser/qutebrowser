@@ -40,6 +40,7 @@ Fixed
 
 - The workaround for black on (almost) black formula images in dark mode now
   also works with Qt 5.12 and 5.13.
+- When running in Flatpak, the QtWebEngine version is now detected properly.
 
 [[v2.1.0]]
 v2.1.0 (2021-03-12)
