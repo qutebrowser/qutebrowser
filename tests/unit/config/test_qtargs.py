@@ -508,15 +508,14 @@ class TestWebEngineArgs:
         for arg in expected:
             assert arg in args
 
-    def test_locale_workaround(self, config_stub, monkeypatch, version_patcher,
-                               parser):
+    @pytest.mark.linux
+    def test_locale_workaround(self, config_stub, monkeypatch, version_patcher, parser):
         class FakeLocale:
 
             def bcp47Name(self):
                 return 'de-CH'
 
         monkeypatch.setattr(qtargs, 'QLocale', FakeLocale)
-        monkeypatch.setattr(qtargs.utils, 'is_linux', True)
         version_patcher('5.15.3')
 
         config_stub.val.qt.workarounds.locale = True
