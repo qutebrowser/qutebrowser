@@ -141,7 +141,7 @@ class Ident:
     @classmethod
     def parse(cls, fobj: IO[bytes]) -> 'Ident':
         """Parse an ELF ident header from a file."""
-        magic, klass, data, version, osabi, abiversion = _unpack(cls._FORMAT, fobj)
+        magic, klass, data, elfversion, osabi, abiversion = _unpack(cls._FORMAT, fobj)
 
         try:
             bitness = Bitness(klass)
@@ -153,7 +153,7 @@ class Ident:
         except ValueError:
             raise ParseError(f"Invalid endianness {data}")
 
-        return cls(magic, bitness, endianness, version, osabi, abiversion)
+        return cls(magic, bitness, endianness, elfversion, osabi, abiversion)
 
 
 @dataclasses.dataclass
