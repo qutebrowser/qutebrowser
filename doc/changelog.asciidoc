@@ -19,6 +19,13 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v2.2.0 (unreleased)
 -------------------
 
+Deprecated
+~~~~~~~~~~
+
+- Running qutebrowser with Qt 5.12.0 is now unsupported and logs a warning. It
+  should still work, however, a workaround for issues with the Nvidia graphic
+  driver was dropped. Newer Qt 5.12.x versions are still fully supported.
+
 Added
 ~~~~~
 

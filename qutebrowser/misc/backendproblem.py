@@ -194,18 +194,6 @@ class _BackendProblemChecker:
 
         sys.exit(usertypes.Exit.err_init)
 
-    def _nvidia_shader_workaround(self) -> None:
-        """Work around QOpenGLShaderProgram issues.
-
-        See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/941826
-        and https://bugreports.qt.io/browse/QTBUG-71488
-        """
-        # https://codereview.qt-project.org/c/qt/qtbase/+/245294
-        if qtutils.version_check('5.12.1', compiled=False):
-            return
-        self._assert_backend(usertypes.Backend.QtWebEngine)
-        utils.libgl_workaround()
-
     def _xwayland_options(self) -> Tuple[str, List[_Button]]:
         """Get buttons/text for a possible XWayland solution."""
         buttons = []
@@ -439,7 +427,6 @@ class _BackendProblemChecker:
         self._check_backend_modules()
         if objects.backend == usertypes.Backend.QtWebEngine:
             self._handle_ssl_support()
-            self._nvidia_shader_workaround()
             self._handle_wayland_webgl()
             self._handle_cache_nuking()
             self._handle_serviceworker_nuking()

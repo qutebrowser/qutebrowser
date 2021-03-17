@@ -882,9 +882,6 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
     """
     assert QApplication.instance()
 
-    # Some setups can segfault in here if we don't do this.
-    utils.libgl_workaround()
-
     override = os.environ.get('QUTE_FAKE_OPENGL')
     if override is not None:
         log.init.debug("Using override {}".format(override))

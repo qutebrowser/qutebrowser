@@ -185,6 +185,11 @@ def check_qt_version():
                                                            PYQT_VERSION_STR))
         _die(text)
 
+    if qt_ver == QVersionNumber(5, 12, 0):
+        from qutebrowser.utils import log
+        log.init.warning("Running on Qt 5.12.0. Doing so is unsupported "
+                         "(newer 5.12.x versions are fine).")
+
 
 def check_ssl_support():
     """Check if SSL support is available."""
