@@ -38,7 +38,7 @@ from qutebrowser.browser.webengine import (spell, webenginequtescheme, cookies,
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import (standarddir, qtutils, message, log,
-                               urlmatch, usertypes, objreg)
+                               urlmatch, usertypes, objreg, version)
 if TYPE_CHECKING:
     from qutebrowser.browser.webengine import interceptor
 
@@ -374,7 +374,17 @@ def _init_default_profile():
 
     default_profile = QWebEngineProfile.defaultProfile()
 
+    assert parsed_user_agent is None  # avoid earlier profile initialization
+    non_ua_version = version.qtwebengine_versions(avoid_init=True)
+
     init_user_agent()
+    ua_version = version.qtwebengine_versions()
+    if ua_version.webengine != non_ua_version.webengine:
+        log.init.warning(
+            "QtWebEngine version mismatch - unexpected behavior might occur, "
+            "please open a bug about this.\n"
+            f"  Early version: {non_ua_version}\n"
+            f"  Real version:  {ua_version}")
 
     default_profile.setCachePath(
         os.path.join(standarddir.cache(), 'webengine'))
