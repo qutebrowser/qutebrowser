@@ -463,6 +463,7 @@ class TestWebEngineArgs:
         assert disable_features_args == expected
 
     @pytest.mark.parametrize('enabled', [True, False])
+    @testutils.qt514
     def test_media_keys(self, config_stub, parser, enabled):
         config_stub.val.input.media_keys = enabled
 
