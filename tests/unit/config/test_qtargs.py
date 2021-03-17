@@ -462,6 +462,15 @@ class TestWebEngineArgs:
         expected = ['--disable-features=InstalledApp'] if has_workaround else []
         assert disable_features_args == expected
 
+    @pytest.mark.parametrize('enabled', [True, False])
+    def test_media_keys(self, config_stub, parser, enabled):
+        config_stub.val.input.media_keys = enabled
+
+        parsed = parser.parse_args([])
+        args = qtargs.qt_args(parsed)
+
+        assert ('--disable-features=HardwareMediaKeyHandling' in args) != enabled
+
     @pytest.mark.parametrize('variant, expected', [
         (
             'qt_515_1',
