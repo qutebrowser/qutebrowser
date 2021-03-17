@@ -69,7 +69,7 @@ from typing import IO, ClassVar, Dict, Optional, Tuple, cast
 
 from PyQt5.QtCore import QLibraryInfo
 
-from qutebrowser.utils import log
+from qutebrowser.utils import log, version
 
 
 class ParseError(Exception):
@@ -310,7 +310,11 @@ def _parse_from_file(f: IO[bytes]) -> Versions:
 
 def parse_webenginecore() -> Optional[Versions]:
     """Parse the QtWebEngineCore library file."""
-    library_path = pathlib.Path(QLibraryInfo.location(QLibraryInfo.LibrariesPath))
+    if version.is_sandboxed():
+        # Flatpak has Qt in /usr/lib/x86_64-linux-gnu, but QtWebEngine in /app/lib.
+        library_path = pathlib.Path("/app/lib")
+    else:
+        library_path = pathlib.Path(QLibraryInfo.location(QLibraryInfo.LibrariesPath))
 
     # PyQt bundles those files with a .5 suffix
     lib_file = library_path / 'libQt5WebEngineCore.so.5'
