@@ -69,7 +69,7 @@ from typing import IO, ClassVar, Dict, Optional, Tuple, cast
 
 from PyQt5.QtCore import QLibraryInfo
 
-from qutebrowser.utils import log
+from qutebrowser.utils import log, version
 
 
 class ParseError(Exception):
@@ -141,7 +141,7 @@ class Ident:
     @classmethod
     def parse(cls, fobj: IO[bytes]) -> 'Ident':
         """Parse an ELF ident header from a file."""
-        magic, klass, data, version, osabi, abiversion = _unpack(cls._FORMAT, fobj)
+        magic, klass, data, elfversion, osabi, abiversion = _unpack(cls._FORMAT, fobj)
 
         try:
             bitness = Bitness(klass)
@@ -153,7 +153,7 @@ class Ident:
         except ValueError:
             raise ParseError(f"Invalid endianness {data}")
 
-        return cls(magic, bitness, endianness, version, osabi, abiversion)
+        return cls(magic, bitness, endianness, elfversion, osabi, abiversion)
 
 
 @dataclasses.dataclass
@@ -310,7 +310,11 @@ def _parse_from_file(f: IO[bytes]) -> Versions:
 
 def parse_webenginecore() -> Optional[Versions]:
     """Parse the QtWebEngineCore library file."""
-    library_path = pathlib.Path(QLibraryInfo.location(QLibraryInfo.LibrariesPath))
+    if version.is_flatpak():
+        # Flatpak has Qt in /usr/lib/x86_64-linux-gnu, but QtWebEngine in /app/lib.
+        library_path = pathlib.Path("/app/lib")
+    else:
+        library_path = pathlib.Path(QLibraryInfo.location(QLibraryInfo.LibrariesPath))
 
     # PyQt bundles those files with a .5 suffix
     lib_file = library_path / 'libQt5WebEngineCore.so.5'

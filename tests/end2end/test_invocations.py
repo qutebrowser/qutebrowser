@@ -501,19 +501,21 @@ def test_preferred_colorscheme_with_dark_mode(
     quteproc_new.open_path('data/darkmode/prefers-color-scheme.html')
     content = quteproc_new.get_content()
 
-    if webengine_versions.webengine == utils.VersionNumber(5, 15, 3):
+    qtwe_version = webengine_versions.webengine
+    xfail = None
+    if utils.VersionNumber(5, 15, 3) <= qtwe_version <= utils.VersionNumber(6):
         # https://bugs.chromium.org/p/chromium/issues/detail?id=1177973
         # No workaround known.
         expected_text = 'Light preference detected.'
         # light website color, inverted by darkmode
         expected_color = testutils.Color(127, 127, 127)
-        xfail = True
-    elif webengine_versions.webengine == utils.VersionNumber(5, 15, 2):
+        xfail = "Chromium bug 1177973"
+    elif qtwe_version == utils.VersionNumber(5, 15, 2):
         # Our workaround breaks when dark mode is enabled...
         # Also, for some reason, dark mode doesn't work on that page either!
         expected_text = 'No preference detected.'
         expected_color = testutils.Color(0, 170, 0)  # green
-        xfail = True
+        xfail = "QTBUG-89753"
     else:
         # Qt 5.14 and 5.15.0/.1 work correctly.
         # Hopefully, so does Qt 6.x in the future?
@@ -529,7 +531,7 @@ def test_preferred_colorscheme_with_dark_mode(
     assert color == expected_color
     if xfail:
         # We still do some checks, but we want to mark the test outcome as xfail.
-        pytest.xfail("QTBUG-89753")
+        pytest.xfail(xfail)
 
 
 @pytest.mark.qtwebkit_skip
@@ -657,19 +659,44 @@ def test_dark_mode(webengine_versions, quteproc_new, request,
     quteproc_new.start(args)
 
     ver = webengine_versions.webengine
-    minor_version = f'{ver.majorVersion()}.{ver.minorVersion()}'
+    minor_version = str(ver.strip_patch())
     expected = colors.get(minor_version, colors[None])
 
     quteproc_new.open_path(f'data/darkmode/{filename}.html')
 
     # Position chosen by fair dice roll.
     # https://xkcd.com/221/
-    pos = QPoint(4, 4)
-    img = quteproc_new.get_screenshot(probe_pos=pos, probe_color=expected)
+    quteproc_new.get_screenshot(
+        probe_pos=QPoint(4, 4),
+        probe_color=expected,
+    )
 
-    color = testutils.Color(img.pixelColor(pos))
-    # For pytest debug output
-    assert color == expected
+
+def test_dark_mode_mathml(quteproc_new, request, qtbot):
+    if not request.config.webengine:
+        pytest.skip("Skipped with QtWebKit")
+
+    args = _base_args(request.config) + [
+        '--temp-basedir',
+        '-s', 'colors.webpage.darkmode.enabled', 'true',
+        '-s', 'colors.webpage.darkmode.algorithm', 'brightness-rgb',
+    ]
+    quteproc_new.start(args)
+
+    quteproc_new.open_path('data/darkmode/mathml.html')
+    quteproc_new.wait_for_js('Image loaded')
+
+    # First make sure loading finished by looking outside of the image
+    quteproc_new.get_screenshot(
+        probe_pos=QPoint(105, 0),
+        probe_color=testutils.Color(0, 0, 204),
+    )
+
+    # Then get the actual formula color, probing again in case it's not displayed yet...
+    quteproc_new.get_screenshot(
+        probe_pos=QPoint(4, 4),
+        probe_color=testutils.Color(255, 255, 255),
+    )
 
 
 def test_unavailable_backend(request, quteproc_new):

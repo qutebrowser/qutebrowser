@@ -55,12 +55,10 @@ def test_configcache_get_after_set(config_stub):
 def test_configcache_naive_benchmark(config_stub, benchmark):
     def _run_bench():
         for _i in range(10000):
-            # pylint: disable=pointless-statement
             config.cache['tabs.padding']
             config.cache['tabs.indicator.width']
             config.cache['tabs.indicator.padding']
             config.cache['tabs.min_width']
             config.cache['tabs.max_width']
             config.cache['tabs.pinned.shrink']
-            # pylint: enable=pointless-statement
     benchmark(_run_bench)

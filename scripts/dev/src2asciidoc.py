@@ -447,6 +447,7 @@ def _generate_setting_option(f, opt):
         f.write("\nThis setting supports URL patterns.\n")
     if opt.no_autoconfig:
         f.write("\nThis setting can only be set in config.py.\n")
+    _generate_setting_backend_info(f, opt)
     f.write("\n")
     typ = opt.typ.get_name().replace(',', '&#44;')
     f.write('Type: <<types,{typ}>>\n'.format(typ=typ))
@@ -465,7 +466,6 @@ def _generate_setting_option(f, opt):
         f.write("\n")
 
     f.write("Default: {}\n".format(opt.typ.to_doc(opt.default)))
-    _generate_setting_backend_info(f, opt)
 
 
 def generate_settings(filename):

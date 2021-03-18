@@ -140,7 +140,7 @@ Feature: Various utility commands.
 
     Scenario: :jseval --file using a file that doesn't exist as js-code
         When I run :jseval --file /nonexistentfile
-        Then the error "[Errno 2] No such file or directory: '/nonexistentfile'" should be shown
+        Then the error "[Errno 2] *: '/nonexistentfile'" should be shown
         And "No output or error" should not be logged
 
     # :debug-webaction
@@ -528,13 +528,13 @@ Feature: Various utility commands.
     @qtwebkit_skip @no_invalid_lines @posix
     Scenario: Renderer crash
         When I run :open -t chrome://crash
-        Then "Renderer process crashed" should be logged
+        Then "Renderer process crashed (status *)" should be logged
         And "* 'Error loading chrome://crash/'" should be logged
 
     @qtwebkit_skip @no_invalid_lines @flaky
     Scenario: Renderer kill
         When I run :open -t chrome://kill
-        Then "Renderer process was killed" should be logged
+        Then "Renderer process was killed (status *)" should be logged
         And "* 'Error loading chrome://kill/'" should be logged
 
     # https://github.com/qutebrowser/qutebrowser/issues/2290
@@ -544,7 +544,7 @@ Feature: Various utility commands.
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I run :open chrome://kill
-        And I wait for "Renderer process was killed" in the log
+        And I wait for "Renderer process was killed (status *)" in the log
         And I open data/numbers/3.txt
         Then no crash should happen
 
@@ -554,11 +554,11 @@ Feature: Various utility commands.
         When I open data/crashers/webrtc.html in a new tab
         And I run :reload
         And I wait until data/crashers/webrtc.html is loaded
-        Then "Renderer process crashed" should not be logged
+        Then "Renderer process crashed (status *)" should not be logged
 
     Scenario: InstalledApps crash
         When I open data/crashers/installedapp.html in a new tab
-        Then "Renderer process was killed" should not be logged
+        Then "Renderer process was killed (status *)" should not be logged
 
     ## Other
 
