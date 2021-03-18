@@ -42,6 +42,13 @@ Changed
 v2.1.1 (unreleased)
 -------------------
 
+Added
+~~~~~
+
+- Site-specific quirk for krunker.io, which shows a "Socket Error" with
+  qutebrowser's default Accept-Language header. The workaround is equivalent to
+  doing `:set -u matchmaker.krunker.io content.headers.accept_language ""`.
+
 Changed
 ~~~~~~~
 
