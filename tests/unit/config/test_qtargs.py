@@ -111,7 +111,6 @@ def test_no_webengine_available(monkeypatch, config_stub, parser, stubs):
     here.
     """
     monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
-    monkeypatch.setattr(qtargs.version, 'webenginesettings', None)
 
     fake = stubs.ImportFake({'qutebrowser.browser.webengine': False}, monkeypatch)
     fake.patch()
