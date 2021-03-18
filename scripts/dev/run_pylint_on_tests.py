@@ -58,6 +58,7 @@ def main():
         'protected-access',
         'len-as-condition',
         'compare-to-empty-string',
+        'pointless-statement',
         # directories without __init__.py...
         'import-error',
     ]

@@ -488,12 +488,11 @@ class TestCompletionMetaInfo:
 
     def test_contains_keyerror(self, metainfo):
         with pytest.raises(KeyError):
-            # pylint: disable=pointless-statement
             'does_not_exist' in metainfo  # noqa: B015
 
     def test_getitem_keyerror(self, metainfo):
         with pytest.raises(KeyError):
-            metainfo['does_not_exist']  # pylint: disable=pointless-statement
+            metainfo['does_not_exist']
 
     def test_setitem_keyerror(self, metainfo):
         with pytest.raises(KeyError):

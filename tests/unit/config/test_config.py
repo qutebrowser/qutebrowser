@@ -725,7 +725,7 @@ class TestContainer:
     def test_getattr_invalid_private(self, container):
         """Make sure an invalid _attribute doesn't try getting a container."""
         with pytest.raises(AttributeError):
-            container._foo  # pylint: disable=pointless-statement
+            container._foo
 
     def test_getattr_prefix(self, container):
         new_container = container.tabs
@@ -744,7 +744,7 @@ class TestContainer:
 
     def test_getattr_invalid(self, container):
         with pytest.raises(configexc.NoOptionError) as excinfo:
-            container.tabs.foobar  # pylint: disable=pointless-statement
+            container.tabs.foobar
         assert excinfo.value.option == 'tabs.foobar'
 
     def test_setattr_option(self, config_stub, container):
@@ -754,7 +754,7 @@ class TestContainer:
     def test_confapi_errors(self, container):
         configapi = types.SimpleNamespace(errors=[])
         container._configapi = configapi
-        container.tabs.foobar  # pylint: disable=pointless-statement
+        container.tabs.foobar
 
         assert len(configapi.errors) == 1
         error = configapi.errors[0]
