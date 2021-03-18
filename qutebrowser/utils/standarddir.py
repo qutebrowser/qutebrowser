@@ -20,6 +20,7 @@
 """Utilities to get and initialize data/config paths."""
 
 import os
+import os.path
 import pathlib
 import sys
 import contextlib
@@ -301,7 +302,7 @@ def _from_args(
         suffix = basedir_suffix[typ]
     except KeyError:  # pragma: no cover
         return None
-    return str((pathlib.Path(args.basedir) / suffix).resolve())
+    return os.path.abspath(pathlib.Path(args.basedir) / suffix)
 
 
 def _create(path: str) -> None:

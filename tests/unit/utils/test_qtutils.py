@@ -442,8 +442,7 @@ class TestSavefileOpen:
         filename.write_text("Old data", encoding="utf-8")
         with qtutils.savefile_open(str(filename)) as f:
             f.write(data)
-        for x in tmp_path.iterdir():
-            assert x == filename
+        assert list(tmp_path.iterdir()) == [filename]
         assert filename.read_text(encoding='utf-8') == data
 
     def test_binary(self, tmp_path):
@@ -451,8 +450,7 @@ class TestSavefileOpen:
         filename = tmp_path / 'foo'
         with qtutils.savefile_open(str(filename), binary=True) as f:
             f.write(b'\xde\xad\xbe\xef')
-        for x in tmp_path.iterdir():
-            assert x == filename
+        assert list(tmp_path.iterdir()) == [filename]
         assert filename.read_bytes() == b'\xde\xad\xbe\xef'
 
     def test_exception(self, tmp_path):
@@ -463,8 +461,7 @@ class TestSavefileOpen:
             with qtutils.savefile_open(str(filename)) as f:
                 f.write("Hello World!")
                 raise SavefileTestException
-        for x in tmp_path.iterdir():
-            assert x == filename
+        assert list(tmp_path.iterdir()) == [filename]
         assert filename.read_text(encoding='utf-8') == "Old content"
 
     def test_existing_dir(self, tmp_path):
@@ -477,8 +474,7 @@ class TestSavefileOpen:
 
         msg = "Filename refers to a directory: {!r}".format(str(filename))
         assert str(excinfo.value) == msg
-        for x in tmp_path.iterdir():
-            assert x == filename
+        assert list(tmp_path.iterdir()) == [filename]
 
     def test_failing_flush(self, tmp_path):
         """Test with the file being closed before flushing."""
@@ -488,8 +484,7 @@ class TestSavefileOpen:
                 f.write(b'Hello')
                 f.dev.commit()  # provoke failing flush
 
-        for x in tmp_path.iterdir():
-            assert x == filename
+        assert list(tmp_path.iterdir()) == [filename]
 
     def test_failing_commit(self, tmp_path):
         """Test with the file being closed before committing."""
@@ -499,8 +494,7 @@ class TestSavefileOpen:
                 f.write(b'Hello')
                 f.dev.cancelWriting()  # provoke failing commit
 
-        for x in tmp_path.iterdir():
-            assert x == []
+        assert list(tmp_path.iterdir()) == []
 
     def test_line_endings(self, tmp_path):
         """Make sure line endings are translated correctly.

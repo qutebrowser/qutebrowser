@@ -837,8 +837,7 @@ class TestYaml:
 
     def test_dump_file(self, tmp_path):
         tmpfile = tmp_path / 'foo.yml'
-        with tmpfile.open('w', encoding='utf-8') as f:
-            utils.yaml_dump([1, 2], f)
+        tmpfile.write_text(utils.yaml_dump([1, 2]), encoding='utf-8')
         assert tmpfile.read_text() == '- 1\n- 2\n'
 
 

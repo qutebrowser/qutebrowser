@@ -140,7 +140,7 @@ class TestWritableLocation:
     def test_sep(self, monkeypatch):
         """Make sure the right kind of separator is used."""
         monkeypatch.setattr(standarddir.os, 'sep', '\\')
-        monkeypatch.setattr(standarddir.pathlib.Path, 'joinpath',
+        monkeypatch.setattr(standarddir.pathlib, 'Path',
                             lambda *parts: '\\'.join(parts))
         loc = standarddir._writable_location(QStandardPaths.AppDataLocation)
         assert '/' not in loc
@@ -194,13 +194,13 @@ class TestStandardDir:
         reason="Qt 5.14 automatically creates missing runtime dirs")
     def test_linux_invalid_runtimedir(self, monkeypatch, tmp_path):
         """With invalid XDG_RUNTIME_DIR, fall back to TempLocation."""
-        tmp_path_env = tmp_path / 'temp'
-        tmp_path_env.mkdir()
+        tmpdir_env = tmp_path / 'temp'
+        tmpdir_env.mkdir()
         monkeypatch.setenv('XDG_RUNTIME_DIR', str(tmp_path / 'does-not-exist'))
-        monkeypatch.setenv('TMPDIR', str(tmp_path_env))
+        monkeypatch.setenv('TMPDIR', str(tmpdir_env))
 
         standarddir._init_runtime(args=None)
-        assert standarddir.runtime() == str(tmp_path_env / APPNAME)
+        assert standarddir.runtime() == str(tmpdir_env / APPNAME)
 
     @pytest.mark.fake_os('windows')
     def test_runtimedir_empty_tempdir(self, monkeypatch, tmp_path):
@@ -301,8 +301,7 @@ class TestInitCacheDirTag:
         """Test creating a new CACHEDIR.TAG."""
         monkeypatch.setattr(standarddir, 'cache', lambda: str(tmp_path))
         standarddir._init_cachedir_tag()
-        for x in tmp_path.iterdir():
-            assert x == tmp_path / 'CACHEDIR.TAG'
+        assert list(tmp_path.iterdir()) == [(tmp_path / 'CACHEDIR.TAG')]
         data = (tmp_path / 'CACHEDIR.TAG').read_text('utf-8')
         assert data == textwrap.dedent("""
             Signature: 8a477f597d28d172789f06886806bc55
@@ -355,13 +354,10 @@ class TestCreatingDir:
         """
         (tmp_path / typ).mkdir()
 
-        m = mocker.patch('qutebrowser.utils.standarddir.pathlib')
-        m.Path.mkdir = pathlib.Path.mkdir
-        m.sep = '/'
-        m.Path.joinpath = pathlib.Path.joinpath
-        m.Path.expanduser = pathlib.Path.expanduser
-        m.Path.exists.return_value = False
-        m.Path.resolve = lambda x: x
+        m = mocker.patch('qutebrowser.utils.standarddir.pathlib.Path.exists')
+        j = mocker.patch('qutebrowser.utils.standarddir.pathlib.Path.resolve')
+        m.return_value = False
+        j.return_value = lambda x: x
 
         args = types.SimpleNamespace(basedir=str(tmp_path))
         standarddir._init_dirs(args)
