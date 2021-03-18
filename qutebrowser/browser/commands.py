@@ -798,9 +798,9 @@ class CommandDispatcher:
         if pinned_tabs_cleanup and pinned == 'prompt':
             self._tabbed_browser.tab_close_prompt_if_pinned(
                 pinned_tabs_cleanup,
-                force,
+                pinned == 'close',
                 lambda: self.tab_only(
-                    prev=prev, next_=next_, force=True),
+                    prev=prev, next_=next_, pinned='close'),
                 text="Are you sure you want to close pinned tabs?")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
