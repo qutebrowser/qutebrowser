@@ -22,13 +22,11 @@
 import traceback
 import re
 import contextlib
-from typing import (TYPE_CHECKING, Callable, Dict, Iterator, Mapping, MutableMapping,
-                    List, Optional)
+from typing import TYPE_CHECKING, Callable, Dict, Iterator, Mapping, MutableMapping
 
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
 from qutebrowser.api import cmdutils
-from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, parser
 from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 from qutebrowser.keyinput import macros, modeman
@@ -175,7 +173,7 @@ class CommandRunner(AbstractCommandRunner):
             parsed = self._parser.parse_all(text)
 
         if parsed is None:
-            return
+            return  # type: ignore[unreachable]
 
         for result in parsed:
             with self._handle_error(safely):

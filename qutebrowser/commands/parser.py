@@ -15,12 +15,12 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Module for parsing commands entered into the browser."""
 
 import dataclasses
-from typing import Optional, List, Mapping, Iterator, Union
+from typing import List, Iterator
 
 from qutebrowser.commands import cmdexc, command
 from qutebrowser.misc import split, objects

@@ -289,7 +289,7 @@ def webengine_early_import():
     error messages in backendproblem.py are accurate.
     """
     try:
-        from PyQt5 import QtWebEngineWidgets
+        from PyQt5 import QtWebEngineWidgets  # pylint: disable=unused-import
     except ImportError:
         pass
 
