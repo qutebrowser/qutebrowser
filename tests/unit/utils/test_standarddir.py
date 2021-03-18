@@ -202,6 +202,7 @@ class TestStandardDir:
         standarddir._init_runtime(args=None)
         assert standarddir.runtime() == str(tmpdir_env / APPNAME)
 
+    @pytest.mark.linux
     def test_flatpak_runtimedir(self, monkeypatch, tmp_path):
         runtime_path = tmp_path / 'runtime'
         runtime_path.mkdir()
