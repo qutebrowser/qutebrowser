@@ -112,7 +112,7 @@ class CommandParser:
         else:
             sub_texts = [text]
         for sub in sub_texts:
-            yield self.parse(first, **kwargs)
+            yield self.parse(sub, **kwargs)
 
     def parse_all(self, text: str, **kwargs: bool) -> List[ParseResult]:
         """Wrapper over _parse_all_gen."""
