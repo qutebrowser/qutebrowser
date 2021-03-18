@@ -279,6 +279,21 @@ def check_optimize_flag():
                          "unexpected behavior may occur.")
 
 
+def webengine_early_import():
+    """If QtWebEngine is available, import it early.
+
+    We need to ensure that QtWebEngine is imported before a QApplication is created for
+    everything to work properly.
+
+    This needs to be done even when using the QtWebKit backend, to ensure that e.g.
+    error messages in backendproblem.py are accurate.
+    """
+    try:
+        from PyQt5 import QtWebEngineWidgets
+    except ImportError:
+        pass
+
+
 def early_init(args):
     """Do all needed early initialization.
 
@@ -303,3 +318,4 @@ def early_init(args):
     configure_pyqt()
     check_ssl_support()
     check_optimize_flag()
+    webengine_early_import()
