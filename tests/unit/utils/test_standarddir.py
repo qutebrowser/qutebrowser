@@ -203,11 +203,15 @@ class TestStandardDir:
         assert standarddir.runtime() == str(tmpdir_env / APPNAME)
 
     def test_flatpak_runtimedir(self, monkeypatch, tmp_path):
+        runtime_path = tmp_path / 'runtime'
+        runtime_path.mkdir()
+        runtime_path.chmod(0o0700)
+
         app_id = 'org.qutebrowser.qutebrowser'
-        expected = tmp_path / 'app' / app_id
+        expected = runtime_path / 'app' / app_id
 
         monkeypatch.setattr(standarddir.version, 'is_flatpak', lambda: True)
-        monkeypatch.setenv('XDG_RUNTIME_DIR', str(tmp_path))
+        monkeypatch.setenv('XDG_RUNTIME_DIR', str(runtime_path))
         monkeypatch.setenv('FLATPAK_ID', app_id)
 
         standarddir._init_runtime(args=None)
