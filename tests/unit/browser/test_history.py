@@ -516,7 +516,7 @@ class TestCompletionMetaInfo:
         metainfo.delete('key', 'force_rebuild')
 
         with pytest.raises(sql.BugError, match='No result for single-result query'):
-            metainfo['force_rebuild']
+            metainfo['force_rebuild']  # pylint: disable=pointless-statement
 
         metainfo.try_recover()
         assert not metainfo['force_rebuild']
@@ -525,7 +525,7 @@ class TestCompletionMetaInfo:
         sql.Query("DROP TABLE CompletionMetaInfo").run()
 
         with pytest.raises(sql.BugError, match='no such table: CompletionMetaInfo'):
-            metainfo['force_rebuild']
+            metainfo['force_rebuild']  # pylint: disable=pointless-statement
 
         metainfo.try_recover()
         assert not metainfo['force_rebuild']
