@@ -31,7 +31,7 @@ import subprocess
 from PyQt5.QtCore import QStandardPaths
 import pytest
 
-from qutebrowser.utils import standarddir, utils, qtutils
+from qutebrowser.utils import standarddir, utils, qtutils, version
 
 
 # Use a different application name for tests to make sure we don't change real
@@ -201,6 +201,17 @@ class TestStandardDir:
 
         standarddir._init_runtime(args=None)
         assert standarddir.runtime() == str(tmpdir_env / APPNAME)
+
+    def test_flatpak_runtimedir(self, monkeypatch, tmp_path):
+        app_id = 'org.qutebrowser.qutebrowser'
+        expected = tmp_path / 'app' / app_id
+
+        monkeypatch.setattr(version, 'is_sandboxed', lambda: True)
+        monkeypatch.setenv('XDG_RUNTIME_DIR', str(tmp_path))
+        monkeypatch.setenv('FLATPAK_ID', app_id)
+
+        standarddir._init_runtime(args=None)
+        assert standarddir.runtime() == str(expected)
 
     @pytest.mark.fake_os('windows')
     def test_runtimedir_empty_tempdir(self, monkeypatch, tmpdir):

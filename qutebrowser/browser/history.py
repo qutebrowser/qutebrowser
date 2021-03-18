@@ -178,7 +178,7 @@ class WebHistory(sql.SqlTable):
 
         try:
             rebuild_completion = self.metainfo['force_rebuild']
-        except sql.BugError:
+        except sql.BugError:  # pragma: no cover
             log.sql.warning("Failed to access meta info, trying to recover...",
                             exc_info=True)
             self.metainfo.try_recover()
