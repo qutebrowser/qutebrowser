@@ -187,17 +187,39 @@ class TestKeyConfig:
 
     @pytest.mark.parametrize('bindings, expected', [
         # Simple
-        ({'a': 'message-info foo', 'b': 'message-info bar'},
-         {'message-info foo': ['a'], 'message-info bar': ['b']}),
+        ({'a': 'open foo', 'b': 'open bar'},
+         {'open foo': ['a'], 'open bar': ['b']}),
         # Multiple bindings
-        ({'a': 'message-info foo', 'b': 'message-info foo'},
-         {'message-info foo': ['b', 'a']}),
+        ({'a': 'open foo', 'b': 'open foo'},
+         {'open foo': ['b', 'a']}),
         # With modifier keys (should be listed last and normalized)
-        ({'a': 'message-info foo', '<ctrl-a>': 'message-info foo'},
-         {'message-info foo': ['a', '<Ctrl+a>']}),
+        ({'a': 'open foo', '<ctrl-a>': 'open foo'},
+         {'open foo': ['a', '<Ctrl+a>']}),
         # Chained command
-        ({'a': 'message-info foo ;; message-info bar'},
-         {'message-info foo': ['a'], 'message-info bar': ['a']}),
+        ({'a': 'open foo ;; open bar'},
+         {'open foo': ['a'], 'open bar': ['a']}),
+        # Command using set-cmd-text (#5942)
+        (
+            {
+                "o": "set-cmd-text -s :open",
+                "O": "set-cmd-text -s :open -t",
+                "go": "set-cmd-text :open {url:pretty}",
+                # all of these should be ignored
+                "/": "set-cmd-text /",
+                "?": "set-cmd-text ?",
+                ":": "set-cmd-text :",
+                "a": "set-cmd-text no_leading_colon",
+                "b": "set-cmd-text -s -a :skip_cuz_append",
+                "c": "set-cmd-text --append :skip_cuz_append",
+            },
+            {
+                "open": ["o"],
+                "open -t": ["O"],
+                "open {url:pretty}": ["go"],
+            }
+        ),
+        # Empty/unknown commands
+        ({"a": "", "b": "notreal"}, {}),
     ])
     def test_get_reverse_bindings_for(self, key_config_stub, config_stub,
                                       no_bindings, bindings, expected):
