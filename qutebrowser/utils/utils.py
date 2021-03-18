@@ -605,7 +605,7 @@ def open_file(filename: str, cmdline: str = None) -> None:
     # if we want to use the default
     override = config.val.downloads.open_dispatcher
 
-    if version.is_sandboxed():
+    if version.is_flatpak():
         if cmdline:
             message.error("Cannot spawn download dispatcher from sandbox")
             return

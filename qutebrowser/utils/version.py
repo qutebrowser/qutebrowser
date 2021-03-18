@@ -183,8 +183,12 @@ def distribution() -> Optional[DistributionInfo]:
         parsed=parsed, version=dist_version, pretty=pretty, id=dist_id)
 
 
-def is_sandboxed() -> bool:
-    """Whether the environment has restricted access to the host system."""
+def is_flatpak() -> bool:
+    """Whether qutebrowser is running via Flatpak.
+
+    If packaged via Flatpak, the environment is has restricted access to the host
+    system.
+    """
     current_distro = distribution()
     if current_distro is None:
         return False
