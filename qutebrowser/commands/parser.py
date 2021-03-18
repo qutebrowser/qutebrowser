@@ -20,7 +20,7 @@
 """Module for parsing commands entered into the browser."""
 
 import dataclasses
-from typing import Optional, List, Mapping, Iterator, List, Union
+from typing import Optional, List, Mapping, Iterator, Union
 
 from qutebrowser.commands import cmdexc, command
 from qutebrowser.misc import split, objects
@@ -32,8 +32,8 @@ class ParseResult:
 
     """The result of parsing a commandline."""
 
-    cmd: Optional[command.Command]
-    args: Optional[List[str]]
+    cmd: command.Command
+    args: List[str]
     cmdline: List[str]
 
 
@@ -118,27 +118,16 @@ class CommandParser:
         """Wrapper over _parse_all_gen."""
         return list(self._parse_all_gen(text, **kwargs))
 
-    def parse(
-            self,
-            text: str,
-            *,
-            fallback: bool = False,
-            keep: bool = False,
-    ) -> ParseResult:
+    def parse(self, text: str, *, keep: bool = False) -> ParseResult:
         """Split the commandline text into command and arguments.
 
         Args:
             text: Text to parse.
-            fallback: Whether to do a fallback splitting when the command was
-                      unknown.
-            keep: Whether to keep special chars and whitespace
-
-        Return:
-            A ParseResult tuple.
+            keep: Whether to keep special chars and whitespace.
         """
         cmdstr, sep, argstr = text.partition(' ')
 
-        if not cmdstr and not fallback:
+        if not cmdstr:
             raise cmdexc.NoSuchCommandError("No command given")
 
         if self._partial_match:
@@ -147,11 +136,7 @@ class CommandParser:
         try:
             cmd = objects.commands[cmdstr]
         except KeyError:
-            if not fallback:
-                raise cmdexc.NoSuchCommandError(
-                    '{}: no such command'.format(cmdstr))
-            cmdline = split.split(text, keep=keep)
-            return ParseResult(cmd=None, args=None, cmdline=cmdline)
+            raise cmdexc.NoSuchCommandError(f'{cmdstr}: no such command')
 
         args = self._split_args(cmd, argstr, keep)
         if keep and args:
