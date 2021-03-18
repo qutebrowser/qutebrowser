@@ -233,7 +233,7 @@ def _init_runtime(args: Optional[argparse.Namespace]) -> None:
         # maximum length of 104 chars), so we don't add the username here...
 
         from qutebrowser.utils import version
-        if version.is_sandboxed():
+        if version.is_flatpak():
             *parts, app_name = os.path.split(path)
             assert app_name == APPNAME, app_name
             path = os.path.join(*parts, 'app', os.environ['FLATPAK_ID'])

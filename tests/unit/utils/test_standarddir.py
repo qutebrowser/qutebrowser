@@ -211,7 +211,7 @@ class TestStandardDir:
 
         app_id = 'org.qutebrowser.qutebrowser'
 
-        monkeypatch.setattr(version, 'is_sandboxed', lambda: True)
+        monkeypatch.setattr(version, 'is_flatpak', lambda: True)
         monkeypatch.setenv('XDG_RUNTIME_DIR', str(runtime_path))
         monkeypatch.setenv('FLATPAK_ID', app_id)
 

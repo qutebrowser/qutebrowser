@@ -314,9 +314,9 @@ def test_distribution(tmpdir, monkeypatch, os_release, expected):
         id='arch', parsed=version.Distribution.arch, version=None,
         pretty='Arch Linux'), False)
 ])
-def test_is_sandboxed(monkeypatch, distribution, expected):
+def test_is_flatpak(monkeypatch, distribution, expected):
     monkeypatch.setattr(version, "distribution", lambda: distribution)
-    assert version.is_sandboxed() == expected
+    assert version.is_flatpak() == expected
 
 
 class GitStrSubprocessFake:
