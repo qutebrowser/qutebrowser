@@ -37,24 +37,24 @@ class TestCommandParser:
         """
         p = parser.CommandParser()
         if cmdline_test.valid:
-            p.parse_all(cmdline_test.cmd)
+            p.parse_all(cmdline_test.cmd, aliases=False)
         else:
             with pytest.raises(cmdexc.NoSuchCommandError):
-                p.parse_all(cmdline_test.cmd)
+                p.parse_all(cmdline_test.cmd, aliases=False)
 
     def test_parse_all_with_alias(self, cmdline_test, monkeypatch,
                                   config_stub):
         if not cmdline_test.cmd:
             pytest.skip("Empty command")
 
-        aliases = {'alias_name': cmdline_test.cmd}
+        config_stub.val.aliases = {'alias_name': cmdline_test.cmd}
 
         p = parser.CommandParser()
         if cmdline_test.valid:
-            assert len(p.parse_all("alias_name", aliases=aliases)) > 0
+            assert len(p.parse_all("alias_name")) > 0
         else:
             with pytest.raises(cmdexc.NoSuchCommandError):
-                p.parse_all("alias_name", aliases=aliases)
+                p.parse_all("alias_name")
 
     @pytest.mark.parametrize('command', ['', ' '])
     def test_parse_empty_with_alias(self, command):
@@ -65,7 +65,7 @@ class TestCommandParser:
         """
         p = parser.CommandParser()
         with pytest.raises(cmdexc.NoSuchCommandError):
-            p.parse_all(command, aliases={"foo": "bar"})
+            p.parse_all(command)
 
     @pytest.mark.parametrize('command, name, args', [
         ("set-cmd-text -s :open", "set-cmd-text", ["-s", ":open"]),
@@ -85,7 +85,7 @@ class TestCommandParser:
         ("set-cmd-text ?", "set-cmd-text", ["?"]),
         ("set-cmd-text :", "set-cmd-text", [":"]),
     ])
-    def test_parse_result(self, command, name, args):
+    def test_parse_result(self, config_stub, command, name, args):
         p = parser.CommandParser()
         result = p.parse_all(command)[0]
         assert result.cmd.name == name
@@ -133,5 +133,5 @@ class TestCompletions:
         config_stub.val.completion.use_best_match = True
         p = parser.CommandParser(partial_match=True)
 
-        result = p.parse('tw', best_match=True)
+        result = p.parse('tw')
         assert result.cmd.name == 'two'

@@ -24,6 +24,7 @@ from typing import Optional, List, Mapping, Iterator, List, Union
 
 from qutebrowser.commands import cmdexc, command
 from qutebrowser.misc import split, objects
+from qutebrowser.config import config
 
 
 @dataclasses.dataclass
@@ -47,7 +48,7 @@ class CommandParser:
     def __init__(self, partial_match: bool = False) -> None:
         self._partial_match = partial_match
 
-    def _get_alias(self, text: str, aliases: Mapping[str, str], *, default: str) -> str:
+    def _get_alias(self, text: str, *, default: str) -> str:
         """Get an alias from the config.
 
         Args:
@@ -60,6 +61,7 @@ class CommandParser:
             otherwise.
         """
         parts = text.strip().split(maxsplit=1)
+        aliases = config.cache['aliases']
         if parts[0] not in aliases:
             return default
         alias = aliases[parts[0]]
@@ -75,7 +77,7 @@ class CommandParser:
     def _parse_all_gen(
             self,
             text: str,
-            aliases: Mapping[str, str] = None,
+            aliases: bool = True,
             **kwargs: bool,
     ) -> Iterator[ParseResult]:
         """Split a command on ;; and parse all parts.
@@ -85,7 +87,7 @@ class CommandParser:
 
         Args:
             text: Text to parse.
-            aliases: A map of aliases to commands.
+            aliases: Whether to handle aliases.
             **kwargs: Passed to parse().
 
         Yields:
@@ -96,7 +98,7 @@ class CommandParser:
             raise cmdexc.NoSuchCommandError("No command given")
 
         if aliases:
-            text = self._get_alias(text, aliases, default=text)
+            text = self._get_alias(text, default=text)
 
         if ';;' in text:
             # Get the first command and check if it doesn't want to have ;;
@@ -122,7 +124,6 @@ class CommandParser:
             *,
             fallback: bool = False,
             keep: bool = False,
-            use_best_match: bool = False,
     ) -> ParseResult:
         """Split the commandline text into command and arguments.
 
@@ -131,7 +132,6 @@ class CommandParser:
             fallback: Whether to do a fallback splitting when the command was
                       unknown.
             keep: Whether to keep special chars and whitespace
-            use_best_match: Whether to use the best match even if incomplete.
 
         Return:
             A ParseResult tuple.
@@ -142,7 +142,7 @@ class CommandParser:
             raise cmdexc.NoSuchCommandError("No command given")
 
         if self._partial_match:
-            cmdstr = self._completion_match(cmdstr, use_best_match)
+            cmdstr = self._completion_match(cmdstr)
 
         try:
             cmd = objects.commands[cmdstr]
@@ -163,12 +163,11 @@ class CommandParser:
 
         return ParseResult(cmd=cmd, args=args, cmdline=cmdline)
 
-    def _completion_match(self, cmdstr: str, use_best_match: bool) -> str:
+    def _completion_match(self, cmdstr: str) -> str:
         """Replace cmdstr with a matching completion if there's only one match.
 
         Args:
             cmdstr: The string representing the entered command so far.
-            use_best_match: Whether to use the best match even if incomplete.
 
         Return:
             cmdstr modified to the matching completion or unmodified
@@ -177,7 +176,7 @@ class CommandParser:
                    if cmdstr in cmd]
         if len(matches) == 1:
             cmdstr = matches[0]
-        elif len(matches) > 1 and use_best_match:
+        elif len(matches) > 1 and config.val.completion.use_best_match:
             cmdstr = matches[0]
         return cmdstr
 

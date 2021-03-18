@@ -166,8 +166,7 @@ class KeyConfig:
     def _implied_cmd(self, cmdline: str) -> Optional[str]:
         """Return cmdline, or the implied cmd if cmdline is a set-cmd-text."""
         try:
-            results = parser.CommandParser().parse_all(
-                cmdline, aliases=cache['aliases'])
+            results = parser.CommandParser().parse_all(cmdline)
         except cmdexc.NoSuchCommandError:
             return None
 
