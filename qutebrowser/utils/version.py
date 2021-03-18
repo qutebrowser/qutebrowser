@@ -58,12 +58,6 @@ from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin, elf
 from qutebrowser.browser import pdfjs
 from qutebrowser.config import config, websettings
 
-try:
-    from qutebrowser.browser.webengine import webenginesettings
-except ImportError:  # pragma: no cover
-    webenginesettings = None  # type: ignore[assignment]
-
-
 _LOGO = r'''
          ______     ,,
     ,.-"`      | ,-` |
@@ -684,7 +678,7 @@ def qtwebengine_versions(avoid_init: bool = False) -> WebEngineVersions:
     - https://www.chromium.org/developers/calendar
     - https://chromereleases.googleblog.com/
     """
-    assert webenginesettings is not None
+    from qutebrowser.browser.webengine import webenginesettings
 
     if webenginesettings.parsed_user_agent is None and not avoid_init:
         webenginesettings.init_user_agent()

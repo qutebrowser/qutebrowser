@@ -30,7 +30,7 @@ from typing import Iterator, Optional
 from PyQt5.QtCore import QStandardPaths
 from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.utils import log, debug, utils
+from qutebrowser.utils import log, debug, utils, version
 
 # The cached locations
 _locations = {}
@@ -232,7 +232,6 @@ def _init_runtime(args: Optional[argparse.Namespace]) -> None:
         # Unfortunately this path could get too long for sockets (which have a
         # maximum length of 104 chars), so we don't add the username here...
 
-    from qutebrowser.utils import version
     if version.is_sandboxed():
         *parts, app_name = os.path.split(path)
         assert app_name == APPNAME, app_name
