@@ -399,6 +399,13 @@ class YamlMigrations(QObject):
             new_name='statusbar.show',
             true_value='never',
             false_value='always')
+        self._migrate_renamed_bool(
+            old_name='content.ssl_strict',
+            new_name='content.tls.certificate_errors',
+            true_value='block',
+            false_value='load-insecurely',
+            ask_value='ask',
+        )
 
         for setting in ['colors.webpage.force_dark_color_scheme',
                         'colors.webpage.prefers_color_scheme_dark']:
@@ -518,14 +525,21 @@ class YamlMigrations(QObject):
     def _migrate_renamed_bool(self, old_name: str,
                               new_name: str,
                               true_value: str,
-                              false_value: str) -> None:
+                              false_value: str,
+                              ask_value: str = None) -> None:
         if old_name not in self._settings:
             return
 
         self._settings[new_name] = {}
 
         for scope, val in self._settings[old_name].items():
-            new_value = true_value if val else false_value
+            if val == 'ask':
+                assert ask_value is not None
+                new_value = ask_value
+            elif val:
+                new_value = true_value
+            else:
+                new_value = false_value
             self._settings[new_name][scope] = new_value
 
         del self._settings[old_name]

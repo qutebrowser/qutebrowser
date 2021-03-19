@@ -601,6 +601,21 @@ class TestYamlMigrations:
     def test_bool(self, migration_test, setting, old, new):
         migration_test(setting, old, new)
 
+    @pytest.mark.parametrize('ssl_strict, certificate_errors', [
+        (True, 'block'),
+        (False, 'load-insecurely'),
+        ('ask', 'ask'),
+    ])
+    def test_ssl_strict(self, yaml, autoconfig, ssl_strict, certificate_errors):
+        autoconfig.write({'content.ssl_strict': {'global': ssl_strict}})
+
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        assert 'content.ssl_strict' not in data
+        assert data['content.tls.certificate_errors']['global'] == certificate_errors
+
     @pytest.mark.parametrize('setting', [
         'tabs.title.format',
         'tabs.title.format_pinned',

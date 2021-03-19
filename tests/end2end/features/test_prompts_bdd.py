@@ -66,7 +66,7 @@ def ssl_error_page(request, quteproc):
 
 def test_certificate_error_load_status(request, quteproc, ssl_server):
     """If we load the same page twice, we should get a 'warn' status twice."""
-    quteproc.set_setting('content.ssl_strict', 'false')
+    quteproc.set_setting('content.tls.certificate_errors', 'load-insecurely')
 
     for i in range(2):
         quteproc.open_path('/', port=ssl_server.port, https=True, wait=False,

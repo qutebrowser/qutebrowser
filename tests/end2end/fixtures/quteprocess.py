@@ -647,8 +647,9 @@ class QuteProc(testprocess.Process):
             ('auto_save.interval', '0'),
             ('new_instance_open_target_window', 'last-opened')
         ]
+        # FIXME needed?
         if not self.request.config.webengine:
-            settings.append(('content.ssl_strict', 'false'))
+            settings.append(('content.tls.certificate_errors', 'load-insecurely'))
 
         for opt, value in settings:
             self.set_setting(opt, value)

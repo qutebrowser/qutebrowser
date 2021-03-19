@@ -191,7 +191,7 @@
 |<<content.proxy_dns_requests,content.proxy_dns_requests>>|Send DNS requests over the configured proxy.
 |<<content.register_protocol_handler,content.register_protocol_handler>>|Allow websites to register protocol handlers via `navigator.registerProtocolHandler`.
 |<<content.site_specific_quirks,content.site_specific_quirks>>|Enable quirks (such as faked user agent headers) needed to get specific sites to work properly.
-|<<content.ssl_strict,content.ssl_strict>>|Validate SSL handshakes.
+|<<content.tls.certificate_errors,content.tls.certificate_errors>>|How to proceed on TLS certificate errors.
 |<<content.unknown_url_scheme_policy,content.unknown_url_scheme_policy>>|How navigation requests to URLs with unknown schemes are handled.
 |<<content.user_stylesheets,content.user_stylesheets>>|List of user stylesheet filenames to use.
 |<<content.webgl,content.webgl>>|Enable WebGL.
@@ -2627,19 +2627,19 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-[[content.ssl_strict]]
-=== content.ssl_strict
-Validate SSL handshakes.
+[[content.tls.certificate_errors]]
+=== content.tls.certificate_errors
+How to proceed on TLS certificate errors.
 
 This setting supports URL patterns.
 
-Type: <<types,BoolAsk>>
+Type: <<types,String>>
 
 Valid values:
 
- * +true+
- * +false+
- * +ask+
+ * +ask+: Ask how to proceed for every certificate error (unless non-overridable due to HSTS).
+ * +block+: Automatically block loading on certificate errors.
+ * +load-insecurely+: Force loading pages despite certificate errors. This is *insecure* and should be avoided. Instead of using this, consider fixing the underlying issue or importing a self-signed certificate via `certutil` (or Chromium) instead.
 
 Default: +pass:[ask]+
 

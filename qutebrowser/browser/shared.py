@@ -165,14 +165,13 @@ def ignore_certificate_errors(url, errors, abort_on):
     Return:
         True if the error should be ignored, False otherwise.
     """
-    ssl_strict = config.instance.get('content.ssl_strict', url=url)
-    log.network.debug("Certificate errors {!r}, strict {}".format(
-        errors, ssl_strict))
+    conf = config.instance.get('content.tls.certificate_errors', url=url)
+    log.network.debug(f"Certificate errors {errors!r}, config {conf}")
 
     for error in errors:
         assert error.is_overridable(), repr(error)
 
-    if ssl_strict == 'ask':
+    if conf == 'ask':
         err_template = jinja.environment.from_string("""
             Errors while loading <b>{{url.toDisplayString()}}</b>:<br/>
             <ul>
@@ -191,18 +190,13 @@ def ignore_certificate_errors(url, errors, abort_on):
             # prompt aborted
             ignore = False
         return ignore
-    elif ssl_strict is False:
-        log.network.debug("ssl_strict is False, only warning about errors")
+    elif conf == 'load-insecurely':
         for err in errors:
-            # FIXME we might want to use warn here (non-fatal error)
-            # https://github.com/qutebrowser/qutebrowser/issues/114
-            message.error('Certificate error: {}'.format(err))
+            message.error(f'Certificate error: {err}')
         return True
-    elif ssl_strict is True:
+    elif conf == 'block':
         return False
-    else:
-        raise ValueError("Invalid ssl_strict value {!r}".format(ssl_strict))
-    raise utils.Unreachable
+    raise utils.Unreachable(conf)
 
 
 def feature_permission(url, option, msg, yes_action, no_action, abort_on,

@@ -953,11 +953,20 @@ content.register_protocol_handler:
   desc: Allow websites to register protocol handlers via
     `navigator.registerProtocolHandler`.
 
-content.ssl_strict:
+content.tls.certificate_errors:
   default: ask
-  type: BoolAsk
+  type:
+    name: String
+    valid_values:
+      - ask: Ask how to proceed for every certificate error (unless non-overridable due
+            to HSTS).
+      - block: Automatically block loading on certificate errors.
+      - load-insecurely: Force loading pages despite certificate errors. This is
+            *insecure* and should be avoided. Instead of using this, consider fixing the
+            underlying issue or importing a self-signed certificate via `certutil` (or
+            Chromium) instead.
   supports_pattern: true
-  desc: Validate SSL handshakes.
+  desc: How to proceed on TLS certificate errors.
 
 content.user_stylesheets:
   type:
