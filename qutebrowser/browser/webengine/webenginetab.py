@@ -1519,8 +1519,8 @@ class WebEngineTab(browsertab.AbstractTab):
         log.network.debug("Certificate error: {}".format(error))
 
         if error.is_overridable():
-            error.ignore = shared.ignore_certificate_errors(
-                url, [error], abort_on=[self.abort_questions])
+            error.ignore = shared.ignore_certificate_error(
+                url, error, abort_on=[self.abort_questions])
         else:
             log.network.error("Non-overridable certificate error: "
                               "{}".format(error))

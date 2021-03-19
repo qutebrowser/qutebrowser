@@ -483,9 +483,6 @@ class AbstractCertificateErrorWrapper:
 
     """A wrapper over an SSL/certificate error."""
 
-    def __init__(self, error: Any) -> None:
-        self._error = error
-
     def __str__(self) -> str:
         raise NotImplementedError
 

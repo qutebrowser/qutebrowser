@@ -23,10 +23,10 @@ import os
 import sys
 import html
 import netrc
-from typing import Callable, Mapping, List, Optional
+from typing import Callable, Mapping, List, Optional, Iterable
 import tempfile
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, pyqtBoundSignal
 
 from qutebrowser.config import config
 from qutebrowser.utils import (usertypes, message, log, objreg, jinja, utils,
@@ -155,35 +155,36 @@ def javascript_log_message(level, source, line, msg):
     logger(logstring)
 
 
-def ignore_certificate_errors(url, errors, abort_on):
+def ignore_certificate_error(
+        url: QUrl,
+        error: usertypes.AbstractCertificateErrorWrapper,
+        abort_on: Iterable[pyqtBoundSignal],
+) -> bool:
     """Display a certificate error question.
 
     Args:
         url: The URL the errors happened in
-        errors: A list of QSslErrors or QWebEngineCertificateErrors
+        errors: A single error.
+        abort_on: Signals aborting a question.
 
     Return:
         True if the error should be ignored, False otherwise.
     """
     conf = config.instance.get('content.tls.certificate_errors', url=url)
-    log.network.debug(f"Certificate errors {errors!r}, config {conf}")
+    log.network.debug(f"Certificate error {error!r}, config {conf}")
 
-    for error in errors:
-        assert error.is_overridable(), repr(error)
+    assert error.is_overridable(), repr(error)
 
     if conf == 'ask':
         err_template = jinja.environment.from_string("""
-            Errors while loading <b>{{url.toDisplayString()}}</b>:<br/>
-            <ul>
-            {% for err in errors %}
-                <li>{{err}}</li>
-            {% endfor %}
-            </ul>
+            <p>Error while loading <b>{{url.toDisplayString()}}</b>:</p>
+
+            <p>{{error|replace('\n', '<br>')|safe}}</p>
         """.strip())
-        msg = err_template.render(url=url, errors=errors)
+        msg = err_template.render(url=url, error=error)
 
         urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
-        ignore = message.ask(title="Certificate errors - continue?", text=msg,
+        ignore = message.ask(title="Certificate error - continue?", text=msg,
                              mode=usertypes.PromptMode.yesno, default=False,
                              abort_on=abort_on, url=urlstr)
         if ignore is None:
@@ -191,8 +192,7 @@ def ignore_certificate_errors(url, errors, abort_on):
             ignore = False
         return ignore
     elif conf == 'load-insecurely':
-        for err in errors:
-            message.error(f'Certificate error: {err}')
+        message.error(f'Certificate error: {error}')
         return True
     elif conf == 'block':
         return False
