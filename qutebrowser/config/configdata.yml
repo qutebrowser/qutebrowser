@@ -960,6 +960,8 @@ content.tls.certificate_errors:
     valid_values:
       - ask: Ask how to proceed for every certificate error (unless non-overridable due
             to HSTS).
+      - ask-block-thirdparty: Ask how to proceed for normal page loads, but silently
+            block resource loads.
       - block: Automatically block loading on certificate errors.
       - load-insecurely: Force loading pages despite certificate errors. This is
             *insecure* and should be avoided. Instead of using this, consider fixing the

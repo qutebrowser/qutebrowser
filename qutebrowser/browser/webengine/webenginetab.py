@@ -1516,11 +1516,22 @@ class WebEngineTab(browsertab.AbstractTab):
         url = error.url()
         self._insecure_hosts.add(url.host())
 
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-92009
+        # self.url() is not available yet and the requested URL might not match the URL
+        # we get from the error - so we just apply a heuristic here.
+        assert self.data.last_navigation is not None
+        first_party_url = self.data.last_navigation.url
+
         log.network.debug("Certificate error: {}".format(error))
+        log.network.debug("First party URL: {}".format(first_party_url))
 
         if error.is_overridable():
             error.ignore = shared.ignore_certificate_error(
-                url, error, abort_on=[self.abort_questions])
+                request_url=url,
+                first_party_url=first_party_url,
+                error=error,
+                abort_on=[self.abort_questions],
+            )
         else:
             log.network.error("Non-overridable certificate error: "
                               "{}".format(error))
@@ -1544,12 +1555,10 @@ class WebEngineTab(browsertab.AbstractTab):
 
         # We can't really know when to show an error page, as the error might
         # have happened when loading some resource.
-        # However, self.url() is not available yet and the requested URL
-        # might not match the URL we get from the error - so we just apply a
-        # heuristic here.
-        assert self.data.last_navigation is not None
-        if (show_non_overr_cert_error and
-                url.matches(self.data.last_navigation.url, QUrl.RemoveScheme)):
+        is_resource = (
+            first_party_url.isValid() and
+            url.matches(first_party_url, QUrl.RemoveScheme))
+        if show_non_overr_cert_error and is_resource:
             self._show_error_page(url, str(error))
 
     @pyqtSlot()

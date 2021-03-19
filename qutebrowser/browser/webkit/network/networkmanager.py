@@ -214,6 +214,25 @@ class NetworkManager(QNetworkAccessManager):
             abort_on.append(tab.load_started)
         return abort_on
 
+    def _get_tab(self):
+        """Get the tab this NAM is associated with.
+
+        Return:
+            The tab if available, None otherwise.
+        """
+        # There are some scenarios where we can't figure out current_url:
+        # - There's a generic NetworkManager, e.g. for downloads
+        # - The download was in a tab which is now closed.
+        if self._tab_id is None:
+            return
+
+        assert self._win_id is not None
+        try:
+            return objreg.get('tab', scope='tab', window=self._win_id, tab=self._tab_id)
+        except KeyError:
+            # https://github.com/qutebrowser/qutebrowser/issues/889
+            return None
+
     def shutdown(self):
         """Abort all running requests."""
         self.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
@@ -254,7 +273,16 @@ class NetworkManager(QNetworkAccessManager):
             return
 
         abort_on = self._get_abort_signals(reply)
-        ignore = shared.ignore_certificate_error(reply.url(), errors, abort_on=abort_on)
+
+        tab = self._get_tab()
+        first_party_url = QUrl() if tab is None else tab.data.last_navigation.url
+
+        ignore = shared.ignore_certificate_error(
+            request_url=reply.url(),
+            first_party_url=first_party_url,
+            error=errors,
+            abort_on=abort_on,
+        )
         if ignore:
             reply.ignoreSslErrors()
             if host_tpl is not None:
@@ -387,22 +415,14 @@ class NetworkManager(QNetworkAccessManager):
         for header, value in shared.custom_headers(url=req.url()):
             req.setRawHeader(header, value)
 
-        # There are some scenarios where we can't figure out current_url:
-        # - There's a generic NetworkManager, e.g. for downloads
-        # - The download was in a tab which is now closed.
+        tab = self._get_tab()
         current_url = QUrl()
-
-        if self._tab_id is not None:
-            assert self._win_id is not None
+        if tab is not None:
             try:
-                tab = objreg.get('tab', scope='tab', window=self._win_id,
-                                 tab=self._tab_id)
                 current_url = tab.url()
-            except (KeyError, RuntimeError):
-                # https://github.com/qutebrowser/qutebrowser/issues/889
-                # Catching RuntimeError because we could be in the middle of
-                # the webpage shutdown here.
-                current_url = QUrl()
+            except RuntimeError:
+                # We could be in the middle of the webpage shutdown here.
+                pass
 
         request = interceptors.Request(first_party_url=current_url,
                                        request_url=req.url())

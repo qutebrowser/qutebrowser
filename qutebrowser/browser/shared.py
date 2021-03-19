@@ -156,34 +156,61 @@ def javascript_log_message(level, source, line, msg):
 
 
 def ignore_certificate_error(
-        url: QUrl,
+        *,
+        request_url: QUrl,
+        first_party_url: QUrl,
         error: usertypes.AbstractCertificateErrorWrapper,
         abort_on: Iterable[pyqtBoundSignal],
 ) -> bool:
     """Display a certificate error question.
 
     Args:
-        url: The URL the errors happened in
-        errors: A single error.
+        request_url: The URL of the request where the errors happened.
+        first_party_url: The URL of the page we're visiting. Might be an invalid QUrl.
+        error: A single error.
         abort_on: Signals aborting a question.
 
     Return:
         True if the error should be ignored, False otherwise.
     """
-    conf = config.instance.get('content.tls.certificate_errors', url=url)
+    conf = config.instance.get('content.tls.certificate_errors', url=request_url)
     log.network.debug(f"Certificate error {error!r}, config {conf}")
 
     assert error.is_overridable(), repr(error)
 
-    if conf == 'ask':
+    # We get the first party URL with a heuristic - with HTTP -> HTTPS redirects, the
+    # scheme might not match.
+    is_resource = (
+        first_party_url.isValid() and
+        not request_url.matches(first_party_url, QUrl.RemoveScheme))
+
+    if conf == 'ask' or conf == 'ask-block-thirdparty' and not is_resource:
         err_template = jinja.environment.from_string("""
-            <p>Error while loading <b>{{url.toDisplayString()}}</b>:</p>
+            {% if is_resource %}
+            <p>
+                Error while loading resource <b>{{request_url.toDisplayString()}}</b><br/>
+                on page <b>{{first_party_url.toDisplayString()}}</b>:
+            </p>
+            {% else %}
+            <p>Error while loading page <b>{{request_url.toDisplayString()}}</b>:</p>
+            {% endif %}
 
             {{error.html()|safe}}
-        """.strip())
-        msg = err_template.render(url=url, error=error)
 
-        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+            {% if is_resource %}
+            <p><i>Consider reporting this to the website operator, or set
+            <tt>content.tls.certificate_errors</tt> to <tt>ask-block-thirdparty</tt> to
+            always block invalid resource loads.</i></p>
+            {% endif %}
+        """.strip())
+        msg = err_template.render(
+            request_url=request_url,
+            first_party_url=first_party_url,
+            is_resource=is_resource,
+            error=error,
+        )
+
+        urlstr = request_url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
         ignore = message.ask(title="Certificate error - continue?", text=msg,
                              mode=usertypes.PromptMode.yesno, default=False,
                              abort_on=abort_on, url=urlstr)
@@ -196,7 +223,13 @@ def ignore_certificate_error(
         return True
     elif conf == 'block':
         return False
-    raise utils.Unreachable(conf)
+    elif conf == 'ask-block-thirdparty' and is_resource:
+        log.network.error(
+            f"Certificate error in resource load: {error}\n"
+            f"  request URL:     {request_url.toDisplayString()}\n"
+            f"  first party URL: {first_party_url.toDisplayString()}")
+        return False
+    raise utils.Unreachable(conf, is_resource)
 
 
 def feature_permission(url, option, msg, yes_action, no_action, abort_on,

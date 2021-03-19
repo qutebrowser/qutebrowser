@@ -202,6 +202,44 @@ Feature: Prompts
         And I run :mode-leave
         Then a SSL error page should be shown
 
+    Scenario: SSL error with content.tls.certificate_errors = ask-block-thirdparty -> yes
+        When I clear SSL errors
+        And I set content.tls.certificate_errors to ask-block-thirdparty
+        And I load an SSL page
+        And I wait for a prompt
+        And I run :prompt-accept yes
+        And I wait until the SSL page finished loading
+        Then the page should contain the plaintext "Hello World via SSL!"
+
+    Scenario: SSL resource error with content.tls.certificate_errors = ask -> yes
+        When I clear SSL errors
+        And I set content.tls.certificate_errors to ask
+        And I load an SSL resource page
+        And I wait for a prompt
+        And I run :prompt-accept yes
+        And I wait until the SSL resource page finished loading
+        Then the javascript message "Script loaded" should be logged
+        And the page should contain the plaintext "Script loaded"
+
+    Scenario: SSL resource error with content.tls.certificate_errors = ask -> no
+        When I clear SSL errors
+        And I set content.tls.certificate_errors to ask
+        And I load an SSL resource page
+        And I wait for a prompt
+        And I run :prompt-accept no
+        And I wait until the SSL resource page finished loading
+        Then the javascript message "Script loaded" should not be logged
+        And the page should contain the plaintext "Script not loaded"
+
+    Scenario: SSL resource error with content.tls.certificate_errors = ask-block-thirdparty
+        When I clear SSL errors
+        And I set content.tls.certificate_errors to ask-block-thirdparty
+        And I load an SSL resource page
+        And I wait until the SSL resource page finished loading
+        Then "Certificate error in resource load: *" should be logged
+        And the javascript message "Script loaded" should not be logged
+        And the page should contain the plaintext "Script not loaded"
+
     # Geolocation
 
     Scenario: Always rejecting geolocation

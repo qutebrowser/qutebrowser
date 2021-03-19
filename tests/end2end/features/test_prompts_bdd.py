@@ -36,6 +36,17 @@ def wait_ssl_page_finished_loading(quteproc, ssl_server):
                                     load_status='warn')
 
 
+@bdd.when("I load an SSL resource page")
+def load_ssl_resource_page(quteproc, server, ssl_server):
+    # We don't wait here as we can get an SSL question.
+    quteproc.open_path(f'https-script/{ssl_server.port}', port=server.port, wait=False)
+
+
+@bdd.when("I wait until the SSL resource page finished loading")
+def wait_ssl_resource_page_finished_loading(quteproc, server, ssl_server):
+    quteproc.wait_for_load_finished(f'https-script/{ssl_server.port}', port=server.port)
+
+
 @bdd.when("I wait for a prompt")
 def wait_for_prompt(quteproc):
     quteproc.wait_for(message='Asking question *')
