@@ -202,6 +202,22 @@ class TestStandardDir:
         standarddir._init_runtime(args=None)
         assert standarddir.runtime() == str(tmpdir_env / APPNAME)
 
+    @pytest.mark.linux
+    def test_flatpak_runtimedir(self, monkeypatch, tmp_path):
+        runtime_path = tmp_path / 'runtime'
+        runtime_path.mkdir()
+        runtime_path.chmod(0o0700)
+
+        app_id = 'org.qutebrowser.qutebrowser'
+        expected = runtime_path / 'app' / app_id
+
+        monkeypatch.setattr(standarddir.version, 'is_flatpak', lambda: True)
+        monkeypatch.setenv('XDG_RUNTIME_DIR', str(runtime_path))
+        monkeypatch.setenv('FLATPAK_ID', app_id)
+
+        standarddir._init_runtime(args=None)
+        assert standarddir.runtime() == str(expected)
+
     @pytest.mark.fake_os('windows')
     def test_runtimedir_empty_tempdir(self, monkeypatch, tmpdir):
         """With an empty tempdir on non-Linux, we should raise."""

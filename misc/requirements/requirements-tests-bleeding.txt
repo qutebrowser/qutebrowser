@@ -1,0 +1,37 @@
+# Problematic: needs bzr
+# bzr+lp:beautifulsoup
+beautifulsoup4
+git+https://github.com/cherrypy/cheroot.git
+git+https://github.com/nedbat/coveragepy.git
+git+https://github.com/pallets/flask.git
+git+https://github.com/pallets/werkzeug.git  # transitive dep, but needed to work
+git+https://github.com/HypothesisWorks/hypothesis.git#subdirectory=hypothesis-python
+git+https://github.com/pytest-dev/pytest.git
+git+https://github.com/pytest-dev/pytest-bdd.git
+git+https://github.com/ionelmc/pytest-benchmark.git
+git+https://github.com/pytest-dev/pytest-instafail.git
+git+https://github.com/pytest-dev/pytest-mock.git
+git+https://github.com/pytest-dev/pytest-qt.git
+git+https://github.com/pytest-dev/pytest-rerunfailures.git
+
+git+https://github.com/ionelmc/python-hunter.git
+git+https://github.com/jendrikseipp/vulture.git
+git+https://github.com/pygments/pygments.git
+git+https://github.com/pytest-dev/pytest-repeat.git
+git+https://github.com/pytest-dev/pytest-cov.git
+git+https://github.com/The-Compiler/pytest-xvfb.git
+git+https://github.com/pytest-dev/pytest-xdist.git
+git+https://github.com/hjwp/pytest-icdiff.git
+git+https://github.com/john-kurkowski/tldextract
+# Problematic: needs rust (and some time to build)
+# git+https://github.com/ArniDagur/python-adblock.git
+adblock ; python_version!="3.10"
+
+## qutebrowser dependencies
+
+git+https://github.com/pallets/jinja.git
+git+https://github.com/yaml/pyyaml.git
+git+https://github.com/tartley/colorama.git
+
+# https://github.com/pyparsing/pyparsing/issues/271
+pyparsing!=3.0.0b2,!=3.0.0b1

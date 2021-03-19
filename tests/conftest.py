@@ -240,12 +240,6 @@ def set_backend(monkeypatch, request):
     monkeypatch.setattr(objects, 'backend', backend)
 
 
-@pytest.fixture(autouse=True, scope='session')
-def apply_libgl_workaround():
-    """Make sure we load libGL early so QtWebEngine tests run properly."""
-    utils.libgl_workaround()
-
-
 @pytest.fixture(autouse=True)
 def apply_fake_os(monkeypatch, request):
     fake_os = request.node.get_closest_marker('fake_os')

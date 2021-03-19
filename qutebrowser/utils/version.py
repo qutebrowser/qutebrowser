@@ -58,12 +58,6 @@ from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin, elf
 from qutebrowser.browser import pdfjs
 from qutebrowser.config import config, websettings
 
-try:
-    from qutebrowser.browser.webengine import webenginesettings
-except ImportError:  # pragma: no cover
-    webenginesettings = None  # type: ignore[assignment]
-
-
 _LOGO = r'''
          ______     ,,
     ,.-"`      | ,-` |
@@ -189,8 +183,12 @@ def distribution() -> Optional[DistributionInfo]:
         parsed=parsed, version=dist_version, pretty=pretty, id=dist_id)
 
 
-def is_sandboxed() -> bool:
-    """Whether the environment has restricted access to the host system."""
+def is_flatpak() -> bool:
+    """Whether qutebrowser is running via Flatpak.
+
+    If packaged via Flatpak, the environment is has restricted access to the host
+    system.
+    """
     current_distro = distribution()
     if current_distro is None:
         return False
@@ -684,7 +682,7 @@ def qtwebengine_versions(avoid_init: bool = False) -> WebEngineVersions:
     - https://www.chromium.org/developers/calendar
     - https://chromereleases.googleblog.com/
     """
-    assert webenginesettings is not None
+    from qutebrowser.browser.webengine import webenginesettings
 
     if webenginesettings.parsed_user_agent is None and not avoid_init:
         webenginesettings.init_user_agent()
@@ -881,9 +879,6 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
     determined.
     """
     assert QApplication.instance()
-
-    # Some setups can segfault in here if we don't do this.
-    utils.libgl_workaround()
 
     override = os.environ.get('QUTE_FAKE_OPENGL')
     if override is not None:

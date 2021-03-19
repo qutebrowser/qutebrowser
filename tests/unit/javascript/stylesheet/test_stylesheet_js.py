@@ -19,7 +19,7 @@
 
 """Tests for stylesheet.js."""
 
-import os
+import pathlib
 import pytest
 
 QtWebEngineWidgets = pytest.importorskip("PyQt5.QtWebEngineWidgets")
@@ -49,8 +49,8 @@ class StylesheetTester:
 
     def init_stylesheet(self, css_file="green.css"):
         """Initialize the stylesheet with a provided css file."""
-        css_path = os.path.join(os.path.dirname(__file__), css_file)
-        self.config_stub.val.content.user_stylesheets = css_path
+        css_path = pathlib.Path(__file__).parent / css_file
+        self.config_stub.val.content.user_stylesheets = str(css_path)
 
     def set_css(self, css):
         """Set document style to `css` via stylesheet.js."""

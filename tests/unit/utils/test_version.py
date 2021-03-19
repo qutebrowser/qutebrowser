@@ -40,6 +40,11 @@ from qutebrowser.utils import version, usertypes, utils, standarddir
 from qutebrowser.misc import pastebin, objects, elf
 from qutebrowser.browser import pdfjs
 
+try:
+    from qutebrowser.browser.webengine import webenginesettings
+except ImportError:
+    webenginesettings = None
+
 
 @pytest.mark.parametrize('os_release, expected', [
     # No file
@@ -314,9 +319,9 @@ def test_distribution(tmpdir, monkeypatch, os_release, expected):
         id='arch', parsed=version.Distribution.arch, version=None,
         pretty='Arch Linux'), False)
 ])
-def test_is_sandboxed(monkeypatch, distribution, expected):
+def test_is_flatpak(monkeypatch, distribution, expected):
     monkeypatch.setattr(version, "distribution", lambda: distribution)
-    assert version.is_sandboxed() == expected
+    assert version.is_flatpak() == expected
 
 
 class GitStrSubprocessFake:
@@ -1004,7 +1009,6 @@ class TestWebEngineVersions:
 
         versions = version.WebEngineVersions.from_pyqt(pyqt_webengine_version)
 
-        from qutebrowser.browser.webengine import webenginesettings
         webenginesettings.init_user_agent()
         expected = webenginesettings.parsed_user_agent.upstream_browser_version
 
@@ -1045,26 +1049,24 @@ class TestChromiumVersion:
     @pytest.fixture(autouse=True)
     def clear_parsed_ua(self, monkeypatch):
         pytest.importorskip('PyQt5.QtWebEngineWidgets')
-        if version.webenginesettings is not None:
+        if webenginesettings is not None:
             # Not available with QtWebKit
-            monkeypatch.setattr(version.webenginesettings, 'parsed_user_agent', None)
+            monkeypatch.setattr(webenginesettings, 'parsed_user_agent', None)
 
     def test_fake_ua(self, monkeypatch, caplog):
         ver = '77.0.3865.98'
-        version.webenginesettings._init_user_agent_str(
-            _QTWE_USER_AGENT.format(ver))
+        webenginesettings._init_user_agent_str(_QTWE_USER_AGENT.format(ver))
 
         assert version.qtwebengine_versions().chromium == ver
 
     def test_prefers_saved_user_agent(self, monkeypatch):
-        version.webenginesettings._init_user_agent_str(_QTWE_USER_AGENT.format('87'))
+        webenginesettings._init_user_agent_str(_QTWE_USER_AGENT.format('87'))
 
         class FakeProfile:
             def defaultProfile(self):
                 raise AssertionError("Should not be called")
 
-        monkeypatch.setattr(version.webenginesettings, 'QWebEngineProfile',
-                            FakeProfile())
+        monkeypatch.setattr(webenginesettings, 'QWebEngineProfile', FakeProfile())
 
         version.qtwebengine_versions()
 
@@ -1250,7 +1252,6 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
     if params.with_webkit:
         patches['qWebKitVersion'] = lambda: 'WEBKIT VERSION'
         patches['objects.backend'] = usertypes.Backend.QtWebKit
-        patches['webenginesettings'] = None
         substitutions['backend'] = 'new QtWebKit (WebKit WEBKIT VERSION)'
     else:
         monkeypatch.delattr(version, 'qtutils.qWebKitVersion', raising=False)

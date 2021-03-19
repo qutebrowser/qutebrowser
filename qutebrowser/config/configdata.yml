@@ -1613,6 +1613,18 @@ input.spatial_navigation:
     Right key, heuristics determine whether there is an element he might be
     trying to reach towards the right and which element he probably wants.
 
+input.media_keys:
+  default: true
+  type: Bool
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+  restart: true
+  desc: >-
+    Whether the underlying Chromium should handle media keys.
+
+    On Linux, disabling this also disables Chromium's MPRIS integration.
+
 ## keyhint
 
 keyhint.blacklist:
