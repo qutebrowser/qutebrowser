@@ -35,6 +35,18 @@ Added
 Changed
 ~~~~~~~
 
+- The `content.ssl_strict` setting got renamed to
+  `content.tls.certificate_errors`, with new values:
+  * `ask`: Prompt on overridable certificate errors (`ssl_strict = 'ask'`)
+  * `ask-block-thirdparty`: See below
+  * `block`: Block the page load (`ssl_strict = True`)
+  * `load-insecurely`: Load the page despite the error (`ssl_strict = False`)
+- The new `content.tls.certificate_errors` setting now also understands the
+  value `ask-block-thirdparty`, which asks for page loads but automatically blocks
+  resource loads on TLS errors. This behavior is consistent with what other
+  browsers do.
+- The prompt text shown on certificate errors has been improved to make it
+  clearer what kind of error occured exactly.
 - The completion now also shows bindings starting with `set-cmd-text` in its
   third column, such as `o` for `:open`.
 
