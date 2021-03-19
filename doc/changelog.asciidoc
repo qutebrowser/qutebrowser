@@ -80,6 +80,11 @@ Fixed
 - When the metainfo in the completion database doesn't have the expected
   structure, qutebrowser now tries to gracefully recover from the situation
   instead of crashing.
+- When qutebrowser displays an error during initialization, opening a second
+  instance would lead to a crash. Instead, qutebrowser now ignores the attempt
+  to open a new page as long as it's not fully initialized yet.
+- When the Brave adblock cache folder was unreadable, qutebrowser crashed. It
+  now displays an error instead.
 
 [[v2.1.0]]
 v2.1.0 (2021-03-12)
