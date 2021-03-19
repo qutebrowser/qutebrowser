@@ -179,7 +179,7 @@ def ignore_certificate_error(
         err_template = jinja.environment.from_string("""
             <p>Error while loading <b>{{url.toDisplayString()}}</b>:</p>
 
-            <p>{{error|replace('\n', '<br>')|safe}}</p>
+            {{error.html()|safe}}
         """.strip())
         msg = err_template.render(url=url, error=error)
 

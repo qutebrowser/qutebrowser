@@ -19,6 +19,7 @@
 
 """Custom useful data types."""
 
+import html
 import operator
 import enum
 import dataclasses
@@ -491,6 +492,9 @@ class AbstractCertificateErrorWrapper:
 
     def is_overridable(self) -> bool:
         raise NotImplementedError
+
+    def html(self) -> str:
+        return f'<p>{html.escape(str(self))}</p>'
 
 
 @dataclasses.dataclass

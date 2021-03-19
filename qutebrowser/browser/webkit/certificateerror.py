@@ -23,7 +23,7 @@ from typing import Sequence
 
 from PyQt5.QtNetwork import QSslError
 
-from qutebrowser.utils import usertypes, utils, debug
+from qutebrowser.utils import usertypes, utils, debug, jinja
 
 
 class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
@@ -34,7 +34,7 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
         self._errors = tuple(errors)  # needs to be hashable
 
     def __str__(self) -> str:
-        return '\n'.join('- ' + err.errorString() for err in self._errors)
+        return '\n'.join(err.errorString() for err in self._errors)
 
     def __repr__(self) -> str:
         return utils.get_repr(
@@ -52,3 +52,16 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
 
     def is_overridable(self) -> bool:
         return True
+
+    def html(self):
+        if len(self._errors) == 1:
+            return super().html()
+
+        template = jinja.environment.from_string("""
+            <ul>
+            {% for err in errors %}
+                <li>{{err.errorString()}}</li>
+            {% endfor %}
+            </ul>
+        """.strip())
+        return template.render(errors=self._errors)
