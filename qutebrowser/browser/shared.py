@@ -202,6 +202,8 @@ def ignore_certificate_error(
             <tt>content.tls.certificate_errors</tt> to <tt>ask-block-thirdparty</tt> to
             always block invalid resource loads.</i></p>
             {% endif %}
+
+            Do you want to ignore these errors and continue loading the page <b>insecurely</b>?
         """.strip())
         msg = err_template.render(
             request_url=request_url,
@@ -211,7 +213,7 @@ def ignore_certificate_error(
         )
 
         urlstr = request_url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
-        ignore = message.ask(title="Certificate error - continue?", text=msg,
+        ignore = message.ask(title="Certificate error", text=msg,
                              mode=usertypes.PromptMode.yesno, default=False,
                              abort_on=abort_on, url=urlstr)
         if ignore is None:
