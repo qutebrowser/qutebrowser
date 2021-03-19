@@ -182,7 +182,9 @@ def ignore_certificate_error(
     # scheme might not match.
     is_resource = (
         first_party_url.isValid() and
-        not request_url.matches(first_party_url, QUrl.RemoveScheme))
+        not request_url.matches(
+            first_party_url,
+            QUrl.RemoveScheme))  # type: ignore[arg-type]
 
     if conf == 'ask' or conf == 'ask-block-thirdparty' and not is_resource:
         err_template = jinja.environment.from_string("""
@@ -212,7 +214,8 @@ def ignore_certificate_error(
             error=error,
         )
 
-        urlstr = request_url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+        urlstr = request_url.toString(
+            QUrl.RemovePassword | QUrl.FullyEncoded)  # type: ignore[arg-type]
         ignore = message.ask(title="Certificate error", text=msg,
                              mode=usertypes.PromptMode.yesno, default=False,
                              abort_on=abort_on, url=urlstr)

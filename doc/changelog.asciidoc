@@ -46,7 +46,7 @@ Changed
   resource loads on TLS errors. This behavior is consistent with what other
   browsers do.
 - The prompt text shown on certificate errors has been improved to make it
-  clearer what kind of error occured exactly.
+  clearer what kind of error occurred exactly.
 - The completion now also shows bindings starting with `set-cmd-text` in its
   third column, such as `o` for `:open`.
 

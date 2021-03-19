@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING, Dict, MutableMapping, Optional, Set
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QUrl, QByteArray
 from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslSocket,
-                             QSslError, QNetworkProxy)
+                             QNetworkProxy)
 
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg,
@@ -122,7 +122,10 @@ def init():
         QSslSocket.setDefaultCiphers(good_ciphers)
 
 
-_SavedErrorsType = MutableMapping[urlutils.HostTupleType, Set[QSslError]]
+_SavedErrorsType = MutableMapping[
+    urlutils.HostTupleType,
+    Set[certificateerror.CertificateErrorWrapper],
+]
 
 
 class NetworkManager(QNetworkAccessManager):
@@ -224,7 +227,7 @@ class NetworkManager(QNetworkAccessManager):
         # - There's a generic NetworkManager, e.g. for downloads
         # - The download was in a tab which is now closed.
         if self._tab_id is None:
-            return
+            return None
 
         assert self._win_id is not None
         try:
