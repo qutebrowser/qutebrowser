@@ -1142,7 +1142,7 @@ class _WebEngineScripts(QObject):
 
     def _inject_site_specific_quirks(self):
         """Add site-specific quirk scripts."""
-        if not config.val.content.site_specific_quirks:
+        if not config.val.content.site_specific_quirks.enabled:
             return
 
         versions = version.qtwebengine_versions()
@@ -1170,12 +1170,14 @@ class _WebEngineScripts(QObject):
             if not quirk.predicate:
                 continue
             src = resources.read_file(f'javascript/quirks/{quirk.filename}.user.js')
-            self._inject_js(
-                f'quirk_{quirk.filename}',
-                src,
-                world=quirk.world,
-                injection_point=quirk.injection_point,
-            )
+            name = f"js-{quirk.filename.replace('_', '-')}"
+            if name not in config.val.content.site_specific_quirks.skip:
+                self._inject_js(
+                    f'quirk_{quirk.filename}',
+                    src,
+                    world=quirk.world,
+                    injection_point=quirk.injection_point,
+                )
 
 
 class WebEngineTabPrivate(browsertab.AbstractTabPrivate):

@@ -519,11 +519,23 @@ content.frame_flattening:
     This will flatten all the frames to become one scrollable page.
 
 content.site_specific_quirks:
+  renamed : content.site_specific_quirks.enabled
+
+content.site_specific_quirks.enabled:
   default: true
   restart: true
   type: Bool
   desc: 'Enable quirks (such as faked user agent headers) needed to get
       specific sites to work properly.'
+
+content.site_specific_quirks.skip:
+  type:
+    name : FlagList
+    valid_values: [ua-whatsapp, ua-google, ua-slack,
+    js-whatsapp-web, js-string-replaceall , js-globalthis, js-object-fromentries]
+    none_ok: true
+  default: []
+  desc: 'Disable a list of named quirks.'
 
 # emacs: '
 
