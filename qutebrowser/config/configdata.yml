@@ -519,7 +519,7 @@ content.frame_flattening:
     This will flatten all the frames to become one scrollable page.
 
 content.site_specific_quirks:
-  renamed : content.site_specific_quirks.enabled
+  renamed: content.site_specific_quirks.enabled
 
 content.site_specific_quirks.enabled:
   default: true
@@ -530,9 +530,10 @@ content.site_specific_quirks.enabled:
 
 content.site_specific_quirks.skip:
   type:
-    name : FlagList
+    name: FlagList
     valid_values: [ua-whatsapp, ua-google, ua-slack,
-    js-whatsapp-web, js-string-replaceall , js-globalthis, js-object-fromentries]
+                   js-whatsapp-web, js-string-replaceall,
+                   js-globalthis, js-object-fromentries]
     none_ok: true
   default: []
   desc: 'Disable a list of named quirks.'
