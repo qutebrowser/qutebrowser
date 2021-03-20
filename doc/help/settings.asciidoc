@@ -2644,6 +2644,7 @@ Valid values:
  * +js-string-replaceall+
  * +js-globalthis+
  * +js-object-fromentries+
+ * +misc-krunker+
 
 Default: empty
 

@@ -533,7 +533,8 @@ content.site_specific_quirks.skip:
     name: FlagList
     valid_values: [ua-whatsapp, ua-google, ua-slack,
                    js-whatsapp-web, js-string-replaceall,
-                   js-globalthis, js-object-fromentries]
+                   js-globalthis, js-object-fromentries,
+                   misc-krunker]
     none_ok: true
   default: []
   desc: 'Disable a list of named quirks.'

@@ -459,12 +459,13 @@ def _init_site_specific_quirks():
                                     pattern=urlmatch.UrlPattern(pattern),
                                     hide_userconfig=True)
 
-    config.instance.set_obj(
-        'content.headers.accept_language',
-        '',
-        pattern=urlmatch.UrlPattern('https://matchmaker.krunker.io/*'),
-        hide_userconfig=True,
-    )
+    if 'misc-krunker' not in config.val.content.site_specific_quirks.skip:
+        config.instance.set_obj(
+            'content.headers.accept_language',
+            '',
+            pattern=urlmatch.UrlPattern('https://matchmaker.krunker.io/*'),
+            hide_userconfig=True,
+        )
 
 
 def _init_devtools_settings():
