@@ -82,7 +82,7 @@ class WebKitSettings(websettings.AbstractSettings):
             Attr(QWebSettings.PrintElementBackgrounds),
         'content.xss_auditing':
             Attr(QWebSettings.XSSAuditingEnabled),
-        'content.site_specific_quirks':
+        'content.site_specific_quirks.enabled':
             Attr(QWebSettings.SiteSpecificQuirksEnabled),
 
         'input.spatial_navigation':
