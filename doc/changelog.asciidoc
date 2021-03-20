@@ -85,6 +85,8 @@ Fixed
   to open a new page as long as it's not fully initialized yet.
 - When the Brave adblock cache folder was unreadable, qutebrowser crashed. It
   now displays an error instead.
+- The `qute-pass` userscript now works correctly when generating OTP tokens
+  with `gopass`.
 
 [[v2.1.0]]
 v2.1.0 (2021-03-12)
