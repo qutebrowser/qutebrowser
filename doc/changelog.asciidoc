@@ -87,6 +87,9 @@ Fixed
   now displays an error instead.
 - The `qute-pass` userscript now works correctly when generating OTP tokens
   with `gopass`.
+- When using `bindings.key_mappings` to map a key to multiple other keys,
+  qutebrowser would crash. This is now handled correctly - however, note that
+  it's usually better to map keys to commands instead.
 
 [[v2.1.0]]
 v2.1.0 (2021-03-12)
