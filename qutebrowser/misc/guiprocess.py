@@ -60,6 +60,7 @@ class GUIProcess(QObject):
         self._started = False
         self.cmd = None
         self.args = None
+        self.pid = None
 
         self.stdout: str = ""
         self.stderr: str = ""
@@ -104,7 +105,7 @@ class GUIProcess(QObject):
 
             self.stdout += text
 
-        message.info(self.stdout.strip(), replace=True)
+        message.info(self.stdout.strip(), replace=f"stdout-{self.pid}")
 
     @pyqtSlot(QProcess.ProcessError)
     def _on_error(self, error):
@@ -146,7 +147,7 @@ class GUIProcess(QObject):
 
         if self._output_messages:
             if self.stdout:
-                message.info(self.stdout.strip(), replace=True)
+                message.info(self.stdout.strip(), replace=f"stdout-{self.pid}")
             if self.stderr:
                 message.error(self.stderr.strip())
 
@@ -208,12 +209,13 @@ class GUIProcess(QObject):
         self._pre_start(cmd, args)
         self._proc.start(cmd, args)
         self._proc.closeWriteChannel()
+        self.pid = self._proc.processId()
 
     def start_detached(self, cmd, args):
         """Convenience wrapper around QProcess::startDetached."""
         log.procs.debug("Starting detached.")
         self._pre_start(cmd, args)
-        ok, _pid = self._proc.startDetached(
+        ok, self.pid = self._proc.startDetached(
             cmd, args, None)  # type: ignore[call-arg]
 
         if not ok:
