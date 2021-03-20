@@ -23,7 +23,7 @@ import locale
 import shlex
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
-                          QProcessEnvironment)
+                          QProcessEnvironment, QByteArray)
 
 from qutebrowser.utils import message, log, utils
 from qutebrowser.browser import qutescheme
@@ -61,22 +61,50 @@ class GUIProcess(QObject):
         self.cmd = None
         self.args = None
 
-        self.final_stdout: str = ""
-        self.final_stderr: str = ""
+        self.stdout: str = ""
+        self.stderr: str = ""
 
         self._proc = QProcess(self)
+        self._proc.setReadChannel(QProcess.StandardOutput)
         self._proc.errorOccurred.connect(self._on_error)
         self._proc.errorOccurred.connect(self.error)
         self._proc.finished.connect(self._on_finished)
         self._proc.finished.connect(self.finished)
         self._proc.started.connect(self._on_started)
         self._proc.started.connect(self.started)
+        self._proc.readyRead.connect(self._on_ready_read)
 
         if additional_env is not None:
             procenv = QProcessEnvironment.systemEnvironment()
             for k, v in additional_env.items():
                 procenv.insert(k, v)
             self._proc.setProcessEnvironment(procenv)
+
+    def _decode_data(self, qba: QByteArray) -> str:
+        """Decode data coming from a process."""
+        encoding = locale.getpreferredencoding(do_setlocale=False)
+        return qba.data().decode(encoding, 'replace')
+
+    @pyqtSlot()
+    def _on_ready_read(self):
+        if not self._output_messages:
+            return
+
+        while True:
+            text = self._decode_data(self._proc.readLine())
+            if not text:
+                break
+
+            if '\r' in text:
+                # Crude handling of CR for e.g. progress output.
+                # Discard everything before the last \r in the new input, then discard
+                # everything after the last \n in self.stdout.
+                text = text.rsplit('\r', maxsplit=1)[-1]
+                self.stdout = self.stdout.rsplit('\n', maxsplit=1)[0] + '\n'
+
+            self.stdout += text
+
+        message.info(self.stdout.strip(), replace=True)
 
     @pyqtSlot(QProcess.ProcessError)
     def _on_error(self, error):
@@ -113,17 +141,14 @@ class GUIProcess(QObject):
         log.procs.debug("Process finished with code {}, status {}.".format(
             code, status))
 
-        encoding = locale.getpreferredencoding(do_setlocale=False)
-        stderr = self._proc.readAllStandardError().data().decode(
-            encoding, 'replace')
-        stdout = self._proc.readAllStandardOutput().data().decode(
-            encoding, 'replace')
+        self.stderr += self._decode_data(self._proc.readAllStandardError())
+        self.stdout += self._decode_data(self._proc.readAllStandardOutput())
 
         if self._output_messages:
-            if stdout:
-                message.info(stdout.strip())
-            if stderr:
-                message.error(stderr.strip())
+            if self.stdout:
+                message.info(self.stdout.strip(), replace=True)
+            if self.stderr:
+                message.error(self.stderr.strip())
 
         if status == QProcess.CrashExit:
             exitinfo = "{} crashed.".format(self._what.capitalize())
@@ -141,14 +166,12 @@ class GUIProcess(QObject):
                         "details.").format(self._what.capitalize(), code)
             message.error(exitinfo)
 
-            if stdout:
-                log.procs.error("Process stdout:\n" + stdout.strip())
-            if stderr:
-                log.procs.error("Process stderr:\n" + stderr.strip())
+            if self.stdout:
+                log.procs.error("Process stdout:\n" + self.stdout.strip())
+            if self.stderr:
+                log.procs.error("Process stderr:\n" + self.stderr.strip())
 
-        qutescheme.spawn_output = self._spawn_format(exitinfo, stdout, stderr)
-        self.final_stdout = stdout
-        self.final_stderr = stderr
+        qutescheme.spawn_output = self._spawn_format(exitinfo, self.stdout, self.stderr)
 
     def _spawn_format(self, exitinfo, stdout, stderr):
         """Produce a formatted string for spawn output."""

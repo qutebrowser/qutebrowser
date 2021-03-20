@@ -453,7 +453,7 @@ def _execute_fileselect_command(
     loop.exec()
 
     if tmpfilename is None:
-        selected_files = proc.final_stdout.splitlines()
+        selected_files = proc.stdout.splitlines()
     else:
         try:
             with open(tmpfilename, mode='r', encoding=sys.getfilesystemencoding()) as f:
