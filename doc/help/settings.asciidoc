@@ -16,7 +16,7 @@
 |<<backend,backend>>|Backend to use to display websites.
 |<<bindings.commands,bindings.commands>>|Keybindings mapping keys to commands in different modes.
 |<<bindings.default,bindings.default>>|Default keybindings. If you want to add bindings, modify `bindings.commands` instead.
-|<<bindings.key_mappings,bindings.key_mappings>>|This setting can be used to map keys to other keys.
+|<<bindings.key_mappings,bindings.key_mappings>>|Map keys to other keys, so that they are equivalent in all modes.
 |<<changelog_after_upgrade,changelog_after_upgrade>>|When to show a changelog after qutebrowser was upgraded.
 |<<colors.completion.category.bg,colors.completion.category.bg>>|Background color of the completion widget category headers.
 |<<colors.completion.category.border.bottom,colors.completion.category.border.bottom>>|Bottom border color of the completion widget category headers.
@@ -775,9 +775,10 @@ Default:
 
 [[bindings.key_mappings]]
 === bindings.key_mappings
-This setting can be used to map keys to other keys.
+Map keys to other keys, so that they are equivalent in all modes.
 When the key used as dictionary-key is pressed, the binding for the key used as dictionary-value is invoked instead.
-This is useful for global remappings of keys, for example to map Ctrl-[ to Escape.
+This is useful for global remappings of keys, for example to map <Ctrl-[> to <Escape>.
+NOTE: This should only be used if two keys should always be equivalent, i.e. for things like <Enter> (keypad) and <Return> (non-keypad). For normal command bindings, qutebrowser works differently to vim: You always bind keys to commands, usually via `:bind` or `config.bind()`. Instead of using this setting, consider finding the command a key is bound to (e.g. via `:bind gg`) and then binding the same command to the desired key.
 Note that when a key is bound (via `bindings.default` or `bindings.commands`), the mapping is ignored.
 
 Type: <<types,Dict>>
