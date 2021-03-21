@@ -434,5 +434,8 @@ def _execute_fileselect_command(
     if not qb_mode == FileSelectionMode.multiple_files:
         if len(selected_files) > 1:
             message.warning("More than one file/folder chosen, using only the first")
-            return selected_files[:1]
+            selected_files = selected_files[:1]
+    for selected_file in selected_files:
+        if not os.path.exists(selected_file):
+            message.warning(f"Selected non-existent file '{selected_file}'")
     return selected_files

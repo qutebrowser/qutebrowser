@@ -240,6 +240,16 @@ Feature: Opening external editors
         And the error "Failed to open tempfile *" should be shown
         And "Failed to delete tempfile *" should be logged with level error
 
+    ## Select non-existent file
+
+    Scenario: Select non-existent file
+        When I set fileselect.handler to external
+        When I setup a fake single_file fileselector selecting "tests/end2end/data/numbers/non-existent.txt" and writes to a temporary file
+        And I open data/fileselect.html
+        And I run :click-element id single_file
+        Then the javascript message "Files: non-existent.txt" should not be logged
+        And the warning "Selected non-existent file *tests/end2end/data/numbers/non-existent.txt'" should be shown
+
     ## Select folder
 
     @qtwebkit_skip
