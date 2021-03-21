@@ -82,7 +82,7 @@ if __name__ == "__main__":
           .format(v=version))
     print("* Windows: git fetch; git checkout v{v}; "
           "py -3.9 -m tox -e build-release -- --asciidoc "
-          "$env:userprofile\\bin\\asciidoc-9.0.5\\asciidoc.py --upload"
+          "$env:userprofile\\bin\\asciidoc-9.1.0\\asciidoc.py --upload"
           .format(v=version))
     print("* macOS: git fetch && git checkout v{v} && "
           "tox -e build-release -- --upload"

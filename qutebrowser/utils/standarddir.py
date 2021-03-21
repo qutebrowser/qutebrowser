@@ -30,7 +30,7 @@ from typing import Iterator, Optional
 from PyQt5.QtCore import QStandardPaths
 from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.utils import log, debug, utils
+from qutebrowser.utils import log, debug, utils, version
 
 # The cached locations
 _locations = {}
@@ -232,7 +232,16 @@ def _init_runtime(args: Optional[argparse.Namespace]) -> None:
         # Unfortunately this path could get too long for sockets (which have a
         # maximum length of 104 chars), so we don't add the username here...
 
-    _create(path)
+    if version.is_flatpak():
+        # We need a path like /run/user/1000/app/org.qutebrowser.qutebrowser rather than
+        # /run/user/1000/qutebrowser on Flatpak, since that's bind-mounted in a way that
+        # it is accessible by any other qutebrowser instances.
+        *parts, app_name = os.path.split(path)
+        assert app_name == APPNAME, app_name
+        path = os.path.join(*parts, 'app', os.environ['FLATPAK_ID'])
+    else:
+        _create(path)
+
     _locations[_Location.runtime] = path
 
 
@@ -314,6 +323,9 @@ def _create(path: str) -> None:
         should not be changed.
     """
     if APPNAME == 'qute_test' and path.startswith('/home'):  # pragma: no cover
+        for k, v in os.environ.items():
+            if k == 'HOME' or k.startswith('XDG_'):
+                log.init.debug(f"{k} = {v}")
         raise Exception("Trying to create directory inside /home during "
                         "tests, this should not happen.")
     os.makedirs(path, 0o700, exist_ok=True)

@@ -163,44 +163,82 @@ Feature: Prompts
 
     # SSL
 
-    Scenario: SSL error with content.ssl_strict = false
+    Scenario: SSL error with content.tls.certificate_errors = load-insecurely
         When I clear SSL errors
-        And I set content.ssl_strict to false
+        And I set content.tls.certificate_errors to load-insecurely
         And I load an SSL page
         And I wait until the SSL page finished loading
         Then the error "Certificate error: *" should be shown
         And the page should contain the plaintext "Hello World via SSL!"
 
-    Scenario: SSL error with content.ssl_strict = true
+    Scenario: SSL error with content.tls.certificate_errors = block
         When I clear SSL errors
-        And I set content.ssl_strict to true
+        And I set content.tls.certificate_errors to block
         And I load an SSL page
         Then a SSL error page should be shown
 
-    Scenario: SSL error with content.ssl_strict = ask -> yes
+    Scenario: SSL error with content.tls.certificate_errors = ask -> yes
         When I clear SSL errors
-        And I set content.ssl_strict to ask
+        And I set content.tls.certificate_errors to ask
         And I load an SSL page
         And I wait for a prompt
         And I run :prompt-accept yes
         And I wait until the SSL page finished loading
         Then the page should contain the plaintext "Hello World via SSL!"
 
-    Scenario: SSL error with content.ssl_strict = ask -> no
+    Scenario: SSL error with content.tls.certificate_errors = ask -> no
         When I clear SSL errors
-        And I set content.ssl_strict to ask
+        And I set content.tls.certificate_errors to ask
         And I load an SSL page
         And I wait for a prompt
         And I run :prompt-accept no
         Then a SSL error page should be shown
 
-    Scenario: SSL error with content.ssl_strict = ask -> abort
+    Scenario: SSL error with content.tls.certificate_errors = ask -> abort
         When I clear SSL errors
-        And I set content.ssl_strict to ask
+        And I set content.tls.certificate_errors to ask
         And I load an SSL page
         And I wait for a prompt
         And I run :mode-leave
         Then a SSL error page should be shown
+
+    Scenario: SSL error with content.tls.certificate_errors = ask-block-thirdparty -> yes
+        When I clear SSL errors
+        And I set content.tls.certificate_errors to ask-block-thirdparty
+        And I load an SSL page
+        And I wait for a prompt
+        And I run :prompt-accept yes
+        And I wait until the SSL page finished loading
+        Then the page should contain the plaintext "Hello World via SSL!"
+
+    Scenario: SSL resource error with content.tls.certificate_errors = ask -> yes
+        When I clear SSL errors
+        And I set content.tls.certificate_errors to ask
+        And I load an SSL resource page
+        And I wait for a prompt
+        And I run :prompt-accept yes
+        And I wait until the SSL resource page finished loading
+        Then the javascript message "Script loaded" should be logged
+        And the page should contain the plaintext "Script loaded"
+
+    Scenario: SSL resource error with content.tls.certificate_errors = ask -> no
+        When I clear SSL errors
+        And I set content.tls.certificate_errors to ask
+        And I load an SSL resource page
+        And I wait for a prompt
+        And I run :prompt-accept no
+        And I wait until the SSL resource page finished loading
+        Then the javascript message "Script loaded" should not be logged
+        And the page should contain the plaintext "Script not loaded"
+
+    Scenario: SSL resource error with content.tls.certificate_errors = ask-block-thirdparty
+        When I clear SSL errors
+        And I set content.tls.certificate_errors to ask-block-thirdparty
+        And I load an SSL resource page
+        And I wait until the SSL resource page finished loading
+        Then "Certificate error in resource load: *" should be logged
+        And the javascript message "Script loaded" should not be logged
+        And the page should contain the plaintext "Script not loaded"
 
     # Geolocation
 
@@ -484,7 +522,7 @@ Feature: Prompts
     Scenario: Interrupting SSL prompt during a notification prompt
         Given I have a fresh instance
         When I set content.notifications to ask
-        And I set content.ssl_strict to ask
+        And I set content.tls.certificate_errors to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt

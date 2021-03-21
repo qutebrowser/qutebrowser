@@ -155,7 +155,7 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
     """Check commonly misspelled words."""
     # Words which I often misspell
     words = {'behaviour', 'quitted', 'likelyhood', 'sucessfully',
-             'occur[^rs .!]', 'seperator', 'explicitely', 'auxillary',
+             'occur[^rs .!,]', 'seperator', 'explicitely', 'auxillary',
              'accidentaly', 'ambigious', 'loosly', 'initialis', 'convienence',
              'similiar', 'uncommited', 'reproducable', 'an user',
              'convienience', 'wether', 'programatically', 'splitted',
@@ -247,7 +247,23 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
         (
             re.compile(fr'qtbot\.(?!{qtbot_excludes})[a-z]+[A-Z].*'),
             "use snake-case instead",
-        )
+        ),
+        (
+            re.compile(r'\.joinpath\((?!\*)'),
+            "use the / operator for joining paths",
+        ),
+        (
+            re.compile(r"""pathlib\.Path\(["']~["']\)\.expanduser\(\)"""),
+            "use pathlib.Path.home() instead",
+        ),
+        (
+            re.compile(r'pathlib\.Path\(tmp_path\)'),
+            "tmp_path already is a pathlib.Path",
+        ),
+        (
+            re.compile(r'pathlib\.Path\(tmpdir\)'),
+            "use tmp_path instead",
+        ),
     ]
 
     # Files which should be ignored, e.g. because they come from another

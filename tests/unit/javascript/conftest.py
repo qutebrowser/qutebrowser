@@ -19,15 +19,16 @@
 
 """pytest conftest file for javascript tests."""
 
-import os
-import os.path
-
+import pathlib
 import pytest
 import jinja2
 
 from PyQt5.QtCore import QUrl
 
 import qutebrowser
+from qutebrowser.utils import usertypes
+
+JS_DIR = pathlib.Path(__file__).parent
 
 
 class JSTester:
@@ -43,7 +44,7 @@ class JSTester:
     def __init__(self, tab, qtbot, config_stub):
         self.tab = tab
         self.qtbot = qtbot
-        loader = jinja2.FileSystemLoader(os.path.dirname(__file__))
+        loader = jinja2.FileSystemLoader(JS_DIR)
         self._jinja_env = jinja2.Environment(loader=loader, autoescape=True)
         # Make sure error logging via JS fails tests
         config_stub.val.content.javascript.log = {
@@ -86,7 +87,7 @@ class JSTester:
             force: Whether to force loading even if the file is invalid.
         """
         self.load_url(QUrl.fromLocalFile(
-            os.path.join(os.path.dirname(__file__), path)), force)
+            str(JS_DIR / path)), force)
 
     def load_url(self, url: QUrl, force: bool = False):
         """Load a given QUrl.
@@ -108,12 +109,11 @@ class JSTester:
             path: The path to the JS file, relative to the qutebrowser package.
             expected: The value expected return from the javascript execution
         """
-        base_path = os.path.dirname(os.path.abspath(qutebrowser.__file__))
-        with open(os.path.join(base_path, path), 'r', encoding='utf-8') as f:
-            source = f.read()
+        base_path = pathlib.Path(qutebrowser.__file__).resolve().parent
+        source = (base_path / path).read_text(encoding='utf-8')
         self.run(source, expected)
 
-    def run(self, source: str, expected, world=None) -> None:
+    def run(self, source: str, expected=usertypes.UNSET, world=None) -> None:
         """Run the given javascript source.
 
         Args:
@@ -123,7 +123,9 @@ class JSTester:
         """
         with self.qtbot.wait_callback() as callback:
             self.tab.run_js_async(source, callback, world=world)
-        callback.assert_called_with(expected)
+
+        if expected is not usertypes.UNSET:
+            callback.assert_called_with(expected)
 
 
 @pytest.fixture

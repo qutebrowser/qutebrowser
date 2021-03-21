@@ -27,7 +27,7 @@ bdd.scenarios('open.feature')
 @pytest.mark.parametrize('scheme', ['http://', ''])
 def test_open_s(request, quteproc, ssl_server, scheme):
     """Test :open with -s."""
-    quteproc.set_setting('content.ssl_strict', 'false')
+    quteproc.set_setting('content.tls.certificate_errors', 'load-insecurely')
     quteproc.send_cmd(':open -s {}localhost:{}/'
                       .format(scheme, ssl_server.port))
     if scheme == 'http://' or not request.config.webengine:

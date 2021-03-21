@@ -38,7 +38,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            webengineinspector)
 
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               message, jinja, debug, version)
+                               resources, message, jinja, debug, version)
 from qutebrowser.qt import sip
 from qutebrowser.misc import objects, miscwidgets
 
@@ -1038,9 +1038,9 @@ class _WebEngineScripts(QObject):
         """Initialize global qutebrowser JavaScript."""
         js_code = javascript.wrap_global(
             'scripts',
-            utils.read_file('javascript/scroll.js'),
-            utils.read_file('javascript/webelem.js'),
-            utils.read_file('javascript/caret.js'),
+            resources.read_file('javascript/scroll.js'),
+            resources.read_file('javascript/webelem.js'),
+            resources.read_file('javascript/caret.js'),
         )
         # FIXME:qtwebengine what about subframes=True?
         self._inject_js('js', js_code, subframes=True)
@@ -1061,7 +1061,7 @@ class _WebEngineScripts(QObject):
         css = shared.get_user_stylesheet()
         js_code = javascript.wrap_global(
             'stylesheet',
-            utils.read_file('javascript/stylesheet.js'),
+            resources.read_file('javascript/stylesheet.js'),
             javascript.assemble('stylesheet', 'set_css', css),
         )
         self._inject_js('stylesheet', js_code, subframes=True)
@@ -1080,18 +1080,11 @@ class _WebEngineScripts(QObject):
                 removed = page_scripts.remove(script)
                 assert removed, script.name()
 
-    def _inject_greasemonkey_scripts(self, scripts=None, injection_point=None,
-                                     remove_first=True):
+    def _inject_greasemonkey_scripts(self, scripts):
         """Register user JavaScript files with the current tab.
 
         Args:
-            scripts: A list of GreasemonkeyScripts, or None to add all
-                     known by the Greasemonkey subsystem.
-            injection_point: The QWebEngineScript::InjectionPoint stage
-                             to inject the script into, None to use
-                             auto-detection.
-            remove_first: Whether to remove all previously injected
-                          scripts before adding these ones.
+            scripts: A list of GreasemonkeyScripts.
         """
         if sip.isdeleted(self._widget):
             return
@@ -1102,49 +1095,49 @@ class _WebEngineScripts(QObject):
         # While, taking care not to remove any other scripts that might
         # have been added elsewhere, like the one for stylesheets.
         page_scripts = self._widget.page().scripts()
-        if remove_first:
-            self._remove_all_greasemonkey_scripts()
-
-        if not scripts:
-            return
+        self._remove_all_greasemonkey_scripts()
 
         for script in scripts:
             new_script = QWebEngineScript()
+
             try:
                 world = int(script.jsworld)
                 if not 0 <= world <= qtutils.MAX_WORLD_ID:
                     log.greasemonkey.error(
-                        "script {} has invalid value for '@qute-js-world'"
-                        ": {}, should be between 0 and {}"
-                        .format(
-                            script.name,
-                            script.jsworld,
-                            qtutils.MAX_WORLD_ID))
+                        f"script {script.name} has invalid value for '@qute-js-world'"
+                        f": {script.jsworld}, should be between 0 and "
+                        f"{qtutils.MAX_WORLD_ID}")
                     continue
             except ValueError:
                 try:
-                    world = _JS_WORLD_MAP[usertypes.JsWorld[
-                        script.jsworld.lower()]]
+                    world = _JS_WORLD_MAP[usertypes.JsWorld[script.jsworld.lower()]]
                 except KeyError:
                     log.greasemonkey.error(
-                        "script {} has invalid value for '@qute-js-world'"
-                        ": {}".format(script.name, script.jsworld))
+                        f"script {script.name} has invalid value for '@qute-js-world'"
+                        f": {script.jsworld}")
                     continue
             new_script.setWorldId(world)
+
+            # Corresponds to "@run-at document-end" which is the default according to
+            # https://wiki.greasespot.net/Metadata_Block#.40run-at - however,
+            # QtWebEngine uses QWebEngineScript.Deferred (@run-at document-idle) as
+            # default.
+            #
+            # NOTE that this needs to be done before setSourceCode, so that
+            # QtWebEngine's parsing of GreaseMonkey tags will override it if there is a
+            # @run-at comment.
+            new_script.setInjectionPoint(QWebEngineScript.DocumentReady)
+
             new_script.setSourceCode(script.code())
-            new_script.setName("GM-{}".format(script.name))
+            new_script.setName(f"GM-{script.name}")
             new_script.setRunsOnSubFrames(script.runs_on_sub_frames)
 
-            # Override the @run-at value parsed by QWebEngineScript if desired.
-            if injection_point:
-                new_script.setInjectionPoint(injection_point)
-            elif script.needs_document_end_workaround():
-                log.greasemonkey.debug("Forcing @run-at document-end for {}"
-                                       .format(script.name))
+            if script.needs_document_end_workaround():
+                log.greasemonkey.debug(
+                    f"Forcing @run-at document-end for {script.name}")
                 new_script.setInjectionPoint(QWebEngineScript.DocumentReady)
 
-            log.greasemonkey.debug('adding script: {}'
-                                   .format(new_script.name()))
+            log.greasemonkey.debug(f'adding script: {new_script.name()}')
             page_scripts.insert(new_script)
 
     def _inject_site_specific_quirks(self):
@@ -1176,7 +1169,7 @@ class _WebEngineScripts(QObject):
         for quirk in quirks:
             if not quirk.predicate:
                 continue
-            src = utils.read_file(f'javascript/quirks/{quirk.filename}.user.js')
+            src = resources.read_file(f'javascript/quirks/{quirk.filename}.user.js')
             self._inject_js(
                 f'quirk_{quirk.filename}',
                 src,
@@ -1523,11 +1516,22 @@ class WebEngineTab(browsertab.AbstractTab):
         url = error.url()
         self._insecure_hosts.add(url.host())
 
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-92009
+        # self.url() is not available yet and the requested URL might not match the URL
+        # we get from the error - so we just apply a heuristic here.
+        assert self.data.last_navigation is not None
+        first_party_url = self.data.last_navigation.url
+
         log.network.debug("Certificate error: {}".format(error))
+        log.network.debug("First party URL: {}".format(first_party_url))
 
         if error.is_overridable():
-            error.ignore = shared.ignore_certificate_errors(
-                url, [error], abort_on=[self.abort_questions])
+            error.ignore = shared.ignore_certificate_error(
+                request_url=url,
+                first_party_url=first_party_url,
+                error=error,
+                abort_on=[self.abort_questions],
+            )
         else:
             log.network.error("Non-overridable certificate error: "
                               "{}".format(error))
@@ -1551,12 +1555,10 @@ class WebEngineTab(browsertab.AbstractTab):
 
         # We can't really know when to show an error page, as the error might
         # have happened when loading some resource.
-        # However, self.url() is not available yet and the requested URL
-        # might not match the URL we get from the error - so we just apply a
-        # heuristic here.
-        assert self.data.last_navigation is not None
-        if (show_non_overr_cert_error and
-                url.matches(self.data.last_navigation.url, QUrl.RemoveScheme)):
+        is_resource = (
+            first_party_url.isValid() and
+            url.matches(first_party_url, QUrl.RemoveScheme))
+        if show_non_overr_cert_error and is_resource:
             self._show_error_page(url, str(error))
 
     @pyqtSlot()

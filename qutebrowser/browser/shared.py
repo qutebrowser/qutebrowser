@@ -25,15 +25,15 @@ import html
 import enum
 import netrc
 import tempfile
-from typing import Callable, Mapping, List, Optional
+from typing import Callable, Mapping, List, Optional, Iterable
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, pyqtBoundSignal
 
 from qutebrowser.config import config
 from qutebrowser.utils import (usertypes, message, log, objreg, jinja, utils,
-                               qtutils)
+                               qtutils, version)
 from qutebrowser.mainwindow import mainwindow
-from qutebrowser.misc import guiprocess
+from qutebrowser.misc import guiprocess, objects
 
 
 class CallSuper(Exception):
@@ -156,54 +156,86 @@ def javascript_log_message(level, source, line, msg):
     logger(logstring)
 
 
-def ignore_certificate_errors(url, errors, abort_on):
+def ignore_certificate_error(
+        *,
+        request_url: QUrl,
+        first_party_url: QUrl,
+        error: usertypes.AbstractCertificateErrorWrapper,
+        abort_on: Iterable[pyqtBoundSignal],
+) -> bool:
     """Display a certificate error question.
 
     Args:
-        url: The URL the errors happened in
-        errors: A list of QSslErrors or QWebEngineCertificateErrors
+        request_url: The URL of the request where the errors happened.
+        first_party_url: The URL of the page we're visiting. Might be an invalid QUrl.
+        error: A single error.
+        abort_on: Signals aborting a question.
 
     Return:
         True if the error should be ignored, False otherwise.
     """
-    ssl_strict = config.instance.get('content.ssl_strict', url=url)
-    log.network.debug("Certificate errors {!r}, strict {}".format(
-        errors, ssl_strict))
+    conf = config.instance.get('content.tls.certificate_errors', url=request_url)
+    log.network.debug(f"Certificate error {error!r}, config {conf}")
 
-    for error in errors:
-        assert error.is_overridable(), repr(error)
+    assert error.is_overridable(), repr(error)
 
-    if ssl_strict == 'ask':
+    # We get the first party URL with a heuristic - with HTTP -> HTTPS redirects, the
+    # scheme might not match.
+    is_resource = (
+        first_party_url.isValid() and
+        not request_url.matches(
+            first_party_url,
+            QUrl.RemoveScheme))  # type: ignore[arg-type]
+
+    if conf == 'ask' or conf == 'ask-block-thirdparty' and not is_resource:
         err_template = jinja.environment.from_string("""
-            Errors while loading <b>{{url.toDisplayString()}}</b>:<br/>
-            <ul>
-            {% for err in errors %}
-                <li>{{err}}</li>
-            {% endfor %}
-            </ul>
-        """.strip())
-        msg = err_template.render(url=url, errors=errors)
+            {% if is_resource %}
+            <p>
+                Error while loading resource <b>{{request_url.toDisplayString()}}</b><br/>
+                on page <b>{{first_party_url.toDisplayString()}}</b>:
+            </p>
+            {% else %}
+            <p>Error while loading page <b>{{request_url.toDisplayString()}}</b>:</p>
+            {% endif %}
 
-        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
-        ignore = message.ask(title="Certificate errors - continue?", text=msg,
+            {{error.html()|safe}}
+
+            {% if is_resource %}
+            <p><i>Consider reporting this to the website operator, or set
+            <tt>content.tls.certificate_errors</tt> to <tt>ask-block-thirdparty</tt> to
+            always block invalid resource loads.</i></p>
+            {% endif %}
+
+            Do you want to ignore these errors and continue loading the page <b>insecurely</b>?
+        """.strip())
+        msg = err_template.render(
+            request_url=request_url,
+            first_party_url=first_party_url,
+            is_resource=is_resource,
+            error=error,
+        )
+
+        urlstr = request_url.toString(
+            QUrl.RemovePassword | QUrl.FullyEncoded)  # type: ignore[arg-type]
+        ignore = message.ask(title="Certificate error", text=msg,
                              mode=usertypes.PromptMode.yesno, default=False,
                              abort_on=abort_on, url=urlstr)
         if ignore is None:
             # prompt aborted
             ignore = False
         return ignore
-    elif ssl_strict is False:
-        log.network.debug("ssl_strict is False, only warning about errors")
-        for err in errors:
-            # FIXME we might want to use warn here (non-fatal error)
-            # https://github.com/qutebrowser/qutebrowser/issues/114
-            message.error('Certificate error: {}'.format(err))
+    elif conf == 'load-insecurely':
+        message.error(f'Certificate error: {error}')
         return True
-    elif ssl_strict is True:
+    elif conf == 'block':
         return False
-    else:
-        raise ValueError("Invalid ssl_strict value {!r}".format(ssl_strict))
-    raise utils.Unreachable
+    elif conf == 'ask-block-thirdparty' and is_resource:
+        log.network.error(
+            f"Certificate error in resource load: {error}\n"
+            f"  request URL:     {request_url.toDisplayString()}\n"
+            f"  first party URL: {first_party_url.toDisplayString()}")
+        return False
+    raise utils.Unreachable(conf, is_resource)
 
 
 def feature_permission(url, option, msg, yes_action, no_action, abort_on,
@@ -298,6 +330,15 @@ def get_user_stylesheet(searching=False):
 
     if setting == 'never' or setting == 'when-searching' and not searching:
         css += '\nhtml > ::-webkit-scrollbar { width: 0px; height: 0px; }'
+
+    if (objects.backend == usertypes.Backend.QtWebEngine and
+            version.qtwebengine_versions().chromium_major in [69, 73, 80, 87] and
+            config.val.colors.webpage.darkmode.enabled and
+            config.val.colors.webpage.darkmode.policy.images == 'smart' and
+            config.val.content.site_specific_quirks):
+        # WORKAROUND for MathML-output on Wikipedia being black on black.
+        # See https://bugs.chromium.org/p/chromium/issues/detail?id=1126606
+        css += '\nimg.mwe-math-fallback-image-inline { filter: invert(100%); }'
 
     return css
 

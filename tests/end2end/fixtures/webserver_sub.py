@@ -261,6 +261,12 @@ def headers_link(port):
     return flask.render_template('headers-link.html', port=port)
 
 
+@app.route('/https-script/<int:port>')
+def https_script(port):
+    """Get a script loaded via HTTPS."""
+    return flask.render_template('https-script.html', port=port)
+
+
 @app.route('/response-headers')
 def response_headers():
     """Return a set of response headers from the query string."""

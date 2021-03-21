@@ -40,6 +40,11 @@ def hello_world():
     return "Hello World via SSL!"
 
 
+@app.route('/data/<path:path>')
+def send_data(path):
+    return webserver_sub.send_data(path)
+
+
 @app.route('/favicon.ico')
 def favicon():
     return webserver_sub.favicon()

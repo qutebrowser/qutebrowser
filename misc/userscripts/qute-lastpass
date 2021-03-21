@@ -60,6 +60,8 @@ argument_parser.add_argument('--io-encoding', '-i', default='UTF-8',
                              help='Encoding used to communicate with subprocesses')
 argument_parser.add_argument('--merge-candidates', '-m', action='store_true',
                              help='Merge pass candidates for fully-qualified and registered domain name')
+argument_parser.add_argument('--no-tld-download', action='store_true',
+                             help="Don't download TLD list")
 group = argument_parser.add_mutually_exclusive_group()
 group.add_argument('--username-only', '-e',
                    action='store_true', help='Only insert username')
@@ -117,7 +119,12 @@ def main(arguments):
         argument_parser.print_help()
         return ExitCodes.FAILURE
 
-    extract_result = tldextract.extract(arguments.url)
+    if arguments.no_tld_download:
+        extract = tldextract.TLDExtract(suffix_list_urls=None)
+    else:
+        extract = tldextract.extract
+
+    extract_result = extract(arguments.url)
 
     # Try to find candidates using targets in the following order: fully-qualified domain name (includes subdomains),
     # the registered domain name and finally: the IPv4 address if that's what
