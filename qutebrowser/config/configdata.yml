@@ -772,6 +772,15 @@ content.javascript.can_access_clipboard:
     With QtWebEngine, writing the clipboard as response to a user interaction
     is always allowed.
 
+content.javascript.can_paste:
+  default: false
+  type: Bool
+  supports_pattern: true
+  desc: >-
+    Allow JavaScript to paste images from the clipboard.
+
+    This also requires enabling javascript can access clipboard.
+
 content.javascript.can_close_tabs:
   default: false
   type: Bool

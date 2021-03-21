@@ -119,6 +119,8 @@ class WebEngineSettings(websettings.AbstractSettings):
             Attr(QWebEngineSettings.JavascriptCanOpenWindows),
         'content.javascript.can_access_clipboard':
             Attr(QWebEngineSettings.JavascriptCanAccessClipboard),
+        'content.javascript.can_paste':
+            Attr(QWebEngineSettings.JavascriptCanPaste),
         'content.plugins':
             Attr(QWebEngineSettings.PluginsEnabled),
         'content.hyperlink_auditing':
