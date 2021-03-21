@@ -41,6 +41,7 @@ from qutebrowser.browser import pdfjs, downloads, history
 from qutebrowser.config import config, configdata, configexc
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                resources, objreg, standarddir)
+from qutebrowser.misc import guiprocess
 from qutebrowser.qt import sip
 
 
@@ -287,6 +288,22 @@ def qute_pyeval(_url: QUrl) -> _HandlerRet:
 def qute_spawn_output(_url: QUrl) -> _HandlerRet:
     """Handler for qute://spawn-output."""
     src = jinja.render('pre.html', title='spawn output', content=spawn_output)
+    return 'text/html', src
+
+
+@add_handler('process')
+def qute_process(url: QUrl) -> _HandlerRet:
+    """Handler for qute://process."""
+    pid = url.path()
+    try:
+        proc = guiprocess.all_processes[int(pid[1:])]
+    except KeyError:
+        # FIXME Not found?
+        raise UrlInvalidError(f"No process {pid}")
+    except ValueError:
+        raise UrlInvalidError(f"Invalid PID {pid}")
+
+    src = jinja.render('process.html', title=f'Process {pid}', proc=proc)
     return 'text/html', src
 
 

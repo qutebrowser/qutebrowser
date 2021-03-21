@@ -20,6 +20,7 @@
 """Functions that return miscellaneous completion models."""
 
 import datetime
+import itertools
 from typing import List, Sequence, Tuple
 
 from qutebrowser.config import config, configdata
@@ -301,4 +302,23 @@ def undo(*, info):
 
     cat = listcategory.ListCategory("Closed tabs", entries, sort=False)
     model.add_category(cat)
+    return model
+
+
+def process(*, info):
+    """A CompletionModel filled with processes."""
+    from qutebrowser.misc import guiprocess
+    model = completionmodel.CompletionModel(column_widths=(10, 10, 80))
+    for what, processes in itertools.groupby(
+            guiprocess.all_processes.values(), lambda proc: proc.what):
+        entries = [
+            (
+                str(proc.pid),
+                'running' if proc.running else 'finished',
+                ' '.join([proc.cmd] + proc.args)
+            )
+            for proc in processes
+        ]
+        cat = listcategory.ListCategory(what.capitalize(), entries)
+        model.add_category(cat)
     return model

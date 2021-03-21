@@ -23,10 +23,39 @@ import locale
 import shlex
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
-                          QProcessEnvironment, QByteArray)
+                          QProcessEnvironment, QByteArray, QUrl)
 
 from qutebrowser.utils import message, log, utils
 from qutebrowser.browser import qutescheme
+from qutebrowser.api import cmdutils, apitypes
+from qutebrowser.completion.models import miscmodels
+
+
+all_processes = {}
+last_pid = None
+
+
+@cmdutils.register()
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
+@cmdutils.argument('pid', completion=miscmodels.process)
+@cmdutils.argument('action', choices=['show', 'terminate', 'kill'])
+def process(tab: apitypes.Tab, pid: int = None, action: str = 'show'):
+    if pid is None:
+        if last_pid is None:
+            raise cmdutils.CommandError("No process executed yet!")
+        pid = last_pid
+
+    try:
+        proc = all_processes[pid]
+    except KeyError:
+        raise cmdutils.CommandError(f"No process found with pid {pid}")
+
+    if action == 'show':
+        tab.load_url(QUrl(f'qute://process/{pid}'))
+    elif action == 'terminate':
+        proc.terminate()
+    elif action == 'kill':
+        proc.terminate(kill=True)
 
 
 class GUIProcess(QObject):
@@ -37,11 +66,11 @@ class GUIProcess(QObject):
         cmd: The command which was started.
         args: A list of arguments which gets passed.
         verbose: Whether to show more messages.
+        running: Whether the underlying process is started.
+        what: What kind of thing is spawned (process/editor/userscript/...).
+              Used in messages.
         _output_messages: Show output as messages.
-        _started: Whether the underlying process is started.
         _proc: The underlying QProcess.
-        _what: What kind of thing is spawned (process/editor/userscript/...).
-               Used in messages.
 
     Signals:
         error/finished/started signals proxied from QProcess.
@@ -54,10 +83,10 @@ class GUIProcess(QObject):
     def __init__(self, what, *, verbose=False, additional_env=None,
                  output_messages=False, parent=None):
         super().__init__(parent)
-        self._what = what
+        self.what = what
         self.verbose = verbose
         self._output_messages = output_messages
-        self._started = False
+        self.running = False
         self.cmd = None
         self.args = None
         self.pid = None
@@ -114,7 +143,7 @@ class GUIProcess(QObject):
             # Already handled via ExitStatus in _on_finished
             return
 
-        what = f"{self._what} {self.cmd!r}"
+        what = f"{self.what} {self.cmd!r}"
         error_descriptions = {
             QProcess.FailedToStart: f"{what.capitalize()} failed to start",
             QProcess.Crashed: f"{what.capitalize()} crashed",
@@ -138,7 +167,7 @@ class GUIProcess(QObject):
     @pyqtSlot(int, QProcess.ExitStatus)
     def _on_finished(self, code, status):
         """Show a message when the process finished."""
-        self._started = False
+        self.running = False
         log.procs.debug("Process finished with code {}, status {}.".format(
             code, status))
 
@@ -152,19 +181,19 @@ class GUIProcess(QObject):
                 message.error(self.stderr.strip())
 
         if status == QProcess.CrashExit:
-            exitinfo = "{} crashed.".format(self._what.capitalize())
+            exitinfo = "{} crashed.".format(self.what.capitalize())
             message.error(exitinfo)
         elif status == QProcess.NormalExit and code == 0:
             exitinfo = "{} exited successfully.".format(
-                self._what.capitalize())
+                self.what.capitalize())
             if self.verbose:
                 message.info(exitinfo)
         else:
             assert status == QProcess.NormalExit
             # We call this 'status' here as it makes more sense to the user -
             # it's actually 'code'.
-            exitinfo = ("{} exited with status {}, see :messages for "
-                        "details.").format(self._what.capitalize(), code)
+            exitinfo = ("{} exited with status {}, see :process for "
+                        "details.").format(self.what.capitalize(), code)
             message.error(exitinfo)
 
             if self.stdout:
@@ -189,12 +218,12 @@ class GUIProcess(QObject):
     def _on_started(self):
         """Called when the process started successfully."""
         log.procs.debug("Process started.")
-        assert not self._started
-        self._started = True
+        assert not self.running
+        self.running = True
 
     def _pre_start(self, cmd, args):
         """Prepare starting of a QProcess."""
-        if self._started:
+        if self.running:
             raise ValueError("Trying to start a running QProcess!")
         self.cmd = cmd
         self.args = args
@@ -208,8 +237,8 @@ class GUIProcess(QObject):
         log.procs.debug("Starting process.")
         self._pre_start(cmd, args)
         self._proc.start(cmd, args)
+        self._post_start()
         self._proc.closeWriteChannel()
-        self.pid = self._proc.processId()
 
     def start_detached(self, cmd, args):
         """Convenience wrapper around QProcess::startDetached."""
@@ -219,12 +248,25 @@ class GUIProcess(QObject):
             cmd, args, None)  # type: ignore[call-arg]
 
         if not ok:
-            message.error("Error while spawning {}".format(self._what))
+            message.error("Error while spawning {}".format(self.what))
             return False
 
         log.procs.debug("Process started.")
-        self._started = True
+        self.running = True
+        self._post_start()
         return True
+
+    def _post_start(self):
+        self.pid = self._proc.processId()
+        all_processes[self.pid] = self  # FIXME cleanup?
+        global last_pid
+        last_pid = self.pid
 
     def exit_status(self):
         return self._proc.exitStatus()
+
+    def terminate(self, kill=False):
+        if kill:
+            self._proc.kill()
+        else:
+            self._proc.terminate()
