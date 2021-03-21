@@ -168,6 +168,7 @@
 |<<content.javascript.can_access_clipboard,content.javascript.can_access_clipboard>>|Allow JavaScript to read from or write to the clipboard.
 |<<content.javascript.can_close_tabs,content.javascript.can_close_tabs>>|Allow JavaScript to close tabs.
 |<<content.javascript.can_open_tabs_automatically,content.javascript.can_open_tabs_automatically>>|Allow JavaScript to open new tabs without user interaction.
+|<<content.javascript.can_paste,content.javascript.can_paste>>|Allow JavaScript to paste images from the clipboard.
 |<<content.javascript.enabled,content.javascript.enabled>>|Enable JavaScript.
 |<<content.javascript.log,content.javascript.log>>|Log levels to use for JavaScript console logging messages.
 |<<content.javascript.modal_dialog,content.javascript.modal_dialog>>|Use the standard JavaScript modal dialog for `alert()` and `confirm()`.
@@ -2327,6 +2328,17 @@ Default: +pass:[false]+
 [[content.javascript.can_open_tabs_automatically]]
 === content.javascript.can_open_tabs_automatically
 Allow JavaScript to open new tabs without user interaction.
+
+This setting supports URL patterns.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
+[[content.javascript.can_paste]]
+=== content.javascript.can_paste
+Allow JavaScript to paste images from the clipboard.
+This also requires enabling javascript can access clipboard.
 
 This setting supports URL patterns.
 
