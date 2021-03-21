@@ -138,8 +138,10 @@ CHANGELOG_URLS = {
     'toml': 'https://github.com/uiri/toml/releases',
     'PyQt5': 'https://www.riverbankcomputing.com/news',
     'PyQt5-Qt': 'https://www.riverbankcomputing.com/news',
+    'PyQt5-Qt5': 'https://www.riverbankcomputing.com/news',
     'PyQtWebEngine': 'https://www.riverbankcomputing.com/news',
     'PyQtWebEngine-Qt': 'https://www.riverbankcomputing.com/news',
+    'PyQtWebEngine-Qt5': 'https://www.riverbankcomputing.com/news',
     'PyQt-builder': 'https://www.riverbankcomputing.com/news',
     'PyQt5-sip': 'https://www.riverbankcomputing.com/news',
     'PyQt5-stubs': 'https://github.com/stlehmann/PyQt5-stubs/blob/master/CHANGELOG.md',
@@ -279,7 +281,7 @@ def run_pip(venv_dir, *args, quiet=False, **kwargs):
     arg_str = ' '.join(str(arg) for arg in args)
     utils.print_col('venv$ pip {}'.format(arg_str), 'blue')
 
-    venv_python = os.path.join(venv_dir, 'bin', 'python')
+    venv_python = get_venv_python(venv_dir)
     return subprocess.run([venv_python, '-m', 'pip'] + args, check=True, **kwargs)
 
 
@@ -399,7 +401,13 @@ def _get_changes(diff):
     for line in diff:
         if not line.startswith('-') and not line.startswith('+'):
             continue
-        if line.startswith('+++ ') or line.startswith('--- '):
+        elif line.startswith('+++ ') or line.startswith('--- '):
+            continue
+        elif not line.strip():
+            # Could be newline changes on Windows
+            continue
+        elif line[1:].startswith('# This file is automatically'):
+            # Could be newline changes on Windows
             continue
 
         name, version = parse_versioned_line(line[1:])
@@ -458,6 +466,12 @@ def get_host_python(name):
         return sys.executable
 
 
+def get_venv_python(venv_dir):
+    """Get the path to Python inside a virtualenv."""
+    subdir = 'Scripts' if os.name == 'nt' else 'bin'
+    return os.path.join(venv_dir, subdir, 'python')
+
+
 def get_outfile(name):
     """Get the path to the output requirements.txt file."""
     if name == 'qutebrowser':
@@ -510,7 +524,7 @@ def test_tox():
     with tempfile.TemporaryDirectory() as tmpdir:
         venv_dir = os.path.join(tmpdir, 'venv')
         tox_workdir = os.path.join(tmpdir, 'tox-workdir')
-        venv_python = os.path.join(venv_dir, 'bin', 'python')
+        venv_python = get_venv_python(venv_dir)
         init_venv(host_python, venv_dir, req_path)
         list_proc = subprocess.run([venv_python, '-m', 'tox', '--listenvs'],
                                    check=True,

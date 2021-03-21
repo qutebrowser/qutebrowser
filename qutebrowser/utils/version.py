@@ -53,16 +53,10 @@ except ImportError:  # pragma: no cover
 
 
 import qutebrowser
-from qutebrowser.utils import log, utils, standarddir, usertypes, message
+from qutebrowser.utils import log, utils, standarddir, usertypes, message, resources
 from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin, elf
 from qutebrowser.browser import pdfjs
 from qutebrowser.config import config, websettings
-
-try:
-    from qutebrowser.browser.webengine import webenginesettings
-except ImportError:  # pragma: no cover
-    webenginesettings = None  # type: ignore[assignment]
-
 
 _LOGO = r'''
          ______     ,,
@@ -160,7 +154,7 @@ def distribution() -> Optional[DistributionInfo]:
     dist_version: Optional[utils.VersionNumber] = None
     for version_key in ['VERSION', 'VERSION_ID']:
         if version_key in info:
-            dist_version = utils.parse_version(info[version_key])
+            dist_version = utils.VersionNumber.parse(info[version_key])
             break
 
     dist_id = info.get('ID', None)
@@ -189,8 +183,12 @@ def distribution() -> Optional[DistributionInfo]:
         parsed=parsed, version=dist_version, pretty=pretty, id=dist_id)
 
 
-def is_sandboxed() -> bool:
-    """Whether the environment has restricted access to the host system."""
+def is_flatpak() -> bool:
+    """Whether qutebrowser is running via Flatpak.
+
+    If packaged via Flatpak, the environment is has restricted access to the host
+    system.
+    """
     current_distro = distribution()
     if current_distro is None:
         return False
@@ -218,7 +216,7 @@ def _git_str() -> Optional[str]:
         return commit
     # If that fails, check the git-commit-id file.
     try:
-        return utils.read_file('git-commit-id')
+        return resources.read_file('git-commit-id')
     except (OSError, ImportError):
         return None
 
@@ -492,6 +490,9 @@ def _get_pyqt_webengine_qt_version() -> Optional[str]:
     https://www.riverbankcomputing.com/pipermail/pyqt/2021-February/043591.html
     https://www.riverbankcomputing.com/pipermail/pyqt/2021-February/043638.html
 
+    PyQtWebEngine 5.15.4 renamed it to PyQtWebEngine-Qt5...:
+    https://www.riverbankcomputing.com/pipermail/pyqt/2021-March/043699.html
+
     Here, we try to use importlib.metadata or its backport (optional dependency) to
     figure out that version number. If PyQtWebEngine is installed via pip, this will
     give us an accurate answer.
@@ -505,11 +506,13 @@ def _get_pyqt_webengine_qt_version() -> Optional[str]:
             log.misc.debug("Neither importlib.metadata nor backport available")
             return None
 
-    try:
-        return importlib_metadata.version('PyQtWebEngine-Qt')
-    except importlib_metadata.PackageNotFoundError:
-        log.misc.debug("PyQtWebEngine-Qt not found")
-        return None
+    for suffix in ['Qt5', 'Qt']:
+        try:
+            return importlib_metadata.version(f'PyQtWebEngine-{suffix}')
+        except importlib_metadata.PackageNotFoundError:
+            log.misc.debug(f"PyQtWebEngine-{suffix} not found")
+
+    return None
 
 
 @dataclasses.dataclass
@@ -520,8 +523,9 @@ class WebEngineVersions:
     webengine: utils.VersionNumber
     chromium: Optional[str]
     source: str
+    chromium_major: Optional[int] = dataclasses.field(init=False)
 
-    _CHROMIUM_VERSIONS: ClassVar[Dict[str, str]] = {
+    _CHROMIUM_VERSIONS: ClassVar[Dict[utils.VersionNumber, str]] = {
         # Qt 5.12: Chromium 69
         # (LTS)    69.0.3497.128 (~2018-09-11)
         #          5.12.0: Security fixes up to 70.0.3538.102 (~2018-10-24)
@@ -535,21 +539,21 @@ class WebEngineVersions:
         #          5.12.8: Security fixes up to 80.0.3987.149 (2020-03-18)
         #          5.12.9: Security fixes up to 83.0.4103.97  (2020-06-03)
         #          5.12.10: Security fixes up to 86.0.4240.75 (2020-10-06)
-        '5.12': '69.0.3497.128',
+        utils.VersionNumber(5, 12): '69.0.3497.128',
 
         # Qt 5.13: Chromium 73
         #          73.0.3683.105 (~2019-02-28)
         #          5.13.0: Security fixes up to 74.0.3729.157 (2019-05-14)
         #          5.13.1: Security fixes up to 76.0.3809.87  (2019-07-30)
         #          5.13.2: Security fixes up to 77.0.3865.120 (2019-10-10)
-        '5.13': '73.0.3683.105',
+        utils.VersionNumber(5, 13): '73.0.3683.105',
 
         # Qt 5.14: Chromium 77
         #          77.0.3865.129 (~2019-10-10)
         #          5.14.0: Security fixes up to 77.0.3865.129 (~2019-09-10)
         #          5.14.1: Security fixes up to 79.0.3945.117 (2020-01-07)
         #          5.14.2: Security fixes up to 80.0.3987.132 (2020-03-03)
-        '5.14': '77.0.3865.129',
+        utils.VersionNumber(5, 14): '77.0.3865.129',
 
         # Qt 5.15: Chromium 80
         #          80.0.3987.163 (2020-04-02)
@@ -557,13 +561,22 @@ class WebEngineVersions:
         #          5.15.1: Security fixes up to 85.0.4183.83  (2020-08-25)
         #          5.15.2: Updated to 83.0.4103.122           (~2020-06-24)
         #                  Security fixes up to 86.0.4240.183 (2020-11-02)
-        '5.15': '80.0.3987.163',
-        '5.15.2': '83.0.4103.122',
-        '5.15.3': '87.0.4280.144',
+        #          5.15.3: Updated to 87.0.4280.144           (~2020-12-02)
+        #                  Security fixes up to 88.0.4324.150 (2021-02-04)
+        utils.VersionNumber(5, 15): '80.0.3987.163',
+        utils.VersionNumber(5, 15, 2): '83.0.4103.122',
+        utils.VersionNumber(5, 15, 3): '87.0.4280.144',
     }
 
+    def __post_init__(self) -> None:
+        """Set the major Chromium version."""
+        if self.chromium is None:
+            self.chromium_major = None
+        else:
+            self.chromium_major = int(self.chromium.split('.')[0])
+
     def __str__(self) -> str:
-        s = f'QtWebEngine {self.webengine.toString()}'
+        s = f'QtWebEngine {self.webengine}'
         if self.chromium is not None:
             s += f', Chromium {self.chromium}'
         if self.source != 'UA':
@@ -580,7 +593,7 @@ class WebEngineVersions:
         """
         assert ua.qt_version is not None, ua
         return cls(
-            webengine=utils.parse_version(ua.qt_version),
+            webengine=utils.VersionNumber.parse(ua.qt_version),
             chromium=ua.upstream_browser_version,
             source='UA',
         )
@@ -597,19 +610,30 @@ class WebEngineVersions:
         (though hackish) way to get a more accurate result.
         """
         return cls(
-            webengine=utils.parse_version(versions.webengine),
+            webengine=utils.VersionNumber.parse(versions.webengine),
             chromium=versions.chromium,
             source='ELF',
         )
 
     @classmethod
-    def _infer_chromium_version(cls, pyqt_webengine_version: str) -> Optional[str]:
+    def _infer_chromium_version(
+            cls,
+            pyqt_webengine_version: utils.VersionNumber,
+    ) -> Optional[str]:
         """Infer the Chromium version based on the PyQtWebEngine version."""
         chromium_version = cls._CHROMIUM_VERSIONS.get(pyqt_webengine_version)
         if chromium_version is not None:
             return chromium_version
-        # 5.14.2 -> 5.14
-        minor_version = pyqt_webengine_version.rsplit('.', maxsplit=1)[0]
+
+        # 5.15 patch versions change their QtWebEngine version, but no changes are
+        # expected after 5.15.3.
+        v5_15_3 = utils.VersionNumber(5, 15, 3)
+        if v5_15_3 <= pyqt_webengine_version < utils.VersionNumber(6):
+            minor_version = v5_15_3
+        else:
+            # e.g. 5.14.2 -> 5.14
+            minor_version = pyqt_webengine_version.strip_patch()
+
         return cls._CHROMIUM_VERSIONS.get(minor_version)
 
     @classmethod
@@ -631,9 +655,10 @@ class WebEngineVersions:
         Note that we only can get the PyQtWebEngine version with PyQt 5.13 or newer.
         With Qt 5.12, we instead rely on qVersion().
         """
+        parsed = utils.VersionNumber.parse(pyqt_webengine_version)
         return cls(
-            webengine=utils.parse_version(pyqt_webengine_version),
-            chromium=cls._infer_chromium_version(pyqt_webengine_version),
+            webengine=parsed,
+            chromium=cls._infer_chromium_version(parsed),
             source=source,
         )
 
@@ -657,7 +682,7 @@ def qtwebengine_versions(avoid_init: bool = False) -> WebEngineVersions:
     - https://www.chromium.org/developers/calendar
     - https://chromereleases.googleblog.com/
     """
-    assert webenginesettings is not None
+    from qutebrowser.browser.webengine import webenginesettings
 
     if webenginesettings.parsed_user_agent is None and not avoid_init:
         webenginesettings.init_user_agent()
@@ -854,9 +879,6 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
     determined.
     """
     assert QApplication.instance()
-
-    # Some setups can segfault in here if we don't do this.
-    utils.libgl_workaround()
 
     override = os.environ.get('QUTE_FAKE_OPENGL')
     if override is not None:

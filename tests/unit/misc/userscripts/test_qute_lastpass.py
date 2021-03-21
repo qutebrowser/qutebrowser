@@ -79,6 +79,7 @@ def arguments_mock():
     arguments.merge_candidates = False
     arguments.password_only = False
     arguments.username_only = False
+    arguments.no_tld_download = True
 
     return arguments
 

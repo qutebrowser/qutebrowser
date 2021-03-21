@@ -25,8 +25,8 @@ from typing import TYPE_CHECKING
 from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
-from qutebrowser.commands import runners
-from qutebrowser.misc import objects
+from qutebrowser.commands import parser, cmdexc
+from qutebrowser.misc import objects, split
 from qutebrowser.utils import log, utils, debug, objreg
 from qutebrowser.completion.models import miscmodels
 if TYPE_CHECKING:
@@ -139,13 +139,18 @@ class Completer(QObject):
         if not text or not text.strip():
             # Only ":", empty part under the cursor with nothing before/after
             return [], '', []
-        parser = runners.CommandParser()
-        result = parser.parse(text, fallback=True, keep=True)
-        parts = [x for x in result.cmdline if x]
+
+        try:
+            parse_result = parser.CommandParser().parse(text, keep=True)
+        except cmdexc.NoSuchCommandError:
+            cmdline = split.split(text, keep=True)
+        else:
+            cmdline = parse_result.cmdline
+
+        parts = [x for x in cmdline if x]
         pos = self._cmd.cursorPosition() - len(self._cmd.prefix())
         pos = min(pos, len(text))  # Qt treats 2-byte UTF-16 chars as 2 chars
-        log.completion.debug('partitioning {} around position {}'.format(parts,
-                                                                         pos))
+        log.completion.debug(f'partitioning {parts} around position {pos}')
         for i, part in enumerate(parts):
             pos -= len(part)
             if pos <= 0:
@@ -156,11 +161,10 @@ class Completer(QObject):
                 center = parts[i].strip()
                 # strip trailing whitespace included as a separate token
                 postfix = [x.strip() for x in parts[i+1:] if not x.isspace()]
-                log.completion.debug(
-                    "partitioned: {} '{}' {}".format(prefix, center, postfix))
+                log.completion.debug(f"partitioned: {prefix} '{center}' {postfix}")
                 return prefix, center, postfix
 
-        raise utils.Unreachable("Not all parts consumed: {}".format(parts))
+        raise utils.Unreachable(f"Not all parts consumed: {parts}")
 
     @pyqtSlot(str)
     def on_selection_changed(self, text):

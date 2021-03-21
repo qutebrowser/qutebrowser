@@ -482,13 +482,18 @@ class TestKeySequence:
                                         Qt.Key_A | Qt.ControlModifier)
         assert seq.strip_modifiers() == expected
 
-    def test_with_mappings(self):
-        seq = keyutils.KeySequence.parse('foobar')
-        mappings = {
-            keyutils.KeySequence.parse('b'): keyutils.KeySequence.parse('t')
-        }
-        seq2 = seq.with_mappings(mappings)
-        assert seq2 == keyutils.KeySequence.parse('footar')
+    @pytest.mark.parametrize('inp, mappings, expected', [
+        ('foobar', {'b': 't'}, 'footar'),
+        ('foo<Ctrl+x>bar', {'<Ctrl+x>': '<Ctrl+y>'}, 'foo<Ctrl+y>bar'),
+        ('foobar', {'b': 'sa'}, 'foosaar'),
+    ])
+    def test_with_mappings(self, inp, mappings, expected):
+        seq = keyutils.KeySequence.parse(inp)
+        seq2 = seq.with_mappings({
+            keyutils.KeySequence.parse(k): keyutils.KeySequence.parse(v)
+            for k, v in mappings.items()
+        })
+        assert seq2 == keyutils.KeySequence.parse(expected)
 
     @pytest.mark.parametrize('keystr, expected', [
         ('<Ctrl-Alt-y>',

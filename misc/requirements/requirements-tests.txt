@@ -15,7 +15,7 @@ filelock==3.0.12
 Flask==1.1.2
 glob2==0.7
 hunter==3.3.1
-hypothesis==6.3.4
+hypothesis==6.8.1
 icdiff==1.9.1
 idna==2.10
 iniconfig==1.1.1
@@ -33,7 +33,7 @@ pluggy==0.13.1
 pprintpp==0.4.0
 py==1.10.0
 py-cpuinfo==7.0.0
-Pygments==2.8.0
+Pygments==2.8.1
 pyparsing==2.4.7
 pytest==6.2.2
 pytest-bdd==4.0.2
@@ -48,7 +48,7 @@ pytest-repeat==0.9.1
 pytest-rerunfailures==9.1.1
 pytest-xdist==2.2.1
 pytest-xvfb==2.0.0
-PyVirtualDisplay==2.0
+PyVirtualDisplay==2.1
 requests==2.25.1
 requests-file==1.5.1
 six==1.15.0

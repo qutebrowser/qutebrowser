@@ -215,7 +215,7 @@ Feature: Special qute:// pages
 
     Scenario: Running :pyeval --file using a non existing file
         When I run :debug-pyeval --file nonexistentfile
-        Then the error "[Errno 2] No such file or directory: 'nonexistentfile'" should be shown
+        Then the error "[Errno 2] *: 'nonexistentfile'" should be shown
 
     Scenario: Running :pyeval with --quiet
         When I run :debug-pyeval --quiet 1+1

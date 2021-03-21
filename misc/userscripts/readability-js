@@ -39,8 +39,8 @@ const HEADER = `
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1, text/html, charset=UTF-8" http-equiv="Content-Type">
-    </meta>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
     <title>%s</title>
     <style type="text/css">
         body {
@@ -106,7 +106,12 @@ const HEADER = `
     SAwLTIgMC44OTUtMiAyczAuODk1IDIgMiAyaDIwYzEuMTEgMCAyLTAuODk1IDItMnMtMC44OTUtMi0yLTJ6bTAgOGgtMjBjLTEuMTEgMC0yIDAuODk1LTIg
     MnMwLjg5NSAyIDIgMmgyMGMxLjExIDAgMi0wLjg5NSAyLTJzLTAuODk1LTItMi0yem0tMTIgOGgtOGMtMS4xMSAwLTIgMC44OTUtMiAyczAuODk1IDIgMiA
     yaDhjMS4xMSAwIDItMC44OTUgMi0ycy0wLjg5NS0yLTItMnoiIGZpbGw9IiNmZmYiLz4KPC9nPgo8L3N2Zz4K"/>
-</head>`;
+</head>
+<body class="qute-readability">
+    %s
+</body>
+</html>
+`;
 const scriptsDir = path.join(process.env.QUTE_DATA_DIR, 'userscripts');
 const tmpFile = path.join(scriptsDir, '/readability.html');
 
@@ -129,7 +134,7 @@ else {
 getDOM(target, domOpts).then(dom => {
     let reader = new Readability(dom.window.document);
     let article = reader.parse();
-    let content = util.format(HEADER, article.title) + article.content;
+    let content = util.format(HEADER, article.title, article.content);
 
     fs.writeFile(tmpFile, content, (err) => {
         if (err) {

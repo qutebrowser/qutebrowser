@@ -22,11 +22,11 @@
 import collections
 import html
 import dataclasses
-from typing import TYPE_CHECKING, Dict, MutableMapping, Optional, Sequence
+from typing import TYPE_CHECKING, Dict, MutableMapping, Optional, Set
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QUrl, QByteArray
 from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslSocket,
-                             QSslError, QNetworkProxy)
+                             QNetworkProxy)
 
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg,
@@ -122,7 +122,10 @@ def init():
         QSslSocket.setDefaultCiphers(good_ciphers)
 
 
-_SavedErrorsType = MutableMapping[urlutils.HostTupleType, Sequence[QSslError]]
+_SavedErrorsType = MutableMapping[
+    urlutils.HostTupleType,
+    Set[certificateerror.CertificateErrorWrapper],
+]
 
 
 class NetworkManager(QNetworkAccessManager):
@@ -141,8 +144,8 @@ class NetworkManager(QNetworkAccessManager):
                  (or None for generic network managers)
         _tab_id: The tab ID this NetworkManager is associated with.
                  (or None for generic network managers)
-        _rejected_ssl_errors: A {QUrl: [SslError]} dict of rejected errors.
-        _accepted_ssl_errors: A {QUrl: [SslError]} dict of accepted errors.
+        _rejected_ssl_errors: A {QUrl: {SslError}} dict of rejected errors.
+        _accepted_ssl_errors: A {QUrl: {SslError}} dict of accepted errors.
         _private: Whether we're in private browsing mode.
         netrc_used: Whether netrc authentication was performed.
 
@@ -172,8 +175,8 @@ class NetworkManager(QNetworkAccessManager):
         self._set_cookiejar()
         self._set_cache()
         self.sslErrors.connect(self.on_ssl_errors)
-        self._rejected_ssl_errors: _SavedErrorsType = collections.defaultdict(list)
-        self._accepted_ssl_errors: _SavedErrorsType = collections.defaultdict(list)
+        self._rejected_ssl_errors: _SavedErrorsType = collections.defaultdict(set)
+        self._accepted_ssl_errors: _SavedErrorsType = collections.defaultdict(set)
         self.authenticationRequired.connect(self.on_authentication_required)
         self.proxyAuthenticationRequired.connect(self.on_proxy_authentication_required)
         self.netrc_used = False
@@ -214,6 +217,25 @@ class NetworkManager(QNetworkAccessManager):
             abort_on.append(tab.load_started)
         return abort_on
 
+    def _get_tab(self):
+        """Get the tab this NAM is associated with.
+
+        Return:
+            The tab if available, None otherwise.
+        """
+        # There are some scenarios where we can't figure out current_url:
+        # - There's a generic NetworkManager, e.g. for downloads
+        # - The download was in a tab which is now closed.
+        if self._tab_id is None:
+            return None
+
+        assert self._win_id is not None
+        try:
+            return objreg.get('tab', scope='tab', window=self._win_id, tab=self._tab_id)
+        except KeyError:
+            # https://github.com/qutebrowser/qutebrowser/issues/889
+            return None
+
     def shutdown(self):
         """Abort all running requests."""
         self.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
@@ -221,18 +243,17 @@ class NetworkManager(QNetworkAccessManager):
 
     # No @pyqtSlot here, see
     # https://github.com/qutebrowser/qutebrowser/issues/2213
-    def on_ssl_errors(self, reply, errors):  # noqa: C901 pragma: no mccabe
+    def on_ssl_errors(self, reply, qt_errors):  # noqa: C901 pragma: no mccabe
         """Decide if SSL errors should be ignored or not.
 
         This slot is called on SSL/TLS errors by the self.sslErrors signal.
 
         Args:
             reply: The QNetworkReply that is encountering the errors.
-            errors: A list of errors.
+            qt_errors: A list of errors.
         """
-        errors = [certificateerror.CertificateErrorWrapper(e) for e in errors]
-        log.network.debug("Certificate errors: {!r}".format(
-            ' / '.join(str(err) for err in errors)))
+        errors = certificateerror.CertificateErrorWrapper(qt_errors)
+        log.network.debug("Certificate errors: {!r}".format(errors))
         try:
             host_tpl: Optional[urlutils.HostTupleType] = urlutils.host_tuple(
                 reply.url())
@@ -242,10 +263,8 @@ class NetworkManager(QNetworkAccessManager):
             is_rejected = False
         else:
             assert host_tpl is not None
-            is_accepted = set(errors).issubset(
-                self._accepted_ssl_errors[host_tpl])
-            is_rejected = set(errors).issubset(
-                self._rejected_ssl_errors[host_tpl])
+            is_accepted = errors in self._accepted_ssl_errors[host_tpl]
+            is_rejected = errors in self._rejected_ssl_errors[host_tpl]
 
         log.network.debug("Already accepted: {} / "
                           "rejected {}".format(is_accepted, is_rejected))
@@ -257,15 +276,22 @@ class NetworkManager(QNetworkAccessManager):
             return
 
         abort_on = self._get_abort_signals(reply)
-        ignore = shared.ignore_certificate_errors(reply.url(), errors,
-                                                  abort_on=abort_on)
+
+        tab = self._get_tab()
+        first_party_url = QUrl() if tab is None else tab.data.last_navigation.url
+
+        ignore = shared.ignore_certificate_error(
+            request_url=reply.url(),
+            first_party_url=first_party_url,
+            error=errors,
+            abort_on=abort_on,
+        )
         if ignore:
             reply.ignoreSslErrors()
-            err_dict = self._accepted_ssl_errors
-        else:
-            err_dict = self._rejected_ssl_errors
-        if host_tpl is not None:
-            err_dict[host_tpl] += errors
+            if host_tpl is not None:
+                self._accepted_ssl_errors[host_tpl].add(errors)
+        elif host_tpl is not None:
+            self._rejected_ssl_errors[host_tpl].add(errors)
 
     def clear_all_ssl_errors(self):
         """Clear all remembered SSL errors."""
@@ -392,22 +418,14 @@ class NetworkManager(QNetworkAccessManager):
         for header, value in shared.custom_headers(url=req.url()):
             req.setRawHeader(header, value)
 
-        # There are some scenarios where we can't figure out current_url:
-        # - There's a generic NetworkManager, e.g. for downloads
-        # - The download was in a tab which is now closed.
+        tab = self._get_tab()
         current_url = QUrl()
-
-        if self._tab_id is not None:
-            assert self._win_id is not None
+        if tab is not None:
             try:
-                tab = objreg.get('tab', scope='tab', window=self._win_id,
-                                 tab=self._tab_id)
                 current_url = tab.url()
-            except (KeyError, RuntimeError):
-                # https://github.com/qutebrowser/qutebrowser/issues/889
-                # Catching RuntimeError because we could be in the middle of
-                # the webpage shutdown here.
-                current_url = QUrl()
+            except RuntimeError:
+                # We could be in the middle of the webpage shutdown here.
+                pass
 
         request = interceptors.Request(first_party_url=current_url,
                                        request_url=req.url())
