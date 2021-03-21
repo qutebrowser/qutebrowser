@@ -80,7 +80,6 @@ def whitelist_generator():  # noqa: C901
     yield 'qutebrowser.utils.jinja.Loader.get_source'
     yield 'qutebrowser.utils.log.QtWarningFilter.filter'
     yield 'qutebrowser.browser.pdfjs.is_available'
-    yield 'qutebrowser.misc.guiprocess.spawn_output'
     yield 'qutebrowser.utils.usertypes.ExitStatus.reserved'
     yield 'QEvent.posted'
     yield 'log_stack'  # from message.py

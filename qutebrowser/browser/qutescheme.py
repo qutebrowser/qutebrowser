@@ -46,7 +46,6 @@ from qutebrowser.qt import sip
 
 
 pyeval_output = ":pyeval was never called"
-spawn_output = ":spawn was never called"
 csrf_token = None
 
 
@@ -281,13 +280,6 @@ def qute_javascript(url: QUrl) -> _HandlerRet:
 def qute_pyeval(_url: QUrl) -> _HandlerRet:
     """Handler for qute://pyeval."""
     src = jinja.render('pre.html', title='pyeval', content=pyeval_output)
-    return 'text/html', src
-
-
-@add_handler('spawn-output')
-def qute_spawn_output(_url: QUrl) -> _HandlerRet:
-    """Handler for qute://spawn-output."""
-    src = jinja.render('pre.html', title='spawn output', content=spawn_output)
     return 'text/html', src
 
 

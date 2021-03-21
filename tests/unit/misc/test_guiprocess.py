@@ -59,10 +59,7 @@ def test_start(proc, qtbot, message_mock, py_proc):
         argv = py_proc("import sys; print('test'); sys.exit(0)")
         proc.start(*argv)
 
-    expected = proc._spawn_format(exitinfo="Testprocess exited successfully.",
-                                  stdout="test", stderr="")
     assert not message_mock.messages
-    assert qutescheme.spawn_output == expected
     assert proc.exit_status() == QProcess.NormalExit
 
 
@@ -75,14 +72,11 @@ def test_start_verbose(proc, qtbot, message_mock, py_proc):
         argv = py_proc("import sys; print('test'); sys.exit(0)")
         proc.start(*argv)
 
-    expected = proc._spawn_format(exitinfo="Testprocess exited successfully.",
-                                  stdout="test", stderr="")
     msgs = message_mock.messages
     assert msgs[0].level == usertypes.MessageLevel.info
     assert msgs[1].level == usertypes.MessageLevel.info
     assert msgs[0].text.startswith("Executing:")
     assert msgs[1].text == "Testprocess exited successfully."
-    assert qutescheme.spawn_output == expected
 
 
 @pytest.mark.parametrize('stdout', [True, False])
@@ -153,9 +147,8 @@ def test_start_env(monkeypatch, qtbot, py_proc):
                            order='strict'):
         proc.start(*argv)
 
-    data = qutescheme.spawn_output
-    assert 'QUTEBROWSER_TEST_1' in data
-    assert 'QUTEBROWSER_TEST_2' in data
+    assert 'QUTEBROWSER_TEST_1' in proc.stdout
+    assert 'QUTEBROWSER_TEST_2' in proc.stdout
 
 
 def test_start_detached(fake_proc):
@@ -299,7 +292,6 @@ def test_stdout_not_decodable(proc, qtbot, message_mock, py_proc):
             sys.exit(0)
             """)
         proc.start(*argv)
-    expected = proc._spawn_format(exitinfo="Testprocess exited successfully.",
-                                  stdout="A\ufffdB", stderr="")
+
     assert not message_mock.messages
-    assert qutescheme.spawn_output == expected
+    assert proc.stdout == "A\ufffdB"

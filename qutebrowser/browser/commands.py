@@ -1077,19 +1077,19 @@ class CommandDispatcher:
         log.procs.debug("Executing {} with args {}, userscript={}".format(
             cmd, args, userscript))
 
-        @pyqtSlot()
-        def _on_proc_finished():
+        def _on_proc_finished(proc):
             if output:
                 tb = objreg.get('tabbed-browser', scope='window',
                                 window='last-focused')
-                tb.load_url(QUrl('qute://spawn-output'), newtab=True)
+                tb.load_url(QUrl(f'qute://process/{proc.pid}'), newtab=True)
 
         if userscript:
             def _selection_callback(s):
                 try:
                     runner = self._run_userscript(
                         s, cmd, args, verbose, output_messages, count)
-                    runner.finished.connect(_on_proc_finished)
+                    runner.finished.connect(functools.partial(
+                        _on_proc_finished, runner.proc))
                 except cmdutils.CommandError as e:
                     message.error(str(e))
 
@@ -1112,7 +1112,7 @@ class CommandDispatcher:
                                  "detailed error")
             else:
                 proc.start(cmd, args)
-            proc.finished.connect(_on_proc_finished)
+            proc.finished.connect(functools.partial(_on_proc_finished, proc))
 
     def _run_userscript(self, selection, cmd, args, verbose, output_messages,
                         count):

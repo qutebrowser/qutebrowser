@@ -201,8 +201,6 @@ class GUIProcess(QObject):
             if self.stderr:
                 log.procs.error("Process stderr:\n" + self.stderr.strip())
 
-        qutescheme.spawn_output = self._spawn_format(exitinfo, self.stdout, self.stderr)
-
     def _spawn_format(self, exitinfo, stdout, stderr):
         """Produce a formatted string for spawn output."""
         stdout = (stdout or "(No output)").strip()
