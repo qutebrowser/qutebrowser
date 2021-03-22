@@ -86,7 +86,7 @@ class ProcessOutcome:
 
         This must not be called if the process didn't exit yet.
         """
-        assert self.status is not None
+        assert self.status is not None, "Process didn't finish yet"
         assert self.code is not None
         return self.status == QProcess.NormalExit and self.code == 0
 

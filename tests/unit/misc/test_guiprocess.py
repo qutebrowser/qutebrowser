@@ -101,10 +101,12 @@ class TestProcessCommand:
 def test_not_started(proc):
     assert str(proc.outcome) == 'Testprocess did not start.'
     assert proc.outcome.state_str() == 'not started'
-    assert not proc.outcome.was_successful()
     assert not proc.outcome.running
     assert proc.outcome.status is None
     assert proc.outcome.code is None
+
+    with pytest.raises(AssertionError):
+        proc.outcome.was_successful()
 
 
 def test_start(proc, qtbot, message_mock, py_proc):
@@ -320,11 +322,13 @@ def test_running(qtbot, proc, py_proc):
     assert proc.outcome.code is None
     assert str(proc.outcome) == 'Testprocess is running.'
     assert proc.outcome.state_str() == 'running'
-    assert not proc.outcome.was_successful()
+
+    with pytest.raises(AssertionError):
+        proc.outcome.was_successful()
 
 
-def test_error(qtbot, proc, caplog, message_mock):
-    """Test the process emitting an error."""
+def test_failing_to_start(qtbot, proc, caplog, message_mock):
+    """Test the process failing to start."""
     with caplog.at_level(logging.ERROR, 'message'):
         with qtbot.wait_signal(proc.error, timeout=5000):
             proc.start('this_does_not_exist_either', [])
@@ -342,7 +346,9 @@ def test_error(qtbot, proc, caplog, message_mock):
     assert proc.outcome.code is None
     assert str(proc.outcome) == 'Testprocess did not start.'
     assert proc.outcome.state_str() == 'not started'
-    assert not proc.outcome.was_successful()
+
+    with pytest.raises(AssertionError):
+        proc.outcome.was_successful()
 
 
 def test_exit_unsuccessful(qtbot, proc, message_mock, py_proc, caplog):
