@@ -286,14 +286,16 @@ def qute_pyeval(_url: QUrl) -> _HandlerRet:
 @add_handler('process')
 def qute_process(url: QUrl) -> _HandlerRet:
     """Handler for qute://process."""
-    pid = url.path()
     try:
-        proc = guiprocess.all_processes[int(pid[1:])]
+        pid = int(url.path()[1:])
+    except ValueError:
+        raise UrlInvalidError(f"Invalid PID {pid}")
+
+    try:
+        proc = guiprocess.all_processes[pid]
     except KeyError:
         # FIXME Not found?
         raise UrlInvalidError(f"No process {pid}")
-    except ValueError:
-        raise UrlInvalidError(f"Invalid PID {pid}")
 
     src = jinja.render('process.html', title=f'Process {pid}', proc=proc)
     return 'text/html', src
