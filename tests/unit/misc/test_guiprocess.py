@@ -56,8 +56,8 @@ def test_start(proc, qtbot, message_mock, py_proc):
     """Test simply starting a process."""
     with qtbot.wait_signals([proc.started, proc.finished], timeout=10000,
                            order='strict'):
-        argv = py_proc("import sys; print('test'); sys.exit(0)")
-        proc.start(*argv)
+        cmd, args = py_proc("import sys; print('test'); sys.exit(0)")
+        proc.start(cmd, args)
 
     assert not message_mock.messages
     assert proc.exit_status() == QProcess.NormalExit
@@ -69,8 +69,8 @@ def test_start_verbose(proc, qtbot, message_mock, py_proc):
 
     with qtbot.wait_signals([proc.started, proc.finished], timeout=10000,
                            order='strict'):
-        argv = py_proc("import sys; print('test'); sys.exit(0)")
-        proc.start(*argv)
+        cmd, args = py_proc("import sys; print('test'); sys.exit(0)")
+        proc.start(cmd, args)
 
     msgs = message_mock.messages
     assert msgs[0].level == usertypes.MessageLevel.info
@@ -96,8 +96,8 @@ def test_start_output_message(proc, qtbot, caplog, message_mock, py_proc,
         with qtbot.wait_signals([proc.started, proc.finished],
                                timeout=10000,
                                order='strict'):
-            argv = py_proc(';'.join(code))
-            proc.start(*argv)
+            cmd, args = py_proc(';'.join(code))
+            proc.start(cmd, args)
 
     if stdout and stderr:
         stdout_msg = message_mock.messages[0]
@@ -133,7 +133,7 @@ def test_start_env(monkeypatch, qtbot, py_proc):
     env = {'QUTEBROWSER_TEST_2': '2'}
     proc = guiprocess.GUIProcess('testprocess', additional_env=env)
 
-    argv = py_proc("""
+    cmd, args = py_proc("""
         import os
         import json
         import sys
@@ -145,7 +145,7 @@ def test_start_env(monkeypatch, qtbot, py_proc):
 
     with qtbot.wait_signals([proc.started, proc.finished], timeout=10000,
                            order='strict'):
-        proc.start(*argv)
+        proc.start(cmd, args)
 
     assert 'QUTEBROWSER_TEST_1' in proc.stdout
     assert 'QUTEBROWSER_TEST_2' in proc.stdout
@@ -153,19 +153,21 @@ def test_start_env(monkeypatch, qtbot, py_proc):
 
 def test_start_detached(fake_proc):
     """Test starting a detached process."""
-    argv = ['foo', 'bar']
+    cmd = 'foo'
+    args = ['bar']
     fake_proc._proc.startDetached.return_value = (True, 0)
-    fake_proc.start_detached(*argv)
-    fake_proc._proc.startDetached.assert_called_with(*list(argv) + [None])
+    fake_proc.start_detached(cmd, args)
+    fake_proc._proc.startDetached.assert_called_with(cmd, args, None)
 
 
 def test_start_detached_error(fake_proc, message_mock, caplog):
     """Test starting a detached process with ok=False."""
-    argv = ['foo', 'bar']
+    cmd = 'foo'
+    args = ['bar']
     fake_proc._proc.startDetached.return_value = (False, 0)
 
     with caplog.at_level(logging.ERROR):
-        fake_proc.start_detached(*argv)
+        fake_proc.start_detached(cmd, args)
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
     expected = "Error while spawning testprocess"
     assert msg.text == expected
@@ -174,8 +176,8 @@ def test_start_detached_error(fake_proc, message_mock, caplog):
 def test_double_start(qtbot, proc, py_proc):
     """Test starting a GUIProcess twice."""
     with qtbot.wait_signal(proc.started, timeout=10000):
-        argv = py_proc("import time; time.sleep(10)")
-        proc.start(*argv)
+        cmd, args = py_proc("import time; time.sleep(10)")
+        proc.start(cmd, args)
     with pytest.raises(ValueError):
         proc.start('', [])
 
@@ -184,12 +186,12 @@ def test_double_start_finished(qtbot, proc, py_proc):
     """Test starting a GUIProcess twice (with the first call finished)."""
     with qtbot.wait_signals([proc.started, proc.finished], timeout=10000,
                            order='strict'):
-        argv = py_proc("import sys; sys.exit(0)")
-        proc.start(*argv)
+        cmd, args = py_proc("import sys; sys.exit(0)")
+        proc.start(cmd, args)
     with qtbot.wait_signals([proc.started, proc.finished], timeout=10000,
                            order='strict'):
-        argv = py_proc("import sys; sys.exit(0)")
-        proc.start(*argv)
+        cmd, args = py_proc("import sys; sys.exit(0)")
+        proc.start(cmd, args)
 
 
 def test_cmd_args(fake_proc):
@@ -287,13 +289,13 @@ def test_stdout_not_decodable(proc, qtbot, message_mock, py_proc):
     """Test handling malformed utf-8 in stdout."""
     with qtbot.wait_signals([proc.started, proc.finished], timeout=10000,
                            order='strict'):
-        argv = py_proc(r"""
+        cmd, args = py_proc(r"""
             import sys
             # Using \x81 because it's invalid in UTF-8 and CP1252
             sys.stdout.buffer.write(b"A\x81B")
             sys.exit(0)
             """)
-        proc.start(*argv)
+        proc.start(cmd, args)
 
     assert not message_mock.messages
     assert proc.stdout == "A\ufffdB"
