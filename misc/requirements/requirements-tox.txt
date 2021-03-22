@@ -12,5 +12,5 @@ setuptools==54.1.2
 six==1.15.0
 toml==0.10.2
 tox==3.23.0
-virtualenv==20.4.2
+virtualenv==20.4.3
 wheel==0.36.2
