@@ -19,13 +19,15 @@
 
 """Tests for qutebrowser.misc.guiprocess."""
 
+import sys
 import logging
 
 import pytest
-from PyQt5.QtCore import QProcess
+from PyQt5.QtCore import QProcess, QUrl
 
 from qutebrowser.misc import guiprocess
 from qutebrowser.utils import usertypes, utils
+from qutebrowser.api import cmdutils
 
 
 @pytest.fixture()
@@ -51,6 +53,59 @@ def fake_proc(monkeypatch, stubs):
     return p
 
 
+class TestProcessCommand:
+
+    @pytest.fixture
+    def tab(self, fake_web_tab):
+        return fake_web_tab()
+
+    def test_no_process(self, tab, monkeypatch):
+        monkeypatch.setattr(guiprocess, 'last_pid', None)
+        with pytest.raises(cmdutils.CommandError, match='No process executed yet!'):
+            guiprocess.process(tab)
+
+    def test_last_pid(self, tab, monkeypatch, fake_proc):
+        monkeypatch.setattr(guiprocess, 'last_pid', 1234)
+        monkeypatch.setitem(guiprocess.all_processes, 1234, fake_proc)
+
+        guiprocess.process(tab)
+        assert tab.url() == QUrl('qute://process/1234')
+
+    def test_explicit_pid(self, tab, monkeypatch, fake_proc):
+        monkeypatch.setattr(guiprocess, 'last_pid', 1234)
+        monkeypatch.setitem(guiprocess.all_processes, 5678, fake_proc)
+
+        guiprocess.process(tab, 5678)
+        assert tab.url() == QUrl('qute://process/5678')
+
+    def test_inexistent_pid(self, tab):
+        with pytest.raises(cmdutils.CommandError, match='No process found with pid 1337'):
+            guiprocess.process(tab, 1337)
+
+    def test_terminate(self, tab, monkeypatch, fake_proc):
+        monkeypatch.setitem(guiprocess.all_processes, 1234, fake_proc)
+
+        guiprocess.process(tab, 1234, 'terminate')
+        fake_proc._proc.terminate.assert_called_with()
+        fake_proc._proc.kill.assert_not_called()
+
+    def test_kill(self, tab, monkeypatch, fake_proc):
+        monkeypatch.setitem(guiprocess.all_processes, 1234, fake_proc)
+
+        guiprocess.process(tab, 1234, 'kill')
+        fake_proc._proc.kill.assert_called_with()
+        fake_proc._proc.terminate.assert_not_called()
+
+
+def test_not_started(proc):
+    assert str(proc.outcome) == 'Testprocess did not start.'
+    assert proc.outcome.state_str() == 'not started'
+    assert not proc.outcome.was_successful()
+    assert not proc.outcome.running
+    assert proc.outcome.status is None
+    assert proc.outcome.code is None
+
+
 def test_start(proc, qtbot, message_mock, py_proc):
     """Test simply starting a process."""
     with qtbot.wait_signals([proc.started, proc.finished], timeout=10000,
@@ -59,7 +114,13 @@ def test_start(proc, qtbot, message_mock, py_proc):
         proc.start(cmd, args)
 
     assert not message_mock.messages
+
+    assert not proc.outcome.running
     assert proc.outcome.status == QProcess.NormalExit
+    assert proc.outcome.code == 0
+    assert str(proc.outcome) == 'Testprocess exited successfully.'
+    assert proc.outcome.state_str() == 'successful'
+    assert proc.outcome.was_successful()
 
 
 def test_start_verbose(proc, qtbot, message_mock, py_proc):
@@ -125,6 +186,37 @@ def test_start_output_message(proc, qtbot, caplog, message_mock, py_proc,
         assert stderr_msg.level == usertypes.MessageLevel.error
         assert stderr_msg.text == 'stderr text'
         assert proc.stderr.strip() == "stderr text", proc.stderr
+
+
+@pytest.mark.parametrize('line1, line2, expected1, expected2', [
+    ('First line\n', 'Second line\n', 'First line', 'First line\nSecond line'),
+    ('First line', '\rSecond line', 'First line', 'Second line'),
+    ('First line\n', '\rSecond line', 'First line', 'First line\nSecond line'),
+    ('First line\nSecond line\nThird line', '\rNew line', 'First line\nSecond line\nThird line', 'First line\nSecond line\nNew line'),
+    ('First line', 'Second line\rThird line', 'First line', 'Third line'),
+])
+def test_live_messages_output(qtbot, proc, py_proc, message_mock,
+                              line1, line2, expected1, expected2):
+    proc._output_messages = True
+
+    cmd, args = py_proc(r"""
+        import time, sys
+        print(sys.argv[1], flush=True, end='')
+        time.sleep(0.5)
+        print(sys.argv[2], flush=True, end='')
+    """)
+    args += [line1, line2]
+
+    with qtbot.wait_signal(proc.finished, timeout=5000):
+        proc.start(cmd, args)
+
+    assert len(message_mock.messages) == 3
+    assert all(msg.level == usertypes.MessageLevel.info
+               for msg in message_mock.messages)
+
+    assert message_mock.messages[0].text == expected1
+    assert message_mock.messages[1].text == expected2
+    assert message_mock.messages[2].text == expected2
 
 
 def test_start_env(monkeypatch, qtbot, py_proc):
@@ -213,6 +305,18 @@ def test_start_logging(fake_proc, caplog):
     ]
 
 
+def test_running(qtbot, proc, py_proc):
+    """Test proc.outcome while the process is still running."""
+    with qtbot.wait_signal(proc.started, timeout=5000):
+        proc.start(*py_proc("import time; time.sleep(10)"))
+    assert proc.outcome.running
+    assert proc.outcome.status is None
+    assert proc.outcome.code is None
+    assert str(proc.outcome) == 'Testprocess is running.'
+    assert proc.outcome.state_str() == 'running'
+    assert not proc.outcome.was_successful()
+
+
 def test_error(qtbot, proc, caplog, message_mock):
     """Test the process emitting an error."""
     with caplog.at_level(logging.ERROR, 'message'):
@@ -227,6 +331,13 @@ def test_error(qtbot, proc, caplog, message_mock):
         assert msg.text.endswith(
             "(Hint: Make sure 'this_does_not_exist_either' exists and is executable)")
 
+    assert not proc.outcome.running
+    assert proc.outcome.status is None
+    assert proc.outcome.code is None
+    assert str(proc.outcome) == 'Testprocess did not start.'
+    assert proc.outcome.state_str() == 'not started'
+    assert not proc.outcome.was_successful()
+
 
 def test_exit_unsuccessful(qtbot, proc, message_mock, py_proc, caplog):
     with caplog.at_level(logging.ERROR):
@@ -236,6 +347,13 @@ def test_exit_unsuccessful(qtbot, proc, message_mock, py_proc, caplog):
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
     expected = "Testprocess exited with status 1. See :process for details."
     assert msg.text == expected
+
+    assert not proc.outcome.running
+    assert proc.outcome.status == QProcess.NormalExit
+    assert proc.outcome.code == 1
+    assert str(proc.outcome) == 'Testprocess exited with status 1.'
+    assert proc.outcome.state_str() == 'unsuccessful'
+    assert not proc.outcome.was_successful()
 
 
 def test_exit_crash(qtbot, proc, message_mock, py_proc, caplog):
@@ -252,6 +370,12 @@ def test_exit_crash(qtbot, proc, message_mock, py_proc, caplog):
     )
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
     assert msg.text == expected
+
+    assert not proc.outcome.running
+    assert proc.outcome.status == QProcess.CrashExit
+    assert str(proc.outcome) == 'Testprocess crashed.'
+    assert proc.outcome.state_str() == 'crashed'
+    assert not proc.outcome.was_successful()
 
 
 @pytest.mark.parametrize('stream', ['stdout', 'stderr'])
@@ -298,3 +422,12 @@ def test_stdout_not_decodable(proc, qtbot, message_mock, py_proc):
 
     assert not message_mock.messages
     assert proc.stdout == "A\ufffdB"
+
+
+def test_str_unknown(proc):
+    assert str(proc) == '<unknown testprocess command>'
+
+
+def test_str(proc, py_proc):
+    proc.start(*py_proc("import sys"))
+    assert str(proc) == f"{sys.executable} -c 'import sys'"

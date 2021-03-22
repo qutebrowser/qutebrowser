@@ -287,6 +287,9 @@ class FakeWebTab(browsertab.AbstractTab):
     def renderer_process_pid(self):
         return None
 
+    def load_url(self, url):
+        self._url = url
+
 
 class FakeSignal:
 
