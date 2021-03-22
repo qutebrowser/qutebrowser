@@ -22,6 +22,7 @@ import json
 import os
 import time
 import logging
+import sys
 
 import py.path  # pylint: disable=no-name-in-module
 from PyQt5.QtCore import QUrl, QUrlQuery
@@ -29,6 +30,7 @@ import pytest
 
 from qutebrowser.browser import qutescheme, pdfjs, downloads
 from qutebrowser.utils import resources
+from qutebrowser.misc import guiprocess
 
 
 class TestJavascriptHandler:
@@ -71,6 +73,35 @@ class TestJavascriptHandler:
 
         with pytest.raises(qutescheme.UrlInvalidError):
             qutescheme.qute_javascript(url)
+
+
+class TestProcessHandler:
+
+    """Test the qute://process endpoint."""
+
+    def test_invalid_pid(self):
+        with pytest.raises(qutescheme.UrlInvalidError, match='Invalid PID blah'):
+            qutescheme.qute_process(QUrl('qute://process/blah'))
+
+    def test_missing_process(self, monkeypatch):
+        monkeypatch.setattr(guiprocess, 'all_processes', {})
+        with pytest.raises(qutescheme.NotFoundError, match='No process 1234'):
+            qutescheme.qute_process(QUrl('qute://process/1234'))
+
+    def test_existing_process(self, qtbot, py_proc):
+        proc = guiprocess.GUIProcess('testprocess')
+
+        with qtbot.wait_signal(proc.finished, timeout=5000):
+            proc.start(*py_proc("print('AT&T')"))
+
+        _mimetype, data = qutescheme.qute_process(QUrl(f'qute://process/{proc.pid}'))
+        print(data)
+
+        assert f'<title>Process {proc.pid}</title>' in data
+        assert '-c &#39;print(' in data
+        assert 'Testprocess exited successfully.' in data
+        assert '<pre>AT&amp;T\n</pre>' in data
+        assert 'No output.' in data  # stderr
 
 
 class TestHistoryHandler:
