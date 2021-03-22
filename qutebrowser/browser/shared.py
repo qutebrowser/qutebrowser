@@ -472,11 +472,49 @@ def _execute_fileselect_command(
             message.error(f"Failed to open tempfile {tmpfilename} ({e})!")
             selected_files = []
 
+    return _validated_selected_files(qb_mode=qb_mode, selected_files=selected_files)
+
+
+def _validated_selected_files(
+    qb_mode: FileSelectionMode,
+    selected_files: List[str],
+) -> List[str]:
+    """Validates selected files if they are.
+
+        * Of correct type
+        * Of correct number
+        * Existent
+
+    Args:
+        qb_mode: File selection mode used
+        selected_files: files selected
+
+    Return:
+        List of selected files that pass the checks.
+    """
     if not qb_mode == FileSelectionMode.multiple_files:
         if len(selected_files) > 1:
             message.warning("More than one file/folder chosen, using only the first")
             selected_files = selected_files[:1]
-    for selected_file in selected_files:
+    ignore_indices = set()
+    for i, selected_file in enumerate(selected_files):
         if not os.path.exists(selected_file):
-            message.warning(f"Selected non-existent file '{selected_file}'")
-    return selected_files
+            message.warning(f"Ignoring non-existent file '{selected_file}'")
+            ignore_indices.add(i)
+            break
+        if qb_mode == FileSelectionMode.folder:
+            if not os.path.isdir(selected_file):
+                message.warning(
+                    f"Expected folder but got file, ignoring '{selected_file}'"
+                )
+                ignore_indices.add(i)
+        else:
+            if not os.path.isfile(selected_file):
+                message.warning(
+                    f"Expected file but got folder, ignoring '{selected_file}'"
+                )
+                ignore_indices.add(i)
+    return [
+        selected_file for i, selected_file in enumerate(selected_files)
+        if i not in ignore_indices
+    ]

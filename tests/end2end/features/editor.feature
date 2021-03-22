@@ -248,13 +248,35 @@ Feature: Opening external editors
         And I open data/fileselect.html
         And I run :click-element id single_file
         Then the javascript message "Files: non-existent.txt" should not be logged
-        And the warning "Selected non-existent file *tests/end2end/data/numbers/non-existent.txt'" should be shown
+        And the warning "Ignoring non-existent file *tests/end2end/data/numbers/non-existent.txt'" should be shown
+
+    ## Select folder when expecting file
+
+    Scenario: Select folder for file
+        When I set fileselect.handler to external
+        When I setup a fake single_file fileselector selecting "tests/end2end/data/numbers" and writes to a temporary file
+        And I open data/fileselect.html
+        And I run :click-element id single_file
+        Then the javascript message "Files: *" should not be logged
+        And the warning "Expected file but got folder, ignoring *tests/end2end/data/numbers'" should be shown
+
+    ## Select file when expecting folder
+
+    @qtwebkit_skip
+    Scenario: Select file for folder
+        When I set fileselect.handler to external
+        When I setup a fake folder fileselector selecting "tests/end2end/data/numbers/1.txt" and writes to a temporary file
+        And I open data/fileselect.html
+        And I run :click-element id folder
+        Then the javascript message "Files: 1.txt" should not be logged
+        And the warning "Expected folder but got file, ignoring *tests/end2end/data/numbers/1.txt'" should be shown
 
     ## Select folder
 
     @qtwebkit_skip
     Scenario: Select one folder with folder command
-        When I setup a fake folder fileselector selecting "tests/end2end/data/backforward/" and writes to a temporary file
+        When I set fileselect.handler to external
+        And I setup a fake folder fileselector selecting "tests/end2end/data/backforward/" and writes to a temporary file
         And I open data/fileselect.html
         And I run :click-element id folder
         Then the javascript message "Files: 1.txt, 2.txt, 3.txt" should be logged
