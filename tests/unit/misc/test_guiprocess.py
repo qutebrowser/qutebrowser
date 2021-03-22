@@ -227,6 +227,28 @@ def test_live_messages_output(qtbot, proc, py_proc, message_mock,
     assert message_mock.messages[2].text == expected2
 
 
+@pytest.mark.parametrize('i, expected_lines', [
+    (20, [str(i) for i in range(1, 21)]),
+    (25, (['[5 lines hidden, see :process for the full output]'] +
+          [str(i) for i in range(6, 26)])),
+])
+def test_elided_output(qtbot, proc, py_proc, message_mock, i, expected_lines):
+    proc._output_messages = True
+
+    cmd, args = py_proc(f"""
+        for i in range(1, {i+1}):
+            print(str(i))
+    """)
+
+    with qtbot.wait_signal(proc.finished, timeout=5000):
+        proc.start(cmd, args)
+
+    assert all(msg.level == usertypes.MessageLevel.info
+               for msg in message_mock.messages)
+
+    assert message_mock.messages[-1].text.splitlines() == expected_lines
+
+
 def test_start_env(monkeypatch, qtbot, py_proc):
     monkeypatch.setenv('QUTEBROWSER_TEST_1', '1')
     env = {'QUTEBROWSER_TEST_2': '2'}

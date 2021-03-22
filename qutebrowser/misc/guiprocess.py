@@ -217,7 +217,7 @@ class GUIProcess(QObject):
 
             self.stdout += text
 
-        message.info(self.stdout.strip(), replace=f"stdout-{self.pid}")
+        message.info(self._elide_output(self.stdout), replace=f"stdout-{self.pid}")
 
     @pyqtSlot(QProcess.ProcessError)
     def _on_error(self, error: QProcess.ProcessError) -> None:
@@ -247,6 +247,21 @@ class GUIProcess(QObject):
 
         message.error(msg)
 
+    def _elide_output(self, output: str) -> str:
+        """Shorten long output before showing it."""
+        output = output.strip()
+        lines = output.splitlines()
+        count = len(lines)
+        threshold = 20
+
+        if count > threshold:
+            lines = [
+                f'[{count - threshold} lines hidden, see :process for the full output]'
+            ] + lines[-threshold:]
+            output = '\n'.join(lines)
+
+        return output
+
     @pyqtSlot(int, QProcess.ExitStatus)
     def _on_finished(self, code: int, status: QProcess.ExitStatus) -> None:
         """Show a message when the process finished."""
@@ -261,9 +276,9 @@ class GUIProcess(QObject):
 
         if self._output_messages:
             if self.stdout:
-                message.info(self.stdout.strip(), replace=f"stdout-{self.pid}")
+                message.info(self._elide_output(self.stdout), replace=f"stdout-{self.pid}")
             if self.stderr:
-                message.error(self.stderr.strip())
+                message.error(self._elide_output(self.stderr))
 
         if not self.outcome.was_successful():
             if self.stdout:
