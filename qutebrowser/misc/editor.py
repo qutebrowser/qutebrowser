@@ -62,8 +62,13 @@ class ExternalEditor(QObject):
         self._watcher = QFileSystemWatcher(parent=self) if watch else None
         self._content = None
 
-    def _cleanup(self):
-        """Clean up temporary files after the editor closed."""
+    def _cleanup(self, *, successful):
+        """Clean up temporary files after the editor closed.
+
+        Args:
+            successful: Whether the editor exited successfully, i.e. the file can be
+                        deleted.
+        """
         assert self._remove_file is not None
         if (self._watcher is not None and
                 not sip.isdeleted(self._watcher) and
@@ -78,13 +83,16 @@ class ExternalEditor(QObject):
 
         assert self._proc is not None
 
-        try:
-            if self._proc.outcome.status != QProcess.CrashExit:
+        if successful:
+            try:
                 os.remove(self._filename)
-        except OSError as e:
-            # NOTE: Do not replace this with "raise CommandError" as it's
-            # executed async.
-            message.error("Failed to delete tempfile... ({})".format(e))
+            except OSError as e:
+                # NOTE: Do not replace this with "raise CommandError" as it's
+                # executed async.
+                message.error("Failed to delete tempfile... ({})".format(e))
+        else:
+            message.info(f"Keeping file {self._filename} as the editor process exited "
+                         "abnormally")
 
     @pyqtSlot(int, QProcess.ExitStatus)
     def _on_proc_closed(self, _exitcode, exitstatus):
@@ -104,11 +112,11 @@ class ExternalEditor(QObject):
         # do a final read to make sure we don't miss the last signal
         self._on_file_changed(self._filename)
         self.editing_finished.emit()
-        self._cleanup()
+        self._cleanup(successful=self._proc.outcome.was_successful())
 
     @pyqtSlot(QProcess.ProcessError)
     def _on_proc_error(self, _err):
-        self._cleanup()
+        self._cleanup(successful=False)
 
     def edit(self, text, caret_position=None):
         """Edit a given text.

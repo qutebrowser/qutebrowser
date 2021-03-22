@@ -82,6 +82,8 @@ class ProcessOutcome:
     code: Optional[int] = None
 
     def was_successful(self) -> bool:
+        assert self.status is not None
+        assert self.code is not None
         return self.status == QProcess.NormalExit and self.code == 0
 
     def __str__(self) -> str:
