@@ -276,7 +276,8 @@ class GUIProcess(QObject):
 
         if self._output_messages:
             if self.stdout:
-                message.info(self._elide_output(self.stdout), replace=f"stdout-{self.pid}")
+                message.info(
+                    self._elide_output(self.stdout), replace=f"stdout-{self.pid}")
             if self.stderr:
                 message.error(self._elide_output(self.stderr))
 
