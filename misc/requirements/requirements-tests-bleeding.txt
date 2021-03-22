@@ -21,7 +21,8 @@ git+https://github.com/pytest-dev/pytest-repeat.git
 git+https://github.com/pytest-dev/pytest-cov.git
 git+https://github.com/The-Compiler/pytest-xvfb.git
 git+https://github.com/pytest-dev/pytest-xdist.git
-git+https://github.com/hjwp/pytest-icdiff.git
+# https://github.com/hjwp/pytest-icdiff/pull/20
+# git+https://github.com/hjwp/pytest-icdiff.git
 git+https://github.com/john-kurkowski/tldextract
 # Problematic: needs rust (and some time to build)
 # git+https://github.com/ArniDagur/python-adblock.git
