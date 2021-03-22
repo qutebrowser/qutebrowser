@@ -82,6 +82,10 @@ class ProcessOutcome:
     code: Optional[int] = None
 
     def was_successful(self) -> bool:
+        """Whether the process exited successfully.
+
+        This must not be called if the process didn't exit yet.
+        """
         assert self.status is not None
         assert self.code is not None
         return self.status == QProcess.NormalExit and self.code == 0

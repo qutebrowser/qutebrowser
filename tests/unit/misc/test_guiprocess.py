@@ -79,7 +79,8 @@ class TestProcessCommand:
         assert tab.url() == QUrl('qute://process/5678')
 
     def test_inexistent_pid(self, tab):
-        with pytest.raises(cmdutils.CommandError, match='No process found with pid 1337'):
+        with pytest.raises(
+                cmdutils.CommandError, match='No process found with pid 1337'):
             guiprocess.process(tab, 1337)
 
     def test_terminate(self, tab, monkeypatch, fake_proc):
@@ -192,7 +193,12 @@ def test_start_output_message(proc, qtbot, caplog, message_mock, py_proc,
     ('First line\n', 'Second line\n', 'First line', 'First line\nSecond line'),
     ('First line', '\rSecond line', 'First line', 'Second line'),
     ('First line\n', '\rSecond line', 'First line', 'First line\nSecond line'),
-    ('First line\nSecond line\nThird line', '\rNew line', 'First line\nSecond line\nThird line', 'First line\nSecond line\nNew line'),
+    (
+        'First line\nSecond line\nThird line',
+        '\rNew line',
+        'First line\nSecond line\nThird line',
+        'First line\nSecond line\nNew line',
+    ),
     ('First line', 'Second line\rThird line', 'First line', 'Third line'),
 ])
 def test_live_messages_output(qtbot, proc, py_proc, message_mock,

@@ -22,7 +22,6 @@ import json
 import os
 import time
 import logging
-import sys
 
 import py.path  # pylint: disable=no-name-in-module
 from PyQt5.QtCore import QUrl, QUrlQuery

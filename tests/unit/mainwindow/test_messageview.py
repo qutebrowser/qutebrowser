@@ -147,7 +147,7 @@ def test_replacing_changed_text(view):
     assert view._messages[1].text() == 'test 2'
 
 
-def test_replacing_geometry(qtbot,view):
+def test_replacing_geometry(qtbot, view):
     view.show_message(usertypes.MessageLevel.info, 'test', replace='testid')
 
     with qtbot.wait_signal(view.update_geometry):

@@ -109,7 +109,9 @@ class ExternalEditor(QObject):
             # No error/cleanup here, since we already handle this in
             # on_proc_error.
             return
+
         # do a final read to make sure we don't miss the last signal
+        assert self._proc is not None
         self._on_file_changed(self._filename)
         self.editing_finished.emit()
         self._cleanup(successful=self._proc.outcome.was_successful())

@@ -22,10 +22,8 @@
 import time
 import pathlib
 import os
-import signal
 import logging
 
-from PyQt5.QtCore import QProcess
 import pytest
 
 from qutebrowser.misc import editor as editormod
@@ -57,7 +55,7 @@ class TestArg:
 
     def test_placeholder(self, qtbot, py_proc, config_stub, editor):
         """Test starting editor with placeholder argument."""
-        cmd, args = py_proc(f"""
+        cmd, args = py_proc("""
             import sys
             import pathlib
 
@@ -76,7 +74,7 @@ class TestArg:
 
     def test_placeholder_inline(self, qtbot, py_proc, config_stub, editor):
         """Test starting editor with placeholder arg inside of another arg."""
-        cmd, args = py_proc(f"""
+        cmd, args = py_proc("""
             import sys
             assert sys.argv[1] == 'bin', sys.argv
             assert sys.argv[2].startswith('foo'), sys.argv
@@ -117,7 +115,7 @@ class TestFileHandling:
 
     def test_error(self, editor, qtbot, caplog, py_proc, config_stub):
         """Test file handling when closing with an exit status != 0."""
-        cmd, args = py_proc(f"""
+        cmd, args = py_proc("""
             import sys
             sys.exit(1)
         """)
@@ -149,7 +147,6 @@ class TestFileHandling:
 
     def test_unreadable(self, message_mock, editor, caplog, qtbot):
         """Test file handling when closing with an unreadable file."""
-
         with caplog.at_level(logging.ERROR), qtbot.wait_signal(editor.editing_finished):
             editor.edit("")
 
