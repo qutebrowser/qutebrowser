@@ -233,7 +233,7 @@ def test_exit_unsuccessful(qtbot, proc, message_mock, py_proc, caplog):
             proc.start(*py_proc('import sys; sys.exit(1)'))
 
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
-    expected = "Testprocess exited with status 1, see :messages for details."
+    expected = "Testprocess exited with status 1. See :process for details."
     assert msg.text == expected
 
 
@@ -246,8 +246,8 @@ def test_exit_crash(qtbot, proc, message_mock, py_proc, caplog):
             """))
 
     expected = (
-        "Testprocess exited with status 11, see :messages for details."
-        if utils.is_windows else "Testprocess crashed."
+        "Testprocess exited with status 11. See :process for details."
+        if utils.is_windows else "Testprocess crashed. See :process for details."
     )
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
     assert msg.text == expected
@@ -258,12 +258,14 @@ def test_exit_unsuccessful_output(qtbot, proc, caplog, py_proc, stream):
     """When a process fails, its output should be logged."""
     with caplog.at_level(logging.ERROR):
         with qtbot.wait_signal(proc.finished, timeout=10000):
-            proc.start(*py_proc("""
+            proc.start(*py_proc(f"""
                 import sys
-                print("test", file=sys.{})
+                print("test", file=sys.{stream})
                 sys.exit(1)
-            """.format(stream)))
-    assert caplog.messages[-1] == 'Process {}:\ntest'.format(stream)
+            """))
+    assert caplog.messages[-2] == 'Process {}:\ntest'.format(stream)
+    assert caplog.messages[-1] == (
+        'Testprocess exited with status 1. See :process for details.')
 
 
 @pytest.mark.parametrize('stream', ['stdout', 'stderr'])

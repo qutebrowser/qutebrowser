@@ -19,8 +19,10 @@
 
 """A QProcess which shows notifications in the GUI."""
 
+import dataclasses
 import locale
 import shlex
+from typing import Dict, Optional
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
                           QProcessEnvironment, QByteArray, QUrl)
@@ -31,7 +33,7 @@ from qutebrowser.api import cmdutils, apitypes
 from qutebrowser.completion.models import miscmodels
 
 
-all_processes = {}
+all_processes: Dict[int, 'GUIProcess'] = {}
 last_pid = None
 
 
@@ -40,6 +42,16 @@ last_pid = None
 @cmdutils.argument('pid', completion=miscmodels.process)
 @cmdutils.argument('action', choices=['show', 'terminate', 'kill'])
 def process(tab: apitypes.Tab, pid: int = None, action: str = 'show'):
+    """Manage processes spawned by qutebrowser.
+
+    Args:
+        pid: The process ID of the process to manage.
+        action: What to do with the given process:
+
+            - show: Show information about the process.
+            - terminate: Try to gracefully terminate the process (SIGTERM).
+            - kill: Kill the process forcefully (SIGKILL).
+    """
     if pid is None:
         if last_pid is None:
             raise cmdutils.CommandError("No process executed yet!")
@@ -56,6 +68,51 @@ def process(tab: apitypes.Tab, pid: int = None, action: str = 'show'):
         proc.terminate()
     elif action == 'kill':
         proc.terminate(kill=True)
+
+
+@dataclasses.dataclass
+class ProcessOutcome:
+
+    """The outcome of a finished process."""
+
+    what: str
+    running: bool = False
+    status: Optional[QProcess.ExitStatus] = None
+    code: Optional[int] = None
+
+    def was_successful(self):
+        return self.status == QProcess.NormalExit and self.code == 0
+
+    def __str__(self):
+        if self.running:
+            return f"{self.what.capitalize()} is running."
+        elif self.status is None:
+            return f"{self.what.capitalize()} did not start."
+
+        assert self.status is not None
+        assert self.code is not None
+
+        if self.status == QProcess.CrashExit:
+            return f"{self.what.capitalize()} crashed."
+        elif self.was_successful():
+            return f"{self.what.capitalize()} exited successfully."
+
+        assert self.status == QProcess.NormalExit
+        # We call this 'status' here as it makes more sense to the user -
+        # it's actually 'code'.
+        return f"{self.what.capitalize()} exited with status {self.code}."
+
+    def state_str(self):
+        if self.running:
+            return 'running'
+        elif self.status is None:
+            return 'not started'
+        elif self.status == QProcess.CrashExit:
+            return 'crashed'
+        elif self.was_successful():
+            return 'successful'
+        else:
+            return 'unsuccessful'
 
 
 class GUIProcess(QObject):
@@ -86,7 +143,7 @@ class GUIProcess(QObject):
         self.what = what
         self.verbose = verbose
         self._output_messages = output_messages
-        self.running = False
+        self.outcome = ProcessOutcome(what=what)
         self.cmd = None
         self.args = None
         self.pid = None
@@ -109,6 +166,9 @@ class GUIProcess(QObject):
             for k, v in additional_env.items():
                 procenv.insert(k, v)
             self._proc.setProcessEnvironment(procenv)
+
+    def __str__(self):
+        return ' '.join(shlex.quote(e) for e in [self.cmd] + list(self.args))
 
     def _decode_data(self, qba: QByteArray) -> str:
         """Decode data coming from a process."""
@@ -167,10 +227,12 @@ class GUIProcess(QObject):
     @pyqtSlot(int, QProcess.ExitStatus)
     def _on_finished(self, code, status):
         """Show a message when the process finished."""
-        self.running = False
         log.procs.debug("Process finished with code {}, status {}.".format(
             code, status))
 
+        self.outcome.running = False
+        self.outcome.code = code
+        self.outcome.status = status
         self.stderr += self._decode_data(self._proc.readAllStandardError())
         self.stdout += self._decode_data(self._proc.readAllStandardOutput())
 
@@ -180,55 +242,31 @@ class GUIProcess(QObject):
             if self.stderr:
                 message.error(self.stderr.strip())
 
-        if status == QProcess.CrashExit:
-            exitinfo = "{} crashed.".format(self.what.capitalize())
-            message.error(exitinfo)
-        elif status == QProcess.NormalExit and code == 0:
-            exitinfo = "{} exited successfully.".format(
-                self.what.capitalize())
-            if self.verbose:
-                message.info(exitinfo)
-        else:
-            assert status == QProcess.NormalExit
-            # We call this 'status' here as it makes more sense to the user -
-            # it's actually 'code'.
-            exitinfo = ("{} exited with status {}, see :process for "
-                        "details.").format(self.what.capitalize(), code)
-            message.error(exitinfo)
-
+        if not self.outcome.was_successful():
             if self.stdout:
                 log.procs.error("Process stdout:\n" + self.stdout.strip())
             if self.stderr:
                 log.procs.error("Process stderr:\n" + self.stderr.strip())
-
-    def _spawn_format(self, exitinfo, stdout, stderr):
-        """Produce a formatted string for spawn output."""
-        stdout = (stdout or "(No output)").strip()
-        stderr = (stderr or "(No output)").strip()
-
-        spawn_string = ("{}\n"
-                        "\nProcess stdout:\n {}"
-                        "\nProcess stderr:\n {}").format(exitinfo,
-                                                         stdout, stderr)
-        return spawn_string
+            message.error(str(self.outcome) + " See :process for details.")
+        elif self.verbose:
+            message.info(str(self.outcome))
 
     @pyqtSlot()
     def _on_started(self):
         """Called when the process started successfully."""
         log.procs.debug("Process started.")
-        assert not self.running
-        self.running = True
+        assert not self.outcome.running
+        self.outcome.running = True
 
     def _pre_start(self, cmd, args):
         """Prepare starting of a QProcess."""
-        if self.running:
+        if self.outcome.running:
             raise ValueError("Trying to start a running QProcess!")
         self.cmd = cmd
         self.args = args
-        fake_cmdline = ' '.join(shlex.quote(e) for e in [cmd] + list(args))
-        log.procs.debug("Executing: {}".format(fake_cmdline))
+        log.procs.debug(f"Executing: {self}")
         if self.verbose:
-            message.info('Executing: ' + fake_cmdline)
+            message.info(f'Executing: {self}')
 
     def start(self, cmd, args):
         """Convenience wrapper around QProcess::start."""
@@ -250,7 +288,7 @@ class GUIProcess(QObject):
             return False
 
         log.procs.debug("Process started.")
-        self.running = True
+        self.outcome.running = True
         self._post_start()
         return True
 
