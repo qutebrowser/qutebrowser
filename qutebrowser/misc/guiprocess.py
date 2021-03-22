@@ -67,6 +67,8 @@ def process(tab: apitypes.Tab, pid: int = None, action: str = 'show') -> None:
         proc.terminate()
     elif action == 'kill':
         proc.terminate(kill=True)
+    else:
+        raise utils.Unreachable(action)
 
 
 @dataclasses.dataclass
@@ -179,7 +181,7 @@ class GUIProcess(QObject):
 
     def __str__(self) -> str:
         if self.cmd is None or self.args is None:
-            return '<unknown command>'
+            return f'<unknown {self.what} command>'
         return ' '.join(shlex.quote(e) for e in [self.cmd] + list(self.args))
 
     def _decode_data(self, qba: QByteArray) -> str:
@@ -202,7 +204,10 @@ class GUIProcess(QObject):
                 # Discard everything before the last \r in the new input, then discard
                 # everything after the last \n in self.stdout.
                 text = text.rsplit('\r', maxsplit=1)[-1]
-                self.stdout = self.stdout.rsplit('\n', maxsplit=1)[0] + '\n'
+                if '\n' in self.stdout:
+                    self.stdout = self.stdout.rsplit('\n', maxsplit=1)[0] + '\n'
+                else:
+                    self.stdout = ''
 
             self.stdout += text
 
