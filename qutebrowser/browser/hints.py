@@ -272,7 +272,7 @@ class HintActions:
         msg = "Yanked URL to {}: {}".format(
             "primary selection" if sel else "clipboard",
             urlstr)
-        message.info(msg, replace=context.rapid)
+        message.info(msg, replace='rapid-hints' if context.rapid else None)
 
     def run_cmd(self, url: QUrl, context: HintContext) -> None:
         """Run the command based on a hint URL."""

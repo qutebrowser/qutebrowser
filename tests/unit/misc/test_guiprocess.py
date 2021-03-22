@@ -26,7 +26,6 @@ from PyQt5.QtCore import QProcess
 
 from qutebrowser.misc import guiprocess
 from qutebrowser.utils import usertypes, utils
-from qutebrowser.browser import qutescheme
 
 
 @pytest.fixture()
@@ -60,7 +59,7 @@ def test_start(proc, qtbot, message_mock, py_proc):
         proc.start(cmd, args)
 
     assert not message_mock.messages
-    assert proc.exit_status() == QProcess.NormalExit
+    assert proc.outcome.status == QProcess.NormalExit
 
 
 def test_start_verbose(proc, qtbot, message_mock, py_proc):
@@ -101,12 +100,12 @@ def test_start_output_message(proc, qtbot, caplog, message_mock, py_proc,
 
     if stdout and stderr:
         stdout_msg = message_mock.messages[0]
-        stderr_msg = message_mock.messages[1]
-        msg_count = 2
+        stderr_msg = message_mock.messages[-1]
+        msg_count = 3  # stdout is reported twice (once live)
     elif stdout:
         stdout_msg = message_mock.messages[0]
         stderr_msg = None
-        msg_count = 1
+        msg_count = 2  # stdout is reported twice (once live)
     elif stderr:
         stdout_msg = None
         stderr_msg = message_mock.messages[0]

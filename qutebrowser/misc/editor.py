@@ -79,7 +79,7 @@ class ExternalEditor(QObject):
         assert self._proc is not None
 
         try:
-            if self._proc.exit_status() != QProcess.CrashExit:
+            if self._proc.outcome.status != QProcess.CrashExit:
                 os.remove(self._filename)
         except OSError as e:
             # NOTE: Do not replace this with "raise CommandError" as it's

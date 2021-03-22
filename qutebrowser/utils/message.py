@@ -23,7 +23,7 @@
 """Message singleton so we don't have to define unneeded signals."""
 
 import traceback
-from typing import Any, Callable, Iterable, List, Tuple, Union
+from typing import Any, Callable, Iterable, List, Tuple, Union, Optional
 
 from PyQt5.QtCore import pyqtSignal, pyqtBoundSignal, QObject
 
@@ -218,7 +218,7 @@ class GlobalMessageBridge(QObject):
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
         self._connected = False
-        self._cache: List[Tuple[usertypes.MessageLevel, str, str]] = []
+        self._cache: List[Tuple[usertypes.MessageLevel, str, Optional[str]]] = []
 
     def ask(self, question: usertypes.Question,
             blocking: bool, *,

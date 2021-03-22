@@ -307,11 +307,13 @@ def undo(*, info):
 
 def process(*, info):
     """A CompletionModel filled with processes."""
+    utils.unused(info)
     from qutebrowser.misc import guiprocess
     model = completionmodel.CompletionModel(column_widths=(10, 10, 80))
     for what, processes in itertools.groupby(
             guiprocess.all_processes.values(), lambda proc: proc.what):
-        entries = [(str(proc.pid), proc.outcome.state_str(), str(proc)) for proc in processes]
+        entries = [(str(proc.pid), proc.outcome.state_str(), str(proc))
+                   for proc in processes]
         cat = listcategory.ListCategory(what.capitalize(), entries)
         model.add_category(cat)
     return model

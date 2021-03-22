@@ -28,20 +28,19 @@ from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
                           QProcessEnvironment, QByteArray, QUrl)
 
 from qutebrowser.utils import message, log, utils
-from qutebrowser.browser import qutescheme
 from qutebrowser.api import cmdutils, apitypes
 from qutebrowser.completion.models import miscmodels
 
 
 all_processes: Dict[int, 'GUIProcess'] = {}
-last_pid = None
+last_pid: Optional[int] = None
 
 
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('pid', completion=miscmodels.process)
 @cmdutils.argument('action', choices=['show', 'terminate', 'kill'])
-def process(tab: apitypes.Tab, pid: int = None, action: str = 'show'):
+def process(tab: apitypes.Tab, pid: int = None, action: str = 'show') -> None:
     """Manage processes spawned by qutebrowser.
 
     Args:
@@ -103,6 +102,10 @@ class ProcessOutcome:
         return f"{self.what.capitalize()} exited with status {self.code}."
 
     def state_str(self):
+        """Get a short string describing the state of the process.
+
+        This is used in the :process completion.
+        """
         if self.running:
             return 'running'
         elif self.status is None:
@@ -159,7 +162,7 @@ class GUIProcess(QObject):
         self._proc.finished.connect(self.finished)
         self._proc.started.connect(self._on_started)
         self._proc.started.connect(self.started)
-        self._proc.readyRead.connect(self._on_ready_read)
+        self._proc.readyRead.connect(self._on_ready_read)  # type: ignore[attr-defined]
 
         if additional_env is not None:
             procenv = QProcessEnvironment.systemEnvironment()
@@ -168,6 +171,8 @@ class GUIProcess(QObject):
             self._proc.setProcessEnvironment(procenv)
 
     def __str__(self):
+        if self.cmd is None or self.args is None:
+            return '<unknown command>'
         return ' '.join(shlex.quote(e) for e in [self.cmd] + list(self.args))
 
     def _decode_data(self, qba: QByteArray) -> str:
@@ -181,7 +186,7 @@ class GUIProcess(QObject):
             return
 
         while True:
-            text = self._decode_data(self._proc.readLine())
+            text = self._decode_data(self._proc.readLine())  # type: ignore[arg-type]
             if not text:
                 break
 
@@ -293,15 +298,14 @@ class GUIProcess(QObject):
         return True
 
     def _post_start(self):
+        """Register this process and remember the process ID after starting."""
         self.pid = self._proc.processId()
         all_processes[self.pid] = self  # FIXME cleanup?
         global last_pid
         last_pid = self.pid
 
-    def exit_status(self):
-        return self._proc.exitStatus()
-
     def terminate(self, kill=False):
+        """Terminate or kill the process."""
         if kill:
             self._proc.kill()
         else:
