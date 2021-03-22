@@ -22,7 +22,7 @@
 import dataclasses
 import locale
 import shlex
-from typing import Dict, Optional
+from typing import Mapping, Sequence, Dict, Optional
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
                           QProcessEnvironment, QByteArray, QUrl)
@@ -79,10 +79,10 @@ class ProcessOutcome:
     status: Optional[QProcess.ExitStatus] = None
     code: Optional[int] = None
 
-    def was_successful(self):
+    def was_successful(self) -> bool:
         return self.status == QProcess.NormalExit and self.code == 0
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.running:
             return f"{self.what.capitalize()} is running."
         elif self.status is None:
@@ -101,7 +101,7 @@ class ProcessOutcome:
         # it's actually 'code'.
         return f"{self.what.capitalize()} exited with status {self.code}."
 
-    def state_str(self):
+    def state_str(self) -> str:
         """Get a short string describing the state of the process.
 
         This is used in the :process completion.
@@ -140,8 +140,15 @@ class GUIProcess(QObject):
     finished = pyqtSignal(int, QProcess.ExitStatus)
     started = pyqtSignal()
 
-    def __init__(self, what, *, verbose=False, additional_env=None,
-                 output_messages=False, parent=None):
+    def __init__(
+            self,
+            what: str,
+            *,
+            verbose: bool = False,
+            additional_env: Mapping[str, str] = None,
+            output_messages: bool = False,
+            parent: QObject = None,
+    ):
         super().__init__(parent)
         self.what = what
         self.verbose = verbose
@@ -170,7 +177,7 @@ class GUIProcess(QObject):
                 procenv.insert(k, v)
             self._proc.setProcessEnvironment(procenv)
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.cmd is None or self.args is None:
             return '<unknown command>'
         return ' '.join(shlex.quote(e) for e in [self.cmd] + list(self.args))
@@ -181,7 +188,7 @@ class GUIProcess(QObject):
         return qba.data().decode(encoding, 'replace')
 
     @pyqtSlot()
-    def _on_ready_read(self):
+    def _on_ready_read(self) -> None:
         if not self._output_messages:
             return
 
@@ -202,7 +209,7 @@ class GUIProcess(QObject):
         message.info(self.stdout.strip(), replace=f"stdout-{self.pid}")
 
     @pyqtSlot(QProcess.ProcessError)
-    def _on_error(self, error):
+    def _on_error(self, error: QProcess.ProcessError) -> None:
         """Show a message if there was an error while spawning."""
         if error == QProcess.Crashed and not utils.is_windows:
             # Already handled via ExitStatus in _on_finished
@@ -230,7 +237,7 @@ class GUIProcess(QObject):
         message.error(msg)
 
     @pyqtSlot(int, QProcess.ExitStatus)
-    def _on_finished(self, code, status):
+    def _on_finished(self, code: int, status: QProcess.ExitStatus) -> None:
         """Show a message when the process finished."""
         log.procs.debug("Process finished with code {}, status {}.".format(
             code, status))
@@ -257,13 +264,13 @@ class GUIProcess(QObject):
             message.info(str(self.outcome))
 
     @pyqtSlot()
-    def _on_started(self):
+    def _on_started(self) -> None:
         """Called when the process started successfully."""
         log.procs.debug("Process started.")
         assert not self.outcome.running
         self.outcome.running = True
 
-    def _pre_start(self, cmd, args):
+    def _pre_start(self, cmd: str, args: Sequence[str]) -> None:
         """Prepare starting of a QProcess."""
         if self.outcome.running:
             raise ValueError("Trying to start a running QProcess!")
@@ -273,7 +280,7 @@ class GUIProcess(QObject):
         if self.verbose:
             message.info(f'Executing: {self}')
 
-    def start(self, cmd, args):
+    def start(self, cmd: str, args: Sequence[str]) -> None:
         """Convenience wrapper around QProcess::start."""
         log.procs.debug("Starting process.")
         self._pre_start(cmd, args)
@@ -281,7 +288,7 @@ class GUIProcess(QObject):
         self._post_start()
         self._proc.closeWriteChannel()
 
-    def start_detached(self, cmd, args):
+    def start_detached(self, cmd: str, args: Sequence[str]) -> bool:
         """Convenience wrapper around QProcess::startDetached."""
         log.procs.debug("Starting detached.")
         self._pre_start(cmd, args)
@@ -297,14 +304,14 @@ class GUIProcess(QObject):
         self._post_start()
         return True
 
-    def _post_start(self):
+    def _post_start(self) -> None:
         """Register this process and remember the process ID after starting."""
         self.pid = self._proc.processId()
         all_processes[self.pid] = self  # FIXME cleanup?
         global last_pid
         last_pid = self.pid
 
-    def terminate(self, kill=False):
+    def terminate(self, kill: bool = False) -> None:
         """Terminate or kill the process."""
         if kill:
             self._proc.kill()
