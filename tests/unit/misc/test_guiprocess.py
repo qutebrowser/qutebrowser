@@ -35,7 +35,7 @@ def proc(qtbot, caplog):
     """A fixture providing a GUIProcess and cleaning it up after the test."""
     p = guiprocess.GUIProcess('testprocess')
     yield p
-    if p._proc.state() == QProcess.Running:
+    if p._proc.state() != QProcess.NotRunning:
         with caplog.at_level(logging.ERROR):
             with qtbot.wait_signal(p.finished, timeout=10000,
                                   raising=False) as blocker:
