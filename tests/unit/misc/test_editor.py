@@ -22,6 +22,7 @@
 import time
 import pathlib
 import os
+import signal
 import logging
 
 from PyQt5.QtCore import QProcess
@@ -32,9 +33,9 @@ from qutebrowser.utils import usertypes
 
 
 @pytest.fixture(autouse=True)
-def patch_things(config_stub, monkeypatch, stubs):
-    monkeypatch.setattr(editormod.guiprocess, 'QProcess',
-                        stubs.fake_qprocess())
+def fake_editor(config_stub, py_proc):
+    cmd, args = py_proc("# Fake editor")
+    config_stub.val.editor.command = [cmd, *args, "{}"]
 
 
 @pytest.fixture(params=[True, False])
@@ -43,7 +44,7 @@ def editor(caplog, qtbot, request):
     yield ed
     with caplog.at_level(logging.ERROR):
         ed._remove_file = True
-        ed._cleanup()
+        ed._cleanup(successful=True)
 
 
 class TestArg:
@@ -54,87 +55,114 @@ class TestArg:
         editor: The ExternalEditor instance to test.
     """
 
-    def test_placeholder(self, config_stub, editor):
+    def test_placeholder(self, qtbot, py_proc, config_stub, editor):
         """Test starting editor with placeholder argument."""
-        config_stub.val.editor.command = ['bin', 'foo', '{}', 'bar']
-        editor.edit("")
-        editor._proc._proc.start.assert_called_with(
-            "bin", ["foo", editor._filename, "bar"])
+        cmd, args = py_proc(f"""
+            import sys
+            import pathlib
 
-    def test_placeholder_inline(self, config_stub, editor):
+            assert sys.argv[1] == 'bin', sys.argv
+            assert sys.argv[2] == 'foo', sys.argv
+            assert sys.argv[4] == 'bar', sys.argv
+
+            path = pathlib.Path(sys.argv[3])
+            assert path.exists(), path
+            assert path.name.startswith('qutebrowser-editor-'), path
+        """)
+        config_stub.val.editor.command = [cmd, *args, 'bin', 'foo', '{}', 'bar']
+
+        with qtbot.wait_signal(editor.editing_finished):
+            editor.edit("")
+
+    def test_placeholder_inline(self, qtbot, py_proc, config_stub, editor):
         """Test starting editor with placeholder arg inside of another arg."""
-        config_stub.val.editor.command = ['bin', 'foo{}', 'bar']
-        editor.edit("")
-        editor._proc._proc.start.assert_called_with(
-            "bin", ["foo" + editor._filename, "bar"])
+        cmd, args = py_proc(f"""
+            import sys
+            assert sys.argv[1] == 'bin', sys.argv
+            assert sys.argv[2].startswith('foo'), sys.argv
+            assert 'qutebrowser-editor-' in sys.argv[2], sys.argv
+            assert sys.argv[3] == 'bar', sys.argv
+        """)
+        config_stub.val.editor.command = [cmd, *args, 'bin', 'foo{}', 'bar']
+
+        with qtbot.wait_signal(editor.editing_finished):
+            editor.edit("")
 
 
 class TestFileHandling:
 
     """Test creation/deletion of tempfile."""
 
-    def test_ok(self, editor):
+    def test_ok(self, qtbot, editor):
         """Test file handling when closing with an exit status == 0."""
-        editor.edit("")
-        filename = pathlib.Path(editor._filename)
-        assert filename.exists()
-        assert filename.name.startswith('qutebrowser-editor-')
-        editor._proc.finished.emit(0, QProcess.NormalExit)
+        with qtbot.wait_signal(editor.editing_finished):
+            editor.edit("")
+            filename = pathlib.Path(editor._filename)
+            assert filename.exists()
+            assert filename.name.startswith('qutebrowser-editor-')
+
         assert not filename.exists()
 
     @pytest.mark.parametrize('touch', [True, False])
-    def test_with_filename(self, editor, tmp_path, touch):
+    def test_with_filename(self, qtbot, editor, tmp_path, touch):
         """Test editing a file with an explicit path."""
         path = tmp_path / 'foo.txt'
         if touch:
             path.touch()
 
-        editor.edit_file(str(path))
-        editor._proc.finished.emit(0, QProcess.NormalExit)
+        with qtbot.wait_signal(editor.editing_finished):
+            editor.edit_file(str(path))
 
         assert path.exists()
 
-    def test_error(self, editor):
+    def test_error(self, editor, qtbot, caplog, py_proc, config_stub):
         """Test file handling when closing with an exit status != 0."""
-        editor.edit("")
-        filename = pathlib.Path(editor._filename)
-        assert filename.exists()
+        cmd, args = py_proc(f"""
+            import sys
+            sys.exit(1)
+        """)
+        config_stub.val.editor.command = [cmd, *args, '{}']
 
-        editor._proc._proc.exitStatus = lambda: QProcess.CrashExit
-        editor._proc.finished.emit(1, QProcess.NormalExit)
+        with caplog.at_level(logging.ERROR), qtbot.wait_signal(editor.editing_finished):
+            editor.edit("")
 
-        assert filename.exists()
+        path = pathlib.Path(editor._filename)
+        assert path.exists()
+        path.unlink()
 
-        filename.unlink()
-
-    def test_crash(self, editor):
+    def test_crash(self, editor, qtbot, caplog, py_proc, config_stub):
         """Test file handling when closing with a crash."""
-        editor.edit("")
-        filename = pathlib.Path(editor._filename)
-        assert filename.exists()
+        cmd, args = py_proc("""
+            import os, signal
+            os.kill(os.getpid(), signal.SIGSEGV)
+        """)
+        config_stub.val.editor.command = [cmd, *args, '{}']
 
-        editor._proc._proc.exitStatus = lambda: QProcess.CrashExit
-        editor._proc.error.emit(QProcess.Crashed)
+        with caplog.at_level(logging.ERROR):
+            editor.edit("")
+            blocker = qtbot.wait_signal(editor._proc.finished)
+            blocker.wait()
 
-        editor._proc.finished.emit(0, QProcess.CrashExit)
-        assert filename.exists()
-
-        filename.unlink()
+        path = pathlib.Path(editor._filename)
+        assert path.exists()
+        path.unlink()
 
     def test_unreadable(self, message_mock, editor, caplog, qtbot):
         """Test file handling when closing with an unreadable file."""
-        editor.edit("")
-        filename = pathlib.Path(editor._filename)
-        assert filename.exists()
-        filename.chmod(0o277)
-        if os.access(str(filename), os.R_OK):
-            # Docker container or similar
-            pytest.skip("File was still readable")
 
-        with caplog.at_level(logging.ERROR):
-            editor._proc.finished.emit(0, QProcess.NormalExit)
-        assert not filename.exists()
-        msg = message_mock.getmsg(usertypes.MessageLevel.error)
+        with caplog.at_level(logging.ERROR), qtbot.wait_signal(editor.editing_finished):
+            editor.edit("")
+
+            path = pathlib.Path(editor._filename)
+            assert path.exists()
+            path.chmod(0o277)
+            if os.access(path, os.R_OK):
+                # Docker container or similar
+                pytest.skip("File was still readable")
+
+        assert not path.exists()
+        msg = message_mock.messages[0]
+        assert msg.level == usertypes.MessageLevel.error
         assert msg.text.startswith("Failed to read back edited file: ")
 
     def test_unwritable(self, monkeypatch, message_mock, editor,
@@ -150,14 +178,24 @@ class TestFileHandling:
         assert msg.text.startswith("Failed to create initial file: ")
         assert editor._proc is None
 
-    def test_double_edit(self, editor):
-        editor.edit("")
+    def test_double_edit(self, editor, qtbot):
+        with qtbot.wait_signal(editor.editing_finished):
+            editor.edit("")
         with pytest.raises(ValueError):
             editor.edit("")
 
-    def test_backup(self, qtbot, message_mock):
+    def test_backup(self, qtbot, py_proc, config_stub, message_mock):
+        cmd, args = py_proc("""
+            import time, signal, sys
+
+            signal.signal(signal.SIGTERM, lambda *_args: sys.exit(0))
+            time.sleep(20)
+        """)
+        config_stub.val.editor.command = [cmd, *args, '{}']
+
         editor = editormod.ExternalEditor(watch=True)
         editor.edit('foo')
+
         with qtbot.wait_signal(editor.file_updated, timeout=5000):
             _update_file(editor._filename, 'bar')
 
@@ -168,8 +206,8 @@ class TestFileHandling:
         assert msg.text.startswith(prefix)
         fname = msg.text[len(prefix):]
 
-        with qtbot.wait_signal(editor.editing_finished):
-            editor._proc.finished.emit(0, QProcess.NormalExit)
+        with qtbot.wait_signal(editor.editing_finished, timeout=5000):
+            editor._proc.terminate()
 
         with open(fname, 'r', encoding='utf-8') as f:
             assert f.read() == 'bar'
@@ -201,20 +239,22 @@ class TestFileHandling:
     ('Hällö Wörld', 'Überprüfung'),
     ('\u2603', '\u2601')  # Unicode snowman -> cloud
 ])
-def test_modify(qtbot, editor, initial_text, edited_text):
+def test_modify(qtbot, editor, py_proc, config_stub, initial_text, edited_text):
     """Test if inputs get modified correctly."""
-    editor.edit(initial_text)
+    cmd, args = py_proc(f"""
+        import sys, pathlib
 
-    with open(editor._filename, 'r', encoding='utf-8') as f:
-        assert f.read() == initial_text
+        path = pathlib.Path(sys.argv[1])
+        assert path.read_text() == "{initial_text}"
+        path.write_text("{edited_text}")
+    """)
+    config_stub.val.editor.command = [cmd, *args, '{}']
 
-    with open(editor._filename, 'w', encoding='utf-8') as f:
-        f.write(edited_text)
+    with qtbot.wait_signal(editor.editing_finished):
+        with qtbot.wait_signal(editor.file_updated) as blocker:
+            editor.edit(initial_text)
 
-    with qtbot.wait_signal(editor.file_updated) as blocker:
-        editor._proc.finished.emit(0, QProcess.NormalExit)
-
-    assert blocker.args == [edited_text]
+        assert blocker.args == [edited_text]
 
 
 def _update_file(filename, contents):
@@ -232,8 +272,16 @@ def _update_file(filename, contents):
         new_mtime = file_path.stat().st_mtime
 
 
-def test_modify_watch(qtbot):
+def test_modify_watch(qtbot, py_proc, config_stub):
     """Test that saving triggers file_updated when watch=True."""
+    cmd, args = py_proc("""
+        import time, signal, sys
+
+        signal.signal(signal.SIGTERM, lambda *_args: sys.exit(0))
+        time.sleep(20)
+    """)
+    config_stub.val.editor.command = [cmd, *args, '{}']
+
     editor = editormod.ExternalEditor(watch=True)
     editor.edit('foo')
 
@@ -246,29 +294,45 @@ def test_modify_watch(qtbot):
     assert blocker.args == ['baz']
 
     with qtbot.assert_not_emitted(editor.file_updated):
-        editor._proc.finished.emit(0, QProcess.NormalExit)
+        with qtbot.wait_signal(editor.editing_finished):
+            assert editor._proc.outcome.running
+            editor._proc.terminate()
 
 
-def test_failing_watch(qtbot, caplog, monkeypatch):
+def test_failing_watch(qtbot, caplog, monkeypatch, py_proc, config_stub):
     """When watching failed, an error should be logged.
 
     Also, updating should still work when closing the process.
     """
+    cmd, args = py_proc("""
+        import time, signal, sys
+
+        signal.signal(signal.SIGTERM, lambda *_args: sys.exit(0))
+        time.sleep(20)
+    """)
+    config_stub.val.editor.command = [cmd, *args, '{}']
+
     editor = editormod.ExternalEditor(watch=True)
     monkeypatch.setattr(editor._watcher, 'addPath', lambda _path: False)
 
     with caplog.at_level(logging.ERROR):
         editor.edit('foo')
 
+    with qtbot.wait_signal(editor._proc.started):
+        pass
+
     with qtbot.assert_not_emitted(editor.file_updated):
         _update_file(editor._filename, 'bar')
 
     with qtbot.wait_signal(editor.file_updated) as blocker:
-        editor._proc.finished.emit(0, QProcess.NormalExit)
+        with qtbot.wait_signal(editor.editing_finished):
+            assert editor._proc.outcome.running
+            editor._proc.terminate()
+
     assert blocker.args == ['bar']
 
     message = 'Failed to watch path: {}'.format(editor._filename)
-    assert caplog.messages[0] == message
+    assert caplog.messages[1] == message
 
 
 def test_failing_unwatch(qtbot, caplog, monkeypatch):
@@ -278,10 +342,9 @@ def test_failing_unwatch(qtbot, caplog, monkeypatch):
     monkeypatch.setattr(editor._watcher, 'files', lambda: [editor._filename])
     monkeypatch.setattr(editor._watcher, 'removePaths', lambda paths: paths)
 
-    editor.edit('foo')
-
     with caplog.at_level(logging.ERROR):
-        editor._proc.finished.emit(0, QProcess.NormalExit)
+        with qtbot.wait_signal(editor.editing_finished):
+            editor.edit('foo')
 
     message = 'Failed to unwatch paths: [{!r}]'.format(editor._filename)
     assert caplog.messages[-1] == message
