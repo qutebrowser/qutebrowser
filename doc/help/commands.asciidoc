@@ -1452,13 +1452,15 @@ How many tabs to switch forward.
 
 [[tab-only]]
 === tab-only
-Syntax: +:tab-only [*--prev*] [*--next*] [*--force*]+
+Syntax: +:tab-only [*--prev*] [*--next*] [*--pinned* 'behavior'] [*--force*]+
 
 Close all tabs except for the current one.
 
 ==== optional arguments
 * +*-p*+, +*--prev*+: Keep tabs before the current.
 * +*-n*+, +*--next*+: Keep tabs after the current.
+* +*-P*+, +*--pinned*+: What to do with pinned tabs. Valid values: prompt, close, keep.
+
 * +*-f*+, +*--force*+: Avoid confirmation for pinned tabs.
 
 [[tab-pin]]

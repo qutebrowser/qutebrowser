@@ -25,6 +25,8 @@ Deprecated
 - Running qutebrowser with Qt 5.12.0 is now unsupported and logs a warning. It
   should still work, however, a workaround for issues with the Nvidia graphic
   driver was dropped. Newer Qt 5.12.x versions are still fully supported.
+- The `--force` argument for `:tab-only` is deprecated, use `--pinned close`
+  instead.
 
 Added
 ~~~~~
@@ -35,6 +37,9 @@ Added
   used to view and terminate/kill external processes spawned by qutebrowser.
 - New `content.site_specific_quirks.skip` setting which can be used to disable
   individual site-specific quirks.
+- New `--pinned` argument for `:tab-only`, which replaces `--force` (with
+  `--pinned close`), but also can take `--pinned keep` to keep pinned tabs
+  without prompting.
 
 Changed
 ~~~~~~~

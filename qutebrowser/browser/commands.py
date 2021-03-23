@@ -756,7 +756,8 @@ class CommandDispatcher:
                               maybe=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('pinned', choices=['prompt', 'close', 'keep'], flag='P')
+    @cmdutils.argument('pinned', choices=['prompt', 'close', 'keep'], flag='P',
+                       metavar='behavior')
     @cmdutils.argument('force', hide=True)
     def tab_only(self, *, prev=False, next_=False, pinned='prompt', force=False):
         """Close all tabs except for the current one.
