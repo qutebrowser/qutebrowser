@@ -20,7 +20,7 @@
 """Tests for qutebrowser.utils.standarddir."""
 
 import os
-import pathlib
+import os.path
 import sys
 import json
 import types
@@ -53,7 +53,6 @@ def fake_home_envvar(monkeypatch, tmp_path):
 @pytest.fixture(autouse=True)
 def clear_standarddir_cache_and_patch(qapp, monkeypatch):
     """Make sure the standarddir cache is cleared before/after each test.
-
     Also, patch APPNAME to qute_test.
     """
     assert qapp.applicationName() == APPNAME
@@ -66,7 +65,6 @@ def clear_standarddir_cache_and_patch(qapp, monkeypatch):
 @pytest.mark.parametrize('orgname, expected', [(None, ''), ('test', 'test')])
 def test_unset_organization(qapp, orgname, expected):
     """Test unset_organization.
-
     Args:
         orgname: The organizationName to set initially.
         expected: The organizationName which is expected when reading back.
@@ -97,32 +95,32 @@ def test_fake_mac_config(tmp_path, fake_home_envvar):
 @pytest.mark.parametrize('what', ['data', 'config', 'cache'])
 @pytest.mark.not_mac
 @pytest.mark.fake_os('windows')
-def test_fake_windows(tmp_path, monkeypatch, what):
+def test_fake_windows(tmpdir, monkeypatch, what):
     """Make sure the config/data/cache dirs are correct on a fake Windows."""
     monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
-                        lambda typ: str(tmp_path / APPNAME))
+                        lambda typ: str(tmpdir / APPNAME))
 
     standarddir._init_config(args=None)
     standarddir._init_data(args=None)
     standarddir._init_cache(args=None)
 
     func = getattr(standarddir, what)
-    assert func() == str(tmp_path / APPNAME / what)
+    assert func() == str(tmpdir / APPNAME / what)
 
 
 @pytest.mark.posix
-def test_fake_haiku(tmp_path, monkeypatch):
+def test_fake_haiku(tmpdir, monkeypatch):
     """Test getting data dir on HaikuOS."""
     locations = {
         QStandardPaths.AppDataLocation: '',
-        QStandardPaths.ConfigLocation: str(tmp_path / 'config' / APPNAME),
+        QStandardPaths.ConfigLocation: str(tmpdir / 'config' / APPNAME),
     }
     monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
                         locations.get)
     monkeypatch.setattr(standarddir.sys, 'platform', 'haiku1')
 
     standarddir._init_data(args=None)
-    assert standarddir.data() == str(tmp_path / 'config' / APPNAME / 'data')
+    assert standarddir.data() == str(tmpdir / 'config' / APPNAME / 'data')
 
 
 class TestWritableLocation:
@@ -140,7 +138,7 @@ class TestWritableLocation:
     def test_sep(self, monkeypatch):
         """Make sure the right kind of separator is used."""
         monkeypatch.setattr(standarddir.os, 'sep', '\\')
-        monkeypatch.setattr(standarddir.pathlib, 'Path',
+        monkeypatch.setattr(standarddir.os.path, 'join',
                             lambda *parts: '\\'.join(parts))
         loc = standarddir._writable_location(QStandardPaths.AppDataLocation)
         assert '/' not in loc
@@ -158,21 +156,20 @@ class TestStandardDir:
         (standarddir.runtime, standarddir._init_runtime, 'XDG_RUNTIME_DIR'),
     ])
     @pytest.mark.linux
-    def test_linux_explicit(self, monkeypatch, tmp_path,
+    def test_linux_explicit(self, monkeypatch, tmpdir,
                             func, init_func, varname):
         """Test dirs with XDG environment variables explicitly set.
-
         Args:
             func: The function to test.
             init_func: The initialization function to call.
             varname: The environment variable which should be set.
         """
-        monkeypatch.setenv(varname, str(tmp_path))
+        monkeypatch.setenv(varname, str(tmpdir))
         if varname == 'XDG_RUNTIME_DIR':
-            tmp_path.chmod(0o0700)
+            tmpdir.chmod(0o0700)
 
         init_func(args=None)
-        assert func() == str(tmp_path / APPNAME)
+        assert func() == str(tmpdir / APPNAME)
 
     @pytest.mark.parametrize('func, subdirs', [
         (standarddir.data, ['.local', 'share', APPNAME]),
@@ -192,18 +189,34 @@ class TestStandardDir:
     @pytest.mark.skipif(
         qtutils.version_check('5.14', compiled=False),
         reason="Qt 5.14 automatically creates missing runtime dirs")
-    def test_linux_invalid_runtimedir(self, monkeypatch, tmp_path):
+    def test_linux_invalid_runtimedir(self, monkeypatch, tmpdir):
         """With invalid XDG_RUNTIME_DIR, fall back to TempLocation."""
-        tmpdir_env = tmp_path / 'temp'
-        tmpdir_env.mkdir()
-        monkeypatch.setenv('XDG_RUNTIME_DIR', str(tmp_path / 'does-not-exist'))
+        tmpdir_env = tmpdir / 'temp'
+        tmpdir_env.ensure(dir=True)
+        monkeypatch.setenv('XDG_RUNTIME_DIR', str(tmpdir / 'does-not-exist'))
         monkeypatch.setenv('TMPDIR', str(tmpdir_env))
 
         standarddir._init_runtime(args=None)
         assert standarddir.runtime() == str(tmpdir_env / APPNAME)
 
+    @pytest.mark.linux
+    def test_flatpak_runtimedir(self, monkeypatch, tmp_path):
+        runtime_path = tmp_path / 'runtime'
+        runtime_path.mkdir()
+        runtime_path.chmod(0o0700)
+
+        app_id = 'org.qutebrowser.qutebrowser'
+        expected = runtime_path / 'app' / app_id
+
+        monkeypatch.setattr(standarddir.version, 'is_flatpak', lambda: True)
+        monkeypatch.setenv('XDG_RUNTIME_DIR', str(runtime_path))
+        monkeypatch.setenv('FLATPAK_ID', app_id)
+
+        standarddir._init_runtime(args=None)
+        assert standarddir.runtime() == str(expected)
+
     @pytest.mark.fake_os('windows')
-    def test_runtimedir_empty_tempdir(self, monkeypatch, tmp_path):
+    def test_runtimedir_empty_tempdir(self, monkeypatch, tmpdir):
         """With an empty tempdir on non-Linux, we should raise."""
         monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
                             lambda typ: '')
@@ -226,7 +239,7 @@ class TestStandardDir:
         (standarddir.data, 2, ['Application Support', APPNAME]),
         (lambda: standarddir.config(auto=True), 1, [APPNAME]),
         (standarddir.config, 0,
-         str(pathlib.Path.home()).split(os.sep) + ['.qute_test']),
+         os.path.expanduser('~').split(os.sep) + ['.qute_test']),
         (standarddir.cache, 2, ['Caches', APPNAME]),
         (standarddir.download, 1, ['Downloads']),
     ])
@@ -247,62 +260,63 @@ class TestArguments:
         ('cache', []),
         ('download', []),
         pytest.param('runtime', [], marks=pytest.mark.linux)])
-    def test_basedir(self, tmp_path, typ, args):
+    def test_basedir(self, tmpdir, typ, args):
         """Test --basedir."""
-        expected = str(tmp_path / typ)
-        init_args = types.SimpleNamespace(basedir=str(tmp_path))
+        expected = str(tmpdir / typ)
+        init_args = types.SimpleNamespace(basedir=str(tmpdir))
         standarddir._init_dirs(init_args)
         func = getattr(standarddir, typ)
         assert func(*args) == expected
 
-    def test_basedir_relative(self, tmp_path):
+    def test_basedir_relative(self, tmpdir):
         """Test --basedir with a relative path."""
-        basedir = (tmp_path / 'basedir')
-        basedir.mkdir()
-        os.chdir(tmp_path)
-        args = types.SimpleNamespace(basedir='basedir')
-        standarddir._init_dirs(args)
-        assert standarddir.config() == str(basedir / 'config')
+        basedir = (tmpdir / 'basedir')
+        basedir.ensure(dir=True)
+        with tmpdir.as_cwd():
+            args = types.SimpleNamespace(basedir='basedir')
+            standarddir._init_dirs(args)
+            assert standarddir.config() == str(basedir / 'config')
 
-    def test_config_py_arg(self, tmp_path):
-        basedir = tmp_path / 'basedir'
-        basedir.mkdir()
-        os.chdir(tmp_path)
-        args = types.SimpleNamespace(
-            basedir='foo', config_py='basedir/config.py')
-        standarddir._init_dirs(args)
-        assert standarddir.config_py() == str(basedir / 'config.py')
+    def test_config_py_arg(self, tmpdir):
+        basedir = tmpdir / 'basedir'
+        basedir.ensure(dir=True)
+        with tmpdir.as_cwd():
+            args = types.SimpleNamespace(
+                basedir='foo', config_py='basedir/config.py')
+            standarddir._init_dirs(args)
+            assert standarddir.config_py() == str(basedir / 'config.py')
 
-    def test_config_py_no_arg(self, tmp_path):
-        basedir = tmp_path / 'basedir'
-        basedir.mkdir()
-        os.chdir(tmp_path)
-        args = types.SimpleNamespace(basedir='basedir')
-        standarddir._init_dirs(args)
-        assert standarddir.config_py() == str(
-            basedir / 'config' / 'config.py')
+    def test_config_py_no_arg(self, tmpdir):
+        basedir = tmpdir / 'basedir'
+        basedir.ensure(dir=True)
+        with tmpdir.as_cwd():
+            args = types.SimpleNamespace(basedir='basedir')
+            standarddir._init_dirs(args)
+            assert standarddir.config_py() == str(
+                basedir / 'config' / 'config.py')
 
 
 class TestInitCacheDirTag:
 
     """Tests for _init_cachedir_tag."""
 
-    def test_existent_cache_dir_tag(self, tmp_path, mocker, monkeypatch):
+    def test_existent_cache_dir_tag(self, tmpdir, mocker, monkeypatch):
         """Test with an existent CACHEDIR.TAG."""
-        monkeypatch.setattr(standarddir, 'cache', lambda: str(tmp_path))
-        mocker.patch('pathlib.Path.open', side_effect=AssertionError)
-        m = mocker.patch('qutebrowser.utils.standarddir.pathlib.Path')
-        m.exists.return_value = True
+        monkeypatch.setattr(standarddir, 'cache', lambda: str(tmpdir))
+        mocker.patch('builtins.open', side_effect=AssertionError)
+        m = mocker.patch('qutebrowser.utils.standarddir.os')
+        m.path.join.side_effect = os.path.join
+        m.path.exists.return_value = True
         standarddir._init_cachedir_tag()
-        assert not list(tmp_path.iterdir())
-        m.assert_called_with(str(tmp_path))
+        assert not tmpdir.listdir()
+        m.path.exists.assert_called_with(str(tmpdir / 'CACHEDIR.TAG'))
 
-    def test_new_cache_dir_tag(self, tmp_path, mocker, monkeypatch):
+    def test_new_cache_dir_tag(self, tmpdir, mocker, monkeypatch):
         """Test creating a new CACHEDIR.TAG."""
-        monkeypatch.setattr(standarddir, 'cache', lambda: str(tmp_path))
+        monkeypatch.setattr(standarddir, 'cache', lambda: str(tmpdir))
         standarddir._init_cachedir_tag()
-        assert list(tmp_path.iterdir()) == [(tmp_path / 'CACHEDIR.TAG')]
-        data = (tmp_path / 'CACHEDIR.TAG').read_text('utf-8')
+        assert tmpdir.listdir() == [(tmpdir / 'CACHEDIR.TAG')]
+        data = (tmpdir / 'CACHEDIR.TAG').read_text('utf-8')
         assert data == textwrap.dedent("""
             Signature: 8a477f597d28d172789f06886806bc55
             # This file is a cache directory tag created by qutebrowser.
@@ -325,9 +339,9 @@ class TestCreatingDir:
     DIR_TYPES = ['config', 'data', 'cache', 'download', 'runtime']
 
     @pytest.mark.parametrize('typ', DIR_TYPES)
-    def test_basedir(self, tmp_path, typ):
+    def test_basedir(self, tmpdir, typ):
         """Test --basedir."""
-        basedir = tmp_path / 'basedir'
+        basedir = tmpdir / 'basedir'
         assert not basedir.exists()
 
         args = types.SimpleNamespace(basedir=str(basedir))
@@ -344,22 +358,24 @@ class TestCreatingDir:
             assert (basedir / typ).exists()
 
             if utils.is_posix:
-                assert (basedir / typ).stat().st_mode & 0o777 == 0o700
+                assert (basedir / typ).stat().mode & 0o777 == 0o700
 
     @pytest.mark.parametrize('typ', DIR_TYPES)
-    def test_exists_race_condition(self, mocker, tmp_path, typ):
+    def test_exists_race_condition(self, mocker, tmpdir, typ):
         """Make sure there can't be a TOCTOU issue when creating the file.
-
         See https://github.com/qutebrowser/qutebrowser/issues/942.
         """
-        (tmp_path / typ).mkdir()
+        (tmpdir / typ).ensure(dir=True)
 
-        m = mocker.patch('qutebrowser.utils.standarddir.pathlib.Path.exists')
-        j = mocker.patch('qutebrowser.utils.standarddir.pathlib.Path.resolve')
-        m.return_value = False
-        j.return_value = lambda x: x
+        m = mocker.patch('qutebrowser.utils.standarddir.os')
+        m.makedirs = os.makedirs
+        m.sep = os.sep
+        m.path.join = os.path.join
+        m.expanduser = os.path.expanduser
+        m.path.exists.return_value = False
+        m.path.abspath = lambda x: x
 
-        args = types.SimpleNamespace(basedir=str(tmp_path))
+        args = types.SimpleNamespace(basedir=str(tmpdir))
         standarddir._init_dirs(args)
 
         func = getattr(standarddir, typ)
@@ -371,26 +387,26 @@ class TestSystemData:
     """Test system data path."""
 
     @pytest.mark.linux
-    def test_system_datadir_exist_linux(self, monkeypatch, tmp_path):
+    def test_system_datadir_exist_linux(self, monkeypatch, tmpdir):
         """Test that /usr/share/qute_test is used if path exists."""
-        monkeypatch.setenv('XDG_DATA_HOME', str(tmp_path))
-        monkeypatch.setattr(pathlib.Path, 'exists', lambda path: True)
+        monkeypatch.setenv('XDG_DATA_HOME', str(tmpdir))
+        monkeypatch.setattr(os.path, 'exists', lambda path: True)
         standarddir._init_data(args=None)
         assert standarddir.data(system=True) == "/usr/share/qute_test"
 
     @pytest.mark.linux
-    def test_system_datadir_not_exist_linux(self, monkeypatch, tmp_path,
+    def test_system_datadir_not_exist_linux(self, monkeypatch, tmpdir,
                                             fake_args):
         """Test that system-wide path isn't used on linux if path not exist."""
-        fake_args.basedir = str(tmp_path)
-        monkeypatch.setattr(pathlib.Path, 'exists', lambda path: False)
+        fake_args.basedir = str(tmpdir)
+        monkeypatch.setattr(os.path, 'exists', lambda path: False)
         standarddir._init_data(args=fake_args)
         assert standarddir.data(system=True) == standarddir.data()
 
-    def test_system_datadir_unsupportedos(self, monkeypatch, tmp_path,
+    def test_system_datadir_unsupportedos(self, monkeypatch, tmpdir,
                                           fake_args):
         """Test that system-wide path is not used on non-Linux OS."""
-        fake_args.basedir = str(tmp_path)
+        fake_args.basedir = str(tmpdir)
         monkeypatch.setattr(sys, 'platform', 'potato')
         standarddir._init_data(args=fake_args)
         assert standarddir.data(system=True) == standarddir.data()
@@ -399,7 +415,6 @@ class TestSystemData:
 @pytest.mark.parametrize('args_kind', ['basedir', 'normal', 'none'])
 def test_init(tmp_path, args_kind, fake_home_envvar):
     """Do some sanity checks for standarddir.init().
-
     Things like _init_cachedir_tag() are tested in more detail in other tests.
     """
     assert standarddir._locations == {}
@@ -418,10 +433,10 @@ def test_init(tmp_path, args_kind, fake_home_envvar):
 
 
 @pytest.mark.linux
-def test_downloads_dir_not_created(monkeypatch, tmp_path):
+def test_downloads_dir_not_created(monkeypatch, tmpdir):
     """Make sure ~/Downloads is not created."""
-    download_dir = tmp_path / 'Downloads'
-    monkeypatch.setenv('HOME', str(tmp_path))
+    download_dir = tmpdir / 'Downloads'
+    monkeypatch.setenv('HOME', str(tmpdir))
     # Make sure xdg-user-dirs.dirs is not picked up
     monkeypatch.delenv('XDG_CONFIG_HOME', raising=False)
     standarddir._init_dirs()
@@ -429,38 +444,33 @@ def test_downloads_dir_not_created(monkeypatch, tmp_path):
     assert not download_dir.exists()
 
 
-def test_no_qapplication(qapp, tmp_path, monkeypatch):
+def test_no_qapplication(qapp, tmpdir, monkeypatch):
     """Make sure directories with/without QApplication are equal."""
     sub_code = """
         import sys
         import json
-
         sys.path = sys.argv[1:]  # make sure we have the same python path
-
         from PyQt5.QtWidgets import QApplication
         from qutebrowser.utils import standarddir
-
         assert QApplication.instance() is None
-
         standarddir.APPNAME = 'qute_test'
         standarddir._init_dirs()
-
         locations = {k.name: v for k, v in standarddir._locations.items()}
         print(json.dumps(locations))
     """
-    pyfile = tmp_path / 'sub.py'
+    pyfile = tmpdir / 'sub.py'
     pyfile.write_text(textwrap.dedent(sub_code), encoding='ascii')
 
     for name in ['CONFIG', 'DATA', 'CACHE']:
         monkeypatch.delenv('XDG_{}_HOME'.format(name), raising=False)
 
-    runtime_dir = tmp_path / 'runtime'
-    runtime_dir.mkdir()
+    runtime_dir = tmpdir / 'runtime'
+    runtime_dir.ensure(dir=True)
     runtime_dir.chmod(0o0700)
     monkeypatch.setenv('XDG_RUNTIME_DIR', str(runtime_dir))
 
-    home_dir = tmp_path / 'home'
-    home_dir.mkdir()
+    home_dir = tmpdir / 'home'
+    home_dir.ensure(dir=True)
     monkeypatch.setenv('HOME', str(home_dir))
 
     proc = subprocess.run([sys.executable, str(pyfile)] + sys.path,
