@@ -99,8 +99,6 @@ class TestFileHandling:
         filename = pathlib.Path(editor._filename)
         assert filename.exists()
 
-        editor._proc._proc.exitStatus = lambda: QProcess.CrashExit
-
         with caplog.at_level(logging.ERROR):
             editor._proc._proc.finished.emit(1, QProcess.NormalExit)
 
@@ -114,9 +112,7 @@ class TestFileHandling:
         filename = pathlib.Path(editor._filename)
         assert filename.exists()
 
-        editor._proc._proc.exitStatus = lambda: QProcess.CrashExit
         editor._proc.error.emit(QProcess.Crashed)
-
         with caplog.at_level(logging.ERROR):
             editor._proc._proc.finished.emit(0, QProcess.CrashExit)
 
