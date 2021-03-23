@@ -70,6 +70,9 @@ Changed
 - When the `--config-py` argument is used, no warning about a missing
   `config.load_autoconfig` is shown anymore, as the argument is typically used
   for temporarily testing a config.
+- The internal `_autosave` session used for crash recovery is now only saved
+  once per minute, since saving it for every page load is a noticable performance
+  issue.
 
 Fixed
 ~~~~~
