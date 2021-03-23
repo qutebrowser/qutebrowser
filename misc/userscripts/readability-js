@@ -118,7 +118,7 @@ const HEADER = `
 </head>
 <body class="qute-readability">
     <h1 class="reader-title">%s</h1>
-    <div>From <a class="reader-title" href=%s>%s</a></div>
+    <div>From <a class="reader-title" href="%s">%s</a></div>
     <hr>
     %s
 </body>
