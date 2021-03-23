@@ -30,7 +30,7 @@ import builtins
 import importlib
 import types
 
-from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject, QUrl
+from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject, QUrl, QByteArray
 from PyQt5.QtGui import QIcon
 from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
@@ -193,13 +193,18 @@ class FakeNetworkReply:
         self.headers[key] = value
 
 
-def fake_qprocess():
-    """Factory for a QProcess mock which has the QProcess enum values."""
-    m = mock.Mock(spec=QProcess)
-    for name in ['NormalExit', 'CrashExit', 'FailedToStart', 'Crashed',
-                 'Timedout', 'WriteError', 'ReadError', 'UnknownError']:
-        setattr(m, name, getattr(QProcess, name))
-    return m
+class FakeProcess(QProcess):
+
+    def __init__(self, parent: QObject = None) -> None:
+        super().__init__(parent)
+        self.start = mock.Mock(spec=QProcess.start)
+        self.startDetached = mock.Mock(spec=QProcess.startDetached)
+        self.readAllStandardOutput = mock.Mock(
+            spec=QProcess.readAllStandardOutput, return_value=QByteArray(b''))
+        self.readAllStandardError = mock.Mock(
+            spec=QProcess.readAllStandardError, return_value=QByteArray(b''))
+        self.terminate = mock.Mock(spec=QProcess.terminate)
+        self.kill = mock.Mock(spec=QProcess.kill)
 
 
 class FakeWebTabScroller(browsertab.AbstractScroller):
@@ -286,6 +291,9 @@ class FakeWebTab(browsertab.AbstractTab):
 
     def renderer_process_pid(self):
         return None
+
+    def load_url(self, url):
+        self._url = url
 
 
 class FakeSignal:

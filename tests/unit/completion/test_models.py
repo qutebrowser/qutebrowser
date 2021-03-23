@@ -31,7 +31,7 @@ from unittest import mock
 import hypothesis
 import hypothesis.strategies as hst
 import pytest
-from PyQt5.QtCore import QUrl, QDateTime
+from PyQt5.QtCore import QUrl, QDateTime, QProcess
 try:
     from PyQt5.QtWebEngineWidgets import (
         QWebEngineHistory, QWebEngineHistoryItem
@@ -39,7 +39,7 @@ try:
 except ImportError:
     pass
 
-from qutebrowser.misc import objects
+from qutebrowser.misc import objects, guiprocess
 from qutebrowser.completion import completer
 from qutebrowser.completion.models import (
     configmodel, listcategory, miscmodels, urlmodel, filepathcategory)
@@ -1445,6 +1445,53 @@ def undo_completion_retains_sort_order(tabbed_browser_stubs, info):
         for idx in range(1, 11)
     ]
     _check_completions(model, {"Closed tabs": expected})
+
+
+def test_process_completion(monkeypatch, stubs, info):
+    monkeypatch.setattr(guiprocess, 'QProcess', stubs.FakeProcess)
+    p1 = guiprocess.GUIProcess('testprocess')
+    p2 = guiprocess.GUIProcess('testprocess')
+    p3 = guiprocess.GUIProcess('editor')
+
+    p1.pid = 1001
+    p1.cmd = 'cmd1'
+    p1.args = []
+    p1.outcome.running = False
+    p1.outcome.status = QProcess.NormalExit
+    p1.outcome.code = 0
+
+    p2.pid = 1002
+    p2.cmd = 'cmd2'
+    p2.args = []
+    p2.outcome.running = True
+
+    p3.pid = 1003
+    p3.cmd = 'cmd3'
+    p3.args = []
+    p3.outcome.running = False
+    p3.outcome.status = QProcess.NormalExit
+    p3.outcome.code = 1
+
+    monkeypatch.setattr(guiprocess, 'all_processes', {
+        1001: p1,
+        1002: p2,
+        1003: p3,
+        1004: None,  # cleaned up
+    })
+
+    model = miscmodels.process(info=info)
+    model.set_pattern('')
+
+    expected = {
+        'Testprocess': [
+            ('1002', 'running', 'cmd2'),
+            ('1001', 'successful', 'cmd1'),
+        ],
+        'Editor': [
+            ('1003', 'unsuccessful', 'cmd3'),
+        ],
+    }
+    _check_completions(model, expected)
 
 
 @hypothesis.given(text=hst.text())

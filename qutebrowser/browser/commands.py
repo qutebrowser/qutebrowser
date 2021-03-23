@@ -25,7 +25,7 @@ import functools
 from typing import cast, Callable, Dict, Union
 
 from PyQt5.QtWidgets import QApplication, QTabBar
-from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QEvent, QUrlQuery
+from PyQt5.QtCore import Qt, QUrl, QEvent, QUrlQuery
 
 from qutebrowser.commands import userscripts, runners
 from qutebrowser.api import cmdutils
@@ -1077,19 +1077,19 @@ class CommandDispatcher:
         log.procs.debug("Executing {} with args {}, userscript={}".format(
             cmd, args, userscript))
 
-        @pyqtSlot()
-        def _on_proc_finished():
+        def _on_proc_finished(proc):
             if output:
                 tb = objreg.get('tabbed-browser', scope='window',
                                 window='last-focused')
-                tb.load_url(QUrl('qute://spawn-output'), newtab=True)
+                tb.load_url(QUrl(f'qute://process/{proc.pid}'), newtab=True)
 
         if userscript:
             def _selection_callback(s):
                 try:
                     runner = self._run_userscript(
                         s, cmd, args, verbose, output_messages, count)
-                    runner.finished.connect(_on_proc_finished)
+                    runner.finished.connect(functools.partial(
+                        _on_proc_finished, runner.proc))
                 except cmdutils.CommandError as e:
                     message.error(str(e))
 
@@ -1112,7 +1112,7 @@ class CommandDispatcher:
                                  "detailed error")
             else:
                 proc.start(cmd, args)
-            proc.finished.connect(_on_proc_finished)
+            proc.finished.connect(functools.partial(_on_proc_finished, proc))
 
     def _run_userscript(self, selection, cmd, args, verbose, output_messages,
                         count):
@@ -1542,8 +1542,8 @@ class CommandDispatcher:
             elif going_up and tab.scroller.pos_px().y() > old_scroll_pos.y():
                 message.info("Search hit TOP, continuing at BOTTOM")
         else:
-            message.warning("Text '{}' not found on page!".format(text),
-                            replace=True)
+            message.warning(f"Text '{text}' not found on page!",
+                            replace='find-in-page')
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)

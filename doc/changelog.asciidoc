@@ -31,6 +31,8 @@ Added
 
 - New `input.media_keys` setting which can be used to disable Chromium's
   handling of media keys.
+- New `:process` command (and associated `qute://process` pages) which can be
+  used to view and terminate/kill external processes spawned by qutebrowser.
 
 Changed
 ~~~~~~~
@@ -49,6 +51,22 @@ Changed
   clearer what kind of error occurred exactly.
 - The completion now also shows bindings starting with `set-cmd-text` in its
   third column, such as `o` for `:open`.
+- When `:spawn` is used with the `-m` / `--output-messages` flag, the output now
+  appears live, while the process is running.
+- When a shown message replaces an existing related one (e.g. for zoom levels),
+  the replacing now also works even if a different message was shown in between.
+
+Fixed
+~~~~~
+
+- When an editor exits with a != 0 exit status, the temporary editor file is now
+  persisted. This already was the case when the editor crashed.
+
+Removed
+~~~~~~~
+
+- The `qute://spawn-output` page used by `:spawn -o` is now removed, as it's
+  replaced by the new `qute://process` pages.
 
 [[v2.1.1]]
 v2.1.1 (unreleased)
