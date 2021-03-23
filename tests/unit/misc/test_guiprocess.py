@@ -169,18 +169,19 @@ def test_start_output_message(proc, qtbot, caplog, message_mock, py_proc,
             cmd, args = py_proc(';'.join(code))
             proc.start(cmd, args)
 
+    # Note that outputs happen twice: Once live, and once when the process finished.
     if stdout and stderr:
-        stdout_msg = message_mock.messages[0]
+        stdout_msg = message_mock.messages[-2]
         stderr_msg = message_mock.messages[-1]
-        msg_count = 3  # stdout is reported twice (once live)
+        msg_count = 4
     elif stdout:
         stdout_msg = message_mock.messages[0]
         stderr_msg = None
-        msg_count = 2  # stdout is reported twice (once live)
+        msg_count = 2
     elif stderr:
         stdout_msg = None
         stderr_msg = message_mock.messages[0]
-        msg_count = 1
+        msg_count = 2
     else:
         stdout_msg = None
         stderr_msg = None
