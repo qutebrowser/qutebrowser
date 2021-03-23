@@ -2645,6 +2645,7 @@ Valid values:
  * +js-globalthis+
  * +js-object-fromentries+
  * +misc-krunker+
+ * +misc-mathml-darkmode+
 
 Default: empty
 

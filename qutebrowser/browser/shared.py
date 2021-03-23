@@ -334,7 +334,8 @@ def get_user_stylesheet(searching=False):
             version.qtwebengine_versions().chromium_major in [69, 73, 80, 87] and
             config.val.colors.webpage.darkmode.enabled and
             config.val.colors.webpage.darkmode.policy.images == 'smart' and
-            config.val.content.site_specific_quirks):
+            config.val.content.site_specific_quirks.enabled and
+            'misc-mathml-darkmode' not in config.val.content.site_specific_quirks.skip):
         # WORKAROUND for MathML-output on Wikipedia being black on black.
         # See https://bugs.chromium.org/p/chromium/issues/detail?id=1126606
         css += '\nimg.mwe-math-fallback-image-inline { filter: invert(100%); }'
