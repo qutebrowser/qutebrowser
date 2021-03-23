@@ -79,7 +79,7 @@ Fixed
 
 - When an editor exits with a != 0 exit status, the temporary editor file is now
   persisted. This already was the case when the editor crashed.
-- When a nonexistant file gets passed to `--config-py`, qutebrowser now
+- When a nonexistent file gets passed to `--config-py`, qutebrowser now
   complains instead of silently not loading it.
 
 Removed

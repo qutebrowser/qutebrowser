@@ -224,18 +224,20 @@ class TestEarlyInit:
         config_py_path.touch()
 
         args.config_py = str(config_py_path)
-        monkeypatch.setattr(configinit.standarddir, 'config_py', lambda: str(config_py_path))
+        monkeypatch.setattr(configinit.standarddir, 'config_py',
+                            lambda: str(config_py_path))
 
         configinit.early_init(args)
 
     def test_custom_non_existing_file(self, init_patch, args, tmp_path,
                                       caplog, monkeypatch):
-        """Make sure --config-py with a non-existant file doesn't fall back silently."""
+        """Make sure --config-py with a non-existent file doesn't fall back silently."""
         config_py_path = tmp_path / 'config.py'
         assert not config_py_path.exists()
 
         args.config_py = str(config_py_path)
-        monkeypatch.setattr(configinit.standarddir, 'config_py', lambda: str(config_py_path))
+        monkeypatch.setattr(configinit.standarddir, 'config_py',
+                            lambda: str(config_py_path))
 
         with caplog.at_level(logging.ERROR):
             configinit.early_init(args)
