@@ -37,7 +37,7 @@ from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.qt import sip
-from qutebrowser.misc import objects
+from qutebrowser.misc import objects, throttle
 
 
 _JsonType = MutableMapping[str, Any]
@@ -159,6 +159,8 @@ class SessionManager(QObject):
         self._base_path = base_path
         self._last_window_session = None
         self.did_load = False
+        # throttle autosaves to one minute apart
+        self.save_autosave = throttle.Throttle(self._save_autosave, 60 * 1000)
 
     def _get_session_path(self, name, check_exists=False):
         """Get the session path based on a session name or absolute path.
@@ -354,7 +356,7 @@ class SessionManager(QObject):
             configfiles.state['general']['session'] = name
         return name
 
-    def save_autosave(self):
+    def _save_autosave(self):
         """Save the autosave session."""
         try:
             self.save('_autosave')
@@ -363,6 +365,8 @@ class SessionManager(QObject):
 
     def delete_autosave(self):
         """Delete the autosave session."""
+        # cancel any in-flight saves
+        self.save_autosave.cancel()
         try:
             self.delete('_autosave')
         except SessionNotFoundError:
