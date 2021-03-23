@@ -73,6 +73,8 @@ Changed
 - The internal `_autosave` session used for crash recovery is now only saved
   once per minute, since saving it for every page load is a noticable performance
   issue.
+- The `readability-js` userscript now displays a small header with page
+  information.
 
 Fixed
 ~~~~~
