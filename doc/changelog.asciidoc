@@ -40,6 +40,10 @@ Added
 - New `--pinned` argument for `:tab-only`, which replaces `--force` (with
   `--pinned close`), but also can take `--pinned keep` to keep pinned tabs
   without prompting.
+- New `fileselect.folder.command` which can be used with
+  `fileselect.handler = external` to customize the command to use to upload
+  directories (`<input type="file" webkitdirectory />` elements, which are
+  non-standard but in wide use).
 
 Changed
 ~~~~~~~
@@ -75,6 +79,9 @@ Changed
   issue.
 - The `readability-js` userscript now displays a small header with page
   information.
+- When an external file selector is used, some additional validation is done on
+  the picked files now, so that errors are shown if e.g. a directory is selected
+  when a file was expected.
 
 Fixed
 ~~~~~
