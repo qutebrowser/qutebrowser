@@ -62,6 +62,12 @@ Fixed
 - When an editor exits with a != 0 exit status, the temporary editor file is now
   persisted. This already was the case when the editor crashed.
 
+Removed
+~~~~~~~
+
+- The `qute://spawn-output` page used by `:spawn -o` is now removed, as it's
+  replaced by the new `qute://process` pages.
+
 [[v2.1.1]]
 v2.1.1 (unreleased)
 -------------------
