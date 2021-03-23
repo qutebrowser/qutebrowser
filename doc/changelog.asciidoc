@@ -55,6 +55,9 @@ Changed
   appears live, while the process is running.
 - When a shown message replaces an existing related one (e.g. for zoom levels),
   the replacing now also works even if a different message was shown in between.
+- The `.redirect(...)` method on interceptors now supports an
+  `ignore_unsupported=True` argument which supresses exceptions if a request could
+  not be redirected. Note, however, that it is still not public API.
 
 Fixed
 ~~~~~
