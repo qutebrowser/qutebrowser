@@ -218,6 +218,10 @@ def test_live_messages_output(qtbot, proc, py_proc, message_mock,
     with qtbot.wait_signal(proc.finished, timeout=5000):
         proc.start(cmd, args)
 
+    if utils.is_windows:
+        expected1 = expected1.replace('\n', '\r\n')
+        expected2 = expected2.replace('\n', '\r\n')
+
     assert len(message_mock.messages) == 3
     assert all(msg.level == usertypes.MessageLevel.info
                for msg in message_mock.messages)
