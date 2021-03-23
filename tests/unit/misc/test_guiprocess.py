@@ -191,17 +191,50 @@ def test_start_output_message(proc, qtbot, caplog, message_mock, py_proc,
         assert proc.stderr.strip() == "stderr text", proc.stderr
 
 
+cr_skip = pytest.mark.skipif(
+    utils.is_windows, reason='CR handling not implemented on Windows')
+
+
 @pytest.mark.parametrize('line1, line2, expected1, expected2', [
-    ('First line\n', 'Second line\n', 'First line', 'First line\nSecond line'),
-    ('First line', '\rSecond line', 'First line', 'Second line'),
-    ('First line\n', '\rSecond line', 'First line', 'First line\nSecond line'),
-    (
+    pytest.param(
+        'First line\n',
+        'Second line\n',
+        'First line',
+        'First line\nSecond line',
+        id='simple-output',
+    ),
+    pytest.param(
+        'First line',
+        '\rSecond line',
+        'First line',
+        'Second line',
+        id='simple-cr',
+        marks=cr_skip,
+    ),
+    pytest.param(
+        'First line\n',
+        '\rSecond line',
+        'First line',
+        'First line\nSecond line',
+        id='cr-after-newline',
+        marks=cr_skip,
+    ),
+    pytest.param(
         'First line\nSecond line\nThird line',
         '\rNew line',
         'First line\nSecond line\nThird line',
         'First line\nSecond line\nNew line',
+        id='cr-multiple-lines',
+        marks=cr_skip,
     ),
-    ('First line', 'Second line\rThird line', 'First line', 'Third line'),
+    pytest.param(
+        'First line',
+        'Second line\rThird line',
+        'First line',
+        'Third line',
+        id='cr-middle-of-string',
+        marks=cr_skip,
+    ),
 ])
 def test_live_messages_output(qtbot, proc, py_proc, message_mock,
                               line1, line2, expected1, expected2):
