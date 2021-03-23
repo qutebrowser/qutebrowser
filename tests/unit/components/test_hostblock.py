@@ -77,13 +77,13 @@ def create_zipfile(directory, files, zipname="test"):
         zipname: name to give to the zip file.
     """
     zipfile_path = (directory / zipname).with_suffix(".zip")
-    with zipfile.ZipFile(str(zipfile_path), "w") as new_zipfile:
+    with zipfile.ZipFile(zipfile_path, "w") as new_zipfile:
         for file_path in files:
             new_zipfile.write(
-                str(directory / file_path), arcname=pathlib.Path(file_path).name
+                (directory / file_path), arcname=pathlib.Path(file_path).name
             )
             # Removes path from file name
-    return str(zipname + ".zip")
+    return pathlib.Path(zipname + ".zip")
 
 
 def create_blocklist(
@@ -114,7 +114,7 @@ def create_blocklist(
                 blocklist.write(host + " This is not a correct hosts file\n")
         else:
             raise ValueError("Incorrect line_format argument")
-    return name
+    return pathlib.Path(name)
 
 
 def assert_urls(
@@ -140,11 +140,11 @@ def assert_urls(
             assert not host_blocker._is_blocked(url)
 
 
-def blocklist_to_url(filename):
+def blocklist_to_url(path):
     """Get an example.com-URL with the given filename as path."""
-    assert not pathlib.Path(filename).is_absolute(), filename
+    assert not path.is_absolute(), path
     url = QUrl("http://example.com/")
-    url.setPath("/" + filename)
+    url.setPath("/" + str(path))
     assert url.isValid(), url.errorString()
     return url
 
@@ -415,7 +415,7 @@ def test_invalid_utf8(config_stub, tmp_path, caplog, host_blocker_factory, locat
         for url in BLOCKLIST_HOSTS:
             f.write(url + "\n")
 
-    url = blocklist_to_url("blocklist")
+    url = blocklist_to_url(pathlib.Path("blocklist"))
     config_stub.val.content.blocking.hosts.lists = [url.toString()]
     config_stub.val.content.blocking.enabled = True
     config_stub.val.content.blocking.method = "hosts"
@@ -469,7 +469,7 @@ def test_blocking_with_whitelist(config_stub, data_tmpdir, host_blocker_factory)
         name="blocked-hosts",
         line_format="one_per_line",
     )
-    config_stub.val.content.blocking.hosts.lists = [blocklist]
+    config_stub.val.content.blocking.hosts.lists = [str(blocklist)]
     config_stub.val.content.blocking.enabled = True
     config_stub.val.content.blocking.method = "hosts"
     config_stub.val.content.blocking.whitelist = list(WHITELISTED_HOSTS)
