@@ -411,7 +411,7 @@ def _init_site_specific_quirks():
 
     See https://github.com/qutebrowser/qutebrowser/issues/4810
     """
-    if not config.val.content.site_specific_quirks:
+    if not config.val.content.site_specific_quirks.enabled:
         return
 
     # Please leave this here as a template for new UAs.
@@ -434,36 +434,38 @@ def _init_site_specific_quirks():
                "Safari/{webkit_version} "
                "Edg/{upstream_browser_version}")
 
-    user_agents = {
+    user_agents = [
         # Needed to avoid a ""WhatsApp works with Google Chrome 36+" error
         # page which doesn't allow to use WhatsApp Web at all. Also see the
         # additional JS quirk: qutebrowser/javascript/quirks/whatsapp_web.user.js
         # https://github.com/qutebrowser/qutebrowser/issues/4445
-        'https://web.whatsapp.com/': no_qtwe_ua,
+        ("ua-whatsapp", 'https://web.whatsapp.com/', no_qtwe_ua),
 
         # Needed to avoid a "you're using a browser [...] that doesn't allow us
         # to keep your account secure" error.
         # https://github.com/qutebrowser/qutebrowser/issues/5182
-        'https://accounts.google.com/*': edge_ua,
+        ("ua-google", 'https://accounts.google.com/*', edge_ua),
 
         # Needed because Slack adds an error which prevents using it relatively
         # aggressively, despite things actually working fine.
         # September 2020: Qt 5.12 works, but Qt <= 5.11 shows the error.
         # https://github.com/qutebrowser/qutebrowser/issues/4669
-        'https://*.slack.com/*': new_chrome_ua,
-    }
+        ("ua-slack", 'https://*.slack.com/*', new_chrome_ua),
+    ]
 
-    for pattern, ua in user_agents.items():
-        config.instance.set_obj('content.headers.user_agent', ua,
-                                pattern=urlmatch.UrlPattern(pattern),
-                                hide_userconfig=True)
+    for name, pattern, ua in user_agents:
+        if name not in config.val.content.site_specific_quirks.skip:
+            config.instance.set_obj('content.headers.user_agent', ua,
+                                    pattern=urlmatch.UrlPattern(pattern),
+                                    hide_userconfig=True)
 
-    config.instance.set_obj(
-        'content.headers.accept_language',
-        '',
-        pattern=urlmatch.UrlPattern('https://matchmaker.krunker.io/*'),
-        hide_userconfig=True,
-    )
+    if 'misc-krunker' not in config.val.content.site_specific_quirks.skip:
+        config.instance.set_obj(
+            'content.headers.accept_language',
+            '',
+            pattern=urlmatch.UrlPattern('https://matchmaker.krunker.io/*'),
+            hide_userconfig=True,
+        )
 
 
 def _init_devtools_settings():

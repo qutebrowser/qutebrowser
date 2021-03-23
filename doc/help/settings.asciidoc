@@ -190,7 +190,8 @@
 |<<content.proxy,content.proxy>>|Proxy to use.
 |<<content.proxy_dns_requests,content.proxy_dns_requests>>|Send DNS requests over the configured proxy.
 |<<content.register_protocol_handler,content.register_protocol_handler>>|Allow websites to register protocol handlers via `navigator.registerProtocolHandler`.
-|<<content.site_specific_quirks,content.site_specific_quirks>>|Enable quirks (such as faked user agent headers) needed to get specific sites to work properly.
+|<<content.site_specific_quirks.enabled,content.site_specific_quirks.enabled>>|Enable quirks (such as faked user agent headers) needed to get specific sites to work properly.
+|<<content.site_specific_quirks.skip,content.site_specific_quirks.skip>>|Disable a list of named quirks.
 |<<content.tls.certificate_errors,content.tls.certificate_errors>>|How to proceed on TLS certificate errors.
 |<<content.unknown_url_scheme_policy,content.unknown_url_scheme_policy>>|How navigation requests to URLs with unknown schemes are handled.
 |<<content.user_stylesheets,content.user_stylesheets>>|List of user stylesheet filenames to use.
@@ -2618,8 +2619,8 @@ Valid values:
 
 Default: +pass:[ask]+
 
-[[content.site_specific_quirks]]
-=== content.site_specific_quirks
+[[content.site_specific_quirks.enabled]]
+=== content.site_specific_quirks.enabled
 Enable quirks (such as faked user agent headers) needed to get specific sites to work properly.
 
 This setting requires a restart.
@@ -2627,6 +2628,25 @@ This setting requires a restart.
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
+
+[[content.site_specific_quirks.skip]]
+=== content.site_specific_quirks.skip
+Disable a list of named quirks.
+
+Type: <<types,FlagList>>
+
+Valid values:
+
+ * +ua-whatsapp+
+ * +ua-google+
+ * +ua-slack+
+ * +js-whatsapp-web+
+ * +js-string-replaceall+
+ * +js-globalthis+
+ * +js-object-fromentries+
+ * +misc-krunker+
+
+Default: empty
 
 [[content.tls.certificate_errors]]
 === content.tls.certificate_errors
