@@ -1194,7 +1194,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
     import_path = pathlib.Path('/IMPORTPATH').resolve()
 
     patches = {
-        'qutebrowser.__file__': pathlib.Path(import_path) / '__init__.py',
+        'qutebrowser.__file__': str(import_path / '__init__.py'),
         'qutebrowser.__version__': 'VERSION',
         '_git_str': lambda: ('GIT COMMIT' if params.git_commit else None),
         'platform.python_implementation': lambda: 'PYTHON IMPLEMENTATION',

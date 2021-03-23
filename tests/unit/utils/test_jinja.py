@@ -35,15 +35,16 @@ def patch_read_file(monkeypatch):
     """pytest fixture to patch resources.read_file."""
     def _read_file(path):
         """A read_file which returns a simple template if the path is right."""
-        if path == str(pathlib.Path('html') / 'test.html'):
+        path = pathlib.Path(path)
+        if path == pathlib.Path('html') / 'test.html':
             return """Hello {{var}}"""
-        elif path == str(pathlib.Path('html') / 'test2.html'):
+        elif path == pathlib.Path('html') / 'test2.html':
             return """{{ resource_url('utils/testfile') }}"""
-        elif path == str(pathlib.Path('html') / 'test3.html'):
+        elif path == pathlib.Path('html') / 'test3.html':
             return """{{ data_url('testfile.txt') }}"""
-        elif path == str(pathlib.Path('html') / 'undef.html'):
+        elif path == pathlib.Path('html') / 'undef.html':
             return """{{ does_not_exist() }}"""
-        elif path == str(pathlib.Path('html') / 'attributeerror.html'):
+        elif path == pathlib.Path('html') / 'attributeerror.html':
             return """{{ obj.foobar }}"""
         else:
             raise OSError("Invalid path {}!".format(path))
