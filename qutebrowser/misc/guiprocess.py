@@ -205,7 +205,7 @@ class GUIProcess(QObject):
             if not text:
                 break
 
-            if '\r' in text:
+            if '\r' in text and not utils.is_windows:
                 # Crude handling of CR for e.g. progress output.
                 # Discard everything before the last \r in the new input, then discard
                 # everything after the last \n in self.stdout.
