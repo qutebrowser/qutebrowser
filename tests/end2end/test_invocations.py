@@ -78,7 +78,6 @@ def temp_basedir_env(tmp_path, short_tmpdir):
 
     state_file = data_dir / 'qutebrowser' / 'state'
     state_file.parent.mkdir(parents=True)
-    state_file.touch()
     state_file.write_text('\n'.join(lines), encoding='utf-8')
 
     env = {
