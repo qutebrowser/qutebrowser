@@ -946,6 +946,8 @@ Syntax: +:process ['pid'] ['action']+
 
 Manage processes spawned by qutebrowser.
 
+Note that processes with a successful exit get cleaned up after 1h.
+
 ==== positional arguments
 * +'pid'+: The process ID of the process to manage.
 * +'action'+: What to do with the given process: 
