@@ -49,7 +49,7 @@ def proc(qtbot, caplog):
 def fake_proc(monkeypatch, stubs):
     """A fixture providing a GUIProcess with a mocked QProcess."""
     p = guiprocess.GUIProcess('testprocess')
-    monkeypatch.setattr(p, '_proc', stubs.fake_qprocess())
+    monkeypatch.setattr(p, '_proc', stubs.FakeProcess())
     return p
 
 
