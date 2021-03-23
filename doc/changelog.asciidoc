@@ -67,6 +67,9 @@ Changed
 - The `.redirect(...)` method on interceptors now supports an
   `ignore_unsupported=True` argument which supresses exceptions if a request could
   not be redirected. Note, however, that it is still not public API.
+- When the `--config-py` argument is used, no warning about a missing
+  `config.load_autoconfig` is shown anymore, as the argument is typically used
+  for temporarily testing a config.
 
 Fixed
 ~~~~~
