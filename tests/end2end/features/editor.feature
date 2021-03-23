@@ -248,7 +248,7 @@ Feature: Opening external editors
         And I open data/fileselect.html
         And I run :click-element id single_file
         Then the javascript message "Files: non-existent.txt" should not be logged
-        And the warning "Ignoring non-existent file *tests/end2end/data/numbers/non-existent.txt'" should be shown
+        And the warning "Ignoring non-existent file *non-existent.txt'" should be shown
 
     ## Select folder when expecting file
 
@@ -258,7 +258,7 @@ Feature: Opening external editors
         And I open data/fileselect.html
         And I run :click-element id single_file
         Then the javascript message "Files: *" should not be logged
-        And the warning "Expected file but got folder, ignoring *tests/end2end/data/numbers'" should be shown
+        And the warning "Expected file but got folder, ignoring *numbers'" should be shown
 
     ## Select file when expecting folder
 
@@ -269,7 +269,7 @@ Feature: Opening external editors
         And I open data/fileselect.html
         And I run :click-element id folder
         Then the javascript message "Files: 1.txt" should not be logged
-        And the warning "Expected folder but got file, ignoring *tests/end2end/data/numbers/1.txt'" should be shown
+        And the warning "Expected folder but got file, ignoring *1.txt'" should be shown
 
     ## Select folder
 
