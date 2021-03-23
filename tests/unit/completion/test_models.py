@@ -1483,8 +1483,8 @@ def test_process_completion(monkeypatch, stubs, info):
 
     expected = {
         'Testprocess': [
-            ('1001', 'successful', 'cmd1'),
             ('1002', 'running', 'cmd2'),
+            ('1001', 'successful', 'cmd1'),
         ],
         'Editor': [
             ('1003', 'unsuccessful', 'cmd3'),
