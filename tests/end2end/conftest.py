@@ -23,12 +23,11 @@
 
 import re
 import os
-import os.path
+import pathlib
 import sys
 import shutil
 import pstats
 import operator
-import pathlib
 
 import pytest
 from PyQt5.QtCore import PYQT_VERSION, QCoreApplication
@@ -56,9 +55,9 @@ def pytest_unconfigure(config):
     """Combine profiles."""
     if config.getoption('--qute-profile-subprocs'):
         stats = pstats.Stats()
-        for fn in os.listdir('prof'):
-            stats.add(os.path.join('prof', fn))
-        stats.dump_stats(os.path.join('prof', 'combined.pstats'))
+        for fn in pathlib.Path('prof').iterdir():
+            stats.add((pathlib.Path('prof') / fn))
+        stats.dump_stats((pathlib.Path('prof') / 'combined.pstats'))
 
 
 def _get_version_tag(tag):

@@ -36,7 +36,7 @@ from PyQt5.QtWidgets import QLabel
 from qutebrowser.config import config, configexc
 from qutebrowser.keyinput import modeman, modeparsers, basekeyparser
 from qutebrowser.browser import webelem, history
-from qutebrowser.commands import userscripts, runners
+from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
 if TYPE_CHECKING:
@@ -272,7 +272,7 @@ class HintActions:
         msg = "Yanked URL to {}: {}".format(
             "primary selection" if sel else "clipboard",
             urlstr)
-        message.info(msg, replace=context.rapid)
+        message.info(msg, replace='rapid-hints' if context.rapid else None)
 
     def run_cmd(self, url: QUrl, context: HintContext) -> None:
         """Run the command based on a hint URL."""
@@ -320,6 +320,9 @@ class HintActions:
             elem: The QWebElement to use in the userscript.
             context: The HintContext to use.
         """
+        # lazy import to avoid circular import issues
+        from qutebrowser.commands import userscripts
+
         cmd = context.args[0]
         args = context.args[1:]
         env = {

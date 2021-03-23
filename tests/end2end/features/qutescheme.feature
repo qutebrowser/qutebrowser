@@ -167,7 +167,7 @@ Feature: Special qute:// pages
     Scenario: qute://settings CSRF token (webengine)
         When I open qute://settings
         And I run :jseval const xhr = new XMLHttpRequest(); xhr.open("GET", "qute://settings/set"); xhr.send()
-        Then "RequestDeniedError while handling qute://* URL" should be logged
+        Then "RequestDeniedError while handling qute://* URL: Invalid CSRF token!" should be logged
         And the error "Invalid CSRF token for qute://settings!" should be shown
 
     # pdfjs support

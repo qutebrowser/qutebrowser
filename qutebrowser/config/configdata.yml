@@ -519,11 +519,31 @@ content.frame_flattening:
     This will flatten all the frames to become one scrollable page.
 
 content.site_specific_quirks:
+  renamed: content.site_specific_quirks.enabled
+
+content.site_specific_quirks.enabled:
   default: true
   restart: true
   type: Bool
   desc: 'Enable quirks (such as faked user agent headers) needed to get
       specific sites to work properly.'
+
+content.site_specific_quirks.skip:
+  type:
+    name: FlagList
+    valid_values:
+      - ua-whatsapp
+      - ua-google
+      - ua-slack
+      - js-whatsapp-web
+      - js-string-replaceall
+      - js-globalthis
+      - js-object-fromentries
+      - misc-krunker
+      - misc-mathml-darkmode
+    none_ok: true
+  default: []
+  desc: 'Disable a list of named quirks.'
 
 # emacs: '
 
@@ -953,11 +973,22 @@ content.register_protocol_handler:
   desc: Allow websites to register protocol handlers via
     `navigator.registerProtocolHandler`.
 
-content.ssl_strict:
+content.tls.certificate_errors:
   default: ask
-  type: BoolAsk
+  type:
+    name: String
+    valid_values:
+      - ask: Ask how to proceed for every certificate error (unless non-overridable due
+            to HSTS).
+      - ask-block-thirdparty: Ask how to proceed for normal page loads, but silently
+            block resource loads.
+      - block: Automatically block loading on certificate errors.
+      - load-insecurely: Force loading pages despite certificate errors. This is
+            *insecure* and should be avoided. Instead of using this, consider fixing the
+            underlying issue or importing a self-signed certificate via `certutil` (or
+            Chromium) instead.
   supports_pattern: true
-  desc: Validate SSL handshakes.
+  desc: How to proceed on TLS certificate errors.
 
 content.user_stylesheets:
   type:
@@ -1307,6 +1338,24 @@ fileselect.multiple_files.command:
     * `{}`: Filename of the file to be written to. If not contained in any argument, the
       standard output of the command is read instead.
 
+fileselect.folder.command:
+  type:
+    name: ShellCommand
+    placeholder: false
+    completions:
+      - ['["xterm", "-e", "ranger", "--choosedir={}"]', "Ranger in xterm"]
+      - ['["xterm", "-e", "vifm", "--choose-dir", "{}"]', "vifm in xterm"]
+      - ['["xterm", "-e", "nnn", "-p", "{}"]', "nnn in xterm"]
+  default: ['xterm', '-e', 'ranger', '--choosedir={}']
+  desc: >-
+    Command (and arguments) to use for selecting a single folder in forms.
+    The command should write the selected folder path to the specified file or stdout.
+
+    The following placeholders are defined:
+
+    * `{}`: Filename of the file to be written to. If not contained in any argument, the
+      standard output of the command is read instead.
+
 ## hints
 
 hints.auto_follow:
@@ -1612,6 +1661,18 @@ input.spatial_navigation:
     Left, Right, Up and Down arrow keys. For example, if the user presses the
     Right key, heuristics determine whether there is an element he might be
     trying to reach towards the right and which element he probably wants.
+
+input.media_keys:
+  default: true
+  type: Bool
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+  restart: true
+  desc: >-
+    Whether the underlying Chromium should handle media keys.
+
+    On Linux, disabling this also disables Chromium's MPRIS integration.
 
 ## keyhint
 
@@ -3232,13 +3293,20 @@ bindings.key_mappings:
     keytype: Key
     valtype: Key
   desc: >-
-    This setting can be used to map keys to other keys.
+    Map keys to other keys, so that they are equivalent in all modes.
 
     When the key used as dictionary-key is pressed, the binding for the key
     used as dictionary-value is invoked instead.
 
-    This is useful for global remappings of keys, for example to map Ctrl-[ to
-    Escape.
+    This is useful for global remappings of keys, for example to map <Ctrl-[> to
+    <Escape>.
+
+    NOTE: This should only be used if two keys should always be equivalent, i.e. for
+    things like <Enter> (keypad) and <Return> (non-keypad). For normal command bindings,
+    qutebrowser works differently to vim: You always bind keys to commands, usually via
+    `:bind` or `config.bind()`. Instead of using this setting, consider finding the
+    command a key is bound to (e.g. via `:bind gg`) and then binding the same command to
+    the desired key.
 
     Note that when a key is bound (via `bindings.default` or
     `bindings.commands`), the mapping is ignored.

@@ -119,16 +119,39 @@ def test_show_multiple_messages_longer(view, count, expected):
 
 
 @pytest.mark.parametrize('replace1, replace2, length', [
-    (False, False, 2),    # Two stacked messages
-    (True, True, 1),  # Two replaceable messages
-    (False, True, 2),  # Stacked and replaceable
-    (True, False, 2),  # Replaceable and stacked
+    (None, None, 2),    # Two stacked messages
+    ('testid', 'testid', 1),  # Two replaceable messages
+    (None, 'testid', 2),  # Stacked and replaceable
+    ('testid', None, 2),  # Replaceable and stacked
+    ('testid1', 'testid2', 2),  # Different IDs
 ])
 def test_replaced_messages(view, replace1, replace2, length):
     """Show two stack=False messages which should replace each other."""
     view.show_message(usertypes.MessageLevel.info, 'test', replace=replace1)
     view.show_message(usertypes.MessageLevel.info, 'test 2', replace=replace2)
     assert len(view._messages) == length
+
+
+def test_replacing_different_severity(view):
+    view.show_message(usertypes.MessageLevel.info, 'test', replace='testid')
+    with pytest.raises(AssertionError):
+        view.show_message(usertypes.MessageLevel.error, 'test 2', replace='testid')
+
+
+def test_replacing_changed_text(view):
+    view.show_message(usertypes.MessageLevel.info, 'test', replace='testid')
+    view.show_message(usertypes.MessageLevel.info, 'test 2')
+    view.show_message(usertypes.MessageLevel.info, 'test 3', replace='testid')
+    assert len(view._messages) == 2
+    assert view._messages[0].text() == 'test 3'
+    assert view._messages[1].text() == 'test 2'
+
+
+def test_replacing_geometry(qtbot, view):
+    view.show_message(usertypes.MessageLevel.info, 'test', replace='testid')
+
+    with qtbot.wait_signal(view.update_geometry):
+        view.show_message(usertypes.MessageLevel.info, 'test 2', replace='testid')
 
 
 @pytest.mark.parametrize('button, count', [

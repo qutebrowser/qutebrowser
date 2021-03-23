@@ -1,0 +1,54 @@
+name: Bleeding-edge CI
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every Monday at 03:05 UTC
+    # https://crontab.guru/#05_03_*_*_1
+    - cron: '05 03 * * 1'
+
+jobs:
+  tests:
+    if: "github.repository == 'qutebrowser/qutebrowser'"
+    runs-on: ubuntu-20.04
+    timeout-minutes: 30
+    container:
+      image: "qutebrowser/ci:archlinux-webengine-unstable"
+      env:
+        PY_COLORS: "1"
+        DOCKER: "archlinux-webengine-unstable"
+        CI: true
+        PYTEST_ADDOPTS: "--color=yes"
+      volumes:
+        # Hardcoded because we can't use ${{ runner.temp }} here apparently.
+        - /home/runner/work/_temp/:/home/runner/work/_temp/
+      options: --privileged --tty
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up problem matchers
+        run: "python scripts/dev/ci/problemmatchers.py py3 ${{ runner.temp }}"
+      - run: tox -e bleeding
+
+  irc:
+    timeout-minutes: 2
+    continue-on-error: true
+    runs-on: ubuntu-20.04
+    needs: [tests]
+    if: "always() && github.repository == 'qutebrowser/qutebrowser'"
+    steps:
+      - name: Send success IRC notification
+        uses: Gottox/irc-message-action@v1
+        if: "needs.tests.result == 'success'"
+        with:
+          server: chat.freenode.net
+          channel: '#qutebrowser-dev'
+          nickname: qutebrowser-bot
+          message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
+      - name: Send non-success IRC notification
+        uses: Gottox/irc-message-action@v1
+        if: "needs.tests.result != 'success'"
+        with:
+          server: chat.freenode.net
+          channel: '#qutebrowser-dev'
+          nickname: qutebrowser-bot
+          message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"

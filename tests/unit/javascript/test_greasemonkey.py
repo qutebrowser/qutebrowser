@@ -198,7 +198,7 @@ class TestForceDocumentEnd:
         assert script.needs_document_end_workaround() == force
 
 
-def test_required_scripts_are_included(download_stub, tmpdir):
+def test_required_scripts_are_included(download_stub, tmp_path):
     test_require_script = textwrap.dedent("""
         // ==UserScript==
         // @name qutebrowser test userscript
@@ -212,7 +212,7 @@ def test_required_scripts_are_included(download_stub, tmpdir):
         console.log("Script is running.");
     """)
     _save_script(test_require_script, 'requiring.user.js')
-    (tmpdir / 'test.js').write_text('REQUIRED SCRIPT', encoding='UTF-8')
+    (tmp_path / 'test.js').write_text('REQUIRED SCRIPT', encoding='UTF-8')
 
     gm_manager = greasemonkey.GreasemonkeyManager()
     assert len(gm_manager._in_progress_dls) == 1

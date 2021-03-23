@@ -32,8 +32,6 @@ import functools
 import contextlib
 import shlex
 import mimetypes
-import ctypes
-import ctypes.util
 from typing import (Any, Callable, IO, Iterator,
                     Optional, Sequence, Tuple, Type, Union,
                     TypeVar, TYPE_CHECKING)
@@ -607,7 +605,7 @@ def open_file(filename: str, cmdline: str = None) -> None:
     # if we want to use the default
     override = config.val.downloads.open_dispatcher
 
-    if version.is_sandboxed():
+    if version.is_flatpak():
         if cmdline:
             message.error("Cannot spawn download dispatcher from sandbox")
             return
@@ -751,19 +749,6 @@ def ceil_log(number: int, base: int) -> int:
         result += 1
         accum *= base
     return result
-
-
-def libgl_workaround() -> None:
-    """Work around QOpenGLShaderProgram issues, especially for Nvidia.
-
-    See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/941826
-    """
-    if os.environ.get('QUTE_SKIP_LIBGL_WORKAROUND'):
-        return
-
-    libgl = ctypes.util.find_library("GL")
-    if libgl is not None:  # pragma: no branch
-        ctypes.CDLL(libgl, mode=ctypes.RTLD_GLOBAL)
 
 
 def parse_duration(duration: str) -> int:

@@ -158,6 +158,8 @@ def pass_(path):
 
 
 def pass_otp(path):
+    if arguments.mode == "gopass":
+        return _run_pass(['otp', '-o', path])
     return _run_pass(['otp', path])
 
 

@@ -72,6 +72,7 @@ from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
 # We import those to run the cmdutils.register decorators.
 from qutebrowser.mainwindow.statusbar import command
 from qutebrowser.misc import utilcmds
+from qutebrowser.browser import commands
 # pylint: enable=unused-import
 
 
@@ -120,13 +121,14 @@ def run(args):
             log.init.warning(
                 "Backend from the running instance will be used")
         sys.exit(usertypes.Exit.ok)
-    else:
-        quitter.instance.shutting_down.connect(server.shutdown)
-        server.got_args.connect(lambda args, target_arg, cwd:
-                                process_pos_args(args, cwd=cwd, via_ipc=True,
-                                                 target_arg=target_arg))
 
     init(args=args)
+
+    quitter.instance.shutting_down.connect(server.shutdown)
+    server.got_args.connect(
+        lambda args, target_arg, cwd:
+        process_pos_args(args, cwd=cwd, via_ipc=True, target_arg=target_arg))
+
     ret = qt_mainloop()
     return ret
 

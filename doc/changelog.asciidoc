@@ -15,9 +15,98 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+[[v2.2.0]]
+v2.2.0 (unreleased)
+-------------------
+
+Deprecated
+~~~~~~~~~~
+
+- Running qutebrowser with Qt 5.12.0 is now unsupported and logs a warning. It
+  should still work, however, a workaround for issues with the Nvidia graphic
+  driver was dropped. Newer Qt 5.12.x versions are still fully supported.
+- The `--force` argument for `:tab-only` is deprecated, use `--pinned close`
+  instead.
+
+Added
+~~~~~
+
+- New `input.media_keys` setting which can be used to disable Chromium's
+  handling of media keys.
+- New `:process` command (and associated `qute://process` pages) which can be
+  used to view and terminate/kill external processes spawned by qutebrowser.
+- New `content.site_specific_quirks.skip` setting which can be used to disable
+  individual site-specific quirks.
+- New `--pinned` argument for `:tab-only`, which replaces `--force` (with
+  `--pinned close`), but also can take `--pinned keep` to keep pinned tabs
+  without prompting.
+- New `fileselect.folder.command` which can be used with
+  `fileselect.handler = external` to customize the command to use to upload
+  directories (`<input type="file" webkitdirectory />` elements, which are
+  non-standard but in wide use).
+
+Changed
+~~~~~~~
+
+- The `content.ssl_strict` setting got renamed to
+  `content.tls.certificate_errors`, with new values:
+  * `ask`: Prompt on overridable certificate errors (`ssl_strict = 'ask'`)
+  * `ask-block-thirdparty`: See below
+  * `block`: Block the page load (`ssl_strict = True`)
+  * `load-insecurely`: Load the page despite the error (`ssl_strict = False`)
+- The new `content.tls.certificate_errors` setting now also understands the
+  value `ask-block-thirdparty`, which asks for page loads but automatically blocks
+  resource loads on TLS errors. This behavior is consistent with what other
+  browsers do.
+- The prompt text shown on certificate errors has been improved to make it
+  clearer what kind of error occurred exactly.
+- The `content.site_specific_quirks` setting got renamed to
+  `content.site_specific_quirks.enabled`.
+- The completion now also shows bindings starting with `set-cmd-text` in its
+  third column, such as `o` for `:open`.
+- When `:spawn` is used with the `-m` / `--output-messages` flag, the output now
+  appears live, while the process is running.
+- When a shown message replaces an existing related one (e.g. for zoom levels),
+  the replacing now also works even if a different message was shown in between.
+- The `.redirect(...)` method on interceptors now supports an
+  `ignore_unsupported=True` argument which supresses exceptions if a request could
+  not be redirected. Note, however, that it is still not public API.
+- When the `--config-py` argument is used, no warning about a missing
+  `config.load_autoconfig` is shown anymore, as the argument is typically used
+  for temporarily testing a config.
+- The internal `_autosave` session used for crash recovery is now only saved
+  once per minute, since saving it for every page load is a noticable performance
+  issue.
+- The `readability-js` userscript now displays a small header with page
+  information.
+- When an external file selector is used, some additional validation is done on
+  the picked files now, so that errors are shown if e.g. a directory is selected
+  when a file was expected.
+
+Fixed
+~~~~~
+
+- When an editor exits with a != 0 exit status, the temporary editor file is now
+  persisted. This already was the case when the editor crashed.
+- When a nonexistent file gets passed to `--config-py`, qutebrowser now
+  complains instead of silently not loading it.
+
+Removed
+~~~~~~~
+
+- The `qute://spawn-output` page used by `:spawn -o` is now removed, as it's
+  replaced by the new `qute://process` pages.
+
 [[v2.1.1]]
 v2.1.1 (unreleased)
 -------------------
+
+Added
+~~~~~
+
+- Site-specific quirk for krunker.io, which shows a "Socket Error" with
+  qutebrowser's default Accept-Language header. The workaround is equivalent to
+  doing `:set -u matchmaker.krunker.io content.headers.accept_language ""`.
 
 Changed
 ~~~~~~~
@@ -30,6 +119,24 @@ Fixed
 
 - The workaround for black on (almost) black formula images in dark mode now
   also works with Qt 5.12 and 5.13.
+- When running in Flatpak, the QtWebEngine version is now detected properly.
+  Before, a wrong version was assumed, breaking dark mode and certain workarounds
+  (resulting in crashes on websites like LinkedIn or TradingView).
+- When running in Flatpak, communicating with an existing instance now works
+  properly. Before, a new instance was always opened.
+- When the metainfo in the completion database doesn't have the expected
+  structure, qutebrowser now tries to gracefully recover from the situation
+  instead of crashing.
+- When qutebrowser displays an error during initialization, opening a second
+  instance would lead to a crash. Instead, qutebrowser now ignores the attempt
+  to open a new page as long as it's not fully initialized yet.
+- When the Brave adblock cache folder was unreadable, qutebrowser crashed. It
+  now displays an error instead.
+- The `qute-pass` userscript now works correctly when generating OTP tokens
+  with `gopass`.
+- When using `bindings.key_mappings` to map a key to multiple other keys,
+  qutebrowser would crash. This is now handled correctly - however, note that
+  it's usually better to map keys to commands instead.
 
 [[v2.1.0]]
 v2.1.0 (2021-03-12)
