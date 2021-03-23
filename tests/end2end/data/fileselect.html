@@ -5,7 +5,7 @@
         <title>Testing fileselection</title>
         <script type="text/javascript">
             function onLoad() {
-                for (let id of ['#single_file', '#multiple_files']) {
+                for (let id of ['#single_file', '#multiple_files', '#folder']) {
                     const input = document.querySelector(id);
                     input.addEventListener('change', function (e) {
                         console.log(`Files: ${Array.from(input.files).map(f => f.name).join(", ")}`);
@@ -15,7 +15,17 @@
         </script>
     </head>
     <body onload="onLoad()">
-        <input type="file" id="single_file" name="single_file" accept=".txt">
-        <input type="file" id="multiple_files" name="multiple_files" accept=".txt" multiple>
+        <div>
+            <label for="single_file">Select single file</label>
+            <input type="file" id="single_file" name="single_file" accept=".txt">
+        </div>
+        <div>
+            <label for="multiple_files">Select multiple files</label>
+            <input type="file" id="multiple_files" value="Select multiple files" name="multiple_files" accept=".txt" multiple>
+        </div>
+        <div>
+            <label for="folder">Select single folder</label>
+            <input type="file" id="folder" value="Select single folder" name="folder" webkitdirectory>
+        </div>
     </body>
 </html>

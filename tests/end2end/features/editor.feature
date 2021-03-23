@@ -193,36 +193,36 @@ Feature: Opening external editors
 
     ## select single file
 
-    Scenario: Select one file with single command
+    Scenario: Select one file with single file command
         When I setup a fake single_file fileselector selecting "tests/end2end/data/numbers/1.txt" and writes to a temporary file
         And I open data/fileselect.html
         And I run :click-element id single_file
         Then the javascript message "Files: 1.txt" should be logged
 
-    Scenario: Select one file with single command that writes to stdout
+    Scenario: Select one file with single file command that writes to stdout
         When I setup a fake single_file fileselector selecting "tests/end2end/data/numbers/1.txt" and writes to stdout
         And I open data/fileselect.html
         And I run :click-element id single_file
         Then the javascript message "Files: 1.txt" should be logged
 
-    Scenario: Select two files with single command
+    Scenario: Select two files with single file command
         When I setup a fake single_file fileselector selecting "tests/end2end/data/numbers/1.txt tests/end2end/data/numbers/2.txt" and writes to a temporary file
 
         And I open data/fileselect.html
         And I run :click-element id single_file
         Then the javascript message "Files: 1.txt" should be logged
-        And the warning "More than one file chosen, using only the first" should be shown
+        And the warning "More than one file/folder chosen, using only the first" should be shown
 
     ## select multiple files
 
-    Scenario: Select one file with multiple command
+    Scenario: Select one file with multiple files command
         When I setup a fake multiple_files fileselector selecting "tests/end2end/data/numbers/1.txt" and writes to a temporary file
 
         And I open data/fileselect.html
         And I run :click-element id multiple_files
         Then the javascript message "Files: 1.txt" should be logged
 
-    Scenario: Select two files with multiple command
+    Scenario: Select two files with multiple files command
         When I setup a fake multiple_files fileselector selecting "tests/end2end/data/numbers/1.txt tests/end2end/data/numbers/2.txt" and writes to a temporary file
 
         And I open data/fileselect.html
@@ -239,3 +239,44 @@ Feature: Opening external editors
         Then the javascript message "Files: 1.txt" should not be logged
         And the error "Failed to open tempfile *" should be shown
         And "Failed to delete tempfile *" should be logged with level error
+
+    ## Select non-existent file
+
+    Scenario: Select non-existent file
+        When I set fileselect.handler to external
+        When I setup a fake single_file fileselector selecting "tests/end2end/data/numbers/non-existent.txt" and writes to a temporary file
+        And I open data/fileselect.html
+        And I run :click-element id single_file
+        Then the javascript message "Files: non-existent.txt" should not be logged
+        And the warning "Ignoring non-existent file *non-existent.txt'" should be shown
+
+    ## Select folder when expecting file
+
+    Scenario: Select folder for file
+        When I set fileselect.handler to external
+        When I setup a fake single_file fileselector selecting "tests/end2end/data/numbers" and writes to a temporary file
+        And I open data/fileselect.html
+        And I run :click-element id single_file
+        Then the javascript message "Files: *" should not be logged
+        And the warning "Expected file but got folder, ignoring *numbers'" should be shown
+
+    ## Select file when expecting folder
+
+    @qtwebkit_skip
+    Scenario: Select file for folder
+        When I set fileselect.handler to external
+        When I setup a fake folder fileselector selecting "tests/end2end/data/numbers/1.txt" and writes to a temporary file
+        And I open data/fileselect.html
+        And I run :click-element id folder
+        Then the javascript message "Files: 1.txt" should not be logged
+        And the warning "Expected folder but got file, ignoring *1.txt'" should be shown
+
+    ## Select folder
+
+    @qtwebkit_skip
+    Scenario: Select one folder with folder command
+        When I set fileselect.handler to external
+        And I setup a fake folder fileselector selecting "tests/end2end/data/backforward/" and writes to a temporary file
+        And I open data/fileselect.html
+        And I run :click-element id folder
+        Then the javascript message "Files: 1.txt, 2.txt, 3.txt" should be logged
