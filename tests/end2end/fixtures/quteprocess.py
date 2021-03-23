@@ -504,7 +504,7 @@ class QuteProc(testprocess.Process):
         if hasattr(sys, 'frozen'):
             if profile:
                 raise Exception("Can't profile with sys.frozen!")
-            executable = pathlib.Path(sys.executable).parent / 'qutebrowser'
+            executable = str(pathlib.Path(sys.executable).parent / 'qutebrowser')
             args = []
         else:
             executable = sys.executable
@@ -513,13 +513,10 @@ class QuteProc(testprocess.Process):
                 profile_id = '{}_{}'.format(self._instance_id,
                                             next(self._run_counter))
                 profile_file = profile_dir / '{}.pstats'.format(profile_id)
-                try:
-                    profile_dir.mkdir()
-                except FileExistsError:
-                    pass
-                args = [(pathlib.Path('scripts') / 'dev' / 'run_profile.py'),
+                profile_dir.mkdir(exist_ok=True)
+                args = [str(pathlib.Path('scripts') / 'dev' / 'run_profile.py'),
                         '--profile-tool', 'none',
-                        '--profile-file', profile_file]
+                        '--profile-file', str(profile_file)]
             else:
                 args = ['-bb', '-m', 'qutebrowser']
         return executable, args
