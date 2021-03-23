@@ -99,7 +99,7 @@ class TestProcessHandler:
         assert f'<title>Process {proc.pid}</title>' in data
         assert '-c &#39;print(' in data
         assert 'Testprocess exited successfully.' in data
-        assert '<pre>AT&amp;T\n</pre>' in data
+        assert f'<pre>AT&amp;T{os.linesep}</pre>' in data
         assert 'No output.' in data  # stderr
 
 

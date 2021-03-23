@@ -427,6 +427,7 @@ def test_exit_unsuccessful(qtbot, proc, message_mock, py_proc, caplog):
     assert not proc.outcome.was_successful()
 
 
+@pytest.mark.posix  # Can't seem to simulate a crash on Windows
 def test_exit_crash(qtbot, proc, message_mock, py_proc, caplog):
     with caplog.at_level(logging.ERROR):
         with qtbot.wait_signal(proc.finished, timeout=10000):
@@ -435,12 +436,8 @@ def test_exit_crash(qtbot, proc, message_mock, py_proc, caplog):
                 os.kill(os.getpid(), signal.SIGSEGV)
             """))
 
-    expected = (
-        "Testprocess exited with status 11. See :process for details."
-        if utils.is_windows else "Testprocess crashed. See :process for details."
-    )
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
-    assert msg.text == expected
+    assert msg.text == "Testprocess crashed. See :process for details."
 
     assert not proc.outcome.running
     assert proc.outcome.status == QProcess.CrashExit
@@ -501,4 +498,7 @@ def test_str_unknown(proc):
 
 def test_str(proc, py_proc):
     proc.start(*py_proc("import sys"))
-    assert str(proc) == f"{sys.executable} -c 'import sys'"
+    assert str(proc) in [
+        f"'{sys.executable}' -c 'import sys'",  # Sometimes sys.executable needs quoting
+        f"{sys.executable} -c 'import sys'",
+    ]
