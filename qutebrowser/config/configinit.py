@@ -63,7 +63,9 @@ def early_init(args: argparse.Namespace) -> None:
     global _init_errors
 
     try:
-        if os.path.exists(config_file):
+        if os.path.exists(config_file) or custom_config_py:
+            # If we have a custom --config-py flag, we want it to be fatal if it doesn't
+            # exist, so we don't silently fall back to autoconfig.yml in that case.
             configfiles.read_config_py(
                 config_file,
                 warn_autoconfig=not custom_config_py,
