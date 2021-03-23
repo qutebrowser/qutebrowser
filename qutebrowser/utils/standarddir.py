@@ -232,14 +232,13 @@ def _init_runtime(args: Optional[argparse.Namespace]) -> None:
         # Unfortunately this path could get too long for sockets (which have a
         # maximum length of 104 chars), so we don't add the username here...
 
-    from qutebrowser.utils import version
-    if version.is_sandboxed():
-        *parts, app_name = os.path.split(path)
-        assert app_name == APPNAME, app_name
-        path = os.path.join(*parts, 'app', os.environ['FLATPAK_ID'])
-    else:
-        _create(path)
+        from qutebrowser.utils import version
+        if version.is_sandboxed():
+            *parts, app_name = os.path.split(path)
+            assert app_name == APPNAME, app_name
+            path = os.path.join(*parts, 'app', os.environ['FLATPAK_ID'])
 
+    _create(path)
     _locations[_Location.runtime] = path
 
 
