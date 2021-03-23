@@ -233,9 +233,11 @@ def _init_runtime(args: Optional[argparse.Namespace]) -> None:
         # maximum length of 104 chars), so we don't add the username here...
 
         if version.is_flatpak():
-            # We need a path like /run/user/1000/app/org.qutebrowser.qutebrowser rather than
-            # /run/user/1000/qutebrowser on Flatpak, since that's bind-mounted in a way that
-            # it is accessible by any other qutebrowser instances.
+            # We need a path like
+            # /run/user/1000/app/org.qutebrowser.qutebrowser rather than
+            # /run/user/1000/qutebrowser on Flatpak, since that's bind-mounted
+            # in a way that it is accessible by any other qutebrowser
+            # instances.
             *parts, app_name = os.path.split(path)
             assert app_name == APPNAME, app_name
             path = os.path.join(*parts, 'app', os.environ['FLATPAK_ID'])
