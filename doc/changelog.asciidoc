@@ -33,6 +33,8 @@ Added
   handling of media keys.
 - New `:process` command (and associated `qute://process` pages) which can be
   used to view and terminate/kill external processes spawned by qutebrowser.
+- New `content.site_specific_quirks.skip` setting which can be used to disable
+  individual site-specific quirks.
 
 Changed
 ~~~~~~~
@@ -49,6 +51,8 @@ Changed
   browsers do.
 - The prompt text shown on certificate errors has been improved to make it
   clearer what kind of error occurred exactly.
+- The `content.site_specific_quirks` setting got renamed to
+  `content.site_specific_quirks.enabled`.
 - The completion now also shows bindings starting with `set-cmd-text` in its
   third column, such as `o` for `:open`.
 - When `:spawn` is used with the `-m` / `--output-messages` flag, the output now
