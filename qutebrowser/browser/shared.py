@@ -473,7 +473,8 @@ def _execute_fileselect_command(
             message.error(f"Failed to open tempfile {tmpfilename} ({e})!")
             selected_files = []
 
-    return list(_validated_selected_files(qb_mode=qb_mode, selected_files=selected_files))
+    return list(_validated_selected_files(
+        qb_mode=qb_mode, selected_files=selected_files))
 
 
 def _validated_selected_files(
