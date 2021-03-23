@@ -167,9 +167,9 @@ class GUIProcess(QObject):
         self.verbose = verbose
         self._output_messages = output_messages
         self.outcome = ProcessOutcome(what=what)
-        self.cmd = None
-        self.args = None
-        self.pid = None
+        self.cmd: Optional[str] = None
+        self.args: Optional[Sequence[str]] = None
+        self.pid: Optional[int] = None
 
         self.stdout: str = ""
         self.stderr: str = ""
@@ -357,7 +357,6 @@ class GUIProcess(QObject):
         """Remove the process from all registered processes."""
         log.procs.debug(f"Cleaning up data for {self.pid}")
         if self.pid in all_processes:
-            assert self.pid is not None
             all_processes[self.pid] = None
             self.deleteLater()
 
