@@ -187,10 +187,8 @@ class GUIProcess(QObject):
         self._proc.finished.connect(self.finished)
         self._proc.started.connect(self._on_started)
         self._proc.started.connect(self.started)
-        self._proc.readyReadStandardOutput.connect(
-            self._on_ready_read_stdout)  # type: ignore[attr-defined]
-        self._proc.readyReadStandardError.connect(
-            self._on_ready_read_stderr)  # type: ignore[attr-defined]
+        self._proc.readyReadStandardOutput.connect(self._on_ready_read_stdout)
+        self._proc.readyReadStandardError.connect(self._on_ready_read_stderr)
 
         if additional_env is not None:
             procenv = QProcessEnvironment.systemEnvironment()
@@ -208,14 +206,14 @@ class GUIProcess(QObject):
         encoding = locale.getpreferredencoding(do_setlocale=False)
         return qba.data().decode(encoding, 'replace')
 
-    def _process_text(self, data: QByteArray, attr: str):
+    def _process_text(self, data: QByteArray, attr: str) -> None:
         """Process new stdout/stderr text.
 
         Arguments:
             data: The new process data.
             attr: Either 'stdout' or 'stderr'.
         """
-        text = self._decode_data(data)  # type: ignore[arg-type]
+        text = self._decode_data(data)
 
         if '\r' in text and not utils.is_windows:
             # Crude handling of CR for e.g. progress output.
