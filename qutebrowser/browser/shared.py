@@ -492,7 +492,7 @@ def _validated_selected_files(
     Return:
         List of selected files that pass the checks.
     """
-    if not qb_mode == FileSelectionMode.multiple_files:
+    if qb_mode != FileSelectionMode.multiple_files:
         if len(selected_files) > 1:
             message.warning("More than one file/folder chosen, using only the first")
             selected_files = selected_files[:1]
