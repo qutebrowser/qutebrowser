@@ -177,7 +177,7 @@ class GUIProcess(QObject):
         self._cleanup_timer = usertypes.Timer(self, 'process-cleanup')
         self._cleanup_timer.setTimerType(Qt.VeryCoarseTimer)
         self._cleanup_timer.setInterval(3600 * 1000)  # 1h
-        self._cleanup_timer.timeout.connect(self._cleanup)
+        self._cleanup_timer.timeout.connect(self._on_cleanup_timer)
         self._cleanup_timer.setSingleShot(True)
 
         self._proc = QProcess(self)
@@ -353,12 +353,12 @@ class GUIProcess(QObject):
         last_pid = self.pid
 
     @pyqtSlot()
-    def _cleanup(self) -> None:
+    def _on_cleanup_timer(self) -> None:
         """Remove the process from all registered processes."""
         log.procs.debug(f"Cleaning up data for {self.pid}")
-        if self.pid in all_processes:
-            all_processes[self.pid] = None
-            self.deleteLater()
+        assert self.pid in all_processes
+        all_processes[self.pid] = None
+        self.deleteLater()
 
     def terminate(self, kill: bool = False) -> None:
         """Terminate or kill the process."""
