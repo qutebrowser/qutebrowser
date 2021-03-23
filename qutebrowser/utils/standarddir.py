@@ -61,6 +61,7 @@ class EmptyValueError(Exception):
 @contextlib.contextmanager
 def _unset_organization() -> Iterator[None]:
     """Temporarily unset QApplication.organizationName().
+
     This is primarily needed in config.py.
     """
     qapp = QApplication.instance()
@@ -107,6 +108,7 @@ def _init_config(args: Optional[argparse.Namespace]) -> None:
 
 def config(auto: bool = False) -> str:
     """Get the location for the config directory.
+
     If auto=True is given, get the location for the autoconfig.yml directory,
     which is different on macOS.
     """
@@ -117,6 +119,7 @@ def config(auto: bool = False) -> str:
 
 def config_py() -> str:
     """Get the location for config.py.
+
     Usually, config.py is in standarddir.config(), but this can be overridden
     with the --config-py argument.
     """
@@ -151,6 +154,7 @@ def _init_data(args: Optional[argparse.Namespace]) -> None:
 
 def data(system: bool = False) -> str:
     """Get the data directory.
+
     If system=True is given, gets the system-wide (probably non-writable) data
     directory.
     """
@@ -184,6 +188,7 @@ def cache() -> str:
 
 def _init_download(args: Optional[argparse.Namespace]) -> None:
     """Initialize the location for downloads.
+
     Note this is only the default directory as found by Qt.
     Therefore, we also don't create it.
     """
@@ -246,6 +251,7 @@ def runtime() -> str:
 
 def _writable_location(typ: QStandardPaths.StandardLocation) -> str:
     """Wrapper around QStandardPaths.writableLocation.
+
     Arguments:
         typ: A QStandardPaths::StandardLocation member.
     """
@@ -283,6 +289,7 @@ def _from_args(
         args: Optional[argparse.Namespace]
 ) -> Optional[str]:
     """Get the standard directory from an argparse namespace.
+
     Return:
         The overridden path, or None if there is no override.
     """
@@ -308,6 +315,7 @@ def _from_args(
 
 def _create(path: str) -> None:
     """Create the `path` directory.
+
     From the XDG basedir spec:
         If, when attempting to write a file, the destination directory is
         non-existent an attempt should be made to create it with permission
@@ -325,6 +333,7 @@ def _create(path: str) -> None:
 
 def _init_dirs(args: argparse.Namespace = None) -> None:
     """Create and cache standard directory locations.
+
     Mainly in a separate function because we need to call it in tests.
     """
     _init_config(args)
@@ -346,6 +355,7 @@ def init(args: Optional[argparse.Namespace]) -> None:
 
 def _init_cachedir_tag() -> None:
     """Create CACHEDIR.TAG if it doesn't exist.
+
     See https://bford.info/cachedir/
     """
     cachedir_tag = os.path.join(cache(), 'CACHEDIR.TAG')

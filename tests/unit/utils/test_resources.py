@@ -119,6 +119,7 @@ class TestReadFile:
     @pytest.mark.parametrize('fake_exception', [KeyError, FileNotFoundError, None])
     def test_not_found(self, name, fake_exception, monkeypatch):
         """Test behavior when a resources file wasn't found.
+
         With fake_exception, we emulate the rather odd error handling of certain Python
         versions: https://bugs.python.org/issue43063
         """

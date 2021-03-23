@@ -53,6 +53,7 @@ def fake_home_envvar(monkeypatch, tmp_path):
 @pytest.fixture(autouse=True)
 def clear_standarddir_cache_and_patch(qapp, monkeypatch):
     """Make sure the standarddir cache is cleared before/after each test.
+
     Also, patch APPNAME to qute_test.
     """
     assert qapp.applicationName() == APPNAME
@@ -65,6 +66,7 @@ def clear_standarddir_cache_and_patch(qapp, monkeypatch):
 @pytest.mark.parametrize('orgname, expected', [(None, ''), ('test', 'test')])
 def test_unset_organization(qapp, orgname, expected):
     """Test unset_organization.
+
     Args:
         orgname: The organizationName to set initially.
         expected: The organizationName which is expected when reading back.
@@ -159,6 +161,7 @@ class TestStandardDir:
     def test_linux_explicit(self, monkeypatch, tmpdir,
                             func, init_func, varname):
         """Test dirs with XDG environment variables explicitly set.
+
         Args:
             func: The function to test.
             init_func: The initialization function to call.
@@ -363,6 +366,7 @@ class TestCreatingDir:
     @pytest.mark.parametrize('typ', DIR_TYPES)
     def test_exists_race_condition(self, mocker, tmpdir, typ):
         """Make sure there can't be a TOCTOU issue when creating the file.
+
         See https://github.com/qutebrowser/qutebrowser/issues/942.
         """
         (tmpdir / typ).ensure(dir=True)
@@ -415,6 +419,7 @@ class TestSystemData:
 @pytest.mark.parametrize('args_kind', ['basedir', 'normal', 'none'])
 def test_init(tmp_path, args_kind, fake_home_envvar):
     """Do some sanity checks for standarddir.init().
+
     Things like _init_cachedir_tag() are tested in more detail in other tests.
     """
     assert standarddir._locations == {}
