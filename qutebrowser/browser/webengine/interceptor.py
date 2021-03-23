@@ -52,7 +52,8 @@ class WebEngineRequest(interceptors.Request):
         verb = self._webengine_info.requestMethod()
         if verb not in self._WHITELISTED_REQUEST_METHODS:
             raise interceptors.RedirectException(
-                "Request method does not support redirection.")
+                f"Request method {verb} for {self.request_url.toDisplayString()} "
+                "does not support redirection.")
         self._webengine_info.redirect(url)
         self._redirected = True
 
