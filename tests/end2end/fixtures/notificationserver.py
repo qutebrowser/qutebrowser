@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-
+import itertools
 from typing import Dict, List
 
 from PyQt5.QtCore import QObject, QVariant, pyqtSlot
@@ -43,7 +43,7 @@ class TestNotificationServer(QObject):
         self._service = service
         # Trying to connect to the bus doesn't fail if there's no bus.
         self._bus = QDBusConnection.sessionBus()
-        self._message_id = 0
+        self._message_id_gen = itertools.count(1)
         # A dict mapping notification IDs to currently-displayed notifications.
         self.messages: Dict[int, QDBusMessage] = {}
         self.supports_body_markup = True
@@ -72,13 +72,13 @@ class TestNotificationServer(QObject):
 
     @pyqtSlot(QDBusMessage, result="uint")
     def Notify(self, message: QDBusMessage) -> QDBusArgument:  # pylint: disable=invalid-name
-        self._message_id += 1
+        message_id = next(self._message_id_gen)
         args = message.arguments()
-        self.messages[self._message_id] = {
+        self.messages[message_id] = {
             "title": args[3],
             "body": args[4]
         }
-        return self._message_id
+        return message_id
 
     @pyqtSlot(QDBusMessage, result="QStringList")
     def GetCapabilities(self, message: QDBusMessage) -> List[str]:  # pylint: disable=invalid-name
