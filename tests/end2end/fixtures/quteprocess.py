@@ -530,7 +530,7 @@ class QuteProc(testprocess.Process):
                 'test-notification-service']
 
         if self.request.config.webengine:
-            args += testutils.sandbox_args(qt_flag=True)
+            args += testutils.seccomp_args(qt_flag=True)
 
         args.append('about:blank')
         return args

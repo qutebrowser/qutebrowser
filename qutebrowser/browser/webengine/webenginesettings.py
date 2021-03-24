@@ -34,7 +34,7 @@ from PyQt5.QtWebEngineWidgets import QWebEngineSettings, QWebEngineProfile
 
 from qutebrowser.browser import history
 from qutebrowser.browser.webengine import (spell, webenginequtescheme, cookies,
-                                           webenginedownloads)
+                                           webenginedownloads, notification)
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import (standarddir, qtutils, message, log,
@@ -517,9 +517,10 @@ def init():
     init_private_profile()
     config.instance.changed.connect(_update_settings)
 
-    log.init.debug("Initializing site specific quirks...")
+    log.init.debug("Misc initialization...")
     _init_site_specific_quirks()
     _init_devtools_settings()
+    notification.init()
 
 
 def shutdown():
