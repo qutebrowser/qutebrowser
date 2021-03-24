@@ -121,6 +121,24 @@ class DBusNotificationPresenter(QObject):
         ):
             raise DBusException("Could not connect to ActionInvoked")
 
+        if not test_service:
+            # Can't figure out how to make this work with the test server...
+            # https://www.riverbankcomputing.com/pipermail/pyqt/2021-March/043724.html
+            ping_reply = self.interface.call(
+                QDBus.BlockWithGui,
+                "GetServerInformation",
+            )
+            self._verify_message(ping_reply, "ssss", QDBusMessage.ReplyMessage)
+            name, vendor, version, spec_version = ping_reply.arguments()
+            log.init.debug("Connected to notification server: "
+                           f"{name} {version} by {vendor}, "
+                           f"implementing spec {spec_version}")
+            if spec_version != "1.2":
+                # Released in January 2011, still current in March 2021.
+                log.init.warn(f"Notification server ({name} {version} by {vendor}) "
+                              f"implements spec {spec_version}, but 1.2 was expected. "
+                              f"If {name} is up to date, please report a bug.")
+
         # None means we don't know yet.
         self._capabilities: Optional[List[str]] = None
 
