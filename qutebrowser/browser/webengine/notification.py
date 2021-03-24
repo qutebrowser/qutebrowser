@@ -40,6 +40,9 @@ from qutebrowser.misc import objects
 from qutebrowser.utils import qtutils, log, utils
 
 
+dbus_presenter: typing.Optional['DBusNotificationPresenter'] = None
+
+
 def init() -> None:
     """Initialize the DBus notification presenter, if applicable.
 
@@ -59,15 +62,11 @@ def init() -> None:
     if not should_use_dbus:
         return
 
+    global dbus_presenter
     log.init.debug("Setting up DBus notification presenter...")
+    testing = 'test-notification-service' in objects.debug_flags
     try:
-        testing = 'test-notification-service' in objects.debug_flags
-        presenter = DBusNotificationPresenter(testing)
-        for p in [webenginesettings.default_profile,
-                  webenginesettings.private_profile]:
-            if not p:
-                continue
-            presenter.install(p)
+        dbus_presenter = DBusNotificationPresenter(testing)
     except DBusException as e:
         log.init.error(
             "Failed to initialize DBus notification presenter: {}"

@@ -360,6 +360,9 @@ def _init_profile(profile: QWebEngineProfile) -> None:
     _download_manager.install(profile)
     cookies.install_filter(profile)
 
+    if notification.dbus_presenter is not None:
+        notification.dbus_presenter.install(profile)
+
     # Clear visited links on web history clear
     history.web_history.history_cleared.connect(profile.clearAllVisitedLinks)
     history.web_history.url_cleared.connect(
@@ -508,6 +511,9 @@ def init():
     from qutebrowser.misc import quitter
     quitter.instance.shutting_down.connect(_download_manager.shutdown)
 
+    log.init.debug("Initializing notification presenter...")
+    notification.init()
+
     log.init.debug("Initializing global settings...")
     global _global_settings
     _global_settings = WebEngineSettings(_SettingsWrapper())
@@ -520,7 +526,6 @@ def init():
     log.init.debug("Misc initialization...")
     _init_site_specific_quirks()
     _init_devtools_settings()
-    notification.init()
 
 
 def shutdown():
