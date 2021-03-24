@@ -84,7 +84,7 @@ class TestNotificationServer(QObject):
         self._bus.unregisterObject(notification.DBusNotificationPresenter.PATH)
         assert self._bus.unregisterService(self._service)
 
-    def _parse_notify_args(self, appname, id_override, icon, title, body, actions,
+    def _parse_notify_args(self, appname, replaces_id, icon, title, body, actions,
                            hints, timeout) -> NotificationProperties:
         """Parse a Notify dbus reply.
 
@@ -92,7 +92,7 @@ class TestNotificationServer(QObject):
         values being checked inside test cases.
         """
         assert appname == "qutebrowser"
-        assert id_override == 0
+        assert replaces_id == 0
         assert icon == "qutebrowser"
         assert actions == []
         assert list(hints) == ['x-qutebrowser-origin']
@@ -106,8 +106,9 @@ class TestNotificationServer(QObject):
             notification.DBusNotificationPresenter.PATH,
             notification.DBusNotificationPresenter.INTERFACE,
             "NotificationClosed")
-        # the 2 here is the notification removal reason; it's effectively
-        # arbitrary
+
+        # The 2 here is the notification removal reason ("dismissed by the user")
+        # it's effectively arbitrary as we don't use that information
         message.setArguments([_as_uint32(notification_id), _as_uint32(2)])
         if not self._bus.send(message):
             raise OSError("Could not send close notification")

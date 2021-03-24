@@ -17,7 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Handles sending notifications over DBus."""
+"""Handles sending notifications over DBus.
+
+Related spec: https://developer.gnome.org/notification-spec/
+"""
 
 import html
 from typing import Any, Dict, Optional, TYPE_CHECKING
@@ -161,8 +164,8 @@ class DBusNotificationPresenter(QObject):
             QDBus.BlockWithGui,
             "Notify",
             "qutebrowser",  # application name
-            zero,  # notification id
-            "qutebrowser",  # icon
+            zero,  # replaces notification id
+            "qutebrowser",  # icon (freedesktop.org icon theme name)
             # Titles don't support markup, so no need to escape them.
             qt_notification.title(),
             self._format_body(qt_notification.message()),
