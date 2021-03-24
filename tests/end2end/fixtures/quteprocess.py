@@ -526,10 +526,11 @@ class QuteProc(testprocess.Process):
         args = ['--debug', '--no-err-windows', '--temp-basedir',
                 '--json-logging', '--loglevel', 'vdebug',
                 '--backend', backend, '--debug-flag', 'no-sql-history',
-                '--debug-flag', 'werror']
+                '--debug-flag', 'werror', '--debug-flag',
+                'test-notification-service']
 
         if self.request.config.webengine:
-            args += testutils.seccomp_args(qt_flag=True)
+            args += testutils.sandbox_args(qt_flag=True)
 
         args.append('about:blank')
         return args
@@ -1019,7 +1020,7 @@ def quteproc_process(qapp, server, request):
 
 
 @pytest.fixture
-def quteproc(quteproc_process, server, request):
+def quteproc(quteproc_process, server, request, notification_server):
     """Per-test qutebrowser fixture which uses the per-file process."""
     request.node._quteproc_log = quteproc_process.captured_log
     quteproc_process.before_test()

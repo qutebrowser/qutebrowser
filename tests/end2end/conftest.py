@@ -34,6 +34,7 @@ from PyQt5.QtCore import PYQT_VERSION, QCoreApplication
 
 pytest.register_assert_rewrite('end2end.fixtures')
 
+from end2end.fixtures.notificationserver import notification_server
 from end2end.fixtures.webserver import server, server_per_test, server2, ssl_server
 from end2end.fixtures.quteprocess import (quteproc_process, quteproc,
                                           quteproc_new)
@@ -111,6 +112,7 @@ def _get_backend_tag(tag):
         'qtwebengine_todo': pytest.mark.qtwebengine_todo,
         'qtwebengine_skip': pytest.mark.qtwebengine_skip,
         'qtwebengine_notifications': pytest.mark.qtwebengine_notifications,
+        'qtwebengine_py_5_15': pytest.mark.qtwebengine_py_5_15,
         'qtwebkit_skip': pytest.mark.qtwebkit_skip,
     }
     if not any(tag.startswith(t + ':') for t in pytest_marks):
@@ -135,6 +137,14 @@ if not getattr(sys, 'frozen', False):
         return None
 
 
+def _pyqt_webengine_at_least_5_15() -> bool:
+    try:
+        from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
+        return PYQT_WEBENGINE_VERSION >= 0x050F00
+    except ImportError:
+        return False
+
+
 def pytest_collection_modifyitems(config, items):
     """Apply @qtwebengine_* markers; skip unittests with QUTE_BDD_WEBENGINE."""
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-75884
@@ -150,9 +160,9 @@ def pytest_collection_modifyitems(config, items):
         ('qtwebengine_skip', 'Skipped with QtWebEngine', pytest.mark.skipif,
          config.webengine),
         ('qtwebengine_notifications',
-         'Skipped with QtWebEngine < 5.13',
+         'Skipped unless QtWebEngine >= 5.13',
          pytest.mark.skipif,
-         config.webengine and not qtutils.version_check('5.13')),
+         not (config.webengine and qtutils.version_check('5.13'))),
         ('qtwebkit_skip', 'Skipped with QtWebKit', pytest.mark.skipif,
          not config.webengine),
         ('qtwebengine_flaky', 'Flaky with QtWebEngine', pytest.mark.skipif,
@@ -170,7 +180,10 @@ def pytest_collection_modifyitems(config, items):
          'Skipped on Windows',
          pytest.mark.skipif,
          utils.is_windows),
-
+        # WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
+        ('qtwebengine_py_5_15', 'Skipped with PyQtWebEngine < 5.15',
+         pytest.mark.skipif,
+         config.webengine and not _pyqt_webengine_at_least_5_15()),
     ]
 
     for item in items:
