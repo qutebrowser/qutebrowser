@@ -100,24 +100,26 @@ class DBusNotificationPresenter(QObject):
             self.INTERFACE,
             bus,
         )
+        if not self.interface.isValid():
+            raise DBusException("Could not construct a DBus interface")
 
-        bus.connect(
+        if not bus.connect(
             service,
             self.PATH,
             self.INTERFACE,
             "NotificationClosed",
             self._handle_close,
-        )
-        bus.connect(
+        ):
+            raise DBusException("Could not connect to NotificationClosed")
+
+        if not bus.connect(
             service,
             self.PATH,
             self.INTERFACE,
             "ActionInvoked",
             self._handle_action,
-        )
-
-        if not self.interface:
-            raise DBusException("Could not construct a DBus interface")
+        ):
+            raise DBusException("Could not connect to ActionInvoked")
 
         # None means we don't know yet.
         self._capabilities: Optional[List[str]] = None
