@@ -73,15 +73,13 @@ def create_zipfile(directory, files, zipname="test"):
 
     Args:
         directory: path object where to create the zip file.
-        files: list of filenames (relative to directory) to each file to add.
+        files: list of pathlib.Paths (relative to directory) to each file to add.
         zipname: name to give to the zip file.
     """
     zipfile_path = (directory / zipname).with_suffix(".zip")
     with zipfile.ZipFile(zipfile_path, "w") as new_zipfile:
         for file_path in files:
-            new_zipfile.write(
-                (directory / file_path), arcname=pathlib.Path(file_path).name
-            )
+            new_zipfile.write(directory / file_path, arcname=file_path.name)
             # Removes path from file name
     return pathlib.Path(zipname + ".zip")
 
