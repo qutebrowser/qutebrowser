@@ -520,7 +520,10 @@ if test_file is not None:
     def clean_up_python_testfile():
         """Clean up the python testfile after tests if tests didn't."""
         yield
-        pathlib.Path(test_file.TESTFN).unlink(missing_ok=True)
+        try:
+            pathlib.Path(test_file.TESTFN).unlink()
+        except FileNotFoundError:        
+            pass
 
     class PyIODeviceTestMixin:
 
