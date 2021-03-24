@@ -33,27 +33,28 @@ from qutebrowser.config import configexc
 @pytest.fixture(autouse=True)
 def patch_read_file(monkeypatch):
     """pytest fixture to patch resources.read_file."""
-    def _read_file(path):
+    def _read_file(filepath):
         """A read_file which returns a simple template if the path is right."""
-        path = pathlib.Path(path)
-        if path == pathlib.Path('html') / 'test.html':
+        path = pathlib.Path(filepath)
+        html_path = pathlib.Path('html')
+        if path == html_path / 'test.html':
             return """Hello {{var}}"""
-        elif path == pathlib.Path('html') / 'test2.html':
+        elif path == html_path / 'test2.html':
             return """{{ resource_url('utils/testfile') }}"""
-        elif path == pathlib.Path('html') / 'test3.html':
+        elif path == html_path / 'test3.html':
             return """{{ data_url('testfile.txt') }}"""
-        elif path == pathlib.Path('html') / 'undef.html':
+        elif path == html_path / 'undef.html':
             return """{{ does_not_exist() }}"""
-        elif path == pathlib.Path('html') / 'attributeerror.html':
+        elif path == html_path / 'attributeerror.html':
             return """{{ obj.foobar }}"""
         else:
-            raise OSError("Invalid path {}!".format(path))
+            raise OSError(f"Invalid path {filepath}!")
 
-    def _read_file_binary(path):
-        if path == 'testfile.txt':
+    def _read_file_binary(filepath):
+        if filepath == 'testfile.txt':
             return b'foo'
         else:
-            raise OSError("Invalid path {}!".format(path))
+            raise OSError(f"Invalid path {filepath}!")
 
     monkeypatch.setattr(jinja.resources, 'read_file', _read_file)
     monkeypatch.setattr(jinja.resources, 'read_file_binary', _read_file_binary)

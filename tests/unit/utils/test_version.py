@@ -304,8 +304,7 @@ except ImportError:
 def test_distribution(tmp_path, monkeypatch, os_release, expected):
     os_release_file = tmp_path / 'os-release'
     if os_release is not None:
-        (os_release_file.write_text(
-            textwrap.dedent(os_release), encoding="utf-8"))
+        os_release_file.write_text(textwrap.dedent(os_release), encoding="utf-8")
     monkeypatch.setenv('QUTE_FAKE_OS_RELEASE', str(os_release_file))
 
     assert version.distribution() == expected
