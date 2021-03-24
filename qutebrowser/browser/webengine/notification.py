@@ -19,8 +19,8 @@
 
 """Handles sending notifications over DBus."""
 
+import html
 from typing import Any, Dict, Optional, TYPE_CHECKING
-
 
 from PyQt5.QtGui import QImage
 from PyQt5.QtCore import (QObject, QVariant, QMetaType, QByteArray, pyqtSlot,
@@ -234,7 +234,5 @@ class DBusNotificationPresenter(QObject):
 
     def _format_body(self, message: str) -> str:
         if self._needs_escaping:
-            message = message.replace("&", "&amp;")
-            message = message.replace("<", "&lt;")
-            message = message.replace(">", "&gt;")
+            message = html.escape(message)
         return message
