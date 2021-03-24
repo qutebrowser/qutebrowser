@@ -26,8 +26,7 @@ import html
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from PyQt5.QtGui import QImage
-from PyQt5.QtCore import (QObject, QVariant, QMetaType, QByteArray, pyqtSlot,
-                          PYQT_VERSION)
+from PyQt5.QtCore import QObject, QVariant, QMetaType, QByteArray, pyqtSlot
 from PyQt5.QtDBus import (QDBusConnection, QDBusInterface, QDBus,
                           QDBusArgument, QDBusMessage)
 
@@ -130,14 +129,15 @@ class DBusNotificationPresenter(QObject):
             )
             self._verify_message(ping_reply, "ssss", QDBusMessage.ReplyMessage)
             name, vendor, version, spec_version = ping_reply.arguments()
-            log.init.debug("Connected to notification server: "
-                           f"{name} {version} by {vendor}, "
-                           f"implementing spec {spec_version}")
+            log.init.debug(
+                f"Connected to notification server: {name} {version} by {vendor}, "
+                f"implementing spec {spec_version}")
             if spec_version != "1.2":
                 # Released in January 2011, still current in March 2021.
-                log.init.warn(f"Notification server ({name} {version} by {vendor}) "
-                              f"implements spec {spec_version}, but 1.2 was expected. "
-                              f"If {name} is up to date, please report a bug.")
+                log.init.warning(
+                    f"Notification server ({name} {version} by {vendor}) implements "
+                    f"spec {spec_version}, but 1.2 was expected. If {name} is up to "
+                    "date, please report a qutebrowser bug.")
 
         # None means we don't know yet.
         self._capabilities: Optional[List[str]] = None
@@ -151,9 +151,12 @@ class DBusNotificationPresenter(QObject):
         try:
             from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
         except ImportError:
-            PYQT_WEBENGINE_VERSION = None  # type: ignore[assignment]
+            # Added with PyQtWebEngine 5.13
+            needs_workaround = True
+        else:
+            needs_workaround = PYQT_WEBENGINE_VERSION < 0x050F00
 
-        if PYQT_WEBENGINE_VERSION is None or PYQT_WEBENGINE_VERSION < 0x050F00:
+        if needs_workaround:
             # PyQtWebEngine unrefs the callback after it's called, for some
             # reason.  So we call setNotificationPresenter again to *increase*
             # its refcount to prevent it from getting GC'd. Otherwise, random
@@ -259,7 +262,7 @@ class DBusNotificationPresenter(QObject):
         self._verify_message(reply, "u", QDBusMessage.ReplyMessage)
 
         notification_id = reply.arguments()[0]
-        if existing_id != 0 and notification_id != existing_id:
+        if existing_id not in [0, notification_id]:
             raise DBusException(f"Wanted to replace notification {existing_id} but got "
                                 f"new id {notification_id}.")
         if notification_id == 0:
