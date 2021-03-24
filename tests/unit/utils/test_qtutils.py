@@ -522,7 +522,7 @@ if test_file is not None:
         yield
         try:
             pathlib.Path(test_file.TESTFN).unlink()
-        except FileNotFoundError:        
+        except FileNotFoundError:
             pass
 
     class PyIODeviceTestMixin:
