@@ -213,10 +213,16 @@ class DBusNotificationPresenter(QObject):
 
     @pyqtSlot(QDBusMessage)
     def _handle_close(self, message: QDBusMessage) -> None:
-        notification_id = message.arguments()[0]
-        if notification_id in self._active_notifications:
+        if message.signature() != "uu":
+            raise DBusException(
+                f"Got an unexpected message {message.arguments()} "
+                "when handling NotificationClosed")
+
+        notification_id, _close_reason = message.arguments()
+        notification = self._active_notifications.get(notification_id)
+        if notification is not None:
             try:
-                self._active_notifications[notification_id].close()
+                notification.close()
             except RuntimeError:
                 # WORKAROUND for
                 # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
