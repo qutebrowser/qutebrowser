@@ -146,14 +146,20 @@ class DBusNotificationPresenter(QObject):
         """Sets the profile to use the manager as the presenter."""
         # WORKAROUND for
         # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042916.html
-        if PYQT_VERSION < 0x050F00:  # PyQt 5.15
+        # Fixed in PyQtWebEngine 5.15.0
+
+        try:
+            from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
+        except ImportError:
+            PYQT_WEBENGINE_VERSION = None  # type: ignore[assignment]
+
+        if PYQT_WEBENGINE_VERSION is None or PYQT_WEBENGINE_VERSION < 0x050F00:
             # PyQtWebEngine unrefs the callback after it's called, for some
             # reason.  So we call setNotificationPresenter again to *increase*
             # its refcount to prevent it from getting GC'd. Otherwise, random
             # methods start getting called with the notification as `self`, or
             # segfaults happen, or other badness.
-            def _present_and_reset(qt_notification: "QWebEngineNotification") \
-                    -> None:
+            def _present_and_reset(qt_notification: "QWebEngineNotification") -> None:
                 profile.setNotificationPresenter(_present_and_reset)
                 self._present(qt_notification)
             profile.setNotificationPresenter(_present_and_reset)
