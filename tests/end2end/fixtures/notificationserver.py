@@ -95,9 +95,12 @@ class TestNotificationServer(QObject):
         assert replaces_id == 0
         assert icon == "qutebrowser"
         assert actions == []
-        assert list(hints) == ['x-qutebrowser-origin']
-        assert hints['x-qutebrowser-origin'].startswith('http://localhost:')
         assert timeout == -1
+
+        assert hints.keys() == {'x-qutebrowser-origin', "desktop-entry"}
+        assert hints['x-qutebrowser-origin'].startswith('http://localhost:')
+        assert hints['desktop-entry'] == 'org.qutebrowser.qutebrowser'
+
         return NotificationProperties(title=title, body=body)
 
     def close(self, notification_id: int) -> None:

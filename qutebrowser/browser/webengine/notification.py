@@ -155,7 +155,8 @@ class DBusNotificationPresenter(QObject):
         hints: Dict[str, Any] = {
             # Include the origin in case the user wants to do different things
             # with different origin's notifications.
-            "x-qutebrowser-origin": qt_notification.origin().toDisplayString()
+            "x-qutebrowser-origin": qt_notification.origin().toDisplayString(),
+            "desktop-entry": "org.qutebrowser.qutebrowser",
         }
         if not qt_notification.icon().isNull():
             hints["image-data"] = self._convert_image(qt_notification.icon())
