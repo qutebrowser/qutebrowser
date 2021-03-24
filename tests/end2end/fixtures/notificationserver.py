@@ -37,6 +37,12 @@ class NotificationProperties:
     body: str
 
 
+def _as_uint32(x: int) -> QVariant:
+    variant = QVariant(x)
+    assert variant.convert(QVariant.UInt)
+    return variant
+
+
 class TestNotificationServer(QObject):
     """A libnotify notification server used for testing."""
 
@@ -94,19 +100,6 @@ class TestNotificationServer(QObject):
         assert timeout == -1
         return NotificationProperties(title=title, body=body)
 
-    @pyqtSlot(QDBusMessage, result="uint")
-    def Notify(self, message: QDBusMessage) -> QDBusArgument:  # pylint: disable=invalid-name
-        message_id = next(self._message_id_gen)
-
-        args = message.arguments()
-        self.messages[message_id] = self._parse_notify_args(*args)
-        return message_id
-
-    @pyqtSlot(QDBusMessage, result="QStringList")
-    def GetCapabilities(self, message: QDBusMessage) -> List[str]:  # pylint: disable=invalid-name
-        assert not message.arguments()
-        return ["body-markup"] if self.supports_body_markup else []
-
     def close(self, notification_id: int) -> None:
         """Sends a close notification for the given ID."""
         message = QDBusMessage.createSignal(
@@ -119,6 +112,21 @@ class TestNotificationServer(QObject):
         if not self._bus.send(message):
             raise OSError("Could not send close notification")
 
+    # Everything below is exposed via DBus
+    # pylint: disable=invalid-name
+
+    @pyqtSlot(QDBusMessage, result="uint")
+    def Notify(self, message: QDBusMessage) -> QDBusArgument:
+        message_id = next(self._message_id_gen)
+        args = message.arguments()
+        self.messages[message_id] = self._parse_notify_args(*args)
+        return message_id
+
+    @pyqtSlot(QDBusMessage, result="QStringList")
+    def GetCapabilities(self, message: QDBusMessage) -> List[str]:
+        assert not message.arguments()
+        return ["body-markup"] if self.supports_body_markup else []
+
 
 @pytest.fixture
 def notification_server(qapp):
@@ -130,9 +138,3 @@ def notification_server(qapp):
 
     yield server
     server.unregister()
-
-
-def _as_uint32(x: int) -> QVariant:
-    variant = QVariant(x)
-    assert variant.convert(QVariant.UInt)
-    return variant
