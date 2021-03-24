@@ -461,17 +461,12 @@ def test_no_qapplication(qapp, tmpdir, monkeypatch):
     sub_code = """
         import sys
         import json
-
         sys.path = sys.argv[1:]  # make sure we have the same python path
-
         from PyQt5.QtWidgets import QApplication
         from qutebrowser.utils import standarddir
-
         assert QApplication.instance() is None
-
         standarddir.APPNAME = 'qute_test'
         standarddir._init_dirs()
-
         locations = {k.name: v for k, v in standarddir._locations.items()}
         print(json.dumps(locations))
     """

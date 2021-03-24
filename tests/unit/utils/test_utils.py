@@ -21,7 +21,7 @@
 
 import sys
 import enum
-import os.path
+import os
 import io
 import logging
 import functools
@@ -826,20 +826,19 @@ class TestYaml:
         with pytest.raises(yaml.YAMLError):
             utils.yaml_load("._")
 
-    def test_load_file(self, tmpdir):
-        tmpfile = tmpdir / 'foo.yml'
-        tmpfile.write('[1, 2]')
+    def test_load_file(self, tmp_path):
+        tmpfile = tmp_path / 'foo.yml'
+        tmpfile.write_text('[1, 2]')
         with tmpfile.open(encoding='utf-8') as f:
             assert utils.yaml_load(f) == [1, 2]
 
     def test_dump(self):
         assert utils.yaml_dump([1, 2]) == '- 1\n- 2\n'
 
-    def test_dump_file(self, tmpdir):
-        tmpfile = tmpdir / 'foo.yml'
-        with tmpfile.open('w', encoding='utf-8') as f:
-            utils.yaml_dump([1, 2], f)
-        assert tmpfile.read() == '- 1\n- 2\n'
+    def test_dump_file(self, tmp_path):
+        tmpfile = tmp_path / 'foo.yml'
+        tmpfile.write_text(utils.yaml_dump([1, 2]), encoding='utf-8')
+        assert tmpfile.read_text() == '- 1\n- 2\n'
 
 
 @pytest.mark.parametrize('elems, n, expected', [
