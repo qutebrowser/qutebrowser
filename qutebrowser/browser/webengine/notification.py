@@ -15,11 +15,11 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Handles sending notifications over DBus."""
 
-import typing
+from typing import Any, Dict, Optional, TYPE_CHECKING
 
 
 from PyQt5.QtGui import QImage
@@ -28,19 +28,18 @@ from PyQt5.QtCore import (QObject, QVariant, QMetaType, QByteArray, pyqtSlot,
 from PyQt5.QtDBus import (QDBusConnection, QDBusInterface, QDBus,
                           QDBusArgument, QDBusMessage)
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     # putting these behind TYPE_CHECKING also means this module is importable
     # on installs that don't have these
     from PyQt5.QtWebEngineCore import QWebEngineNotification
     from PyQt5.QtWebEngineWidgets import QWebEngineProfile
 
-from qutebrowser.browser.webengine import webenginesettings
 from qutebrowser.config import config
 from qutebrowser.misc import objects
 from qutebrowser.utils import qtutils, log, utils
 
 
-dbus_presenter: typing.Optional['DBusNotificationPresenter'] = None
+dbus_presenter: Optional['DBusNotificationPresenter'] = None
 
 
 def init() -> None:
@@ -90,8 +89,7 @@ class DBusNotificationPresenter(QObject):
 
     def __init__(self, test_service: bool = False):
         super().__init__()
-        self._active_notifications = {}  \
-            # type: typing.Dict[int, QWebEngineNotification]
+        self._active_notifications: Dict[int, 'QWebEngineNotification'] = {}
         bus = QDBusConnection.sessionBus()
         if not bus.isConnected():
             raise DBusException("Failed to connect to DBus session bus")
@@ -117,7 +115,7 @@ class DBusNotificationPresenter(QObject):
             raise DBusException("Could not construct a DBus interface")
 
         # None means we don't know yet.
-        self._needs_escaping = None  # type: typing.Optional[bool]
+        self._needs_escaping: Optional[bool] = None
 
     def install(self, profile: "QWebEngineProfile") -> None:
         """Sets the profile to use the manager as the presenter."""
@@ -156,11 +154,11 @@ class DBusNotificationPresenter(QObject):
         actions_list = QDBusArgument([], QMetaType.QStringList)
 
         qt_notification.show()
-        hints = {
+        hints: Dict[str, Any] = {
             # Include the origin in case the user wants to do different things
             # with different origin's notifications.
             "x-qutebrowser-origin": qt_notification.origin().toDisplayString()
-        }  # type: typing.Dict[str, typing.Any]
+        }
         if not qt_notification.icon().isNull():
             hints["image-data"] = self._convert_image(qt_notification.icon())
 

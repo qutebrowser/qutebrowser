@@ -1,6 +1,24 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-import typing
+# Copyright 2020-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# This file is part of qutebrowser.
+#
+# qutebrowser is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# qutebrowser is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+
+
+from typing import Dict, List
 
 from PyQt5.QtCore import QObject, QVariant, pyqtSlot
 from PyQt5.QtDBus import QDBusConnection, QDBusArgument, QDBusMessage
@@ -32,7 +50,7 @@ class TestNotificationServer(QObject):
         self._bus = QDBusConnection.sessionBus()
         self._message_id = 0
         # A dict mapping notification IDs to currently-displayed notifications.
-        self.messages = {}  # type: typing.Dict[int, QDBusMessage]
+        self.messages: Dict[int, QDBusMessage] = {}
         self.supports_body_markup = True
 
     def register(self) -> None:
@@ -58,11 +76,8 @@ class TestNotificationServer(QObject):
         return self._message_id
 
     @pyqtSlot(QDBusMessage, result="QStringList")
-    def GetCapabilities(self, message: QDBusMessage) -> typing.List[str]:  # pylint: disable=invalid-name
-        if self.supports_body_markup:
-            return ["body-markup"]
-        else:
-            return []
+    def GetCapabilities(self, message: QDBusMessage) -> List[str]:  # pylint: disable=invalid-name
+        return ["body-markup"] if self.supports_body_markup else []
 
     def close(self, notification_id: int) -> None:
         """Sends a close notification for the given ID."""
@@ -74,7 +89,7 @@ class TestNotificationServer(QObject):
         # arbitrary
         message.setArguments([_as_uint32(notification_id), _as_uint32(2)])
         if not self._bus.send(message):
-            raise IOError("Could not send close notification")
+            raise OSError("Could not send close notification")
 
 
 @pytest.fixture
