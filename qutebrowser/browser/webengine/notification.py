@@ -102,23 +102,13 @@ class DBusNotificationPresenter(QObject):
         if not self.interface.isValid():
             raise DBusException("Could not construct a DBus interface")
 
-        if not bus.connect(
-            service,
-            self.PATH,
-            self.INTERFACE,
-            "NotificationClosed",
-            self._handle_close,
-        ):
-            raise DBusException("Could not connect to NotificationClosed")
-
-        if not bus.connect(
-            service,
-            self.PATH,
-            self.INTERFACE,
-            "ActionInvoked",
-            self._handle_action,
-        ):
-            raise DBusException("Could not connect to ActionInvoked")
+        connections = [
+            ("NotificationClosed", self._handle_close),
+            ("ActionInvoked", self._handle_action),
+        ]
+        for name, func in connections:
+            if not bus.connect(service, self.PATH, self.INTERFACE, name, func):
+                raise DBusException(f"Could not connect to {name}")
 
         if not test_service:
             # Can't figure out how to make this work with the test server...
