@@ -152,7 +152,7 @@ def _run_pass(pass_arguments):
 
 
 def pass_(path):
-    if arguments.mode == "gopass":
+    if arguments.mode == "gopass" and arguments.username_target == "path":
         return _run_pass(['show', '-o', path])
     return _run_pass(['show', path])
 
