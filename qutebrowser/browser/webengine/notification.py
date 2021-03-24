@@ -67,10 +67,7 @@ def init() -> None:
     try:
         dbus_presenter = DBusNotificationPresenter(testing)
     except DBusException as e:
-        log.init.error(
-            "Failed to initialize DBus notification presenter: {}"
-            .format(e)
-        )
+        log.init.error(f"Failed to initialize DBus notification presenter: {e}")
 
 
 class DBusException(Exception):
@@ -178,13 +175,12 @@ class DBusNotificationPresenter(QObject):
 
         if reply.signature() != "u":
             raise DBusException(
-                "Got an unexpected reply {}; expected a single uint32"
-                .format(reply.arguments())
-            )
+                f"Got an unexpected reply {reply.arguments()}; "
+                "expected a single uint32")
 
         notification_id = reply.arguments()[0]
         self._active_notifications[notification_id] = qt_notification
-        log.webview.debug("Sent out notification {}".format(notification_id))
+        log.webview.debug(f"Sent out notification {notification_id}")
 
     def _convert_image(self, qimage: QImage) -> QDBusArgument:
         """Converts a QImage to the structure DBus expects."""
@@ -232,9 +228,8 @@ class DBusNotificationPresenter(QObject):
         )
         if reply.signature() != "as":
             raise DBusException(
-                "Got an unexpected reply {} when checking capabilities"
-                .format(reply.arguments())
-            )
+                f"Got an unexpected reply {reply.arguments()} "
+                "when checking capabilities")
         return "body-markup" in reply.arguments()[0]
 
     def _format_body(self, message: str) -> str:
