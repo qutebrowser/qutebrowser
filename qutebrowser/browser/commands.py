@@ -952,8 +952,7 @@ class CommandDispatcher:
         tabbed_browser, tab = self._resolve_tab_index(index)
 
         window = tabbed_browser.widget.window()
-        window.activateWindow()
-        window.raise_()
+        mainwindow.raise_window(window)
         tabbed_browser.widget.setCurrentWidget(tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
