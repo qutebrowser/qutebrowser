@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
-from qutebrowser.utils import qtutils, log, utils
+from qutebrowser.utils import qtutils, log, utils, debug
 
 
 dbus_presenter: Optional['DBusNotificationPresenter'] = None
@@ -133,6 +133,38 @@ class DBusNotificationPresenter(QObject):
         else:
             profile.setNotificationPresenter(self._present)
 
+    def _verify_message(
+        self,
+        message: QDBusMessage,
+        expected_signature: str,
+        expected_type: QDBusMessage.MessageType,
+    ) -> None:
+        """Check the signature/type of a received message.
+
+        Raises DBusError if the signature doesn't match.
+        """
+        assert expected_type not in [
+            QDBusMessage.ErrorMessage,
+            QDBusMessage.InvalidMessage,
+        ], expected_type
+
+        if message.type() == QDBusMessage.ErrorMessage:
+            raise DBusException(f"Got DBus error: {message.errorMessage()}")
+
+        signature = message.signature()
+        if signature != expected_signature:
+            raise DBusException(
+                f"Got a message with signature {signature} but expected "
+                f"{expected_signature} (args: {message.arguments()})")
+
+        typ = message.type()
+        if typ != expected_type:
+            type_str = debug.qenum_key(QDBusMessage.MessageType, typ)
+            expected_type_str = debug.qenum_key(QDBusMessage.MessageType, expected_type)
+            raise DBusException(
+                f"Got a message of type {type_str} but expected {expected_type_str}"
+                f"(args: {message.arguments()})")
+
     def _present(self, qt_notification: "QWebEngineNotification") -> None:
         """Shows a notification over DBus.
 
@@ -174,11 +206,7 @@ class DBusNotificationPresenter(QObject):
             hints,
             -1,  # timeout; -1 means 'use default'
         )
-
-        if reply.signature() != "u":
-            raise DBusException(
-                f"Got an unexpected reply {reply.arguments()}; "
-                "expected a single uint32")
+        self._verify_message(reply, "u", QDBusMessage.ReplyMessage)
 
         notification_id = reply.arguments()[0]
         self._active_notifications[notification_id] = qt_notification
@@ -213,10 +241,7 @@ class DBusNotificationPresenter(QObject):
 
     @pyqtSlot(QDBusMessage)
     def _handle_close(self, message: QDBusMessage) -> None:
-        if message.signature() != "uu":
-            raise DBusException(
-                f"Got an unexpected message {message.arguments()} "
-                "when handling NotificationClosed")
+        self._verify_message(message, "uu", QDBusMessage.SignalMessage)
 
         notification_id, _close_reason = message.arguments()
         notification = self._active_notifications.get(notification_id)
@@ -234,10 +259,7 @@ class DBusNotificationPresenter(QObject):
             QDBus.BlockWithGui,
             "GetCapabilities",
         )
-        if reply.signature() != "as":
-            raise DBusException(
-                f"Got an unexpected reply {reply.arguments()} "
-                "when checking capabilities")
+        self._verify_message(reply, "as", QDBusMessage.ReplyMessage)
         return "body-markup" in reply.arguments()[0]
 
     def _format_body(self, message: str) -> str:

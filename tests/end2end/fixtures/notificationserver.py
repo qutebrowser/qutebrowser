@@ -121,14 +121,19 @@ class TestNotificationServer(QObject):
 
     @pyqtSlot(QDBusMessage, result="uint")
     def Notify(self, message: QDBusMessage) -> QDBusArgument:
+        assert message.signature() == 'susssasa{sv}i'
+        assert message.type() == QDBusMessage.MethodCallMessage
+
         message_id = next(self._message_id_gen)
-        args = message.arguments()
-        self.messages[message_id] = self._parse_notify_args(*args)
+        self.messages[message_id] = self._parse_notify_args(*message.arguments())
         return message_id
 
     @pyqtSlot(QDBusMessage, result="QStringList")
     def GetCapabilities(self, message: QDBusMessage) -> List[str]:
+        assert not message.signature()
         assert not message.arguments()
+        assert message.type() == QDBusMessage.MethodCallMessage
+
         return ["body-markup"] if self.supports_body_markup else []
 
 
