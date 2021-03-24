@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
+import dataclasses
 import itertools
 from typing import Dict, List
 
@@ -27,6 +28,13 @@ import pytest
 from qutebrowser.browser.webengine import notification
 from qutebrowser.utils import utils
 from tests.helpers import testutils
+
+
+@dataclasses.dataclass
+class NotificationProperties:
+
+    title: str
+    body: str
 
 
 class TestNotificationServer(QObject):
@@ -45,7 +53,7 @@ class TestNotificationServer(QObject):
         self._bus = QDBusConnection.sessionBus()
         self._message_id_gen = itertools.count(1)
         # A dict mapping notification IDs to currently-displayed notifications.
-        self.messages: Dict[int, QDBusMessage] = {}
+        self.messages: Dict[int, NotificationProperties] = {}
         self.supports_body_markup = True
 
     def register(self) -> bool:
@@ -70,18 +78,33 @@ class TestNotificationServer(QObject):
         self._bus.unregisterObject(notification.DBusNotificationPresenter.PATH)
         assert self._bus.unregisterService(self._service)
 
+    def _parse_notify_args(self, appname, id_override, icon, title, body, actions,
+                           hints, timeout) -> NotificationProperties:
+        """Parse a Notify dbus reply.
+
+        Checks all constant values and returns a NotificationProperties object for
+        values being checked inside test cases.
+        """
+        assert appname == "qutebrowser"
+        assert id_override == 0
+        assert icon == "qutebrowser"
+        assert actions == []
+        assert list(hints) == ['x-qutebrowser-origin']
+        assert hints['x-qutebrowser-origin'].startswith('http://localhost:')
+        assert timeout == -1
+        return NotificationProperties(title=title, body=body)
+
     @pyqtSlot(QDBusMessage, result="uint")
     def Notify(self, message: QDBusMessage) -> QDBusArgument:  # pylint: disable=invalid-name
         message_id = next(self._message_id_gen)
+
         args = message.arguments()
-        self.messages[message_id] = {
-            "title": args[3],
-            "body": args[4]
-        }
+        self.messages[message_id] = self._parse_notify_args(*args)
         return message_id
 
     @pyqtSlot(QDBusMessage, result="QStringList")
     def GetCapabilities(self, message: QDBusMessage) -> List[str]:  # pylint: disable=invalid-name
+        assert not message.arguments()
         return ["body-markup"] if self.supports_body_markup else []
 
     def close(self, notification_id: int) -> None:

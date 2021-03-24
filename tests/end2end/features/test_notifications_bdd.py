@@ -38,12 +38,12 @@ def notification_presented(notification_server, id_):
 
 @bdd.then(bdd.parsers.cfparse('notification {id_:d} has body "{body}"'))
 def notification_body(notification_server, id_, body):
-    assert notification_server.messages[id_]["body"] == body
+    assert notification_server.messages[id_].body == body
 
 
 @bdd.then(bdd.parsers.cfparse('notification {id_:d} has title "{title}"'))
 def notification_title(notification_server, id_, title):
-    assert notification_server.messages[id_]["title"] == title
+    assert notification_server.messages[id_].title == title
 
 
 @bdd.when(bdd.parsers.cfparse('I close the notification with id {id_:d}'))
