@@ -53,3 +53,8 @@ def notification_title(notification_server, id_, title):
 @bdd.when(bdd.parsers.cfparse('I close the notification with id {id_:d}'))
 def close_notification(notification_server, id_):
     notification_server.close(id_)
+
+
+@bdd.when(bdd.parsers.cfparse('I click the notification with id {id_:d}'))
+def click_notification(notification_server, id_):
+    notification_server.click(id_)

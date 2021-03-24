@@ -48,3 +48,17 @@ Feature: Notifications
         And I wait for the javascript message "notification shown"
         And I close the notification with id 1234
         Then the javascript message "notification closed" should not be logged
+
+    @qtwebengine_notifications @qtwebengine_py_5_15
+    Scenario: User clicks presented notification
+        When I run :click-element id show-button
+        And I wait for the javascript message "notification shown"
+        And I click the notification with id 1
+        Then the javascript message "notification clicked" should be logged
+
+    @qtwebengine_notifications @qtwebengine_py_5_15
+    Scenario: User clicks some other application's notification
+        When I run :click-element id show-button
+        And I wait for the javascript message "notification shown"
+        And I click the notification with id 1234
+        Then the javascript message "notification clicked" should not be logged

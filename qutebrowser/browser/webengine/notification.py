@@ -23,7 +23,7 @@ Related spec: https://developer.gnome.org/notification-spec/
 """
 
 import html
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from PyQt5.QtGui import QImage
 from PyQt5.QtCore import (QObject, QVariant, QMetaType, QByteArray, pyqtSlot,
@@ -106,14 +106,21 @@ class DBusNotificationPresenter(QObject):
             self.PATH,
             self.INTERFACE,
             "NotificationClosed",
-            self._handle_close
+            self._handle_close,
+        )
+        bus.connect(
+            service,
+            self.PATH,
+            self.INTERFACE,
+            "ActionInvoked",
+            self._handle_action,
         )
 
         if not self.interface:
             raise DBusException("Could not construct a DBus interface")
 
         # None means we don't know yet.
-        self._needs_escaping: Optional[bool] = None
+        self._capabilities: Optional[List[str]] = None
 
     def install(self, profile: "QWebEngineProfile") -> None:
         """Sets the profile to use the manager as the presenter."""
@@ -173,15 +180,19 @@ class DBusNotificationPresenter(QObject):
         """
         # Deferring this check to the first presentation means we can tweak
         # whether the test notification server supports body markup.
-        if self._needs_escaping is None:
-            self._needs_escaping = self._check_needs_escaping()
+        if self._capabilities is None:
+            self._fetch_capabilities()
+            assert self._capabilities is not None
 
         # notification id 0 means 'assign us the ID'. We can't just pass 0
         # because it won't get sent as the right type.
         zero = QVariant(0)
         zero.convert(QVariant.UInt)
 
-        actions_list = QDBusArgument([], QMetaType.QStringList)
+        actions = []
+        if 'actions' in self._capabilities:
+            actions = ['default', '']  # key, name
+        actions_arg = QDBusArgument(actions, QMetaType.QStringList)
 
         qt_notification.show()
         hints: Dict[str, Any] = {
@@ -202,7 +213,7 @@ class DBusNotificationPresenter(QObject):
             # Titles don't support markup, so no need to escape them.
             qt_notification.title(),
             self._format_body(qt_notification.message()),
-            actions_list,
+            actions_arg,
             hints,
             -1,  # timeout; -1 means 'use default'
         )
@@ -253,16 +264,35 @@ class DBusNotificationPresenter(QObject):
                 # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
                 pass
 
-    def _check_needs_escaping(self) -> bool:
-        """Checks whether we need to escape body messages we send."""
+    @pyqtSlot(QDBusMessage)
+    def _handle_action(self, message: QDBusMessage) -> None:
+        self._verify_message(message, "us", QDBusMessage.SignalMessage)
+
+        notification_id, action_key = message.arguments()
+        if action_key != "default":
+            raise DBusException(f"Got unknown action {action_key}")
+
+        notification = self._active_notifications.get(notification_id)
+        if notification is not None:
+            try:
+                notification.click()
+            except RuntimeError:
+                # WORKAROUND for
+                # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
+                pass
+
+    def _fetch_capabilities(self) -> None:
+        """Fetch capabilities from the notification server."""
         reply = self.interface.call(
             QDBus.BlockWithGui,
             "GetCapabilities",
         )
         self._verify_message(reply, "as", QDBusMessage.ReplyMessage)
-        return "body-markup" in reply.arguments()[0]
+        self._capabilities = reply.arguments()[0]
+        log.misc.debug(f"Notification server capabilities: {self._capabilities}")
 
     def _format_body(self, message: str) -> str:
-        if self._needs_escaping:
-            message = html.escape(message)
+        assert self._capabilities is not None
+        if 'body-markup' in self._capabilities:
+            return html.escape(message)
         return message

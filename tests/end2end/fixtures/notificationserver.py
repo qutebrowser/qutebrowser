@@ -94,7 +94,7 @@ class TestNotificationServer(QObject):
         assert appname == "qutebrowser"
         assert replaces_id == 0
         assert icon == "qutebrowser"
-        assert actions == []
+        assert actions == ['default', '']
         assert timeout == -1
 
         assert hints.keys() == {'x-qutebrowser-origin', "desktop-entry"}
@@ -116,6 +116,17 @@ class TestNotificationServer(QObject):
         if not self._bus.send(message):
             raise OSError("Could not send close notification")
 
+    def click(self, notification_id: int) -> None:
+        """Sends a click (default action) notification for the given ID."""
+        message = QDBusMessage.createSignal(
+            notification.DBusNotificationPresenter.PATH,
+            notification.DBusNotificationPresenter.INTERFACE,
+            "ActionInvoked")
+
+        message.setArguments([_as_uint32(notification_id), "default"])
+        if not self._bus.send(message):
+            raise OSError("Could not send click notification")
+
     # Everything below is exposed via DBus
     # pylint: disable=invalid-name
 
@@ -134,7 +145,10 @@ class TestNotificationServer(QObject):
         assert not message.arguments()
         assert message.type() == QDBusMessage.MethodCallMessage
 
-        return ["body-markup"] if self.supports_body_markup else []
+        capabilities = ["actions"]
+        if self.supports_body_markup:
+            capabilities.append("body-markup")
+        return capabilities
 
 
 @pytest.fixture
