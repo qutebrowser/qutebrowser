@@ -35,6 +35,7 @@ class NotificationProperties:
 
     title: str
     body: str
+    replaces_id: int
 
 
 def _as_uint32(x: int) -> QVariant:
@@ -92,7 +93,6 @@ class TestNotificationServer(QObject):
         values being checked inside test cases.
         """
         assert appname == "qutebrowser"
-        assert replaces_id == 0
         assert icon == "qutebrowser"
         assert actions == ['default', '']
         assert timeout == -1
@@ -101,7 +101,10 @@ class TestNotificationServer(QObject):
         assert hints['x-qutebrowser-origin'].startswith('http://localhost:')
         assert hints['desktop-entry'] == 'org.qutebrowser.qutebrowser'
 
-        return NotificationProperties(title=title, body=body)
+        if replaces_id != 0:
+            assert replaces_id in self.messages
+
+        return NotificationProperties(title=title, body=body, replaces_id=replaces_id)
 
     def close(self, notification_id: int) -> None:
         """Sends a close notification for the given ID."""
@@ -131,12 +134,18 @@ class TestNotificationServer(QObject):
     # pylint: disable=invalid-name
 
     @pyqtSlot(QDBusMessage, result="uint")
-    def Notify(self, message: QDBusMessage) -> QDBusArgument:
-        assert message.signature() == 'susssasa{sv}i'
-        assert message.type() == QDBusMessage.MethodCallMessage
+    def Notify(self, dbus_message: QDBusMessage) -> QDBusArgument:
+        assert dbus_message.signature() == 'susssasa{sv}i'
+        assert dbus_message.type() == QDBusMessage.MethodCallMessage
 
-        message_id = next(self._message_id_gen)
-        self.messages[message_id] = self._parse_notify_args(*message.arguments())
+        message = self._parse_notify_args(*dbus_message.arguments())
+
+        if message.replaces_id == 0:
+            message_id = next(self._message_id_gen)
+        else:
+            message_id = message.replaces_id
+        self.messages[message_id] = message
+
         return message_id
 
     @pyqtSlot(QDBusMessage, result="QStringList")

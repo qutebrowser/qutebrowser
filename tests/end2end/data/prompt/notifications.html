@@ -46,11 +46,19 @@
 		let notification = new Notification(str, { body: str });
 		notification.onshow = function() { console.log("notification shown"); };
 	    }
+
+            function show_multiple_notifications() {
+                for (let i = 1; i <= 3; i++) {
+                    let notification = new Notification(`i=${i}`, { tag: 'counter' });
+                    notification.onshow = function() { console.log(`i=${i} notification shown`); };
+                }
+            }
         </script>
     </head>
     <body>
         <input type="button" onclick="get_notification_permission()" value="Get notification permission" id="button">
         <input type="button" onclick="show_notification()" value="Show notification" id="show-button">
         <input type="button" onclick="show_symbol_notification()" value="Show notification with symbols" id="show-symbols-button">
+        <input type="button" onclick="show_multiple_notifications()" value="Show multiple notifications" id="show-multiple-button">
     </body>
 </html>

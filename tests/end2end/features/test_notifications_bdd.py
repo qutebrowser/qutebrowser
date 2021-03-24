@@ -40,6 +40,11 @@ def notification_presented(notification_server, id_):
     assert id_ in notification_server.messages
 
 
+@bdd.then('1 notification is presented')
+def notification_presented_single(notification_server):
+    assert len(notification_server.messages) == 1
+
+
 @bdd.then(bdd.parsers.cfparse('notification {id_:d} has body "{body}"'))
 def notification_body(notification_server, id_, body):
     assert notification_server.messages[id_].body == body

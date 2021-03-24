@@ -16,6 +16,15 @@ Feature: Notifications
         And a notification with id 1 is presented
 
     @qtwebengine_notifications
+    Scenario: Replacing existing notifications
+        When I run :click-element id show-multiple-button
+        Then the javascript message "i=1 notification shown" should be logged
+        Then the javascript message "i=2 notification shown" should be logged
+        Then the javascript message "i=3 notification shown" should be logged
+        And 1 notification is presented
+        And notification 1 has title "i=3"
+
+    @qtwebengine_notifications
     Scenario: Notification containing escaped characters
         Given the notification server supports body markup
         When I run :click-element id show-symbols-button

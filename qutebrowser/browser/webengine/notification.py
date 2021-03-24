@@ -172,6 +172,19 @@ class DBusNotificationPresenter(QObject):
                 f"Got a message of type {type_str} but expected {expected_type_str}"
                 f"(args: {message.arguments()})")
 
+    def _find_matching_id(self, new_notification: "QWebEngineNotification") -> int:
+        """Find an existing notification to replace.
+
+        If no notification should be replaced or the notification to be replaced was not
+        found, this returns 0 (as per the notification spec).
+        """
+        if not new_notification.tag():
+            return 0
+        for notification_id, notification in self._active_notifications.items():
+            if notification.matches(new_notification):
+                return notification_id
+        return 0
+
     def _present(self, qt_notification: "QWebEngineNotification") -> None:
         """Shows a notification over DBus.
 
@@ -184,10 +197,10 @@ class DBusNotificationPresenter(QObject):
             self._fetch_capabilities()
             assert self._capabilities is not None
 
-        # notification id 0 means 'assign us the ID'. We can't just pass 0
-        # because it won't get sent as the right type.
-        zero = QVariant(0)
-        zero.convert(QVariant.UInt)
+        # We can't just pass the int because it won't get sent as the right type.
+        existing_id = self._find_matching_id(qt_notification)
+        existing_id_arg = QVariant(existing_id)
+        existing_id_arg.convert(QVariant.UInt)
 
         actions = []
         if 'actions' in self._capabilities:
@@ -208,7 +221,7 @@ class DBusNotificationPresenter(QObject):
             QDBus.BlockWithGui,
             "Notify",
             "qutebrowser",  # application name
-            zero,  # replaces notification id
+            existing_id_arg,  # replaces notification id
             "qutebrowser",  # icon (freedesktop.org icon theme name)
             # Titles don't support markup, so no need to escape them.
             qt_notification.title(),
@@ -220,6 +233,12 @@ class DBusNotificationPresenter(QObject):
         self._verify_message(reply, "u", QDBusMessage.ReplyMessage)
 
         notification_id = reply.arguments()[0]
+        if existing_id != 0 and notification_id != existing_id:
+            raise DBusException(f"Wanted to replace notification {existing_id} but got "
+                                f"new id {notification_id}.")
+        if notification_id == 0:
+            raise DBusException("Got invalid notification id 0")
+
         self._active_notifications[notification_id] = qt_notification
         log.webview.debug(f"Sent out notification {notification_id}")
 
