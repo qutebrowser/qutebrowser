@@ -25,6 +25,7 @@ from PyQt5.QtDBus import QDBusConnection, QDBusArgument, QDBusMessage
 import pytest
 
 from qutebrowser.utils import utils
+from tests.helpers import testutils
 
 
 class TestNotificationServer(QObject):
@@ -53,13 +54,21 @@ class TestNotificationServer(QObject):
         self.messages: Dict[int, QDBusMessage] = {}
         self.supports_body_markup = True
 
-    def register(self) -> None:
-        assert self._bus.isConnected()
+    def register(self) -> bool:
+        """Try to register to DBus.
+
+        If no bus is available, returns False.
+        If a bus is available but registering fails, raises an AssertionError.
+        If registering succeeded, returns True.
+        """
+        if not self._bus.isConnected():
+            return False
         assert self._bus.registerService(self._service)
         assert self._bus.registerObject(TestNotificationServer.PATH,
                                         TestNotificationServer.INTERFACE,
                                         self,
                                         QDBusConnection.ExportAllSlots)
+        return True
 
     def unregister(self) -> None:
         self._bus.unregisterObject(TestNotificationServer.PATH)
@@ -95,14 +104,13 @@ class TestNotificationServer(QObject):
 @pytest.fixture
 def notification_server(qapp):
     server = TestNotificationServer(TestNotificationServer.TEST_SERVICE)
-    if utils.is_windows or utils.is_mac:
-        yield server
-    else:
-        try:
-            server.register()
-            yield server
-        finally:
-            server.unregister()
+    registered = server.register()
+    if not registered:
+        assert not (utils.is_linux and testutils.ON_CI), "Expected DBus on Linux CI"
+        pytest.skip("No DBus server available")
+
+    yield server
+    server.unregister()
 
 
 def _as_uint32(x: int) -> QVariant:
