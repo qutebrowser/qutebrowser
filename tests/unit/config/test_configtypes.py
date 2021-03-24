@@ -1832,6 +1832,8 @@ class TestFormatString:
         '{foo} {bar} {baz}',
         '{foo} {bar',
         '{1}',
+        '{foo.attr}',
+        '{foo[999]}',
     ])
     def test_to_py_invalid(self, typ, val):
         with pytest.raises(configexc.ValidationError):
