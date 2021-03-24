@@ -983,6 +983,9 @@ class CommandDispatcher:
             self._tab_focus_stack(index)
             return
         elif index is None:
+            message.warning(
+                "Using :tab-focus without count is deprecated, "
+                "use :tab-next instead.")
             self.tab_next()
             return
 

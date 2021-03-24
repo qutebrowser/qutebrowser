@@ -27,6 +27,8 @@ Deprecated
   driver was dropped. Newer Qt 5.12.x versions are still fully supported.
 - The `--force` argument for `:tab-only` is deprecated, use `--pinned close`
   instead.
+- Using `:tab-focus` without an argument or count is now deprecated, use
+  `:tab-next` instead.
 
 Added
 ~~~~~
@@ -82,6 +84,9 @@ Changed
 - When an external file selector is used, some additional validation is done on
   the picked files now, so that errors are shown if e.g. a directory is selected
   when a file was expected.
+- The default binding for `T` (`:tab-focus`) got changed so that it fills the
+  command line with `:tab-focus` if used without a count (instead of being
+  equivalent to `:tab-next` in that case).
 
 Fixed
 ~~~~~

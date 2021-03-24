@@ -3336,7 +3336,7 @@ bindings.default:
       <Ctrl-Shift-W>: close
       D: tab-close -o
       co: tab-only
-      T: tab-focus
+      T: set-cmd-text -sr :tab-focus
       gm: tab-move
       gK: tab-move -
       gJ: tab-move +
