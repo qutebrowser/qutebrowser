@@ -27,7 +27,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py py3 ${{ runner.temp }}"
-      - run: tox -e bleeding
+      - name: Run tox
+        run: dbus-run-session tox -e bleeding
 
   irc:
     timeout-minutes: 2
