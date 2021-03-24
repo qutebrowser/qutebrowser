@@ -144,6 +144,9 @@ Fixed
   it's usually better to map keys to commands instead.
 - When a minimized window is selected via `:tab-select`, it's now un-minimized
   properly.
+- When a format string in the config (e.g. `tabs.title_format`) used a value
+  like `{current_url.host}` (instead of `{current_url:host}`), qutebrowser
+  would crash. It now correctly reports an invalid config value instead.
 
 [[v2.1.0]]
 v2.1.0 (2021-03-12)
