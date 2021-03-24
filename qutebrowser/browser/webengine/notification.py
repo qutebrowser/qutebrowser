@@ -28,7 +28,7 @@ from typing import Any, Dict, List, Optional, TYPE_CHECKING
 from PyQt5.QtGui import QImage
 from PyQt5.QtCore import QObject, QVariant, QMetaType, QByteArray, pyqtSlot
 from PyQt5.QtDBus import (QDBusConnection, QDBusInterface, QDBus,
-                          QDBusArgument, QDBusMessage)
+                          QDBusArgument, QDBusMessage, QDBusError)
 
 if TYPE_CHECKING:
     # putting these behind TYPE_CHECKING also means this module is importable
@@ -89,18 +89,17 @@ class DBusNotificationPresenter(QObject):
         self._active_notifications: Dict[int, 'QWebEngineNotification'] = {}
         bus = QDBusConnection.sessionBus()
         if not bus.isConnected():
-            raise DBusException("Failed to connect to DBus session bus")
+            raise DBusException(
+                "Failed to connect to DBus session bus: " +
+                self._dbus_error_str(bus.lastError()))
 
         service = self.TEST_SERVICE if test_service else self.SERVICE
 
-        self.interface = QDBusInterface(
-            service,
-            self.PATH,
-            self.INTERFACE,
-            bus,
-        )
+        self.interface = QDBusInterface(service, self.PATH, self.INTERFACE, bus)
         if not self.interface.isValid():
-            raise DBusException("Could not construct a DBus interface")
+            raise DBusException(
+                "Could not construct a DBus interface: " +
+                self._dbus_error_str(self.interface.lastError()))
 
         connections = [
             ("NotificationClosed", self._handle_close),
@@ -108,7 +107,9 @@ class DBusNotificationPresenter(QObject):
         ]
         for name, func in connections:
             if not bus.connect(service, self.PATH, self.INTERFACE, name, func):
-                raise DBusException(f"Could not connect to {name}")
+                raise DBusException(
+                    f"Could not connect to {name}: " +
+                    self._dbus_error_str(bus.lastError()))
 
         if not test_service:
             # Can't figure out how to make this work with the test server...
@@ -131,6 +132,11 @@ class DBusNotificationPresenter(QObject):
 
         # None means we don't know yet.
         self._capabilities: Optional[List[str]] = None
+
+    def _dbus_error_str(self, error: QDBusError) -> str:
+        """Get a string for a DBus error."""
+        qtutils.ensure_valid(error)
+        return f"{error.name()} - {error.message()}"
 
     def install(self, profile: "QWebEngineProfile") -> None:
         """Sets the profile to use the manager as the presenter."""
@@ -175,7 +181,8 @@ class DBusNotificationPresenter(QObject):
         ], expected_type
 
         if message.type() == QDBusMessage.ErrorMessage:
-            raise DBusException(f"Got DBus error: {message.errorMessage()}")
+            raise DBusException(
+                f"Got DBus error: {message.errorName()} - {message.errorMessage()}")
 
         signature = message.signature()
         if signature != expected_signature:
