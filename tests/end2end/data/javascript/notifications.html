@@ -67,14 +67,14 @@
             function show_image_notification() {
                 get_notification_permission(() => {
                     // For manual testing
-                    let notification = new Notification("qutebrowser logo", { icon: '/data/img/qutebrowser.png' });
+                    let notification = new Notification("RGBA", { icon: 'img/rgba.png' });
                 });
             }
 
             function show_image_notification_noalpha() {
                 get_notification_permission(() => {
                     // For manual testing
-                    let notification = new Notification("qutebrowser logo", { icon: '/data/img/qutebrowser-noalpha.png' });
+                    let notification = new Notification("RGB", { icon: 'img/rgb.png' });
                 });
             }
         </script>
