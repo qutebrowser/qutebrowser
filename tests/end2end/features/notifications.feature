@@ -12,23 +12,23 @@ Feature: Notifications
     Scenario: Notification is shown
         When I run :click-element id show-button
         Then the javascript message "notification shown" should be logged
-        And a notification with id 1 is presented
+        And a notification with id 1 should be presented
 
     @qtwebengine_notifications
     Scenario: Notification containing escaped characters
         Given the notification server supports body markup
         When I run :click-element id show-symbols-button
         Then the javascript message "notification shown" should be logged
-        And notification 1 has body "&lt;&lt; &amp;&amp; &gt;&gt;"
-        And notification 1 has title "<< && >>"
+        And notification 1 should have body "&lt;&lt; &amp;&amp; &gt;&gt;"
+        And notification 1 should have title "<< && >>"
 
     @qtwebengine_notifications
     Scenario: Notification containing escaped characters with no body markup
         Given the notification server doesn't support body markup
         When I run :click-element id show-symbols-button
         Then the javascript message "notification shown" should be logged
-        And notification 1 has body "<< && >>"
-        And notification 1 has title "<< && >>"
+        And notification 1 should have body "<< && >>"
+        And notification 1 should have title "<< && >>"
 
     # As a WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
     # and other issues, those can only run with PyQtWebEngine >= 5.15.0
@@ -41,10 +41,10 @@ Feature: Notifications
     Scenario: Replacing existing notifications
         When I run :click-element id show-multiple-button
         Then the javascript message "i=1 notification shown" should be logged
-        Then the javascript message "i=2 notification shown" should be logged
-        Then the javascript message "i=3 notification shown" should be logged
-        And 1 notification is presented
-        And notification 1 has title "i=3"
+        And the javascript message "i=2 notification shown" should be logged
+        And the javascript message "i=3 notification shown" should be logged
+        And 1 notification should be presented
+        And notification 1 should have title "i=3"
 
     @qtwebengine_notifications @pyqtwebengine<5.15.0
     Scenario: Replacing existing notifications (old Qt)
@@ -55,10 +55,10 @@ Feature: Notifications
         And "Ignoring notification tag 'counter' due to PyQt bug" should be logged
         And the javascript message "i=3 notification shown" should be logged
         And "Ignoring notification tag 'counter' due to PyQt bug" should be logged
-        And 3 notifications are presented
-        And notification 1 has title "i=1"
-        And notification 2 has title "i=2"
-        And notification 3 has title "i=3"
+        And 3 notifications should be presented
+        And notification 1 should have title "i=1"
+        And notification 2 should have title "i=2"
+        And notification 3 should have title "i=3"
 
     @qtwebengine_notifications @pyqtwebengine>=5.15.0
     Scenario: User closes presented notification

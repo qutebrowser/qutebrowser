@@ -44,27 +44,27 @@ def doesnt_support_body_markup(notification_server, quteproc):
     quteproc.wait_for(message="Notification server capabilities: ['actions']")
 
 
-@bdd.then(bdd.parsers.cfparse('a notification with id {id_:d} is presented'))
+@bdd.then(bdd.parsers.cfparse('a notification with id {id_:d} should be presented'))
 def notification_presented(notification_server, id_):
     assert id_ in notification_server.messages
 
 
-@bdd.then('1 notification is presented')
+@bdd.then('1 notification should be presented')
 def notification_presented_single(notification_server):
     assert len(notification_server.messages) == 1
 
 
-@bdd.then(bdd.parsers.cfparse('{count:d} notifications are presented'))
+@bdd.then(bdd.parsers.cfparse('{count:d} notifications should be presented'))
 def notification_presented_count(notification_server, count):
     assert len(notification_server.messages) == count
 
 
-@bdd.then(bdd.parsers.cfparse('notification {id_:d} has body "{body}"'))
+@bdd.then(bdd.parsers.cfparse('notification {id_:d} should have body "{body}"'))
 def notification_body(notification_server, id_, body):
     assert notification_server.messages[id_].body == body
 
 
-@bdd.then(bdd.parsers.cfparse('notification {id_:d} has title "{title}"'))
+@bdd.then(bdd.parsers.cfparse('notification {id_:d} should have title "{title}"'))
 def notification_title(notification_server, id_, title):
     assert notification_server.messages[id_].title == title
 
