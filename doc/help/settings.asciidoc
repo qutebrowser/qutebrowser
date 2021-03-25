@@ -2504,11 +2504,11 @@ Default: empty
 [[content.notification_presenter]]
 === content.notification_presenter
 What notification presenter to use for web notifications.
-Windows and macOS will always act as if this is set to `qt.`
+Note that with Qt 5.14, certain JavaScript features for notifications will not work with the libnotify notification presenter (the `click` and `close` events, as well as the `tag` option to replace existing notifications).
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.13 or newer.
+On QtWebEngine, this setting requires Qt 5.14 or newer.
 
 On QtWebKit, this setting is unavailable.
 

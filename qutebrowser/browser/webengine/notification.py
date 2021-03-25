@@ -90,8 +90,8 @@ class DBusNotificationPresenter(QObject):
     def __init__(self, test_service: bool = False):
         super().__init__()
 
-        if not qtutils.version_check('5.13'):
-            raise Error("Notifications are not supported on this Qt version")
+        if not qtutils.version_check('5.14'):
+            raise Error("Notifications are not supported on Qt < 5.14")
 
         if utils.is_windows:
             # The QDBusConnection destructor seems to cause error messages (and

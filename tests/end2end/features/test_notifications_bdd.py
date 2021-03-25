@@ -19,10 +19,21 @@
 
 import pytest
 import pytest_bdd as bdd
+
+from qutebrowser.utils import qtutils
+
+
 bdd.scenarios('notifications.feature')
 
 
-pytestmark = pytest.mark.usefixtures('notification_server')
+pytestmark = [
+    pytest.mark.usefixtures('notification_server'),
+    pytest.mark.qtwebengine_notifications,
+    pytest.mark.skipif(
+        not qtutils.version_check('5.14'),
+        reason="Custom notification presenters segfault with Qt/PyQtWebEngine 5.13",
+    ),
+]
 
 
 @bdd.given("the notification server supports body markup")

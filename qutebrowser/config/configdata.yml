@@ -921,12 +921,14 @@ content.notification_presenter:
       - libnotify: Use a libnotify-compatible presenter if DBus is available, show an
             error (and fall back to Qt's presenter) otherwise.
   backend:
-    QtWebEngine: Qt 5.13
+    QtWebEngine: Qt 5.14
     QtWebKit: false
   desc: >-
     What notification presenter to use for web notifications.
 
-    Windows and macOS will always act as if this is set to `qt.`
+    Note that with Qt 5.14, certain JavaScript features for notifications will not work
+    with the libnotify notification presenter (the `click` and `close` events, as well
+    as the `tag` option to replace existing notifications).
 
 content.pdfjs:
   default: false
