@@ -20,56 +20,68 @@
                 }
             }
 
-            function get_notification_permission() {
+            function get_notification_permission(callback) {
                 if (!("Notification" in window)) {
                     console.log("[FAIL] notifications unavailable");
                 }
                 if (Notification.permission === "default") {
-                    Notification.requestPermission(permission_cb);
+                    Notification.requestPermission((permission) => {
+                        permission_cb(permission);
+                        if (permission == "granted") {
+                            callback();
+                        }
+                    });
+                } else {
+                    callback();
                 }
             }
 
             function show_notification() {
-                get_notification_permission();
-                let notification = new Notification("notification title", {
-                    body: "notification body"
+                get_notification_permission(() => {
+                    let notification = new Notification("notification title", {
+                        body: "notification body"
+                    });
+                    notification.onclick = function() { console.log("notification clicked"); };
+                    notification.onclose = function() { console.log("notification closed"); };
+                    notification.onshow = function() { console.log("notification shown"); };
                 });
-                notification.onclick = function() { console.log("notification clicked"); };
-                notification.onclose = function() { console.log("notification closed"); };
-                notification.onshow = function() { console.log("notification shown"); };
             }
 
             function show_symbol_notification() {
-                get_notification_permission();
-                let str = "<< && >>";
-                let notification = new Notification(str, { body: str });
-                notification.onshow = function() { console.log("notification shown"); };
+                get_notification_permission(() => {
+                    let str = "<< && >>";
+                    let notification = new Notification(str, { body: str });
+                    notification.onshow = function() { console.log("notification shown"); };
+                });
             }
 
             function show_multiple_notifications() {
-                get_notification_permission();
-                for (let i = 1; i <= 3; i++) {
-                    let notification = new Notification(`i=${i}`, { tag: 'counter' });
-                    notification.onshow = function() { console.log(`i=${i} notification shown`); };
-                }
+                get_notification_permission(() => {
+                    for (let i = 1; i <= 3; i++) {
+                        let notification = new Notification(`i=${i}`, { tag: 'counter' });
+                        notification.onshow = function() { console.log(`i=${i} notification shown`); };
+                    }
+                });
             }
 
             function show_image_notification() {
-                get_notification_permission();
-                // For manual testing
-                let notification = new Notification("qutebrowser logo", { icon: '/data/img/qutebrowser.png' });
+                get_notification_permission(() => {
+                    // For manual testing
+                    let notification = new Notification("qutebrowser logo", { icon: '/data/img/qutebrowser.png' });
+                });
             }
 
             function show_image_notification_noalpha() {
-                get_notification_permission();
-                // For manual testing
-                let notification = new Notification("qutebrowser logo", { icon: '/data/img/qutebrowser-noalpha.png' });
+                get_notification_permission(() => {
+                    // For manual testing
+                    let notification = new Notification("qutebrowser logo", { icon: '/data/img/qutebrowser-noalpha.png' });
+                });
             }
         </script>
     </head>
     <body>
         <div>
-            <input type="button" onclick="get_notification_permission()" value="Get notification permission" id="button">
+            <input type="button" onclick="get_notification_permission(() => {})" value="Get notification permission" id="button">
         </div>
         <div>
             <input type="button" onclick="show_notification()" value="Show notification" id="show-button">
