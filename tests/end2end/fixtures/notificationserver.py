@@ -21,7 +21,8 @@ import dataclasses
 import itertools
 from typing import Dict, List
 
-from PyQt5.QtCore import QObject, QVariant, pyqtSlot
+from PyQt5.QtCore import QObject, QVariant, QByteArray, pyqtSlot
+from PyQt5.QtGui import QImage
 from PyQt5.QtDBus import QDBusConnection, QDBusArgument, QDBusMessage
 import pytest
 
@@ -93,18 +94,44 @@ class TestNotificationServer(QObject):
         values being checked inside test cases.
         """
         assert appname == "qutebrowser"
-        assert icon == "qutebrowser"
+        assert icon == ''  # using icon data
         assert actions == ['default', '']
         assert timeout == -1
 
-        assert hints.keys() == {'x-qutebrowser-origin', "desktop-entry"}
+        assert hints.keys() == {'x-qutebrowser-origin', "desktop-entry", "image-data"}
         assert hints['x-qutebrowser-origin'].startswith('http://localhost:')
         assert hints['desktop-entry'] == 'org.qutebrowser.qutebrowser'
+
+        self._validate_image(*hints["image-data"])
 
         if replaces_id != 0:
             assert replaces_id in self.messages
 
         return NotificationProperties(title=title, body=body, replaces_id=replaces_id)
+
+    def _validate_image(
+            self,
+            width: int,
+            height: int,
+            bytes_per_line: int,
+            has_alpha: bool,
+            bits_per_color: int,
+            channel_count: int,
+            data: QByteArray,
+    ) -> None:
+        """Make sure the given image data is valid."""
+        # Chromium limit?
+        assert 0 < width <= 320
+        assert 0 < height <= 320
+
+        assert bits_per_color == 8
+        assert channel_count == (4 if has_alpha else 3)
+        assert bytes_per_line == width * channel_count
+        assert len(data) == height * bytes_per_line
+
+        qimage_format = QImage.Format_RGBA8888 if has_alpha else QImage.Format_RGB888
+        img = QImage(data, width, height, bytes_per_line, qimage_format)
+        assert not img.isNull()
 
     def close(self, notification_id: int) -> None:
         """Sends a close notification for the given ID."""

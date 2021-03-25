@@ -27,6 +27,16 @@ Feature: Notifications
         And notification 1 should have body "<< && >>"
         And notification 1 should have title "<< && >>"
 
+    Scenario: Notification with RGB image
+        When I run :click-element id show-image-button-noalpha
+        Then the javascript message "notification shown" should be logged
+        And notification 1 should have title "RGB"
+
+    Scenario: Notification with RGBA image
+        When I run :click-element id show-image-button
+        Then the javascript message "notification shown" should be logged
+        And notification 1 should have title "RGBA"
+
     # As a WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
     # and other issues, those can only run with PyQtWebEngine >= 5.15.0
     #
