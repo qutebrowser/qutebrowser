@@ -307,7 +307,7 @@ class DBusNotificationPresenter(QObject):
             "Notify",
             "qutebrowser",  # application name
             existing_id_arg,  # replaces notification id
-            "qutebrowser",  # icon (freedesktop.org icon theme name)
+            "",  # icon name/file URL, we use image-data and friends instead.
             # Titles don't support markup, so no need to escape them.
             qt_notification.title(),
             self._format_body(qt_notification.message()),
