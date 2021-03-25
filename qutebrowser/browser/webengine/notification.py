@@ -88,6 +88,7 @@ class _ServerQuirks:
     spec_version: Optional[str] = None
     avoid_actions: bool = False
     wrong_replaces_id: bool = False
+    icon_key: Optional[str] = None
 
 
 class DBusNotificationPresenter(QObject):
@@ -186,6 +187,13 @@ class DBusNotificationPresenter(QObject):
                 f"Notification server ({name} {version} by {vendor}) implements "
                 f"spec {spec_version}, but {expected_spec_version} was expected. "
                 f"If {name} is up to date, please report a qutebrowser bug.")
+
+        # https://specifications.freedesktop.org/notification-spec/latest/ar01s08.html
+        icon_key_overrides = {
+            "1.0": "icon_data",
+            "1.1": "image_data",
+        }
+        self._quirks.icon_key = icon_key_overrides.get(spec_version)
 
     def _dbus_error_str(self, error: QDBusError) -> str:
         """Get a string for a DBus error."""
@@ -291,7 +299,8 @@ class DBusNotificationPresenter(QObject):
             "desktop-entry": "org.qutebrowser.qutebrowser",
         }
         if not qt_notification.icon().isNull():
-            hints["image-data"] = self._convert_image(qt_notification.icon())
+            key = self._quirks.icon_key or "image-data"
+            hints[key] = self._convert_image(qt_notification.icon())
 
         reply = self.interface.call(
             QDBus.BlockWithGui,
