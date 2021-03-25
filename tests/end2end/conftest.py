@@ -61,6 +61,21 @@ def pytest_unconfigure(config):
         stats.dump_stats((pathlib.Path('prof') / 'combined.pstats'))
 
 
+def _check_hex_version(op_str, running_version, version):
+    operators = {
+        '==': operator.eq,
+        '!=': operator.ne,
+        '>=': operator.ge,
+        '<=': operator.le,
+        '>': operator.gt,
+        '<': operator.lt,
+    }
+    op = operators[op_str]
+    major, minor, patch = [int(e) for e in version.split('.')]
+    hex_version = (major << 16) | (minor << 8) | patch
+    return op(running_version, hex_version)
+
+
 def _get_version_tag(tag):
     """Handle tags like pyqt>=5.3.1 for BDD tests.
 
@@ -69,7 +84,7 @@ def _get_version_tag(tag):
     casesinto an appropriate @pytest.mark.skip marker, and falls back to
     """
     version_re = re.compile(r"""
-        (?P<package>qt|pyqt)
+        (?P<package>qt|pyqt|pyqtwebengine)
         (?P<operator>==|>=|!=|<)
         (?P<version>\d+\.\d+(\.\d+)?)
     """, re.VERBOSE)
@@ -92,18 +107,31 @@ def _get_version_tag(tag):
         }
         return pytest.mark.skipif(do_skip[op], reason='Needs ' + tag)
     elif package == 'pyqt':
-        operators = {
-            '==': operator.eq,
-            '>=': operator.ge,
-            '!=': operator.ne,
-        }
-        op = operators[match.group('operator')]
-        major, minor, patch = [int(e) for e in version.split('.')]
-        hex_version = (major << 16) | (minor << 8) | patch
-        return pytest.mark.skipif(not op(PYQT_VERSION, hex_version),
-                                  reason='Needs ' + tag)
+        return pytest.mark.skipif(
+            not _check_hex_version(
+                op_str=match.group('operator'),
+                running_version=PYQT_VERSION,
+                version=version
+            ),
+            reason='Needs ' + tag,
+        )
+    elif package == 'pyqtwebengine':
+        try:
+            from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
+        except ImportError:
+            running_version = PYQT_VERSION
+        else:
+            running_version = PYQT_WEBENGINE_VERSION
+        return pytest.mark.skipif(
+            not _check_hex_version(
+                op_str=match.group('operator'),
+                running_version=running_version,
+                version=version
+            ),
+            reason='Needs ' + tag,
+        )
     else:
-        raise ValueError("Invalid package {!r}".format(package))
+        raise utils.Unreachable(package)
 
 
 def _get_backend_tag(tag):
@@ -112,7 +140,6 @@ def _get_backend_tag(tag):
         'qtwebengine_todo': pytest.mark.qtwebengine_todo,
         'qtwebengine_skip': pytest.mark.qtwebengine_skip,
         'qtwebengine_notifications': pytest.mark.qtwebengine_notifications,
-        'qtwebengine_py_5_15': pytest.mark.qtwebengine_py_5_15,
         'qtwebkit_skip': pytest.mark.qtwebkit_skip,
     }
     if not any(tag.startswith(t + ':') for t in pytest_marks):
@@ -135,14 +162,6 @@ if not getattr(sys, 'frozen', False):
                 mark(function)
                 return True
         return None
-
-
-def _pyqt_webengine_at_least_5_15() -> bool:
-    try:
-        from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
-        return PYQT_WEBENGINE_VERSION >= 0x050F00
-    except ImportError:
-        return False
 
 
 def pytest_collection_modifyitems(config, items):
@@ -180,10 +199,6 @@ def pytest_collection_modifyitems(config, items):
          'Skipped on Windows',
          pytest.mark.skipif,
          utils.is_windows),
-        # WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
-        ('qtwebengine_py_5_15', 'Skipped with PyQtWebEngine < 5.15',
-         pytest.mark.skipif,
-         config.webengine and not _pyqt_webengine_at_least_5_15()),
     ]
 
     for item in items:

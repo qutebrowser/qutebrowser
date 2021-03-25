@@ -43,28 +43,31 @@ Feature: Notifications
     # we try to close it, otherwise we wind up in race-condition-ish
     # situations.
 
-    @qtwebengine_notifications @qtwebengine_py_5_15
+    # As a WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
+    # and other issues, those can only run with PyQtWebEngine >= 5.15.0
+
+    @qtwebengine_notifications @pyqtwebengine>=5.15.0
     Scenario: User closes presented notification
         When I run :click-element id show-button
         And I wait for the javascript message "notification shown"
         And I close the notification with id 1
         Then the javascript message "notification closed" should be logged
 
-    @qtwebengine_notifications @qtwebengine_py_5_15
+    @qtwebengine_notifications @pyqtwebengine>=5.15.0
     Scenario: User closes some other application's notification
         When I run :click-element id show-button
         And I wait for the javascript message "notification shown"
         And I close the notification with id 1234
         Then the javascript message "notification closed" should not be logged
 
-    @qtwebengine_notifications @qtwebengine_py_5_15
+    @qtwebengine_notifications @pyqtwebengine>=5.15.0
     Scenario: User clicks presented notification
         When I run :click-element id show-button
         And I wait for the javascript message "notification shown"
         And I click the notification with id 1
         Then the javascript message "notification clicked" should be logged
 
-    @qtwebengine_notifications @qtwebengine_py_5_15
+    @qtwebengine_notifications @pyqtwebengine>=5.15.0
     Scenario: User clicks some other application's notification
         When I run :click-element id show-button
         And I wait for the javascript message "notification shown"
