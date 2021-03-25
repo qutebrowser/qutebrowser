@@ -316,36 +316,41 @@ class DBusNotificationPresenter(QObject):
     @pyqtSlot(QDBusMessage)
     def _handle_close(self, msg: QDBusMessage) -> None:
         self._verify_message(msg, "uu", QDBusMessage.SignalMessage)
-
         notification_id, _close_reason = msg.arguments()
-        notification = self._active_notifications.get(notification_id)
 
-        if notification is not None:
-            try:
-                notification.close()
-            except RuntimeError:
-                # WORKAROUND for
-                # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
-                log.misc.debug("Ignoring close request for notification "
-                               f"{notification_id} due to PyQt bug")
+        notification = self._active_notifications.get(notification_id)
+        if notification is None:
+            # Notification from a different application
+            return
+
+        try:
+            notification.close()
+        except RuntimeError:
+            # WORKAROUND for
+            # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
+            log.misc.debug(f"Ignoring close request for notification {notification_id} "
+                           "due to PyQt bug")
 
     @pyqtSlot(QDBusMessage)
     def _handle_action(self, msg: QDBusMessage) -> None:
         self._verify_message(msg, "us", QDBusMessage.SignalMessage)
-
         notification_id, action_key = msg.arguments()
 
         notification = self._active_notifications.get(notification_id)
-        if notification is not None:
-            if action_key != "default":
-                raise Error(f"Got unknown action {action_key}")
-            try:
-                notification.click()
-            except RuntimeError:
-                # WORKAROUND for
-                # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
-                log.misc.debug("Ignoring click request for notification "
-                               f"{notification_id} due to PyQt bug")
+        if notification is None:
+            # Notification from a different application
+            return
+
+        if action_key != "default":
+            raise Error(f"Got unknown action {action_key}")
+
+        try:
+            notification.click()
+        except RuntimeError:
+            # WORKAROUND for
+            # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
+            log.misc.debug(f"Ignoring click request for notification {notification_id} "
+                           "due to PyQt bug")
 
     def _fetch_capabilities(self) -> None:
         """Fetch capabilities from the notification server."""
