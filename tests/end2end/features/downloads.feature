@@ -31,7 +31,7 @@ Feature: Downloading things from a website.
 
     Scenario: Using :download with no URL on an image
         When I set downloads.location.prompt to false
-        And I open data/downloads/qutebrowser.png
+        And I open data/img/qutebrowser.png
         And I run :download
         And I wait until the download is finished
         Then the downloaded file qutebrowser.png should exist

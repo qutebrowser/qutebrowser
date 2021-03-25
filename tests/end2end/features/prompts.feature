@@ -88,7 +88,7 @@ Feature: Prompts
         And I open data/prompt/jsalert.html
         And I run :click-element id button
         And I wait for a prompt
-        And I open data/prompt/notifications.html in a new tab
+        And I open data/javascript/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
         # JS alert
@@ -102,7 +102,7 @@ Feature: Prompts
     Scenario: Async question interrupted by async one
         Given I have a fresh instance
         When I set content.notifications to ask
-        And I open data/prompt/notifications.html in a new tab
+        And I open data/javascript/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
         And I run :quickmark-save
@@ -119,7 +119,7 @@ Feature: Prompts
         Given I have a fresh instance
         When I set content.notifications to ask
         And I set content.javascript.alert to true
-        And I open data/prompt/notifications.html in a new tab
+        And I open data/javascript/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
         And I open data/prompt/jsalert.html in a new tab
@@ -279,7 +279,7 @@ Feature: Prompts
     Scenario: Always rejecting notifications
         Given I have a fresh instance
         When I set content.notifications to false
-        And I open data/prompt/notifications.html in a new tab
+        And I open data/javascript/notifications.html in a new tab
         And I run :click-element id button
         Then the javascript message "notification permission denied" should be logged
 
@@ -287,7 +287,7 @@ Feature: Prompts
     Scenario: Always accepting notifications
         Given I have a fresh instance
         When I set content.notifications to true
-        And I open data/prompt/notifications.html in a new tab
+        And I open data/javascript/notifications.html in a new tab
         And I run :click-element id button
         Then the javascript message "notification permission granted" should be logged
 
@@ -295,7 +295,7 @@ Feature: Prompts
     Scenario: notifications with ask -> false
         Given I have a fresh instance
         When I set content.notifications to ask
-        And I open data/prompt/notifications.html in a new tab
+        And I open data/javascript/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-accept no
@@ -305,7 +305,7 @@ Feature: Prompts
     Scenario: notifications with ask -> false and save
         Given I have a fresh instance
         When I set content.notifications to ask
-        And I open data/prompt/notifications.html in a new tab
+        And I open data/javascript/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-accept --save no
@@ -316,7 +316,7 @@ Feature: Prompts
     Scenario: notifications with ask -> true
         Given I have a fresh instance
         When I set content.notifications to ask
-        And I open data/prompt/notifications.html in a new tab
+        And I open data/javascript/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-accept yes
@@ -326,7 +326,7 @@ Feature: Prompts
     Scenario: notifications with ask -> true and save
         Given I have a fresh instance
         When I set content.notifications to ask
-        And I open data/prompt/notifications.html in a new tab
+        And I open data/javascript/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-accept --save yes
@@ -338,7 +338,7 @@ Feature: Prompts
     Scenario: notifications with ask -> abort
         Given I have a fresh instance
         When I set content.notifications to ask
-        And I open data/prompt/notifications.html in a new tab
+        And I open data/javascript/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
         And I run :mode-leave
@@ -348,7 +348,7 @@ Feature: Prompts
     Scenario: answering notification after closing tab
         Given I have a fresh instance
         When I set content.notifications to ask
-        And I open data/prompt/notifications.html in a new tab
+        And I open data/javascript/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
         And I run :tab-close
@@ -523,7 +523,7 @@ Feature: Prompts
         Given I have a fresh instance
         When I set content.notifications to ask
         And I set content.tls.certificate_errors to ask
-        And I open data/prompt/notifications.html in a new tab
+        And I open data/javascript/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
         And I open about:blank in a new tab

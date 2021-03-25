@@ -5,7 +5,7 @@ Feature: Notifications
 
     Background:
         Given I have a fresh instance
-        And I open data/prompt/notifications.html
+        And I open data/javascript/notifications.html
         And I set content.notifications to true
         And I run :click-element id button
 
