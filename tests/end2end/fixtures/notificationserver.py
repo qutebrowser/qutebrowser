@@ -162,6 +162,12 @@ class TestNotificationServer(QObject):
 
 @pytest.fixture
 def notification_server(qapp):
+    if utils.is_windows:
+        # The QDBusConnection destructor seems to cause error messages (and potentially
+        # segfaults) on Windows, so we bail out early in that case. We still try to get
+        # a connection on macOS, since it's theoretically possible to run DBus there.
+        pytest.skip("Skipping DBus on Windows")
+
     server = TestNotificationServer(notification.DBusNotificationPresenter.TEST_SERVICE)
     registered = server.register()
     if not registered:
