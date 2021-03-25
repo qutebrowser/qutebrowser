@@ -71,12 +71,12 @@ def init() -> None:
     testing = 'test-notification-service' in objects.debug_flags
     try:
         dbus_presenter = DBusNotificationPresenter(testing)
-    except DBusException as e:
+    except Error as e:
         log.init.error(f"Failed to initialize DBus notification presenter: {e}")
 
 
-class DBusException(Exception):
-    """Raised when something goes wrong with talking to DBus."""
+class Error(Exception):
+    """Raised when something goes wrong with DBusNotificationPresenter."""
 
 
 class DBusNotificationPresenter(QObject):
@@ -92,7 +92,7 @@ class DBusNotificationPresenter(QObject):
         self._active_notifications: Dict[int, 'QWebEngineNotification'] = {}
         bus = QDBusConnection.sessionBus()
         if not bus.isConnected():
-            raise DBusException(
+            raise Error(
                 "Failed to connect to DBus session bus: " +
                 self._dbus_error_str(bus.lastError()))
 
@@ -100,7 +100,7 @@ class DBusNotificationPresenter(QObject):
 
         self.interface = QDBusInterface(service, self.PATH, self.INTERFACE, bus)
         if not self.interface.isValid():
-            raise DBusException(
+            raise Error(
                 "Could not construct a DBus interface: " +
                 self._dbus_error_str(self.interface.lastError()))
 
@@ -110,7 +110,7 @@ class DBusNotificationPresenter(QObject):
         ]
         for name, func in connections:
             if not bus.connect(service, self.PATH, self.INTERFACE, name, func):
-                raise DBusException(
+                raise Error(
                     f"Could not connect to {name}: " +
                     self._dbus_error_str(bus.lastError()))
 
@@ -184,12 +184,12 @@ class DBusNotificationPresenter(QObject):
         ], expected_type
 
         if message.type() == QDBusMessage.ErrorMessage:
-            raise DBusException(
+            raise Error(
                 f"Got DBus error: {message.errorName()} - {message.errorMessage()}")
 
         signature = message.signature()
         if signature != expected_signature:
-            raise DBusException(
+            raise Error(
                 f"Got a message with signature {signature} but expected "
                 f"{expected_signature} (args: {message.arguments()})")
 
@@ -197,7 +197,7 @@ class DBusNotificationPresenter(QObject):
         if typ != expected_type:
             type_str = debug.qenum_key(QDBusMessage.MessageType, typ)
             expected_type_str = debug.qenum_key(QDBusMessage.MessageType, expected_type)
-            raise DBusException(
+            raise Error(
                 f"Got a message of type {type_str} but expected {expected_type_str}"
                 f"(args: {message.arguments()})")
 
@@ -263,10 +263,11 @@ class DBusNotificationPresenter(QObject):
 
         notification_id = reply.arguments()[0]
         if existing_id not in [0, notification_id]:
-            raise DBusException(f"Wanted to replace notification {existing_id} but got "
-                                f"new id {notification_id}.")
+            raise Error(
+                f"Wanted to replace notification {existing_id} but got new id "
+                f"{notification_id}.")
         if notification_id == 0:
-            raise DBusException("Got invalid notification id 0")
+            raise Error("Got invalid notification id 0")
 
         self._active_notifications[notification_id] = qt_notification
         log.webview.debug(f"Sent out notification {notification_id}")
@@ -326,7 +327,7 @@ class DBusNotificationPresenter(QObject):
 
         notification_id, action_key = message.arguments()
         if action_key != "default":
-            raise DBusException(f"Got unknown action {action_key}")
+            raise Error(f"Got unknown action {action_key}")
 
         notification = self._active_notifications.get(notification_id)
         if notification is not None:
