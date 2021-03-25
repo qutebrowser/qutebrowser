@@ -33,19 +33,19 @@
             }
 
             function show_notification() {
-		let notification = new Notification("notification title", {
-		    body: "notification body"
-		});
-		notification.onclick = function() { console.log("notification clicked"); };
-		notification.onclose = function() { console.log("notification closed"); };
-		notification.onshow = function() { console.log("notification shown"); };
-	    }
+                let notification = new Notification("notification title", {
+                    body: "notification body"
+                });
+                notification.onclick = function() { console.log("notification clicked"); };
+                notification.onclose = function() { console.log("notification closed"); };
+                notification.onshow = function() { console.log("notification shown"); };
+            }
 
             function show_symbol_notification() {
-	        let str = "<< && >>";
-		let notification = new Notification(str, { body: str });
-		notification.onshow = function() { console.log("notification shown"); };
-	    }
+                let str = "<< && >>";
+                let notification = new Notification(str, { body: str });
+                notification.onshow = function() { console.log("notification shown"); };
+            }
 
             function show_multiple_notifications() {
                 for (let i = 1; i <= 3; i++) {
@@ -67,16 +67,16 @@
     </head>
     <body>
         <div>
-        <input type="button" onclick="get_notification_permission()" value="Get notification permission" id="button">
+            <input type="button" onclick="get_notification_permission()" value="Get notification permission" id="button">
         </div>
         <div>
-        <input type="button" onclick="show_notification()" value="Show notification" id="show-button">
-        <input type="button" onclick="show_symbol_notification()" value="Show notification with symbols" id="show-symbols-button">
-        <input type="button" onclick="show_multiple_notifications()" value="Show multiple notifications" id="show-multiple-button">
+            <input type="button" onclick="show_notification()" value="Show notification" id="show-button">
+            <input type="button" onclick="show_symbol_notification()" value="Show notification with symbols" id="show-symbols-button">
+            <input type="button" onclick="show_multiple_notifications()" value="Show multiple notifications" id="show-multiple-button">
         </div>
         <div>
-        <input type="button" onclick="show_image_notification()" value="Show image notification" id="show-image-button">
-        <input type="button" onclick="show_image_notification_noalpha()" value="Show image notification without alpha channel" id="show-image-button-noalpha">
+            <input type="button" onclick="show_image_notification()" value="Show image notification" id="show-image-button">
+            <input type="button" onclick="show_image_notification_noalpha()" value="Show image notification without alpha channel" id="show-image-button-noalpha">
         </div>
     </body>
 </html>
