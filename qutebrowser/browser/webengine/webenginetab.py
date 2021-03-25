@@ -833,7 +833,7 @@ class _WebEnginePermissions(QObject):
     # https://www.riverbankcomputing.com/pipermail/pyqt/2019-July/041903.html
 
     _options = {
-        0: 'content.notifications',
+        0: 'content.notifications.enabled',
         QWebEnginePage.Geolocation: 'content.geolocation',
         QWebEnginePage.MediaAudioCapture: 'content.media.audio_capture',
         QWebEnginePage.MediaVideoCapture: 'content.media.video_capture',

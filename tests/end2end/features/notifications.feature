@@ -5,7 +5,7 @@ Feature: Notifications
 
     Background:
         When I open data/javascript/notifications.html
-        And I set content.notifications to true
+        And I set content.notifications.enabled to true
         And I run :click-element id button
 
     Scenario: Notification is shown

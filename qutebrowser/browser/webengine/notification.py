@@ -55,7 +55,7 @@ def init() -> None:
 
     Always succeeds, but might log an error.
     """
-    setting = config.val.content.notification_presenter
+    setting = config.val.content.notifications.presenter
     if setting not in ["auto", "libnotify"]:
         return
 

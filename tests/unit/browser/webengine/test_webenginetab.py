@@ -173,5 +173,5 @@ def test_notification_permission_workaround():
         pytest.skip("No Notifications member")
 
     permissions = webenginetab._WebEnginePermissions
-    assert permissions._options[notifications] == 'content.notifications'
+    assert permissions._options[notifications] == 'content.notifications.enabled'
     assert permissions._messages[notifications] == 'show notifications'

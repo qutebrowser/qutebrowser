@@ -181,8 +181,8 @@
 |<<content.mouse_lock,content.mouse_lock>>|Allow websites to lock your mouse pointer.
 |<<content.mute,content.mute>>|Automatically mute tabs.
 |<<content.netrc_file,content.netrc_file>>|Netrc-file for HTTP authentication.
-|<<content.notification_presenter,content.notification_presenter>>|What notification presenter to use for web notifications.
-|<<content.notifications,content.notifications>>|Allow websites to show notifications.
+|<<content.notifications.enabled,content.notifications.enabled>>|Allow websites to show notifications.
+|<<content.notifications.presenter,content.notifications.presenter>>|What notification presenter to use for web notifications.
 |<<content.pdfjs,content.pdfjs>>|Allow pdf.js to view PDF files in the browser.
 |<<content.persistent_storage,content.persistent_storage>>|Allow websites to request persistent storage quota via `navigator.webkitPersistentStorage.requestQuota`.
 |<<content.plugins,content.plugins>>|Enable plugins in Web pages.
@@ -2501,8 +2501,26 @@ Type: <<types,File>>
 
 Default: empty
 
-[[content.notification_presenter]]
-=== content.notification_presenter
+[[content.notifications.enabled]]
+=== content.notifications.enabled
+Allow websites to show notifications.
+
+This setting supports URL patterns.
+
+On QtWebEngine, this setting requires Qt 5.13 or newer.
+
+Type: <<types,BoolAsk>>
+
+Valid values:
+
+ * +true+
+ * +false+
+ * +ask+
+
+Default: +pass:[ask]+
+
+[[content.notifications.presenter]]
+=== content.notifications.presenter
 What notification presenter to use for web notifications.
 Note that with Qt 5.14, certain JavaScript features for notifications will not work with the libnotify notification presenter (the `click` and `close` events, as well as the `tag` option to replace existing notifications).
 
@@ -2521,24 +2539,6 @@ Valid values:
  * +libnotify+: Use a libnotify-compatible presenter if DBus is available, show an error (and fall back to Qt's presenter) otherwise.
 
 Default: +pass:[auto]+
-
-[[content.notifications]]
-=== content.notifications
-Allow websites to show notifications.
-
-This setting supports URL patterns.
-
-On QtWebEngine, this setting requires Qt 5.13 or newer.
-
-Type: <<types,BoolAsk>>
-
-Valid values:
-
- * +true+
- * +false+
- * +ask+
-
-Default: +pass:[ask]+
 
 [[content.pdfjs]]
 === content.pdfjs

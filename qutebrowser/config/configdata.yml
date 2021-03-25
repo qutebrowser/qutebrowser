@@ -901,6 +901,9 @@ content.netrc_file:
     If unset, `~/.netrc` is used.
 
 content.notifications:
+  renamed: content.notifications.enabled
+
+content.notifications.enabled:
   default: ask
   type: BoolAsk
   supports_pattern: true
@@ -909,7 +912,7 @@ content.notifications:
     QtWebKit: true
   desc: Allow websites to show notifications.
 
-content.notification_presenter:
+content.notifications.presenter:
   default: auto
   restart: true  # no way to clear the presenter libnotify installs
   type:

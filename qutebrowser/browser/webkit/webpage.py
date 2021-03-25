@@ -357,7 +357,7 @@ class BrowserPage(QWebPage):
             return
 
         options = {
-            QWebPage.Notifications: 'content.notifications',
+            QWebPage.Notifications: 'content.notifications.enabled',
             QWebPage.Geolocation: 'content.geolocation',
         }
         messages = {
