@@ -910,14 +910,16 @@ content.notifications:
   desc: Allow websites to show notifications.
 
 content.notification_presenter:
-  default: libnotify
+  default: auto
   restart: true  # no way to clear the presenter libnotify installs
   type:
     name: String
     valid_values:
+      - auto: Use a libnotify-compatible presenter if DBus is available, silently fall
+            back to Qt's presenter otherwise.
       - qt: Use Qt's native notification presenter.
-      - libnotify: Use a libnotify-compatible presenter if one is present,
-            otherwise fall back to Qt.
+      - libnotify: Use a libnotify-compatible presenter if DBus is available, show an
+            error (and fall back to Qt's presenter) otherwise.
   backend:
     QtWebEngine: Qt 5.13
     QtWebKit: false

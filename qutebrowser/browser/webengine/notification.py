@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
-from qutebrowser.utils import qtutils, log, utils, debug
+from qutebrowser.utils import qtutils, log, utils, debug, message
 
 
 dbus_presenter: Optional['DBusNotificationPresenter'] = None
@@ -55,15 +55,8 @@ def init() -> None:
 
     Always succeeds, but might log an error.
     """
-    should_use_dbus = (
-        qtutils.version_check("5.13") and
-        config.val.content.notification_presenter == "libnotify" and
-        # Don't even try to use DBus notifications on platforms that won't have
-        # it supported.
-        not utils.is_windows and
-        not utils.is_mac
-    )
-    if not should_use_dbus:
+    setting = config.val.content.notification_presenter
+    if setting not in ["auto", "libnotify"]:
         return
 
     global dbus_presenter
@@ -72,7 +65,14 @@ def init() -> None:
     try:
         dbus_presenter = DBusNotificationPresenter(testing)
     except Error as e:
-        log.init.error(f"Failed to initialize DBus notification presenter: {e}")
+        msg = f"Failed to initialize DBus notification presenter: {e}"
+        if setting == "libnotify":
+            # Explicitly set to "libnotify", so show the error to the user.
+            message.error(msg)
+        elif setting == "auto":
+            log.init.debug(msg)
+        else:
+            raise utils.Unreachable(setting)
 
 
 class Error(Exception):
@@ -89,6 +89,16 @@ class DBusNotificationPresenter(QObject):
 
     def __init__(self, test_service: bool = False):
         super().__init__()
+
+        if not qtutils.version_check('5.13'):
+            raise Error("Notifications are not supported on this Qt version")
+
+        if utils.is_windows:
+            # The QDBusConnection destructor seems to cause error messages (and potentially
+            # segfaults) on Windows, so we bail out early in that case. We still try to get
+            # a connection on macOS, since it's theoretically possible to run DBus there.
+            raise Error("libnotify is not supported on Windows")
+
         self._active_notifications: Dict[int, 'QWebEngineNotification'] = {}
         bus = QDBusConnection.sessionBus()
         if not bus.isConnected():
