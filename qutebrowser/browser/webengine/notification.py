@@ -26,6 +26,7 @@ https://specifications.freedesktop.org/notification-spec/notification-spec-lates
 """
 
 import html
+import dataclasses
 from typing import Any, Dict, Optional, TYPE_CHECKING
 
 from PyQt5.QtGui import QImage
@@ -79,6 +80,15 @@ class Error(Exception):
     """Raised when something goes wrong with DBusNotificationPresenter."""
 
 
+@dataclasses.dataclass
+class _ServerQuirks:
+
+    """Quirks for certain notification servers."""
+
+    spec_version: Optional[str] = None
+    avoid_actions: bool = False
+
+
 class DBusNotificationPresenter(QObject):
     """Manages notifications that are sent over DBus."""
 
@@ -86,6 +96,7 @@ class DBusNotificationPresenter(QObject):
     TEST_SERVICE = "org.qutebrowser.TestNotifications"
     PATH = "/org/freedesktop/Notifications"
     INTERFACE = "org.freedesktop.Notifications"
+    SPEC_VERSION = "1.2"  # Released in January 2011, still current in March 2021.
 
     def __init__(self, test_service: bool = False):
         super().__init__()
@@ -125,26 +136,52 @@ class DBusNotificationPresenter(QObject):
                     f"Could not connect to {name}: " +
                     self._dbus_error_str(bus.lastError()))
 
+        self._quirks = _ServerQuirks()
         if not test_service:
             # Can't figure out how to make this work with the test server...
             # https://www.riverbankcomputing.com/pipermail/pyqt/2021-March/043724.html
-            ping_reply = self.interface.call(
-                QDBus.BlockWithGui,
-                "GetServerInformation",
-            )
-            self._verify_message(ping_reply, "ssss", QDBusMessage.ReplyMessage)
-            name, vendor, version, spec_version = ping_reply.arguments()
-            log.init.debug(
-                f"Connected to notification server: {name} {version} by {vendor}, "
-                f"implementing spec {spec_version}")
-            if spec_version != "1.2":
-                # Released in January 2011, still current in March 2021.
-                log.init.warning(
-                    f"Notification server ({name} {version} by {vendor}) implements "
-                    f"spec {spec_version}, but 1.2 was expected. If {name} is up to "
-                    "date, please report a qutebrowser bug.")
+            self._get_server_info()
 
         self._fetch_capabilities()
+
+    def _get_server_info(self) -> None:
+        """Query notification server information and set quirks."""
+        reply = self.interface.call(QDBus.BlockWithGui, "GetServerInformation")
+        self._verify_message(reply, "ssss", QDBusMessage.ReplyMessage)
+        name, vendor, version, spec_version = reply.arguments()
+
+        log.init.debug(
+            f"Connected to notification server: {name} {version} by {vendor}, "
+            f"implementing spec {spec_version}")
+
+        all_quirks = {
+            # Shows a dialog box instead of a notification bubble as soon as a
+            # notification has an action (even if only a default one). Dialog boxes are
+            # buggy and return a notification with ID 0.
+            ("notify-osd", "Canonical Ltd"):
+                _ServerQuirks(avoid_actions=True, spec_version="1.1"),
+
+            # Still in active development but doesn't implement spec 1.2:
+            # https://github.com/mate-desktop/mate-notification-daemon/issues/132
+            ("Notification Daemon", "MATE"): _ServerQuirks(spec_version="1.1"),
+
+            # Still in active development but spec 1.0/1.2 support isn't
+            # released yet:
+            # https://github.com/awesomeWM/awesome/commit/e076bc664e0764a3d3a0164dabd9b58d334355f4
+            # Thus, no icon/image support at the moment...
+            ("naughty", "awesome"): _ServerQuirks(spec_version="1.0"),
+        }
+        quirks = all_quirks.get((name, vendor))
+        if quirks is not None:
+            log.init.debug(f"Enabling quirks {quirks}")
+            self._quirks = quirks
+
+        expected_spec_version = self._quirks.spec_version or self.SPEC_VERSION
+        if spec_version != expected_spec_version:
+            log.init.warning(
+                f"Notification server ({name} {version} by {vendor}) implements "
+                f"spec {spec_version}, but {expected_spec_version} was expected. "
+                f"If {name} is up to date, please report a qutebrowser bug.")
 
     def _dbus_error_str(self, error: QDBusError) -> str:
         """Get a string for a DBus error."""
@@ -359,7 +396,11 @@ class DBusNotificationPresenter(QObject):
             "GetCapabilities",
         )
         self._verify_message(reply, "as", QDBusMessage.ReplyMessage)
+
         self._capabilities = reply.arguments()[0]
+        if self._quirks.avoid_actions and 'actions' in self._capabilities:
+            self._capabilities.remove('actions')
+
         log.misc.debug(f"Notification server capabilities: {self._capabilities}")
 
     def _format_body(self, body: str) -> str:
