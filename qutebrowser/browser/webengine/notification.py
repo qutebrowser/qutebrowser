@@ -19,7 +19,10 @@
 
 """Handles sending notifications over DBus.
 
-Related spec: https://developer.gnome.org/notification-spec/
+Related specs:
+
+https://developer.gnome.org/notification-spec/
+https://specifications.freedesktop.org/notification-spec/notification-spec-latest.html
 """
 
 import html
@@ -270,18 +273,26 @@ class DBusNotificationPresenter(QObject):
 
     def _convert_image(self, qimage: QImage) -> QDBusArgument:
         """Converts a QImage to the structure DBus expects."""
-        # This is apparently what GTK-based notification daemons expect; tested
-        # it with dunst.  Otherwise you get weird color schemes.
-        qimage.convertTo(QImage.Format_RGBA8888)
+        # https://specifications.freedesktop.org/notification-spec/latest/ar01s05.html#icons-and-images-formats
+        bits_per_color = 8
+        has_alpha = qimage.hasAlphaChannel()
+        if has_alpha:
+            image_format = QImage.Format_RGBA8888
+            channel_count = 4
+        else:
+            image_format = QImage.Format_RGB888
+            channel_count = 3
+
+        qimage.convertTo(image_format)
+
         image_data = QDBusArgument()
         image_data.beginStructure()
         image_data.add(qimage.width())
         image_data.add(qimage.height())
         image_data.add(qimage.bytesPerLine())
-        image_data.add(qimage.hasAlphaChannel())
-        # RGBA_8888 always has 8 bits per color, 4 channels.
-        image_data.add(8)
-        image_data.add(4)
+        image_data.add(has_alpha)
+        image_data.add(bits_per_color)
+        image_data.add(channel_count)
         try:
             size = qimage.sizeInBytes()
         except TypeError:

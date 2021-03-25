@@ -53,6 +53,16 @@
                     notification.onshow = function() { console.log(`i=${i} notification shown`); };
                 }
             }
+
+            function show_image_notification() {
+                // For manual testing
+                let notification = new Notification("qutebrowser logo", { icon: '/data/downloads/qutebrowser.png' });
+            }
+
+            function show_image_notification_noalpha() {
+                // For manual testing
+                let notification = new Notification("qutebrowser logo", { icon: '/data/downloads/qutebrowser-noalpha.png' });
+            }
         </script>
     </head>
     <body>
@@ -60,5 +70,7 @@
         <input type="button" onclick="show_notification()" value="Show notification" id="show-button">
         <input type="button" onclick="show_symbol_notification()" value="Show notification with symbols" id="show-symbols-button">
         <input type="button" onclick="show_multiple_notifications()" value="Show multiple notifications" id="show-multiple-button">
+        <input type="button" onclick="show_image_notification()" value="Show image notification" id="show-image-button">
+        <input type="button" onclick="show_image_notification_noalpha()" value="Show image notification without alpha channel" id="show-image-button-noalpha">
     </body>
 </html>
