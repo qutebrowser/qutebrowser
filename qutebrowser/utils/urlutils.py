@@ -84,16 +84,25 @@ def _parse_search_term(s: str) -> Tuple[Optional[str], Optional[str]]:
     """
     s = s.strip()
     split = s.split(maxsplit=1)
+    split_engines = split[0].split(',')
     if not split:
         raise ValueError("Empty search term!")
 
-    if len(split) == 2:
+    if len(split) == 2 and len(split_engines) == 1:
         if split[0] in config.val.url.searchengines:
             engine: Optional[str] = split[0]
             term: Optional[str] = split[1]
         else:
             engine = None
             term = s
+    elif len(split_engines) > 1 and len(split) > 1:
+        engine = []
+        term = split[1]
+        for search_engines in split_engines:
+            if search_engines in config.val.url.searchengines:
+                engine.append(search_engines)
+            else:
+                message.error(f"Wrong search engine!: {search_engines}")
     else:
         if config.val.url.open_base_url and s in config.val.url.searchengines:
             engine = s
@@ -116,20 +125,35 @@ def _get_search_url(txt: str) -> QUrl:
         The search URL as a QUrl.
     """
     log.url.debug("Finding search engine for {!r}".format(txt))
-    engine, term = _parse_search_term(txt)
-    if not engine:
-        engine = 'DEFAULT'
+    engines, term = _parse_search_term(txt)
+    if not engines:
+        engines = 'DEFAULT'
     if term:
-        template = config.val.url.searchengines[engine]
-        semiquoted_term = urllib.parse.quote(term)
-        quoted_term = urllib.parse.quote(term, safe='')
-        evaluated = template.format(semiquoted_term,
-                                    unquoted=term,
-                                    quoted=quoted_term,
-                                    semiquoted=semiquoted_term)
-        url = QUrl.fromUserInput(evaluated)
+        if isinstance(engines, list):
+            urls = []
+            for x in engines:
+                template = config.val.url.searchengines[x]
+                semiquoted_term = urllib.parse.quote(term)
+                quoted_term = urllib.parse.quote(term, safe='')
+                evaluated = template.format(semiquoted_term,
+                                     unquoted=term,
+                                     quoted=quoted_term,
+                                     semiquoted=semiquoted_term)
+                url = QUrl.fromUserInput(evaluated)
+                urls.append(url)
+            return urls
+        else:
+            template = config.val.url.searchengines[engines]
+            semiquoted_term = urllib.parse.quote(term)
+            quoted_term = urllib.parse.quote(term, safe='')
+            evaluated = template.format(semiquoted_term,
+                                        unquoted=term,
+                                        quoted=quoted_term,
+                                        semiquoted=semiquoted_term)
+            url = QUrl.fromUserInput(evaluated)
+
     else:
-        url = QUrl.fromUserInput(config.val.url.searchengines[engine])
+        url = QUrl.fromUserInput(config.val.url.searchengines[engines])
         url.setPath(None)  # type: ignore[arg-type]
         url.setFragment(None)  # type: ignore[arg-type]
         url.setQuery(None)  # type: ignore[call-overload]
@@ -224,9 +248,15 @@ def fuzzy_url(urlstr: str,
     else:  # probably an address
         log.url.debug("URL is a fuzzy address")
         url = QUrl.fromUserInput(urlstr)
-    log.url.debug("Converting fuzzy term {!r} to URL -> {}".format(
-        urlstr, url.toDisplayString()))
-    ensure_valid(url)
+    if isinstance(url, list):
+        for u in url:
+            log.url.debug("Converting fuzzy term {!r} to URL -> {}".format(
+                          urlstr, u.toDisplayString()))
+            ensure_valid(u)
+    else:
+        log.url.debug("Converting fuzzy term {!r} to URL -> {}".format(
+            urlstr, url.toDisplayString()))
+        ensure_valid(url)
     return url
 
 

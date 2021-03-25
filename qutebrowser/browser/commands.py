@@ -380,7 +380,11 @@ class CommandDispatcher:
         for cur_url in urllist:
             parsed = self._parse_url(cur_url, force_search=force_search)
             if parsed is not None:
-                yield parsed
+                if isinstance(parsed, list):
+                    for urls in parsed:
+                        yield urls
+                else:
+                    yield parsed
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_clone(self, bg=False, window=False):
