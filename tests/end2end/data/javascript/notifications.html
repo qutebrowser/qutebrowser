@@ -32,7 +32,14 @@
                 }
             }
 
+            function ensure_permission() {
+                if (Notification.permission !== "granted") {
+                    alert("No notification permission granted!");
+                }
+            }
+
             function show_notification() {
+                ensure_permission();
                 let notification = new Notification("notification title", {
                     body: "notification body"
                 });
@@ -42,12 +49,14 @@
             }
 
             function show_symbol_notification() {
+                ensure_permission();
                 let str = "<< && >>";
                 let notification = new Notification(str, { body: str });
                 notification.onshow = function() { console.log("notification shown"); };
             }
 
             function show_multiple_notifications() {
+                ensure_permission();
                 for (let i = 1; i <= 3; i++) {
                     let notification = new Notification(`i=${i}`, { tag: 'counter' });
                     notification.onshow = function() { console.log(`i=${i} notification shown`); };
@@ -55,11 +64,13 @@
             }
 
             function show_image_notification() {
+                ensure_permission();
                 // For manual testing
                 let notification = new Notification("qutebrowser logo", { icon: '/data/img/qutebrowser.png' });
             }
 
             function show_image_notification_noalpha() {
+                ensure_permission();
                 // For manual testing
                 let notification = new Notification("qutebrowser logo", { icon: '/data/img/qutebrowser-noalpha.png' });
             }
