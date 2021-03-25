@@ -156,16 +156,10 @@ class DBusNotificationPresenter(QObject):
         # WORKAROUND for
         # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042916.html
         # Fixed in PyQtWebEngine 5.15.0
-
-        try:
-            from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
-        except ImportError:
-            # Added with PyQtWebEngine 5.13
-            needs_workaround = True
-        else:
-            needs_workaround = PYQT_WEBENGINE_VERSION < 0x050F00
-
-        if needs_workaround:
+        # PYQT_WEBENGINE_VERSION was added with PyQtWebEngine 5.13, but if we're here,
+        # we already did a version check above.
+        from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
+        if PYQT_WEBENGINE_VERSION < 0x050F00:
             # PyQtWebEngine unrefs the callback after it's called, for some
             # reason.  So we call setNotificationPresenter again to *increase*
             # its refcount to prevent it from getting GC'd. Otherwise, random
@@ -218,9 +212,18 @@ class DBusNotificationPresenter(QObject):
         """
         if not new_notification.tag():
             return 0
-        for notification_id, notification in self._active_notifications.items():
-            if notification.matches(new_notification):
-                return notification_id
+
+        try:
+            for notification_id, notification in self._active_notifications.items():
+                if notification.matches(new_notification):
+                    return notification_id
+        except RuntimeError:
+            # WORKAROUND for
+            # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
+            # (also affects .matches)
+            log.misc.debug(
+                f"Ignoring notification tag {new_notification.tag()!r} due to PyQt bug")
+
         return 0
 
     def _present(self, qt_notification: "QWebEngineNotification") -> None:
@@ -316,13 +319,15 @@ class DBusNotificationPresenter(QObject):
 
         notification_id, _close_reason = msg.arguments()
         notification = self._active_notifications.get(notification_id)
+
         if notification is not None:
             try:
                 notification.close()
             except RuntimeError:
                 # WORKAROUND for
                 # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
-                pass
+                log.misc.debug("Ignoring close request for notification "
+                               f"{notification_id} due to PyQt bug")
 
     @pyqtSlot(QDBusMessage)
     def _handle_action(self, msg: QDBusMessage) -> None:
@@ -339,7 +344,8 @@ class DBusNotificationPresenter(QObject):
             except RuntimeError:
                 # WORKAROUND for
                 # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
-                pass
+                log.misc.debug("Ignoring click request for notification "
+                               f"{notification_id} due to PyQt bug")
 
     def _fetch_capabilities(self) -> None:
         """Fetch capabilities from the notification server."""
