@@ -298,9 +298,14 @@ class DBusNotificationPresenter(QObject):
             "x-qutebrowser-origin": qt_notification.origin().toDisplayString(),
             "desktop-entry": "org.qutebrowser.qutebrowser",
         }
-        if not qt_notification.icon().isNull():
-            key = self._quirks.icon_key or "image-data"
-            hints[key] = self._convert_image(qt_notification.icon())
+
+        icon = qt_notification.icon()
+        if icon.isNull():
+            filename = ':/icons/qutebrowser-64x64.png'  # FIXME size?
+            icon = QImage(filename)
+
+        key = self._quirks.icon_key or "image-data"
+        hints[key] = self._convert_image(icon)
 
         reply = self.interface.call(
             QDBus.BlockWithGui,
