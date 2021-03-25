@@ -26,7 +26,7 @@ https://specifications.freedesktop.org/notification-spec/notification-spec-lates
 """
 
 import html
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import Any, Dict, Optional, TYPE_CHECKING
 
 from PyQt5.QtGui import QImage
 from PyQt5.QtCore import QObject, QVariant, QMetaType, QByteArray, pyqtSlot
@@ -143,8 +143,7 @@ class DBusNotificationPresenter(QObject):
                     f"spec {spec_version}, but 1.2 was expected. If {name} is up to "
                     "date, please report a qutebrowser bug.")
 
-        # None means we don't know yet.
-        self._capabilities: Optional[List[str]] = None
+        self._fetch_capabilities()
 
     def _dbus_error_str(self, error: QDBusError) -> str:
         """Get a string for a DBus error."""
@@ -230,12 +229,6 @@ class DBusNotificationPresenter(QObject):
         This should *not* be directly passed to setNotificationPresenter on
         PyQtWebEngine < 5.15 because of a bug in the PyQtWebEngine bindings.
         """
-        # Deferring this check to the first presentation means we can tweak
-        # whether the test notification server supports body markup.
-        if self._capabilities is None:
-            self._fetch_capabilities()
-            assert self._capabilities is not None
-
         # We can't just pass the int because it won't get sent as the right type.
         existing_id = self._find_matching_id(qt_notification)
         existing_id_arg = QVariant(existing_id)
@@ -359,7 +352,6 @@ class DBusNotificationPresenter(QObject):
         log.misc.debug(f"Notification server capabilities: {self._capabilities}")
 
     def _format_body(self, message: str) -> str:
-        assert self._capabilities is not None
         if 'body-markup' in self._capabilities:
             return html.escape(message)
         return message

@@ -26,13 +26,22 @@ pytestmark = pytest.mark.usefixtures('notification_server')
 
 
 @bdd.given("the notification server supports body markup")
-def supports_body_markup(notification_server):
+def supports_body_markup(notification_server, quteproc):
     notification_server.supports_body_markup = True
+    quteproc.send_cmd(
+        ":debug-pyeval -q __import__('qutebrowser').browser.webengine.notification."
+        "dbus_presenter._fetch_capabilities()")
+    quteproc.wait_for(
+        message="Notification server capabilities: ['actions', 'body-markup']")
 
 
 @bdd.given("the notification server doesn't support body markup")
-def doesnt_support_body_markup(notification_server):
+def doesnt_support_body_markup(notification_server, quteproc):
     notification_server.supports_body_markup = False
+    quteproc.send_cmd(
+        ":debug-pyeval -q __import__('qutebrowser').browser.webengine.notification."
+        "dbus_presenter._fetch_capabilities()")
+    quteproc.wait_for(message="Notification server capabilities: ['actions']")
 
 
 @bdd.then(bdd.parsers.cfparse('a notification with id {id_:d} is presented'))

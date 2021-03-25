@@ -4,8 +4,7 @@ Feature: Notifications
     HTML5 notification API interaction
 
     Background:
-        Given I have a fresh instance
-        And I open data/javascript/notifications.html
+        When I open data/javascript/notifications.html
         And I set content.notifications to true
         And I run :click-element id button
 
