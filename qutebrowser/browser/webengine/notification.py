@@ -175,6 +175,12 @@ class DBusNotificationPresenter(QObject):
 
             # https://gitlab.xfce.org/apps/xfce4-notifyd/-/issues/48
             ("Xfce Notify Daemon", "Xfce"): _ServerQuirks(wrong_replaces_id=True),
+
+            # https://github.com/emersion/mako/issues/167
+            # https://github.com/emersion/mako/pull/168
+            # https://github.com/emersion/mako/issues/113
+            # https://github.com/emersion/mako/pull/114
+            ("mako", "emersion"): _ServerQuirks(wrong_replaces_id=True),
         }
         quirks = all_quirks.get((name, vendor))
         if quirks is not None:
