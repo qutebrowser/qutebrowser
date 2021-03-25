@@ -94,9 +94,10 @@ class DBusNotificationPresenter(QObject):
             raise Error("Notifications are not supported on this Qt version")
 
         if utils.is_windows:
-            # The QDBusConnection destructor seems to cause error messages (and potentially
-            # segfaults) on Windows, so we bail out early in that case. We still try to get
-            # a connection on macOS, since it's theoretically possible to run DBus there.
+            # The QDBusConnection destructor seems to cause error messages (and
+            # potentially segfaults) on Windows, so we bail out early in that case.
+            # We still try to get a connection on macOS, since it's theoretically
+            # possible to run DBus there.
             raise Error("libnotify is not supported on Windows")
 
         self._active_notifications: Dict[int, 'QWebEngineNotification'] = {}
@@ -179,7 +180,7 @@ class DBusNotificationPresenter(QObject):
 
     def _verify_message(
         self,
-        message: QDBusMessage,
+        msg: QDBusMessage,
         expected_signature: str,
         expected_type: QDBusMessage.MessageType,
     ) -> None:
@@ -192,23 +193,22 @@ class DBusNotificationPresenter(QObject):
             QDBusMessage.InvalidMessage,
         ], expected_type
 
-        if message.type() == QDBusMessage.ErrorMessage:
-            raise Error(
-                f"Got DBus error: {message.errorName()} - {message.errorMessage()}")
+        if msg.type() == QDBusMessage.ErrorMessage:
+            raise Error(f"Got DBus error: {msg.errorName()} - {msg.errorMessage()}")
 
-        signature = message.signature()
+        signature = msg.signature()
         if signature != expected_signature:
             raise Error(
                 f"Got a message with signature {signature} but expected "
-                f"{expected_signature} (args: {message.arguments()})")
+                f"{expected_signature} (args: {msg.arguments()})")
 
-        typ = message.type()
+        typ = msg.type()
         if typ != expected_type:
             type_str = debug.qenum_key(QDBusMessage.MessageType, typ)
             expected_type_str = debug.qenum_key(QDBusMessage.MessageType, expected_type)
             raise Error(
                 f"Got a message of type {type_str} but expected {expected_type_str}"
-                f"(args: {message.arguments()})")
+                f"(args: {msg.arguments()})")
 
     def _find_matching_id(self, new_notification: "QWebEngineNotification") -> int:
         """Find an existing notification to replace.
@@ -311,10 +311,10 @@ class DBusNotificationPresenter(QObject):
         return image_data
 
     @pyqtSlot(QDBusMessage)
-    def _handle_close(self, message: QDBusMessage) -> None:
-        self._verify_message(message, "uu", QDBusMessage.SignalMessage)
+    def _handle_close(self, msg: QDBusMessage) -> None:
+        self._verify_message(msg, "uu", QDBusMessage.SignalMessage)
 
-        notification_id, _close_reason = message.arguments()
+        notification_id, _close_reason = msg.arguments()
         notification = self._active_notifications.get(notification_id)
         if notification is not None:
             try:
@@ -325,10 +325,10 @@ class DBusNotificationPresenter(QObject):
                 pass
 
     @pyqtSlot(QDBusMessage)
-    def _handle_action(self, message: QDBusMessage) -> None:
-        self._verify_message(message, "us", QDBusMessage.SignalMessage)
+    def _handle_action(self, msg: QDBusMessage) -> None:
+        self._verify_message(msg, "us", QDBusMessage.SignalMessage)
 
-        notification_id, action_key = message.arguments()
+        notification_id, action_key = msg.arguments()
         if action_key != "default":
             raise Error(f"Got unknown action {action_key}")
 
@@ -351,7 +351,7 @@ class DBusNotificationPresenter(QObject):
         self._capabilities = reply.arguments()[0]
         log.misc.debug(f"Notification server capabilities: {self._capabilities}")
 
-    def _format_body(self, message: str) -> str:
+    def _format_body(self, body: str) -> str:
         if 'body-markup' in self._capabilities:
-            return html.escape(message)
-        return message
+            return html.escape(body)
+        return body
