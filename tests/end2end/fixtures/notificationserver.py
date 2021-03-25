@@ -121,14 +121,18 @@ class TestNotificationServer(QObject):
 
     def click(self, notification_id: int) -> None:
         """Sends a click (default action) notification for the given ID."""
+        self.action(notification_id, "default")
+
+    def action(self, notification_id: int, name: str) -> None:
+        """Sends an action notification for the given ID."""
         message = QDBusMessage.createSignal(
             notification.DBusNotificationPresenter.PATH,
             notification.DBusNotificationPresenter.INTERFACE,
             "ActionInvoked")
 
-        message.setArguments([_as_uint32(notification_id), "default"])
+        message.setArguments([_as_uint32(notification_id), name])
         if not self._bus.send(message):
-            raise OSError("Could not send click notification")
+            raise OSError("Could not send action notification")
 
     # Everything below is exposed via DBus
     # pylint: disable=invalid-name

@@ -77,3 +77,9 @@ def close_notification(notification_server, id_):
 @bdd.when(bdd.parsers.cfparse('I click the notification with id {id_:d}'))
 def click_notification(notification_server, id_):
     notification_server.click(id_)
+
+
+@bdd.when(bdd.parsers.cfparse(
+    'I trigger a {name} action on the notification with id {id_:d}'))
+def custom_notification_action(notification_server, id_, name):
+    notification_server.action(id_, name)

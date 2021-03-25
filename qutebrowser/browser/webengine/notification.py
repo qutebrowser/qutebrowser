@@ -334,11 +334,11 @@ class DBusNotificationPresenter(QObject):
         self._verify_message(msg, "us", QDBusMessage.SignalMessage)
 
         notification_id, action_key = msg.arguments()
-        if action_key != "default":
-            raise Error(f"Got unknown action {action_key}")
 
         notification = self._active_notifications.get(notification_id)
         if notification is not None:
+            if action_key != "default":
+                raise Error(f"Got unknown action {action_key}")
             try:
                 notification.click()
             except RuntimeError:

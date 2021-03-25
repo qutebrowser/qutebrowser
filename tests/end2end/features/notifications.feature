@@ -105,3 +105,10 @@ Feature: Notifications
         And I wait for the javascript message "notification shown"
         And I click the notification with id 1234
         Then the javascript message "notification clicked" should not be logged
+
+    @qtwebengine_notifications @pyqtwebengine>=5.15.0
+    Scenario: Unknown action with some other application's notification
+        When I run :click-element id show-button
+        And I wait for the javascript message "notification shown"
+        And I trigger a custom action on the notification with id 1234
+        Then no crash should happen
