@@ -450,7 +450,11 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
         proc = QProcess(self)
         proc.errorOccurred.connect(self._on_error)
 
-        proc.start('herbe', [qt_notification.title(), qt_notification.message()])
+        lines = [qt_notification.title(), qt_notification.message()]
+        if not qt_notification.icon().isNull():
+            lines.append("(icon not shown)")
+
+        proc.start('herbe', lines)
         pid = proc.processId()
         assert pid > 1
         proc.finished.connect(functools.partial(self._on_finished, pid))
