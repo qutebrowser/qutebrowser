@@ -58,24 +58,14 @@ def init() -> None:
 
     Always succeeds, but might log an error.
     """
-    setting = config.val.content.notifications.presenter
-    if setting not in ["auto", "libnotify"]:
+    if config.val.content.notifications.presenter == "qt":
+        # In theory, we could somehow postpone the install if the user switches to "qt"
+        # at a later point in time. However, doing so is probably too complex compared
+        # to its usefulness.
         return
 
     global bridge
-    log.init.debug("Setting up notification presenter...")
-    testing = 'test-notification-service' in objects.debug_flags
-    try:
-        bridge = NotificationBridgePresenter(test_service=testing)
-    except Error as e:
-        msg = f"Failed to initialize notification presenter: {e}"
-        if setting == "libnotify":
-            # Explicitly set to "libnotify", so show the error to the user.
-            message.error(msg)
-        elif setting == "auto":
-            log.init.debug(msg)
-        else:
-            raise utils.Unreachable(setting)
+    bridge = NotificationBridgePresenter()
 
 
 class Error(Exception):
@@ -100,14 +90,48 @@ class NotificationBridgePresenter(QObject):
 
     """Notification presenter which bridges notifications to an adapter."""
 
-    def __init__(self, test_service: bool = False, parent: QObject = None) -> None:
+    def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
         if not qtutils.version_check('5.14'):
             raise Error("Custom notifications are not supported on Qt < 5.14")
 
         self._active_notifications: Dict[int, 'QWebEngineNotification'] = {}
-        # self._adapter = Optional[AbstractNotificationAdapter] = None
-        self._adapter = DBusNotificationAdapter(test_service=test_service, parent=self)
+        self._adapter: Optional[AbstractNotificationAdapter] = None
+
+        config.instance.changed.connect(self.on_config_changed)
+
+    @config.change_filter('content.notifications.presenter')
+    def on_config_changed(self):
+        self._init_adapter()
+
+    def _init_adapter(self):
+        """Initialize the adapter to use based on the config."""
+        log.init.debug("Setting up notification adapter...")
+
+        setting = config.val.content.notifications.presenter
+        if setting == "qt":
+            message.error("Can't switch to qt notification presenter at runtime.")
+            return
+
+        if setting in ["auto", "libnotify"]:
+            testing = 'test-notification-service' in objects.debug_flags
+            try:
+                self._adapter = DBusNotificationAdapter(test_service=testing)
+            except Error as e:
+                msg = f"Failed to initialize libnotify presenter: {e}"
+                if setting == "auto":
+                    log.init.debug(msg)
+                elif setting == "libnotify":
+                    # Explicitly set to "libnotify", so show the error to the user.
+                    message.error(msg)
+                else:
+                    raise utils.Unreachable(setting)
+                self._adapter = SystrayNotificationAdapter()
+        elif setting == "systray":
+            self._adapter = SystrayNotificationAdapter()
+        else:
+            raise utils.Unreachable(setting)
+
         self._adapter.click_id.connect(self._on_adapter_clicked)
         self._adapter.close_id.connect(self._on_adapter_closed)
 
@@ -138,6 +162,10 @@ class NotificationBridgePresenter(QObject):
         This should *not* be directly passed to setNotificationPresenter on
         PyQtWebEngine < 5.15 because of a bug in the PyQtWebEngine bindings.
         """
+        if self._adapter is None:
+            self._init_adapter()
+            assert self._adapter is not None
+
         replaces_id = self._find_replaces_id(qt_notification)
         notification_id = self._adapter.present(
             qt_notification, replaces_id=replaces_id)
