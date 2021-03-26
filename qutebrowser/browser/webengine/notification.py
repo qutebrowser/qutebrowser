@@ -453,21 +453,21 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
 
     @pyqtSlot(int, QProcess.ExitStatus)
     def _on_finished(self, code: int, status: QProcess.ExitStatus) -> None:
+        if status == QProcess.CrashExit:
+            # SIGUSR1/SIGUSR2 are expected "crashes", and for any other signals, we
+            # can't do much - emitting self.error would just go use herbe again, so
+            # there's no point.
+            return
+
         proc = self.sender()
         pid = proc.processId()
-        if status == QProcess.NormalExit:
-            if code == 0:
-                self.click_id.emit(pid)
-            elif code == 2:
-                self.close_id.emit(pid)
-            else:
-                stderr = proc.readAllStandardError()
-                raise Error(f'herbe exited with status {code}: {stderr}')
-        elif status == QProcess.CrashExit:
-            if code != signal.SIGUSR1:
-                self.error.emit(f'herbe exited with signal {code}')
+        if code == 0:
+            self.click_id.emit(pid)
+        elif code == 2:
+            self.close_id.emit(pid)
         else:
-            raise utils.Unreachable(status)
+            stderr = proc.readAllStandardError()
+            raise Error(f'herbe exited with status {code}: {stderr}')
 
     @pyqtSlot(QProcess.ProcessError)
     def _on_error(self, error: QProcess.ProcessError) -> None:
