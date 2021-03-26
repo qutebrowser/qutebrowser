@@ -87,7 +87,6 @@ class _ServerQuirks:
 
     spec_version: Optional[str] = None
     avoid_actions: bool = False
-    wrong_replaces_id: bool = False
     icon_key: Optional[str] = None
 
 
@@ -172,15 +171,6 @@ class DBusNotificationPresenter(QObject):
             # https://github.com/awesomeWM/awesome/commit/e076bc664e0764a3d3a0164dabd9b58d334355f4
             # Thus, no icon/image support at the moment...
             ("naughty", "awesome"): _ServerQuirks(spec_version="1.0"),
-
-            # https://gitlab.xfce.org/apps/xfce4-notifyd/-/issues/48
-            ("Xfce Notify Daemon", "Xfce"): _ServerQuirks(wrong_replaces_id=True),
-
-            # https://github.com/emersion/mako/issues/167
-            # https://github.com/emersion/mako/pull/168
-            # https://github.com/emersion/mako/issues/113
-            # https://github.com/emersion/mako/pull/114
-            ("mako", "emersion"): _ServerQuirks(wrong_replaces_id=True),
         }
         quirks = all_quirks.get((name, vendor))
         if quirks is not None:
@@ -332,11 +322,7 @@ class DBusNotificationPresenter(QObject):
         if existing_id not in [0, notification_id]:
             msg = (f"Wanted to replace notification {existing_id} but got new id "
                    f"{notification_id}.")
-            if self._quirks.wrong_replaces_id:
-                log.webview.debug(msg)
-                del self._active_notifications[existing_id]
-            else:
-                raise Error(msg)
+            raise Error(msg)
 
         if notification_id == 0:
             raise Error("Got invalid notification id 0")
@@ -389,6 +375,7 @@ class DBusNotificationPresenter(QObject):
             # Notification from a different application
             return
 
+        del self._active_notifications[notification_id]
         try:
             notification.close()
         except RuntimeError:
