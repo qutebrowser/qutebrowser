@@ -25,14 +25,17 @@ https://developer.gnome.org/notification-spec/
 https://specifications.freedesktop.org/notification-spec/notification-spec-latest.html
 """
 
+import os
+import signal
 import html
 import dataclasses
 import itertools
 import functools
+import subprocess
 from typing import Any, Dict, Optional, TYPE_CHECKING
 
 from PyQt5.QtCore import (Qt, QObject, QVariant, QMetaType, QByteArray, pyqtSlot,
-                          pyqtSignal, QTimer)
+                          pyqtSignal, QTimer, QProcess)
 from PyQt5.QtGui import QImage, QIcon, QPixmap
 from PyQt5.QtDBus import (QDBusConnection, QDBusInterface, QDBus, QDBusServiceWatcher,
                           QDBusArgument, QDBusMessage, QDBusError)
@@ -44,6 +47,7 @@ if TYPE_CHECKING:
     from PyQt5.QtWebEngineCore import QWebEngineNotification
     from PyQt5.QtWebEngineWidgets import QWebEngineProfile
 
+from qutebrowser.qt import sip
 from qutebrowser.config import config
 from qutebrowser.misc import objects
 from qutebrowser.utils import qtutils, log, utils, debug, message
@@ -88,6 +92,10 @@ class AbstractNotificationAdapter(QObject):
     ) -> int:
         raise NotImplementedError
 
+    @pyqtSlot(int)
+    def on_web_closed(self, notification_id: int) -> None:
+        raise NotImplementedError
+
 
 class NotificationBridgePresenter(QObject):
 
@@ -126,6 +134,13 @@ class NotificationBridgePresenter(QObject):
             candidates = [
                 SystrayNotificationAdapter,
                 DBusNotificationAdapter,
+                MessagesNotificationAdapter,
+            ]
+        elif setting == "herbe":
+            candidates = [
+                HerbeNotificationAdapter,
+                DBusNotificationAdapter,
+                SystrayNotificationAdapter,
                 MessagesNotificationAdapter,
             ]
         elif setting == "messages":
@@ -277,7 +292,10 @@ class NotificationBridgePresenter(QObject):
 
     @pyqtSlot(str)
     def _on_adapter_error(self, error: str):
-        assert self._adapter is not None
+        if self._adapter is None:
+            # Error during setup
+            return
+
         log.webview.error(
             f"Notification error from {self._adapter.NAME} adapter: {error}")
         self._drop_adapter()
@@ -385,6 +403,84 @@ class MessagesNotificationAdapter(AbstractNotificationAdapter):
     def on_web_closed(self, _notification_id: int) -> None:
         """We can't close messages."""
         pass
+
+
+class HerbeNotificationAdapter(AbstractNotificationAdapter):
+
+    """Shows notifications using herbe.
+
+    See https://github.com/dudik/herbe
+    """
+
+    NAME = "herbe"
+
+    def __init__(self, parent: QObject = None) -> None:
+        super().__init__(parent)
+        self._id_gen = itertools.count(1)
+        self._processes: Dict[int, QProcess] = {}
+
+        # Also cleans up potentially hanging semaphores from herbe.
+        # https://github.com/dudik/herbe#notifications-dont-show-up
+        try:
+            subprocess.run(['herbe'], stderr=subprocess.DEVNULL)
+        except OSError as e:
+            raise Error(f'herbe error: {e}')
+
+    def present(
+        self,
+        qt_notification: "QWebEngineNotification",
+        *,
+        replaces_id: Optional[int],
+    ) -> int:
+        if replaces_id is None:
+            new_id = next(self._id_gen)
+        else:
+            if replaces_id in self._processes:
+                proc = self._processes[replaces_id]
+                proc.disconnect()  # otherwise we call _on_finished for the new process
+                self.on_web_closed(replaces_id)
+
+            new_id = replaces_id
+
+        proc = QProcess(self)
+        proc.finished.connect(functools.partial(self._on_finished, new_id))
+        proc.error.connect(self._on_error)
+        proc.start('herbe', [qt_notification.title(), qt_notification.message()])
+
+        self._processes[new_id] = proc
+        return new_id
+
+    def _on_finished(
+            self,
+            notification_id: int,
+            code: int,
+            status: QProcess.ExitStatus,
+    ) -> None:
+        if status == QProcess.CrashExit:
+            if not sip.isdeleted(self):  # happens during shutdown?
+                self.error.emit('herbe crashed')
+            return
+
+        proc = self._processes.pop(notification_id)
+        if code == 0:
+            self.click_id.emit(notification_id)
+        elif code == 2:
+            self.close_id.emit(notification_id)
+        else:
+            stderr = proc.readAllStandardError()
+            self.error.emit(f'herbe exited with status {code}: {stderr}')
+
+    @pyqtSlot(QProcess.ProcessError)
+    def _on_error(self, error: QProcess.ProcessError) -> None:
+        if error == QProcess.Crashed:
+            return
+        name = debug.qenum_key(QProcess.ProcessError, error)
+        self.error.emit(f'herbe process error: {name}')
+
+    @pyqtSlot(int)
+    def on_web_closed(self, notification_id: int) -> None:
+        pid = self._processes[notification_id].processId()
+        os.kill(pid, signal.SIGUSR1)
 
 
 @dataclasses.dataclass

@@ -928,6 +928,7 @@ content.notifications.presenter:
             to it at runtime.
       - messages: Show notifications as qutebrowser messages. Most features (images,
             clicking/closing notifications) aren't available.
+      - herbe: Show notifications using herbe (github.com/dudik/herbe)
   backend:
     QtWebEngine: Qt 5.14
     QtWebKit: false
