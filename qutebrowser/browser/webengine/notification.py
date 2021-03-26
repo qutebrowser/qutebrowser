@@ -265,7 +265,11 @@ class NotificationBridgePresenter(QObject):
         assert self._adapter is not None
         log.webview.error(
             f"Notification error from {self._adapter.NAME} adapter: {error}")
-        self._adapter = None  # get a new adapter for the next invocation
+
+        # get a new adapter for the next invocation
+        self._adapter.deleteLater()
+        self._adapter = None
+
         # Probably safe to assume no notifications exist anymore. Also, this makes sure
         # we don't have any duplicate IDs.
         for notification_id in list(self._active_notifications):
