@@ -29,10 +29,12 @@ import html
 import dataclasses
 from typing import Any, Dict, Optional, TYPE_CHECKING
 
-from PyQt5.QtGui import QImage
-from PyQt5.QtCore import QObject, QVariant, QMetaType, QByteArray, pyqtSlot, pyqtSignal
+from PyQt5.QtCore import (Qt, QObject, QVariant, QMetaType, QByteArray, pyqtSlot,
+                          pyqtSignal)
+from PyQt5.QtGui import QImage, QIcon, QPixmap
 from PyQt5.QtDBus import (QDBusConnection, QDBusInterface, QDBus,
                           QDBusArgument, QDBusMessage, QDBusError)
+from PyQt5.QtWidgets import QSystemTrayIcon
 
 if TYPE_CHECKING:
     # putting these behind TYPE_CHECKING also means this module is importable
@@ -210,6 +212,54 @@ class NotificationBridgePresenter(QObject):
             # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
             log.misc.debug(f"Ignoring click request for notification {notification_id} "
                            "due to PyQt bug")
+
+
+class SystrayNotificationAdapter(AbstractNotificationAdapter):
+
+    """Shows notifications using QSystemTrayIcon.
+
+    This is essentially a reimplementation of QtWebEngine's default implementation:
+    https://github.com/qt/qtwebengine/blob/v5.15.2/src/webenginewidgets/api/qwebenginenotificationpresenter.cpp
+
+    It exists because QtWebEngine won't allow us to restore its default presenter, so if
+    something goes wrong when trying to e.g. connect to the DBus one, we still want to
+    be able to switch back after our presenter is already installed. Also, it's nice if
+    users can switch presenters in the config live.
+    """
+
+    NOTIFICATION_ID = 1  # only one concurrent ID supported
+
+    def __init__(self, parent: QObject = None) -> None:
+        super().__init__(parent)
+        self._systray = QSystemTrayIcon(self)
+        self._systray.setIcon(objects.qapp.windowIcon())
+        self._systray.messageClicked.connect(self._on_systray_clicked)
+
+    def present(
+        self,
+        qt_notification: "QWebEngineNotification",
+        *,
+        replaces_id: Optional[int],
+    ) -> int:
+        utils.unused(replaces_id)  # QSystemTray can only show one message
+        self.close_id.emit(self.NOTIFICATION_ID)
+        self._systray.show()
+        icon = self._convert_icon(qt_notification.icon())
+        self._systray.showMessage(qt_notification.title(), qt_notification.message(), icon)
+        return self.NOTIFICATION_ID
+
+    def _convert_icon(self, image: QImage) -> QIcon:
+        """Convert a QImage to a QIcon."""
+        if image.isNull():
+            return QIcon()
+        pixmap = QPixmap.fromImage(image, Qt.NoFormatConversion)
+        assert not pixmap.isNull()
+        icon = QIcon(pixmap)
+        assert not icon.isNull()
+        return icon
+
+    def _on_systray_clicked(self) -> None:
+        self.on_clicked.emit(self.NOTIFICATION_ID)
 
 
 @dataclasses.dataclass
