@@ -140,13 +140,15 @@ class NotificationBridgePresenter(QObject):
         notification_id = self._adapter.present(
             qt_notification, replaces_id=replaces_id)
 
-        if replaces_id not in [None, notification_id]:
-            msg = (f"Wanted to replace notification {replaces_id} but got new id "
-                   f"{notification_id}.")
-            raise Error(msg)
-
         if notification_id <= 0:
             raise Error(f"Got invalid notification id {notification_id}")
+
+        if replaces_id is None:
+            if notification_id in self._active_notifications:
+                raise Error(f"Got duplicate id {notification_id}")
+        elif replaces_id != notification_id:
+            raise Error(f"Wanted to replace notification {replaces_id} but got "
+                        f"new id {notification_id}.")
 
         log.webview.debug(f"Sent out notification {notification_id}")
         self._active_notifications[notification_id] = qt_notification
