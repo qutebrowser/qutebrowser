@@ -2536,6 +2536,7 @@ Valid values:
  * +qt+: Use Qt's native notification presenter. Switching from or to this value requires a restart of qutebrowser.
  * +libnotify+: Use a libnotify-compatible presenter if DBus is available, show an error (and fall back to Qt's presenter) otherwise.
  * +systray+: Use a notification presenter based on a systray icon. This is a reimplementation of the `qt` setting value, but with the possibility to switch to it at runtime.
+ * +messages+: Show notifications as qutebrowser messages. Most features (images, clicking/closing notifications) aren't available.
 
 Default: +pass:[auto]+
 

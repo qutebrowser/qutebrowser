@@ -27,10 +27,11 @@ https://specifications.freedesktop.org/notification-spec/notification-spec-lates
 
 import html
 import dataclasses
+import itertools
 from typing import Any, Dict, Optional, TYPE_CHECKING
 
 from PyQt5.QtCore import (Qt, QObject, QVariant, QMetaType, QByteArray, pyqtSlot,
-                          pyqtSignal)
+                          pyqtSignal, QTimer)
 from PyQt5.QtGui import QImage, QIcon, QPixmap
 from PyQt5.QtDBus import (QDBusConnection, QDBusInterface, QDBus,
                           QDBusArgument, QDBusMessage, QDBusError)
@@ -129,6 +130,8 @@ class NotificationBridgePresenter(QObject):
                 self._adapter = SystrayNotificationAdapter()
         elif setting == "systray":
             self._adapter = SystrayNotificationAdapter()
+        elif setting == "messages":
+            self._adapter = MessagesNotificationAdapter()
         else:
             raise utils.Unreachable(setting)
 
@@ -181,9 +184,8 @@ class NotificationBridgePresenter(QObject):
                         f"new id {notification_id}.")
 
         log.webview.debug(f"Sent out notification {notification_id}")
-        self._active_notifications[notification_id] = qt_notification
-
         qt_notification.show()
+        self._active_notifications[notification_id] = qt_notification
 
     def _find_replaces_id(
         self,
@@ -288,6 +290,43 @@ class SystrayNotificationAdapter(AbstractNotificationAdapter):
 
     def _on_systray_clicked(self) -> None:
         self.on_clicked.emit(self.NOTIFICATION_ID)
+
+
+class MessagesNotificationAdapter(AbstractNotificationAdapter):
+
+    """Shows notifications using qutebrowser messages.
+
+    This is mostly used as a fallback if no other method is available. Most notification
+    features are not supported.
+    """
+
+    def __init__(self, parent: QObject = None) -> None:
+        super().__init__(parent)
+        self._id_gen = itertools.count(1)
+
+    def present(
+        self,
+        qt_notification: "QWebEngineNotification",
+        *,
+        replaces_id: Optional[int],
+    ) -> int:
+        url = html.escape(qt_notification.origin().toDisplayString())
+        title = html.escape(qt_notification.title())
+        body = html.escape(qt_notification.message())
+        hint = "" if qt_notification.icon().isNull() else " (image not shown)"
+
+        new_id = replaces_id if replaces_id is not None else next(self._id_gen)
+        markup = (
+            f"<i>Notification from {url}:{hint}</i><br/><br/>"
+            f"<b>{title}</b><br/>"
+            f"{body}"
+        )
+        message.info(markup, replace=f'notifications-{new_id}')
+
+        # Faking closing, timing might not be 100% accurate
+        QTimer.singleShot(config.val.messages.timeout, lambda: self.close_id.emit(new_id))
+
+        return new_id
 
 
 @dataclasses.dataclass

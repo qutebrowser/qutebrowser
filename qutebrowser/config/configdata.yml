@@ -926,6 +926,8 @@ content.notifications.presenter:
       - systray: Use a notification presenter based on a systray icon. This is a
             reimplementation of the `qt` setting value, but with the possibility to switch
             to it at runtime.
+      - messages: Show notifications as qutebrowser messages. Most features (images,
+            clicking/closing notifications) aren't available.
   backend:
     QtWebEngine: Qt 5.14
     QtWebKit: false
