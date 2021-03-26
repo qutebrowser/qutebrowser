@@ -137,11 +137,11 @@ class NotificationBridgePresenter(QObject):
             try:
                 self._adapter = candidate()
             except Error as e:
-                msg = f"Failed to initialize {candidate.NAME} presenter: {e}"
-                if setting == "auto":  # silent errors as we want auto fallback
-                    log.init.debug(msg)
-                elif setting == "libnotify":
+                msg = f"Failed to initialize {candidate.NAME} notification adapter: {e}"
+                if candidate.NAME == setting:  # We picked this one explicitly
                     message.error(msg)
+                else:  # automatic fallback
+                    log.init.debug(msg)
             else:
                 break
 
