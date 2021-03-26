@@ -28,6 +28,7 @@ https://specifications.freedesktop.org/notification-spec/notification-spec-lates
 import html
 import dataclasses
 import itertools
+import functools
 from typing import Any, Dict, Optional, TYPE_CHECKING
 
 from PyQt5.QtCore import (Qt, QObject, QVariant, QMetaType, QByteArray, pyqtSlot,
@@ -195,6 +196,9 @@ class NotificationBridgePresenter(QObject):
         qt_notification.show()
         self._active_notifications[notification_id] = qt_notification
 
+        qt_notification.closed.connect(functools.partial(
+            self._adapter.on_web_closed, notification_id))
+
     def _find_replaces_id(
         self,
         new_notification: "QWebEngineNotification",
@@ -302,8 +306,14 @@ class SystrayNotificationAdapter(AbstractNotificationAdapter):
         assert not icon.isNull()
         return icon
 
+    @pyqtSlot()
     def _on_systray_clicked(self) -> None:
         self.on_clicked.emit(self.NOTIFICATION_ID)
+
+    @pyqtSlot(int)
+    def on_web_closed(self, notification_id: int) -> None:
+        assert notification_id == self.NOTIFICATION_ID, notification_id
+        self._systray.hide()
 
 
 class MessagesNotificationAdapter(AbstractNotificationAdapter):
@@ -343,6 +353,11 @@ class MessagesNotificationAdapter(AbstractNotificationAdapter):
         QTimer.singleShot(config.val.messages.timeout, lambda: self.close_id.emit(new_id))
 
         return new_id
+
+    @pyqtSlot(int)
+    def on_web_closed(self, _notification_id: int) -> None:
+        """We can't close messages."""
+        pass
 
 
 @dataclasses.dataclass
@@ -623,6 +638,12 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         notification_id, action_key = msg.arguments()
         if action_key == "default":
             self.click_id.emit(notification_id)
+
+    @pyqtSlot(int)
+    def on_web_closed(self, notification_id: int) -> None:
+        id_arg = QVariant(notification_id)
+        id_arg.convert(QVariant.UInt)
+        self.interface.call(QDBus.NoBlock, "CloseNotification", id_arg)
 
     def _fetch_capabilities(self) -> None:
         """Fetch capabilities from the notification server."""

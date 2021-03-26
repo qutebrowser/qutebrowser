@@ -52,6 +52,12 @@ Feature: Notifications
         And notification 1 should have title "Padded"
         And notification 1 should have image dimensions 46x46
 
+    Scenario: Closing notification via web
+        When I run :click-element id show-closing-button
+        Then the javascript message "notification shown" should be logged
+        And the javascript message "notification closed" should be logged
+        And notification 1 should be closed via web
+
     # As a WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
     # and other issues, those can only run with PyQtWebEngine >= 5.15.0
     #

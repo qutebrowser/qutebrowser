@@ -39,6 +39,7 @@ class NotificationProperties:
     replaces_id: int
     img_width: int
     img_height: int
+    closed_via_web: bool = False
 
 
 def _as_uint32(x: int) -> QVariant:
@@ -202,6 +203,14 @@ class TestNotificationServer(QObject):
         if self.supports_body_markup:
             capabilities.append("body-markup")
         return capabilities
+
+    @pyqtSlot(QDBusMessage)
+    def CloseNotification(self, dbus_message: QDBusMessage) -> None:
+        assert dbus_message.signature() == 'u'
+        assert dbus_message.type() == QDBusMessage.MethodCallMessage
+
+        message_id = dbus_message.arguments()[0]
+        self.messages[message_id].closed_via_web = True
 
 
 @pytest.fixture
