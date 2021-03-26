@@ -41,7 +41,7 @@ def supports_body_markup(notification_server, quteproc):
     notification_server.supports_body_markup = True
     quteproc.send_cmd(
         ":debug-pyeval -q __import__('qutebrowser').browser.webengine.notification."
-        "dbus_presenter._fetch_capabilities()")
+        "bridge._adapter._fetch_capabilities()")
     quteproc.wait_for(
         message="Notification server capabilities: ['actions', 'body-markup']")
 
@@ -51,7 +51,7 @@ def doesnt_support_body_markup(notification_server, quteproc):
     notification_server.supports_body_markup = False
     quteproc.send_cmd(
         ":debug-pyeval -q __import__('qutebrowser').browser.webengine.notification."
-        "dbus_presenter._fetch_capabilities()")
+        "bridge._adapter._fetch_capabilities()")
     quteproc.wait_for(message="Notification server capabilities: ['actions']")
 
 

@@ -360,8 +360,8 @@ def _init_profile(profile: QWebEngineProfile) -> None:
     _download_manager.install(profile)
     cookies.install_filter(profile)
 
-    if notification.dbus_presenter is not None:
-        notification.dbus_presenter.install(profile)
+    if notification.bridge is not None:
+        notification.bridge.install(profile)
 
     # Clear visited links on web history clear
     history.web_history.history_cleared.connect(profile.clearAllVisitedLinks)

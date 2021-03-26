@@ -77,15 +77,15 @@ class TestNotificationServer(QObject):
             return False
         assert self._bus.registerService(self._service)
         assert self._bus.registerObject(
-            notification.DBusNotificationPresenter.PATH,
-            notification.DBusNotificationPresenter.INTERFACE,
+            notification.DBusNotificationAdapter.PATH,
+            notification.DBusNotificationAdapter.INTERFACE,
             self,
             QDBusConnection.ExportAllSlots,
         )
         return True
 
     def unregister(self) -> None:
-        self._bus.unregisterObject(notification.DBusNotificationPresenter.PATH)
+        self._bus.unregisterObject(notification.DBusNotificationAdapter.PATH)
         assert self._bus.unregisterService(self._service)
 
     def _parse_notify_args(self, appname, replaces_id, icon, title, body, actions,
@@ -149,8 +149,8 @@ class TestNotificationServer(QObject):
     def close(self, notification_id: int) -> None:
         """Sends a close notification for the given ID."""
         message = QDBusMessage.createSignal(
-            notification.DBusNotificationPresenter.PATH,
-            notification.DBusNotificationPresenter.INTERFACE,
+            notification.DBusNotificationAdapter.PATH,
+            notification.DBusNotificationAdapter.INTERFACE,
             "NotificationClosed")
 
         # The 2 here is the notification removal reason ("dismissed by the user")
@@ -166,8 +166,8 @@ class TestNotificationServer(QObject):
     def action(self, notification_id: int, name: str) -> None:
         """Sends an action notification for the given ID."""
         message = QDBusMessage.createSignal(
-            notification.DBusNotificationPresenter.PATH,
-            notification.DBusNotificationPresenter.INTERFACE,
+            notification.DBusNotificationAdapter.PATH,
+            notification.DBusNotificationAdapter.INTERFACE,
             "ActionInvoked")
 
         message.setArguments([_as_uint32(notification_id), name])
@@ -212,7 +212,7 @@ def notification_server(qapp):
         # a connection on macOS, since it's theoretically possible to run DBus there.
         pytest.skip("Skipping DBus on Windows")
 
-    server = TestNotificationServer(notification.DBusNotificationPresenter.TEST_SERVICE)
+    server = TestNotificationServer(notification.DBusNotificationAdapter.TEST_SERVICE)
     registered = server.register()
     if not registered:
         assert not (utils.is_linux and testutils.ON_CI), "Expected DBus on Linux CI"

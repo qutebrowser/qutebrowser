@@ -30,7 +30,7 @@ import dataclasses
 from typing import Any, Dict, Optional, TYPE_CHECKING
 
 from PyQt5.QtGui import QImage
-from PyQt5.QtCore import QObject, QVariant, QMetaType, QByteArray, pyqtSlot
+from PyQt5.QtCore import QObject, QVariant, QMetaType, QByteArray, pyqtSlot, pyqtSignal
 from PyQt5.QtDBus import (QDBusConnection, QDBusInterface, QDBus,
                           QDBusArgument, QDBusMessage, QDBusError)
 
@@ -45,7 +45,7 @@ from qutebrowser.misc import objects
 from qutebrowser.utils import qtutils, log, utils, debug, message
 
 
-dbus_presenter: Optional['DBusNotificationPresenter'] = None
+bridge: Optional['NotificationBridgePresenter'] = None
 
 
 def init() -> None:
@@ -60,13 +60,13 @@ def init() -> None:
     if setting not in ["auto", "libnotify"]:
         return
 
-    global dbus_presenter
-    log.init.debug("Setting up DBus notification presenter...")
+    global bridge
+    log.init.debug("Setting up notification presenter...")
     testing = 'test-notification-service' in objects.debug_flags
     try:
-        dbus_presenter = DBusNotificationPresenter(testing)
+        bridge = NotificationBridgePresenter(test_service=testing)
     except Error as e:
-        msg = f"Failed to initialize DBus notification presenter: {e}"
+        msg = f"Failed to initialize notification presenter: {e}"
         if setting == "libnotify":
             # Explicitly set to "libnotify", so show the error to the user.
             message.error(msg)
@@ -77,7 +77,135 @@ def init() -> None:
 
 
 class Error(Exception):
-    """Raised when something goes wrong with DBusNotificationPresenter."""
+    """Raised when something goes wrong with notifications."""
+
+
+class AbstractNotificationAdapter(QObject):
+
+    close_id = pyqtSignal(int)
+    click_id = pyqtSignal(int)
+
+    def present(
+        self,
+        qt_notification: "QWebEngineNotification",
+        *,
+        replaces_id: Optional[int],
+    ) -> int:
+        raise NotImplementedError
+
+
+class NotificationBridgePresenter(QObject):
+
+    """Notification presenter which bridges notifications to an adapter."""
+
+    def __init__(self, test_service: bool = False, parent: QObject = None) -> None:
+        super().__init__(parent)
+        if not qtutils.version_check('5.14'):
+            raise Error("Custom notifications are not supported on Qt < 5.14")
+
+        self._active_notifications: Dict[int, 'QWebEngineNotification'] = {}
+        # self._adapter = Optional[AbstractNotificationAdapter] = None
+        self._adapter = DBusNotificationAdapter(test_service=test_service, parent=self)
+        self._adapter.click_id.connect(self._on_adapter_clicked)
+        self._adapter.close_id.connect(self._on_adapter_closed)
+
+    def install(self, profile: "QWebEngineProfile") -> None:
+        """Sets the profile to use the manager as the presenter."""
+        # WORKAROUND for
+        # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042916.html
+        # Fixed in PyQtWebEngine 5.15.0
+        # PYQT_WEBENGINE_VERSION was added with PyQtWebEngine 5.13, but if we're here,
+        # we already did a version check above.
+        from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
+        if PYQT_WEBENGINE_VERSION < 0x050F00:
+            # PyQtWebEngine unrefs the callback after it's called, for some
+            # reason.  So we call setNotificationPresenter again to *increase*
+            # its refcount to prevent it from getting GC'd. Otherwise, random
+            # methods start getting called with the notification as `self`, or
+            # segfaults happen, or other badness.
+            def _present_and_reset(qt_notification: "QWebEngineNotification") -> None:
+                profile.setNotificationPresenter(_present_and_reset)
+                self.present(qt_notification)
+            profile.setNotificationPresenter(_present_and_reset)
+        else:
+            profile.setNotificationPresenter(self.present)
+
+    def present(self, qt_notification: "QWebEngineNotification") -> None:
+        """Shows a notification using the configured adapter.
+
+        This should *not* be directly passed to setNotificationPresenter on
+        PyQtWebEngine < 5.15 because of a bug in the PyQtWebEngine bindings.
+        """
+        replaces_id = self._find_replaces_id(qt_notification)
+        notification_id = self._adapter.present(
+            qt_notification, replaces_id=replaces_id)
+
+        if replaces_id not in [None, notification_id]:
+            msg = (f"Wanted to replace notification {replaces_id} but got new id "
+                   f"{notification_id}.")
+            raise Error(msg)
+
+        if notification_id <= 0:
+            raise Error(f"Got invalid notification id {notification_id}")
+
+        log.webview.debug(f"Sent out notification {notification_id}")
+        self._active_notifications[notification_id] = qt_notification
+
+    def _find_replaces_id(
+        self,
+        new_notification: "QWebEngineNotification",
+    ) -> Optional[int]:
+        """Find an existing notification to replace.
+
+        If no notification should be replaced or the notification to be replaced was not
+        found, this returns None.
+        """
+        if not new_notification.tag():
+            return None
+
+        try:
+            for notification_id, notification in self._active_notifications.items():
+                if notification.matches(new_notification):
+                    return notification_id
+        except RuntimeError:
+            # WORKAROUND for
+            # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
+            # (also affects .matches)
+            log.misc.debug(
+                f"Ignoring notification tag {new_notification.tag()!r} due to PyQt bug")
+
+        return None
+
+    @pyqtSlot(int)
+    def _on_adapter_closed(self, notification_id: int) -> None:
+        notification = self._active_notifications.get(notification_id)
+        if notification is None:
+            # Notification from a different application
+            return
+
+        del self._active_notifications[notification_id]
+        try:
+            notification.close()
+        except RuntimeError:
+            # WORKAROUND for
+            # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
+            log.misc.debug(f"Ignoring close request for notification {notification_id} "
+                           "due to PyQt bug")
+
+    @pyqtSlot(int)
+    def _on_adapter_clicked(self, notification_id: int) -> None:
+        notification = self._active_notifications.get(notification_id)
+        if notification is None:
+            # Notification from a different application
+            return
+
+        try:
+            notification.click()
+        except RuntimeError:
+            # WORKAROUND for
+            # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
+            log.misc.debug(f"Ignoring click request for notification {notification_id} "
+                           "due to PyQt bug")
 
 
 @dataclasses.dataclass
@@ -90,8 +218,9 @@ class _ServerQuirks:
     icon_key: Optional[str] = None
 
 
-class DBusNotificationPresenter(QObject):
-    """Manages notifications that are sent over DBus."""
+class DBusNotificationAdapter(AbstractNotificationAdapter):
+
+    """Sends notifications over DBus."""
 
     SERVICE = "org.freedesktop.Notifications"
     TEST_SERVICE = "org.qutebrowser.TestNotifications"
@@ -99,8 +228,9 @@ class DBusNotificationPresenter(QObject):
     INTERFACE = "org.freedesktop.Notifications"
     SPEC_VERSION = "1.2"  # Released in January 2011, still current in March 2021.
 
-    def __init__(self, test_service: bool = False):
-        super().__init__()
+    def __init__(self, test_service: bool, parent: QObject = None) -> None:
+        super().__init__(bridge)
+        self._bridge = bridge
 
         if not qtutils.version_check('5.14'):
             raise Error("Notifications are not supported on Qt < 5.14")
@@ -112,7 +242,6 @@ class DBusNotificationPresenter(QObject):
             # possible to run DBus there.
             raise Error("libnotify is not supported on Windows")
 
-        self._active_notifications: Dict[int, 'QWebEngineNotification'] = {}
         bus = QDBusConnection.sessionBus()
         if not bus.isConnected():
             raise Error(
@@ -196,27 +325,6 @@ class DBusNotificationPresenter(QObject):
         qtutils.ensure_valid(error)
         return f"{error.name()} - {error.message()}"
 
-    def install(self, profile: "QWebEngineProfile") -> None:
-        """Sets the profile to use the manager as the presenter."""
-        # WORKAROUND for
-        # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042916.html
-        # Fixed in PyQtWebEngine 5.15.0
-        # PYQT_WEBENGINE_VERSION was added with PyQtWebEngine 5.13, but if we're here,
-        # we already did a version check above.
-        from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
-        if PYQT_WEBENGINE_VERSION < 0x050F00:
-            # PyQtWebEngine unrefs the callback after it's called, for some
-            # reason.  So we call setNotificationPresenter again to *increase*
-            # its refcount to prevent it from getting GC'd. Otherwise, random
-            # methods start getting called with the notification as `self`, or
-            # segfaults happen, or other badness.
-            def _present_and_reset(qt_notification: "QWebEngineNotification") -> None:
-                profile.setNotificationPresenter(_present_and_reset)
-                self._present(qt_notification)
-            profile.setNotificationPresenter(_present_and_reset)
-        else:
-            profile.setNotificationPresenter(self._present)
-
     def _verify_message(
         self,
         msg: QDBusMessage,
@@ -249,38 +357,18 @@ class DBusNotificationPresenter(QObject):
                 f"Got a message of type {type_str} but expected {expected_type_str}"
                 f"(args: {msg.arguments()})")
 
-    def _find_matching_id(self, new_notification: "QWebEngineNotification") -> int:
-        """Find an existing notification to replace.
-
-        If no notification should be replaced or the notification to be replaced was not
-        found, this returns 0 (as per the notification spec).
-        """
-        if not new_notification.tag():
-            return 0
-
-        try:
-            for notification_id, notification in self._active_notifications.items():
-                if notification.matches(new_notification):
-                    return notification_id
-        except RuntimeError:
-            # WORKAROUND for
-            # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
-            # (also affects .matches)
-            log.misc.debug(
-                f"Ignoring notification tag {new_notification.tag()!r} due to PyQt bug")
-
-        return 0
-
-    def _present(self, qt_notification: "QWebEngineNotification") -> None:
-        """Shows a notification over DBus.
-
-        This should *not* be directly passed to setNotificationPresenter on
-        PyQtWebEngine < 5.15 because of a bug in the PyQtWebEngine bindings.
-        """
+    def present(
+        self,
+        qt_notification: "QWebEngineNotification",
+        *,
+        replaces_id: Optional[int],
+    ) -> int:
+        """Shows a notification over DBus."""
         # We can't just pass the int because it won't get sent as the right type.
-        existing_id = self._find_matching_id(qt_notification)
-        existing_id_arg = QVariant(existing_id)
-        existing_id_arg.convert(QVariant.UInt)
+        if replaces_id is None:
+            replaces_id = 0  # 0 is never a valid ID according to the spec
+        replaces_id_arg = QVariant(replaces_id)
+        replaces_id_arg.convert(QVariant.UInt)
 
         actions = []
         if 'actions' in self._capabilities:
@@ -307,7 +395,7 @@ class DBusNotificationPresenter(QObject):
             QDBus.BlockWithGui,
             "Notify",
             "qutebrowser",  # application name
-            existing_id_arg,  # replaces notification id
+            replaces_id_arg,  # replaces notification id
             "",  # icon name/file URL, we use image-data and friends instead.
             # Titles don't support markup, so no need to escape them.
             qt_notification.title(),
@@ -317,18 +405,7 @@ class DBusNotificationPresenter(QObject):
             -1,  # timeout; -1 means 'use default'
         )
         self._verify_message(reply, "u", QDBusMessage.ReplyMessage)
-
-        notification_id = reply.arguments()[0]
-        if existing_id not in [0, notification_id]:
-            msg = (f"Wanted to replace notification {existing_id} but got new id "
-                   f"{notification_id}.")
-            raise Error(msg)
-
-        if notification_id == 0:
-            raise Error("Got invalid notification id 0")
-
-        self._active_notifications[notification_id] = qt_notification
-        log.webview.debug(f"Sent out notification {notification_id}")
+        return reply.arguments()[0]  # notification ID
 
     def _convert_image(self, qimage: QImage) -> QDBusArgument:
         """Converts a QImage to the structure DBus expects."""
@@ -402,41 +479,14 @@ class DBusNotificationPresenter(QObject):
     def _handle_close(self, msg: QDBusMessage) -> None:
         self._verify_message(msg, "uu", QDBusMessage.SignalMessage)
         notification_id, _close_reason = msg.arguments()
-
-        notification = self._active_notifications.get(notification_id)
-        if notification is None:
-            # Notification from a different application
-            return
-
-        del self._active_notifications[notification_id]
-        try:
-            notification.close()
-        except RuntimeError:
-            # WORKAROUND for
-            # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
-            log.misc.debug(f"Ignoring close request for notification {notification_id} "
-                           "due to PyQt bug")
+        self.close_id.emit(notification_id)
 
     @pyqtSlot(QDBusMessage)
     def _handle_action(self, msg: QDBusMessage) -> None:
         self._verify_message(msg, "us", QDBusMessage.SignalMessage)
         notification_id, action_key = msg.arguments()
-
-        notification = self._active_notifications.get(notification_id)
-        if notification is None:
-            # Notification from a different application
-            return
-
-        if action_key != "default":
-            raise Error(f"Got unknown action {action_key}")
-
-        try:
-            notification.click()
-        except RuntimeError:
-            # WORKAROUND for
-            # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
-            log.misc.debug(f"Ignoring click request for notification {notification_id} "
-                           "due to PyQt bug")
+        if action_key == "default":
+            self.click_id.emit(notification_id)
 
     def _fetch_capabilities(self) -> None:
         """Fetch capabilities from the notification server."""
