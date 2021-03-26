@@ -42,8 +42,6 @@ class NotificationProperties:
     closed_via_web: bool = False
 
 
-
-
 class TestNotificationServer(QObject):
     """A libnotify notification server used for testing."""
 
@@ -62,6 +60,13 @@ class TestNotificationServer(QObject):
         # A dict mapping notification IDs to currently-displayed notifications.
         self.messages: Dict[int, NotificationProperties] = {}
         self.supports_body_markup = True
+        self.last_id = None
+
+    def cleanup(self) -> None:
+        self.messages = {}
+
+    def last_msg(self) -> NotificationProperties:
+        return self.messages[self.last_id]
 
     def register(self) -> bool:
         """Try to register to DBus.
@@ -190,6 +195,7 @@ class TestNotificationServer(QObject):
             message_id = message.replaces_id
         self.messages[message_id] = message
 
+        self.last_id = message_id
         return message_id
 
     @pyqtSlot(QDBusMessage, result="QStringList")
@@ -212,7 +218,7 @@ class TestNotificationServer(QObject):
         self.messages[message_id].closed_via_web = True
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def notification_server(qapp):
     if utils.is_windows:
         # The QDBusConnection destructor seems to cause error messages (and potentially

@@ -52,9 +52,9 @@ def doesnt_support_body_markup(notification_server, quteproc):
         "bridge._drop_adapter()")
 
 
-@bdd.then(bdd.parsers.cfparse('a notification with id {id_:d} should be presented'))
-def notification_presented(notification_server, id_):
-    assert id_ in notification_server.messages
+@bdd.given('I clean up the notification server')
+def cleanup_notification_server(notification_server):
+    notification_server.cleanup()
 
 
 @bdd.then('1 notification should be presented')
@@ -67,36 +67,48 @@ def notification_presented_count(notification_server, count):
     assert len(notification_server.messages) == count
 
 
-@bdd.then(bdd.parsers.cfparse('notification {id_:d} should have body "{body}"'))
-def notification_body(notification_server, id_, body):
-    assert notification_server.messages[id_].body == body
+@bdd.then(bdd.parsers.parse('the notification should have body "{body}"'))
+def notification_body(notification_server, body):
+    msg = notification_server.last_msg()
+    assert msg.body == body
 
 
-@bdd.then(bdd.parsers.cfparse('notification {id_:d} should have title "{title}"'))
-def notification_title(notification_server, id_, title):
-    assert notification_server.messages[id_].title == title
+@bdd.then(bdd.parsers.parse('the notification should have title "{title}"'))
+def notification_title(notification_server, title):
+    msg = notification_server.last_msg()
+    assert msg.title == title
 
 
 @bdd.then(bdd.parsers.cfparse(
-    'notification {id_:d} should have image dimensions {width:d}x{height:d}'))
-def notification_image_dimensions(notification_server, id_, width, height):
-    msg = notification_server.messages[id_]
+    'the notification should have image dimensions {width:d}x{height:d}'))
+def notification_image_dimensions(notification_server, width, height):
+    msg = notification_server.last_msg()
     assert (msg.img_width, msg.img_height) == (width, height)
 
 
-@bdd.then(bdd.parsers.cfparse('notification {id_:d} should be closed via web'))
-def notification_closed(notification_server, id_):
-    msg = notification_server.messages[id_]
+@bdd.then('the notification should be closed via web')
+def notification_closed(notification_server):
+    msg = notification_server.last_msg()
     assert msg.closed_via_web
 
 
+@bdd.when('I close the notification')
+def close_notification(notification_server):
+    notification_server.close(notification_server.last_id)
+
+
 @bdd.when(bdd.parsers.cfparse('I close the notification with id {id_:d}'))
-def close_notification(notification_server, id_):
+def close_notification_id(notification_server, id_):
     notification_server.close(id_)
 
 
+@bdd.when('I click the notification')
+def click_notification(notification_server):
+    notification_server.click(notification_server.last_id)
+
+
 @bdd.when(bdd.parsers.cfparse('I click the notification with id {id_:d}'))
-def click_notification(notification_server, id_):
+def click_notification_id(notification_server, id_):
     notification_server.click(id_)
 
 
