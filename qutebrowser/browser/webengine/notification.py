@@ -70,6 +70,8 @@ def init() -> None:
         # at a later point in time. However, doing so is probably too complex compared
         # to its usefulness.
         return
+    if not qtutils.version_check('5.14'):
+        return
 
     global bridge
     bridge = NotificationBridgePresenter()
@@ -116,8 +118,7 @@ class NotificationBridgePresenter(QObject):
 
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
-        if not qtutils.version_check('5.14'):
-            raise Error("Custom notifications are not supported on Qt < 5.14")
+        assert qtutils.version_check('5.14')
 
         self._active_notifications: Dict[int, 'QWebEngineNotification'] = {}
         self._adapter: Optional[AbstractNotificationAdapter] = None

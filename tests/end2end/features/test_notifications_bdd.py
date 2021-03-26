@@ -88,6 +88,9 @@ def notification_image_dimensions(notification_server, width, height):
 
 @bdd.then('the notification should be closed via web')
 def notification_closed(notification_server):
+    if not qtutils.version_check('5.15'):
+        # Signal connection gets lost on Qt 5.14 as the notification gets destroyed
+        pytest.skip("Broken with Qt 5.14")
     msg = notification_server.last_msg()
     assert msg.closed_via_web
 
