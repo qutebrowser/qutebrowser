@@ -42,10 +42,6 @@ class NotificationProperties:
     closed_via_web: bool = False
 
 
-def _as_uint32(x: int) -> QVariant:
-    variant = QVariant(x)
-    assert variant.convert(QVariant.UInt)
-    return variant
 
 
 class TestNotificationServer(QObject):
@@ -156,7 +152,10 @@ class TestNotificationServer(QObject):
 
         # The 2 here is the notification removal reason ("dismissed by the user")
         # it's effectively arbitrary as we don't use that information
-        message.setArguments([_as_uint32(notification_id), _as_uint32(2)])
+        message.setArguments([
+            notification._as_uint32(notification_id),
+            notification._as_uint32(2),
+        ])
         if not self._bus.send(message):
             raise OSError("Could not send close notification")
 
@@ -171,7 +170,7 @@ class TestNotificationServer(QObject):
             notification.DBusNotificationAdapter.INTERFACE,
             "ActionInvoked")
 
-        message.setArguments([_as_uint32(notification_id), name])
+        message.setArguments([notification._as_uint32(notification_id), name])
         if not self._bus.send(message):
             raise OSError("Could not send action notification")
 

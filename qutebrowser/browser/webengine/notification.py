@@ -370,6 +370,13 @@ class _ServerQuirks:
     icon_key: Optional[str] = None
 
 
+def _as_uint32(x: int) -> QVariant:
+    """Convert the given int to an uint32 for DBus."""
+    variant = QVariant(x)
+    assert variant.convert(QVariant.UInt)
+    return variant
+
+
 class DBusNotificationAdapter(AbstractNotificationAdapter):
 
     """Sends notifications over DBus."""
@@ -516,11 +523,8 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         replaces_id: Optional[int],
     ) -> int:
         """Shows a notification over DBus."""
-        # We can't just pass the int because it won't get sent as the right type.
         if replaces_id is None:
             replaces_id = 0  # 0 is never a valid ID according to the spec
-        replaces_id_arg = QVariant(replaces_id)
-        replaces_id_arg.convert(QVariant.UInt)
 
         actions = []
         if 'actions' in self._capabilities:
@@ -546,7 +550,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             QDBus.BlockWithGui,
             "Notify",
             "qutebrowser",  # application name
-            replaces_id_arg,  # replaces notification id
+            _as_uint32(replaces_id),  # replaces notification id
             "",  # icon name/file URL, we use image-data and friends instead.
             # Titles don't support markup, so no need to escape them.
             qt_notification.title(),
@@ -641,9 +645,11 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
     @pyqtSlot(int)
     def on_web_closed(self, notification_id: int) -> None:
-        id_arg = QVariant(notification_id)
-        id_arg.convert(QVariant.UInt)
-        self.interface.call(QDBus.NoBlock, "CloseNotification", id_arg)
+        self.interface.call(
+            QDBus.NoBlock,
+            "CloseNotification",
+            _as_uint32(notification_id),
+        )
 
     def _fetch_capabilities(self) -> None:
         """Fetch capabilities from the notification server."""
