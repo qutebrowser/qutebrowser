@@ -208,9 +208,6 @@ class NotificationBridgePresenter(QObject):
         if replaces_id is None:
             if notification_id in self._active_notifications:
                 raise Error(f"Got duplicate id {notification_id}")
-        elif replaces_id != notification_id:
-            raise Error(f"Wanted to replace notification {replaces_id} but got "
-                        f"new id {notification_id}.")
 
         log.webview.debug(f"Sent out notification {notification_id}")
         qt_notification.show()
@@ -417,7 +414,6 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
         self._id_gen = itertools.count(1)
-        self._processes: Dict[int, QProcess] = {}
 
         # Also cleans up potentially hanging semaphores from herbe.
         # https://github.com/dudik/herbe#notifications-dont-show-up
@@ -432,55 +428,42 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
         *,
         replaces_id: Optional[int],
     ) -> int:
-        if replaces_id is None:
-            new_id = next(self._id_gen)
-        else:
-            if replaces_id in self._processes:
-                proc = self._processes[replaces_id]
-                proc.disconnect()  # otherwise we call _on_finished for the new process
-                self.on_web_closed(replaces_id)
-
-            new_id = replaces_id
-
+        # Not supported, simply calling self.on_web_closed won't work.
+        utils.unused(replaces_id)
         proc = QProcess(self)
-        proc.finished.connect(functools.partial(self._on_finished, new_id))
+        proc.finished.connect(self._on_finished)
         proc.error.connect(self._on_error)
         proc.start('herbe', [qt_notification.title(), qt_notification.message()])
+        return proc.processId()
 
-        self._processes[new_id] = proc
-        return new_id
-
-    def _on_finished(
-            self,
-            notification_id: int,
-            code: int,
-            status: QProcess.ExitStatus,
-    ) -> None:
-        if status == QProcess.CrashExit:
-            if not sip.isdeleted(self):  # happens during shutdown?
-                self.error.emit('herbe crashed')
-            return
-
-        proc = self._processes.pop(notification_id)
-        if code == 0:
-            self.click_id.emit(notification_id)
-        elif code == 2:
-            self.close_id.emit(notification_id)
+    @pyqtSlot(int, QProcess.ExitStatus)
+    def _on_finished(self, code: int, status: QProcess.ExitStatus) -> None:
+        proc = self.sender()
+        pid = proc.processId()
+        if status == QProcess.NormalExit:
+            if code == 0:
+                self.click_id.emit(pid)
+            elif code == 2:
+                self.close_id.emit(pid)
+            else:
+                stderr = proc.readAllStandardError()
+                raise Error(f'herbe exited with status {code}: {stderr}')
+        elif status == QProcess.CrashExit:
+            if code != signal.SIGUSR1:
+                self.error.emit(f'herbe exited with signal {code}')
         else:
-            stderr = proc.readAllStandardError()
-            self.error.emit(f'herbe exited with status {code}: {stderr}')
+            raise utils.Unreachable(status)
 
     @pyqtSlot(QProcess.ProcessError)
     def _on_error(self, error: QProcess.ProcessError) -> None:
         if error == QProcess.Crashed:
             return
         name = debug.qenum_key(QProcess.ProcessError, error)
-        self.error.emit(f'herbe process error: {name}')
+        raise Error(f'herbe process error: {name}')
 
     @pyqtSlot(int)
     def on_web_closed(self, notification_id: int) -> None:
-        pid = self._processes[notification_id].processId()
-        os.kill(pid, signal.SIGUSR1)
+        os.kill(notification_id, signal.SIGUSR1)
 
 
 @dataclasses.dataclass
@@ -696,7 +679,14 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             -1,  # timeout; -1 means 'use default'
         )
         self._verify_message(reply, "u", QDBusMessage.ReplyMessage)
-        return reply.arguments()[0]  # notification ID
+
+        notification_id = reply.arguments()[0]
+
+        if replaces_id not in [0, notification_id]:
+            raise Error(f"Wanted to replace notification {replaces_id} but got "
+                        f"new id {notification_id}.")
+
+        return notification_id
 
     def _convert_image(self, qimage: QImage) -> QDBusArgument:
         """Converts a QImage to the structure DBus expects."""
