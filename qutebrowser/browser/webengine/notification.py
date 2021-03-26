@@ -260,20 +260,27 @@ class NotificationBridgePresenter(QObject):
             log.misc.debug(f"Ignoring click request for notification {notification_id} "
                            "due to PyQt bug")
 
-    @pyqtSlot(str)
-    def _on_adapter_error(self, error: str):
-        assert self._adapter is not None
-        log.webview.error(
-            f"Notification error from {self._adapter.NAME} adapter: {error}")
+    def _drop_adapter(self):
+        """Drop the currently active adapter (if any).
 
-        # get a new adapter for the next invocation
-        self._adapter.deleteLater()
+        This means we'll reinitialize a new one (including re-testing available options)
+        on the next notification.
+        """
+        if self._adapter:
+            self._adapter.deleteLater()
         self._adapter = None
 
         # Probably safe to assume no notifications exist anymore. Also, this makes sure
         # we don't have any duplicate IDs.
         for notification_id in list(self._active_notifications):
             self._on_adapter_closed(notification_id)
+
+    @pyqtSlot(str)
+    def _on_adapter_error(self, error: str):
+        assert self._adapter is not None
+        log.webview.error(
+            f"Notification error from {self._adapter.NAME} adapter: {error}")
+        self._drop_adapter()
 
 
 class SystrayNotificationAdapter(AbstractNotificationAdapter):
