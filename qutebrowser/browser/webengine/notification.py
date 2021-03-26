@@ -34,7 +34,7 @@ from typing import Any, Dict, Optional, TYPE_CHECKING
 from PyQt5.QtCore import (Qt, QObject, QVariant, QMetaType, QByteArray, pyqtSlot,
                           pyqtSignal, QTimer)
 from PyQt5.QtGui import QImage, QIcon, QPixmap
-from PyQt5.QtDBus import (QDBusConnection, QDBusInterface, QDBus,
+from PyQt5.QtDBus import (QDBusConnection, QDBusInterface, QDBus, QDBusServiceWatcher,
                           QDBusArgument, QDBusMessage, QDBusError)
 from PyQt5.QtWidgets import QSystemTrayIcon
 
@@ -78,6 +78,7 @@ class AbstractNotificationAdapter(QObject):
 
     close_id = pyqtSignal(int)
     click_id = pyqtSignal(int)
+    error = pyqtSignal(str)
 
     def present(
         self,
@@ -146,6 +147,7 @@ class NotificationBridgePresenter(QObject):
 
         self._adapter.click_id.connect(self._on_adapter_clicked)
         self._adapter.close_id.connect(self._on_adapter_closed)
+        self._adapter.error.connect(self._on_adapter_error)
 
     def install(self, profile: "QWebEngineProfile") -> None:
         """Sets the profile to use the manager as the presenter."""
@@ -176,11 +178,14 @@ class NotificationBridgePresenter(QObject):
         """
         if self._adapter is None:
             self._init_adapter()
-            assert self._adapter is not None
 
         replaces_id = self._find_replaces_id(qt_notification)
         notification_id = self._adapter.present(
             qt_notification, replaces_id=replaces_id)
+
+        if self._adapter is None:
+            # If a fatal error occurred, we replace the adapter via its "error" signal.
+            return
 
         if notification_id <= 0:
             raise Error(f"Got invalid notification id {notification_id}")
@@ -254,6 +259,17 @@ class NotificationBridgePresenter(QObject):
             # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
             log.misc.debug(f"Ignoring click request for notification {notification_id} "
                            "due to PyQt bug")
+
+    @pyqtSlot(str)
+    def _on_adapter_error(self, error: str):
+        assert self._adapter is not None
+        log.webview.error(
+            f"Notification error from {self._adapter.NAME} adapter: {error}")
+        self._adapter = None  # get a new adapter for the next invocation
+        # Probably safe to assume no notifications exist anymore. Also, this makes sure
+        # we don't have any duplicate IDs.
+        for notification_id in list(self._active_notifications):
+            self._on_adapter_closed(notification_id)
 
 
 class SystrayNotificationAdapter(AbstractNotificationAdapter):
@@ -406,6 +422,14 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
                 "Failed to connect to DBus session bus: " +
                 self._dbus_error_str(bus.lastError()))
 
+        self._watcher = QDBusServiceWatcher(
+            self.SERVICE,
+            bus,
+            QDBusServiceWatcher.WatchForUnregistration,
+            self,
+        )
+        self._watcher.serviceUnregistered.connect(self._on_service_unregistered)
+
         test_service = 'test-notification-service' in objects.debug_flags
         service = self.TEST_SERVICE if test_service else self.SERVICE
 
@@ -432,6 +456,10 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             self._get_server_info()
 
         self._fetch_capabilities()
+
+    @pyqtSlot(str)
+    def _on_service_unregistered(self) -> None:
+        self.error.emit("Notification daemon died!")
 
     def _get_server_info(self) -> None:
         """Query notification server information and set quirks."""
@@ -481,7 +509,8 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
     def _dbus_error_str(self, error: QDBusError) -> str:
         """Get a string for a DBus error."""
-        qtutils.ensure_valid(error)
+        if not error.isValid():
+            return "Unknown error"
         return f"{error.name()} - {error.message()}"
 
     def _verify_message(
