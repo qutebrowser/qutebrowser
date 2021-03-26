@@ -46,7 +46,7 @@ Feature: Notifications
 
     @pyqtwebengine>=5.15.0
     Scenario: Replacing existing notifications
-        When I run :click-element id show-multiple-button
+        When I run :click-element id show-replacing-button
         Then the javascript message "i=1 notification shown" should be logged
         And the javascript message "i=2 notification shown" should be logged
         And the javascript message "i=3 notification shown" should be logged
@@ -55,7 +55,7 @@ Feature: Notifications
 
     @pyqtwebengine<5.15.0
     Scenario: Replacing existing notifications (old Qt)
-        When I run :click-element id show-multiple-button
+        When I run :click-element id show-replacing-button
         Then the javascript message "i=1 notification shown" should be logged
         And "Ignoring notification tag 'counter' due to PyQt bug" should be logged
         And the javascript message "i=2 notification shown" should be logged

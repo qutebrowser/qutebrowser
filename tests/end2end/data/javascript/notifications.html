@@ -55,7 +55,7 @@
                 });
             }
 
-            function show_multiple_notifications() {
+            function show_replacing_notifications() {
                 get_notification_permission(() => {
                     for (let i = 1; i <= 3; i++) {
                         let notification = new Notification(`i=${i}`, { tag: 'counter' });
@@ -86,7 +86,7 @@
         <div>
             <input type="button" onclick="show_notification()" value="Show notification" id="show-button">
             <input type="button" onclick="show_symbol_notification()" value="Show notification with symbols" id="show-symbols-button">
-            <input type="button" onclick="show_multiple_notifications()" value="Show multiple notifications" id="show-multiple-button">
+            <input type="button" onclick="show_replacing_notifications()" value="Show replacing notifications" id="show-replacing-button">
         </div>
         <div>
             <input type="button" onclick="show_image_notification()" value="Show image notification" id="show-image-button">
