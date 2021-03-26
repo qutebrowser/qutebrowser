@@ -443,29 +443,32 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
         *,
         replaces_id: Optional[int],
     ) -> int:
-        # Not supported, simply calling self.on_web_closed won't work.
-        utils.unused(replaces_id)
-        proc = QProcess(self)
-        proc.finished.connect(self._on_finished)
-        proc.errorOccurred.connect(self._on_error)
-        proc.start('herbe', [qt_notification.title(), qt_notification.message()])
-        return proc.processId()
+        if replaces_id is not None:
+            self.on_web_closed(replaces_id)
 
-    @pyqtSlot(int, QProcess.ExitStatus)
-    def _on_finished(self, code: int, status: QProcess.ExitStatus) -> None:
+        proc = QProcess(self)
+        proc.errorOccurred.connect(self._on_error)
+
+        proc.start('herbe', [qt_notification.title(), qt_notification.message()])
+        pid = proc.processId()
+        assert pid > 1
+        proc.finished.connect(functools.partial(self._on_finished, pid))
+
+        return pid
+
+    def _on_finished(self, pid: int, code: int, status: QProcess.ExitStatus) -> None:
         if status == QProcess.CrashExit:
             # SIGUSR1/SIGUSR2 are expected "crashes", and for any other signals, we
             # can't do much - emitting self.error would just go use herbe again, so
             # there's no point.
             return
 
-        proc = self.sender()
-        pid = proc.processId()
         if code == 0:
             self.click_id.emit(pid)
         elif code == 2:
             self.close_id.emit(pid)
         else:
+            proc = self.sender()
             stderr = proc.readAllStandardError()
             raise Error(f'herbe exited with status {code}: {stderr}')
 
@@ -479,6 +482,8 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
     @pyqtSlot(int)
     def on_web_closed(self, notification_id: int) -> None:
         os.kill(notification_id, signal.SIGUSR1)
+        # Make sure we immediately remove it from active notifications
+        self.close_id.emit(notification_id)
 
 
 @dataclasses.dataclass
