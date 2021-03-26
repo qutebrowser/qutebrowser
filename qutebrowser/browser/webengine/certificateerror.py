@@ -19,6 +19,7 @@
 
 """Wrapper over a QWebEngineCertificateError."""
 
+from PyQt5.QtCore import QUrl
 from PyQt5.QtWebEngineWidgets import QWebEngineCertificateError
 
 from qutebrowser.utils import usertypes, utils, debug
@@ -28,21 +29,21 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
 
     """A wrapper over a QWebEngineCertificateError."""
 
-    def __init__(self, error):
-        super().__init__(error)
+    def __init__(self, error: QWebEngineCertificateError) -> None:
+        self._error = error
         self.ignore = False
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self._error.errorDescription()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(
-            self, error=debug.qenum_key(QWebEngineCertificateError,
-                                        self._error.error()),
+            self,
+            error=debug.qenum_key(QWebEngineCertificateError, self._error.error()),
             string=str(self))
 
-    def url(self):
+    def url(self) -> QUrl:
         return self._error.url()
 
-    def is_overridable(self):
+    def is_overridable(self) -> bool:
         return self._error.isOverridable()

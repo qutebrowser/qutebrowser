@@ -943,7 +943,7 @@ class AbstractTab(QWidget):
     _insecure_hosts: Set[str] = set()
 
     def __init__(self, *, win_id: int,
-                 mode_manager: modeman.ModeManager,
+                 mode_manager: 'modeman.ModeManager',
                  private: bool,
                  parent: QWidget = None) -> None:
         utils.unused(mode_manager)  # needed for mypy

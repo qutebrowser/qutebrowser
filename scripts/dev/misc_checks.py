@@ -155,7 +155,7 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
     """Check commonly misspelled words."""
     # Words which I often misspell
     words = {'behaviour', 'quitted', 'likelyhood', 'sucessfully',
-             'occur[^rs .!]', 'seperator', 'explicitely', 'auxillary',
+             'occur[^rs .!,]', 'seperator', 'explicitely', 'auxillary',
              'accidentaly', 'ambigious', 'loosly', 'initialis', 'convienence',
              'similiar', 'uncommited', 'reproducable', 'an user',
              'convienience', 'wether', 'programatically', 'splitted',
@@ -249,7 +249,7 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             "use snake-case instead",
         ),
         (
-            re.compile(r'\.joinpath\('),
+            re.compile(r'\.joinpath\((?!\*)'),
             "use the / operator for joining paths",
         ),
         (

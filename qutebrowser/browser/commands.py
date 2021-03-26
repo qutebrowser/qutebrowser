@@ -25,7 +25,7 @@ import functools
 from typing import cast, Callable, Dict, Union
 
 from PyQt5.QtWidgets import QApplication, QTabBar
-from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QEvent, QUrlQuery
+from PyQt5.QtCore import Qt, QUrl, QEvent, QUrlQuery
 
 from qutebrowser.commands import userscripts, runners
 from qutebrowser.api import cmdutils
@@ -756,12 +756,17 @@ class CommandDispatcher:
                               maybe=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def tab_only(self, prev=False, next_=False, force=False):
+    @cmdutils.argument('pinned', choices=['prompt', 'close', 'keep'], flag='P',
+                       metavar='behavior')
+    @cmdutils.argument('force', hide=True)
+    def tab_only(self, *, prev=False, next_=False, pinned='prompt', force=False):
         """Close all tabs except for the current one.
 
         Args:
             prev: Keep tabs before the current.
             next_: Keep tabs after the current.
+            pinned: What to do with pinned tabs.
+                    Valid values: prompt, close, keep.
             force: Avoid confirmation for pinned tabs.
         """
         cmdutils.check_exclusive((prev, next_), 'pn')
@@ -775,24 +780,28 @@ class CommandDispatcher:
                         (prev and i < cur_idx) or
                         (next_ and i > cur_idx))
 
+        if force:
+            message.warning("--force is deprecated, use --pinned close instead.")
+            pinned = 'close'
+
         # close as many tabs as we can
         first_tab = True
         pinned_tabs_cleanup = False
         for i, tab in enumerate(self._tabbed_browser.widgets()):
             if _to_close(i):
-                if force or not tab.data.pinned:
+                if pinned == 'close' or not tab.data.pinned:
                     self._tabbed_browser.close_tab(tab, new_undo=first_tab)
                     first_tab = False
                 else:
                     pinned_tabs_cleanup = tab
 
         # Check to see if we would like to close any pinned tabs
-        if pinned_tabs_cleanup:
+        if pinned_tabs_cleanup and pinned == 'prompt':
             self._tabbed_browser.tab_close_prompt_if_pinned(
                 pinned_tabs_cleanup,
-                force,
+                pinned == 'close',
                 lambda: self.tab_only(
-                    prev=prev, next_=next_, force=True),
+                    prev=prev, next_=next_, pinned='close'),
                 text="Are you sure you want to close pinned tabs?")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
@@ -943,8 +952,7 @@ class CommandDispatcher:
         tabbed_browser, tab = self._resolve_tab_index(index)
 
         window = tabbed_browser.widget.window()
-        window.activateWindow()
-        window.raise_()
+        mainwindow.raise_window(window)
         tabbed_browser.widget.setCurrentWidget(tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
@@ -974,6 +982,9 @@ class CommandDispatcher:
             self._tab_focus_stack(index)
             return
         elif index is None:
+            message.warning(
+                "Using :tab-focus without count is deprecated, "
+                "use :tab-next instead.")
             self.tab_next()
             return
 
@@ -1077,19 +1088,19 @@ class CommandDispatcher:
         log.procs.debug("Executing {} with args {}, userscript={}".format(
             cmd, args, userscript))
 
-        @pyqtSlot()
-        def _on_proc_finished():
+        def _on_proc_finished(proc):
             if output:
                 tb = objreg.get('tabbed-browser', scope='window',
                                 window='last-focused')
-                tb.load_url(QUrl('qute://spawn-output'), newtab=True)
+                tb.load_url(QUrl(f'qute://process/{proc.pid}'), newtab=True)
 
         if userscript:
             def _selection_callback(s):
                 try:
                     runner = self._run_userscript(
                         s, cmd, args, verbose, output_messages, count)
-                    runner.finished.connect(_on_proc_finished)
+                    runner.finished.connect(functools.partial(
+                        _on_proc_finished, runner.proc))
                 except cmdutils.CommandError as e:
                     message.error(str(e))
 
@@ -1112,7 +1123,7 @@ class CommandDispatcher:
                                  "detailed error")
             else:
                 proc.start(cmd, args)
-            proc.finished.connect(_on_proc_finished)
+            proc.finished.connect(functools.partial(_on_proc_finished, proc))
 
     def _run_userscript(self, selection, cmd, args, verbose, output_messages,
                         count):
@@ -1542,8 +1553,8 @@ class CommandDispatcher:
             elif going_up and tab.scroller.pos_px().y() > old_scroll_pos.y():
                 message.info("Search hit TOP, continuing at BOTTOM")
         else:
-            message.warning("Text '{}' not found on page!".format(text),
-                            replace=True)
+            message.warning(f"Text '{text}' not found on page!",
+                            replace='find-in-page')
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)

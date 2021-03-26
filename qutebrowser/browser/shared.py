@@ -22,11 +22,12 @@
 import os
 import sys
 import html
+import enum
 import netrc
-from typing import Callable, Mapping, List, Optional
 import tempfile
+from typing import Callable, Mapping, List, Optional, Iterable, Iterator
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, pyqtBoundSignal
 
 from qutebrowser.config import config
 from qutebrowser.utils import (usertypes, message, log, objreg, jinja, utils,
@@ -155,54 +156,86 @@ def javascript_log_message(level, source, line, msg):
     logger(logstring)
 
 
-def ignore_certificate_errors(url, errors, abort_on):
+def ignore_certificate_error(
+        *,
+        request_url: QUrl,
+        first_party_url: QUrl,
+        error: usertypes.AbstractCertificateErrorWrapper,
+        abort_on: Iterable[pyqtBoundSignal],
+) -> bool:
     """Display a certificate error question.
 
     Args:
-        url: The URL the errors happened in
-        errors: A list of QSslErrors or QWebEngineCertificateErrors
+        request_url: The URL of the request where the errors happened.
+        first_party_url: The URL of the page we're visiting. Might be an invalid QUrl.
+        error: A single error.
+        abort_on: Signals aborting a question.
 
     Return:
         True if the error should be ignored, False otherwise.
     """
-    ssl_strict = config.instance.get('content.ssl_strict', url=url)
-    log.network.debug("Certificate errors {!r}, strict {}".format(
-        errors, ssl_strict))
+    conf = config.instance.get('content.tls.certificate_errors', url=request_url)
+    log.network.debug(f"Certificate error {error!r}, config {conf}")
 
-    for error in errors:
-        assert error.is_overridable(), repr(error)
+    assert error.is_overridable(), repr(error)
 
-    if ssl_strict == 'ask':
+    # We get the first party URL with a heuristic - with HTTP -> HTTPS redirects, the
+    # scheme might not match.
+    is_resource = (
+        first_party_url.isValid() and
+        not request_url.matches(
+            first_party_url,
+            QUrl.RemoveScheme))  # type: ignore[arg-type]
+
+    if conf == 'ask' or conf == 'ask-block-thirdparty' and not is_resource:
         err_template = jinja.environment.from_string("""
-            Errors while loading <b>{{url.toDisplayString()}}</b>:<br/>
-            <ul>
-            {% for err in errors %}
-                <li>{{err}}</li>
-            {% endfor %}
-            </ul>
-        """.strip())
-        msg = err_template.render(url=url, errors=errors)
+            {% if is_resource %}
+            <p>
+                Error while loading resource <b>{{request_url.toDisplayString()}}</b><br/>
+                on page <b>{{first_party_url.toDisplayString()}}</b>:
+            </p>
+            {% else %}
+            <p>Error while loading page <b>{{request_url.toDisplayString()}}</b>:</p>
+            {% endif %}
 
-        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
-        ignore = message.ask(title="Certificate errors - continue?", text=msg,
+            {{error.html()|safe}}
+
+            {% if is_resource %}
+            <p><i>Consider reporting this to the website operator, or set
+            <tt>content.tls.certificate_errors</tt> to <tt>ask-block-thirdparty</tt> to
+            always block invalid resource loads.</i></p>
+            {% endif %}
+
+            Do you want to ignore these errors and continue loading the page <b>insecurely</b>?
+        """.strip())
+        msg = err_template.render(
+            request_url=request_url,
+            first_party_url=first_party_url,
+            is_resource=is_resource,
+            error=error,
+        )
+
+        urlstr = request_url.toString(
+            QUrl.RemovePassword | QUrl.FullyEncoded)  # type: ignore[arg-type]
+        ignore = message.ask(title="Certificate error", text=msg,
                              mode=usertypes.PromptMode.yesno, default=False,
                              abort_on=abort_on, url=urlstr)
         if ignore is None:
             # prompt aborted
             ignore = False
         return ignore
-    elif ssl_strict is False:
-        log.network.debug("ssl_strict is False, only warning about errors")
-        for err in errors:
-            # FIXME we might want to use warn here (non-fatal error)
-            # https://github.com/qutebrowser/qutebrowser/issues/114
-            message.error('Certificate error: {}'.format(err))
+    elif conf == 'load-insecurely':
+        message.error(f'Certificate error: {error}')
         return True
-    elif ssl_strict is True:
+    elif conf == 'block':
         return False
-    else:
-        raise ValueError("Invalid ssl_strict value {!r}".format(ssl_strict))
-    raise utils.Unreachable
+    elif conf == 'ask-block-thirdparty' and is_resource:
+        log.network.error(
+            f"Certificate error in resource load: {error}\n"
+            f"  request URL:     {request_url.toDisplayString()}\n"
+            f"  first party URL: {first_party_url.toDisplayString()}")
+        return False
+    raise utils.Unreachable(conf, is_resource)
 
 
 def feature_permission(url, option, msg, yes_action, no_action, abort_on,
@@ -302,7 +335,8 @@ def get_user_stylesheet(searching=False):
             version.qtwebengine_versions().chromium_major in [69, 73, 80, 87] and
             config.val.colors.webpage.darkmode.enabled and
             config.val.colors.webpage.darkmode.policy.images == 'smart' and
-            config.val.content.site_specific_quirks):
+            config.val.content.site_specific_quirks.enabled and
+            'misc-mathml-darkmode' not in config.val.content.site_specific_quirks.skip):
         # WORKAROUND for MathML-output on Wikipedia being black on black.
         # See https://bugs.chromium.org/p/chromium/issues/detail?id=1126606
         css += '\nimg.mwe-math-fallback-image-inline { filter: invert(100%); }'
@@ -359,20 +393,29 @@ def netrc_authentication(url, authenticator):
     return True
 
 
-def choose_file(multiple: bool) -> List[str]:
-    """Select file(s) for uploading, using external command defined in config.
+class FileSelectionMode(enum.Enum):
+    """Mode to use for file selectors in choose_file."""
+
+    single_file = enum.auto()
+    multiple_files = enum.auto()
+    folder = enum.auto()
+
+
+def choose_file(qb_mode: FileSelectionMode) -> List[str]:
+    """Select file(s)/folder for uploading, using external command defined in config.
 
     Args:
-        multiple: Should selecting multiple files be allowed.
+        qb_mode: File selection mode
 
     Return:
         A list of selected file paths, or empty list if no file is selected.
         If multiple is False, the return value will have at most 1 item.
     """
-    if multiple:
-        command = config.val.fileselect.multiple_files.command
-    else:
-        command = config.val.fileselect.single_file.command
+    command = {
+        FileSelectionMode.single_file: config.val.fileselect.single_file.command,
+        FileSelectionMode.multiple_files: config.val.fileselect.multiple_files.command,
+        FileSelectionMode.folder: config.val.fileselect.folder.command,
+    }[qb_mode]
     use_tmp_file = any('{}' in arg for arg in command[1:])
     if use_tmp_file:
         handle = tempfile.NamedTemporaryFile(
@@ -388,19 +431,19 @@ def choose_file(multiple: bool) -> List[str]:
             )
             return _execute_fileselect_command(
                 command=command,
-                multiple=multiple,
+                qb_mode=qb_mode,
                 tmpfilename=tmpfilename,
             )
     else:
         return _execute_fileselect_command(
             command=command,
-            multiple=multiple,
+            qb_mode=qb_mode,
         )
 
 
 def _execute_fileselect_command(
     command: List[str],
-    multiple: bool,
+    qb_mode: FileSelectionMode,
     tmpfilename: Optional[str] = None
 ) -> List[str]:
     """Execute external command to choose file.
@@ -421,7 +464,7 @@ def _execute_fileselect_command(
     loop.exec()
 
     if tmpfilename is None:
-        selected_files = proc.final_stdout.splitlines()
+        selected_files = proc.stdout.splitlines()
     else:
         try:
             with open(tmpfilename, mode='r', encoding=sys.getfilesystemencoding()) as f:
@@ -430,8 +473,45 @@ def _execute_fileselect_command(
             message.error(f"Failed to open tempfile {tmpfilename} ({e})!")
             selected_files = []
 
-    if not multiple:
+    return list(_validated_selected_files(
+        qb_mode=qb_mode, selected_files=selected_files))
+
+
+def _validated_selected_files(
+    qb_mode: FileSelectionMode,
+    selected_files: List[str],
+) -> Iterator[str]:
+    """Validates selected files if they are.
+
+        * Of correct type
+        * Of correct number
+        * Existent
+
+    Args:
+        qb_mode: File selection mode used
+        selected_files: files selected
+
+    Return:
+        List of selected files that pass the checks.
+    """
+    if qb_mode != FileSelectionMode.multiple_files:
         if len(selected_files) > 1:
-            message.warning("More than one file chosen, using only the first")
-            return selected_files[:1]
-    return selected_files
+            message.warning("More than one file/folder chosen, using only the first")
+            selected_files = selected_files[:1]
+    for selected_file in selected_files:
+        if not os.path.exists(selected_file):
+            message.warning(f"Ignoring non-existent file '{selected_file}'")
+            continue
+        if qb_mode == FileSelectionMode.folder:
+            if not os.path.isdir(selected_file):
+                message.warning(
+                    f"Expected folder but got file, ignoring '{selected_file}'"
+                )
+                continue
+        else:
+            if not os.path.isfile(selected_file):
+                message.warning(
+                    f"Expected file but got folder, ignoring '{selected_file}'"
+                )
+                continue
+        yield selected_file

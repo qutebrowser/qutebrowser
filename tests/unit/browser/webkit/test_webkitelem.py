@@ -303,7 +303,7 @@ class TestWebKitElement:
 
     def test_getitem_keyerror(self, elem):
         with pytest.raises(KeyError):
-            elem['foo']  # pylint: disable=pointless-statement
+            elem['foo']
 
     def test_setitem(self, elem):
         elem['foo'] = 'bar'

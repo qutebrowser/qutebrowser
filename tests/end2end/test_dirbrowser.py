@@ -20,7 +20,7 @@
 
 """Test the built-in directory browser."""
 
-import os
+import pathlib
 import dataclasses
 from typing import List
 
@@ -90,7 +90,9 @@ class DirLayout:
 
     def _mklayout(self):
         for filename in self.LAYOUT:
-            self.layout.ensure(filename)
+            path = self.layout / filename
+            path.parent.mkdir(exist_ok=True, parents=True)
+            path.touch()
 
     def file_url(self):
         """Return a file:// link to the directory."""
@@ -98,11 +100,11 @@ class DirLayout:
 
     def path(self, *parts):
         """Return the path to the given file inside the layout folder."""
-        return os.path.normpath(str(self.layout.join(*parts)))
+        return self.layout.joinpath(*parts)
 
     def base_path(self):
         """Return the path of the base temporary folder."""
-        return os.path.normpath(str(self.base))
+        return self.base
 
 
 @dataclasses.dataclass
@@ -137,8 +139,7 @@ def parse(quteproc):
     title_prefix = 'Browse directory: '
     # Strip off the title prefix to obtain the path of the folder that
     # we're browsing
-    path = soup.title.string[len(title_prefix):]
-    path = os.path.normpath(path)
+    path = pathlib.Path(soup.title.string[len(title_prefix):])
 
     container = soup('div', id='dirbrowserContainer')[0]
 
@@ -146,16 +147,14 @@ def parse(quteproc):
     if not parent_elem:
         parent = None
     else:
-        parent = QUrl(parent_elem[0].li.a['href']).toLocalFile()
-        parent = os.path.normpath(parent)
+        parent = pathlib.Path(QUrl(parent_elem[0].li.a['href']).toLocalFile())
 
     folders = []
     files = []
 
     for css_class, list_ in [('folders', folders), ('files', files)]:
         for li in container('ul', class_=css_class)[0]('li'):
-            item_path = QUrl(li.a['href']).toLocalFile()
-            item_path = os.path.normpath(item_path)
+            item_path = pathlib.Path(QUrl(li.a['href']).toLocalFile())
             list_.append(Item(path=item_path, link=li.a['href'],
                               text=str(li.a.string)))
 
@@ -163,8 +162,8 @@ def parse(quteproc):
 
 
 @pytest.fixture(scope='module')
-def dir_layout(tmpdir_factory):
-    return DirLayout(tmpdir_factory)
+def dir_layout(tmp_path_factory):
+    return DirLayout(tmp_path_factory)
 
 
 def test_parent_folder(dir_layout, quteproc):
@@ -182,8 +181,7 @@ def test_parent_with_slash(dir_layout, quteproc):
 
 def test_parent_in_root_dir(dir_layout, quteproc):
     # This actually works on windows
-    root_path = os.path.realpath('/')
-    urlstr = QUrl.fromLocalFile(root_path).toString(QUrl.FullyEncoded)
+    urlstr = urlutils.file_url(str(pathlib.Path('/')))
     quteproc.open_url(urlstr)
     page = parse(quteproc)
     assert page.parent is None
@@ -194,7 +192,7 @@ def test_enter_folder_smoke(dir_layout, quteproc):
     quteproc.send_cmd(':hint all normal')
     # a is the parent link, s is the first listed folder/file
     quteproc.send_cmd(':hint-follow s')
-    expected_url = urlutils.file_url(dir_layout.path('folder0'))
+    expected_url = urlutils.file_url(str(dir_layout.path('folder0')))
     quteproc.wait_for_load_finished_url(expected_url)
     page = parse(quteproc)
     assert page.path == dir_layout.path('folder0')
@@ -204,7 +202,7 @@ def test_enter_folder_smoke(dir_layout, quteproc):
 def test_enter_folder(dir_layout, quteproc, folder):
     quteproc.open_url(dir_layout.file_url())
     quteproc.click_element_by_text(text=folder)
-    expected_url = urlutils.file_url(dir_layout.path(folder))
+    expected_url = urlutils.file_url(str(dir_layout.path(folder)))
     quteproc.wait_for_load_finished_url(expected_url)
     page = parse(quteproc)
     assert page.path == dir_layout.path(folder)

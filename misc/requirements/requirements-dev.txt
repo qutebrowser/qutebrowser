@@ -22,4 +22,4 @@ sip==6.0.3
 six==1.15.0
 toml==0.10.2
 uritemplate==3.0.1
-# urllib3==1.26.3
+# urllib3==1.26.4

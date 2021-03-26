@@ -22,7 +22,7 @@
 import re
 import sys
 import json
-import os.path
+import pathlib
 import socket
 import dataclasses
 from http import HTTPStatus
@@ -62,7 +62,11 @@ class Request(testprocess.Line):
     def _check_status(self):
         """Check if the http status is what we expected."""
         path_to_statuses = {
-            '/favicon.ico': [HTTPStatus.OK, HTTPStatus.PARTIAL_CONTENT],
+            '/favicon.ico': [
+                HTTPStatus.OK,
+                HTTPStatus.PARTIAL_CONTENT,
+                HTTPStatus.NOT_MODIFIED,
+            ],
 
             '/does-not-exist': [HTTPStatus.NOT_FOUND],
             '/does-not-exist-2': [HTTPStatus.NOT_FOUND],
@@ -167,14 +171,12 @@ class WebserverProcess(testprocess.Process):
 
     def _executable_args(self):
         if hasattr(sys, 'frozen'):
-            executable = os.path.join(os.path.dirname(sys.executable),
-                                      self._script)
+            executable = str(pathlib.Path(sys.executable).parent / self._script)
             args = []
         else:
             executable = sys.executable
-            py_file = os.path.join(os.path.dirname(__file__),
-                                   self._script + '.py')
-            args = [py_file]
+            py_file = (pathlib.Path(__file__).parent / self._script).with_suffix('.py')
+            args = [str(py_file)]
         return executable, args
 
     def _default_args(self):

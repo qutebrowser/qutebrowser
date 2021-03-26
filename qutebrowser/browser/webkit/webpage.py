@@ -199,7 +199,7 @@ class BrowserPage(QWebPage):
             return super().chooseFile(parent_frame, suggested_file)
 
         assert handler == "external", handler
-        selected = shared.choose_file(multiple=False)
+        selected = shared.choose_file(qb_mode=shared.FileSelectionMode.single_file)
         if not selected:
             return ''
         else:
@@ -229,7 +229,7 @@ class BrowserPage(QWebPage):
             return True
 
         assert handler == "external", handler
-        files.fileNames = shared.choose_file(multiple=True)
+        files.fileNames = shared.choose_file(shared.FileSelectionMode.multiple_files)
         return True
 
     def shutdown(self):

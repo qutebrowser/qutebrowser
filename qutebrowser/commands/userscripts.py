@@ -117,7 +117,7 @@ class _BaseUserscriptRunner(QObject):
         super().__init__(parent)
         self._cleaned_up = False
         self._filepath = None
-        self._proc = None
+        self.proc = None
         self._env: MutableMapping[str, str] = {}
         self._text_stored = False
         self._html_stored = False
@@ -168,12 +168,12 @@ class _BaseUserscriptRunner(QObject):
         if env is not None:
             self._env.update(env)
 
-        self._proc = guiprocess.GUIProcess(
+        self.proc = guiprocess.GUIProcess(
             'userscript', additional_env=self._env,
             output_messages=output_messages, verbose=verbose, parent=self)
-        self._proc.finished.connect(self.on_proc_finished)
-        self._proc.error.connect(self.on_proc_error)
-        self._proc.start(cmd, args)
+        self.proc.finished.connect(self.on_proc_finished)
+        self.proc.error.connect(self.on_proc_error)
+        self.proc.start(cmd, args)
 
     def _cleanup(self):
         """Clean up temporary files."""
@@ -199,7 +199,7 @@ class _BaseUserscriptRunner(QObject):
                     fn, e))
 
         self._filepath = None
-        self._proc = None
+        self.proc = None
         self._env = {}
         self._text_stored = False
         self._html_stored = False

@@ -21,7 +21,8 @@
 
 import io
 import sys
-import os.path
+import os
+import pathlib
 import subprocess
 import contextlib
 import logging
@@ -39,6 +40,11 @@ from qutebrowser.config import config, websettings
 from qutebrowser.utils import version, usertypes, utils, standarddir
 from qutebrowser.misc import pastebin, objects, elf
 from qutebrowser.browser import pdfjs
+
+try:
+    from qutebrowser.browser.webengine import webenginesettings
+except ImportError:
+    webenginesettings = None
 
 
 @pytest.mark.parametrize('os_release, expected', [
@@ -295,10 +301,10 @@ from qutebrowser.browser import pdfjs
         id='tux', parsed=version.Distribution.unknown,
         version=None, pretty='Multiline')),
 ])
-def test_distribution(tmpdir, monkeypatch, os_release, expected):
-    os_release_file = tmpdir / 'os-release'
+def test_distribution(tmp_path, monkeypatch, os_release, expected):
+    os_release_file = tmp_path / 'os-release'
     if os_release is not None:
-        os_release_file.write(textwrap.dedent(os_release))
+        os_release_file.write_text(textwrap.dedent(os_release), encoding="utf-8")
     monkeypatch.setenv('QUTE_FAKE_OS_RELEASE', str(os_release_file))
 
     assert version.distribution() == expected
@@ -314,9 +320,9 @@ def test_distribution(tmpdir, monkeypatch, os_release, expected):
         id='arch', parsed=version.Distribution.arch, version=None,
         pretty='Arch Linux'), False)
 ])
-def test_is_sandboxed(monkeypatch, distribution, expected):
+def test_is_flatpak(monkeypatch, distribution, expected):
     monkeypatch.setattr(version, "distribution", lambda: distribution)
-    assert version.is_sandboxed() == expected
+    assert version.is_flatpak() == expected
 
 
 class GitStrSubprocessFake:
@@ -344,9 +350,8 @@ class GitStrSubprocessFake:
             raise ValueError("func got called without retval being set!")
         retval = self.retval
         self.retval = self.UNSET
-        gitpath = os.path.normpath(gitpath)
-        expected = os.path.abspath(os.path.join(
-            os.path.dirname(qutebrowser.__file__), os.pardir))
+        gitpath = pathlib.Path(gitpath).resolve()
+        expected = pathlib.Path(qutebrowser.__file__).parent.parent
         assert gitpath == expected
         return retval
 
@@ -449,7 +454,7 @@ class TestGitStrSubprocess:
     """Tests for _git_str_subprocess."""
 
     @pytest.fixture
-    def git_repo(self, tmpdir):
+    def git_repo(self, tmp_path):
         """A fixture to create a temporary git repo.
 
         Some things are tested against a real repo so we notice if something in
@@ -471,20 +476,20 @@ class TestGitStrSubprocess:
                 # some environments on Windows...
                 # https://bugs.python.org/issue24493
                 subprocess.run(
-                    'git -C "{}" {}'.format(tmpdir, ' '.join(args)),
+                    'git -C "{}" {}'.format(tmp_path, ' '.join(args)),
                     env=env, check=True, shell=True)
             else:
                 subprocess.run(
-                    ['git', '-C', str(tmpdir)] + list(args),
+                    ['git', '-C', str(tmp_path)] + list(args),
                     check=True, env=env)
 
-        (tmpdir / 'file').write_text("Hello World!", encoding='utf-8')
+        (tmp_path / 'file').write_text("Hello World!", encoding='utf-8')
         _git('init')
         _git('add', 'file')
         _git('commit', '-am', 'foo', '--no-verify', '--no-edit',
              '--no-post-rewrite', '--quiet', '--no-gpg-sign')
         _git('tag', 'foobar')
-        return tmpdir
+        return tmp_path
 
     @needs_git
     def test_real_git(self, git_repo):
@@ -492,16 +497,16 @@ class TestGitStrSubprocess:
         ret = version._git_str_subprocess(str(git_repo))
         assert ret == '6e4b65a on master (1970-01-01 01:00:00 +0100)'
 
-    def test_missing_dir(self, tmpdir):
+    def test_missing_dir(self, tmp_path):
         """Test with a directory which doesn't exist."""
-        ret = version._git_str_subprocess(str(tmpdir / 'does-not-exist'))
+        ret = version._git_str_subprocess(str(tmp_path / 'does-not-exist'))
         assert ret is None
 
     @pytest.mark.parametrize('exc', [
         OSError,
         subprocess.CalledProcessError(1, 'foobar')
     ])
-    def test_exception(self, exc, mocker, tmpdir):
+    def test_exception(self, exc, mocker, tmp_path):
         """Test with subprocess.run raising an exception.
 
         Args:
@@ -511,7 +516,7 @@ class TestGitStrSubprocess:
         m.path.isdir.return_value = True
         mocker.patch('qutebrowser.utils.version.subprocess.run',
                      side_effect=exc)
-        ret = version._git_str_subprocess(str(tmpdir))
+        ret = version._git_str_subprocess(str(tmp_path))
         assert ret is None
 
 
@@ -1004,7 +1009,6 @@ class TestWebEngineVersions:
 
         versions = version.WebEngineVersions.from_pyqt(pyqt_webengine_version)
 
-        from qutebrowser.browser.webengine import webenginesettings
         webenginesettings.init_user_agent()
         expected = webenginesettings.parsed_user_agent.upstream_browser_version
 
@@ -1045,26 +1049,24 @@ class TestChromiumVersion:
     @pytest.fixture(autouse=True)
     def clear_parsed_ua(self, monkeypatch):
         pytest.importorskip('PyQt5.QtWebEngineWidgets')
-        if version.webenginesettings is not None:
+        if webenginesettings is not None:
             # Not available with QtWebKit
-            monkeypatch.setattr(version.webenginesettings, 'parsed_user_agent', None)
+            monkeypatch.setattr(webenginesettings, 'parsed_user_agent', None)
 
     def test_fake_ua(self, monkeypatch, caplog):
         ver = '77.0.3865.98'
-        version.webenginesettings._init_user_agent_str(
-            _QTWE_USER_AGENT.format(ver))
+        webenginesettings._init_user_agent_str(_QTWE_USER_AGENT.format(ver))
 
         assert version.qtwebengine_versions().chromium == ver
 
     def test_prefers_saved_user_agent(self, monkeypatch):
-        version.webenginesettings._init_user_agent_str(_QTWE_USER_AGENT.format('87'))
+        webenginesettings._init_user_agent_str(_QTWE_USER_AGENT.format('87'))
 
         class FakeProfile:
             def defaultProfile(self):
                 raise AssertionError("Should not be called")
 
-        monkeypatch.setattr(version.webenginesettings, 'QWebEngineProfile',
-                            FakeProfile())
+        monkeypatch.setattr(webenginesettings, 'QWebEngineProfile', FakeProfile())
 
         version.qtwebengine_versions()
 
@@ -1190,10 +1192,10 @@ class VersionParams:
 def test_version_info(params, stubs, monkeypatch, config_stub):
     """Test version.version_info()."""
     config.instance.config_py_loaded = params.config_py_loaded
-    import_path = os.path.abspath('/IMPORTPATH')
+    import_path = pathlib.Path('/IMPORTPATH').resolve()
 
     patches = {
-        'qutebrowser.__file__': os.path.join(import_path, '__init__.py'),
+        'qutebrowser.__file__': str(import_path / '__init__.py'),
         'qutebrowser.__version__': 'VERSION',
         '_git_str': lambda: ('GIT COMMIT' if params.git_commit else None),
         'platform.python_implementation': lambda: 'PYTHON IMPLEMENTATION',
@@ -1250,7 +1252,6 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
     if params.with_webkit:
         patches['qWebKitVersion'] = lambda: 'WEBKIT VERSION'
         patches['objects.backend'] = usertypes.Backend.QtWebKit
-        patches['webenginesettings'] = None
         substitutions['backend'] = 'new QtWebKit (WebKit WEBKIT VERSION)'
     else:
         monkeypatch.delattr(version, 'qtutils.qWebKitVersion', raising=False)

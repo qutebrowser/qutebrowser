@@ -15,7 +15,7 @@ filelock==3.0.12
 Flask==1.1.2
 glob2==0.7
 hunter==3.3.1
-hypothesis==6.6.0
+hypothesis==6.8.1
 icdiff==1.9.1
 idna==2.10
 iniconfig==1.1.1
@@ -53,9 +53,9 @@ requests==2.25.1
 requests-file==1.5.1
 six==1.15.0
 sortedcontainers==2.3.0
-soupsieve==2.2
+soupsieve==2.2.1
 tldextract==3.1.0
 toml==0.10.2
-urllib3==1.26.3
+urllib3==1.26.4
 vulture==2.3
 Werkzeug==1.0.1

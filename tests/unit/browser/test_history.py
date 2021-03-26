@@ -488,12 +488,11 @@ class TestCompletionMetaInfo:
 
     def test_contains_keyerror(self, metainfo):
         with pytest.raises(KeyError):
-            # pylint: disable=pointless-statement
             'does_not_exist' in metainfo  # noqa: B015
 
     def test_getitem_keyerror(self, metainfo):
         with pytest.raises(KeyError):
-            metainfo['does_not_exist']  # pylint: disable=pointless-statement
+            metainfo['does_not_exist']
 
     def test_setitem_keyerror(self, metainfo):
         with pytest.raises(KeyError):
@@ -507,6 +506,28 @@ class TestCompletionMetaInfo:
         value = 'https://example.com/'
         metainfo['excluded_patterns'] = value
         assert metainfo['excluded_patterns'] == value
+
+    # FIXME: It'd be good to test those two things via WebHistory (and not just
+    # CompletionMetaInfo in isolation), but we can't do that right now - see the
+    # docstring of TestRebuild for details.
+
+    def test_recovery_no_key(self, metainfo):
+        metainfo.delete('key', 'force_rebuild')
+
+        with pytest.raises(sql.BugError, match='No result for single-result query'):
+            metainfo['force_rebuild']
+
+        metainfo.try_recover()
+        assert not metainfo['force_rebuild']
+
+    def test_recovery_no_table(self, metainfo):
+        sql.Query("DROP TABLE CompletionMetaInfo").run()
+
+        with pytest.raises(sql.BugError, match='no such table: CompletionMetaInfo'):
+            metainfo['force_rebuild']
+
+        metainfo.try_recover()
+        assert not metainfo['force_rebuild']
 
 
 class TestHistoryProgress:

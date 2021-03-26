@@ -25,7 +25,7 @@ This script gets called as a QProcess from end2end/conftest.py.
 import ssl
 import sys
 import logging
-import os.path
+import pathlib
 
 import flask
 
@@ -38,6 +38,11 @@ app = flask.Flask(__name__)
 @app.route('/')
 def hello_world():
     return "Hello World via SSL!"
+
+
+@app.route('/data/<path:path>')
+def send_data(path):
+    return webserver_sub.send_data(path)
 
 
 @app.route('/favicon.ico')
@@ -57,11 +62,11 @@ def turn_off_logging():
 
 
 def main():
-    ssl_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                           '..', 'data', 'ssl')
+    ssl_dir = (pathlib.Path(__file__).parent.resolve()
+               / '..' / 'data' / 'ssl')
     context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-    context.load_cert_chain(os.path.join(ssl_dir, 'cert.pem'),
-                            os.path.join(ssl_dir, 'key.pem'))
+    context.load_cert_chain((ssl_dir / 'cert.pem'),
+                            (ssl_dir / 'key.pem'))
     app.run(port=int(sys.argv[1]), debug=False, ssl_context=context)
 
 

@@ -92,14 +92,26 @@ class CompletionMetaInfo(sql.SqlTable):
     }
 
     def __init__(self, parent=None):
-        super().__init__("CompletionMetaInfo", ['key', 'value'],
-                         constraints={'key': 'PRIMARY KEY'})
+        self._fields = ['key', 'value']
+        self._constraints = {'key': 'PRIMARY KEY'}
+        super().__init__(
+            "CompletionMetaInfo", self._fields, constraints=self._constraints)
+
         if sql.user_version_changed():
             self._init_default_values()
 
     def _check_key(self, key):
         if key not in self.KEYS:
             raise KeyError(key)
+
+    def try_recover(self):
+        """Try recovering the table structure.
+
+        This should be called if getting a value via __getattr__ failed. In theory, this
+        should never happen, in practice, it does.
+        """
+        self._create_table(self._fields, constraints=self._constraints, force=True)
+        self._init_default_values()
 
     def _init_default_values(self):
         for key, default in self.KEYS.items():
@@ -164,7 +176,13 @@ class WebHistory(sql.SqlTable):
         self.completion = CompletionHistory(parent=self)
         self.metainfo = CompletionMetaInfo(parent=self)
 
-        rebuild_completion = self.metainfo['force_rebuild']
+        try:
+            rebuild_completion = self.metainfo['force_rebuild']
+        except sql.BugError:  # pragma: no cover
+            log.sql.warning("Failed to access meta info, trying to recover...",
+                            exc_info=True)
+            self.metainfo.try_recover()
+            rebuild_completion = self.metainfo['force_rebuild']
 
         if sql.user_version_changed():
             # If the DB user version changed, run a full cleanup and rebuild the

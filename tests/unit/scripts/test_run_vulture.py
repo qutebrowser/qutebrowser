@@ -83,7 +83,7 @@ def test_unused_func(vultdir):
         def foo():
             pass
     """)
-    msg = "*test_unused_func*foo.py:2: unused function 'foo' (60% confidence)"
+    msg = "*foo.py:2: unused function 'foo' (60% confidence)"
     msgs = vultdir.run()
     assert len(msgs) == 1
     assert testutils.pattern_match(pattern=msg, value=msgs[0])

@@ -648,10 +648,9 @@ class KeySequence:
         for key in self._iter_keys():
             key_seq = KeySequence(key)
             if key_seq in mappings:
-                new_seq = mappings[key_seq]
-                assert len(new_seq) == 1
-                key = new_seq[0].to_int()
-            keys.append(key)
+                keys += [info.to_int() for info in mappings[key_seq]]
+            else:
+                keys.append(key)
         return self.__class__(*keys)
 
     @classmethod

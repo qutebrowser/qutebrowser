@@ -50,6 +50,7 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
 def args(fake_args):
     """Arguments needed for the config to init."""
     fake_args.temp_settings = []
+    fake_args.config_py = None
     return fake_args
 
 
@@ -216,6 +217,34 @@ class TestEarlyInit:
         assert len(configinit._init_errors.errors) == 1
         error = configinit._init_errors.errors[0]
         assert str(error).startswith("autoconfig loading not specified")
+
+    def test_autoconfig_warning_custom(self, init_patch, args, tmp_path, monkeypatch):
+        """Make sure there is no autoconfig warning with --config-py."""
+        config_py_path = tmp_path / 'config.py'
+        config_py_path.touch()
+
+        args.config_py = str(config_py_path)
+        monkeypatch.setattr(configinit.standarddir, 'config_py',
+                            lambda: str(config_py_path))
+
+        configinit.early_init(args)
+
+    def test_custom_non_existing_file(self, init_patch, args, tmp_path,
+                                      caplog, monkeypatch):
+        """Make sure --config-py with a non-existent file doesn't fall back silently."""
+        config_py_path = tmp_path / 'config.py'
+        assert not config_py_path.exists()
+
+        args.config_py = str(config_py_path)
+        monkeypatch.setattr(configinit.standarddir, 'config_py',
+                            lambda: str(config_py_path))
+
+        with caplog.at_level(logging.ERROR):
+            configinit.early_init(args)
+
+        assert len(configinit._init_errors.errors) == 1
+        error = configinit._init_errors.errors[0]
+        assert isinstance(error.exception, FileNotFoundError)
 
     @pytest.mark.parametrize('byte', [
         b'\x00',  # configparser.Error

@@ -1567,7 +1567,7 @@ class FormatString(BaseType):
 
         try:
             value.format(**{k: '' for k in self.fields})
-        except (KeyError, IndexError) as e:
+        except (KeyError, IndexError, AttributeError) as e:
             raise configexc.ValidationError(value, "Invalid placeholder "
                                             "{}".format(e))
         except ValueError as e:

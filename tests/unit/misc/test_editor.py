@@ -24,17 +24,16 @@ import pathlib
 import os
 import logging
 
-from PyQt5.QtCore import QProcess
 import pytest
+from PyQt5.QtCore import QProcess
 
 from qutebrowser.misc import editor as editormod
 from qutebrowser.utils import usertypes
 
 
 @pytest.fixture(autouse=True)
-def patch_things(config_stub, monkeypatch, stubs):
-    monkeypatch.setattr(editormod.guiprocess, 'QProcess',
-                        stubs.fake_qprocess())
+def patch_fake_process(config_stub, monkeypatch, stubs):
+    monkeypatch.setattr(editormod.guiprocess, 'QProcess', stubs.FakeProcess)
 
 
 @pytest.fixture(params=[True, False])
@@ -43,7 +42,7 @@ def editor(caplog, qtbot, request):
     yield ed
     with caplog.at_level(logging.ERROR):
         ed._remove_file = True
-        ed._cleanup()
+        ed._cleanup(successful=True)
 
 
 class TestArg:
@@ -79,7 +78,7 @@ class TestFileHandling:
         filename = pathlib.Path(editor._filename)
         assert filename.exists()
         assert filename.name.startswith('qutebrowser-editor-')
-        editor._proc.finished.emit(0, QProcess.NormalExit)
+        editor._proc._proc.finished.emit(0, QProcess.NormalExit)
         assert not filename.exists()
 
     @pytest.mark.parametrize('touch', [True, False])
@@ -90,35 +89,34 @@ class TestFileHandling:
             path.touch()
 
         editor.edit_file(str(path))
-        editor._proc.finished.emit(0, QProcess.NormalExit)
+        editor._proc._proc.finished.emit(0, QProcess.NormalExit)
 
         assert path.exists()
 
-    def test_error(self, editor):
+    def test_error(self, editor, caplog):
         """Test file handling when closing with an exit status != 0."""
         editor.edit("")
         filename = pathlib.Path(editor._filename)
         assert filename.exists()
 
-        editor._proc._proc.exitStatus = lambda: QProcess.CrashExit
-        editor._proc.finished.emit(1, QProcess.NormalExit)
+        with caplog.at_level(logging.ERROR):
+            editor._proc._proc.finished.emit(1, QProcess.NormalExit)
 
         assert filename.exists()
 
         filename.unlink()
 
-    def test_crash(self, editor):
+    def test_crash(self, editor, caplog):
         """Test file handling when closing with a crash."""
         editor.edit("")
         filename = pathlib.Path(editor._filename)
         assert filename.exists()
 
-        editor._proc._proc.exitStatus = lambda: QProcess.CrashExit
         editor._proc.error.emit(QProcess.Crashed)
+        with caplog.at_level(logging.ERROR):
+            editor._proc._proc.finished.emit(0, QProcess.CrashExit)
 
-        editor._proc.finished.emit(0, QProcess.CrashExit)
         assert filename.exists()
-
         filename.unlink()
 
     def test_unreadable(self, message_mock, editor, caplog, qtbot):
@@ -132,7 +130,7 @@ class TestFileHandling:
             pytest.skip("File was still readable")
 
         with caplog.at_level(logging.ERROR):
-            editor._proc.finished.emit(0, QProcess.NormalExit)
+            editor._proc._proc.finished.emit(0, QProcess.NormalExit)
         assert not filename.exists()
         msg = message_mock.getmsg(usertypes.MessageLevel.error)
         assert msg.text.startswith("Failed to read back edited file: ")
@@ -169,7 +167,7 @@ class TestFileHandling:
         fname = msg.text[len(prefix):]
 
         with qtbot.wait_signal(editor.editing_finished):
-            editor._proc.finished.emit(0, QProcess.NormalExit)
+            editor._proc._proc.finished.emit(0, QProcess.NormalExit)
 
         with open(fname, 'r', encoding='utf-8') as f:
             assert f.read() == 'bar'
@@ -212,7 +210,7 @@ def test_modify(qtbot, editor, initial_text, edited_text):
         f.write(edited_text)
 
     with qtbot.wait_signal(editor.file_updated) as blocker:
-        editor._proc.finished.emit(0, QProcess.NormalExit)
+        editor._proc._proc.finished.emit(0, QProcess.NormalExit)
 
     assert blocker.args == [edited_text]
 
@@ -246,7 +244,7 @@ def test_modify_watch(qtbot):
     assert blocker.args == ['baz']
 
     with qtbot.assert_not_emitted(editor.file_updated):
-        editor._proc.finished.emit(0, QProcess.NormalExit)
+        editor._proc._proc.finished.emit(0, QProcess.NormalExit)
 
 
 def test_failing_watch(qtbot, caplog, monkeypatch):
@@ -264,7 +262,7 @@ def test_failing_watch(qtbot, caplog, monkeypatch):
         _update_file(editor._filename, 'bar')
 
     with qtbot.wait_signal(editor.file_updated) as blocker:
-        editor._proc.finished.emit(0, QProcess.NormalExit)
+        editor._proc._proc.finished.emit(0, QProcess.NormalExit)
     assert blocker.args == ['bar']
 
     message = 'Failed to watch path: {}'.format(editor._filename)
@@ -281,7 +279,7 @@ def test_failing_unwatch(qtbot, caplog, monkeypatch):
     editor.edit('foo')
 
     with caplog.at_level(logging.ERROR):
-        editor._proc.finished.emit(0, QProcess.NormalExit)
+        editor._proc._proc.finished.emit(0, QProcess.NormalExit)
 
     message = 'Failed to unwatch paths: [{!r}]'.format(editor._filename)
     assert caplog.messages[-1] == message
