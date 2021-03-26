@@ -19,9 +19,9 @@
 
 import dataclasses
 import itertools
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
-from PyQt5.QtCore import QObject, QVariant, QByteArray, pyqtSlot
+from PyQt5.QtCore import QObject, QByteArray, pyqtSlot
 from PyQt5.QtGui import QImage
 from PyQt5.QtDBus import QDBusConnection, QDBusArgument, QDBusMessage
 import pytest

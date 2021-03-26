@@ -19,6 +19,8 @@
 
 """Handles sending notifications over DBus.
 
+FIXME UPDATE
+
 Related specs:
 
 https://developer.gnome.org/notification-spec/
@@ -32,7 +34,7 @@ import dataclasses
 import itertools
 import functools
 import subprocess
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import Any, List, Dict, Optional, TYPE_CHECKING
 
 from PyQt5.QtCore import (Qt, QObject, QVariant, QMetaType, QByteArray, pyqtSlot,
                           pyqtSignal, QTimer, QProcess)
@@ -47,7 +49,6 @@ if TYPE_CHECKING:
     from PyQt5.QtWebEngineCore import QWebEngineNotification
     from PyQt5.QtWebEngineWidgets import QWebEngineProfile
 
-from qutebrowser.qt import sip
 from qutebrowser.config import config
 from qutebrowser.misc import objects
 from qutebrowser.utils import qtutils, log, utils, debug, message
@@ -80,6 +81,12 @@ class Error(Exception):
 
 class AbstractNotificationAdapter(QObject):
 
+    """An adapter taking notifications and displaying them.
+
+    This can happen via different mechanisms, e.g. a system tray icon or DBus.
+    """
+
+    NAME: str
     close_id = pyqtSignal(int)
     click_id = pyqtSignal(int)
     error = pyqtSignal(str)
@@ -90,10 +97,16 @@ class AbstractNotificationAdapter(QObject):
         *,
         replaces_id: Optional[int],
     ) -> int:
+        """Show the given notification.
+
+        If replaces_id is given, replace the currently showing notification with the
+        same ID.
+        """
         raise NotImplementedError
 
     @pyqtSlot(int)
     def on_web_closed(self, notification_id: int) -> None:
+        """Called when a notification was closed by the website."""
         raise NotImplementedError
 
 
@@ -109,12 +122,9 @@ class NotificationBridgePresenter(QObject):
         self._active_notifications: Dict[int, 'QWebEngineNotification'] = {}
         self._adapter: Optional[AbstractNotificationAdapter] = None
 
-        config.instance.changed.connect(self.on_config_changed)
+        config.instance.changed.connect(self._init_adapter)
 
     @config.change_filter('content.notifications.presenter')
-    def on_config_changed(self):
-        self._init_adapter()
-
     def _init_adapter(self):
         """Initialize the adapter to use based on the config."""
         setting = config.val.content.notifications.presenter
@@ -146,7 +156,7 @@ class NotificationBridgePresenter(QObject):
         elif setting == "messages":
             candidates = [MessagesNotificationAdapter]  # always succeeds
         else:
-            raise utils.Unrachable(setting)
+            raise utils.Unreachable(setting)
 
         for candidate in candidates:
             try:
@@ -160,6 +170,7 @@ class NotificationBridgePresenter(QObject):
             else:
                 break
 
+        assert self._adapter is not None
         self._adapter.click_id.connect(self._on_adapter_clicked)
         self._adapter.close_id.connect(self._on_adapter_closed)
         self._adapter.error.connect(self._on_adapter_error)
@@ -193,6 +204,7 @@ class NotificationBridgePresenter(QObject):
         """
         if self._adapter is None:
             self._init_adapter()
+            assert self._adapter is not None
 
         replaces_id = self._find_replaces_id(qt_notification)
         notification_id = self._adapter.present(
@@ -200,7 +212,7 @@ class NotificationBridgePresenter(QObject):
 
         if self._adapter is None:
             # If a fatal error occurred, we replace the adapter via its "error" signal.
-            return
+            return  # type: ignore[unreachable]
 
         if notification_id <= 0:
             raise Error(f"Got invalid notification id {notification_id}")
@@ -213,8 +225,8 @@ class NotificationBridgePresenter(QObject):
         qt_notification.show()
         self._active_notifications[notification_id] = qt_notification
 
-        qt_notification.closed.connect(functools.partial(
-            self._adapter.on_web_closed, notification_id))
+        qt_notification.closed.connect(  # type: ignore[attr-defined]
+            functools.partial(self._adapter.on_web_closed, notification_id))
 
     def _find_replaces_id(
         self,
@@ -243,12 +255,12 @@ class NotificationBridgePresenter(QObject):
 
     @pyqtSlot(int)
     def _on_adapter_closed(self, notification_id: int) -> None:
-        notification = self._active_notifications.get(notification_id)
-        if notification is None:
+        try:
+            notification = self._active_notifications.pop(notification_id)
+        except KeyError:
             # Notification from a different application
             return
 
-        del self._active_notifications[notification_id]
         try:
             notification.close()
         except RuntimeError:
@@ -259,8 +271,9 @@ class NotificationBridgePresenter(QObject):
 
     @pyqtSlot(int)
     def _on_adapter_clicked(self, notification_id: int) -> None:
-        notification = self._active_notifications.get(notification_id)
-        if notification is None:
+        try:
+            notification = self._active_notifications[notification_id]
+        except KeyError:
             # Notification from a different application
             return
 
@@ -288,7 +301,7 @@ class NotificationBridgePresenter(QObject):
             self._on_adapter_closed(notification_id)
 
     @pyqtSlot(str)
-    def _on_adapter_error(self, error: str):
+    def _on_adapter_error(self, error: str) -> None:
         if self._adapter is None:
             # Error during setup
             return
@@ -335,7 +348,8 @@ class SystrayNotificationAdapter(AbstractNotificationAdapter):
         self.close_id.emit(self.NOTIFICATION_ID)
         self._systray.show()
         icon = self._convert_icon(qt_notification.icon())
-        self._systray.showMessage(qt_notification.title(), qt_notification.message(), icon)
+        self._systray.showMessage(
+            qt_notification.title(), qt_notification.message(), icon)
         return self.NOTIFICATION_ID
 
     def _convert_icon(self, image: QImage) -> QIcon:
@@ -392,14 +406,14 @@ class MessagesNotificationAdapter(AbstractNotificationAdapter):
         message.info(markup, replace=f'notifications-{new_id}')
 
         # Faking closing, timing might not be 100% accurate
-        QTimer.singleShot(config.val.messages.timeout, lambda: self.close_id.emit(new_id))
+        QTimer.singleShot(
+            config.val.messages.timeout, lambda: self.close_id.emit(new_id))
 
         return new_id
 
     @pyqtSlot(int)
     def on_web_closed(self, _notification_id: int) -> None:
         """We can't close messages."""
-        pass
 
 
 class HerbeNotificationAdapter(AbstractNotificationAdapter):
@@ -413,12 +427,10 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
 
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
-        self._id_gen = itertools.count(1)
-
         # Also cleans up potentially hanging semaphores from herbe.
         # https://github.com/dudik/herbe#notifications-dont-show-up
         try:
-            subprocess.run(['herbe'], stderr=subprocess.DEVNULL)
+            subprocess.run(['herbe'], stderr=subprocess.DEVNULL, check=False)
         except OSError as e:
             raise Error(f'herbe error: {e}')
 
@@ -432,7 +444,7 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
         utils.unused(replaces_id)
         proc = QProcess(self)
         proc.finished.connect(self._on_finished)
-        proc.error.connect(self._on_error)
+        proc.errorOccurred.connect(self._on_error)
         proc.start('herbe', [qt_notification.title(), qt_notification.message()])
         return proc.processId()
 
@@ -518,7 +530,8 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             QDBusServiceWatcher.WatchForUnregistration,
             self,
         )
-        self._watcher.serviceUnregistered.connect(self._on_service_unregistered)
+        self._watcher.serviceUnregistered.connect(  # type: ignore[attr-defined]
+            self._on_service_unregistered)
 
         test_service = 'test-notification-service' in objects.debug_flags
         service = self.TEST_SERVICE if test_service else self.SERVICE
@@ -575,7 +588,6 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             # Still in active development but spec 1.0/1.2 support isn't
             # released yet:
             # https://github.com/awesomeWM/awesome/commit/e076bc664e0764a3d3a0164dabd9b58d334355f4
-            # Thus, no icon/image support at the moment...
             ("naughty", "awesome"): _ServerQuirks(spec_version="1.0"),
         }
         quirks = all_quirks.get((name, vendor))
@@ -785,7 +797,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         )
         self._verify_message(reply, "as", QDBusMessage.ReplyMessage)
 
-        self._capabilities = reply.arguments()[0]
+        self._capabilities: List[str] = reply.arguments()[0]
         if self._quirks.avoid_actions and 'actions' in self._capabilities:
             self._capabilities.remove('actions')
 
