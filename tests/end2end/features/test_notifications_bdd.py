@@ -80,6 +80,13 @@ def notification_title(notification_server, id_, title):
     assert notification_server.messages[id_].title == title
 
 
+@bdd.then(bdd.parsers.cfparse(
+    'notification {id_:d} should have image dimensions {width:d}x{height:d}'))
+def notification_image_dimensions(notification_server, id_, width, height):
+    msg = notification_server.messages[id_]
+    assert (msg.img_width, msg.img_height) == (width, height)
+
+
 @bdd.when(bdd.parsers.cfparse('I close the notification with id {id_:d}'))
 def close_notification(notification_server, id_):
     notification_server.close(id_)

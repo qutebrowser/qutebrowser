@@ -19,7 +19,7 @@
 
 import dataclasses
 import itertools
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from PyQt5.QtCore import QObject, QVariant, QByteArray, pyqtSlot
 from PyQt5.QtGui import QImage
@@ -37,6 +37,8 @@ class NotificationProperties:
     title: str
     body: str
     replaces_id: int
+    img_width: int
+    img_height: int
 
 
 def _as_uint32(x: int) -> QVariant:
@@ -102,14 +104,15 @@ class TestNotificationServer(QObject):
         assert hints['x-qutebrowser-origin'].startswith('http://localhost:')
         assert hints['desktop-entry'] == 'org.qutebrowser.qutebrowser'
 
-        self._validate_image(*hints["image-data"])
+        img = self._parse_image(*hints["image-data"])
 
         if replaces_id != 0:
             assert replaces_id in self.messages
 
-        return NotificationProperties(title=title, body=body, replaces_id=replaces_id)
+        return NotificationProperties(title=title, body=body, replaces_id=replaces_id,
+                                      img_width=img.width(), img_height=img.height())
 
-    def _validate_image(
+    def _parse_image(
             self,
             width: int,
             height: int,
@@ -118,8 +121,8 @@ class TestNotificationServer(QObject):
             bits_per_color: int,
             channel_count: int,
             data: QByteArray,
-    ) -> None:
-        """Make sure the given image data is valid."""
+    ) -> QImage:
+        """Make sure the given image data is valid and return a QImage."""
         # Chromium limit?
         assert 0 < width <= 320
         assert 0 < height <= 320
@@ -138,6 +141,10 @@ class TestNotificationServer(QObject):
         qimage_format = QImage.Format_RGBA8888 if has_alpha else QImage.Format_RGB888
         img = QImage(data, width, height, bytes_per_line, qimage_format)
         assert not img.isNull()
+        assert img.width() == width
+        assert img.height() == height
+
+        return img
 
     def close(self, notification_id: int) -> None:
         """Sends a close notification for the given ID."""

@@ -12,6 +12,7 @@ Feature: Notifications
         When I run :click-element id show-button
         Then the javascript message "notification shown" should be logged
         And a notification with id 1 should be presented
+        And notification 1 should have image dimensions 64x64  # qutebrowser logo
 
     Scenario: Notification containing escaped characters
         Given the notification server supports body markup
@@ -31,21 +32,25 @@ Feature: Notifications
         When I run :click-element id show-image-button-noalpha
         Then the javascript message "notification shown" should be logged
         And notification 1 should have title "RGB"
+        And notification 1 should have image dimensions 64x64
 
     Scenario: Notification with RGBA image
         When I run :click-element id show-image-button
         Then the javascript message "notification shown" should be logged
         And notification 1 should have title "RGBA"
+        And notification 1 should have image dimensions 64x64
 
     Scenario: Notification with big image
         When I run :click-element id show-image-button-big
         Then the javascript message "notification shown" should be logged
         And notification 1 should have title "Big"
+        And notification 1 should have image dimensions 320x160
 
     Scenario: Notification with padded image
         When I run :click-element id show-image-button-padded
         Then the javascript message "notification shown" should be logged
         And notification 1 should have title "Padded"
+        And notification 1 should have image dimensions 46x46
 
     # As a WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
     # and other issues, those can only run with PyQtWebEngine >= 5.15.0
