@@ -124,10 +124,16 @@ class TestNotificationServer(QObject):
         assert 0 < width <= 320
         assert 0 < height <= 320
 
+        # Based on dunst:
+        # https://github.com/dunst-project/dunst/blob/v1.6.1/src/icon.c#L336-L348
+        # (A+7)/8 rounds up A to the next byte boundary
+        pixelstride = (channel_count * bits_per_color + 7) // 8
+        expected_len = (height - 1) * bytes_per_line + width * pixelstride
+        assert len(data) == expected_len
+
         assert bits_per_color == 8
         assert channel_count == (4 if has_alpha else 3)
-        assert bytes_per_line == width * channel_count
-        assert len(data) == height * bytes_per_line
+        assert bytes_per_line >= width * channel_count
 
         qimage_format = QImage.Format_RGBA8888 if has_alpha else QImage.Format_RGB888
         img = QImage(data, width, height, bytes_per_line, qimage_format)

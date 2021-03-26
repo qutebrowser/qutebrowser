@@ -64,16 +64,9 @@
                 });
             }
 
-            function show_image_notification() {
+            function show_image_notification(title, filename) {
                 get_notification_permission(() => {
-                    let notification = new Notification("RGBA", { icon: 'img/rgba.png' });
-                    notification.onshow = function() { console.log("notification shown"); };
-                });
-            }
-
-            function show_image_notification_noalpha() {
-                get_notification_permission(() => {
-                    let notification = new Notification("RGB", { icon: 'img/rgb.png' });
+                    let notification = new Notification(title, { icon: `img/${filename}` });
                     notification.onshow = function() { console.log("notification shown"); };
                 });
             }
@@ -89,8 +82,10 @@
             <input type="button" onclick="show_replacing_notifications()" value="Show replacing notifications" id="show-replacing-button">
         </div>
         <div>
-            <input type="button" onclick="show_image_notification()" value="Show image notification" id="show-image-button">
-            <input type="button" onclick="show_image_notification_noalpha()" value="Show image notification without alpha channel" id="show-image-button-noalpha">
+            <input type="button" onclick="show_image_notification('RGBA', 'rgba.png')" value="Show image notification" id="show-image-button">
+            <input type="button" onclick="show_image_notification('RGB', 'rgb.png')" value="Show image notification without alpha channel" id="show-image-button-noalpha">
+            <input type="button" onclick="show_image_notification('Big', 'big.png')" value="Show a big image notification" id="show-image-button-big">
+            <input type="button" onclick="show_image_notification('Padded', 'padded.png')" value="Show a padded image notification" id="show-image-button-padded">
         </div>
     </body>
 </html>

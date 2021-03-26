@@ -37,6 +37,16 @@ Feature: Notifications
         Then the javascript message "notification shown" should be logged
         And notification 1 should have title "RGBA"
 
+    Scenario: Notification with big image
+        When I run :click-element id show-image-button-big
+        Then the javascript message "notification shown" should be logged
+        And notification 1 should have title "Big"
+
+    Scenario: Notification with padded image
+        When I run :click-element id show-image-button-padded
+        Then the javascript message "notification shown" should be logged
+        And notification 1 should have title "Padded"
+
     # As a WORKAROUND for https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
     # and other issues, those can only run with PyQtWebEngine >= 5.15.0
     #

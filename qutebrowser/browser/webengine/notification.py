@@ -343,15 +343,19 @@ class DBusNotificationPresenter(QObject):
             channel_count = 3
 
         qimage.convertTo(image_format)
+        bytes_per_line = qimage.bytesPerLine()
+        width = qimage.width()
+        height = qimage.height()
 
         image_data = QDBusArgument()
         image_data.beginStructure()
-        image_data.add(qimage.width())
-        image_data.add(qimage.height())
-        image_data.add(qimage.bytesPerLine())
+        image_data.add(width)
+        image_data.add(height)
+        image_data.add(bytes_per_line)
         image_data.add(has_alpha)
         image_data.add(bits_per_color)
         image_data.add(channel_count)
+
         try:
             size = qimage.sizeInBytes()
         except TypeError:
@@ -360,8 +364,37 @@ class DBusNotificationPresenter(QObject):
             # byteCount() is obsolete, but sizeInBytes() is only available with
             # SIP >= 5.3.0.
             size = qimage.byteCount()
+
+        # Despite the spec not mandating this, many notification daemons mandate that
+        # the last scanline does not have any padding bytes.
+        #
+        # Or in the words of dunst:
+        #
+        #     The image is serialised rowwise pixel by pixel. The rows are aligned by a
+        #     spacer full of garbage. The overall data length of data + garbage is
+        #     called the rowstride.
+        #
+        #     Mind the missing spacer at the last row.
+        #
+        #     len:     |<--------------rowstride---------------->|
+        #     len:     |<-width*pixelstride->|
+        #     row 1:   |   data for row 1    | spacer of garbage |
+        #     row 2:   |   data for row 2    | spacer of garbage |
+        #              |         .           | spacer of garbage |
+        #              |         .           | spacer of garbage |
+        #              |         .           | spacer of garbage |
+        #     row n-1: |   data for row n-1  | spacer of garbage |
+        #     row n:   |   data for row n    |
+        #
+        # Source:
+        # https://github.com/dunst-project/dunst/blob/v1.6.1/src/icon.c#L292-L309
+        padding = bytes_per_line - width * channel_count
+        assert 0 <= padding < 3, padding
+        size -= padding
+
         bits = qimage.constBits().asstring(size)
         image_data.add(QByteArray(bits))
+
         image_data.endStructure()
         return image_data
 
