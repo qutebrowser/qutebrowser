@@ -107,33 +107,41 @@ class NotificationBridgePresenter(QObject):
 
     def _init_adapter(self):
         """Initialize the adapter to use based on the config."""
-        log.init.debug("Setting up notification adapter...")
-
         setting = config.val.content.notifications.presenter
+        log.init.debug(f"Setting up notification adapter ({setting})...")
+
         if setting == "qt":
             message.error("Can't switch to qt notification presenter at runtime.")
-            return
+            setting = "auto"
 
         if setting in ["auto", "libnotify"]:
-            testing = 'test-notification-service' in objects.debug_flags
+            candidates = [
+                DBusNotificationAdapter,
+                SystrayNotificationAdapter,
+                MessagesNotificationAdapter,
+            ]
+        elif setting == "systray":
+            candidates = [
+                SystrayNotificationAdapter,
+                DBusNotificationAdapter,
+                MessagesNotificationAdapter,
+            ]
+        elif setting == "messages":
+            candidates = [MessagesNotificationAdapter]  # always succeeds
+        else:
+            raise utils.Unrachable(setting)
+
+        for candidate in candidates:
             try:
-                self._adapter = DBusNotificationAdapter(test_service=testing)
+                self._adapter = candidate()
             except Error as e:
-                msg = f"Failed to initialize libnotify presenter: {e}"
-                if setting == "auto":
+                msg = f"Failed to initialize {candidate.NAME} presenter: {e}"
+                if setting == "auto":  # silent errors as we want auto fallback
                     log.init.debug(msg)
                 elif setting == "libnotify":
-                    # Explicitly set to "libnotify", so show the error to the user.
                     message.error(msg)
-                else:
-                    raise utils.Unreachable(setting)
-                self._adapter = SystrayNotificationAdapter()
-        elif setting == "systray":
-            self._adapter = SystrayNotificationAdapter()
-        elif setting == "messages":
-            self._adapter = MessagesNotificationAdapter()
-        else:
-            raise utils.Unreachable(setting)
+            else:
+                break
 
         self._adapter.click_id.connect(self._on_adapter_clicked)
         self._adapter.close_id.connect(self._on_adapter_closed)
@@ -257,10 +265,16 @@ class SystrayNotificationAdapter(AbstractNotificationAdapter):
     users can switch presenters in the config live.
     """
 
+    NAME = "systray"
     NOTIFICATION_ID = 1  # only one concurrent ID supported
 
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
+        if not QSystemTrayIcon.isSystemTrayAvailable():
+            raise Error("No system tray available")
+        if not QSystemTrayIcon.supportsMessages():
+            raise Error("System tray does not support messages")
+
         self._systray = QSystemTrayIcon(self)
         self._systray.setIcon(objects.qapp.windowIcon())
         self._systray.messageClicked.connect(self._on_systray_clicked)
@@ -299,6 +313,8 @@ class MessagesNotificationAdapter(AbstractNotificationAdapter):
     This is mostly used as a fallback if no other method is available. Most notification
     features are not supported.
     """
+
+    NAME = "messages"
 
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
@@ -348,11 +364,10 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
     PATH = "/org/freedesktop/Notifications"
     INTERFACE = "org.freedesktop.Notifications"
     SPEC_VERSION = "1.2"  # Released in January 2011, still current in March 2021.
+    NAME = "libnotify"
 
-    def __init__(self, test_service: bool, parent: QObject = None) -> None:
+    def __init__(self, parent: QObject = None) -> None:
         super().__init__(bridge)
-        self._bridge = bridge
-
         if not qtutils.version_check('5.14'):
             raise Error("Notifications are not supported on Qt < 5.14")
 
@@ -369,6 +384,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
                 "Failed to connect to DBus session bus: " +
                 self._dbus_error_str(bus.lastError()))
 
+        test_service = 'test-notification-service' in objects.debug_flags
         service = self.TEST_SERVICE if test_service else self.SERVICE
 
         self.interface = QDBusInterface(service, self.PATH, self.INTERFACE, bus)
