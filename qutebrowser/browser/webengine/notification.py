@@ -153,6 +153,8 @@ class NotificationBridgePresenter(QObject):
         log.webview.debug(f"Sent out notification {notification_id}")
         self._active_notifications[notification_id] = qt_notification
 
+        qt_notification.show()
+
     def _find_replaces_id(
         self,
         new_notification: "QWebEngineNotification",
@@ -377,7 +379,6 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             actions = ['default', '']  # key, name
         actions_arg = QDBusArgument(actions, QMetaType.QStringList)
 
-        qt_notification.show()
         hints: Dict[str, Any] = {
             # Include the origin in case the user wants to do different things
             # with different origin's notifications.
