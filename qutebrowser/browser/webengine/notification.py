@@ -430,9 +430,12 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
         # Also cleans up potentially hanging semaphores from herbe.
         # https://github.com/dudik/herbe#notifications-dont-show-up
         try:
-            subprocess.run(['herbe'], stderr=subprocess.DEVNULL, check=False)
+            subprocess.run(['herbe'], stderr=subprocess.DEVNULL, check=True)
         except OSError as e:
             raise Error(f'herbe error: {e}')
+        except subprocess.CalledProcessError as e:
+            if e.returncode != 1:
+                raise Error(f'herbe exited with status {e.returncode}')
 
     def present(
         self,
