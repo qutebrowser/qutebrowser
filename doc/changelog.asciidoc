@@ -46,6 +46,16 @@ Added
   `fileselect.handler = external` to customize the command to use to upload
   directories (`<input type="file" webkitdirectory />` elements, which are
   non-standard but in wide use).
+- New `content.notifications.presenter` setting with various new ways to show
+  web notifications:
+     * auto (default): Automatically detect the best available option
+     * qt: Use Qt's built-in mechanism (like before this release)
+     * libnotify: Use a libnotify-compatible notification server (i.e. native
+       notifications on Linux)
+     * systray: Use a systray icon (very similar to `qt` but without some of its
+       drawbacks)
+     * messages: Use qutebrowser messages
+     * herbe: Use https://github.com/dudik/herbe[herbe]
 
 Changed
 ~~~~~~~
@@ -64,6 +74,8 @@ Changed
   clearer what kind of error occurred exactly.
 - The `content.site_specific_quirks` setting got renamed to
   `content.site_specific_quirks.enabled`.
+- The `content.notifications` option got renamed to
+  `content.notifications.enabled`.
 - The completion now also shows bindings starting with `set-cmd-text` in its
   third column, such as `o` for `:open`.
 - When `:spawn` is used with the `-m` / `--output-messages` flag, the output now

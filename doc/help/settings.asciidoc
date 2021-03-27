@@ -2522,7 +2522,15 @@ Default: +pass:[ask]+
 [[content.notifications.presenter]]
 === content.notifications.presenter
 What notification presenter to use for web notifications.
-Note that with Qt 5.14, certain JavaScript features for notifications will not work with the libnotify notification presenter (the `click` and `close` events, as well as the `tag` option to replace existing notifications).
+Note that not all implementations support all features of notifications:
+- With PyQt 5.14, any setting other than `qt` does not support  the `click` and
+  `close` events, as well as the `tag` option to replace existing notifications.
+- The `qt` and `systray` options only support showing one notification at the time
+  and ignore the `tag` option to replace existing notifications.
+- The `herbe` option only supports showing one notification at the time and doesn't
+  show icons.
+- The `messages` option doesn't show icons and doesn't support the `click` and
+  `close` events.
 
 On QtWebEngine, this setting requires Qt 5.14 or newer.
 
@@ -2532,12 +2540,12 @@ Type: <<types,String>>
 
 Valid values:
 
- * +auto+: Use a libnotify-compatible presenter if DBus is available, silently fall back to Qt's presenter otherwise.
- * +qt+: Use Qt's native notification presenter. Switching from or to this value requires a restart of qutebrowser.
- * +libnotify+: Use a libnotify-compatible presenter if DBus is available, show an error (and fall back to Qt's presenter) otherwise.
- * +systray+: Use a notification presenter based on a systray icon. This is a reimplementation of the `qt` setting value, but with the possibility to switch to it at runtime.
- * +messages+: Show notifications as qutebrowser messages. Most features (images, clicking/closing notifications) aren't available.
- * +herbe+: Show notifications using herbe (github.com/dudik/herbe)
+ * +auto+: Tries `libnotify`, `systray` and `messages`, uses the first one available without showing error messages.
+ * +qt+: Use Qt's native notification presenter, based on a system tray icon. Switching from or to this value requires a restart of qutebrowser. Recommended over `systray` on PyQt 5.14.
+ * +libnotify+: Shows messages via DBus in a libnotify-compatible way. If DBus isn't available, falls back to `systray` or `messages`, but shows an error message.
+ * +systray+: Use a notification presenter based on a systray icon. Falls back to `libnotify` or `messages` if not systray is available. This is a reimplementation of the `qt` setting value, but with the possibility to switch to it at runtime.
+ * +messages+: Show notifications as qutebrowser messages. Most notification features aren't available.
+ * +herbe+: (experimental!) Show notifications using herbe (github.com/dudik/herbe). Most notification features aren't available.
 
 Default: +pass:[auto]+
 

@@ -17,14 +17,28 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Handles sending notifications over DBus.
+"""Different ways of showing notifications to the user.
 
-FIXME UPDATE
+Our notification implementation consists of two different parts:
 
-Related specs:
+- NotificationBridgePresenter, the object we set as notification presenter on
+  QWebEngineProfiles on startup.
+- Adapters (subclassing from AbstractNotificationAdapter) which get called by the bridge
+  and contain the code to show notifications using different means (e.g. a systray icon
+  or DBus).
 
-https://developer.gnome.org/notification-spec/
-https://specifications.freedesktop.org/notification-spec/notification-spec-latest.html
+Adapters are initialized lazily when the bridge gets the first notification. This makes
+sure we don't block while e.g. talking to DBus during startup, but only when needed.
+
+If an adapter raises Error during __init__, the bridge assumes that it's unavailable and
+tries the next one in a list of candidates.
+
+Useful test pages:
+
+- https://tests.peter.sh/notification-generator/
+- https://www.bennish.net/web-notifications.html
+- https://web-push-book.gauntface.com/demos/notification-examples/
+- tests/end2end/data/javascript/notifications.html
 """
 
 import os
@@ -88,9 +102,18 @@ class AbstractNotificationAdapter(QObject):
     This can happen via different mechanisms, e.g. a system tray icon or DBus.
     """
 
+    # A short name for the adapter, shown in errors. Should be the same as the
+    # associated content.notification.presenter setting.
     NAME: str
+
+    # Emitted by the adapter when the notification with the given ID was closed or
+    # clicked by the user.
     close_id = pyqtSignal(int)
     click_id = pyqtSignal(int)
+
+    # Emitted by the adapter when an error occurred, which should result in the adapter
+    # getting swapped out (potentially initializing the same adapter again, or using a
+    # different one if that fails).
     error = pyqtSignal(str)
 
     def present(
@@ -103,6 +126,9 @@ class AbstractNotificationAdapter(QObject):
 
         If replaces_id is given, replace the currently showing notification with the
         same ID.
+
+        Returns an ID assigned to the new notifications. IDs must be positive (>= 1) and
+        must not duplicate any active notification's ID.
         """
         raise NotImplementedError
 
@@ -114,7 +140,14 @@ class AbstractNotificationAdapter(QObject):
 
 class NotificationBridgePresenter(QObject):
 
-    """Notification presenter which bridges notifications to an adapter."""
+    """Notification presenter which bridges notifications to an adapter.
+
+    Takes care of:
+    - Working around bugs in PyQt 5.14
+    - Storing currently shown notifications, using an ID returned by the adapter.
+    - Initializing a suitable adapter when the first notification is shown.
+    - Switching out adapters if the current one emitted its error signal.
+    """
 
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
@@ -177,7 +210,7 @@ class NotificationBridgePresenter(QObject):
         self._adapter.error.connect(self._on_adapter_error)
 
     def install(self, profile: "QWebEngineProfile") -> None:
-        """Sets the profile to use the manager as the presenter."""
+        """Set the profile to use this bridge as the presenter."""
         # WORKAROUND for
         # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042916.html
         # Fixed in PyQtWebEngine 5.15.0
@@ -198,7 +231,9 @@ class NotificationBridgePresenter(QObject):
             profile.setNotificationPresenter(self.present)
 
     def present(self, qt_notification: "QWebEngineNotification") -> None:
-        """Shows a notification using the configured adapter.
+        """Show a notification using the configured adapter.
+
+        Lazily initializes a suitable adapter if none exists yet.
 
         This should *not* be directly passed to setNotificationPresenter on
         PyQtWebEngine < 5.15 because of a bug in the PyQtWebEngine bindings.
@@ -256,6 +291,11 @@ class NotificationBridgePresenter(QObject):
 
     @pyqtSlot(int)
     def _on_adapter_closed(self, notification_id: int) -> None:
+        """A notification was closed by the adapter (usually due to the user).
+
+        Accepts unknown notification IDs, as this can be called for notifications from
+        other applications (with the DBus adapter).
+        """
         try:
             notification = self._active_notifications.pop(notification_id)
         except KeyError:
@@ -272,6 +312,11 @@ class NotificationBridgePresenter(QObject):
 
     @pyqtSlot(int)
     def _on_adapter_clicked(self, notification_id: int) -> None:
+        """A notification was clicked by the adapter (usually due to the user).
+
+        Accepts unknown notification IDs, as this can be called for notifications from
+        other applications (with the DBus adapter).
+        """
         try:
             notification = self._active_notifications[notification_id]
         except KeyError:
@@ -303,6 +348,11 @@ class NotificationBridgePresenter(QObject):
 
     @pyqtSlot(str)
     def _on_adapter_error(self, error: str) -> None:
+        """A fatal error happened in the adapter.
+
+        This causes us to drop the current adapter and reinit it (or a different one) on
+        the next notification.
+        """
         if self._adapter is None:
             # Error during setup
             return
@@ -326,7 +376,7 @@ class SystrayNotificationAdapter(AbstractNotificationAdapter):
     """
 
     NAME = "systray"
-    NOTIFICATION_ID = 1  # only one concurrent ID supported
+    NOTIFICATION_ID = 1  # only one concurrent notification supported
 
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
@@ -379,6 +429,9 @@ class MessagesNotificationAdapter(AbstractNotificationAdapter):
 
     This is mostly used as a fallback if no other method is available. Most notification
     features are not supported.
+
+    Note that it's expected for this adapter to never fail (i.e. not raise Error in
+    __init__ and not emit the error signal), as it's used as a "last resort" fallback.
     """
 
     NAME = "messages"
@@ -462,10 +515,19 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
         return pid
 
     def _on_finished(self, pid: int, code: int, status: QProcess.ExitStatus) -> None:
+        """Handle a closing herbe process.
+
+        From the GitHub page:
+        - "An accepted notification always returns exit code 0."
+        - "Dismissed notifications return exit code 2."
+
+        Any other exit status should never happen.
+
+        We ignore CrashExit as SIGUSR1/SIGUSR2 are expected "crashes", and for any other
+        signals, we can't do much - emitting self.error would just go use herbe again,
+        so there's no point.
+        """
         if status == QProcess.CrashExit:
-            # SIGUSR1/SIGUSR2 are expected "crashes", and for any other signals, we
-            # can't do much - emitting self.error would just go use herbe again, so
-            # there's no point.
             return
 
         if code == 0:
@@ -486,6 +548,11 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
 
     @pyqtSlot(int)
     def on_web_closed(self, notification_id: int) -> None:
+        """Handle closing the notification from JS.
+
+        From herbe's README:
+        "A notification can be dismissed [...] [by] sending a SIGUSR1 signal to it"
+        """
         os.kill(notification_id, signal.SIGUSR1)
         # Make sure we immediately remove it from active notifications
         self.close_id.emit(notification_id)
@@ -494,7 +561,7 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
 @dataclasses.dataclass
 class _ServerQuirks:
 
-    """Quirks for certain notification servers."""
+    """Quirks for certain DBus notification servers."""
 
     spec_version: Optional[str] = None
     avoid_actions: bool = False
@@ -510,7 +577,15 @@ def _as_uint32(x: int) -> QVariant:
 
 class DBusNotificationAdapter(AbstractNotificationAdapter):
 
-    """Sends notifications over DBus."""
+    """Send notifications over DBus.
+
+    This is essentially what libnotify does, except using Qt's DBus implementation.
+
+    Related specs:
+    https://developer.gnome.org/notification-spec/
+    https://specifications.freedesktop.org/notification-spec/notification-spec-latest.html
+    https://wiki.ubuntu.com/NotificationDevelopmentGuidelines
+    """
 
     SERVICE = "org.freedesktop.Notifications"
     TEST_SERVICE = "org.qutebrowser.TestNotifications"
@@ -575,6 +650,11 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
     @pyqtSlot(str)
     def _on_service_unregistered(self) -> None:
+        """Make sure we know when the notification daemon exits.
+
+        If that's the case, we bail out, as otherwise notifications would fail or the
+        next start of the server would lead to duplicate notification IDs.
+        """
         self.error.emit("Notification daemon died!")
 
     def _get_server_info(self) -> None:
@@ -591,6 +671,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             # Shows a dialog box instead of a notification bubble as soon as a
             # notification has an action (even if only a default one). Dialog boxes are
             # buggy and return a notification with ID 0.
+            # https://wiki.ubuntu.com/NotificationDevelopmentGuidelines#Avoiding_actions
             ("notify-osd", "Canonical Ltd"):
                 _ServerQuirks(avoid_actions=True, spec_version="1.1"),
 
@@ -684,7 +765,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
         icon = qt_notification.icon()
         if icon.isNull():
-            filename = ':/icons/qutebrowser-64x64.png'  # FIXME size?
+            filename = ':/icons/qutebrowser-64x64.png'
             icon = QImage(filename)
 
         key = self._quirks.icon_key or "image-data"
@@ -714,8 +795,10 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         return notification_id
 
     def _convert_image(self, qimage: QImage) -> QDBusArgument:
-        """Converts a QImage to the structure DBus expects."""
-        # https://specifications.freedesktop.org/notification-spec/latest/ar01s05.html#icons-and-images-formats
+        """Convert a QImage to the structure DBus expects.
+
+        https://specifications.freedesktop.org/notification-spec/latest/ar01s05.html#icons-and-images-formats
+        """
         bits_per_color = 8
         has_alpha = qimage.hasAlphaChannel()
         if has_alpha:
@@ -783,12 +866,14 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
     @pyqtSlot(QDBusMessage)
     def _handle_close(self, msg: QDBusMessage) -> None:
+        """Handle NotificationClosed from DBus."""
         self._verify_message(msg, "uu", QDBusMessage.SignalMessage)
         notification_id, _close_reason = msg.arguments()
         self.close_id.emit(notification_id)
 
     @pyqtSlot(QDBusMessage)
     def _handle_action(self, msg: QDBusMessage) -> None:
+        """Handle ActionInvoked from DBus."""
         self._verify_message(msg, "us", QDBusMessage.SignalMessage)
         notification_id, action_key = msg.arguments()
         if action_key == "default":
@@ -796,6 +881,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
     @pyqtSlot(int)
     def on_web_closed(self, notification_id: int) -> None:
+        """Send CloseNotification if a notification was closed from JS."""
         self.interface.call(
             QDBus.NoBlock,
             "CloseNotification",
