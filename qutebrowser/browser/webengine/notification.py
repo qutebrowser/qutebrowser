@@ -115,6 +115,7 @@ class AbstractNotificationAdapter(QObject):
     # getting swapped out (potentially initializing the same adapter again, or using a
     # different one if that fails).
     error = pyqtSignal(str)
+    clear_all = pyqtSignal()
 
     def present(
         self,
@@ -217,6 +218,7 @@ class NotificationBridgePresenter(QObject):
         self._adapter.click_id.connect(self._on_adapter_clicked)
         self._adapter.close_id.connect(self._on_adapter_closed)
         self._adapter.error.connect(self._on_adapter_error)
+        self._adapter.clear_all.connect(self._on_adapter_clear_all)
 
     def install(self, profile: "QWebEngineProfile") -> None:
         """Set the profile to use this bridge as the presenter."""
@@ -366,9 +368,19 @@ class NotificationBridgePresenter(QObject):
             self._adapter.deleteLater()
 
         self._adapter = None
+        self._on_adapter_clear_all()
 
-        # Probably safe to assume no notifications exist anymore. Also, this makes sure
-        # we don't have any duplicate IDs.
+    @pyqtSlot()
+    def _on_adapter_clear_all(self) -> None:
+        """Called when the adapter requests clearing all notifications.
+
+        This is currently only done if the DBus notification server was unregistered.
+        It's probably safe to assume no notifications exist anymore. Also, this makes
+        sure we don't have any duplicate IDs.
+
+        Depending on the system, either the server will automatically be restarted on
+        the next notification, or we'll get a (properly handled) NoReply error then.
+        """
         for notification_id in list(self._active_notifications):
             self._on_adapter_closed(notification_id)
 
@@ -734,7 +746,8 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         If that's the case, we bail out, as otherwise notifications would fail or the
         next start of the server would lead to duplicate notification IDs.
         """
-        self.error.emit("Notification daemon died!")
+        log.misc.debug("Notification daemon did quit!")
+        self.clear_all.emit()
 
     def _get_server_info(self) -> None:
         """Query notification server information and set quirks."""
@@ -808,7 +821,12 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         ], expected_type
 
         if msg.type() == QDBusMessage.ErrorMessage:
-            raise Error(f"Got DBus error: {msg.errorName()} - {msg.errorMessage()}")
+            err = msg.errorName()
+            if err == "org.freedesktop.DBus.Error.NoReply":
+                self.error.emit(msg.errorMessage())  # notification daemon is gone
+                return
+
+            raise Error(f"Got DBus error: {err} - {msg.errorMessage()}")
 
         signature = msg.signature()
         if signature != expected_signature:
