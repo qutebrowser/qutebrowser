@@ -139,3 +139,15 @@ Feature: Notifications
         And I wait for the javascript message "notification shown"
         And I trigger a custom action on the notification with id 1234
         Then no crash should happen
+
+    Scenario: Notification via messages
+        When I set content.notifications.presenter to messages
+        And I run :click-element id show-button
+        And I wait for the javascript message "notification shown"
+        Then the message "<i>Notification from http://localhost:*/:</i><br/><br/><b>notification title</b><br/>notification body" should be shown
+
+    Scenario: Notification via messages with image
+        When I set content.notifications.presenter to messages
+        And I run :click-element id show-image-button
+        And I wait for the javascript message "notification shown"
+        Then the message "<i>Notification from http://localhost:*/: (image not shown)</i><br/><br/><b>RGBA</b><br/>" should be shown
