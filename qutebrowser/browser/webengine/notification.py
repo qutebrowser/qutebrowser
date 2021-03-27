@@ -623,6 +623,7 @@ class _ServerQuirks:
 
     spec_version: Optional[str] = None
     avoid_actions: bool = False
+    avoid_body_hyperlinks: bool = False
     icon_key: Optional[str] = None
 
 
@@ -756,6 +757,9 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             # Still in active development but doesn't implement spec 1.2:
             # https://github.com/mate-desktop/mate-notification-daemon/issues/132
             quirks = _ServerQuirks(spec_version="1.1")
+            if utils.VersionNumber.parse(version) <= utils.VersionNumber(1, 24):
+                # https://github.com/mate-desktop/mate-notification-daemon/issues/118
+                quirks.avoid_body_hyperlinks = True
         elif (name, vendor) == ("naughty", "awesome"):
             # Still in active development but spec 1.0/1.2 support isn't
             # released yet:
@@ -982,8 +986,10 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
         caplist = reply.arguments()[0]
         self._capabilities: _ServerCapabilities = _ServerCapabilities.from_list(caplist)
-        if self._quirks.avoid_actions and self._capabilities.actions:
+        if self._quirks.avoid_actions:
             self._capabilities.actions = False
+        if self._quirks.avoid_body_hyperlinks:
+            self._capabilities.body_hyperlinks = False
 
         log.misc.debug(f"Notification server capabilities: {self._capabilities}")
 
