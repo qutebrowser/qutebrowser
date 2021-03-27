@@ -781,6 +781,9 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             parsed_version = utils.VersionNumber.parse(version.lstrip('v'))
             if parsed_version <= utils.VersionNumber(4, 3):
                 quirks = _ServerQuirks(spec_version="1.0")
+        elif (name, vendor) == ("twmnd", "twmnd"):
+            # https://github.com/sboli/twmn/pull/96
+            quirks = _ServerQuirks(spec_version="0")
         elif (name, vendor) == ("lxqt-notificationd", "lxqt.org"):
             # https://github.com/lxqt/lxqt-notificationd/issues/253
             quirks = _ServerQuirks(escape_title=True)
