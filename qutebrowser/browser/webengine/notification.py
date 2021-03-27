@@ -984,15 +984,16 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         if self._capabilities.kde_origin_name or not is_useful_origin:
             prefix = None
         elif self._capabilities.body_hyperlinks:
-            href = origin_url.toString(QUrl.FullyEncoded)
-            prefix = f'<a href="{html.escape(href)}">{html.escape(urlstr)}</a>'
+            href = html.escape(origin_url.toString(QUrl.FullyEncoded))
+            text = html.escape(urlstr, quote=False)
+            prefix = f'<a href="{href}">{text}</a>'
         elif self._capabilities.body_markup:
-            prefix = html.escape(urlstr)
+            prefix = html.escape(urlstr, quote=False)
         else:
             prefix = urlstr
 
         if self._capabilities.body_markup:
-            body = html.escape(body)
+            body = html.escape(body, quote=False)
 
         if prefix is None:
             return body
