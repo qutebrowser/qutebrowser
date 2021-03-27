@@ -952,9 +952,10 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
                 f"Wanted to replace notification {replaces_id} but got new id "
                 f"{notification_id}."
             )
-            if not self._quirks.wrong_replaces_id:
-                raise Error(msg)
-            log.misc.debug(msg)
+            if self._quirks.wrong_replaces_id:
+                log.misc.debug(msg)
+            else:
+                log.misc.error(msg)
 
         return notification_id
 
