@@ -931,8 +931,8 @@ content.notifications.presenter:
             switch to it at runtime.
       - messages: Show notifications as qutebrowser messages. Most notification features
             aren't available.
-      - herbe: (experimental!) Show notifications using herbe (github.com/dudik/herbe). Most
-            notification features aren't available.
+      - herbe: (experimental!) Show notifications using herbe (github.com/dudik/herbe).
+            Most notification features aren't available.
   backend:
     QtWebEngine: Qt 5.14
     QtWebKit: false

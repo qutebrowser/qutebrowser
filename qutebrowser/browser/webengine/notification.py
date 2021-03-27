@@ -167,7 +167,7 @@ class NotificationBridgePresenter(QObject):
         config.instance.changed.connect(self._init_adapter)
 
     @config.change_filter('content.notifications.presenter')
-    def _init_adapter(self):
+    def _init_adapter(self) -> None:
         """Initialize the adapter to use based on the config."""
         setting = config.val.content.notifications.presenter
         log.misc.debug(f"Setting up notification adapter ({setting})...")
@@ -260,8 +260,8 @@ class NotificationBridgePresenter(QObject):
 
         if self._adapter is None:
             # If a fatal error occurred, we replace the adapter via its "error" signal.
-            log.misc.debug("Adapter vanished, bailing out")
-            return  # type: ignore[unreachable]
+            log.misc.debug("Adapter vanished, bailing out")  # type: ignore[unreachable]
+            return
 
         if notification_id <= 0:
             raise Error(f"Got invalid notification id {notification_id}")
@@ -319,7 +319,7 @@ class NotificationBridgePresenter(QObject):
         try:
             notification = self._active_notifications.pop(notification_id)
         except KeyError:
-            log.misc.debug(f"Did not find matching notification, ignoring")
+            log.misc.debug("Did not find matching notification, ignoring")
             # Notification from a different application
             return
 
@@ -344,7 +344,7 @@ class NotificationBridgePresenter(QObject):
             notification = self._active_notifications[notification_id]
         except KeyError:
             # Notification from a different application
-            log.misc.debug(f"Did not find matching notification, ignoring")
+            log.misc.debug("Did not find matching notification, ignoring")
             return
 
         try:
@@ -355,7 +355,7 @@ class NotificationBridgePresenter(QObject):
             log.misc.debug(f"Ignoring click request for notification {notification_id} "
                            "due to PyQt bug")
 
-    def _drop_adapter(self):
+    def _drop_adapter(self) -> None:
         """Drop the currently active adapter (if any).
 
         This means we'll reinitialize a new one (including re-testing available options)
@@ -637,7 +637,7 @@ class _ServerCapabilities:
     kde_origin_name: bool
 
     @classmethod
-    def from_list(cls, capabilities):
+    def from_list(cls, capabilities: List[str]) -> "_ServerCapabilities":
         return cls(
             actions='actions' in capabilities,
             body_markup='body-markup' in capabilities,
@@ -979,7 +979,8 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         )
         self._verify_message(reply, "as", QDBusMessage.ReplyMessage)
 
-        self._capabilities = _ServerCapabilities.from_list(reply.arguments()[0])
+        caplist = reply.arguments()[0]
+        self._capabilities: _ServerCapabilities = _ServerCapabilities.from_list(caplist)
         if self._quirks.avoid_actions and self._capabilities.actions:
             self._capabilities.actions = False
 
@@ -1000,7 +1001,9 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         if self._capabilities.kde_origin_name or not is_useful_origin:
             prefix = None
         elif self._capabilities.body_markup and self._capabilities.body_hyperlinks:
-            href = html.escape(origin_url.toString(QUrl.FullyEncoded))
+            href = html.escape(
+                origin_url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
+            )
             text = html.escape(urlstr, quote=False)
             prefix = f'<a href="{href}">{text}</a>'
         elif self._capabilities.body_markup:
