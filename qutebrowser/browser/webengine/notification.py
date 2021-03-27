@@ -638,6 +638,7 @@ class _ServerQuirks:
     avoid_body_hyperlinks: bool = False
     escape_title: bool = False
     icon_key: Optional[str] = None
+    skip_capabilities: bool = False
 
 
 @dataclasses.dataclass
@@ -738,7 +739,10 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             # https://www.riverbankcomputing.com/pipermail/pyqt/2021-March/043724.html
             self._get_server_info()
 
-        self._fetch_capabilities()
+        if self._quirks.skip_capabilities:
+            self._capabilities = _ServerCapabilities.from_list([])
+        else:
+            self._fetch_capabilities()
 
     @pyqtSlot(str)
     def _on_service_unregistered(self) -> None:
@@ -784,6 +788,9 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         elif (name, vendor) == ("twmnd", "twmnd"):
             # https://github.com/sboli/twmn/pull/96
             quirks = _ServerQuirks(spec_version="0")
+        elif (name, vendor) == ("tiramisu", "Sweets"):
+            # https://github.com/Sweets/tiramisu/issues/20
+            quirks = _ServerQuirks(skip_capabilities=True)
         elif (name, vendor) == ("lxqt-notificationd", "lxqt.org"):
             # https://github.com/lxqt/lxqt-notificationd/issues/253
             quirks = _ServerQuirks(escape_title=True)
@@ -1019,7 +1026,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         self._verify_message(reply, "as", QDBusMessage.ReplyMessage)
 
         caplist = reply.arguments()[0]
-        self._capabilities: _ServerCapabilities = _ServerCapabilities.from_list(caplist)
+        self._capabilities = _ServerCapabilities.from_list(caplist)
         if self._quirks.avoid_actions:
             self._capabilities.actions = False
         if self._quirks.avoid_body_hyperlinks:
