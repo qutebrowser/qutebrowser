@@ -644,6 +644,7 @@ class _ServerQuirks:
     icon_key: Optional[str] = None
     skip_capabilities: bool = False
     wrong_replaces_id: bool = False
+    no_padded_images: bool = False
 
 
 @dataclasses.dataclass
@@ -808,6 +809,11 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
                 # https://github.com/phuhl/linux_notification_center/issues/161
                 wrong_replaces_id=True,
             )
+        elif (name, vendor) == ("ninomiya", "deifactor"):
+            return _ServerQuirks(
+                no_padded_images=True,
+                wrong_replaces_id=True,
+            )
         return None
 
     def _get_server_info(self) -> None:
@@ -916,7 +922,9 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             icon = QImage(filename)
 
         key = self._quirks.icon_key or "image-data"
-        hints[key] = self._convert_image(icon)
+        data = self._convert_image(icon)
+        if data is not None:
+            hints[key] = data
 
         # Titles don't support markup (except with broken servers)
         title = qt_notification.title()
@@ -950,7 +958,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
         return notification_id
 
-    def _convert_image(self, qimage: QImage) -> QDBusArgument:
+    def _convert_image(self, qimage: QImage) -> Optional[QDBusArgument]:
         """Convert a QImage to the structure DBus expects.
 
         https://specifications.freedesktop.org/notification-spec/latest/ar01s05.html#icons-and-images-formats
@@ -1013,6 +1021,9 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         padding = bytes_per_line - width * channel_count
         assert 0 <= padding < 3, padding
         size -= padding
+
+        if padding and self._quirks.no_padded_images:
+            return None
 
         bits = qimage.constBits().asstring(size)
         image_data.add(QByteArray(bits))
