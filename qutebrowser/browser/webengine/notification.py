@@ -139,7 +139,10 @@ class AbstractNotificationAdapter(QObject):
         If we open the page via a file scheme, the origin is QUrl('file:///') which
         doesn't help much.
         """
-        return bool(origin.host())
+        return bool(
+            origin.host() and
+            config.instance.get('content.notifications.show_origin', url=origin),
+        )
 
     @pyqtSlot(int)
     def on_web_closed(self, notification_id: int) -> None:

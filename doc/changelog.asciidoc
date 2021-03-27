@@ -56,6 +56,9 @@ Added
        drawbacks)
      * messages: Use qutebrowser messages
      * herbe: Use https://github.com/dudik/herbe[herbe]
+- New `content.notifications.show_origin` setting which can be used to decide
+  for which notifications to show the origin (the URL the notification was sent
+  from).
 
 Changed
 ~~~~~~~

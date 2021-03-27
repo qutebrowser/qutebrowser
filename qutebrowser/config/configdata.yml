@@ -950,6 +950,21 @@ content.notifications.presenter:
     - The `messages` option doesn't show icons and doesn't support the `click` and
       `close` events.
 
+content.notifications.show_origin:
+  default: True
+  type: Bool
+  supports_pattern: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+  desc: >-
+    Whether to show the origin URL for notifications.
+
+    Note that URL patterns with this setting only get matched against the origin part of
+    the URL, so e.g. paths in patterns will never match.
+
+    Note that with the `qt` presenter, origins are never shown.
+
 content.pdfjs:
   default: false
   type: Bool

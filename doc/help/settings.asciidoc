@@ -183,6 +183,7 @@
 |<<content.netrc_file,content.netrc_file>>|Netrc-file for HTTP authentication.
 |<<content.notifications.enabled,content.notifications.enabled>>|Allow websites to show notifications.
 |<<content.notifications.presenter,content.notifications.presenter>>|What notification presenter to use for web notifications.
+|<<content.notifications.show_origin,content.notifications.show_origin>>|Whether to show the origin URL for notifications.
 |<<content.pdfjs,content.pdfjs>>|Allow pdf.js to view PDF files in the browser.
 |<<content.persistent_storage,content.persistent_storage>>|Allow websites to request persistent storage quota via `navigator.webkitPersistentStorage.requestQuota`.
 |<<content.plugins,content.plugins>>|Enable plugins in Web pages.
@@ -2548,6 +2549,22 @@ Valid values:
  * +herbe+: (experimental!) Show notifications using herbe (github.com/dudik/herbe). Most notification features aren't available.
 
 Default: +pass:[auto]+
+
+[[content.notifications.show_origin]]
+=== content.notifications.show_origin
+Whether to show the origin URL for notifications.
+Note that URL patterns with this setting only get matched against the origin part of the URL, so e.g. paths in patterns will never match.
+Note that with the `qt` presenter, origins are never shown.
+
+This setting supports URL patterns.
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
 
 [[content.pdfjs]]
 === content.pdfjs
