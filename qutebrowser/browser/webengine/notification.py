@@ -170,7 +170,7 @@ class NotificationBridgePresenter(QObject):
     def _init_adapter(self):
         """Initialize the adapter to use based on the config."""
         setting = config.val.content.notifications.presenter
-        log.init.debug(f"Setting up notification adapter ({setting})...")
+        log.misc.debug(f"Setting up notification adapter ({setting})...")
 
         if setting == "qt":
             message.error("Can't switch to qt notification presenter at runtime.")
@@ -208,8 +208,9 @@ class NotificationBridgePresenter(QObject):
                 if candidate.NAME == setting:  # We picked this one explicitly
                     message.error(msg)
                 else:  # automatic fallback
-                    log.init.debug(msg)
+                    log.misc.debug(msg)
             else:
+                log.misc.debug(f"Initialized {self._adapter.NAME} notification adapter")
                 break
 
         assert self._adapter is not None
@@ -255,9 +256,11 @@ class NotificationBridgePresenter(QObject):
 
         notification_id = self._adapter.present(
             qt_notification, replaces_id=replaces_id)
+        log.misc.debug(f"New notification ID from adapter: {notification_id}")
 
         if self._adapter is None:
             # If a fatal error occurred, we replace the adapter via its "error" signal.
+            log.misc.debug("Adapter vanished, bailing out")
             return  # type: ignore[unreachable]
 
         if notification_id <= 0:
@@ -267,7 +270,6 @@ class NotificationBridgePresenter(QObject):
             if notification_id in self._active_notifications:
                 raise Error(f"Got duplicate id {notification_id}")
 
-        log.webview.debug(f"Sent out notification {notification_id}")
         qt_notification.show()
         self._active_notifications[notification_id] = qt_notification
 
@@ -286,9 +288,14 @@ class NotificationBridgePresenter(QObject):
         if not new_notification.tag():
             return None
 
+        log.misc.debug(
+            f"Finding notification for tag {new_notification.tag()}, "
+            f"origin {new_notification.origin()}")
+
         try:
             for notification_id, notification in self._active_notifications.items():
                 if notification.matches(new_notification):
+                    log.misc.debug(f"Found match: {notification_id}")
                     return notification_id
         except RuntimeError:
             # WORKAROUND for
@@ -297,6 +304,7 @@ class NotificationBridgePresenter(QObject):
             log.misc.debug(
                 f"Ignoring notification tag {new_notification.tag()!r} due to PyQt bug")
 
+        log.misc.debug("Did not find match")
         return None
 
     @pyqtSlot(int)
@@ -306,9 +314,12 @@ class NotificationBridgePresenter(QObject):
         Accepts unknown notification IDs, as this can be called for notifications from
         other applications (with the DBus adapter).
         """
+        log.misc.debug(f"Notification {notification_id} closed by adapter")
+
         try:
             notification = self._active_notifications.pop(notification_id)
         except KeyError:
+            log.misc.debug(f"Did not find matching notification, ignoring")
             # Notification from a different application
             return
 
@@ -327,10 +338,13 @@ class NotificationBridgePresenter(QObject):
         Accepts unknown notification IDs, as this can be called for notifications from
         other applications (with the DBus adapter).
         """
+        log.misc.debug(f"Notification {notification_id} clicked by adapter")
+
         try:
             notification = self._active_notifications[notification_id]
         except KeyError:
             # Notification from a different application
+            log.misc.debug(f"Did not find matching notification, ignoring")
             return
 
         try:
@@ -348,7 +362,9 @@ class NotificationBridgePresenter(QObject):
         on the next notification.
         """
         if self._adapter:
+            log.misc.debug(f"Dropping adapter {self._adapter.NAME}")
             self._adapter.deleteLater()
+
         self._adapter = None
 
         # Probably safe to assume no notifications exist anymore. Also, this makes sure
@@ -367,7 +383,7 @@ class NotificationBridgePresenter(QObject):
             # Error during setup
             return
 
-        log.webview.error(
+        log.misc.error(
             f"Notification error from {self._adapter.NAME} adapter: {error}")
         self._drop_adapter()
 
@@ -725,7 +741,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         self._verify_message(reply, "ssss", QDBusMessage.ReplyMessage)
         name, vendor, version, spec_version = reply.arguments()
 
-        log.init.debug(
+        log.misc.debug(
             f"Connected to notification server: {name} {version} by {vendor}, "
             f"implementing spec {spec_version}")
 
@@ -748,12 +764,12 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         }
         quirks = all_quirks.get((name, vendor))
         if quirks is not None:
-            log.init.debug(f"Enabling quirks {quirks}")
+            log.misc.debug(f"Enabling quirks {quirks}")
             self._quirks = quirks
 
         expected_spec_version = self._quirks.spec_version or self.SPEC_VERSION
         if spec_version != expected_spec_version:
-            log.init.warning(
+            log.misc.warning(
                 f"Notification server ({name} {version} by {vendor}) implements "
                 f"spec {spec_version}, but {expected_spec_version} was expected. "
                 f"If {name} is up to date, please report a qutebrowser bug.")
