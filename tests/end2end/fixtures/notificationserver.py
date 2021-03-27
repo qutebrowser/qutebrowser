@@ -21,7 +21,7 @@ import dataclasses
 import itertools
 from typing import Dict, List
 
-from PyQt5.QtCore import QObject, QByteArray, pyqtSlot
+from PyQt5.QtCore import QObject, QByteArray, QUrl, pyqtSlot
 from PyQt5.QtGui import QImage
 from PyQt5.QtDBus import QDBusConnection, QDBusArgument, QDBusMessage
 import pytest
@@ -102,8 +102,19 @@ class TestNotificationServer(QObject):
         assert actions == ['default', 'Activate']
         assert timeout == -1
 
-        assert hints.keys() == {'x-qutebrowser-origin', "desktop-entry", "image-data"}
-        assert hints['x-qutebrowser-origin'].startswith('http://localhost:')
+        assert hints.keys() == {
+            "x-qutebrowser-origin",
+            "x-kde-origin-name",
+            "desktop-entry",
+            "image-data",
+        }
+        for key in 'x-qutebrowser-origin', 'x-kde-origin-name':
+            value = hints[key]
+            url = QUrl(value)
+            assert url.isValid(), value
+            assert url.scheme() == 'http', value
+            assert url.host() == 'localhost', value
+
         assert hints['desktop-entry'] == 'org.qutebrowser.qutebrowser'
 
         img = self._parse_image(*hints["image-data"])
@@ -204,9 +215,10 @@ class TestNotificationServer(QObject):
         assert not message.arguments()
         assert message.type() == QDBusMessage.MethodCallMessage
 
-        capabilities = ["actions"]
+        capabilities = ["actions", "x-kde-origin-name"]
         if self.supports_body_markup:
             capabilities.append("body-markup")
+
         return capabilities
 
     @pyqtSlot(QDBusMessage)

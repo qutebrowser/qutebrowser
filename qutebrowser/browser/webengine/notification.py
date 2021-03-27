@@ -51,7 +51,7 @@ import subprocess
 from typing import Any, List, Dict, Optional, TYPE_CHECKING
 
 from PyQt5.QtCore import (Qt, QObject, QVariant, QMetaType, QByteArray, pyqtSlot,
-                          pyqtSignal, QTimer, QProcess)
+                          pyqtSignal, QTimer, QProcess, QUrl)
 from PyQt5.QtGui import QImage, QIcon, QPixmap
 from PyQt5.QtDBus import (QDBusConnection, QDBusInterface, QDBus, QDBusServiceWatcher,
                           QDBusArgument, QDBusMessage, QDBusError)
@@ -243,6 +243,8 @@ class NotificationBridgePresenter(QObject):
             assert self._adapter is not None
 
         replaces_id = self._find_replaces_id(qt_notification)
+        qtutils.ensure_valid(qt_notification.origin())
+
         notification_id = self._adapter.present(
             qt_notification, replaces_id=replaces_id)
 
@@ -398,9 +400,12 @@ class SystrayNotificationAdapter(AbstractNotificationAdapter):
         utils.unused(replaces_id)  # QSystemTray can only show one message
         self.close_id.emit(self.NOTIFICATION_ID)
         self._systray.show()
+
         icon = self._convert_icon(qt_notification.icon())
-        self._systray.showMessage(
-            qt_notification.title(), qt_notification.message(), icon)
+        msg = self._format_message(qt_notification.message(), qt_notification.origin())
+
+        self._systray.showMessage(qt_notification.title(), msg, icon)
+
         return self.NOTIFICATION_ID
 
     def _convert_icon(self, image: QImage) -> QIcon:
@@ -412,6 +417,10 @@ class SystrayNotificationAdapter(AbstractNotificationAdapter):
         icon = QIcon(pixmap)
         assert not icon.isNull()
         return icon
+
+    def _format_message(self, text: str, origin: QUrl) -> str:
+        """Format the message to display."""
+        return origin.toDisplayString() + '\n\n' + text
 
     @pyqtSlot()
     def _on_systray_clicked(self) -> None:
@@ -503,7 +512,11 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
         proc = QProcess(self)
         proc.errorOccurred.connect(self._on_error)
 
-        lines = [qt_notification.title(), qt_notification.message()]
+        lines = [
+            qt_notification.title(),
+            qt_notification.origin().toDisplayString(),
+            qt_notification.message(),
+        ]
         if not qt_notification.icon().isNull():
             lines.append("(icon not shown)")
 
@@ -575,12 +588,16 @@ class _ServerCapabilities:
 
     actions: bool
     body_markup: bool
+    body_hyperlinks: bool
+    kde_origin_name: bool
 
     @classmethod
     def from_list(cls, capabilities):
         return cls(
             actions='actions' in capabilities,
             body_markup='body-markup' in capabilities,
+            body_hyperlinks='body-hyperlinks' in capabilities,
+            kde_origin_name='x-kde-origin-name' in capabilities,
         )
 
 
@@ -772,12 +789,15 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             actions = ['default', 'Activate']  # key, name
         actions_arg = QDBusArgument(actions, QMetaType.QStringList)
 
+        origin_url_str = qt_notification.origin().toDisplayString()
         hints: Dict[str, Any] = {
             # Include the origin in case the user wants to do different things
             # with different origin's notifications.
-            "x-qutebrowser-origin": qt_notification.origin().toDisplayString(),
+            "x-qutebrowser-origin": origin_url_str,
             "desktop-entry": "org.qutebrowser.qutebrowser",
         }
+        if self._capabilities.kde_origin_name:
+            hints["x-kde-origin-name"] = origin_url_str
 
         icon = qt_notification.icon()
         if icon.isNull():
@@ -795,7 +815,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             "",  # icon name/file URL, we use image-data and friends instead.
             # Titles don't support markup, so no need to escape them.
             qt_notification.title(),
-            self._format_body(qt_notification.message()),
+            self._format_body(qt_notification.message(), qt_notification.origin()),
             actions_arg,
             hints,
             -1,  # timeout; -1 means 'use default'
@@ -918,7 +938,31 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
         log.misc.debug(f"Notification server capabilities: {self._capabilities}")
 
-    def _format_body(self, body: str) -> str:
+    def _format_body(self, body: str, origin_url: QUrl) -> str:
+        """Format the body according to the server capabilities.
+
+        If the server doesn't support x-kde-origin-name, we include the origin URL as a
+        prefix. If possible, we hyperlink it.
+
+        For both prefix and body, we'll need to HTML escape it if the server supports
+        body markup.
+        """
+        urlstr = origin_url.toDisplayString()
+
+        if self._capabilities.kde_origin_name:
+            prefix = None
+        elif self._capabilities.body_hyperlinks:
+            href = origin_url.toString(QUrl.FullyEncoded)
+            prefix = f'<a href="{html.escape(href)}">{html.escape(urlstr)}</a>'
+        elif self._capabilities.body_markup:
+            prefix = html.escape(urlstr)
+        else:
+            prefix = urlstr
+
         if self._capabilities.body_markup:
-            return html.escape(body)
-        return body
+            body = html.escape(body)
+
+        if prefix is None:
+            return body
+
+        return prefix + '\n\n' + body
