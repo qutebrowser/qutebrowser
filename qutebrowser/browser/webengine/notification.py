@@ -769,7 +769,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
         actions = []
         if self._capabilities.actions:
-            actions = ['default', '']  # key, name
+            actions = ['default', 'Activate']  # key, name
         actions_arg = QDBusArgument(actions, QMetaType.QStringList)
 
         hints: Dict[str, Any] = {

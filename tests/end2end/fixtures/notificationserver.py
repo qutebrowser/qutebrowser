@@ -99,7 +99,7 @@ class TestNotificationServer(QObject):
         """
         assert appname == "qutebrowser"
         assert icon == ''  # using icon data
-        assert actions == ['default', '']
+        assert actions == ['default', 'Activate']
         assert timeout == -1
 
         assert hints.keys() == {'x-qutebrowser-origin', "desktop-entry", "image-data"}
