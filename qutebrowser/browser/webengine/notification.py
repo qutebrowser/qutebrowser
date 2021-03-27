@@ -639,6 +639,7 @@ class _ServerQuirks:
     escape_title: bool = False
     icon_key: Optional[str] = None
     skip_capabilities: bool = False
+    wrong_replaces_id: bool = False
 
 
 @dataclasses.dataclass
@@ -798,6 +799,13 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             if parsed_version < utils.VersionNumber(0, 16):
                 # https://github.com/lxqt/lxqt-notificationd/commit/c23e254a63c39837fb69d5c59c5e2bc91e83df8c
                 quirks.icon_key = 'image_data'
+        elif (name, vendor) == ("haskell-notification-daemon", "abc"):  # aka "deadd"
+            quirks = _ServerQuirks(
+                # https://github.com/phuhl/linux_notification_center/issues/160
+                spec_version="1.0",
+                # https://github.com/phuhl/linux_notification_center/issues/161
+                wrong_replaces_id=True,
+            )
 
         if quirks is not None:
             log.misc.debug(f"Enabling quirks {quirks}")
@@ -917,7 +925,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
         notification_id = reply.arguments()[0]
 
-        if replaces_id not in [0, notification_id]:
+        if replaces_id not in [0, notification_id] and not self._quirks.wrong_replaces_id:
             raise Error(f"Wanted to replace notification {replaces_id} but got "
                         f"new id {notification_id}.")
 
