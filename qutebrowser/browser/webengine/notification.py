@@ -756,6 +756,57 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         log.misc.debug("Notification daemon did quit!")
         self.clear_all.emit()
 
+    def _find_quirks(
+        self,
+        name: str,
+        vendor: str,
+        version: str,
+    ) -> Optional[_ServerQuirks]:
+        """Find quirks to use based on the server information."""
+        if (name, vendor) == ("notify-osd", "Canonical Ltd"):
+            # Shows a dialog box instead of a notification bubble as soon as a
+            # notification has an action (even if only a default one). Dialog boxes are
+            # buggy and return a notification with ID 0.
+            # https://wiki.ubuntu.com/NotificationDevelopmentGuidelines#Avoiding_actions
+            return _ServerQuirks(avoid_actions=True, spec_version="1.1")
+        elif (name, vendor) == ("Notification Daemon", "MATE"):
+            # Still in active development but doesn't implement spec 1.2:
+            # https://github.com/mate-desktop/mate-notification-daemon/issues/132
+            quirks = _ServerQuirks(spec_version="1.1")
+            if utils.VersionNumber.parse(version) <= utils.VersionNumber(1, 24):
+                # https://github.com/mate-desktop/mate-notification-daemon/issues/118
+                quirks.avoid_body_hyperlinks = True
+            return quirks
+        elif (name, vendor) == ("naughty", "awesome"):
+            # Still in active development but spec 1.0/1.2 support isn't
+            # released yet:
+            # https://github.com/awesomeWM/awesome/commit/e076bc664e0764a3d3a0164dabd9b58d334355f4
+            parsed_version = utils.VersionNumber.parse(version.lstrip('v'))
+            if parsed_version <= utils.VersionNumber(4, 3):
+                return _ServerQuirks(spec_version="1.0")
+        elif (name, vendor) == ("twmnd", "twmnd"):
+            # https://github.com/sboli/twmn/pull/96
+            return _ServerQuirks(spec_version="0")
+        elif (name, vendor) == ("tiramisu", "Sweets"):
+            # https://github.com/Sweets/tiramisu/issues/20
+            return _ServerQuirks(skip_capabilities=True)
+        elif (name, vendor) == ("lxqt-notificationd", "lxqt.org"):
+            # https://github.com/lxqt/lxqt-notificationd/issues/253
+            quirks = _ServerQuirks(escape_title=True)
+            parsed_version = utils.VersionNumber.parse(version)
+            if parsed_version < utils.VersionNumber(0, 16):
+                # https://github.com/lxqt/lxqt-notificationd/commit/c23e254a63c39837fb69d5c59c5e2bc91e83df8c
+                quirks.icon_key = 'image_data'
+            return quirks
+        elif (name, vendor) == ("haskell-notification-daemon", "abc"):  # aka "deadd"
+            return _ServerQuirks(
+                # https://github.com/phuhl/linux_notification_center/issues/160
+                spec_version="1.0",
+                # https://github.com/phuhl/linux_notification_center/issues/161
+                wrong_replaces_id=True,
+            )
+        return None
+
     def _get_server_info(self) -> None:
         """Query notification server information and set quirks."""
         reply = self.interface.call(QDBus.BlockWithGui, "GetServerInformation")
@@ -766,48 +817,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             f"Connected to notification server: {name} {version} by {vendor}, "
             f"implementing spec {spec_version}")
 
-        quirks = None
-        if (name, vendor) == ("notify-osd", "Canonical Ltd"):
-            # Shows a dialog box instead of a notification bubble as soon as a
-            # notification has an action (even if only a default one). Dialog boxes are
-            # buggy and return a notification with ID 0.
-            # https://wiki.ubuntu.com/NotificationDevelopmentGuidelines#Avoiding_actions
-            quirks = _ServerQuirks(avoid_actions=True, spec_version="1.1")
-        elif (name, vendor) == ("Notification Daemon", "MATE"):
-            # Still in active development but doesn't implement spec 1.2:
-            # https://github.com/mate-desktop/mate-notification-daemon/issues/132
-            quirks = _ServerQuirks(spec_version="1.1")
-            if utils.VersionNumber.parse(version) <= utils.VersionNumber(1, 24):
-                # https://github.com/mate-desktop/mate-notification-daemon/issues/118
-                quirks.avoid_body_hyperlinks = True
-        elif (name, vendor) == ("naughty", "awesome"):
-            # Still in active development but spec 1.0/1.2 support isn't
-            # released yet:
-            # https://github.com/awesomeWM/awesome/commit/e076bc664e0764a3d3a0164dabd9b58d334355f4
-            parsed_version = utils.VersionNumber.parse(version.lstrip('v'))
-            if parsed_version <= utils.VersionNumber(4, 3):
-                quirks = _ServerQuirks(spec_version="1.0")
-        elif (name, vendor) == ("twmnd", "twmnd"):
-            # https://github.com/sboli/twmn/pull/96
-            quirks = _ServerQuirks(spec_version="0")
-        elif (name, vendor) == ("tiramisu", "Sweets"):
-            # https://github.com/Sweets/tiramisu/issues/20
-            quirks = _ServerQuirks(skip_capabilities=True)
-        elif (name, vendor) == ("lxqt-notificationd", "lxqt.org"):
-            # https://github.com/lxqt/lxqt-notificationd/issues/253
-            quirks = _ServerQuirks(escape_title=True)
-            parsed_version = utils.VersionNumber.parse(version)
-            if parsed_version < utils.VersionNumber(0, 16):
-                # https://github.com/lxqt/lxqt-notificationd/commit/c23e254a63c39837fb69d5c59c5e2bc91e83df8c
-                quirks.icon_key = 'image_data'
-        elif (name, vendor) == ("haskell-notification-daemon", "abc"):  # aka "deadd"
-            quirks = _ServerQuirks(
-                # https://github.com/phuhl/linux_notification_center/issues/160
-                spec_version="1.0",
-                # https://github.com/phuhl/linux_notification_center/issues/161
-                wrong_replaces_id=True,
-            )
-
+        quirks = self._find_quirks(name, vendor, version)
         if quirks is not None:
             log.misc.debug(f"Enabling quirks {quirks}")
             self._quirks = quirks
