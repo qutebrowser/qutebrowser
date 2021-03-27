@@ -951,7 +951,7 @@ content.notifications.presenter:
       `close` events.
 
 content.notifications.show_origin:
-  default: True
+  default: true
   type: Bool
   supports_pattern: true
   backend:
