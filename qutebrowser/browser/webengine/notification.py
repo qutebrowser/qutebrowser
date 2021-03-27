@@ -760,7 +760,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         log.misc.debug("Notification daemon did quit!")
         self.clear_all.emit()
 
-    def _find_quirks(
+    def _find_quirks(  # noqa: C901 ("too complex"
         self,
         name: str,
         vendor: str,
