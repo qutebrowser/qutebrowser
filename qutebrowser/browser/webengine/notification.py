@@ -636,6 +636,7 @@ class _ServerQuirks:
     spec_version: Optional[str] = None
     avoid_actions: bool = False
     avoid_body_hyperlinks: bool = False
+    escape_title: bool = False
     icon_key: Optional[str] = None
 
 
@@ -780,6 +781,13 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             parsed_version = utils.VersionNumber.parse(version.lstrip('v'))
             if parsed_version <= utils.VersionNumber(4, 3):
                 quirks = _ServerQuirks(spec_version="1.0")
+        elif (name, vendor) == ("lxqt-notificationd", "lxqt.org"):
+            # https://github.com/lxqt/lxqt-notificationd/issues/253
+            quirks = _ServerQuirks(escape_title=True)
+            parsed_version = utils.VersionNumber.parse(version)
+            if parsed_version < utils.VersionNumber(0, 16):
+                # https://github.com/lxqt/lxqt-notificationd/commit/c23e254a63c39837fb69d5c59c5e2bc91e83df8c
+                quirks.icon_key = 'image_data'
 
         if quirks is not None:
             log.misc.debug(f"Enabling quirks {quirks}")
@@ -797,7 +805,8 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             "1.0": "icon_data",
             "1.1": "image_data",
         }
-        self._quirks.icon_key = icon_key_overrides.get(spec_version)
+        if spec_version in icon_key_overrides:
+            self._quirks.icon_key = icon_key_overrides[spec_version]
 
     def _dbus_error_str(self, error: QDBusError) -> str:
         """Get a string for a DBus error."""
@@ -877,14 +886,18 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         key = self._quirks.icon_key or "image-data"
         hints[key] = self._convert_image(icon)
 
+        # Titles don't support markup (except with broken servers)
+        title = qt_notification.title()
+        if self._quirks.escape_title:
+            title = html.escape(title, quote=False)
+
         reply = self.interface.call(
             QDBus.BlockWithGui,
             "Notify",
             "qutebrowser",  # application name
             _as_uint32(replaces_id),  # replaces notification id
             "",  # icon name/file URL, we use image-data and friends instead.
-            # Titles don't support markup, so no need to escape them.
-            qt_notification.title(),
+            title,
             self._format_body(qt_notification.message(), qt_notification.origin()),
             actions_arg,
             hints,
