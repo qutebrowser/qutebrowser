@@ -568,6 +568,22 @@ class _ServerQuirks:
     icon_key: Optional[str] = None
 
 
+@dataclasses.dataclass
+class _ServerCapabilities:
+
+    """Notification capabilities supported by the server."""
+
+    actions: bool
+    body_markup: bool
+
+    @classmethod
+    def from_list(cls, capabilities):
+        return cls(
+            actions='actions' in capabilities,
+            body_markup='body-markup' in capabilities,
+        )
+
+
 def _as_uint32(x: int) -> QVariant:
     """Convert the given int to an uint32 for DBus."""
     variant = QVariant(x)
@@ -752,7 +768,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             replaces_id = 0  # 0 is never a valid ID according to the spec
 
         actions = []
-        if 'actions' in self._capabilities:
+        if self._capabilities.actions:
             actions = ['default', '']  # key, name
         actions_arg = QDBusArgument(actions, QMetaType.QStringList)
 
@@ -896,13 +912,13 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         )
         self._verify_message(reply, "as", QDBusMessage.ReplyMessage)
 
-        self._capabilities: List[str] = reply.arguments()[0]
-        if self._quirks.avoid_actions and 'actions' in self._capabilities:
-            self._capabilities.remove('actions')
+        self._capabilities = _ServerCapabilities.from_list(reply.arguments()[0])
+        if self._quirks.avoid_actions and self._capabilities.actions:
+            self._capabilities.actions = False
 
         log.misc.debug(f"Notification server capabilities: {self._capabilities}")
 
     def _format_body(self, body: str) -> str:
-        if 'body-markup' in self._capabilities:
+        if self._capabilities.body_markup:
             return html.escape(body)
         return body
