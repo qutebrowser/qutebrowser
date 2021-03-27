@@ -22,7 +22,7 @@
 
 import pathlib
 
-from typing import Tuple, Union, Any, Optional, List
+from typing import Tuple, Union, Optional, List
 from PyQt5.QtCore import QUrl, QUrlQuery
 
 from qutebrowser.utils import resources, javascript, jinja, standarddir, log
@@ -32,13 +32,13 @@ from qutebrowser.config import config
 _SYSTEM_PATHS = [
     # Debian pdf.js-common
     # Arch Linux pdfjs
-    '/usr/share/pdf.js/',
+    pathlib.Path('/usr/share/pdf.js/'),
     # Flatpak (Flathub)
-    '/app/share/pdf.js/',
+    pathlib.Path('/app/share/pdf.js/'),
     # Arch Linux pdf.js (defunct)
-    '/usr/share/javascript/pdf.js/',
+    pathlib.Path('/usr/share/javascript/pdf.js/'),
     # Debian libjs-pdf
-    '/usr/share/javascript/pdf/',
+    pathlib.Path('/usr/share/javascript/pdf/'),
 ]
 
 
@@ -56,7 +56,7 @@ class PDFJSNotFound(Exception):
         super().__init__(message)
 
 
-def generate_pdfjs_page(filename, url):
+def generate_pdfjs_page(filename: str, url: QUrl) -> str:
     """Return the html content of a page that displays a file with pdfjs.
 
     Returns a string.
@@ -66,12 +66,14 @@ def generate_pdfjs_page(filename, url):
         url: The URL being opened.
     """
     if not is_available():
-        pdfjs_dir = pathlib.Path(standarddir.data()) / 'pdfjs'
+        data_path = pathlib.Path(standarddir.data())
+        pdfjs_dir = data_path / 'pdfjs'
         return jinja.render('no_pdfjs.html',
                             url=url.toDisplayString(),
                             title="PDF.js not found",
                             pdfjs_dir=str(pdfjs_dir))
-    html = get_pdfjs_res('web/viewer.html').decode('utf-8')
+    web_path = pathlib.Path("web/viewer.html")
+    html = get_pdfjs_res(web_path).decode('utf-8')
 
     script = _generate_pdfjs_script(filename)
     html = html.replace('</body>',
@@ -116,7 +118,9 @@ def _generate_pdfjs_script(filename: str) -> str:
     """).render(url=js_url)
 
 
-def get_pdfjs_res_and_path(path: str) -> Tuple[Union[bytes, Any], Optional[Any]]:
+def get_pdfjs_res_and_path(
+        path: pathlib.Path
+) -> Tuple[bytes, Optional[pathlib.Path]]:
     """Get a pdf.js resource in binary format.
 
     Returns a (content, path) tuple, where content is the file content and path
@@ -126,15 +130,15 @@ def get_pdfjs_res_and_path(path: str) -> Tuple[Union[bytes, Any], Optional[Any]]
     Args:
         path: The path inside the pdfjs directory.
     """
-    path = path.lstrip('/')
     content = None
     file_path = None
+    data_path = pathlib.Path(standarddir.data())
 
     system_paths = _SYSTEM_PATHS + [
         # fallback
-        str(pathlib.Path(standarddir.data()) / 'pdfjs'),
+        data_path / 'pdfjs',
         # hardcoded fallback for --temp-basedir
-        str(pathlib.Path.home() / '.local/share/qutebrowser/pdfjs/'),
+        pathlib.Path.home() / '.local/share/qutebrowser/pdfjs/',
     ]
 
     # First try a system wide installation
@@ -160,7 +164,7 @@ def get_pdfjs_res_and_path(path: str) -> Tuple[Union[bytes, Any], Optional[Any]]
     return content, file_path
 
 
-def get_pdfjs_res(path: str) -> Union[bytes, Any]:
+def get_pdfjs_res(path: pathlib.Path) -> bytes:
     """Get a pdf.js resource in binary format.
 
     Args:
@@ -170,22 +174,27 @@ def get_pdfjs_res(path: str) -> Union[bytes, Any]:
     return content
 
 
-def _remove_prefix(path: str) -> str:
+def _remove_prefix(path: pathlib.Path) -> pathlib.Path:
     """Remove the web/ or build/ prefix of a pdfjs-file-path.
 
     Args:
-        path: Path as string where the prefix should be stripped off.
+        path: Path as a pathlib.Path object where the prefix should be stripped off.
+
     """
-    prefixes = {'web/', 'build/'}
-    if any(path.startswith(prefix) for prefix in prefixes):
-        return path.split('/', maxsplit=1)[1]
+    prefixes = {'web', 'build'}
+    for prefix in prefixes:
+        if prefix in path.parts:
+            pref = list(path.parts)
+            pref.remove(prefix)
+            return pathlib.Path(*pref)
     # Return the unchanged path if no prefix is found
     return path
 
 
-def _read_from_system(system_path: str,
-                      names: List[str]
-                      ) -> Union[Tuple[None, None], Tuple[bytes, str]]:
+def _read_from_system(
+        system_path: pathlib.Path,
+        names: List[pathlib.Path]
+) -> Union[Tuple[None, None], Tuple[bytes, pathlib.Path]]:
     """Try to read a file with one of the given names in system_path.
 
     Returns a (content, path) tuple, where the path is the filepath that was
@@ -202,9 +211,9 @@ def _read_from_system(system_path: str,
     """
     for name in names:
         try:
-            full_path = pathlib.Path(system_path) / name
+            full_path = system_path / name
             with full_path.open('rb') as f:
-                return (f.read(), str(full_path))
+                return (f.read(), full_path)
         except FileNotFoundError:
             continue
         except OSError as e:
@@ -215,9 +224,11 @@ def _read_from_system(system_path: str,
 
 def is_available() -> bool:
     """Return true if a pdfjs installation is available."""
+    build_path = pathlib.Path("build/pdf.js")
+    web_path = pathlib.Path("web/viewer.html")
     try:
-        get_pdfjs_res('build/pdf.js')
-        get_pdfjs_res('web/viewer.html')
+        get_pdfjs_res(build_path)
+        get_pdfjs_res(web_path)
     except PDFJSNotFound:
         return False
     else:

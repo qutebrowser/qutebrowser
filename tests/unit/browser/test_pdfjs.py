@@ -20,6 +20,7 @@
 import logging
 import pathlib
 import os
+import re
 
 import pytest
 from PyQt5.QtCore import QUrl
@@ -83,11 +84,13 @@ class TestResources:
     def test_get_pdfjs_res_system(self, read_system_mock):
         read_system_mock.return_value = (b'content', 'path')
 
-        assert pdfjs.get_pdfjs_res_and_path('web/test') == (b'content', 'path')
-        assert pdfjs.get_pdfjs_res('web/test') == b'content'
+        assert pdfjs.get_pdfjs_res_and_path(
+            pathlib.Path('web/test')) == (b'content', 'path')
+        assert pdfjs.get_pdfjs_res(pathlib.Path('web/test')) == b'content'
 
-        read_system_mock.assert_called_with('/usr/share/pdf.js/',
-                                            ['web/test', 'test'])
+        read_system_mock.assert_called_with(pathlib.Path('/usr/share/pdf.js/'),
+                                            [pathlib.Path('web/test'),
+                                             pathlib.Path('test')])
 
     def test_get_pdfjs_res_bundled(self, read_system_mock, read_file_mock,
                                    tmp_path):
@@ -95,24 +98,27 @@ class TestResources:
 
         read_file_mock.return_value = b'content'
 
-        assert pdfjs.get_pdfjs_res_and_path('web/test') == (b'content', None)
-        assert pdfjs.get_pdfjs_res('web/test') == b'content'
+        assert pdfjs.get_pdfjs_res_and_path(
+            pathlib.Path('web/test')) == (b'content', None)
+        assert pdfjs.get_pdfjs_res(
+            pathlib.Path('web/test')) == b'content'
 
-        for path in ['/usr/share/pdf.js/',
-                     str(tmp_path / 'data' / 'pdfjs'),
+        for path in [pathlib.Path('/usr/share/pdf.js/'),
+                     tmp_path / 'data' / 'pdfjs',
                      # hardcoded for --temp-basedir
-                     str(pathlib.Path.home()
-                         / '.local/share/qutebrowser/pdfjs/')]:
-            read_system_mock.assert_any_call(path, ['web/test', 'test'])
+                     pathlib.Path.home() / '.local/share/qutebrowser/pdfjs/']:
+            read_system_mock.assert_any_call(path, [pathlib.Path('web/test'),
+                                                    pathlib.Path('test')])
 
     def test_get_pdfjs_res_not_found(self, read_system_mock, read_file_mock,
                                      caplog):
         read_system_mock.return_value = (None, None)
         read_file_mock.side_effect = FileNotFoundError
 
+        web_path = pathlib.Path('web/test')
         with pytest.raises(pdfjs.PDFJSNotFound,
-                           match="Path 'web/test' not found"):
-            pdfjs.get_pdfjs_res_and_path('web/test')
+                           match=re.escape(f"Path '{web_path}' not found")):
+            pdfjs.get_pdfjs_res_and_path(web_path)
 
         assert not caplog.records
 
@@ -121,10 +127,11 @@ class TestResources:
         read_system_mock.return_value = (None, None)
         read_file_mock.side_effect = OSError("Message")
 
+        web_path = pathlib.Path('web/test')
         with caplog.at_level(logging.WARNING):
             with pytest.raises(pdfjs.PDFJSNotFound,
-                               match="Path 'web/test' not found"):
-                pdfjs.get_pdfjs_res_and_path('web/test')
+                           match=re.escape(f"Path '{web_path}' not found")):
+                pdfjs.get_pdfjs_res_and_path(web_path)
 
         expected = 'OSError while reading PDF.js file: Message'
         assert caplog.messages == [expected]
@@ -133,8 +140,8 @@ class TestResources:
                                  read_file_mock):
         """Make sure we don't crash with a broken local installation."""
         monkeypatch.setattr(pdfjs, '_SYSTEM_PATHS', [])
-        monkeypatch.setattr(pdfjs.pathlib.Path, 'expanduser',
-                            lambda _in: tmp_path / 'fallback')
+        monkeypatch.setattr(pdfjs.pathlib.Path, 'home',
+                            lambda: (tmp_path / 'fallback'))
         read_file_mock.side_effect = FileNotFoundError
 
         (data_tmpdir / 'pdfjs' / 'pdf.js').ensure()  # But no viewer.html
@@ -150,7 +157,7 @@ class TestResources:
     ('foo/viewer.css', 'foo/viewer.css'),
 ])
 def test_remove_prefix(path, expected):
-    assert pdfjs._remove_prefix(path) == expected
+    assert pdfjs._remove_prefix(pathlib.Path(path)) == pathlib.Path(expected)
 
 
 @pytest.mark.parametrize('names, expected_name', [
@@ -166,13 +173,13 @@ def test_read_from_system(names, expected_name, tmp_path):
     file2.write_text('text2', encoding='ascii')
 
     if expected_name == 'one':
-        expected = (b'text1', str(file1))
+        expected = (b'text1', file1)
     elif expected_name == 'two':
-        expected = (b'text2', str(file2))
+        expected = (b'text2', file2)
     elif expected_name is None:
         expected = (None, None)
 
-    assert pdfjs._read_from_system(str(tmp_path), names) == expected
+    assert pdfjs._read_from_system(tmp_path, names) == expected
 
 
 @pytest.fixture
@@ -192,7 +199,7 @@ def unreadable_file(tmp_path):
 def test_read_from_system_oserror(tmp_path, caplog, unreadable_file):
     expected = (None, None)
     with caplog.at_level(logging.WARNING):
-        assert pdfjs._read_from_system(str(tmp_path), ['unreadable']) == expected
+        assert pdfjs._read_from_system(tmp_path, ['unreadable']) == expected
 
     assert len(caplog.records) == 1
     message = caplog.messages[0]

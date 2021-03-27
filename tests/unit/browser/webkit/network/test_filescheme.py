@@ -18,7 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import pathlib
 import dataclasses
 from typing import List
@@ -53,7 +52,7 @@ def test_get_file_list(tmp_path, create_file, create_dir, filterfunc, expected):
 
     all_files = list(tmp_path.iterdir())
 
-    result = filescheme.get_file_list(str(tmp_path), all_files, filterfunc)
+    result = filescheme.get_file_list(tmp_path, all_files, filterfunc)
     item = {'name': 'foo', 'absname': str(path)}
     assert (item in result) == expected
 
@@ -68,7 +67,7 @@ class TestIsRoot:
         ('C:\\', True)
     ])
     def test_windows(self, directory, is_root):
-        assert filescheme.is_root(directory) == is_root
+        assert filescheme.is_root(pathlib.Path(directory)) == is_root
 
     @pytest.mark.posix
     @pytest.mark.parametrize('directory, is_root', [
@@ -78,37 +77,14 @@ class TestIsRoot:
         ('/', True)
     ])
     def test_posix(self, directory, is_root):
-        assert filescheme.is_root(directory) == is_root
-
-
-class TestParentDir:
-
-    @pytest.mark.windows
-    @pytest.mark.parametrize('directory, parent', [
-        ('C:\\foo\\bar', 'C:\\foo'),
-        ('C:\\foo', 'C:\\'),
-        ('C:\\foo\\', 'C:\\'),
-        ('C:\\', 'C:\\'),
-    ])
-    def test_windows(self, directory, parent):
-        assert filescheme.parent_dir(directory) == parent
-
-    @pytest.mark.posix
-    @pytest.mark.parametrize('directory, parent', [
-        ('/home/foo', '/home'),
-        ('/home', '/'),
-        ('/home/', '/'),
-        ('/', '/'),
-    ])
-    def test_posix(self, directory, parent):
-        assert filescheme.parent_dir(directory) == parent
+        assert filescheme.is_root(pathlib.Path(directory)) == is_root
 
 
 def _file_url(path):
-    """Return a file:// url (as string) for the given LocalPath.
+    """Return a file:// url (as string) for the given pathlib.Path object.
 
     Arguments:
-        path: The filepath as LocalPath (as handled by py.path)
+        path: The filepath as a Pathlib object
     """
     return urlutils.file_url(str(path))
 
@@ -186,7 +162,7 @@ class TestDirbrowserHtml:
         assert "background-image: url('qute://resource/img/folder.svg');" in css
 
     def test_empty(self, tmp_path, parser):
-        parsed = parser(str(tmp_path))
+        parsed = parser(tmp_path)
         assert parsed.parent
         assert not parsed.folders
         assert not parsed.files
@@ -197,7 +173,7 @@ class TestDirbrowserHtml:
         foo_file.touch()
         bar_file.touch()
 
-        parsed = parser(str(tmp_path))
+        parsed = parser(tmp_path)
         assert parsed.parent
         assert not parsed.folders
         foo_item = self.Item(_file_url(foo_file), str(foo_file.relative_to(tmp_path)))
@@ -208,7 +184,7 @@ class TestDirbrowserHtml:
         special_file = tmp_path / 'foo&bar'
         special_file.touch()
 
-        parsed = parser(str(tmp_path))
+        parsed = parser(tmp_path)
         item = self.Item(_file_url(special_file),
                          str(special_file.relative_to(tmp_path)))
         assert parsed.files == [item]
@@ -219,7 +195,7 @@ class TestDirbrowserHtml:
         foo_dir.mkdir()
         bar_dir.mkdir()
 
-        parsed = parser(str(tmp_path))
+        parsed = parser(tmp_path)
         assert parsed.parent
         assert not parsed.files
         foo_item = self.Item(_file_url(foo_dir), str(foo_dir.relative_to(tmp_path)))
@@ -232,7 +208,7 @@ class TestDirbrowserHtml:
         foo_file.touch()
         bar_dir.mkdir()
 
-        parsed = parser(str(tmp_path))
+        parsed = parser(tmp_path)
         foo_item = self.Item(_file_url(foo_file),
                              str(foo_file.relative_to(str(tmp_path))))
         bar_item = self.Item(_file_url(bar_dir),
@@ -242,7 +218,8 @@ class TestDirbrowserHtml:
         assert parsed.folders == [bar_item]
 
     def test_root_dir(self, tmp_path, parser):
-        root_dir = 'C:\\' if utils.is_windows else '/'
+        root_dir = (pathlib.Path('C:\\')
+        if utils.is_windows else pathlib.Path('/'))
         parsed = parser(root_dir)
         assert not parsed.parent
 
@@ -250,7 +227,7 @@ class TestDirbrowserHtml:
         m = mocker.patch('qutebrowser.browser.webkit.network.filescheme.'
                          'pathlib.Path.iterdir')
         m.side_effect = OSError('Error message')
-        html = filescheme.dirbrowser_html('').decode('utf-8')
+        html = filescheme.dirbrowser_html(pathlib.Path('')).decode('utf-8')
         soup = bs4.BeautifulSoup(html, 'html.parser')
 
         with testutils.ignore_bs4_warning():
@@ -266,9 +243,7 @@ class TestFileSchemeHandler:
         url = QUrl.fromLocalFile(str(tmp_path))
         req = QNetworkRequest(url)
         reply = filescheme.handler(req, None, None)
-        # The URL will always use /, even on Windows - so we force this here
-        # too.
-        tmpdir_path = str(tmp_path).replace(os.sep, '/')
+        tmpdir_path = tmp_path
         assert reply.readAll() == filescheme.dirbrowser_html(tmpdir_path)
 
     def test_file(self, tmp_path):

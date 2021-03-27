@@ -23,7 +23,6 @@
 
 """Handler functions for file:... pages."""
 
-import os
 import pathlib
 from typing import List, Dict, Callable
 
@@ -32,7 +31,7 @@ from qutebrowser.utils import jinja
 
 
 def get_file_list(
-        basedir: str,
+        basedir: pathlib.Path,
         all_files: List[pathlib.Path],
         filterfunc: Callable[[pathlib.Path], bool]
 ) -> List[Dict[str, str]]:
@@ -48,13 +47,13 @@ def get_file_list(
     """
     items = []
     for filename in all_files:
-        absname = pathlib.Path(basedir) / filename
+        absname = basedir / filename
         if filterfunc(absname):
             items.append({'name': filename.name, 'absname': str(absname)})
     return sorted(items, key=lambda v: v['name'].lower())
 
 
-def is_root(directory: str) -> bool:
+def is_root(directory: pathlib.Path) -> bool:
     """Check if the directory is the root directory.
 
     Args:
@@ -63,30 +62,10 @@ def is_root(directory: str) -> bool:
     Return:
         Whether the directory is a root directory or not.
     """
-    # If you're curious as why this works:
-    # dirname('/') = '/'
-    # dirname('/home') = '/'
-    # dirname('/home/') = '/home'
-    # dirname('/home/foo') = '/home'
-    # basically, for files (no trailing slash) it removes the file part, and
-    # for directories, it removes the trailing slash, so the only way for this
-    # to be equal is if the directory is the root directory.
-    return str(pathlib.Path(directory).parent) == directory
+    return not directory.parents
 
 
-def parent_dir(directory: str) -> str:
-    """Return the parent directory for the given directory.
-
-    Args:
-        directory: The path to the directory.
-
-    Return:
-        The path to the parent directory.
-    """
-    return str(pathlib.Path(directory).parent)
-
-
-def dirbrowser_html(path: str) -> bytes:
+def dirbrowser_html(path: pathlib.Path) -> bytes:
     """Get the directory browser web page.
 
     Args:
@@ -100,10 +79,10 @@ def dirbrowser_html(path: str) -> bytes:
     if is_root(path):
         parent = None
     else:
-        parent = parent_dir(path)
+        parent = str(path.parent)
 
     try:
-        all_files = list(pathlib.Path(path).iterdir())
+        all_files = list(path.iterdir())
     except OSError as e:
         html = jinja.render('error.html',
                             title="Error while reading directory",
@@ -131,8 +110,7 @@ def handler(request, _operation, _current_url):
     path = pathlib.Path(request.url().toLocalFile())
     try:
         if path.is_dir():
-            # Os.sep used for windows
-            data = dirbrowser_html(str(path).replace(os.sep, '/'))
+            data = dirbrowser_html(path)
             return networkreply.FixedDataNetworkReply(
                 request, data, 'text/html')
         return None

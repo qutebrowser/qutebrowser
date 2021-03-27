@@ -27,6 +27,7 @@ Module attributes:
 import html
 import json
 import os
+import pathlib
 import time
 import textwrap
 import urllib
@@ -549,11 +550,12 @@ def qute_pdfjs(url: QUrl) -> _HandlerRet:
                 raise UrlInvalidError("Missing source")
             raise Redirect(QUrl(source))
 
-        data = pdfjs.generate_pdfjs_page(filename, url)
-        return 'text/html', data
+        data_text = pdfjs.generate_pdfjs_page(filename, url)
+        return 'text/html', data_text
 
     try:
-        data = pdfjs.get_pdfjs_res(url.path())
+        url_path = pathlib.Path(url.path())
+        data = pdfjs.get_pdfjs_res(url_path)
     except pdfjs.PDFJSNotFound as e:
         # Logging as the error might get lost otherwise since we're not showing
         # the error page if a single asset is missing. This way we don't lose
