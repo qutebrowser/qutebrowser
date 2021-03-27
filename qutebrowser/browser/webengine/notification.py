@@ -814,7 +814,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
                 no_padded_images=True,
                 wrong_replaces_id=True,
             )
-        elif (name, vendor) == ("Budgie Desktop Developers", "Raven"):
+        elif (name, vendor) == ("Raven", "Budgie Desktop Developers"):
             return _ServerQuirks(
                 # https://github.com/solus-project/budgie-desktop/issues/2114
                 escape_title=True,
