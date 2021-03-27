@@ -295,7 +295,8 @@ class NotificationBridgePresenter(QObject):
             f"origin {new_notification.origin()}")
 
         try:
-            for notification_id, notification in self._active_notifications.items():
+            for notification_id, notification in sorted(
+                    self._active_notifications.items(), reverse=True):
                 if notification.matches(new_notification):
                     log.misc.debug(f"Found match: {notification_id}")
                     return notification_id
