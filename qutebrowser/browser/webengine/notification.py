@@ -48,7 +48,7 @@ import dataclasses
 import itertools
 import functools
 import subprocess
-from typing import Any, List, Dict, Optional, TYPE_CHECKING
+from typing import Any, List, Dict, Optional, Iterator, TYPE_CHECKING
 
 from PyQt5.QtCore import (Qt, QObject, QVariant, QMetaType, QByteArray, pyqtSlot,
                           pyqtSignal, QTimer, QProcess, QUrl)
@@ -131,6 +131,14 @@ class AbstractNotificationAdapter(QObject):
         must not duplicate any active notification's ID.
         """
         raise NotImplementedError
+
+    def _should_include_origin(self, origin: QUrl) -> bool:
+        """Check if the origin is useful to include.
+
+        If we open the page via a file scheme, the origin is QUrl('file:///') which
+        doesn't help much.
+        """
+        return bool(origin.host())
 
     @pyqtSlot(int)
     def on_web_closed(self, notification_id: int) -> None:
@@ -420,6 +428,8 @@ class SystrayNotificationAdapter(AbstractNotificationAdapter):
 
     def _format_message(self, text: str, origin: QUrl) -> str:
         """Format the message to display."""
+        if not self._should_include_origin(origin):
+            return text
         return origin.toDisplayString() + '\n\n' + text
 
     @pyqtSlot()
@@ -455,17 +465,9 @@ class MessagesNotificationAdapter(AbstractNotificationAdapter):
         *,
         replaces_id: Optional[int],
     ) -> int:
-        url = html.escape(qt_notification.origin().toDisplayString())
-        title = html.escape(qt_notification.title())
-        body = html.escape(qt_notification.message())
-        hint = "" if qt_notification.icon().isNull() else " (image not shown)"
-
+        markup = self._format_message(qt_notification)
         new_id = replaces_id if replaces_id is not None else next(self._id_gen)
-        markup = (
-            f"<i>Notification from {url}:{hint}</i><br/><br/>"
-            f"<b>{title}</b><br/>"
-            f"{body}"
-        )
+
         message.info(markup, replace=f'notifications-{new_id}')
 
         # Faking closing, timing might not be 100% accurate
@@ -477,6 +479,23 @@ class MessagesNotificationAdapter(AbstractNotificationAdapter):
     @pyqtSlot(int)
     def on_web_closed(self, _notification_id: int) -> None:
         """We can't close messages."""
+
+    def _format_message(self, qt_notification: "QWebEngineNotification") -> str:
+        title = html.escape(qt_notification.title())
+        body = html.escape(qt_notification.message())
+        hint = "" if qt_notification.icon().isNull() else " (image not shown)"
+
+        if self._should_include_origin(qt_notification.origin()):
+            url = html.escape(qt_notification.origin().toDisplayString())
+            origin_str = f" from {url}"
+        else:
+            origin_str = ""
+
+        return (
+            f"<i>Notification{origin_str}:{hint}</i><br/><br/>"
+            f"<b>{title}</b><br/>"
+            f"{body}"
+        )
 
 
 class HerbeNotificationAdapter(AbstractNotificationAdapter):
@@ -512,20 +531,30 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
         proc = QProcess(self)
         proc.errorOccurred.connect(self._on_error)
 
-        lines = [
-            qt_notification.title(),
-            qt_notification.origin().toDisplayString(),
-            qt_notification.message(),
-        ]
-        if not qt_notification.icon().isNull():
-            lines.append("(icon not shown)")
-
+        lines = list(self._message_lines(qt_notification))
         proc.start('herbe', lines)
+
         pid = proc.processId()
         assert pid > 1
         proc.finished.connect(functools.partial(self._on_finished, pid))
 
         return pid
+
+    def _message_lines(
+        self,
+        qt_notification: "QWebEngineNotification",
+    ) -> Iterator[str]:
+        """Get the lines to display for this notification."""
+        yield qt_notification.title()
+
+        origin = qt_notification.origin()
+        if self._should_include_origin(origin):
+            yield origin.toDisplayString()
+
+        yield qt_notification.message()
+
+        if not qt_notification.icon().isNull():
+            yield "(icon not shown)"
 
     def _on_finished(self, pid: int, code: int, status: QProcess.ExitStatus) -> None:
         """Handle a closing herbe process.
@@ -796,7 +825,9 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             "x-qutebrowser-origin": origin_url_str,
             "desktop-entry": "org.qutebrowser.qutebrowser",
         }
-        if self._capabilities.kde_origin_name:
+
+        is_useful_origin = self._should_include_origin(qt_notification.origin())
+        if self._capabilities.kde_origin_name and is_useful_origin:
             hints["x-kde-origin-name"] = origin_url_str
 
         icon = qt_notification.icon()
@@ -948,8 +979,9 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         body markup.
         """
         urlstr = origin_url.toDisplayString()
+        is_useful_origin = self._should_include_origin(origin_url)
 
-        if self._capabilities.kde_origin_name:
+        if self._capabilities.kde_origin_name or not is_useful_origin:
             prefix = None
         elif self._capabilities.body_hyperlinks:
             href = origin_url.toString(QUrl.FullyEncoded)
