@@ -745,24 +745,25 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             f"Connected to notification server: {name} {version} by {vendor}, "
             f"implementing spec {spec_version}")
 
-        all_quirks = {
+        quirks = None
+        if (name, vendor) == ("notify-osd", "Canonical Ltd"):
             # Shows a dialog box instead of a notification bubble as soon as a
             # notification has an action (even if only a default one). Dialog boxes are
             # buggy and return a notification with ID 0.
             # https://wiki.ubuntu.com/NotificationDevelopmentGuidelines#Avoiding_actions
-            ("notify-osd", "Canonical Ltd"):
-                _ServerQuirks(avoid_actions=True, spec_version="1.1"),
-
+            quirks = _ServerQuirks(avoid_actions=True, spec_version="1.1")
+        elif (name, vendor) == ("Notification Daemon", "MATE"):
             # Still in active development but doesn't implement spec 1.2:
             # https://github.com/mate-desktop/mate-notification-daemon/issues/132
-            ("Notification Daemon", "MATE"): _ServerQuirks(spec_version="1.1"),
-
+            quirks = _ServerQuirks(spec_version="1.1")
+        elif (name, vendor) == ("naughty", "awesome"):
             # Still in active development but spec 1.0/1.2 support isn't
             # released yet:
             # https://github.com/awesomeWM/awesome/commit/e076bc664e0764a3d3a0164dabd9b58d334355f4
-            ("naughty", "awesome"): _ServerQuirks(spec_version="1.0"),
-        }
-        quirks = all_quirks.get((name, vendor))
+            parsed_version = utils.VersionNumber.parse(version.lstrip('v'))
+            if parsed_version <= utils.VersionNumber(4, 3):
+                quirks = _ServerQuirks(spec_version="1.0")
+
         if quirks is not None:
             log.misc.debug(f"Enabling quirks {quirks}")
             self._quirks = quirks
