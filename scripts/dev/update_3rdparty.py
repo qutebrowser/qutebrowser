@@ -71,8 +71,16 @@ def get_latest_pdfjs_url():
     """
     github_api = 'https://api.github.com'
     endpoint = 'repos/mozilla/pdf.js/releases/latest'
-    request_url = '{}/{}'.format(github_api, endpoint)
-    with urllib.request.urlopen(request_url) as fp:
+    request = urllib.request.Request(f'{github_api}/{endpoint}')
+
+    token = os.environ.get('GITHUB_TOKEN')
+    if token is not None:
+        # Without token will work as well, but has a strict rate limit, so we need to
+        # use the token on CI.
+        request.add_header('Authorization', f'token {token}')
+        print("Using GITHUB_TOKEN to authorize to GitHub.")
+
+    with urllib.request.urlopen(request) as fp:
         data = json.loads(fp.read().decode('utf-8'))
 
     download_url = data['assets'][0]['browser_download_url']
