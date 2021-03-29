@@ -153,7 +153,9 @@ def smoke_test(executable):
     stdout = '\n'.join(_filter_whitelisted(proc.stdout, stdout_whitelist))
     stderr = '\n'.join(_filter_whitelisted(proc.stderr, stderr_whitelist))
 
-    if stdout or stderr:
+    if 'PYINSTALLER_DEBUG' in os.environ:
+        print("Skipping output check for debug build")
+    elif stdout or stderr:
         print("Unexpected output, running with --debug")
         proc = _smoke_test_run(executable, '--debug')
         debug_stdout = proc.stdout.decode('utf-8')
