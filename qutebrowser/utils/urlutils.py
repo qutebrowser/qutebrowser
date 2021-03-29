@@ -241,6 +241,7 @@ def fuzzy_url(urlstr: str,
         except ValueError:  # invalid search engine
             url = [QUrl.fromUserInput(urlstr)]
     else:  # probably an address
+        log.url.debug("URL is a fuzzy address")
         url = [QUrl.fromUserInput(urlstr)]
     for u in url:
         log.url.debug("Converting fuzzy term {!r} to URL -> {}".format(
