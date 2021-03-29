@@ -217,16 +217,6 @@ class TestElidingFilenames:
         assert utils.elide_filename(filename, length) == expected
 
 
-@pytest.fixture(params=[True, False])
-def freezer(request, monkeypatch):
-    if request.param and not getattr(sys, 'frozen', False):
-        monkeypatch.setattr(sys, 'frozen', True, raising=False)
-        monkeypatch.setattr(sys, 'executable', qutebrowser.__file__)
-    elif not request.param and getattr(sys, 'frozen', False):
-        # Want to test unfrozen tests, but we are frozen
-        pytest.skip("Can't run with sys.frozen = True!")
-
-
 @pytest.mark.parametrize('seconds, out', [
     (-1, '-0:01'),
     (0, '0:00'),

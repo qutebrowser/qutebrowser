@@ -42,6 +42,7 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtNetwork import QNetworkCookieJar
 
 import helpers.stubs as stubsmod
+import qutebrowser
 from qutebrowser.config import (config, configdata, configtypes, configexc,
                                 configfiles, configcache, stylesheet)
 from qutebrowser.api import config as configapi
@@ -736,3 +737,14 @@ def webengine_versions(testdata_scheme):
     """
     pytest.importorskip('PyQt5.QtWebEngineWidgets')
     return version.qtwebengine_versions()
+
+
+@pytest.fixture(params=[True, False])
+def freezer(request, monkeypatch):
+    if request.param and not getattr(sys, 'frozen', False):
+        monkeypatch.setattr(sys, 'frozen', True, raising=False)
+        monkeypatch.setattr(sys, 'executable', qutebrowser.__file__)
+    elif not request.param and getattr(sys, 'frozen', False):
+        # Want to test unfrozen tests, but we are frozen
+        pytest.skip("Can't run with sys.frozen = True!")
+    return request.param
