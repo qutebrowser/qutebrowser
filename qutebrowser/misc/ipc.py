@@ -195,7 +195,6 @@ class IPCServer(QObject):
             self.handle_connection)
 
         self._socket = None
-        self._old_socket = None
 
         if utils.is_windows:  # pragma: no cover
             # As a WORKAROUND for a Qt bug, we can't use UserAccessOption on Unix. If we
@@ -289,12 +288,13 @@ class IPCServer(QObject):
     @pyqtSlot()
     def on_disconnected(self):
         """Clean up socket when the client disconnected."""
+        if self._socket is None:
+            log.ipc.debug("Disconnected with None-socket.")
+            return
         log.ipc.debug("Client disconnected from socket 0x{:x}.".format(
             id(self._socket)))
         self._timer.stop()
-        if self._old_socket is not None:
-            self._old_socket.deleteLater()
-        self._old_socket = self._socket
+        self._socket.deleteLater()
         self._socket = None
         # Maybe another connection is waiting.
         self.handle_connection()
@@ -360,27 +360,18 @@ class IPCServer(QObject):
     def on_ready_read(self):
         """Read json data from the client."""
         if self._socket is None:  # pragma: no cover
-            # This happens when doing a connection while another one is already
-            # active for some reason.
-            if self._old_socket is None:
-                log.ipc.warning("In on_ready_read with None socket and "
-                                "old_socket!")
-                return
-            log.ipc.debug("In on_ready_read with None socket!")
-            socket = self._old_socket
-        else:
-            socket = self._socket
+            return
 
-        if sip.isdeleted(socket):  # pragma: no cover
+        if sip.isdeleted(self._socket):  # pragma: no cover
             log.ipc.warning("Ignoring deleted IPC socket")
             return
 
         self._timer.stop()
-        while socket is not None and socket.canReadLine():
-            data = bytes(socket.readLine())
+        while self._socket is not None and self._socket.canReadLine():
+            data = bytes(self._socket.readLine())
             self.got_raw.emit(data)
             log.ipc.debug("Read from socket 0x{:x}: {!r}".format(
-                id(socket), data))
+                id(self._socket), data))
             self._handle_data(data)
 
         if self._socket is not None:
