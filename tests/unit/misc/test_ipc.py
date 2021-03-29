@@ -605,7 +605,7 @@ def test_ipcserver_socket_none_readyread(ipc_server, caplog):
     assert ipc_server._old_socket is None
     with caplog.at_level(logging.WARNING):
         ipc_server.on_ready_read()
-    msg = "In on_ready_read with None socket and old_socket!"
+    msg = "In _get_socket with None socket and old_socket!"
     assert msg in caplog.messages
 
 
