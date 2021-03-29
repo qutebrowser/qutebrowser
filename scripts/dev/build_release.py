@@ -100,6 +100,20 @@ def _filter_whitelisted(output, patterns):
             yield line
 
 
+def _smoke_test_run(executable, *args):
+    """Get a subprocess to run a smoke test."""
+    argv = [
+        executable,
+        '--no-err-windows',
+        '--nowindow',
+        '--temp-basedir',
+        *args,
+        'about:blank',
+        ':later 500 quit',
+    ]
+    return subprocess.run(argv, check=True, capture_output=True)
+
+
 def smoke_test(executable):
     """Try starting the given qutebrowser executable."""
     stdout_whitelist = []
@@ -132,15 +146,54 @@ def smoke_test(executable):
          r'module could not be found. \(0x7E\)'),
     ]
 
-    proc = subprocess.run([executable, '--no-err-windows', '--nowindow',
-                           '--temp-basedir', 'about:blank',
-                           ':later 500 quit'], check=True, capture_output=True)
+    proc = _smoke_test_run(executable)
     stdout = '\n'.join(_filter_whitelisted(proc.stdout, stdout_whitelist))
     stderr = '\n'.join(_filter_whitelisted(proc.stderr, stderr_whitelist))
-    if stdout:
-        raise Exception("Unexpected stdout:\n{}".format(stdout))
-    if stderr:
-        raise Exception("Unexpected stderr:\n{}".format(stderr))
+
+    if stdout or stderr:
+        print("Unexpected output, running with --debug")
+        proc = _smoke_test_run(executable, '--debug')
+        debug_stdout = proc.stdout.decode('utf-8')
+        debug_stderr = proc.stderr.decode('utf-8')
+
+        lines = [
+            "Unexpected output!",
+            "",
+        ]
+        if stdout:
+            lines += [
+                "stdout",
+                "------",
+                "",
+                stdout,
+                "",
+            ]
+        if stderr:
+            lines += [
+                "stderr",
+                "------",
+                "",
+                stderr,
+                "",
+            ]
+        if debug_stdout:
+            lines += [
+                "debug rerun stdout",
+                "------------------",
+                "",
+                debug_stdout,
+                "",
+            ]
+        if debug_stderr:
+            lines += [
+                "debug rerun stderr",
+                "------------------",
+                "",
+                debug_stderr,
+                "",
+            ]
+
+        raise Exception("\n".join(lines))
 
 
 def patch_windows_exe(exe_path):
