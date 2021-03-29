@@ -51,7 +51,7 @@ jobs:
             python -m pip install -U pip
             python -m pip install -U -r misc/requirements/requirements-tox.txt
       - name: Run tox
-        run: tox -e build-release -- --skip-docs
+        run: tox -e build-release
 
   irc:
     timeout-minutes: 2
