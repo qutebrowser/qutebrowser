@@ -1006,7 +1006,7 @@ class TestWebEngineVersions:
         try:
             from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION_STR
         except ImportError as e:
-            # QtWebKit or QtWebEngine < 5.13
+            # QtWebKit or QtWebEngine < 5.1'../3
             pytest.skip(str(e))
 
         pyqt_webengine_version = version._get_pyqt_webengine_qt_version()

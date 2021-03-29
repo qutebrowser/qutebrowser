@@ -59,7 +59,7 @@ jobs:
             python -m pip install -U pip
             python -m pip install -U -r misc/requirements/requirements-tox.txt
       - name: Run tox
-        run: tox -e build-release -- --asciidoc ../asciidoc/asciidoc.py
+        run: tox -e build-release -- --asciidoc ../asciidoc/asciidoc.py --gh-token "${{ secrets.GITHUB_TOKEN }}"
 
   irc:
     timeout-minutes: 2

@@ -219,7 +219,7 @@ INFO_PLIST_UPDATES = {
 }
 
 
-def build_mac():
+def build_mac(*, gh_token):
     """Build macOS .dmg/.app."""
     utils.print_title("Cleaning up...")
     for f in ['wc.dmg', 'template.dmg']:
@@ -230,7 +230,7 @@ def build_mac():
     for d in ['dist', 'build']:
         shutil.rmtree(d, ignore_errors=True)
     utils.print_title("Updating 3rdparty content")
-    update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False)
+    update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False, gh_token=gh_token)
     utils.print_title("Building .app via pyinstaller")
     call_tox('pyinstaller-64', '-r')
     utils.print_title("Patching .app")
@@ -318,10 +318,11 @@ def _build_windows_single(*, x64, skip_packaging):
     )
 
 
-def build_windows(*, skip_packaging, skip_32bit, skip_64bit):
+def build_windows(*, gh_token, skip_packaging, skip_32bit, skip_64bit):
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
-    update_3rdparty.run(nsis=True, ace=False, pdfjs=True, fancy_dmg=False)
+    update_3rdparty.run(nsis=True, ace=False, pdfjs=True, fancy_dmg=False,
+                        gh_token=gh_token)
 
     utils.print_title("Building Windows binaries")
 
@@ -424,15 +425,26 @@ def test_makefile():
                         'DESTDIR={}'.format(tmpdir), 'install'], check=True)
 
 
-def read_github_token():
+def read_github_token(arg_token, *, optional=False):
     """Read the GitHub API token from disk."""
+    if arg_token is not None:
+        return arg_token
+
     token_file = os.path.join(os.path.expanduser('~'), '.gh_token')
+    if not os.path.exists(token_file):
+        if optional:
+            return None
+        else:
+            raise Exception(
+                "GitHub token needed, but ~/.gh_token not found, "
+                "and --gh-token not given.")
+
     with open(token_file, encoding='ascii') as f:
         token = f.read().strip()
     return token
 
 
-def github_upload(artifacts, tag):
+def github_upload(artifacts, tag, gh_token):
     """Upload the given artifacts to GitHub.
 
     Args:
@@ -443,8 +455,7 @@ def github_upload(artifacts, tag):
     import github3.exceptions
     utils.print_title("Uploading to github...")
 
-    token = read_github_token()
-    gh = github3.login(token=token)
+    gh = github3.login(token=gh_token)
     repo = gh.repository('qutebrowser', 'qutebrowser')
 
     release = None  # to satisfy pylint
@@ -509,6 +520,8 @@ def main():
     parser.add_argument('--asciidoc-python', help="Python to use for asciidoc."
                         "If not given, the current Python interpreter is used.",
                         nargs='?')
+    parser.add_argument('--gh-token', help="GitHub token to use.",
+                        nargs='?')
     parser.add_argument('--upload', action='store_true', required=False,
                         help="Toggle to upload the release to GitHub.")
     parser.add_argument('--skip-packaging', action='store_true', required=False,
@@ -526,7 +539,9 @@ def main():
         # Fail early when trying to upload without github3 installed
         # or without API token
         import github3  # pylint: disable=unused-import
-        read_github_token()
+        gh_token = read_github_token(args.gh_token)
+    else:
+        gh_token = read_github_token(args.gh_token, optional=True)
 
     if not misc_checks.check_git():
         utils.print_error("Refusing to do a release with a dirty git tree")
@@ -539,12 +554,13 @@ def main():
 
     if os.name == 'nt':
         artifacts = build_windows(
+            gh_token=gh_token,
             skip_packaging=args.skip_packaging,
             skip_32bit=args.skip_32bit,
             skip_64bit=args.skip_64bit,
         )
     elif sys.platform == 'darwin':
-        artifacts = build_mac()
+        artifacts = build_mac(gh_token=gh_token)
     else:
         upgrade_sdist_dependencies()
         test_makefile()
@@ -556,7 +572,7 @@ def main():
         utils.print_title("Press enter to release {}...".format(version_tag))
         input()
 
-        github_upload(artifacts, version_tag)
+        github_upload(artifacts, version_tag, gh_token=gh_token)
         if upload_to_pypi:
             pypi_upload(artifacts)
     else:
