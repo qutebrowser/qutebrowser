@@ -63,6 +63,14 @@ jobs:
             python -m pip install -U -r misc/requirements/requirements-tox.txt
       - name: Run tox
         run: "tox -e build-release -- --asciidoc ../asciidoc/asciidoc.py --gh-token ${{ secrets.GITHUB_TOKEN }} ${{ matrix.args }}"
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: Release files
+          path: |
+            qutebrowser-*.dmg
+            dist/qutebrowser-*-windows-standalone-*.zip
+            dist/qutebrowser-*-*.exe
 
   irc:
     timeout-minutes: 2
