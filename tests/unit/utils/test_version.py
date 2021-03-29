@@ -975,7 +975,7 @@ class TestWebEngineVersions:
         )
         assert version.WebEngineVersions.from_elf(elf_version) == expected
 
-    @pytest.mark.parametrize('qt_version, chromium_version', [
+    @pytest.mark.parametrize('pyqt_version, chromium_version', [
         ('5.12.10', '69.0.3497.128'),
         ('5.14.2', '77.0.3865.129'),
         ('5.15.1', '80.0.3987.163'),
@@ -984,13 +984,19 @@ class TestWebEngineVersions:
         ('5.15.4', '87.0.4280.144'),
         ('5.15.5', '87.0.4280.144'),
     ])
-    def test_from_pyqt(self, qt_version, chromium_version):
+    def test_from_pyqt(self, freezer, pyqt_version, chromium_version):
+        if freezer and pyqt_version in ['5.15.3', '5.15.4', '5.15.5']:
+            chromium_version = '83.0.4103.122'
+            expected_pyqt_version = '5.15.2'
+        else:
+            expected_pyqt_version = pyqt_version
+
         expected = version.WebEngineVersions(
-            webengine=utils.VersionNumber.parse(qt_version),
+            webengine=utils.VersionNumber.parse(expected_pyqt_version),
             chromium=chromium_version,
             source='PyQt',
         )
-        assert version.WebEngineVersions.from_pyqt(qt_version) == expected
+        assert version.WebEngineVersions.from_pyqt(pyqt_version) == expected
 
     def test_real_chromium_version(self, qapp):
         """Compare the inferred Chromium version with the real one."""
