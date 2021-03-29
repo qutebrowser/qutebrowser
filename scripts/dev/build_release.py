@@ -59,17 +59,20 @@ def call_script(name, *args, python=sys.executable):
     subprocess.run([python, path] + list(args), check=True)
 
 
-def call_tox(toxenv, *args, python=sys.executable):
+def call_tox(toxenv, *args, python=sys.executable, debug=False):
     """Call tox.
 
     Args:
         toxenv: Which tox environment to use
         *args: The arguments to pass.
         python: The python interpreter to use.
+        debug: Turn on pyinstaller debugging
     """
     env = os.environ.copy()
     env['PYTHON'] = python
     env['PATH'] = os.environ['PATH'] + os.pathsep + os.path.dirname(python)
+    if debug:
+        env['PYINSTALLER_DEBUG'] = '1'
     subprocess.run(
         [sys.executable, '-m', 'tox', '-vv', '-e', toxenv] + list(args),
         env=env, check=True)
@@ -114,7 +117,7 @@ def _smoke_test_run(executable, *args):
     return subprocess.run(argv, check=True, capture_output=True)
 
 
-def smoke_test(executable):
+def smoke_test(executable, debug):
     """Try starting the given qutebrowser executable."""
     stdout_whitelist = []
     stderr_whitelist = [
@@ -150,12 +153,14 @@ def smoke_test(executable):
     ]
 
     proc = _smoke_test_run(executable)
+    if debug:
+        print("Skipping output check for debug build")
+        return
+
     stdout = '\n'.join(_filter_whitelisted(proc.stdout, stdout_whitelist))
     stderr = '\n'.join(_filter_whitelisted(proc.stderr, stderr_whitelist))
 
-    if 'PYINSTALLER_DEBUG' in os.environ:
-        print("Skipping output check for debug build")
-    elif stdout or stderr:
+    if stdout or stderr:
         print("Unexpected output, running with --debug")
         proc = _smoke_test_run(executable, '--debug')
         debug_stdout = proc.stdout.decode('utf-8')
@@ -277,7 +282,7 @@ INFO_PLIST_UPDATES = {
 }
 
 
-def build_mac(*, gh_token):
+def build_mac(*, gh_token, debug):
     """Build macOS .dmg/.app."""
     utils.print_title("Cleaning up...")
     for f in ['wc.dmg', 'template.dmg']:
@@ -290,7 +295,7 @@ def build_mac(*, gh_token):
     utils.print_title("Updating 3rdparty content")
     update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False, gh_token=gh_token)
     utils.print_title("Building .app via pyinstaller")
-    call_tox('pyinstaller-64', '-r')
+    call_tox('pyinstaller-64', '-r', debug=debug)
     utils.print_title("Patching .app")
     patch_mac_app()
     utils.print_title("Building .dmg")
@@ -308,7 +313,7 @@ def build_mac(*, gh_token):
             try:
                 binary = os.path.join(tmpdir, 'qutebrowser.app', 'Contents',
                                       'MacOS', 'qutebrowser')
-                smoke_test(binary)
+                smoke_test(binary, debug=debug)
             finally:
                 print("Waiting 10s for dmg to be detachable...")
                 time.sleep(10)
@@ -341,7 +346,7 @@ def _get_windows_python_path(x64):
         return fallback
 
 
-def _build_windows_single(*, x64, skip_packaging):
+def _build_windows_single(*, x64, skip_packaging, debug):
     """Build on Windows for a single architecture."""
     human_arch = '64-bit' if x64 else '32-bit'
     utils.print_title(f"Running pyinstaller {human_arch}")
@@ -351,7 +356,7 @@ def _build_windows_single(*, x64, skip_packaging):
     _maybe_remove(outdir)
 
     python = _get_windows_python_path(x64=x64)
-    call_tox(f'pyinstaller-{"64" if x64 else "32"}', '-r', python=python)
+    call_tox(f'pyinstaller-{"64" if x64 else "32"}', '-r', python=python, debug=debug)
 
     out_pyinstaller = os.path.join('dist', 'qutebrowser')
     shutil.move(out_pyinstaller, outdir)
@@ -361,7 +366,7 @@ def _build_windows_single(*, x64, skip_packaging):
     patch_windows_exe(exe_path)
 
     utils.print_title(f"Running {human_arch} smoke test")
-    smoke_test(exe_path)
+    smoke_test(exe_path, debug=debug)
 
     if skip_packaging:
         return []
@@ -376,7 +381,7 @@ def _build_windows_single(*, x64, skip_packaging):
     )
 
 
-def build_windows(*, gh_token, skip_packaging, only_32bit, only_64bit):
+def build_windows(*, gh_token, skip_packaging, only_32bit, only_64bit, debug):
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
     update_3rdparty.run(nsis=True, ace=False, pdfjs=True, fancy_dmg=False,
@@ -391,9 +396,17 @@ def build_windows(*, gh_token, skip_packaging, only_32bit, only_64bit):
     gen_versioninfo.main()
 
     if not only_32bit:
-        artifacts += _build_windows_single(x64=True, skip_packaging=skip_packaging)
+        artifacts += _build_windows_single(
+            x64=True,
+            skip_packaging=skip_packaging,
+            debug=debug,
+        )
     if not only_64bit:
-        artifacts += _build_windows_single(x64=False, skip_packaging=skip_packaging)
+        artifacts += _build_windows_single(
+            x64=False,
+            skip_packaging=skip_packaging,
+            debug=debug,
+        )
 
     return artifacts
 
@@ -588,6 +601,8 @@ def main():
                         help="Skip Windows 64 bit build.", dest='only_32bit')
     parser.add_argument('--64bit', action='store_true', required=False,
                         help="Skip Windows 32 bit build.", dest='only_64bit')
+    parser.add_argument('--debug', action='store_true', required=False,
+                        help="Build a debug build.")
     args = parser.parse_args()
     utils.change_cwd()
 
@@ -616,9 +631,10 @@ def main():
             skip_packaging=args.skip_packaging,
             only_32bit=args.only_32bit,
             only_64bit=args.only_64bit,
+            debug=args.debug,
         )
     elif sys.platform == 'darwin':
-        artifacts = build_mac(gh_token=gh_token)
+        artifacts = build_mac(gh_token=gh_token, debug=args.debug)
     else:
         upgrade_sdist_dependencies()
         test_makefile()

@@ -42,13 +42,11 @@ jobs:
           - os: windows-2019
             args: --32bit
           - os: macos-10.15
-            debug: debug
+            args: --debug
           - os: windows-2019
-            args: --64bit
-            debug: debug
+            args: --64bit --debug
           - os: windows-2019
-            args: --32bit
-            debug: debug
+            args: --32bit --debug
     runs-on: "${{ matrix.os }}"
     timeout-minutes: 30
     steps:
@@ -69,10 +67,9 @@ jobs:
         run: |
             python -m pip install -U pip
             python -m pip install -U -r misc/requirements/requirements-tox.txt
-      - name: Set up debugging build
-        if: "${{ matrix.debug }}"
+      - name: Patch qutebrowser for debugging
+        if: "contains(matrix.args, '--debug')"
         run: |
-          echo "PYINSTALLER_DEBUG=1" >> $GITHUB_ENV
           sed -i '' '/.-d., .--debug.,/s/$/ default=True,/' qutebrowser/qutebrowser.py
       - name: Run tox
         run: "tox -e build-release -- --asciidoc ../asciidoc/asciidoc.py --gh-token ${{ secrets.GITHUB_TOKEN }} ${{ matrix.args }}"
