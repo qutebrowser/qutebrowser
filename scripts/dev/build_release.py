@@ -144,6 +144,9 @@ def smoke_test(executable):
         (r'\[.*:ERROR:dxva_video_decode_accelerator_win.cc\(\d+\)\] '
          r'DXVAVDA fatal error: could not LoadLibrary: .*: The specified '
          r'module could not be found. \(0x7E\)'),
+
+        # https://github.com/qutebrowser/qutebrowser/issues/3719
+        '[0-9:]* ERROR: Load error: ERR_FILE_NOT_FOUND',
     ]
 
     proc = _smoke_test_run(executable)
