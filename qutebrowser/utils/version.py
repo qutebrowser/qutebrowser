@@ -665,6 +665,31 @@ class WebEngineVersions:
         Windows/macOS releases.
         """
         parsed = utils.VersionNumber.parse(pyqt_webengine_version)
+        if utils.VersionNumber(5, 15, 3) <= parsed < utils.VersionNumber(6):
+            # If we land here, we're in a tricky situation where we are forced to guess:
+            #
+            # PyQt 5.15.3 and 5.15.4 from PyPI come with QtWebEngine 5.15.2 (Chromium
+            # 83), not 5.15.3 (Chromium 87). Given that there was no binary release of
+            # QtWebEngine 5.15.3, this is unlikely to change before Qt 6.
+            #
+            # However, at this point:
+            #
+            # - ELF parsing failed
+            #   (so we're likely on macOS or Windows, but not definitely)
+            #
+            # - Getting infos from a PyPI-installed PyQtWebEngine failed
+            #   (so we're either in a PyInstaller-deployed qutebrowser, or a self-built
+            #   or distribution-installed Qt)
+            #
+            # PyQt 5.15.3 and 5.15.4 come with QtWebEngine 5.15.2 (83-based), but if
+            # someone lands here with the last Qt/PyQt installed from source, they might
+            # be using QtWebEngine 5.15.3 (87-based). For now, we play it safe, and only
+            # do this kind of "downgrade" when we know we're using PyInstaller.
+            frozen = hasattr(sys, 'frozen')
+            log.misc.debug(f"PyQt5 >= 5.15.3, frozen {frozen}")
+            if frozen:
+                parsed = utils.VersionNumber(5, 15, 2)
+
         return cls(
             webengine=parsed,
             chromium=cls._infer_chromium_version(parsed),
