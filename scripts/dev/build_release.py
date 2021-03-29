@@ -374,7 +374,7 @@ def _build_windows_single(*, x64, skip_packaging):
     )
 
 
-def build_windows(*, gh_token, skip_packaging, skip_32bit, skip_64bit):
+def build_windows(*, gh_token, skip_packaging, only_32bit, only_64bit):
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
     update_3rdparty.run(nsis=True, ace=False, pdfjs=True, fancy_dmg=False,
@@ -388,9 +388,9 @@ def build_windows(*, gh_token, skip_packaging, skip_32bit, skip_64bit):
     utils.print_title("Updating VersionInfo file")
     gen_versioninfo.main()
 
-    if not skip_64bit:
+    if not only_32bit:
         artifacts += _build_windows_single(x64=True, skip_packaging=skip_packaging)
-    if not skip_32bit:
+    if not only_64bit:
         artifacts += _build_windows_single(x64=False, skip_packaging=skip_packaging)
 
     return artifacts
@@ -582,10 +582,10 @@ def main():
                         help="Toggle to upload the release to GitHub.")
     parser.add_argument('--skip-packaging', action='store_true', required=False,
                         help="Skip Windows installer/zip generation.")
-    parser.add_argument('--skip-32bit', action='store_true', required=False,
-                        help="Skip Windows 32 bit build.")
-    parser.add_argument('--skip-64bit', action='store_true', required=False,
-                        help="Skip Windows 64 bit build.")
+    parser.add_argument('--32bit', action='store_true', required=False,
+                        help="Skip Windows 64 bit build.", dest='only_32bit')
+    parser.add_argument('--64bit', action='store_true', required=False,
+                        help="Skip Windows 32 bit build.", dest='only_64bit')
     args = parser.parse_args()
     utils.change_cwd()
 
@@ -612,8 +612,8 @@ def main():
         artifacts = build_windows(
             gh_token=gh_token,
             skip_packaging=args.skip_packaging,
-            skip_32bit=args.skip_32bit,
-            skip_64bit=args.skip_64bit,
+            only_32bit=args.only_32bit,
+            only_64bit=args.only_64bit,
         )
     elif sys.platform == 'darwin':
         artifacts = build_mac(gh_token=gh_token)
