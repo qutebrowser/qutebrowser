@@ -1959,8 +1959,8 @@ class TestFuzzyUrl:
         return configtypes.FuzzyUrl
 
     @pytest.mark.parametrize('val, expected', [
-        ('http://example.com/?q={}', QUrl('http://example.com/?q={}')),
-        ('example.com', QUrl('http://example.com')),
+        ('http://example.com/?q={}', [QUrl('http://example.com/?q={}')]),
+        ('example.com', [QUrl('http://example.com')]),
     ])
     def test_to_py_valid(self, klass, val, expected):
         assert klass().to_py(val) == expected

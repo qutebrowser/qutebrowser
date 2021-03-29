@@ -26,7 +26,7 @@ import ipaddress
 import posixpath
 import urllib.parse
 import mimetypes
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, List
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QHostInfo, QHostAddress, QNetworkProxy
@@ -73,7 +73,7 @@ class InvalidUrlError(Error):
         super().__init__(self.msg)
 
 
-def _parse_search_term(s: str) -> Tuple[Optional[str], Optional[str]]:
+def _parse_search_term(s: str) -> Tuple[Optional[List[str]], Optional[str]]:
     """Get a search engine name and search term from a string.
 
     Args:
@@ -84,18 +84,21 @@ def _parse_search_term(s: str) -> Tuple[Optional[str], Optional[str]]:
     """
     s = s.strip()
     split = s.split(maxsplit=1)
-    split_engines = split[0].split(',')
     if not split:
         raise ValueError("Empty search term!")
+    if ',' in split[0]:
+        split_engines: Optional[List[str]] = split[0].split(',')
+    else:
+        split_engines = None
 
-    if len(split) == 2 and len(split_engines) == 1:
+    if len(split) == 2 and not split_engines:
         if split[0] in config.val.url.searchengines:
-            engine: Optional[str] = split[0]
+            engine: Optional[List[str]] = [split[0]]
             term: Optional[str] = split[1]
         else:
             engine = None
             term = s
-    elif len(split_engines) > 1 and len(split) > 1:
+    elif split_engines:
         engine = []
         term = split[1]
         for search_engines in split_engines:
@@ -105,7 +108,7 @@ def _parse_search_term(s: str) -> Tuple[Optional[str], Optional[str]]:
                 message.error(f"Wrong search engine!: {search_engines}")
     else:
         if config.val.url.open_base_url and s in config.val.url.searchengines:
-            engine = s
+            engine = [s]
             term = None
         else:
             engine = None
@@ -115,7 +118,7 @@ def _parse_search_term(s: str) -> Tuple[Optional[str], Optional[str]]:
     return (engine, term)
 
 
-def _get_search_url(txt: str) -> QUrl:
+def _get_search_url(txt: str) -> List[QUrl]:
     """Get a search engine URL for a text.
 
     Args:
@@ -127,23 +130,12 @@ def _get_search_url(txt: str) -> QUrl:
     log.url.debug("Finding search engine for {!r}".format(txt))
     engines, term = _parse_search_term(txt)
     if not engines:
-        engines = 'DEFAULT'
+        engines = ['DEFAULT']
+
+    urls = []
     if term:
-        if isinstance(engines, list):
-            urls = []
-            for x in engines:
-                template = config.val.url.searchengines[x]
-                semiquoted_term = urllib.parse.quote(term)
-                quoted_term = urllib.parse.quote(term, safe='')
-                evaluated = template.format(semiquoted_term,
-                                     unquoted=term,
-                                     quoted=quoted_term,
-                                     semiquoted=semiquoted_term)
-                url = QUrl.fromUserInput(evaluated)
-                urls.append(url)
-            return urls
-        else:
-            template = config.val.url.searchengines[engines]
+        for x in engines:
+            template = config.val.url.searchengines[x]
             semiquoted_term = urllib.parse.quote(term)
             quoted_term = urllib.parse.quote(term, safe='')
             evaluated = template.format(semiquoted_term,
@@ -151,14 +143,17 @@ def _get_search_url(txt: str) -> QUrl:
                                         quoted=quoted_term,
                                         semiquoted=semiquoted_term)
             url = QUrl.fromUserInput(evaluated)
-
+            qtutils.ensure_valid(url)
+            urls.append(url)
     else:
-        url = QUrl.fromUserInput(config.val.url.searchengines[engines])
-        url.setPath(None)  # type: ignore[arg-type]
-        url.setFragment(None)  # type: ignore[arg-type]
-        url.setQuery(None)  # type: ignore[call-overload]
-    qtutils.ensure_valid(url)
-    return url
+        urls.append(QUrl.fromUserInput(
+            config.val.url.searchengines[engines[0]]))
+        for u in urls:
+            u.setPath(None)  # type: ignore[arg-type]
+            u.setFragment(None)  # type: ignore[arg-type]
+            u.setQuery(None)  # type: ignore[call-overload]
+            qtutils.ensure_valid(u)
+    return urls
 
 
 def _is_url_naive(urlstr: str) -> bool:
@@ -218,7 +213,7 @@ def fuzzy_url(urlstr: str,
               cwd: str = None,
               relative: bool = False,
               do_search: bool = True,
-              force_search: bool = False) -> QUrl:
+              force_search: bool = False) -> List[QUrl]:
     """Get a QUrl based on a user input which is URL or search term.
 
     Args:
@@ -237,26 +232,20 @@ def fuzzy_url(urlstr: str,
                              check_exists=True)
 
     if not force_search and path is not None:
-        url = QUrl.fromLocalFile(path)
+        url = [QUrl.fromLocalFile(path)]
     elif force_search or (do_search and not is_url(urlstr)):
         # probably a search term
         log.url.debug("URL is a fuzzy search term")
         try:
             url = _get_search_url(urlstr)
         except ValueError:  # invalid search engine
-            url = QUrl.fromUserInput(urlstr)
+            url = [QUrl.fromUserInput(urlstr)]
     else:  # probably an address
-        log.url.debug("URL is a fuzzy address")
-        url = QUrl.fromUserInput(urlstr)
-    if isinstance(url, list):
-        for u in url:
-            log.url.debug("Converting fuzzy term {!r} to URL -> {}".format(
-                          urlstr, u.toDisplayString()))
-            ensure_valid(u)
-    else:
+        url = [QUrl.fromUserInput(urlstr)]
+    for u in url:
         log.url.debug("Converting fuzzy term {!r} to URL -> {}".format(
-            urlstr, url.toDisplayString()))
-        ensure_valid(url)
+            urlstr, u.toDisplayString()))
+        ensure_valid(u)
     return url
 
 

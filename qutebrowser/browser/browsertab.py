@@ -1138,9 +1138,14 @@ class AbstractTab(QWidget):
     def load_status(self) -> usertypes.LoadStatus:
         return self._load_status
 
-    def _load_url_prepare(self, url: QUrl) -> None:
-        qtutils.ensure_valid(url)
-        self.before_load_started.emit(url)
+    def _load_url_prepare(self, url: Union[QUrl, List[QUrl]]) -> None:
+        if isinstance(url, list):
+            for u in url:
+                qtutils.ensure_valid(u)
+                self.before_load_started.emit(u)
+        else:
+            qtutils.ensure_valid(url)
+            self.before_load_started.emit(url)
 
     def load_url(self, url: QUrl) -> None:
         raise NotImplementedError

@@ -851,8 +851,13 @@ class WebKitTab(browsertab.AbstractTab):
         settings.setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
 
     def load_url(self, url):
-        self._load_url_prepare(url)
-        self._widget.load(url)
+        if isinstance(url, list):
+            for u in url:
+                self._load_url_prepare(u)
+                self._widget.load(u)
+        else:
+            self._load_url_prepare(url)
+            self._widget.load(url)
 
     def url(self, *, requested=False):
         frame = self._widget.page().mainFrame()

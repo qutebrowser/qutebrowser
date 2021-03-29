@@ -180,7 +180,7 @@ def debug_pyeval(s: str, file: bool = False, quiet: bool = False) -> None:
     else:
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')
-        tabbed_browser.load_url(QUrl('qute://pyeval'), newtab=True)
+        tabbed_browser.load_url([QUrl('qute://pyeval')], newtab=True)
 
 
 @cmdutils.register(debug=True)

@@ -108,7 +108,7 @@ class ConfigCommands:
         if option is None:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
-            tabbed_browser.load_url(QUrl('qute://settings'), newtab=False)
+            tabbed_browser.load_url([QUrl('qute://settings')], newtab=False)
             return
 
         if option.endswith('!'):
@@ -153,7 +153,7 @@ class ConfigCommands:
         if key is None:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
-            tabbed_browser.load_url(QUrl('qute://bindings'), newtab=True)
+            tabbed_browser.load_url([QUrl('qute://bindings')], newtab=True)
             return
 
         seq = self._parse_key(key)
@@ -264,7 +264,7 @@ class ConfigCommands:
         url = QUrl('qute://configdiff')
         tabbed_browser = objreg.get('tabbed-browser',
                                     scope='window', window=win_id)
-        tabbed_browser.load_url(url, newtab=False)
+        tabbed_browser.load_url([url], newtab=False)
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.list_option)
