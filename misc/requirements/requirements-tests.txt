@@ -7,23 +7,22 @@ certifi==2020.12.5
 chardet==4.0.0
 cheroot==8.5.2
 click==7.1.2
-# colorama==0.4.4
 coverage==5.5
 EasyProcess==0.3
 execnet==1.8.0
 filelock==3.0.12
 Flask==1.1.2
 glob2==0.7
-hunter==3.3.1
-hypothesis==6.8.1
+hunter==3.3.2
+hypothesis==6.8.3
 icdiff==1.9.1
 idna==2.10
 iniconfig==1.1.1
 itsdangerous==1.1.0
-jaraco.functools==3.2.1
+jaraco.functools==3.3.0
 # Jinja2==2.11.3
 Mako==1.1.4
-manhole==1.6.0
+manhole==1.7.0
 # MarkupSafe==1.1.1
 more-itertools==8.7.0
 packaging==20.9

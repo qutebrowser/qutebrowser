@@ -4,7 +4,7 @@ astroid==2.3.3  # rq.filter: < 2.4
 certifi==2020.12.5
 cffi==1.14.5
 chardet==4.0.0
-cryptography==3.4.6
+cryptography==3.4.7
 future==0.18.2
 github3.py==2.0.0
 idna==2.10
