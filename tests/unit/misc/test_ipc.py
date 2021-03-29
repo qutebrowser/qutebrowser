@@ -600,9 +600,13 @@ def test_timeout(qtbot, caplog, qlocalsocket, ipc_server):
     assert caplog.messages[-1].startswith("IPC connection timed out")
 
 
-def test_ipcserver_socket_none_readyread(ipc_server):
+def test_ipcserver_socket_none_readyread(ipc_server, caplog):
     assert ipc_server._socket is None
-    ipc_server.on_ready_read()
+    assert ipc_server._old_socket is None
+    with caplog.at_level(logging.WARNING):
+        ipc_server.on_ready_read()
+    msg = "In on_ready_read with None socket and old_socket!"
+    assert msg in caplog.messages
 
 
 @pytest.mark.posix
