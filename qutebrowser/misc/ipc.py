@@ -356,13 +356,18 @@ class IPCServer(QObject):
 
         self.got_args.emit(args, target_arg, cwd)
 
-    def _get_socket(self):
-        """Get the current socket for on_ready_read."""
+    def _get_socket(self, warn=True):
+        """Get the current socket for on_ready_read.
+
+        Arguments:
+            warn: Whether to warn if no socket was found.
+        """
         if self._socket is None:  # pragma: no cover
             # This happens when doing a connection while another one is already
             # active for some reason.
             if self._old_socket is None:
-                log.ipc.warning("In _get_socket with None socket and old_socket!")
+                if warn:
+                    log.ipc.warning("In _get_socket with None socket and old_socket!")
                 return None
             log.ipc.debug("In _get_socket with None socket!")
             socket = self._old_socket
@@ -387,7 +392,7 @@ class IPCServer(QObject):
             log.ipc.debug("Read from socket 0x{:x}: {!r}".format(
                 id(socket), data))
             self._handle_data(data)
-            socket = self._get_socket()
+            socket = self._get_socket(warn=False)
 
         if self._socket is not None:
             self._timer.start()
