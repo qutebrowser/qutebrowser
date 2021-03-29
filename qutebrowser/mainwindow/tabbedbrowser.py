@@ -433,7 +433,7 @@ class TabbedBrowser(QWidget):
                 self.load_url([QUrl('about:blank')], newtab=True)
             elif last_close == 'startpage':
                 for url in config.val.url.start_pages:
-                    self.load_url(url, newtab=True)
+                    self.load_url([url], newtab=True)
             elif last_close == 'default-page':
                 self.load_url(config.val.url.default_page, newtab=True)
 
@@ -1039,7 +1039,7 @@ class TabbedBrowser(QWidget):
                         self.cur_load_finished.disconnect(callback)
                         tab.scroller.to_point(point)
 
-                self.load_url(url, newtab=False)
+                self.load_url([url], newtab=False)
                 self.cur_load_finished.connect(callback)
             else:
                 message.error("Mark {} is not set".format(key))
