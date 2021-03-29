@@ -294,14 +294,14 @@ def build_mac(*, gh_token):
     utils.print_title("Building .dmg")
     subprocess.run(['make', '-f', 'scripts/dev/Makefile-dmg'], check=True)
 
-    dmg_name = 'qutebrowser-{}.dmg'.format(qutebrowser.__version__)
-    os.rename('qutebrowser.dmg', dmg_name)
+    dmg_path = f'dist/qutebrowser-{qutebrowser.__version__}.dmg'
+    os.rename('qutebrowser.dmg', dmg_path)
 
     utils.print_title("Running smoke test")
 
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
-            subprocess.run(['hdiutil', 'attach', dmg_name,
+            subprocess.run(['hdiutil', 'attach', dmg_path,
                             '-mountpoint', tmpdir], check=True)
             try:
                 binary = os.path.join(tmpdir, 'qutebrowser.app', 'Contents',
@@ -314,7 +314,7 @@ def build_mac(*, gh_token):
     except PermissionError as e:
         print("Failed to remove tempdir: {}".format(e))
 
-    return [(dmg_name, 'application/x-apple-diskimage', 'macOS .dmg')]
+    return [(dmg_path, 'application/x-apple-diskimage', 'macOS .dmg')]
 
 
 def _get_windows_python_path(x64):

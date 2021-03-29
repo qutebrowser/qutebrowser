@@ -68,7 +68,7 @@ jobs:
         with:
           name: "qutebrowser-nightly-${{ github.sha }}"
           path: |
-            qutebrowser-*.dmg
+            dist/qutebrowser-*.dmg
             dist/qutebrowser-*-windows-standalone-*.zip
             dist/qutebrowser-*-*.exe
 
