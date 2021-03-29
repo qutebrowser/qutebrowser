@@ -301,7 +301,8 @@ def build_mac(*, gh_token, debug):
     utils.print_title("Building .dmg")
     subprocess.run(['make', '-f', 'scripts/dev/Makefile-dmg'], check=True)
 
-    dmg_path = f'dist/qutebrowser-{qutebrowser.__version__}.dmg'
+    suffix = "-debug" if debug else ""
+    dmg_path = f'dist/qutebrowser-{qutebrowser.__version__}{suffix}.dmg'
     os.rename('qutebrowser.dmg', dmg_path)
 
     utils.print_title("Running smoke test")
@@ -378,6 +379,7 @@ def _build_windows_single(*, x64, skip_packaging, debug):
         filename_arch='amd64' if x64 else 'win32',
         desc_arch=human_arch,
         desc_suffix='' if x64 else ' (only for 32-bit Windows!)',
+        debug=debug,
     )
 
 
@@ -418,6 +420,7 @@ def _package_windows_single(
     desc_arch,
     desc_suffix,
     filename_arch,
+    debug,
 ):
     """Build the given installer/zip for windows."""
     artifacts = []
@@ -426,7 +429,16 @@ def _package_windows_single(
     subprocess.run(['makensis.exe',
                     f'/DVERSION={qutebrowser.__version__}', *nsis_flags,
                     'misc/nsis/qutebrowser.nsi'], check=True)
-    name = f'qutebrowser-{qutebrowser.__version__}-{filename_arch}.exe'
+
+    name_parts = [
+        'qutebrowser',
+        str(qutebrowser.__version__),
+        filename_arch,
+    ]
+    if debug:
+        name_parts.append('debug')
+    name = '-'.join(name_parts) + '.exe'
+
     artifacts.append((
         os.path.join('dist', name),
         'application/vnd.microsoft.portable-executable',
@@ -434,8 +446,17 @@ def _package_windows_single(
     ))
 
     utils.print_subtitle(f"Zipping {desc_arch} standalone...")
-    zip_name = (
-        f'qutebrowser-{qutebrowser.__version__}-windows-standalone-{filename_arch}')
+    zip_name_parts = [
+        'qutebrowser',
+        str(qutebrowser.__version__),
+        'windows',
+        'standalone',
+        filename_arch,
+    ]
+    if debug:
+        zip_name_parts.append('debug')
+    zip_name = '-'.join(zip_name_parts)
+
     zip_path = os.path.join('dist', zip_name)
     shutil.make_archive(zip_path, 'zip', 'dist', os.path.basename(outdir))
     artifacts.append((
