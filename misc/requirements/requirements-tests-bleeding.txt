@@ -2,7 +2,7 @@
 # bzr+lp:beautifulsoup
 beautifulsoup4
 git+https://github.com/cherrypy/cheroot.git
-git+https://github.com/nedbat/coveragepy.git
+git+https://github.com/nedbat/coveragepy.git#egg=coverage[toml]
 git+https://github.com/pallets/flask.git
 git+https://github.com/pallets/werkzeug.git  # transitive dep, but needed to work
 git+https://github.com/HypothesisWorks/hypothesis.git#subdirectory=hypothesis-python
