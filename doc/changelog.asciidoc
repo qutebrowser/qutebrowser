@@ -139,9 +139,10 @@ Fixed
 
 - The workaround for black on (almost) black formula images in dark mode now
   also works with Qt 5.12 and 5.13.
-- When running in Flatpak, the QtWebEngine version is now detected properly.
-  Before, a wrong version was assumed, breaking dark mode and certain workarounds
-  (resulting in crashes on websites like LinkedIn or TradingView).
+- When running in Flatpak or with the Windows/macOS releases, the QtWebEngine
+  version is now detected properly. Before, a wrong version was assumed, breaking
+  dark mode and certain workarounds (resulting in crashes on websites like
+  LinkedIn or TradingView).
 - When running in Flatpak, communicating with an existing instance now works
   properly. Before, a new instance was always opened.
 - When the metainfo in the completion database doesn't have the expected
@@ -162,6 +163,8 @@ Fixed
 - When a format string in the config (e.g. `tabs.title_format`) used a value
   like `{current_url.host}` (instead of `{current_url:host}`), qutebrowser
   would crash. It now correctly reports an invalid config value instead.
+- In rare circumstances, sending URLs/commands to existing instances would
+  result in a crash, which is now fixed.
 
 [[v2.1.0]]
 v2.1.0 (2021-03-12)
