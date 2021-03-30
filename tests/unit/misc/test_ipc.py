@@ -36,7 +36,7 @@ from PyQt5.QtTest import QSignalSpy
 
 import qutebrowser
 from qutebrowser.misc import ipc
-from qutebrowser.utils import standarddir, utils
+from qutebrowser.utils import standarddir, utils, version
 from helpers import stubs, testutils
 
 
@@ -219,6 +219,7 @@ class TestSocketName:
         assert parts[-1] == expected
 
     @pytest.mark.linux
+    @pytest.mark.not_flatpak
     @pytest.mark.parametrize('basedir, expected', [
         (None, 'ipc-{}'.format(md5('testusername'))),
         ('/x', 'ipc-{}'.format(md5('testusername-/x'))),
@@ -226,6 +227,20 @@ class TestSocketName:
     def test_linux(self, basedir, fake_runtime_dir, expected):
         socketname = ipc._get_socketname(basedir)
         expected_path = str(fake_runtime_dir / 'qutebrowser' / expected)
+        assert socketname == expected_path
+
+    # We can't use the fake_flatpak fixture here, because it conflicts with
+    # fake_runtime_dir...
+    @pytest.mark.linux
+    @pytest.mark.parametrize('basedir, expected', [
+        (None, 'ipc-{}'.format(md5('testusername'))),
+        ('/x', 'ipc-{}'.format(md5('testusername-/x'))),
+    ])
+    @pytest.mark.skipif(not version.is_flatpak(), reason="Needs Flatpak")
+    def test_flatpak(self, basedir, fake_runtime_dir, expected):
+        socketname = ipc._get_socketname(basedir)
+        expected_path = str(
+            fake_runtime_dir / 'app' / 'org.qutebrowser.qutebrowser' / expected)
         assert socketname == expected_path
 
     def test_other_unix(self):
