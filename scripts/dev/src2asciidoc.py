@@ -375,7 +375,7 @@ def generate_commands(filename):
         other_cmds = []
         debug_cmds = []
         for name, cmd in objects.commands.items():
-            if cmd.deprecated:
+            if cmd.deprecated or name == 'Ni!':
                 continue
             if usertypes.KeyMode.normal not in cmd.modes:
                 other_cmds.append((name, cmd))
