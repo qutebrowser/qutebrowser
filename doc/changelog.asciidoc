@@ -33,6 +33,9 @@ Deprecated
 Added
 ~~~~~
 
+- New dependency on the `QtDBus` module. If this requirement is an issue for you
+  or your distribution, please open an issue! Note that a DBus connection at
+  runtime is still optional.
 - New `input.media_keys` setting which can be used to disable Chromium's
   handling of media keys.
 - New `:process` command (and associated `qute://process` pages) which can be

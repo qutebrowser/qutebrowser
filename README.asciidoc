@@ -80,6 +80,8 @@ The following software and libraries are required to run qutebrowser:
   - QtCore / qtbase
   - QtQuick (part of qtbase or qtdeclarative in some distributions)
   - QtSQL (part of qtbase in some distributions)
+  - QtDBus (part of qtbase in some distributions; note that a connection to DBus at
+    runtime is optional)
   - QtOpenGL
   - QtWebEngine, or
   - alternatively QtWebKit (5.212) - **This is not recommended** due to known security
