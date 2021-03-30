@@ -155,7 +155,12 @@ class TestStandardDir:
         (lambda: standarddir.config(auto=True),
          standarddir._init_config, 'XDG_CONFIG_HOME'),
         (standarddir.cache, standarddir._init_cache, 'XDG_CACHE_HOME'),
-        (standarddir.runtime, standarddir._init_runtime, 'XDG_RUNTIME_DIR'),
+        pytest.param(
+            standarddir.runtime,
+            standarddir._init_runtime,
+            'XDG_RUNTIME_DIR',
+            marks=pytest.mark.not_flatpak,
+        ),
     ])
     @pytest.mark.linux
     def test_linux_explicit(self, monkeypatch, tmpdir,
