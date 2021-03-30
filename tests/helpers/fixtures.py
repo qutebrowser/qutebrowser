@@ -748,3 +748,20 @@ def freezer(request, monkeypatch):
         # Want to test unfrozen tests, but we are frozen
         pytest.skip("Can't run with sys.frozen = True!")
     return request.param
+
+
+@pytest.fixture
+def fake_flatpak(monkeypatch):
+    info = version.DistributionInfo(
+        id='org.kde.Platform',
+        parsed=version.Distribution.kde_flatpak,
+        version=utils.VersionNumber.parse('5.12'),
+        pretty='Unknown')
+
+    if not version.is_flatpak():
+        monkeypatch.setattr(version, 'distribution', lambda: info)
+
+    app_id = 'org.qutebrowser.qutebrowser'
+    monkeypatch.setenv('FLATPAK_ID', app_id)
+
+    assert version.is_flatpak()

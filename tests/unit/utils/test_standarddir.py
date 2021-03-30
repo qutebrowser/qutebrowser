@@ -204,23 +204,20 @@ class TestStandardDir:
 
     @pytest.mark.linux
     @pytest.mark.parametrize('args_basedir', [True, False])
-    def test_flatpak_runtimedir(self, monkeypatch, tmp_path, args_basedir):
+    def test_flatpak_runtimedir(self, fake_flatpak, monkeypatch, tmp_path,
+                                args_basedir):
         runtime_path = tmp_path / 'runtime'
         runtime_path.mkdir()
         runtime_path.chmod(0o0700)
 
-        app_id = 'org.qutebrowser.qutebrowser'
-
-        monkeypatch.setattr(standarddir.version, 'is_flatpak', lambda: True)
         monkeypatch.setenv('XDG_RUNTIME_DIR', str(runtime_path))
-        monkeypatch.setenv('FLATPAK_ID', app_id)
 
         if args_basedir:
             init_args = types.SimpleNamespace(basedir=str(tmp_path))
             expected = tmp_path / 'runtime'
         else:
             init_args = None
-            expected = runtime_path / 'app' / app_id
+            expected = runtime_path / 'app' / 'org.qutebrowser.qutebrowser'
 
         standarddir._init_runtime(args=init_args)
         assert standarddir.runtime() == str(expected)
