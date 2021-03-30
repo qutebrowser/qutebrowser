@@ -236,7 +236,8 @@ def _init_runtime(args: Optional[argparse.Namespace]) -> None:
         if version.is_flatpak():
             *parts, app_name = os.path.split(path)
             assert app_name == APPNAME, app_name
-            path = os.path.join(*parts, 'app', os.environ['FLATPAK_ID'])
+            flatpak_id = os.environ.get('FLATPAK_ID', 'org.qutebrowser.qutebrowser')
+            path = os.path.join(*parts, 'app', flatpak_id)
 
     _create(path)
     _locations[_Location.runtime] = path

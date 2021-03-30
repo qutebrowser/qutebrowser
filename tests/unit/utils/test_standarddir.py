@@ -209,7 +209,9 @@ class TestStandardDir:
 
     @pytest.mark.linux
     @pytest.mark.parametrize('args_basedir', [True, False])
-    def test_flatpak_runtimedir(self, monkeypatch, tmp_path, args_basedir):
+    @pytest.mark.parametrize('has_flatpak_id', [True, False])
+    def test_flatpak_runtimedir(self, monkeypatch, tmp_path,
+                                args_basedir, has_flatpak_id):
         runtime_path = tmp_path / 'runtime'
         runtime_path.mkdir()
         runtime_path.chmod(0o0700)
@@ -218,7 +220,11 @@ class TestStandardDir:
 
         monkeypatch.setattr(version, 'is_flatpak', lambda: True)
         monkeypatch.setenv('XDG_RUNTIME_DIR', str(runtime_path))
-        monkeypatch.setenv('FLATPAK_ID', app_id)
+
+        if has_flatpak_id:
+            monkeypatch.setenv('FLATPAK_ID', app_id)
+        else:
+            monkeypatch.delenv('FLATPAK_ID', raising=False)
 
         if args_basedir:
             init_args = types.SimpleNamespace(basedir=str(tmp_path))
