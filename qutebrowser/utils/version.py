@@ -689,7 +689,7 @@ class WebEngineVersions:
             # do this kind of "downgrade" when we know we're using PyInstaller.
             frozen = hasattr(sys, 'frozen')
             log.misc.debug(f"PyQt5 >= 5.15.3, frozen {frozen}")
-            if frozen:
+            if frozen:  # pragma: no cover
                 parsed = utils.VersionNumber(5, 15, 2)
 
         return cls(
