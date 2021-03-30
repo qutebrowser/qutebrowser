@@ -343,6 +343,10 @@ def is_ignored_chromium_message(line):
 
         # Qt 5.15.3 dev build
         r'Duplicate id found. Reassigning from * to *',
+
+        # Flatpak
+        'mDNS responder manager failed to start.',
+        'The mDNS responder manager is not started yet.',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
