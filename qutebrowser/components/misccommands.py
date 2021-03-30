@@ -385,3 +385,9 @@ def devtools_focus(tab: apitypes.Tab) -> None:
         tab.data.splitter.cycle_focus()
     except apitypes.InspectorError as e:
         raise cmdutils.CommandError(e)
+
+
+@cmdutils.register(name='Ni!')
+def knights_who_say_ni() -> None:
+    """We are the Knights Who Say... 'Ni'!"""  # noqa: D400
+    raise cmdutils.CommandError("Do you demand a shrubbery?")
