@@ -725,6 +725,7 @@ class TestGetSetClipboard:
 class TestOpenFile:
 
     @pytest.mark.not_frozen
+    @pytest.mark.not_flatpak
     def test_cmdline_without_argument(self, caplog, config_stub):
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass'.format(executable)
@@ -734,6 +735,7 @@ class TestOpenFile:
             r'Opening /foo/bar with \[.*python.*/foo/bar.*\]', result)
 
     @pytest.mark.not_frozen
+    @pytest.mark.not_flatpak
     def test_cmdline_with_argument(self, caplog, config_stub):
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass {{}} raboof'.format(executable)
@@ -743,6 +745,7 @@ class TestOpenFile:
             r"Opening /foo/bar with \[.*python.*/foo/bar.*'raboof'\]", result)
 
     @pytest.mark.not_frozen
+    @pytest.mark.not_flatpak
     def test_setting_override(self, caplog, config_stub):
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass'.format(executable)
@@ -772,8 +775,11 @@ class TestOpenFile:
             parsed=version.Distribution.kde_flatpak,
             version=VersionNumber.parse('5.12'),
             pretty='Unknown')
-        monkeypatch.setattr(version, 'distribution',
-                            lambda: info)
+
+        if not version.is_flatpak():
+            monkeypatch.setattr(version, 'distribution', lambda: info)
+
+        assert version.is_flatpak()
 
     def test_cmdline_sandboxed(self, sandbox_patch,
                                config_stub, message_mock, caplog):
