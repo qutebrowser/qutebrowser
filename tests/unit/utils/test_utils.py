@@ -39,7 +39,7 @@ import yaml
 
 import qutebrowser
 import qutebrowser.utils  # for test_qualname
-from qutebrowser.utils import utils, version, usertypes
+from qutebrowser.utils import utils, usertypes
 from qutebrowser.utils.utils import VersionNumber
 
 
@@ -758,20 +758,7 @@ class TestOpenFile:
             r"Opening /foo/bar with the system application", result)
         openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
 
-    @pytest.fixture
-    def sandbox_patch(self, monkeypatch):
-        info = version.DistributionInfo(
-            id='org.kde.Platform',
-            parsed=version.Distribution.kde_flatpak,
-            version=VersionNumber.parse('5.12'),
-            pretty='Unknown')
-
-        if not version.is_flatpak():
-            monkeypatch.setattr(version, 'distribution', lambda: info)
-
-        assert version.is_flatpak()
-
-    def test_cmdline_sandboxed(self, sandbox_patch,
+    def test_cmdline_sandboxed(self, fake_flatpak,
                                config_stub, message_mock, caplog):
         with caplog.at_level(logging.ERROR):
             utils.open_file('/foo/bar', 'custom_cmd')
@@ -779,7 +766,7 @@ class TestOpenFile:
         assert msg.text == 'Cannot spawn download dispatcher from sandbox'
 
     @pytest.mark.not_frozen
-    def test_setting_override_sandboxed(self, sandbox_patch, openurl_mock,
+    def test_setting_override_sandboxed(self, fake_flatpak, openurl_mock,
                                         caplog, config_stub):
         config_stub.val.downloads.open_dispatcher = 'test'
 
@@ -791,7 +778,7 @@ class TestOpenFile:
         openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
 
     def test_system_default_sandboxed(self, config_stub, openurl_mock,
-                                      sandbox_patch):
+                                      fake_flatpak):
         utils.open_file('/foo/bar')
         openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
 
