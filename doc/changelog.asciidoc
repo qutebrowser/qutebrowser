@@ -130,6 +130,7 @@ Added
 - Site-specific quirk for krunker.io, which shows a "Socket Error" with
   qutebrowser's default Accept-Language header. The workaround is equivalent to
   doing `:set -u matchmaker.krunker.io content.headers.accept_language ""`.
+- We are the Knights Who Say... 'Ni'!
 
 Changed
 ~~~~~~~
@@ -168,6 +169,7 @@ Fixed
   would crash. It now correctly reports an invalid config value instead.
 - In rare circumstances, sending URLs/commands to existing instances would
   result in a crash, which is now fixed.
+- Running the testsuite should now fully work without internet access again.
 
 [[v2.1.0]]
 v2.1.0 (2021-03-12)
