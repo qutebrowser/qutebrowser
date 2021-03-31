@@ -166,7 +166,7 @@ CHANGELOG_URLS = {
     'pathspec': 'https://github.com/cpburnz/python-path-specification/blob/master/CHANGES.rst',
     'filelock': 'https://github.com/benediktschmitt/py-filelock/commits/master',
     'github3.py': 'https://github3py.readthedocs.io/en/master/release-notes/index.html',
-    'manhole': 'https://github3py.readthedocs.io/en/master/release-notes/index.html',
+    'manhole': 'https://github.com/ionelmc/python-manhole/blob/master/CHANGELOG.rst',
     'pycparser': 'https://github.com/eliben/pycparser/blob/master/CHANGES',
     'python-dateutil': 'https://dateutil.readthedocs.io/en/stable/changelog.html',
     'appdirs': 'https://github.com/ActiveState/appdirs/blob/master/CHANGES.rst',

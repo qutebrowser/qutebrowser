@@ -192,6 +192,17 @@ def _get_pak_name(locale_name: str) -> str:
     return locale_name.split('-')[0]
 
 
+def _webengine_locales_path() -> pathlib.Path:
+    """Get the path of the QtWebEngine locales."""
+    if version.is_flatpak():
+        # TranslationsPath is /usr/translations on Flatpak, i.e. the path for qtbase,
+        # not QtWebEngine.
+        base = pathlib.Path('/app/translations')
+    else:
+        base = pathlib.Path(QLibraryInfo.location(QLibraryInfo.TranslationsPath))
+    return base / 'qtwebengine_locales'
+
+
 def _get_lang_override(
         webengine_version: utils.VersionNumber,
         locale_name: str
@@ -207,8 +218,7 @@ def _get_lang_override(
     if webengine_version != utils.VersionNumber(5, 15, 3) or not utils.is_linux:
         return None
 
-    locales_path = pathlib.Path(
-        QLibraryInfo.location(QLibraryInfo.TranslationsPath)) / 'qtwebengine_locales'
+    locales_path = _webengine_locales_path()
     if not locales_path.exists():
         log.init.debug(f"{locales_path} not found, skipping workaround!")
         return None

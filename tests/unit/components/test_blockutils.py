@@ -18,7 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import io
 from typing import IO
 
@@ -30,7 +29,7 @@ from qutebrowser.components.utils import blockutils
 
 
 @pytest.fixture
-def pretend_blocklists(tmpdir):
+def pretend_blocklists(tmp_path):
     """Put fake blocklists into a tempdir.
 
     Put fake blocklists blocklists into a temporary directory, then return
@@ -44,14 +43,13 @@ def pretend_blocklists(tmpdir):
     for n in range(8):
         data.append(([f"example{n}.com", f"example{n+1}.net"], f"blocklist{n}"))
 
-    bl_dst_dir = tmpdir / "blocklists"
+    bl_dst_dir = tmp_path / "blocklists"
     bl_dst_dir.mkdir()
     urls = []
     for blocklist_lines, filename in data:
         bl_dst_path = bl_dst_dir / filename
-        with open(bl_dst_path, "w", encoding="utf-8") as f:
-            f.write("\n".join(blocklist_lines))
-        assert os.path.isfile(bl_dst_path)
+        bl_dst_path.write_text("\n".join(blocklist_lines), encoding="utf-8")
+        assert bl_dst_path.is_file()
         urls.append(QUrl.fromLocalFile(str(bl_dst_path)).toString())
     return urls, bl_dst_dir
 

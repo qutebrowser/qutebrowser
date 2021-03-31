@@ -25,12 +25,43 @@ Deprecated
 - Running qutebrowser with Qt 5.12.0 is now unsupported and logs a warning. It
   should still work, however, a workaround for issues with the Nvidia graphic
   driver was dropped. Newer Qt 5.12.x versions are still fully supported.
+- The `--force` argument for `:tab-only` is deprecated, use `--pinned close`
+  instead.
+- Using `:tab-focus` without an argument or count is now deprecated, use
+  `:tab-next` instead.
 
 Added
 ~~~~~
 
+- New dependency on the `QtDBus` module. If this requirement is an issue for you
+  or your distribution, please open an issue! Note that a DBus connection at
+  runtime is still optional.
 - New `input.media_keys` setting which can be used to disable Chromium's
   handling of media keys.
+- New `:process` command (and associated `qute://process` pages) which can be
+  used to view and terminate/kill external processes spawned by qutebrowser.
+- New `content.site_specific_quirks.skip` setting which can be used to disable
+  individual site-specific quirks.
+- New `--pinned` argument for `:tab-only`, which replaces `--force` (with
+  `--pinned close`), but also can take `--pinned keep` to keep pinned tabs
+  without prompting.
+- New `fileselect.folder.command` which can be used with
+  `fileselect.handler = external` to customize the command to use to upload
+  directories (`<input type="file" webkitdirectory />` elements, which are
+  non-standard but in wide use).
+- New `content.notifications.presenter` setting with various new ways to show
+  web notifications:
+     * auto (default): Automatically detect the best available option
+     * qt: Use Qt's built-in mechanism (like before this release)
+     * libnotify: Use a libnotify-compatible notification server (i.e. native
+       notifications on Linux)
+     * systray: Use a systray icon (very similar to `qt` but without some of its
+       drawbacks)
+     * messages: Use qutebrowser messages
+     * herbe: Use https://github.com/dudik/herbe[herbe]
+- New `content.notifications.show_origin` setting which can be used to decide
+  for which notifications to show the origin (the URL the notification was sent
+  from).
 
 Changed
 ~~~~~~~
@@ -47,8 +78,47 @@ Changed
   browsers do.
 - The prompt text shown on certificate errors has been improved to make it
   clearer what kind of error occurred exactly.
+- The `content.site_specific_quirks` setting got renamed to
+  `content.site_specific_quirks.enabled`.
+- The `content.notifications` option got renamed to
+  `content.notifications.enabled`.
 - The completion now also shows bindings starting with `set-cmd-text` in its
   third column, such as `o` for `:open`.
+- When `:spawn` is used with the `-m` / `--output-messages` flag, the output now
+  appears live, while the process is running.
+- When a shown message replaces an existing related one (e.g. for zoom levels),
+  the replacing now also works even if a different message was shown in between.
+- The `.redirect(...)` method on interceptors now supports an
+  `ignore_unsupported=True` argument which supresses exceptions if a request could
+  not be redirected. Note, however, that it is still not public API.
+- When the `--config-py` argument is used, no warning about a missing
+  `config.load_autoconfig` is shown anymore, as the argument is typically used
+  for temporarily testing a config.
+- The internal `_autosave` session used for crash recovery is now only saved
+  once per minute, since saving it for every page load is a noticable performance
+  issue.
+- The `readability-js` userscript now displays a small header with page
+  information.
+- When an external file selector is used, some additional validation is done on
+  the picked files now, so that errors are shown if e.g. a directory is selected
+  when a file was expected.
+- The default binding for `T` (`:tab-focus`) got changed so that it fills the
+  command line with `:tab-focus` if used without a count (instead of being
+  equivalent to `:tab-next` in that case).
+
+Fixed
+~~~~~
+
+- When an editor exits with a != 0 exit status, the temporary editor file is now
+  persisted. This already was the case when the editor crashed.
+- When a nonexistent file gets passed to `--config-py`, qutebrowser now
+  complains instead of silently not loading it.
+
+Removed
+~~~~~~~
+
+- The `qute://spawn-output` page used by `:spawn -o` is now removed, as it's
+  replaced by the new `qute://process` pages.
 
 [[v2.1.1]]
 v2.1.1 (unreleased)
@@ -60,6 +130,7 @@ Added
 - Site-specific quirk for krunker.io, which shows a "Socket Error" with
   qutebrowser's default Accept-Language header. The workaround is equivalent to
   doing `:set -u matchmaker.krunker.io content.headers.accept_language ""`.
+- We are the Knights Who Say... 'Ni'!
 
 Changed
 ~~~~~~~
@@ -72,9 +143,10 @@ Fixed
 
 - The workaround for black on (almost) black formula images in dark mode now
   also works with Qt 5.12 and 5.13.
-- When running in Flatpak, the QtWebEngine version is now detected properly.
-  Before, a wrong version was assumed, breaking dark mode and certain workarounds
-  (resulting in crashes on websites like LinkedIn or TradingView).
+- When running in Flatpak or with the Windows/macOS releases, the QtWebEngine
+  version is now detected properly. Before, a wrong version was assumed, breaking
+  dark mode and certain workarounds (resulting in crashes on websites like
+  LinkedIn or TradingView).
 - When running in Flatpak, communicating with an existing instance now works
   properly. Before, a new instance was always opened.
 - When the metainfo in the completion database doesn't have the expected
@@ -90,6 +162,14 @@ Fixed
 - When using `bindings.key_mappings` to map a key to multiple other keys,
   qutebrowser would crash. This is now handled correctly - however, note that
   it's usually better to map keys to commands instead.
+- When a minimized window is selected via `:tab-select`, it's now un-minimized
+  properly.
+- When a format string in the config (e.g. `tabs.title_format`) used a value
+  like `{current_url.host}` (instead of `{current_url:host}`), qutebrowser
+  would crash. It now correctly reports an invalid config value instead.
+- In rare circumstances, sending URLs/commands to existing instances would
+  result in a crash, which is now fixed.
+- Running the testsuite should now fully work without internet access again.
 
 [[v2.1.0]]
 v2.1.0 (2021-03-12)

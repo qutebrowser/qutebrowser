@@ -519,11 +519,31 @@ content.frame_flattening:
     This will flatten all the frames to become one scrollable page.
 
 content.site_specific_quirks:
+  renamed: content.site_specific_quirks.enabled
+
+content.site_specific_quirks.enabled:
   default: true
   restart: true
   type: Bool
   desc: 'Enable quirks (such as faked user agent headers) needed to get
       specific sites to work properly.'
+
+content.site_specific_quirks.skip:
+  type:
+    name: FlagList
+    valid_values:
+      - ua-whatsapp
+      - ua-google
+      - ua-slack
+      - js-whatsapp-web
+      - js-string-replaceall
+      - js-globalthis
+      - js-object-fromentries
+      - misc-krunker
+      - misc-mathml-darkmode
+    none_ok: true
+  default: []
+  desc: 'Disable a list of named quirks.'
 
 # emacs: '
 
@@ -885,6 +905,9 @@ content.netrc_file:
     If unset, `~/.netrc` is used.
 
 content.notifications:
+  renamed: content.notifications.enabled
+
+content.notifications.enabled:
   default: ask
   type: BoolAsk
   supports_pattern: true
@@ -892,6 +915,59 @@ content.notifications:
     QtWebEngine: Qt 5.13
     QtWebKit: true
   desc: Allow websites to show notifications.
+
+content.notifications.presenter:
+  default: auto
+  type:
+    name: String
+    valid_values:
+      - auto: Tries `libnotify`, `systray` and `messages`, uses the first one available
+            without showing error messages.
+      - qt: Use Qt's native notification presenter, based on a system tray icon.
+            Switching from or to this value requires a restart of qutebrowser.
+            Recommended over `systray` on PyQt 5.14.
+      - libnotify: Shows messages via DBus in a libnotify-compatible way. If DBus isn't
+            available, falls back to `systray` or `messages`, but shows an error
+            message.
+      - systray: Use a notification presenter based on a systray icon. Falls back to
+            `libnotify` or `messages` if not systray is available. This is a
+            reimplementation of the `qt` setting value, but with the possibility to
+            switch to it at runtime.
+      - messages: Show notifications as qutebrowser messages. Most notification features
+            aren't available.
+      - herbe: (experimental!) Show notifications using herbe (github.com/dudik/herbe).
+            Most notification features aren't available.
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+  desc: >-
+    What notification presenter to use for web notifications.
+
+    Note that not all implementations support all features of notifications:
+
+    - With PyQt 5.14, any setting other than `qt` does not support  the `click` and
+      `close` events, as well as the `tag` option to replace existing notifications.
+    - The `qt` and `systray` options only support showing one notification at the time
+      and ignore the `tag` option to replace existing notifications.
+    - The `herbe` option only supports showing one notification at the time and doesn't
+      show icons.
+    - The `messages` option doesn't show icons and doesn't support the `click` and
+      `close` events.
+
+content.notifications.show_origin:
+  default: true
+  type: Bool
+  supports_pattern: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+  desc: >-
+    Whether to show the origin URL for notifications.
+
+    Note that URL patterns with this setting only get matched against the origin part of
+    the URL, so e.g. paths in patterns will never match.
+
+    Note that with the `qt` presenter, origins are never shown.
 
 content.pdfjs:
   default: false
@@ -1316,6 +1392,24 @@ fileselect.multiple_files.command:
     Command (and arguments) to use for selecting multiple files in forms.
     The command should write the selected file paths to the specified file or to stdout,
     separated by newlines.
+
+    The following placeholders are defined:
+
+    * `{}`: Filename of the file to be written to. If not contained in any argument, the
+      standard output of the command is read instead.
+
+fileselect.folder.command:
+  type:
+    name: ShellCommand
+    placeholder: false
+    completions:
+      - ['["xterm", "-e", "ranger", "--choosedir={}"]', "Ranger in xterm"]
+      - ['["xterm", "-e", "vifm", "--choose-dir", "{}"]', "vifm in xterm"]
+      - ['["xterm", "-e", "nnn", "-p", "{}"]', "nnn in xterm"]
+  default: ['xterm', '-e', 'ranger', '--choosedir={}']
+  desc: >-
+    Command (and arguments) to use for selecting a single folder in forms.
+    The command should write the selected folder path to the specified file or stdout.
 
     The following placeholders are defined:
 
@@ -3302,7 +3396,7 @@ bindings.default:
       <Ctrl-Shift-W>: close
       D: tab-close -o
       co: tab-only
-      T: tab-focus
+      T: set-cmd-text -sr :tab-focus
       gm: tab-move
       gK: tab-move -
       gJ: tab-move +

@@ -19,8 +19,7 @@
 
 """Fixtures to run qutebrowser in a QProcess and communicate."""
 
-import os
-import os.path
+import pathlib
 import re
 import sys
 import time
@@ -344,6 +343,10 @@ def is_ignored_chromium_message(line):
 
         # Qt 5.15.3 dev build
         r'Duplicate id found. Reassigning from * to *',
+
+        # Flatpak
+        'mDNS responder manager failed to start.',
+        'The mDNS responder manager is not started yet.',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -505,24 +508,19 @@ class QuteProc(testprocess.Process):
         if hasattr(sys, 'frozen'):
             if profile:
                 raise Exception("Can't profile with sys.frozen!")
-            executable = os.path.join(os.path.dirname(sys.executable),
-                                      'qutebrowser')
+            executable = str(pathlib.Path(sys.executable).parent / 'qutebrowser')
             args = []
         else:
             executable = sys.executable
             if profile:
-                profile_dir = os.path.join(os.getcwd(), 'prof')
+                profile_dir = pathlib.Path.cwd() / 'prof'
                 profile_id = '{}_{}'.format(self._instance_id,
                                             next(self._run_counter))
-                profile_file = os.path.join(profile_dir,
-                                            '{}.pstats'.format(profile_id))
-                try:
-                    os.mkdir(profile_dir)
-                except FileExistsError:
-                    pass
-                args = [os.path.join('scripts', 'dev', 'run_profile.py'),
+                profile_file = profile_dir / '{}.pstats'.format(profile_id)
+                profile_dir.mkdir(exist_ok=True)
+                args = [str(pathlib.Path('scripts') / 'dev' / 'run_profile.py'),
                         '--profile-tool', 'none',
-                        '--profile-file', profile_file]
+                        '--profile-file', str(profile_file)]
             else:
                 args = ['-bb', '-m', 'qutebrowser']
         return executable, args
@@ -532,7 +530,8 @@ class QuteProc(testprocess.Process):
         args = ['--debug', '--no-err-windows', '--temp-basedir',
                 '--json-logging', '--loglevel', 'vdebug',
                 '--backend', backend, '--debug-flag', 'no-sql-history',
-                '--debug-flag', 'werror']
+                '--debug-flag', 'werror', '--debug-flag',
+                'test-notification-service']
 
         if self.request.config.webengine:
             args += testutils.seccomp_args(qt_flag=True)
@@ -861,21 +860,20 @@ class QuteProc(testprocess.Process):
 
     def get_session(self):
         """Save the session and get the parsed session data."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            session = os.path.join(tmpdir, 'session.yml')
+        with tempfile.TemporaryDirectory() as tdir:
+            session = pathlib.Path(tdir) / 'session.yml'
             self.send_cmd(':session-save --with-private "{}"'.format(session))
             self.wait_for(category='message', loglevel=logging.INFO,
                           message='Saved session {}.'.format(session))
-            with open(session, encoding='utf-8') as f:
-                data = f.read()
+            data = session.read_text(encoding='utf-8')
 
         self._log('\nCurrent session data:\n' + data)
         return utils.yaml_load(data)
 
     def get_content(self, plain=True):
         """Get the contents of the current page."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            path = os.path.join(tmpdir, 'page')
+        with tempfile.TemporaryDirectory() as tdir:
+            path = pathlib.Path(tdir) / 'page'
 
             if plain:
                 self.send_cmd(':debug-dump-page --plain "{}"'.format(path))
@@ -885,8 +883,7 @@ class QuteProc(testprocess.Process):
             self.wait_for(category='message', loglevel=logging.INFO,
                           message='Dumped page to {}.'.format(path))
 
-            with open(path, 'r', encoding='utf-8') as f:
-                return f.read()
+            return path.read_text(encoding='utf-8')
 
     def get_screenshot(
             self,

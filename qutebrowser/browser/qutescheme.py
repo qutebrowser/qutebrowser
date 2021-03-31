@@ -41,11 +41,11 @@ from qutebrowser.browser import pdfjs, downloads, history
 from qutebrowser.config import config, configdata, configexc
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                resources, objreg, standarddir)
+from qutebrowser.misc import guiprocess
 from qutebrowser.qt import sip
 
 
 pyeval_output = ":pyeval was never called"
-spawn_output = ":spawn was never called"
 csrf_token = None
 
 
@@ -283,10 +283,24 @@ def qute_pyeval(_url: QUrl) -> _HandlerRet:
     return 'text/html', src
 
 
-@add_handler('spawn-output')
-def qute_spawn_output(_url: QUrl) -> _HandlerRet:
-    """Handler for qute://spawn-output."""
-    src = jinja.render('pre.html', title='spawn output', content=spawn_output)
+@add_handler('process')
+def qute_process(url: QUrl) -> _HandlerRet:
+    """Handler for qute://process."""
+    path = url.path()[1:]
+    try:
+        pid = int(path)
+    except ValueError:
+        raise UrlInvalidError(f"Invalid PID {path}")
+
+    try:
+        proc = guiprocess.all_processes[pid]
+    except KeyError:
+        raise NotFoundError(f"No process {pid}")
+
+    if proc is None:
+        raise NotFoundError(f"Data for process {pid} got cleaned up.")
+
+    src = jinja.render('process.html', title=f'Process {pid}', proc=proc)
     return 'text/html', src
 
 

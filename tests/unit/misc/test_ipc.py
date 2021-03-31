@@ -36,7 +36,7 @@ from PyQt5.QtTest import QSignalSpy
 
 import qutebrowser
 from qutebrowser.misc import ipc
-from qutebrowser.utils import standarddir, utils
+from qutebrowser.utils import standarddir, utils, version
 from helpers import stubs, testutils
 
 
@@ -219,6 +219,7 @@ class TestSocketName:
         assert parts[-1] == expected
 
     @pytest.mark.linux
+    @pytest.mark.not_flatpak
     @pytest.mark.parametrize('basedir, expected', [
         (None, 'ipc-{}'.format(md5('testusername'))),
         ('/x', 'ipc-{}'.format(md5('testusername-/x'))),
@@ -226,6 +227,26 @@ class TestSocketName:
     def test_linux(self, basedir, fake_runtime_dir, expected):
         socketname = ipc._get_socketname(basedir)
         expected_path = str(fake_runtime_dir / 'qutebrowser' / expected)
+        assert socketname == expected_path
+
+    # We can't use the fake_flatpak fixture here, because it conflicts with
+    # fake_runtime_dir...
+    @pytest.mark.linux
+    @pytest.mark.parametrize('basedir, expected', [
+        (None, 'ipc-{}'.format(md5('testusername'))),
+        ('/x', 'ipc-{}'.format(md5('testusername-/x'))),
+    ])
+    @pytest.mark.parametrize('has_flatpak_id', [True, False])
+    @pytest.mark.skipif(not version.is_flatpak(), reason="Needs Flatpak")
+    def test_flatpak(self, monkeypatch, fake_runtime_dir,
+                     basedir, expected, has_flatpak_id):
+        if not has_flatpak_id:
+            # Simulate an older Flatpak version
+            monkeypatch.delenv('FLATPAK_ID', raising=False)
+
+        socketname = ipc._get_socketname(basedir)
+        expected_path = str(
+            fake_runtime_dir / 'app' / 'org.qutebrowser.qutebrowser' / expected)
         assert socketname == expected_path
 
     def test_other_unix(self):
@@ -605,7 +626,7 @@ def test_ipcserver_socket_none_readyread(ipc_server, caplog):
     assert ipc_server._old_socket is None
     with caplog.at_level(logging.WARNING):
         ipc_server.on_ready_read()
-    msg = "In on_ready_read with None socket and old_socket!"
+    msg = "In _get_socket with None socket and old_socket!"
     assert msg in caplog.messages
 
 

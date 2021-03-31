@@ -179,11 +179,13 @@ def debug_flag_error(flag):
         wait-renderer-process: Wait for debugger in renderer process.
         avoid-chromium-init: Enable `--version` without initializing Chromium.
         werror: Turn Python warnings into errors.
+        test-notification-service: Use the testing libnotify service.
     """
     valid_flags = ['debug-exit', 'pdb-postmortem', 'no-sql-history',
                    'no-scroll-filtering', 'log-requests', 'log-cookies',
                    'log-scroll-pos', 'log-sensitive-keys', 'stack', 'chromium',
-                   'wait-renderer-process', 'avoid-chromium-init', 'werror']
+                   'wait-renderer-process', 'avoid-chromium-init', 'werror',
+                   'test-notification-service']
 
     if flag in valid_flags:
         return flag

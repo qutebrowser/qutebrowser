@@ -182,7 +182,7 @@ def clean_open_tabs(quteproc):
     """Clean up open windows and tabs."""
     quteproc.set_setting('tabs.last_close', 'blank')
     quteproc.send_cmd(':window-only')
-    quteproc.send_cmd(':tab-only --force')
+    quteproc.send_cmd(':tab-only --pinned close')
     quteproc.send_cmd(':tab-close --force')
     quteproc.wait_for_load_finished_url('about:blank')
 

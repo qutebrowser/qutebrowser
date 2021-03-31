@@ -55,16 +55,16 @@ def _base_args(config):
 
 
 @pytest.fixture
-def temp_basedir_env(tmpdir, short_tmpdir):
+def temp_basedir_env(tmp_path, short_tmpdir):
     """Return a dict of environment variables that fakes --temp-basedir.
 
     We can't run --basedir or --temp-basedir for some tests, so we mess with
     XDG_*_DIR to get things relocated.
     """
-    data_dir = tmpdir / 'data'
-    config_dir = tmpdir / 'config'
+    data_dir = tmp_path / 'data'
+    config_dir = tmp_path / 'config'
     runtime_dir = short_tmpdir / 'rt'
-    cache_dir = tmpdir / 'cache'
+    cache_dir = tmp_path / 'cache'
 
     runtime_dir.ensure(dir=True)
     runtime_dir.chmod(0o700)
@@ -77,7 +77,8 @@ def temp_basedir_env(tmpdir, short_tmpdir):
     ]
 
     state_file = data_dir / 'qutebrowser' / 'state'
-    state_file.write_text('\n'.join(lines), encoding='utf-8', ensure=True)
+    state_file.parent.mkdir(parents=True)
+    state_file.write_text('\n'.join(lines), encoding='utf-8')
 
     env = {
         'XDG_DATA_HOME': str(data_dir),
@@ -90,7 +91,7 @@ def temp_basedir_env(tmpdir, short_tmpdir):
 
 @pytest.mark.linux
 @ascii_locale
-def test_downloads_with_ascii_locale(request, server, tmpdir, quteproc_new):
+def test_downloads_with_ascii_locale(request, server, tmp_path, quteproc_new):
     """Test downloads with LC_ALL=C set.
 
     https://github.com/qutebrowser/qutebrowser/issues/908
@@ -98,7 +99,7 @@ def test_downloads_with_ascii_locale(request, server, tmpdir, quteproc_new):
     """
     args = ['--temp-basedir'] + _base_args(request.config)
     quteproc_new.start(args, env={'LC_ALL': 'C'})
-    quteproc_new.set_setting('downloads.location.directory', str(tmpdir))
+    quteproc_new.set_setting('downloads.location.directory', str(tmp_path))
 
     # Test a normal download
     quteproc_new.set_setting('downloads.location.prompt', 'false')
@@ -118,14 +119,14 @@ def test_downloads_with_ascii_locale(request, server, tmpdir, quteproc_new):
     quteproc_new.wait_for(category='misc',
                           message='Opening * with [*python*]')
 
-    assert len(tmpdir.listdir()) == 1
-    assert (tmpdir / '?-issue908.bin').exists()
+    assert len(list(tmp_path.iterdir())) == 1
+    assert (tmp_path / '?-issue908.bin').exists()
 
 
 @pytest.mark.linux
 @pytest.mark.parametrize('url', ['/föö.html', 'file:///föö.html'])
 @ascii_locale
-def test_open_with_ascii_locale(request, server, tmpdir, quteproc_new, url):
+def test_open_with_ascii_locale(request, server, tmp_path, quteproc_new, url):
     """Test opening non-ascii URL with LC_ALL=C set.
 
     https://github.com/qutebrowser/qutebrowser/issues/1450
@@ -153,7 +154,7 @@ def test_open_with_ascii_locale(request, server, tmpdir, quteproc_new, url):
 
 @pytest.mark.linux
 @ascii_locale
-def test_open_command_line_with_ascii_locale(request, server, tmpdir,
+def test_open_command_line_with_ascii_locale(request, server, tmp_path,
                                              quteproc_new):
     """Test opening file via command line with a non-ascii name with LC_ALL=C.
 
@@ -180,19 +181,22 @@ def test_open_command_line_with_ascii_locale(request, server, tmpdir,
 
 @pytest.mark.linux
 def test_misconfigured_user_dirs(request, server, temp_basedir_env,
-                                 tmpdir, quteproc_new):
+                                 tmp_path, quteproc_new):
     """Test downloads with a misconfigured XDG_DOWNLOAD_DIR.
 
     https://github.com/qutebrowser/qutebrowser/issues/866
     https://github.com/qutebrowser/qutebrowser/issues/1269
     """
-    home = tmpdir / 'home'
-    home.ensure(dir=True)
+    home = tmp_path / 'home'
+    home.mkdir()
     temp_basedir_env['HOME'] = str(home)
+    config_userdir_dir = (tmp_path / 'config')
+    config_userdir_dir.mkdir(parents=True)
+    config_userdir_file = (tmp_path / 'config' / 'user-dirs.dirs')
+    config_userdir_file.touch()
 
-    assert temp_basedir_env['XDG_CONFIG_HOME'] == tmpdir / 'config'
-    (tmpdir / 'config' / 'user-dirs.dirs').write('XDG_DOWNLOAD_DIR="relative"',
-                                                 ensure=True)
+    assert temp_basedir_env['XDG_CONFIG_HOME'] == str(tmp_path / 'config')
+    config_userdir_file.write_text('XDG_DOWNLOAD_DIR="relative"')
 
     quteproc_new.start(_base_args(request.config), env=temp_basedir_env)
 
@@ -263,10 +267,10 @@ def test_version(request):
     assert match is not None
 
 
-def test_qt_arg(request, quteproc_new, tmpdir):
+def test_qt_arg(request, quteproc_new, tmp_path):
     """Test --qt-arg."""
     args = (['--temp-basedir', '--qt-arg', 'stylesheet',
-             str(tmpdir / 'does-not-exist')] + _base_args(request.config))
+             str(tmp_path / 'does-not-exist')] + _base_args(request.config))
     quteproc_new.start(args)
 
     msg = 'QCss::Parser - Failed to load file  "*does-not-exist"'
@@ -278,17 +282,17 @@ def test_qt_arg(request, quteproc_new, tmpdir):
 
 
 @pytest.mark.linux
-def test_webengine_download_suffix(request, quteproc_new, tmpdir):
+def test_webengine_download_suffix(request, quteproc_new, tmp_path):
     """Make sure QtWebEngine does not add a suffix to downloads."""
     if not request.config.webengine:
         pytest.skip()
 
-    download_dir = tmpdir / 'downloads'
-    download_dir.ensure(dir=True)
+    download_dir = tmp_path / 'downloads'
+    download_dir.mkdir()
 
-    (tmpdir / 'user-dirs.dirs').write(
+    (tmp_path / 'user-dirs.dirs').write_text(
         'XDG_DOWNLOAD_DIR={}'.format(download_dir))
-    env = {'XDG_CONFIG_HOME': str(tmpdir)}
+    env = {'XDG_CONFIG_HOME': str(tmp_path)}
     args = (['--temp-basedir'] + _base_args(request.config))
     quteproc_new.start(args, env=env)
 
@@ -301,9 +305,9 @@ def test_webengine_download_suffix(request, quteproc_new, tmpdir):
     quteproc_new.send_cmd(':prompt-accept yes')
     quteproc_new.wait_for(category='downloads', message='Download * finished')
 
-    files = download_dir.listdir()
+    files = list(download_dir.iterdir())
     assert len(files) == 1
-    assert files[0].basename == 'download.bin'
+    assert files[0].name == 'download.bin'
 
 
 def test_command_on_start(request, quteproc_new):
@@ -350,10 +354,10 @@ def test_initial_private_browsing(request, quteproc_new):
     quteproc_new.wait_for_quit()
 
 
-def test_loading_empty_session(tmpdir, request, quteproc_new):
+def test_loading_empty_session(tmp_path, request, quteproc_new):
     """Make sure loading an empty session opens a window."""
-    session = tmpdir / 'session.yml'
-    session.write('windows: []')
+    session = tmp_path / 'session.yml'
+    session.write_text('windows: []')
 
     args = _base_args(request.config) + ['--temp-basedir', '-r', str(session)]
     quteproc_new.start(args)

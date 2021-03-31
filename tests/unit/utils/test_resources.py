@@ -19,22 +19,10 @@
 
 """Tests for qutebrowser.utils.resources."""
 
-import sys
 import os.path
 import zipfile
 import pytest
-import qutebrowser
 from qutebrowser.utils import utils, resources
-
-
-@pytest.fixture(params=[True, False])
-def freezer(request, monkeypatch):
-    if request.param and not getattr(sys, 'frozen', False):
-        monkeypatch.setattr(sys, 'frozen', True, raising=False)
-        monkeypatch.setattr(sys, 'executable', qutebrowser.__file__)
-    elif not request.param and getattr(sys, 'frozen', False):
-        # Want to test unfrozen tests, but we are frozen
-        pytest.skip("Can't run with sys.frozen = True!")
 
 
 @pytest.mark.usefixtures('freezer')

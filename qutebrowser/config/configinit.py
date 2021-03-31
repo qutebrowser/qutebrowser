@@ -58,11 +58,18 @@ def early_init(args: argparse.Namespace) -> None:
     objreg.register('config-commands', config_commands, command_only=True)
 
     config_file = standarddir.config_py()
+    custom_config_py = args.config_py is not None
+
     global _init_errors
 
     try:
-        if os.path.exists(config_file):
-            configfiles.read_config_py(config_file, warn_autoconfig=True)
+        if os.path.exists(config_file) or custom_config_py:
+            # If we have a custom --config-py flag, we want it to be fatal if it doesn't
+            # exist, so we don't silently fall back to autoconfig.yml in that case.
+            configfiles.read_config_py(
+                config_file,
+                warn_autoconfig=not custom_config_py,
+            )
         else:
             configfiles.read_autoconfig()
     except configexc.ConfigFileErrors as e:

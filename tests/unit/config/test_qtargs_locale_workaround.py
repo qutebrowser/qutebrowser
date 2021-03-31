@@ -20,7 +20,7 @@ import os
 import pathlib
 
 import pytest
-from PyQt5.QtCore import QLocale, QLibraryInfo
+from PyQt5.QtCore import QLocale
 
 from qutebrowser.utils import utils
 from qutebrowser.config import qtargs
@@ -414,10 +414,9 @@ def test_lang_workaround_all_locales(lang, expected, qtwe_version):
         locale_name=locale_name,
     )
 
-    locales_path = pathlib.Path(
-        QLibraryInfo.location(QLibraryInfo.TranslationsPath)) / 'qtwebengine_locales'
-
+    locales_path = qtargs._webengine_locales_path()
     original_path = qtargs._get_locale_pak_path(locales_path, locale_name)
+
     if override is None:
         assert original_path.exists()
     else:
@@ -449,9 +448,17 @@ def test_disabled(qtwe_version, config_stub):
 
 
 @pytest.mark.fake_os('linux')
-def test_no_locales_available(qtwe_version, monkeypatch, caplog):
-    monkeypatch.setattr(qtargs.QLibraryInfo, 'location', lambda _path: '/doesnotexist')
+def test_no_locales_available(qtwe_version, monkeypatch, caplog, request):
+    path = pathlib.Path('/doesnotexist/qtwebengine_locales')
+    assert not path.exists()
+    monkeypatch.setattr(qtargs, '_webengine_locales_path', lambda: path)
+
     assert qtargs._get_lang_override(qtwe_version, "de-CH") is None
     assert caplog.messages == [
         f"{os.sep}doesnotexist{os.sep}qtwebengine_locales not found, skipping "
         "workaround!"]
+
+
+def test_flatpak_locales_path(fake_flatpak):
+    expected = pathlib.Path('/app/translations/qtwebengine_locales')
+    assert qtargs._webengine_locales_path() == expected

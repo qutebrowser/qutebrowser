@@ -4,13 +4,12 @@ bump2version==1.0.1
 certifi==2020.12.5
 cffi==1.14.5
 chardet==4.0.0
-colorama==0.4.4
-cryptography==3.4.6
+cryptography==3.4.7
 github3.py==2.0.0
-hunter==3.3.1
+hunter==3.3.2
 idna==2.10
 jwcrypto==0.8
-manhole==1.6.0
+manhole==1.7.0
 packaging==20.9
 pycparser==2.20
 Pympler==0.9
@@ -22,4 +21,4 @@ sip==6.0.3
 six==1.15.0
 toml==0.10.2
 uritemplate==3.0.1
-# urllib3==1.26.3
+# urllib3==1.26.4

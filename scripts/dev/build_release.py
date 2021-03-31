@@ -59,17 +59,20 @@ def call_script(name, *args, python=sys.executable):
     subprocess.run([python, path] + list(args), check=True)
 
 
-def call_tox(toxenv, *args, python=sys.executable):
+def call_tox(toxenv, *args, python=sys.executable, debug=False):
     """Call tox.
 
     Args:
         toxenv: Which tox environment to use
         *args: The arguments to pass.
         python: The python interpreter to use.
+        debug: Turn on pyinstaller debugging
     """
     env = os.environ.copy()
     env['PYTHON'] = python
     env['PATH'] = os.environ['PATH'] + os.pathsep + os.path.dirname(python)
+    if debug:
+        env['PYINSTALLER_DEBUG'] = '1'
     subprocess.run(
         [sys.executable, '-m', 'tox', '-vv', '-e', toxenv] + list(args),
         env=env, check=True)
@@ -100,7 +103,21 @@ def _filter_whitelisted(output, patterns):
             yield line
 
 
-def smoke_test(executable):
+def _smoke_test_run(executable, *args):
+    """Get a subprocess to run a smoke test."""
+    argv = [
+        executable,
+        '--no-err-windows',
+        '--nowindow',
+        '--temp-basedir',
+        *args,
+        'about:blank',
+        ':later 500 quit',
+    ]
+    return subprocess.run(argv, check=True, capture_output=True)
+
+
+def smoke_test(executable, debug):
     """Try starting the given qutebrowser executable."""
     stdout_whitelist = []
     stderr_whitelist = [
@@ -130,17 +147,63 @@ def smoke_test(executable):
         (r'\[.*:ERROR:dxva_video_decode_accelerator_win.cc\(\d+\)\] '
          r'DXVAVDA fatal error: could not LoadLibrary: .*: The specified '
          r'module could not be found. \(0x7E\)'),
+
+        # https://github.com/qutebrowser/qutebrowser/issues/3719
+        '[0-9:]* ERROR: Load error: ERR_FILE_NOT_FOUND',
     ]
 
-    proc = subprocess.run([executable, '--no-err-windows', '--nowindow',
-                           '--temp-basedir', 'about:blank',
-                           ':later 500 quit'], check=True, capture_output=True)
+    proc = _smoke_test_run(executable)
+    if debug:
+        print("Skipping output check for debug build")
+        return
+
     stdout = '\n'.join(_filter_whitelisted(proc.stdout, stdout_whitelist))
     stderr = '\n'.join(_filter_whitelisted(proc.stderr, stderr_whitelist))
-    if stdout:
-        raise Exception("Unexpected stdout:\n{}".format(stdout))
-    if stderr:
-        raise Exception("Unexpected stderr:\n{}".format(stderr))
+
+    if stdout or stderr:
+        print("Unexpected output, running with --debug")
+        proc = _smoke_test_run(executable, '--debug')
+        debug_stdout = proc.stdout.decode('utf-8')
+        debug_stderr = proc.stderr.decode('utf-8')
+
+        lines = [
+            "Unexpected output!",
+            "",
+        ]
+        if stdout:
+            lines += [
+                "stdout",
+                "------",
+                "",
+                stdout,
+                "",
+            ]
+        if stderr:
+            lines += [
+                "stderr",
+                "------",
+                "",
+                stderr,
+                "",
+            ]
+        if debug_stdout:
+            lines += [
+                "debug rerun stdout",
+                "------------------",
+                "",
+                debug_stdout,
+                "",
+            ]
+        if debug_stderr:
+            lines += [
+                "debug rerun stderr",
+                "------------------",
+                "",
+                debug_stderr,
+                "",
+            ]
+
+        raise Exception("\n".join(lines))
 
 
 def patch_windows_exe(exe_path):
@@ -219,7 +282,7 @@ INFO_PLIST_UPDATES = {
 }
 
 
-def build_mac():
+def build_mac(*, gh_token, debug):
     """Build macOS .dmg/.app."""
     utils.print_title("Cleaning up...")
     for f in ['wc.dmg', 'template.dmg']:
@@ -230,27 +293,28 @@ def build_mac():
     for d in ['dist', 'build']:
         shutil.rmtree(d, ignore_errors=True)
     utils.print_title("Updating 3rdparty content")
-    update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False)
+    update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False, gh_token=gh_token)
     utils.print_title("Building .app via pyinstaller")
-    call_tox('pyinstaller-64', '-r')
+    call_tox('pyinstaller-64', '-r', debug=debug)
     utils.print_title("Patching .app")
     patch_mac_app()
     utils.print_title("Building .dmg")
     subprocess.run(['make', '-f', 'scripts/dev/Makefile-dmg'], check=True)
 
-    dmg_name = 'qutebrowser-{}.dmg'.format(qutebrowser.__version__)
-    os.rename('qutebrowser.dmg', dmg_name)
+    suffix = "-debug" if debug else ""
+    dmg_path = f'dist/qutebrowser-{qutebrowser.__version__}{suffix}.dmg'
+    os.rename('qutebrowser.dmg', dmg_path)
 
     utils.print_title("Running smoke test")
 
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
-            subprocess.run(['hdiutil', 'attach', dmg_name,
+            subprocess.run(['hdiutil', 'attach', dmg_path,
                             '-mountpoint', tmpdir], check=True)
             try:
                 binary = os.path.join(tmpdir, 'qutebrowser.app', 'Contents',
                                       'MacOS', 'qutebrowser')
-                smoke_test(binary)
+                smoke_test(binary, debug=debug)
             finally:
                 print("Waiting 10s for dmg to be detachable...")
                 time.sleep(10)
@@ -258,7 +322,7 @@ def build_mac():
     except PermissionError as e:
         print("Failed to remove tempdir: {}".format(e))
 
-    return [(dmg_name, 'application/x-apple-diskimage', 'macOS .dmg')]
+    return [(dmg_path, 'application/x-apple-diskimage', 'macOS .dmg')]
 
 
 def _get_windows_python_path(x64):
@@ -283,7 +347,7 @@ def _get_windows_python_path(x64):
         return fallback
 
 
-def _build_windows_single(*, x64, skip_packaging):
+def _build_windows_single(*, x64, skip_packaging, debug):
     """Build on Windows for a single architecture."""
     human_arch = '64-bit' if x64 else '32-bit'
     utils.print_title(f"Running pyinstaller {human_arch}")
@@ -293,7 +357,7 @@ def _build_windows_single(*, x64, skip_packaging):
     _maybe_remove(outdir)
 
     python = _get_windows_python_path(x64=x64)
-    call_tox(f'pyinstaller-{"64" if x64 else "32"}', '-r', python=python)
+    call_tox(f'pyinstaller-{"64" if x64 else "32"}', '-r', python=python, debug=debug)
 
     out_pyinstaller = os.path.join('dist', 'qutebrowser')
     shutil.move(out_pyinstaller, outdir)
@@ -303,7 +367,7 @@ def _build_windows_single(*, x64, skip_packaging):
     patch_windows_exe(exe_path)
 
     utils.print_title(f"Running {human_arch} smoke test")
-    smoke_test(exe_path)
+    smoke_test(exe_path, debug=debug)
 
     if skip_packaging:
         return []
@@ -315,13 +379,15 @@ def _build_windows_single(*, x64, skip_packaging):
         filename_arch='amd64' if x64 else 'win32',
         desc_arch=human_arch,
         desc_suffix='' if x64 else ' (only for 32-bit Windows!)',
+        debug=debug,
     )
 
 
-def build_windows(*, skip_packaging, skip_32bit, skip_64bit):
+def build_windows(*, gh_token, skip_packaging, only_32bit, only_64bit, debug):
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
-    update_3rdparty.run(nsis=True, ace=False, pdfjs=True, fancy_dmg=False)
+    update_3rdparty.run(nsis=True, ace=False, pdfjs=True, fancy_dmg=False,
+                        gh_token=gh_token)
 
     utils.print_title("Building Windows binaries")
 
@@ -331,10 +397,18 @@ def build_windows(*, skip_packaging, skip_32bit, skip_64bit):
     utils.print_title("Updating VersionInfo file")
     gen_versioninfo.main()
 
-    if not skip_64bit:
-        artifacts += _build_windows_single(x64=True, skip_packaging=skip_packaging)
-    if not skip_32bit:
-        artifacts += _build_windows_single(x64=False, skip_packaging=skip_packaging)
+    if not only_32bit:
+        artifacts += _build_windows_single(
+            x64=True,
+            skip_packaging=skip_packaging,
+            debug=debug,
+        )
+    if not only_64bit:
+        artifacts += _build_windows_single(
+            x64=False,
+            skip_packaging=skip_packaging,
+            debug=debug,
+        )
 
     return artifacts
 
@@ -346,6 +420,7 @@ def _package_windows_single(
     desc_arch,
     desc_suffix,
     filename_arch,
+    debug,
 ):
     """Build the given installer/zip for windows."""
     artifacts = []
@@ -354,7 +429,16 @@ def _package_windows_single(
     subprocess.run(['makensis.exe',
                     f'/DVERSION={qutebrowser.__version__}', *nsis_flags,
                     'misc/nsis/qutebrowser.nsi'], check=True)
-    name = f'qutebrowser-{qutebrowser.__version__}-{filename_arch}.exe'
+
+    name_parts = [
+        'qutebrowser',
+        str(qutebrowser.__version__),
+        filename_arch,
+    ]
+    if debug:
+        name_parts.append('debug')
+    name = '-'.join(name_parts) + '.exe'
+
     artifacts.append((
         os.path.join('dist', name),
         'application/vnd.microsoft.portable-executable',
@@ -362,8 +446,17 @@ def _package_windows_single(
     ))
 
     utils.print_subtitle(f"Zipping {desc_arch} standalone...")
-    zip_name = (
-        f'qutebrowser-{qutebrowser.__version__}-windows-standalone-{filename_arch}')
+    zip_name_parts = [
+        'qutebrowser',
+        str(qutebrowser.__version__),
+        'windows',
+        'standalone',
+        filename_arch,
+    ]
+    if debug:
+        zip_name_parts.append('debug')
+    zip_name = '-'.join(zip_name_parts)
+
     zip_path = os.path.join('dist', zip_name)
     shutil.make_archive(zip_path, 'zip', 'dist', os.path.basename(outdir))
     artifacts.append((
@@ -424,15 +517,26 @@ def test_makefile():
                         'DESTDIR={}'.format(tmpdir), 'install'], check=True)
 
 
-def read_github_token():
+def read_github_token(arg_token, *, optional=False):
     """Read the GitHub API token from disk."""
+    if arg_token is not None:
+        return arg_token
+
     token_file = os.path.join(os.path.expanduser('~'), '.gh_token')
+    if not os.path.exists(token_file):
+        if optional:
+            return None
+        else:
+            raise Exception(
+                "GitHub token needed, but ~/.gh_token not found, "
+                "and --gh-token not given.")
+
     with open(token_file, encoding='ascii') as f:
         token = f.read().strip()
     return token
 
 
-def github_upload(artifacts, tag):
+def github_upload(artifacts, tag, gh_token):
     """Upload the given artifacts to GitHub.
 
     Args:
@@ -443,8 +547,7 @@ def github_upload(artifacts, tag):
     import github3.exceptions
     utils.print_title("Uploading to github...")
 
-    token = read_github_token()
-    gh = github3.login(token=token)
+    gh = github3.login(token=gh_token)
     repo = gh.repository('qutebrowser', 'qutebrowser')
 
     release = None  # to satisfy pylint
@@ -509,14 +612,18 @@ def main():
     parser.add_argument('--asciidoc-python', help="Python to use for asciidoc."
                         "If not given, the current Python interpreter is used.",
                         nargs='?')
+    parser.add_argument('--gh-token', help="GitHub token to use.",
+                        nargs='?')
     parser.add_argument('--upload', action='store_true', required=False,
                         help="Toggle to upload the release to GitHub.")
     parser.add_argument('--skip-packaging', action='store_true', required=False,
                         help="Skip Windows installer/zip generation.")
-    parser.add_argument('--skip-32bit', action='store_true', required=False,
-                        help="Skip Windows 32 bit build.")
-    parser.add_argument('--skip-64bit', action='store_true', required=False,
-                        help="Skip Windows 64 bit build.")
+    parser.add_argument('--32bit', action='store_true', required=False,
+                        help="Skip Windows 64 bit build.", dest='only_32bit')
+    parser.add_argument('--64bit', action='store_true', required=False,
+                        help="Skip Windows 32 bit build.", dest='only_64bit')
+    parser.add_argument('--debug', action='store_true', required=False,
+                        help="Build a debug build.")
     args = parser.parse_args()
     utils.change_cwd()
 
@@ -526,7 +633,9 @@ def main():
         # Fail early when trying to upload without github3 installed
         # or without API token
         import github3  # pylint: disable=unused-import
-        read_github_token()
+        gh_token = read_github_token(args.gh_token)
+    else:
+        gh_token = read_github_token(args.gh_token, optional=True)
 
     if not misc_checks.check_git():
         utils.print_error("Refusing to do a release with a dirty git tree")
@@ -539,12 +648,14 @@ def main():
 
     if os.name == 'nt':
         artifacts = build_windows(
+            gh_token=gh_token,
             skip_packaging=args.skip_packaging,
-            skip_32bit=args.skip_32bit,
-            skip_64bit=args.skip_64bit,
+            only_32bit=args.only_32bit,
+            only_64bit=args.only_64bit,
+            debug=args.debug,
         )
     elif sys.platform == 'darwin':
-        artifacts = build_mac()
+        artifacts = build_mac(gh_token=gh_token, debug=args.debug)
     else:
         upgrade_sdist_dependencies()
         test_makefile()
@@ -556,7 +667,7 @@ def main():
         utils.print_title("Press enter to release {}...".format(version_tag))
         input()
 
-        github_upload(artifacts, version_tag)
+        github_upload(artifacts, version_tag, gh_token=gh_token)
         if upload_to_pypi:
             pypi_upload(artifacts)
     else:

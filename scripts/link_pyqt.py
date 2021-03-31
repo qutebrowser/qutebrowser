@@ -199,7 +199,9 @@ def get_tox_syspython(tox_path):
     with open(path, encoding='ascii') as f:
         line = f.readline()
     _md5, sys_python = line.rstrip().split(' ', 1)
-    return sys_python
+    # Follow symlinks to get the system-wide interpreter if we have a tox isolated
+    # build.
+    return os.path.realpath(sys_python)
 
 
 def main():

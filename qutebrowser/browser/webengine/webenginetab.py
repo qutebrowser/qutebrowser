@@ -833,7 +833,7 @@ class _WebEnginePermissions(QObject):
     # https://www.riverbankcomputing.com/pipermail/pyqt/2019-July/041903.html
 
     _options = {
-        0: 'content.notifications',
+        0: 'content.notifications.enabled',
         QWebEnginePage.Geolocation: 'content.geolocation',
         QWebEnginePage.MediaAudioCapture: 'content.media.audio_capture',
         QWebEnginePage.MediaVideoCapture: 'content.media.video_capture',
@@ -882,9 +882,9 @@ class _WebEnginePermissions(QObject):
         if on:
             timeout = config.val.content.fullscreen.overlay_timeout
             if timeout != 0:
-                notification = miscwidgets.FullscreenNotification(self._widget)
-                notification.set_timeout(timeout)
-                notification.show()
+                notif = miscwidgets.FullscreenNotification(self._widget)
+                notif.set_timeout(timeout)
+                notif.show()
 
     @pyqtSlot(QUrl, 'QWebEnginePage::Feature')
     def _on_feature_permission_requested(self, url, feature):
@@ -1142,7 +1142,7 @@ class _WebEngineScripts(QObject):
 
     def _inject_site_specific_quirks(self):
         """Add site-specific quirk scripts."""
-        if not config.val.content.site_specific_quirks:
+        if not config.val.content.site_specific_quirks.enabled:
             return
 
         versions = version.qtwebengine_versions()
@@ -1170,12 +1170,14 @@ class _WebEngineScripts(QObject):
             if not quirk.predicate:
                 continue
             src = resources.read_file(f'javascript/quirks/{quirk.filename}.user.js')
-            self._inject_js(
-                f'quirk_{quirk.filename}',
-                src,
-                world=quirk.world,
-                injection_point=quirk.injection_point,
-            )
+            name = f"js-{quirk.filename.replace('_', '-')}"
+            if name not in config.val.content.site_specific_quirks.skip:
+                self._inject_js(
+                    f'quirk_{quirk.filename}',
+                    src,
+                    world=quirk.world,
+                    injection_point=quirk.injection_point,
+                )
 
 
 class WebEngineTabPrivate(browsertab.AbstractTabPrivate):

@@ -21,7 +21,8 @@
 
 import io
 import sys
-import os.path
+import os
+import pathlib
 import subprocess
 import contextlib
 import logging
@@ -300,28 +301,36 @@ except ImportError:
         id='tux', parsed=version.Distribution.unknown,
         version=None, pretty='Multiline')),
 ])
-def test_distribution(tmpdir, monkeypatch, os_release, expected):
-    os_release_file = tmpdir / 'os-release'
+def test_distribution(tmp_path, monkeypatch, os_release, expected):
+    os_release_file = tmp_path / 'os-release'
     if os_release is not None:
-        os_release_file.write(textwrap.dedent(os_release))
+        os_release_file.write_text(textwrap.dedent(os_release), encoding="utf-8")
     monkeypatch.setenv('QUTE_FAKE_OS_RELEASE', str(os_release_file))
 
     assert version.distribution() == expected
 
 
-@pytest.mark.parametrize('distribution, expected', [
-    (None, False),
-    (version.DistributionInfo(
-        id='org.kde.Platform', parsed=version.Distribution.kde_flatpak,
-        version=utils.VersionNumber(5, 12),
-        pretty='Unknown'), True),
-    (version.DistributionInfo(
-        id='arch', parsed=version.Distribution.arch, version=None,
-        pretty='Arch Linux'), False)
-])
-def test_is_flatpak(monkeypatch, distribution, expected):
-    monkeypatch.setattr(version, "distribution", lambda: distribution)
-    assert version.is_flatpak() == expected
+@pytest.mark.parametrize('has_env', [True, False])
+@pytest.mark.parametrize('has_file', [True, False])
+def test_is_flatpak(monkeypatch, tmp_path, has_env, has_file):
+    if has_env:
+        monkeypatch.setenv('FLATPAK_ID', 'org.qutebrowser.qutebrowser')
+    else:
+        monkeypatch.delenv('FLATPAK_ID', raising=False)
+
+    fake_info_path = tmp_path / '.flatpak_info'
+    if has_file:
+        lines = [
+            "[Application]",
+            "name=org.qutebrowser.qutebrowser",
+            "runtime=runtime/org.kde.Platform/x86_64/5.15",
+        ]
+        fake_info_path.write_text('\n'.join(lines))
+    else:
+        assert not fake_info_path.exists()
+    monkeypatch.setattr(version, '_FLATPAK_INFO_PATH', str(fake_info_path))
+
+    assert version.is_flatpak() == (has_env or has_file)
 
 
 class GitStrSubprocessFake:
@@ -349,9 +358,8 @@ class GitStrSubprocessFake:
             raise ValueError("func got called without retval being set!")
         retval = self.retval
         self.retval = self.UNSET
-        gitpath = os.path.normpath(gitpath)
-        expected = os.path.abspath(os.path.join(
-            os.path.dirname(qutebrowser.__file__), os.pardir))
+        gitpath = pathlib.Path(gitpath).resolve()
+        expected = pathlib.Path(qutebrowser.__file__).parent.parent
         assert gitpath == expected
         return retval
 
@@ -454,7 +462,7 @@ class TestGitStrSubprocess:
     """Tests for _git_str_subprocess."""
 
     @pytest.fixture
-    def git_repo(self, tmpdir):
+    def git_repo(self, tmp_path):
         """A fixture to create a temporary git repo.
 
         Some things are tested against a real repo so we notice if something in
@@ -476,20 +484,20 @@ class TestGitStrSubprocess:
                 # some environments on Windows...
                 # https://bugs.python.org/issue24493
                 subprocess.run(
-                    'git -C "{}" {}'.format(tmpdir, ' '.join(args)),
+                    'git -C "{}" {}'.format(tmp_path, ' '.join(args)),
                     env=env, check=True, shell=True)
             else:
                 subprocess.run(
-                    ['git', '-C', str(tmpdir)] + list(args),
+                    ['git', '-C', str(tmp_path)] + list(args),
                     check=True, env=env)
 
-        (tmpdir / 'file').write_text("Hello World!", encoding='utf-8')
+        (tmp_path / 'file').write_text("Hello World!", encoding='utf-8')
         _git('init')
         _git('add', 'file')
         _git('commit', '-am', 'foo', '--no-verify', '--no-edit',
              '--no-post-rewrite', '--quiet', '--no-gpg-sign')
         _git('tag', 'foobar')
-        return tmpdir
+        return tmp_path
 
     @needs_git
     def test_real_git(self, git_repo):
@@ -497,16 +505,16 @@ class TestGitStrSubprocess:
         ret = version._git_str_subprocess(str(git_repo))
         assert ret == '6e4b65a on master (1970-01-01 01:00:00 +0100)'
 
-    def test_missing_dir(self, tmpdir):
+    def test_missing_dir(self, tmp_path):
         """Test with a directory which doesn't exist."""
-        ret = version._git_str_subprocess(str(tmpdir / 'does-not-exist'))
+        ret = version._git_str_subprocess(str(tmp_path / 'does-not-exist'))
         assert ret is None
 
     @pytest.mark.parametrize('exc', [
         OSError,
         subprocess.CalledProcessError(1, 'foobar')
     ])
-    def test_exception(self, exc, mocker, tmpdir):
+    def test_exception(self, exc, mocker, tmp_path):
         """Test with subprocess.run raising an exception.
 
         Args:
@@ -516,7 +524,7 @@ class TestGitStrSubprocess:
         m.path.isdir.return_value = True
         mocker.patch('qutebrowser.utils.version.subprocess.run',
                      side_effect=exc)
-        ret = version._git_str_subprocess(str(tmpdir))
+        ret = version._git_str_subprocess(str(tmp_path))
         assert ret is None
 
 
@@ -975,7 +983,7 @@ class TestWebEngineVersions:
         )
         assert version.WebEngineVersions.from_elf(elf_version) == expected
 
-    @pytest.mark.parametrize('qt_version, chromium_version', [
+    @pytest.mark.parametrize('pyqt_version, chromium_version', [
         ('5.12.10', '69.0.3497.128'),
         ('5.14.2', '77.0.3865.129'),
         ('5.15.1', '80.0.3987.163'),
@@ -984,35 +992,47 @@ class TestWebEngineVersions:
         ('5.15.4', '87.0.4280.144'),
         ('5.15.5', '87.0.4280.144'),
     ])
-    def test_from_pyqt(self, qt_version, chromium_version):
+    def test_from_pyqt(self, freezer, pyqt_version, chromium_version):
+        if freezer and pyqt_version in ['5.15.3', '5.15.4', '5.15.5']:
+            chromium_version = '83.0.4103.122'
+            expected_pyqt_version = '5.15.2'
+        else:
+            expected_pyqt_version = pyqt_version
+
         expected = version.WebEngineVersions(
-            webengine=utils.VersionNumber.parse(qt_version),
+            webengine=utils.VersionNumber.parse(expected_pyqt_version),
             chromium=chromium_version,
             source='PyQt',
         )
-        assert version.WebEngineVersions.from_pyqt(qt_version) == expected
+        assert version.WebEngineVersions.from_pyqt(pyqt_version) == expected
 
     def test_real_chromium_version(self, qapp):
         """Compare the inferred Chromium version with the real one."""
-        if '.dev' in PYQT_VERSION_STR:
-            pytest.skip("dev version of PyQt5")
-
-        try:
-            from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION_STR
-        except ImportError as e:
-            # QtWebKit or QtWebEngine < 5.13
-            pytest.skip(str(e))
-
         pyqt_webengine_version = version._get_pyqt_webengine_qt_version()
         if pyqt_webengine_version is None:
+            if '.dev' in PYQT_VERSION_STR:
+                pytest.skip("dev version of PyQt5")
+
+            try:
+                from PyQt5.QtWebEngine import (
+                    PYQT_WEBENGINE_VERSION_STR, PYQT_WEBENGINE_VERSION)
+            except ImportError as e:
+                # QtWebKit or QtWebEngine < 5.13
+                pytest.skip(str(e))
+
+            if PYQT_WEBENGINE_VERSION >= 0x050F02:
+                # Starting with Qt 5.15.2, we can only do bad guessing anyways...
+                pytest.skip("Could be QtWebEngine 5.15.2 or 5.15.3")
+
             pyqt_webengine_version = PYQT_WEBENGINE_VERSION_STR
 
         versions = version.WebEngineVersions.from_pyqt(pyqt_webengine_version)
+        inferred = versions.chromium
 
         webenginesettings.init_user_agent()
-        expected = webenginesettings.parsed_user_agent.upstream_browser_version
+        real = webenginesettings.parsed_user_agent.upstream_browser_version
 
-        assert versions.chromium == expected
+        assert inferred == real
 
 
 class FakeQSslSocket:
@@ -1192,10 +1212,10 @@ class VersionParams:
 def test_version_info(params, stubs, monkeypatch, config_stub):
     """Test version.version_info()."""
     config.instance.config_py_loaded = params.config_py_loaded
-    import_path = os.path.abspath('/IMPORTPATH')
+    import_path = pathlib.Path('/IMPORTPATH').resolve()
 
     patches = {
-        'qutebrowser.__file__': os.path.join(import_path, '__init__.py'),
+        'qutebrowser.__file__': str(import_path / '__init__.py'),
         'qutebrowser.__version__': 'VERSION',
         '_git_str': lambda: ('GIT COMMIT' if params.git_commit else None),
         'platform.python_implementation': lambda: 'PYTHON IMPLEMENTATION',

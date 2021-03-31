@@ -390,7 +390,7 @@ Feature: Saving and loading sessions
       And I open data/numbers/3.txt in a new tab
       And I run :tab-pin with count 2
       And I run :session-save pin_session
-      And I run :tab-only --force
+      And I run :tab-only --pinned close
       And I run :tab-close --force
       And I run :session-load -c pin_session
       And I wait until data/numbers/3.txt is loaded

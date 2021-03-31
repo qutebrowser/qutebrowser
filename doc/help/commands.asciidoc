@@ -87,6 +87,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<nop,nop>>|Do nothing.
 |<<open,open>>|Open a URL in the current/[count]th tab.
 |<<print,print>>|Print the current/[count]th tab.
+|<<process,process>>|Manage processes spawned by qutebrowser.
 |<<quickmark-add,quickmark-add>>|Add a new quickmark.
 |<<quickmark-del,quickmark-del>>|Delete a quickmark.
 |<<quickmark-load,quickmark-load>>|Load a quickmark.
@@ -939,6 +940,23 @@ Print the current/[count]th tab.
 ==== count
 The tab index to print.
 
+[[process]]
+=== process
+Syntax: +:process ['pid'] ['action']+
+
+Manage processes spawned by qutebrowser.
+
+Note that processes with a successful exit get cleaned up after 1h.
+
+==== positional arguments
+* +'pid'+: The process ID of the process to manage.
+* +'action'+: What to do with the given process: 
+
+ - show: Show information about the process.
+ - terminate: Try to gracefully terminate the process (SIGTERM).
+ - kill: Kill the process forcefully (SIGKILL).
+
+
 [[quickmark-add]]
 === quickmark-add
 Syntax: +:quickmark-add 'url' 'name'+
@@ -1434,13 +1452,15 @@ How many tabs to switch forward.
 
 [[tab-only]]
 === tab-only
-Syntax: +:tab-only [*--prev*] [*--next*] [*--force*]+
+Syntax: +:tab-only [*--prev*] [*--next*] [*--pinned* 'behavior'] [*--force*]+
 
 Close all tabs except for the current one.
 
 ==== optional arguments
 * +*-p*+, +*--prev*+: Keep tabs before the current.
 * +*-n*+, +*--next*+: Keep tabs after the current.
+* +*-P*+, +*--pinned*+: What to do with pinned tabs. Valid values: prompt, close, keep.
+
 * +*-f*+, +*--force*+: Avoid confirmation for pinned tabs.
 
 [[tab-pin]]

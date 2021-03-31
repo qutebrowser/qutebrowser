@@ -182,7 +182,9 @@
 |<<content.mouse_lock,content.mouse_lock>>|Allow websites to lock your mouse pointer.
 |<<content.mute,content.mute>>|Automatically mute tabs.
 |<<content.netrc_file,content.netrc_file>>|Netrc-file for HTTP authentication.
-|<<content.notifications,content.notifications>>|Allow websites to show notifications.
+|<<content.notifications.enabled,content.notifications.enabled>>|Allow websites to show notifications.
+|<<content.notifications.presenter,content.notifications.presenter>>|What notification presenter to use for web notifications.
+|<<content.notifications.show_origin,content.notifications.show_origin>>|Whether to show the origin URL for notifications.
 |<<content.pdfjs,content.pdfjs>>|Allow pdf.js to view PDF files in the browser.
 |<<content.persistent_storage,content.persistent_storage>>|Allow websites to request persistent storage quota via `navigator.webkitPersistentStorage.requestQuota`.
 |<<content.plugins,content.plugins>>|Enable plugins in Web pages.
@@ -191,7 +193,8 @@
 |<<content.proxy,content.proxy>>|Proxy to use.
 |<<content.proxy_dns_requests,content.proxy_dns_requests>>|Send DNS requests over the configured proxy.
 |<<content.register_protocol_handler,content.register_protocol_handler>>|Allow websites to register protocol handlers via `navigator.registerProtocolHandler`.
-|<<content.site_specific_quirks,content.site_specific_quirks>>|Enable quirks (such as faked user agent headers) needed to get specific sites to work properly.
+|<<content.site_specific_quirks.enabled,content.site_specific_quirks.enabled>>|Enable quirks (such as faked user agent headers) needed to get specific sites to work properly.
+|<<content.site_specific_quirks.skip,content.site_specific_quirks.skip>>|Disable a list of named quirks.
 |<<content.tls.certificate_errors,content.tls.certificate_errors>>|How to proceed on TLS certificate errors.
 |<<content.unknown_url_scheme_policy,content.unknown_url_scheme_policy>>|How navigation requests to URLs with unknown schemes are handled.
 |<<content.user_stylesheets,content.user_stylesheets>>|List of user stylesheet filenames to use.
@@ -207,6 +210,7 @@
 |<<downloads.remove_finished,downloads.remove_finished>>|Duration (in milliseconds) to wait before removing finished downloads.
 |<<editor.command,editor.command>>|Editor (and arguments) to use for the `edit-*` commands.
 |<<editor.encoding,editor.encoding>>|Encoding to use for the editor.
+|<<fileselect.folder.command,fileselect.folder.command>>|Command (and arguments) to use for selecting a single folder in forms. The command should write the selected folder path to the specified file or stdout.
 |<<fileselect.handler,fileselect.handler>>|Handler for selecting file(s) in forms. If `external`, then the commands specified by `fileselect.single_file.command` and `fileselect.multiple_files.command` are used to select one or multiple files respectively.
 |<<fileselect.multiple_files.command,fileselect.multiple_files.command>>|Command (and arguments) to use for selecting multiple files in forms. The command should write the selected file paths to the specified file or to stdout, separated by newlines.
 |<<fileselect.single_file.command,fileselect.single_file.command>>|Command (and arguments) to use for selecting a single file in forms. The command should write the selected file path to the specified file or stdout.
@@ -623,7 +627,7 @@ Default:
 * +pass:[Sh]+: +pass:[history]+
 * +pass:[Sq]+: +pass:[bookmark-list]+
 * +pass:[Ss]+: +pass:[set]+
-* +pass:[T]+: +pass:[tab-focus]+
+* +pass:[T]+: +pass:[set-cmd-text -sr :tab-focus]+
 * +pass:[U]+: +pass:[undo -w]+
 * +pass:[V]+: +pass:[mode-enter caret ;; selection-toggle --line]+
 * +pass:[ZQ]+: +pass:[quit]+
@@ -2510,8 +2514,8 @@ Type: <<types,File>>
 
 Default: empty
 
-[[content.notifications]]
-=== content.notifications
+[[content.notifications.enabled]]
+=== content.notifications.enabled
 Allow websites to show notifications.
 
 This setting supports URL patterns.
@@ -2527,6 +2531,52 @@ Valid values:
  * +ask+
 
 Default: +pass:[ask]+
+
+[[content.notifications.presenter]]
+=== content.notifications.presenter
+What notification presenter to use for web notifications.
+Note that not all implementations support all features of notifications:
+- With PyQt 5.14, any setting other than `qt` does not support  the `click` and
+  `close` events, as well as the `tag` option to replace existing notifications.
+- The `qt` and `systray` options only support showing one notification at the time
+  and ignore the `tag` option to replace existing notifications.
+- The `herbe` option only supports showing one notification at the time and doesn't
+  show icons.
+- The `messages` option doesn't show icons and doesn't support the `click` and
+  `close` events.
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +auto+: Tries `libnotify`, `systray` and `messages`, uses the first one available without showing error messages.
+ * +qt+: Use Qt's native notification presenter, based on a system tray icon. Switching from or to this value requires a restart of qutebrowser. Recommended over `systray` on PyQt 5.14.
+ * +libnotify+: Shows messages via DBus in a libnotify-compatible way. If DBus isn't available, falls back to `systray` or `messages`, but shows an error message.
+ * +systray+: Use a notification presenter based on a systray icon. Falls back to `libnotify` or `messages` if not systray is available. This is a reimplementation of the `qt` setting value, but with the possibility to switch to it at runtime.
+ * +messages+: Show notifications as qutebrowser messages. Most notification features aren't available.
+ * +herbe+: (experimental!) Show notifications using herbe (github.com/dudik/herbe). Most notification features aren't available.
+
+Default: +pass:[auto]+
+
+[[content.notifications.show_origin]]
+=== content.notifications.show_origin
+Whether to show the origin URL for notifications.
+Note that URL patterns with this setting only get matched against the origin part of the URL, so e.g. paths in patterns will never match.
+Note that with the `qt` presenter, origins are never shown.
+
+This setting supports URL patterns.
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
 
 [[content.pdfjs]]
 === content.pdfjs
@@ -2630,8 +2680,8 @@ Valid values:
 
 Default: +pass:[ask]+
 
-[[content.site_specific_quirks]]
-=== content.site_specific_quirks
+[[content.site_specific_quirks.enabled]]
+=== content.site_specific_quirks.enabled
 Enable quirks (such as faked user agent headers) needed to get specific sites to work properly.
 
 This setting requires a restart.
@@ -2639,6 +2689,26 @@ This setting requires a restart.
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
+
+[[content.site_specific_quirks.skip]]
+=== content.site_specific_quirks.skip
+Disable a list of named quirks.
+
+Type: <<types,FlagList>>
+
+Valid values:
+
+ * +ua-whatsapp+
+ * +ua-google+
+ * +ua-slack+
+ * +js-whatsapp-web+
+ * +js-string-replaceall+
+ * +js-globalthis+
+ * +js-object-fromentries+
+ * +misc-krunker+
+ * +misc-mathml-darkmode+
+
+Default: empty
 
 [[content.tls.certificate_errors]]
 === content.tls.certificate_errors
@@ -2825,6 +2895,22 @@ Encoding to use for the editor.
 Type: <<types,Encoding>>
 
 Default: +pass:[utf-8]+
+
+[[fileselect.folder.command]]
+=== fileselect.folder.command
+Command (and arguments) to use for selecting a single folder in forms. The command should write the selected folder path to the specified file or stdout.
+The following placeholders are defined:
+* `{}`: Filename of the file to be written to. If not contained in any argument, the
+  standard output of the command is read instead.
+
+Type: <<types,ShellCommand>>
+
+Default: 
+
+- +pass:[xterm]+
+- +pass:[-e]+
+- +pass:[ranger]+
+- +pass:[--choosedir={}]+
 
 [[fileselect.handler]]
 === fileselect.handler

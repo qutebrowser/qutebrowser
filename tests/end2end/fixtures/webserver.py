@@ -22,7 +22,7 @@
 import re
 import sys
 import json
-import os.path
+import pathlib
 import socket
 import dataclasses
 from http import HTTPStatus
@@ -171,14 +171,12 @@ class WebserverProcess(testprocess.Process):
 
     def _executable_args(self):
         if hasattr(sys, 'frozen'):
-            executable = os.path.join(os.path.dirname(sys.executable),
-                                      self._script)
+            executable = str(pathlib.Path(sys.executable).parent / self._script)
             args = []
         else:
             executable = sys.executable
-            py_file = os.path.join(os.path.dirname(__file__),
-                                   self._script + '.py')
-            args = [py_file]
+            py_file = (pathlib.Path(__file__).parent / self._script).with_suffix('.py')
+            args = [str(py_file)]
         return executable, args
 
     def _default_args(self):

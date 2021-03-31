@@ -38,7 +38,7 @@ from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
 from qutebrowser.mainwindow import messageview, prompt
 from qutebrowser.completion import completionwidget, completer
 from qutebrowser.keyinput import modeman
-from qutebrowser.browser import commands, downloadview, hints, downloads
+from qutebrowser.browser import downloadview, hints, downloads
 from qutebrowser.misc import crashsignal, keyhintwidget, sessions, objects
 from qutebrowser.qt import sip
 
@@ -381,6 +381,8 @@ class MainWindow(QWidget):
         self._add_overlay(self._completion, self._completion.update_geometry)
 
     def _init_command_dispatcher(self):
+        # Lazy import to avoid circular imports
+        from qutebrowser.browser import commands
         self._command_dispatcher = commands.CommandDispatcher(
             self.win_id, self.tabbed_browser)
         objreg.register('command-dispatcher',
