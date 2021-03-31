@@ -170,6 +170,10 @@ Fixed
 - In rare circumstances, sending URLs/commands to existing instances would
   result in a crash, which is now fixed.
 - Running the testsuite should now fully work without internet access again.
+- The `--asciidoc` script for `mkvenv.py` broke with v1.14.0. It now works
+  correctly again.
+- The `qute-pass` userscript now works correctly again with gopass when storing
+  the username as part of the secret.
 
 [[v2.1.0]]
 v2.1.0 (2021-03-12)
