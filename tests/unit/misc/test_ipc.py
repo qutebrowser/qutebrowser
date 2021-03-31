@@ -236,8 +236,14 @@ class TestSocketName:
         (None, 'ipc-{}'.format(md5('testusername'))),
         ('/x', 'ipc-{}'.format(md5('testusername-/x'))),
     ])
+    @pytest.mark.parametrize('has_flatpak_id', [True, False])
     @pytest.mark.skipif(not version.is_flatpak(), reason="Needs Flatpak")
-    def test_flatpak(self, basedir, fake_runtime_dir, expected):
+    def test_flatpak(self, monkeypatch, fake_runtime_dir,
+                     basedir, expected, has_flatpak_id):
+        if not has_flatpak_id:
+            # Simulate an older Flatpak version
+            monkeypatch.delenv('FLATPAK_ID', raising=False)
+
         socketname = ipc._get_socketname(basedir)
         expected_path = str(
             fake_runtime_dir / 'app' / 'org.qutebrowser.qutebrowser' / expected)

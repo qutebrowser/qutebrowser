@@ -770,15 +770,8 @@ class TestOpenFile:
 
     @pytest.fixture
     def sandbox_patch(self, monkeypatch):
-        info = version.DistributionInfo(
-            id='org.kde.Platform',
-            parsed=version.Distribution.kde_flatpak,
-            version=VersionNumber.parse('5.12'),
-            pretty='Unknown')
-
         if not version.is_flatpak():
-            monkeypatch.setattr(version, 'distribution', lambda: info)
-
+            monkeypatch.setenv('FLATPAK_ID', 'org.qutebrowser.qutebrowser')
         assert version.is_flatpak()
 
     def test_cmdline_sandboxed(self, sandbox_patch,

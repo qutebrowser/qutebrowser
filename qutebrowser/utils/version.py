@@ -27,6 +27,8 @@ import platform
 import subprocess
 import importlib
 import collections
+import pathlib
+import configparser
 import enum
 import datetime
 import getpass
@@ -195,10 +197,27 @@ def is_flatpak() -> bool:
     If packaged via Flatpak, the environment is has restricted access to the host
     system.
     """
-    current_distro = distribution()
-    if current_distro is None:
-        return False
-    return current_distro.parsed == Distribution.kde_flatpak
+    return flatpak_id() is not None
+
+
+_FLATPAK_INFO_PATH = '/.flatpak-info'
+
+
+def flatpak_id() -> Optional[str]:
+    """Get the ID of the currently running Flatpak (or None if outside of Flatpak)."""
+    if 'FLATPAK_ID' in os.environ:
+        return os.environ['FLATPAK_ID']
+
+    # 'FLATPAK_ID' was only added in Flatpak 1.2.0:
+    # https://lists.freedesktop.org/archives/flatpak/2019-January/001464.html
+    # but e.g. Ubuntu 18.04 ships 1.0.9.
+    info_file = pathlib.Path(_FLATPAK_INFO_PATH)
+    if not info_file.exists():
+        return None
+
+    parser = configparser.ConfigParser()
+    parser.read(info_file)
+    return parser['Application']['name']
 
 
 def _git_str() -> Optional[str]:

@@ -448,7 +448,7 @@ def test_disabled(qtwe_version, config_stub):
 
 
 @pytest.mark.fake_os('linux')
-def test_no_locales_available(qtwe_version, monkeypatch, caplog):
+def test_no_locales_available(qtwe_version, monkeypatch, caplog, request):
     path = pathlib.Path('/doesnotexist/qtwebengine_locales')
     assert not path.exists()
     monkeypatch.setattr(qtargs, '_webengine_locales_path', lambda: path)
