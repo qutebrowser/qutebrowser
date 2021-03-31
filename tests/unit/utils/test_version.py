@@ -1008,17 +1008,22 @@ class TestWebEngineVersions:
 
     def test_real_chromium_version(self, qapp):
         """Compare the inferred Chromium version with the real one."""
-        if '.dev' in PYQT_VERSION_STR:
-            pytest.skip("dev version of PyQt5")
-
-        try:
-            from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION_STR
-        except ImportError as e:
-            # QtWebKit or QtWebEngine < 5.13
-            pytest.skip(str(e))
-
         pyqt_webengine_version = version._get_pyqt_webengine_qt_version()
         if pyqt_webengine_version is None:
+            if '.dev' in PYQT_VERSION_STR:
+                pytest.skip("dev version of PyQt5")
+
+            try:
+                from PyQt5.QtWebEngine import (
+                    PYQT_WEBENGINE_VERSION_STR, PYQT_WEBENGINE_VERSION)
+            except ImportError as e:
+                # QtWebKit or QtWebEngine < 5.13
+                pytest.skip(str(e))
+
+            if PYQT_WEBENGINE_VERSION >= 0x050F02:
+                # Starting with Qt 5.15.2, we can only do bad guessing anyways...
+                pytest.skip("Could be QtWebEngine 5.15.2 or 5.15.3")
+
             pyqt_webengine_version = PYQT_WEBENGINE_VERSION_STR
 
         versions = version.WebEngineVersions.from_pyqt(pyqt_webengine_version)
