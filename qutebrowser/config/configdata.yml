@@ -762,24 +762,19 @@ content.javascript.alert:
   type: Bool
   desc: Show javascript alerts.
 
-content.javascript.can_access_clipboard:
-  default: false
-  type: Bool
+content.javascript.clipboard:
+  default: none
+  type:
+    name: String
+    valid_values:
+      - none: Disable access to clipboard.
+      - access-paste: Allow javascript to read the clipboard.
   supports_pattern: true
   desc: >-
     Allow JavaScript to read from or write to the clipboard.
 
     With QtWebEngine, writing the clipboard as response to a user interaction
     is always allowed.
-
-content.javascript.can_paste:
-  default: false
-  type: Bool
-  supports_pattern: true
-  desc: >-
-    Allow JavaScript to paste images from the clipboard.
-
-    This also requires enabling javascript can access clipboard.
 
 content.javascript.can_close_tabs:
   default: false

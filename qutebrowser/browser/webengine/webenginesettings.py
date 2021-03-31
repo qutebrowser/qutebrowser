@@ -117,10 +117,10 @@ class WebEngineSettings(websettings.AbstractSettings):
             Attr(QWebEngineSettings.JavascriptEnabled),
         'content.javascript.can_open_tabs_automatically':
             Attr(QWebEngineSettings.JavascriptCanOpenWindows),
-        'content.javascript.can_access_clipboard':
-            Attr(QWebEngineSettings.JavascriptCanAccessClipboard),
-        'content.javascript.can_paste':
-            Attr(QWebEngineSettings.JavascriptCanPaste),
+        'content.javascript.clipboard':
+            Attr(QWebEngineSettings.JavascriptCanAccessClipboard,
+                 QWebEngineSettings.JavascriptCanPaste,
+                 converter=lambda val: val == 'access-paste'),
         'content.plugins':
             Attr(QWebEngineSettings.PluginsEnabled),
         'content.hyperlink_auditing':
