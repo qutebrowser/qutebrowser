@@ -310,19 +310,27 @@ def test_distribution(tmp_path, monkeypatch, os_release, expected):
     assert version.distribution() == expected
 
 
-@pytest.mark.parametrize('distribution, expected', [
-    (None, False),
-    (version.DistributionInfo(
-        id='org.kde.Platform', parsed=version.Distribution.kde_flatpak,
-        version=utils.VersionNumber(5, 12),
-        pretty='Unknown'), True),
-    (version.DistributionInfo(
-        id='arch', parsed=version.Distribution.arch, version=None,
-        pretty='Arch Linux'), False)
-])
-def test_is_flatpak(monkeypatch, distribution, expected):
-    monkeypatch.setattr(version, "distribution", lambda: distribution)
-    assert version.is_flatpak() == expected
+@pytest.mark.parametrize('has_env', [True, False])
+@pytest.mark.parametrize('has_file', [True, False])
+def test_is_flatpak(monkeypatch, tmp_path, has_env, has_file):
+    if has_env:
+        monkeypatch.setenv('FLATPAK_ID', 'org.qutebrowser.qutebrowser')
+    else:
+        monkeypatch.delenv('FLATPAK_ID', raising=False)
+
+    fake_info_path = tmp_path / '.flatpak_info'
+    if has_file:
+        lines = [
+            "[Application]",
+            "name=org.qutebrowser.qutebrowser",
+            "runtime=runtime/org.kde.Platform/x86_64/5.15",
+        ]
+        fake_info_path.write_text('\n'.join(lines))
+    else:
+        assert not fake_info_path.exists()
+    monkeypatch.setattr(version, '_FLATPAK_INFO_PATH', str(fake_info_path))
+
+    assert version.is_flatpak() == (has_env or has_file)
 
 
 class GitStrSubprocessFake:

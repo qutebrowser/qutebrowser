@@ -209,15 +209,11 @@ class TestStandardDir:
 
     @pytest.mark.linux
     @pytest.mark.parametrize('args_basedir', [True, False])
-    @pytest.mark.parametrize('has_flatpak_id', [True, False])
     def test_flatpak_runtimedir(self, fake_flatpak, monkeypatch, tmp_path,
-                                args_basedir, has_flatpak_id):
+                                args_basedir):
         runtime_path = tmp_path / 'runtime'
         runtime_path.mkdir()
         runtime_path.chmod(0o0700)
-
-        if not has_flatpak_id:
-            monkeypatch.delenv('FLATPAK_ID')  # added in fake_flatpak
         monkeypatch.setenv('XDG_RUNTIME_DIR', str(runtime_path))
 
         if args_basedir:
