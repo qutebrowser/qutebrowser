@@ -51,10 +51,6 @@ class TabWidget(QTabWidget):
     tab_index_changed = pyqtSignal(int, int)
     new_tab_requested = pyqtSignal('QUrl', bool, bool)
 
-    # Strings for controlling the mute/audible text
-    MUTE_STRING = '[M] '
-    AUDIBLE_STRING = '[A] '
-
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         bar = TabBar(win_id, self)
@@ -164,12 +160,12 @@ class TabWidget(QTabWidget):
         fields['title_sep'] = ' - ' if page_title else ''
         fields['perc_raw'] = tab.progress()
         fields['backend'] = objects.backend.name
-        fields['private'] = ' [Private Mode] ' if tab.is_private else ''
+        fields['private'] = config.val.tabs.indicator.private if tab.is_private else ''
         try:
             if tab.audio.is_muted():
-                fields['audio'] = TabWidget.MUTE_STRING
+                fields['audio'] = config.val.tabs.indicator.mute
             elif tab.audio.is_recently_audible():
-                fields['audio'] = TabWidget.AUDIBLE_STRING
+                fields['audio'] = config.val.tabs.indicator.audio
             else:
                 fields['audio'] = ''
         except browsertab.WebTabError:

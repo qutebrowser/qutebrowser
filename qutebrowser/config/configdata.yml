@@ -2221,6 +2221,21 @@ tabs.indicator.padding:
   type: Padding
   desc: Padding (in pixels) for tab indicators.
 
+tabs.indicator.audio:
+  default: '[A] '
+  type: String
+  desc: Text shown in a tab tab when audio is being played
+
+tabs.indicator.mute:
+  default: '[M] '
+  type: String
+  desc: Text shown in a muted tab
+
+tabs.indicator.private:
+  default: '[Private Mode] '
+  type: String
+  desc: Text shown to indicate a tab is in private mode
+
 tabs.width.pinned:
   deleted: true
 
