@@ -1011,12 +1011,13 @@ class TestWebEngineVersions:
             pyqt_webengine_version = PYQT_WEBENGINE_VERSION_STR
 
         versions = version.WebEngineVersions.from_pyqt(pyqt_webengine_version)
+        inferred = versions.chromium
 
         from qutebrowser.browser.webengine import webenginesettings
         webenginesettings.init_user_agent()
-        expected = webenginesettings.parsed_user_agent.upstream_browser_version
+        real = webenginesettings.parsed_user_agent.upstream_browser_version
 
-        assert versions.chromium == expected
+        assert inferred == real
 
 
 class FakeQSslSocket:
