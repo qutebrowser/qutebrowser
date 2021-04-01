@@ -121,7 +121,7 @@ Removed
   replaced by the new `qute://process` pages.
 
 [[v2.1.1]]
-v2.1.1 (unreleased)
+v2.1.1 (2021-04-01)
 -------------------
 
 Added
