@@ -795,9 +795,11 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             # https://github.com/Sweets/tiramisu/issues/20
             return _ServerQuirks(skip_capabilities=True)
         elif (name, vendor) == ("lxqt-notificationd", "lxqt.org"):
-            # https://github.com/lxqt/lxqt-notificationd/issues/253
-            quirks = _ServerQuirks(escape_title=True)
+            quirks = _ServerQuirks()
             parsed_version = utils.VersionNumber.parse(version)
+            if parsed_version <= utils.VersionNumber(0, 16):
+                # https://github.com/lxqt/lxqt-notificationd/issues/253
+                quirks.escape_title = True
             if parsed_version < utils.VersionNumber(0, 16):
                 # https://github.com/lxqt/lxqt-notificationd/commit/c23e254a63c39837fb69d5c59c5e2bc91e83df8c
                 quirks.icon_key = 'image_data'
