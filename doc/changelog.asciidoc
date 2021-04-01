@@ -15,6 +15,61 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+[[v2.1.1]]
+v2.1.1 (unreleased)
+-------------------
+
+Added
+~~~~~
+
+- Site-specific quirk for krunker.io, which shows a "Socket Error" with
+  qutebrowser's default Accept-Language header. The workaround is equivalent to
+  doing `:set -u matchmaker.krunker.io content.headers.accept_language ""`.
+
+Changed
+~~~~~~~
+
+- Clicking the 'x' in the devtools window to hide it now also leaves insert
+  mode.
+
+Fixed
+~~~~~
+
+- The workaround for black on (almost) black formula images in dark mode now
+  also works with Qt 5.12 and 5.13.
+- When running in Flatpak or with the Windows/macOS releases, the QtWebEngine
+  version is now detected properly. Before, a wrong version was assumed, breaking
+  dark mode and certain workarounds (resulting in crashes on websites like
+  LinkedIn or TradingView).
+- When the metainfo in the completion database doesn't have the expected
+  structure, qutebrowser now tries to gracefully recover from the situation
+  instead of crashing.
+- When qutebrowser displays an error during initialization, opening a second
+  instance would lead to a crash. Instead, qutebrowser now ignores the attempt
+  to open a new page as long as it's not fully initialized yet.
+- When the Brave adblock cache folder was unreadable, qutebrowser crashed. It
+  now displays an error instead.
+- Fixes in the `qute-pass` userscript for `gopass`:
+  * Generating OTP tokens now works correctly.
+  * Storing the username as part of the secret broke in v2.0.0 and now works
+    again.
+- When using `bindings.key_mappings` to map a key to multiple other keys,
+  qutebrowser would crash. This is now handled correctly - however, note that
+  it's usually better to map keys to commands instead.
+- When a minimized window is selected via `:tab-select`, it's now un-minimized
+  properly.
+- When a format string in the config (e.g. `tabs.title_format`) used a value
+  like `{current_url.host}` (instead of `{current_url:host}`), qutebrowser
+  would crash. It now correctly reports an invalid config value instead.
+- In rare circumstances, sending URLs/commands to existing instances would
+  result in a crash, which is now fixed.
+- Running the testsuite should now fully work without internet access again.
+- The `--asciidoc` script for `mkvenv.py` broke with v1.14.0. It now works
+  correctly again.
+- Various other fixes for running in Flatpak (backported in the Flatpak release
+  even before this qutebrowser release).
+- We are the Knights Who Say... ':Ni!'
+
 [[v2.1.0]]
 v2.1.0 (2021-03-12)
 -------------------
