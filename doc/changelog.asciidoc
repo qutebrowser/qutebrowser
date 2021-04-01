@@ -130,7 +130,6 @@ Added
 - Site-specific quirk for krunker.io, which shows a "Socket Error" with
   qutebrowser's default Accept-Language header. The workaround is equivalent to
   doing `:set -u matchmaker.krunker.io content.headers.accept_language ""`.
-- We are the Knights Who Say... 'Ni'!
 
 Changed
 ~~~~~~~
@@ -147,8 +146,6 @@ Fixed
   version is now detected properly. Before, a wrong version was assumed, breaking
   dark mode and certain workarounds (resulting in crashes on websites like
   LinkedIn or TradingView).
-- When running in Flatpak, communicating with an existing instance now works
-  properly. Before, a new instance was always opened.
 - When the metainfo in the completion database doesn't have the expected
   structure, qutebrowser now tries to gracefully recover from the situation
   instead of crashing.
@@ -157,8 +154,10 @@ Fixed
   to open a new page as long as it's not fully initialized yet.
 - When the Brave adblock cache folder was unreadable, qutebrowser crashed. It
   now displays an error instead.
-- The `qute-pass` userscript now works correctly when generating OTP tokens
-  with `gopass`.
+- Fixes in the `qute-pass` userscript for `gopass`:
+  * Generating OTP tokens now works correctly.
+  * Storing the username as part of the secret broke in v2.0.0 and now works
+    again.
 - When using `bindings.key_mappings` to map a key to multiple other keys,
   qutebrowser would crash. This is now handled correctly - however, note that
   it's usually better to map keys to commands instead.
@@ -172,8 +171,9 @@ Fixed
 - Running the testsuite should now fully work without internet access again.
 - The `--asciidoc` script for `mkvenv.py` broke with v1.14.0. It now works
   correctly again.
-- The `qute-pass` userscript now works correctly again with gopass when storing
-  the username as part of the secret.
+- Various other fixes for running in Flatpak (backported in the Flatpak release
+  even before this qutebrowser release).
+- We are the Knights Who Say... ':Ni!'
 
 [[v2.1.0]]
 v2.1.0 (2021-03-12)
