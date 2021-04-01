@@ -113,6 +113,9 @@ Fixed
   persisted. This already was the case when the editor crashed.
 - When a nonexistent file gets passed to `--config-py`, qutebrowser now
   complains instead of silently not loading it.
+- With some (rare) setups, opening the report dialog or using a PAC proxy with
+  QtWebKit could result in qutebrowser hanging due to a PyQt bug. There's now a
+  workaround which prevents the hang.
 
 Removed
 ~~~~~~~

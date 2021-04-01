@@ -251,7 +251,10 @@ class PACFetcher(QObject):
         url.setScheme(url.scheme()[len(pac_prefix):])
 
         self._pac_url = url
-        self._manager: Optional[QNetworkAccessManager] = QNetworkAccessManager()
+        with log.disable_qt_msghandler():
+            # WORKAROUND for a hang when messages are printed, see our
+            # NetworkAccessManager subclass for details.
+            self._manager: Optional[QNetworkAccessManager] = QNetworkAccessManager()
         self._manager.setProxy(QNetworkProxy(QNetworkProxy.NoProxy))
         self._pac = None
         self._error_message = None
