@@ -32,7 +32,7 @@ from qutebrowser.config import config, websettings
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message, jinja, version)
 from qutebrowser.misc import miscwidgets, objects, sessions
-from qutebrowser.browser import eventfilter, inspector, shared
+from qutebrowser.browser import eventfilter, inspector
 from qutebrowser.qt import sip
 
 if TYPE_CHECKING:
@@ -67,6 +67,26 @@ def create(win_id: int,
         raise utils.Unreachable(objects.backend)
     return tab_class(win_id=win_id, mode_manager=mode_manager, private=private,
                      parent=parent)
+
+
+class FeatureState(enum.Enum):
+    """The possible states of a web API that can request user permission."""
+
+    granted = True
+    denied = False
+    ask = "ask"
+
+
+@dataclasses.dataclass
+class Feature:
+    """A web api that the user can interactively grant permission to.
+
+    `state` is a value of 'FeatureState'.
+    """
+
+    setting_name: str
+    requesting_message: str
+    state: Optional[FeatureState] = None
 
 
 class WebTabError(Exception):
@@ -967,14 +987,14 @@ class AbstractPermissions(QObject):
     """Handling a tab's access to web APIs.
 
     Attributes:
-        features: A dict with a Qt feature enum -> shared.Feature mapping.
+        features: A dict with a Qt feature enum -> Feature mapping.
     """
 
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
         super().__init__(parent)
         self._tab = tab
         self._widget = cast(QWidget, None)
-        self.features: Dict[int, shared.Feature] = {}
+        self.features: Dict[int, Feature] = {}
         self._init_features()
 
     def _init_features(self) -> None:
@@ -987,10 +1007,10 @@ class AbstractPermissions(QObject):
         for feat in self.features.values():
             feat.state = None
 
-    def test_feature(self, setting_name: str) -> shared.FeatureState:
+    def test_feature(self, setting_name: str) -> FeatureState:
         """Return whether the user has granted permission for `setting_name`.
 
-        Returns a value of `shared.FeatureState'.
+        Returns a value of `FeatureState'.
         Raises KeyError if `setting_name` doesn't map to a grantable
         feature.
         """
@@ -1004,7 +1024,7 @@ class AbstractPermissions(QObject):
         set_feats = [f for f in feats if f.state is not None]
         if set_feats:
             granted = any(
-                f.state == shared.FeatureState.granted for f in set_feats
+                f.state == FeatureState.granted for f in set_feats
             )
         else:
             url = self._tab.url()
@@ -1013,7 +1033,7 @@ class AbstractPermissions(QObject):
 
             granted = config.instance.get(setting_name, url=url)
 
-        return shared.FeatureState(granted)
+        return FeatureState(granted)
 
 
 class AbstractTab(QWidget):
@@ -1050,8 +1070,8 @@ class AbstractTab(QWidget):
     #: Signal emitted when a new load started or we're shutting down.
     abort_questions = pyqtSignal()
     #: Signal emitted when a tab's permission for a web API has been
-    #: changed (setting as str, current access as shared.FeatureState)
-    feature_permission_changed = pyqtSignal(str, shared.FeatureState)
+    #: changed (setting as str, current access as FeatureState)
+    feature_permission_changed = pyqtSignal(str, FeatureState)
 
     # Signal emitted when a page's load status changed
     # (argument: usertypes.LoadStatus)

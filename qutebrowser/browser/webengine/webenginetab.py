@@ -876,21 +876,21 @@ class _WebEnginePermissions(browsertab.AbstractPermissions):
 
     def _init_features(self):
         self.features.update({
-            QWebEnginePage.Feature.Notifications: shared.Feature(
+            QWebEnginePage.Feature.Notifications: browsertab.Feature(
                 'content.notifications.enabled', 'show notifications'),
-            QWebEnginePage.Feature.Geolocation: shared.Feature(
+            QWebEnginePage.Feature.Geolocation: browsertab.Feature(
                 'content.geolocation', 'access your location'),
-            QWebEnginePage.Feature.MediaAudioCapture: shared.Feature(
+            QWebEnginePage.Feature.MediaAudioCapture: browsertab.Feature(
                 'content.media.audio_capture', 'record audio'),
-            QWebEnginePage.Feature.MediaVideoCapture: shared.Feature(
+            QWebEnginePage.Feature.MediaVideoCapture: browsertab.Feature(
                 'content.media.video_capture', 'record video'),
-            QWebEnginePage.Feature.MediaAudioVideoCapture: shared.Feature(
+            QWebEnginePage.Feature.MediaAudioVideoCapture: browsertab.Feature(
                 'content.media.audio_video_capture', 'record audio/video'),
-            QWebEnginePage.Feature.MouseLock: shared.Feature(
+            QWebEnginePage.Feature.MouseLock: browsertab.Feature(
                 'content.mouse_lock', 'hide your mouse pointer'),
-            QWebEnginePage.Feature.DesktopVideoCapture: shared.Feature(
+            QWebEnginePage.Feature.DesktopVideoCapture: browsertab.Feature(
                 'content.desktop_capture', 'capture your desktop'),
-            QWebEnginePage.Feature.DesktopAudioVideoCapture: shared.Feature(
+            QWebEnginePage.Feature.DesktopAudioVideoCapture: browsertab.Feature(
                 'content.desktop_capture', 'capture your desktop and audio'),
         })
 
@@ -1005,11 +1005,11 @@ class _WebEnginePermissions(browsertab.AbstractPermissions):
         self._widget.page().setFeaturePermission(origin, feature, policy)
 
         if policy == QWebEnginePage.PermissionPolicy.PermissionGrantedByUser:
-            self.features[feature].state = shared.FeatureState.granted
+            self.features[feature].state = browsertab.FeatureState.granted
         elif policy == QWebEnginePage.PermissionPolicy.PermissionDeniedByUser:
-            self.features[feature].state = shared.FeatureState.denied
+            self.features[feature].state = browsertab.FeatureState.denied
         else:
-            self.features[feature].state = shared.FeatureState.ask
+            self.features[feature].state = browsertab.FeatureState.ask
 
         self._tab.feature_permission_changed.emit(
             self.features[feature].setting_name,
