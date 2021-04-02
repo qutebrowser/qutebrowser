@@ -139,7 +139,10 @@ def walk_extensions() -> Iterator[ExtensionInfo]:
             try:
                 # Import the module with the finder so that it is in
                 # sys.modules ready for _load_component.
-                finder.find_module(name).load_module(name)
+                spec = finder.find_spec(name, None)
+                if not spec or not spec.loader:
+                    raise ImportError(f"pkgutil couldn't find loader for {name}")
+                spec.loader.load_module(name)
             except Exception:
                 log.extensions.exception(
                     "Exception while importing extension: {}"
