@@ -381,7 +381,7 @@ Read a config.py file.
 
 [[config-unset]]
 === config-unset
-Syntax: +:config-unset [*--temp*] 'option'+
+Syntax: +:config-unset [*--pattern* 'pattern'] [*--temp*] 'option'+
 
 Unset an option.
 
@@ -391,6 +391,7 @@ This sets an option back to its default and removes it from autoconfig.yml.
 * +'option'+: The name of the option.
 
 ==== optional arguments
+* +*-u*+, +*--pattern*+: The URL pattern to use.
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 
 [[config-write-py]]

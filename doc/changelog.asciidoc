@@ -105,6 +105,9 @@ Changed
 - The default binding for `T` (`:tab-focus`) got changed so that it fills the
   command line with `:tab-focus` if used without a count (instead of being
   equivalent to `:tab-next` in that case).
+- The `:config-unset` command now understands the `--pattern` (`-u`) flag to
+  unset options customized for a given URL pattern (such as after answering a
+  prompt with "always"/"never").
 
 Fixed
 ~~~~~
