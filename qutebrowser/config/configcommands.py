@@ -264,7 +264,11 @@ class ConfigCommands:
         """
         parsed_pattern = self._parse_pattern(pattern)
         with self._handle_config_error():
-            changed = self._config.unset(option, save_yaml=not temp, pattern=parsed_pattern)
+            changed = self._config.unset(
+                option,
+                save_yaml=not temp,
+                pattern=parsed_pattern,
+            )
 
         if not changed:
             text = f'{option} is not customized'
