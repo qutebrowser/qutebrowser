@@ -500,8 +500,12 @@ class Config(QObject):
 
     def unset(self, name: str, *,
               save_yaml: bool = False,
-              pattern: urlmatch.UrlPattern = None) -> None:
-        """Set the given setting back to its default."""
+              pattern: urlmatch.UrlPattern = None) -> bool:
+        """Set the given setting back to its default.
+
+        Return:
+            True if there was a change, False if nothing changed.
+        """
         opt = self.get_opt(name)
         self._check_yaml(opt, save_yaml)
         changed = self._values[name].remove(pattern)
@@ -510,6 +514,8 @@ class Config(QObject):
 
         if save_yaml:
             self._yaml.unset(name, pattern=pattern)
+
+        return changed
 
     def clear(self, *, save_yaml: bool = False) -> None:
         """Clear all settings in the config.

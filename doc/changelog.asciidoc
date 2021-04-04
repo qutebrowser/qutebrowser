@@ -108,6 +108,8 @@ Changed
 - The `:config-unset` command now understands the `--pattern` (`-u`) flag to
   unset options customized for a given URL pattern (such as after answering a
   prompt with "always"/"never").
+- The `:config-unset` command now shows an error when used on an option which is
+  valid, but was never customized.
 
 Fixed
 ~~~~~
