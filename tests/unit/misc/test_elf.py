@@ -63,8 +63,9 @@ def test_result(qapp, caplog):
     assert versions is not None
 
     # No failing mmap
-    assert len(caplog.messages) == 1
-    assert caplog.messages[0].startswith('Got versions from ELF:')
+    assert len(caplog.messages) == 2
+    assert caplog.messages[0].startswith('QtWebEngine .so found at')
+    assert caplog.messages[1].startswith('Got versions from ELF:')
 
     from qutebrowser.browser.webengine import webenginesettings
     webenginesettings.init_user_agent()
