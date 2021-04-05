@@ -14,7 +14,7 @@ filelock==3.0.12
 Flask==1.1.2
 glob2==0.7
 hunter==3.3.2
-hypothesis==6.8.3
+hypothesis==6.8.4
 icdiff==1.9.1
 idna==2.10
 iniconfig==1.1.1
@@ -34,7 +34,7 @@ py==1.10.0
 py-cpuinfo==7.0.0
 Pygments==2.8.1
 pyparsing==2.4.7
-pytest==6.2.2
+pytest==6.2.3
 pytest-bdd==4.0.2
 pytest-benchmark==3.2.3
 pytest-cov==2.11.1
