@@ -316,9 +316,20 @@ def parse_webenginecore() -> Optional[Versions]:
     else:
         library_path = pathlib.Path(QLibraryInfo.location(QLibraryInfo.LibrariesPath))
 
-    # PyQt bundles those files with a .5 suffix
-    lib_file = library_path / 'libQt5WebEngineCore.so.5'
-    if not lib_file.exists():
+    filenames = [
+        # PyQt bundles those files with a .5 suffix, and Linux distributions
+        # most likely symlinks that.
+        'libQt5WebEngineCore.so.5',
+        # OpenBSD
+        'libQt5WebEngineCore.so.1.0',
+    ]
+    for filename in filenames:
+        lib_file = library_path / filename
+        if lib_file.exists():
+            log.misc.debug(f"QtWebEngine .so found at {lib_file}")
+            break
+    else:
+        log.misc.debug(f"No QtWebEngine .so found in {library_path}")
         return None
 
     try:
