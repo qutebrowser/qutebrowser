@@ -318,7 +318,10 @@ def parse_webenginecore() -> Optional[Versions]:
 
     library_name = sorted(list(pathlib.Path(library_path).glob('libQt5WebEngineCore.so*')))
     lib_file = library_path / library_name[-1].as_posix()
-    if not lib_file.exists():
+    if lib_file.exists():
+        log.misc.debug(f"QtWebEngine .so found at {lib_file}")
+    else:
+        log.misc.debug(f"No QtWebEngine .so found in {library_path}")
         return None
 
     try:
