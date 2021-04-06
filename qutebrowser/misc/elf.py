@@ -316,12 +316,12 @@ def parse_webenginecore() -> Optional[Versions]:
     else:
         library_path = pathlib.Path(QLibraryInfo.location(QLibraryInfo.LibrariesPath))
 
-    library_name = sorted(pathlib.Path(library_path).glob('libQt5WebEngineCore.so*'))
+    library_name = sorted(library_path.glob('libQt5WebEngineCore.so*'))
     if not library_name:
         log.misc.debug(f"No QtWebEngine .so found in {library_path}")
         return None
     else:
-        lib_file = library_path / library_name[-1]
+        lib_file = library_name[-1]
         log.misc.debug(f"QtWebEngine .so found at {lib_file}")
 
     try:
