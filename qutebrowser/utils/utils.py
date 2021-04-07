@@ -87,7 +87,7 @@ class VersionNumber:
     """A representation of a version number."""
 
     def __init__(self, *args: int) -> None:
-        self._ver = QVersionNumber(*args)
+        self._ver = QVersionNumber(args)  # not *args, to support >3 components
         if self._ver.isNull():
             raise ValueError("Can't construct a null version")
 
@@ -101,8 +101,6 @@ class VersionNumber:
         self.minor = self._ver.minorVersion()
         self.patch = self._ver.microVersion()
         self.segments = self._ver.segments()
-
-        assert len(self.segments) <= 3, self.segments
 
     def __str__(self) -> str:
         return ".".join(str(s) for s in self.segments)

@@ -259,6 +259,16 @@ except ImportError:
         id='nixos', parsed=version.Distribution.nixos,
         version=utils.VersionNumber(21, 3),
         pretty='NixOS 21.03 (Okapi)')),
+    # NixOS (fake fourth version component)
+    ("""
+        NAME=NixOS
+        ID=nixos
+        VERSION="21.05.20210402.1dead (Okapi)"
+    """,
+    version.DistributionInfo(
+        id='nixos', parsed=version.Distribution.nixos,
+        version=utils.VersionNumber(21, 5, 20210402, 1),
+        pretty='NixOS')),
     # SolusOS
     ("""
         NAME="Solus"

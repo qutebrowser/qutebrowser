@@ -123,6 +123,8 @@ Fixed
   workaround which prevents the hang.
 - QtWebEngine version detection (influencing things like dark mode settings or
   certain workarounds) now works correctly on OpenBSD.
+- Certain version number formats in `/etc/os-release` caused qutebrowser to
+  crash. Those are now handled correctly.
 
 Removed
 ~~~~~~~
