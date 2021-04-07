@@ -53,7 +53,7 @@ except ImportError:
     # Invalid file
     ("\n# foo\n foo=bar=baz",
      version.DistributionInfo(id=None, parsed=version.Distribution.unknown,
-                              version=None, pretty='Unknown')),
+                              pretty='Unknown')),
     # Archlinux
     ("""
         NAME="Arch Linux"
@@ -66,8 +66,7 @@ except ImportError:
         BUG_REPORT_URL="https://bugs.archlinux.org/"
      """,
      version.DistributionInfo(
-         id='arch', parsed=version.Distribution.arch, version=None,
-         pretty='Arch Linux')),
+         id='arch', parsed=version.Distribution.arch, pretty='Arch Linux')),
     # Ubuntu 14.04
     ("""
         NAME="Ubuntu"
@@ -78,9 +77,7 @@ except ImportError:
         VERSION_ID="14.04"
      """,
      version.DistributionInfo(
-         id='ubuntu', parsed=version.Distribution.ubuntu,
-         version=utils.VersionNumber(14, 4, 5),
-         pretty='Ubuntu 14.04.5 LTS')),
+         id='ubuntu', parsed=version.Distribution.ubuntu, pretty='Ubuntu 14.04.5 LTS')),
     # Ubuntu 17.04
     ("""
         NAME="Ubuntu"
@@ -91,9 +88,7 @@ except ImportError:
         VERSION_ID="17.04"
      """,
      version.DistributionInfo(
-         id='ubuntu', parsed=version.Distribution.ubuntu,
-         version=utils.VersionNumber(17, 4),
-         pretty='Ubuntu 17.04')),
+         id='ubuntu', parsed=version.Distribution.ubuntu, pretty='Ubuntu 17.04')),
     # Debian Jessie
     ("""
         PRETTY_NAME="Debian GNU/Linux 8 (jessie)"
@@ -104,7 +99,6 @@ except ImportError:
      """,
      version.DistributionInfo(
          id='debian', parsed=version.Distribution.debian,
-         version=utils.VersionNumber(8),
          pretty='Debian GNU/Linux 8 (jessie)')),
     # Void Linux
     ("""
@@ -114,8 +108,7 @@ except ImportError:
         PRETTY_NAME="void"
      """,
      version.DistributionInfo(
-         id='void', parsed=version.Distribution.void,
-         version=None, pretty='void')),
+         id='void', parsed=version.Distribution.void, pretty='void')),
     # Gentoo
     ("""
         NAME=Gentoo
@@ -123,8 +116,7 @@ except ImportError:
         PRETTY_NAME="Gentoo/Linux"
      """,
      version.DistributionInfo(
-         id='gentoo', parsed=version.Distribution.gentoo,
-         version=None, pretty='Gentoo/Linux')),
+         id='gentoo', parsed=version.Distribution.gentoo, pretty='Gentoo/Linux')),
     # Fedora
     ("""
         NAME=Fedora
@@ -135,7 +127,6 @@ except ImportError:
      """,
      version.DistributionInfo(
          id='fedora', parsed=version.Distribution.fedora,
-         version=utils.VersionNumber(25),
          pretty='Fedora 25 (Twenty Five)')),
     # OpenSUSE
     ("""
@@ -148,7 +139,6 @@ except ImportError:
      """,
      version.DistributionInfo(
          id='opensuse', parsed=version.Distribution.opensuse,
-         version=utils.VersionNumber(42, 2),
          pretty='openSUSE Leap 42.2')),
     # Linux Mint
     ("""
@@ -161,7 +151,6 @@ except ImportError:
      """,
      version.DistributionInfo(
          id='linuxmint', parsed=version.Distribution.linuxmint,
-         version=utils.VersionNumber(18, 1),
          pretty='Linux Mint 18.1')),
     # Manjaro
     ("""
@@ -170,8 +159,7 @@ except ImportError:
         PRETTY_NAME="Manjaro Linux"
      """,
      version.DistributionInfo(
-         id='manjaro', parsed=version.Distribution.manjaro,
-         version=None, pretty='Manjaro Linux')),
+         id='manjaro', parsed=version.Distribution.manjaro, pretty='Manjaro Linux')),
     # Funtoo
     ("""
         ID="funtoo"
@@ -179,8 +167,7 @@ except ImportError:
         PRETTY_NAME="Linux"
      """,
      version.DistributionInfo(
-         id='funtoo', parsed=version.Distribution.gentoo,
-         version=None, pretty='Funtoo GNU/Linux')),
+         id='funtoo', parsed=version.Distribution.gentoo, pretty='Funtoo GNU/Linux')),
     # KDE neon
     ("""
         NAME="KDE neon"
@@ -193,7 +180,7 @@ except ImportError:
     """,
     version.DistributionInfo(
         id='neon', parsed=version.Distribution.neon,
-        version=utils.VersionNumber(5, 20), pretty='KDE neon User Edition 5.20')),
+        pretty='KDE neon User Edition 5.20')),
     # Archlinux ARM
     ("""
         NAME="Arch Linux ARM"
@@ -202,8 +189,7 @@ except ImportError:
         ID_LIKE=arch
     """,
     version.DistributionInfo(
-        id='archarm', parsed=version.Distribution.arch,
-        version=None, pretty='Arch Linux ARM')),
+        id='archarm', parsed=version.Distribution.arch, pretty='Arch Linux ARM')),
     # Alpine
     ("""
         NAME="Alpine Linux"
@@ -212,8 +198,7 @@ except ImportError:
         PRETTY_NAME="Alpine Linux edge"
     """,
     version.DistributionInfo(
-        id='alpine', parsed=version.Distribution.alpine,
-        version=utils.VersionNumber(3, 12), pretty='Alpine Linux edge')),
+        id='alpine', parsed=version.Distribution.alpine, pretty='Alpine Linux edge')),
     # EndeavourOS
     ("""
         NAME="EndeavourOS"
@@ -225,8 +210,7 @@ except ImportError:
         LOGO=endeavouros
     """,
     version.DistributionInfo(
-        id='endeavouros', parsed=version.Distribution.arch,
-        version=None, pretty='EndeavourOS')),
+        id='endeavouros', parsed=version.Distribution.arch, pretty='EndeavourOS')),
     # Manjaro ARM
     ("""
         NAME="Manjaro-ARM"
@@ -235,8 +219,7 @@ except ImportError:
         PRETTY_NAME="Manjaro ARM"
     """,
     version.DistributionInfo(
-        id='manjaro-arm', parsed=version.Distribution.manjaro,
-        version=None, pretty='Manjaro ARM')),
+        id='manjaro-arm', parsed=version.Distribution.manjaro, pretty='Manjaro ARM')),
     # Artix Linux
     ("""
         NAME="Artix Linux"
@@ -244,8 +227,7 @@ except ImportError:
         ID=artix
     """,
     version.DistributionInfo(
-        id='artix', parsed=version.Distribution.arch,
-        version=None, pretty='Artix Linux')),
+        id='artix', parsed=version.Distribution.arch, pretty='Artix Linux')),
     # NixOS
     ("""
         NAME=NixOS
@@ -256,9 +238,7 @@ except ImportError:
         PRETTY_NAME="NixOS 21.03 (Okapi)"
     """,
     version.DistributionInfo(
-        id='nixos', parsed=version.Distribution.nixos,
-        version=utils.VersionNumber(21, 3),
-        pretty='NixOS 21.03 (Okapi)')),
+        id='nixos', parsed=version.Distribution.nixos, pretty='NixOS 21.03 (Okapi)')),
     # NixOS (fake fourth version component)
     ("""
         NAME=NixOS
@@ -266,9 +246,7 @@ except ImportError:
         VERSION="21.05.20210402.1dead (Okapi)"
     """,
     version.DistributionInfo(
-        id='nixos', parsed=version.Distribution.nixos,
-        version=utils.VersionNumber(21, 5, 20210402, 1),
-        pretty='NixOS')),
+        id='nixos', parsed=version.Distribution.nixos, pretty='NixOS')),
     # SolusOS
     ("""
         NAME="Solus"
@@ -279,9 +257,7 @@ except ImportError:
         PRETTY_NAME="Solus 4.2 Fortitude"
     """,
     version.DistributionInfo(
-        id='solus', parsed=version.Distribution.solus,
-        version=utils.VersionNumber(4, 2),
-        pretty='Solus 4.2 Fortitude')),
+        id='solus', parsed=version.Distribution.solus, pretty='Solus 4.2 Fortitude')),
     # KDE Platform
     ("""
         NAME=KDE
@@ -290,17 +266,14 @@ except ImportError:
         ID=org.kde.Platform
     """,
     version.DistributionInfo(
-        id='org.kde.Platform', parsed=version.Distribution.kde_flatpak,
-        version=utils.VersionNumber(5, 12),
-        pretty='KDE')),
+        id='org.kde.Platform', parsed=version.Distribution.kde_flatpak, pretty='KDE')),
     # No PRETTY_NAME
     ("""
         NAME="Tux"
         ID=tux
     """,
     version.DistributionInfo(
-        id='tux', parsed=version.Distribution.unknown,
-        version=None, pretty='Tux')),
+        id='tux', parsed=version.Distribution.unknown, pretty='Tux')),
     # Invalid multi-line value
     ("""
         ID=tux
@@ -308,8 +281,7 @@ except ImportError:
         Text"
     """,
     version.DistributionInfo(
-        id='tux', parsed=version.Distribution.unknown,
-        version=None, pretty='Multiline')),
+        id='tux', parsed=version.Distribution.unknown, pretty='Multiline')),
 ])
 def test_distribution(tmp_path, monkeypatch, os_release, expected):
     os_release_file = tmp_path / 'os-release'
@@ -1290,8 +1262,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
 
     if params.known_distribution:
         patches['distribution'] = lambda: version.DistributionInfo(
-            parsed=version.Distribution.arch, version=None,
-            pretty='LINUX DISTRIBUTION', id='arch')
+            parsed=version.Distribution.arch, pretty='LINUX DISTRIBUTION', id='arch')
         substitutions['linuxdist'] = ('\nLinux distribution: '
                                       'LINUX DISTRIBUTION (arch)')
         substitutions['osinfo'] = ''

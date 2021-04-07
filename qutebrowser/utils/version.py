@@ -86,7 +86,6 @@ class DistributionInfo:
 
     id: Optional[str]
     parsed: 'Distribution'
-    version: Optional[utils.VersionNumber]
     pretty: str
 
 
@@ -141,7 +140,6 @@ def distribution() -> Optional[DistributionInfo]:
     Returns:
         A DistributionInfo object, or None if no info could be determined.
             parsed: A Distribution enum member
-            version: A Version object, or None
             pretty: Always a string (might be "Unknown")
     """
     info = _parse_os_release()
@@ -152,12 +150,6 @@ def distribution() -> Optional[DistributionInfo]:
     if pretty in ['Linux', None]:  # Funtoo has PRETTY_NAME=Linux
         pretty = info.get('NAME', 'Unknown')
     assert pretty is not None
-
-    dist_version: Optional[utils.VersionNumber] = None
-    for version_key in ['VERSION', 'VERSION_ID']:
-        if version_key in info:
-            dist_version = utils.VersionNumber.parse(info[version_key])
-            break
 
     dist_id = info.get('ID', None)
     id_mappings = {
@@ -181,8 +173,7 @@ def distribution() -> Optional[DistributionInfo]:
         else:
             break
 
-    return DistributionInfo(
-        parsed=parsed, version=dist_version, pretty=pretty, id=dist_id)
+    return DistributionInfo(parsed=parsed, pretty=pretty, id=dist_id)
 
 
 def is_flatpak() -> bool:
