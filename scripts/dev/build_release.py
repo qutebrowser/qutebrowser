@@ -260,6 +260,7 @@ INFO_PLIST_UPDATES = {
     'CFBundleShortVersionString': qutebrowser.__version__,
     'NSSupportsAutomaticGraphicsSwitching': True,
     'NSHighResolutionCapable': True,
+    'NSRequiresAquaSystemAppearance': False,
     'CFBundleURLTypes': [{
         "CFBundleURLName": "http(s) URL",
         "CFBundleURLSchemes": ["http", "https"]
