@@ -466,7 +466,7 @@ class SystrayNotificationAdapter(AbstractNotificationAdapter):
 
     @pyqtSlot()
     def _on_systray_clicked(self) -> None:
-        self.on_clicked.emit(self.NOTIFICATION_ID)
+        self.click_id.emit(self.NOTIFICATION_ID)
 
     @pyqtSlot(int)
     def on_web_closed(self, notification_id: int) -> None:
