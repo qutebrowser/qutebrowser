@@ -105,6 +105,10 @@ def _parse_yaml_type(
         valid_values = kwargs.get('valid_values', None)
         if valid_values is not None:
             kwargs['valid_values'] = configtypes.ValidValues(*valid_values)
+
+        valid_prefixes = kwargs.get('valid_prefixes', None)
+        if valid_prefixes is not None:
+            kwargs['valid_prefixes'] = configtypes.ValidPrefixes(*valid_prefixes)
     else:
         _raise_invalid_node(name, 'type', node)
 
