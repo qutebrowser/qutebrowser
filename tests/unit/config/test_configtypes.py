@@ -483,6 +483,11 @@ class TestBaseType:
         basetype.valid_values = configtypes.ValidValues('foo')
         assert basetype.get_valid_values() is basetype.valid_values
 
+    def test_get_valid_prefixes(self, klass):
+        basetype = klass()
+        basetype.valid_prefixes = configtypes.ValidPrefixes('foo')
+        assert basetype.get_valid_prefixes() is basetype.valid_prefixes
+
     @pytest.mark.parametrize('value, expected', [
         ('hello', '+pass:[hello]+'),
         ('', 'empty'),
@@ -628,12 +633,14 @@ class ListSubclass(configtypes.List):
     """
 
     def __init__(self, none_ok_inner=False, none_ok_outer=False, length=None,
-                 elemtype=None, set_valid_values=False):
+                 elemtype=None, set_valid_values=False, set_valid_prefixes=False):
         if elemtype is None:
             elemtype = configtypes.String(none_ok=none_ok_inner)
         super().__init__(elemtype, none_ok=none_ok_outer, length=length)
         if set_valid_values:
             self.valtype.valid_values = configtypes.ValidValues('foo', 'bar', 'baz')
+        if set_valid_prefixes:
+            self.valtype.valid_prefixes = configtypes.ValidPrefixes('foo', 'bar', 'baz')
 
 
 class FlagListSubclass(configtypes.FlagList):
@@ -646,11 +653,14 @@ class FlagListSubclass(configtypes.FlagList):
     combinable_values = ['foo', 'bar']
 
     def __init__(self, none_ok_inner=False, none_ok_outer=False, length=None,
-                 set_valid_values=False):
+                 set_valid_values=False, set_valid_prefixes=False):
         # none_ok_inner is ignored, just here for compatibility with TestList
         super().__init__(none_ok=none_ok_outer, length=length)
         if set_valid_values:
             self.valtype.valid_values = configtypes.ValidValues(
+                'foo', 'bar', 'baz')
+        if set_valid_prefixes:
+            self.valtype.valid_prefixes = configtypes.ValidPrefixes(
                 'foo', 'bar', 'baz')
 
 
@@ -734,6 +744,10 @@ class TestList:
     def test_get_valid_values(self, klass):
         expected = configtypes.ValidValues('foo', 'bar', 'baz')
         assert klass(set_valid_values=True).get_valid_values() == expected
+
+    def test_get_valid_prefixes(self, klass):
+        expected = configtypes.ValidPrefixes('foo', 'bar', 'baz')
+        assert klass(set_valid_prefixes=True).get_valid_prefixes() == expected
 
     def test_to_str(self, klass):
         assert klass().to_str(["a", True]) == '["a", true]'
