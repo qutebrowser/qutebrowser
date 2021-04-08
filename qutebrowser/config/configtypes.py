@@ -142,24 +142,6 @@ class ValidValues:
                 self.descriptions == other.descriptions)
 
 
-class ValidPrefixes(ValidValues):
-
-    def __init__(self, *values, separator: str = ':', **kwargs):
-        super().__init__(*values, **kwargs)
-        self.separator = separator
-
-    def __contains__(self, item) -> bool:
-        return any(map(lambda x: item.startswith(x + self.separator), self.values))
-
-    def __repr__(self) -> str:
-        return utils.get_repr(self, values=self.values, separator=self.separator,
-                              descriptions=self.descriptions)
-
-    def __eq__(self, other: object) -> bool:
-        assert (isinstance(other, ValidPrefixes))
-        return super().__eq__(other) and self.separator == other.separator
-
-
 class BaseType:
 
     """A type used for a setting value.
@@ -181,7 +163,6 @@ class BaseType:
         self._completions = completions
         self.none_ok = none_ok
         self.valid_values: Optional[ValidValues] = None
-        self.valid_prefixes: Optional[ValidPrefixes] = None
 
     def get_name(self) -> str:
         """Get a name for the type for documentation."""
@@ -190,10 +171,6 @@ class BaseType:
     def get_valid_values(self) -> Optional[ValidValues]:
         """Get the type's valid values for documentation."""
         return self.valid_values
-
-    def get_valid_prefixes(self) -> Optional[ValidPrefixes]:
-        """Get the type's valid prefixes for documentation."""
-        return self.valid_prefixes
 
     def _basic_py_validation(
             self, value: Any,
@@ -532,9 +509,6 @@ class List(BaseType):
     def get_valid_values(self) -> Optional[ValidValues]:
         return self.valtype.get_valid_values()
 
-    def get_valid_prefixes(self) -> Optional[ValidPrefixes]:
-        return self.valtype.get_valid_prefixes()
-
     def from_str(self, value: str) -> Optional[ListType]:
         self._basic_str_validation(value)
         if not value:
@@ -639,9 +613,6 @@ class ListOrValue(BaseType):
 
     def get_valid_values(self) -> Optional[ValidValues]:
         return self.valtype.get_valid_values()
-
-    def get_valid_prefixes(self) -> Optional[ValidPrefixes]:
-        return self.valtype.get_valid_prefixes()
 
     def from_str(self, value: str) -> Any:
         try:
@@ -2027,17 +1998,13 @@ class UrlPattern(BaseType):
             raise configexc.ValidationError(value, str(e))
 
 
-class PrefixOrString(String):
+class StatusbarWidget(String):
 
     """A Widget for the status bar.
 
     Allows some predefined widgets and custom text-widgets via text:$CONTENT."""
 
-    def __init__(self, *, valid_prefixes: ValidPrefixes = None, **kwargs):
-        super().__init__(**kwargs)
-        self.valid_prefixes = valid_prefixes
-
     def _validate_valid_values(self, value: str) -> None:
-        if value in self.valid_prefixes:
+        if value.startswith("text:"):
             return
         super()._validate_valid_values(value)

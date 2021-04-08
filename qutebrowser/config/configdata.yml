@@ -1917,7 +1917,7 @@ statusbar.widgets:
   type:
     name: List
     valtype:
-      name: PrefixOrString
+      name: StatusbarWidget
       valid_values:
         - url: "Current page URL."
         - scroll: "Percentage of the current page position like `10%`."
@@ -1927,8 +1927,7 @@ statusbar.widgets:
         - tabs: "Current active tab, e.g. `2`."
         - keypress: "Display pressed keys when composing a vi command."
         - progress: "Progress bar for the current page loading."
-      valid_prefixes:
-        - text: "A text widget. Add your own text as content."
+        - text: "A text widget. Currently hard coded content."
     none_ok: true
   default: ['keypress', 'url', 'scroll', 'history', 'tabs', 'progress']
   desc: List of widgets displayed in the statusbar.

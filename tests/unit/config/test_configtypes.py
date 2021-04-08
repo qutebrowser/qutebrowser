@@ -186,93 +186,6 @@ class TestValidValues:
         assert vv.descriptions['bar'] == "bar desc"
 
 
-class TestValidPrefixes:
-
-    @pytest.fixture
-    def klass(self):
-        return configtypes.ValidPrefixes
-
-    @pytest.mark.parametrize('valid_values, separator, contained, not_contained', [
-        # Without description
-        (['foo', 'bar'], ':', ['foo:blub'], ['bar.blah', 'baz:blub', 'foo']),
-        # With description
-        ([('foo', "foo desc"), ('bar', "bar desc")], '/', ['foo/blub'],
-         ['bar:blah', 'baz/blub', 'foo']),
-        # With mixed description
-        ([('foo', "foo desc"), 'bar'], '.', ['foo.blub'],
-         ['bar:blah', 'baz.blub', 'foo']),
-    ])
-    def test_contains(self, klass, valid_values, separator, contained, not_contained):
-        """Test __contains___ with various values."""
-        vv = klass(*valid_values, separator=separator)
-        for elem in contained:
-            assert elem in vv
-        for elem in not_contained:
-            assert elem not in vv
-
-    @pytest.mark.parametrize('valid_values', [
-        # With description
-        ['foo', 'bar'],
-        [('foo', "foo desc"), ('bar', "bar desc")],
-        [('foo', "foo desc"), 'bar'],
-    ])
-    def test_iter_without_desc(self, klass, valid_values):
-        """Test __iter__ without a description."""
-        vv = klass(*valid_values)
-        assert list(vv) == ['foo:', 'bar:']
-
-    def test_descriptions(self, klass):
-        """Test descriptions."""
-        vv = klass(
-            ('one-with', "desc 1"),
-            ('two-with', "desc 2"),
-            'three-without',
-            ('four-without', None)
-        )
-        assert vv.descriptions['one-with'] == "desc 1"
-        assert vv.descriptions['two-with'] == "desc 2"
-        assert 'three-without' not in vv.descriptions
-        assert 'four-without' not in vv.descriptions
-
-    @pytest.mark.parametrize('args, separator, expected', [
-        (['a', 'b'], ':', "<qutebrowser.config.configtypes.ValidPrefixes "
-                          "descriptions={} separator=':' values=['a', 'b']>"),
-        ([('val', 'desc')], '/', "<qutebrowser.config.configtypes.ValidPrefixes "
-                                 "descriptions={'val': 'desc'} separator='/' "
-                                 "values=['val']>"),
-    ])
-    def test_repr(self, klass, args, separator, expected):
-        assert repr(klass(*args, separator=separator)) == expected
-
-    def test_empty(self, klass):
-        with pytest.raises(ValueError):
-            klass()
-
-    @pytest.mark.parametrize('args1, args2, is_equal', [
-        ((('foo', 'bar'), {}), (('foo', 'bar'), {}), True),
-        ((('foo', 'bar'), {}), (('foo', 'baz'), {}), False),
-        ((('foo', 'bar'), {'separator': '/'}), (('foo', 'bar'), {}), False),
-        (((('foo', 'foo desc'), ('bar', 'bar desc')), {}),
-         ((('foo', 'foo desc'), ('bar', 'bar desc')), {}),
-         True),
-        (((('foo', 'foo desc'), ('bar', 'bar desc')), {}),
-         ((('foo', 'foo desc'), ('bar', 'bar desc2')), {}),
-         False),
-    ])
-    def test_equal(self, klass, args1, args2, is_equal):
-        obj1 = klass(*args1[0], **args1[1])
-        obj2 = klass(*args2[0], **args2[1])
-        assert (obj1 == obj2) == is_equal
-
-    def test_from_dict(self, klass):
-        """Test initializing from a list of dicts."""
-        vv = klass({'foo': "foo desc"}, {'bar': "bar desc"})
-        assert 'foo:blah' in vv
-        assert 'bar:blub' in vv
-        assert vv.descriptions['foo'] == "foo desc"
-        assert vv.descriptions['bar'] == "bar desc"
-
-
 class TestAll:
 
     """Various tests which apply to all available config types."""
@@ -483,11 +396,6 @@ class TestBaseType:
         basetype.valid_values = configtypes.ValidValues('foo')
         assert basetype.get_valid_values() is basetype.valid_values
 
-    def test_get_valid_prefixes(self, klass):
-        basetype = klass()
-        basetype.valid_prefixes = configtypes.ValidPrefixes('foo')
-        assert basetype.get_valid_prefixes() is basetype.valid_prefixes
-
     @pytest.mark.parametrize('value, expected', [
         ('hello', '+pass:[hello]+'),
         ('', 'empty'),
@@ -633,14 +541,12 @@ class ListSubclass(configtypes.List):
     """
 
     def __init__(self, none_ok_inner=False, none_ok_outer=False, length=None,
-                 elemtype=None, set_valid_values=False, set_valid_prefixes=False):
+                 elemtype=None, set_valid_values=False):
         if elemtype is None:
             elemtype = configtypes.String(none_ok=none_ok_inner)
         super().__init__(elemtype, none_ok=none_ok_outer, length=length)
         if set_valid_values:
             self.valtype.valid_values = configtypes.ValidValues('foo', 'bar', 'baz')
-        if set_valid_prefixes:
-            self.valtype.valid_prefixes = configtypes.ValidPrefixes('foo', 'bar', 'baz')
 
 
 class FlagListSubclass(configtypes.FlagList):
@@ -653,14 +559,11 @@ class FlagListSubclass(configtypes.FlagList):
     combinable_values = ['foo', 'bar']
 
     def __init__(self, none_ok_inner=False, none_ok_outer=False, length=None,
-                 set_valid_values=False, set_valid_prefixes=False):
+                 set_valid_values=False):
         # none_ok_inner is ignored, just here for compatibility with TestList
         super().__init__(none_ok=none_ok_outer, length=length)
         if set_valid_values:
             self.valtype.valid_values = configtypes.ValidValues(
-                'foo', 'bar', 'baz')
-        if set_valid_prefixes:
-            self.valtype.valid_prefixes = configtypes.ValidPrefixes(
                 'foo', 'bar', 'baz')
 
 
@@ -744,10 +647,6 @@ class TestList:
     def test_get_valid_values(self, klass):
         expected = configtypes.ValidValues('foo', 'bar', 'baz')
         assert klass(set_valid_values=True).get_valid_values() == expected
-
-    def test_get_valid_prefixes(self, klass):
-        expected = configtypes.ValidPrefixes('foo', 'bar', 'baz')
-        assert klass(set_valid_prefixes=True).get_valid_prefixes() == expected
 
     def test_to_str(self, klass):
         assert klass().to_str(["a", True]) == '["a", true]'
@@ -2216,23 +2115,6 @@ class TestUrlPattern:
     def test_to_py_invalid(self, klass):
         with pytest.raises(configexc.ValidationError):
             klass().to_py('http://')
-
-
-class TestPrefixOrString:
-
-    @pytest.fixture
-    def klass(self):
-        return configtypes.PrefixOrString
-
-    def test_to_py_valid(self, klass):
-        widget = klass()
-        widget.valid_values = configtypes.ValidValues('foo')
-        widget.valid_prefixes = configtypes.ValidPrefixes('bar')
-
-        patterns = ['foo', 'bar:baz']
-
-        for i in patterns:
-            assert i == widget.to_py(i)
 
 
 @pytest.mark.parametrize('first, second, equal', [

@@ -788,15 +788,6 @@ class ConfigPyWriter:
             yield self._line("config.load_autoconfig(False)")
             yield ''
 
-    def _gen_valid_list(self, head: str, valid_list) -> Iterator[str]:
-        yield self._line(head)
-        for val in valid_list:
-            try:
-                desc = valid_list.descriptions[val]
-                yield self._line("#   - {}: {}".format(val, desc))
-            except KeyError:
-                yield self._line("#   - {}".format(val))
-
     def _gen_options(self) -> Iterator[str]:
         """Generate the options part of the config."""
         for pattern, opt, value in self._options:
@@ -810,13 +801,13 @@ class ConfigPyWriter:
 
             valid_values = opt.typ.get_valid_values()
             if valid_values is not None and valid_values.generate_docs:
-                yield from self._gen_valid_list('# Valid Values: \n', valid_values)
-
-            valid_prefixes = opt.typ.get_valid_prefixes()
-            if valid_prefixes is not None and valid_prefixes.generate_docs:
-                yield from self._gen_valid_list(
-                    '# Valid Prefixes (separator is {}): \n'.format(
-                        valid_prefixes.separator), valid_prefixes)
+                yield self._line("# Valid values:")
+                for val in valid_values:
+                    try:
+                        desc = valid_values.descriptions[val]
+                        yield self._line("#   - {}: {}".format(val, desc))
+                    except KeyError:
+                        yield self._line("#   - {}".format(val))
 
             if pattern is None:
                 yield self._line('c.{} = {!r}'.format(opt.name, value))
