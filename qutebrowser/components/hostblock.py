@@ -37,7 +37,10 @@ from qutebrowser.api import (
     qtutils,
 )
 from qutebrowser.components.utils import blockutils
-from qutebrowser.utils import urlutils, version  # FIXME: Move needed parts into api namespace?
+from qutebrowser.utils import (  # FIXME: Move needed parts into api namespace?
+    urlutils,
+    version
+)
 
 
 logger = logging.getLogger("network")
@@ -130,7 +133,8 @@ class HostBlocker:
         host = request_url.host()
 
         for hostname in urlutils.widened_hostnames(host):
-            if hostname in self._blocked_hosts or hostname in self._config_blocked_hosts:
+            if hostname in self._blocked_hosts \
+                    or hostname in self._config_blocked_hosts:
                 return True
 
         return False

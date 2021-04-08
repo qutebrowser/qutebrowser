@@ -25,7 +25,7 @@ import collections
 import itertools
 import operator
 from typing import (
-    TYPE_CHECKING, Any, Dict, Iterable, Iterator, List, Optional, Sequence, Set, Union,
+    TYPE_CHECKING, Any, Dict, Iterator, List, Optional, Sequence, Set, Union,
     MutableMapping)
 
 from PyQt5.QtCore import QUrl
