@@ -2000,9 +2000,10 @@ class UrlPattern(BaseType):
 
 class StatusbarWidget(String):
 
-    """A Widget for the status bar.
+    """A widget for the status bar.
 
-    Allows some predefined widgets and custom text-widgets via text:$CONTENT."""
+    Allows some predefined widgets and custom text-widgets via text:$CONTENT.
+    """
 
     def _validate_valid_values(self, value: str) -> None:
         if value.startswith("text:"):
