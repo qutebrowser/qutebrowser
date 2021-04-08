@@ -535,6 +535,9 @@ class List(BaseType):
     def get_valid_values(self) -> Optional[ValidValues]:
         return self.valtype.get_valid_values()
 
+    def get_valid_prefixes(self) -> Optional[ValidPrefixes]:
+        return self.valtype.get_valid_prefixes()
+
     def from_str(self, value: str) -> Optional[ListType]:
         self._basic_str_validation(value)
         if not value:
@@ -639,6 +642,9 @@ class ListOrValue(BaseType):
 
     def get_valid_values(self) -> Optional[ValidValues]:
         return self.valtype.get_valid_values()
+
+    def get_valid_prefixes(self) -> Optional[ValidPrefixes]:
+        return self.valtype.get_valid_prefixes()
 
     def from_str(self, value: str) -> Any:
         try:
