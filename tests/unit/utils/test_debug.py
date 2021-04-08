@@ -19,8 +19,6 @@
 
 """Tests for qutebrowser.utils.debug."""
 
-import sys
-import enum
 import logging
 import re
 import time
