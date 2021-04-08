@@ -2019,7 +2019,7 @@ class UrlPattern(BaseType):
             raise configexc.ValidationError(value, str(e))
 
 
-class StatusbarWidget(String):
+class PrefixOrString(String):
 
     """A Widget for the status bar.
 
