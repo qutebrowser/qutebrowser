@@ -1917,7 +1917,7 @@ statusbar.widgets:
   type:
     name: List
     valtype:
-      name: StatusbarWidget
+      name: PrefixOrString
       valid_values:
         - url: "Current page URL."
         - scroll: "Percentage of the current page position like `10%`."
