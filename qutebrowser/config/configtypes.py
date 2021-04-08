@@ -151,9 +151,6 @@ class ValidPrefixes(ValidValues):
     def __contains__(self, item) -> bool:
         return any(map(lambda x: item.startswith(x + self.separator), self.values))
 
-    def __iter__(self) -> Iterator[str]:
-        return map(lambda x: x + self.separator, super().__iter__())
-
     def __repr__(self) -> str:
         return utils.get_repr(self, values=self.values, separator=self.separator,
                               descriptions=self.descriptions)
