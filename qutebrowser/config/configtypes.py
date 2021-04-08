@@ -184,6 +184,7 @@ class BaseType:
         self._completions = completions
         self.none_ok = none_ok
         self.valid_values: Optional[ValidValues] = None
+        self.valid_prefixes: Optional[ValidPrefixes] = None
 
     def get_name(self) -> str:
         """Get a name for the type for documentation."""
@@ -192,6 +193,10 @@ class BaseType:
     def get_valid_values(self) -> Optional[ValidValues]:
         """Get the type's valid values for documentation."""
         return self.valid_values
+
+    def get_valid_prefixes(self) -> Optional[ValidPrefixes]:
+        """Get the type's valid prefixes for documentation."""
+        return self.valid_prefixes
 
     def _basic_py_validation(
             self, value: Any,
