@@ -466,7 +466,7 @@ class SystrayNotificationAdapter(AbstractNotificationAdapter):
 
     @pyqtSlot()
     def _on_systray_clicked(self) -> None:
-        self.on_clicked.emit(self.NOTIFICATION_ID)
+        self.click_id.emit(self.NOTIFICATION_ID)
 
     @pyqtSlot(int)
     def on_web_closed(self, notification_id: int) -> None:
@@ -1029,7 +1029,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         # Source:
         # https://github.com/dunst-project/dunst/blob/v1.6.1/src/icon.c#L292-L309
         padding = bytes_per_line - width * channel_count
-        assert 0 <= padding < 3, padding
+        assert 0 <= padding < 3, (padding, bytes_per_line, width, channel_count)
         size -= padding
 
         if padding and self._quirks.no_padded_images:

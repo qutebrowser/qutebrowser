@@ -125,6 +125,8 @@ Fixed
   certain workarounds) now works correctly on OpenBSD.
 - Certain version number formats in `/etc/os-release` caused qutebrowser to
   crash. Those are now handled correctly.
+- The macOS releases now properly support Dark Mode for UI elements by setting
+  `NSRequiresAquaSystemAppearance` to false.
 
 Removed
 ~~~~~~~

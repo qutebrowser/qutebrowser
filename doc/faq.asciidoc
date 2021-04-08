@@ -419,33 +419,18 @@ which matches all donations until a cap of $5000, which has already been
 reached by qutebrowser.
 
 Is it possible to contribute via a one-time donation instead?::
-   If you prefer a one-time donation, there are various possibilities:
-+
-- Select a tier which covers the total amount you'd like to donate (note that
-  payments are prorated based on the current date). After the payment is
-  processed, cancel your GitHub sponsors subscription again. This has a big
-  benefit: There are no fees deducted from your amount.
-+
-- Sign up for a lower recurring donation instead.
-+
-- Do so via the https://github.com/qutebrowser/qutebrowser#donating[existing
-  donation methods]. Rewards (shirts/stickers/swag) are handled on a
-  case-by-case basis as GitHub's matching fund isn't applicable and there might
-  be relatively high fees which make this tricky.
-+
-- If you want to contribute via a one-time donation and want to make sure
-  you'll receive a reward, you might want to sign up to the
-  https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[qutebrowser-announce]
-  mailinglist and wait until there is an official way to do so. It's planned to
-  set this up at a later date. Note that the thresholds for perks will be
-  higher because those donations aren't matched by GitHub and fees are
-  relatively high.
+    Yes! GitHub Sponsors allows for one-time donations (including custom amounts) using
+    the buttons next to "Select a tier". Alternatively, see the
+    https://github.com/qutebrowser/qutebrowser#donating[readme] for other donation
+    methods, but note that physical rewards (stickers/shirts) for such donations are
+    handled on a case-by-case basis due to the higher administrative overhead and fees.
 
 I'd like a certain reward (e.g. a t-shirt) but I'd prefer making a smaller monthly donation. Can I upgrade via a one-time donation?::
-    It's planned to set up a donation page to allow this at a later date.
-    However, the thresholds for perks will be higher because those donations
-    aren't matched by GitHub and fees are relatively high. Note that you can
-    switch tiers on GitHub sponsors at any time.
+    GitHub allows for one-time donations (see the previous question). For physical
+    rewards, your total contributions will be summed up, so you can indeed make a
+    one-time donation to "upgrade". Before rewards are ordered, all sponsors will be
+    contacted with their total donation amount so that they can still upgrade, if
+    desired.
 
 GitHub tries to charge me for an entire year. What gives?::
     This happens if you have an existing annual billing cycle with GitHub (for
@@ -458,17 +443,17 @@ Can I support you without getting any rewards/merchandise?::
     an option to not get any merch at all.
 
 Can I select my own amount rather than using the predefined tiers?::
-    Unfortunately, GitHub sponsors doesn't support this at the moment. The
-    existing tiers should hopefully cover various options. If you disagree,
-    please mailto:mail@qutebrowser.org[get in touch] - I might be able to add a
-    new sponsorship tier.
+    At the bottom of the tier list, GitHub allows specifying a custom donation amount.
 
 When will rewards be shipped?::
-    Rewards will be ordered and subsequently shipped once it's clear how many
-    people are eliglible. The cut-off date for the donation goals is May
-    2020, so rewards will likely be shipped Q2/2020. This also applies to tiers
-    which make you eliglible for a certain perk immediately, though stickers
-    might be shipped earlier depending on how many people this affects.
+    Due to COVID-19, the Swiss Post currently
+    https://service.post.ch/vgkklp/info/informationen/Verkehrseinschraenkungen?lang=en[only
+    accepts priority letters for many countries], including the US. Especially for the
+    t-shirts, the difference between economy and priority shipments is quite
+    significant. For the shirts, I estimate I'd spend a total of $250 to $1500 on
+    *extra* postage. Thus, shipping is currently on hold until the shipping situation
+    resolves. There's currently no ETA for that happening, but rest assured everyone
+    will be notified (if contact details are available) once there are news.
 
 I'd like some stickers, but I can't donate anything because of my financial situation.::
     Please mailto:mail@qutebrowser.org[get in touch]! As long as this doesn't
