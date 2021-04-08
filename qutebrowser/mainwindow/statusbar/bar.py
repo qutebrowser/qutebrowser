@@ -228,8 +228,9 @@ class StatusBar(QWidget):
             widget.hide()
             self._hbox.removeWidget(widget)
 
+        self.text_widgets.clear()
+
         tab = self._current_tab()
-        text_widget_nr = 0
 
         # Read the list and set widgets accordingly
         for segment in config.val.statusbar.widgets:
@@ -260,17 +261,11 @@ class StatusBar(QWidget):
                 if tab:
                     self.prog.on_tab_changed(tab)
             elif segment.startswith('text'):
-                try:
-                    cur_widget = self.text_widgets[text_widget_nr]
-                except IndexError:
-                    cur_widget = textbase.TextBase()
-                    self.text_widgets.append(cur_widget)
+                cur_widget = textbase.TextBase()
+                self.text_widgets.append(cur_widget)
                 cur_widget.setText(segment.partition(':')[2])
                 self._hbox.addWidget(cur_widget)
                 cur_widget.show()
-                text_widget_nr += 1
-
-        del self.text_widgets[text_widget_nr:]
 
     @pyqtSlot()
     def maybe_hide(self):
