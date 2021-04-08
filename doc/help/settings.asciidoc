@@ -3971,7 +3971,7 @@ Default: +pass:[always]+
 === statusbar.widgets
 List of widgets displayed in the statusbar.
 
-Type: <<types,List of String>>
+Type: <<types,List of PrefixOrString>>
 
 Valid values:
 
@@ -3982,6 +3982,10 @@ Valid values:
  * +tabs+: Current active tab, e.g. `2`.
  * +keypress+: Display pressed keys when composing a vi command.
  * +progress+: Progress bar for the current page loading.
+
+Valid prefixes (separator is +:+):
+
+ * +text+: A text widget. Add your own text as content.
 
 Default: 
 
@@ -4591,6 +4595,9 @@ When setting from a string, pass a json-like list, e.g. `["one", "two"]`.
 |Perc|A percentage.
 |PercOrInt|Percentage or integer.
 |Position|The position of the tab bar.
+|PrefixOrString|A Widget for the status bar.
+
+Allows some predefined widgets and custom text-widgets via text:$CONTENT.
 |Proxy|A proxy URL, or `system`/`none`.
 |QssColor|A color value supporting gradients.
 
