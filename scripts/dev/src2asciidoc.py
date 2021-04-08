@@ -435,6 +435,18 @@ def _generate_setting_backend_info(f, opt):
                          .format(opt.backends))
 
 
+def _format_valid_list(f, head, valid_list):
+    f.write(head)
+    f.write("\n")
+    for val in valid_list:
+        try:
+            desc = valid_list.descriptions[val]
+            f.write(" * +{}+: {}".format(val, desc) + "\n")
+        except KeyError:
+            f.write(" * +{}+".format(val) + "\n")
+    f.write("\n")
+
+
 def _generate_setting_option(f, opt):
     """Generate documentation for a single section."""
     f.write("\n")
@@ -455,15 +467,12 @@ def _generate_setting_option(f, opt):
 
     valid_values = opt.typ.get_valid_values()
     if valid_values is not None and valid_values.generate_docs:
-        f.write("Valid values:\n")
-        f.write("\n")
-        for val in valid_values:
-            try:
-                desc = valid_values.descriptions[val]
-                f.write(" * +{}+: {}".format(val, desc) + "\n")
-            except KeyError:
-                f.write(" * +{}+".format(val) + "\n")
-        f.write("\n")
+        _format_valid_list(f, "Valid values:\n", valid_values)
+
+    valid_prefixes = opt.typ.get_valid_prefixes()
+    if valid_prefixes is not None and valid_prefixes.generate_docs:
+        _format_valid_list(f, "Valid prefixes (separator is +{}+):\n".format(
+            valid_prefixes.separator), valid_prefixes)
 
     f.write("Default: {}\n".format(opt.typ.to_doc(opt.default)))
 
