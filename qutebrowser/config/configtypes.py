@@ -2025,7 +2025,11 @@ class StatusbarWidget(String):
 
     Allows some predefined widgets and custom text-widgets via text:$CONTENT."""
 
+    def __init__(self, *, valid_prefixes: ValidPrefixes = None, **kwargs):
+        super().__init__(**kwargs)
+        self.valid_prefixes = valid_prefixes
+
     def _validate_valid_values(self, value: str) -> None:
-        if value.startswith("text:"):
+        if value in self.valid_prefixes:
             return
         super()._validate_valid_values(value)
