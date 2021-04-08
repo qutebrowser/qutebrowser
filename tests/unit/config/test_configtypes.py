@@ -186,6 +186,93 @@ class TestValidValues:
         assert vv.descriptions['bar'] == "bar desc"
 
 
+class TestValidPrefixes:
+
+    @pytest.fixture
+    def klass(self):
+        return configtypes.ValidPrefixes
+
+    @pytest.mark.parametrize('valid_values, separator, contained, not_contained', [
+        # Without description
+        (['foo', 'bar'], ':', ['foo:blub'], ['bar.blah', 'baz:blub', 'foo']),
+        # With description
+        ([('foo', "foo desc"), ('bar', "bar desc")], '/', ['foo/blub'],
+         ['bar:blah', 'baz/blub', 'foo']),
+        # With mixed description
+        ([('foo', "foo desc"), 'bar'], '.', ['foo.blub'],
+         ['bar:blah', 'baz.blub', 'foo']),
+    ])
+    def test_contains(self, klass, valid_values, separator, contained, not_contained):
+        """Test __contains___ with various values."""
+        vv = klass(*valid_values, separator=separator)
+        for elem in contained:
+            assert elem in vv
+        for elem in not_contained:
+            assert elem not in vv
+
+    @pytest.mark.parametrize('valid_values', [
+        # With description
+        ['foo', 'bar'],
+        [('foo', "foo desc"), ('bar', "bar desc")],
+        [('foo', "foo desc"), 'bar'],
+    ])
+    def test_iter_without_desc(self, klass, valid_values):
+        """Test __iter__ without a description."""
+        vv = klass(*valid_values)
+        assert list(vv) == ['foo:', 'bar:']
+
+    def test_descriptions(self, klass):
+        """Test descriptions."""
+        vv = klass(
+            ('one-with', "desc 1"),
+            ('two-with', "desc 2"),
+            'three-without',
+            ('four-without', None)
+        )
+        assert vv.descriptions['one-with'] == "desc 1"
+        assert vv.descriptions['two-with'] == "desc 2"
+        assert 'three-without' not in vv.descriptions
+        assert 'four-without' not in vv.descriptions
+
+    @pytest.mark.parametrize('args, separator, expected', [
+        (['a', 'b'], ':', "<qutebrowser.config.configtypes.ValidPrefixes "
+                          "descriptions={} separator=':' values=['a', 'b']>"),
+        ([('val', 'desc')], '/', "<qutebrowser.config.configtypes.ValidPrefixes "
+                                 "descriptions={'val': 'desc'} separator='/' "
+                                 "values=['val']>"),
+    ])
+    def test_repr(self, klass, args, separator, expected):
+        assert repr(klass(*args, separator=separator)) == expected
+
+    def test_empty(self, klass):
+        with pytest.raises(ValueError):
+            klass()
+
+    @pytest.mark.parametrize('args1, args2, is_equal', [
+        ((('foo', 'bar'), {}), (('foo', 'bar'), {}), True),
+        ((('foo', 'bar'), {}), (('foo', 'baz'), {}), False),
+        ((('foo', 'bar'), {'separator': '/'}), (('foo', 'bar'), {}), False),
+        (((('foo', 'foo desc'), ('bar', 'bar desc')), {}),
+         ((('foo', 'foo desc'), ('bar', 'bar desc')), {}),
+         True),
+        (((('foo', 'foo desc'), ('bar', 'bar desc')), {}),
+         ((('foo', 'foo desc'), ('bar', 'bar desc2')), {}),
+         False),
+    ])
+    def test_equal(self, klass, args1, args2, is_equal):
+        obj1 = klass(*args1[0], **args1[1])
+        obj2 = klass(*args2[0], **args2[1])
+        assert (obj1 == obj2) == is_equal
+
+    def test_from_dict(self, klass):
+        """Test initializing from a list of dicts."""
+        vv = klass({'foo': "foo desc"}, {'bar': "bar desc"})
+        assert 'foo:blah' in vv
+        assert 'bar:blub' in vv
+        assert vv.descriptions['foo'] == "foo desc"
+        assert vv.descriptions['bar'] == "bar desc"
+
+
 class TestAll:
 
     """Various tests which apply to all available config types."""
