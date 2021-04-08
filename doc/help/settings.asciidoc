@@ -3970,8 +3970,9 @@ Default: +pass:[always]+
 [[statusbar.widgets]]
 === statusbar.widgets
 List of widgets displayed in the statusbar.
+In addition to the listed values there is also the possibility to add `text:foo` widgets that will display `foo`.
 
-Type: <<types,List of String>>
+Type: <<types,List of StatusbarWidget>>
 
 Valid values:
 
@@ -4607,6 +4608,9 @@ When setting from `config.py`, both a string or a `re.compile(...)` object are v
 |ShellCommand|A shell command as a list.
 
 See the documentation for `List`.
+|StatusbarWidget|A Widget for the status bar.
+
+Allows some predefined widgets and custom text-widgets via text:$CONTENT.
 |String|A string value.
 
 See the setting's valid values for more information on allowed values.
