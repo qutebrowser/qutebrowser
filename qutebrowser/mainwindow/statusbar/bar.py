@@ -259,13 +259,13 @@ class StatusBar(QWidget):
                 self.prog.enabled = True
                 if tab:
                     self.prog.on_tab_changed(tab)
-            elif segment == 'text':
+            elif segment.startswith('text'):
                 try:
                     cur_widget = self.text_widgets[text_widget_nr]
                 except IndexError:
                     cur_widget = textbase.TextBase()
                     self.text_widgets.append(cur_widget)
-                cur_widget.setText('Lorem %s' % text_widget_nr)
+                cur_widget.setText(segment.partition(':')[2])
                 self._hbox.addWidget(cur_widget)
                 cur_widget.show()
                 text_widget_nr += 1
