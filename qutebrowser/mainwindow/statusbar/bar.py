@@ -200,6 +200,7 @@ class StatusBar(QWidget):
         self.tabindex = tabindex.TabIndex()
         self.keystring = keystring.KeyString()
         self.prog = progress.Progress(self)
+        self.text_widgets = []
         self._draw_widgets()
 
         config.instance.changed.connect(self._on_config_changed)
@@ -222,12 +223,13 @@ class StatusBar(QWidget):
         # Start with widgets hidden and show them when needed
         for widget in [self.url, self.percentage,
                        self.backforward, self.tabindex,
-                       self.keystring, self.prog]:
+                       self.keystring, self.prog, *self.text_widgets]:
             assert isinstance(widget, QWidget)
             widget.hide()
             self._hbox.removeWidget(widget)
 
         tab = self._current_tab()
+        text_widget_nr = 0
 
         # Read the list and set widgets accordingly
         for segment in config.val.statusbar.widgets:
@@ -257,6 +259,18 @@ class StatusBar(QWidget):
                 self.prog.enabled = True
                 if tab:
                     self.prog.on_tab_changed(tab)
+            elif segment == 'text':
+                try:
+                    cur_widget = self.text_widgets[text_widget_nr]
+                except IndexError:
+                    cur_widget = textbase.TextBase()
+                    self.text_widgets.append(cur_widget)
+                cur_widget.setText('Lorem %s' % text_widget_nr)
+                self._hbox.addWidget(cur_widget)
+                cur_widget.show()
+                text_widget_nr += 1
+
+        del self.text_widgets[text_widget_nr:]
 
     @pyqtSlot()
     def maybe_hide(self):
