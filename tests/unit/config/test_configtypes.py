@@ -2204,6 +2204,23 @@ class TestUrlPattern:
             klass().to_py('http://')
 
 
+class TestPrefixOrString:
+
+    @pytest.fixture
+    def klass(self):
+        return configtypes.PrefixOrString
+
+    def test_to_py_valid(self, klass):
+        widget = klass()
+        widget.valid_values = configtypes.ValidValues('foo')
+        widget.valid_prefixes = configtypes.ValidPrefixes('bar')
+
+        patterns = ['foo', 'bar:baz']
+
+        for i in patterns:
+            assert i == widget.to_py(i)
+
+
 @pytest.mark.parametrize('first, second, equal', [
     (re.compile('foo'), RegexEq('foo'), True),
     (RegexEq('bar'), re.compile('bar'), True),
