@@ -1003,7 +1003,7 @@ class AbstractTab(QWidget):
         """Setter for load_status."""
         if not isinstance(val, usertypes.LoadStatus):
             raise TypeError("Type {} is no LoadStatus member!".format(val))
-        log.webview.debug("load status for {}: {}".format(repr(self), val))
+        log.webview.debug(f"load status for {self!r}: {utils.pyenum_str(val)}")
         self._load_status = val
         self.load_status_changed.emit(val)
 
@@ -1063,7 +1063,7 @@ class AbstractTab(QWidget):
         url = utils.elide(navigation.url.toDisplayString(), 100)
         log.webview.debug("navigation request: url {}, type {}, is_main_frame "
                           "{}".format(url,
-                                      navigation.navigation_type,
+                                      utils.pyenum_str(navigation.navigation_type),
                                       navigation.is_main_frame))
 
         if navigation.is_main_frame:
