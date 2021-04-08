@@ -220,15 +220,7 @@ class StatusBar(QWidget):
 
     def _draw_widgets(self):
         """Draw statusbar widgets."""
-        # Start with widgets hidden and show them when needed
-        for widget in [self.url, self.percentage,
-                       self.backforward, self.tabindex,
-                       self.keystring, self.prog, *self.text_widgets]:
-            assert isinstance(widget, QWidget)
-            widget.hide()
-            self._hbox.removeWidget(widget)
-
-        self.text_widgets.clear()
+        self._clear_widgets()
 
         tab = self._current_tab()
 
@@ -266,6 +258,17 @@ class StatusBar(QWidget):
                 cur_widget.setText(segment.partition(':')[2])
                 self._hbox.addWidget(cur_widget)
                 cur_widget.show()
+
+    def _clear_widgets(self):
+        """Clear widgets before redrawing them."""
+        # Start with widgets hidden and show them when needed
+        for widget in [self.url, self.percentage,
+                       self.backforward, self.tabindex,
+                       self.keystring, self.prog, *self.text_widgets]:
+            assert isinstance(widget, QWidget)
+            widget.hide()
+            self._hbox.removeWidget(widget)
+        self.text_widgets.clear()
 
     @pyqtSlot()
     def maybe_hide(self):
