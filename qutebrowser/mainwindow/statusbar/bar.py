@@ -255,7 +255,7 @@ class StatusBar(QWidget):
             elif segment.startswith('text:'):
                 cur_widget = textbase.TextBase()
                 self._text_widgets.append(cur_widget)
-                cur_widget.setText(segment.partition(':')[2])
+                cur_widget.setText(segment.split(':', maxsplit=1)[1])
                 self._hbox.addWidget(cur_widget)
                 cur_widget.show()
             else:
