@@ -37,9 +37,11 @@ class Clock(textbase.TextBase):
         self.timer.timeout.connect(self._show_time)
 
     def _show_time(self):
+        """Set text to current time, using self.format as format-string."""
         self.setText(datetime.now().strftime(self.format))
 
     def show(self) -> None:
+        """Override show() to show time and start self.timer for updating."""
         self.timer.start(100)
         self._show_time()
         super().show()
