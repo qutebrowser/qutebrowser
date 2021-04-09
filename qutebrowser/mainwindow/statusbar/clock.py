@@ -31,7 +31,7 @@ class Clock(textbase.TextBase):
 
     def __init__(self, parent=None):
         super().__init__(parent, elidemode=Qt.ElideNone)
-        self.format = None
+        self.format = ""
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._show_time)
