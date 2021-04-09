@@ -210,6 +210,31 @@ class StatusBar(QWidget):
     def __repr__(self):
         return utils.get_repr(self)
 
+    def _get_widget_from_config(self, key):
+        """Return the widget that fits with config string key."""
+        if key == 'url':
+            return self.url
+        elif key == 'scroll':
+            return self.percentage
+        elif key == 'scroll_raw':
+            return self.percentage
+        elif key == 'history':
+            return self.backforward
+        elif key == 'tabs':
+            return self.tabindex
+        elif key == 'keypress':
+            return self.keystring
+        elif key == 'progress':
+            return self.prog
+        elif key.startswith('text:'):
+            new_text_widget = textbase.TextBase()
+            self._text_widgets.append(new_text_widget)
+            return new_text_widget
+        elif key.startswith('clock:') or key == 'clock':
+            return self.clock
+        else:
+            raise utils.Unreachable(key)
+
     @pyqtSlot(str)
     def _on_config_changed(self, option):
         if option == 'statusbar.show':
@@ -227,49 +252,28 @@ class StatusBar(QWidget):
 
         # Read the list and set widgets accordingly
         for segment in config.val.statusbar.widgets:
-            if segment == 'url':
-                self._hbox.addWidget(self.url)
-                self.url.show()
-            elif segment == 'scroll':
-                self._hbox.addWidget(self.percentage)
-                self.percentage.show()
-            elif segment == 'scroll_raw':
-                self._hbox.addWidget(self.percentage)
-                self.percentage.set_raw()
-                self.percentage.show()
-            elif segment == 'history':
-                self._hbox.addWidget(self.backforward)
-                self.backforward.enabled = True
+            cur_widget = self._get_widget_from_config(segment)
+            self._hbox.addWidget(cur_widget)
+
+            if segment == 'scroll_raw':
+                cur_widget.set_raw()
+            elif segment == 'history' or segment == 'progress':
+                cur_widget.enabled = True
                 if tab:
-                    self.backforward.on_tab_changed(tab)
-            elif segment == 'tabs':
-                self._hbox.addWidget(self.tabindex)
-                self.tabindex.show()
-            elif segment == 'keypress':
-                self._hbox.addWidget(self.keystring)
-                self.keystring.show()
-            elif segment == 'progress':
-                self._hbox.addWidget(self.prog)
-                self.prog.enabled = True
-                if tab:
-                    self.prog.on_tab_changed(tab)
+                    cur_widget.on_tab_changed(tab)
+
+                # Do not call .show() for these widgets.
+                return
             elif segment.startswith('text:'):
-                cur_widget = textbase.TextBase()
-                self._text_widgets.append(cur_widget)
                 cur_widget.setText(segment.split(':', maxsplit=1)[1])
-                self._hbox.addWidget(cur_widget)
-                cur_widget.show()
             elif segment.startswith('clock:') or segment == 'clock':
                 split_segment = segment.split(':', maxsplit=1)
                 if len(split_segment) == 2 and split_segment[1]:
-                    self.clock.format = split_segment[1]
+                    cur_widget.format = split_segment[1]
                 else:
-                    self.clock.format = '%X'
+                    cur_widget.format = '%X'
 
-                self._hbox.addWidget(self.clock)
-                self.clock.show()
-            else:
-                raise utils.Unreachable(segment)
+            cur_widget.show()
 
     def _clear_widgets(self):
         """Clear widgets before redrawing them."""
