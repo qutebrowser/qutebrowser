@@ -32,7 +32,7 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.mainwindow.statusbar import (backforward, command, progress,
                                               keystring, percentage, url,
-                                              tabindex, textbase)
+                                              tabindex, textbase, clock)
 
 
 @dataclasses.dataclass
@@ -200,6 +200,7 @@ class StatusBar(QWidget):
         self.tabindex = tabindex.TabIndex()
         self.keystring = keystring.KeyString()
         self.prog = progress.Progress(self)
+        self.clock = clock.Clock()
         self._text_widgets = []
         self._draw_widgets()
 
@@ -258,6 +259,15 @@ class StatusBar(QWidget):
                 cur_widget.setText(segment.split(':', maxsplit=1)[1])
                 self._hbox.addWidget(cur_widget)
                 cur_widget.show()
+            elif segment.startswith('clock:') or segment == 'clock':
+                split_segment = segment.split(':', maxsplit=1)
+                if len(split_segment) == 2 and split_segment[1]:
+                    self.clock.format = split_segment[1]
+                else:
+                    self.clock.format = '%X'
+
+                self._hbox.addWidget(self.clock)
+                self.clock.show()
             else:
                 raise utils.Unreachable(segment)
 
@@ -266,7 +276,7 @@ class StatusBar(QWidget):
         # Start with widgets hidden and show them when needed
         for widget in [self.url, self.percentage,
                        self.backforward, self.tabindex,
-                       self.keystring, self.prog, *self._text_widgets]:
+                       self.keystring, self.prog, self.clock, *self._text_widgets]:
             assert isinstance(widget, QWidget)
             widget.hide()
             self._hbox.removeWidget(widget)
