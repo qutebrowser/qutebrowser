@@ -2006,6 +2006,6 @@ class StatusbarWidget(String):
     """
 
     def _validate_valid_values(self, value: str) -> None:
-        if value.startswith("text:"):
+        if value.startswith("text:") or value.startswith("clock:"):
             return
         super()._validate_valid_values(value)

@@ -1927,6 +1927,9 @@ statusbar.widgets:
         - tabs: "Current active tab, e.g. `2`."
         - keypress: "Display pressed keys when composing a vi command."
         - progress: "Progress bar for the current page loading."
+        - clock: "Display current time. Format can be changed by adding like
+         `clock:$format`. For format strings see
+         link:https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior[the python datetime library]."
     none_ok: true
   default: ['keypress', 'url', 'scroll', 'history', 'tabs', 'progress']
   desc: >-
