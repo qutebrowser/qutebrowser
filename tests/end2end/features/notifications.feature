@@ -53,6 +53,12 @@ Feature: Notifications
         And the notification should have title "Padded"
         And the notification should have image dimensions 46x46
 
+    Scenario: Notification with padded image 2
+        When I run :click-element id show-image-button-padded-2
+        Then the javascript message "notification shown" should be logged
+        And the notification should have title "Padded 2"
+        And the notification should have image dimensions 239x239
+
     Scenario: Closing notification via web
         When I run :click-element id show-closing-button
         Then the javascript message "notification shown" should be logged
