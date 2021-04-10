@@ -110,6 +110,8 @@ Changed
   prompt with "always"/"never").
 - The `:config-unset` command now shows an error when used on an option which is
   valid, but was never customized.
+- The `statusbar.widgets` setting now understands `text:...` entries which
+  allows adding a hard-coded text to the statusbar.
 
 Fixed
 ~~~~~
