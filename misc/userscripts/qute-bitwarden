@@ -153,8 +153,8 @@ def pass_(domain, encoding, auto_lock):
         stderr=subprocess.PIPE,
     )
 
-    err = process.stderr.decode(encoding).strip()
-    if err:
+    if process.returncode:
+        err = process.stderr.decode(encoding).strip()
         msg = 'Bitwarden CLI returned for {:s} - {:s}'.format(domain, err)
         stderr(msg)
         return '[]'
