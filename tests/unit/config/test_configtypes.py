@@ -2117,6 +2117,24 @@ class TestUrlPattern:
             klass().to_py('http://')
 
 
+class TestStatusbarWidget:
+
+    @pytest.fixture
+    def klass(self):
+        return configtypes.StatusbarWidget
+
+    @pytest.mark.parametrize('value', ['text:bar', 'foo'])
+    def test_validate_valid_values(self, klass, value):
+        widget = klass(valid_values=configtypes.ValidValues('foo'))
+        assert widget.to_py(value) == value
+
+    @pytest.mark.parametrize('value', ['text', 'foo:bar'])
+    def test_validate_invalid_values(self, klass, value):
+        widget = klass(valid_values=configtypes.ValidValues('foo'))
+        with pytest.raises(configexc.ValidationError):
+            widget.to_py(value)
+
+
 @pytest.mark.parametrize('first, second, equal', [
     (re.compile('foo'), RegexEq('foo'), True),
     (RegexEq('bar'), re.compile('bar'), True),
