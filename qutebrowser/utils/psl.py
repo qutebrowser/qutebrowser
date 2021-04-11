@@ -1,7 +1,7 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # Copyright 2014-2021 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-# Copyright 2021 Javier Ayres <javier@lufte.net>
+# Copyright 2021 Javier Ayres (lufte) <javier@lufte.net>
 #
 # This file is part of qutebrowser.
 #
@@ -18,12 +18,15 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
+"""Parser and loader for Mozilla's Public Suffix List."""
+
 import enum
 import os.path
+from typing import Iterable, Optional, Dict
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import standarddir, urlutils
+from qutebrowser.utils import standarddir, urlutils, utils
 
 
 class PSLNotFound(Exception):
@@ -33,7 +36,7 @@ class PSLNotFound(Exception):
         paths: iterable of all tried paths.
     """
 
-    def __init__(self, paths):
+    def __init__(self, paths: Iterable[str]):
         super().__init__(
             "Couldn't find public_suffix_list.dat in any of the expected paths: "
             "{}".format(', '.join(paths))
@@ -47,69 +50,68 @@ class _Rule(enum.Enum):
     EXCEPTION = enum.auto()
 
 
-def _widened_hostnames(hostname):
-    """A generator for widening string hostnames.
-
-    Ex: a.c.foo -> [a.c.foo, c.foo, foo]"""
-    while hostname:
-        yield hostname
-        hostname = hostname.partition(".")[-1]
-
-
 class _SuffixList:
 
-    _rules = None
+    _rules: Optional[Dict[str, _Rule]] = None
 
-    def _load_rules(self) -> None:
-        PSL_PATHS = (
-            # User-provided list in data directory (need to wait until standarddir is
-            # initialized)
-            os.path.join(standarddir.data(), 'public_suffix_list.dat'),
-            # Bundled list
-            os.path.join(__file__, '../public_suffix_list.dat'),
-            # Debian publicsuffix package
-            '/usr/share/publicsuffix/public_suffix_list.dat'
+    def _load_rules(self) -> Dict[str, _Rule]:
+        user_psl_path = os.path.join(standarddir.data(), 'public_suffix_list.dat')
+        system_psl_paths = (
+            '/usr/share/publicsuffix/public_suffix_list.dat',  # Debian's publicsuffix
         )
-        path = None
-        for psl_path in PSL_PATHS:
-            if os.path.exists(psl_path):
-                path = psl_path
-                break
-        if not path:
-            raise PSLNotFound(PSL_PATHS)
+        bundled_psl_path = '3rdparty/public_suffix_list.dat'
 
-        self._rules = {}
-        with open(path, 'r') as f:
-            for line in f:
-                line = line.strip()
-                if line.startswith('//') or not line:
-                    continue
-                if line.startswith('*.'):
-                    self._rules[line[2:]] = _Rule.WILDCARD
-                elif line.startswith('!'):
-                    self._rules[line[1:]] = _Rule.EXCEPTION
-                else:
-                    assert '*' not in line and '!' not in line, line
-                    self._rules[line] = _Rule.NORMAL
+        psl_file = None
+        if os.path.exists(user_psl_path):
+            with open(user_psl_path) as f:
+                psl_file = f.read()
+        else:
+            try:
+                psl_file = utils.read_file(bundled_psl_path)
+            except FileNotFoundError:
+                for path in system_psl_paths:
+                    if os.path.exists(path):
+                        with open(path) as f:
+                            psl_file = f.read()
+                        break
+
+        if not psl_file:
+            raise PSLNotFound((user_psl_path, bundled_psl_path) + system_psl_paths)
+
+        rules = {}
+        for line_number, line in enumerate(psl_file.splitlines()):
+            line = line.strip()
+            if line.startswith('//') or not line:
+                continue
+            if line.startswith('*.'):
+                rules[line[2:]] = _Rule.WILDCARD
+            elif line.startswith('!'):
+                rules[line[1:]] = _Rule.EXCEPTION
+            else:
+                assert '*' not in line and '!' not in line, f'{line_number}: {line}'
+                rules[line] = _Rule.NORMAL
+
+        return rules
 
     @property
-    def rules(self):
+    def rules(self) -> Dict[str, _Rule]:
         if self._rules is None:
-            self._load_rules()
+            self._rules = self._load_rules()
         return self._rules
 
-    def sld(self, url: QUrl) -> str:
+    def sld(self, url: QUrl) -> Optional[str]:
+        """Return the second-level domain of a URL."""
         urlutils.ensure_valid(url)
         host = url.host()
 
         if '.' not in host or self.rules.get(host) in (_Rule.NORMAL, _Rule.WILDCARD):
-            return None  # FIXME why?
+            return None
             # If the hostname doesn't have a dot it's either a tld, which doesn't have
             # a sld, or it doesn't match any rule, in which case the prevailing rule is
             # '*' according to https://publicsuffix.org/list/. If the hostname has a dot
             # but matches a normal/wildcard rule, it's a tld.
 
-        parts = list(_widened_hostnames(host))
+        parts = list(urlutils.widened_hostnames(host))
 
         for i, part in enumerate(parts):
             rule = self.rules.get(part)
