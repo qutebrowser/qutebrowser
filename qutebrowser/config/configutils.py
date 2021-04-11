@@ -32,20 +32,11 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QFontDatabase
 from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.utils import utils, urlmatch, usertypes, qtutils
+from qutebrowser.utils import utils, urlmatch, urlutils, usertypes, qtutils
 from qutebrowser.config import configexc
 
 if TYPE_CHECKING:
     from qutebrowser.config import configdata
-
-
-def _widened_hostnames(hostname: str) -> Iterable[str]:
-    """A generator for widening string hostnames.
-
-    Ex: a.c.foo -> [a.c.foo, c.foo, foo]"""
-    while hostname:
-        yield hostname
-        hostname = hostname.partition(".")[-1]
 
 
 class ScopedValue:
@@ -231,7 +222,7 @@ class Values:
         candidates: List[ScopedValue] = []
         # Urls trailing with '.' are equivalent to non-trailing types.
         # urlutils strips them, so in order to match we will need to as well.
-        widened_hosts = _widened_hostnames(url.host().rstrip('.'))
+        widened_hosts = urlutils.widened_hostnames(url.host().rstrip('.'))
         # We must check the 'None' key as well, in case any patterns that
         # did not have a domain match.
         for host in itertools.chain(widened_hosts, [None]):
