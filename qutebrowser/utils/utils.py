@@ -33,7 +33,7 @@ import contextlib
 import shlex
 import mimetypes
 from typing import (Any, Callable, IO, Iterator, List, Optional, Sequence,
-                    Tuple, Type, Union, Iterable, TypeVar, TYPE_CHECKING)
+                    Sized, Tuple, Type, Union, Iterable, TypeVar, TYPE_CHECKING)
 try:
     # Protocol was added in Python 3.8
     from typing import Protocol
@@ -844,7 +844,7 @@ def cleanup_file(filepath: str) -> Iterator[None]:
             log.misc.error(f"Failed to delete tempfile {filepath} ({e})!")
 
 
-def parse_int_set(s: str, universe: Optional[Iterable[int]] = None,
+def parse_int_set(s: str, universe: Iterable[int] = (),
                   only_universe: bool = False) -> List[int]:
     """Parse a comma-separated list of numbers and range specifications.
 
@@ -860,11 +860,10 @@ def parse_int_set(s: str, universe: Optional[Iterable[int]] = None,
         only_universe: The returned list may contain numbers outside the
             universe if this is False
     """
-    if only_universe and not universe:
-        return []
-    if (('first' in s or 'last' in s or '*' in s) and universe is None):
-        raise ValueError('Cannot use "first", "last", or "*" w/o universe')
-    if (('first' in s or 'last' in s) and universe == []):
+    if not isinstance(universe, Sized):
+        raise ValueError('`universe` must be finite')
+
+    if (('first' in s or 'last' in s) and not universe):
         raise ValueError('Cannot use "first" and "last" w/ empty universe')
 
     def parse_val(val: str) -> int:
@@ -886,13 +885,11 @@ def parse_int_set(s: str, universe: Optional[Iterable[int]] = None,
         if len(parts) > 2:
             raise ValueError(f'Invalid range: "{range_}"')
         if parts == ['*']:
-            assert universe is not None
             concatted += list(universe)
         else:
             concatted += list(range(parse_val(parts[0]),
                                     parse_val(parts[-1]) + 1))
     if only_universe:
-        assert universe is not None
         return sorted(set(universe).intersection(concatted))
     else:
         return sorted(set(concatted))
