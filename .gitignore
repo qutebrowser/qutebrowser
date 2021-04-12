@@ -54,3 +54,4 @@ TODO
 /misc/nsis/include
 /misc/nsis/plugins
 /wheels
+.vscode/*

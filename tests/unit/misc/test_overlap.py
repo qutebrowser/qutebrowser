@@ -39,7 +39,8 @@ def test_overlap1(qtbot):
     widget2.move(10, 0)
 
     overlap_lookup = overlap.OverlapLookup([widget1, widget2])
-    assert len(overlap_lookup.overlappings(widget1)) == 1
+    overlappings = list(overlap_lookup.overlappings(widget1))
+    assert overlappings == [widget2]
 
 
 @pytest.fixture()
@@ -71,9 +72,9 @@ def test_overlap2(three_widgets):
     widget1, widget2, widget3 = three_widgets.children()
 
     overlap_lookup = overlap.OverlapLookup([widget1, widget2, widget3])
-    assert len(overlap_lookup.overlappings(widget1)) == 1
-    assert len(overlap_lookup.overlappings(widget2)) == 2
-    assert len(overlap_lookup.overlappings(widget3)) == 1
+    assert list(overlap_lookup.overlappings(widget1)) == [widget2]
+    assert set(overlap_lookup.overlappings(widget2)) == {widget1, widget3}
+    assert list(overlap_lookup.overlappings(widget3)) == [widget2]
 
 
 def test_cycling(three_widgets):
