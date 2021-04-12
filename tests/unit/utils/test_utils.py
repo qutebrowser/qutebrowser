@@ -1003,14 +1003,38 @@ class TestCleanupFileContext:
         assert caplog.messages[0].startswith("Failed to delete tempfile")
 
 
-@pytest.mark.parametrize('s, universe, expected', [
-    ('2-5,7,15-17,12', [], [2, 3, 4, 5, 7, 12, 15, 16, 17]),
-    ('*', [1, 2, 3], [1, 2, 3]),
-    ('first', [1, 2, 3], [1]),
-    ('2-last', [1, 2, 3], [2, 3]),
-])
-def test_parse_int_set_ranges(s, universe, expected):
-    assert utils.parse_int_set(s, universe) == expected
+class TestParseIntSet:
+
+    @pytest.mark.parametrize('s, universe, only_universe, expected', [
+        ('2-5,7,15-17,12', [], False, [2, 3, 4, 5, 7, 12, 15, 16, 17]),
+        ('*', [1, 2, 3], False, [1, 2, 3]),
+        ('first', [1, 2, 3], False, [1]),
+        ('2-last', [1, 2, 3], False, [2, 3]),
+        ('2-last', [1, 3], True, [3]),
+        ('2', [], True, []),
+    ])
+    def test_parse_int_set_ranges(self, s, universe, only_universe, expected):
+        assert utils.parse_int_set(s, universe, only_universe) == expected
+
+    @pytest.mark.parametrize('s, universe, only_universe, msg', [
+        ('-5,7,15-17,12', [], False, 'Invalid value: ""'),
+        ('1-5-10,7,15-17,12', [], False, 'Invalid range: "1-5-10"'),
+        ('first-2', [], False,
+            'Cannot use "first" and "last" w/ empty universe'),
+        ('2-last', None, False,
+            'Cannot use "first", "last", or "*" w/o universe'),
+    ])
+    def test_parse_int_set_bad_ranges(self, s, universe, only_universe, msg):
+        with pytest.raises(ValueError) as excinfo:
+            utils.parse_int_set(s, universe, only_universe)
+        assert str(excinfo.value) == msg
+
+    @hypothesis.given(strategies.text())
+    def test_hypothesis_text(self, s):
+        try:
+            utils.parse_int_set(s, [1, 2, 3])
+        except ValueError as e:
+            print(e)
 
 
 class TestParseRect:
