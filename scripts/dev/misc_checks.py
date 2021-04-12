@@ -143,10 +143,11 @@ def _check_spelling_file(path, fobj, patterns):
     ok = True
     for num, line in enumerate(fobj, start=1):
         for pattern, explanation in patterns:
-            if pattern.search(line):
+            match = pattern.search(line)
+            if match:
                 ok = False
                 print(f'{path}:{num}: ', end='')
-                utils.print_col(f'Found "{pattern.pattern}" - {explanation}', 'blue')
+                utils.print_col(f'Found "{match.group(0)}" - {explanation}', 'blue')
     return ok
 
 
@@ -154,7 +155,7 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
     """Check commonly misspelled words."""
     # Words which I often misspell
     words = {'behaviour', 'quitted', 'likelyhood', 'sucessfully',
-             'occur[^rs .!]', 'seperator', 'explicitely', 'auxillary',
+             'occur[^rs .!,]', 'seperator', 'explicitely', 'auxillary',
              'accidentaly', 'ambigious', 'loosly', 'initialis', 'convienence',
              'similiar', 'uncommited', 'reproducable', 'an user',
              'convienience', 'wether', 'programatically', 'splitted',
@@ -175,6 +176,23 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
             "Common misspelling or non-US spelling"
         ) for w in words
     ]
+
+    qtbot_methods = {
+        'keyPress',
+        'keyRelease',
+        'keyClick',
+        'keyClicks',
+        'keyEvent',
+        'mousePress',
+        'mouseRelease',
+        'mouseClick',
+        'mouseMove',
+        'mouseDClick',
+        'keySequence',
+    }
+
+    qtbot_excludes = '|'.join(qtbot_methods)
+
     patterns += [
         (
             re.compile(r'(?i)# noqa(?!: )'),
@@ -225,6 +243,26 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
         (
             re.compile(r'IOError'),
             "use OSError",
+        ),
+        (
+            re.compile(fr'qtbot\.(?!{qtbot_excludes})[a-z]+[A-Z].*'),
+            "use snake-case instead",
+        ),
+        (
+            re.compile(r'\.joinpath\((?!\*)'),
+            "use the / operator for joining paths",
+        ),
+        (
+            re.compile(r"""pathlib\.Path\(["']~["']\)\.expanduser\(\)"""),
+            "use pathlib.Path.home() instead",
+        ),
+        (
+            re.compile(r'pathlib\.Path\(tmp_path\)'),
+            "tmp_path already is a pathlib.Path",
+        ),
+        (
+            re.compile(r'pathlib\.Path\(tmpdir\)'),
+            "use tmp_path instead",
         ),
     ]
 

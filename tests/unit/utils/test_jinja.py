@@ -19,8 +19,7 @@
 
 """Tests for qutebrowser.utils.jinja."""
 
-import os
-import os.path
+import pathlib
 import logging
 
 import jinja2.exceptions
@@ -33,30 +32,32 @@ from qutebrowser.config import configexc
 
 @pytest.fixture(autouse=True)
 def patch_read_file(monkeypatch):
-    """pytest fixture to patch utils.read_file."""
-    def _read_file(path):
+    """pytest fixture to patch resources.read_file."""
+    def _read_file(filepath):
         """A read_file which returns a simple template if the path is right."""
-        if path == os.path.join('html', 'test.html'):
+        path = pathlib.Path(filepath)
+        html_path = pathlib.Path('html')
+        if path == html_path / 'test.html':
             return """Hello {{var}}"""
-        elif path == os.path.join('html', 'test2.html'):
+        elif path == html_path / 'test2.html':
             return """{{ resource_url('utils/testfile') }}"""
-        elif path == os.path.join('html', 'test3.html'):
+        elif path == html_path / 'test3.html':
             return """{{ data_url('testfile.txt') }}"""
-        elif path == os.path.join('html', 'undef.html'):
+        elif path == html_path / 'undef.html':
             return """{{ does_not_exist() }}"""
-        elif path == os.path.join('html', 'attributeerror.html'):
+        elif path == html_path / 'attributeerror.html':
             return """{{ obj.foobar }}"""
         else:
-            raise OSError("Invalid path {}!".format(path))
+            raise OSError(f"Invalid path {filepath}!")
 
-    def _read_file_binary(path):
-        if path == 'testfile.txt':
+    def _read_file_binary(filepath):
+        if filepath == 'testfile.txt':
             return b'foo'
         else:
-            raise OSError("Invalid path {}!".format(path))
+            raise OSError(f"Invalid path {filepath}!")
 
-    monkeypatch.setattr(jinja.utils, 'read_file', _read_file)
-    monkeypatch.setattr(jinja.utils, 'read_file_binary', _read_file_binary)
+    monkeypatch.setattr(jinja.resources, 'read_file', _read_file)
+    monkeypatch.setattr(jinja.resources, 'read_file_binary', _read_file_binary)
 
 
 def test_simple_template():

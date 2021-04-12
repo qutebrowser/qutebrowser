@@ -80,6 +80,8 @@ The following software and libraries are required to run qutebrowser:
   - QtCore / qtbase
   - QtQuick (part of qtbase or qtdeclarative in some distributions)
   - QtSQL (part of qtbase in some distributions)
+  - QtDBus (part of qtbase in some distributions; note that a connection to DBus at
+    runtime is optional)
   - QtOpenGL
   - QtWebEngine, or
   - alternatively QtWebKit (5.212) - **This is not recommended** due to known security
@@ -92,7 +94,6 @@ websites and using it for transmission of sensitive data._
 * https://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.12.0 or newer
   for Python 3
 * https://palletsprojects.com/p/jinja/[jinja2]
-* https://pygments.org/[pygments]
 * https://github.com/yaml/pyyaml[PyYAML]
 
 On older Python versions (3.6/3.7/3.8), the following backports are also required:
@@ -103,8 +104,15 @@ On older Python versions (3.6/3.7/3.8), the following backports are also require
 The following libraries are optional:
 
 * https://pypi.org/project/adblock/[adblock] (for improved adblocking using ABP syntax)
+* https://pygments.org/[pygments] for syntax highlighting with `:view-source`
+  on QtWebKit, or when using `:view-source --pygments` with the (default)
+  QtWebEngine backend.
 * On Windows, https://pypi.python.org/pypi/colorama/[colorama] for colored log
   output.
+* https://importlib-metadata.readthedocs.io/[importlib_resources] on Python 3.7
+  or older, to improve QtWebEngine version detection when PyQtWebEngine is
+  installed via pip (thus, this dependency usually isn't relevant for
+  packagers).
 * https://asciidoc.org/[asciidoc] to generate the documentation for the `:help`
   command, when using the git repository (rather than a release).
 
@@ -121,25 +129,36 @@ https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] for more
 information. Depending on your sign-up date and how long you keep a certain
 level, you can get qutebrowser t-shirts, stickers and more!
 
+GitHub Sponsors allows for one-time donations (using the buttons next to "Select a
+tier") as well as custom amounts. **For currencies other than Euro or Swiss Francs, this
+is the preferred donation method.** GitHub uses https://stripe.com/[Stripe] to accept
+payment via credit carts without any fees. Billing via PayPal is available as well, with
+less fees than a direct PayPal transaction.
+
 Alternatively, the following donation methods are available -- note that
 eligibility for swag (shirts/stickers/etc.) is handled on a case-by-case basis
 for those, please mailto:mail@qutebrowser.org[get in touch] for details.
 
-* SEPA bank transfer inside Europe (no fee):
+* SEPA bank transfer inside Europe (**no fees**):
   - Account holder: Florian Bruhin
   - Country: Switzerland
   - IBAN (EUR): CH13 0900 0000 9160 4094 6
   - IBAN (other): CH80 0900 0000 8711 8587 3
   - Bank: PostFinance AG, Mingerstrasse 20, 3030 Bern, Switzerland (BIC: POFICHBEXXX)
   - If you need any other information: Contact me at mail@qutebrowser.org.
-* PayPal: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=CHF&source=url[CHF], https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=EUR&source=url[EUR], https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=USD&source=url[USD]
+* PayPal:
+  https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=CHF&source=url[CHF],
+  https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=EUR&source=url[EUR],
+  https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=USD&source=url[USD].
+  **Note: Fees can be very high (around 5-40%, depending on the donated amounts)** - consider
+  using GitHub Sponsors (accepts credit cards or PayPal!) or SEPA bank transfers
+  instead.
 * Cryptocurrencies:
   - Bitcoin: link:bitcoin:bc1q3ptyw8hxrcfz6ucfgmglphfvhqpy8xr6k25p00[bc1q3ptyw8hxrcfz6ucfgmglphfvhqpy8xr6k25p00]
   - Bitcoin Cash: link:bitcoincash:1BnxUbnJ5MrEPeh5nuUMx83tbiRAvqJV3N[1BnxUbnJ5MrEPeh5nuUMx83tbiRAvqJV3N]
   - Ethereum: link:ethereum:0x10c2425856F7a8799EBCaac4943026803b1089c6[0x10c2425856F7a8799EBCaac4943026803b1089c6]
   - Litecoin: link:litecoin:MDt3YQciuCh6QyFmr8TiWNxB94PVzbnPm2[MDt3YQciuCh6QyFmr8TiWNxB94PVzbnPm2]
   - Others: Please mailto:mail@qutebrowser.org[get in touch], I'd happily set up anything link:https://www.ledger.com/supported-crypto-assets[supported by Ledger Live]
-
 
 Sponsors
 --------

@@ -29,7 +29,7 @@ from PyQt5.QtNetwork import (QNetworkProxy, QNetworkRequest, QHostInfo,
                              QHostAddress)
 from PyQt5.QtQml import QJSEngine, QJSValue
 
-from qutebrowser.utils import log, utils, qtutils
+from qutebrowser.utils import log, utils, qtutils, resources
 
 
 class ParseProxyError(Exception):
@@ -190,7 +190,7 @@ class PACResolver:
         self._engine.globalObject().setProperty(
             "PAC", self._engine.newQObject(self._ctx))
         self._evaluate(_PACContext.JS_DEFINITIONS, "pac_js_definitions")
-        self._evaluate(utils.read_file("javascript/pac_utils.js"), "pac_utils")
+        self._evaluate(resources.read_file("javascript/pac_utils.js"), "pac_utils")
         proxy_config = self._engine.newObject()
         proxy_config.setProperty("bindings", self._engine.newObject())
         self._engine.globalObject().setProperty("ProxyConfig", proxy_config)
@@ -251,7 +251,10 @@ class PACFetcher(QObject):
         url.setScheme(url.scheme()[len(pac_prefix):])
 
         self._pac_url = url
-        self._manager: Optional[QNetworkAccessManager] = QNetworkAccessManager()
+        with log.disable_qt_msghandler():
+            # WORKAROUND for a hang when messages are printed, see our
+            # NetworkAccessManager subclass for details.
+            self._manager: Optional[QNetworkAccessManager] = QNetworkAccessManager()
         self._manager.setProxy(QNetworkProxy(QNetworkProxy.NoProxy))
         self._pac = None
         self._error_message = None

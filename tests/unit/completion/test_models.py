@@ -21,6 +21,7 @@
 
 import collections
 import os
+import pathlib
 import random
 import string
 import time
@@ -28,9 +29,9 @@ from datetime import datetime
 from unittest import mock
 
 import hypothesis
-import hypothesis.strategies
+import hypothesis.strategies as hst
 import pytest
-from PyQt5.QtCore import QUrl, QDateTime
+from PyQt5.QtCore import QUrl, QDateTime, QProcess
 try:
     from PyQt5.QtWebEngineWidgets import (
         QWebEngineHistory, QWebEngineHistoryItem
@@ -38,7 +39,7 @@ try:
 except ImportError:
     pass
 
-from qutebrowser.misc import objects
+from qutebrowser.misc import objects, guiprocess
 from qutebrowser.completion import completer
 from qutebrowser.completion.models import (
     configmodel, listcategory, miscmodels, urlmodel, filepathcategory)
@@ -426,11 +427,11 @@ def test_filesystem_completion(qtmodeltester, config_stub, info,
         homedir = str(local_files_path)
         monkeypatch.setenv('HOME', homedir)  # POSIX
         monkeypatch.setenv('USERPROFILE', homedir)  # Windows
-        assert os.path.expanduser('~') == homedir
+        assert str(pathlib.Path.home()) == homedir
 
         base = '~'
-        expected_1 = os.path.join('~', 'file1.txt')
-        expected_2 = os.path.join('~', 'file2.txt')
+        expected_1 = str(pathlib.Path('~') / 'file1.txt')
+        expected_2 = str(pathlib.Path('~') / 'file2.txt')
 
     config_stub.val.completion.open_categories = ['filesystem']
     model = urlmodel.url(info=info)
@@ -459,9 +460,10 @@ def test_filesystem_completion_model_interface(info, local_files_path):
 
 
 @hypothesis.given(
-    as_uri=hypothesis.strategies.booleans(),
-    add_sep=hypothesis.strategies.booleans(),
-    text=hypothesis.strategies.text(),
+    as_uri=hst.booleans(),
+    add_sep=hst.booleans(),
+    text=hst.text(alphabet=hst.characters(
+        blacklist_categories=['Cc'], blacklist_characters='\x00')),
 )
 def test_filesystem_completion_hypothesis(info, as_uri, add_sep, text):
     if as_uri:
@@ -1445,7 +1447,54 @@ def undo_completion_retains_sort_order(tabbed_browser_stubs, info):
     _check_completions(model, {"Closed tabs": expected})
 
 
-@hypothesis.given(text=hypothesis.strategies.text())
+def test_process_completion(monkeypatch, stubs, info):
+    monkeypatch.setattr(guiprocess, 'QProcess', stubs.FakeProcess)
+    p1 = guiprocess.GUIProcess('testprocess')
+    p2 = guiprocess.GUIProcess('testprocess')
+    p3 = guiprocess.GUIProcess('editor')
+
+    p1.pid = 1001
+    p1.cmd = 'cmd1'
+    p1.args = []
+    p1.outcome.running = False
+    p1.outcome.status = QProcess.NormalExit
+    p1.outcome.code = 0
+
+    p2.pid = 1002
+    p2.cmd = 'cmd2'
+    p2.args = []
+    p2.outcome.running = True
+
+    p3.pid = 1003
+    p3.cmd = 'cmd3'
+    p3.args = []
+    p3.outcome.running = False
+    p3.outcome.status = QProcess.NormalExit
+    p3.outcome.code = 1
+
+    monkeypatch.setattr(guiprocess, 'all_processes', {
+        1001: p1,
+        1002: p2,
+        1003: p3,
+        1004: None,  # cleaned up
+    })
+
+    model = miscmodels.process(info=info)
+    model.set_pattern('')
+
+    expected = {
+        'Testprocess': [
+            ('1002', 'running', 'cmd2'),
+            ('1001', 'successful', 'cmd1'),
+        ],
+        'Editor': [
+            ('1003', 'unsuccessful', 'cmd3'),
+        ],
+    }
+    _check_completions(model, expected)
+
+
+@hypothesis.given(text=hst.text())
 def test_listcategory_hypothesis(text):
     """Make sure we can't produce invalid patterns."""
     cat = listcategory.ListCategory("test", [])

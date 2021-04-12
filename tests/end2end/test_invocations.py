@@ -23,13 +23,15 @@ import configparser
 import subprocess
 import sys
 import logging
+import importlib
 import re
 import json
 
 import pytest
-from PyQt5.QtCore import QProcess
+from PyQt5.QtCore import QProcess, QPoint
 
-from helpers import utils
+from helpers import testutils
+from qutebrowser.utils import qtutils, utils
 
 
 ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,
@@ -46,23 +48,23 @@ def _base_args(config):
         args += ['--backend', 'webkit']
 
     if config.webengine:
-        args += utils.seccomp_args(qt_flag=True)
+        args += testutils.seccomp_args(qt_flag=True)
 
     args.append('about:blank')
     return args
 
 
 @pytest.fixture
-def temp_basedir_env(tmpdir, short_tmpdir):
+def temp_basedir_env(tmp_path, short_tmpdir):
     """Return a dict of environment variables that fakes --temp-basedir.
 
     We can't run --basedir or --temp-basedir for some tests, so we mess with
     XDG_*_DIR to get things relocated.
     """
-    data_dir = tmpdir / 'data'
-    config_dir = tmpdir / 'config'
+    data_dir = tmp_path / 'data'
+    config_dir = tmp_path / 'config'
     runtime_dir = short_tmpdir / 'rt'
-    cache_dir = tmpdir / 'cache'
+    cache_dir = tmp_path / 'cache'
 
     runtime_dir.ensure(dir=True)
     runtime_dir.chmod(0o700)
@@ -75,7 +77,8 @@ def temp_basedir_env(tmpdir, short_tmpdir):
     ]
 
     state_file = data_dir / 'qutebrowser' / 'state'
-    state_file.write_text('\n'.join(lines), encoding='utf-8', ensure=True)
+    state_file.parent.mkdir(parents=True)
+    state_file.write_text('\n'.join(lines), encoding='utf-8')
 
     env = {
         'XDG_DATA_HOME': str(data_dir),
@@ -88,7 +91,7 @@ def temp_basedir_env(tmpdir, short_tmpdir):
 
 @pytest.mark.linux
 @ascii_locale
-def test_downloads_with_ascii_locale(request, server, tmpdir, quteproc_new):
+def test_downloads_with_ascii_locale(request, server, tmp_path, quteproc_new):
     """Test downloads with LC_ALL=C set.
 
     https://github.com/qutebrowser/qutebrowser/issues/908
@@ -96,7 +99,7 @@ def test_downloads_with_ascii_locale(request, server, tmpdir, quteproc_new):
     """
     args = ['--temp-basedir'] + _base_args(request.config)
     quteproc_new.start(args, env={'LC_ALL': 'C'})
-    quteproc_new.set_setting('downloads.location.directory', str(tmpdir))
+    quteproc_new.set_setting('downloads.location.directory', str(tmp_path))
 
     # Test a normal download
     quteproc_new.set_setting('downloads.location.prompt', 'false')
@@ -116,14 +119,14 @@ def test_downloads_with_ascii_locale(request, server, tmpdir, quteproc_new):
     quteproc_new.wait_for(category='misc',
                           message='Opening * with [*python*]')
 
-    assert len(tmpdir.listdir()) == 1
-    assert (tmpdir / '?-issue908.bin').exists()
+    assert len(list(tmp_path.iterdir())) == 1
+    assert (tmp_path / '?-issue908.bin').exists()
 
 
 @pytest.mark.linux
 @pytest.mark.parametrize('url', ['/föö.html', 'file:///föö.html'])
 @ascii_locale
-def test_open_with_ascii_locale(request, server, tmpdir, quteproc_new, url):
+def test_open_with_ascii_locale(request, server, tmp_path, quteproc_new, url):
     """Test opening non-ascii URL with LC_ALL=C set.
 
     https://github.com/qutebrowser/qutebrowser/issues/1450
@@ -151,7 +154,7 @@ def test_open_with_ascii_locale(request, server, tmpdir, quteproc_new, url):
 
 @pytest.mark.linux
 @ascii_locale
-def test_open_command_line_with_ascii_locale(request, server, tmpdir,
+def test_open_command_line_with_ascii_locale(request, server, tmp_path,
                                              quteproc_new):
     """Test opening file via command line with a non-ascii name with LC_ALL=C.
 
@@ -178,19 +181,22 @@ def test_open_command_line_with_ascii_locale(request, server, tmpdir,
 
 @pytest.mark.linux
 def test_misconfigured_user_dirs(request, server, temp_basedir_env,
-                                 tmpdir, quteproc_new):
+                                 tmp_path, quteproc_new):
     """Test downloads with a misconfigured XDG_DOWNLOAD_DIR.
 
     https://github.com/qutebrowser/qutebrowser/issues/866
     https://github.com/qutebrowser/qutebrowser/issues/1269
     """
-    home = tmpdir / 'home'
-    home.ensure(dir=True)
+    home = tmp_path / 'home'
+    home.mkdir()
     temp_basedir_env['HOME'] = str(home)
+    config_userdir_dir = (tmp_path / 'config')
+    config_userdir_dir.mkdir(parents=True)
+    config_userdir_file = (tmp_path / 'config' / 'user-dirs.dirs')
+    config_userdir_file.touch()
 
-    assert temp_basedir_env['XDG_CONFIG_HOME'] == tmpdir / 'config'
-    (tmpdir / 'config' / 'user-dirs.dirs').write('XDG_DOWNLOAD_DIR="relative"',
-                                                 ensure=True)
+    assert temp_basedir_env['XDG_CONFIG_HOME'] == str(tmp_path / 'config')
+    config_userdir_file.write_text('XDG_DOWNLOAD_DIR="relative"')
 
     quteproc_new.start(_base_args(request.config), env=temp_basedir_env)
 
@@ -261,10 +267,10 @@ def test_version(request):
     assert match is not None
 
 
-def test_qt_arg(request, quteproc_new, tmpdir):
+def test_qt_arg(request, quteproc_new, tmp_path):
     """Test --qt-arg."""
     args = (['--temp-basedir', '--qt-arg', 'stylesheet',
-             str(tmpdir / 'does-not-exist')] + _base_args(request.config))
+             str(tmp_path / 'does-not-exist')] + _base_args(request.config))
     quteproc_new.start(args)
 
     msg = 'QCss::Parser - Failed to load file  "*does-not-exist"'
@@ -276,17 +282,17 @@ def test_qt_arg(request, quteproc_new, tmpdir):
 
 
 @pytest.mark.linux
-def test_webengine_download_suffix(request, quteproc_new, tmpdir):
+def test_webengine_download_suffix(request, quteproc_new, tmp_path):
     """Make sure QtWebEngine does not add a suffix to downloads."""
     if not request.config.webengine:
         pytest.skip()
 
-    download_dir = tmpdir / 'downloads'
-    download_dir.ensure(dir=True)
+    download_dir = tmp_path / 'downloads'
+    download_dir.mkdir()
 
-    (tmpdir / 'user-dirs.dirs').write(
+    (tmp_path / 'user-dirs.dirs').write_text(
         'XDG_DOWNLOAD_DIR={}'.format(download_dir))
-    env = {'XDG_CONFIG_HOME': str(tmpdir)}
+    env = {'XDG_CONFIG_HOME': str(tmp_path)}
     args = (['--temp-basedir'] + _base_args(request.config))
     quteproc_new.start(args, env=env)
 
@@ -299,9 +305,9 @@ def test_webengine_download_suffix(request, quteproc_new, tmpdir):
     quteproc_new.send_cmd(':prompt-accept yes')
     quteproc_new.wait_for(category='downloads', message='Download * finished')
 
-    files = download_dir.listdir()
+    files = list(download_dir.iterdir())
     assert len(files) == 1
-    assert files[0].basename == 'download.bin'
+    assert files[0].name == 'download.bin'
 
 
 def test_command_on_start(request, quteproc_new):
@@ -348,10 +354,10 @@ def test_initial_private_browsing(request, quteproc_new):
     quteproc_new.wait_for_quit()
 
 
-def test_loading_empty_session(tmpdir, request, quteproc_new):
+def test_loading_empty_session(tmp_path, request, quteproc_new):
     """Make sure loading an empty session opens a window."""
-    session = tmpdir / 'session.yml'
-    session.write('windows: []')
+    session = tmp_path / 'session.yml'
+    session.write_text('windows: []')
 
     args = _base_args(request.config) + ['--temp-basedir', '-r', str(session)]
     quteproc_new.start(args)
@@ -424,24 +430,118 @@ def test_referrer(quteproc_new, server, server2, request, value, expected):
     assert headers.get('Referer') == expected
 
 
+def test_preferred_colorscheme_unsupported(request, quteproc_new):
+    """Test versions without preferred-color-scheme support."""
+    if request.config.webengine and qtutils.version_check('5.14'):
+        pytest.skip("preferred-color-scheme is supported")
+
+    args = _base_args(request.config) + ['--temp-basedir']
+    quteproc_new.start(args)
+    quteproc_new.open_path('data/darkmode/prefers-color-scheme.html')
+    content = quteproc_new.get_content()
+    assert content == "Preference support missing."
+
+
 @pytest.mark.qtwebkit_skip
-@utils.qt514
-def test_preferred_colorscheme(request, quteproc_new):
+@testutils.qt514
+@pytest.mark.parametrize('value', ["dark", "light", "auto", None])
+def test_preferred_colorscheme(request, quteproc_new, value):
     """Make sure the the preferred colorscheme is set."""
+    if not request.config.webengine:
+        pytest.skip("Skipped with QtWebKit")
+
+    args = _base_args(request.config) + ['--temp-basedir']
+    if value is not None:
+        args += ['-s', 'colors.webpage.preferred_color_scheme', value]
+    quteproc_new.start(args)
+
+    dark_text = "Dark preference detected."
+    light_text = "Light preference detected."
+
+    expected_values = {
+        "dark": [dark_text],
+        "light": [light_text],
+
+        # Depends on the environment the test is running in.
+        "auto": [dark_text, light_text],
+        None: [dark_text, light_text],
+    }
+    xfail = False
+    if not qtutils.version_check('5.15.2', compiled=False):
+        # On older versions, "light" is not supported, so the result will depend on the
+        # environment.
+        expected_values["light"].append(dark_text)
+    elif qtutils.version_check('5.15.2', exact=True, compiled=False):
+        # Test the WORKAROUND https://bugreports.qt.io/browse/QTBUG-89753
+        # With that workaround, we should always get the light preference.
+        for key in ["auto", None]:
+            expected_values[key].remove(dark_text)
+        xfail = value in ["auto", None]
+
+    quteproc_new.open_path('data/darkmode/prefers-color-scheme.html')
+    content = quteproc_new.get_content()
+    assert content in expected_values[value]
+
+    if xfail:
+        # Unsatisfactory result, but expected based on a Qt bug.
+        pytest.xfail("QTBUG-89753")
+
+
+@testutils.qt514
+def test_preferred_colorscheme_with_dark_mode(
+        request, quteproc_new, webengine_versions):
+    """Test interaction between preferred-color-scheme and dark mode."""
+    if not request.config.webengine:
+        pytest.skip("Skipped with QtWebKit")
+
     args = _base_args(request.config) + [
         '--temp-basedir',
-        '-s', 'colors.webpage.prefers_color_scheme_dark', 'true',
+        '-s', 'colors.webpage.preferred_color_scheme', 'dark',
+        '-s', 'colors.webpage.darkmode.enabled', 'true',
+        '-s', 'colors.webpage.darkmode.algorithm', 'brightness-rgb',
     ]
     quteproc_new.start(args)
 
-    quteproc_new.send_cmd(':jseval matchMedia("(prefers-color-scheme: dark)").matches')
-    quteproc_new.wait_for(message='True')
+    quteproc_new.open_path('data/darkmode/prefers-color-scheme.html')
+    content = quteproc_new.get_content()
+
+    qtwe_version = webengine_versions.webengine
+    xfail = None
+    if utils.VersionNumber(5, 15, 3) <= qtwe_version <= utils.VersionNumber(6):
+        # https://bugs.chromium.org/p/chromium/issues/detail?id=1177973
+        # No workaround known.
+        expected_text = 'Light preference detected.'
+        # light website color, inverted by darkmode
+        expected_color = testutils.Color(127, 127, 127)
+        xfail = "Chromium bug 1177973"
+    elif qtwe_version == utils.VersionNumber(5, 15, 2):
+        # Our workaround breaks when dark mode is enabled...
+        # Also, for some reason, dark mode doesn't work on that page either!
+        expected_text = 'No preference detected.'
+        expected_color = testutils.Color(0, 170, 0)  # green
+        xfail = "QTBUG-89753"
+    else:
+        # Qt 5.14 and 5.15.0/.1 work correctly.
+        # Hopefully, so does Qt 6.x in the future?
+        expected_text = 'Dark preference detected.'
+        expected_color = testutils.Color(34, 34, 34)  # dark website color
+        xfail = False
+
+    pos = QPoint(0, 0)
+    img = quteproc_new.get_screenshot(probe_pos=pos, probe_color=expected_color)
+    color = testutils.Color(img.pixelColor(pos))
+
+    assert content == expected_text
+    assert color == expected_color
+    if xfail:
+        # We still do some checks, but we want to mark the test outcome as xfail.
+        pytest.xfail(xfail)
 
 
 @pytest.mark.qtwebkit_skip
 @pytest.mark.parametrize('reason', [
     'Explicitly enabled',
-    pytest.param('Qt 5.14', marks=utils.qt514),
+    pytest.param('Qt 5.14', marks=testutils.qt514),
     'Qt version changed',
     None,
 ])
@@ -492,7 +592,7 @@ def test_service_worker_workaround(
         assert not service_worker_dir.exists()
 
 
-@utils.qt513  # Qt 5.12 doesn't store cookies immediately
+@testutils.qt513  # Qt 5.12 doesn't store cookies immediately
 @pytest.mark.parametrize('store', [True, False])
 def test_cookies_store(quteproc_new, request, short_tmpdir, store):
     # Start test process
@@ -523,3 +623,123 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
 
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
+
+
+@pytest.mark.parametrize('filename, algorithm, colors', [
+    (
+        'blank',
+        'lightness-cielab',
+        {
+            '5.15': testutils.Color(18, 18, 18),
+            '5.14': testutils.Color(27, 27, 27),
+            None: testutils.Color(0, 0, 0),
+        }
+    ),
+    ('blank', 'lightness-hsl', {None: testutils.Color(0, 0, 0)}),
+    ('blank', 'brightness-rgb', {None: testutils.Color(0, 0, 0)}),
+
+    (
+        'yellow',
+        'lightness-cielab',
+        {
+            '5.15': testutils.Color(35, 34, 0),
+            '5.14': testutils.Color(35, 34, 0),
+            None: testutils.Color(204, 204, 0),
+        }
+    ),
+    ('yellow', 'lightness-hsl', {None: testutils.Color(204, 204, 0)}),
+    ('yellow', 'brightness-rgb', {None: testutils.Color(0, 0, 204)}),
+])
+def test_dark_mode(webengine_versions, quteproc_new, request,
+                   filename, algorithm, colors):
+    if not request.config.webengine:
+        pytest.skip("Skipped with QtWebKit")
+
+    args = _base_args(request.config) + [
+        '--temp-basedir',
+        '-s', 'colors.webpage.darkmode.enabled', 'true',
+        '-s', 'colors.webpage.darkmode.algorithm', algorithm,
+    ]
+    quteproc_new.start(args)
+
+    ver = webengine_versions.webengine
+    minor_version = str(ver.strip_patch())
+    expected = colors.get(minor_version, colors[None])
+
+    quteproc_new.open_path(f'data/darkmode/{filename}.html')
+
+    # Position chosen by fair dice roll.
+    # https://xkcd.com/221/
+    quteproc_new.get_screenshot(
+        probe_pos=QPoint(4, 4),
+        probe_color=expected,
+    )
+
+
+def test_dark_mode_mathml(quteproc_new, request, qtbot):
+    if not request.config.webengine:
+        pytest.skip("Skipped with QtWebKit")
+
+    args = _base_args(request.config) + [
+        '--temp-basedir',
+        '-s', 'colors.webpage.darkmode.enabled', 'true',
+        '-s', 'colors.webpage.darkmode.algorithm', 'brightness-rgb',
+    ]
+    quteproc_new.start(args)
+
+    quteproc_new.open_path('data/darkmode/mathml.html')
+    quteproc_new.wait_for_js('Image loaded')
+
+    # First make sure loading finished by looking outside of the image
+    quteproc_new.get_screenshot(
+        probe_pos=QPoint(105, 0),
+        probe_color=testutils.Color(0, 0, 204),
+    )
+
+    # Then get the actual formula color, probing again in case it's not displayed yet...
+    quteproc_new.get_screenshot(
+        probe_pos=QPoint(4, 4),
+        probe_color=testutils.Color(255, 255, 255),
+    )
+
+
+def test_unavailable_backend(request, quteproc_new):
+    """Test starting with a backend which isn't available.
+
+    If we use --qute-bdd-webengine, we test with QtWebKit here; otherwise we test with
+    QtWebEngine. If both are available, the test is skipped.
+
+    This ensures that we don't accidentally use backend-specific code before checking
+    that the chosen backend is actually available - i.e., that the error message is
+    properly printed, rather than an unhandled exception.
+    """
+    qtwe_module = "PyQt5.QtWebEngineWidgets"
+    qtwk_module = "PyQt5.QtWebKitWidgets"
+    # Note we want to try the *opposite* backend here.
+    if request.config.webengine:
+        pytest.importorskip(qtwe_module)
+        module = qtwk_module
+        backend = 'webkit'
+    else:
+        pytest.importorskip(qtwk_module)
+        module = qtwe_module
+        backend = 'webengine'
+
+    try:
+        importlib.import_module(module)
+    except ImportError:
+        pass
+    else:
+        pytest.skip(f"{module} is available")
+
+    args = [
+        '--debug', '--json-logging', '--no-err-windows',
+        '--backend', backend,
+        '--temp-basedir'
+    ]
+    quteproc_new.exit_expected = True
+    quteproc_new.start(args)
+    line = quteproc_new.wait_for(
+        message=('*qutebrowser tried to start with the Qt* backend but failed '
+                 'because * could not be imported.*'))
+    line.expected = True

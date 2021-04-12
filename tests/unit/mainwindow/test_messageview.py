@@ -37,14 +37,14 @@ def view(qtbot, config_stub):
                                    usertypes.MessageLevel.error])
 @pytest.mark.flaky  # on macOS
 def test_single_message(qtbot, view, level):
-    with qtbot.waitExposed(view, timeout=5000):
+    with qtbot.wait_exposed(view, timeout=5000):
         view.show_message(level, 'test')
     assert view._messages[0].isVisible()
 
 
 def test_message_hiding(qtbot, view):
     """Messages should be hidden after the timer times out."""
-    with qtbot.waitSignal(view._clear_timer.timeout):
+    with qtbot.wait_signal(view._clear_timer.timeout):
         view.show_message(usertypes.MessageLevel.info, 'test')
     assert not view._messages
 
@@ -61,7 +61,7 @@ def test_size_hint(view):
 
 def test_word_wrap(view, qtbot):
     """A long message should be wrapped."""
-    with qtbot.waitSignal(view._clear_timer.timeout):
+    with qtbot.wait_signal(view._clear_timer.timeout):
         view.show_message(usertypes.MessageLevel.info, 'short')
         height1 = view.sizeHint().height()
         assert height1 > 0
@@ -88,7 +88,7 @@ def test_show_message_twice(view):
 
 def test_show_message_twice_after_first_disappears(qtbot, view):
     """Show the same message twice after the first is gone."""
-    with qtbot.waitSignal(view._clear_timer.timeout):
+    with qtbot.wait_signal(view._clear_timer.timeout):
         view.show_message(usertypes.MessageLevel.info, 'test')
     # Just a sanity check
     assert not view._messages
@@ -101,7 +101,7 @@ def test_changing_timer_with_messages_shown(qtbot, view, config_stub):
     """When we change messages.timeout, the timer should be restarted."""
     config_stub.val.messages.timeout = 900000  # 15s
     view.show_message(usertypes.MessageLevel.info, 'test')
-    with qtbot.waitSignal(view._clear_timer.timeout):
+    with qtbot.wait_signal(view._clear_timer.timeout):
         config_stub.val.messages.timeout = 100
 
 
@@ -119,16 +119,39 @@ def test_show_multiple_messages_longer(view, count, expected):
 
 
 @pytest.mark.parametrize('replace1, replace2, length', [
-    (False, False, 2),    # Two stacked messages
-    (True, True, 1),  # Two replaceable messages
-    (False, True, 2),  # Stacked and replaceable
-    (True, False, 2),  # Replaceable and stacked
+    (None, None, 2),    # Two stacked messages
+    ('testid', 'testid', 1),  # Two replaceable messages
+    (None, 'testid', 2),  # Stacked and replaceable
+    ('testid', None, 2),  # Replaceable and stacked
+    ('testid1', 'testid2', 2),  # Different IDs
 ])
 def test_replaced_messages(view, replace1, replace2, length):
     """Show two stack=False messages which should replace each other."""
     view.show_message(usertypes.MessageLevel.info, 'test', replace=replace1)
     view.show_message(usertypes.MessageLevel.info, 'test 2', replace=replace2)
     assert len(view._messages) == length
+
+
+def test_replacing_different_severity(view):
+    view.show_message(usertypes.MessageLevel.info, 'test', replace='testid')
+    with pytest.raises(AssertionError):
+        view.show_message(usertypes.MessageLevel.error, 'test 2', replace='testid')
+
+
+def test_replacing_changed_text(view):
+    view.show_message(usertypes.MessageLevel.info, 'test', replace='testid')
+    view.show_message(usertypes.MessageLevel.info, 'test 2')
+    view.show_message(usertypes.MessageLevel.info, 'test 3', replace='testid')
+    assert len(view._messages) == 2
+    assert view._messages[0].text() == 'test 3'
+    assert view._messages[1].text() == 'test 2'
+
+
+def test_replacing_geometry(qtbot, view):
+    view.show_message(usertypes.MessageLevel.info, 'test', replace='testid')
+
+    with qtbot.wait_signal(view.update_geometry):
+        view.show_message(usertypes.MessageLevel.info, 'test 2', replace='testid')
 
 
 @pytest.mark.parametrize('button, count', [

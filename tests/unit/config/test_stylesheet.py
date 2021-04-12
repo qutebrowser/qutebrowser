@@ -28,7 +28,7 @@ class StyleObj(QObject):
     def __init__(self, stylesheet=None, parent=None):
         super().__init__(parent)
         if stylesheet is not None:
-            self.STYLESHEET = stylesheet  # noqa: N801,N806 pylint: disable=invalid-name
+            self.STYLESHEET = stylesheet
         self.rendered_stylesheet = None
 
     def setStyleSheet(self, stylesheet):
@@ -45,8 +45,9 @@ def test_get_stylesheet(config_stub):
 @pytest.mark.parametrize('delete', [True, False])
 @pytest.mark.parametrize('stylesheet_param', [True, False])
 @pytest.mark.parametrize('update', [True, False])
-def test_set_register_stylesheet(delete, stylesheet_param, update, qtbot,
-                                 config_stub, caplog):
+@pytest.mark.parametrize('changed_option', ['colors.hints.fg', 'colors.hints.bg'])
+def test_set_register_stylesheet(delete, stylesheet_param, update, changed_option,
+                                 qtbot, config_stub, caplog):
     config_stub.val.colors.hints.fg = 'magenta'
     qss = "{{ conf.colors.hints.fg }}"
 
@@ -63,10 +64,11 @@ def test_set_register_stylesheet(delete, stylesheet_param, update, qtbot,
     assert obj.rendered_stylesheet == 'magenta'
 
     if delete:
-        with qtbot.waitSignal(obj.destroyed):
+        with qtbot.wait_signal(obj.destroyed):
             obj.deleteLater()
 
-    config_stub.val.colors.hints.fg = 'yellow'
+    config_stub.set_obj(changed_option, 'yellow')
 
-    expected = 'magenta' if delete or not update else 'yellow'
+    expected = ('magenta' if delete or not update or changed_option != 'colors.hints.fg'
+                else 'yellow')
     assert obj.rendered_stylesheet == expected

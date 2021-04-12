@@ -27,6 +27,7 @@ from typing import (TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Mapping,
 
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
+from qutebrowser.commands import cmdexc, parser
 from qutebrowser.config import configdata, configexc, configutils
 from qutebrowser.utils import utils, log, urlmatch
 from qutebrowser.misc import objects
@@ -162,13 +163,38 @@ class KeyConfig:
                 bindings[key] = binding
         return bindings
 
+    def _implied_cmd(self, cmdline: str) -> Optional[str]:
+        """Return cmdline, or the implied cmd if cmdline is a set-cmd-text."""
+        try:
+            results = parser.CommandParser().parse_all(cmdline)
+        except cmdexc.NoSuchCommandError:
+            return None
+
+        result = results[0]
+        if result.cmd.name != "set-cmd-text":
+            return cmdline
+        *flags, cmd = result.args
+        if "-a" in flags or "--append" in flags or not cmd.startswith(":"):
+            return None  # doesn't look like this sets a command
+        return cmd.lstrip(":")
+
     def get_reverse_bindings_for(self, mode: str) -> '_ReverseBindings':
-        """Get a dict of commands to a list of bindings for the mode."""
+        """Get a dict of commands to a list of bindings for the mode.
+
+        This is intented for user-facing display of keybindings.
+        As such, bindings for 'set-cmd-text [flags] :<cmd> ...' are translated
+        to '<cmd> ...', as from the user's perspective these keys behave like
+        bindings for '<cmd>' (that allow for further input before running).
+
+        See #5942.
+        """
         cmd_to_keys: KeyConfig._ReverseBindings = {}
         bindings = self.get_bindings_for(mode)
         for seq, full_cmd in sorted(bindings.items()):
-            for cmd in full_cmd.split(';;'):
-                cmd = cmd.strip()
+            for cmdtext in full_cmd.split(';;'):
+                cmd = self._implied_cmd(cmdtext.strip())
+                if not cmd:
+                    continue
                 cmd_to_keys.setdefault(cmd, [])
                 # Put bindings involving modifiers last
                 if any(info.modifiers for info in seq):
@@ -278,7 +304,6 @@ class Config(QObject):
         self._init_values()
         self.yaml_loaded = False
         self.config_py_loaded = False
-        self.warn_autoconfig = True
 
     def _init_values(self) -> None:
         """Populate the self._values dict."""
@@ -475,8 +500,12 @@ class Config(QObject):
 
     def unset(self, name: str, *,
               save_yaml: bool = False,
-              pattern: urlmatch.UrlPattern = None) -> None:
-        """Set the given setting back to its default."""
+              pattern: urlmatch.UrlPattern = None) -> bool:
+        """Set the given setting back to its default.
+
+        Return:
+            True if there was a change, False if nothing changed.
+        """
         opt = self.get_opt(name)
         self._check_yaml(opt, save_yaml)
         changed = self._values[name].remove(pattern)
@@ -485,6 +514,8 @@ class Config(QObject):
 
         if save_yaml:
             self._yaml.unset(name, pattern=pattern)
+
+        return changed
 
     def clear(self, *, save_yaml: bool = False) -> None:
         """Clear all settings in the config.

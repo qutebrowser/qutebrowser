@@ -29,7 +29,6 @@ PyVirtualDisplay
 pytest-xdist
 # For nicer output
 pytest-icdiff
-pytest-clarity
 
 # Needed to test misc/userscripts/qute-lastpass
 tldextract

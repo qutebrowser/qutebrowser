@@ -41,7 +41,7 @@ class WebEngineRequest(interceptors.Request):
         self._webengine_info = webengine_info
         self._redirected = False
 
-    def redirect(self, url: QUrl) -> None:
+    def redirect(self, url: QUrl, *, ignore_unsupported: bool = False) -> None:
         if self._redirected:
             raise interceptors.RedirectException("Request already redirected.")
         if self._webengine_info is None:
@@ -51,8 +51,13 @@ class WebEngineRequest(interceptors.Request):
         # To be safe, abort on any request not in a whitelist.
         verb = self._webengine_info.requestMethod()
         if verb not in self._WHITELISTED_REQUEST_METHODS:
-            raise interceptors.RedirectException(
-                "Request method does not support redirection.")
+            msg = (f"Request method {verb} for {self.request_url.toDisplayString()} "
+                   "does not support redirection.")
+            if ignore_unsupported:
+                log.network.debug(msg)
+                return
+            raise interceptors.RedirectException(msg)
+
         self._webengine_info.redirect(url)
         self._redirected = True
 

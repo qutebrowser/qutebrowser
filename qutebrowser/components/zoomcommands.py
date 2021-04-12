@@ -37,7 +37,7 @@ def zoom_in(tab: apitypes.Tab, count: int = 1, quiet: bool = False) -> None:
     except ValueError as e:
         raise cmdutils.CommandError(e)
     if not quiet:
-        message.info("Zoom level: {}%".format(int(perc)), replace=True)
+        message.info("Zoom level: {}%".format(int(perc)), replace='zoom-level')
 
 
 @cmdutils.register()
@@ -55,7 +55,7 @@ def zoom_out(tab: apitypes.Tab, count: int = 1, quiet: bool = False) -> None:
     except ValueError as e:
         raise cmdutils.CommandError(e)
     if not quiet:
-        message.info("Zoom level: {}%".format(int(perc)), replace=True)
+        message.info("Zoom level: {}%".format(int(perc)), replace='zoom-level')
 
 
 @cmdutils.register()
@@ -92,4 +92,4 @@ def zoom(tab: apitypes.Tab,
     except ValueError:
         raise cmdutils.CommandError("Can't zoom {}%!".format(int_level))
     if not quiet:
-        message.info("Zoom level: {}%".format(int_level), replace=True)
+        message.info("Zoom level: {}%".format(int_level), replace='zoom-level')

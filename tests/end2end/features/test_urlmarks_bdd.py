@@ -21,7 +21,7 @@ import os.path
 
 import pytest_bdd as bdd
 
-from helpers import utils
+from helpers import testutils
 
 bdd.scenarios('urlmarks.feature')
 
@@ -48,7 +48,7 @@ def _check_marks(quteproc, quickmarks, expected, contains):
         lines = f.readlines()
 
     matched_line = any(
-        utils.pattern_match(pattern=expected, value=line.rstrip('\n'))
+        testutils.pattern_match(pattern=expected, value=line.rstrip('\n'))
         for line in lines)
 
     assert matched_line == contains, lines

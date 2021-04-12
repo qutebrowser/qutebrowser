@@ -64,8 +64,8 @@ def test_get_version_success(qtbot):
     http_stub = HTTPGetStub(success=True)
     client = autoupdate.PyPIVersionClient(client=http_stub)
 
-    with qtbot.assertNotEmitted(client.error):
-        with qtbot.waitSignal(client.success):
+    with qtbot.assert_not_emitted(client.error):
+        with qtbot.wait_signal(client.success):
             client.get_version('test')
 
     assert http_stub.url == QUrl(client.API_URL.format('test'))
@@ -76,8 +76,8 @@ def test_get_version_error(qtbot):
     http_stub = HTTPGetStub(success=False)
     client = autoupdate.PyPIVersionClient(client=http_stub)
 
-    with qtbot.assertNotEmitted(client.success):
-        with qtbot.waitSignal(client.error):
+    with qtbot.assert_not_emitted(client.success):
+        with qtbot.wait_signal(client.error):
             client.get_version('test')
 
 
@@ -88,6 +88,6 @@ def test_invalid_json(qtbot, json):
     client = autoupdate.PyPIVersionClient(client=http_stub)
     client.get_version('test')
 
-    with qtbot.assertNotEmitted(client.success):
-        with qtbot.waitSignal(client.error):
+    with qtbot.assert_not_emitted(client.success):
+        with qtbot.wait_signal(client.error):
             client.get_version('test')

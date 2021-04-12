@@ -107,7 +107,7 @@ def test_selection_callback_wrong_mode(qtbot, caplog,
     async callback was happening, so we don't want to mess with the status bar.
     """
     assert mode_manager.mode == usertypes.KeyMode.normal
-    with qtbot.assertNotEmitted(webengine_tab.caret.selection_toggled):
+    with qtbot.assert_not_emitted(webengine_tab.caret.selection_toggled):
         webengine_tab.caret._toggle_sel_translate('normal')
 
     msg = 'Ignoring caret selection callback in KeyMode.normal'

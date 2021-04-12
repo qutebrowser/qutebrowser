@@ -71,20 +71,40 @@ Qt 5.15.2
 Prefix changed to "forceDarkMode".
 
 - As with Qt 5.15.0 / .1, but with "forceDarkMode" as prefix.
+
+Qt 5.15.3
+---------
+
+Settings split to new --dark-mode-settings switch:
+https://chromium-review.googlesource.com/c/chromium/src/+/2390588
+
+- Everything except forceDarkModeEnabled goes to the other switch.
+- Algorithm uses a different enum with kOff gone.
+- No "forceDarkMode" prefix anymore.
+
+Removed DarkModePagePolicy:
+https://chromium-review.googlesource.com/c/chromium/src/+/2323441
+
+"prefers color scheme dark" changed enum values:
+https://chromium-review.googlesource.com/c/chromium/src/+/2232922
+
+- Now needs to be 0 for dark and 1 for light
+  (before: 0 no preference / 1 dark / 2 light)
 """
 
 import os
+import copy
 import enum
-from typing import Any, Iterable, Iterator, Mapping, Optional, Set, Tuple, Union
-
-try:
-    from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
-except ImportError:  # pragma: no cover
-    # Added in PyQt 5.13
-    PYQT_WEBENGINE_VERSION = None  # type: ignore[assignment]
+import dataclasses
+import collections
+from typing import (Any, Iterator, Mapping, MutableMapping, Optional, Set, Tuple, Union,
+                    Sequence, List)
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, qtutils, utils, log
+from qutebrowser.utils import usertypes, utils, log, version
+
+
+_BLINK_SETTINGS = 'blink-settings'
 
 
 class Variant(enum.Enum):
@@ -96,6 +116,7 @@ class Variant(enum.Enum):
     qt_515_0 = enum.auto()
     qt_515_1 = enum.auto()
     qt_515_2 = enum.auto()
+    qt_515_3 = enum.auto()
 
 
 # Mapping from a colors.webpage.darkmode.algorithm setting value to
@@ -110,9 +131,17 @@ _ALGORITHMS = {
 # kInvertLightnessLAB is not available with Qt < 5.14
 _ALGORITHMS_BEFORE_QT_514 = _ALGORITHMS.copy()
 _ALGORITHMS_BEFORE_QT_514['lightness-cielab'] = _ALGORITHMS['lightness-hsl']
+# Qt >= 5.15.3, based on dark_mode_settings.h
+_ALGORITHMS_NEW = {
+    # 0: kSimpleInvertForTesting (not exposed)
+    'brightness-rgb': 1,  # kInvertBrightness
+    'lightness-hsl': 2,  # kInvertLightness
+    'lightness-cielab': 3,  # kInvertLightnessLAB
+}
 
 # Mapping from a colors.webpage.darkmode.policy.images setting value to
 # Chromium's DarkModeImagePolicy enum values.
+# Values line up with dark_mode_settings.h for 5.15.3+.
 _IMAGE_POLICIES = {
     'always': 0,  # kFilterAll
     'never': 1,  # kFilterNone
@@ -131,107 +160,179 @@ _BOOLS = {
     False: 'false',
 }
 
-_DarkModeSettingsType = Iterable[
-    Tuple[
-        str,  # qutebrowser option name
-        str,  # darkmode setting name
-        # Mapping from the config value to a string (or something convertible
-        # to a string) which gets passed to Chromium.
-        Optional[Mapping[Any, Union[str, int]]],
-    ],
-]
 
-_DarkModeDefinitionType = Tuple[_DarkModeSettingsType, Set[str]]
+@dataclasses.dataclass
+class _Setting:
 
-_QT_514_SETTINGS = [
-    ('policy.images', 'darkModeImagePolicy', _IMAGE_POLICIES),
-    ('contrast', 'darkModeContrast', None),
-    ('grayscale.all', 'darkModeGrayscale', _BOOLS),
+    """A single dark mode setting."""
 
-    ('policy.page', 'darkModePagePolicy', _PAGE_POLICIES),
-    ('threshold.text', 'darkModeTextBrightnessThreshold', None),
-    ('threshold.background', 'darkModeBackgroundBrightnessThreshold', None),
-    ('grayscale.images', 'darkModeImageGrayscale', None),
-]
+    option: str
+    chromium_key: str
+    mapping: Optional[Mapping[Any, Union[str, int]]] = None
+
+    def _value_str(self, value: Any) -> str:
+        if self.mapping is None:
+            return str(value)
+        return str(self.mapping[value])
+
+    def chromium_tuple(self, value: Any) -> Tuple[str, str]:
+        return self.chromium_key, self._value_str(value)
+
+    def with_prefix(self, prefix: str) -> '_Setting':
+        return _Setting(
+            option=self.option,
+            chromium_key=prefix + self.chromium_key,
+            mapping=self.mapping,
+        )
+
+
+class _Definition:
+
+    """A collection of dark mode setting names for the given QtWebEngine version.
+
+    Attributes:
+        _settings: A list of _Setting objects for this definition.
+        mandatory: A set of settings which should always be passed to Chromium, even if
+                   not customized from the default.
+        prefix: A string prefix to add to all Chromium setting names.
+        switch_names: A dict mapping option names to the Chromium switch they belong to.
+                      None is used as fallback key, i.e. for settings not in the dict.
+    """
+
+    def __init__(
+            self,
+            *args: _Setting,
+            mandatory: Set[str],
+            prefix: str,
+            switch_names: Mapping[Optional[str], str] = None,
+    ) -> None:
+        self._settings = args
+        self.mandatory = mandatory
+        self.prefix = prefix
+
+        if switch_names is not None:
+            self._switch_names = switch_names
+        else:
+            self._switch_names = {None: _BLINK_SETTINGS}
+
+    def prefixed_settings(self) -> Iterator[Tuple[str, _Setting]]:
+        """Get all "prepared" settings.
+
+        Yields tuples which contain the Chromium setting key (e.g. 'blink-settings' or
+        'dark-mode-settings') and the corresponding _Settings object.
+        """
+        for setting in self._settings:
+            switch = self._switch_names.get(setting.option, self._switch_names[None])
+            yield switch, setting.with_prefix(self.prefix)
+
+    def copy_with(self, attr: str, value: Any) -> '_Definition':
+        """Get a new _Definition object with a changed attribute.
+
+        NOTE: This does *not* copy the settings list. Both objects will reference the
+        same list.
+        """
+        new = copy.copy(self)
+        setattr(new, attr, value)
+        return new
+
 
 # Our defaults for policy.images are different from Chromium's, so we mark it as
 # mandatory setting - except on Qt 5.15.0 where we don't, so we don't get the
 # workaround warning below if the setting wasn't explicitly customized.
 
-_DARK_MODE_DEFINITIONS: Mapping[Variant, _DarkModeDefinitionType] = {
-    Variant.qt_515_2: ([
-        # 'darkMode' renamed to 'forceDarkMode'
-        ('enabled', 'forceDarkModeEnabled', _BOOLS),
-        ('algorithm', 'forceDarkModeInversionAlgorithm', _ALGORITHMS),
+_DEFINITIONS: MutableMapping[Variant, _Definition] = {
+    Variant.qt_515_3: _Definition(
+        # Different switch for settings
+        _Setting('enabled', 'forceDarkModeEnabled', _BOOLS),
+        _Setting('algorithm', 'InversionAlgorithm', _ALGORITHMS_NEW),
 
-        ('policy.images', 'forceDarkModeImagePolicy', _IMAGE_POLICIES),
-        ('contrast', 'forceDarkModeContrast', None),
-        ('grayscale.all', 'forceDarkModeGrayscale', _BOOLS),
+        _Setting('policy.images', 'ImagePolicy', _IMAGE_POLICIES),
+        _Setting('contrast', 'ContrastPercent'),
+        _Setting('grayscale.all', 'IsGrayScale', _BOOLS),
 
-        ('policy.page', 'forceDarkModePagePolicy', _PAGE_POLICIES),
-        ('threshold.text', 'forceDarkModeTextBrightnessThreshold', None),
-        (
-            'threshold.background',
-            'forceDarkModeBackgroundBrightnessThreshold',
-            None
-        ),
-        ('grayscale.images', 'forceDarkModeImageGrayscale', None),
-    ], {'enabled', 'policy.images'}),
+        _Setting('threshold.text', 'TextBrightnessThreshold'),
+        _Setting('threshold.background', 'BackgroundBrightnessThreshold'),
+        _Setting('grayscale.images', 'ImageGrayScalePercent'),
 
-    Variant.qt_515_1: ([
-        # 'policy.images' mandatory again
-        ('enabled', 'darkModeEnabled', _BOOLS),
-        ('algorithm', 'darkModeInversionAlgorithm', _ALGORITHMS),
+        mandatory={'enabled', 'policy.images'},
+        prefix='',
+        switch_names={'enabled': _BLINK_SETTINGS, None: 'dark-mode-settings'},
+    ),
 
-        ('policy.images', 'darkModeImagePolicy', _IMAGE_POLICIES),
-        ('contrast', 'darkModeContrast', None),
-        ('grayscale.all', 'darkModeGrayscale', _BOOLS),
+    # Qt 5.15.1 and 5.15.2 get added below, since there are only minor differences.
 
-        ('policy.page', 'darkModePagePolicy', _PAGE_POLICIES),
-        ('threshold.text', 'darkModeTextBrightnessThreshold', None),
-        ('threshold.background', 'darkModeBackgroundBrightnessThreshold', None),
-        ('grayscale.images', 'darkModeImageGrayscale', None),
-    ], {'enabled', 'policy.images'}),
-
-    Variant.qt_515_0: ([
+    Variant.qt_515_0: _Definition(
         # 'policy.images' not mandatory because it's broken
-        ('enabled', 'darkModeEnabled', _BOOLS),
-        ('algorithm', 'darkModeInversionAlgorithm', _ALGORITHMS),
+        _Setting('enabled', 'Enabled', _BOOLS),
+        _Setting('algorithm', 'InversionAlgorithm', _ALGORITHMS),
 
-        ('policy.images', 'darkModeImagePolicy', _IMAGE_POLICIES),
-        ('contrast', 'darkModeContrast', None),
-        ('grayscale.all', 'darkModeGrayscale', _BOOLS),
+        _Setting('policy.images', 'ImagePolicy', _IMAGE_POLICIES),
+        _Setting('contrast', 'Contrast'),
+        _Setting('grayscale.all', 'Grayscale', _BOOLS),
 
-        ('policy.page', 'darkModePagePolicy', _PAGE_POLICIES),
-        ('threshold.text', 'darkModeTextBrightnessThreshold', None),
-        ('threshold.background', 'darkModeBackgroundBrightnessThreshold', None),
-        ('grayscale.images', 'darkModeImageGrayscale', None),
-    ], {'enabled'}),
+        _Setting('policy.page', 'PagePolicy', _PAGE_POLICIES),
+        _Setting('threshold.text', 'TextBrightnessThreshold'),
+        _Setting('threshold.background', 'BackgroundBrightnessThreshold'),
+        _Setting('grayscale.images', 'ImageGrayscale'),
 
-    Variant.qt_514: ([
-        ('algorithm', 'darkMode', _ALGORITHMS),  # new: kInvertLightnessLAB
+        mandatory={'enabled'},
+        prefix='darkMode',
+    ),
 
-        ('policy.images', 'darkModeImagePolicy', _IMAGE_POLICIES),
-        ('contrast', 'darkModeContrast', None),
-        ('grayscale.all', 'darkModeGrayscale', _BOOLS),
+    Variant.qt_514: _Definition(
+        _Setting('algorithm', '', _ALGORITHMS),  # new: kInvertLightnessLAB
 
-        ('policy.page', 'darkModePagePolicy', _PAGE_POLICIES),
-        ('threshold.text', 'darkModeTextBrightnessThreshold', None),
-        ('threshold.background', 'darkModeBackgroundBrightnessThreshold', None),
-        ('grayscale.images', 'darkModeImageGrayscale', None),
-    ], {'algorithm', 'policy.images'}),
+        _Setting('policy.images', 'ImagePolicy', _IMAGE_POLICIES),
+        _Setting('contrast', 'Contrast'),
+        _Setting('grayscale.all', 'Grayscale', _BOOLS),
 
-    Variant.qt_511_to_513: ([
-        ('algorithm', 'highContrastMode', _ALGORITHMS_BEFORE_QT_514),
+        _Setting('policy.page', 'PagePolicy', _PAGE_POLICIES),
+        _Setting('threshold.text', 'TextBrightnessThreshold'),
+        _Setting('threshold.background', 'BackgroundBrightnessThreshold'),
+        _Setting('grayscale.images', 'ImageGrayscale'),
 
-        ('policy.images', 'highContrastImagePolicy', _IMAGE_POLICIES),  # new: smart
-        ('contrast', 'highContrastContrast', None),
-        ('grayscale.all', 'highContrastGrayscale', _BOOLS),
-    ], {'algorithm', 'policy.images'}),
+        mandatory={'algorithm', 'policy.images'},
+        prefix='darkMode',
+    ),
+
+    Variant.qt_511_to_513: _Definition(
+        _Setting('algorithm', 'Mode', _ALGORITHMS_BEFORE_QT_514),
+
+        _Setting('policy.images', 'ImagePolicy', _IMAGE_POLICIES),
+        _Setting('contrast', 'Contrast'),
+        _Setting('grayscale.all', 'Grayscale', _BOOLS),
+
+        mandatory={'algorithm', 'policy.images'},
+        prefix='highContrast',
+    ),
+}
+_DEFINITIONS[Variant.qt_515_1] = (
+    _DEFINITIONS[Variant.qt_515_0].copy_with('mandatory', {'enabled', 'policy.images'}))
+_DEFINITIONS[Variant.qt_515_2] = (
+    _DEFINITIONS[Variant.qt_515_1].copy_with('prefix', 'forceDarkMode'))
+
+
+_PREFERRED_COLOR_SCHEME_DEFINITIONS = {
+    # With older Qt versions, this is passed in qtargs.py as --force-dark-mode
+    # instead.
+
+    ## Qt 5.15.2
+    # 0: no-preference (not exposed)
+    (Variant.qt_515_2, "dark"): "1",
+    (Variant.qt_515_2, "light"): "2",
+    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-89753
+    # Fall back to "light" instead of "no preference" (which was removed from the
+    # standard)
+    (Variant.qt_515_2, "auto"): "2",
+    (Variant.qt_515_2, usertypes.UNSET): "2",
+
+    ## Qt >= 5.15.3
+    (Variant.qt_515_3, "dark"): "0",
+    (Variant.qt_515_3, "light"): "1",
 }
 
 
-def _variant() -> Variant:
+def _variant(versions: version.WebEngineVersions) -> Variant:
     """Get the dark mode variant based on the underlying Qt version."""
     env_var = os.environ.get('QUTE_DARKMODE_VARIANT')
     if env_var is not None:
@@ -240,58 +341,77 @@ def _variant() -> Variant:
         except KeyError:
             log.init.warning(f"Ignoring invalid QUTE_DARKMODE_VARIANT={env_var}")
 
-    if PYQT_WEBENGINE_VERSION is not None:
-        # Available with Qt >= 5.13
-        if PYQT_WEBENGINE_VERSION >= 0x050f02:
-            return Variant.qt_515_2
-        elif PYQT_WEBENGINE_VERSION == 0x050f01:
-            return Variant.qt_515_1
-        elif PYQT_WEBENGINE_VERSION == 0x050f00:
-            return Variant.qt_515_0
-        elif PYQT_WEBENGINE_VERSION >= 0x050e00:
-            return Variant.qt_514
-        elif PYQT_WEBENGINE_VERSION >= 0x050d00:
-            return Variant.qt_511_to_513
-        raise utils.Unreachable(hex(PYQT_WEBENGINE_VERSION))
-
-    # If we don't have PYQT_WEBENGINE_VERSION, we're on 5.12 (or older, but 5.12 is the
-    # oldest supported version).
-    assert not qtutils.version_check(  # type: ignore[unreachable]
-        '5.13', compiled=False)
-
-    return Variant.qt_511_to_513
+    if (versions.webengine == utils.VersionNumber(5, 15, 2) and
+            versions.chromium_major == 87):
+        # WORKAROUND for Gentoo packaging something newer as 5.15.2...
+        return Variant.qt_515_3
+    elif versions.webengine >= utils.VersionNumber(5, 15, 3):
+        return Variant.qt_515_3
+    elif versions.webengine >= utils.VersionNumber(5, 15, 2):
+        return Variant.qt_515_2
+    elif versions.webengine == utils.VersionNumber(5, 15, 1):
+        return Variant.qt_515_1
+    elif versions.webengine == utils.VersionNumber(5, 15):
+        return Variant.qt_515_0
+    elif versions.webengine >= utils.VersionNumber(5, 14):
+        return Variant.qt_514
+    elif versions.webengine >= utils.VersionNumber(5, 11):
+        return Variant.qt_511_to_513
+    raise utils.Unreachable(versions.webengine)
 
 
-def settings() -> Iterator[Tuple[str, str]]:
-    """Get necessary blink settings to configure dark mode for QtWebEngine."""
-    if (qtutils.version_check('5.15.2', compiled=False) and
-            config.val.colors.webpage.prefers_color_scheme_dark):
-        # With older Qt versions, this is passed in qtargs.py as --force-dark-mode
-        # instead.
-        #
-        # With Chromium 85 (> Qt 5.15.2), the enumeration has changed in Blink and this
-        # will need to be set to '0' instead:
-        # https://chromium-review.googlesource.com/c/chromium/src/+/2232922
-        yield "preferredColorScheme", "1"
+def settings(
+        *,
+        versions: version.WebEngineVersions,
+        special_flags: Sequence[str],
+) -> Mapping[str, Sequence[Tuple[str, str]]]:
+    """Get necessary blink settings to configure dark mode for QtWebEngine.
+
+    Args:
+       Existing '--blink-settings=...' flags, if any.
+
+    Returns:
+        A dict which maps Chromium switch names (blink-settings or dark-mode-settings)
+        to a sequence of tuples, each tuple being a key/value pair to pass to that
+        setting.
+    """
+    variant = _variant(versions)
+    log.init.debug(f"Darkmode variant: {variant.name}")
+
+    result: Mapping[str, List[Tuple[str, str]]] = collections.defaultdict(list)
+
+    blink_settings_flag = f'--{_BLINK_SETTINGS}='
+    for flag in special_flags:
+        if flag.startswith(blink_settings_flag):
+            for pair in flag[len(blink_settings_flag):].split(','):
+                key, val = pair.split('=', maxsplit=1)
+                result[_BLINK_SETTINGS].append((key, val))
+
+    preferred_color_scheme_key = (
+        variant,
+        config.instance.get("colors.webpage.preferred_color_scheme", fallback=False),
+    )
+    if preferred_color_scheme_key in _PREFERRED_COLOR_SCHEME_DEFINITIONS:
+        value = _PREFERRED_COLOR_SCHEME_DEFINITIONS[preferred_color_scheme_key]
+        result[_BLINK_SETTINGS].append(("preferredColorScheme", value))
 
     if not config.val.colors.webpage.darkmode.enabled:
-        return
+        return result
 
-    variant = _variant()
-    setting_defs, mandatory_settings = _DARK_MODE_DEFINITIONS[variant]
+    definition = _DEFINITIONS[variant]
 
-    for setting, key, mapping in setting_defs:
+    for switch_name, setting in definition.prefixed_settings():
         # To avoid blowing up the commandline length, we only pass modified
         # settings to Chromium, as our defaults line up with Chromium's.
         # However, we always pass enabled/algorithm to make sure dark mode gets
         # actually turned on.
         value = config.instance.get(
-            'colors.webpage.darkmode.' + setting,
-            fallback=setting in mandatory_settings)
+            'colors.webpage.darkmode.' + setting.option,
+            fallback=setting.option in definition.mandatory)
         if isinstance(value, usertypes.Unset):
             continue
 
-        if (setting == 'policy.images' and value == 'smart' and
+        if (setting.option == 'policy.images' and value == 'smart' and
                 variant == Variant.qt_515_0):
             # WORKAROUND for
             # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/304211
@@ -299,7 +419,6 @@ def settings() -> Iterator[Tuple[str, str]]:
                              "because of Qt 5.15.0 bug")
             continue
 
-        if mapping is not None:
-            value = mapping[value]
+        result[switch_name].append(setting.chromium_tuple(value))
 
-        yield key, str(value)
+    return result

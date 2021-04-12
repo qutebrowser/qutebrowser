@@ -80,10 +80,9 @@ def parse_args(argv: List[str] = None) -> argparse.Namespace:
     parser.add_argument('--virtualenv',
                         action='store_true',
                         help="Use virtualenv instead of venv.")
-    parser.add_argument('--asciidoc', help="Full path to python and "
-                        "asciidoc.py. If not given, it's searched in PATH.",
-                        nargs=2, required=False,
-                        metavar=('PYTHON', 'ASCIIDOC'))
+    parser.add_argument('--asciidoc', help="Full path to asciidoc.py. "
+                        "If not given, asciidoc is searched in PATH.",
+                        nargs='?',)
     parser.add_argument('--dev',
                         action='store_true',
                         help="Also install dev/test dependencies.")
@@ -99,6 +98,18 @@ def parse_args(argv: List[str] = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def _version_key(v):
+    """Sort PyQt requirement file prefixes.
+
+    If we have a filename like requirements-pyqt-pyinstaller.txt, that should
+    always be sorted after all others (hence we return a "999" key).
+    """
+    try:
+        return tuple(int(v) for c in v.split('.'))
+    except ValueError:
+        return 999
+
+
 def pyqt_versions() -> List[str]:
     """Get a list of all available PyQt versions.
 
@@ -110,8 +121,7 @@ def pyqt_versions() -> List[str]:
     for req in requirements_dir.glob('requirements-pyqt-*.txt'):
         version_set.add(req.stem.split('-')[-1])
 
-    versions = sorted(version_set,
-                      key=lambda v: [int(c) for c in v.split('.')])
+    versions = sorted(version_set, key=_version_key)
     return versions + ['auto']
 
 
@@ -384,12 +394,11 @@ def install_qutebrowser(venv_dir: pathlib.Path) -> None:
     pip_install(venv_dir, '-e', str(REPO_ROOT))
 
 
-def regenerate_docs(venv_dir: pathlib.Path,
-                    asciidoc: Optional[Tuple[str, str]]):
+def regenerate_docs(venv_dir: pathlib.Path, asciidoc: Optional[str]):
     """Regenerate docs using asciidoc."""
     utils.print_title("Generating documentation")
     if asciidoc is not None:
-        a2h_args = ['--asciidoc'] + asciidoc
+        a2h_args = ['--asciidoc', asciidoc]
     else:
         a2h_args = []
     script_path = pathlib.Path(__file__).parent / 'asciidoc2html.py'

@@ -88,19 +88,30 @@ class CompletionMetaInfo(sql.SqlTable):
 
     KEYS = {
         'excluded_patterns': '',
+        'force_rebuild': False,
     }
 
     def __init__(self, parent=None):
-        super().__init__("CompletionMetaInfo", ['key', 'value'],
-                         constraints={'key': 'PRIMARY KEY'})
+        self._fields = ['key', 'value']
+        self._constraints = {'key': 'PRIMARY KEY'}
+        super().__init__(
+            "CompletionMetaInfo", self._fields, constraints=self._constraints)
+
         if sql.user_version_changed():
             self._init_default_values()
-            # force_rebuild is not in use anymore
-            self.delete('key', 'force_rebuild', optional=True)
 
     def _check_key(self, key):
         if key not in self.KEYS:
             raise KeyError(key)
+
+    def try_recover(self):
+        """Try recovering the table structure.
+
+        This should be called if getting a value via __getattr__ failed. In theory, this
+        should never happen, in practice, it does.
+        """
+        self._create_table(self._fields, constraints=self._constraints, force=True)
+        self._init_default_values()
 
     def _init_default_values(self):
         for key, default in self.KEYS.items():
@@ -165,7 +176,13 @@ class WebHistory(sql.SqlTable):
         self.completion = CompletionHistory(parent=self)
         self.metainfo = CompletionMetaInfo(parent=self)
 
-        rebuild_completion = False
+        try:
+            rebuild_completion = self.metainfo['force_rebuild']
+        except sql.BugError:  # pragma: no cover
+            log.sql.warning("Failed to access meta info, trying to recover...",
+                            exc_info=True)
+            self.metainfo.try_recover()
+            rebuild_completion = self.metainfo['force_rebuild']
 
         if sql.user_version_changed():
             # If the DB user version changed, run a full cleanup and rebuild the
@@ -186,8 +203,8 @@ class WebHistory(sql.SqlTable):
             self.metainfo['excluded_patterns'] = patterns
             rebuild_completion = True
 
-        if rebuild_completion and self.completion:
-            # If no completion history exists, we don't need to spawn a dialog for
+        if rebuild_completion and self:
+            # If no history exists, we don't need to spawn a dialog for
             # cleaning it up.
             self._rebuild_completion()
 
@@ -259,6 +276,10 @@ class WebHistory(sql.SqlTable):
         log.sql.debug(f"Cleanup removed {entries.rows_affected()} items")
 
     def _rebuild_completion(self):
+        # If this process was interrupted, make sure we trigger a rebuild again
+        # at the next start.
+        self.metainfo['force_rebuild'] = True
+
         data: Mapping[str, MutableSequence[str]] = {
             'url': [],
             'title': [],
@@ -305,6 +326,7 @@ class WebHistory(sql.SqlTable):
         QApplication.processEvents()
 
         self._progress.finish()
+        self.metainfo['force_rebuild'] = False
 
     def get_recent(self):
         """Get the most recent history entries."""

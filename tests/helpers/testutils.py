@@ -32,12 +32,13 @@ import importlib.machinery
 import pytest
 
 from PyQt5.QtCore import qVersion
+from PyQt5.QtGui import QColor
 try:
     from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION_STR
 except ImportError:
     PYQT_WEBENGINE_VERSION_STR = None
 
-from qutebrowser.utils import qtutils, log
+from qutebrowser.utils import qtutils, log, utils
 
 ON_CI = 'CI' in os.environ
 
@@ -45,6 +46,16 @@ qt513 = pytest.mark.skipif(
     not qtutils.version_check('5.13'), reason="Needs Qt 5.13 or newer")
 qt514 = pytest.mark.skipif(
     not qtutils.version_check('5.14'), reason="Needs Qt 5.14 or newer")
+
+
+class Color(QColor):
+
+    """A QColor with a nicer repr()."""
+
+    def __repr__(self):
+        return utils.get_repr(self, constructor=True, red=self.red(),
+                              green=self.green(), blue=self.blue(),
+                              alpha=self.alpha())
 
 
 class PartialCompareOutcome:

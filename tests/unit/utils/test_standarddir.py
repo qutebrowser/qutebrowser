@@ -42,6 +42,14 @@ APPNAME = 'qute_test'
 pytestmark = pytest.mark.usefixtures('qapp')
 
 
+@pytest.fixture
+def fake_home_envvar(monkeypatch, tmp_path):
+    """Fake a different HOME via environment variables."""
+    for k in ['XDG_DATA_HOME', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME']:
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setenv('HOME', str(tmp_path))
+
+
 @pytest.fixture(autouse=True)
 def clear_standarddir_cache_and_patch(qapp, monkeypatch):
     """Make sure the standarddir cache is cleared before/after each test.
@@ -79,10 +87,9 @@ def test_unset_organization_no_qapp(monkeypatch):
 
 @pytest.mark.fake_os('mac')
 @pytest.mark.posix
-def test_fake_mac_config(tmpdir, monkeypatch):
+def test_fake_mac_config(tmp_path, fake_home_envvar):
     """Test standardir.config on a fake Mac."""
-    monkeypatch.setenv('HOME', str(tmpdir))
-    expected = str(tmpdir) + '/.qute_test'  # always with /
+    expected = str(tmp_path) + '/.qute_test'  # always with /
     standarddir._init_config(args=None)
     assert standarddir.config() == expected
 
@@ -148,7 +155,12 @@ class TestStandardDir:
         (lambda: standarddir.config(auto=True),
          standarddir._init_config, 'XDG_CONFIG_HOME'),
         (standarddir.cache, standarddir._init_cache, 'XDG_CACHE_HOME'),
-        (standarddir.runtime, standarddir._init_runtime, 'XDG_RUNTIME_DIR'),
+        pytest.param(
+            standarddir.runtime,
+            standarddir._init_runtime,
+            'XDG_RUNTIME_DIR',
+            marks=pytest.mark.not_flatpak,
+        ),
     ])
     @pytest.mark.linux
     def test_linux_explicit(self, monkeypatch, tmpdir,
@@ -175,13 +187,10 @@ class TestStandardDir:
         (standarddir.download, ['Downloads']),
     ])
     @pytest.mark.linux
-    def test_linux_normal(self, monkeypatch, tmpdir, func, subdirs):
+    def test_linux_normal(self, fake_home_envvar, tmp_path, func, subdirs):
         """Test dirs with XDG_*_HOME not set."""
-        monkeypatch.setenv('HOME', str(tmpdir))
-        for var in ['DATA', 'CONFIG', 'CACHE']:
-            monkeypatch.delenv('XDG_{}_HOME'.format(var), raising=False)
         standarddir._init_dirs()
-        assert func() == str(tmpdir.join(*subdirs))
+        assert func() == str(tmp_path.joinpath(*subdirs))
 
     @pytest.mark.linux
     @pytest.mark.qt_log_ignore(r'^QStandardPaths: ')
@@ -197,6 +206,25 @@ class TestStandardDir:
 
         standarddir._init_runtime(args=None)
         assert standarddir.runtime() == str(tmpdir_env / APPNAME)
+
+    @pytest.mark.linux
+    @pytest.mark.parametrize('args_basedir', [True, False])
+    def test_flatpak_runtimedir(self, fake_flatpak, monkeypatch, tmp_path,
+                                args_basedir):
+        runtime_path = tmp_path / 'runtime'
+        runtime_path.mkdir()
+        runtime_path.chmod(0o0700)
+        monkeypatch.setenv('XDG_RUNTIME_DIR', str(runtime_path))
+
+        if args_basedir:
+            init_args = types.SimpleNamespace(basedir=str(tmp_path))
+            expected = tmp_path / 'runtime'
+        else:
+            init_args = None
+            expected = runtime_path / 'app' / 'org.qutebrowser.qutebrowser'
+
+        standarddir._init_runtime(args=init_args)
+        assert standarddir.runtime() == str(expected)
 
     @pytest.mark.fake_os('windows')
     def test_runtimedir_empty_tempdir(self, monkeypatch, tmpdir):
@@ -397,19 +425,17 @@ class TestSystemData:
 
 
 @pytest.mark.parametrize('args_kind', ['basedir', 'normal', 'none'])
-def test_init(tmpdir, monkeypatch, args_kind):
+def test_init(tmp_path, args_kind, fake_home_envvar):
     """Do some sanity checks for standarddir.init().
 
     Things like _init_cachedir_tag() are tested in more detail in other tests.
     """
     assert standarddir._locations == {}
 
-    monkeypatch.setenv('HOME', str(tmpdir))
-
     if args_kind == 'normal':
         args = types.SimpleNamespace(basedir=None)
     elif args_kind == 'basedir':
-        args = types.SimpleNamespace(basedir=str(tmpdir))
+        args = types.SimpleNamespace(basedir=str(tmp_path))
     else:
         assert args_kind == 'none'
         args = None

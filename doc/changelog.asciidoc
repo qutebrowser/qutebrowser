@@ -15,8 +15,302 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+[[v2.2.0]]
+v2.2.0 (unreleased)
+-------------------
+
+Deprecated
+~~~~~~~~~~
+
+- Running qutebrowser with Qt 5.12.0 is now unsupported and logs a warning. It
+  should still work, however, a workaround for issues with the Nvidia graphic
+  driver was dropped. Newer Qt 5.12.x versions are still fully supported.
+- The `--force` argument for `:tab-only` is deprecated, use `--pinned close`
+  instead.
+- Using `:tab-focus` without an argument or count is now deprecated, use
+  `:tab-next` instead.
+
+Added
+~~~~~
+
+- New dependency on the `QtDBus` module. If this requirement is an issue for you
+  or your distribution, please open an issue! Note that a DBus connection at
+  runtime is still optional.
+- New `input.media_keys` setting which can be used to disable Chromium's
+  handling of media keys.
+- New `:process` command (and associated `qute://process` pages) which can be
+  used to view and terminate/kill external processes spawned by qutebrowser.
+- New `content.site_specific_quirks.skip` setting which can be used to disable
+  individual site-specific quirks.
+- New `--pinned` argument for `:tab-only`, which replaces `--force` (with
+  `--pinned close`), but also can take `--pinned keep` to keep pinned tabs
+  without prompting.
+- New `fileselect.folder.command` which can be used with
+  `fileselect.handler = external` to customize the command to use to upload
+  directories (`<input type="file" webkitdirectory />` elements, which are
+  non-standard but in wide use).
+- New `content.notifications.presenter` setting with various new ways to show
+  web notifications:
+     * auto (default): Automatically detect the best available option
+     * qt: Use Qt's built-in mechanism (like before this release)
+     * libnotify: Use a libnotify-compatible notification server (i.e. native
+       notifications on Linux)
+     * systray: Use a systray icon (very similar to `qt` but without some of its
+       drawbacks)
+     * messages: Use qutebrowser messages
+     * herbe: Use https://github.com/dudik/herbe[herbe]
+- New `content.notifications.show_origin` setting which can be used to decide
+  for which notifications to show the origin (the URL the notification was sent
+  from).
+
+Changed
+~~~~~~~
+
+- The `content.ssl_strict` setting got renamed to
+  `content.tls.certificate_errors`, with new values:
+  * `ask`: Prompt on overridable certificate errors (`ssl_strict = 'ask'`)
+  * `ask-block-thirdparty`: See below
+  * `block`: Block the page load (`ssl_strict = True`)
+  * `load-insecurely`: Load the page despite the error (`ssl_strict = False`)
+- The new `content.tls.certificate_errors` setting now also understands the
+  value `ask-block-thirdparty`, which asks for page loads but automatically blocks
+  resource loads on TLS errors. This behavior is consistent with what other
+  browsers do.
+- The prompt text shown on certificate errors has been improved to make it
+  clearer what kind of error occurred exactly.
+- The `content.site_specific_quirks` setting got renamed to
+  `content.site_specific_quirks.enabled`.
+- The `content.notifications` option got renamed to
+  `content.notifications.enabled`.
+- The completion now also shows bindings starting with `set-cmd-text` in its
+  third column, such as `o` for `:open`.
+- When `:spawn` is used with the `-m` / `--output-messages` flag, the output now
+  appears live, while the process is running.
+- When a shown message replaces an existing related one (e.g. for zoom levels),
+  the replacing now also works even if a different message was shown in between.
+- The `.redirect(...)` method on interceptors now supports an
+  `ignore_unsupported=True` argument which supresses exceptions if a request could
+  not be redirected. Note, however, that it is still not public API.
+- When the `--config-py` argument is used, no warning about a missing
+  `config.load_autoconfig` is shown anymore, as the argument is typically used
+  for temporarily testing a config.
+- The internal `_autosave` session used for crash recovery is now only saved
+  once per minute, since saving it for every page load is a noticable performance
+  issue.
+- The `readability-js` userscript now displays a small header with page
+  information.
+- When an external file selector is used, some additional validation is done on
+  the picked files now, so that errors are shown if e.g. a directory is selected
+  when a file was expected.
+- The default binding for `T` (`:tab-focus`) got changed so that it fills the
+  command line with `:tab-focus` if used without a count (instead of being
+  equivalent to `:tab-next` in that case).
+- The `:config-unset` command now understands the `--pattern` (`-u`) flag to
+  unset options customized for a given URL pattern (such as after answering a
+  prompt with "always"/"never").
+- The `:config-unset` command now shows an error when used on an option which is
+  valid, but was never customized.
+- The `statusbar.widgets` setting now understands `text:...` entries which
+  allows adding a hard-coded text to the statusbar.
+
+Fixed
+~~~~~
+
+- When an editor exits with a != 0 exit status, the temporary editor file is now
+  persisted. This already was the case when the editor crashed.
+- When a nonexistent file gets passed to `--config-py`, qutebrowser now
+  complains instead of silently not loading it.
+- With some (rare) setups, opening the report dialog or using a PAC proxy with
+  QtWebKit could result in qutebrowser hanging due to a PyQt bug. There's now a
+  workaround which prevents the hang.
+- QtWebEngine version detection (influencing things like dark mode settings or
+  certain workarounds) now works correctly on OpenBSD.
+- Certain version number formats in `/etc/os-release` caused qutebrowser to
+  crash. Those are now handled correctly.
+- The macOS releases now properly support Dark Mode for UI elements by setting
+  `NSRequiresAquaSystemAppearance` to false.
+
+Removed
+~~~~~~~
+
+- The `qute://spawn-output` page used by `:spawn -o` is now removed, as it's
+  replaced by the new `qute://process` pages.
+
+[[v2.1.1]]
+v2.1.1 (2021-04-01)
+-------------------
+
+Added
+~~~~~
+
+- Site-specific quirk for krunker.io, which shows a "Socket Error" with
+  qutebrowser's default Accept-Language header. The workaround is equivalent to
+  doing `:set -u matchmaker.krunker.io content.headers.accept_language ""`.
+
+Changed
+~~~~~~~
+
+- Clicking the 'x' in the devtools window to hide it now also leaves insert
+  mode.
+
+Fixed
+~~~~~
+
+- The workaround for black on (almost) black formula images in dark mode now
+  also works with Qt 5.12 and 5.13.
+- When running in Flatpak or with the Windows/macOS releases, the QtWebEngine
+  version is now detected properly. Before, a wrong version was assumed, breaking
+  dark mode and certain workarounds (resulting in crashes on websites like
+  LinkedIn or TradingView).
+- When the metainfo in the completion database doesn't have the expected
+  structure, qutebrowser now tries to gracefully recover from the situation
+  instead of crashing.
+- When qutebrowser displays an error during initialization, opening a second
+  instance would lead to a crash. Instead, qutebrowser now ignores the attempt
+  to open a new page as long as it's not fully initialized yet.
+- When the Brave adblock cache folder was unreadable, qutebrowser crashed. It
+  now displays an error instead.
+- Fixes in the `qute-pass` userscript for `gopass`:
+  * Generating OTP tokens now works correctly.
+  * Storing the username as part of the secret broke in v2.0.0 and now works
+    again.
+- When using `bindings.key_mappings` to map a key to multiple other keys,
+  qutebrowser would crash. This is now handled correctly - however, note that
+  it's usually better to map keys to commands instead.
+- When a minimized window is selected via `:tab-select`, it's now un-minimized
+  properly.
+- When a format string in the config (e.g. `tabs.title_format`) used a value
+  like `{current_url.host}` (instead of `{current_url:host}`), qutebrowser
+  would crash. It now correctly reports an invalid config value instead.
+- In rare circumstances, sending URLs/commands to existing instances would
+  result in a crash, which is now fixed.
+- Running the testsuite should now fully work without internet access again.
+- The `--asciidoc` script for `mkvenv.py` broke with v1.14.0. It now works
+  correctly again.
+- Various other fixes for running in Flatpak (backported in the Flatpak release
+  even before this qutebrowser release).
+- We are the Knights Who Say... ':Ni!'
+
+[[v2.1.0]]
+v2.1.0 (2021-03-12)
+-------------------
+
+Removed
+~~~~~~~
+
+- The following command aliases were deprecated in v2.0.0 and are now removed:
+  * `run-macro` -> `macro-run`
+  * `record-macro` -> `macro-record`
+  * `buffer` -> `tab-select`
+  * `open-editor` -> `edit-text`
+  * `toggle-selection` -> `selection-toggle`
+  * `drop-selection` -> `selection-drop`
+  * `reverse-selection` -> `selection-reverse`
+  * `follow-selected` -> `selection-follow`
+  * `follow-hint` -> `hint-follow`
+  * `enter-mode` -> `mode-enter`
+  * `leave-mode` -> `mode-leave`
+
+Added
+~~~~~
+
+- New `:screenshot` command which can be used to screenshot the visible part of
+  the page.
+- New optional dependency on the `importlib_metadata` project on Python 3.7 and
+  below. This is only relevant when PyQtWebEngine is installed via pip - thus,
+  this dependency usually isn't relevant for packagers.
+- New `qute-keepassxc` userscript integrating with the KeePassXC browser API.
+
+Changed
+~~~~~~~
+
+- Initial support for QtWebEngine 5.15.3 and PyQt 5.15.3/.4
+- The `colors.webpage.prefers_color_scheme_dark` setting got renamed to
+  `colors.webpage.preferred_color_scheme` and now takes the values `auto`, `light`
+  and `dark` (instead of being `True` for dark and `False` for auto).
+  Note that the `light` value is only supported with Qt 5.15.2+, falling back to
+  the same behavior as `auto` on older versions.
+- On Linux, qutebrowser now tries harder to find details about the installed
+  QtWebEngine version by inspecting the QtWebEngine binary. This should reduce
+  issues with dark mode (and some workarounds) not working when using differing
+  versions of QtWebEngine/PyQtWebEngine/Qt.
+  This change also prepares qutebrowser for QtWebEngine 5.15.3, which will get
+  released without an updated Qt.
+- When PyQtWebEngine >= 5.15.3 is installed via `pip` (as is e.g. the case with
+  `mkvenv.py`), qutebrowser now queries the associated metadata to find out the
+  QtWebEngine version.
+- When doing `:hint links yank --rapid`, the messages shown now replace each
+  other, thus being less noisy.
+- Newlines in JavaScript messages (`confirm`, `prompt` and `alert`) are now
+  preserved.
+- Messages in prompts are now word-wrapped rather than displaying them in one
+  long line.
+- If a command stats with space (e.g. `: open ...`, it's now not saved to
+  command history anymore (similar to how some shells work).
+- When a tab is pinned, running `:open` will now open a new tab instead of
+  displaying an error.
+- The `fileselect.*.command` settings now support file selectors writing the
+  selected paths to stdout, which is used if no `{}` placeholder is contained in
+  the configured command.
+- The `--debug-flag` argument now understands a new `log-sensitive-keys` value
+  which logs all keypresses (including those in insert/passthrough/prompt/...
+  mode) for debugging.
+- The `readability` and `readability-js` userscripts now add a
+  `qute-readability` CSS class to the page, so that it can be styled easily via
+  a user stylesheet.
+
+Fixed
+~~~~~
+
+- With QtWebEngine 5.15.3 and some locales, Chromium can't start its
+  subprocesses. As a result, qutebrowser only shows a blank page and logs
+  "Network service crashed, restarting service.".  This release adds a
+  `qt.workarounds.locale` setting working around the issue. It is disabled by
+  default since distributions shipping 5.15.3 will probably have a proper patch
+  for it backported very soon.
+- The `colors.webpage.preferred_color_scheme` and `colors.webpage.darkmode.*`
+  settings now work correctly with QtWebEngine 5.15.3 (and Gentoo, which at the
+  time of writing packages 5.15.3 disguised as 5.15.2).
+- When dark mode settings were set, existing `blink-features` arguments in
+  `qt.args` (or `--qt-flag`) were overridden. They are now combined properly.
+- On QtWebEngine 5.15.2, auto detection for the `prefers-color-scheme` media
+  query is broken and always returns `no-preference`, which was removed from the
+  CSS WG Specification. This release contains a workaround to always return
+  `light` instead (as per the spec).
+- When an external file selector deletes the temporary file (like `nnn` does
+  when quitting the terminal), qutebrowser would crash. It now displays an
+  error instead. The same applies if the temporary file is unreadable for any
+  other reason.
+- On macOS, a change in v2.0.x caused certain shortcuts to not work with Cmd
+  anymore, using Ctrl instead. They now work correctly using Cmd (like usual on
+  macOS) again.
+- On macOS, using `F` (`hint all tab`) sometimes would open a context menu
+  instead of following a link. This is now fixed.
+- The quirk added for a missing `String.replaceAll` did not handle special
+  regexp characters correctly, thus breaking some sites. It now handles them
+  properly.
+- The "try again" button on error pages now works correctly with JavaScript
+  disabled.
+- If a GreaseMonkey script doesn't have a "@run-at" comment, qutebrowser
+  accidentally treated that as "@run-at document-idle". However, other
+  GreaseMonkey implementations default to "@run-at document-end" instead, which
+  is what qutebrowser now does, too.
+- The `hist_importer.py` script didn't work correctly after qutebrowser v2.0.0
+  and resulted in a history database qutebrowser couldn't read properly. It now
+  works properly again.
+- With certain QtWebEngine versions (5.15.0 based on Chromium 80 and 5.15.3
+  based on Chromium 87), Chromium's dark mode doesn't invert certain SVG images,
+  even with `colors.wegpage.darkmode.policy.images` set to `smart`.
+  Most notably, this causes formulae on Wikipedia to display black on (almost)
+  black. If `content.site_specific_quirks` is enabled, qutebrowser now injects
+  some CSS as a workaround, which inverts all math formula images on Wikipedia
+  (and potentially other sites, if they use the same CSS class).
+- When a hint label text started with an apostrophe, it would show an escaped
+  text until the hints first character has been pressed. It now shows up
+  correctly.
+
 [[v2.0.2]]
-v2.0.2 (unreleased)
+v2.0.2 (2021-02-04)
 -------------------
 
 Fixed
@@ -24,6 +318,9 @@ Fixed
 
 - When right-clicking an empty part of the downloads bar, qutebrowser v2.0.x
   would crash. This is now fixed.
+- Setting `content.cookies.store` to `false` only worked properly when this was
+  done after qutebrowser was already started due to a regression in v2.0.0. It now
+  works as expected again.
 - If qutebrowser was installed as a Python egg with Python 3.8 or 3.9,
   requesting unavailable resource files (such as PDF.js not being bundled, or a
   missing changelog file) caused in a crash due to an inconsistent behavior in
@@ -32,8 +329,13 @@ Fixed
   `PyQt5.sip` was dropped, since upstream claims it should be used as `PyQt5.sip`
   ever since PyQt 5.11. However, some distributions still package sip as a global
   `sip` package. Thus, support for a global `sip` package is now reintroduced.
+- The changelog for v2.0.0 claimed that `hints.leave_on_load` was set to `true`
+  by default. However, the `input.insert_mode.leave_on_load` setting was instead
+  set to `true` accidentally. This is now fixed by actually setting
+  `hints.leave_on_load` to `true`, and reversing the change to
+  `input.insert_mode.leave_on_load` so it is set to `false` by default again.
 - When the `importlib_resources` package is required but was missing, users
-  would get a Python stacktrace rather than a proper error messages. This is now
+  would get a Python stacktrace rather than a proper error message. This is now
   fixed.
 - Site-specific quirk JavaScript files were loaded lazily rather than preloaded
   at the start of qutebrowser, causing a crash when e.g. switching between
@@ -41,9 +343,24 @@ Fixed
   qutebrowser again.
 - The link to the keybinding cheatsheet on the internal `:help` page wasn't
   displayed correctly. This is now fixed.
-- Setting `content.cookies.store` to `false` only worked properly when this was
-  done after qutebrowser was already started due to a regression in v2.0.0. It now
-  works as expected again.
+- When the completion rebuilding process was interrupted, qutebrowser did not
+  detect this condition on the next start, thus resulting in a completion with
+  inconsistent data. This is now fixed, with another rebuild being forced with
+  this update, to ensure the data is consistent for all users.
+- In certain scenarios, qutebrowser v2.0.x warned about
+  `config.load_autoconfig(...)` being missing when loading a secondary config
+  (e.g. via `config.source(...)`). It now only shows those warnings for the main
+  `config.py` file.
+- The `--enable-webengine-inspector` flag is now accepted again, however it's
+  unused and undocumented. It purely exists to make it possible to use `:restart`
+  between pre-v2.0.x and v2.0.2+ versions.
+- When `hints.dictionary` pointed to a file not encoded as UTF-8, this resulted
+  in a crash (also in versions before v2.0.0). It now properly displays an error
+  instead.
+- When running qutebrowser with a single empty commandline argument, such as
+  done by `open_url_in_instance.sh`, this would result in a partially initialized
+  window. Interacting with that window results in a crash (also in versions before
+  v2.0.0). Instead, the startpage is now shown properly.
 
 [[v2.0.1]]
 v2.0.1 (2021-01-28)

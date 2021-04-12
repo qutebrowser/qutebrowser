@@ -19,7 +19,7 @@
 
 """Showing messages above the statusbar."""
 
-from typing import MutableSequence
+from typing import MutableSequence, Optional
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
@@ -32,9 +32,16 @@ class Message(QLabel):
 
     """A single error/warning/info message."""
 
-    def __init__(self, level, text, replace, parent=None):
+    def __init__(
+            self,
+            level: usertypes.MessageLevel,
+            text: str,
+            replace: Optional[str],
+            parent: QWidget = None,
+    ) -> None:
         super().__init__(text, parent)
         self.replace = replace
+        self.level = level
         self.setAttribute(Qt.WA_StyledBackground, True)
         self.setWordWrap(True)
         qss = """
@@ -112,14 +119,25 @@ class MessageView(QWidget):
         self.hide()
         self._clear_timer.stop()
 
-    @pyqtSlot(usertypes.MessageLevel, str, bool)
-    def show_message(self, level, text, replace=False):
+    @pyqtSlot(usertypes.MessageLevel, str, str)
+    def show_message(
+            self,
+            level: usertypes.MessageLevel,
+            text: str,
+            replace: str = None,
+    ) -> None:
         """Show the given message with the given MessageLevel."""
         if text == self._last_text:
             return
 
-        if replace and self._messages and self._messages[-1].replace:
-            self._remove_message(self._messages.pop())
+        if replace:  # None -> QString() -> ''
+            existing = [msg for msg in self._messages if msg.replace == replace]
+            if existing:
+                assert len(existing) == 1, existing
+                assert existing[0].level == level, (existing, level)
+                existing[0].setText(text)
+                self.update_geometry.emit()
+                return
 
         widget = Message(level, text, replace=replace, parent=self)
         self._vbox.addWidget(widget)

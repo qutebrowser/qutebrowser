@@ -97,9 +97,20 @@ security bugs, please contact me directly at mail@qutebrowser.org, GPG ID
 https://www.the-compiler.org/pubkey.asc[0x916eb0c8fd55a072].
 
 Is there an ad blocker?::
-    There is a simple host-based ad blocker that takes `/etc/hosts`-like lists.
+    Since version 2.0.0, if the
+    https://pypi.org/project/adblock/[Python `adblock` library] is available,
+    it will be used to integrate
+    https://github.com/brave/adblock-rust[Brave's Rust adblocker library]
+    for improved adblocking, based on
+    https://help.eyeo.com/en/adblockplus/how-to-write-filters[ABP-like filter lists]
+    (such as https://easylist.to/[EasyList]).
+    If that library is unavailable or on older versions of qutebrowser, a
+    simpler built-in ad blocker is used instead. It takes `/etc/hosts`-like lists
+    and thus is only able to block entire hosts.
 +
-More advanced ad blockers can have a big impact on browsing speed and https://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/[RAM usage], so implementing support for AdBlock Plus-like lists is not a priority.
+Note that even the more sophisticated blocker
+https://github.com/qutebrowser/qutebrowser/issues/5754[does not support element hiding]
+(cosmetic filtering) yet, it only blocks network requests.
 
 How can I get No-Script-like behavior?::
     To disable JavaScript by default:
@@ -279,7 +290,7 @@ the following steps.
 1. Import the CA Certificate
 +
 ----
-certutil -D "sql:${HOME}/.pki/nssdb" -A -i <path_to_ca_cert.pem> -n "My Fancy CA" -t "TC,C,T"
+certutil -d "sql:${HOME}/.pki/nssdb" -A -i <path_to_ca_cert.pem> -n "My Fancy CA" -t "TC,C,T"
 ----
 +
 2. Merge your `<cert.crt>` and `<privkey.pem>` files into a single `PKCS#12`
@@ -319,9 +330,9 @@ described above.
 Is there a dark mode? How can I filter websites to be darker?::
 There is a total of four possible approaches to get dark websites:
 +
-- The `colors.webpage.prefers_color_scheme_dark` setting tells websites that you prefer
-  a dark theme. However, this requires websites to ship an appropriate dark style sheet.
-  The setting requires a restart and QtWebEngine with at least Qt 5.14.
+- The `colors.webpage.preferred_color_scheme` setting tells websites that you prefer
+  a light or dark theme. However, this requires websites to ship an appropriate dark
+  style sheet. The setting requires a restart and QtWebEngine with at least Qt 5.14.
 - The `colors.webpage.darkmode.*` settings enable the dark mode of the underlying
   Chromium. Those setting require a restart and QtWebEngine with at least Qt 5.14. It's
   unfortunately not possible (due to limitations
@@ -336,11 +347,17 @@ There is a total of four possible approaches to get dark websites:
   https://github.com/alphapapa/solarized-everything-css/[Solarized Everything]. Despite
   the name, the repository also offers themes other than just Solarized. This approach
   often yields worse results compared to the above ones, but it's possible to toggle it
-  dynamically using a binding like `:bind ,d 'config-cycle content.user_stylesheets
-  ~/path/to/solarized-everything-css/css/gruvbox/gruvbox-all-sites.css ""'`
+  dynamically using a binding like `:bind ,d config-cycle content.user_stylesheets
+  ~/path/to/solarized-everything-css/css/gruvbox/gruvbox-all-sites.css ""`
 - Finally, qutebrowser's Greasemonkey support should allow for running a
   https://github.com/darkreader/darkreader/issues/926#issuecomment-575893299[stripped down version]
   of the Dark Reader extension. This is mostly untested, though.
+
+How do I make copy to clipboard buttons work?::
+You can `:set content.javascript.can_access_clipboard true`, or
+`:set -u some.domain content.javascript.can_access_clipboard true` if you want to limit
+the setting to `some.domain`.
+
 
 == Troubleshooting
 
@@ -402,33 +419,18 @@ which matches all donations until a cap of $5000, which has already been
 reached by qutebrowser.
 
 Is it possible to contribute via a one-time donation instead?::
-   If you prefer a one-time donation, there are various possibilities:
-+
-- Select a tier which covers the total amount you'd like to donate (note that
-  payments are prorated based on the current date). After the payment is
-  processed, cancel your GitHub sponsors subscription again. This has a big
-  benefit: There are no fees deducted from your amount.
-+
-- Sign up for a lower recurring donation instead.
-+
-- Do so via the https://github.com/qutebrowser/qutebrowser#donating[existing
-  donation methods]. Rewards (shirts/stickers/swag) are handled on a
-  case-by-case basis as GitHub's matching fund isn't applicable and there might
-  be relatively high fees which make this tricky.
-+
-- If you want to contribute via a one-time donation and want to make sure
-  you'll receive a reward, you might want to sign up to the
-  https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[qutebrowser-announce]
-  mailinglist and wait until there is an official way to do so. It's planned to
-  set this up at a later date. Note that the thresholds for perks will be
-  higher because those donations aren't matched by GitHub and fees are
-  relatively high.
+    Yes! GitHub Sponsors allows for one-time donations (including custom amounts) using
+    the buttons next to "Select a tier". Alternatively, see the
+    https://github.com/qutebrowser/qutebrowser#donating[readme] for other donation
+    methods, but note that physical rewards (stickers/shirts) for such donations are
+    handled on a case-by-case basis due to the higher administrative overhead and fees.
 
 I'd like a certain reward (e.g. a t-shirt) but I'd prefer making a smaller monthly donation. Can I upgrade via a one-time donation?::
-    It's planned to set up a donation page to allow this at a later date.
-    However, the thresholds for perks will be higher because those donations
-    aren't matched by GitHub and fees are relatively high. Note that you can
-    switch tiers on GitHub sponsors at any time.
+    GitHub allows for one-time donations (see the previous question). For physical
+    rewards, your total contributions will be summed up, so you can indeed make a
+    one-time donation to "upgrade". Before rewards are ordered, all sponsors will be
+    contacted with their total donation amount so that they can still upgrade, if
+    desired.
 
 GitHub tries to charge me for an entire year. What gives?::
     This happens if you have an existing annual billing cycle with GitHub (for
@@ -441,17 +443,17 @@ Can I support you without getting any rewards/merchandise?::
     an option to not get any merch at all.
 
 Can I select my own amount rather than using the predefined tiers?::
-    Unfortunately, GitHub sponsors doesn't support this at the moment. The
-    existing tiers should hopefully cover various options. If you disagree,
-    please mailto:mail@qutebrowser.org[get in touch] - I might be able to add a
-    new sponsorship tier.
+    At the bottom of the tier list, GitHub allows specifying a custom donation amount.
 
 When will rewards be shipped?::
-    Rewards will be ordered and subsequently shipped once it's clear how many
-    people are eliglible. The cut-off date for the donation goals is May
-    2020, so rewards will likely be shipped Q2/2020. This also applies to tiers
-    which make you eliglible for a certain perk immediately, though stickers
-    might be shipped earlier depending on how many people this affects.
+    Due to COVID-19, the Swiss Post currently
+    https://service.post.ch/vgkklp/info/informationen/Verkehrseinschraenkungen?lang=en[only
+    accepts priority letters for many countries], including the US. Especially for the
+    t-shirts, the difference between economy and priority shipments is quite
+    significant. For the shirts, I estimate I'd spend a total of $250 to $1500 on
+    *extra* postage. Thus, shipping is currently on hold until the shipping situation
+    resolves. There's currently no ETA for that happening, but rest assured everyone
+    will be notified (if contact details are available) once there are news.
 
 I'd like some stickers, but I can't donate anything because of my financial situation.::
     Please mailto:mail@qutebrowser.org[get in touch]! As long as this doesn't
@@ -522,8 +524,11 @@ privacy policies.
 
 When qutebrowser crashes or you use the `:report` command, you have the
 possibility to send a crash report. If you decide to do so, your crash report
-is stored on qutebrowser's server, where core qutebrowser developers (four
-people at the time of writing) can access it.
+is stored on qutebrowser's server, where qutebrowser's maintainer (Florian Bruhin / The
+Compiler) can access it. Before February 2021, other core qutebrowser developers (a
+maximum of four people total) could access the reports as well (access was restricted
+based on the sensitive nature of those reports, not because of any known issues with
+those individuals).
 
 If you select the option to include a debug log with your report, it's possible
 that sensitive information is contained in your report. You can show and edit

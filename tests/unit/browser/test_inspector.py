@@ -146,9 +146,9 @@ def test_detach_after_toggling(hidden_again, needs_recreate,
 
     if needs_recreate:
         fake_inspector.needs_recreate = True
-        with qtbot.waitSignal(fake_inspector.recreate):
+        with qtbot.wait_signal(fake_inspector.recreate):
             fake_inspector.set_position(inspector.Position.window)
     else:
-        with qtbot.assertNotEmitted(fake_inspector.recreate):
+        with qtbot.assert_not_emitted(fake_inspector.recreate):
             fake_inspector.set_position(inspector.Position.window)
         assert fake_inspector.isVisible() and fake_inspector.isWindow()

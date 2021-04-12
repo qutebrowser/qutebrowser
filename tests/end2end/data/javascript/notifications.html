@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            div {
+                padding: .5em;
+            }
+        </style>
+        <script type="text/javascript">
+            function permission_cb(permission) {
+                switch (permission) {
+                    case "granted":
+                        console.log("notification permission granted");
+                        break;
+                    case "denied":
+                        console.log("[FAIL] notification permission denied");
+                        break;
+                    case "default":
+                        console.log("[FAIL] notification permission aborted");
+                        break;
+                    default:
+                        console.log("[FAIL] unknown value for permission: " + Notification.permission);
+                        break;
+                }
+            }
+
+            function get_notification_permission(callback) {
+                if (!("Notification" in window)) {
+                    console.log("[FAIL] notifications unavailable");
+                }
+                if (Notification.permission === "default") {
+                    Notification.requestPermission((permission) => {
+                        permission_cb(permission);
+                        if (permission == "granted") {
+                            callback();
+                        }
+                    });
+                } else {
+                    callback();
+                }
+            }
+
+            function show_notification() {
+                get_notification_permission(() => {
+                    let notification = new Notification("notification title", {
+                        body: "notification body"
+                    });
+                    notification.onclick = function() { console.log("notification clicked"); };
+                    notification.onclose = function() { console.log("notification closed"); };
+                    notification.onshow = function() { console.log("notification shown"); };
+                });
+            }
+
+            function show_symbol_notification() {
+                get_notification_permission(() => {
+                    let str = "<< && >>";
+                    let notification = new Notification(str, { body: str });
+                    notification.onshow = function() { console.log("notification shown"); };
+                });
+            }
+
+            function show_replacing_notifications() {
+                get_notification_permission(() => {
+                    for (let i = 1; i <= 3; i++) {
+                        let notification = new Notification(`i=${i}`, { tag: 'counter' });
+                        notification.onshow = function() { console.log(`i=${i} notification shown`); };
+                    }
+                });
+            }
+
+            function show_closing_notification() {
+                get_notification_permission(() => {
+                    let notification = new Notification("closing notification");
+                    notification.onclose = function() { console.log("notification closed"); };
+                    notification.onshow = function() { console.log("notification shown"); };
+                    setTimeout(() => notification.close(), 100);
+                });
+            }
+
+            function show_image_notification(title, filename) {
+                get_notification_permission(() => {
+                    let notification = new Notification(title, { icon: `img/${filename}` });
+                    notification.onshow = function() { console.log("notification shown"); };
+                });
+            }
+        </script>
+    </head>
+    <body>
+        <div>
+            <input type="button" onclick="get_notification_permission(() => {})" value="Get notification permission" id="button">
+        </div>
+        <div>
+            <input type="button" onclick="show_notification()" value="Show notification" id="show-button">
+            <input type="button" onclick="show_symbol_notification()" value="Show notification with symbols" id="show-symbols-button">
+            <input type="button" onclick="show_replacing_notifications()" value="Show replacing notifications" id="show-replacing-button">
+            <input type="button" onclick="show_closing_notification()" value="Show and close notification" id="show-closing-button">
+        </div>
+        <div>
+            <input type="button" onclick="show_image_notification('RGBA', 'rgba.png')" value="Show image notification" id="show-image-button">
+            <input type="button" onclick="show_image_notification('RGB', 'rgb.png')" value="Show image notification without alpha channel" id="show-image-button-noalpha">
+            <input type="button" onclick="show_image_notification('Big', 'big.png')" value="Show a big image notification" id="show-image-button-big">
+            <input type="button" onclick="show_image_notification('Padded', 'padded.png')" value="Show a padded image notification" id="show-image-button-padded">
+            <input type="button" onclick="show_image_notification('Padded 2', 'padded2.png')" value="Show a padded image notification 2"
+id="show-image-button-padded-2">
+        </div>
+        <div>
+            More advanced test pages:
+            <ul>
+                <li><a href="https://tests.peter.sh/notification-generator/">Peter Beverloo</a></li>
+                <li><a href="https://www.bennish.net/web-notifications.html">Ben Kennish</a></li>
+                <li><a href="https://web-push-book.gauntface.com/demos/notification-examples/">Web Push Book</a></li>
+            </ul>
+        </div>
+    </body>
+</html>

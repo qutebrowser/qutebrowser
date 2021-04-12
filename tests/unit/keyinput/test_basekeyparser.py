@@ -25,7 +25,7 @@ from PyQt5.QtCore import Qt
 import pytest
 
 from qutebrowser.keyinput import basekeyparser, keyutils
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import utils, usertypes
 
 
 # Alias because we need this a lot in here.
@@ -119,9 +119,11 @@ def test_read_config(keyparser, key_config_stub, changed_mode, expected):
 class TestHandle:
 
     def test_valid_key(self, prompt_keyparser, handle_text):
+        modifier = Qt.MetaModifier if utils.is_mac else Qt.ControlModifier
+
         infos = [
-            keyutils.KeyInfo(Qt.Key_A, Qt.ControlModifier),
-            keyutils.KeyInfo(Qt.Key_X, Qt.ControlModifier),
+            keyutils.KeyInfo(Qt.Key_A, modifier),
+            keyutils.KeyInfo(Qt.Key_X, modifier),
         ]
         for info in infos:
             prompt_keyparser.handle(info.to_event())
@@ -131,9 +133,11 @@ class TestHandle:
         assert not prompt_keyparser._sequence
 
     def test_valid_key_count(self, prompt_keyparser):
+        modifier = Qt.MetaModifier if utils.is_mac else Qt.ControlModifier
+
         infos = [
             keyutils.KeyInfo(Qt.Key_5, Qt.NoModifier),
-            keyutils.KeyInfo(Qt.Key_A, Qt.ControlModifier),
+            keyutils.KeyInfo(Qt.Key_A, modifier),
         ]
         for info in infos:
             prompt_keyparser.handle(info.to_event())
@@ -308,7 +312,7 @@ class TestCount:
     def test_count_keystring_update(self, qtbot,
                                     handle_text, prompt_keyparser):
         """Make sure the keystring is updated correctly when entering count."""
-        with qtbot.waitSignals([
+        with qtbot.wait_signals([
                 prompt_keyparser.keystring_updated,
                 prompt_keyparser.keystring_updated]) as blocker:
             handle_text(prompt_keyparser, Qt.Key_4, Qt.Key_2)
@@ -331,7 +335,7 @@ def test_clear_keystring(qtbot, keyparser):
     """Test that the keystring is cleared and the signal is emitted."""
     keyparser._sequence = keyseq('test')
     keyparser._count = '23'
-    with qtbot.waitSignal(keyparser.keystring_updated):
+    with qtbot.wait_signal(keyparser.keystring_updated):
         keyparser.clear_keystring()
     assert not keyparser._sequence
     assert not keyparser._count

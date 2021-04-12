@@ -77,7 +77,7 @@ class CovtestHelper:
         argv = [sys.argv[0]] + list(args)
         self._monkeypatch.setattr(check_coverage.sys, 'argv', argv)
         with pytest.raises(check_coverage.Skipped) as excinfo:
-            return check_coverage.check(None, perfect_files=[])
+            check_coverage.check(None, perfect_files=[])
         assert excinfo.value.reason == reason
 
 
@@ -177,7 +177,7 @@ def test_untested_floats(covtest):
 
 
 @pytest.mark.skipif(
-    sys.version_info[:4] == (3, 10, 0, 'alpha') and sys.version_info.serial < 5,
+    sys.version_info[:4] == (3, 10, 0, 'alpha'),
     reason='Different results, see https://github.com/nedbat/coveragepy/issues/1106')
 def test_untested_branches(covtest):
     covtest.makefile("""

@@ -308,7 +308,7 @@ class BaseType:
         str_value = self.to_str(value)
         if not str_value:
             return 'empty'
-        return '+pass:[{}]+'.format(html.escape(str_value))
+        return '+pass:[{}]+'.format(html.escape(str_value).replace(']', '\\]'))
 
     def complete(self) -> _Completions:
         """Return a list of possible values for completion.
@@ -1567,7 +1567,7 @@ class FormatString(BaseType):
 
         try:
             value.format(**{k: '' for k in self.fields})
-        except (KeyError, IndexError) as e:
+        except (KeyError, IndexError, AttributeError) as e:
             raise configexc.ValidationError(value, "Invalid placeholder "
                                             "{}".format(e))
         except ValueError as e:
@@ -1996,3 +1996,16 @@ class UrlPattern(BaseType):
             return urlmatch.UrlPattern(value)
         except urlmatch.ParseError as e:
             raise configexc.ValidationError(value, str(e))
+
+
+class StatusbarWidget(String):
+
+    """A widget for the status bar.
+
+    Allows some predefined widgets and custom text-widgets via text:$CONTENT.
+    """
+
+    def _validate_valid_values(self, value: str) -> None:
+        if value.startswith("text:"):
+            return
+        super()._validate_valid_values(value)

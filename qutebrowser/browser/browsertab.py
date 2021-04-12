@@ -27,8 +27,8 @@ from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional
                     Sequence, Set, Type, Union)
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
-                          QEvent, QPoint)
-from PyQt5.QtGui import QKeyEvent, QIcon
+                          QEvent, QPoint, QRect)
+from PyQt5.QtGui import QKeyEvent, QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QApplication, QDialog
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtNetwork import QNetworkAccessManager
@@ -870,13 +870,25 @@ class AbstractTabPrivate:
         tabdata = self._tab.data
         if tabdata.inspector is None:
             assert tabdata.splitter is not None
-            tabdata.inspector = inspector.create(
+            tabdata.inspector = self._init_inspector(
                 splitter=tabdata.splitter,
                 win_id=self._tab.win_id)
             self._tab.shutting_down.connect(tabdata.inspector.shutdown)
             tabdata.inspector.recreate.connect(self._recreate_inspector)
             tabdata.inspector.inspect(self._widget.page())
         tabdata.inspector.set_position(position)
+
+    def _init_inspector(self, splitter: 'miscwidgets.InspectorSplitter',
+           win_id: int,
+           parent: QWidget = None) -> 'AbstractWebInspector':
+        """Get a WebKitInspector/WebEngineInspector.
+
+        Args:
+            splitter: InspectorSplitter where the inspector can be placed.
+            win_id: The window ID this inspector is associated with.
+            parent: The Qt parent to set.
+        """
+        raise NotImplementedError
 
 
 class AbstractTab(QWidget):
@@ -931,7 +943,7 @@ class AbstractTab(QWidget):
     _insecure_hosts: Set[str] = set()
 
     def __init__(self, *, win_id: int,
-                 mode_manager: modeman.ModeManager,
+                 mode_manager: 'modeman.ModeManager',
                  private: bool,
                  parent: QWidget = None) -> None:
         utils.unused(mode_manager)  # needed for mypy
@@ -991,7 +1003,7 @@ class AbstractTab(QWidget):
         """Setter for load_status."""
         if not isinstance(val, usertypes.LoadStatus):
             raise TypeError("Type {} is no LoadStatus member!".format(val))
-        log.webview.debug("load status for {}: {}".format(repr(self), val))
+        log.webview.debug(f"load status for {self!r}: {utils.pyenum_str(val)}")
         self._load_status = val
         self.load_status_changed.emit(val)
 
@@ -1051,7 +1063,7 @@ class AbstractTab(QWidget):
         url = utils.elide(navigation.url.toDisplayString(), 100)
         log.webview.debug("navigation request: url {}, type {}, is_main_frame "
                           "{}".format(url,
-                                      navigation.navigation_type,
+                                      utils.pyenum_str(navigation.navigation_type),
                                       navigation.is_main_frame))
 
         if navigation.is_main_frame:
@@ -1198,6 +1210,22 @@ class AbstractTab(QWidget):
         supported.
         """
         raise NotImplementedError
+
+    def grab_pixmap(self, rect: QRect = None) -> Optional[QPixmap]:
+        """Grab a QPixmap of the displayed page.
+
+        Returns None if we got a null pixmap from Qt.
+        """
+        if rect is None:
+            pic = self._widget.grab()
+        else:
+            qtutils.ensure_valid(rect)
+            pic = self._widget.grab(rect)
+
+        if pic.isNull():
+            return None
+
+        return pic
 
     def __repr__(self) -> str:
         try:

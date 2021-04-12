@@ -37,7 +37,7 @@ import pytest_bdd as bdd
 import qutebrowser
 from qutebrowser.utils import log, utils, docutils
 from qutebrowser.browser import pdfjs
-from helpers import utils as testutils
+from helpers import testutils
 
 
 def _get_echo_exe_path():
@@ -182,7 +182,7 @@ def clean_open_tabs(quteproc):
     """Clean up open windows and tabs."""
     quteproc.set_setting('tabs.last_close', 'blank')
     quteproc.send_cmd(':window-only')
-    quteproc.send_cmd(':tab-only --force')
+    quteproc.send_cmd(':tab-only --pinned close')
     quteproc.send_cmd(':tab-close --force')
     quteproc.wait_for_load_finished_url('about:blank')
 
@@ -294,7 +294,7 @@ def run_command(quteproc, server, tmpdir, command):
 @bdd.when(bdd.parsers.parse("I reload"))
 def reload(qtbot, server, quteproc, command):
     """Reload and wait until a new request is received."""
-    with qtbot.waitSignal(server.new_request):
+    with qtbot.wait_signal(server.new_request):
         quteproc.send_cmd(':reload')
 
 

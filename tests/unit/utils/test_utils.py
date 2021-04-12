@@ -21,16 +21,16 @@
 
 import sys
 import enum
-import os.path
+import os
 import io
 import logging
 import functools
 import re
 import shlex
 import math
-import zipfile
+import operator
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QRect
 from PyQt5.QtGui import QClipboard
 import pytest
 import hypothesis
@@ -39,7 +39,121 @@ import yaml
 
 import qutebrowser
 import qutebrowser.utils  # for test_qualname
-from qutebrowser.utils import utils, version, usertypes
+from qutebrowser.utils import utils, usertypes
+from qutebrowser.utils.utils import VersionNumber
+
+
+class TestVersionNumber:
+
+    @pytest.mark.parametrize('num, expected', [
+        (VersionNumber(5, 15, 2), 'VersionNumber(5, 15, 2)'),
+        (VersionNumber(5, 15), 'VersionNumber(5, 15)'),
+        (VersionNumber(5), 'VersionNumber(5)'),
+    ])
+    def test_repr(self, num, expected):
+        assert repr(num) == expected
+
+    @pytest.mark.parametrize('num, expected', [
+        (VersionNumber(5, 15, 2), '5.15.2'),
+        (VersionNumber(5, 15), '5.15'),
+        (VersionNumber(5), '5'),
+        (VersionNumber(1, 2, 3, 4), '1.2.3.4'),
+    ])
+    def test_str(self, num, expected):
+        assert str(num) == expected
+
+    def test_not_normalized(self):
+        with pytest.raises(ValueError, match='Refusing to construct'):
+            VersionNumber(5, 15, 0)
+
+    @pytest.mark.parametrize('num, expected', [
+        (VersionNumber(5, 15, 2), VersionNumber(5, 15)),
+        (VersionNumber(5, 15), VersionNumber(5, 15)),
+        (VersionNumber(6), VersionNumber(6)),
+        (VersionNumber(1, 2, 3, 4), VersionNumber(1, 2)),
+    ])
+    def test_strip_patch(self, num, expected):
+        assert num.strip_patch() == expected
+
+    @pytest.mark.parametrize('s, expected', [
+        ('1x6.2', VersionNumber(1)),
+        ('6', VersionNumber(6)),
+        ('5.15', VersionNumber(5, 15)),
+        ('5.15.3', VersionNumber(5, 15, 3)),
+        ('5.15.3.dev1234', VersionNumber(5, 15, 3)),
+        ('1.2.3.4', VersionNumber(1, 2, 3, 4)),
+    ])
+    def test_parse_valid(self, s, expected):
+        assert VersionNumber.parse(s) == expected
+
+    @pytest.mark.parametrize('s, message', [
+        ('foo6', "Failed to parse foo6"),
+        ('.6', "Failed to parse .6"),
+        ('0x6.2', "Can't construct a null version"),
+    ])
+    def test_parse_invalid(self, s, message):
+        with pytest.raises(ValueError, match=message):
+            VersionNumber.parse(s)
+
+    @pytest.mark.parametrize('lhs, op, rhs, outcome', [
+        # ==
+        (VersionNumber(6), operator.eq, VersionNumber(6), True),
+        (VersionNumber(6), operator.eq, object(), False),
+
+        # !=
+        (VersionNumber(6), operator.ne, VersionNumber(5), True),
+        (VersionNumber(6), operator.ne, object(), True),
+
+        # >=
+        (VersionNumber(5, 14), operator.ge, VersionNumber(5, 13, 5), True),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(5, 14, 2), False),
+        (VersionNumber(5, 14, 3), operator.ge, VersionNumber(5, 14, 2), True),
+        (VersionNumber(5, 14, 3), operator.ge, VersionNumber(5, 14, 3), True),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(5, 13), True),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(5, 14), True),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(5, 15), False),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(4), True),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(5), True),
+        (VersionNumber(5, 14), operator.ge, VersionNumber(6), False),
+
+        # >
+        (VersionNumber(5, 14), operator.gt, VersionNumber(5, 13, 5), True),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(5, 14, 2), False),
+        (VersionNumber(5, 14, 3), operator.gt, VersionNumber(5, 14, 2), True),
+        (VersionNumber(5, 14, 3), operator.gt, VersionNumber(5, 14, 3), False),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(5, 13), True),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(5, 14), False),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(5, 15), False),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(4), True),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(5), True),
+        (VersionNumber(5, 14), operator.gt, VersionNumber(6), False),
+
+        # <=
+        (VersionNumber(5, 14), operator.le, VersionNumber(5, 13, 5), False),
+        (VersionNumber(5, 14), operator.le, VersionNumber(5, 14, 2), True),
+        (VersionNumber(5, 14, 3), operator.le, VersionNumber(5, 14, 2), False),
+        (VersionNumber(5, 14, 3), operator.le, VersionNumber(5, 14, 3), True),
+        (VersionNumber(5, 14), operator.le, VersionNumber(5, 13), False),
+        (VersionNumber(5, 14), operator.le, VersionNumber(5, 14), True),
+        (VersionNumber(5, 14), operator.le, VersionNumber(5, 15), True),
+        (VersionNumber(5, 14), operator.le, VersionNumber(4), False),
+        (VersionNumber(5, 14), operator.le, VersionNumber(5), False),
+        (VersionNumber(5, 14), operator.le, VersionNumber(6), True),
+
+        # <
+        (VersionNumber(5, 14), operator.lt, VersionNumber(5, 13, 5), False),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(5, 14, 2), True),
+        (VersionNumber(5, 14, 3), operator.lt, VersionNumber(5, 14, 2), False),
+        (VersionNumber(5, 14, 3), operator.lt, VersionNumber(5, 14, 3), False),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(5, 13), False),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(5, 14), False),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(5, 15), True),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(4), False),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(5), False),
+        (VersionNumber(5, 14), operator.lt, VersionNumber(6), True),
+    ])
+    def test_comparisons(self, lhs, op, rhs, outcome):
+        assert op(lhs, rhs) == outcome
 
 
 ELLIPSIS = '\u2026'
@@ -104,125 +218,6 @@ class TestElidingFilenames:
     ])
     def test_elided(self, filename, length, expected):
         assert utils.elide_filename(filename, length) == expected
-
-
-@pytest.fixture(params=[True, False])
-def freezer(request, monkeypatch):
-    if request.param and not getattr(sys, 'frozen', False):
-        monkeypatch.setattr(sys, 'frozen', True, raising=False)
-        monkeypatch.setattr(sys, 'executable', qutebrowser.__file__)
-    elif not request.param and getattr(sys, 'frozen', False):
-        # Want to test unfrozen tests, but we are frozen
-        pytest.skip("Can't run with sys.frozen = True!")
-
-
-@pytest.mark.usefixtures('freezer')
-class TestReadFile:
-
-    @pytest.fixture
-    def package_path(self, tmp_path):
-        return tmp_path / 'qutebrowser'
-
-    @pytest.fixture
-    def html_path(self, package_path):
-        path = package_path / 'html'
-        path.mkdir(parents=True)
-
-        for filename in ['test1.html', 'test2.html', 'README', 'unrelatedhtml']:
-            (path / filename).touch()
-
-        subdir = path / 'subdir'
-        subdir.mkdir()
-        (subdir / 'subdir-file.html').touch()
-
-        return path
-
-    @pytest.fixture
-    def html_zip(self, tmp_path, html_path):
-        if not hasattr(zipfile, 'Path'):
-            pytest.skip("Needs zipfile.Path")
-
-        zip_path = tmp_path / 'qutebrowser.zip'
-        with zipfile.ZipFile(zip_path, 'w') as zf:
-            for path in html_path.rglob('*'):
-                zf.write(path, path.relative_to(tmp_path))
-
-            assert sorted(zf.namelist()) == [
-                'qutebrowser/html/README',
-                'qutebrowser/html/subdir/',
-                'qutebrowser/html/subdir/subdir-file.html',
-                'qutebrowser/html/test1.html',
-                'qutebrowser/html/test2.html',
-                'qutebrowser/html/unrelatedhtml',
-            ]
-
-        yield zipfile.Path(zip_path) / 'qutebrowser'
-
-    @pytest.fixture(params=['pathlib', 'zipfile'])
-    def resource_root(self, request):
-        """Resource files packaged either directly or via a zip."""
-        if request.param == 'pathlib':
-            request.getfixturevalue('html_path')
-            return request.getfixturevalue('package_path')
-        elif request.param == 'zipfile':
-            return request.getfixturevalue('html_zip')
-        raise utils.Unreachable(request.param)
-
-    def test_glob_resources(self, resource_root):
-        files = sorted(utils._glob_resources(resource_root, 'html', '.html'))
-        assert files == ['html/test1.html', 'html/test2.html']
-
-    def test_glob_resources_subdir(self, resource_root):
-        files = sorted(utils._glob_resources(resource_root, 'html/subdir', '.html'))
-        assert files == ['html/subdir/subdir-file.html']
-
-    def test_readfile(self):
-        """Read a test file."""
-        content = utils.read_file(os.path.join('utils', 'testfile'))
-        assert content.splitlines()[0] == "Hello World!"
-
-    @pytest.mark.parametrize('filename', ['javascript/scroll.js',
-                                          'html/error.html'])
-    def test_read_cached_file(self, mocker, filename):
-        utils.preload_resources()
-        m = mocker.patch('qutebrowser.utils.utils.importlib_resources.files')
-        utils.read_file(filename)
-        m.assert_not_called()
-
-    def test_readfile_binary(self):
-        """Read a test file in binary mode."""
-        content = utils.read_file_binary(os.path.join('utils', 'testfile'))
-        assert content.splitlines()[0] == b"Hello World!"
-
-    @pytest.mark.parametrize('name', ['read_file', 'read_file_binary'])
-    @pytest.mark.parametrize('fake_exception', [KeyError, FileNotFoundError, None])
-    def test_not_found(self, name, fake_exception, monkeypatch):
-        """Test behavior when a resources file wasn't found.
-
-        With fake_exception, we emulate the rather odd error handling of certain Python
-        versions: https://bugs.python.org/issue43063
-        """
-        class BrokenFileFake:
-
-            def __init__(self, exc):
-                self.exc = exc
-
-            def read_bytes(self):
-                raise self.exc("File does not exist")
-
-            def read_text(self, encoding):
-                raise self.exc("File does not exist")
-
-            def __truediv__(self, _other):
-                return self
-
-        if fake_exception is not None:
-            monkeypatch.setattr(utils.importlib_resources, 'files',
-                                lambda _pkg: BrokenFileFake(fake_exception))
-
-        meth = getattr(utils, name)
-        with pytest.raises(FileNotFoundError):
-            meth('doesnotexist')
 
 
 @pytest.mark.parametrize('seconds, out', [
@@ -551,6 +546,34 @@ class TestIsEnum:
         assert not utils.is_enum(23)
 
 
+class SomeEnum(enum.Enum):
+
+    some_value = enum.auto()
+
+
+class TestPyEnumStr:
+
+    @pytest.fixture
+    def val(self):
+        return SomeEnum.some_value
+
+    def test_fake_old_python_version(self, monkeypatch, val):
+        monkeypatch.setattr(sys, 'version_info', (3, 9, 2))
+        assert utils.pyenum_str(val) == str(val)
+
+    def test_fake_new_python_version(self, monkeypatch, val):
+        monkeypatch.setattr(sys, 'version_info', (3, 10, 0))
+        assert utils.pyenum_str(val) == repr(val)
+
+    def test_real_result(self, val):
+        assert utils.pyenum_str(val) == 'SomeEnum.some_value'
+
+    @pytest.mark.skipif(sys.version_info[:2] < (3, 10), reason='Needs Python 3.10+')
+    def test_needed(self, val):
+        """Fail if this change gets revered before the final 3.10 release."""
+        assert str(val) != 'SomeEnum.some_value'
+
+
 class TestRaises:
 
     """Test raises."""
@@ -723,6 +746,7 @@ class TestGetSetClipboard:
 class TestOpenFile:
 
     @pytest.mark.not_frozen
+    @pytest.mark.not_flatpak
     def test_cmdline_without_argument(self, caplog, config_stub):
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass'.format(executable)
@@ -732,6 +756,7 @@ class TestOpenFile:
             r'Opening /foo/bar with \[.*python.*/foo/bar.*\]', result)
 
     @pytest.mark.not_frozen
+    @pytest.mark.not_flatpak
     def test_cmdline_with_argument(self, caplog, config_stub):
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass {{}} raboof'.format(executable)
@@ -741,6 +766,7 @@ class TestOpenFile:
             r"Opening /foo/bar with \[.*python.*/foo/bar.*'raboof'\]", result)
 
     @pytest.mark.not_frozen
+    @pytest.mark.not_flatpak
     def test_setting_override(self, caplog, config_stub):
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass'.format(executable)
@@ -763,17 +789,7 @@ class TestOpenFile:
             r"Opening /foo/bar with the system application", result)
         openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
 
-    @pytest.fixture
-    def sandbox_patch(self, monkeypatch):
-        info = version.DistributionInfo(
-            id='org.kde.Platform',
-            parsed=version.Distribution.kde_flatpak,
-            version=utils.parse_version('5.12'),
-            pretty='Unknown')
-        monkeypatch.setattr(version, 'distribution',
-                            lambda: info)
-
-    def test_cmdline_sandboxed(self, sandbox_patch,
+    def test_cmdline_sandboxed(self, fake_flatpak,
                                config_stub, message_mock, caplog):
         with caplog.at_level(logging.ERROR):
             utils.open_file('/foo/bar', 'custom_cmd')
@@ -781,7 +797,7 @@ class TestOpenFile:
         assert msg.text == 'Cannot spawn download dispatcher from sandbox'
 
     @pytest.mark.not_frozen
-    def test_setting_override_sandboxed(self, sandbox_patch, openurl_mock,
+    def test_setting_override_sandboxed(self, fake_flatpak, openurl_mock,
                                         caplog, config_stub):
         config_stub.val.downloads.open_dispatcher = 'test'
 
@@ -793,7 +809,7 @@ class TestOpenFile:
         openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
 
     def test_system_default_sandboxed(self, config_stub, openurl_mock,
-                                      sandbox_patch):
+                                      fake_flatpak):
         utils.open_file('/foo/bar')
         openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
 
@@ -824,20 +840,19 @@ class TestYaml:
         with pytest.raises(yaml.YAMLError):
             utils.yaml_load("._")
 
-    def test_load_file(self, tmpdir):
-        tmpfile = tmpdir / 'foo.yml'
-        tmpfile.write('[1, 2]')
+    def test_load_file(self, tmp_path):
+        tmpfile = tmp_path / 'foo.yml'
+        tmpfile.write_text('[1, 2]')
         with tmpfile.open(encoding='utf-8') as f:
             assert utils.yaml_load(f) == [1, 2]
 
     def test_dump(self):
         assert utils.yaml_dump([1, 2]) == '- 1\n- 2\n'
 
-    def test_dump_file(self, tmpdir):
-        tmpfile = tmpdir / 'foo.yml'
-        with tmpfile.open('w', encoding='utf-8') as f:
-            utils.yaml_dump([1, 2], f)
-        assert tmpfile.read() == '- 1\n- 2\n'
+    def test_dump_file(self, tmp_path):
+        tmpfile = tmp_path / 'foo.yml'
+        tmpfile.write_text(utils.yaml_dump([1, 2]), encoding='utf-8')
+        assert tmpfile.read_text() == '- 1\n- 2\n'
 
 
 @pytest.mark.parametrize('elems, n, expected', [
@@ -888,13 +903,6 @@ def test_ceil_log_invalid(number, base):
         math.log(number, base)
     with pytest.raises(ValueError):
         utils.ceil_log(number, base)
-
-
-@pytest.mark.parametrize('skip', [True, False])
-def test_libgl_workaround(monkeypatch, skip):
-    if skip:
-        monkeypatch.setenv('QUTE_SKIP_LIBGL_WORKAROUND', '1')
-    utils.libgl_workaround()  # Just make sure it doesn't crash.
 
 
 @pytest.mark.parametrize('duration, out', [
@@ -993,3 +1001,53 @@ class TestCleanupFileContext:
                 pass
         assert len(caplog.messages) == 1
         assert caplog.messages[0].startswith("Failed to delete tempfile")
+
+
+class TestParseRect:
+
+    @pytest.mark.parametrize('value, expected', [
+        ('1x1+0+0', QRect(0, 0, 1, 1)),
+        ('123x789+12+34', QRect(12, 34, 123, 789)),
+    ])
+    def test_valid(self, value, expected):
+        assert utils.parse_rect(value) == expected
+
+    @pytest.mark.parametrize('value, message', [
+        ('0x0+1+1', "Invalid rectangle"),
+        ('1x1-1+1', "String 1x1-1+1 does not match WxH+X+Y"),
+        ('1x1+1-1', "String 1x1+1-1 does not match WxH+X+Y"),
+        ('1x1', "String 1x1 does not match WxH+X+Y"),
+        ('+1+2', "String +1+2 does not match WxH+X+Y"),
+        ('1e0x1+0+0', "String 1e0x1+0+0 does not match WxH+X+Y"),
+        ('¹x1+0+0', "String ¹x1+0+0 does not match WxH+X+Y"),
+    ])
+    def test_invalid(self, value, message):
+        with pytest.raises(ValueError) as excinfo:
+            utils.parse_rect(value)
+        assert str(excinfo.value) == message
+
+    @hypothesis.given(strategies.text())
+    def test_hypothesis_text(self, s):
+        try:
+            utils.parse_rect(s)
+        except ValueError as e:
+            print(e)
+
+    @hypothesis.given(strategies.tuples(
+        strategies.integers(),
+        strategies.integers(),
+        strategies.integers(),
+        strategies.integers(),
+    ).map(lambda tpl: '{}x{}+{}+{}'.format(*tpl)))
+    def test_hypothesis_sophisticated(self, s):
+        try:
+            utils.parse_rect(s)
+        except ValueError as e:
+            print(e)
+
+    @hypothesis.given(strategies.from_regex(utils._RECT_PATTERN))
+    def test_hypothesis_regex(self, s):
+        try:
+            utils.parse_rect(s)
+        except ValueError as e:
+            print(e)

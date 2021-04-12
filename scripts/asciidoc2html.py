@@ -293,7 +293,7 @@ def run(**kwargs) -> None:
     except FileNotFoundError:
         utils.print_error("Could not find asciidoc! Please install it, or use "
                           "the --asciidoc argument to point this script to "
-                          "the correct python/asciidoc.py location!")
+                          "the correct asciidoc.py location!")
         sys.exit(1)
 
     try:

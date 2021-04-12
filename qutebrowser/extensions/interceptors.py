@@ -81,7 +81,7 @@ class Request:
         """Block this request."""
         self.is_blocked = True
 
-    def redirect(self, url: QUrl) -> None:
+    def redirect(self, url: QUrl, *, ignore_unsupported: bool = False) -> None:
         """Redirect this request.
 
         Only some types of requests can be successfully redirected.
@@ -91,6 +91,9 @@ class Request:
 
         Args:
             url: The QUrl to try to redirect to.
+            ignore_unsupported: If set to True, request methods which can't be
+                redirected (such as POST) are silently ignored instead of throwing an
+                exception.
         """
         # Will be overridden if the backend supports redirection
         raise NotImplementedError
