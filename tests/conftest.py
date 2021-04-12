@@ -22,9 +22,9 @@
 """The qutebrowser test suite conftest file."""
 
 import os
+import pathlib
 import sys
 import warnings
-import pathlib
 
 import pytest
 import hypothesis
@@ -36,7 +36,7 @@ from helpers import logfail
 from helpers.logfail import fail_on_logging
 from helpers.messagemock import message_mock
 from helpers.fixtures import *  # noqa: F403
-from helpers import utils as testutils
+from helpers import testutils
 from qutebrowser.utils import qtutils, standarddir, usertypes, utils, version
 from qutebrowser.misc import objects, earlyinit
 from qutebrowser.qt import sip
@@ -93,6 +93,10 @@ def _apply_platform_markers(config, item):
          pytest.mark.skipif,
          getattr(sys, 'frozen', False),
          "Can't be run when frozen"),
+        ('not_flatpak',
+         pytest.mark.skipif,
+         version.is_flatpak(),
+         "Can't be run with Flatpak"),
         ('frozen',
          pytest.mark.skipif,
          not getattr(sys, 'frozen', False),
@@ -109,12 +113,6 @@ def _apply_platform_markers(config, item):
          pytest.mark.skipif,
          sys.getfilesystemencoding() == 'ascii',
          "Skipped because of ASCII locale"),
-
-        ('qtwebkit6021_xfail',
-         pytest.mark.xfail,
-         version.qWebKitVersion and  # type: ignore[unreachable]
-         version.qWebKitVersion() == '602.1',
-         "Broken on WebKit 602.1")
     ]
 
     for searched_marker, new_marker_kind, condition, default_reason in markers:
@@ -189,9 +187,10 @@ def pytest_collection_modifyitems(config, items):
 
 def pytest_ignore_collect(path):
     """Ignore BDD tests if we're unable to run them."""
+    fspath = pathlib.Path(path)
     skip_bdd = hasattr(sys, 'frozen')
-    rel_path = path.relto(os.path.dirname(__file__))
-    return rel_path == os.path.join('end2end', 'features') and skip_bdd
+    rel_path = fspath.relative_to(pathlib.Path(__file__).parent)
+    return rel_path == pathlib.Path('end2end') / 'features' and skip_bdd
 
 
 @pytest.fixture(scope='session')
@@ -243,12 +242,6 @@ def set_backend(monkeypatch, request):
     else:
         backend = usertypes.Backend.QtWebEngine
     monkeypatch.setattr(objects, 'backend', backend)
-
-
-@pytest.fixture(autouse=True, scope='session')
-def apply_libgl_workaround():
-    """Make sure we load libGL early so QtWebEngine tests run properly."""
-    utils.libgl_workaround()
 
 
 @pytest.fixture(autouse=True)

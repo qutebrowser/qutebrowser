@@ -77,7 +77,7 @@ class CovtestHelper:
         argv = [sys.argv[0]] + list(args)
         self._monkeypatch.setattr(check_coverage.sys, 'argv', argv)
         with pytest.raises(check_coverage.Skipped) as excinfo:
-            return check_coverage.check(None, perfect_files=[])
+            check_coverage.check(None, perfect_files=[])
         assert excinfo.value.reason == reason
 
 

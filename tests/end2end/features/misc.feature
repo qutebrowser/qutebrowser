@@ -140,7 +140,7 @@ Feature: Various utility commands.
 
     Scenario: :jseval --file using a file that doesn't exist as js-code
         When I run :jseval --file /nonexistentfile
-        Then the error "[Errno 2] No such file or directory: '/nonexistentfile'" should be shown
+        Then the error "[Errno 2] *: '/nonexistentfile'" should be shown
         And "No output or error" should not be logged
 
     # :debug-webaction
@@ -196,7 +196,7 @@ Feature: Various utility commands.
         # We can't use "When I open" because we don't want to wait for load
         # finished
         When I run :open http://localhost:(port)/redirect-later?delay=-1
-        And I wait for "emitting: cur_load_status_changed(<LoadStatus.loading: *>) (tab *)" in the log
+        And I wait for "emitting: cur_load_status_changed(*loading*) (tab *)" in the log
         And I wait 1s
         And I run :stop
         And I open redirect-later-continue in a new tab
@@ -468,6 +468,18 @@ Feature: Various utility commands.
         And I run :command-accept
         Then the message "blah" should be shown
 
+    Scenario: Command starting with space and calling previous command
+        When I run :set-cmd-text :message-info first
+        And I run :command-accept
+        And I wait for "first" in the log
+        When I run :set-cmd-text : message-info second
+        And I run :command-accept
+        And I wait for "second" in the log
+        And I run :set-cmd-text :
+        And I run :command-history-prev
+        And I run :command-accept
+        Then the message "first" should be shown
+
     Scenario: Calling previous command with :completion-item-focus
         When I run :set-cmd-text :message-info blah
         And I wait for "Entering mode KeyMode.command (reason: *)" in the log
@@ -516,13 +528,13 @@ Feature: Various utility commands.
     @qtwebkit_skip @no_invalid_lines @posix
     Scenario: Renderer crash
         When I run :open -t chrome://crash
-        Then "Renderer process crashed" should be logged
+        Then "Renderer process crashed (status *)" should be logged
         And "* 'Error loading chrome://crash/'" should be logged
 
     @qtwebkit_skip @no_invalid_lines @flaky
     Scenario: Renderer kill
         When I run :open -t chrome://kill
-        Then "Renderer process was killed" should be logged
+        Then "Renderer process was killed (status *)" should be logged
         And "* 'Error loading chrome://kill/'" should be logged
 
     # https://github.com/qutebrowser/qutebrowser/issues/2290
@@ -532,7 +544,7 @@ Feature: Various utility commands.
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I run :open chrome://kill
-        And I wait for "Renderer process was killed" in the log
+        And I wait for "Renderer process was killed (status *)" in the log
         And I open data/numbers/3.txt
         Then no crash should happen
 
@@ -542,11 +554,11 @@ Feature: Various utility commands.
         When I open data/crashers/webrtc.html in a new tab
         And I run :reload
         And I wait until data/crashers/webrtc.html is loaded
-        Then "Renderer process crashed" should not be logged
+        Then "Renderer process crashed (status *)" should not be logged
 
     Scenario: InstalledApps crash
         When I open data/crashers/installedapp.html in a new tab
-        Then "Renderer process was killed" should not be logged
+        Then "Renderer process was killed (status *)" should not be logged
 
     ## Other
 

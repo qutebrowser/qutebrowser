@@ -77,7 +77,7 @@ def test_set_pattern(pat, qtbot):
     for c in cats:
         c.set_pattern = mock.Mock(spec=[])
         model.add_category(c)
-    with qtbot.waitSignals([model.layoutAboutToBeChanged, model.layoutChanged],
+    with qtbot.wait_signals([model.layoutAboutToBeChanged, model.layoutChanged],
                            order='strict'):
         model.set_pattern(pat)
     for c in cats:

@@ -66,11 +66,13 @@ from qutebrowser.misc import (ipc, savemanager, sessions, crashsignal,
                               earlyinit, sql, cmdhistory, backendproblem,
                               objects, quitter)
 from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
-                               usertypes, standarddir, error, qtutils, debug)
+                               resources, usertypes, standarddir,
+                               error, qtutils, debug)
 # pylint: disable=unused-import
 # We import those to run the cmdutils.register decorators.
 from qutebrowser.mainwindow.statusbar import command
 from qutebrowser.misc import utilcmds
+from qutebrowser.browser import commands
 # pylint: enable=unused-import
 
 
@@ -86,7 +88,7 @@ def run(args):
 
     log.init.debug("Initializing directories...")
     standarddir.init(args)
-    utils.preload_resources()
+    resources.preload()
 
     log.init.debug("Initializing config...")
     configinit.early_init(args)
@@ -119,13 +121,14 @@ def run(args):
             log.init.warning(
                 "Backend from the running instance will be used")
         sys.exit(usertypes.Exit.ok)
-    else:
-        quitter.instance.shutting_down.connect(server.shutdown)
-        server.got_args.connect(lambda args, target_arg, cwd:
-                                process_pos_args(args, cwd=cwd, via_ipc=True,
-                                                 target_arg=target_arg))
 
     init(args=args)
+
+    quitter.instance.shutting_down.connect(server.shutdown)
+    server.got_args.connect(
+        lambda args, target_arg, cwd:
+        process_pos_args(args, cwd=cwd, via_ipc=True, target_arg=target_arg))
+
     ret = qt_mainloop()
     return ret
 
@@ -395,7 +398,7 @@ def _open_special_pages(args):
         return
 
     try:
-        changelog = utils.read_file('html/doc/changelog.html')
+        changelog = resources.read_file('html/doc/changelog.html')
     except OSError as e:
         log.init.warning(f"Not showing changelog due to {e}")
         return
@@ -492,12 +495,13 @@ def _init_modules(*, args):
 
     log.init.debug("Initializing command history...")
     cmdhistory.init()
-    log.init.debug("Initializing sessions...")
-    sessions.init(objects.qapp)
 
     log.init.debug("Initializing websettings...")
     websettings.init(args)
     quitter.instance.shutting_down.connect(websettings.shutdown)
+
+    log.init.debug("Initializing sessions...")
+    sessions.init(objects.qapp)
 
     if not args.no_err_windows:
         crashsignal.crash_handler.display_faulthandler()
@@ -564,9 +568,7 @@ class Application(QApplication):
         self.launch_time = datetime.datetime.now()
         self.focusObjectChanged.connect(  # type: ignore[attr-defined]
             self.on_focus_object_changed)
-
         self.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
-        self.setAttribute(Qt.AA_MacDontSwapCtrlAndMeta, True)
 
         self.new_window.connect(self._on_new_window)
 

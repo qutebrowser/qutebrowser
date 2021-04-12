@@ -8,7 +8,9 @@ Those files can also contain some special commands:
 - Add an additional comment to a line: `#@ comment: <package> <comment here>`
 - Filter a line for requirements.io: `#@ filter: <package> <filter>`
 - Don't include a package in the output: `#@ ignore: <package>` (or multiple packages)
-- Replace a part of a frozen package specification with another: `#@ replace <regex> <replacement>`
+- Replace a part of a frozen package specification with another: `#@ replace: <regex> <replacement>`
+- Add a new line: `#@ add: <line>`
+- Add environment markers to a line: `#@ markers: <package> <markers>`
 
 Some examples:
 

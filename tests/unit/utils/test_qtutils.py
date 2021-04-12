@@ -22,7 +22,7 @@
 
 import io
 import os
-import os.path
+import pathlib
 import dataclasses
 import unittest
 import unittest.mock
@@ -34,7 +34,7 @@ from PyQt5.QtGui import QColor
 
 from qutebrowser.utils import qtutils, utils, usertypes
 import overflow_test_cases
-from helpers import utils as testutils
+from helpers import testutils
 
 if utils.is_linux:
     # Those are not run on macOS because that seems to cause a hang sometimes.
@@ -436,37 +436,37 @@ class TestSavefileOpen:
     ## Tests with real files
 
     @pytest.mark.parametrize('data', ["Hello World", "Snowman! ☃"])
-    def test_utf8(self, data, tmpdir):
+    def test_utf8(self, data, tmp_path):
         """Test with UTF8 data."""
-        filename = tmpdir / 'foo'
-        filename.write("Old data")
+        filename = tmp_path / 'foo'
+        filename.write_text("Old data", encoding="utf-8")
         with qtutils.savefile_open(str(filename)) as f:
             f.write(data)
-        assert tmpdir.listdir() == [filename]
+        assert list(tmp_path.iterdir()) == [filename]
         assert filename.read_text(encoding='utf-8') == data
 
-    def test_binary(self, tmpdir):
+    def test_binary(self, tmp_path):
         """Test with binary data."""
-        filename = tmpdir / 'foo'
+        filename = tmp_path / 'foo'
         with qtutils.savefile_open(str(filename), binary=True) as f:
             f.write(b'\xde\xad\xbe\xef')
-        assert tmpdir.listdir() == [filename]
-        assert filename.read_binary() == b'\xde\xad\xbe\xef'
+        assert list(tmp_path.iterdir()) == [filename]
+        assert filename.read_bytes() == b'\xde\xad\xbe\xef'
 
-    def test_exception(self, tmpdir):
+    def test_exception(self, tmp_path):
         """Test with an exception in the block."""
-        filename = tmpdir / 'foo'
-        filename.write("Old content")
+        filename = tmp_path / 'foo'
+        filename.write_text("Old content", encoding="utf-8")
         with pytest.raises(SavefileTestException):
             with qtutils.savefile_open(str(filename)) as f:
                 f.write("Hello World!")
                 raise SavefileTestException
-        assert tmpdir.listdir() == [filename]
+        assert list(tmp_path.iterdir()) == [filename]
         assert filename.read_text(encoding='utf-8') == "Old content"
 
-    def test_existing_dir(self, tmpdir):
+    def test_existing_dir(self, tmp_path):
         """Test with the filename already occupied by a directory."""
-        filename = tmpdir / 'foo'
+        filename = tmp_path / 'foo'
         filename.mkdir()
         with pytest.raises(OSError) as excinfo:
             with qtutils.savefile_open(str(filename)):
@@ -474,37 +474,37 @@ class TestSavefileOpen:
 
         msg = "Filename refers to a directory: {!r}".format(str(filename))
         assert str(excinfo.value) == msg
-        assert tmpdir.listdir() == [filename]
+        assert list(tmp_path.iterdir()) == [filename]
 
-    def test_failing_flush(self, tmpdir):
+    def test_failing_flush(self, tmp_path):
         """Test with the file being closed before flushing."""
-        filename = tmpdir / 'foo'
+        filename = tmp_path / 'foo'
         with pytest.raises(ValueError, match="IO operation on closed device!"):
             with qtutils.savefile_open(str(filename), binary=True) as f:
                 f.write(b'Hello')
                 f.dev.commit()  # provoke failing flush
 
-        assert tmpdir.listdir() == [filename]
+        assert list(tmp_path.iterdir()) == [filename]
 
-    def test_failing_commit(self, tmpdir):
+    def test_failing_commit(self, tmp_path):
         """Test with the file being closed before committing."""
-        filename = tmpdir / 'foo'
+        filename = tmp_path / 'foo'
         with pytest.raises(OSError, match='Commit failed!'):
             with qtutils.savefile_open(str(filename), binary=True) as f:
                 f.write(b'Hello')
                 f.dev.cancelWriting()  # provoke failing commit
 
-        assert tmpdir.listdir() == []
+        assert list(tmp_path.iterdir()) == []
 
-    def test_line_endings(self, tmpdir):
+    def test_line_endings(self, tmp_path):
         """Make sure line endings are translated correctly.
 
         See https://github.com/qutebrowser/qutebrowser/issues/309
         """
-        filename = tmpdir / 'foo'
+        filename = tmp_path / 'foo'
         with qtutils.savefile_open(str(filename)) as f:
             f.write('foo\nbar\nbaz')
-        data = filename.read_binary()
+        data = filename.read_bytes()
         if utils.is_windows:
             assert data == b'foo\r\nbar\r\nbaz'
         else:
@@ -521,7 +521,7 @@ if test_file is not None:
         """Clean up the python testfile after tests if tests didn't."""
         yield
         try:
-            os.remove(test_file.TESTFN)
+            pathlib.Path(test_file.TESTFN).unlink()
         except FileNotFoundError:
             pass
 
@@ -682,9 +682,9 @@ class TestPyQIODevice:
         pyqiodev.write(data)
         assert len(pyqiodev) == len(data)
 
-    def test_failing_open(self, tmpdir):
+    def test_failing_open(self, tmp_path):
         """Test open() which fails (because it's an existent directory)."""
-        qf = QFile(str(tmpdir))
+        qf = QFile(str(tmp_path))
         dev = qtutils.PyQIODevice(qf)
         with pytest.raises(qtutils.QtOSError) as excinfo:
             dev.open(QIODevice.WriteOnly)
@@ -854,7 +854,7 @@ class TestPyQIODevice:
             pyqiodev_failing.write(b'x')
 
     @pytest.mark.posix
-    @pytest.mark.skipif(not os.path.exists('/dev/full'),
+    @pytest.mark.skipif(not pathlib.Path('/dev/full').exists(),
                         reason="Needs /dev/full.")
     def test_write_error_real(self):
         """Test a real write error with /dev/full on supported systems."""

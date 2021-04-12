@@ -23,18 +23,18 @@
 
 import re
 import os
-import os.path
+import pathlib
 import sys
 import shutil
 import pstats
 import operator
-import pathlib
 
 import pytest
 from PyQt5.QtCore import PYQT_VERSION, QCoreApplication
 
 pytest.register_assert_rewrite('end2end.fixtures')
 
+from end2end.fixtures.notificationserver import notification_server
 from end2end.fixtures.webserver import server, server_per_test, server2, ssl_server
 from end2end.fixtures.quteprocess import (quteproc_process, quteproc,
                                           quteproc_new)
@@ -56,9 +56,24 @@ def pytest_unconfigure(config):
     """Combine profiles."""
     if config.getoption('--qute-profile-subprocs'):
         stats = pstats.Stats()
-        for fn in os.listdir('prof'):
-            stats.add(os.path.join('prof', fn))
-        stats.dump_stats(os.path.join('prof', 'combined.pstats'))
+        for fn in pathlib.Path('prof').iterdir():
+            stats.add((pathlib.Path('prof') / fn))
+        stats.dump_stats((pathlib.Path('prof') / 'combined.pstats'))
+
+
+def _check_hex_version(op_str, running_version, version):
+    operators = {
+        '==': operator.eq,
+        '!=': operator.ne,
+        '>=': operator.ge,
+        '<=': operator.le,
+        '>': operator.gt,
+        '<': operator.lt,
+    }
+    op = operators[op_str]
+    major, minor, patch = [int(e) for e in version.split('.')]
+    hex_version = (major << 16) | (minor << 8) | patch
+    return op(running_version, hex_version)
 
 
 def _get_version_tag(tag):
@@ -69,7 +84,7 @@ def _get_version_tag(tag):
     casesinto an appropriate @pytest.mark.skip marker, and falls back to
     """
     version_re = re.compile(r"""
-        (?P<package>qt|pyqt)
+        (?P<package>qt|pyqt|pyqtwebengine)
         (?P<operator>==|>=|!=|<)
         (?P<version>\d+\.\d+(\.\d+)?)
     """, re.VERBOSE)
@@ -92,18 +107,31 @@ def _get_version_tag(tag):
         }
         return pytest.mark.skipif(do_skip[op], reason='Needs ' + tag)
     elif package == 'pyqt':
-        operators = {
-            '==': operator.eq,
-            '>=': operator.ge,
-            '!=': operator.ne,
-        }
-        op = operators[match.group('operator')]
-        major, minor, patch = [int(e) for e in version.split('.')]
-        hex_version = (major << 16) | (minor << 8) | patch
-        return pytest.mark.skipif(not op(PYQT_VERSION, hex_version),
-                                  reason='Needs ' + tag)
+        return pytest.mark.skipif(
+            not _check_hex_version(
+                op_str=match.group('operator'),
+                running_version=PYQT_VERSION,
+                version=version
+            ),
+            reason='Needs ' + tag,
+        )
+    elif package == 'pyqtwebengine':
+        try:
+            from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
+        except ImportError:
+            running_version = PYQT_VERSION
+        else:
+            running_version = PYQT_WEBENGINE_VERSION
+        return pytest.mark.skipif(
+            not _check_hex_version(
+                op_str=match.group('operator'),
+                running_version=running_version,
+                version=version
+            ),
+            reason='Needs ' + tag,
+        )
     else:
-        raise ValueError("Invalid package {!r}".format(package))
+        raise utils.Unreachable(package)
 
 
 def _get_backend_tag(tag):
@@ -151,9 +179,9 @@ def pytest_collection_modifyitems(config, items):
         ('qtwebengine_skip', 'Skipped with QtWebEngine', pytest.mark.skipif,
          config.webengine),
         ('qtwebengine_notifications',
-         'Skipped with QtWebEngine < 5.13',
+         'Skipped unless QtWebEngine >= 5.13',
          pytest.mark.skipif,
-         config.webengine and not qtutils.version_check('5.13')),
+         not (config.webengine and qtutils.version_check('5.13'))),
         ('qtwebkit_skip', 'Skipped with QtWebKit', pytest.mark.skipif,
          not config.webengine),
         ('qtwebengine_flaky', 'Flaky with QtWebEngine', pytest.mark.skipif,
@@ -171,7 +199,6 @@ def pytest_collection_modifyitems(config, items):
          'Skipped on Windows',
          pytest.mark.skipif,
          utils.is_windows),
-
     ]
 
     for item in items:

@@ -39,7 +39,7 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
         'qutebrowser.completion.completiondelegate.CompletionItemDelegate',
         new=lambda *_: None)
     view = completionwidget.CompletionView(cmd=status_command_stub, win_id=0)
-    qtbot.addWidget(view)
+    qtbot.add_widget(view)
     return view
 
 
@@ -73,10 +73,10 @@ def test_set_pattern_no_model(completionview):
 
 def test_maybe_update_geometry(completionview, config_stub, qtbot):
     """Ensure completion is resized only if shrink is True."""
-    with qtbot.assertNotEmitted(completionview.update_geometry):
+    with qtbot.assert_not_emitted(completionview.update_geometry):
         completionview._maybe_update_geometry()
     config_stub.val.completion.shrink = True
-    with qtbot.waitSignal(completionview.update_geometry):
+    with qtbot.wait_signal(completionview.update_geometry):
         completionview._maybe_update_geometry()
 
 
@@ -137,10 +137,10 @@ def test_completion_item_focus(which, tree, expected, completionview, model, qtb
     completionview.set_model(model)
     for entry in expected:
         if entry is None:
-            with qtbot.assertNotEmitted(completionview.selection_changed):
+            with qtbot.assert_not_emitted(completionview.selection_changed):
                 completionview.completion_item_focus(which)
         else:
-            with qtbot.waitSignal(completionview.selection_changed) as sig:
+            with qtbot.wait_signal(completionview.selection_changed) as sig:
                 completionview.completion_item_focus(which)
                 assert sig.args == [entry]
 
@@ -153,11 +153,11 @@ def test_completion_item_focus_no_model(which, completionview, model, qtbot):
 
     Validates #1812: help completion repeatedly completes
     """
-    with qtbot.assertNotEmitted(completionview.selection_changed):
+    with qtbot.assert_not_emitted(completionview.selection_changed):
         completionview.completion_item_focus(which)
     completionview.set_model(model)
     completionview.set_model(None)
-    with qtbot.assertNotEmitted(completionview.selection_changed):
+    with qtbot.assert_not_emitted(completionview.selection_changed):
         completionview.completion_item_focus(which)
 
 
@@ -214,7 +214,7 @@ class TestCompletionItemFocusPage:
         cat = listcategory.ListCategory('Test', items)
         model.add_category(cat)
         completionview.set_model(model)
-        with qtbot.waitSignal(completionview.selection_changed) as blocker:
+        with qtbot.wait_signal(completionview.selection_changed) as blocker:
             completionview.completion_item_focus(which)
             assert blocker.args == [expected]
 
@@ -259,7 +259,7 @@ class TestCompletionItemFocusPage:
 
         for move, item in steps:
             print('{:9} -> expecting {}'.format(move, item))
-            with qtbot.waitSignal(completionview.selection_changed) as blocker:
+            with qtbot.wait_signal(completionview.selection_changed) as blocker:
                 completionview.completion_item_focus(move)
             assert blocker.args == [item]
 
@@ -273,7 +273,7 @@ class TestCompletionItemFocusPage:
         completionview.set_model(model)
 
         for move, item in [('next', 'Item 1'), ('next-page', 'Target item')]:
-            with qtbot.waitSignal(completionview.selection_changed) as blocker:
+            with qtbot.wait_signal(completionview.selection_changed) as blocker:
                 completionview.completion_item_focus(move)
             assert blocker.args == [item]
 

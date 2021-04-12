@@ -351,13 +351,13 @@ class SqlTable(QObject):
         self._name = name
         self._create_table(fields, constraints)
 
-    def _create_table(self, fields, constraints):
+    def _create_table(self, fields, constraints, *, force=False):
         """Create the table if the database is uninitialized.
 
-        If the table already exists, this does nothing, so it can e.g. be called on
-        every user_version change.
+        If the table already exists, this does nothing (except with force=True), so it
+        can e.g. be called on every user_version change.
         """
-        if not user_version_changed():
+        if not user_version_changed() and not force:
             return
 
         constraints = constraints or {}

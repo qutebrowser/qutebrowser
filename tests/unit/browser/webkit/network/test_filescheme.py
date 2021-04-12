@@ -29,7 +29,7 @@ from PyQt5.QtNetwork import QNetworkRequest
 
 from qutebrowser.browser.webkit.network import filescheme
 from qutebrowser.utils import urlutils, utils
-from helpers import utils as testutils
+from helpers import testutils
 
 
 @pytest.mark.parametrize('create_file, create_dir, filterfunc, expected', [

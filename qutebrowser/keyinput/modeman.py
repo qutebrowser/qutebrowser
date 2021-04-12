@@ -86,8 +86,9 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
     hintmanager = hints.HintManager(win_id, parent=parent)
     objreg.register('hintmanager', hintmanager, scope='window',
                     window=win_id, command_only=True)
-
     modeman.hintmanager = hintmanager
+
+    log_sensitive_keys = 'log-sensitive-keys' in objects.debug_flags
 
     keyparsers: ParserDictType = {
         usertypes.KeyMode.normal:
@@ -110,7 +111,7 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
                 commandrunner=commandrunner,
                 parent=modeman,
                 passthrough=True,
-                do_log=False,
+                do_log=log_sensitive_keys,
                 supports_count=False),
 
         usertypes.KeyMode.passthrough:
@@ -120,7 +121,7 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
                 commandrunner=commandrunner,
                 parent=modeman,
                 passthrough=True,
-                do_log=False,
+                do_log=log_sensitive_keys,
                 supports_count=False),
 
         usertypes.KeyMode.command:
@@ -130,7 +131,7 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
                 commandrunner=commandrunner,
                 parent=modeman,
                 passthrough=True,
-                do_log=False,
+                do_log=log_sensitive_keys,
                 supports_count=False),
 
         usertypes.KeyMode.prompt:
@@ -140,7 +141,7 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
                 commandrunner=commandrunner,
                 parent=modeman,
                 passthrough=True,
-                do_log=False,
+                do_log=log_sensitive_keys,
                 supports_count=False),
 
         usertypes.KeyMode.yesno:
@@ -283,8 +284,8 @@ class ModeManager(QObject):
         curmode = self.mode
         parser = self.parsers[curmode]
         if curmode != usertypes.KeyMode.insert:
-            log.modes.debug("got keypress in mode {} - delegating to "
-                            "{}".format(curmode, utils.qualname(parser)))
+            log.modes.debug("got keypress in mode {} - delegating to {}".format(
+                utils.pyenum_str(curmode), utils.qualname(parser)))
         match = parser.handle(event, dry_run=dry_run)
 
         has_modifier = event.modifiers() not in [
@@ -360,7 +361,8 @@ class ModeManager(QObject):
             return
 
         log.modes.debug("Entering mode {}{}".format(
-            mode, '' if reason is None else ' (reason: {})'.format(reason)))
+            utils.pyenum_str(mode),
+            '' if reason is None else ' (reason: {})'.format(reason)))
         if mode not in self.parsers:
             raise ValueError("No keyparser for mode {}".format(mode))
         if self.mode == mode or (self.mode in PROMPT_MODES and
@@ -385,11 +387,7 @@ class ModeManager(QObject):
         self.mode = mode
         self.entered.emit(mode, self._win_id)
 
-    @cmdutils.register(
-        instance='mode-manager',
-        scope='window',
-        deprecated_name='enter-mode',
-    )
+    @cmdutils.register(instance='mode-manager', scope='window')
     def mode_enter(self, mode: str) -> None:
         """Enter a key mode.
 
@@ -432,7 +430,8 @@ class ModeManager(QObject):
                 raise NotInModeError("Not in mode {}!".format(mode))
 
         log.modes.debug("Leaving mode {}{}".format(
-            mode, '' if reason is None else ' (reason: {})'.format(reason)))
+            utils.pyenum_str(mode),
+            '' if reason is None else ' (reason: {})'.format(reason)))
         # leaving a mode implies clearing keychain, see
         # https://github.com/qutebrowser/qutebrowser/issues/1805
         self.clear_keychain()
@@ -442,12 +441,8 @@ class ModeManager(QObject):
             self.enter(self._prev_mode,
                        reason='restore mode before {}'.format(mode.name))
 
-    @cmdutils.register(
-        instance='mode-manager',
-        not_modes=[usertypes.KeyMode.normal],
-        scope='window',
-        deprecated_name='leave-mode',
-    )
+    @cmdutils.register(instance='mode-manager',
+                       not_modes=[usertypes.KeyMode.normal], scope='window')
     def mode_leave(self) -> None:
         """Leave the mode we're currently in."""
         if self.mode == usertypes.KeyMode.normal:

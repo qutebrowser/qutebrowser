@@ -244,7 +244,14 @@ class ConfigCommands:
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.customized_option)
-    def config_unset(self, option: str, temp: bool = False) -> None:
+    @cmdutils.argument('pattern', flag='u')
+    def config_unset(
+        self,
+        option: str,
+        *,
+        pattern: str = None,
+        temp: bool = False,
+    ) -> None:
         """Unset an option.
 
         This sets an option back to its default and removes it from
@@ -252,10 +259,22 @@ class ConfigCommands:
 
         Args:
             option: The name of the option.
+            pattern: The URL pattern to use.
             temp: Set value temporarily until qutebrowser is closed.
         """
+        parsed_pattern = self._parse_pattern(pattern)
         with self._handle_config_error():
-            self._config.unset(option, save_yaml=not temp)
+            changed = self._config.unset(
+                option,
+                save_yaml=not temp,
+                pattern=parsed_pattern,
+            )
+
+        if not changed:
+            text = f'{option} is not customized'
+            if pattern is not None:
+                text += f' for {pattern}'
+            raise cmdutils.CommandError(text)
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)

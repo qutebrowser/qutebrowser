@@ -203,7 +203,13 @@ class BraveAdBlocker:
 
     def read_cache(self) -> None:
         """Initialize the adblocking engine from cache file."""
-        if self._cache_path.is_file():
+        try:
+            cache_exists = self._cache_path.is_file()
+        except OSError:
+            logger.error("Failed to read adblock cache", exc_info=True)
+            return
+
+        if cache_exists:
             logger.debug("Loading cached adblock data: %s", self._cache_path)
             self._engine.deserialize_from_file(str(self._cache_path))
         else:

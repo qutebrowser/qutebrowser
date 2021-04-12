@@ -27,7 +27,8 @@ from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QObject
 from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
 
 from qutebrowser.browser import downloads, pdfjs
-from qutebrowser.utils import debug, usertypes, message, log, objreg, urlutils
+from qutebrowser.utils import (debug, usertypes, message, log, objreg, urlutils,
+                               utils, version)
 
 
 class DownloadItem(downloads.AbstractDownloadItem):
@@ -252,7 +253,9 @@ class DownloadManager(downloads.AbstractDownloadManager):
         url = qt_item.url()
 
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-90355
-        if url.scheme().lower() == 'data':
+        if version.qtwebengine_versions().webengine >= utils.VersionNumber(5, 15, 3):
+            needs_workaround = False
+        elif url.scheme().lower() == 'data':
             if '/' in url.path().split(',')[-1]:  # e.g. a slash in base64
                 wrong_filename = url.path().split('/')[-1]
             else:

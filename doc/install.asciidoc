@@ -239,11 +239,12 @@ qutebrowser is available
 https://flathub.org/apps/details/org.qutebrowser.qutebrowser[on Flathub]
 as `org.qutebrowser.qutebrowser`.
 
-WARNING: As of October 2020, the Flatpak package is severely outdated (qutebrowser
-v1.7.0 from July 2019) and, among other issues, misses fixes for a
-(low-severity) https://github.com/qutebrowser/qutebrowser/security/advisories/GHSA-4rcq-jv2f-898j[security issue].
-It's recommended to <<tox,install qutebrowser in a virtualenv>> instead, which
-is one of the officially maintained options and will always be up-to-date.
+NOTE: The Flatpak package is
+https://github.com/flathub/org.qutebrowser.qutebrowser/issues/8#issuecomment-799579975[looking for (co-)maintainers].
+The package recently was updated after being out of date for multiple years. It
+currently (March 2021) is up to date again. If that situation changes, consider
+to <<tox,install qutebrowser in a virtualenv>> instead, which is one of the
+officially maintained options and will always be up-to-date.
 
 On FreeBSD
 ----------
@@ -280,6 +281,19 @@ without uninstalling the older one.
 The binary release ships with a QtWebEngine built without proprietary codec
 support. To get support for e.g. h264/mp4 videos, you'll need to build
 QtWebEngine from source yourself with support for that enabled.
+
+Nightly builds
+~~~~~~~~~~~~~~
+
+If you want to test out new features before an official qutebrowser release, automated
+https://github.com/qutebrowser/qutebrowser/actions/workflows/bleeding.yml[nightly
+builds] are available. To download them, open the lastest run (usually the first one),
+then download the archive at the bottom of the page. Note that due to GitHub
+limitations, all variants (Windows/macOS, 32/64 bit, debug/non-debug) are contained in a
+single archive.
+
+Those builds also include variants with debug logging enabled, which can be useful to
+track down issues.
 
 https://chocolatey.org/packages/qutebrowser[Chocolatey package]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -330,6 +344,19 @@ https://caskroom.github.io/[Homebrew Cask] package manager:
 ----
 $ brew install qutebrowser --cask
 ----
+
+Nightly builds
+~~~~~~~~~~~~~~
+
+If you want to test out new features before an official qutebrowser release, automated
+https://github.com/qutebrowser/qutebrowser/actions/workflows/bleeding.yml[nightly
+builds] are available. To download them, open the lastest run (usually the first one),
+then download the archive at the bottom of the page. Note that due to GitHub
+limitations, all variants (Windows/macOS, 32/64 bit, debug/non-debug) are contained in a
+single archive.
+
+Those builds also include variants with debug logging enabled, which can be useful to
+track down issues.
 
 Manual Install
 ~~~~~~~~~~~~~~

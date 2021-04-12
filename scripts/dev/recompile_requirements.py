@@ -74,7 +74,7 @@ CHANGELOG_URLS = {
     'snowballstemmer': 'https://github.com/snowballstem/snowball/blob/master/NEWS',
     'virtualenv': 'https://virtualenv.pypa.io/en/latest/changelog.html',
     'packaging': 'https://packaging.pypa.io/en/latest/changelog.html',
-    'build': 'https://github.com/pypa/build/blob/master/CHANGELOG.rst',
+    'build': 'https://github.com/pypa/build/blob/main/CHANGELOG.rst',
     'attrs': 'https://www.attrs.org/en/stable/changelog.html',
     'Jinja2': 'https://github.com/pallets/jinja/blob/master/CHANGES.rst',
     'MarkupSafe': 'https://markupsafe.palletsprojects.com/en/1.1.x/changes/',
@@ -95,7 +95,7 @@ CHANGELOG_URLS = {
     'pep8-naming': 'https://github.com/PyCQA/pep8-naming/blob/master/CHANGELOG.rst',
     'pycodestyle': 'https://github.com/PyCQA/pycodestyle/blob/master/CHANGES.txt',
     'pyflakes': 'https://github.com/PyCQA/pyflakes/blob/master/NEWS.rst',
-    'cffi': 'https://cffi.readthedocs.io/en/latest/whatsnew.html',
+    'cffi': 'https://github.com/python-cffi/release-doc/blob/master/doc/source/whatsnew.rst',
     'astroid': 'https://github.com/PyCQA/astroid/blob/2.4/ChangeLog',
     'pytest-instafail': 'https://github.com/pytest-dev/pytest-instafail/blob/master/CHANGES.rst',
     'coverage': 'https://github.com/nedbat/coveragepy/blob/master/CHANGES.rst',
@@ -137,10 +137,14 @@ CHANGELOG_URLS = {
     'cryptography': 'https://cryptography.io/en/latest/changelog.html',
     'toml': 'https://github.com/uiri/toml/releases',
     'PyQt5': 'https://www.riverbankcomputing.com/news',
+    'PyQt5-Qt': 'https://www.riverbankcomputing.com/news',
+    'PyQt5-Qt5': 'https://www.riverbankcomputing.com/news',
     'PyQtWebEngine': 'https://www.riverbankcomputing.com/news',
+    'PyQtWebEngine-Qt': 'https://www.riverbankcomputing.com/news',
+    'PyQtWebEngine-Qt5': 'https://www.riverbankcomputing.com/news',
     'PyQt-builder': 'https://www.riverbankcomputing.com/news',
     'PyQt5-sip': 'https://www.riverbankcomputing.com/news',
-    'PyQt5_stubs': 'https://github.com/stlehmann/PyQt5-stubs/blob/master/CHANGELOG.md',
+    'PyQt5-stubs': 'https://github.com/stlehmann/PyQt5-stubs/blob/master/CHANGELOG.md',
     'sip': 'https://www.riverbankcomputing.com/news',
     'Pygments': 'https://pygments.org/docs/changelog/',
     'vulture': 'https://github.com/jendrikseipp/vulture/blob/master/CHANGELOG.md',
@@ -162,7 +166,7 @@ CHANGELOG_URLS = {
     'pathspec': 'https://github.com/cpburnz/python-path-specification/blob/master/CHANGES.rst',
     'filelock': 'https://github.com/benediktschmitt/py-filelock/commits/master',
     'github3.py': 'https://github3py.readthedocs.io/en/master/release-notes/index.html',
-    'manhole': 'https://github3py.readthedocs.io/en/master/release-notes/index.html',
+    'manhole': 'https://github.com/ionelmc/python-manhole/blob/master/CHANGELOG.rst',
     'pycparser': 'https://github.com/eliben/pycparser/blob/master/CHANGES',
     'python-dateutil': 'https://dateutil.readthedocs.io/en/stable/changelog.html',
     'appdirs': 'https://github.com/ActiveState/appdirs/blob/master/CHANGES.rst',
@@ -173,12 +177,14 @@ CHANGELOG_URLS = {
     'pyroma': 'https://github.com/regebro/pyroma/blob/master/HISTORY.txt',
     'adblock': 'https://github.com/ArniDagur/python-adblock/blob/master/CHANGELOG.md',
     'importlib-resources': 'https://importlib-resources.readthedocs.io/en/latest/history.html',
+    'importlib-metadata': 'https://github.com/python/importlib_metadata/blob/main/CHANGES.rst',
+    'zipp': 'https://github.com/jaraco/zipp/blob/main/CHANGES.rst',
     'dataclasses': 'https://github.com/ericvsmith/dataclasses#release-history',
     'pip': 'https://pip.pypa.io/en/stable/news/',
     'wheel': 'https://wheel.readthedocs.io/en/stable/news.html',
     'setuptools': 'https://setuptools.readthedocs.io/en/latest/history.html',
-    'semantic-version': 'https://github.com/rbarrois/python-semanticversion/blob/master/ChangeLog',
-    'setuptools-rust': 'https://github.com/PyO3/setuptools-rust/blob/master/CHANGELOG.md',
+    'future': 'https://python-future.org/whatsnew.html',
+    'pefile': 'https://github.com/erocarrera/pefile/commits/master',
 }
 
 
@@ -275,7 +281,7 @@ def run_pip(venv_dir, *args, quiet=False, **kwargs):
     arg_str = ' '.join(str(arg) for arg in args)
     utils.print_col('venv$ pip {}'.format(arg_str), 'blue')
 
-    venv_python = os.path.join(venv_dir, 'bin', 'python')
+    venv_python = get_venv_python(venv_dir)
     return subprocess.run([venv_python, '-m', 'pip'] + args, check=True, **kwargs)
 
 
@@ -370,10 +376,12 @@ def parse_versioned_line(line):
     if '==' in line:
         if line[0] == '#':  # ignored dependency
             line = line[1:].strip()
-        line = line.rsplit('#', maxsplit=1)[0]  # Strip comments
+
+        # Strip comments and pip environment markers
+        line = line.rsplit('#', maxsplit=1)[0]
+        line = line.split(';')[0].strip()
+
         name, version = line.split('==')
-        if ';' in version:  # pip environment markers
-            version = version.split(';')[0].strip()
     elif line.startswith('-e'):
         rest, name = line.split('#egg=')
         version = rest.split('@')[1][:7]
@@ -393,7 +401,13 @@ def _get_changes(diff):
     for line in diff:
         if not line.startswith('-') and not line.startswith('+'):
             continue
-        if line.startswith('+++ ') or line.startswith('--- '):
+        elif line.startswith('+++ ') or line.startswith('--- '):
+            continue
+        elif not line.strip():
+            # Could be newline changes on Windows
+            continue
+        elif line[1:].startswith('# This file is automatically'):
+            # Could be newline changes on Windows
             continue
 
         name, version = parse_versioned_line(line[1:])
@@ -452,6 +466,12 @@ def get_host_python(name):
         return sys.executable
 
 
+def get_venv_python(venv_dir):
+    """Get the path to Python inside a virtualenv."""
+    subdir = 'Scripts' if os.name == 'nt' else 'bin'
+    return os.path.join(venv_dir, subdir, 'python')
+
+
 def get_outfile(name):
     """Get the path to the output requirements.txt file."""
     if name == 'qutebrowser':
@@ -504,7 +524,7 @@ def test_tox():
     with tempfile.TemporaryDirectory() as tmpdir:
         venv_dir = os.path.join(tmpdir, 'venv')
         tox_workdir = os.path.join(tmpdir, 'tox-workdir')
-        venv_python = os.path.join(venv_dir, 'bin', 'python')
+        venv_python = get_venv_python(venv_dir)
         init_venv(host_python, venv_dir, req_path)
         list_proc = subprocess.run([venv_python, '-m', 'tox', '--listenvs'],
                                    check=True,

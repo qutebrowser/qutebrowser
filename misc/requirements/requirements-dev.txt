@@ -2,26 +2,23 @@
 
 bump2version==1.0.1
 certifi==2020.12.5
-cffi==1.14.4
+cffi==1.14.5
 chardet==4.0.0
-colorama==0.4.4
-cryptography==3.4.1
-github3.py==1.3.0
-hunter==3.3.1
+cryptography==3.4.7
+github3.py==2.0.0
+hunter==3.3.2
 idna==2.10
 jwcrypto==0.8
-manhole==1.6.0
+manhole==1.7.0
 packaging==20.9
 pycparser==2.20
 Pympler==0.9
 pyparsing==2.4.7
-PyQt-builder==1.8.0
+PyQt-builder==1.9.1
 python-dateutil==2.8.1
 requests==2.25.1
-semantic-version==2.8.5
-setuptools-rust==0.11.6
-sip==6.0.1
+sip==6.0.3
 six==1.15.0
 toml==0.10.2
 uritemplate==3.0.1
-# urllib3==1.26.3
+# urllib3==1.26.4

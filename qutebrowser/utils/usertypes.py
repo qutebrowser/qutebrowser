@@ -19,10 +19,11 @@
 
 """Custom useful data types."""
 
+import html
 import operator
 import enum
 import dataclasses
-from typing import Any, Optional, Sequence, TypeVar, Union
+from typing import Optional, Sequence, TypeVar, Union
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 from PyQt5.QtCore import QUrl
@@ -483,9 +484,6 @@ class AbstractCertificateErrorWrapper:
 
     """A wrapper over an SSL/certificate error."""
 
-    def __init__(self, error: Any) -> None:
-        self._error = error
-
     def __str__(self) -> str:
         raise NotImplementedError
 
@@ -494,6 +492,9 @@ class AbstractCertificateErrorWrapper:
 
     def is_overridable(self) -> bool:
         raise NotImplementedError
+
+    def html(self) -> str:
+        return f'<p>{html.escape(str(self))}</p>'
 
 
 @dataclasses.dataclass

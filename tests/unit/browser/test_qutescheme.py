@@ -28,7 +28,8 @@ from PyQt5.QtCore import QUrl, QUrlQuery
 import pytest
 
 from qutebrowser.browser import qutescheme, pdfjs, downloads
-from qutebrowser.utils import utils
+from qutebrowser.utils import resources
+from qutebrowser.misc import guiprocess
 
 
 class TestJavascriptHandler:
@@ -43,15 +44,15 @@ class TestJavascriptHandler:
 
     @pytest.fixture(autouse=True)
     def patch_read_file(self, monkeypatch):
-        """Patch utils.read_file to return few fake JS files."""
+        """Patch resources.read_file to return few fake JS files."""
         def _read_file(path):
-            """Faked utils.read_file."""
+            """Faked resources.read_file."""
             for filename, content in self.js_files:
                 if path == os.path.join('javascript', filename):
                     return content
             raise OSError("File not found {}!".format(path))
 
-        monkeypatch.setattr(utils, 'read_file', _read_file)
+        monkeypatch.setattr(resources, 'read_file', _read_file)
 
     @pytest.mark.parametrize("filename, content", js_files)
     def test_qutejavascript(self, filename, content):
@@ -71,6 +72,35 @@ class TestJavascriptHandler:
 
         with pytest.raises(qutescheme.UrlInvalidError):
             qutescheme.qute_javascript(url)
+
+
+class TestProcessHandler:
+
+    """Test the qute://process endpoint."""
+
+    def test_invalid_pid(self):
+        with pytest.raises(qutescheme.UrlInvalidError, match='Invalid PID blah'):
+            qutescheme.qute_process(QUrl('qute://process/blah'))
+
+    def test_missing_process(self, monkeypatch):
+        monkeypatch.setattr(guiprocess, 'all_processes', {})
+        with pytest.raises(qutescheme.NotFoundError, match='No process 1234'):
+            qutescheme.qute_process(QUrl('qute://process/1234'))
+
+    def test_existing_process(self, qtbot, py_proc):
+        proc = guiprocess.GUIProcess('testprocess')
+
+        with qtbot.wait_signal(proc.finished, timeout=5000):
+            proc.start(*py_proc("print('AT&T')"))
+
+        _mimetype, data = qutescheme.qute_process(QUrl(f'qute://process/{proc.pid}'))
+        print(data)
+
+        assert f'<title>Process {proc.pid}</title>' in data
+        assert '-c &#39;print(' in data
+        assert 'Testprocess exited successfully.' in data
+        assert f'<pre>AT&amp;T{os.linesep}</pre>' in data
+        assert 'No output.' in data  # stderr
 
 
 class TestHistoryHandler:
@@ -165,8 +195,9 @@ class TestHelpHandler:
                 assert path == name
                 return data
 
-            monkeypatch.setattr(qutescheme.utils, 'read_file', _read_file)
-            monkeypatch.setattr(qutescheme.utils, 'read_file_binary', _read_file_binary)
+            monkeypatch.setattr(qutescheme.resources, 'read_file', _read_file)
+            monkeypatch.setattr(qutescheme.resources,
+                                'read_file_binary', _read_file_binary)
         return _patch
 
     def test_unknown_file_type(self, data_patcher):

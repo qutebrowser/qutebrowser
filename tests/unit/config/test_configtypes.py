@@ -39,7 +39,7 @@ from qutebrowser.config import configtypes, configexc
 from qutebrowser.utils import debug, utils, qtutils, urlmatch, usertypes
 from qutebrowser.browser.network import pac
 from qutebrowser.keyinput import keyutils
-from helpers import utils as testutils
+from helpers import testutils
 
 
 class Font(QFont):
@@ -1832,6 +1832,8 @@ class TestFormatString:
         '{foo} {bar} {baz}',
         '{foo} {bar',
         '{1}',
+        '{foo.attr}',
+        '{foo[999]}',
     ])
     def test_to_py_invalid(self, typ, val):
         with pytest.raises(configexc.ValidationError):
@@ -2113,6 +2115,24 @@ class TestUrlPattern:
     def test_to_py_invalid(self, klass):
         with pytest.raises(configexc.ValidationError):
             klass().to_py('http://')
+
+
+class TestStatusbarWidget:
+
+    @pytest.fixture
+    def klass(self):
+        return configtypes.StatusbarWidget
+
+    @pytest.mark.parametrize('value', ['text:bar', 'foo'])
+    def test_validate_valid_values(self, klass, value):
+        widget = klass(valid_values=configtypes.ValidValues('foo'))
+        assert widget.to_py(value) == value
+
+    @pytest.mark.parametrize('value', ['text', 'foo:bar'])
+    def test_validate_invalid_values(self, klass, value):
+        widget = klass(valid_values=configtypes.ValidValues('foo'))
+        with pytest.raises(configexc.ValidationError):
+            widget.to_py(value)
 
 
 @pytest.mark.parametrize('first, second, equal', [

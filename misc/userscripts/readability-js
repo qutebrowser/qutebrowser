@@ -7,11 +7,19 @@
 //
 // # Prerequisites
 //
-//   - Setting NODE_PATH might be required to point qutebrowser to your global node libraries:
-//     export NODE_PATH=$NODE_PATH:$(npm root -g)
-//   - Mozilla's readability library (npm install -g @mozilla/readability)
-//   - jsdom (npm install -g jsdom)
-//   - qutejs (npm install -g qutejs)
+// - Mozilla's readability library (npm install -g @mozilla/readability)
+// - jsdom (npm install -g jsdom)
+// - qutejs (npm install -g qutejs)
+//
+// - Ensure that node knows where to find your globally installed modules by adding
+//   the following to ~/.profile or /etc/profile:
+//     
+//   export NODE_PATH=$NODE_PATH:$(npm root -g)
+//
+// *Note*: On some Linux distros and macOS, it may be easier to set NODE_PATH using qutebrowser's
+// qt.environ setting. For instance, if 'npm root -g' returns /usr/lib/node_modules, then run:
+//
+//   :set qt.environ '{"NODE_PATH": "/usr/lib/node_modules"}'
 //
 // # Usage
 //
@@ -31,8 +39,8 @@ const HEADER = `
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1, text/html, charset=UTF-8" http-equiv="Content-Type">
-    </meta>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
     <title>%s</title>
     <style type="text/css">
         body {
@@ -43,6 +51,15 @@ const HEADER = `
         }
         h1, h2, h3 {
             line-height: 1.2;
+        }
+        h1.reader-title {
+            font-size: 1.85em;
+            line-height: 1.25em;
+            width: 100%;
+            margin: 0 0;
+        }
+        a.reader-title {
+            color: #FFFFFF !important;
         }
         img {
             max-width:100%;
@@ -98,7 +115,15 @@ const HEADER = `
     SAwLTIgMC44OTUtMiAyczAuODk1IDIgMiAyaDIwYzEuMTEgMCAyLTAuODk1IDItMnMtMC44OTUtMi0yLTJ6bTAgOGgtMjBjLTEuMTEgMC0yIDAuODk1LTIg
     MnMwLjg5NSAyIDIgMmgyMGMxLjExIDAgMi0wLjg5NSAyLTJzLTAuODk1LTItMi0yem0tMTIgOGgtOGMtMS4xMSAwLTIgMC44OTUtMiAyczAuODk1IDIgMiA
     yaDhjMS4xMSAwIDItMC44OTUgMi0ycy0wLjg5NS0yLTItMnoiIGZpbGw9IiNmZmYiLz4KPC9nPgo8L3N2Zz4K"/>
-</head>`;
+</head>
+<body class="qute-readability">
+    <h1 class="reader-title">%s</h1>
+    <div>From <a class="reader-title" href="%s">%s</a></div>
+    <hr>
+    %s
+</body>
+</html>
+`;
 const scriptsDir = path.join(process.env.QUTE_DATA_DIR, 'userscripts');
 const tmpFile = path.join(scriptsDir, '/readability.html');
 
@@ -121,7 +146,8 @@ else {
 getDOM(target, domOpts).then(dom => {
     let reader = new Readability(dom.window.document);
     let article = reader.parse();
-    let content = util.format(HEADER, article.title) + article.content;
+    let subtitle = (article.siteName == null) ? new URL(process.env.QUTE_URL).hostname : article.siteName;
+    let content = util.format(HEADER, article.title, article.title, process.env.QUTE_URL, subtitle, article.content);
 
     fs.writeFile(tmpFile, content, (err) => {
         if (err) {
