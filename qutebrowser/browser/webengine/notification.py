@@ -399,8 +399,7 @@ class NotificationBridgePresenter(QObject):
             # Error during setup
             return
 
-        log.misc.error(
-            f"Notification error from {self._adapter.NAME} adapter: {error}")
+        message.error(f"Notification error from {self._adapter.NAME} adapter: {error}")
         self._drop_adapter()
 
 
