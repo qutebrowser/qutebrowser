@@ -23,7 +23,7 @@ Deprecated
 ~~~~~~~~~~
 
 - Running qutebrowser with Qt 5.12.0 is now unsupported and logs a warning. It
-  should still work, however, a workaround for issues with the Nvidia graphic
+  should still work - however, a workaround for issues with the Nvidia graphic
   driver was dropped. Newer Qt 5.12.x versions are still fully supported.
 - The `--force` argument for `:tab-only` is deprecated, use `--pinned close`
   instead.
@@ -51,15 +51,15 @@ Added
   non-standard but in wide use).
 - New `content.notifications.presenter` setting with various new ways to show
   web notifications:
-     * auto (default): Automatically detect the best available option
-     * qt: Use Qt's built-in mechanism (like before this release)
-     * libnotify: Use a libnotify-compatible notification server (i.e. native
+     * `auto` (default): Automatically detect the best available option
+     * `qt`: Use Qt's built-in mechanism (like before this release)
+     * `libnotify`: Use a libnotify-compatible notification server (i.e. native
        notifications on Linux)
-     * systray: Use a systray icon (very similar to `qt` but without some of its
-       drawbacks)
-     * messages: Use qutebrowser messages
-     * herbe: Use https://github.com/dudik/herbe[herbe]
-- New `content.notifications.show_origin` setting which can be used to decide
+     * `systray`: Use a systray icon (very similar to `qt` but without some of
+       its drawbacks)
+     * `messages`: Use qutebrowser messages
+     * `herbe`: Use https://github.com/dudik/herbe[herbe]
+- New `content.notifications.show_origin` setting, which can be used to decide
   for which notifications to show the origin (the URL the notification was sent
   from).
 
