@@ -693,6 +693,15 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
     SPEC_VERSION = "1.2"  # Released in January 2011, still current in March 2021.
     NAME = "libnotify"
 
+    _NON_FATAL_ERRORS = {
+        # notification daemon is gone
+        "org.freedesktop.DBus.Error.NoReply",
+
+        # https://gitlab.gnome.org/GNOME/gnome-flashback/-/blob/3.40.0/gnome-flashback/libnotifications/nd-daemon.c#L178-187
+        # Exceeded maximum number of notifications
+        "org.freedesktop.Notifications.MaxNotificationsExceeded",
+    }
+
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(bridge)
         if not qtutils.version_check('5.14'):
@@ -878,8 +887,8 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
         if msg.type() == QDBusMessage.ErrorMessage:
             err = msg.errorName()
-            if err == "org.freedesktop.DBus.Error.NoReply":
-                self.error.emit(msg.errorMessage())  # notification daemon is gone
+            if err in self._NON_FATAL_ERRORS:
+                self.error.emit(msg.errorMessage())
                 return
 
             raise Error(f"Got DBus error: {err} - {msg.errorMessage()}")
