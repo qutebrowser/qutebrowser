@@ -112,6 +112,12 @@ Changed
   valid, but was never customized.
 - The `statusbar.widgets` setting now understands `text:...` entries which
   allows adding a hard-coded text to the statusbar.
+- The polyfill for `String.replaceAll` (required for Nextcloud Calendar < 2.2.0
+  with QtWebEngine < 5.15.3) is now disabled by default, as it's not fully
+  compliant to the ECMAScript spec and might cause issues on other websites.
+  If you still need it (e.g. if you're still on an old Nextcloud Calendar
+  version), remove `js-string-replaceall` from
+  `content.site_specific_quirks.skip`.
 
 Fixed
 ~~~~~
