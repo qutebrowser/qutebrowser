@@ -617,6 +617,8 @@ def main():
                         nargs='?')
     parser.add_argument('--upload', action='store_true', required=False,
                         help="Toggle to upload the release to GitHub.")
+    parser.add_argument('--no-confirm', action='store_true', required=False,
+                        help="Skip confirmation before uploading.")
     parser.add_argument('--skip-packaging', action='store_true', required=False,
                         help="Skip Windows installer/zip generation.")
     parser.add_argument('--32bit', action='store_true', required=False,
@@ -665,8 +667,10 @@ def main():
 
     if args.upload:
         version_tag = "v" + qutebrowser.__version__
-        utils.print_title("Press enter to release {}...".format(version_tag))
-        input()
+
+        if not args.no_confirm:
+            utils.print_title("Press enter to release {}...".format(version_tag))
+            input()
 
         github_upload(artifacts, version_tag, gh_token=gh_token)
         if upload_to_pypi:
