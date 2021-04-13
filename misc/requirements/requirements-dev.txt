@@ -9,7 +9,7 @@ github3.py==2.0.0
 hunter==3.3.2
 idna==2.10
 jwcrypto==0.8
-manhole==1.7.0
+manhole==1.8.0
 packaging==20.9
 pycparser==2.20
 Pympler==0.9

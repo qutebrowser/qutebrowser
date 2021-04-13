@@ -34,7 +34,8 @@ import datetime
 import getpass
 import functools
 import dataclasses
-from typing import Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast
+from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast,
+                    TYPE_CHECKING)
 
 
 from PyQt5.QtCore import PYQT_VERSION_STR, QLibraryInfo, qVersion
@@ -58,7 +59,9 @@ import qutebrowser
 from qutebrowser.utils import log, utils, standarddir, usertypes, message, resources
 from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin, elf
 from qutebrowser.browser import pdfjs
-from qutebrowser.config import config, websettings
+from qutebrowser.config import config
+if TYPE_CHECKING:
+    from qutebrowser.config import websettings
 
 _LOGO = r'''
          ______     ,,
@@ -594,7 +597,7 @@ class WebEngineVersions:
         return s
 
     @classmethod
-    def from_ua(cls, ua: websettings.UserAgent) -> 'WebEngineVersions':
+    def from_ua(cls, ua: 'websettings.UserAgent') -> 'WebEngineVersions':
         """Get the versions parsed from a user agent.
 
         This is the most reliable and "default" way to get this information (at least

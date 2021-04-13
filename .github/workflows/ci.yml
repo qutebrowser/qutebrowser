@@ -190,7 +190,7 @@ jobs:
         uses: github/codeql-action/init@v1
         with:
           languages: javascript, python
-          queries: +security-and-quality
+          queries: +security-extended
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
 
