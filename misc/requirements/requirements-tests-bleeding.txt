@@ -33,6 +33,4 @@ adblock ; python_version!="3.10"
 git+https://github.com/pallets/jinja.git
 git+https://github.com/yaml/pyyaml.git
 git+https://github.com/tartley/colorama.git
-
-# https://github.com/pyparsing/pyparsing/issues/271
-pyparsing!=3.0.0b2,!=3.0.0b1
+git+https://github.com/pyparsing/pyparsing.git
