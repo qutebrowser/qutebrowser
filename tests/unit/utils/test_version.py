@@ -1174,6 +1174,16 @@ class TestChromiumVersion:
         assert versions.source == 'importlib'
         assert versions.webengine == expected
 
+    @pytest.mark.parametrize('override', [
+        utils.VersionNumber(5, 12, 10),
+        utils.VersionNumber(5, 15, 3),
+    ])
+    def test_override(self, monkeypatch, override):
+        monkeypatch.setenv('QUTE_QTWEBENGINE_VERSION_OVERRIDE', str(override))
+        versions = version.qtwebengine_versions(avoid_init=True)
+        assert versions.source == 'override'
+        assert versions.webengine == override
+
 
 @dataclasses.dataclass
 class VersionParams:
