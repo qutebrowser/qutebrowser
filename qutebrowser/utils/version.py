@@ -710,7 +710,7 @@ class WebEngineVersions:
         )
 
     @classmethod
-    def from_qt(cls, qt_version: str, *, source: str = 'Qt') -> 'WebEngineVersions':
+    def from_qt(cls, qt_version: str) -> 'WebEngineVersions':
         """Get the versions based on the Qt version.
 
         This is called if we don't have PYQT_WEBENGINE_VERSION, i.e. with PyQt 5.12.
@@ -719,7 +719,7 @@ class WebEngineVersions:
         return cls(
             webengine=parsed,
             chromium=cls._infer_chromium_version(parsed),
-            source=source,
+            source='Qt',
         )
 
 
@@ -749,10 +749,6 @@ def qtwebengine_versions(avoid_init: bool = False) -> WebEngineVersions:
 
     if webenginesettings.parsed_user_agent is not None:
         return WebEngineVersions.from_ua(webenginesettings.parsed_user_agent)
-
-    override = os.environ.get('QUTE_QTWEBENGINE_VERSION_OVERRIDE')
-    if override is not None:
-        return WebEngineVersions.from_qt(override, source='override')
 
     versions = elf.parse_webenginecore()
     if versions is not None:
