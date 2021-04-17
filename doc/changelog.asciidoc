@@ -28,10 +28,13 @@ Changed
 Fixed
 ~~~~~
 
-- With the legacy GNOME Flashback notification daemon (not GNOME Shell), when
-  more than 20 notifications are shown at the same time, the daemon sends back a
-  (persistent) error which wasn't handled by qutebrowser. The error is now
-  displayed instead of resulting in a crash.
+- Certain errors from notification daemons are now displayed as non-fatal
+  errors instead of qutebrowser crashing:
+  * With the legacy GNOME Flashback notification daemon (not GNOME Shell), when
+    more than 20 notifications are currently shown.
+  * With the KDE Plasma notification daemon, when the same notification is
+    shown twice (with <1s delay).
+- The `mkvenv.py` script now works when `ldconfig -p` is failing.
 
 [[v2.2.0]]
 v2.2.0 (2021-04-13)
