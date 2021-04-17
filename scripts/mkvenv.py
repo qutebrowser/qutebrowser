@@ -271,7 +271,13 @@ def apply_xcb_util_workaround(
         print("Workaround not needed: Not installing Qt 5.15.")
         return
 
-    libs = _find_libs()
+    try:
+        libs = _find_libs()
+    except subprocess.CalledProcessError as e:
+        utils.print_error(
+            f'Workaround failed: ldconfig exited with status {e.returncode}')
+        return
+
     abi_type = 'libc6,x86-64'  # the only one PyQt wheels are available for
 
     if ('libxcb-util.so.1', abi_type) in libs:
