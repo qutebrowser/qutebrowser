@@ -699,6 +699,11 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         # https://gitlab.gnome.org/GNOME/gnome-flashback/-/blob/3.40.0/gnome-flashback/libnotifications/nd-daemon.c#L178-187
         # Exceeded maximum number of notifications
         "org.freedesktop.Notifications.MaxNotificationsExceeded",
+
+        # https://bugs.kde.org/show_bug.cgi?id=409157
+        # https://github.com/KDE/plasma-workspace/blob/v5.21.4/libnotificationmanager/server_p.cpp#L227-L237
+        # Created too many similar notifications in quick succession
+        "org.freedesktop.Notifications.Error.ExcessNotificationGeneration",
     }
 
     def __init__(self, parent: QObject = None) -> None:
