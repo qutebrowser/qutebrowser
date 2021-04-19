@@ -240,9 +240,10 @@ def main(arguments):
     if not selection:
         return ExitCodes.SUCCESS
 
-    # If username-target is path and user asked for username-only, we don't need to run pass
+    # If username-target is path and user asked for username-only, we don't need to run pass.
+    # Or if using otp-only, it will run pass on its own.
     secret = None
-    if not (arguments.username_target == 'path' and arguments.username_only):
+    if not (arguments.username_target == 'path' and arguments.username_only) and not arguments.otp_only:
         secret = pass_(selection)
     username_target = selection if arguments.username_target == 'path' else secret
     try:
