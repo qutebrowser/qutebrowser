@@ -38,7 +38,7 @@ Fixed
 - Fixes in userscripts:
   * The `qute-bitwarden` userscript now still consumes returned data if the
     Bitwarden CLI showed a warning but exited with a 0 (successful) exit code.
-  * The `qute-pass` userscript now doesn't try to match an username with
+  * The `qute-pass` userscript now doesn't try to match a username with
     `--password-only`, and error messages with invalid patterns are improved.
 
 [[v2.2.0]]
