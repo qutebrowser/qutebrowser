@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block style %}
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300&display=swap');
+body {
+    background-color: #a6dfff;
+}
+.title {
+    color: #1f84bd;
+    font-family: Roboto,Helvetica;
+}
+.title-header {
+    font-family: Roboto,Helvetica;
+}
+h3 {
+    font-size: 45px;
+}
+h6 {
+    font-size: 20px;
+}
+.bookmark-container {
+    margin: 20px;
+}
+a {
+    font-family: Roboto-Mono,Helvetica;
+}
+a:visited {
+    color:#000000;
+    text-decoration: none;
+}
+.bookmark-mega-container {
+    border-size: 3;
+    border-color: #1f84bd;
+    border-radius: 5px;
+    border-width: 1px;
+    border-style: solid;
+    margin: 10px;
+}
+h4 {
+    font-family: Roboto;
+    font-size: 30px;
+    padding: 10px;
+}
+.getting-started-container {
+    border-size: 3;
+    border-color: #1f84bd;
+    border-radius: 5px;
+    border-width: 1px;
+    border-style: solid;
+    margin: 10px;
+}
+.logo {
+    width:75px;
+    height: 75px;
+    padding: 10px;
+}
+.title-container {
+    text-align: center;
+    display: flex;
+    align-items: center;
+    max-width:500px;
+    margin:auto;
+
+}
+.link-container {
+    margin: 20px;
+}
+{% endblock %}
+
+{% block script %}
+{% endblock %}
+
+
+{% block content %}
+<div class="title-container">
+  <img src="https://qutebrowser.org/icons/qutebrowser.svg" class="logo">
+  <span>
+    <h3 class="title">qutebrowser</h3>
+  </span>
+</div>
+<div class="getting-started-container">
+  <h4>Getting Started.</h4>
+  <div class="link-container">
+    <a class="link-name" href="https://qutebrowser.org">Official Website</a>
+  </div>
+  <div class="link-container">
+    <a class="link-name" href="https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png">Cheat Sheet</a>
+  </div>
+</div>
+<div class="bookmark-mega-container">
+  <h4>Bookmarks</h4>
+  {% for bookmark in bookmarks %}
+  <div class="bookmark-container">
+    <a class="bookmark-name" href="{{ bookmark[0] }}"> {{ bookmark[1] }} </a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
+
