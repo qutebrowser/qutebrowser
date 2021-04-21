@@ -206,21 +206,11 @@ def smoke_test(executable, debug):
         raise Exception("\n".join(lines))
 
 
-def patch_windows_exe(exe_path):
-    """Make sure the Windows .exe has a correct checksum.
-
-    WORKAROUND for https://github.com/pyinstaller/pyinstaller/issues/5579
-    """
+def verify_windows_exe(exe_path):
+    """Make sure the Windows .exe has a correct checksum."""
     import pefile
     pe = pefile.PE(exe_path)
-
-    # If this fails, a PyInstaller upgrade fixed things, and we can remove the
-    # workaround. Would be a good idea to keep the check, though.
-    assert not pe.verify_checksum()
-
-    pe.OPTIONAL_HEADER.CheckSum = pe.generate_checksum()
-    pe.close()
-    pe.write(exe_path)
+    assert pe.verify_checksum()
 
 
 def patch_mac_app():
@@ -364,8 +354,8 @@ def _build_windows_single(*, x64, skip_packaging, debug):
     shutil.move(out_pyinstaller, outdir)
     exe_path = os.path.join(outdir, 'qutebrowser.exe')
 
-    utils.print_title(f"Patching {human_arch} exe")
-    patch_windows_exe(exe_path)
+    utils.print_title(f"Verifying {human_arch} exe")
+    verify_windows_exe(exe_path)
 
     utils.print_title(f"Running {human_arch} smoke test")
     smoke_test(exe_path, debug=debug)
