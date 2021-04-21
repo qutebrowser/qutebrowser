@@ -3986,6 +3986,7 @@ Valid values:
  * +tabs+: Current active tab, e.g. `2`.
  * +keypress+: Display pressed keys when composing a vi command.
  * +progress+: Progress bar for the current page loading.
+ * +text:CUSTOM+: Add static text. e.g. a profile name: `text:WORK`
 
 Default: 
 
