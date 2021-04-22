@@ -1934,13 +1934,10 @@ statusbar.widgets:
         - tabs: "Current active tab, e.g. `2`."
         - keypress: "Display pressed keys when composing a vi command."
         - progress: "Progress bar for the current page loading."
+        - 'text:': "`text:foo` displays the static text foo."
     none_ok: true
   default: ['keypress', 'url', 'scroll', 'history', 'tabs', 'progress']
-  desc: >-
-    List of widgets displayed in the statusbar.
-
-    In addition to the listed values there is also the possibility
-    to add `text:foo` widgets that will display `foo`.
+  desc: "List of widgets displayed in the statusbar."
 
 ## tabs
 
