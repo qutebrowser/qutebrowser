@@ -116,6 +116,7 @@ def set_up_editor_wait(quteproc, tmp_path, text, editor_pid_watcher):
     script = tmp_path / 'script.py'
     script.write_text(textwrap.dedent("""
         import pathlib
+        import os
         import sys
         import time
         import signal

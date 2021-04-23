@@ -32,9 +32,9 @@ def turn_on_scroll_logging(quteproc):
 
 @bdd.when(bdd.parsers.parse('I have a "{name}" session file:\n{contents}'))
 def create_session_file(quteproc, name, contents):
-    filename = (pathlib.Path(quteproc.basedir) / 'data' / 'sessions' /
+    filename_path = (pathlib.Path(quteproc.basedir) / 'data' / 'sessions' /
                 name).with_suffix('.yml')
-    filename.write_text(contents, encoding='utf-8')
+    filename_path.write_text(contents, encoding='utf-8')
 
 
 @bdd.when(bdd.parsers.parse('I replace "{pattern}" by "{replacement}" in the '
@@ -43,22 +43,23 @@ def session_replace(quteproc, server, pattern, replacement, name):
     # First wait until the session was actually saved
     quteproc.wait_for(category='message', loglevel=logging.INFO,
                       message='Saved session {}.'.format(name))
-    filename = (pathlib.Path(quteproc.basedir) / 'data' /
+    filename_path = (pathlib.Path(quteproc.basedir) / 'data' /
                 'sessions' / name).with_suffix('.yml')
     replacement = replacement.replace('(port)', str(server.port))  # yo dawg
-    data = filename.read_text(encoding='utf-8')
-    filename.write_text(data.replace(pattern, replacement), encoding='utf-8')
+    data = filename_path.read_text(encoding='utf-8')
+    filename_path.write_text(data.replace(pattern, replacement),
+                             encoding='utf-8')
 
 
 @bdd.then(bdd.parsers.parse("the session {name} should exist"))
 def session_should_exist(quteproc, name):
-    filename = (pathlib.Path(quteproc.basedir) / 'data' /
+    filename_path = (pathlib.Path(quteproc.basedir) / 'data' /
                 'sessions' / name).with_suffix('.yml')
-    assert pathlib.Path(filename).exists()
+    assert filename_path.exists()
 
 
 @bdd.then(bdd.parsers.parse("the session {name} should not exist"))
 def session_should_not_exist(quteproc, name):
-    filename = (pathlib.Path(quteproc.basedir) / 'data' /
+    filename_path = (pathlib.Path(quteproc.basedir) / 'data' /
                 'sessions' / name).with_suffix('.yml')
-    assert not pathlib.Path(filename).exists()
+    assert not filename_path.exists()
