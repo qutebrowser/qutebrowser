@@ -35,6 +35,7 @@ Fixed
   * With the KDE Plasma notification daemon, when the same notification is
     shown twice (with <1s delay).
 - The `mkvenv.py` script now works when `ldconfig -p` is failing.
+- Running `:spawn -u -o` broke in v2.2.0 and now works properly again.
 - Fixes in userscripts:
   * The `qute-bitwarden` userscript now still consumes returned data if the
     Bitwarden CLI showed a warning but exited with a 0 (successful) exit code.
