@@ -72,6 +72,7 @@ Feature: :spawn
 
     @windows
     Scenario: Running :spawn with userscript on Windows
+        Given I clean up open tabs
         When I open data/hello.txt
         And I run :spawn -u (testdata)/userscripts/open_current_url.bat
         And I wait until data/hello.txt is loaded
