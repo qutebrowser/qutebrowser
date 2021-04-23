@@ -36,6 +36,8 @@ Fixed
     shown twice (with <1s delay).
 - The `mkvenv.py` script now works when `ldconfig -p` is failing.
 - Running `:spawn -u -o` broke in v2.2.0 and now works properly again.
+- When using `:print`, the printer resolution is now set to 300dpi, rather than
+  using the screen's DPI which could result in blurry printouts.
 - Fixes in userscripts:
   * The `qute-bitwarden` userscript now still consumes returned data if the
     Bitwarden CLI showed a warning but exited with a 0 (successful) exit code.
