@@ -422,8 +422,8 @@ def update_documentation():
     except FileExistsError:
         pass
 
-    files = os.listdir(doc_path)
-    if files and all(docutils.docs_up_to_date(p) for p in files):
+    files = doc_path.iterdir()
+    if files and all(docutils.docs_up_to_date(p.name) for p in files):
         return
 
     try:
