@@ -34,11 +34,11 @@ from qutebrowser.utils import utils
 
 @bdd.when(bdd.parsers.parse('I setup a fake editor replacing "{text}" by '
                             '"{replacement}"'))
-def set_up_editor_replacement(quteproc, server, tmpdir, text, replacement):
+def set_up_editor_replacement(quteproc, server, tmp_path, text, replacement):
     """Set up editor.command to a small python script doing a replacement."""
     text = text.replace('(port)', str(server.port))
-    script = tmpdir / 'script.py'
-    script.write(textwrap.dedent("""
+    script = tmp_path / 'script.py'
+    script.write_text(textwrap.dedent("""
         import sys
 
         with open(sys.argv[1], encoding='utf-8') as f:
@@ -54,10 +54,10 @@ def set_up_editor_replacement(quteproc, server, tmpdir, text, replacement):
 
 
 @bdd.when(bdd.parsers.parse('I setup a fake editor returning "{text}"'))
-def set_up_editor(quteproc, tmpdir, text):
+def set_up_editor(quteproc, tmp_path, text):
     """Set up editor.command to a small python script inserting a text."""
-    script = tmpdir / 'script.py'
-    script.write(textwrap.dedent("""
+    script = tmp_path / 'script.py'
+    script.write_text(textwrap.dedent("""
         import sys
 
         with open(sys.argv[1], 'w', encoding='utf-8') as f:
@@ -68,9 +68,9 @@ def set_up_editor(quteproc, tmpdir, text):
 
 
 @bdd.when(bdd.parsers.parse('I setup a fake editor returning empty text'))
-def set_up_editor_empty(quteproc, tmpdir):
+def set_up_editor_empty(quteproc, tmp_path):
     """Set up editor.command to a small python script inserting empty text."""
-    set_up_editor(quteproc, tmpdir, "")
+    set_up_editor(quteproc, tmp_path, "")
 
 
 class EditorPidWatcher(QObject):
@@ -109,25 +109,26 @@ def editor_pid_watcher(tmpdir):
 
 @bdd.when(bdd.parsers.parse('I setup a fake editor that writes "{text}" on '
                             'save'))
-def set_up_editor_wait(quteproc, tmpdir, text, editor_pid_watcher):
+def set_up_editor_wait(quteproc, tmp_path, text, editor_pid_watcher):
     """Set up editor.command to a small python script inserting a text."""
     assert not utils.is_windows
-    pidfile = tmpdir / 'editor_pid'
-    script = tmpdir / 'script.py'
-    script.write(textwrap.dedent("""
-        import os
+    pidfile = tmp_path / 'editor_pid'
+    script = tmp_path / 'script.py'
+    script.write_text(textwrap.dedent("""
+        import pathlib
         import sys
         import time
         import signal
 
         def handle(sig, _frame):
             filename = sys.argv[1]
-            old_mtime = new_mtime = os.stat(filename).st_mtime
+            filename_path = pathlib.Path(filename)
+            old_mtime = new_mtime = filename_path.stat().st_mtime
             while old_mtime == new_mtime:
                 time.sleep(0.1)
                 with open(filename, 'w', encoding='utf-8') as f:
                     f.write({text!r})
-                new_mtime = os.stat(filename).st_mtime
+                new_mtime = filename_path.stat().st_mtime
             if sig == signal.SIGUSR1:
                 sys.exit(0)
 
@@ -154,10 +155,10 @@ def wait_editor(qtbot, editor_pid_watcher):
 
 
 @bdd.when(bdd.parsers.parse('I kill the waiting editor'))
-def kill_editor_wait(tmpdir):
+def kill_editor_wait(tmp_path):
     """Kill the waiting editor."""
-    pidfile = tmpdir / 'editor_pid'
-    pid = int(pidfile.read())
+    pidfile = tmp_path / 'editor_pid'
+    pid = int(pidfile.read_text())
     # windows has no SIGUSR1, but we don't run this on windows anyways
     # for posix, there IS a member so we need to ignore useless-suppression
     # pylint: disable=no-member,useless-suppression
@@ -165,15 +166,15 @@ def kill_editor_wait(tmpdir):
 
 
 @bdd.when(bdd.parsers.parse('I save without exiting the editor'))
-def save_editor_wait(tmpdir):
+def save_editor_wait(tmp_path):
     """Trigger the waiting editor to write without exiting."""
-    pidfile = tmpdir / 'editor_pid'
+    pidfile = tmp_path / 'editor_pid'
     # give the "editor" process time to write its pid
     for _ in range(10):
-        if pidfile.check():
+        if pidfile.exists():
             break
         time.sleep(1)
-    pid = int(pidfile.read())
+    pid = int(pidfile.read_text())
     # windows has no SIGUSR2, but we don't run this on windows anyways
     # for posix, there IS a member so we need to ignore useless-suppression
     # pylint: disable=no-member,useless-suppression

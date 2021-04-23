@@ -49,8 +49,8 @@ def check_query(quteproc, name, value):
 
 
 @bdd.then(bdd.parsers.parse("the history should contain:\n{expected}"))
-def check_history(quteproc, server, tmpdir, expected):
-    path = tmpdir / 'history'
+def check_history(quteproc, server, tmp_path, expected):
+    path = tmp_path / 'history'
     quteproc.send_cmd(':debug-dump-history "{}"'.format(path))
     quteproc.wait_for(category='message', loglevel=logging.INFO,
                       message='Dumped history to {}'.format(path))
@@ -64,5 +64,5 @@ def check_history(quteproc, server, tmpdir, expected):
 
 
 @bdd.then("the history should be empty")
-def check_history_empty(quteproc, server, tmpdir):
-    check_history(quteproc, server, tmpdir, '')
+def check_history_empty(quteproc, server, tmp_path):
+    check_history(quteproc, server, tmp_path, '')
