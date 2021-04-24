@@ -4,9 +4,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300&display=swap');
-body {
-    background-color: #a6dfff;
-}
+
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
 .title {
     color: #1f84bd;
     font-family: Roboto,Helvetica;
@@ -24,9 +23,7 @@ h6 {
     margin: 20px;
 }
 a {
-    font-family: Roboto-Mono,Helvetica;
-}
-a:visited {
+    font-family: Roboto,Helvetica;
     color:#000000;
     text-decoration: none;
 }
@@ -37,9 +34,10 @@ a:visited {
     border-width: 1px;
     border-style: solid;
     margin: 10px;
+    font-family: Roboto;
 }
 h4 {
-    font-family: Roboto;
+    font-family: Open Sans;
     font-size: 30px;
     padding: 10px;
 }
@@ -50,6 +48,7 @@ h4 {
     border-width: 1px;
     border-style: solid;
     margin: 10px;
+    font-family: Roboto;
 }
 .logo {
     width:75px;
@@ -67,9 +66,20 @@ h4 {
 .link-container {
     margin: 20px;
 }
+input {
+    font-family: Roboto;
+    font-size: 16px;
+}
 {% endblock %}
 
 {% block script %}
+const searchUrl = "{{ search_url }}"
+function search(e) {
+    if (e.keyCode == 13) {
+	var val = document.getElementById("search-field").value;
+	window.open(searchUrl + val)
+    }
+}
 {% endblock %}
 
 
@@ -80,6 +90,19 @@ h4 {
     <h3 class="title">qutebrowser</h3>
   </span>
 </div>
+<div class="search-box title-container" id="search">
+<input type="text" size="50" name="search-box" placeholder="Search..." onkeypress="return search(event)" id="search-field"/> 
+</div>
+{% if bookmarks %}
+<div class="bookmark-mega-container">
+  <h4>Bookmarks</h4>
+  {% for bookmark in bookmarks %}
+  <div class="bookmark-container">
+    <a class="bookmark-name" href="{{ bookmark[0] }}"> {{ bookmark[1] }} </a>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
 <div class="getting-started-container">
   <h4>Getting Started.</h4>
   <div class="link-container">
@@ -88,14 +111,9 @@ h4 {
   <div class="link-container">
     <a class="link-name" href="https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png">Cheat Sheet</a>
   </div>
-</div>
-<div class="bookmark-mega-container">
-  <h4>Bookmarks</h4>
-  {% for bookmark in bookmarks %}
-  <div class="bookmark-container">
-    <a class="bookmark-name" href="{{ bookmark[0] }}"> {{ bookmark[1] }} </a>
+  <div class="link-container">
+    <a class="link-name" href="https://qutebrowser.org/doc/changelog.html">Changelog</a>
   </div>
-  {% endfor %}
 </div>
 {% endblock %}
 
