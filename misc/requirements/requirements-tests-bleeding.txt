@@ -21,18 +21,17 @@ git+https://github.com/pytest-dev/pytest-repeat.git
 git+https://github.com/pytest-dev/pytest-cov.git
 git+https://github.com/The-Compiler/pytest-xvfb.git
 git+https://github.com/pytest-dev/pytest-xdist.git
+git+https://github.com/john-kurkowski/tldextract
 # https://github.com/hjwp/pytest-icdiff/pull/20
 # git+https://github.com/hjwp/pytest-icdiff.git
-git+https://github.com/john-kurkowski/tldextract
+
 # Problematic: needs rust (and some time to build)
 # git+https://github.com/ArniDagur/python-adblock.git
-adblock ; python_version!="3.10"
+adblock
 
 ## qutebrowser dependencies
 
 git+https://github.com/pallets/jinja.git
 git+https://github.com/yaml/pyyaml.git
 git+https://github.com/tartley/colorama.git
-
-# https://github.com/pyparsing/pyparsing/issues/271
-pyparsing!=3.0.0b2,!=3.0.0b1
+git+https://github.com/pyparsing/pyparsing.git

@@ -43,7 +43,7 @@ import functools
 import tempfile
 import datetime
 import argparse
-from typing import Iterable, Optional, cast
+from typing import Iterable, Optional
 
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
@@ -74,9 +74,6 @@ from qutebrowser.mainwindow.statusbar import command
 from qutebrowser.misc import utilcmds
 from qutebrowser.browser import commands
 # pylint: enable=unused-import
-
-
-q_app = cast(QApplication, None)
 
 
 def run(args):

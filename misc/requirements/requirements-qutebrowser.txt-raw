@@ -18,6 +18,3 @@ typing_extensions  # from importlib-metadata
 #@ markers: importlib-metadata python_version<"3.8"
 #@ markers: typing_extensions python_version<"3.8"
 #@ markers: dataclasses python_version<"3.7"
-
-# https://github.com/ArniDagur/python-adblock/issues/28
-#@ markers: adblock python_version!="3.10"

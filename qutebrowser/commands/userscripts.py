@@ -108,10 +108,11 @@ class _BaseUserscriptRunner(QObject):
     Signals:
         got_cmd: Emitted when a new command arrived and should be executed.
         finished: Emitted when the userscript finished running.
+                  arg: The finished GUIProcess object.
     """
 
     got_cmd = pyqtSignal(str)
-    finished = pyqtSignal()
+    finished = pyqtSignal(guiprocess.GUIProcess)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -288,8 +289,10 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
         self._reader.cleanup()
         self._reader.deleteLater()
         self._reader = None
+
+        proc = self.proc
         super()._cleanup()
-        self.finished.emit()
+        self.finished.emit(proc)
 
 
 class _WindowsUserscriptRunner(_BaseUserscriptRunner):
@@ -321,8 +324,9 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
             log.misc.error("Invalid unicode in userscript output: {}"
                            .format(e))
 
+        proc = self.proc
         super()._cleanup()
-        self.finished.emit()
+        self.finished.emit(proc)
 
     @pyqtSlot()
     def on_proc_error(self):

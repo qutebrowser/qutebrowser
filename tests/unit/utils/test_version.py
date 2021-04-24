@@ -484,8 +484,17 @@ class TestGitStrSubprocess:
     @needs_git
     def test_real_git(self, git_repo):
         """Test with a real git repository."""
+        branch_name = subprocess.run(
+            ['git', 'config', 'init.defaultBranch'],
+            check=False,
+            stdout=subprocess.PIPE,
+            encoding='utf-8',
+        ).stdout.strip()
+        if not branch_name:
+            branch_name = 'master'
+
         ret = version._git_str_subprocess(str(git_repo))
-        assert ret == '6e4b65a on master (1970-01-01 01:00:00 +0100)'
+        assert ret == f'6e4b65a on {branch_name} (1970-01-01 01:00:00 +0100)'
 
     def test_missing_dir(self, tmp_path):
         """Test with a directory which doesn't exist."""
@@ -1164,6 +1173,16 @@ class TestChromiumVersion:
         versions = version.qtwebengine_versions(avoid_init=True)
         assert versions.source == 'importlib'
         assert versions.webengine == expected
+
+    @pytest.mark.parametrize('override', [
+        utils.VersionNumber(5, 12, 10),
+        utils.VersionNumber(5, 15, 3),
+    ])
+    def test_override(self, monkeypatch, override):
+        monkeypatch.setenv('QUTE_QTWEBENGINE_VERSION_OVERRIDE', str(override))
+        versions = version.qtwebengine_versions(avoid_init=True)
+        assert versions.source == 'override'
+        assert versions.webengine == override
 
 
 @dataclasses.dataclass
