@@ -1,10 +1,14 @@
 {% extends "base.html" %}
 
 {% block style %}
-.title {
+body {
+    background-color: #1f84bd;
     color: #1f84bd;
 }
-.title-header {
+.title {
+    /* color: #1f84bd; */
+    color: #a6dfff;
+    /* color: #000000; */
 }
 h3 {
     font-size: 45px;
@@ -16,16 +20,24 @@ h6 {
     margin: 20px;
 }
 a {
-    color:#000000;
     text-decoration: none;
+}
+a:visited {
+    color: #000000;
+}
+a:link {
+    color: #000000;
 }
 .bookmark-mega-container {
     border-size: 3;
-    border-color: #1f84bd;
+    border-color: #a6dfff;
+    background-color: #a6dfff;
     border-radius: 5px;
     border-width: 1px;
+    box-shadow: 4px 3px 8px 1px #000000;
     border-style: solid;
-    margin: 10px;
+    margin: 100px;
+    padding: 10px;
 }
 h4 {
     font-size: 30px;
@@ -50,6 +62,7 @@ h4 {
     align-items: center;
     max-width:500px;
     margin:auto;
+    padding: 15px;
 
 }
 .link-container {
@@ -96,12 +109,12 @@ function search(e) {
   <h4>Quickmarks</h4>
   {% for quickmark in quickmarks %}
   <div class="bookmark-container">
-    <a class="bookmark-name" href="{{ quickmark[0] }}"> {{ quickmark[1] }} </a>
+    <a class="bookmark-name" href="{{ quickmark[1] }}"> {{ quickmark[1] }} </a>
   </div>
   {% endfor %}
 </div>
 {% endif %}
-<div class="getting-started-container">
+<div class="bookmark-mega-container">
   <h4>Getting Started.</h4>
   <div class="link-container">
     <a class="link-name" href="https://qutebrowser.org">Official Website</a>
