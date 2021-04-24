@@ -103,6 +103,16 @@ function search(e) {
   {% endfor %}
 </div>
 {% endif %}
+{% if quickmarks %}
+<div class="bookmark-mega-container">
+  <h4>Quickmarks</h4>
+  {% for quickmark in quickmarks %}
+  <div class="bookmark-container">
+    <a class="bookmark-name" href="{{ quickmark[0] }}"> {{ quickmark[1] }} </a>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
 <div class="getting-started-container">
   <h4>Getting Started.</h4>
   <div class="link-container">
