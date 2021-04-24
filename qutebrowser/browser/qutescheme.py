@@ -601,6 +601,6 @@ def qute_start(url: QUrl) -> _HandlerRet:
                        key=lambda x: x[1])  # Sort by title
     quickmarks = sorted(objreg.get('quickmark-manager').marks.items(),
                         key=lambda x: x[0])  # Sort by name
-    searchurl = "https://google.com/search?q="
-    page = jinja.render('startpage.html',title='Welcome to QuteBrowser',bookmarks=bookmarks,search_url=searchurl,quickmarks=quickmarks)
+    searchurl = config.val.url.searchengines['DEFAULT']
+    page = jinja.render('startpage.html',title='Welcome to qutebrowser',bookmarks=bookmarks,search_url=searchurl,quickmarks=quickmarks)
     return 'text/html' , page
