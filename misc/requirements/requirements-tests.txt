@@ -41,7 +41,7 @@ pytest-cov==2.11.1
 pytest-forked==1.3.0
 pytest-icdiff==0.5
 pytest-instafail==0.4.2
-pytest-mock==3.5.1
+pytest-mock==3.6.0
 pytest-qt==3.3.0
 pytest-repeat==0.9.1
 pytest-rerunfailures==9.1.1

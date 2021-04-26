@@ -10,7 +10,7 @@ github3.py==2.0.0
 idna==2.10
 isort==4.3.21
 jwcrypto==0.8
-lazy-object-proxy==1.4.3
+lazy-object-proxy==1.4.4
 mccabe==0.6.1
 pefile==2019.4.18
 pycparser==2.20
