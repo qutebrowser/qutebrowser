@@ -1152,6 +1152,7 @@ class _WebEngineScripts(QObject):
                 injection_point=QWebEngineScript.DocumentReady,
                 world=QWebEngineScript.ApplicationWorld,
             ),
+            _Quirk('discord'),
             _Quirk(
                 'string_replaceall',
                 predicate=versions.webengine < utils.VersionNumber(5, 15, 3),
