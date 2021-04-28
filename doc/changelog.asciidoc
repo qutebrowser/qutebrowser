@@ -43,6 +43,8 @@ Fixed
     Bitwarden CLI showed a warning but exited with a 0 (successful) exit code.
   * The `qute-pass` userscript now doesn't try to match a username with
     `--password-only`, and error messages with invalid patterns are improved.
+  * The `qute-pass` userscript now avoids running `pass` twice when `--otp-only`
+    is used.
 
 [[v2.2.0]]
 v2.2.0 (2021-04-13)
