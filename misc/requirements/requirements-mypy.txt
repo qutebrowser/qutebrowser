@@ -2,7 +2,7 @@
 
 chardet==4.0.0
 diff-cover==5.0.1
-importlib-metadata==4.0.0
+importlib-metadata==4.0.1
 importlib-resources==5.1.2
 inflect==5.3.0
 Jinja2==2.11.3
