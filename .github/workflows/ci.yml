@@ -32,6 +32,8 @@ jobs:
           - testenv: yamllint
     steps:
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
       - uses: actions/cache@v2
         with:
           path: |
@@ -88,6 +90,8 @@ jobs:
       options: --privileged --tty
     steps:
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py py38 ${{ runner.temp }}"
       - name: Run tox
@@ -142,6 +146,8 @@ jobs:
     runs-on: "${{ matrix.os }}"
     steps:
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
       - uses: actions/cache@v2
         with:
           path: |
@@ -186,6 +192,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+        with:
+          persist-credentials: false
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v1
         with:
