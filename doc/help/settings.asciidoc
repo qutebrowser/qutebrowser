@@ -2693,6 +2693,7 @@ Valid values:
  * +ua-google+
  * +ua-slack+
  * +js-whatsapp-web+
+ * +js-discord+
  * +js-string-replaceall+
  * +js-globalthis+
  * +js-object-fromentries+
