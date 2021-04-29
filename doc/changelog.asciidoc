@@ -25,7 +25,7 @@ Changed
 - When an error occurs in a notification presenter, qutebrowser now shows that
   error in the statusbar instead of just logging it.
 - New site-specific-quirk for Discord logging users out when using vertical
-  ttabs (yes, really)
+  tabs (yes, really)
 
 Fixed
 ~~~~~
