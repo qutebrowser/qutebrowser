@@ -342,7 +342,7 @@ This binary is also available through the
 https://caskroom.github.io/[Homebrew Cask] package manager:
 
 ----
-$ brew install qutebrowser --cask
+$ brew install --cask qutebrowser
 ----
 
 Nightly builds
