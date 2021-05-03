@@ -4,7 +4,7 @@ appdirs==1.4.4
 distlib==0.3.1
 filelock==3.0.12
 packaging==20.9
-pip==21.1
+pip==21.1.1
 pluggy==0.13.1
 py==1.10.0
 pyparsing==2.4.7
