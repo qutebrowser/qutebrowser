@@ -9,5 +9,5 @@ Jinja2==2.11.3
 MarkupSafe==1.1.1
 Pygments==2.8.1
 PyYAML==5.4.1
-typing-extensions==3.7.4.3
+typing-extensions==3.10.0.0
 zipp==3.4.1

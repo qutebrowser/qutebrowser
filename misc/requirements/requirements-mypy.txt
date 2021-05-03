@@ -15,5 +15,5 @@ pluggy==0.13.1
 Pygments==2.8.1
 PyQt5-stubs==5.15.2.0
 typed-ast==1.4.3
-typing-extensions==3.7.4.3
+typing-extensions==3.10.0.0
 zipp==3.4.1
