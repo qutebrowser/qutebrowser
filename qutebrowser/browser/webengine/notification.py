@@ -794,7 +794,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
                 # https://github.com/mate-desktop/mate-notification-daemon/issues/118
                 quirks.avoid_body_hyperlinks = True
             return quirks
-        elif (name, vendor) == ("naughty", "awesome"):
+        elif (name, vendor) == ("naughty", "awesome") and version != "devel":
             # Still in active development but spec 1.0/1.2 support isn't
             # released yet:
             # https://github.com/awesomeWM/awesome/commit/e076bc664e0764a3d3a0164dabd9b58d334355f4
