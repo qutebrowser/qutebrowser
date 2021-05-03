@@ -32,6 +32,8 @@ jobs:
           - testenv: yamllint
     steps:
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
       - uses: actions/cache@v2
         with:
           path: |
@@ -88,6 +90,8 @@ jobs:
       options: --privileged --tty
     steps:
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py py38 ${{ runner.temp }}"
       - name: Run tox
@@ -124,7 +128,7 @@ jobs:
           ### PyQt 5.15 (Python 3.10)
           - testenv: py310-pyqt515
             os: ubuntu-20.04
-            python: 3.10.0-alpha.7
+            python: 3.10-dev
           ### macOS: PyQt 5.15 (Python 3.9 to match PyInstaller env)
           - testenv: py39-pyqt515
             os: macos-10.15
@@ -142,6 +146,8 @@ jobs:
     runs-on: "${{ matrix.os }}"
     steps:
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
       - uses: actions/cache@v2
         with:
           path: |
@@ -181,11 +187,15 @@ jobs:
 
   codeql:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
+    permissions:
+      security-events: write
     timeout-minutes: 30
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+        with:
+          persist-credentials: false
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v1
         with:

@@ -2,7 +2,7 @@
 
 chardet==4.0.0
 diff-cover==5.0.1
-importlib-metadata==4.0.0
+importlib-metadata==4.0.1
 importlib-resources==5.1.2
 inflect==5.3.0
 Jinja2==2.11.3
@@ -15,5 +15,5 @@ pluggy==0.13.1
 Pygments==2.8.1
 PyQt5-stubs==5.15.2.0
 typed-ast==1.4.3
-typing-extensions==3.7.4.3
+typing-extensions==3.10.0.0
 zipp==3.4.1

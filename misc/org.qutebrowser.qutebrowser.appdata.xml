@@ -44,6 +44,7 @@
 	</content_rating>
 	<releases>
 <!-- Add new releases here -->
+<release version="2.2.1" date="2021-04-29"/>
 <release version="2.2.0" date="2021-04-13"/>
 <release version="2.1.1" date="2021-04-01"/>
 <release version="2.1.0" date="2021-03-12"/>
