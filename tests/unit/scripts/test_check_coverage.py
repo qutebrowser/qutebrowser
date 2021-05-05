@@ -176,9 +176,6 @@ def test_untested_floats(covtest):
     assert covtest.check() == [expected]
 
 
-@pytest.mark.skipif(
-    sys.version_info[:4] == (3, 10, 0, 'alpha'),
-    reason='Different results, see https://github.com/nedbat/coveragepy/issues/1106')
 def test_untested_branches(covtest):
     covtest.makefile("""
         def func2(arg):
@@ -191,10 +188,11 @@ def test_untested_branches(covtest):
             func2(True)
     """)
     covtest.run()
+    line_coverage = "83.33%" if sys.version_info[:2] >= (3, 10) else "100.00%"
     expected = check_coverage.Message(
         check_coverage.MsgType.insufficient_coverage,
         'module.py',
-        'module.py has 100.00% line and 50.00% branch coverage!')
+        f'module.py has {line_coverage} line and 50.00% branch coverage!')
     assert covtest.check() == [expected]
 
 
