@@ -591,7 +591,7 @@ class WebEngineVersions:
     def __str__(self) -> str:
         s = f'QtWebEngine {self.webengine}'
         if self.chromium is not None:
-            s += f', Chromium {self.chromium}'
+            s += f', based on Chromium {self.chromium}'
         if self.source != 'UA':
             s += f' (from {self.source})'
         return s

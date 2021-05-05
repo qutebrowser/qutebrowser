@@ -917,14 +917,14 @@ class TestWebEngineVersions:
                 webengine=utils.VersionNumber(5, 15, 2),
                 chromium='87.0.4280.144',
                 source='UA'),
-            "QtWebEngine 5.15.2, Chromium 87.0.4280.144",
+            "QtWebEngine 5.15.2, based on Chromium 87.0.4280.144",
         ),
         (
             version.WebEngineVersions(
                 webengine=utils.VersionNumber(5, 15, 2),
                 chromium='87.0.4280.144',
                 source='faked'),
-            "QtWebEngine 5.15.2, Chromium 87.0.4280.144 (from faked)",
+            "QtWebEngine 5.15.2, based on Chromium 87.0.4280.144 (from faked)",
         ),
     ])
     def test_str(self, version, expected):
