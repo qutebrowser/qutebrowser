@@ -6,7 +6,7 @@ cffi==1.14.5
 chardet==4.0.0
 cryptography==3.4.7
 github3.py==2.0.0
-hunter==3.3.2
+hunter==3.3.3
 idna==2.10
 jwcrypto==0.8
 manhole==1.8.0
@@ -18,7 +18,7 @@ PyQt-builder==1.9.1
 python-dateutil==2.8.1
 requests==2.25.1
 sip==6.0.3
-six==1.15.0
+six==1.16.0
 toml==0.10.2
 uritemplate==3.0.1
 # urllib3==1.26.4
