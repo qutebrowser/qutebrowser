@@ -29,6 +29,8 @@ class Clock(textbase.TextBase):
 
     """Shows current time and date in the statusbar."""
 
+    UPDATE_DELAY = 500  # ms
+
     def __init__(self, parent=None):
         super().__init__(parent, elidemode=Qt.ElideNone)
         self.format = ""
@@ -47,7 +49,6 @@ class Clock(textbase.TextBase):
 
     def showEvent(self, event):
         """Override showEvent to show time and start self.timer for updating."""
-        self.timer.start(100)
+        self.timer.start(Clock.UPDATE_DELAY)
         self._show_time()
         super().showEvent(event)
-
