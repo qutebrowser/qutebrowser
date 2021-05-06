@@ -40,8 +40,14 @@ class Clock(textbase.TextBase):
         """Set text to current time, using self.format as format-string."""
         self.setText(datetime.now().strftime(self.format))
 
-    def show(self) -> None:
-        """Override show() to show time and start self.timer for updating."""
+    def hideEvent(self, event):
+        """Stop timer when widget is hidden."""
+        self.timer.stop()
+        super().hideEvent(event)
+
+    def showEvent(self, event):
+        """Override showEvent to show time and start self.timer for updating."""
         self.timer.start(100)
         self._show_time()
-        super().show()
+        super().showEvent(event)
+
