@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-import os.path
+import pathlib
 
 import pytest_bdd as bdd
 
@@ -34,11 +34,11 @@ def _check_marks(quteproc, quickmarks, expected, contains):
         expected: The line to search for.
         contains: True if the line should be there, False otherwise.
     """
+    quteproc_basedir_path = pathlib.Path(quteproc.basedir)
     if quickmarks:
-        mark_file = os.path.join(quteproc.basedir, 'config', 'quickmarks')
+        mark_file = quteproc_basedir_path / 'config' / 'quickmarks'
     else:
-        mark_file = os.path.join(quteproc.basedir, 'config', 'bookmarks',
-                                 'urls')
+        mark_file = quteproc_basedir_path / 'config' / 'bookmarks' / 'urls'
 
     quteproc.clear_data()  # So we don't match old messages
     quteproc.send_cmd(':save')

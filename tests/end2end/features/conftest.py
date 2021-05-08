@@ -20,7 +20,7 @@
 """Steps for bdd-like tests."""
 
 import os
-import os.path
+import pathlib
 import re
 import sys
 import time
@@ -47,8 +47,8 @@ def _get_echo_exe_path():
         Path to the "echo"-utility.
     """
     if utils.is_windows:
-        return os.path.join(testutils.abs_datapath(), 'userscripts',
-                            'echo.bat')
+        return (pathlib.Path(testutils.abs_datapath()) / 'userscripts' /
+                'echo.bat')
     else:
         return shutil.which("echo")
 
@@ -264,7 +264,7 @@ def set_setting(quteproc, server, opt, value):
 
 
 @bdd.when(bdd.parsers.parse("I run {command}"))
-def run_command(quteproc, server, tmpdir, command):
+def run_command(quteproc, server, tmp_path, command):
     """Run a qutebrowser command.
 
     The suffix "with count ..." can be used to pass a count to the command.
@@ -284,7 +284,7 @@ def run_command(quteproc, server, tmpdir, command):
 
     command = command.replace('(port)', str(server.port))
     command = command.replace('(testdata)', testutils.abs_datapath())
-    command = command.replace('(tmpdir)', str(tmpdir))
+    command = command.replace('(tmpdir)', str(tmp_path))
     command = command.replace('(dirsep)', os.sep)
     command = command.replace('(echo-exe)', _get_echo_exe_path())
 
@@ -413,17 +413,17 @@ def clear_ssl_errors(request, quteproc):
 @bdd.when("the documentation is up to date")
 def update_documentation():
     """Update the docs before testing :help."""
-    base_path = os.path.dirname(os.path.abspath(qutebrowser.__file__))
-    doc_path = os.path.join(base_path, 'html', 'doc')
-    script_path = os.path.join(base_path, '..', 'scripts')
+    base_path = pathlib.Path(qutebrowser.__file__).parent
+    doc_path = base_path / 'html' / 'doc'
+    script_path = base_path / '..' / 'scripts'
 
     try:
-        os.mkdir(doc_path)
+        doc_path.mkdir()
     except FileExistsError:
         pass
 
-    files = os.listdir(doc_path)
-    if files and all(docutils.docs_up_to_date(p) for p in files):
+    files = doc_path.iterdir()
+    if files and all(docutils.docs_up_to_date(p.name) for p in files):
         return
 
     try:
@@ -432,8 +432,8 @@ def update_documentation():
     except OSError:
         pytest.skip("Docs outdated and asciidoc unavailable!")
 
-    update_script = os.path.join(script_path, 'asciidoc2html.py')
-    subprocess.run([sys.executable, update_script], check=True)
+    update_script = script_path / 'asciidoc2html.py'
+    subprocess.run([sys.executable, str(update_script)], check=True)
 
 
 ## Then

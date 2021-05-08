@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-import os.path
+import pathlib
 import logging
 
 import pytest
@@ -32,10 +32,9 @@ def turn_on_scroll_logging(quteproc):
 
 @bdd.when(bdd.parsers.parse('I have a "{name}" session file:\n{contents}'))
 def create_session_file(quteproc, name, contents):
-    filename = os.path.join(quteproc.basedir, 'data', 'sessions',
-                            name + '.yml')
-    with open(filename, 'w', encoding='utf-8') as f:
-        f.write(contents)
+    filename_path = (pathlib.Path(quteproc.basedir) / 'data' / 'sessions' /
+                name).with_suffix('.yml')
+    filename_path.write_text(contents, encoding='utf-8')
 
 
 @bdd.when(bdd.parsers.parse('I replace "{pattern}" by "{replacement}" in the '
@@ -44,24 +43,23 @@ def session_replace(quteproc, server, pattern, replacement, name):
     # First wait until the session was actually saved
     quteproc.wait_for(category='message', loglevel=logging.INFO,
                       message='Saved session {}.'.format(name))
-    filename = os.path.join(quteproc.basedir, 'data', 'sessions',
-                            name + '.yml')
+    filename_path = (pathlib.Path(quteproc.basedir) / 'data' /
+                'sessions' / name).with_suffix('.yml')
     replacement = replacement.replace('(port)', str(server.port))  # yo dawg
-    with open(filename, 'r', encoding='utf-8') as f:
-        data = f.read()
-    with open(filename, 'w', encoding='utf-8') as f:
-        f.write(data.replace(pattern, replacement))
+    data = filename_path.read_text(encoding='utf-8')
+    filename_path.write_text(data.replace(pattern, replacement),
+                             encoding='utf-8')
 
 
 @bdd.then(bdd.parsers.parse("the session {name} should exist"))
 def session_should_exist(quteproc, name):
-    filename = os.path.join(quteproc.basedir, 'data', 'sessions',
-                            name + '.yml')
-    assert os.path.exists(filename)
+    filename_path = (pathlib.Path(quteproc.basedir) / 'data' /
+                'sessions' / name).with_suffix('.yml')
+    assert filename_path.exists()
 
 
 @bdd.then(bdd.parsers.parse("the session {name} should not exist"))
 def session_should_not_exist(quteproc, name):
-    filename = os.path.join(quteproc.basedir, 'data', 'sessions',
-                            name + '.yml')
-    assert not os.path.exists(filename)
+    filename_path = (pathlib.Path(quteproc.basedir) / 'data' /
+                'sessions' / name).with_suffix('.yml')
+    assert not filename_path.exists()

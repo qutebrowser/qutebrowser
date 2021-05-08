@@ -45,6 +45,6 @@ def check_cookie_not_set(quteproc, name):
 
 
 @bdd.then(bdd.parsers.parse('the file {name} should not contain "{text}"'))
-def check_not_contain(tmpdir, name, text):
-    path = tmpdir / name
-    assert text not in path.read()
+def check_not_contain(tmp_path, name, text):
+    path = tmp_path / name
+    assert text not in path.read_text()
