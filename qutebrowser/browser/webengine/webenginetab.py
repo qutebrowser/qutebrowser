@@ -1287,8 +1287,13 @@ class WebEngineTab(browsertab.AbstractTab):
             # https://github.com/qutebrowser/qutebrowser/issues/3896
             return
         self._saved_zoom = self.zoom.factor()
-        self._load_url_prepare(url)
-        self._widget.load(url)
+        if isinstance(url, list):
+            for u in url:
+                self._load_url_prepare(u)
+                self._widget.load(u)
+        else:
+            self._load_url_prepare(url)
+            self._widget.load(url)
 
     def url(self, *, requested=False):
         page = self._widget.page()

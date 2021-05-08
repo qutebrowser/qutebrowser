@@ -311,8 +311,9 @@ def open_url(url, target=None, no_raise=False, via_ipc=True):
                                    no_raise=no_raise)
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    log.init.debug("About to open URL: {}".format(url.toDisplayString()))
-    tabbed_browser.tabopen(url, background=background, related=False)
+    for u in url:
+        log.init.debug("About to open URL: {}".format(u.toDisplayString()))
+        tabbed_browser.tabopen(u, background=background, related=False)
     return win_id
 
 
@@ -335,7 +336,7 @@ def _open_startpage(win_id=None):
         if tabbed_browser.widget.count() == 0:
             log.init.debug("Opening start pages")
             for url in config.val.url.start_pages:
-                tabbed_browser.tabopen(url)
+                tabbed_browser.tabopen(url[0])
 
 
 def _open_special_pages(args):

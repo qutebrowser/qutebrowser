@@ -430,10 +430,10 @@ class TabbedBrowser(QWidget):
             if last_close == 'close':
                 self.close_window.emit()
             elif last_close == 'blank':
-                self.load_url(QUrl('about:blank'), newtab=True)
+                self.load_url([QUrl('about:blank')], newtab=True)
             elif last_close == 'startpage':
                 for url in config.val.url.start_pages:
-                    self.load_url(url, newtab=True)
+                    self.load_url([url], newtab=True)
             elif last_close == 'default-page':
                 self.load_url(config.val.url.default_page, newtab=True)
 
@@ -505,7 +505,10 @@ class TabbedBrowser(QWidget):
                 'default-page': config.val.url.default_page,
             }
             first_tab_url = self.widget.widget(0).url()
-            last_close_urlstr = urls[last_close].toString().rstrip('/')
+            if isinstance(urls[last_close], list):
+                last_close_urlstr = urls[last_close][0].toString().rstrip('/')
+            else:
+                last_close_urlstr = urls[last_close].toString().rstrip('/')
             first_tab_urlstr = first_tab_url.toString().rstrip('/')
             last_close_url_used = first_tab_urlstr == last_close_urlstr
             use_current_tab = (only_one_tab_open and no_history and
@@ -532,11 +535,12 @@ class TabbedBrowser(QWidget):
             url: The URL to open as QUrl.
             newtab: True to open URL in a new tab, False otherwise.
         """
-        qtutils.ensure_valid(url)
-        if newtab or self.widget.currentWidget() is None:
-            self.tabopen(url, background=False)
-        else:
-            self.widget.currentWidget().load_url(url)
+        for u in url:
+            qtutils.ensure_valid(u)
+            if newtab or self.widget.currentWidget() is None:
+                self.tabopen(u, background=False)
+            else:
+                self.widget.currentWidget().load_url(u)
 
     @pyqtSlot(int)
     def on_tab_close_requested(self, idx):
@@ -1035,7 +1039,7 @@ class TabbedBrowser(QWidget):
                         self.cur_load_finished.disconnect(callback)
                         tab.scroller.to_point(point)
 
-                self.load_url(url, newtab=False)
+                self.load_url([url], newtab=False)
                 self.cur_load_finished.connect(callback)
             else:
                 message.error("Mark {} is not set".format(key))

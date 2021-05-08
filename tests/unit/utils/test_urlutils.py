@@ -135,7 +135,7 @@ class TestFuzzyUrl:
         url = urlutils.fuzzy_url('foo', cwd='cwd', relative=True)
 
         os_mock.path.exists.assert_called_once_with('cwd/foo')
-        assert url == QUrl('file:cwd/foo')
+        assert url[0] == QUrl('file:cwd/foo')
 
     def test_file_relative(self, os_mock):
         """Test with relative=True and cwd unset."""
@@ -146,7 +146,7 @@ class TestFuzzyUrl:
         url = urlutils.fuzzy_url('foo', relative=True)
 
         os_mock.path.exists.assert_called_once_with('abs_path')
-        assert url == QUrl('file:abs_path')
+        assert url[0] == QUrl('file:abs_path')
 
     def test_file_relative_os_error(self, os_mock, is_url_mock):
         """Test with relative=True, cwd unset and abspath raising OSError."""
@@ -157,7 +157,7 @@ class TestFuzzyUrl:
 
         url = urlutils.fuzzy_url('foo', relative=True)
         assert not os_mock.path.exists.called
-        assert url == QUrl('http://foo')
+        assert url[0] == QUrl('http://foo')
 
     @pytest.mark.parametrize('path, expected', [
         ('/foo', QUrl('file:///foo')),
@@ -169,7 +169,7 @@ class TestFuzzyUrl:
         os_mock.path.isabs.return_value = True
 
         url = urlutils.fuzzy_url(path)
-        assert url == expected
+        assert url[0] == expected
 
     @pytest.mark.posix
     def test_file_absolute_expanded(self, os_mock):
@@ -178,7 +178,7 @@ class TestFuzzyUrl:
         os_mock.path.isabs.return_value = True
 
         url = urlutils.fuzzy_url('~/foo')
-        assert url == QUrl('file://' + os.path.expanduser('~/foo'))
+        assert url[0] == QUrl('file://' + os.path.expanduser('~/foo'))
 
     def test_address(self, os_mock, is_url_mock):
         """Test passing something with relative=False."""
@@ -186,16 +186,16 @@ class TestFuzzyUrl:
         is_url_mock.return_value = True
 
         url = urlutils.fuzzy_url('foo')
-        assert url == QUrl('http://foo')
+        assert url[0] == QUrl('http://foo')
 
     def test_search_term(self, os_mock, is_url_mock, get_search_url_mock):
         """Test passing something with do_search=True."""
         os_mock.path.isabs.return_value = False
         is_url_mock.return_value = False
-        get_search_url_mock.return_value = QUrl('search_url')
+        get_search_url_mock.return_value = [QUrl('search_url')]
 
         url = urlutils.fuzzy_url('foo', do_search=True)
-        assert url == QUrl('search_url')
+        assert url[0] == QUrl('search_url')
 
     def test_search_term_value_error(self, os_mock, is_url_mock,
                                      get_search_url_mock):
@@ -205,14 +205,14 @@ class TestFuzzyUrl:
         get_search_url_mock.side_effect = ValueError
 
         url = urlutils.fuzzy_url('foo', do_search=True)
-        assert url == QUrl('http://foo')
+        assert url[0] == QUrl('http://foo')
 
     def test_no_do_search(self, is_url_mock):
         """Test with do_search = False."""
         is_url_mock.return_value = False
 
         url = urlutils.fuzzy_url('foo', do_search=False)
-        assert url == QUrl('http://foo')
+        assert url[0] == QUrl('http://foo')
 
     @pytest.mark.parametrize('do_search', [True, False])
     def test_invalid_url(self, do_search, caplog):
@@ -233,11 +233,11 @@ class TestFuzzyUrl:
     ])
     def test_force_search(self, urlstring, get_search_url_mock):
         """Test the force search option."""
-        get_search_url_mock.return_value = QUrl('search_url')
+        get_search_url_mock.return_value = [QUrl('search_url')]
 
         url = urlutils.fuzzy_url(urlstring, force_search=True)
 
-        assert url == QUrl('search_url')
+        assert url[0] == QUrl('search_url')
 
     @pytest.mark.parametrize('path, check_exists', [
         ('/foo', False),
@@ -301,8 +301,50 @@ def test_get_search_url(config_stub, url, host, query, open_base_url):
     """
     config_stub.val.url.open_base_url = open_base_url
     url = urlutils._get_search_url(url)
-    assert url.host() == host
-    assert url.query() == query
+    assert url[0].host() == host
+    assert url[0].query() == query
+
+
+@pytest.mark.parametrize('url, host, query', [
+    ('test,test-with-dash testfoo', ['www.qutebrowser.org',
+                                     'www.example.org'], 'q=testfoo'),
+])
+def test_get_search_url_multiple_search_engines(config_stub, url, host, query):
+    """Test _get_search_url() for multiple search engines.
+
+    Args:
+        url: The "URL" to enter.
+        host: The expected search machine host.
+        query: The expected search query.
+    """
+    url = urlutils._get_search_url(url)
+
+    assert url[0].host() == host[0]
+    assert url[1].host() == host[1]
+    assert url[0].query() == query
+
+
+@pytest.mark.parametrize('url, host, query', [
+    ('test,not-a-search-engine testfoo', ['www.qutebrowser.org'], 'q=testfoo'),
+])
+def test_get_search_url_multiple_search_engines_error(
+        config_stub,
+        url,
+        host,
+        query,
+        caplog):
+    """Test _get_search_url() for multiple search engines.
+
+    Args:
+        url: The "URL" to enter.
+        host: The expected search machine host.
+        query: The expected search query.
+    """
+    with caplog.at_level(logging.ERROR):
+        url = urlutils._get_search_url(url)
+
+    assert url[0].host() == host[0]
+    assert url[0].query() == query
 
 
 @pytest.mark.parametrize('open_base_url', [True, False])
@@ -320,8 +362,8 @@ def test_get_search_url_for_path_search(config_stub, url, host, path, open_base_
     """
     config_stub.val.url.open_base_url = open_base_url
     url = urlutils._get_search_url(url)
-    assert url.host() == host
-    assert url.path(options=QUrl.PrettyDecoded) == '/' + path
+    assert url[0].host() == host
+    assert url[0].path(options=QUrl.PrettyDecoded) == '/' + path
 
 
 @pytest.mark.parametrize('url, host', [
@@ -338,10 +380,10 @@ def test_get_search_url_open_base_url(config_stub, url, host):
     """
     config_stub.val.url.open_base_url = True
     url = urlutils._get_search_url(url)
-    assert not url.path()
-    assert not url.fragment()
-    assert not url.query()
-    assert url.host() == host
+    assert not url[0].path()
+    assert not url[0].fragment()
+    assert not url[0].query()
+    assert url[0].host() == host
 
 
 @pytest.mark.parametrize('url', ['\n', ' ', '\n '])

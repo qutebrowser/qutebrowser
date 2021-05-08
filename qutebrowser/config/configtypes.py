@@ -1713,7 +1713,7 @@ class FuzzyUrl(BaseType):
 
     """A URL which gets interpreted as search if needed."""
 
-    def to_py(self, value: _StrUnset) -> Union[QUrl, _UnsetNone]:
+    def to_py(self, value: _StrUnset) -> Union[ListType[QUrl], _UnsetNone]:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value

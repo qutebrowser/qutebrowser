@@ -303,7 +303,7 @@ class CommandDispatcher:
             private: Open a new window in private browsing mode.
         """
         if url is None:
-            urls = [config.val.url.default_page]
+            urls = config.val.url.default_page
         else:
             urls = self._parse_url_input(url)
 
@@ -380,7 +380,8 @@ class CommandDispatcher:
         for cur_url in urllist:
             parsed = self._parse_url(cur_url, force_search=force_search)
             if parsed is not None:
-                yield parsed
+                for urls in parsed:
+                    yield urls
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_clone(self, bg=False, window=False):
@@ -1187,7 +1188,8 @@ class CommandDispatcher:
             url = objreg.get('quickmark-manager').get(name)
         except urlmarks.Error as e:
             raise cmdutils.CommandError(str(e))
-        self._open(url, tab, bg, window)
+        for u in url:
+            self._open(u, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
@@ -1237,7 +1239,7 @@ class CommandDispatcher:
                                         'been provided')
         bookmark_manager = objreg.get('bookmark-manager')
         if not url:
-            url = self._current_url()
+            url = [self._current_url()]
         else:
             try:
                 url = urlutils.fuzzy_url(url)
@@ -1246,12 +1248,14 @@ class CommandDispatcher:
         if not title:
             title = self._current_title()
         try:
-            was_added = bookmark_manager.add(url, title, toggle=toggle)
+            for u in url:
+                was_added = bookmark_manager.add(u, title, toggle=toggle)
         except urlmarks.Error as e:
             raise cmdutils.CommandError(str(e))
         else:
-            msg = "Bookmarked {}" if was_added else "Removed bookmark {}"
-            message.info(msg.format(url.toDisplayString()))
+            for u in url:
+                msg = "Bookmarked {}" if was_added else "Removed bookmark {}"
+                message.info(msg.format(u.toDisplayString()))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
@@ -1271,7 +1275,8 @@ class CommandDispatcher:
             qurl = urlutils.fuzzy_url(url)
         except urlutils.InvalidUrlError as e:
             raise cmdutils.CommandError(e)
-        self._open(qurl, tab, bg, window)
+        for urls in qurl:
+            self._open(urls, tab, bg, window)
         if delete:
             self.bookmark_del(url)
 
