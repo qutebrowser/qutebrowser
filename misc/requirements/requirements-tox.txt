@@ -8,9 +8,9 @@ pip==21.1.1
 pluggy==0.13.1
 py==1.10.0
 pyparsing==2.4.7
-setuptools==56.1.0
+setuptools==56.2.0
 six==1.16.0
 toml==0.10.2
-tox==3.23.0
-virtualenv==20.4.5
+tox==3.23.1
+virtualenv==20.4.6
 wheel==0.36.2
