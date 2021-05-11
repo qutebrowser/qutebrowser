@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+
+# Copyright 2021 Mirko König <koenig@v-i-t.de> 
+# Based on 1password script for MacOs from https://github.com/tomoakley
+# https://github.com/tomoakley/dotfiles/blob/master/qutebrowser/userscripts/1password
+#
+# This file is part of qutebrowser.
+#
+# qutebrowser is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published bjy
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# qutebrowser is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
+
+set -e
+
+# JS field injection code from https://github.com/qutebrowser/qutebrowser/blob/master/misc/userscripts/password_fill
+javascript_escape() {
+    # print the first argument in an escaped way, such that it can safely
+    # be used within javascripts double quotes
+    # shellcheck disable=SC2001
+    sed "s,[\\\\'\"],\\\\&,g" <<< "$1"
+}
+
+js() {
+cat <<EOF
+    function isVisible(elem) {
+        var style = elem.ownerDocument.defaultView.getComputedStyle(elem, null);
+        if (style.getPropertyValue("visibility") !== "visible" ||
+            style.getPropertyValue("display") === "none" ||
+            style.getPropertyValue("opacity") === "0") {
+            return false;
+        }
+        return elem.offsetWidth > 0 && elem.offsetHeight > 0;
+    };
+    function hasPasswordField(form) {
+        var inputs = form.getElementsByTagName("input");
+        for (var j = 0; j < inputs.length; j++) {
+            var input = inputs[j];
+            if (input.type == "password") {
+                return true;
+            }
+        }
+        return false;
+    };
+    function loadData2Form (form) {
+        var inputs = form.getElementsByTagName("input");
+        for (var j = 0; j < inputs.length; j++) {
+            var input = inputs[j];
+            if (isVisible(input) && (input.type == "text" || input.type == "email")) {
+                input.focus();
+                input.value = "$(javascript_escape "${USERNAME}")";
+                input.dispatchEvent(new Event('change'));
+                input.blur();
+            }
+            if (input.type == "password") {
+                input.focus();
+                input.value = "$(javascript_escape "${PASSWORD}")";
+                input.dispatchEvent(new Event('change'));
+                input.blur();
+            }
+        }
+    };
+    var forms = document.getElementsByTagName("form");
+    for (i = 0; i < forms.length; i++) {
+        if (hasPasswordField(forms[i])) {
+            loadData2Form(forms[i]);
+        }
+    }
+EOF
+}
+
+URL=$(echo "$QUTE_URL" | awk -F/ '{print $3}' | sed 's/www.//g')
+echo "message-info 'Looking for password for $URL...'" >> $QUTE_FIFO
+
+TOKEN=$(rofi -dmenu -password -p "1password: "| op signin --output=raw) || TOKEN=""
+
+if [ -n "$TOKEN" ]; then
+    UUID_URL=$(op list items --cache --session="$TOKEN" | jq -r '.[] | "\(.uuid):\(.overview.url)"' | grep "$URL") || UUID_URL=""
+
+    if [ -z "$UUID_URL" ];then
+        $(echo "message-error 'No entry found for $URL'" >> $QUTE_FIFO)
+        TITLE=$(op list items --cache --session="$TOKEN" | jq -r '.[].overview.title' | rofi -dmenu -i) || TITLE=""
+        echo "$TITLE"|xclip -in -selection clipboard
+        if [ -n "$TITLE" ]; then
+            UUID_URL=$(op list items --cache --session="$TOKEN" | jq -r '.[] | "\(.uuid):\(.overview.title)"' | grep "$TITLE") || UUID_URL=""
+        else
+            UUID_URL=""
+        fi
+    fi
+
+    if [ -n "$UUID_URL" ];then
+        IFS=: read -r UUID var2 <<< "$UUID_URL"
+        ITEM=$(op get item --cache --session="$TOKEN" "$UUID")
+
+        PASSWORD=$(echo "$ITEM" | jq -r '.details.fields | .[] | select(.designation=="password") | .value')
+
+        if [ -n "$PASSWORD" ]; then
+            TITLE=$(echo "$ITEM" | jq -r '.overview.title')
+            USERNAME=$(echo "$ITEM" | jq -r '.details.fields | .[] | select(.designation=="username") | .value')
+
+            printjs() {
+                js | sed 's,//.*$,,' | tr '\n' ' '
+            }
+            echo "jseval -q $(printjs)" >> "$QUTE_FIFO"
+
+            TOTP=$(echo "$ITEM" | op get totp --cache --session="$TOKEN" "$UUID") || TOTP=""
+            if [ -n "$TOTP" ]; then
+                echo "$TOTP" | xclip -in -selection clipboard
+                notify-send "One time password for $TITLE: $TOTP in clipboard" -a "Qutebrowser 1Password"
+            fi
+        else
+            notify-send "No password found for $URL" -a "Qutebrowser 1Password"
+        fi
+    else
+        $(echo "message-error 'Entry not found for $UUID_URL'" >> $QUTE_FIFO)
+    fi
+else
+    $(echo "message-error 'Wrong master password'" >> $QUTE_FIFO)
+fi
