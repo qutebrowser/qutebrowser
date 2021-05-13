@@ -39,7 +39,9 @@ import qutebrowser
 from qutebrowser.config import (configexc, config, configdata, configutils,
                                 configtypes)
 from qutebrowser.keyinput import keyutils
-from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch, version
+from qutebrowser.utils import (standarddir, utils, qtutils, log, urlmatch, version,
+                               usertypes)
+from qutebrowser.misc import objects
 
 if TYPE_CHECKING:
     from qutebrowser.misc import savemanager
@@ -113,7 +115,14 @@ class StateConfig(configparser.ConfigParser):
         self['general']['version'] = qutebrowser.__version__
 
     def _qtwe_version_str(self) -> str:
-        """Get the QtWebEngine version string."""
+        """Get the QtWebEngine version string.
+
+        Note that it's too early to use objects.backend here...
+        """
+        try:
+            from PyQt5 import QtWebEngineWidgets  # pylint: disable=unused-import
+        except ImportError:
+            return 'no'
         return str(version.qtwebengine_versions(avoid_init=True).webengine)
 
     def _set_changed_attributes(self) -> None:
