@@ -173,6 +173,8 @@ class KeyConfig:
         result = results[0]
         if result.cmd.name != "set-cmd-text":
             return cmdline
+        if not result.args:
+            return None  # doesn't look like this sets a command
         *flags, cmd = result.args
         if "-a" in flags or "--append" in flags or not cmd.startswith(":"):
             return None  # doesn't look like this sets a command
