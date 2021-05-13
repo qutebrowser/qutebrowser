@@ -39,9 +39,7 @@ import qutebrowser
 from qutebrowser.config import (configexc, config, configdata, configutils,
                                 configtypes)
 from qutebrowser.keyinput import keyutils
-from qutebrowser.utils import (standarddir, utils, qtutils, log, urlmatch, version,
-                               usertypes)
-from qutebrowser.misc import objects
+from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch, version
 
 if TYPE_CHECKING:
     from qutebrowser.misc import savemanager
