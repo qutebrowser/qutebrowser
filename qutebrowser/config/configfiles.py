@@ -109,7 +109,12 @@ class StateConfig(configparser.ConfigParser):
             self[sect].pop(key, None)
 
         self['general']['qt_version'] = qVersion()
+        self['general']['qtwe_version'] = self._qtwe_version_str()
         self['general']['version'] = qutebrowser.__version__
+
+    def _qtwe_version_str(self) -> str:
+        """Get the QtWebEngine version string."""
+        return str(version.qtwebengine_versions(avoid_init=True).webengine)
 
     def _set_changed_attributes(self) -> None:
         """Set qt_version_changed/qutebrowser_version_changed attributes.
@@ -125,8 +130,7 @@ class StateConfig(configparser.ConfigParser):
         self.qt_version_changed = old_qt_version != qVersion()
 
         old_qtwe_version = self['general'].get('qtwe_version', None)
-        qtwe_version = str(version.qtwebengine_versions(avoid_init=True).webengine)
-        self.qtwe_version_changed = old_qtwe_version != qtwe_version
+        self.qtwe_version_changed = old_qtwe_version != self._qtwe_version_str()
 
         old_qutebrowser_version = self['general'].get('version', None)
         if old_qutebrowser_version is None:
