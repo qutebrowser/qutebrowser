@@ -166,6 +166,11 @@ def state_writer(data_tmpdir):
 
 @pytest.fixture
 def qtwe_version_patcher(monkeypatch):
+    try:
+        from PyQt5 import QtWebEngineWidgets  # pylint: disable=unused-import
+    except ImportError:
+        pytest.skip("QtWebEngine not available")
+
     def patch(ver):
         monkeypatch.setattr(
             configfiles.version,
@@ -215,6 +220,15 @@ def test_qtwe_version_changed(state_writer, qtwe_version_patcher,
 
     state = configfiles.StateConfig()
     assert state.qtwe_version_changed == changed
+
+
+def test_qtwe_version_changed_webkit(stubs, monkeypatch, state_writer):
+    fake = stubs.ImportFake({'PyQt5.QtWebEngineWidgets': False}, monkeypatch)
+    fake.patch()
+
+    state_writer('qtwe_version', 'no')
+    state = configfiles.StateConfig()
+    assert not state.qtwe_version_changed
 
 
 @pytest.mark.parametrize('old_version, new_version, expected', [

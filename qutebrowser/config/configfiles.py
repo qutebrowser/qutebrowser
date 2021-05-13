@@ -118,7 +118,7 @@ class StateConfig(configparser.ConfigParser):
         Note that it's too early to use objects.backend here...
         """
         try:
-            from PyQt5 import QtWebEngineWidgets  # pylint: disable=unused-import
+            import PyQt5.QtWebEngineWidgets  # pylint: disable=unused-import
         except ImportError:
             return 'no'
         return str(version.qtwebengine_versions(avoid_init=True).webengine)
