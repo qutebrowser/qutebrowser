@@ -39,7 +39,7 @@ import qutebrowser
 from qutebrowser.config import (configexc, config, configdata, configutils,
                                 configtypes)
 from qutebrowser.keyinput import keyutils
-from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch
+from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch, version
 
 if TYPE_CHECKING:
     from qutebrowser.misc import savemanager
@@ -89,6 +89,7 @@ class StateConfig(configparser.ConfigParser):
         self.read(self._filename, encoding='utf-8')
 
         self.qt_version_changed = False
+        self.qtwe_version_changed = False
         self.qutebrowser_version_changed = VersionChange.unknown
         self._set_changed_attributes()
 
@@ -108,7 +109,19 @@ class StateConfig(configparser.ConfigParser):
             self[sect].pop(key, None)
 
         self['general']['qt_version'] = qVersion()
+        self['general']['qtwe_version'] = self._qtwe_version_str()
         self['general']['version'] = qutebrowser.__version__
+
+    def _qtwe_version_str(self) -> str:
+        """Get the QtWebEngine version string.
+
+        Note that it's too early to use objects.backend here...
+        """
+        try:
+            import PyQt5.QtWebEngineWidgets  # pylint: disable=unused-import
+        except ImportError:
+            return 'no'
+        return str(version.qtwebengine_versions(avoid_init=True).webengine)
 
     def _set_changed_attributes(self) -> None:
         """Set qt_version_changed/qutebrowser_version_changed attributes.
@@ -122,6 +135,9 @@ class StateConfig(configparser.ConfigParser):
 
         old_qt_version = self['general'].get('qt_version', None)
         self.qt_version_changed = old_qt_version != qVersion()
+
+        old_qtwe_version = self['general'].get('qtwe_version', None)
+        self.qtwe_version_changed = old_qtwe_version != self._qtwe_version_str()
 
         old_qutebrowser_version = self['general'].get('version', None)
         if old_qutebrowser_version is None:
