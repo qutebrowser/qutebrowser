@@ -39,7 +39,7 @@ import qutebrowser
 from qutebrowser.config import (configexc, config, configdata, configutils,
                                 configtypes)
 from qutebrowser.keyinput import keyutils
-from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch
+from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch, version
 
 if TYPE_CHECKING:
     from qutebrowser.misc import savemanager
@@ -89,6 +89,7 @@ class StateConfig(configparser.ConfigParser):
         self.read(self._filename, encoding='utf-8')
 
         self.qt_version_changed = False
+        self.qtwe_version_changed = False
         self.qutebrowser_version_changed = VersionChange.unknown
         self._set_changed_attributes()
 
@@ -122,6 +123,10 @@ class StateConfig(configparser.ConfigParser):
 
         old_qt_version = self['general'].get('qt_version', None)
         self.qt_version_changed = old_qt_version != qVersion()
+
+        old_qtwe_version = self['general'].get('qtwe_version', None)
+        qtwe_version = str(version.qtwebengine_versions(avoid_init=True).webengine)
+        self.qtwe_version_changed = old_qtwe_version != qtwe_version
 
         old_qutebrowser_version = self['general'].get('version', None)
         if old_qutebrowser_version is None:

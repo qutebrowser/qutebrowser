@@ -29,7 +29,7 @@ from PyQt5.QtCore import QSettings
 
 from qutebrowser.config import (config, configfiles, configexc, configdata,
                                 configtypes)
-from qutebrowser.utils import utils, usertypes, urlmatch, standarddir
+from qutebrowser.utils import utils, usertypes, urlmatch, standarddir, version
 from qutebrowser.keyinput import keyutils
 
 
@@ -174,6 +174,32 @@ def test_qt_version_changed(state_writer, monkeypatch,
 
     state = configfiles.StateConfig()
     assert state.qt_version_changed == changed
+
+
+@pytest.mark.parametrize('old_version, new_version, changed', [
+    (None, '5.15.1', False),
+    ('5.15.1', '5.15.1', False),
+    ('5.15.1', '5.15.2', True),
+    ('5.14.0', '5.15.2', True),
+])
+def test_qtwe_version_changed(state_writer, monkeypatch,
+                              old_version, new_version, changed):
+    monkeypatch.setattr(
+        configfiles.version,
+        'qtwebengine_versions',
+        lambda avoid_init=False:
+            version.WebEngineVersions(
+                webengine=utils.VersionNumber.parse(new_version),
+                chromium=None,
+                source='test',
+            )
+    )
+
+    if old_version is not None:
+        state_writer('qtwe_version', old_version)
+
+    state = configfiles.StateConfig()
+    assert state.qtwe_version_changed == changed
 
 
 @pytest.mark.parametrize('old_version, new_version, expected', [
