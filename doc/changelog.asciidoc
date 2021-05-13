@@ -25,6 +25,10 @@ Fixed
 - When awesomewm's "naughty" notification daemon was used with a development
   version of AwesomeWM and an unknown version number, qutebrowser would crash
   when trying to parse the version string. This is now fixed.
+- Due to a bug with QtWebEngine 5.15.4, old Service Worker data could cause
+  renderer process crashes. This is now worked around by qutebrowser.
+- When an (broken) binding to `set-cmd-text` without any argument existed,
+  using `:` would crash, which is now fixed.
 
 [[v2.2.1]]
 v2.2.1 (2021-04-29)
