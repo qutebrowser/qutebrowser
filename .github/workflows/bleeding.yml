@@ -78,6 +78,9 @@ jobs:
           sed -i '' '/.-d., .--debug.,/s/$/ default=True,/' qutebrowser/qutebrowser.py
       - name: Run tox
         run: "tox -e build-release -- --asciidoc ../asciidoc/asciidoc.py --gh-token ${{ secrets.GITHUB_TOKEN }} ${{ matrix.args }}"
+      - name: Wait 90s to avoid upload errors
+        if: "contains(matrix.args, '--32bit')"
+        run: "sleep 90"
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
