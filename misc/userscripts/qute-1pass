@@ -86,7 +86,7 @@ if [ -n "$TOKEN" ]; then
     UUID_URL=$(op list items --cache --session="$TOKEN" | jq -r '.[] | "\(.uuid):\(.overview.url)"' | grep "$URL") || UUID_URL=""
 
     if [ -z "$UUID_URL" ];then
-        $(echo "message-error 'No entry found for $URL'" >> $QUTE_FIFO)
+        echo "message-error 'No entry found for $URL'" >> $QUTE_FIFO
         TITLE=$(op list items --cache --session="$TOKEN" | jq -r '.[].overview.title' | rofi -dmenu -i) || TITLE=""
         echo "$TITLE"|xclip -in -selection clipboard
         if [ -n "$TITLE" ]; then
@@ -120,8 +120,8 @@ if [ -n "$TOKEN" ]; then
             notify-send "No password found for $URL" -a "Qutebrowser 1Password"
         fi
     else
-        $(echo "message-error 'Entry not found for $UUID_URL'" >> $QUTE_FIFO)
+        echo "message-error 'Entry not found for $UUID_URL'" >> $QUTE_FIFO
     fi
 else
-    $(echo "message-error 'Wrong master password'" >> $QUTE_FIFO)
+    echo "message-error 'Wrong master password'" >> $QUTE_FIFO
 fi
