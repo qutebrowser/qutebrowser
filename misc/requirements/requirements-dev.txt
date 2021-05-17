@@ -14,10 +14,10 @@ packaging==20.9
 pycparser==2.20
 Pympler==0.9
 pyparsing==2.4.7
-PyQt-builder==1.9.1
+PyQt-builder==1.10.0
 python-dateutil==2.8.1
 requests==2.25.1
-sip==6.0.3
+sip==6.1.0
 six==1.16.0
 toml==0.10.2
 uritemplate==3.0.1
