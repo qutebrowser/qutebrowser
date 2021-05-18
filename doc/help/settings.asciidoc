@@ -2692,6 +2692,7 @@ Valid values:
  * +ua-whatsapp+
  * +ua-google+
  * +ua-slack+
+ * +ua-googledocs+
  * +js-whatsapp-web+
  * +js-discord+
  * +js-string-replaceall+

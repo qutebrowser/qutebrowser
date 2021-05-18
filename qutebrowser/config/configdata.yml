@@ -545,6 +545,7 @@ content.site_specific_quirks.skip:
       - ua-whatsapp
       - ua-google
       - ua-slack
+      - ua-googledocs
       - js-whatsapp-web
       - js-discord
       - js-string-replaceall

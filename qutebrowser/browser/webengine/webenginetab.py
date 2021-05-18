@@ -983,7 +983,11 @@ class _Quirk:
         QWebEngineScript.DocumentCreation)
     world: QWebEngineScript.ScriptWorldId = QWebEngineScript.MainWorld
     predicate: bool = True
+    name: Optional[str] = None
 
+    def __post_init__(self):
+        if self.name is None:
+            self.name = f"js-{self.filename.replace('_', '-')}"
 
 class _WebEngineScripts(QObject):
 
@@ -1154,6 +1158,11 @@ class _WebEngineScripts(QObject):
             ),
             _Quirk('discord'),
             _Quirk(
+                'googledocs',
+                # will be an UA quirk once we set the JS UA as well
+                name='ua-googledocs',
+            ),
+            _Quirk(
                 'string_replaceall',
                 predicate=versions.webengine < utils.VersionNumber(5, 15, 3),
             ),
@@ -1171,8 +1180,7 @@ class _WebEngineScripts(QObject):
             if not quirk.predicate:
                 continue
             src = resources.read_file(f'javascript/quirks/{quirk.filename}.user.js')
-            name = f"js-{quirk.filename.replace('_', '-')}"
-            if name not in config.val.content.site_specific_quirks.skip:
+            if quirk.name not in config.val.content.site_specific_quirks.skip:
                 self._inject_js(
                     f'quirk_{quirk.filename}',
                     src,
