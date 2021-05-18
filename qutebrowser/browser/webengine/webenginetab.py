@@ -989,6 +989,7 @@ class _Quirk:
         if self.name is None:
             self.name = f"js-{self.filename.replace('_', '-')}"
 
+
 class _WebEngineScripts(QObject):
 
     def __init__(self, tab, parent=None):
