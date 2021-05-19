@@ -30,7 +30,7 @@ import configparser
 import contextlib
 import re
 from typing import (TYPE_CHECKING, Any, Dict, Iterable, Iterator, List, Mapping,
-                    MutableMapping, Optional, cast)
+                    MutableMapping, Optional, Tuple, cast)
 
 import yaml
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QSettings, qVersion
@@ -302,18 +302,18 @@ class YamlConfig(QObject):
         self._validate_names(settings)
         self._build_values(settings)
 
-    def _load_settings_object(self, yaml_data: Any) -> '_SettingsType':
+    def _load_settings_object(self, yaml_data: Any) -> _SettingsType:
         """Load the settings from the settings: key."""
         return self._pop_object(yaml_data, 'settings', dict)
 
-    def _load_legacy_settings_object(self, yaml_data: Any) -> '_SettingsType':
+    def _load_legacy_settings_object(self, yaml_data: Any) -> _SettingsType:
         data = self._pop_object(yaml_data, 'global', dict)
         settings = {}
         for name, value in data.items():
             settings[name] = {'global': value}
         return settings
 
-    def _build_values(self, settings: Mapping) -> None:
+    def _build_values(self, settings: Mapping[str, Any]) -> None:
         """Build up self._values from the values in the given dict."""
         errors = []
         for name, yaml_values in settings.items():
@@ -740,9 +740,17 @@ class ConfigPyWriter:
 
     def __init__(
             self,
-            options: List,
+            options: List[
+                Tuple[
+                    Optional[urlmatch.UrlPattern],
+                    configdata.Option,
+                    Any
+                ]
+            ],
             bindings: MutableMapping[str, Mapping[str, Optional[str]]],
-            *, commented: bool) -> None:
+            *,
+            commented: bool,
+    ) -> None:
         self._options = options
         self._bindings = bindings
         self._commented = commented

@@ -65,7 +65,7 @@ import re
 import dataclasses
 import mmap
 import pathlib
-from typing import IO, ClassVar, Dict, Optional, Tuple, cast
+from typing import Any, IO, ClassVar, Dict, Optional, Tuple, cast
 
 from PyQt5.QtCore import QLibraryInfo
 
@@ -93,7 +93,7 @@ class Endianness(enum.Enum):
     big = 2
 
 
-def _unpack(fmt: str, fobj: IO[bytes]) -> Tuple:
+def _unpack(fmt: str, fobj: IO[bytes]) -> Tuple[Any, ...]:
     """Unpack the given struct format from the given file."""
     size = struct.calcsize(fmt)
     data = _safe_read(fobj, size)

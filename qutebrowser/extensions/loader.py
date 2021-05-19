@@ -39,6 +39,9 @@ from qutebrowser.misc import objects
 # ModuleInfo objects for all loaded plugins
 _module_infos = []
 
+InitHookType = Callable[['InitContext'], None]
+ConfigChangedHookType = Callable[[], None]
+
 
 @dataclasses.dataclass
 class InitContext:
@@ -59,9 +62,13 @@ class ModuleInfo:
     """
 
     skip_hooks: bool = False
-    init_hook: Optional[Callable] = None
-    config_changed_hooks: List[Tuple[Optional[str], Callable]] = dataclasses.field(
-        default_factory=list)
+    init_hook: Optional[InitHookType] = None
+    config_changed_hooks: List[
+        Tuple[
+            Optional[str],
+            ConfigChangedHookType,
+        ]
+    ] = dataclasses.field(default_factory=list)
 
 
 @dataclasses.dataclass

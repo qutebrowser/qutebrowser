@@ -97,7 +97,10 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
         else:
             return False
 
-    def __call__(self, func: Callable) -> Callable:
+    def __call__(
+        self,
+        func: Callable[..., None],
+    ) -> Callable[..., None]:
         """Filter calls to the decorated function.
 
         Gets called when a function should be decorated.
@@ -105,7 +108,9 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
         Adds a filter which returns if we're not interested in the change-event
         and calls the wrapped function if we are.
 
-        We assume the function passed doesn't take any parameters.
+        We assume the function passed doesn't take any parameters. However, it
+        could take a "self" argument, so we can't cleary express this in the
+        type above.
 
         Args:
             func: The function to be decorated.
@@ -309,7 +314,7 @@ class Config(QObject):
 
     def _init_values(self) -> None:
         """Populate the self._values dict."""
-        self._values: Mapping = {}
+        self._values: Mapping[str, configutils.Values] = {}
         for name, opt in configdata.DATA.items():
             self._values[name] = configutils.Values(opt)
 

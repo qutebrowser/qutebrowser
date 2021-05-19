@@ -85,7 +85,11 @@ class AttributeInfo:
 
     """Info about a settings attribute."""
 
-    def __init__(self, *attributes: Any, converter: Callable = None) -> None:
+    def __init__(
+        self,
+        *attributes: Any,
+        converter: Callable[[Any], bool] = None,
+    ) -> None:
         self.attributes = attributes
         if converter is None:
             self.converter = lambda val: val

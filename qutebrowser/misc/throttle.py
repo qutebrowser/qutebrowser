@@ -45,7 +45,7 @@ class Throttle(QObject):
     """
 
     def __init__(self,
-                 func: Callable,
+                 func: Callable[..., None],
                  delay_ms: int,
                  parent: QObject = None) -> None:
         """Constructor.

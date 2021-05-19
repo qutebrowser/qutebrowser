@@ -58,7 +58,7 @@ def css_selector(group: str, url: QUrl) -> str:
     return ','.join(selectors[group])
 
 
-class AbstractWebElement(collections.abc.MutableMapping):
+class AbstractWebElement(collections.abc.MutableMapping[str, str]):
 
     """A wrapper around QtWebKit/QtWebEngine web element."""
 

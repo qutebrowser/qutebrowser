@@ -341,7 +341,7 @@ class prevent_exceptions:  # noqa: N801,N806 pylint: disable=invalid-name
         self._retval = retval
         self._predicate = predicate
 
-    def __call__(self, func: Callable) -> Callable:
+    def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
         """Called when a function should be decorated.
 
         Args:
@@ -447,7 +447,7 @@ def qualname(obj: Any) -> str:
 _ExceptionType = Union[Type[BaseException], Tuple[Type[BaseException]]]
 
 
-def raises(exc: _ExceptionType, func: Callable, *args: Any) -> bool:
+def raises(exc: _ExceptionType, func: Callable[..., Any], *args: Any) -> bool:
     """Check if a function raises a given exception.
 
     Args:
@@ -725,7 +725,10 @@ def yaml_dump(data: Any, f: IO[str] = None) -> Optional[str]:
         return yaml_data.decode('utf-8')
 
 
-def chunk(elems: Sequence, n: int) -> Iterator[Sequence]:
+_T = TypeVar('_T')
+
+
+def chunk(elems: Sequence[_T], n: int) -> Iterator[Sequence[_T]]:
     """Yield successive n-sized chunks from elems.
 
     If elems % n != 0, the last chunk will be smaller.
