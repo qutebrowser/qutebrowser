@@ -58,7 +58,8 @@ def css_selector(group: str, url: QUrl) -> str:
     return ','.join(selectors[group])
 
 
-class AbstractWebElement(collections.abc.MutableMapping[str, str]):
+# MutableMapping is only generic in Python 3.9+
+class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-arg]
 
     """A wrapper around QtWebKit/QtWebEngine web element."""
 
