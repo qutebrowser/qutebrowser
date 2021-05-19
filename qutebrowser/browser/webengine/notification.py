@@ -669,7 +669,8 @@ class _ServerCapabilities:
 def _as_uint32(x: int) -> QVariant:
     """Convert the given int to an uint32 for DBus."""
     variant = QVariant(x)
-    assert variant.convert(QVariant.UInt)
+    successful = variant.convert(QVariant.UInt)
+    assert successful
     return variant
 
 
