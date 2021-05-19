@@ -41,6 +41,8 @@ Fixed
   using `:` would crash, which is now fixed.
 - New site-specific quirk (again) working around not being able to type
   accented/composed characters on Google Docs.
+- When running with `python -OO` (which is not recommended), a notification
+  being shown would result in a crash, which is now fixed.
 
 [[v2.2.1]]
 v2.2.1 (2021-04-29)
