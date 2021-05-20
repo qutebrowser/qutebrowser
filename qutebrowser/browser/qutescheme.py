@@ -92,7 +92,8 @@ class Redirect(Exception):
 
 # Return value: (mimetype, data) (encoded as utf-8 if a str is returned)
 _HandlerRet = Tuple[str, Union[str, bytes]]
-_Handler = TypeVar('_Handler', bound=Callable[[QUrl], _HandlerRet])
+_HandlerCallable = Callable[[QUrl], _HandlerRet]
+_Handler = TypeVar('_Handler', bound=_HandlerCallable)
 
 
 class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
@@ -105,7 +106,7 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
 
     def __init__(self, name: str) -> None:
         self._name = name
-        self._function: Optional[Callable] = None
+        self._function: Optional[_HandlerCallable] = None
 
     def __call__(self, function: _Handler) -> _Handler:
         self._function = function

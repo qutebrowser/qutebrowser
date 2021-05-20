@@ -545,6 +545,7 @@ content.site_specific_quirks.skip:
       - ua-whatsapp
       - ua-google
       - ua-slack
+      - ua-googledocs
       - js-whatsapp-web
       - js-discord
       - js-string-replaceall
@@ -3269,6 +3270,7 @@ fonts.tabs.unselected:
 
 fonts.web.family.standard:
   default: ''
+  supports_pattern: true
   type:
     name: FontFamily
     none_ok: true
@@ -3276,6 +3278,7 @@ fonts.web.family.standard:
 
 fonts.web.family.fixed:
   default: ''
+  supports_pattern: true
   type:
     name: FontFamily
     none_ok: true
@@ -3283,6 +3286,7 @@ fonts.web.family.fixed:
 
 fonts.web.family.serif:
   default: ''
+  supports_pattern: true
   type:
     name: FontFamily
     none_ok: true
@@ -3290,6 +3294,7 @@ fonts.web.family.serif:
 
 fonts.web.family.sans_serif:
   default: ''
+  supports_pattern: true
   type:
     name: FontFamily
     none_ok: true
@@ -3297,6 +3302,7 @@ fonts.web.family.sans_serif:
 
 fonts.web.family.cursive:
   default: ''
+  supports_pattern: true
   type:
     name: FontFamily
     none_ok: true
@@ -3304,6 +3310,7 @@ fonts.web.family.cursive:
 
 fonts.web.family.fantasy:
   default: ''
+  supports_pattern: true
   type:
     name: FontFamily
     none_ok: true
@@ -3316,6 +3323,7 @@ fonts.web.family.fantasy:
 
 fonts.web.size.default:
   default: 16
+  supports_pattern: true
   type:
     name: Int
     minval: 1
@@ -3324,6 +3332,7 @@ fonts.web.size.default:
 
 fonts.web.size.default_fixed:
   default: 13
+  supports_pattern: true
   type:
     name: Int
     minval: 1
@@ -3332,6 +3341,7 @@ fonts.web.size.default_fixed:
 
 fonts.web.size.minimum:
   default: 0
+  supports_pattern: true
   type:
     name: Int
     minval: 0
@@ -3342,6 +3352,7 @@ fonts.web.size.minimum_logical:
   # This is 0 as default on QtWebKit, and 6 on QtWebEngine - so let's
   # just go for 6 here.
   default: 6
+  supports_pattern: true
   type:
     name: Int
     minval: 0

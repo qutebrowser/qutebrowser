@@ -29,7 +29,7 @@ from PyQt5.QtCore import QSettings
 
 from qutebrowser.config import (config, configfiles, configexc, configdata,
                                 configtypes)
-from qutebrowser.utils import utils, usertypes, urlmatch, standarddir
+from qutebrowser.utils import utils, usertypes, urlmatch, standarddir, version
 from qutebrowser.keyinput import keyutils
 
 
@@ -81,6 +81,7 @@ def autoconfig(config_tmpdir):
      False,
      '[general]\n'
      'qt_version = 5.6.7\n'
+     'qtwe_version = 7.8.9\n'
      'version = 1.2.3\n'
      '\n'
      '[geometry]\n'
@@ -92,6 +93,7 @@ def autoconfig(config_tmpdir):
      False,
      '[general]\n'
      'qt_version = 5.6.7\n'
+     'qtwe_version = 7.8.9\n'
      'version = 1.2.3\n'
      '\n'
      '[geometry]\n'
@@ -104,6 +106,7 @@ def autoconfig(config_tmpdir):
      '[general]\n'
      'foobar = 42\n'
      'qt_version = 5.6.7\n'
+     'qtwe_version = 7.8.9\n'
      'version = 1.2.3\n'
      '\n'
      '[geometry]\n'
@@ -114,6 +117,7 @@ def autoconfig(config_tmpdir):
      True,
      '[general]\n'
      'qt_version = 5.6.7\n'
+     'qtwe_version = 7.8.9\n'
      'version = 1.2.3\n'
      'newval = 23\n'
      '\n'
@@ -122,10 +126,13 @@ def autoconfig(config_tmpdir):
      '[inspector]\n'
      '\n'),
 ])
-def test_state_config(fake_save_manager, data_tmpdir, monkeypatch,
-                      old_data, insert, new_data):
+def test_state_config(
+    fake_save_manager, data_tmpdir, monkeypatch, qtwe_version_patcher,
+    old_data, insert, new_data
+):
     monkeypatch.setattr(configfiles.qutebrowser, '__version__', '1.2.3')
     monkeypatch.setattr(configfiles, 'qVersion', lambda: '5.6.7')
+    qtwe_version_patcher('7.8.9')
 
     statefile = data_tmpdir / 'state'
     if old_data is not None:
@@ -157,6 +164,28 @@ def state_writer(data_tmpdir):
     return _write
 
 
+@pytest.fixture
+def qtwe_version_patcher(monkeypatch):
+    try:
+        from PyQt5 import QtWebEngineWidgets  # pylint: disable=unused-import
+    except ImportError:
+        pytest.skip("QtWebEngine not available")
+
+    def patch(ver):
+        monkeypatch.setattr(
+            configfiles.version,
+            'qtwebengine_versions',
+            lambda avoid_init=False:
+                version.WebEngineVersions(
+                    webengine=utils.VersionNumber.parse(ver),
+                    chromium=None,
+                    source='test',
+                )
+        )
+
+    return patch
+
+
 @pytest.mark.parametrize('old_version, new_version, changed', [
     (None, '5.12.1', False),
     ('5.12.1', '5.12.1', False),
@@ -174,6 +203,32 @@ def test_qt_version_changed(state_writer, monkeypatch,
 
     state = configfiles.StateConfig()
     assert state.qt_version_changed == changed
+
+
+@pytest.mark.parametrize('old_version, new_version, changed', [
+    (None, '5.15.1', False),
+    ('5.15.1', '5.15.1', False),
+    ('5.15.1', '5.15.2', True),
+    ('5.14.0', '5.15.2', True),
+])
+def test_qtwe_version_changed(state_writer, qtwe_version_patcher,
+                              old_version, new_version, changed):
+    qtwe_version_patcher(new_version)
+
+    if old_version is not None:
+        state_writer('qtwe_version', old_version)
+
+    state = configfiles.StateConfig()
+    assert state.qtwe_version_changed == changed
+
+
+def test_qtwe_version_changed_webkit(stubs, monkeypatch, state_writer):
+    fake = stubs.ImportFake({'PyQt5.QtWebEngineWidgets': False}, monkeypatch)
+    fake.patch()
+
+    state_writer('qtwe_version', 'no')
+    state = configfiles.StateConfig()
+    assert not state.qtwe_version_changed
 
 
 @pytest.mark.parametrize('old_version, new_version, expected', [

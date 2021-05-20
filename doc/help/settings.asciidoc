@@ -2692,6 +2692,7 @@ Valid values:
  * +ua-whatsapp+
  * +ua-google+
  * +ua-slack+
+ * +ua-googledocs+
  * +js-whatsapp-web+
  * +js-discord+
  * +js-string-replaceall+
@@ -3088,6 +3089,8 @@ Default: +pass:[default_size default_family]+
 === fonts.web.family.cursive
 Font family for cursive fonts.
 
+This setting supports URL patterns.
+
 Type: <<types,FontFamily>>
 
 Default: empty
@@ -3095,6 +3098,8 @@ Default: empty
 [[fonts.web.family.fantasy]]
 === fonts.web.family.fantasy
 Font family for fantasy fonts.
+
+This setting supports URL patterns.
 
 Type: <<types,FontFamily>>
 
@@ -3104,6 +3109,8 @@ Default: empty
 === fonts.web.family.fixed
 Font family for fixed fonts.
 
+This setting supports URL patterns.
+
 Type: <<types,FontFamily>>
 
 Default: empty
@@ -3111,6 +3118,8 @@ Default: empty
 [[fonts.web.family.sans_serif]]
 === fonts.web.family.sans_serif
 Font family for sans-serif fonts.
+
+This setting supports URL patterns.
 
 Type: <<types,FontFamily>>
 
@@ -3120,6 +3129,8 @@ Default: empty
 === fonts.web.family.serif
 Font family for serif fonts.
 
+This setting supports URL patterns.
+
 Type: <<types,FontFamily>>
 
 Default: empty
@@ -3127,6 +3138,8 @@ Default: empty
 [[fonts.web.family.standard]]
 === fonts.web.family.standard
 Font family for standard fonts.
+
+This setting supports URL patterns.
 
 Type: <<types,FontFamily>>
 
@@ -3136,6 +3149,8 @@ Default: empty
 === fonts.web.size.default
 Default font size (in pixels) for regular text.
 
+This setting supports URL patterns.
+
 Type: <<types,Int>>
 
 Default: +pass:[16]+
@@ -3143,6 +3158,8 @@ Default: +pass:[16]+
 [[fonts.web.size.default_fixed]]
 === fonts.web.size.default_fixed
 Default font size (in pixels) for fixed-pitch text.
+
+This setting supports URL patterns.
 
 Type: <<types,Int>>
 
@@ -3152,6 +3169,8 @@ Default: +pass:[13]+
 === fonts.web.size.minimum
 Hard minimum font size (in pixels).
 
+This setting supports URL patterns.
+
 Type: <<types,Int>>
 
 Default: +pass:[0]+
@@ -3159,6 +3178,8 @@ Default: +pass:[0]+
 [[fonts.web.size.minimum_logical]]
 === fonts.web.size.minimum_logical
 Minimum logical font size (in pixels) that is applied when zooming out.
+
+This setting supports URL patterns.
 
 Type: <<types,Int>>
 

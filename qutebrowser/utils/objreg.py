@@ -55,7 +55,8 @@ class CommandOnlyError(Exception):
 _IndexType = Union[str, int]
 
 
-class ObjectRegistry(collections.UserDict):
+# UserDict is only generic in Python 3.9+
+class ObjectRegistry(collections.UserDict):  # type: ignore[type-arg]
 
     """A registry of long-living objects in qutebrowser.
 

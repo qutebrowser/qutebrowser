@@ -22,13 +22,13 @@
 """Hooks for extensions."""
 
 import importlib
-from typing import Callable
+from typing import Callable, Any
 
 
 from qutebrowser.extensions import loader
 
 
-def _add_module_info(func: Callable) -> loader.ModuleInfo:
+def _add_module_info(func: Callable[..., Any]) -> loader.ModuleInfo:
     """Add module info to the given function."""
     module = importlib.import_module(func.__module__)
     return loader.add_module_info(module)
@@ -48,7 +48,7 @@ class init:
             message.info("Extension initialized.")
     """
 
-    def __call__(self, func: Callable) -> Callable:
+    def __call__(self, func: loader.InitHookType) -> loader.InitHookType:
         info = _add_module_info(func)
         if info.init_hook is not None:
             raise ValueError("init hook is already registered!")
@@ -86,7 +86,10 @@ class config_changed:
     def __init__(self, option_filter: str = None) -> None:
         self._filter = option_filter
 
-    def __call__(self, func: Callable) -> Callable:
+    def __call__(
+        self,
+        func: loader.ConfigChangedHookType,
+    ) -> loader.ConfigChangedHookType:
         info = _add_module_info(func)
         info.config_changed_hooks.append((self._filter, func))
         return func

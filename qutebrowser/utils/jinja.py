@@ -145,7 +145,7 @@ js_environment = jinja2.Environment(loader=Loader('javascript'))
 @functools.lru_cache()
 def template_config_variables(template: str) -> FrozenSet[str]:
     """Return the config variables used in the template."""
-    unvisted_nodes = [environment.parse(template)]
+    unvisted_nodes: List[jinja2.nodes.Node] = [environment.parse(template)]
     result: Set[str] = set()
     while unvisted_nodes:
         node = unvisted_nodes.pop()
@@ -157,11 +157,11 @@ def template_config_variables(template: str) -> FrozenSet[str]:
         # For example it's ['ab', 'c', 'd'] for 'conf.d.c.ab'.
         attrlist: List[str] = []
         while isinstance(node, jinja2.nodes.Getattr):
-            attrlist.append(node.attr)  # type: ignore[attr-defined]
-            node = node.node  # type: ignore[attr-defined]
+            attrlist.append(node.attr)
+            node = node.node
 
         if isinstance(node, jinja2.nodes.Name):
-            if node.name == 'conf':  # type: ignore[attr-defined]
+            if node.name == 'conf':
                 result.add('.'.join(reversed(attrlist)))
             # otherwise, the node is a Name node so it doesn't have any
             # child nodes

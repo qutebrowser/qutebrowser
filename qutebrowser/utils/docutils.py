@@ -25,7 +25,7 @@ import inspect
 import os.path
 import collections
 import enum
-from typing import Callable, MutableMapping, Optional, List, Union
+from typing import Any, Callable, MutableMapping, Optional, List, Union
 
 import qutebrowser
 from qutebrowser.utils import log, utils
@@ -88,7 +88,7 @@ class DocstringParser:
         arg_inside = enum.auto()
         misc = enum.auto()
 
-    def __init__(self, func: Callable) -> None:
+    def __init__(self, func: Callable[..., Any]) -> None:
         """Constructor.
 
         Args:

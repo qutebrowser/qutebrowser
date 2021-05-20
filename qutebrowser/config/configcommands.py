@@ -21,7 +21,7 @@
 
 import os.path
 import contextlib
-from typing import TYPE_CHECKING, Iterator, List, Optional
+from typing import TYPE_CHECKING, Iterator, List, Optional, Any, Tuple
 
 from PyQt5.QtCore import QUrl
 
@@ -475,7 +475,7 @@ class ConfigCommands:
             raise cmdutils.CommandError("{} already exists - use --force to "
                                         "overwrite!".format(filename))
 
-        options: List = []
+        options: List[Tuple[Optional[urlmatch.UrlPattern], configdata.Option, Any]] = []
         if defaults:
             options = [(None, opt, opt.default)
                        for _name, opt in sorted(configdata.DATA.items())]

@@ -64,7 +64,7 @@ def turn_off_logging():
 def main():
     end2end_dir = pathlib.Path(__file__).resolve().parents[1]
     ssl_dir = end2end_dir / 'data' / 'ssl'
-    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     context.load_cert_chain((ssl_dir / 'cert.pem'),
                             (ssl_dir / 'key.pem'))
     app.run(port=int(sys.argv[1]), debug=False, ssl_context=context)
