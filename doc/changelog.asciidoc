@@ -26,7 +26,7 @@ The `fonts.web.*` settings now support URL patterns.
 
 
 [[v2.2.2]]
-v2.2.2 (unreleased)
+v2.2.2 (2021-05-20)
 -------------------
 
 Fixed
