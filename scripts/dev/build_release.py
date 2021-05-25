@@ -269,7 +269,22 @@ INFO_PLIST_UPDATES = {
         "CFBundleTypeMIMETypes": ["text/xhtml"],
         "CFBundleTypeName": "XHTML document",
         "CFBundleTypeRole": "Viewer",
-    }]
+    }],
+
+    # https://developer.apple.com/documentation/avfoundation/cameras_and_media_capture/requesting_authorization_for_media_capture_on_macos
+    #
+    # Keys based on Google Chrome's .app, except Bluetooth keys which seem to
+    # be iOS-only.
+    #
+    # If we don't do this, we get a SIGABRT from macOS when those permissions
+    # are used, and even in some other situations (like logging into Google
+    # accounts)...
+    'NSCameraUsageDescription':
+        'A website in qutebrowser wants to use the camera.',
+    'NSLocationUsageDescription':
+        'A website in qutebrowser wants to use your location information.',
+    'NSMicrophoneUsageDescription':
+        'A website in qutebrowser wants to use your microphone.',
 }
 
 
