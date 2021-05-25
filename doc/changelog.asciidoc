@@ -24,6 +24,15 @@ Changed
 
 The `fonts.web.*` settings now support URL patterns.
 
+[[v2.2.3]]
+v2.2.3 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- Crashes on macOS 10.14+ when sharing the camera or logging into Google
+  accounts.
 
 [[v2.2.2]]
 v2.2.2 (2021-05-20)
