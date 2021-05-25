@@ -6,25 +6,25 @@ beautifulsoup4==4.9.3
 certifi==2020.12.5
 chardet==4.0.0
 cheroot==8.5.2
-click==8.0.0
+click==8.0.1
 coverage==5.5
 EasyProcess==0.3
 execnet==1.8.0
 filelock==3.0.12
-Flask==2.0.0
+Flask==2.0.1
 glob2==0.7
 hunter==3.3.3
-hypothesis==6.12.0
+hypothesis==6.13.4
 icdiff==1.9.1
 idna==2.10
 iniconfig==1.1.1
-itsdangerous==2.0.0
+itsdangerous==2.0.1
 jaraco.functools==3.3.0
-# Jinja2==3.0.0
+# Jinja2==3.0.1
 Mako==1.1.4
 manhole==1.8.0
-# MarkupSafe==2.0.0
-more-itertools==8.7.0
+# MarkupSafe==2.0.1
+more-itertools==8.8.0
 packaging==20.9
 parse==1.19.0
 parse-type==0.5.2
@@ -57,4 +57,4 @@ tldextract==3.1.0
 toml==0.10.2
 urllib3==1.26.4
 vulture==2.3
-Werkzeug==2.0.0
+Werkzeug==2.0.1
