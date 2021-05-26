@@ -215,7 +215,7 @@ jobs:
         uses: Gottox/irc-message-action@v1
         if: "needs.linters.result == 'success' && needs.tests.result == 'success' && needs.tests-docker.result == 'success' && needs.codeql.result == 'success'"
         with:
-          server: chat.freenode.net
+          server: irc.libera.chat
           channel: '#qutebrowser-dev'
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
@@ -223,7 +223,7 @@ jobs:
         uses: Gottox/irc-message-action@v1
         if: "needs.linters.result == 'failure' || needs.tests.result == 'failure' || needs.tests-docker.result == 'failure' || needs.codeql.result == 'failure'"
         with:
-          server: chat.freenode.net
+          server: irc.libera.chat
           channel: '#qutebrowser-dev'
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
@@ -232,7 +232,7 @@ jobs:
         uses: Gottox/irc-message-action@v1
         if: "needs.linters.result == 'skipped' || needs.tests.result == 'skipped' || needs.tests-docker.result == 'skipped' || needs.codeql.result == 'skipped'"
         with:
-          server: chat.freenode.net
+          server: irc.libera.chat
           channel: '#qutebrowser-dev'
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00038Skipped:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
@@ -240,7 +240,7 @@ jobs:
         uses: Gottox/irc-message-action@v1
         if: "needs.linters.result == 'cancelled' || needs.tests.result == 'cancelled' || needs.tests-docker.result == 'cancelled' || needs.codeql.result == 'cancelled'"
         with:
-          server: chat.freenode.net
+          server: irc.libera.chat
           channel: '#qutebrowser-dev'
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u000314Cancelled:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n

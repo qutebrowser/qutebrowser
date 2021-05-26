@@ -77,7 +77,7 @@ jobs:
         uses: Gottox/irc-message-action@v1
         if: "needs.update.result == 'success'"
         with:
-          server: chat.freenode.net
+          server: irc.libera.chat
           channel: '#qutebrowser-dev'
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
@@ -85,7 +85,7 @@ jobs:
         uses: Gottox/irc-message-action@v1
         if: "needs.update.result != 'success'"
         with:
-          server: chat.freenode.net
+          server: irc.libera.chat
           channel: '#qutebrowser-dev'
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
