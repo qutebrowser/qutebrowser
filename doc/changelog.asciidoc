@@ -22,7 +22,7 @@ v2.3.0 (unreleased)
 Changed
 ~~~~~~~
 
-The `fonts.web.*` settings now support URL patterns.
+- The `fonts.web.*` settings now support URL patterns.
 
 [[v2.2.3]]
 v2.2.3 (unreleased)
@@ -31,8 +31,11 @@ v2.2.3 (unreleased)
 Fixed
 ~~~~~
 
-- Crashes on macOS 10.14+ when sharing the camera or logging into Google
-  accounts.
+- Logging into Google accounts or sharing the camera on macOS 10.14+ crashed,
+  which is now fixed.
+- The Windows installer now correctly aborts the installation on Windows 7
+  (rather than attempting an install which won't work, since Windows 7 is
+  unsupported since the v2.0.0 release).
 
 [[v2.2.2]]
 v2.2.2 (2021-05-20)
