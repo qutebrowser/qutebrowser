@@ -59,7 +59,7 @@ ShowUninstDetails hide
 !define CONTACT "mail@qutebrowser.org"
 !define COMMENTS "A keyboard-driven, vim-like browser based on PyQt5."
 !define LANGID "1033" ; U.S. English
-!define MIN_WIN_VER "XP"
+!define MIN_WIN_VER "8"
 !define SETUP_MUTEX "${PRODUCT_NAME} Setup Mutex" ; do not change this between program versions!
 !define APP_MUTEX "${PRODUCT_NAME} App Mutex" ; do not change this between program versions!
 !define REG_UN "Software\Microsoft\Windows\CurrentVersion\Uninstall"
