@@ -21,7 +21,7 @@
 #   (comments and video suggestions), i.e. only the videos should disappear
 #   when mpv is started. And that's precisely what the present script does.
 #
-# Thorsten Wißmann, 2015 (thorsten` on freenode)
+# Thorsten Wißmann, 2015 (thorsten` on Libera Chat)
 # Any feedback is welcome!
 
 set -e
