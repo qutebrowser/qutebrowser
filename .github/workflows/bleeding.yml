@@ -102,7 +102,7 @@ jobs:
         if: "needs.tests.result == 'success' && needs.pyinstaller.result == 'success'"
         with:
           server: irc.libera.chat
-          channel: '#qutebrowser-dev'
+          channel: '#qutebrowser-bots'
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
       - name: Send non-success IRC notification
@@ -110,7 +110,7 @@ jobs:
         if: "needs.tests.result != 'success' || needs.pyinstaller.result != 'success'"
         with:
           server: irc.libera.chat
-          channel: '#qutebrowser-dev'
+          channel: '#qutebrowser-bots'
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
             tests: ${{ needs.tests.result }}, pyinstaller: ${{ needs.pyinstaller.result }}"
