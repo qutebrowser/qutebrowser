@@ -405,5 +405,9 @@ class TestFontFamilies:
         if info.family() == fallback_family:
             return
 
+        if info.family() == 'Noto Sans Mono':
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-94090
+            return
+
         # If we didn't fall back, we should've gotten a fixed-pitch font.
         assert info.fixedPitch(), info.family()
