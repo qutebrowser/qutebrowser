@@ -33,7 +33,7 @@ import json
 import inspect
 import argparse
 from typing import (TYPE_CHECKING, Any, Iterator, Mapping, MutableSequence,
-                    Optional, Set, Tuple, Union, cast)
+                    Optional, Set, Tuple, Union)
 
 from PyQt5 import QtCore
 # Optional imports
