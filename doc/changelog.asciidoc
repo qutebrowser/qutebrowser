@@ -38,6 +38,11 @@ Fixed
   unsupported since the v2.0.0 release).
 - Using `--json-logging` without `--debug` caused qutebrowser to crash since the
   v1.13.0 release. It now works correctly again.
+- Mixing Qt 5.14+ with QtWebEngine 5.12 caused a crash related to qutebrowser's
+  notification support, which is now fixed.
+- The documentation now points to the new IRC channels on irc.libera.chat
+  instead of the defunct Freenode channels (due to a hostile takeover by
+  Freenode staff).
 
 [[v2.2.2]]
 v2.2.2 (2021-05-20)
