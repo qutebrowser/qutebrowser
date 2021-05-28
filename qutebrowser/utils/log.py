@@ -363,12 +363,16 @@ def change_console_formatter(level: int) -> None:
         level: The numeric logging level
     """
     assert console_handler is not None
+    old_formatter = console_handler.formatter
 
-    old_formatter = cast(ColoredFormatter, console_handler.formatter)
-    console_fmt = get_console_format(level)
-    console_formatter = ColoredFormatter(console_fmt, DATEFMT, '{',
-                                         use_colors=old_formatter.use_colors)
-    console_handler.setFormatter(console_formatter)
+    if isinstance(old_formatter, ColoredFormatter):
+        console_fmt = get_console_format(level)
+        console_formatter = ColoredFormatter(
+            console_fmt, DATEFMT, '{', use_colors=old_formatter.use_colors)
+        console_handler.setFormatter(console_formatter)
+    else:
+        # Same format for all levels
+        assert isinstance(old_formatter, JSONFormatter), old_formatter
 
 
 def qt_message_handler(msg_type: QtCore.QtMsgType,
