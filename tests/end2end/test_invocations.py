@@ -743,3 +743,14 @@ def test_unavailable_backend(request, quteproc_new):
         message=('*qutebrowser tried to start with the Qt* backend but failed '
                  'because * could not be imported.*'))
     line.expected = True
+
+
+def test_json_logging_without_debug(request, quteproc_new):
+    args = _base_args(request.config) + ['--temp-basedir', ':quit']
+    args.remove('--debug')
+    args.remove('about:blank')  # interfers with :quit at the end
+
+    quteproc_new.exit_expected = True
+    quteproc_new.start(args)
+    assert not quteproc_new.is_running()
+    assert not quteproc_new.captured_log
