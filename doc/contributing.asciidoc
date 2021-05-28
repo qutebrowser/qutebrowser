@@ -27,8 +27,7 @@ several ways:
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[subscribe]
 first).
 * Join the IRC channel ircs://irc.libera.chat:6697/#qutebrowser[`#qutebrowser`] on
-https://libera.chat/[Libera Chat]
-(https://kiwiirc.com/nextclient/irc.libera.chat:+6697/#qutebrowser[webchat]).
+https://libera.chat/[Libera Chat] (https://web.libera.chat/#qutebrowser[webchat]).
 
 Finding something to work on
 ----------------------------
