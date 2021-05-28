@@ -23,8 +23,7 @@ Getting help
 
 You can get help in the IRC channel
 ircs://irc.libera.chat:6697/#qutebrowser[`#qutebrowser`] on
-https://libera.chat/[Libera Chat]
-(https://kiwiirc.com/nextclient/irc.libera.chat:+6697/#qutebrowser[webchat]),
+https://libera.chat/[Libera Chat] (https://web.libera.chat/#qutebrowser[webchat]),
 or by writing a message to the
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[].
