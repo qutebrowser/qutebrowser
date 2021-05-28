@@ -784,7 +784,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         self,
         name: str,
         vendor: str,
-        version: str,
+        ver: str,
     ) -> Optional[_ServerQuirks]:
         """Find quirks to use based on the server information."""
         if (name, vendor) == ("notify-osd", "Canonical Ltd"):
@@ -797,15 +797,15 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             # Still in active development but doesn't implement spec 1.2:
             # https://github.com/mate-desktop/mate-notification-daemon/issues/132
             quirks = _ServerQuirks(spec_version="1.1")
-            if utils.VersionNumber.parse(version) <= utils.VersionNumber(1, 24):
+            if utils.VersionNumber.parse(ver) <= utils.VersionNumber(1, 24):
                 # https://github.com/mate-desktop/mate-notification-daemon/issues/118
                 quirks.avoid_body_hyperlinks = True
             return quirks
-        elif (name, vendor) == ("naughty", "awesome") and version != "devel":
+        elif (name, vendor) == ("naughty", "awesome") and ver != "devel":
             # Still in active development but spec 1.0/1.2 support isn't
             # released yet:
             # https://github.com/awesomeWM/awesome/commit/e076bc664e0764a3d3a0164dabd9b58d334355f4
-            parsed_version = utils.VersionNumber.parse(version.lstrip('v'))
+            parsed_version = utils.VersionNumber.parse(ver.lstrip('v'))
             if parsed_version <= utils.VersionNumber(4, 3):
                 return _ServerQuirks(spec_version="1.0")
         elif (name, vendor) == ("twmnd", "twmnd"):
@@ -816,7 +816,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             return _ServerQuirks(skip_capabilities=True)
         elif (name, vendor) == ("lxqt-notificationd", "lxqt.org"):
             quirks = _ServerQuirks()
-            parsed_version = utils.VersionNumber.parse(version)
+            parsed_version = utils.VersionNumber.parse(ver)
             if parsed_version <= utils.VersionNumber(0, 16):
                 # https://github.com/lxqt/lxqt-notificationd/issues/253
                 quirks.escape_title = True
@@ -849,13 +849,13 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         """Query notification server information and set quirks."""
         reply = self.interface.call(QDBus.BlockWithGui, "GetServerInformation")
         self._verify_message(reply, "ssss", QDBusMessage.ReplyMessage)
-        name, vendor, version, spec_version = reply.arguments()
+        name, vendor, ver, spec_version = reply.arguments()
 
         log.misc.debug(
-            f"Connected to notification server: {name} {version} by {vendor}, "
+            f"Connected to notification server: {name} {ver} by {vendor}, "
             f"implementing spec {spec_version}")
 
-        quirks = self._find_quirks(name, vendor, version)
+        quirks = self._find_quirks(name, vendor, ver)
         if quirks is not None:
             log.misc.debug(f"Enabling quirks {quirks}")
             self._quirks = quirks
@@ -863,7 +863,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         expected_spec_version = self._quirks.spec_version or self.SPEC_VERSION
         if spec_version != expected_spec_version:
             log.misc.warning(
-                f"Notification server ({name} {version} by {vendor}) implements "
+                f"Notification server ({name} {ver} by {vendor}) implements "
                 f"spec {spec_version}, but {expected_spec_version} was expected. "
                 f"If {name} is up to date, please report a qutebrowser bug.")
 
