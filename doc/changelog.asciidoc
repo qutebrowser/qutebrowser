@@ -36,6 +36,8 @@ Fixed
 - The Windows installer now correctly aborts the installation on Windows 7
   (rather than attempting an install which won't work, since Windows 7 is
   unsupported since the v2.0.0 release).
+- Using `--json-logging` without `--debug` caused qutebrowser to crash since the
+  v1.13.0 release. It now works correctly again.
 
 [[v2.2.2]]
 v2.2.2 (2021-05-20)
