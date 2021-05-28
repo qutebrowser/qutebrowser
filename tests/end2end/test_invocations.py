@@ -55,7 +55,16 @@ def _base_args(config):
 
 
 @pytest.fixture
-def temp_basedir_env(tmp_path, short_tmpdir):
+def runtime_tmpdir(short_tmpdir):
+    """A directory suitable for XDG_RUNTIME_DIR."""
+    runtime_dir = short_tmpdir / 'rt'
+    runtime_dir.ensure(dir=True)
+    runtime_dir.chmod(0o700)
+    return runtime_dir
+
+
+@pytest.fixture
+def temp_basedir_env(tmp_path, runtime_tmpdir):
     """Return a dict of environment variables that fakes --temp-basedir.
 
     We can't run --basedir or --temp-basedir for some tests, so we mess with
@@ -63,11 +72,7 @@ def temp_basedir_env(tmp_path, short_tmpdir):
     """
     data_dir = tmp_path / 'data'
     config_dir = tmp_path / 'config'
-    runtime_dir = short_tmpdir / 'rt'
     cache_dir = tmp_path / 'cache'
-
-    runtime_dir.ensure(dir=True)
-    runtime_dir.chmod(0o700)
 
     lines = [
         '[general]',
@@ -83,7 +88,7 @@ def temp_basedir_env(tmp_path, short_tmpdir):
     env = {
         'XDG_DATA_HOME': str(data_dir),
         'XDG_CONFIG_HOME': str(config_dir),
-        'XDG_RUNTIME_DIR': str(runtime_dir),
+        'XDG_RUNTIME_DIR': str(runtime_tmpdir),
         'XDG_CACHE_HOME': str(cache_dir),
     }
     return env
@@ -745,12 +750,12 @@ def test_unavailable_backend(request, quteproc_new):
     line.expected = True
 
 
-def test_json_logging_without_debug(request, quteproc_new):
+def test_json_logging_without_debug(request, quteproc_new, runtime_tmpdir):
     args = _base_args(request.config) + ['--temp-basedir', ':quit']
     args.remove('--debug')
     args.remove('about:blank')  # interfers with :quit at the end
 
     quteproc_new.exit_expected = True
-    quteproc_new.start(args)
+    quteproc_new.start(args, env={'XDG_RUNTIME_DIR': str(runtime_tmpdir)})
     assert not quteproc_new.is_running()
     assert not quteproc_new.captured_log
