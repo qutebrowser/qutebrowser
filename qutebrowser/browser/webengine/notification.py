@@ -65,10 +65,16 @@ if TYPE_CHECKING:
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
-from qutebrowser.utils import qtutils, log, utils, debug, message
+from qutebrowser.utils import qtutils, log, utils, debug, message, version
 
 
 bridge: Optional['NotificationBridgePresenter'] = None
+
+
+def _notifications_supported() -> bool:
+    """Check whether the current QtWebEngine version has notification support."""
+    versions = version.qtwebengine_versions(avoid_init=True)
+    return versions.webengine >= utils.VersionNumber(5, 14)
 
 
 def init() -> None:
@@ -84,7 +90,8 @@ def init() -> None:
         # at a later point in time. However, doing so is probably too complex compared
         # to its usefulness.
         return
-    if not qtutils.version_check('5.14'):
+
+    if not _notifications_supported():
         return
 
     global bridge
@@ -163,7 +170,7 @@ class NotificationBridgePresenter(QObject):
 
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
-        assert qtutils.version_check('5.14')
+        assert _notifications_supported()
 
         self._active_notifications: Dict[int, 'QWebEngineNotification'] = {}
         self._adapter: Optional[AbstractNotificationAdapter] = None
@@ -709,8 +716,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(bridge)
-        if not qtutils.version_check('5.14'):
-            raise Error("Notifications are not supported on Qt < 5.14")
+        assert _notifications_supported()
 
         if utils.is_windows:
             # The QDBusConnection destructor seems to cause error messages (and
