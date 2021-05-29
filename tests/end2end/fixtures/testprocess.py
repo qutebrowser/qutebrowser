@@ -25,7 +25,7 @@ import warnings
 import dataclasses
 
 import pytest
-import pytestqt.plugin
+import pytestqt.wait_signal
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QProcess, QObject,
                           QElapsedTimer, QProcessEnvironment)
 from PyQt5.QtTest import QSignalSpy
@@ -198,8 +198,7 @@ class Process(QObject):
 
         Should be used in a contextmanager.
         """
-        blocker = pytestqt.plugin.SignalBlocker(timeout=timeout,
-                                                raising=raising)
+        blocker = pytestqt.wait_signal.SignalBlocker(timeout=timeout, raising=raising)
         blocker.connect(signal)
         return blocker
 
