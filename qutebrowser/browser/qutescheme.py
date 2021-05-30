@@ -41,7 +41,7 @@ from qutebrowser.browser import pdfjs, downloads, history
 from qutebrowser.config import config, configdata, configexc
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                resources, objreg, standarddir)
-from qutebrowser.misc import guiprocess
+from qutebrowser.misc import guiprocess, quitter
 from qutebrowser.qt import sip
 
 
@@ -452,6 +452,9 @@ def qute_settings(url: QUrl) -> _HandlerRet:
         if url.password() != csrf_token:
             message.error("Invalid CSRF token for qute://settings!")
             raise RequestDeniedError("Invalid CSRF token!")
+        if quitter.instance.is_shutting_down:
+            log.config.debug("Ignoring /set request during shutdown")
+            return 'text/html', b'error: ignored'
         return _qute_settings_set(url)
 
     # Requests to qute://settings/set should only be allowed from
