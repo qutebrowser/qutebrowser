@@ -582,6 +582,7 @@ content.headers.accept_language:
   type:
     name: String
     none_ok: true
+    encoding: ascii
   supports_pattern: true
   default: en-US,en;q=0.9
   desc: >-
@@ -643,6 +644,7 @@ content.headers.user_agent:
       Safari/{webkit_version}'
   type:
     name: FormatString
+    encoding: ascii
     fields:
       - os_info
       - webkit_version
