@@ -50,6 +50,14 @@ Fixed
 - When `:edit-text` is used, but the existing text in the input isn't
   representable in the configured encoding (`editor.encoding`), qutebrowser would
   crash. It now shows a proper error instead.
+- The testsuite should now work properly on aarch64.
+- When QtWebEngine is in a "stuck" state while `:selection-follow` was used,
+  this could cause a crash in qutebrowser. This is now fixed (speculatively, due
+  to lack of a reproducer).
+- When the brave adblock data (`adblock-cache.dat`) got corrupted, qutebrowser
+  would crash when trying to load it. It now displays an error instead.
+- Combining `/S` (silent) and `/allusers` when uninstalling via the Windows
+  installer now works properly.
 
 [[v2.2.2]]
 v2.2.2 (2021-05-20)
