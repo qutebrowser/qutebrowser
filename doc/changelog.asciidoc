@@ -43,6 +43,13 @@ Fixed
 - The documentation now points to the new IRC channels on irc.libera.chat
   instead of the defunct Freenode channels (due to a hostile takeover by
   Freenode staff).
+- Setting `content.headers.user_agent` or `.accept_language` to a value
+  containing non-ascii characters was permitted by qutebrowser, but resulted in
+  a crash when loading a page. Such values are now rejected properly.
+- When quitting qutebrowser on the `qute://settings` page, a crash could happen, which is now fixed.
+- When `:edit-text` is used, but the existing text in the input isn't
+  representable in the configured encoding (`editor.encoding`), qutebrowser would
+  crash. It now shows a proper error instead.
 
 [[v2.2.2]]
 v2.2.2 (2021-05-20)
