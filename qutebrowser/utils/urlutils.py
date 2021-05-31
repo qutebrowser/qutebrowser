@@ -34,7 +34,7 @@ from PyQt5.QtNetwork import QHostInfo, QHostAddress, QNetworkProxy
 
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config
-from qutebrowser.utils import log, qtutils, message, utils, standarddir
+from qutebrowser.utils import log, qtutils, message, utils, standarddir, resources
 from qutebrowser.browser.network import pac
 
 
@@ -670,7 +670,7 @@ class _SuffixList:
                 psl_file = f.read()
         else:
             try:
-                psl_file = utils.read_file(bundled_psl_path)
+                psl_file = resources.read_file(bundled_psl_path)
             except FileNotFoundError:
                 for path in system_psl_paths:
                     if os.path.exists(path):
