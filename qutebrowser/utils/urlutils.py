@@ -34,7 +34,7 @@ from PyQt5.QtNetwork import QHostInfo, QHostAddress, QNetworkProxy
 
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config
-from qutebrowser.utils import log, qtutils, message, utils, standarddir, resources
+from qutebrowser.utils import log, qtutils, message, utils, resources
 from qutebrowser.browser.network import pac
 
 
@@ -658,6 +658,7 @@ class _SuffixList:
     _rules: Optional[Dict[str, _Rule]] = None
 
     def _load_rules(self) -> Dict[str, _Rule]:
+        from qutebrowser.utils import standarddir
         user_psl_path = os.path.join(standarddir.data(), 'public_suffix_list.dat')
         system_psl_paths = (
             '/usr/share/publicsuffix/public_suffix_list.dat',  # Debian's publicsuffix
