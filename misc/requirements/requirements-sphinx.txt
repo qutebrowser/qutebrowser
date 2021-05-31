@@ -2,7 +2,7 @@
 
 alabaster==0.7.12
 Babel==2.9.1
-certifi==2020.12.5
+certifi==2021.5.30
 chardet==4.0.0
 docutils==0.17.1
 idna==2.10
@@ -22,4 +22,4 @@ sphinxcontrib-htmlhelp==2.0.0
 sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.5
-urllib3==1.26.4
+urllib3==1.26.5
