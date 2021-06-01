@@ -6,7 +6,7 @@
  * CYCLE_INPUTS = "jseval -q -f ~/.config/qutebrowser/cycle-inputs.js"
  * config.bind('gi', CYCLE_INPUTS)
  *
- * By dive on freenode <dave@dawoodfall.net>
+ * By dive <dave@dawoodfall.net>
  */
 
 (function() {

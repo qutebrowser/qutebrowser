@@ -211,7 +211,15 @@ class BraveAdBlocker:
 
         if cache_exists:
             logger.debug("Loading cached adblock data: %s", self._cache_path)
-            self._engine.deserialize_from_file(str(self._cache_path))
+            try:
+                self._engine.deserialize_from_file(str(self._cache_path))
+            except ValueError as e:
+                if str(e) != "DeserializationError":
+                    # All Rust exceptions get turned into a ValueError by
+                    # python-adblock
+                    raise
+                message.error("Reading adblock filter data failed (corrupted data?). "
+                              "Please run :adblock-update.")
         else:
             if (
                 config.val.content.blocking.adblock.lists
