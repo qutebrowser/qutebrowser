@@ -22,8 +22,9 @@ Getting help
 ------------
 
 You can get help in the IRC channel
-ircs://irc.libera.chat:6697/#qutebrowser[`#qutebrowser`] on
-https://libera.chat/[Libera Chat] (https://web.libera.chat/#qutebrowser[webchat]),
+link:ircs://irc.libera.chat:6697/#qutebrowser[`#qutebrowser`] on
+https://libera.chat/[Libera Chat]
+(https://web.libera.chat/#qutebrowser[webchat], https://matrix.to/#qutebrowser:libera.chat[via Matrix]),
 or by writing a message to the
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[].
