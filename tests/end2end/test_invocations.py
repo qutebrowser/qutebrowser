@@ -26,6 +26,7 @@ import logging
 import importlib
 import re
 import json
+import platform
 
 import pytest
 from PyQt5.QtCore import QProcess, QPoint
@@ -37,6 +38,14 @@ from qutebrowser.utils import qtutils, utils
 ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,
                                   reason="Python >= 3.7 doesn't force ASCII "
                                   "locale with LC_ALL=C")
+
+
+# For some reason (some floating point rounding differences?), color values are
+# slightly different (and wrong!) on ARM machines. We adjust our expected values
+# accordingly, since we don't really care about the exact value, we just want to
+# know that the underlying Chromium is respecting our preferences.
+# FIXME what to do about 32-bit ARM?
+IS_ARM = platform.machine() == 'aarch64'
 
 
 def _base_args(config):
@@ -517,7 +526,8 @@ def test_preferred_colorscheme_with_dark_mode(
         # No workaround known.
         expected_text = 'Light preference detected.'
         # light website color, inverted by darkmode
-        expected_color = testutils.Color(127, 127, 127)
+        expected_color = (testutils.Color(123, 125, 123) if IS_ARM
+                          else testutils.Color(127, 127, 127))
         xfail = "Chromium bug 1177973"
     elif qtwe_version == utils.VersionNumber(5, 15, 2):
         # Our workaround breaks when dark mode is enabled...
@@ -529,7 +539,8 @@ def test_preferred_colorscheme_with_dark_mode(
         # Qt 5.14 and 5.15.0/.1 work correctly.
         # Hopefully, so does Qt 6.x in the future?
         expected_text = 'Dark preference detected.'
-        expected_color = testutils.Color(34, 34, 34)  # dark website color
+        expected_color = (testutils.Color(33, 32, 33) if IS_ARM
+                          else testutils.Color(34, 34, 34))  # dark website color
         xfail = False
 
     pos = QPoint(0, 0)
@@ -630,30 +641,51 @@ def test_cookies_store(quteproc_new, request, short_tmpdir, store):
     quteproc_new.wait_for_quit()
 
 
+# The 'colors' dictionaries in the parametrize decorator below have (QtWebEngine
+# version, CPU architecture) as keys. Either of those (or both) can be None to
+# say "on all other Qt versions" or "on all other CPU architectures".
 @pytest.mark.parametrize('filename, algorithm, colors', [
     (
         'blank',
         'lightness-cielab',
         {
-            '5.15': testutils.Color(18, 18, 18),
-            '5.14': testutils.Color(27, 27, 27),
-            None: testutils.Color(0, 0, 0),
+            ('5.15', None): testutils.Color(18, 18, 18),
+            ('5.15', 'aarch64'): testutils.Color(16, 16, 16),
+            ('5.14', None): testutils.Color(27, 27, 27),
+            ('5.14', 'aarch64'): testutils.Color(24, 24, 24),
+            (None, None): testutils.Color(0, 0, 0),
         }
     ),
-    ('blank', 'lightness-hsl', {None: testutils.Color(0, 0, 0)}),
-    ('blank', 'brightness-rgb', {None: testutils.Color(0, 0, 0)}),
+    ('blank', 'lightness-hsl', {(None, None): testutils.Color(0, 0, 0)}),
+    ('blank', 'brightness-rgb', {(None, None): testutils.Color(0, 0, 0)}),
 
     (
         'yellow',
         'lightness-cielab',
         {
-            '5.15': testutils.Color(35, 34, 0),
-            '5.14': testutils.Color(35, 34, 0),
-            None: testutils.Color(204, 204, 0),
+            ('5.15', None): testutils.Color(35, 34, 0),
+            ('5.15', 'aarch64'): testutils.Color(33, 32, 0),
+            ('5.14', None): testutils.Color(35, 34, 0),
+            ('5.14', 'aarch64'): testutils.Color(33, 32, 0),
+            (None, None): testutils.Color(204, 204, 0),
         }
     ),
-    ('yellow', 'lightness-hsl', {None: testutils.Color(204, 204, 0)}),
-    ('yellow', 'brightness-rgb', {None: testutils.Color(0, 0, 204)}),
+    (
+        'yellow',
+        'lightness-hsl',
+        {
+            (None, None): testutils.Color(204, 204, 0),
+            (None, 'aarch64'): testutils.Color(206, 207, 0),
+        },
+    ),
+    (
+        'yellow',
+        'brightness-rgb',
+        {
+            (None, None): testutils.Color(0, 0, 204),
+            (None, 'aarch64'): testutils.Color(0, 0, 206),
+        }
+    ),
 ])
 def test_dark_mode(webengine_versions, quteproc_new, request,
                    filename, algorithm, colors):
@@ -669,7 +701,17 @@ def test_dark_mode(webengine_versions, quteproc_new, request,
 
     ver = webengine_versions.webengine
     minor_version = str(ver.strip_patch())
-    expected = colors.get(minor_version, colors[None])
+
+    arch = platform.machine()
+    for key in [
+        (minor_version, arch),
+        (minor_version, None),
+        (None, arch),
+        (None, None),
+    ]:
+        if key in colors:
+            expected = colors[key]
+            break
 
     quteproc_new.open_path(f'data/darkmode/{filename}.html')
 
@@ -696,9 +738,11 @@ def test_dark_mode_mathml(quteproc_new, request, qtbot):
     quteproc_new.wait_for_js('Image loaded')
 
     # First make sure loading finished by looking outside of the image
+    expected = testutils.Color(0, 0, 206) if IS_ARM else testutils.Color(0, 0, 204)
+
     quteproc_new.get_screenshot(
         probe_pos=QPoint(105, 0),
-        probe_color=testutils.Color(0, 0, 204),
+        probe_color=expected,
     )
 
     # Then get the actual formula color, probing again in case it's not displayed yet...
