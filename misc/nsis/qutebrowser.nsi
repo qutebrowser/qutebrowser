@@ -146,8 +146,6 @@ ShowUninstDetails hide
   !packhdr "$%TEMP%\exehead.tmp" '"upx" "--ultra-brute" "$%TEMP%\exehead.tmp"'
 !endif
 
-!define MULTIUSER_INSTALLMODE_ALLOW_ELEVATION_IF_SILENT 1
-
 ; Version Information
 VIFileVersion "${VERSION}.0"
 VIProductVersion "${VERSION}.0"
