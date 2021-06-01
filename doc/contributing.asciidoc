@@ -26,8 +26,9 @@ several ways:
 (optionally
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[subscribe]
 first).
-* Join the IRC channel ircs://irc.libera.chat:6697/#qutebrowser[`#qutebrowser`] on
-https://libera.chat/[Libera Chat] (https://web.libera.chat/#qutebrowser[webchat]).
+* Join the IRC channel link:ircs://irc.libera.chat:6697/#qutebrowser[`#qutebrowser`] on
+https://libera.chat/[Libera Chat] (https://web.libera.chat/#qutebrowser[webchat],
+https://matrix.to/#qutebrowser:libera.chat[via Matrix]).
 
 Finding something to work on
 ----------------------------

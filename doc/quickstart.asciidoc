@@ -46,8 +46,9 @@ If you get stuck, you can get help in multiple ways:
 * The `:help` command inside qutebrowser shows the built-in documentation.
 Additionally, each command can be started with a `--help` flag to show its
 help.
-* Chat via the IRC channel: ircs://irc.libera.chat:6697/#qutebrowser[`#qutebrowser`] on
-https://libera.chat/[Libera Chat] (https://web.libera.chat/#qutebrowser[webchat])
+* Chat via the IRC channel: link:ircs://irc.libera.chat:6697/#qutebrowser[`#qutebrowser`] on
+https://libera.chat/[Libera Chat] (https://web.libera.chat/#qutebrowser[webchat],
+or https://matrix.to/#qutebrowser:libera.chat[via Matrix])
 * On Reddit: https://www.reddit.com/r/qutebrowser/[/r/qutebrowser]
 * Via https://github.com/qutebrowser/qutebrowser/discussions[GitHub Discussions]
 * Using the mailinglist: mailto:qutebrowser@lists.qutebrowser.org[]
