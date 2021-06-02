@@ -27,7 +27,7 @@ import dataclasses
 from typing import Deque, MutableSequence, Optional, cast
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
-                          QItemSelectionModel, QObject, QEventLoop)
+                          QItemSelectionModel, QObject, QEventLoop, QSortFilterProxyModel)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QFileSystemModel, QTreeView, QSizePolicy,
                              QSpacerItem)
@@ -38,6 +38,7 @@ from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import urlmatch
+import re
 
 
 prompt_queue = cast('PromptQueue', None)
@@ -639,6 +640,8 @@ class FilenamePrompt(_BasePrompt):
 
         dirname = os.path.dirname(path)
         basename = os.path.basename(path)
+
+        origPath = path
         if not tabbed:
             self._to_complete = ''
 
@@ -661,8 +664,12 @@ class FilenamePrompt(_BasePrompt):
             log.prompt.exception("Failed to get directory information")
             return
 
-        root = self._file_model.setRootPath(path)
-        self._file_view.setRootIndex(root)
+        self._file_model.setRootPath(path)
+        self._proxy_file_model.setSourceModel(self._file_model)
+        self._file_view.setRootIndex(self._proxy_file_model.mapFromSource(self._file_model.index(path)))
+        modpath = origPath[origPath.rindex('/')+1:]
+
+        self._proxy_file_model.setFilterWildcard('*{}*'.format(modpath))
 
     @pyqtSlot(QModelIndex)
     def _insert_path(self, index, *, clicked=True):
@@ -694,7 +701,9 @@ class FilenamePrompt(_BasePrompt):
     def _init_fileview(self):
         self._file_view = QTreeView(self)
         self._file_model = QFileSystemModel(self)
-        self._file_view.setModel(self._file_model)
+        self._proxy_file_model = QSortFilterProxyModel()
+        self._proxy_file_model.setSourceModel(self._file_model)
+        self._file_view.setModel(self._proxy_file_model)
         self._file_view.clicked.connect(self._insert_path)
 
         if config.val.prompt.filebrowser:
@@ -711,7 +720,7 @@ class FilenamePrompt(_BasePrompt):
         # The model needs to be sorted so we get the correct first/last index
         self._file_model.directoryLoaded.connect(
             lambda: self._file_model.sort(0))
-
+        
     def accept(self, value=None, save=False):
         self._check_save_support(save)
         text = value if value is not None else self._lineedit.text()
