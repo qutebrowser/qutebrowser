@@ -27,7 +27,8 @@ import dataclasses
 from typing import Deque, MutableSequence, Optional, cast
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
-                          QItemSelectionModel, QObject, QEventLoop, QSortFilterProxyModel)
+                          QItemSelectionModel, QObject, QEventLoop, 
+                          QSortFilterProxyModel)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QFileSystemModel, QTreeView, QSizePolicy,
                              QSpacerItem)
@@ -38,7 +39,6 @@ from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import urlmatch
-import re
 
 
 prompt_queue = cast('PromptQueue', None)
@@ -641,7 +641,7 @@ class FilenamePrompt(_BasePrompt):
         dirname = os.path.dirname(path)
         basename = os.path.basename(path)
 
-        origPath = path
+        orig_path = path
         if not tabbed:
             self._to_complete = ''
 
@@ -667,7 +667,7 @@ class FilenamePrompt(_BasePrompt):
         self._file_model.setRootPath(path)
         self._proxy_file_model.setSourceModel(self._file_model)
         self._file_view.setRootIndex(self._proxy_file_model.mapFromSource(self._file_model.index(path)))
-        modpath = origPath[origPath.rindex('/')+1:]
+        modpath = orig_path[orig_path.rindex('/')+1:]
 
         self._proxy_file_model.setFilterWildcard('*{}*'.format(modpath))
 
@@ -720,7 +720,7 @@ class FilenamePrompt(_BasePrompt):
         # The model needs to be sorted so we get the correct first/last index
         self._file_model.directoryLoaded.connect(
             lambda: self._file_model.sort(0))
-        
+
     def accept(self, value=None, save=False):
         self._check_save_support(save)
         text = value if value is not None else self._lineedit.text()
