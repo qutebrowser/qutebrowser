@@ -82,7 +82,11 @@ class TestFileCompletion:
                 qtbot.keyPress(prompt._lineedit, Qt.Key_Backspace)
 
         # foo should get completed from f
+
         prompt.item_focus('next')
+
+        # qtbot.keyPress(prompt._lineedit, Qt.Key_Tab)
+        # qtbot.keyRelease(prompt._lineedit, Qt.Key_Tab)
         assert prompt._lineedit.text() == str(testdir / 'foo')
 
         # Deleting /[foo]

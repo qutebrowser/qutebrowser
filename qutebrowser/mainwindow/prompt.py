@@ -673,6 +673,8 @@ class FilenamePrompt(_BasePrompt):
             log.prompt.exception("Failed to get directory information")
             return
 
+        self._current_path = path
+
         self._root_index = self._file_model.setRootPath(path)
         self._file_view.setRootIndex(self._root_index)
 
@@ -726,6 +728,35 @@ class FilenamePrompt(_BasePrompt):
         # The model needs to be sorted so we get the correct first/last index
         self._file_model.directoryLoaded.connect(
             lambda: self._file_model.sort(0))
+    
+    def _get_valid_dirs(self, path):
+        dirs = []
+        try:
+            num_rows = self._file_model.rowCount(self._root_index)
+            for row in range(num_rows):
+                index = self._file_model.index(row, 0, self._file_model.index(path))
+                hidden = self._to_complete not in index.data()
+                if not hidden:
+                    dirs.append(index.data())
+                # self._file_view.setRowHidden(index.row(), index.parent(), hidden)
+        except FileNotFoundError:
+            log.prompt.debug("Directory doesn't exist, can't \
+                             get valid dirs")
+        
+        return dirs
+
+    def _do_completion(self, idx, which):
+        filename = self._file_model.fileName(idx)
+        valid_dirs = self._get_valid_dirs(self._current_path)
+        while not filename in valid_dirs and idx.isValid():
+            if which == 'prev':
+                idx = self._file_view.indexAbove(idx)
+            else:
+                assert which == 'next', which
+                idx = self._file_view.indexBelow(idx)
+            filename = self._file_model.fileName(idx)
+
+        return idx
 
     def accept(self, value=None, save=False):
         self._check_save_support(save)
@@ -767,6 +798,8 @@ class FilenamePrompt(_BasePrompt):
         # wrap around if we arrived at beginning/end
         if not idx.isValid():
             idx = last_index if which == 'prev' else first_index
+        
+        idx = self._do_completion(idx, which)
 
         selmodel.setCurrentIndex(
             idx,
