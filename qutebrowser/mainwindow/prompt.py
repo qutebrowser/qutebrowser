@@ -663,19 +663,21 @@ class FilenamePrompt(_BasePrompt):
 
         root = self._file_model.setRootPath(path)
         self._file_view.setRootIndex(root)
+        try:
+            # Iterate over all directories in the current root path to see if the input is a substring
+            for currentDir in os.listdir(path):
+                currentDir = os.path.join(path, currentDir)
 
-        # Iterate over all directories in the current root path to see if the input is a substring
-        for currentDir in os.listdir(path):
-            currentDir = os.path.join(path, currentDir)
+                if basename not in os.path.basename(currentDir):
+                    index = self._file_model.index(currentDir)
+                    self._file_view.setRowHidden(index.row(), index.parent(), True)
+                else:
+                    index = self._file_model.index(currentDir)
+                    self._file_view.setRowHidden(index.row(), index.parent(), False)
 
-            if basename not in os.path.basename(currentDir):
-                index = self._file_model.index(currentDir)
-                self._file_view.setRowHidden(index.row(), index.parent(), True)
-            else:
-                index = self._file_model.index(currentDir)
-                self._file_view.setRowHidden(index.row(), index.parent(), False)
-
-        self._file_view.setModel(self._file_model)
+            self._file_view.setModel(self._file_model)
+        except FileNotFoundError:
+            log.prompt.exception("Directory doesn't exist, can't hide and unhide file prompt folders")
 
     @pyqtSlot(QModelIndex)
     def _insert_path(self, index, *, clicked=True):
