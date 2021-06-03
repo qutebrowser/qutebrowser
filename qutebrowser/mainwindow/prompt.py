@@ -738,16 +738,17 @@ class FilenamePrompt(_BasePrompt):
                 hidden = self._to_complete not in index.data()
                 if not hidden:
                     dirs.append(index.data())
+                # self._file_view.setRowHidden(index.row(), index.parent(), hidden)
         except FileNotFoundError:
             log.prompt.debug("Directory doesn't exist, can't \
                              get valid dirs")
- 
+
         return dirs
 
     def _do_completion(self, idx, which):
         filename = self._file_model.fileName(idx)
         valid_dirs = self._get_valid_dirs(self._current_path)
-        while idx.isValid() and not self._file_view.isRowHidden(idx.row(), idx.parent()):
+        while not filename in valid_dirs and idx.isValid():
             if which == 'prev':
                 idx = self._file_view.indexAbove(idx)
             else:

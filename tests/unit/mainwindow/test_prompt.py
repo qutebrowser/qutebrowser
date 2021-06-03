@@ -96,7 +96,11 @@ class TestFileCompletion:
         prompt.item_focus('next')
         assert prompt._lineedit.text() == str(testdir / 'bar')
 
-    def test_filtering_path(self, qtbot, tmp_path, get_prompt):
+    @pytest.mark.parametrize("keys,expected", 
+                            [([], ['bar', 'foo', 'bat'].sort()), 
+                            (['F'], ['foo'].sort()),
+                            (['Backspace', 'A'], ['bar', 'bat'].sort())])
+    def test_filtering_path(self, qtbot, tmp_path, get_prompt, keys, expected):
         testdir = tmp_path / 'test'
 
         for directory in ['bar', 'foo', 'bat']:
@@ -104,40 +108,55 @@ class TestFileCompletion:
 
         prompt = get_prompt(str(testdir) + os.sep)
 
-        # Make sure all directories are shown
-        num_rows = prompt._file_model.rowCount(prompt._root_index)
-        visible = []
-        for row in range(num_rows):
-            parent = prompt._file_model.index(os.path.basename(prompt._lineedit.text()))
-            index = prompt._file_model.index(row, 0, parent)
-            if prompt._file_view.isRowHidden(index.row(), index.parent()):
-                visible.append(index.data())
-        
-        assert visible.sort() == ['bar', 'foo', 'bat'].sort()
+        for _ in range(len(keys)):
+            for key in keys:
+                eval("qtbot.keyPress(prompt._lineedit, Qt.Key_{})".format(key))
+            
+            num_rows = prompt._file_model.rowCount(prompt._root_index)
+            visible = []
+            for row in range(num_rows):
+                parent = prompt._file_model.index(os.path.basename(prompt._lineedit.text()))
+                index = prompt._file_model.index(row, 0, parent)
+                if prompt._file_view.isRowHidden(index.row(), index.parent()):
+                    visible.append(index.data())
+            
+            assert visible.sort() == expected
 
-        # Only foo should be completed with f
-        qtbot.keyPress(prompt._lineedit, Qt.Key_F)
-        num_rows = prompt._file_model.rowCount(prompt._root_index)
-        visible = []
-        for row in range(num_rows):
-            parent = prompt._file_model.index(os.path.basename(prompt._lineedit.text()))
-            index = prompt._file_model.index(row, 0, parent)
-            if prompt._file_view.isRowHidden(index.row(), index.parent()):
-                visible.append(index.data())
-        
-        assert visible.sort() == ['foo'].sort()
 
-        # bat and bar should show up with a typed
-        qtbot.keyPress(prompt._lineedit, Qt.Key_Backspace)
-        qtbot.keyPress(prompt._lineedit, Qt.Key_A)
-        num_rows = prompt._file_model.rowCount(prompt._root_index)
-        visible = []
-        for row in range(num_rows):
-            index = prompt._file_model.index(row, 0, prompt._file_model.index(os.path.basename(prompt._lineedit.text())))
-            if prompt._file_view.isRowHidden(index.row(), index.parent()):
-                visible.append(index.data())
-        
-        assert visible.sort() == ['bar', 'bat'].sort()
+        # # Make sure all directories are shown
+        # num_rows = prompt._file_model.rowCount(prompt._root_index)
+        # visible = []
+        # for row in range(num_rows):
+        #     parent = prompt._file_model.index(os.path.basename(prompt._lineedit.text()))
+        #     index = prompt._file_model.index(row, 0, parent)
+        #     if prompt._file_view.isRowHidden(index.row(), index.parent()):
+        #         visible.append(index.data())
+
+        # assert visible.sort() == ['bar', 'foo', 'bat'].sort()
+
+        # # Only foo should be completed with f
+        # qtbot.keyPress(prompt._lineedit, Qt.Key_F)
+        # num_rows = prompt._file_model.rowCount(prompt._root_index)
+        # visible = []
+        # for row in range(num_rows):
+        #     parent = prompt._file_model.index(os.path.basename(prompt._lineedit.text()))
+        #     index = prompt._file_model.index(row, 0, parent)
+        #     if prompt._file_view.isRowHidden(index.row(), index.parent()):
+        #         visible.append(index.data())
+
+        # assert visible.sort() == ['foo'].sort()
+
+        # # bat and bar should show up with a typed
+        # qtbot.keyPress(prompt._lineedit, Qt.Key_Backspace)
+        # qtbot.keyPress(prompt._lineedit, Qt.Key_A)
+        # num_rows = prompt._file_model.rowCount(prompt._root_index)
+        # visible = []
+        # for row in range(num_rows):
+        #     index = prompt._file_model.index(row, 0, prompt._file_model.index(os.path.basename(prompt._lineedit.text())))
+        #     if prompt._file_view.isRowHidden(index.row(), index.parent()):
+        #         visible.append(index.data())
+
+        # assert visible.sort() == ['bar', 'bat'].sort()
 
     @pytest.mark.linux
     def test_root_path(self, get_prompt):
