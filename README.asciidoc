@@ -205,6 +205,7 @@ Active
 * https://luakit.github.io/luakit/[luakit] (C/Lua, GTK+ with WebKit2)
 * https://nyxt.atlas.engineer/[Nyxt browser] (formerly "Next browser", Lisp, Emacs-like but also offers Vim bindings, QtWebKit or GTK+/WebKit2 - note there was a https://jgkamat.gitlab.io/blog/next-rce.html[critical remote code execution] which was handled quite badly)
 * https://vieb.dev/[Vieb] (JavaScript, Electron)
+* https://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
 * Chrome/Chromium addons:
   https://vimium.github.io/[Vimium],
   https://github.com/dcchambers/vb4c[vb4c] (fork of cVim)
@@ -236,7 +237,6 @@ original site is gone but the Arch Linux wiki has some data)
 * https://www.uzbl.org/[uzbl] (C, GTK+ with WebKit1/WebKit2)
 * https://github.com/conformal/xombrero[xombrero] (C, GTK+ with WebKit1)
 * https://github.com/linkdd/cream-browser[Cream Browser] (C, GTK+ with WebKit1)
-* https://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
 * Firefox addons (not based on WebExtensions or no recent activity):
   http://www.vimperator.org/[Vimperator],
   http://bug.5digits.org/pentadactyl/index[Pentadactyl],
