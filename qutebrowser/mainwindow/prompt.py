@@ -634,19 +634,14 @@ class FilenamePrompt(_BasePrompt):
         """Iterate over all directories in the current root path 
         to see if the input is a substring"""
         try:
-            for current_dir in os.listdir(path):
-                current_dir = os.path.join(path, current_dir)
-
-                if self._to_complete not in os.path.basename(current_dir):
-                    index = self._file_model.index(current_dir)
-                    self._file_view.setRowHidden(index.row(), index.parent(), True)
-                else:
-                    index = self._file_model.index(current_dir)
-                    self._file_view.setRowHidden(index.row(), index.parent(), False)
+            numRows = self._file_model.rowCount(self._root_index)
+            for row in range(numRows):
+                index = self._file_model.index(row, 0, self._file_model.index(path))
+                hidden = self._to_complete not in index.data()
+                self._file_view.setRowHidden(index.row(), index.parent(), hidden)
         except FileNotFoundError:
-            log.prompt.exception("Directory doesn't exist, can't \
+            log.prompt.debug("Directory doesn't exist, can't \
                                 hide and unhide file prompt folders")
-
 
     @pyqtSlot(str)
     def _set_fileview_root(self, path, *, tabbed=False):
@@ -679,8 +674,8 @@ class FilenamePrompt(_BasePrompt):
             log.prompt.exception("Failed to get directory information")
             return
 
-        root = self._file_model.setRootPath(path)
-        self._file_view.setRootIndex(root)
+        self._root_index = self._file_model.setRootPath(path)
+        self._file_view.setRootIndex(self._root_index)
         
         self._directories_hide_show_model(path)
         self._file_view.setModel(self._file_model)
