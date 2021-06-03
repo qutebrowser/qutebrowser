@@ -768,25 +768,11 @@ class FilenamePrompt(_BasePrompt):
         if not idx.isValid():
             idx = last_index if which == 'prev' else first_index
 
-        idx = self._do_completion(idx, which)
-
         selmodel.setCurrentIndex(
             idx,
             QItemSelectionModel.ClearAndSelect |  # type: ignore[arg-type]
             QItemSelectionModel.Rows)
         self._insert_path(idx, clicked=False)
-
-    def _do_completion(self, idx, which):
-        filename = self._file_model.fileName(idx)
-        while not filename.startswith(self._to_complete) and idx.isValid():
-            if which == 'prev':
-                idx = self._file_view.indexAbove(idx)
-            else:
-                assert which == 'next', which
-                idx = self._file_view.indexBelow(idx)
-            filename = self._file_model.fileName(idx)
-
-        return idx
 
     def _allowed_commands(self):
         return [('prompt-accept', 'Accept'), ('mode-leave', 'Abort')]
