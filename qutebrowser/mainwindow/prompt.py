@@ -635,7 +635,7 @@ class FilenamePrompt(_BasePrompt):
         try:
             num_rows = self._file_model.rowCount(self._root_index)
             for row in range(num_rows):
-                index = self._file_model.index(row, 0, self._file_model.index(path))
+                index = self._file_model.index(row, 0, self._root_index)
                 hidden = self._to_complete not in index.data()
                 self._file_view.setRowHidden(index.row(), index.parent(), hidden)
         except FileNotFoundError:
@@ -734,7 +734,7 @@ class FilenamePrompt(_BasePrompt):
         try:
             num_rows = self._file_model.rowCount(self._root_index)
             for row in range(num_rows):
-                index = self._file_model.index(row, 0, self._file_model.index(path))
+                index = self._file_model.index(row, 0, self._root_index)
                 hidden = self._to_complete not in index.data()
                 if not hidden:
                     dirs.append(index.data())
