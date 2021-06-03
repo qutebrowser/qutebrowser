@@ -630,6 +630,24 @@ class FilenamePrompt(_BasePrompt):
 
         self._to_complete = ''
 
+    def _directories_hide_show_model(self, path):
+        """Iterate over all directories in the current root path 
+        to see if the input is a substring"""
+        try:
+            for current_dir in os.listdir(path):
+                current_dir = os.path.join(path, current_dir)
+
+                if self._to_complete not in os.path.basename(current_dir):
+                    index = self._file_model.index(current_dir)
+                    self._file_view.setRowHidden(index.row(), index.parent(), True)
+                else:
+                    index = self._file_model.index(current_dir)
+                    self._file_view.setRowHidden(index.row(), index.parent(), False)
+        except FileNotFoundError:
+            log.prompt.exception("Directory doesn't exist, can't \
+                                hide and unhide file prompt folders")
+
+
     @pyqtSlot(str)
     def _set_fileview_root(self, path, *, tabbed=False):
         """Set the root path for the file display."""
@@ -663,21 +681,9 @@ class FilenamePrompt(_BasePrompt):
 
         root = self._file_model.setRootPath(path)
         self._file_view.setRootIndex(root)
-        try:
-            # Iterate over all directories in the current root path to see if the input is a substring
-            for currentDir in os.listdir(path):
-                currentDir = os.path.join(path, currentDir)
-
-                if basename not in os.path.basename(currentDir):
-                    index = self._file_model.index(currentDir)
-                    self._file_view.setRowHidden(index.row(), index.parent(), True)
-                else:
-                    index = self._file_model.index(currentDir)
-                    self._file_view.setRowHidden(index.row(), index.parent(), False)
-
-            self._file_view.setModel(self._file_model)
-        except FileNotFoundError:
-            log.prompt.exception("Directory doesn't exist, can't hide and unhide file prompt folders")
+        
+        self._directories_hide_show_model(path)
+        self._file_view.setModel(self._file_model)
 
     @pyqtSlot(QModelIndex)
     def _insert_path(self, index, *, clicked=True):
