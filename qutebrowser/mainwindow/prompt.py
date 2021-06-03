@@ -631,11 +631,10 @@ class FilenamePrompt(_BasePrompt):
         self._to_complete = ''
 
     def _directories_hide_show_model(self, path):
-        """Iterate over all directories in the current root path 
-        to see if the input is a substring"""
+        """Get rid of non-matching directories."""
         try:
-            numRows = self._file_model.rowCount(self._root_index)
-            for row in range(numRows):
+            num_rows = self._file_model.rowCount(self._root_index)
+            for row in range(num_rows):
                 index = self._file_model.index(row, 0, self._file_model.index(path))
                 hidden = self._to_complete not in index.data()
                 self._file_view.setRowHidden(index.row(), index.parent(), hidden)
@@ -676,7 +675,7 @@ class FilenamePrompt(_BasePrompt):
 
         self._root_index = self._file_model.setRootPath(path)
         self._file_view.setRootIndex(self._root_index)
-        
+
         self._directories_hide_show_model(path)
         self._file_view.setModel(self._file_model)
 
