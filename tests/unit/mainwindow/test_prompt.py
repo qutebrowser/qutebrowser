@@ -95,20 +95,21 @@ class TestFileCompletion:
         prompt.item_focus('next')
         prompt.item_focus('next')
         assert prompt._lineedit.text() == str(testdir / 'bar')
-    
+
     def test_filtering_path(self, qtbot, tmp_path, get_prompt):
         testdir = tmp_path / 'test'
 
         for directory in ['bar', 'foo', 'bat']:
             (testdir / directory).mkdir(parents=True)
-        
+
         prompt = get_prompt(str(testdir) + os.sep)
 
         # Make sure all directories are shown
         num_rows = prompt._file_model.rowCount(prompt._root_index)
         visible = []
         for row in range(num_rows):
-            index = prompt._file_model.index(row, 0, prompt._file_model.index(os.path.basename(prompt._lineedit.text())))
+            parent = prompt._file_model.index(os.path.basename(prompt._lineedit.text()))
+            index = prompt._file_model.index(row, 0, parent)
             if prompt._file_view.isRowHidden(index.row(), index.parent()):
                 visible.append(index.data())
         
@@ -119,7 +120,8 @@ class TestFileCompletion:
         num_rows = prompt._file_model.rowCount(prompt._root_index)
         visible = []
         for row in range(num_rows):
-            index = prompt._file_model.index(row, 0, prompt._file_model.index(os.path.basename(prompt._lineedit.text())))
+            parent = prompt._file_model.index(os.path.basename(prompt._lineedit.text()))
+            index = prompt._file_model.index(row, 0, parent)
             if prompt._file_view.isRowHidden(index.row(), index.parent()):
                 visible.append(index.data())
         
