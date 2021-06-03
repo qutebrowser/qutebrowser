@@ -639,8 +639,8 @@ class FilenamePrompt(_BasePrompt):
                 hidden = self._to_complete not in index.data()
                 self._file_view.setRowHidden(index.row(), index.parent(), hidden)
         except FileNotFoundError:
-            log.prompt.debug("Directory doesn't exist, can't \
-                                hide and unhide file prompt folders")
+            log.prompt.debug("Directory doesn't exist, can't "
+                             "hide and unhide file prompt folders")
 
     @pyqtSlot(str)
     def _set_fileview_root(self, path, *, tabbed=False):
