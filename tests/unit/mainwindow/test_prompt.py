@@ -122,42 +122,6 @@ class TestFileCompletion:
             
             assert visible.sort() == expected
 
-
-        # # Make sure all directories are shown
-        # num_rows = prompt._file_model.rowCount(prompt._root_index)
-        # visible = []
-        # for row in range(num_rows):
-        #     parent = prompt._file_model.index(os.path.basename(prompt._lineedit.text()))
-        #     index = prompt._file_model.index(row, 0, parent)
-        #     if prompt._file_view.isRowHidden(index.row(), index.parent()):
-        #         visible.append(index.data())
-
-        # assert visible.sort() == ['bar', 'foo', 'bat'].sort()
-
-        # # Only foo should be completed with f
-        # qtbot.keyPress(prompt._lineedit, Qt.Key_F)
-        # num_rows = prompt._file_model.rowCount(prompt._root_index)
-        # visible = []
-        # for row in range(num_rows):
-        #     parent = prompt._file_model.index(os.path.basename(prompt._lineedit.text()))
-        #     index = prompt._file_model.index(row, 0, parent)
-        #     if prompt._file_view.isRowHidden(index.row(), index.parent()):
-        #         visible.append(index.data())
-
-        # assert visible.sort() == ['foo'].sort()
-
-        # # bat and bar should show up with a typed
-        # qtbot.keyPress(prompt._lineedit, Qt.Key_Backspace)
-        # qtbot.keyPress(prompt._lineedit, Qt.Key_A)
-        # num_rows = prompt._file_model.rowCount(prompt._root_index)
-        # visible = []
-        # for row in range(num_rows):
-        #     index = prompt._file_model.index(row, 0, prompt._file_model.index(os.path.basename(prompt._lineedit.text())))
-        #     if prompt._file_view.isRowHidden(index.row(), index.parent()):
-        #         visible.append(index.data())
-
-        # assert visible.sort() == ['bar', 'bat'].sort()
-
     @pytest.mark.linux
     def test_root_path(self, get_prompt):
         """With / as path, show root contents."""
