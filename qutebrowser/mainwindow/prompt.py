@@ -27,8 +27,7 @@ import dataclasses
 from typing import Deque, MutableSequence, Optional, cast
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
-                          QItemSelectionModel, QObject, QEventLoop, 
-                          QSortFilterProxyModel)
+                          QItemSelectionModel, QObject, QEventLoop)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QFileSystemModel, QTreeView, QSizePolicy,
                              QSpacerItem)
@@ -640,8 +639,6 @@ class FilenamePrompt(_BasePrompt):
 
         dirname = os.path.dirname(path)
         basename = os.path.basename(path)
-
-        orig_path = path
         if not tabbed:
             self._to_complete = ''
 
@@ -664,12 +661,21 @@ class FilenamePrompt(_BasePrompt):
             log.prompt.exception("Failed to get directory information")
             return
 
-        self._file_model.setRootPath(path)
-        self._proxy_file_model.setSourceModel(self._file_model)
-        self._file_view.setRootIndex(self._proxy_file_model.mapFromSource(self._file_model.index(path)))
-        modpath = orig_path[orig_path.rindex('/')+1:]
+        root = self._file_model.setRootPath(path)
+        self._file_view.setRootIndex(root)
 
-        self._proxy_file_model.setFilterWildcard('*{}*'.format(modpath))
+        # Iterate over all directories in the current root path to see if the input is a substring
+        for currentDir in os.listdir(path):
+            currentDir = os.path.join(path, currentDir)
+
+            if basename not in os.path.basename(currentDir):
+                index = self._file_model.index(currentDir)
+                self._file_view.setRowHidden(index.row(), index.parent(), True)
+            else:
+                index = self._file_model.index(currentDir)
+                self._file_view.setRowHidden(index.row(), index.parent(), False)
+
+        self._file_view.setModel(self._file_model)
 
     @pyqtSlot(QModelIndex)
     def _insert_path(self, index, *, clicked=True):
@@ -701,9 +707,7 @@ class FilenamePrompt(_BasePrompt):
     def _init_fileview(self):
         self._file_view = QTreeView(self)
         self._file_model = QFileSystemModel(self)
-        self._proxy_file_model = QSortFilterProxyModel()
-        self._proxy_file_model.setSourceModel(self._file_model)
-        self._file_view.setModel(self._proxy_file_model)
+        self._file_view.setModel(self._file_model)
         self._file_view.clicked.connect(self._insert_path)
 
         if config.val.prompt.filebrowser:
