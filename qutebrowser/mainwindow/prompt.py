@@ -632,16 +632,17 @@ class FilenamePrompt(_BasePrompt):
 
     def _directories_hide_show_model(self, path):
         """Get rid of non-matching directories."""
-        dirs = self._get_dirs()
-        for directory in dirs['invalid']:
-            directory = os.path.join(path, directory)
-            index = self._file_model.index(directory)
-            self._file_view.setRowHidden(index.row(), index.parent(), True)
-
-        for directory in dirs['valid']:
-            directory = os.path.join(path, directory)
-            index = self._file_model.index(directory)
-            self._file_view.setRowHidden(index.row(), index.parent(), False)
+        try:
+            num_rows = self._file_model.rowCount(self._root_index)
+            for row in range(num_rows):
+                index = self._file_model.index(row, 0, self._root_index)
+                hidden = self._to_complete not in index.data()
+                if index.data() == '..':
+                    hidden = False
+                self._file_view.setRowHidden(index.row(), index.parent(), hidden)
+        except FileNotFoundError:
+            log.prompt.debug("Directory doesn't exist, can't \
+                             get valid dirs")
 
     @pyqtSlot(str)
     def _set_fileview_root(self, path, *, tabbed=False):
@@ -728,36 +729,6 @@ class FilenamePrompt(_BasePrompt):
         self._file_model.directoryLoaded.connect(
             lambda: self._file_model.sort(0))
 
-    def _get_dirs(self):
-        dirs: Dict[str, List[str]] = {"valid": [], "invalid": []}
-        try:
-            num_rows = self._file_model.rowCount(self._root_index)
-            for row in range(num_rows):
-                index = self._file_model.index(row, 0, self._root_index)
-                hidden = self._to_complete not in index.data()
-                if not hidden:
-                    dirs['valid'].append(index.data())
-                else:
-                    dirs['invalid'].append(index.data())
-        except FileNotFoundError:
-            log.prompt.debug("Directory doesn't exist, can't \
-                             get valid dirs")
-
-        return dirs
-
-    def _do_completion(self, idx, which):
-        filename = self._file_model.fileName(idx)
-        valid_dirs = self._get_dirs()
-        while filename not in valid_dirs['valid'] and idx.isValid():
-            if which == 'prev':
-                idx = self._file_view.indexAbove(idx)
-            else:
-                assert which == 'next', which
-                idx = self._file_view.indexBelow(idx)
-            filename = self._file_model.fileName(idx)
-
-        return idx
-
     def accept(self, value=None, save=False):
         self._check_save_support(save)
         text = value if value is not None else self._lineedit.text()
@@ -806,6 +777,15 @@ class FilenamePrompt(_BasePrompt):
             QItemSelectionModel.ClearAndSelect |  # type: ignore[arg-type]
             QItemSelectionModel.Rows)
         self._insert_path(idx, clicked=False)
+
+    def _do_completion(self, idx, which):
+        while idx.isValid() and self._file_view.isIndexHidden(idx): 
+            if which == 'prev':
+                idx = self._file_view.indexAbove(idx)
+            else:
+                assert which == 'next', which
+                idx = self._file_view.indexBelow(idx)
+        return idx
 
     def _allowed_commands(self):
         return [('prompt-accept', 'Accept'), ('mode-leave', 'Abort')]
