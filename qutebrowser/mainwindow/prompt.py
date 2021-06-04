@@ -632,16 +632,16 @@ class FilenamePrompt(_BasePrompt):
 
     def _directories_hide_show_model(self, path):
         """Get rid of non-matching directories."""
-        dirs = self._get_dirs(path)
-        for dir in dirs['invalid']:
-            dir = os.path.join(path, dir)
-            index = self._file_model.index(dir)
+        dirs = self._get_dirs()
+        for directory in dirs['invalid']:
+            directory = os.path.join(path, directory)
+            index = self._file_model.index(directory)
             self._file_view.setRowHidden(index.row(), index.parent(), True)
 
-        for dir in dirs['valid']:
-            dir = os.path.join(path, dir)
-            index = self._file_model.index(dir)
-            self._file_view.setRowHidden(index.row(), index.parent(), False) 
+        for directory in dirs['valid']:
+            directory = os.path.join(path, directory)
+            index = self._file_model.index(directory)
+            self._file_view.setRowHidden(index.row(), index.parent(), False)
 
     @pyqtSlot(str)
     def _set_fileview_root(self, path, *, tabbed=False):
@@ -730,8 +730,8 @@ class FilenamePrompt(_BasePrompt):
         self._file_model.directoryLoaded.connect(
             lambda: self._file_model.sort(0))
 
-    def _get_dirs(self, path):
-        dirs = {"valid": [], "invalid": []}
+    def _get_dirs(self):
+        dirs = {"valid": [], "invalid": []} # type: dict[list[str]]
         try:
             num_rows = self._file_model.rowCount(self._root_index)
             for row in range(num_rows):
@@ -749,8 +749,8 @@ class FilenamePrompt(_BasePrompt):
 
     def _do_completion(self, idx, which):
         filename = self._file_model.fileName(idx)
-        valid_dirs = self._get_dirs(self._current_path)
-        while not filename in valid_dirs['valid'] and idx.isValid():
+        valid_dirs = self._get_dirs()
+        while filename not in valid_dirs['valid'] and idx.isValid():
             if which == 'prev':
                 idx = self._file_view.indexAbove(idx)
             else:
