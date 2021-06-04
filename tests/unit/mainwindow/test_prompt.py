@@ -116,10 +116,7 @@ class TestFileCompletion:
             visible = []
             for row in range(num_rows):
                 parent = prompt._file_model.index(
-                            os.path.basename(
-                                prompt._lineedit.text()
-                            )
-                        )
+                    os.path.basename(prompt._lineedit.text()))
                 index = prompt._file_model.index(row, 0, parent)
                 if prompt._file_view.isRowHidden(index.row(), index.parent()):
                     visible.append(index.data())

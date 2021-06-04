@@ -24,7 +24,7 @@ import html
 import collections
 import functools
 import dataclasses
-from typing import Deque, MutableSequence, Optional, cast
+from typing import Deque, Dict, List, MutableSequence, Optional, cast
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
                           QItemSelectionModel, QObject, QEventLoop)
@@ -731,7 +731,7 @@ class FilenamePrompt(_BasePrompt):
             lambda: self._file_model.sort(0))
 
     def _get_dirs(self):
-        dirs = {"valid": [], "invalid": []} # type: dict[list[str]]
+        dirs = {"valid": [], "invalid": []}    # type: Dict[str, List[str]]
         try:
             num_rows = self._file_model.rowCount(self._root_index)
             for row in range(num_rows):
