@@ -674,8 +674,6 @@ class FilenamePrompt(_BasePrompt):
             log.prompt.exception("Failed to get directory information")
             return
 
-        self._current_path = path
-
         self._root_index = self._file_model.setRootPath(path)
         self._file_view.setRootIndex(self._root_index)
 
@@ -731,7 +729,7 @@ class FilenamePrompt(_BasePrompt):
             lambda: self._file_model.sort(0))
 
     def _get_dirs(self):
-        dirs = {"valid": [], "invalid": []}    # type: Dict[str, List[str]]
+        dirs: Dict[str, List[str]] = {"valid": [], "invalid": []}
         try:
             num_rows = self._file_model.rowCount(self._root_index)
             for row in range(num_rows):
