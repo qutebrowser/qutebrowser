@@ -77,7 +77,7 @@ The following userscripts can be found on their own repositories.
 - [1password](https://github.com/tomoakley/dotfiles/blob/master/qutebrowser/userscripts/1password):
   Integration with 1password on macOS.
 - [localhost](https://github.com/SidharthArya/.qutebrowser/blob/master/userscripts/localhost):
-  Quickly navigate to localhost:port.
+  Quickly navigate to localhost:port. For reference: [A quicker way to reach localhost with qutebrowser](https://sidhartharya.me/a-quicker-way-to-reach-localhost-with-qutebrowser/)
   
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/
