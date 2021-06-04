@@ -637,12 +637,11 @@ class FilenamePrompt(_BasePrompt):
             dir = os.path.join(path, dir)
             index = self._file_model.index(dir)
             self._file_view.setRowHidden(index.row(), index.parent(), True)
-        
+
         for dir in dirs['valid']:
             dir = os.path.join(path, dir)
             index = self._file_model.index(dir)
-            self._file_view.setRowHidden(index.row(), index.parent(), False)
-            
+            self._file_view.setRowHidden(index.row(), index.parent(), False) 
 
     @pyqtSlot(str)
     def _set_fileview_root(self, path, *, tabbed=False):
