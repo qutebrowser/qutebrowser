@@ -76,7 +76,9 @@ The following userscripts can be found on their own repositories.
   Opens DOIs on Sci-Hub.
 - [1password](https://github.com/tomoakley/dotfiles/blob/master/qutebrowser/userscripts/1password):
   Integration with 1password on macOS.
-
+- [localhost](https://github.com/SidharthArya/.qutebrowser/blob/master/userscripts/localhost):
+  Quickly navigate to localhost:port.
+  
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/
 [Instapaper]: https://www.instapaper.com/
