@@ -632,15 +632,17 @@ class FilenamePrompt(_BasePrompt):
 
     def _directories_hide_show_model(self, path):
         """Get rid of non-matching directories."""
-        try:
-            num_rows = self._file_model.rowCount(self._root_index)
-            for row in range(num_rows):
-                index = self._file_model.index(row, 0, self._root_index)
-                hidden = self._to_complete not in index.data()
-                self._file_view.setRowHidden(index.row(), index.parent(), hidden)
-        except FileNotFoundError:
-            log.prompt.debug("Directory doesn't exist, can't "
-                             "hide and unhide file prompt folders")
+        dirs = self._get_dirs(path)
+        for dir in dirs['invalid']:
+            dir = os.path.join(path, dir)
+            index = self._file_model.index(dir)
+            self._file_view.setRowHidden(index.row(), index.parent(), True)
+        
+        for dir in dirs['valid']:
+            dir = os.path.join(path, dir)
+            index = self._file_model.index(dir)
+            self._file_view.setRowHidden(index.row(), index.parent(), False)
+            
 
     @pyqtSlot(str)
     def _set_fileview_root(self, path, *, tabbed=False):
@@ -729,16 +731,17 @@ class FilenamePrompt(_BasePrompt):
         self._file_model.directoryLoaded.connect(
             lambda: self._file_model.sort(0))
 
-    def _get_valid_dirs(self, path):
-        dirs = []
+    def _get_dirs(self, path):
+        dirs = {"valid": [], "invalid": []}
         try:
             num_rows = self._file_model.rowCount(self._root_index)
             for row in range(num_rows):
                 index = self._file_model.index(row, 0, self._root_index)
                 hidden = self._to_complete not in index.data()
                 if not hidden:
-                    dirs.append(index.data())
-                # self._file_view.setRowHidden(index.row(), index.parent(), hidden)
+                    dirs['valid'].append(index.data())
+                else:
+                    dirs['invalid'].append(index.data())
         except FileNotFoundError:
             log.prompt.debug("Directory doesn't exist, can't \
                              get valid dirs")
@@ -747,8 +750,8 @@ class FilenamePrompt(_BasePrompt):
 
     def _do_completion(self, idx, which):
         filename = self._file_model.fileName(idx)
-        valid_dirs = self._get_valid_dirs(self._current_path)
-        while not filename in valid_dirs and idx.isValid():
+        valid_dirs = self._get_dirs(self._current_path)
+        while not filename in valid_dirs['valid'] and idx.isValid():
             if which == 'prev':
                 idx = self._file_view.indexAbove(idx)
             else:
