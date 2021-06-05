@@ -98,9 +98,9 @@ class TestFileCompletion:
         assert prompt._lineedit.text() == str(testdir / 'bar')
 
     @pytest.mark.parametrize("keys,expected",
-                            [([], ['bar', 'bat', 'foo']),
-                            ([Qt.Key_F], ['foo']),
-                            ([Qt.Key_A], ['bar', 'bat'])])
+                            [([], ['..', 'bar', 'bat', 'foo']),
+                            ([Qt.Key_F], ['..', 'foo']),
+                            ([Qt.Key_A], ['..', 'bar', 'bat'])])
     def test_filtering_path(self, qtbot, tmp_path, get_prompt, keys, expected):
         testdir = tmp_path / 'test'
 
@@ -118,7 +118,7 @@ class TestFileCompletion:
             parent = prompt._file_model.index(
                 os.path.dirname(prompt._lineedit.text()))
             index = prompt._file_model.index(row, 0, parent)
-            if not prompt._file_view.isRowHidden(index.row(), index.parent()) and index.data() != "..":
+            if not prompt._file_view.isRowHidden(index.row(), index.parent()):
                 visible.append(index.data())
         assert visible == expected
 

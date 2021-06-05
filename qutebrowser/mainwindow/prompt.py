@@ -629,20 +629,17 @@ class FilenamePrompt(_BasePrompt):
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
         self._to_complete = ''
+        self._root_index = QModelIndex()
 
     def _directories_hide_show_model(self, path):
         """Get rid of non-matching directories."""
-        try:
-            num_rows = self._file_model.rowCount(self._root_index)
-            for row in range(num_rows):
-                index = self._file_model.index(row, 0, self._root_index)
-                hidden = self._to_complete not in index.data()
-                if index.data() == '..':
-                    hidden = False
-                self._file_view.setRowHidden(index.row(), index.parent(), hidden)
-        except FileNotFoundError:
-            log.prompt.debug("Directory doesn't exist, can't \
-                             get valid dirs")
+        num_rows = self._file_model.rowCount(self._root_index)
+        for row in range(num_rows):
+            index = self._file_model.index(row, 0, self._root_index)
+            hidden = self._to_complete not in index.data()
+            if index.data() == '..':
+                hidden = False
+            self._file_view.setRowHidden(index.row(), index.parent(), hidden)
 
     @pyqtSlot(str)
     def _set_fileview_root(self, path, *, tabbed=False):
@@ -679,7 +676,6 @@ class FilenamePrompt(_BasePrompt):
         self._file_view.setRootIndex(self._root_index)
 
         self._directories_hide_show_model(path)
-        self._file_view.setModel(self._file_model)
 
     @pyqtSlot(QModelIndex)
     def _insert_path(self, index, *, clicked=True):
@@ -779,7 +775,7 @@ class FilenamePrompt(_BasePrompt):
         self._insert_path(idx, clicked=False)
 
     def _do_completion(self, idx, which):
-        while idx.isValid() and self._file_view.isIndexHidden(idx): 
+        while idx.isValid() and self._file_view.isIndexHidden(idx):
             if which == 'prev':
                 idx = self._file_view.indexAbove(idx)
             else:
