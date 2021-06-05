@@ -97,10 +97,11 @@ class TestFileCompletion:
         prompt.item_focus('next')
         assert prompt._lineedit.text() == str(testdir / 'bar')
 
-    @pytest.mark.parametrize("keys,expected",
-                            [([], ['bar', 'bat', 'foo']),
-                            ([Qt.Key_F], ['foo']),
-                            ([Qt.Key_A], ['bar', 'bat'])])
+    @pytest.mark.parametrize("keys, expected", [
+        ([], ['bar', 'bat', 'foo']),
+        ([Qt.Key_F], ['foo']),
+        ([Qt.Key_A], ['bar', 'bat']),
+    ])
     def test_filtering_path(self, qtbot, tmp_path, get_prompt, keys, expected):
         testdir = tmp_path / 'test'
 
