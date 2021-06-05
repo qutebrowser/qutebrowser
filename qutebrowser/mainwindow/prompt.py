@@ -24,8 +24,8 @@ import html
 import collections
 import functools
 import dataclasses
-from typing import Deque, Dict, List, MutableSequence, Optional, cast
 
+from typing import Deque, MutableSequence, Optional, cast
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
                           QItemSelectionModel, QObject, QEventLoop)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
@@ -631,14 +631,13 @@ class FilenamePrompt(_BasePrompt):
         self._to_complete = ''
         self._root_index = QModelIndex()
 
-    def _directories_hide_show_model(self, path):
+    def _directories_hide_show_model(self):
         """Get rid of non-matching directories."""
         num_rows = self._file_model.rowCount(self._root_index)
         for row in range(num_rows):
             index = self._file_model.index(row, 0, self._root_index)
-            hidden = self._to_complete not in index.data()
-            if index.data() == '..':
-                hidden = False
+            filename = index.data()
+            hidden = self._to_complete not in filename and filename != '..'
             self._file_view.setRowHidden(index.row(), index.parent(), hidden)
 
     @pyqtSlot(str)
@@ -675,7 +674,7 @@ class FilenamePrompt(_BasePrompt):
         self._root_index = self._file_model.setRootPath(path)
         self._file_view.setRootIndex(self._root_index)
 
-        self._directories_hide_show_model(path)
+        self._directories_hide_show_model()
 
     @pyqtSlot(QModelIndex)
     def _insert_path(self, index, *, clicked=True):
