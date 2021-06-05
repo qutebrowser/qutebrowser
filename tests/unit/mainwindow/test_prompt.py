@@ -82,7 +82,7 @@ class TestFileCompletion:
                 qtbot.keyPress(prompt._lineedit, Qt.Key_Backspace)
         prompt._set_fileview_root(prompt._lineedit.text())
 
-        # ...and foo should get completed from f
+        # '..' and 'foo' should get completed from 'f'
         prompt.item_focus('next')
         assert prompt._lineedit.text() == str(tmp_path)
         prompt.item_focus('next')
