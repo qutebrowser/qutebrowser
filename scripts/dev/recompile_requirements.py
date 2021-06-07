@@ -185,6 +185,7 @@ CHANGELOG_URLS = {
     'setuptools': 'https://setuptools.readthedocs.io/en/latest/history.html',
     'future': 'https://python-future.org/whatsnew.html',
     'pefile': 'https://github.com/erocarrera/pefile/commits/master',
+    'Deprecated': 'https://github.com/tantale/deprecated/blob/master/CHANGELOG.rst',
 }
 
 
