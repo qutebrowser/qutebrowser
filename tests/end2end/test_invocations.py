@@ -802,4 +802,3 @@ def test_json_logging_without_debug(request, quteproc_new, runtime_tmpdir):
     quteproc_new.exit_expected = True
     quteproc_new.start(args, env={'XDG_RUNTIME_DIR': str(runtime_tmpdir)})
     assert not quteproc_new.is_running()
-    assert not quteproc_new.captured_log
