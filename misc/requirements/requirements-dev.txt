@@ -5,10 +5,11 @@ certifi==2021.5.30
 cffi==1.14.5
 chardet==4.0.0
 cryptography==3.4.7
+Deprecated==1.2.12
 github3.py==2.0.0
 hunter==3.3.3
 idna==2.10
-jwcrypto==0.8
+jwcrypto==0.9
 manhole==1.8.0
 packaging==20.9
 pycparser==2.20
@@ -22,3 +23,4 @@ six==1.16.0
 toml==0.10.2
 uritemplate==3.0.1
 # urllib3==1.26.5
+wrapt==1.12.1
