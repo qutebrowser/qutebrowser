@@ -752,6 +752,26 @@ def test_dark_mode_mathml(quteproc_new, request, qtbot):
     )
 
 
+@testutils.qt514
+@pytest.mark.parametrize('value, preference', [
+    ('true', 'Reduced motion'),
+    ('false', 'No'),
+])
+def test_prefers_reduced_motion(quteproc_new, request, qtbot, value, preference):
+    if not request.config.webengine:
+        pytest.skip("Skipped with QtWebKit")
+
+    args = _base_args(request.config) + [
+        '--temp-basedir',
+        '-s', 'content.prefers_reduced_motion', value,
+    ]
+    quteproc_new.start(args)
+
+    quteproc_new.open_path('data/prefers_reduced_motion.html')
+    content = quteproc_new.get_content()
+    assert content == f"{preference} preference detected."
+
+
 def test_unavailable_backend(request, quteproc_new):
     """Test starting with a backend which isn't available.
 

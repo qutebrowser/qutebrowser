@@ -334,7 +334,11 @@ def _qtwebengine_settings_args(versions: version.WebEngineVersions) -> Iterator[
         },
         'content.headers.referer': {
             'always': None,
-        }
+        },
+        'content.prefers_reduced_motion': {
+            True: '--force-prefers-reduced-motion',
+            False: None,
+        },
     }
     qt_514_ver = utils.VersionNumber(5, 14)
 

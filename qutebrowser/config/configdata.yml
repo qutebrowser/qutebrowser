@@ -528,6 +528,19 @@ content.frame_flattening:
 
     This will flatten all the frames to become one scrollable page.
 
+content.prefers_reduced_motion:
+  default: false
+  type: Bool
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+  restart: true
+  desc: >-
+    Request websites to minimize non-essentials animations and motion.
+
+    This results in the `prefers-reduced-motion` CSS media query to evaluate to
+    `reduce` (rather than `no-preference`).
+
 content.site_specific_quirks:
   renamed: content.site_specific_quirks.enabled
 

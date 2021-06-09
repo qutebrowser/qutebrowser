@@ -187,6 +187,7 @@
 |<<content.pdfjs,content.pdfjs>>|Allow pdf.js to view PDF files in the browser.
 |<<content.persistent_storage,content.persistent_storage>>|Allow websites to request persistent storage quota via `navigator.webkitPersistentStorage.requestQuota`.
 |<<content.plugins,content.plugins>>|Enable plugins in Web pages.
+|<<content.prefers_reduced_motion,content.prefers_reduced_motion>>|Request websites to minimize non-essentials animations and motion.
 |<<content.print_element_backgrounds,content.print_element_backgrounds>>|Draw the background color and images also when the page is printed.
 |<<content.private_browsing,content.private_browsing>>|Open new windows in private browsing mode which does not record visited pages.
 |<<content.proxy,content.proxy>>|Proxy to use.
@@ -2602,6 +2603,21 @@ Default: +pass:[ask]+
 Enable plugins in Web pages.
 
 This setting supports URL patterns.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
+[[content.prefers_reduced_motion]]
+=== content.prefers_reduced_motion
+Request websites to minimize non-essentials animations and motion.
+This results in the `prefers-reduced-motion` CSS media query to evaluate to `reduce` (rather than `no-preference`).
+
+This setting requires a restart.
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
 
 Type: <<types,Bool>>
 

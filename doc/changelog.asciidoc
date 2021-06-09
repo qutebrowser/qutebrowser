@@ -19,6 +19,12 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v2.3.0 (unreleased)
 -------------------
 
+Added
+~~~~~
+
+- New `content.prefers_reduced_motion` setting to request websites to reduce
+  non-essential motion/animations.
+
 Changed
 ~~~~~~~
 
