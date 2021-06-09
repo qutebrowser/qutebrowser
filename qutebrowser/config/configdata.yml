@@ -541,6 +541,9 @@ content.prefers_reduced_motion:
     This results in the `prefers-reduced-motion` CSS media query to evaluate to
     `reduce` (rather than `no-preference`).
 
+    On Windows, if this setting is set to False, the system-wide animation
+    setting is considered.
+
 content.site_specific_quirks:
   renamed: content.site_specific_quirks.enabled
 

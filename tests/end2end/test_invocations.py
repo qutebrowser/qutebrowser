@@ -757,7 +757,11 @@ def test_dark_mode_mathml(quteproc_new, request, qtbot):
     ('true', 'Reduced motion'),
     ('false', 'No'),
 ])
-def test_prefers_reduced_motion(quteproc_new, request, qtbot, value, preference):
+@pytest.mark.skipif(
+    utils.is_windows,
+    reason="Outcome on Windows depends on system settings",
+)
+def test_prefers_reduced_motion(quteproc_new, request, value, preference):
     if not request.config.webengine:
         pytest.skip("Skipped with QtWebKit")
 
