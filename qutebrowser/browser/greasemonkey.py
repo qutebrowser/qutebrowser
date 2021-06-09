@@ -298,8 +298,7 @@ class GreasemonkeyManager(QObject):
                 with open(script_path, encoding='utf-8-sig') as script_file:
                     script = GreasemonkeyScript.parse(script_file.read(),
                                                       script_filename)
-                    if not script.name:
-                        script.name = script_filename
+                    assert script.name, script
                     self.add_script(script, force)
                     scripts.append(script)
 
