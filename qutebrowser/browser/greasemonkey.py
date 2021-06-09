@@ -32,7 +32,7 @@ from typing import cast, List, Sequence
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
 from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
-                               javascript, urlmatch, version, usertypes)
+                               javascript, urlmatch, version, usertypes, message)
 from qutebrowser.api import cmdutils
 from qutebrowser.browser import downloads
 from qutebrowser.misc import objects
@@ -266,7 +266,7 @@ class GreasemonkeyManager(QObject):
 
         self.load_scripts()
 
-    def load_scripts(self, *, force=False):
+    def load_scripts(self, *, force: bool = False) -> List[GreasemonkeyScript]:
         """Re-read Greasemonkey scripts from disk.
 
         The scripts are read from a 'greasemonkey' subdirectory in
@@ -275,14 +275,19 @@ class GreasemonkeyManager(QObject):
         Args:
             force: For any scripts that have required dependencies,
                    re-download them.
+
+        Return:
+            A list of loaded scripts.
         """
         self._run_start = []
         self._run_end = []
         self._run_idle = []
 
+        scripts = []
         for scripts_dir in _scripts_dirs():
             scripts_dir = os.path.abspath(scripts_dir)
             log.greasemonkey.debug("Reading scripts from: {}".format(scripts_dir))
+
             for script_filename in glob.glob(os.path.join(scripts_dir, '*.js')):
                 if not os.path.isfile(script_filename):
                     continue
@@ -293,7 +298,10 @@ class GreasemonkeyManager(QObject):
                     if not script.name:
                         script.name = script_filename
                     self.add_script(script, force)
+                    scripts.append(script)
+
         self.scripts_reloaded.emit()
+        return sorted(scripts, key=lambda script: script.name)
 
     def add_script(self, script, force=False):
         """Add a GreasemonkeyScript to this manager.
@@ -426,7 +434,7 @@ class GreasemonkeyManager(QObject):
 
 
 @cmdutils.register()
-def greasemonkey_reload(force=False):
+def greasemonkey_reload(force: bool = False, quiet: bool = False) -> None:
     """Re-read Greasemonkey scripts from disk.
 
     The scripts are read from a 'greasemonkey' subdirectory in
@@ -435,8 +443,12 @@ def greasemonkey_reload(force=False):
     Args:
         force: For any scripts that have required dependencies,
                 re-download them.
+        quiet: Suppress message after loading scripts.
     """
-    gm_manager.load_scripts(force=force)
+    scripts = gm_manager.load_scripts(force=force)
+    names = '\n'.join(script.name for script in scripts)
+    if not quiet:
+        message.info(f"Loaded scripts:\n\n{names}")
 
 
 def init():
