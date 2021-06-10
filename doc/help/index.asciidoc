@@ -52,6 +52,16 @@ ways:
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[].
 
+Other resources
+---------------
+
+- https://blog.qutebrowser.org/[Development blog]
+- https://twitter.com/qutebrowser[Twitter account],
+  https://fosstodon.org/@qutebrowser[Mastodon account]
+- Infinite Ink: https://www.ii.com/qutebrowser-getting-started/[Getting Started
+  with qutebrowser] and https://www.ii.com/portal/qutebrowser/[other
+  qutebrowser articles]
+
 License
 -------
 

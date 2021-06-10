@@ -437,3 +437,9 @@ Various emacs/conkeror-like keybinding configs exist:
 It's also mostly possible to get rid of modal keybindings by setting
 `input.insert_mode.auto_enter` to `false`, and `input.forward_unbound_keys` to
 `all`.
+
+Other resources
+^^^^^^^^^^^^^^^
+
+- https://www.ii.com/qutebrowser-tips-fragments/[Infinite Ink: qutebrowser Tips and Fragments]
+- https://www.ii.com/qutebrowser-configpy/[Infinite Ink: qutebrowser’s Template config.py]
