@@ -64,7 +64,6 @@ echo "message-info 'Looking for password for $URL...'" >> $QUTE_FIFO
 TOKEN=$(rofi -dmenu -password -p "1password: "| op signin --output=raw) || TOKEN=""
 
 if [ -n "$TOKEN" ]; then
-    #UUID_URL=$(op list items --cache --session="$TOKEN" | jq -r '.[] | "\(.uuid):\(.overview.url)"' | grep "$URL") || UUID_URL=""
     UUID_URL=$(op list items --cache --session="$TOKEN" | jq -r '.[] | {uuid, url: [.overview.URLs[]?.u, .overview.url][]?}| "\(.uuid):\(.url)"' | grep "$URL") || UUID_URL=""
 
     if [ -z "$UUID_URL" ];then
