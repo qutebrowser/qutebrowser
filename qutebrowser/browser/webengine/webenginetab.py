@@ -1112,7 +1112,12 @@ class _WebEngineScripts(QObject):
         page_scripts = self._widget.page().scripts()
         self._remove_all_greasemonkey_scripts()
 
+        seen_names = set()
         for script in scripts:
+            while script.full_name() in seen_names:
+                script.dedup_suffix += 1
+            seen_names.add(script.full_name())
+
             new_script = QWebEngineScript()
 
             try:
@@ -1144,7 +1149,7 @@ class _WebEngineScripts(QObject):
             new_script.setInjectionPoint(QWebEngineScript.DocumentReady)
 
             new_script.setSourceCode(script.code())
-            new_script.setName(f"GM-{script.name}")
+            new_script.setName(script.full_name())
             new_script.setRunsOnSubFrames(script.runs_on_sub_frames)
 
             if script.needs_document_end_workaround():

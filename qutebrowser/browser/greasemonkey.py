@@ -67,6 +67,7 @@ class GreasemonkeyScript:
         self.runs_on_sub_frames = True
         self.jsworld = "main"
         self.name = ''
+        self.dedup_suffix = 1
 
         for name, value in properties:
             if name == 'name':
@@ -103,6 +104,20 @@ class GreasemonkeyScript:
 
     def __str__(self):
         return self.name
+
+    def full_name(self) -> str:
+        """Get the full name of this script.
+
+        This includes a GM- prefix, its namespace (if any) and deduplication
+        counter suffix, if set.
+        """
+        parts = ['GM-']
+        if self.namespace is not None:
+            parts += [self.namespace, '/']
+        parts.append(self.name)
+        if self.dedup_suffix > 1:
+            parts.append(f"-{self.dedup_suffix}")
+        return ''.join(parts)
 
     @classmethod
     def parse(cls, source, filename=None):
