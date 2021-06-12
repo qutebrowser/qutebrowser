@@ -206,16 +206,17 @@ class KeepassXC:
 
 
 class SecretKeyStore:
-    def __init__(self, gpgkey):
+    def __init__(self, gpgkey, insecure):
         self.gpgkey = gpgkey
-        if gpgkey is None:
+        self.insecure = insecure
+        if self.insecure:
             self.path = os.path.join(os.environ['QUTE_DATA_DIR'], 'keepassxc.key')
         else:
             self.path = os.path.join(os.environ['QUTE_DATA_DIR'], 'keepassxc.key.gpg')
 
     def load(self):
         "Load existing association key from file"
-        if self.gpgkey is None:
+        if self.insecure:
             jsondata = open(self.path, 'r').read()
         else:
             jsondata = subprocess.check_output(['gpg', '--decrypt', self.path]).decode('utf-8')
@@ -232,7 +233,7 @@ class SecretKeyStore:
         "Store newly created association key in file"
         self.id = id
         jsondata = json.dumps({'id':self.id, 'key':base64.b64encode(self.key).decode('utf-8')})
-        if self.gpgkey is None:
+        if self.insecure:
             open(self.path, "w").write(jsondata)
         else:
             subprocess.run(['gpg', '--encrypt', '-o', self.path, '-r', self.gpgkey], input=jsondata.encode('utf-8'), check=True)
@@ -250,8 +251,10 @@ def error(msg):
 
 
 def connect_to_keepassxc(args):
-    assert args.key or args.insecure, "Missing GPG key to use for auth key encryption"
-    keystore = SecretKeyStore(args.key)
+    if not args.insecure and not args.key:
+        error("Missing GPG key to use for auth key encryption")
+        return
+    keystore = SecretKeyStore(args.key, args.insecure)
     if os.path.isfile(keystore.path):
         keystore.load()
         kp = KeepassXC(keystore.id, key=keystore.key, socket_path=args.socket)
