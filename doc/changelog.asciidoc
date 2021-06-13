@@ -19,10 +19,18 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v2.3.0 (unreleased)
 -------------------
 
+Added
+~~~~~
+
+- New `content.prefers_reduced_motion` setting to request websites to reduce
+  non-essential motion/animations.
+
 Changed
 ~~~~~~~
 
 - The `fonts.web.*` settings now support URL patterns.
+- The `:greasemonkey-reload` command now shows a list of loaded scripts and has
+  a new `--quiet` switch to suppress that message.
 
 [[v2.2.3]]
 v2.2.3 (2021-06-01)

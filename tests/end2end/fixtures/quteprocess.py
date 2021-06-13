@@ -229,6 +229,10 @@ def is_ignored_chromium_message(line):
         # gpu_process_transport_factory.cc(1019)] Lost UI shared context.
         'Lost UI shared context.',
 
+        # [20870:20908:0607/081717.652282:ERROR:block_files.cc(465)] Failed to
+        # open /tmp/qutebrowser-basedir-cg284f_m/data/webengine/GPUCache/data_2
+        'Failed to open *GPUCache*',
+
         # Qt 5.12
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70702
         # [32123:32123:0923/224739.457307:ERROR:in_progress_cache_impl.cc(192)]

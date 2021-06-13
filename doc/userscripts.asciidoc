@@ -22,7 +22,10 @@ To call a userscript, it needs to be stored in your config or data directory und
 `userscripts` (for example: `~/.local/share/qutebrowser/userscripts/myscript`),
 or just use an absolute path.
 
-NOTE: On Windows, only userscripts with `com`, `bat`, or `exe` extensions will be launched.
+NOTE: On Windows, only userscripts with `com`, `bat`, or `exe` extensions will
+be launched. As an additional resource, see
+https://www.ii.com/qutebrowser-userscripts-on-windows/[Infinite Ink:
+qutebrowser Userscripts on Windows].
 
 Getting information
 -------------------

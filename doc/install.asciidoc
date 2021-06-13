@@ -264,6 +264,10 @@ and QtWebEngine backend is also not available.
 On Windows
 ----------
 
+NOTE: As an additional resource, see
+https://www.ii.com/installing-qutebrowser-on-windows/[Infinite Ink: Installing
+qutebrowser on Windows].
+
 There are different ways to install qutebrowser on Windows:
 
 Prebuilt binaries
