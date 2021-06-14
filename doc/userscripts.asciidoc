@@ -60,6 +60,7 @@ In `command` mode:
 In `hints` mode:
 
 - `QUTE_URL`: The URL selected via hints.
+- `QUTE_CURRENT_URL`: The current URL.
 - `QUTE_SELECTED_TEXT`: The plain text of the element selected via hints.
 - `QUTE_SELECTED_HTML`: The HTML of the element selected via hints.
 
