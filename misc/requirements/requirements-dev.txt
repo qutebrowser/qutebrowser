@@ -7,9 +7,9 @@ chardet==4.0.0
 cryptography==3.4.7
 Deprecated==1.2.12
 github3.py==2.0.0
-hunter==3.3.3
+hunter==3.3.5
 idna==2.10
-jwcrypto==0.9
+jwcrypto==0.9.1
 manhole==1.8.0
 packaging==20.9
 pycparser==2.20
