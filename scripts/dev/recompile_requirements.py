@@ -50,7 +50,6 @@ CHANGELOG_URLS = {
     'EasyProcess': 'https://github.com/ponty/EasyProcess/commits/master',
     'PyVirtualDisplay': 'https://github.com/ponty/PyVirtualDisplay/commits/master',
     'execnet': 'https://execnet.readthedocs.io/en/latest/changelog.html',
-    'apipkg': 'https://github.com/pytest-dev/apipkg/blob/master/CHANGELOG',
     'pytest-rerunfailures': 'https://github.com/pytest-dev/pytest-rerunfailures/blob/master/CHANGES.rst',
     'pytest-repeat': 'https://github.com/pytest-dev/pytest-repeat/blob/master/CHANGES.rst',
     'requests': 'https://github.com/psf/requests/blob/master/HISTORY.md',
