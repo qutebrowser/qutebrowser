@@ -65,6 +65,8 @@ CHANGELOG_URLS = {
     'glob2': 'https://github.com/miracle2k/python-glob2/blob/master/CHANGES',
     'hypothesis': 'https://hypothesis.readthedocs.io/en/latest/changes.html',
     'mypy': 'https://mypy-lang.blogspot.com/',
+    'types-PyYAML': 'https://github.com/python/typeshed/commits/master/stubs/PyYAML',
+    'types-dataclasses': 'https://github.com/python/typeshed/commits/master/stubs/dataclasses',
     'pytest': 'https://docs.pytest.org/en/latest/changelog.html',
     'iniconfig': 'https://github.com/RonnyPfannschmidt/iniconfig/blob/master/CHANGELOG',
     'tox': 'https://tox.readthedocs.io/en/latest/changelog.html',

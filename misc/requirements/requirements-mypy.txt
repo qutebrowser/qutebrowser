@@ -15,5 +15,7 @@ pluggy==0.13.1
 Pygments==2.9.0
 PyQt5-stubs==5.15.2.0
 toml==0.10.2
+types-dataclasses==0.1.4
+types-PyYAML==0.1.8
 typing-extensions==3.10.0.0
 zipp==3.4.1

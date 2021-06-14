@@ -1,7 +1,10 @@
 mypy
 lxml  # For HTML reports
 diff-cover
+
 PyQt5-stubs
+types-dataclasses
+types-PyYAML
 
 # So stubs are available even on newer Python versions
 importlib_resources
