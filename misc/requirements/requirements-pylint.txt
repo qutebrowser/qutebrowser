@@ -10,7 +10,7 @@ future==0.18.2
 github3.py==2.0.0
 idna==2.10
 isort==4.3.21
-jwcrypto==0.9
+jwcrypto==0.9.1
 lazy-object-proxy==1.4.3
 mccabe==0.6.1
 pefile==2021.5.24
