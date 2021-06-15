@@ -50,6 +50,7 @@ def check_query(quteproc, name, value):
 
 @bdd.then(bdd.parsers.parse("the history should contain:\n{expected}"))
 def check_history(quteproc, server, tmpdir, expected):
+    quteproc.wait_for(message='INSERT INTO History *', category='sql')
     path = tmpdir / 'history'
     quteproc.send_cmd(':debug-dump-history "{}"'.format(path))
     quteproc.wait_for(category='message', loglevel=logging.INFO,
