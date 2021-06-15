@@ -325,14 +325,17 @@ class HintActions:
 
         cmd = context.args[0]
         args = context.args[1:]
+        flags = QUrl.FullyEncoded
+
         env = {
             'QUTE_MODE': 'hints',
             'QUTE_SELECTED_TEXT': str(elem),
             'QUTE_SELECTED_HTML': elem.outer_xml(),
+            'QUTE_CURRENT_URL': context.baseurl.toString(flags),
         }
+
         url = elem.resolve_url(context.baseurl)
         if url is not None:
-            flags = QUrl.FullyEncoded
             env['QUTE_URL'] = url.toString(flags)  # type: ignore[arg-type]
 
         try:
