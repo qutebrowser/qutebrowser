@@ -31,6 +31,9 @@ Changed
 - The `fonts.web.*` settings now support URL patterns.
 - The `:greasemonkey-reload` command now shows a list of loaded scripts and has
   a new `--quiet` switch to suppress that message.
+- When launching an userscript via hints, a new `QUTE_CURRENT_URL` environment
+  variable now points to the current page (rather than the URL of the selected
+  element, where `QUTE_URL` points to).
 
 Fixed
 ~~~~~
