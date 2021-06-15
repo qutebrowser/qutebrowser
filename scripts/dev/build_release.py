@@ -285,6 +285,8 @@ INFO_PLIST_UPDATES = {
         'A website in qutebrowser wants to use your location information.',
     'NSMicrophoneUsageDescription':
         'A website in qutebrowser wants to use your microphone.',
+    'NSBluetoothAlwaysUsageDescription':
+        'A website in qutebrowser wants to access Bluetooth.',
 }
 
 
