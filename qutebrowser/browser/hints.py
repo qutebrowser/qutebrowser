@@ -331,7 +331,8 @@ class HintActions:
             'QUTE_MODE': 'hints',
             'QUTE_SELECTED_TEXT': str(elem),
             'QUTE_SELECTED_HTML': elem.outer_xml(),
-            'QUTE_CURRENT_URL': context.baseurl.toString(flags),
+            'QUTE_CURRENT_URL':
+                context.baseurl.toString(flags),  # type: ignore[arg-type]
         }
 
         url = elem.resolve_url(context.baseurl)
