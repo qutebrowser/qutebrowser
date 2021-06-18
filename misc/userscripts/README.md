@@ -23,6 +23,7 @@ The following userscripts are included in the current directory.
   dmenu-compatible application (e.g. dmenu, rofi -dmenu, ...).
 - [qute-lastpass](./qute-lastpass): Similar to qute-pass, for Lastpass.
 - [qute-bitwarden](./qute-bitwarden): Similar to qute-pass, for Bitwarden.
+- [qute-1pass](./qute-1pass): Insert login information using onepassword and rofi.
 - [qutedmenu](./qutedmenu): Handle open -s && open -t with bemenu.
 - [readability](./readability): Executes python-readability on current page and
   opens the summary as new tab.
