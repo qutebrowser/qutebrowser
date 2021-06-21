@@ -78,6 +78,9 @@ The following userscripts can be found on their own repositories.
   Integration with 1password on macOS.
 - [localhost](https://github.com/SidharthArya/.qutebrowser/blob/master/userscripts/localhost):
   Quickly navigate to localhost:port. For reference: [A quicker way to reach localhost with qutebrowser](https://sidhartharya.me/a-quicker-way-to-reach-localhost-with-qutebrowser/)
+- [untrack-url](https://github.com/qutebrowser/qutebrowser/discussions/6555),
+  convert various URLs (YouTube/Reddit/Twitter/Instagram/Google Maps) to other
+  services (Invidious, Teddit, Nitter, Bibliogram, OpenStreetMap).
   
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/
