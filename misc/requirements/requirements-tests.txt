@@ -44,7 +44,7 @@ pytest-mock==3.6.1
 pytest-qt==4.0.2
 pytest-repeat==0.9.1
 pytest-rerunfailures==10.0
-pytest-xdist==2.2.1
+pytest-xdist==2.3.0
 pytest-xvfb==2.0.0
 PyVirtualDisplay==2.2
 requests==2.25.1
