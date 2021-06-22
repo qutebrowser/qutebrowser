@@ -189,8 +189,8 @@ def get_venv_lib_path(path):
     subdir = 'Scripts' if os.name == 'nt' else 'bin'
     executable = os.path.join(path, subdir, 'python')
     return run_py(executable,
-                  'from distutils.sysconfig import get_python_lib',
-                  'print(get_python_lib())')
+                  'from sysconfig import get_path',
+                  'print(get_path("platlib"))')
 
 
 def get_tox_syspython(tox_path):
