@@ -17,10 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Provides access to an in-memory sqlite database."""
+"""Provides access to an in-memory sqlite database."""  # I guess this is an old comment
 
 import collections
 import dataclasses
+from typing import Optional
 
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtSql import QSqlDatabase, QSqlQuery, QSqlError
@@ -475,3 +476,87 @@ class SqlTable(QObject):
                           sort_order=sort_order))
         q.run(limit=limit)
         return q
+
+
+class Database:
+
+    _database: Optional[QSqlDatabase] = None
+    _user_version: Optional[UserVersion] = None
+    _USER_VERSION = UserVersion(0, 4)  # The current / newest user version
+
+    def __init__(db_path: str, connection_name: Optional[str]=None):
+        self._database = QSqlDatabase.database(connection_name, open=False)
+        if not self._database.isValid():
+            self._database = QSqlDatabase.addDatabase('QSQLITE', connection_name)
+            self._database.setDatabaseName(db_path)
+        elif self._database.databaseName() != db_path:
+            # What now? Maybe raise an error? Or we could use db_path both as the
+            # database name **and** the connection name to avoid discrepancies
+            pass
+        if not self._database.isValid():
+            raise KnownError('Failed to add database. Are sqlite and Qt sqlite '
+                             'support installed?')
+        if not self._database.open():
+            error = self._database.lastError()
+            msg = "Failed to open sqlite database at {}: {}".format(db_path,
+                                                                    error.text())
+            raise_sqlite_error(msg, error)
+
+        version_int = self.query('pragma user_version').run().value()
+        self._user_version = UserVersion.from_int(version_int)
+
+        if self._user_version.major > self._USER_VERSION.major:
+            raise KnownError(
+                "Database is too new for this qutebrowser version (database version "
+                f"{self._user_version}, but {self._USER_VERSION.major}.x is supported)")
+
+        if self.user_version_changed():
+            log.sql.debug(f"Migrating from version {self._user_version} "
+                          f"to {self._USER_VERSION}")
+            # Note we're *not* updating _user_version here. We still want
+            # user_version_changed() to return True, as other modules (such as
+            # history.py) use it to create the initial table structure.
+            self.query(f'PRAGMA user_version = {_USER_VERSION.to_int()}').run()
+
+            # Enable write-ahead-logging and reduce disk write frequency
+            # see https://sqlite.org/pragma.html and issues #2930 and #3507
+            #
+            # We might already have done this (without a migration) in earlier versions,
+            # but as those are idempotent, let's make sure we run them once again.
+            self.query("PRAGMA journal_mode=WAL").run()
+            self.query("PRAGMA synchronous=NORMAL").run()
+
+    def query(self, querystr, forward_only=True):
+        # Still need to link the Query object to this Database instance
+        return Query(querystr, forward_only)
+
+    def table(self, name, fields, constraints=None, parent=None):
+        # Still need to link the SqlTable object to this Database instance
+        return SqlTable(name, fields, constraints, parent)
+
+    def user_version_changed(self):
+        """Whether the version stored in the database differs from the current one."""
+        return self._user_version != self._USER_VERSION
+
+    def close(self):
+        """Close the SQL connection."""
+        # Don't we need to call database.close() too?
+        QSqlDatabase.removeDatabase(self._database.connectionName())
+
+    def version(self):
+        """Return the sqlite version string."""
+        # This is a weird one, as it should support being called as a classmethod before
+        # any instance is created, but if an instance **was** created then we should use
+        # that connection to query the version. I think we can list existing connections
+        # using QSqlDatabase::connectionNames() to check if there is already a
+        # connection we can use, even if we are in a classmethod.
+        pass
+        # try:
+        #     if not QSqlDatabase.database().isOpen():
+        #         init(':memory:')
+        #         ver = Query("select sqlite_version()").run().value()
+        #         close()
+        #         return ver
+        #     return Query("select sqlite_version()").run().value()
+        # except KnownError as e:
+        #     return 'UNAVAILABLE ({})'.format(e)
