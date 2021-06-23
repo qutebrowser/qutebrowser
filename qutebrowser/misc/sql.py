@@ -484,7 +484,7 @@ class Database:
     _user_version: Optional[UserVersion] = None
     _USER_VERSION = UserVersion(0, 4)  # The current / newest user version
 
-    def __init__(db_path: str, connection_name: Optional[str]=None):
+    def __init__(self, db_path: str, connection_name: Optional[str]=None):
         self._database = QSqlDatabase.database(connection_name, open=False)
         if not self._database.isValid():
             self._database = QSqlDatabase.addDatabase('QSQLITE', connection_name)
