@@ -342,11 +342,11 @@ The binary release ships with a QtWebEngine built without proprietary codec
 support. To get support for e.g. h264/mp4 videos, you'll need to build
 QtWebEngine from source yourself with support for that enabled.
 
-This binary is also available through the
-https://caskroom.github.io/[Homebrew Cask] package manager:
+This binary is also available through the https://brew.sh/[Homebrew] package
+manager as a https://github.com/Homebrew/homebrew-cask[cask]:
 
 ----
-$ brew install qutebrowser --cask
+$ brew install qutebrowser
 ----
 
 Nightly builds
