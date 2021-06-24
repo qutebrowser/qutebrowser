@@ -33,6 +33,7 @@ def turn_on_sql_history(quteproc):
     cmd = ":debug-pyeval objects.debug_flags.remove('no-sql-history')"
     quteproc.send_cmd(cmd)
     quteproc.wait_for_load_finished_url('qute://pyeval')
+    quteproc.wait_for(message='INSERT INTO History *', category='sql')
 
 
 @bdd.then(bdd.parsers.parse("the query parameter {name} should be set to "
