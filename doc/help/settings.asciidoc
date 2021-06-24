@@ -67,6 +67,7 @@
 |<<colors.prompts.border,colors.prompts.border>>|Border used around UI elements in prompts.
 |<<colors.prompts.fg,colors.prompts.fg>>|Foreground color for prompts.
 |<<colors.prompts.selected.bg,colors.prompts.selected.bg>>|Background color for the selected item in filename prompts.
+|<<colors.prompts.selected.fg,colors.prompts.selected.fg>>|Foreground color for the selected item in filename prompts.
 |<<colors.statusbar.caret.bg,colors.statusbar.caret.bg>>|Background color of the statusbar in caret mode.
 |<<colors.statusbar.caret.fg,colors.statusbar.caret.fg>>|Foreground color of the statusbar in caret mode.
 |<<colors.statusbar.caret.selection.bg,colors.statusbar.caret.selection.bg>>|Background color of the statusbar in caret mode with a selection.
@@ -1232,6 +1233,14 @@ Background color for the selected item in filename prompts.
 Type: <<types,QssColor>>
 
 Default: +pass:[grey]+
+
+[[colors.prompts.selected.fg]]
+=== colors.prompts.selected.fg
+Foreground color for the selected item in filename prompts.
+
+Type: <<types,QssColor>>
+
+Default: +pass:[white]+
 
 [[colors.statusbar.caret.bg]]
 === colors.statusbar.caret.bg

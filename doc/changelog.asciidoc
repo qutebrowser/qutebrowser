@@ -24,6 +24,8 @@ Added
 
 - New `content.prefers_reduced_motion` setting to request websites to reduce
   non-essential motion/animations.
+- New `colors.prompts.selected.fg` setting to customize the text color for
+  selected items in filename prompts.
 
 Changed
 ~~~~~~~

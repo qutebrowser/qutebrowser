@@ -2762,6 +2762,11 @@ colors.prompts.bg:
   type: QssColor
   desc: Background color for prompts.
 
+colors.prompts.selected.fg:
+  default: white
+  type: QssColor
+  desc: Foreground color for the selected item in filename prompts.
+
 colors.prompts.selected.bg:
   default: grey
   type: QssColor

@@ -268,6 +268,7 @@ class PromptContainer(QWidget):
         }
 
         QTreeView {
+            selection-color: {{ conf.colors.prompts.selected.fg }};
             selection-background-color: {{ conf.colors.prompts.selected.bg }};
             border: {{ conf.colors.prompts.border }};
         }
@@ -278,6 +279,7 @@ class PromptContainer(QWidget):
 
         QTreeView::item:selected, QTreeView::item:selected:hover,
         QTreeView::branch:selected {
+            color: {{ conf.colors.prompts.selected.fg }};
             background-color: {{ conf.colors.prompts.selected.bg }};
         }
     """
