@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Provides access to an in-memory sqlite database."""  # I guess this is an old comment
+"""Provides access to sqlite databases."""
 
 import collections
 import dataclasses
