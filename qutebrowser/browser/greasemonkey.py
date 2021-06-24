@@ -361,7 +361,7 @@ class GreasemonkeyManager(QObject):
         self._in_progress_dls.remove(download)
         if not self._add_script_with_requires(script):
             log.greasemonkey.debug(
-                "Finished download {download.basename} for script {script} "
+                f"Finished download {download.basename} for script {script} "
                 "but some requirements are still pending")
 
     def _add_script_with_requires(self, script, quiet=False):
