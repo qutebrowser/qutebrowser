@@ -30,6 +30,8 @@ Added
 Changed
 ~~~~~~~
 
+- The hosts-based adblocker (using `content.blocking.hosts.lists`) now also
+  blocks all requests to any subdomains of blocked hosts.
 - The `fonts.web.*` settings now support URL patterns.
 - The `:greasemonkey-reload` command now shows a list of loaded scripts and has
   a new `--quiet` switch to suppress that message.
@@ -40,8 +42,12 @@ Changed
 Fixed
 ~~~~~
 
+- Crash on macOS 10.14+ when logging into Google accounts -- the previous fix
+  was incomplete due wrong information in Apple's documentation.
 - Crash when two Greasemonkey scripts have the same name (usually happening
   because the same file is in both the data and the config directory).
+- Deprecation warnings when using the `link_pyqt.py` script on Python 3.10
+  (e.g. via `tox` or `mkvenv.py`).
 
 [[v2.2.3]]
 v2.2.3 (2021-06-01)
