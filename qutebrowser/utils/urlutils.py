@@ -26,7 +26,7 @@ import ipaddress
 import posixpath
 import urllib.parse
 import mimetypes
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, Iterable
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QHostInfo, QHostAddress, QNetworkProxy
@@ -619,3 +619,12 @@ def parse_javascript_url(url: QUrl) -> str:
         raise Error("Resulted in empty JavaScript code")
 
     return code
+
+
+def widened_hostnames(hostname: str) -> Iterable[str]:
+    """A generator for widening string hostnames.
+
+    Ex: a.c.foo -> [a.c.foo, c.foo, foo]"""
+    while hostname:
+        yield hostname
+        hostname = hostname.partition(".")[-1]
