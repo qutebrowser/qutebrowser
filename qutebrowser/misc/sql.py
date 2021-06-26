@@ -480,26 +480,21 @@ class SqlTable(QObject):
 
 class Database:
 
-    _database: Optional[QSqlDatabase] = None
-    _user_version: Optional[UserVersion] = None
     _USER_VERSION = UserVersion(0, 4)  # The current / newest user version
 
-    def __init__(self, db_path: str, connection_name: Optional[str]=None):
-        self._database = QSqlDatabase.database(connection_name, open=False)
-        if not self._database.isValid():
-            self._database = QSqlDatabase.addDatabase('QSQLITE', connection_name)
-            self._database.setDatabaseName(db_path)
-        elif self._database.databaseName() != db_path:
-            # What now? Maybe raise an error? Or we could use db_path both as the
-            # database name **and** the connection name to avoid discrepancies
-            pass
-        if not self._database.isValid():
+    def __init__(self, path: str):
+        if QSqlDatabase.database(path).isValid():
+            raise BugError(f'A connection to the database at "{path}" already exists')
+
+        self._path = path
+        database = QSqlDatabase.addDatabase('QSQLITE', path)
+        if not database.isValid():
             raise KnownError('Failed to add database. Are sqlite and Qt sqlite '
                              'support installed?')
-        if not self._database.open():
-            error = self._database.lastError()
-            msg = "Failed to open sqlite database at {}: {}".format(db_path,
-                                                                    error.text())
+        database.setDatabaseName(path)
+        if not database.open():
+            error = database.lastError()
+            msg = f"Failed to open sqlite database at {path}: {error.text()}"
             raise_sqlite_error(msg, error)
 
         version_int = self.query('pragma user_version').run().value()
@@ -526,6 +521,13 @@ class Database:
             self.query("PRAGMA journal_mode=WAL").run()
             self.query("PRAGMA synchronous=NORMAL").run()
 
+    def _database(self):
+        database = QSqlDatabase.database(self._path, open=True)
+        if not database.isValid():
+            raise BugError('Failed to get connection. Did you close() this Database '
+                           'instance?')
+        return database
+
     def query(self, querystr, forward_only=True):
         # Still need to link the Query object to this Database instance
         return Query(querystr, forward_only)
@@ -540,23 +542,18 @@ class Database:
 
     def close(self):
         """Close the SQL connection."""
-        # Don't we need to call database.close() too?
-        QSqlDatabase.removeDatabase(self._database.connectionName())
+        database = self._database()
+        database.close()
+        del database
+        QSqlDatabase.removeDatabase(self._path)
 
-    def version(self):
+    @classmethod
+    def version(cls):
         """Return the sqlite version string."""
-        # This is a weird one, as it should support being called as a classmethod before
-        # any instance is created, but if an instance **was** created then we should use
-        # that connection to query the version. I think we can list existing connections
-        # using QSqlDatabase::connectionNames() to check if there is already a
-        # connection we can use, even if we are in a classmethod.
-        pass
-        # try:
-        #     if not QSqlDatabase.database().isOpen():
-        #         init(':memory:')
-        #         ver = Query("select sqlite_version()").run().value()
-        #         close()
-        #         return ver
-        #     return Query("select sqlite_version()").run().value()
-        # except KnownError as e:
-        #     return 'UNAVAILABLE ({})'.format(e)
+        try:
+            in_memory_db = cls(':memory:')
+            version = in_memory_db.query("select sqlite_version()").run().value()
+            in_memory_db.close()
+            return version
+        except KnownError as e:
+            return 'UNAVAILABLE ({})'.format(e)
