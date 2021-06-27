@@ -227,6 +227,8 @@ def raise_sqlite_error(msg, error):
 
 class Database:
 
+    """A wrapper over a QSqlDatabase connection."""
+
     _USER_VERSION = UserVersion(0, 4)  # The current / newest user version
 
     def __init__(self, path: str):

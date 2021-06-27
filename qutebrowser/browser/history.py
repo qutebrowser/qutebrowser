@@ -24,7 +24,7 @@ import time
 import contextlib
 from typing import cast, Mapping, MutableSequence
 
-from PyQt5.QtCore import pyqtSlot, QUrl, pyqtSignal
+from PyQt5.QtCore import pyqtSlot, QUrl, QObject, pyqtSignal
 from PyQt5.QtWidgets import QProgressDialog, QApplication
 
 from qutebrowser.config import config
@@ -91,11 +91,11 @@ class CompletionMetaInfo(sql.SqlTable):
         'force_rebuild': False,
     }
 
-    def __init__(self, database: sql.Database, parent=None):
+    def __init__(self, database: sql.Database, parent: QObject = None):
         self._fields = ['key', 'value']
         self._constraints = {'key': 'PRIMARY KEY'}
         super().__init__(database, "CompletionMetaInfo", self._fields,
-                         constraints=self._constraints)
+                         constraints=self._constraints, parent=parent)
 
         if database.user_version_changed():
             self._init_default_values()
@@ -138,7 +138,7 @@ class CompletionHistory(sql.SqlTable):
 
     """History which only has the newest entry for each URL."""
 
-    def __init__(self, database: sql.Database, parent=None):
+    def __init__(self, database: sql.Database, parent: QObject = None):
         super().__init__(database, "CompletionHistory", ['url', 'title', 'last_atime'],
                          constraints={'url': 'PRIMARY KEY',
                                       'title': 'NOT NULL',
@@ -163,7 +163,8 @@ class WebHistory(sql.SqlTable):
     # one url cleared
     url_cleared = pyqtSignal(QUrl)
 
-    def __init__(self, database: sql.Database, progress, parent=None):
+    def __init__(self, database: sql.Database, progress: HistoryProgress,
+                 parent: QObject = None):
         super().__init__(database, "History", ['url', 'title', 'atime', 'redirect'],
                          constraints={'url': 'NOT NULL',
                                       'title': 'NOT NULL',
@@ -474,7 +475,7 @@ def debug_dump_history(dest):
         raise cmdutils.CommandError(f'Could not write history: {e}')
 
 
-def init(db_path: str, parent=None):
+def init(db_path: str, parent: QObject = None) -> None:
     """Initialize the web history.
 
     Args:
