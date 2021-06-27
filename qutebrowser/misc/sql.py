@@ -20,8 +20,10 @@
 """Provides access to sqlite databases."""
 
 import collections
+import contextlib
 import dataclasses
-from typing import Optional, Dict, List
+import types
+from typing import Optional, Dict, List, Type
 
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtSql import QSqlDatabase, QSqlQuery, QSqlError
@@ -254,6 +256,15 @@ class Database:
                 "Database is too new for this qutebrowser version (database version "
                 f"{self._user_version}, but {self._USER_VERSION.major}.x is supported)")
 
+        if self.user_version_changed():
+            # Enable write-ahead-logging and reduce disk write frequency
+            # see https://sqlite.org/pragma.html and issues #2930 and #3507
+            #
+            # We might already have done this (without a migration) in earlier versions,
+            # but as those are idempotent, let's make sure we run them once again.
+            self.query("PRAGMA journal_mode=WAL").run()
+            self.query("PRAGMA synchronous=NORMAL").run()
+
     def qSqlDatabase(self):
         database = QSqlDatabase.database(self._path, open=True)
         if not database.isValid():
@@ -281,13 +292,6 @@ class Database:
                       f"to {self._USER_VERSION}")
         self.query(f'PRAGMA user_version = {self._USER_VERSION.to_int()}').run()
         self._user_version = self._USER_VERSION
-        # Enable write-ahead-logging and reduce disk write frequency
-        # see https://sqlite.org/pragma.html and issues #2930 and #3507
-        #
-        # We might already have done this (without a migration) in earlier versions,
-        # but as those are idempotent, let's make sure we run them once again.
-        self.query("PRAGMA journal_mode=WAL").run()
-        self.query("PRAGMA synchronous=NORMAL").run()
 
     def close(self):
         """Close the SQL connection."""
@@ -295,6 +299,9 @@ class Database:
         database.close()
         del database
         QSqlDatabase.removeDatabase(self._path)
+
+    def transaction(self):
+        return Transaction(self)
 
     @classmethod
     def version(cls):
@@ -306,6 +313,39 @@ class Database:
             return version
         except KnownError as e:
             return 'UNAVAILABLE ({})'.format(e)
+
+
+class Transaction(contextlib.AbstractContextManager):
+
+    """A Database transaction that can be used as a context manager."""
+
+    def __init__(self, database: Database):
+        self._database = database
+
+    def __enter__(self) -> None:
+        log.sql.debug('Starting a transaction')
+        db = self._database.qSqlDatabase()
+        ok = db.transaction()
+        if not ok:
+            error = db.lastError()
+            msg = f'Failed to start a transaction: "{error.text()}"'
+            raise_sqlite_error(msg, error)
+
+    def __exit__(self,
+                 _exc_type: Optional[Type[BaseException]],
+                 exc_val: Optional[BaseException],
+                 _exc_tb: Optional[types.TracebackType]) -> None:
+        db = self._database.qSqlDatabase()
+        if exc_val:
+            log.sql.debug('Rolling back a transaction')
+            db.rollback()
+        else:
+            log.sql.debug('Committing a transaction')
+            ok = db.commit()
+            if not ok:
+                error = db.lastError()
+                msg = f'Failed to commit a transaction: "{error.text()}"'
+                raise_sqlite_error(msg, error)
 
 
 class Query:

@@ -188,16 +188,17 @@ class WebHistory(sql.SqlTable):
             rebuild_completion = self.metainfo['force_rebuild']
 
         if self._database.user_version_changed():
-            # If the DB user version changed, run a full cleanup and rebuild the
-            # completion history.
-            #
-            # In the future, this could be improved to only be done when actually needed
-            # - but version changes happen very infrequently, rebuilding everything
-            # gives us less corner-cases to deal with, and we can run a VACUUM to make
-            # things smaller.
-            self._cleanup_history()
-            rebuild_completion = True
-            self._database.upgrade_user_version()
+            with self._database.transaction():
+                # If the DB user version changed, run a full cleanup and rebuild the
+                # completion history.
+                #
+                # In the future, this could be improved to only be done when actually
+                # needed - but version changes happen very infrequently, rebuilding
+                # everything gives us less corner-cases to deal with, and we can run a
+                # VACUUM to make things smaller.
+                self._cleanup_history()
+                rebuild_completion = True
+                self._database.upgrade_user_version()
 
         # Get a string of all patterns
         patterns = config.instance.get_str('completion.web_history.exclude')
