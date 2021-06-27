@@ -281,7 +281,6 @@ class Database:
         return Query(self, querystr, forward_only)
 
     def table(self, name, fields, constraints=None, parent=None):
-        # Still need to link the SqlTable object to this Database instance
         return SqlTable(self, name, fields, constraints, parent)
 
     def user_version_changed(self):
