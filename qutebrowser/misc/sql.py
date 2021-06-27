@@ -254,22 +254,6 @@ class Database:
                 "Database is too new for this qutebrowser version (database version "
                 f"{self._user_version}, but {self._USER_VERSION.major}.x is supported)")
 
-        if self.user_version_changed():
-            log.sql.debug(f"Migrating from version {self._user_version} "
-                          f"to {self._USER_VERSION}")
-            # Note we're *not* updating _user_version here. We still want
-            # user_version_changed() to return True, as other modules (such as
-            # history.py) use it to create the initial table structure.
-            self.query(f'PRAGMA user_version = {_USER_VERSION.to_int()}').run()
-
-            # Enable write-ahead-logging and reduce disk write frequency
-            # see https://sqlite.org/pragma.html and issues #2930 and #3507
-            #
-            # We might already have done this (without a migration) in earlier versions,
-            # but as those are idempotent, let's make sure we run them once again.
-            self.query("PRAGMA journal_mode=WAL").run()
-            self.query("PRAGMA synchronous=NORMAL").run()
-
     def qSqlDatabase(self):
         database = QSqlDatabase.database(self._path, open=True)
         if not database.isValid():
@@ -286,6 +270,24 @@ class Database:
     def user_version_changed(self):
         """Whether the version stored in the database differs from the current one."""
         return self._user_version != self._USER_VERSION
+
+    def upgrade_user_version(self):
+        """Upgrades the user version to the latest version.
+
+        This method should be called once all required operations to migrate from one
+        version to another have been run.
+        """
+        log.sql.debug(f"Migrating from version {self._user_version} "
+                      f"to {self._USER_VERSION}")
+        self.query(f'PRAGMA user_version = {self._USER_VERSION.to_int()}').run()
+        self._user_version = self._USER_VERSION
+        # Enable write-ahead-logging and reduce disk write frequency
+        # see https://sqlite.org/pragma.html and issues #2930 and #3507
+        #
+        # We might already have done this (without a migration) in earlier versions,
+        # but as those are idempotent, let's make sure we run them once again.
+        self.query("PRAGMA journal_mode=WAL").run()
+        self.query("PRAGMA synchronous=NORMAL").run()
 
     def close(self):
         """Close the SQL connection."""

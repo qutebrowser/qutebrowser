@@ -197,6 +197,7 @@ class WebHistory(sql.SqlTable):
             # things smaller.
             self._cleanup_history()
             rebuild_completion = True
+            self._database.upgrade_user_version()
 
         # Get a string of all patterns
         patterns = config.instance.get_str('completion.web_history.exclude')
