@@ -822,7 +822,7 @@ def version_info() -> str:
 
     lines += [
         'pdf.js: {}'.format(_pdfjs_version()),
-        'sqlite: {}'.format(sql.version()),
+        'sqlite: {}'.format(sql.Database.version()),
         'QtNetwork SSL: {}\n'.format(QSslSocket.sslLibraryVersionString()
                                      if QSslSocket.supportsSsl() else 'no'),
     ]

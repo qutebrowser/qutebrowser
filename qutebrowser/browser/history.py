@@ -91,13 +91,13 @@ class CompletionMetaInfo(sql.SqlTable):
         'force_rebuild': False,
     }
 
-    def __init__(self, parent=None):
+    def __init__(self, database: sql.Database, parent=None):
         self._fields = ['key', 'value']
         self._constraints = {'key': 'PRIMARY KEY'}
-        super().__init__(
-            "CompletionMetaInfo", self._fields, constraints=self._constraints)
+        super().__init__(database, "CompletionMetaInfo", self._fields,
+                         constraints=self._constraints)
 
-        if sql.user_version_changed():
+        if database.user_version_changed():
             self._init_default_values()
 
     def _check_key(self, key):
@@ -125,8 +125,8 @@ class CompletionMetaInfo(sql.SqlTable):
 
     def __getitem__(self, key):
         self._check_key(key)
-        query = sql.Query('SELECT value FROM CompletionMetaInfo '
-                          'WHERE key = :key')
+        query = self._database.query('SELECT value FROM CompletionMetaInfo '
+                                     'WHERE key = :key')
         return query.run(key=key).value()
 
     def __setitem__(self, key, value):
@@ -138,8 +138,8 @@ class CompletionHistory(sql.SqlTable):
 
     """History which only has the newest entry for each URL."""
 
-    def __init__(self, parent=None):
-        super().__init__("CompletionHistory", ['url', 'title', 'last_atime'],
+    def __init__(self, database: sql.Database, parent=None):
+        super().__init__(database, "CompletionHistory", ['url', 'title', 'last_atime'],
                          constraints={'url': 'PRIMARY KEY',
                                       'title': 'NOT NULL',
                                       'last_atime': 'NOT NULL'},
@@ -154,6 +154,7 @@ class WebHistory(sql.SqlTable):
     Attributes:
         completion: A CompletionHistory instance.
         metainfo: A CompletionMetaInfo instance.
+        database: The Database instance where history is persisted.
         _progress: A HistoryProgress instance.
     """
 
@@ -162,19 +163,20 @@ class WebHistory(sql.SqlTable):
     # one url cleared
     url_cleared = pyqtSignal(QUrl)
 
-    def __init__(self, progress, parent=None):
-        super().__init__("History", ['url', 'title', 'atime', 'redirect'],
+    def __init__(self, database: sql.Database, progress, parent=None):
+        super().__init__(database, "History", ['url', 'title', 'atime', 'redirect'],
                          constraints={'url': 'NOT NULL',
                                       'title': 'NOT NULL',
                                       'atime': 'NOT NULL',
                                       'redirect': 'NOT NULL'},
                          parent=parent)
+        self.database = database
         self._progress = progress
         # Store the last saved url to avoid duplicate immediate saves.
         self._last_url = None
 
-        self.completion = CompletionHistory(parent=self)
-        self.metainfo = CompletionMetaInfo(parent=self)
+        self.completion = CompletionHistory(database, parent=self)
+        self.metainfo = CompletionMetaInfo(database, parent=self)
 
         try:
             rebuild_completion = self.metainfo['force_rebuild']
@@ -184,7 +186,7 @@ class WebHistory(sql.SqlTable):
             self.metainfo.try_recover()
             rebuild_completion = self.metainfo['force_rebuild']
 
-        if sql.user_version_changed():
+        if self._database.user_version_changed():
             # If the DB user version changed, run a full cleanup and rebuild the
             # completion history.
             #
@@ -211,19 +213,19 @@ class WebHistory(sql.SqlTable):
         self.create_index('HistoryIndex', 'url')
         self.create_index('HistoryAtimeIndex', 'atime')
         self._contains_query = self.contains_query('url')
-        self._between_query = sql.Query('SELECT * FROM History '
-                                        'where not redirect '
-                                        'and not url like "qute://%" '
-                                        'and atime > :earliest '
-                                        'and atime <= :latest '
-                                        'ORDER BY atime desc')
+        self._between_query = self._database.query('SELECT * FROM History '
+                                                   'where not redirect '
+                                                   'and not url like "qute://%" '
+                                                   'and atime > :earliest '
+                                                   'and atime <= :latest '
+                                                   'ORDER BY atime desc')
 
-        self._before_query = sql.Query('SELECT * FROM History '
-                                       'where not redirect '
-                                       'and not url like "qute://%" '
-                                       'and atime <= :latest '
-                                       'ORDER BY atime desc '
-                                       'limit :limit offset :offset')
+        self._before_query = self._database.query('SELECT * FROM History '
+                                                  'where not redirect '
+                                                  'and not url like "qute://%" '
+                                                  'and atime <= :latest '
+                                                  'ORDER BY atime desc '
+                                                  'limit :limit offset :offset')
 
     def __repr__(self):
         return utils.get_repr(self, length=len(self))
@@ -271,7 +273,7 @@ class WebHistory(sql.SqlTable):
             'qute://pdfjs%',
         ]
         where_clause = ' OR '.join(f"url LIKE '{term}'" for term in terms)
-        q = sql.Query(f'DELETE FROM History WHERE {where_clause}')
+        q = self._database.query(f'DELETE FROM History WHERE {where_clause}')
         entries = q.run()
         log.sql.debug(f"Cleanup removed {entries.rows_affected()} items")
 
@@ -297,9 +299,9 @@ class WebHistory(sql.SqlTable):
         QApplication.processEvents()
 
         # Select the latest entry for each url
-        q = sql.Query('SELECT url, title, max(atime) AS atime FROM History '
-                      'WHERE NOT redirect '
-                      'GROUP BY url ORDER BY atime asc')
+        q = self._database.query('SELECT url, title, max(atime) AS atime FROM History '
+                                 'WHERE NOT redirect '
+                                 'GROUP BY url ORDER BY atime asc')
         result = q.run()
         QApplication.processEvents()
         entries = list(result)
@@ -319,7 +321,7 @@ class WebHistory(sql.SqlTable):
         self._progress.set_maximum(0)
 
         # We might have caused fragmentation - let's clean up.
-        sql.Query('VACUUM').run()
+        self._database.query('VACUUM').run()
         QApplication.processEvents()
 
         self.completion.insert_batch(data, replace=True)
@@ -472,15 +474,17 @@ def debug_dump_history(dest):
         raise cmdutils.CommandError(f'Could not write history: {e}')
 
 
-def init(parent=None):
+def init(db_path: str, parent=None):
     """Initialize the web history.
 
     Args:
+        db_path: The path for the SQLite database.
         parent: The parent to use for WebHistory.
     """
     global web_history
     progress = HistoryProgress()
-    web_history = WebHistory(progress=progress, parent=parent)
+    database = sql.Database(db_path)
+    web_history = WebHistory(database=database, progress=progress, parent=parent)
 
     if objects.backend == usertypes.Backend.QtWebKit:  # pragma: no cover
         from qutebrowser.browser.webkit import webkithistory

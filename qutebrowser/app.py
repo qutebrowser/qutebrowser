@@ -479,11 +479,9 @@ def _init_modules(*, args):
 
     with debug.log_time("init", "Initializing SQL/history"):
         try:
-            log.init.debug("Initializing SQL...")
-            sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
-
             log.init.debug("Initializing web history...")
-            history.init(objects.qapp)
+            history.init(db_path=os.path.join(standarddir.data(), 'history.sqlite'),
+                         parent=objects.qapp)
         except sql.KnownError as e:
             error.handle_fatal_exc(e, 'Error initializing SQL',
                                    pre_text='Error initializing SQL',

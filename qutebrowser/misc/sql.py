@@ -21,7 +21,7 @@
 
 import collections
 import dataclasses
-from typing import Optional
+from typing import Optional, Dict, List
 
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtSql import QSqlDatabase, QSqlQuery, QSqlError
@@ -169,75 +169,158 @@ def raise_sqlite_error(msg, error):
     raise BugError(msg, error)
 
 
-def init(db_path):
-    """Initialize the SQL database connection."""
-    database = QSqlDatabase.addDatabase('QSQLITE')
-    if not database.isValid():
-        raise KnownError('Failed to add database. Are sqlite and Qt sqlite '
-                         'support installed?')
-    database.setDatabaseName(db_path)
-    if not database.open():
-        error = database.lastError()
-        msg = "Failed to open sqlite database at {}: {}".format(db_path,
-                                                                error.text())
-        raise_sqlite_error(msg, error)
+# def init(db_path):
+#     """Initialize the SQL database connection."""
+#     database = QSqlDatabase.addDatabase('QSQLITE')
+#     if not database.isValid():
+#         raise KnownError('Failed to add database. Are sqlite and Qt sqlite '
+#                          'support installed?')
+#     database.setDatabaseName(db_path)
+#     if not database.open():
+#         error = database.lastError()
+#         msg = "Failed to open sqlite database at {}: {}".format(db_path,
+#                                                                 error.text())
+#         raise_sqlite_error(msg, error)
+#
+#     global _db_user_version
+#     version_int = Query('pragma user_version').run().value()
+#     _db_user_version = UserVersion.from_int(version_int)
+#
+#     if _db_user_version.major > _USER_VERSION.major:
+#         raise KnownError(
+#             "Database is too new for this qutebrowser version (database version "
+#             f"{_db_user_version}, but {_USER_VERSION.major}.x is supported)")
+#
+#     if user_version_changed():
+#         log.sql.debug(f"Migrating from version {_db_user_version} to {_USER_VERSION}")
+#         # Note we're *not* updating the _db_user_version global here. We still want
+#         # user_version_changed() to return True, as other modules (such as history.py)
+#         # use it to create the initial table structure.
+#         Query(f'PRAGMA user_version = {_USER_VERSION.to_int()}').run()
+#
+#         # Enable write-ahead-logging and reduce disk write frequency
+#         # see https://sqlite.org/pragma.html and issues #2930 and #3507
+#         #
+#         # We might already have done this (without a migration) in earlier versions, but
+#         # as those are idempotent, let's make sure we run them once again.
+#         Query("PRAGMA journal_mode=WAL").run()
+#         Query("PRAGMA synchronous=NORMAL").run()
+#
+#
+# def close():
+#     """Close the SQL connection."""
+#     QSqlDatabase.removeDatabase(QSqlDatabase.database().connectionName())
+#
+#
+# def version():
+#     """Return the sqlite version string."""
+#     try:
+#         if not QSqlDatabase.database().isOpen():
+#             init(':memory:')
+#             ver = Query("select sqlite_version()").run().value()
+#             close()
+#             return ver
+#         return Query("select sqlite_version()").run().value()
+#     except KnownError as e:
+#         return 'UNAVAILABLE ({})'.format(e)
 
-    global _db_user_version
-    version_int = Query('pragma user_version').run().value()
-    _db_user_version = UserVersion.from_int(version_int)
 
-    if _db_user_version.major > _USER_VERSION.major:
-        raise KnownError(
-            "Database is too new for this qutebrowser version (database version "
-            f"{_db_user_version}, but {_USER_VERSION.major}.x is supported)")
+class Database:
 
-    if user_version_changed():
-        log.sql.debug(f"Migrating from version {_db_user_version} to {_USER_VERSION}")
-        # Note we're *not* updating the _db_user_version global here. We still want
-        # user_version_changed() to return True, as other modules (such as history.py)
-        # use it to create the initial table structure.
-        Query(f'PRAGMA user_version = {_USER_VERSION.to_int()}').run()
+    _USER_VERSION = UserVersion(0, 4)  # The current / newest user version
 
-        # Enable write-ahead-logging and reduce disk write frequency
-        # see https://sqlite.org/pragma.html and issues #2930 and #3507
-        #
-        # We might already have done this (without a migration) in earlier versions, but
-        # as those are idempotent, let's make sure we run them once again.
-        Query("PRAGMA journal_mode=WAL").run()
-        Query("PRAGMA synchronous=NORMAL").run()
+    def __init__(self, path: str):
+        if QSqlDatabase.database(path).isValid():
+            raise BugError(f'A connection to the database at "{path}" already exists')
 
+        self._path = path
+        database = QSqlDatabase.addDatabase('QSQLITE', path)
+        if not database.isValid():
+            raise KnownError('Failed to add database. Are sqlite and Qt sqlite '
+                             'support installed?')
+        database.setDatabaseName(path)
+        if not database.open():
+            error = database.lastError()
+            msg = f"Failed to open sqlite database at {path}: {error.text()}"
+            raise_sqlite_error(msg, error)
 
-def close():
-    """Close the SQL connection."""
-    QSqlDatabase.removeDatabase(QSqlDatabase.database().connectionName())
+        version_int = self.query('pragma user_version').run().value()
+        self._user_version = UserVersion.from_int(version_int)
 
+        if self._user_version.major > self._USER_VERSION.major:
+            raise KnownError(
+                "Database is too new for this qutebrowser version (database version "
+                f"{self._user_version}, but {self._USER_VERSION.major}.x is supported)")
 
-def version():
-    """Return the sqlite version string."""
-    try:
-        if not QSqlDatabase.database().isOpen():
-            init(':memory:')
-            ver = Query("select sqlite_version()").run().value()
-            close()
-            return ver
-        return Query("select sqlite_version()").run().value()
-    except KnownError as e:
-        return 'UNAVAILABLE ({})'.format(e)
+        if self.user_version_changed():
+            log.sql.debug(f"Migrating from version {self._user_version} "
+                          f"to {self._USER_VERSION}")
+            # Note we're *not* updating _user_version here. We still want
+            # user_version_changed() to return True, as other modules (such as
+            # history.py) use it to create the initial table structure.
+            self.query(f'PRAGMA user_version = {_USER_VERSION.to_int()}').run()
+
+            # Enable write-ahead-logging and reduce disk write frequency
+            # see https://sqlite.org/pragma.html and issues #2930 and #3507
+            #
+            # We might already have done this (without a migration) in earlier versions,
+            # but as those are idempotent, let's make sure we run them once again.
+            self.query("PRAGMA journal_mode=WAL").run()
+            self.query("PRAGMA synchronous=NORMAL").run()
+
+    def qSqlDatabase(self):
+        database = QSqlDatabase.database(self._path, open=True)
+        if not database.isValid():
+            raise BugError('Failed to get connection. Did you close() this Database '
+                           'instance?')
+        return database
+
+    def query(self, querystr, forward_only=True):
+        return Query(self, querystr, forward_only)
+
+    def table(self, name, fields, constraints=None, parent=None):
+        # Still need to link the SqlTable object to this Database instance
+        return SqlTable(self, name, fields, constraints, parent)
+
+    def user_version_changed(self):
+        """Whether the version stored in the database differs from the current one."""
+        return self._user_version != self._USER_VERSION
+
+    def close(self):
+        """Close the SQL connection."""
+        database = self.qSqlDatabase()
+        database.close()
+        del database
+        QSqlDatabase.removeDatabase(self._path)
+
+    @classmethod
+    def version(cls):
+        """Return the sqlite version string."""
+        try:
+            in_memory_db = cls(':memory:')
+            version = in_memory_db.query("select sqlite_version()").run().value()
+            in_memory_db.close()
+            return version
+        except KnownError as e:
+            return 'UNAVAILABLE ({})'.format(e)
 
 
 class Query:
 
     """A prepared SQL query."""
 
-    def __init__(self, querystr, forward_only=True):
+    def __init__(self, database: Database, querystr: str,
+                 forward_only: bool = True):
         """Prepare a new SQL query.
 
         Args:
+            database: The Database object on which to operate.
             querystr: String to prepare query from.
             forward_only: Optimization for queries that will only step forward.
                           Must be false for completion queries.
         """
-        self.query = QSqlQuery(QSqlDatabase.database())
+        self._database = database
+        self.query = QSqlQuery(database.qSqlDatabase())
 
         log.sql.vdebug(f'Preparing: {querystr}')  # type: ignore[attr-defined]
         ok = self.query.prepare(querystr)
@@ -294,7 +377,7 @@ class Query:
 
         self._bind_values(values)
 
-        db = QSqlDatabase.database()
+        db = self._database.qSqlDatabase()
         ok = db.transaction()
         self._check_ok('transaction', ok)
 
@@ -340,16 +423,19 @@ class SqlTable(QObject):
 
     changed = pyqtSignal()
 
-    def __init__(self, name, fields, constraints=None, parent=None):
+    def __init__(self, database: Database, name: str, fields: List[str], constraints:
+                 Optional[Dict[str, str]] = None, parent: Optional[QObject] = None):
         """Wrapper over a table in the SQL database.
 
         Args:
+            database: The Database object on which to operate.
             name: Name of the table.
             fields: A list of field names.
             constraints: A dict mapping field names to constraint strings.
         """
         super().__init__(parent)
         self._name = name
+        self._database = database
         self._create_table(fields, constraints)
 
     def _create_table(self, fields, constraints, *, force=False):
@@ -358,14 +444,15 @@ class SqlTable(QObject):
         If the table already exists, this does nothing (except with force=True), so it
         can e.g. be called on every user_version change.
         """
-        if not user_version_changed() and not force:
+        if not self._database.user_version_changed() and not force:
             return
 
         constraints = constraints or {}
         column_defs = ['{} {}'.format(field, constraints.get(field, ''))
                        for field in fields]
-        q = Query("CREATE TABLE IF NOT EXISTS {name} ({column_defs})"
-                  .format(name=self._name, column_defs=', '.join(column_defs)))
+        q = self._database.query(
+            f"CREATE TABLE IF NOT EXISTS {self._name} ({', '.join(column_defs)})"
+        )
         q.run()
 
     def create_index(self, name, field):
@@ -375,16 +462,17 @@ class SqlTable(QObject):
             name: Name of the index, should be unique.
             field: Name of the field to index.
         """
-        if not user_version_changed():
+        if not self._database.user_version_changed():
             return
 
-        q = Query("CREATE INDEX IF NOT EXISTS {name} ON {table} ({field})"
-                  .format(name=name, table=self._name, field=field))
+        q = self._database.query(
+            f"CREATE INDEX IF NOT EXISTS {name} ON {self._name} ({field})"
+        )
         q.run()
 
     def __iter__(self):
         """Iterate rows in the table."""
-        q = Query("SELECT * FROM {table}".format(table=self._name))
+        q = self._database.query(f"SELECT * FROM {self._name}")
         q.run()
         return iter(q)
 
@@ -394,19 +482,19 @@ class SqlTable(QObject):
         Args:
             field: Field to match.
         """
-        return Query(
-            "SELECT EXISTS(SELECT * FROM {table} WHERE {field} = :val)"
-            .format(table=self._name, field=field))
+        return self._database.query(
+            f"SELECT EXISTS(SELECT * FROM {self._name} WHERE {field} = :val)"
+        )
 
     def __len__(self):
         """Return the count of rows in the table."""
-        q = Query("SELECT count(*) FROM {table}".format(table=self._name))
+        q = self._database.query(f"SELECT count(*) FROM {self._name}")
         q.run()
         return q.value()
 
     def __bool__(self):
         """Check whether there's any data in the table."""
-        q = Query(f"SELECT 1 FROM {self._name} LIMIT 1")
+        q = self._database.query(f"SELECT 1 FROM {self._name} LIMIT 1")
         q.run()
         return q.query.next()
 
@@ -420,18 +508,19 @@ class SqlTable(QObject):
         Return:
             The number of rows deleted.
         """
-        q = Query(f"DELETE FROM {self._name} where {field} = :val")
+        q = self._database.query(f"DELETE FROM {self._name} where {field} = :val")
         q.run(val=value)
         if not q.rows_affected():
             raise KeyError('No row with {} = "{}"'.format(field, value))
         self.changed.emit()
 
     def _insert_query(self, values, replace):
-        params = ', '.join(':{}'.format(key) for key in values)
+        params = ', '.join(f':{key}' for key in values)
+        columns = ', '.join(values)
         verb = "REPLACE" if replace else "INSERT"
-        return Query("{verb} INTO {table} ({columns}) values({params})".format(
-            verb=verb, table=self._name, columns=', '.join(values),
-            params=params))
+        return self._database.query(
+            f"{verb} INTO {self._name} ({columns}) values({params})"
+        )
 
     def insert(self, values, replace=False):
         """Append a row to the table.
@@ -457,7 +546,7 @@ class SqlTable(QObject):
 
     def delete_all(self):
         """Remove all rows from the table."""
-        Query("DELETE FROM {table}".format(table=self._name)).run()
+        self._database.query(f"DELETE FROM {self._name}").run()
         self.changed.emit()
 
     def select(self, sort_by, sort_order, limit=-1):
@@ -470,90 +559,8 @@ class SqlTable(QObject):
 
         Return: A prepared and executed select query.
         """
-        q = Query("SELECT * FROM {table} ORDER BY {sort_by} {sort_order} "
-                  "LIMIT :limit"
-                  .format(table=self._name, sort_by=sort_by,
-                          sort_order=sort_order))
+        q = self._database.query(
+            f"SELECT * FROM {self._name} ORDER BY {sort_by} {sort_order} LIMIT :limit"
+        )
         q.run(limit=limit)
         return q
-
-
-class Database:
-
-    _USER_VERSION = UserVersion(0, 4)  # The current / newest user version
-
-    def __init__(self, path: str):
-        if QSqlDatabase.database(path).isValid():
-            raise BugError(f'A connection to the database at "{path}" already exists')
-
-        self._path = path
-        database = QSqlDatabase.addDatabase('QSQLITE', path)
-        if not database.isValid():
-            raise KnownError('Failed to add database. Are sqlite and Qt sqlite '
-                             'support installed?')
-        database.setDatabaseName(path)
-        if not database.open():
-            error = database.lastError()
-            msg = f"Failed to open sqlite database at {path}: {error.text()}"
-            raise_sqlite_error(msg, error)
-
-        version_int = self.query('pragma user_version').run().value()
-        self._user_version = UserVersion.from_int(version_int)
-
-        if self._user_version.major > self._USER_VERSION.major:
-            raise KnownError(
-                "Database is too new for this qutebrowser version (database version "
-                f"{self._user_version}, but {self._USER_VERSION.major}.x is supported)")
-
-        if self.user_version_changed():
-            log.sql.debug(f"Migrating from version {self._user_version} "
-                          f"to {self._USER_VERSION}")
-            # Note we're *not* updating _user_version here. We still want
-            # user_version_changed() to return True, as other modules (such as
-            # history.py) use it to create the initial table structure.
-            self.query(f'PRAGMA user_version = {_USER_VERSION.to_int()}').run()
-
-            # Enable write-ahead-logging and reduce disk write frequency
-            # see https://sqlite.org/pragma.html and issues #2930 and #3507
-            #
-            # We might already have done this (without a migration) in earlier versions,
-            # but as those are idempotent, let's make sure we run them once again.
-            self.query("PRAGMA journal_mode=WAL").run()
-            self.query("PRAGMA synchronous=NORMAL").run()
-
-    def _database(self):
-        database = QSqlDatabase.database(self._path, open=True)
-        if not database.isValid():
-            raise BugError('Failed to get connection. Did you close() this Database '
-                           'instance?')
-        return database
-
-    def query(self, querystr, forward_only=True):
-        # Still need to link the Query object to this Database instance
-        return Query(querystr, forward_only)
-
-    def table(self, name, fields, constraints=None, parent=None):
-        # Still need to link the SqlTable object to this Database instance
-        return SqlTable(name, fields, constraints, parent)
-
-    def user_version_changed(self):
-        """Whether the version stored in the database differs from the current one."""
-        return self._user_version != self._USER_VERSION
-
-    def close(self):
-        """Close the SQL connection."""
-        database = self._database()
-        database.close()
-        del database
-        QSqlDatabase.removeDatabase(self._path)
-
-    @classmethod
-    def version(cls):
-        """Return the sqlite version string."""
-        try:
-            in_memory_db = cls(':memory:')
-            version = in_memory_db.query("select sqlite_version()").run().value()
-            in_memory_db.close()
-            return version
-        except KnownError as e:
-            return 'UNAVAILABLE ({})'.format(e)
