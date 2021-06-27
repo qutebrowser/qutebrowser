@@ -140,11 +140,10 @@ def raise_sqlite_error(msg, error):
     driver_text = error.driverText()
 
     log.sql.debug("SQL error:")
-    log.sql.debug("type: {}".format(
-        debug.qenum_key(QSqlError, error.type())))
-    log.sql.debug("database text: {}".format(database_text))
-    log.sql.debug("driver text: {}".format(driver_text))
-    log.sql.debug("error code: {}".format(error_code))
+    log.sql.debug(f"type: {debug.qenum_key(QSqlError, error.type())}")
+    log.sql.debug(f"database text: {database_text}")
+    log.sql.debug(f"driver text: {driver_text}")
+    log.sql.debug(f"error code: {error_code}")
 
     known_errors = [
         SqliteErrorCode.BUSY,
@@ -312,7 +311,7 @@ class Database:
             in_memory_db.close()
             return version
         except KnownError as e:
-            return 'UNAVAILABLE ({})'.format(e)
+            return f'UNAVAILABLE ({e})'
 
 
 class Transaction(contextlib.AbstractContextManager):
@@ -386,13 +385,12 @@ class Query:
         if not ok:
             query = self.query.lastQuery()
             error = self.query.lastError()
-            msg = 'Failed to {} query "{}": "{}"'.format(step, query,
-                                                         error.text())
+            msg = f'Failed to {step} query "{query}": "{error.text()}"'
             raise_sqlite_error(msg, error)
 
     def _bind_values(self, values):
         for key, val in values.items():
-            self.query.bindValue(':{}'.format(key), val)
+            self.query.bindValue(f':{key}', val)
 
         bound_values = self.bound_values()
         if None in bound_values.values():
@@ -415,8 +413,7 @@ class Query:
 
     def run_batch(self, values):
         """Execute the query in batch mode."""
-        log.sql.debug('Running SQL query (batch): "{}"'.format(
-            self.query.lastQuery()))
+        log.sql.debug(f'Running SQL query (batch): "{self.query.lastQuery()}"')
 
         self._bind_values(values)
 
@@ -491,7 +488,7 @@ class SqlTable(QObject):
             return
 
         constraints = constraints or {}
-        column_defs = ['{} {}'.format(field, constraints.get(field, ''))
+        column_defs = [f'{field} {constraints.get(field, "")}'
                        for field in fields]
         q = self._database.query(
             f"CREATE TABLE IF NOT EXISTS {self._name} ({', '.join(column_defs)})"
@@ -554,7 +551,7 @@ class SqlTable(QObject):
         q = self._database.query(f"DELETE FROM {self._name} where {field} = :val")
         q.run(val=value)
         if not q.rows_affected():
-            raise KeyError('No row with {} = "{}"'.format(field, value))
+            raise KeyError('No row with {field} = "{value}"')
         self.changed.emit()
 
     def _insert_query(self, values, replace):
