@@ -66,13 +66,13 @@ class UserVersion:
         return f'{self.major}.{self.minor}'
 
 
-_db_user_version = None   # The user version we got from the database
-_USER_VERSION = UserVersion(0, 4)    # The current / newest user version
+# _db_user_version = None   # The user version we got from the database
+# _USER_VERSION = UserVersion(0, 4)    # The current / newest user version
 
 
-def user_version_changed():
-    """Whether the version stored in the database is different from the current one."""
-    return _db_user_version != _USER_VERSION
+# def user_version_changed():
+#     """Whether the version stored in the database is different from the current one."""
+#     return _db_user_version != _USER_VERSION
 
 
 class SqliteErrorCode:
