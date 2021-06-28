@@ -676,15 +676,15 @@ content.headers.user_agent:
       # 'ua_fetch.py'
       # Vim-protip: Place your cursor below this comment and run
       # :r!python scripts/dev/ua_fetch.py
-      - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/89.0.4389.90 Safari/537.36"
-        - Chrome 89 Linux
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/89.0.4389.90 Safari/537.36"
-        - Chrome 89 Win10
+          like Gecko) Chrome/90.0.4430.93 Safari/537.36"
+        - Chrome 90 Win10
       - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
-          (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
-        - Chrome 89 macOS
+          (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36"
+        - Chrome 90 macOS
+      - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/90.0.4430.93 Safari/537.36"
+        - Chrome 90 Linux
   supports_pattern: true
   desc: |
     User agent to send.
