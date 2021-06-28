@@ -24,7 +24,7 @@ import logging
 import pathlib
 import functools
 import contextlib
-from typing import Optional, IO
+from typing import Optional, IO, Iterator
 
 from PyQt5.QtCore import QUrl
 
@@ -124,11 +124,9 @@ class DeserializationError(Exception):
     See _map_exception below for details.
     """
 
-    pass
-
 
 @contextlib.contextmanager
-def _map_exceptions():
+def _map_exceptions() -> Iterator[None]:
     """Handle exception API differences in adblock 0.5.0.
 
     adblock < 0.5.0 will raise a ValueError with a string describing the
@@ -148,7 +146,6 @@ def _map_exceptions():
             # python-adblock
             raise
         raise DeserializationError(str(e))
-
 
 
 class BraveAdBlocker:
@@ -249,7 +246,7 @@ class BraveAdBlocker:
             try:
                 with _map_exceptions():
                     self._engine.deserialize_from_file(str(self._cache_path))
-            except DeserializationError as e:
+            except DeserializationError:
                 message.error("Reading adblock filter data failed (corrupted data?). "
                               "Please run :adblock-update.")
         else:
