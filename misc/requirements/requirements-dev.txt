@@ -7,7 +7,7 @@ chardet==4.0.0
 cryptography==3.4.7
 Deprecated==1.2.12
 github3.py==2.0.0
-hunter==3.3.5
+hunter==3.3.8
 idna==2.10
 jwcrypto==0.9.1
 manhole==1.8.0
@@ -22,5 +22,5 @@ sip==6.1.1
 six==1.16.0
 toml==0.10.2
 uritemplate==3.0.1
-# urllib3==1.26.5
+# urllib3==1.26.6
 wrapt==1.12.1
