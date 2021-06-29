@@ -266,7 +266,7 @@ class Database:
             self.query("PRAGMA synchronous=NORMAL").run()
 
     def qSqlDatabase(self) -> QSqlDatabase:
-        """Return the wrapped QSqlDatabase instance"""
+        """Return the wrapped QSqlDatabase instance."""
         database = QSqlDatabase.database(self._path, open=True)
         if not database.isValid():
             raise BugError('Failed to get connection. Did you close() this Database '
@@ -274,13 +274,13 @@ class Database:
         return database
 
     def query(self, querystr: str, forward_only: bool = True) -> 'Query':
-        """Return a Query instance linked to this Database"""
+        """Return a Query instance linked to this Database."""
         return Query(self, querystr, forward_only)
 
     def table(self, name: str, fields: List[str],
               constraints: Optional[Dict[str, str]] = None,
               parent: Optional[QObject] = None) -> 'SqlTable':
-        """Return a SqlTable instance linked to this Database"""
+        """Return a SqlTable instance linked to this Database."""
         return SqlTable(self, name, fields, constraints, parent)
 
     def user_version_changed(self) -> bool:
@@ -306,7 +306,7 @@ class Database:
         QSqlDatabase.removeDatabase(self._path)
 
     def transaction(self) -> 'Transaction':
-        """Return a Transaction object linked to this Database"""
+        """Return a Transaction object linked to this Database."""
         return Transaction(self)
 
     @classmethod
