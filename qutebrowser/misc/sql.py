@@ -23,11 +23,12 @@ import collections
 import contextlib
 import dataclasses
 import types
-from typing import Optional, Dict, List, Type
+from typing import Optional, Dict, List, Type, Iterator, Any
 
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtSql import QSqlDatabase, QSqlQuery, QSqlError
 
+from qutebrowser.qt import sip
 from qutebrowser.utils import log, debug
 
 
@@ -51,20 +52,20 @@ class UserVersion:
     minor: int
 
     @classmethod
-    def from_int(cls, num):
+    def from_int(cls, num: int) -> 'UserVersion':
         """Parse a number from sqlite into a major/minor user version."""
         assert 0 <= num <= 0x7FFF_FFFF, num  # signed integer, but shouldn't be negative
         major = (num & 0x7FFF_0000) >> 16
         minor = num & 0x0000_FFFF
         return cls(major, minor)
 
-    def to_int(self):
+    def to_int(self) -> int:
         """Get a sqlite integer from a major/minor user version."""
         assert 0 <= self.major <= 0x7FFF  # signed integer
         assert 0 <= self.minor <= 0xFFFF
         return self.major << 16 | self.minor
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.major}.{self.minor}'
 
 
@@ -105,7 +106,7 @@ class Error(Exception):
         super().__init__(msg)
         self.error = error
 
-    def text(self):
+    def text(self) -> str:
         """Get a short text description of the error.
 
         This is a string suitable to show to the user as error message.
@@ -133,7 +134,7 @@ class BugError(Error):
     """
 
 
-def raise_sqlite_error(msg, error):
+def raise_sqlite_error(msg: str, error: QSqlError) -> None:
     """Raise either a BugError or KnownError."""
     error_code = error.nativeErrorCode()
     database_text = error.databaseText()
@@ -264,25 +265,30 @@ class Database:
             self.query("PRAGMA journal_mode=WAL").run()
             self.query("PRAGMA synchronous=NORMAL").run()
 
-    def qSqlDatabase(self):
+    def qSqlDatabase(self) -> QSqlDatabase:
+        """Return the wrapped QSqlDatabase instance"""
         database = QSqlDatabase.database(self._path, open=True)
         if not database.isValid():
             raise BugError('Failed to get connection. Did you close() this Database '
                            'instance?')
         return database
 
-    def query(self, querystr, forward_only=True):
+    def query(self, querystr: str, forward_only: bool = True) -> 'Query':
+        """Return a Query instance linked to this Database"""
         return Query(self, querystr, forward_only)
 
-    def table(self, name, fields, constraints=None, parent=None):
+    def table(self, name: str, fields: List[str],
+              constraints: Optional[Dict[str, str]] = None,
+              parent: Optional[QObject] = None) -> 'SqlTable':
+        """Return a SqlTable instance linked to this Database"""
         return SqlTable(self, name, fields, constraints, parent)
 
-    def user_version_changed(self):
+    def user_version_changed(self) -> bool:
         """Whether the version stored in the database differs from the current one."""
         return self._user_version != self._USER_VERSION
 
-    def upgrade_user_version(self):
-        """Upgrades the user version to the latest version.
+    def upgrade_user_version(self) -> None:
+        """Upgrade the user version to the latest version.
 
         This method should be called once all required operations to migrate from one
         version to another have been run.
@@ -292,18 +298,19 @@ class Database:
         self.query(f'PRAGMA user_version = {self._USER_VERSION.to_int()}').run()
         self._user_version = self._USER_VERSION
 
-    def close(self):
+    def close(self) -> None:
         """Close the SQL connection."""
         database = self.qSqlDatabase()
         database.close()
-        del database
+        sip.delete(database)
         QSqlDatabase.removeDatabase(self._path)
 
-    def transaction(self):
+    def transaction(self) -> 'Transaction':
+        """Return a Transaction object linked to this Database"""
         return Transaction(self)
 
     @classmethod
-    def version(cls):
+    def version(cls) -> str:
         """Return the sqlite version string."""
         try:
             in_memory_db = cls(':memory:')
@@ -314,7 +321,7 @@ class Database:
             return f'UNAVAILABLE ({e})'
 
 
-class Transaction(contextlib.AbstractContextManager):
+class Transaction(contextlib.AbstractContextManager[None]):
 
     """A Database transaction that can be used as a context manager."""
 
@@ -369,7 +376,7 @@ class Query:
         self._check_ok('prepare', ok)
         self.query.setForwardOnly(forward_only)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Any]:  # FIXME: Iterator of what?
         if not self.query.isActive():
             raise BugError("Cannot iterate inactive query")
         rec = self.query.record()
@@ -381,14 +388,14 @@ class Query:
             rec = self.query.record()
             yield rowtype(*[rec.value(i) for i in range(rec.count())])
 
-    def _check_ok(self, step, ok):
+    def _check_ok(self, step: str, ok: bool) -> None:
         if not ok:
             query = self.query.lastQuery()
             error = self.query.lastError()
             msg = f'Failed to {step} query "{query}": "{error.text()}"'
             raise_sqlite_error(msg, error)
 
-    def _bind_values(self, values):
+    def _bind_values(self, values: Dict[str, Any]) -> Dict[str, Any]:
         for key, val in values.items():
             self.query.bindValue(f':{key}', val)
 
@@ -398,7 +405,7 @@ class Query:
 
         return bound_values
 
-    def run(self, **values):
+    def run(self, **values: Any) -> 'Query':
         """Execute the prepared query."""
         log.sql.debug(self.query.lastQuery())
 
@@ -411,7 +418,7 @@ class Query:
 
         return self
 
-    def run_batch(self, values):
+    def run_batch(self, values: Dict[str, Any]) -> None:
         """Execute the query in batch mode."""
         log.sql.debug(f'Running SQL query (batch): "{self.query.lastQuery()}"')
 
@@ -432,13 +439,13 @@ class Query:
         ok = db.commit()
         self._check_ok('commit', ok)
 
-    def value(self):
+    def value(self) -> Any:
         """Return the result of a single-value query (e.g. an EXISTS)."""
         if not self.query.next():
             raise BugError("No result for single-result query")
         return self.query.record().value(0)
 
-    def rows_affected(self):
+    def rows_affected(self) -> int:
         """Return how many rows were affected by a non-SELECT query."""
         assert not self.query.isSelect(), self
         assert self.query.isActive(), self
@@ -446,7 +453,7 @@ class Query:
         assert rows != -1
         return rows
 
-    def bound_values(self):
+    def bound_values(self) -> Dict[str, Any]:
         return self.query.boundValues()
 
 
@@ -478,7 +485,8 @@ class SqlTable(QObject):
         self._database = database
         self._create_table(fields, constraints)
 
-    def _create_table(self, fields, constraints, *, force=False):
+    def _create_table(self, fields: List[str], constraints: Optional[Dict[str, str]],
+                      *, force: bool = False) -> None:
         """Create the table if the database is uninitialized.
 
         If the table already exists, this does nothing (except with force=True), so it
@@ -495,7 +503,7 @@ class SqlTable(QObject):
         )
         q.run()
 
-    def create_index(self, name, field):
+    def create_index(self, name: str, field: str) -> None:
         """Create an index over this table if the database is uninitialized.
 
         Args:
@@ -510,13 +518,13 @@ class SqlTable(QObject):
         )
         q.run()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Any]:  # FIXME: Iterator of what?
         """Iterate rows in the table."""
         q = self._database.query(f"SELECT * FROM {self._name}")
         q.run()
         return iter(q)
 
-    def contains_query(self, field):
+    def contains_query(self, field: str) -> Query:
         """Return a prepared query that checks for the existence of an item.
 
         Args:
@@ -526,19 +534,19 @@ class SqlTable(QObject):
             f"SELECT EXISTS(SELECT * FROM {self._name} WHERE {field} = :val)"
         )
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Return the count of rows in the table."""
         q = self._database.query(f"SELECT count(*) FROM {self._name}")
         q.run()
         return q.value()
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         """Check whether there's any data in the table."""
         q = self._database.query(f"SELECT 1 FROM {self._name} LIMIT 1")
         q.run()
         return q.query.next()
 
-    def delete(self, field, value):
+    def delete(self, field: str, value: Any) -> None:
         """Remove all rows for which `field` equals `value`.
 
         Args:
@@ -554,7 +562,7 @@ class SqlTable(QObject):
             raise KeyError('No row with {field} = "{value}"')
         self.changed.emit()
 
-    def _insert_query(self, values, replace):
+    def _insert_query(self, values: Dict[str, Any], replace: bool) -> Query:
         params = ', '.join(f':{key}' for key in values)
         columns = ', '.join(values)
         verb = "REPLACE" if replace else "INSERT"
@@ -562,7 +570,7 @@ class SqlTable(QObject):
             f"{verb} INTO {self._name} ({columns}) values({params})"
         )
 
-    def insert(self, values, replace=False):
+    def insert(self, values: Dict[str, Any], replace: bool = False) -> None:
         """Append a row to the table.
 
         Args:
@@ -573,7 +581,7 @@ class SqlTable(QObject):
         q.run(**values)
         self.changed.emit()
 
-    def insert_batch(self, values, replace=False):
+    def insert_batch(self, values: Dict[str, List[Any]], replace: bool = False) -> None:
         """Performantly append multiple rows to the table.
 
         Args:
@@ -584,12 +592,12 @@ class SqlTable(QObject):
         q.run_batch(values)
         self.changed.emit()
 
-    def delete_all(self):
+    def delete_all(self) -> None:
         """Remove all rows from the table."""
         self._database.query(f"DELETE FROM {self._name}").run()
         self.changed.emit()
 
-    def select(self, sort_by, sort_order, limit=-1):
+    def select(self, sort_by: str, sort_order: str, limit: int = -1) -> Query:
         """Prepare, run, and return a select statement on this table.
 
         Args:
