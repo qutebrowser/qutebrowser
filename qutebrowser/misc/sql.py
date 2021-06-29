@@ -23,7 +23,7 @@ import collections
 import contextlib
 import dataclasses
 import types
-from typing import Optional, Dict, List, Type, Iterator, Any
+from typing import Optional, Dict, List, Type, Iterator, Any, Mapping, MutableSequence
 
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtSql import QSqlDatabase, QSqlQuery, QSqlError
@@ -395,7 +395,7 @@ class Query:
             msg = f'Failed to {step} query "{query}": "{error.text()}"'
             raise_sqlite_error(msg, error)
 
-    def _bind_values(self, values: Dict[str, Any]) -> Dict[str, Any]:
+    def _bind_values(self, values: Mapping[str, Any]) -> Dict[str, Any]:
         for key, val in values.items():
             self.query.bindValue(f':{key}', val)
 
@@ -418,7 +418,7 @@ class Query:
 
         return self
 
-    def run_batch(self, values: Dict[str, Any]) -> None:
+    def run_batch(self, values: Mapping[str, MutableSequence[Any]]) -> None:
         """Execute the query in batch mode."""
         log.sql.debug(f'Running SQL query (batch): "{self.query.lastQuery()}"')
 
@@ -562,7 +562,7 @@ class SqlTable(QObject):
             raise KeyError('No row with {field} = "{value}"')
         self.changed.emit()
 
-    def _insert_query(self, values: Dict[str, Any], replace: bool) -> Query:
+    def _insert_query(self, values: Mapping[str, Any], replace: bool) -> Query:
         params = ', '.join(f':{key}' for key in values)
         columns = ', '.join(values)
         verb = "REPLACE" if replace else "INSERT"
@@ -570,7 +570,7 @@ class SqlTable(QObject):
             f"{verb} INTO {self._name} ({columns}) values({params})"
         )
 
-    def insert(self, values: Dict[str, Any], replace: bool = False) -> None:
+    def insert(self, values: Mapping[str, Any], replace: bool = False) -> None:
         """Append a row to the table.
 
         Args:
@@ -581,7 +581,8 @@ class SqlTable(QObject):
         q.run(**values)
         self.changed.emit()
 
-    def insert_batch(self, values: Dict[str, List[Any]], replace: bool = False) -> None:
+    def insert_batch(self, values: Mapping[str, MutableSequence[Any]],
+                     replace: bool = False) -> None:
         """Performantly append multiple rows to the table.
 
         Args:
