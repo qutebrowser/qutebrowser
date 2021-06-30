@@ -265,7 +265,7 @@ class Database:
             self.query("PRAGMA journal_mode=WAL").run()
             self.query("PRAGMA synchronous=NORMAL").run()
 
-    def qSqlDatabase(self) -> QSqlDatabase:
+    def qt_database(self) -> QSqlDatabase:
         """Return the wrapped QSqlDatabase instance."""
         database = QSqlDatabase.database(self._path, open=True)
         if not database.isValid():
@@ -300,7 +300,7 @@ class Database:
 
     def close(self) -> None:
         """Close the SQL connection."""
-        database = self.qSqlDatabase()
+        database = self.qt_database()
         database.close()
         sip.delete(database)
         QSqlDatabase.removeDatabase(self._path)
@@ -330,7 +330,7 @@ class Transaction(contextlib.AbstractContextManager):  # type: ignore[type-arg]
 
     def __enter__(self) -> None:
         log.sql.debug('Starting a transaction')
-        db = self._database.qSqlDatabase()
+        db = self._database.qt_database()
         ok = db.transaction()
         if not ok:
             error = db.lastError()
@@ -341,7 +341,7 @@ class Transaction(contextlib.AbstractContextManager):  # type: ignore[type-arg]
                  _exc_type: Optional[Type[BaseException]],
                  exc_val: Optional[BaseException],
                  _exc_tb: Optional[types.TracebackType]) -> None:
-        db = self._database.qSqlDatabase()
+        db = self._database.qt_database()
         if exc_val:
             log.sql.debug('Rolling back a transaction')
             db.rollback()
@@ -369,7 +369,7 @@ class Query:
                           Must be false for completion queries.
         """
         self._database = database
-        self.query = QSqlQuery(database.qSqlDatabase())
+        self.query = QSqlQuery(database.qt_database())
 
         log.sql.vdebug(f'Preparing: {querystr}')  # type: ignore[attr-defined]
         ok = self.query.prepare(querystr)
@@ -424,7 +424,7 @@ class Query:
 
         self._bind_values(values)
 
-        db = self._database.qSqlDatabase()
+        db = self._database.qt_database()
         ok = db.transaction()
         self._check_ok('transaction', ok)
 
