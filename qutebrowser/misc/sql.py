@@ -300,7 +300,7 @@ class Query:
         self._check_ok('prepare', ok)
         self.query.setForwardOnly(forward_only)
 
-    def __iter__(self) -> Iterator[Any]:  # FIXME: Iterator of what?
+    def __iter__(self) -> Iterator[Any]:
         if not self.query.isActive():
             raise BugError("Cannot iterate inactive query")
         rec = self.query.record()
@@ -443,7 +443,7 @@ class SqlTable(QObject):
         )
         q.run()
 
-    def __iter__(self) -> Iterator[Any]:  # FIXME: Iterator of what?
+    def __iter__(self) -> Iterator[Any]:
         """Iterate rows in the table."""
         q = self._database.query(f"SELECT * FROM {self._name}")
         q.run()
