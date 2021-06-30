@@ -23,13 +23,13 @@ import collections
 import contextlib
 import dataclasses
 import types
-from typing import Optional, Dict, List, Type, Iterator, Any, Mapping, MutableSequence
+from typing import Any, Dict, Iterator, List, Mapping, MutableSequence, Optional, Type
 
 from PyQt5.QtCore import QObject, pyqtSignal
-from PyQt5.QtSql import QSqlDatabase, QSqlQuery, QSqlError
+from PyQt5.QtSql import QSqlDatabase, QSqlError, QSqlQuery
 
 from qutebrowser.qt import sip
-from qutebrowser.utils import log, debug
+from qutebrowser.utils import debug, log
 
 
 @dataclasses.dataclass
@@ -102,7 +102,7 @@ class Error(Exception):
 
     """Base class for all SQL related errors."""
 
-    def __init__(self, msg, error=None) -> None:
+    def __init__(self, msg: str, error: Optional[QSqlError] = None) -> None:
         super().__init__(msg)
         self.error = error
 
