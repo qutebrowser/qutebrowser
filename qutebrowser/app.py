@@ -41,6 +41,7 @@ import os
 import sys
 import functools
 import tempfile
+import pathlib
 import datetime
 import argparse
 from typing import Iterable, Optional
@@ -480,7 +481,7 @@ def _init_modules(*, args):
     with debug.log_time("init", "Initializing SQL/history"):
         try:
             log.init.debug("Initializing web history...")
-            history.init(db_path=os.path.join(standarddir.data(), 'history.sqlite'),
+            history.init(db_path=pathlib.Path(standarddir.data()) / 'history.sqlite',
                          parent=objects.qapp)
         except sql.KnownError as e:
             error.handle_fatal_exc(e, 'Error initializing SQL',

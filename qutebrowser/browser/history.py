@@ -22,6 +22,7 @@
 import os
 import time
 import contextlib
+import pathlib
 from typing import cast, Mapping, MutableSequence
 
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject, pyqtSignal
@@ -477,7 +478,7 @@ def debug_dump_history(dest):
         raise cmdutils.CommandError(f'Could not write history: {e}')
 
 
-def init(db_path: str, parent: QObject = None) -> None:
+def init(db_path: pathlib.Path, parent: QObject = None) -> None:
     """Initialize the web history.
 
     Args:
@@ -486,7 +487,7 @@ def init(db_path: str, parent: QObject = None) -> None:
     """
     global web_history
     progress = HistoryProgress()
-    database = sql.Database(db_path)
+    database = sql.Database(str(db_path))
     web_history = WebHistory(database=database, progress=progress, parent=parent)
 
     if objects.backend == usertypes.Backend.QtWebKit:  # pragma: no cover
