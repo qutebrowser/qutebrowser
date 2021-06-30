@@ -543,9 +543,7 @@ class SqlTable(QObject):
 def version() -> str:
     """Return the sqlite version string."""
     try:
-        in_memory_db = Database(':memory:')
-        version = in_memory_db.query("select sqlite_version()").run().value()
-        in_memory_db.close()
-        return version
+        with contextlib.closing(Database(':memory:')) as in_memory_db:
+            return in_memory_db.query("select sqlite_version()").run().value()
     except KnownError as e:
         return f'UNAVAILABLE ({e})'
