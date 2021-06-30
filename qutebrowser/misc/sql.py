@@ -102,7 +102,7 @@ class Error(Exception):
 
     """Base class for all SQL related errors."""
 
-    def __init__(self, msg, error=None):
+    def __init__(self, msg, error=None) -> None:
         super().__init__(msg)
         self.error = error
 
@@ -233,7 +233,7 @@ class Database:
 
     _USER_VERSION = UserVersion(0, 4)  # The current / newest user version
 
-    def __init__(self, path: str):
+    def __init__(self, path: str) -> None:
         if QSqlDatabase.database(path).isValid():
             raise BugError(f'A connection to the database at "{path}" already exists')
 
@@ -325,7 +325,7 @@ class Transaction(contextlib.AbstractContextManager):  # type: ignore[type-arg]
 
     """A Database transaction that can be used as a context manager."""
 
-    def __init__(self, database: Database):
+    def __init__(self, database: Database) -> None:
         self._database = database
 
     def __enter__(self) -> None:
@@ -359,7 +359,7 @@ class Query:
     """A prepared SQL query."""
 
     def __init__(self, database: Database, querystr: str,
-                 forward_only: bool = True):
+                 forward_only: bool = True) -> None:
         """Prepare a new SQL query.
 
         Args:
@@ -470,8 +470,9 @@ class SqlTable(QObject):
 
     changed = pyqtSignal()
 
-    def __init__(self, database: Database, name: str, fields: List[str], constraints:
-                 Optional[Dict[str, str]] = None, parent: Optional[QObject] = None):
+    def __init__(self, database: Database, name: str, fields: List[str],
+                 constraints: Optional[Dict[str, str]] = None,
+                 parent: Optional[QObject] = None) -> None:
         """Wrapper over a table in the SQL database.
 
         Args:
