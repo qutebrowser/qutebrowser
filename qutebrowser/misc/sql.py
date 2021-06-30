@@ -69,15 +69,6 @@ class UserVersion:
         return f'{self.major}.{self.minor}'
 
 
-# _db_user_version = None   # The user version we got from the database
-# _USER_VERSION = UserVersion(0, 4)    # The current / newest user version
-
-
-# def user_version_changed():
-#     """Whether the version stored in the database is different from the current one."""
-#     return _db_user_version != _USER_VERSION
-
-
 class SqliteErrorCode:
 
     """Error codes as used by sqlite.
@@ -169,62 +160,6 @@ def raise_sqlite_error(msg: str, error: QSqlError) -> None:
         raise KnownError(msg, error)
 
     raise BugError(msg, error)
-
-
-# def init(db_path):
-#     """Initialize the SQL database connection."""
-#     database = QSqlDatabase.addDatabase('QSQLITE')
-#     if not database.isValid():
-#         raise KnownError('Failed to add database. Are sqlite and Qt sqlite '
-#                          'support installed?')
-#     database.setDatabaseName(db_path)
-#     if not database.open():
-#         error = database.lastError()
-#         msg = "Failed to open sqlite database at {}: {}".format(db_path,
-#                                                                 error.text())
-#         raise_sqlite_error(msg, error)
-#
-#     global _db_user_version
-#     version_int = Query('pragma user_version').run().value()
-#     _db_user_version = UserVersion.from_int(version_int)
-#
-#     if _db_user_version.major > _USER_VERSION.major:
-#         raise KnownError(
-#             "Database is too new for this qutebrowser version (database version "
-#             f"{_db_user_version}, but {_USER_VERSION.major}.x is supported)")
-#
-#     if user_version_changed():
-#         log.sql.debug(f"Migrating from version {_db_user_version} to {_USER_VERSION}")
-#         # Note we're *not* updating the _db_user_version global here. We still want
-#         # user_version_changed() to return True, as other modules (such as history.py)
-#         # use it to create the initial table structure.
-#         Query(f'PRAGMA user_version = {_USER_VERSION.to_int()}').run()
-#
-#         # Enable write-ahead-logging and reduce disk write frequency
-#         # see https://sqlite.org/pragma.html and issues #2930 and #3507
-#         #
-#         # We might already have done this (without a migration) in earlier versions, but
-#         # as those are idempotent, let's make sure we run them once again.
-#         Query("PRAGMA journal_mode=WAL").run()
-#         Query("PRAGMA synchronous=NORMAL").run()
-#
-#
-# def close():
-#     """Close the SQL connection."""
-#     QSqlDatabase.removeDatabase(QSqlDatabase.database().connectionName())
-#
-#
-# def version():
-#     """Return the sqlite version string."""
-#     try:
-#         if not QSqlDatabase.database().isOpen():
-#             init(':memory:')
-#             ver = Query("select sqlite_version()").run().value()
-#             close()
-#             return ver
-#         return Query("select sqlite_version()").run().value()
-#     except KnownError as e:
-#         return 'UNAVAILABLE ({})'.format(e)
 
 
 class Database:
