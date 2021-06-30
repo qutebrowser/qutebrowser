@@ -321,7 +321,7 @@ class Database:
             return f'UNAVAILABLE ({e})'
 
 
-class Transaction(contextlib.AbstractContextManager[None]):
+class Transaction(contextlib.AbstractContextManager):  # type: ignore[type-arg]
 
     """A Database transaction that can be used as a context manager."""
 
