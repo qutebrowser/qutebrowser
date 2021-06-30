@@ -303,7 +303,7 @@ def test_delete_all(qtbot, data_tmpdir):
 
 
 def test_version():
-    assert isinstance(sql.Database.version(), str)
+    assert isinstance(sql.version(), str)
 
 
 class TestSqlQuery:

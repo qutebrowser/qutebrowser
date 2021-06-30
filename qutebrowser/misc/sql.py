@@ -309,17 +309,6 @@ class Database:
         """Return a Transaction object linked to this Database."""
         return Transaction(self)
 
-    @classmethod
-    def version(cls) -> str:
-        """Return the sqlite version string."""
-        try:
-            in_memory_db = cls(':memory:')
-            version = in_memory_db.query("select sqlite_version()").run().value()
-            in_memory_db.close()
-            return version
-        except KnownError as e:
-            return f'UNAVAILABLE ({e})'
-
 
 class Transaction(contextlib.AbstractContextManager):  # type: ignore[type-arg]
 
@@ -614,3 +603,14 @@ class SqlTable(QObject):
         )
         q.run(limit=limit)
         return q
+
+
+def version() -> str:
+    """Return the sqlite version string."""
+    try:
+        in_memory_db = Database(':memory:')
+        version = in_memory_db.query("select sqlite_version()").run().value()
+        in_memory_db.close()
+        return version
+    except KnownError as e:
+        return f'UNAVAILABLE ({e})'
