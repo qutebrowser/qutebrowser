@@ -31,7 +31,7 @@ from qutebrowser.misc import sql, objects
 
 
 @pytest.fixture(autouse=True)
-def prerequisites(config_stub, fake_save_manager, init_sql, fake_args):
+def prerequisites(config_stub, fake_save_manager, fake_args):
     """Make sure everything is ready to initialize a WebHistory."""
     config_stub.data = {'general': {'private-browsing': False}}
 
@@ -311,14 +311,14 @@ class TestInit:
 
     @pytest.mark.parametrize('backend', [usertypes.Backend.QtWebEngine,
                                          usertypes.Backend.QtWebKit])
-    def test_init(self, backend, qapp, tmpdir, monkeypatch, cleanup_init):
+    def test_init(self, backend, qapp, tmpdir, data_tmpdir, monkeypatch, cleanup_init):
         if backend == usertypes.Backend.QtWebKit:
             pytest.importorskip('PyQt5.QtWebKitWidgets')
         else:
             assert backend == usertypes.Backend.QtWebEngine
 
         monkeypatch.setattr(history.objects, 'backend', backend)
-        history.init(qapp)
+        history.init(data_tmpdir / f'test_init_{backend}', qapp)
         assert history.web_history.parent() is qapp
 
         try:
@@ -385,9 +385,10 @@ class TestRebuild:
         # hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
         # assert list(hist2.completion) == [('example.com/1', '', 1)]
 
-        monkeypatch.setattr(sql, 'user_version_changed', lambda: True)
+        monkeypatch.setattr(web_history.database, 'user_version_changed', lambda: True)
 
-        hist3 = history.WebHistory(progress=stubs.FakeHistoryProgress())
+        hist3 = history.WebHistory(web_history.database,
+                                   progress=stubs.FakeHistoryProgress())
         assert list(hist3.completion) == [
             ('example.com/1', '', 1),
             ('example.com/2', '', 2),
@@ -400,12 +401,14 @@ class TestRebuild:
         web_history.add_url(QUrl('example.com/2'), redirect=False, atime=2)
         web_history.completion.delete('url', 'example.com/2')
 
-        hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
+        hist2 = history.WebHistory(web_history.database,
+                                   progress=stubs.FakeHistoryProgress())
         # User version always changes, so this won't work
         # assert list(hist2.completion) == [('example.com/1', '', 1)]
         hist2.metainfo['force_rebuild'] = True
 
-        hist3 = history.WebHistory(progress=stubs.FakeHistoryProgress())
+        hist3 = history.WebHistory(web_history.database,
+                                   progress=stubs.FakeHistoryProgress())
         assert list(hist3.completion) == [
             ('example.com/1', '', 1),
             ('example.com/2', '', 2),
@@ -424,7 +427,8 @@ class TestRebuild:
         web_history.add_url(QUrl('http://example.org'),
                             redirect=False, atime=2)
 
-        hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
+        hist2 = history.WebHistory(web_history.database,
+                                   progress=stubs.FakeHistoryProgress())
         assert list(hist2.completion) == [('http://example.com', '', 1)]
 
     def test_pattern_change_rebuild(self, config_stub, web_history, stubs):
@@ -436,14 +440,16 @@ class TestRebuild:
         web_history.add_url(QUrl('http://example.org'),
                             redirect=False, atime=2)
 
-        hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
+        hist2 = history.WebHistory(web_history.database,
+                                   progress=stubs.FakeHistoryProgress())
         assert list(hist2.completion) == [
             ('http://example.com', '', 1),
         ]
 
         config_stub.val.completion.web_history.exclude = []
 
-        hist3 = history.WebHistory(progress=stubs.FakeHistoryProgress())
+        hist3 = history.WebHistory(web_history.database,
+                                   progress=stubs.FakeHistoryProgress())
         assert list(hist3.completion) == [
             ('http://example.com', '', 1),
             ('http://example.org', '', 2)
@@ -454,10 +460,10 @@ class TestRebuild:
         web_history.add_url(QUrl('example.com/2'), redirect=False, atime=2)
 
         # Trigger a completion rebuild
-        monkeypatch.setattr(sql, 'user_version_changed', lambda: True)
+        monkeypatch.setattr(web_history.database, 'user_version_changed', lambda: True)
 
         progress = stubs.FakeHistoryProgress()
-        history.WebHistory(progress=progress)
+        history.WebHistory(web_history.database, progress=progress)
         assert progress._value == 2
         assert progress._started
         assert progress._finished
@@ -468,10 +474,10 @@ class TestRebuild:
         progress = stubs.FakeHistoryProgress(raise_on_tick=True)
 
         # Trigger a completion rebuild
-        monkeypatch.setattr(sql, 'user_version_changed', lambda: True)
+        monkeypatch.setattr(web_history.database, 'user_version_changed', lambda: True)
 
         with pytest.raises(Exception, match='tick-tock'):
-            history.WebHistory(progress=progress)
+            history.WebHistory(web_history.database, progress=progress)
 
         assert web_history.metainfo['force_rebuild']
 
@@ -483,8 +489,9 @@ class TestRebuild:
 class TestCompletionMetaInfo:
 
     @pytest.fixture
-    def metainfo(self):
-        return history.CompletionMetaInfo()
+    def metainfo(self, data_tmpdir):
+        db = sql.Database(str(data_tmpdir / 'TestCompletionMetaInfo.db'))
+        return history.CompletionMetaInfo(db)
 
     def test_contains_keyerror(self, metainfo):
         with pytest.raises(KeyError):
@@ -521,7 +528,7 @@ class TestCompletionMetaInfo:
         assert not metainfo['force_rebuild']
 
     def test_recovery_no_table(self, metainfo):
-        sql.Query("DROP TABLE CompletionMetaInfo").run()
+        metainfo._database.query("DROP TABLE CompletionMetaInfo").run()
 
         with pytest.raises(sql.BugError, match='no such table: CompletionMetaInfo'):
             metainfo['force_rebuild']
