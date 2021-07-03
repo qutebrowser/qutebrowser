@@ -23,7 +23,7 @@ import pytest
 
 import hypothesis
 from hypothesis import strategies
-from PyQt5.QtSql import QSqlError
+from PyQt5.QtSql import QSqlDatabase, QSqlError, QSqlQuery
 
 from qutebrowser.misc import sql
 
@@ -379,8 +379,7 @@ class TestSqlQuery:
         db = sql.Database(str(data_tmpdir / 'test_value_missing.db'))
         q = db.query('SELECT 0 WHERE 0')
         q.run()
-        with pytest.raises(sql.BugError,
-                           match='No result for single-result query'):
+        with pytest.raises(sql.BugError, match='No result for single-result query'):
             q.value()
 
     def test_num_rows_affected_not_active(self, data_tmpdir):
@@ -410,3 +409,36 @@ class TestSqlQuery:
         q = db.query('SELECT :answer')
         q.run(answer=42)
         assert q.bound_values() == {':answer': 42}
+
+
+class TestTransaction:
+
+    def test_successful_transaction(self, data_tmpdir):
+        path = str(data_tmpdir / 'test_successful_transaction')
+        db = sql.Database(path)
+        my_table = db.table('my_table', ['column'])
+        with db.transaction():
+            my_table.insert({'column': 1})
+            my_table.insert({'column': 2})
+
+            db2 = QSqlDatabase.addDatabase('QSQLITE', 'db2')
+            db2.setDatabaseName(path)
+            db2.open()
+            query = QSqlQuery(db2)
+            query.exec('select count(*) from my_table')
+            query.next()
+            assert query.record().value(0) == 0
+        assert db.query('select count(*) from my_table').run().value() == 2
+
+    def test_failed_transaction(self, data_tmpdir):
+        path = str(data_tmpdir / 'test_failed_transaction')
+        db = sql.Database(path)
+        my_table = db.table('my_table', ['column'])
+        try:
+            with db.transaction():
+                my_table.insert({'column': 1})
+                my_table.insert({'column': 2})
+                raise Exception('something went horribly wrong')
+        except Exception:
+            pass
+        assert db.query('select count(*) from my_table').run().value() == 0
