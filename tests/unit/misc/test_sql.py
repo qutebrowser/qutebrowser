@@ -31,6 +31,12 @@ from qutebrowser.misc import sql
 pytestmark = pytest.mark.usefixtures('data_tmpdir')
 
 
+@pytest.fixture
+def db(data_tmpdir):
+    database = sql.Database(str(data_tmpdir / 'test_sql.db'))
+    return database
+
+
 class TestUserVersion:
 
     @pytest.mark.parametrize('val, major, minor', [
@@ -120,15 +126,13 @@ class TestSqlError:
         assert err.text() == "db text"
 
 
-def test_init_table(data_tmpdir):
-    db = sql.Database(str(data_tmpdir / 'test_init_table.db'))
+def test_init_table(db):
     db.table('Foo', ['name', 'val', 'lucky'])
     # should not error if table already exists
     db.table('Foo', ['name', 'val', 'lucky'])
 
 
-def test_insert(qtbot, data_tmpdir):
-    db = sql.Database(str(data_tmpdir / 'test_insert.db'))
+def test_insert(qtbot, db):
     table = db.table('Foo', ['name', 'val', 'lucky'])
     with qtbot.wait_signal(table.changed):
         table.insert({'name': 'one', 'val': 1, 'lucky': False})
@@ -136,8 +140,7 @@ def test_insert(qtbot, data_tmpdir):
         table.insert({'name': 'wan', 'val': 1, 'lucky': False})
 
 
-def test_insert_replace(qtbot, data_tmpdir):
-    db = sql.Database(str(data_tmpdir / 'test_insert_replace.db'))
+def test_insert_replace(qtbot, db):
     table = db.table('Foo', ['name', 'val', 'lucky'],
                      constraints={'name': 'PRIMARY KEY'})
     with qtbot.wait_signal(table.changed):
@@ -150,8 +153,7 @@ def test_insert_replace(qtbot, data_tmpdir):
         table.insert({'name': 'one', 'val': 11, 'lucky': True}, replace=False)
 
 
-def test_insert_batch(qtbot, data_tmpdir):
-    db = sql.Database(str(data_tmpdir / 'test_insert_batch.db'))
+def test_insert_batch(qtbot, db):
     table = db.table('Foo', ['name', 'val', 'lucky'])
 
     with qtbot.wait_signal(table.changed):
@@ -164,8 +166,7 @@ def test_insert_batch(qtbot, data_tmpdir):
                            ('thirteen', 13, True)]
 
 
-def test_insert_batch_replace(qtbot, data_tmpdir):
-    db = sql.Database(str(data_tmpdir / 'test_insert_batch_replace.db'))
+def test_insert_batch_replace(qtbot, db):
     table = db.table('Foo', ['name', 'val', 'lucky'],
                      constraints={'name': 'PRIMARY KEY'})
 
@@ -190,8 +191,7 @@ def test_insert_batch_replace(qtbot, data_tmpdir):
                             'lucky': [True, True]})
 
 
-def test_iter(data_tmpdir):
-    db = sql.Database(str(data_tmpdir / 'test_iter.db'))
+def test_iter(db):
     table = db.table('Foo', ['name', 'val', 'lucky'])
     table.insert({'name': 'one', 'val': 1, 'lucky': False})
     table.insert({'name': 'nine', 'val': 9, 'lucky': False})
@@ -211,16 +211,14 @@ def test_iter(data_tmpdir):
     ([{"a": 2, "b": 5}, {"a": 1, "b": 6}, {"a": 3, "b": 4}], 'a', 'asc', -1,
      [(1, 6), (2, 5), (3, 4)]),
 ])
-def test_select(rows, sort_by, sort_order, limit, result, data_tmpdir):
-    db = sql.Database(str(data_tmpdir / 'test_select.db'))
+def test_select(rows, sort_by, sort_order, limit, result, db):
     table = db.table('Foo', ['a', 'b'])
     for row in rows:
         table.insert(row)
     assert list(table.select(sort_by, sort_order, limit)) == result
 
 
-def test_delete(qtbot, data_tmpdir):
-    db = sql.Database(str(data_tmpdir / 'test_delete.db'))
+def test_delete(qtbot, db):
     table = db.table('Foo', ['name', 'val', 'lucky'])
     table.insert({'name': 'one', 'val': 1, 'lucky': False})
     table.insert({'name': 'nine', 'val': 9, 'lucky': False})
@@ -235,8 +233,7 @@ def test_delete(qtbot, data_tmpdir):
     assert not list(table)
 
 
-def test_len(data_tmpdir):
-    db = sql.Database(str(data_tmpdir / 'test_len.db'))
+def test_len(db):
     table = db.table('Foo', ['name', 'val', 'lucky'])
     assert len(table) == 0
     table.insert({'name': 'one', 'val': 1, 'lucky': False})
@@ -247,16 +244,14 @@ def test_len(data_tmpdir):
     assert len(table) == 3
 
 
-def test_bool(data_tmpdir):
-    db = sql.Database(str(data_tmpdir / 'test_bool.db'))
+def test_bool(db):
     table = db.table('Foo', ['name'])
     assert not table
     table.insert({'name': 'one'})
     assert table
 
 
-def test_bool_benchmark(benchmark, data_tmpdir):
-    db = sql.Database(str(data_tmpdir / 'test_bool_benchmark.db'))
+def test_bool_benchmark(benchmark, db):
     table = db.table('Foo', ['number'])
 
     # Simulate a history table
@@ -269,8 +264,7 @@ def test_bool_benchmark(benchmark, data_tmpdir):
     benchmark(run)
 
 
-def test_contains(data_tmpdir):
-    db = sql.Database(str(data_tmpdir / 'test_contains.db'))
+def test_contains(db):
     table = db.table('Foo', ['name', 'val', 'lucky'])
     table.insert({'name': 'one', 'val': 1, 'lucky': False})
     table.insert({'name': 'nine', 'val': 9, 'lucky': False})
@@ -291,8 +285,7 @@ def test_contains(data_tmpdir):
     assert not val_query.run(val=10).value()
 
 
-def test_delete_all(qtbot, data_tmpdir):
-    db = sql.Database(str(data_tmpdir / 'test_delete_all.db'))
+def test_delete_all(qtbot, db):
     table = db.table('Foo', ['name', 'val', 'lucky'])
     table.insert({'name': 'one', 'val': 1, 'lucky': False})
     table.insert({'name': 'nine', 'val': 9, 'lucky': False})
@@ -308,8 +301,7 @@ def test_version():
 
 class TestSqlQuery:
 
-    def test_prepare_error(self, data_tmpdir):
-        db = sql.Database(str(data_tmpdir / 'test_prepare_error'))
+    def test_prepare_error(self, db):
         with pytest.raises(sql.BugError) as excinfo:
             db.query('invalid')
 
@@ -318,94 +310,80 @@ class TestSqlQuery:
         assert str(excinfo.value) == expected
 
     @pytest.mark.parametrize('forward_only', [True, False])
-    def test_forward_only(self, forward_only, data_tmpdir):
-        db = sql.Database(str(data_tmpdir / 'test_forward_only.db'))
+    def test_forward_only(self, forward_only, db):
         q = db.query('SELECT 0 WHERE 0', forward_only=forward_only)
         assert q.query.isForwardOnly() == forward_only
 
-    def test_iter_inactive(self, data_tmpdir):
-        db = sql.Database(str(data_tmpdir / 'test_iter_inactive.db'))
+    def test_iter_inactive(self, db):
         q = db.query('SELECT 0')
         with pytest.raises(sql.BugError,
                            match='Cannot iterate inactive query'):
             next(iter(q))
 
-    def test_iter_empty(self, data_tmpdir):
-        db = sql.Database(str(data_tmpdir / 'test_iter_empty.db'))
+    def test_iter_empty(self, db):
         q = db.query('SELECT 0 AS col WHERE 0')
         q.run()
         with pytest.raises(StopIteration):
             next(iter(q))
 
-    def test_iter(self, data_tmpdir):
-        db = sql.Database(str(data_tmpdir / 'test_iter.db'))
+    def test_iter(self, db):
         q = db.query('SELECT 0 AS col')
         q.run()
         result = next(iter(q))
         assert result.col == 0
 
-    def test_iter_multiple(self, data_tmpdir):
-        db = sql.Database(str(data_tmpdir / 'test_iter_multiple.db'))
+    def test_iter_multiple(self, db):
         q = db.query('VALUES (1), (2), (3);')
         res = list(q.run())
         assert len(res) == 3
         assert res[0].column1 == 1
 
-    def test_run_binding(self, data_tmpdir):
-        db = sql.Database(str(data_tmpdir / 'test_run_binding.db'))
+    def test_run_binding(self, db):
         q = db.query('SELECT :answer')
         q.run(answer=42)
         assert q.value() == 42
 
-    def test_run_missing_binding(self, data_tmpdir):
-        db = sql.Database(str(data_tmpdir / 'test_run_missing_binding.db'))
+    def test_run_missing_binding(self, db):
         q = db.query('SELECT :answer')
         with pytest.raises(sql.BugError, match='Missing bound values!'):
             q.run()
 
-    def test_run_batch(self, data_tmpdir):
-        db = sql.Database(str(data_tmpdir / 'test_run_batch.db'))
+    def test_run_batch(self, db):
         q = db.query('SELECT :answer')
         q.run_batch(values={'answer': [42]})
         assert q.value() == 42
 
-    def test_run_batch_missing_binding(self, data_tmpdir):
-        db = sql.Database(str(data_tmpdir / 'test_run_batch_missing_binding.db'))
+    def test_run_batch_missing_binding(self, db):
         q = db.query('SELECT :answer')
         with pytest.raises(sql.BugError, match='Missing bound values!'):
             q.run_batch(values={})
 
-    def test_value_missing(self, data_tmpdir):
-        db = sql.Database(str(data_tmpdir / 'test_value_missing.db'))
+    def test_value_missing(self, db):
         q = db.query('SELECT 0 WHERE 0')
         q.run()
         with pytest.raises(sql.BugError, match='No result for single-result query'):
             q.value()
 
-    def test_num_rows_affected_not_active(self, data_tmpdir):
-        db = sql.Database(str(data_tmpdir / 'test_num_rows_affected_not_active.db'))
+    def test_num_rows_affected_not_active(self, db):
         with pytest.raises(AssertionError):
             q = db.query('SELECT 0')
             q.rows_affected()
 
-    def test_num_rows_affected_select(self, data_tmpdir):
-        db = sql.Database(str(data_tmpdir / 'test_num_rows_affected_select.db'))
+    def test_num_rows_affected_select(self, db):
         with pytest.raises(AssertionError):
             q = db.query('SELECT 0')
             q.run()
             q.rows_affected()
 
     @pytest.mark.parametrize('condition', [0, 1])
-    def test_num_rows_affected(self, condition, data_tmpdir):
-        db = sql.Database(str(data_tmpdir / 'test_num_rows_affected.db'))
+    def test_num_rows_affected(self, condition, db):
         table = db.table('Foo', ['name'])
         table.insert({'name': 'helloworld'})
         q = db.query(f'DELETE FROM Foo WHERE {condition}')
         q.run()
         assert q.rows_affected() == condition
 
-    def test_bound_values(self, data_tmpdir):
-        db = sql.Database(str(data_tmpdir / 'test_bound_values.db'))
+    def test_bound_values(self, db):
         q = db.query('SELECT :answer')
         q.run(answer=42)
         assert q.bound_values() == {':answer': 42}
@@ -413,16 +391,14 @@ class TestSqlQuery:
 
 class TestTransaction:
 
-    def test_successful_transaction(self, data_tmpdir):
-        path = str(data_tmpdir / 'test_successful_transaction')
-        db = sql.Database(path)
+    def test_successful_transaction(self, db):
         my_table = db.table('my_table', ['column'])
         with db.transaction():
             my_table.insert({'column': 1})
             my_table.insert({'column': 2})
 
             db2 = QSqlDatabase.addDatabase('QSQLITE', 'db2')
-            db2.setDatabaseName(path)
+            db2.setDatabaseName(db.qt_database().databaseName())
             db2.open()
             query = QSqlQuery(db2)
             query.exec('select count(*) from my_table')
@@ -430,9 +406,7 @@ class TestTransaction:
             assert query.record().value(0) == 0
         assert db.query('select count(*) from my_table').run().value() == 2
 
-    def test_failed_transaction(self, data_tmpdir):
-        path = str(data_tmpdir / 'test_failed_transaction')
-        db = sql.Database(path)
+    def test_failed_transaction(self, db):
         my_table = db.table('my_table', ['column'])
         try:
             with db.transaction():
