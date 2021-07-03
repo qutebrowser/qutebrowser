@@ -706,6 +706,8 @@ class TabBar(QTabBar):
         """
         if config.val.tabs.mousewheel_switching:
             if utils.is_mac:
+                # WORKAROUND for this not being customizable until Qt 6:
+                # https://codereview.qt-project.org/c/qt/qtbase/+/327746
                 index = self.currentIndex()
                 if index != -1:
                     if e.angleDelta().y() > 0:
