@@ -711,10 +711,11 @@ class TabBar(QTabBar):
                 index = self.currentIndex()
                 if index == -1:
                     return
-                    offset = -1 if e.angleDelta().y() > 0 else 1
-                    index += offset
-                    if 0 <= index < self.count():
-                        self.setCurrentIndex(index)
+                delta = e.angleDelta().x() if abs(e.angleDelta().x()) > abs(e.angleDelta().y()) else e.angleDelta().y()
+                offset = -1 if delta > 0 else 1
+                index += offset
+                if 0 <= index < self.count():
+                    self.setCurrentIndex(index)
             else:
                 super().wheelEvent(e)
         else:
