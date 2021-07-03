@@ -709,12 +709,11 @@ class TabBar(QTabBar):
                 # WORKAROUND for this not being customizable until Qt 6:
                 # https://codereview.qt-project.org/c/qt/qtbase/+/327746
                 index = self.currentIndex()
-                if index != -1:
-                    if e.angleDelta().y() > 0:
-                        index += -1
-                    else:
-                        index += 1
-                    if index >= 0 and index < self.count():
+                if index == -1:
+                    return
+                    offset = -1 if e.angleDelta().y() > 0 else 1
+                    index += offset
+                    if 0 <= index < self.count():
                         self.setCurrentIndex(index)
             else:
                 super().wheelEvent(e)
