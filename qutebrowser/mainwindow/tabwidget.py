@@ -705,7 +705,17 @@ class TabBar(QTabBar):
             e: The QWheelEvent
         """
         if config.val.tabs.mousewheel_switching:
-            super().wheelEvent(e)
+            if utils.is_mac:
+                index = self.currentIndex()
+                if index != -1:
+                    if e.angleDelta().y() > 0:
+                        index += -1
+                    else:
+                        index += 1
+                    if index >= 0 and index < self.count():
+                        self.setCurrentIndex(index)
+            else:
+                super().wheelEvent(e)
         else:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=self._win_id)
