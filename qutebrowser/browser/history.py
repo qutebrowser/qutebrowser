@@ -126,8 +126,8 @@ class CompletionMetaInfo(sql.SqlTable):
 
     def __getitem__(self, key):
         self._check_key(key)
-        query = self._database.query('SELECT value FROM CompletionMetaInfo '
-                                     'WHERE key = :key')
+        query = self.database.query('SELECT value FROM CompletionMetaInfo '
+                                    'WHERE key = :key')
         return query.run(key=key).value()
 
     def __setitem__(self, key, value):
@@ -172,7 +172,6 @@ class WebHistory(sql.SqlTable):
                                       'atime': 'NOT NULL',
                                       'redirect': 'NOT NULL'},
                          parent=parent)
-        self.database = database
         self._progress = progress
         # Store the last saved url to avoid duplicate immediate saves.
         self._last_url = None
@@ -188,8 +187,8 @@ class WebHistory(sql.SqlTable):
             self.metainfo.try_recover()
             rebuild_completion = self.metainfo['force_rebuild']
 
-        if self._database.user_version_changed():
-            with self._database.transaction():
+        if self.database.user_version_changed():
+            with self.database.transaction():
                 # If the DB user version changed, run a full cleanup and rebuild the
                 # completion history.
                 #
@@ -199,7 +198,7 @@ class WebHistory(sql.SqlTable):
                 # VACUUM to make things smaller.
                 self._cleanup_history()
                 rebuild_completion = True
-                self._database.upgrade_user_version()
+                self.database.upgrade_user_version()
 
         # Get a string of all patterns
         patterns = config.instance.get_str('completion.web_history.exclude')
@@ -217,19 +216,19 @@ class WebHistory(sql.SqlTable):
         self.create_index('HistoryIndex', 'url')
         self.create_index('HistoryAtimeIndex', 'atime')
         self._contains_query = self.contains_query('url')
-        self._between_query = self._database.query('SELECT * FROM History '
-                                                   'where not redirect '
-                                                   'and not url like "qute://%" '
-                                                   'and atime > :earliest '
-                                                   'and atime <= :latest '
-                                                   'ORDER BY atime desc')
-
-        self._before_query = self._database.query('SELECT * FROM History '
+        self._between_query = self.database.query('SELECT * FROM History '
                                                   'where not redirect '
                                                   'and not url like "qute://%" '
+                                                  'and atime > :earliest '
                                                   'and atime <= :latest '
-                                                  'ORDER BY atime desc '
-                                                  'limit :limit offset :offset')
+                                                  'ORDER BY atime desc')
+
+        self._before_query = self.database.query('SELECT * FROM History '
+                                                 'where not redirect '
+                                                 'and not url like "qute://%" '
+                                                 'and atime <= :latest '
+                                                 'ORDER BY atime desc '
+                                                 'limit :limit offset :offset')
 
     def __repr__(self):
         return utils.get_repr(self, length=len(self))
@@ -277,7 +276,7 @@ class WebHistory(sql.SqlTable):
             'qute://pdfjs%',
         ]
         where_clause = ' OR '.join(f"url LIKE '{term}'" for term in terms)
-        q = self._database.query(f'DELETE FROM History WHERE {where_clause}')
+        q = self.database.query(f'DELETE FROM History WHERE {where_clause}')
         entries = q.run()
         log.sql.debug(f"Cleanup removed {entries.rows_affected()} items")
 
@@ -303,9 +302,9 @@ class WebHistory(sql.SqlTable):
         QApplication.processEvents()
 
         # Select the latest entry for each url
-        q = self._database.query('SELECT url, title, max(atime) AS atime FROM History '
-                                 'WHERE NOT redirect '
-                                 'GROUP BY url ORDER BY atime asc')
+        q = self.database.query('SELECT url, title, max(atime) AS atime FROM History '
+                                'WHERE NOT redirect '
+                                'GROUP BY url ORDER BY atime asc')
         result = q.run()
         QApplication.processEvents()
         entries = list(result)
@@ -325,7 +324,7 @@ class WebHistory(sql.SqlTable):
         self._progress.set_maximum(0)
 
         # We might have caused fragmentation - let's clean up.
-        self._database.query('VACUUM').run()
+        self.database.query('VACUUM').run()
         QApplication.processEvents()
 
         self.completion.insert_batch(data, replace=True)

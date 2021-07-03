@@ -387,12 +387,14 @@ class SqlTable(QObject):
 
     Attributes:
         _name: Name of the SQL table this wraps.
+        database: The Database to which this table belongs.
 
     Signals:
         changed: Emitted when the table is modified.
     """
 
     changed = pyqtSignal()
+    database: Database
 
     def __init__(self, database: Database, name: str, fields: List[str],
                  constraints: Optional[Dict[str, str]] = None,
@@ -407,7 +409,7 @@ class SqlTable(QObject):
         """
         super().__init__(parent)
         self._name = name
-        self._database = database
+        self.database = database
         self._create_table(fields, constraints)
 
     def _create_table(self, fields: List[str], constraints: Optional[Dict[str, str]],
@@ -417,13 +419,13 @@ class SqlTable(QObject):
         If the table already exists, this does nothing (except with force=True), so it
         can e.g. be called on every user_version change.
         """
-        if not self._database.user_version_changed() and not force:
+        if not self.database.user_version_changed() and not force:
             return
 
         constraints = constraints or {}
         column_defs = [f'{field} {constraints.get(field, "")}'
                        for field in fields]
-        q = self._database.query(
+        q = self.database.query(
             f"CREATE TABLE IF NOT EXISTS {self._name} ({', '.join(column_defs)})"
         )
         q.run()
@@ -435,17 +437,17 @@ class SqlTable(QObject):
             name: Name of the index, should be unique.
             field: Name of the field to index.
         """
-        if not self._database.user_version_changed():
+        if not self.database.user_version_changed():
             return
 
-        q = self._database.query(
+        q = self.database.query(
             f"CREATE INDEX IF NOT EXISTS {name} ON {self._name} ({field})"
         )
         q.run()
 
     def __iter__(self) -> Iterator[Any]:
         """Iterate rows in the table."""
-        q = self._database.query(f"SELECT * FROM {self._name}")
+        q = self.database.query(f"SELECT * FROM {self._name}")
         q.run()
         return iter(q)
 
@@ -455,19 +457,19 @@ class SqlTable(QObject):
         Args:
             field: Field to match.
         """
-        return self._database.query(
+        return self.database.query(
             f"SELECT EXISTS(SELECT * FROM {self._name} WHERE {field} = :val)"
         )
 
     def __len__(self) -> int:
         """Return the count of rows in the table."""
-        q = self._database.query(f"SELECT count(*) FROM {self._name}")
+        q = self.database.query(f"SELECT count(*) FROM {self._name}")
         q.run()
         return q.value()
 
     def __bool__(self) -> bool:
         """Check whether there's any data in the table."""
-        q = self._database.query(f"SELECT 1 FROM {self._name} LIMIT 1")
+        q = self.database.query(f"SELECT 1 FROM {self._name} LIMIT 1")
         q.run()
         return q.query.next()
 
@@ -481,7 +483,7 @@ class SqlTable(QObject):
         Return:
             The number of rows deleted.
         """
-        q = self._database.query(f"DELETE FROM {self._name} where {field} = :val")
+        q = self.database.query(f"DELETE FROM {self._name} where {field} = :val")
         q.run(val=value)
         if not q.rows_affected():
             raise KeyError('No row with {field} = "{value}"')
@@ -491,7 +493,7 @@ class SqlTable(QObject):
         params = ', '.join(f':{key}' for key in values)
         columns = ', '.join(values)
         verb = "REPLACE" if replace else "INSERT"
-        return self._database.query(
+        return self.database.query(
             f"{verb} INTO {self._name} ({columns}) values({params})"
         )
 
@@ -520,7 +522,7 @@ class SqlTable(QObject):
 
     def delete_all(self) -> None:
         """Remove all rows from the table."""
-        self._database.query(f"DELETE FROM {self._name}").run()
+        self.database.query(f"DELETE FROM {self._name}").run()
         self.changed.emit()
 
     def select(self, sort_by: str, sort_order: str, limit: int = -1) -> Query:
@@ -533,7 +535,7 @@ class SqlTable(QObject):
 
         Return: A prepared and executed select query.
         """
-        q = self._database.query(
+        q = self.database.query(
             f"SELECT * FROM {self._name} ORDER BY {sort_by} {sort_order} LIMIT :limit"
         )
         q.run(limit=limit)

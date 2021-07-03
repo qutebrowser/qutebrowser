@@ -528,7 +528,7 @@ class TestCompletionMetaInfo:
         assert not metainfo['force_rebuild']
 
     def test_recovery_no_table(self, metainfo):
-        metainfo._database.query("DROP TABLE CompletionMetaInfo").run()
+        metainfo.database.query("DROP TABLE CompletionMetaInfo").run()
 
         with pytest.raises(sql.BugError, match='no such table: CompletionMetaInfo'):
             metainfo['force_rebuild']
