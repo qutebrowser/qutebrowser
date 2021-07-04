@@ -30,6 +30,7 @@ import os.path
 import shutil
 import venv as pyvenv
 import subprocess
+import platform
 from typing import List, Optional, Tuple, Dict, Union
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
@@ -224,6 +225,20 @@ def install_pyqt_binary(venv_dir: pathlib.Path, version: str) -> None:
     utils.print_title("Installing PyQt from binary")
     utils.print_col("No proprietary codec support will be available in "
                     "qutebrowser.", 'bold')
+
+    supported_archs = {
+        'linux': {'x86_64'},
+        'win32': {'x86', 'AMD64'},
+        'darwin': {'x86_64'},
+    }
+    if sys.platform not in supported_archs:
+        utils.print_error(f"{sys.platform} is not a supported platform by PyQt5 binary "
+                          "packages, this will most likely fail.")
+    elif platform.machine() not in supported_archs[sys.platform]:
+        utils.print_error(
+            f"{platform.machine()} is not a supported architecture for PyQt5 binaries "
+            f"on {sys.platform}, this will most likely fail.")
+
     pip_install(venv_dir, '-r', pyqt_requirements_file(version),
                 '--only-binary', 'PyQt5,PyQtWebEngine')
 
