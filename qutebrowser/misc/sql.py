@@ -402,7 +402,7 @@ class SqlTable(QObject):
         """Wrapper over a table in the SQL database.
 
         Args:
-            database: The Database object on which to operate.
+            database: The Database to which this table belongs.
             name: Name of the table.
             fields: A list of field names.
             constraints: A dict mapping field names to constraint strings.
