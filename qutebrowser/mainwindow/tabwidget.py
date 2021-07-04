@@ -711,7 +711,9 @@ class TabBar(QTabBar):
                 index = self.currentIndex()
                 if index == -1:
                     return
-                delta = e.angleDelta().x() if abs(e.angleDelta().x()) > abs(e.angleDelta().y()) else e.angleDelta().y()
+                dx = e.angleDelta().x()
+                dy = e.angleDelta().y()
+                delta = dx if abs(dx) > abs(dy) else dy
                 offset = -1 if delta > 0 else 1
                 index += offset
                 if 0 <= index < self.count():
