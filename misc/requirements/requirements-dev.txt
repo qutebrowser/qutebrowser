@@ -11,11 +11,11 @@ hunter==3.3.8
 idna==2.10
 jwcrypto==0.9.1
 manhole==1.8.0
-packaging==20.9
+packaging==21.0
 pycparser==2.20
 Pympler==0.9
 pyparsing==2.4.7
-PyQt-builder==1.10.1
+PyQt-builder==1.10.3
 python-dateutil==2.8.1
 requests==2.25.1
 sip==6.1.1
