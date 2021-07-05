@@ -238,6 +238,9 @@ def install_pyqt_binary(venv_dir: pathlib.Path, version: str) -> None:
         utils.print_error(
             f"{platform.machine()} is not a supported architecture for PyQt5 binaries "
             f"on {sys.platform}, this will most likely fail.")
+    elif sys.platform == 'linux' and platform.libc_ver()[0] != 'glibc':
+        utils.print_error("Non-glibc Linux is not a supported platform for PyQt5 "
+                          "binaries, this will most likely fail.")
 
     pip_install(venv_dir, '-r', pyqt_requirements_file(version),
                 '--only-binary', 'PyQt5,PyQtWebEngine')
