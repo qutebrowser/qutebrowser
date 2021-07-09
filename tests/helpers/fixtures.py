@@ -673,13 +673,21 @@ def download_stub(win_registry, tmpdir, stubs):
 
 
 @pytest.fixture
-def web_history(fake_save_manager, tmpdir, data_tmpdir, config_stub, stubs,
+def database(data_tmpdir, request):
+    """Create a Database object."""
+    name = request.node.get_closest_marker("db_name") or "history.db"
+    db = sql.Database(str(data_tmpdir / name))
+    yield db
+    db.close()
+
+
+@pytest.fixture
+def web_history(fake_save_manager, tmpdir, database, config_stub, stubs,
                 monkeypatch):
     """Create a WebHistory object."""
     config_stub.val.completion.timestamp_format = '%Y-%m-%d'
     config_stub.val.completion.web_history.max_items = -1
-    db = sql.Database(str(data_tmpdir / 'history.db'))
-    web_history = history.WebHistory(db, stubs.FakeHistoryProgress())
+    web_history = history.WebHistory(database, stubs.FakeHistoryProgress())
     monkeypatch.setattr(history, 'web_history', web_history)
     return web_history
 

@@ -31,12 +31,6 @@ from qutebrowser.misc import sql
 pytestmark = pytest.mark.usefixtures('data_tmpdir')
 
 
-@pytest.fixture
-def database(data_tmpdir):
-    db = sql.Database(str(data_tmpdir / 'test_sql.db'))
-    return db
-
-
 class TestUserVersion:
 
     @pytest.mark.parametrize('val, major, minor', [
