@@ -673,10 +673,9 @@ def download_stub(win_registry, tmpdir, stubs):
 
 
 @pytest.fixture
-def database(data_tmpdir, request):
+def database(data_tmpdir):
     """Create a Database object."""
-    name = request.node.get_closest_marker("db_name") or "history.db"
-    db = sql.Database(str(data_tmpdir / name))
+    db = sql.Database(str(data_tmpdir / 'test.db'))
     yield db
     db.close()
 
