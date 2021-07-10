@@ -1318,6 +1318,30 @@ completion.cmd_history_max_items:
 
     0: no history / -1: unlimited
 
+completion.web_history.sort_criterion:
+  default: recency
+  type:
+    name: String
+    valid_values:
+      - recency: Entries are sorted from most recently visited to least
+            recently visited.
+      - frequency: Entries are sorted from most visited to least visited.
+      - frecency: Entries are sorted using a combination of recency and
+            frequency.
+  desc: How to sort URLs in the web history.
+
+completion.web_history.frecency_bonus:
+  default: 43200
+  type:
+    name: Int
+    minval: 0
+  desc: >-
+    How many seconds to award as a bonus per visit for frecency.
+    Frecency is calculated as `last_visit_timestamp + (visits - 1)
+    * frecency_bonus`, where `last_visit_timestamp` is measured in seconds
+    since the Epoch. This value defines how much the frecency for a URL will
+    increase with each visit.
+
 completion.height:
   type:
     name: PercOrInt
