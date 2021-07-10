@@ -195,6 +195,24 @@ def test_iter(database):
                            ('thirteen', 13, True)]
 
 
+def test_update(database, qtbot):
+    table = database.table('Foo', ['a', 'b', 'c'])
+    table.insert({'a': 10, 'b': 10, 'c': 10})
+    table.insert({'a': 20, 'b': 20, 'c': 20})
+
+    with qtbot.waitSignal(table.changed):
+        table.update({'a': 11, 'b': 12, 'c': 13}, {'a': 10, 'b': 10})
+    with qtbot.waitSignal(table.changed):
+        table.update({'a': 21}, {'c': 20})
+
+    assert list(table) == [(11, 12, 13), (21, 20, 20)]
+
+    with qtbot.waitSignal(table.changed):
+        table.update({'a': 'a * a', 'b': 'b + 3'}, {'a': 11, 'b': 12})
+
+    assert list(table) == [(121, 15, 13), (21, 20, 20)]
+
+
 @pytest.mark.parametrize('rows, sort_by, sort_order, limit, result', [
     ([{"a": 2, "b": 5}, {"a": 1, "b": 6}, {"a": 3, "b": 4}], 'a', 'asc', 5,
      [(1, 6), (2, 5), (3, 4)]),
