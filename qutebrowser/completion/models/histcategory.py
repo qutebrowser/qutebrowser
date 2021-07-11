@@ -25,7 +25,7 @@ from PyQt5.QtSql import QSqlQueryModel
 from PyQt5.QtWidgets import QWidget
 
 from qutebrowser.misc import sql
-from qutebrowser.utils import debug, message, log
+from qutebrowser.utils import debug, message, log, utils
 from qutebrowser.config import config
 from qutebrowser.completion.models import util
 
@@ -84,7 +84,7 @@ class HistoryCategory(QSqlQueryModel):
                 elif sort_criterion == 'frecency':
                     sort_column = 'frecency DESC'
                 else:
-                    raise utils.Unreachable[sort_criterion]
+                    raise utils.Unreachable(sort_criterion)
 
                 # build a where clause to match all of the words in any order
                 # given the search term "a b", the WHERE clause would be:
