@@ -200,14 +200,14 @@ def test_update(database, qtbot):
     table.insert({'a': 10, 'b': 10, 'c': 10})
     table.insert({'a': 20, 'b': 20, 'c': 20})
 
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.update({'a': 11, 'b': 12, 'c': 13}, {'a': 10, 'b': 10})
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.update({'a': 21}, {'c': 20})
 
     assert list(table) == [(11, 12, 13), (21, 20, 20)]
 
-    with qtbot.waitSignal(table.changed):
+    with qtbot.wait_signal(table.changed):
         table.update({'a': 'a * a', 'b': 'b + 3'}, {'a': 11, 'b': 12})
 
     assert list(table) == [(121, 15, 13), (21, 20, 20)]
