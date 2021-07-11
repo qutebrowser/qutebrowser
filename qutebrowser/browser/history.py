@@ -219,7 +219,7 @@ class WebHistory(sql.SqlTable):
             rebuild_completion = True
 
         if rebuild_completion:
-            self.database.query(f"DROP TABLE IF EXISTS CompletionHistory").run()
+            self.database.query("DROP TABLE IF EXISTS CompletionHistory").run()
             self.completion = CompletionHistory(database, parent=self,
                                                 force_creation=True)
             if self:
