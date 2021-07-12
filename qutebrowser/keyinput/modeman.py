@@ -284,8 +284,8 @@ class ModeManager(QObject):
         curmode = self.mode
         parser = self.parsers[curmode]
         if curmode != usertypes.KeyMode.insert:
-            log.modes.debug("got keypress in mode {} - delegating to {}".format(
-                utils.pyenum_str(curmode), utils.qualname(parser)))
+            log.modes.debug("got keypress in mode {} - delegating to "
+                            "{}".format(curmode, utils.qualname(parser)))
         match = parser.handle(event, dry_run=dry_run)
 
         has_modifier = event.modifiers() not in [
@@ -361,8 +361,7 @@ class ModeManager(QObject):
             return
 
         log.modes.debug("Entering mode {}{}".format(
-            utils.pyenum_str(mode),
-            '' if reason is None else ' (reason: {})'.format(reason)))
+            mode, '' if reason is None else ' (reason: {})'.format(reason)))
         if mode not in self.parsers:
             raise ValueError("No keyparser for mode {}".format(mode))
         if self.mode == mode or (self.mode in PROMPT_MODES and
@@ -430,8 +429,7 @@ class ModeManager(QObject):
                 raise NotInModeError("Not in mode {}!".format(mode))
 
         log.modes.debug("Leaving mode {}{}".format(
-            utils.pyenum_str(mode),
-            '' if reason is None else ' (reason: {})'.format(reason)))
+            mode, '' if reason is None else ' (reason: {})'.format(reason)))
         # leaving a mode implies clearing keychain, see
         # https://github.com/qutebrowser/qutebrowser/issues/1805
         self.clear_keychain()
