@@ -24,6 +24,7 @@ import logging
 import pathlib
 import functools
 import contextlib
+import subprocess
 from typing import Optional, IO, Iterator
 
 from PyQt5.QtCore import QUrl
@@ -163,7 +164,22 @@ class BraveAdBlocker:
         self.enabled = _should_be_used()
         self._has_basedir = has_basedir
         self._cache_path = data_dir / "adblock-cache.dat"
-        self._engine = adblock.Engine(adblock.FilterSet())
+        try:
+            self._engine = adblock.Engine(adblock.FilterSet())
+        except AttributeError:
+            # this should never happen - let's get some infos if it does
+            logger.debug(f"adblock module: {adblock}")
+            dist = version.distribution()
+            if (dist is not None and
+                    dist.parsed == version.Distribution.arch and
+                    hasattr(adblock, "__file__")):
+                proc = subprocess.run(
+                    ['pacman', '-Qo', adblock.__file__],
+                    stdout=subprocess.PIPE,
+                    universal_newlines=True,
+                )
+                logger.debug(proc.stdout)
+            raise
 
     def _is_blocked(
         self,
