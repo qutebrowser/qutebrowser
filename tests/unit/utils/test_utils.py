@@ -546,34 +546,6 @@ class TestIsEnum:
         assert not utils.is_enum(23)
 
 
-class SomeEnum(enum.Enum):
-
-    some_value = enum.auto()
-
-
-class TestPyEnumStr:
-
-    @pytest.fixture
-    def val(self):
-        return SomeEnum.some_value
-
-    def test_fake_old_python_version(self, monkeypatch, val):
-        monkeypatch.setattr(sys, 'version_info', (3, 9, 2))
-        assert utils.pyenum_str(val) == str(val)
-
-    def test_fake_new_python_version(self, monkeypatch, val):
-        monkeypatch.setattr(sys, 'version_info', (3, 10, 0))
-        assert utils.pyenum_str(val) == repr(val)
-
-    def test_real_result(self, val):
-        assert utils.pyenum_str(val) == 'SomeEnum.some_value'
-
-    @pytest.mark.skipif(sys.version_info[:2] < (3, 10), reason='Needs Python 3.10+')
-    def test_needed(self, val):
-        """Fail if this change gets revered before the final 3.10 release."""
-        assert str(val) != 'SomeEnum.some_value'
-
-
 class TestRaises:
 
     """Test raises."""

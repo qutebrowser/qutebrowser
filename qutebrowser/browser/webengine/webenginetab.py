@@ -474,7 +474,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
             # `:selection-toggle` is executed and before this callback function
             # is asynchronously called.
             log.misc.debug("Ignoring caret selection callback in {}".format(
-                utils.pyenum_str(self._mode_manager.mode)))
+                self._mode_manager.mode))
             return
         if state_str is None:
             message.error("Error toggling caret selection")
