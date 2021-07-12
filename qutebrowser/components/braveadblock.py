@@ -177,6 +177,7 @@ class BraveAdBlocker:
                     ['pacman', '-Qo', adblock.__file__],
                     stdout=subprocess.PIPE,
                     universal_newlines=True,
+                    check=False,
                 )
                 logger.debug(proc.stdout)
             raise
