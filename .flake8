@@ -16,6 +16,7 @@ exclude = .*,__pycache__,resources.py
 #       (for pytest's __tracebackhide__)
 # F401: Unused import
 # N802: function name should be lowercase
+# N818: exception name '...' should be named with an Error suffix
 # N806: variable in function should be lowercase
 # P101: format string does contain unindexed parameters
 # P102: docstring does contain unindexed parameters
@@ -44,7 +45,7 @@ ignore =
     B001,B008,B305,
     E128,E226,E265,E501,E402,E266,E722,E731,
     F401,
-    N802,
+    N802,N818,
     P101,P102,P103,
     D102,D103,D106,D107,D104,D105,D209,D211,D401,D402,D403,D412,D413,
     A003,
