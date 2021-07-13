@@ -151,9 +151,12 @@ class CompletionHistory(sql.SqlTable):
                                       'visits': 'NOT NULL',
                                       'frecency': 'NOT NULL'},
                          parent=parent, force_creation=force_creation)
-        self.create_index('CompletionHistoryAtimeIndex', 'last_atime')
-        self.create_index('CompletionHistoryVisitsIndex', 'visits')
-        self.create_index('CompletionHistoryFrecencyIndex', 'frecency')
+        self.create_index('CompletionHistoryAtimeIndex', 'last_atime',
+                          force=force_creation)
+        self.create_index('CompletionHistoryVisitsIndex', 'visits',
+                          force=force_creation)
+        self.create_index('CompletionHistoryFrecencyIndex', 'frecency',
+                          force=force_creation)
 
 
 class WebHistory(sql.SqlTable):
