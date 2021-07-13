@@ -93,7 +93,7 @@ class FilePathCategory(QAbstractListModel):
         else:
             try:
                 expanded = os.path.expanduser(val)
-            except (UnicodeEncodeError, ValueError):
+            except ValueError:
                 # os.path.expanduser('~\ud800') can raise UnicodeEncodeError
                 # via pwd.getpwnam. '~\x00' can raise ValueError.
                 expanded = val
