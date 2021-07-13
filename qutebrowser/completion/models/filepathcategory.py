@@ -93,9 +93,9 @@ class FilePathCategory(QAbstractListModel):
         else:
             try:
                 expanded = os.path.expanduser(val)
-            except UnicodeEncodeError:
+            except (UnicodeEncodeError, ValueError):
                 # os.path.expanduser('~\ud800') can raise UnicodeEncodeError
-                # via pwd.getpwnam
+                # via pwd.getpwnam. '~\x00' can raise ValueError.
                 expanded = val
             paths = self._glob(expanded)
             self._paths = sorted(self._contract_user(val, path) for path in paths)
