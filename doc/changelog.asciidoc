@@ -25,6 +25,7 @@ Fixed
 - Switching tabs via mouse wheel scrolling now works properly on macOS. Set
   `tabs.mousewheel_switching` to false if you prefer the previous behavior.
 - Crash when entering unicode surrogates into the filename prompt.
+- `UnboundLocalError` in `qute-keepass` when the database couldn't be opened.
 
 Changed
 ~~~~~~~
