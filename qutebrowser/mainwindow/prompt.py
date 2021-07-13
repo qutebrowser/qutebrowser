@@ -24,8 +24,8 @@ import html
 import collections
 import functools
 import dataclasses
-
 from typing import Deque, MutableSequence, Optional, cast
+
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
                           QItemSelectionModel, QObject, QEventLoop)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,

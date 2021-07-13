@@ -80,6 +80,8 @@ class TestFileCompletion:
         with qtbot.wait_signal(prompt._file_model.directoryLoaded):
             for _ in range(3):
                 qtbot.keyPress(prompt._lineedit, Qt.Key_Backspace)
+
+        # For some reason, this isn't always called when using qtbot.keyPress.
         prompt._set_fileview_root(prompt._lineedit.text())
 
         # '..' and 'foo' should get completed from 'f'
