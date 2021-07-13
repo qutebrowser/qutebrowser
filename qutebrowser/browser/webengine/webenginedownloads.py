@@ -251,6 +251,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
         qt_filename = os.path.basename(qt_item.path())   # FIXME use 5.14 API
         mime_type = qt_item.mimeType()
         url = qt_item.url()
+        origin = qt_item.page().url() if qt_item.page() else QUrl()
 
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-90355
         if version.qtwebengine_versions().webengine >= utils.VersionNumber(5, 15, 3):
@@ -292,7 +293,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
             download.set_target(target)
             return
 
-        if url.scheme() == "file":
+        if url.scheme() == "file" and origin.isValid() and origin.scheme() == "file":
             utils.open_file(url.toLocalFile())
             qt_item.cancel()
             return
