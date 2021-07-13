@@ -184,9 +184,6 @@ def get_filename_question(*, suggested_filename, url, parent=None):
     """
     suggested_filename = utils.sanitize_filename(suggested_filename)
 
-    if url.toDisplayString()[:7] == "file://":
-        return "FILE"
-
     q = usertypes.Question(parent)
     q.title = "Save file to:"
     q.text = "Please enter a location for <b>{}</b>".format(

@@ -22,8 +22,6 @@
 import re
 import os.path
 import functools
-import platform
-import subprocess
 
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QObject
 from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
@@ -36,7 +34,7 @@ from qutebrowser.utils import (debug, usertypes, message, log, objreg, urlutils,
 class DownloadItem(downloads.AbstractDownloadItem):
 
     """A wrapper over a QWebEngineDownloadItem.
-    
+
     Attributes:
         _qt_item: The wrapped item.
     """
@@ -295,17 +293,9 @@ class DownloadManager(downloads.AbstractDownloadManager):
             return
 
         # Ask the user for a filename - needs to be blocking!
-        question = downloads.get_filename_question(
-            suggested_filename=suggested_filename, url=qt_item.url(),
-            parent=self)
-        if question == "FILE":
-            if platform.system() == "Linux":
-                subprocess.call(["xdg-open", qt_item.url().toDisplayString()])
-            elif platform.system() == 'Darwin':
-                subprocess.call(["open", qt_item.url().toDisplayString()])
-            elif platform.system() == 'Windows':
-                subprocess.call(["start", qt_item.url().toDisplayString()])
-            qt_item.cancel()
+        if url.toDisplayString()[:7] == "file://":
+            utils.open_file(url.toDisplayString()[7:])
+            qt_item.cancel() 
         else:
             self._init_filename_question(question, download)
             message.global_bridge.ask(question, blocking=True)
