@@ -297,6 +297,9 @@ class DownloadManager(downloads.AbstractDownloadManager):
             utils.open_file(url.toDisplayString()[7:])
             qt_item.cancel() 
         else:
+            question = downloads.get_filename_question(
+                suggested_filename=suggested_filename, url=qt_item.url(),
+                parent=self)
             self._init_filename_question(question, download)
             message.global_bridge.ask(question, blocking=True)
         # The filename is set via the question.answered signal, connected in
