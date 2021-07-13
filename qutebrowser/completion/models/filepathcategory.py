@@ -91,7 +91,13 @@ class FilePathCategory(QAbstractListModel):
                 for path in self._glob(url_path)
             )
         else:
-            paths = self._glob(os.path.expanduser(val))
+            try:
+                expanded = os.path.expanduser(val)
+            except UnicodeEncodeError:
+                # os.path.expanduser('~\ud800') can raise UnicodeEncodeError
+                # via pwd.getpwnam
+                expanded = val
+            paths = self._glob(expanded)
             self._paths = sorted(self._contract_user(val, path) for path in paths)
 
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole) -> Optional[str]:
