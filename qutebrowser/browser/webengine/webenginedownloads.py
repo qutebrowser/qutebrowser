@@ -36,8 +36,7 @@ from qutebrowser.utils import (debug, usertypes, message, log, objreg, urlutils,
 class DownloadItem(downloads.AbstractDownloadItem):
 
     """A wrapper over a QWebEngineDownloadItem.
-        if self.url().toDisplayString()[:6] == "file://":
-            qt_item.cancel()
+    
     Attributes:
         _qt_item: The wrapped item.
     """
