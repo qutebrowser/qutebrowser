@@ -316,8 +316,9 @@ class WebHistory(sql.SqlTable):
 
         self._progress.start(
             "<b>Rebuilding completion...</b><br>"
-            "This is a one-time operation and happens because the database version "
-            "or <i>completion.web_history.exclude</i> was changed."
+            "This is a one-time operation and happens because the database version, "
+            "<i>completion.web_history.exclude</i>, or "
+            "<i>completion.web_history.frecency_bonus</i> were changed."
         )
 
         # Select the latest entry for each url
