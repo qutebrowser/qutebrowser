@@ -432,14 +432,15 @@ class SqlTable(QObject):
         )
         q.run()
 
-    def create_index(self, name: str, field: str) -> None:
+    def create_index(self, name: str, field: str, force: bool = False) -> None:
         """Create an index over this table if the database is uninitialized.
 
         Args:
             name: Name of the index, should be unique.
             field: Name of the field to index.
+            force: If true, create the index even if the database is uninitialized.
         """
-        if not self.database.user_version_changed():
+        if not self.database.user_version_changed() and not force:
             return
 
         q = self.database.query(
