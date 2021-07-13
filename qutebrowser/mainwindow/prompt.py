@@ -24,8 +24,8 @@ import html
 import collections
 import functools
 import dataclasses
-from typing import Deque, MutableSequence, Optional, cast
 
+from typing import Deque, MutableSequence, Optional, cast
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
                           QItemSelectionModel, QObject, QEventLoop)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
@@ -631,6 +631,16 @@ class FilenamePrompt(_BasePrompt):
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
         self._to_complete = ''
+        self._root_index = QModelIndex()
+
+    def _directories_hide_show_model(self):
+        """Get rid of non-matching directories."""
+        num_rows = self._file_model.rowCount(self._root_index)
+        for row in range(num_rows):
+            index = self._file_model.index(row, 0, self._root_index)
+            filename = index.data()
+            hidden = self._to_complete not in filename and filename != '..'
+            self._file_view.setRowHidden(index.row(), index.parent(), hidden)
 
     @pyqtSlot(str)
     def _set_fileview_root(self, path, *, tabbed=False):
@@ -663,8 +673,10 @@ class FilenamePrompt(_BasePrompt):
             log.prompt.exception("Failed to get directory information")
             return
 
-        root = self._file_model.setRootPath(path)
-        self._file_view.setRootIndex(root)
+        self._root_index = self._file_model.setRootPath(path)
+        self._file_view.setRootIndex(self._root_index)
+
+        self._directories_hide_show_model()
 
     @pyqtSlot(QModelIndex)
     def _insert_path(self, index, *, clicked=True):
@@ -764,15 +776,12 @@ class FilenamePrompt(_BasePrompt):
         self._insert_path(idx, clicked=False)
 
     def _do_completion(self, idx, which):
-        filename = self._file_model.fileName(idx)
-        while not filename.startswith(self._to_complete) and idx.isValid():
+        while idx.isValid() and self._file_view.isIndexHidden(idx):
             if which == 'prev':
                 idx = self._file_view.indexAbove(idx)
             else:
                 assert which == 'next', which
                 idx = self._file_view.indexBelow(idx)
-            filename = self._file_model.fileName(idx)
-
         return idx
 
     def _allowed_commands(self):
