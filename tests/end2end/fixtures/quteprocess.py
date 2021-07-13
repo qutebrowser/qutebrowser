@@ -352,6 +352,20 @@ def is_ignored_chromium_message(line):
         # Flatpak
         'mDNS responder manager failed to start.',
         'The mDNS responder manager is not started yet.',
+
+        # GitHub Actions with Qt 5.15.0
+        # [5387:5407:0713/142608.526916:ERROR:cache_util.cc(135)] Unable to
+        # move cache folder
+        # /tmp/qutebrowser-basedir-4x3ue9fq/data/webengine/GPUCache to
+        # /tmp/qutebrowser-basedir-4x3ue9fq/data/webengine/old_GPUCache_000
+        # [5387:5407:0713/142608.526934:ERROR:disk_cache.cc(184)] Unable to
+        # create cache
+        # [5387:5407:0713/142608.526938:ERROR:shader_disk_cache.cc(606)] Shader
+        # Cache Creation failed: -2
+        ('Unable to move cache folder */data/webengine/GPUCache to '
+            '*/data/webengine/old_GPUCache_000'),
+        'Unable to create cache',
+        'Shader Cache Creation failed: -2',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
