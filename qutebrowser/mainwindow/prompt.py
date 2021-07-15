@@ -637,9 +637,9 @@ class FilenamePrompt(_BasePrompt):
         """Get rid of non-matching directories."""
         num_rows = self._file_model.rowCount(self._root_index)
         if self._to_complete and self._to_complete[0] == '.':
-            self._file_model.setFilter(self._file_model.filter() | QDir.Hidden)
+            self._file_model.setFilter(self._file_model.filter() | QDir.Hidden) # type: ignore
         else:
-            self._file_model.setFilter(self._file_model.filter() & ~QDir.Hidden)
+            self._file_model.setFilter(self._file_model.filter() & ~QDir.Hidden) # type: ignore
         for row in range(num_rows):
             index = self._file_model.index(row, 0, self._root_index)
             filename = index.data()
