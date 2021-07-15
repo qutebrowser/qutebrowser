@@ -616,6 +616,8 @@ class FilenamePrompt(_BasePrompt):
         self._init_texts(question)
         self._init_key_label()
 
+        self._expands_user = False
+
         self._lineedit = LineEdit(self)
         if question.default:
             self._lineedit.setText(question.default)
@@ -645,11 +647,17 @@ class FilenamePrompt(_BasePrompt):
     @pyqtSlot(str)
     def _set_fileview_root(self, path, *, tabbed=False):
         """Set the root path for the file display."""
-        separators = os.sep
+        self._separators = os.sep
         if os.altsep is not None:
-            separators += os.altsep
+            self._separators += os.altsep
 
-        path = os.path.expanduser(path)
+        # If the path is not the same as the path with expanduser set a boolean
+        if os.path.expanduser(path) != path:
+            path = os.path.expanduser(path)
+            self._expands_user = True
+        elif not self._expands_user:
+            self._expands_user = False
+
         dirname = os.path.dirname(path)
         basename = os.path.basename(path)
         if not tabbed:
@@ -658,12 +666,12 @@ class FilenamePrompt(_BasePrompt):
         try:
             if not path:
                 pass
-            elif path in separators and os.path.isdir(path):
+            elif path in self._separators and os.path.isdir(path):
                 # Input "/" -> don't strip anything
                 pass
-            elif path[-1] in separators and os.path.isdir(path):
+            elif path[-1] in self._separators and os.path.isdir(path):
                 # Input like /foo/bar/ -> show /foo/bar/ contents
-                path = path.rstrip(separators)
+                path = path.rstrip(self._separators)
             elif os.path.isdir(dirname) and not tabbed:
                 # Input like /foo/ba -> show /foo contents
                 path = dirname
@@ -697,6 +705,33 @@ class FilenamePrompt(_BasePrompt):
         else:
             # On Windows, when we have C:\foo and tab over .., we get C:\
             path = path.rstrip(os.sep)
+
+        c_sep = 0
+        self._index_end = 0
+        for i in range(len(path)):
+            if path[i] in self._separators:
+                c_sep += 1
+            
+            self._index_end = i
+            
+            if c_sep == 3:
+                break
+
+        # If the path is not the same as the path with expanduser set a boolean
+        if os.path.expanduser(path) != path:
+            path = os.path.expanduser(path)
+            self._expands_user = True
+        elif not self._expands_user:
+            self._expands_user = False
+
+        if self._expands_user:
+            self._expands_user = True
+            print(path[:self._index_end])
+            path = path[:self._index_end].replace(os.path.expanduser('~'), '~') + path[self._index_end:]
+        else:
+            self._expands_user = False
+        
+        print(path)
 
         log.prompt.debug('Inserting path {}'.format(path))
         self._lineedit.setText(path)
