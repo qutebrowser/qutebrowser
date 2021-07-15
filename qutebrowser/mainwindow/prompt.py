@@ -39,7 +39,7 @@ from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import urlmatch
-from qutebrowser.misc import fprompthistory
+from qutebrowser.misc import cmdhistory
 
 
 prompt_queue = cast('PromptQueue', None)
@@ -617,7 +617,7 @@ class FilenamePrompt(_BasePrompt):
         super().__init__(question, parent)
         self._init_texts(question)
         self._init_key_label()
-        self._history = fprompthistory.FPromptHistory(parent=self)
+        self._history = cmdhistory.History(parent=self)
         fprompt_history = objreg.get('fprompt-history')
         self._history.history = fprompt_history.data
         self._history.changed.connect(fprompt_history.changed)
@@ -650,8 +650,8 @@ class FilenamePrompt(_BasePrompt):
                 item = self._history.start(text="")
             else:
                 item = self._history.previtem()
-        except (fprompthistory.HistoryEmptyError,
-                fprompthistory.HistoryEndReachedError):
+        except (cmdhistory.HistoryEmptyError,
+                cmdhistory.HistoryEndReachedError):
             return
         self._lineedit.setText(item)
 
@@ -661,7 +661,7 @@ class FilenamePrompt(_BasePrompt):
             return
         try:
             item = self._history.nextitem()
-        except fprompthistory.HistoryEndReachedError:
+        except cmdhistory.HistoryEndReachedError:
             return
         self._lineedit.setText(item)
 

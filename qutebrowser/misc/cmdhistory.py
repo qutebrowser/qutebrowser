@@ -145,3 +145,13 @@ def init():
     objreg.register('command-history', command_history)
     save_manager.add_saveable('command-history', command_history.save,
                               command_history.changed)
+
+def init_fprompt():
+    """Initialize the LimitLineParser storing the history."""
+    save_manager = objreg.get('save-manager')
+    fprompt_history = lineparser.LimitLineParser(
+        standarddir.data(), 'fprompt-history',
+        limit='completion.fprompt_history_max_items')
+    objreg.register('fprompt-history', fprompt_history)
+    save_manager.add_saveable('fprompt-history', fprompt_history.save,
+                              fprompt_history.changed)
