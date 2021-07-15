@@ -727,7 +727,7 @@ class FilenamePrompt(_BasePrompt):
         if self._expands_user:
             self._expands_user = True
             print(path[:self._index_end])
-            path = (path[:self._index_end].replace(os.path.expanduser('~'), '~') + 
+            path = (path[:self._index_end].replace(os.path.expanduser('~'), '~') +
                     path[self._index_end:])
         else:
             self._expands_user = False
