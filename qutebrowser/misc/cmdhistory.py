@@ -146,6 +146,7 @@ def init():
     save_manager.add_saveable('command-history', command_history.save,
                               command_history.changed)
 
+
 def init_fprompt():
     """Initialize the LimitLineParser storing the history."""
     save_manager = objreg.get('save-manager')

@@ -647,7 +647,7 @@ class FilenamePrompt(_BasePrompt):
         except KeyError:
             log.prompt.info("fprompt-history has not been initialized, no history completions available. "
                         "Most likely running from pytest.")
-    
+
     def history_prev(self):
         """Go back in the history."""
         try:
@@ -770,7 +770,7 @@ class FilenamePrompt(_BasePrompt):
         if text is None:
             message.error("Invalid filename")
             return False
-        
+
         self._history.stop()
         self._history.append(text)
         self.question.answer = text
