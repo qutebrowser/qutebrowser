@@ -124,6 +124,7 @@
 |<<colors.webpage.darkmode.threshold.text,colors.webpage.darkmode.threshold.text>>|Threshold for inverting text with dark mode.
 |<<colors.webpage.preferred_color_scheme,colors.webpage.preferred_color_scheme>>|Value to use for `prefers-color-scheme:` for websites.
 |<<completion.cmd_history_max_items,completion.cmd_history_max_items>>|Number of commands to save in the command history.
+|<<completion.fprompt_history_max_items,completion.fprompt_history_max_items>>|Number of file paths to save in the file prompt history.
 |<<completion.delay,completion.delay>>|Delay (in milliseconds) before updating completions after typing a character.
 |<<completion.favorite_paths,completion.favorite_paths>>|Default filesystem autocomplete suggestions for :open.
 |<<completion.height,completion.height>>|Height (in pixels or as percentage of the window) of the completion.
@@ -1790,6 +1791,15 @@ Default: +pass:[auto]+
 [[completion.cmd_history_max_items]]
 === completion.cmd_history_max_items
 Number of commands to save in the command history.
+0: no history / -1: unlimited
+
+Type: <<types,Int>>
+
+Default: +pass:[100]+
+
+[[completion.fprompt_history_max_items]]
+=== completion.fprompt_history_max_items
+Number of file paths to save in the file prompt history.
 0: no history / -1: unlimited
 
 Type: <<types,Int>>

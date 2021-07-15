@@ -28,7 +28,8 @@ from typing import Deque, MutableSequence, Optional, cast
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
                           QItemSelectionModel, QObject, QEventLoop)
-from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWidgets import (QShortcut, QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QFileSystemModel, QTreeView, QSizePolicy,
                              QSpacerItem)
 
@@ -38,6 +39,7 @@ from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import urlmatch
+from qutebrowser.misc import fprompthistory
 
 
 prompt_queue = cast('PromptQueue', None)
@@ -615,6 +617,10 @@ class FilenamePrompt(_BasePrompt):
         super().__init__(question, parent)
         self._init_texts(question)
         self._init_key_label()
+        self._history = fprompthistory.FPromptHistory(parent=self)
+        fprompt_history = objreg.get('fprompt-history')
+        self._history.history = fprompt_history.data
+        self._history.changed.connect(fprompt_history.changed)
 
         self._lineedit = LineEdit(self)
         if question.default:
@@ -632,6 +638,32 @@ class FilenamePrompt(_BasePrompt):
 
         self._to_complete = ''
         self._root_index = QModelIndex()
+        self._shortcut_next = QShortcut(QKeySequence("Ctrl+P"), self)
+        self._shortcut_next.activated.connect(self.history_next)
+        self._shortcut_prev = QShortcut(QKeySequence("Ctrl+N"), self)
+        self._shortcut_prev.activated.connect(self.history_prev)
+    
+    def history_prev(self):
+        """Go back in the history."""
+        try:
+            if not self._history.is_browsing():
+                item = self._history.start(text="")
+            else:
+                item = self._history.previtem()
+        except (fprompthistory.HistoryEmptyError,
+                fprompthistory.HistoryEndReachedError):
+            return
+        self._lineedit.setText(item)
+
+    def history_next(self):
+        """Go forward in the history."""
+        if not self._history.is_browsing():
+            return
+        try:
+            item = self._history.nextitem()
+        except fprompthistory.HistoryEndReachedError:
+            return
+        self._lineedit.setText(item)
 
     def _directories_hide_show_model(self):
         """Get rid of non-matching directories."""
@@ -733,6 +765,9 @@ class FilenamePrompt(_BasePrompt):
         if text is None:
             message.error("Invalid filename")
             return False
+        
+        self._history.stop()
+        self._history.append(text)
         self.question.answer = text
         return True
 

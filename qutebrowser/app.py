@@ -65,7 +65,7 @@ from qutebrowser.keyinput import macros, eventfilter
 from qutebrowser.mainwindow import mainwindow, prompt, windowundo
 from qutebrowser.misc import (ipc, savemanager, sessions, crashsignal,
                               earlyinit, sql, cmdhistory, backendproblem,
-                              objects, quitter)
+                              objects, quitter, fprompthistory)
 from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
                                resources, usertypes, standarddir,
                                error, qtutils, debug)
@@ -491,6 +491,9 @@ def _init_modules(*, args):
 
     log.init.debug("Initializing command history...")
     cmdhistory.init()
+
+    log.init.debug("Initializing file prompt history")
+    fprompthistory.init()
 
     log.init.debug("Initializing websettings...")
     websettings.init(args)

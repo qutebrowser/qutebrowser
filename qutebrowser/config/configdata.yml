@@ -1156,6 +1156,16 @@ completion.cmd_history_max_items:
 
     0: no history / -1: unlimited
 
+completion.fprompt_history_max_items:
+  default: 100
+  type:
+    name: Int
+    minval: -1
+  desc: >-
+    Number of file paths to save in the file prompt history.
+
+    0: no history / -1: unlimited
+
 completion.height:
   type:
     name: PercOrInt
