@@ -617,10 +617,6 @@ class FilenamePrompt(_BasePrompt):
         super().__init__(question, parent)
         self._init_texts(question)
         self._init_key_label()
-        self._history = cmdhistory.History(parent=self)
-        fprompt_history = objreg.get('fprompt-history')
-        self._history.history = fprompt_history.data
-        self._history.changed.connect(fprompt_history.changed)
 
         self._lineedit = LineEdit(self)
         if question.default:
@@ -638,10 +634,19 @@ class FilenamePrompt(_BasePrompt):
 
         self._to_complete = ''
         self._root_index = QModelIndex()
-        self._shortcut_next = QShortcut(QKeySequence("Ctrl+P"), self)
-        self._shortcut_next.activated.connect(self.history_next)
-        self._shortcut_prev = QShortcut(QKeySequence("Ctrl+N"), self)
-        self._shortcut_prev.activated.connect(self.history_prev)
+
+        try:
+            self._history = cmdhistory.History(parent=self)
+            fprompt_history = objreg.get('fprompt-history')
+            self._history.history = fprompt_history.data
+            self._history.changed.connect(fprompt_history.changed)
+            self._shortcut_next = QShortcut(QKeySequence("Ctrl+P"), self)
+            self._shortcut_next.activated.connect(self.history_next)
+            self._shortcut_prev = QShortcut(QKeySequence("Ctrl+N"), self)
+            self._shortcut_prev.activated.connect(self.history_prev)
+        except KeyError:
+            log.prompt.info("fprompt-history has not been initialized, no history completions available. "
+                        "Most likely running from pytest.")
     
     def history_prev(self):
         """Go back in the history."""
