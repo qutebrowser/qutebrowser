@@ -649,6 +649,7 @@ class FilenamePrompt(_BasePrompt):
         if os.altsep is not None:
             separators += os.altsep
 
+        path = os.path.expanduser(path)
         dirname = os.path.dirname(path)
         basename = os.path.basename(path)
         if not tabbed:
