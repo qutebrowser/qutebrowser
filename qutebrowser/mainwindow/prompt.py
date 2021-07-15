@@ -617,6 +617,7 @@ class FilenamePrompt(_BasePrompt):
         self._init_key_label()
 
         self._expands_user = False
+        self._index_end = 0
 
         self._lineedit = LineEdit(self)
         if question.default:
@@ -707,13 +708,12 @@ class FilenamePrompt(_BasePrompt):
             path = path.rstrip(os.sep)
 
         c_sep = 0
-        self._index_end = 0
-        for i in range(len(path)):
-            if path[i] in self._separators:
+        for i, character in enumerate(path):
+            if character in self._separators:
                 c_sep += 1
-            
+
             self._index_end = i
-            
+
             if c_sep == 3:
                 break
 
@@ -727,11 +727,10 @@ class FilenamePrompt(_BasePrompt):
         if self._expands_user:
             self._expands_user = True
             print(path[:self._index_end])
-            path = path[:self._index_end].replace(os.path.expanduser('~'), '~') + path[self._index_end:]
+            path = (path[:self._index_end].replace(os.path.expanduser('~'), '~') + 
+                    path[self._index_end:])
         else:
             self._expands_user = False
-        
-        print(path)
 
         log.prompt.debug('Inserting path {}'.format(path))
         self._lineedit.setText(path)
