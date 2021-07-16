@@ -690,10 +690,11 @@ class FilenamePrompt(_BasePrompt):
             path = os.path.join(self._file_model.rootPath(), self._to_complete)
         else:
             path = os.path.normpath(self._file_model.filePath(index))
+            print(path)
 
         if clicked:
             path += os.sep
-        else:
+        elif path != "/":
             # On Windows, when we have C:\foo and tab over .., we get C:\
             path = path.rstrip(os.sep)
 
