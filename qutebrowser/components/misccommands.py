@@ -229,7 +229,8 @@ def insert_text(tab: apitypes.Tab, text: str) -> None:
 def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
                   target: apitypes.ClickTarget =
                   apitypes.ClickTarget.normal,
-                  force_event: bool = False) -> None:
+                  force_event: bool = False,
+                  select_first: bool = False) -> None:
     """Click the element matching the given filter.
 
     The given filter needs to result in exactly one element, otherwise, an
@@ -241,6 +242,7 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
         value: The value to filter for.
         target: How to open the clicked element (normal/tab/tab-bg/window).
         force_event: Force generating a fake click event.
+        select_first: Select first matching element if there are multiple.
     """
     def single_cb(elem: Union[apitypes.WebElement, List[apitypes.WebElement], None]) -> None:
         """Click a single element."""
@@ -248,7 +250,7 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
             message.error(f"No element found matching {filter_}={value}!")
             return
         if isinstance(elem, list):
-            if len(elem) > 1:
+            if not select_first and len(elem) > 1:
                 message.error(f"Multiple elements found matching {filter_}={value}!")
                 return
             elem = elem[0]
