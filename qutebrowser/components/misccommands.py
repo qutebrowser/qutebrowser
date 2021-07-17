@@ -27,7 +27,7 @@ import signal
 import functools
 import logging
 import pathlib
-from typing import Optional
+from typing import Optional, Union, List
 
 try:
     import hunter
@@ -225,7 +225,7 @@ def insert_text(tab: apitypes.Tab, text: str) -> None:
 
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-@cmdutils.argument('filter_', choices=['id'])
+@cmdutils.argument('filter_', choices=['id', 'css'])
 def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
                   target: apitypes.ClickTarget =
                   apitypes.ClickTarget.normal,
@@ -242,11 +242,16 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
         target: How to open the clicked element (normal/tab/tab-bg/window).
         force_event: Force generating a fake click event.
     """
-    def single_cb(elem: Optional[apitypes.WebElement]) -> None:
+    def single_cb(elem: Union[apitypes.WebElement, List[apitypes.WebElement], None]) -> None:
         """Click a single element."""
-        if elem is None:
-            message.error("No element found with id {}!".format(value))
+        if not elem:
+            message.error(f"No element found matching {filter_}={value}!")
             return
+        if isinstance(elem, list):
+            if len(elem) > 1:
+                message.error(f"Multiple elements found matching {filter_}={value}!")
+                return
+            elem = elem[0]
         try:
             elem.click(target, force_event=force_event)
         except apitypes.WebElemError as e:
@@ -255,9 +260,10 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
 
     handlers = {
         'id': (tab.elements.find_id, single_cb),
+        'css': (tab.elements.find_css, single_cb, message.error),
     }
-    handler, callback = handlers[filter_]
-    handler(value, callback)
+    handler, *callback = handlers[filter_]
+    handler(value, *callback)
 
 
 @cmdutils.register(debug=True)
