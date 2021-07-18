@@ -20,7 +20,7 @@
 import os
 
 import pytest
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QDir, Qt
 
 from qutebrowser.mainwindow import prompt as promptmod
 from qutebrowser.utils import usertypes
@@ -103,23 +103,23 @@ class TestFileCompletion:
         ([], ['..', 'bar', 'bat', 'foo']),
         ([Qt.Key_F], ['..', 'foo']),
         ([Qt.Key_A], ['..', 'bar', 'bat']),
+        ([Qt.Key_Period], ['..', '.bar']),
     ])
     def test_filtering_path(self, qtbot, tmp_path, get_prompt, keys, expected):
         testdir = tmp_path / 'test'
 
-        for directory in ['bar', 'foo', 'bat']:
+        for directory in ['.bar', 'bar', 'foo', 'bat']:
             (testdir / directory).mkdir(parents=True)
 
         prompt = get_prompt(str(testdir) + os.sep)
         for key in keys:
             qtbot.keyPress(prompt._lineedit, key)
-        prompt._set_fileview_root(prompt._lineedit.text())
 
         num_rows = prompt._file_model.rowCount(prompt._file_view.rootIndex())
         visible = []
+        parent = prompt._file_model.index(
+            os.path.dirname(prompt._lineedit.text()))
         for row in range(num_rows):
-            parent = prompt._file_model.index(
-                os.path.dirname(prompt._lineedit.text()))
             index = prompt._file_model.index(row, 0, parent)
             if not prompt._file_view.isRowHidden(index.row(), index.parent()):
                 visible.append(index.data())
