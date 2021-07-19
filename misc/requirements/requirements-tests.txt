@@ -3,7 +3,7 @@
 attrs==21.2.0
 beautifulsoup4==4.9.3
 certifi==2021.5.30
-chardet==4.0.0
+charset-normalizer==2.0.3
 cheroot==8.5.2
 click==8.0.1
 coverage==5.5
@@ -13,9 +13,9 @@ filelock==3.0.12
 Flask==2.0.1
 glob2==0.7
 hunter==3.3.8
-hypothesis==6.14.2
+hypothesis==6.14.3
 icdiff==1.9.1
-idna==2.10
+idna==3.2
 iniconfig==1.1.1
 itsdangerous==2.0.1
 jaraco.functools==3.3.0
@@ -47,7 +47,7 @@ pytest-rerunfailures==10.1
 pytest-xdist==2.3.0
 pytest-xvfb==2.0.0
 PyVirtualDisplay==2.2
-requests==2.25.1
+requests==2.26.0
 requests-file==1.5.1
 six==1.16.0
 sortedcontainers==2.4.0
