@@ -147,13 +147,14 @@ class TestFileCompletion:
         prompt = get_prompt('/')
         prompt._lineedit.setText('')
         # _set_fileview_root isn't run unless there is an actual keypress
-        qtbot.keyPress(prompt._lineedit, Qt.Key_AsciiTilde)
-        assert (pathlib.Path(prompt._file_model.rootPath()) /
-                prompt._to_complete) == pathlib.Path.home()
-        # The first character on the lineedit should remain ~
-        prompt.item_focus('next')
-        prompt.item_focus('next')
-        assert prompt._lineedit.text()[0] == '~'
+        with qtbot.waitSignal(prompt._file_model.directoryLoaded) as blocker:
+            qtbot.keyPress(prompt._lineedit, Qt.Key_AsciiTilde)
+            assert (pathlib.Path(prompt._file_model.rootPath()) /
+                    prompt._to_complete) == pathlib.Path.home()
+            # The first character on the lineedit should remain ~
+            prompt.item_focus('next')
+            prompt.item_focus('next')
+            assert prompt._lineedit.text()[0] == '~'
 
     def test_expand_once(self, qtbot, get_prompt, home_path):
         home_path.joinpath(*home_path.parts[1:]).mkdir(parents=True)
@@ -161,9 +162,10 @@ class TestFileCompletion:
         prompt = get_prompt('/')
         prompt._lineedit.setText('~' + str(home_path))
         # _set_fileview_root isn't run unless there is an actual keypress
-        qtbot.keyPress(prompt._lineedit, Qt.Key_Slash)
-        # The second instance of home_path shouldn't be replaced with ~
-        assert prompt._lineedit.text()[:-1] == '~' + str(home_path)
+        with qtbot.waitSignal(prompt._file_model.directoryLoaded) as blocker:
+            qtbot.keyPress(prompt._lineedit, Qt.Key_Slash)
+            # The second instance of home_path shouldn't be replaced with ~
+            assert prompt._lineedit.text()[:-1] == '~' + str(home_path)
 
     def test_dont_contract(self, qtbot, get_prompt, home_path):
         for directory in ['bar', 'bat', 'foo']:
@@ -172,10 +174,11 @@ class TestFileCompletion:
         prompt = get_prompt('/')
         prompt._lineedit.setText(str(home_path))
         # _set_fileview_root isn't run unless there is an actual keypress
-        qtbot.keyPress(prompt._lineedit, Qt.Key_Slash)
+        with qtbot.waitSignal(prompt._file_model.directoryLoaded) as blocker:
+            qtbot.keyPress(prompt._lineedit, Qt.Key_Slash)
 
-        prompt.item_focus('next')
-        prompt.item_focus('next')
-        # If $HOME is contracted to `~` this test will fail as that is unexpected
-        assert (prompt._lineedit.text() !=
-                prompt._lineedit.text().replace(os.path.expanduser('~'), '~', 1))
+            prompt.item_focus('next')
+            prompt.item_focus('next')
+            # If $HOME is contracted to `~` this test will fail as that is unexpected
+            assert (prompt._lineedit.text() !=
+                    prompt._lineedit.text().replace(os.path.expanduser('~'), '~', 1))
