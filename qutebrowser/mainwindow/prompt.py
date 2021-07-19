@@ -647,9 +647,9 @@ class FilenamePrompt(_BasePrompt):
     @pyqtSlot(str)
     def _set_fileview_root(self, path, *, tabbed=False):
         """Set the root path for the file display."""
-        self._separators = os.sep
+        separators = os.sep
         if os.altsep is not None:
-            self._separators += os.altsep
+            separators += os.altsep
 
         # If the path is not the same as the path with expanduser set a boolean
         if os.path.expanduser(path) != path:
@@ -664,12 +664,12 @@ class FilenamePrompt(_BasePrompt):
         try:
             if not path:
                 pass
-            elif path in self._separators and os.path.isdir(path):
+            elif path in separators and os.path.isdir(path):
                 # Input "/" -> don't strip anything
                 pass
-            elif path[-1] in self._separators and os.path.isdir(path):
+            elif path[-1] in separators and os.path.isdir(path):
                 # Input like /foo/bar/ -> show /foo/bar/ contents
-                path = path.rstrip(self._separators)
+                path = path.rstrip(separators)
             elif os.path.isdir(dirname) and not tabbed:
                 # Input like /foo/ba -> show /foo contents
                 path = dirname
