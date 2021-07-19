@@ -131,7 +131,7 @@ class TestFileCompletion:
         """With / as path, show root contents."""
         prompt = get_prompt('/')
         assert prompt._file_model.rootPath() == '/'
-    
+
     @pytest.fixture
     def home_path(self, monkeypatch, tmp_path):
         homedir = str(tmp_path)
