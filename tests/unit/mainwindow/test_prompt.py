@@ -131,22 +131,51 @@ class TestFileCompletion:
         """With / as path, show root contents."""
         prompt = get_prompt('/')
         assert prompt._file_model.rootPath() == '/'
- 
-    def test_expand_user(self, qtbot, get_prompt, monkeypatch, tmp_path):
-        for directory in ['bar', 'bat', 'foo']:
-            (tmp_path / directory).mkdir()
-
+    
+    @pytest.fixture
+    def home_path(self, monkeypatch, tmp_path):
         homedir = str(tmp_path)
         monkeypatch.setenv('HOME', homedir)  # POSIX
         monkeypatch.setenv('USERPROFILE', homedir)  # Windows
         assert str(pathlib.Path.home()) == homedir
+        return tmp_path
+
+    def test_expand_user(self, qtbot, get_prompt, home_path):
+        for directory in ['bar', 'bat', 'foo']:
+            (home_path / directory).mkdir()
 
         prompt = get_prompt('/')
         prompt._lineedit.setText('')
         # _set_fileview_root isn't run unless there is an actual keypress
         qtbot.keyPress(prompt._lineedit, Qt.Key_AsciiTilde)
-        assert pathlib.Path(prompt._file_model.rootPath()) / prompt._to_complete == pathlib.Path.home()
+        assert (pathlib.Path(prompt._file_model.rootPath()) /
+                prompt._to_complete) == pathlib.Path.home()
         # The first character on the lineedit should remain ~
         prompt.item_focus('next')
         prompt.item_focus('next')
         assert prompt._lineedit.text()[0] == '~'
+
+    def test_expand_once(self, qtbot, get_prompt, home_path):
+        pathlib.Path(str(home_path) + str(home_path)).mkdir(parents=True)
+
+        prompt = get_prompt('/')
+        prompt._lineedit.setText('~' + str(home_path))
+        # _set_fileview_root isn't run unless there is an actual keypress
+        qtbot.keyPress(prompt._lineedit, Qt.Key_Slash)
+        # The second instance of home_path shouldn't be replaced with ~
+        assert prompt._lineedit.text()[:-1] == '~' + str(home_path)
+
+    def test_dont_contract(self, qtbot, get_prompt, home_path):
+        for directory in ['bar', 'bat', 'foo']:
+            (home_path / directory).mkdir()
+
+        prompt = get_prompt('/')
+        prompt._lineedit.setText(str(home_path))
+        # _set_fileview_root isn't run unless there is an actual keypress
+        qtbot.keyPress(prompt._lineedit, Qt.Key_Slash)
+
+        prompt.item_focus('next')
+        prompt.item_focus('next')
+        # If $HOME is contracted to `~` this test will fail as that is unexpected
+        assert (prompt._lineedit.text() !=
+                prompt._lineedit.text().replace(os.path.expanduser('~'), '~', 1))
