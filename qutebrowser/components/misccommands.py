@@ -238,7 +238,11 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
 
     Args:
         filter_: How to filter the elements.
-                 id: Get an element based on its ID.
+
+            - id: Get an element based on its ID.
+            - css: Filter by a CSS selector.
+            - position: Click the element at specified position.
+                Write value as 'x,y'.
         value: The value to filter for.
         target: How to open the clicked element (normal/tab/tab-bg/window).
         force_event: Force generating a fake click event.

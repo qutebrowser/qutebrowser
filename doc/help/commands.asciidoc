@@ -261,7 +261,12 @@ Click the element matching the given filter.
 The given filter needs to result in exactly one element, otherwise, an error is shown.
 
 ==== positional arguments
-* +'filter'+: How to filter the elements. id: Get an element based on its ID.
+* +'filter'+: How to filter the elements. 
+
+ - id: Get an element based on its ID.
+ - css: Filter by a CSS selector.
+ - position: Click the element at specified position.
+ Write position as 'x,y'.
 
 * +'value'+: The value to filter for.
 
