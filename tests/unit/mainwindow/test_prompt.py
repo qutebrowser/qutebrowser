@@ -131,10 +131,20 @@ class TestFileCompletion:
         """With / as path, show root contents."""
         prompt = get_prompt('/')
         assert prompt._file_model.rootPath() == '/'
-    
-    def test_expand_user(self, qtbot, get_prompt):
+ 
+    def test_expand_user(self, qtbot, get_prompt, monkeypatch, tmp_path):
+        testdir = tmp_path / 'test'
+        for directory in ['bar', 'bat', 'foo']:
+            (testdir / directory).mkdir(parents=True)
+        
+        homedir = str(testdir)
+        monkeypatch.setenv('HOME', homedir)  # POSIX
+        monkeypatch.setenv('USERPROFILE', homedir)  # Windows
+        print(pathlib.Path.home())
+        assert str(pathlib.Path.home()) == homedir
         prompt = get_prompt('/')
-        prompt._lineedit.setText('~')
+        prompt._lineedit.setText('')
+        qtbot.keyPress(prompt._lineedit, Qt.Key_AsciiTilde)
         # The path currently seen by the file_model should be the same as os.path.expanduser('~')
         assert pathlib.Path(prompt._file_model.rootPath()) / prompt._to_complete == pathlib.Path.home()
         # The first character on the lineedit should remain ~
