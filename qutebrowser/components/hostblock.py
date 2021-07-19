@@ -132,10 +132,15 @@ class HostBlocker:
 
         host = request_url.host()
 
-        return any(
-            hostname in self._blocked_hosts or hostname in self._config_blocked_hosts
-            for hostname in urlutils.widened_hostnames(host)
-        )
+        if config.get("content.blocking.hosts.block_subdomains"):
+            return any(
+                hostname in self._blocked_hosts or hostname in self._config_blocked_hosts
+                for hostname in urlutils.widened_hostnames(host)
+            )
+        else:
+            return (
+                host in self._blocked_hosts or host in self._config_blocked_hosts
+            )
 
     def filter_request(self, info: interceptor.Request) -> None:
         """Block the given request if necessary."""

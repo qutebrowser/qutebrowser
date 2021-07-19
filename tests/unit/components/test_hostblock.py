@@ -570,4 +570,7 @@ def test_subdomain_blocking(config_stub, host_blocker_factory):
     config_stub.val.content.blocking.hosts.lists = None
     host_blocker = host_blocker_factory()
     host_blocker._blocked_hosts.add("example.com")
+    config_stub.val.content.blocking.hosts.block_subdomains = True
     assert host_blocker._is_blocked(QUrl("https://subdomain.example.com"))
+    config_stub.val.content.blocking.hosts.block_subdomains = False
+    assert not host_blocker._is_blocked(QUrl("https://subdomain.example.com"))

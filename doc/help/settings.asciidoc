@@ -142,6 +142,7 @@
 |<<content.autoplay,content.autoplay>>|Automatically start playing `<video>` elements.
 |<<content.blocking.adblock.lists,content.blocking.adblock.lists>>|List of URLs to ABP-style adblocking rulesets.
 |<<content.blocking.enabled,content.blocking.enabled>>|Enable the ad/host blocker
+|<<content.blocking.hosts.block_subdomains,content.blocking.hosts.block_subdomains>>|Block subdomains of blocked hosts.
 |<<content.blocking.hosts.lists,content.blocking.hosts.lists>>|List of URLs to host blocklists for the host blocker.
 |<<content.blocking.method,content.blocking.method>>|Which method of blocking ads should be used.
 |<<content.blocking.whitelist,content.blocking.whitelist>>|A list of patterns that should always be loaded, despite being blocked by the ad-/host-blocker.
@@ -1989,6 +1990,14 @@ Default:
 Enable the ad/host blocker
 
 This setting supports URL patterns.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
+[[content.blocking.hosts.block_subdomains]]
+=== content.blocking.hosts.block_subdomains
+Block subdomains of blocked hosts.
 
 Type: <<types,Bool>>
 

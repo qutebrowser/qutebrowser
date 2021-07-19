@@ -747,6 +747,11 @@ content.blocking.hosts.lists:
 
     The file `~/.config/qutebrowser/blocked-hosts` is always read if it exists.
 
+content.blocking.hosts.block_subdomains:
+  default: true
+  type: Bool
+  desc: Block subdomains of blocked hosts.
+
 content.blocking.method:
   default: auto
   type:
