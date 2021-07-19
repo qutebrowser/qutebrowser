@@ -124,7 +124,6 @@
 |<<colors.webpage.darkmode.threshold.text,colors.webpage.darkmode.threshold.text>>|Threshold for inverting text with dark mode.
 |<<colors.webpage.preferred_color_scheme,colors.webpage.preferred_color_scheme>>|Value to use for `prefers-color-scheme:` for websites.
 |<<completion.cmd_history_max_items,completion.cmd_history_max_items>>|Number of commands to save in the command history.
-|<<completion.fprompt_history_max_items,completion.fprompt_history_max_items>>|Number of file paths to save in the file prompt history.
 |<<completion.delay,completion.delay>>|Delay (in milliseconds) before updating completions after typing a character.
 |<<completion.favorite_paths,completion.favorite_paths>>|Default filesystem autocomplete suggestions for :open.
 |<<completion.height,completion.height>>|Height (in pixels or as percentage of the window) of the completion.
@@ -281,7 +280,8 @@
 |<<messages.timeout,messages.timeout>>|Duration (in milliseconds) to show messages in the statusbar for.
 |<<new_instance_open_target,new_instance_open_target>>|How to open links in an existing instance if a new one is launched.
 |<<new_instance_open_target_window,new_instance_open_target_window>>|Which window to choose when opening links as new tabs.
-|<<prompt.filebrowser,prompt.filebrowser>>|Show a filebrowser in download prompts.
+|<<prompt.filebrowser.enabled,prompt.filebrowser.enabled>>|Show a filebrowser in download prompts.
+|<<prompt.filebrowser.history_max_items,prompt.filebrowser.history_max_items>>|Number of file paths to save in the file prompt history.
 |<<prompt.radius,prompt.radius>>|Rounding radius (in pixels) for the edges of prompts.
 |<<qt.args,qt.args>>|Additional arguments to pass to Qt, without leading `--`.
 |<<qt.environ,qt.environ>>|Additional environment variables to set.
@@ -1791,15 +1791,6 @@ Default: +pass:[auto]+
 [[completion.cmd_history_max_items]]
 === completion.cmd_history_max_items
 Number of commands to save in the command history.
-0: no history / -1: unlimited
-
-Type: <<types,Int>>
-
-Default: +pass:[100]+
-
-[[completion.fprompt_history_max_items]]
-=== completion.fprompt_history_max_items
-Number of file paths to save in the file prompt history.
 0: no history / -1: unlimited
 
 Type: <<types,Int>>
@@ -3700,13 +3691,22 @@ Valid values:
 
 Default: +pass:[last-focused]+
 
-[[prompt.filebrowser]]
-=== prompt.filebrowser
+[[prompt.filebrowser.enabled]]
+=== prompt.filebrowser.enabled
 Show a filebrowser in download prompts.
 
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
+
+[[prompt.filebrowser.history_max_items]]
+=== prompt.filebrowser.history_max_items
+Number of file paths to save in the file prompt history.
+0: no history / -1: unlimited
+
+Type: <<types,Int>>
+
+Default: +pass:[100]+
 
 [[prompt.radius]]
 === prompt.radius

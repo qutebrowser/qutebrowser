@@ -23,8 +23,15 @@ import pytest
 from PyQt5.QtCore import Qt
 
 from qutebrowser.mainwindow import prompt as promptmod
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, objreg
+from qutebrowser.misc import cmdhistory
 
+@pytest.fixture(autouse=True)
+def test_init(fake_save_manager, data_tmpdir, config_stub):
+    cmdhistory.init()
+    yield
+    objreg.delete('command-history')
+    objreg.delete('fprompt-history')
 
 class TestFileCompletion:
 

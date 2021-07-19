@@ -492,9 +492,6 @@ def _init_modules(*, args):
     log.init.debug("Initializing command history...")
     cmdhistory.init()
 
-    log.init.debug("Initializing file prompt history")
-    cmdhistory.init_fprompt()
-
     log.init.debug("Initializing websettings...")
     websettings.init(args)
     quitter.instance.shutting_down.connect(websettings.shutdown)

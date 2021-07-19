@@ -447,6 +447,21 @@ class PromptContainer(QWidget):
         except UnsupportedOperationError:
             pass
 
+    @cmdutils.register(instance='prompt-container', scope='window',
+                       modes=[usertypes.KeyMode.prompt])
+    @cmdutils.argument('which', choices=['next', 'prev'])
+    def prompt_history(self, which):
+        """Shift the focus of the prompt file completion menu to another item.
+
+        Args:
+            which: 'next', 'prev'
+        """
+        assert self._prompt is not None
+        if which == 'prev':
+            self._prompt.history_prev()
+        elif which == 'next':
+            self._prompt.history_next()
+
     @cmdutils.register(
         instance='prompt-container', scope='window',
         modes=[usertypes.KeyMode.prompt, usertypes.KeyMode.yesno])
@@ -636,18 +651,9 @@ class FilenamePrompt(_BasePrompt):
         self._root_index = QModelIndex()
 
         self._history = cmdhistory.History(parent=self)
-        try:
-            fprompt_history = objreg.get('fprompt-history')
-            self._history.history = fprompt_history.data
-            self._history.changed.connect(fprompt_history.changed)
-            self._shortcut_next = QShortcut(QKeySequence("Ctrl+P"), self)
-            self._shortcut_next.activated.connect(self.history_next)
-            self._shortcut_prev = QShortcut(QKeySequence("Ctrl+N"), self)
-            self._shortcut_prev.activated.connect(self.history_prev)
-        except KeyError:
-            log.prompt.info("fprompt-history has not been initialized, "
-                            "no history completions available. "
-                            "Most likely running from pytest.")
+        fprompt_history = objreg.get('fprompt-history')
+        self._history.history = fprompt_history.data
+        self._history.changed.connect(fprompt_history.changed)
 
     def history_prev(self):
         """Go back in the history."""
@@ -657,7 +663,9 @@ class FilenamePrompt(_BasePrompt):
             else:
                 item = self._history.previtem()
         except (cmdhistory.HistoryEmptyError,
-                cmdhistory.HistoryEndReachedError):
+                cmdhistory.HistoryEndReachedError) as e:
+            print(e)
+            print("error")
             return
         self._lineedit.setText(item)
 
