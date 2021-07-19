@@ -27,7 +27,7 @@ import signal
 import functools
 import logging
 import pathlib
-from typing import Optional, List
+from typing import Optional, List, Callable
 
 try:
     import hunter
@@ -273,7 +273,7 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
 
         do_click(elems[0])
 
-    def wrap_find_at_pos(value, callback):
+    def wrap_find_at_pos(value: str, callback: Callable) -> None:
         try:
             x, y = map(int, value.split(',', maxsplit=1))
         except ValueError:
