@@ -34,7 +34,7 @@ try:
 except ImportError:
     hunter = None
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
 
 from qutebrowser.api import cmdutils, apitypes, message, config
@@ -225,7 +225,7 @@ def insert_text(tab: apitypes.Tab, text: str) -> None:
 
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-@cmdutils.argument('filter_', choices=['id', 'css'])
+@cmdutils.argument('filter_', choices=['id', 'css', 'position'])
 def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
                   target: apitypes.ClickTarget =
                   apitypes.ClickTarget.normal,
@@ -269,9 +269,18 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
 
         do_click(elems[0])
 
+    def wrap_find_at_pos(value, callback):
+        try:
+            x, y = map(int, value.split(',', maxsplit=1))
+        except ValueError:
+            message.error(f"'{value}' is not a valid point.")
+            return
+        tab.elements.find_at_position(QPoint(x, y), callback)
+
     handlers = {
         'id': (tab.elements.find_id, single_cb),
         'css': (tab.elements.find_css, multiple_cb, message.error),
+        'position': (wrap_find_at_pos, single_cb),
     }
     handler, *callback = handlers[filter_]
     handler(value, *callback)
