@@ -137,7 +137,7 @@ class TestFileCompletion:
         prompt._lineedit.setText('')
         qtbot.keyPress(prompt._lineedit, Qt.Key_AsciiTilde)
         # The path currently seen by the file_model should be the same as os.path.expanduser('~')
-        assert str(Path(prompt._file_model.rootPath()) / prompt._to_complete) == os.path.expanduser('~')
+        assert Path(prompt._file_model.rootPath()) / prompt._to_complete == pathlib.Path.home()
         # The first character on the lineedit should remain ~
         prompt.item_focus('next')
         prompt.item_focus('next')
