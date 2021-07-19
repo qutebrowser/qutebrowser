@@ -134,8 +134,8 @@ class HostBlocker:
 
         if config.get("content.blocking.hosts.block_subdomains"):
             return any(
-                hostname in self._blocked_hosts \
-                    or hostname in self._config_blocked_hosts
+                hostname in self._blocked_hosts
+                or hostname in self._config_blocked_hosts
                 for hostname in urlutils.widened_hostnames(host)
             )
         else:
