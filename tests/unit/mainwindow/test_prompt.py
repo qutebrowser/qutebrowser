@@ -131,7 +131,7 @@ class TestFileCompletion:
         """With / as path, show root contents."""
         prompt = get_prompt('/')
         assert prompt._file_model.rootPath() == '/'
-    
+ 
     def test_tab_root(self, get_prompt, qtbot):
         prompt = get_prompt('/')
         qtbot.keySequence(prompt._lineedit, QKeySequence(Qt.CTRL + Qt.Key_U))
