@@ -189,7 +189,6 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
         'mouseMove',
         'mouseDClick',
         'keySequence',
-        'waitSignal',
     }
 
     qtbot_excludes = '|'.join(qtbot_methods)
