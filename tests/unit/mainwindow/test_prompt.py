@@ -134,6 +134,6 @@ class TestFileCompletion:
 
     def test_tab_root(self, get_prompt, qtbot):
         prompt = get_prompt('/')
-        qtbot.keySequence(prompt._lineedit, QKeySequence(Qt.CTRL + Qt.Key_U))
+        qtbot.keyPress(prompt._lineedit, Qt.Key_U, Qt.ControlModifier)
         prompt.item_focus('next')
         assert prompt._lineedit.text() == '/'
