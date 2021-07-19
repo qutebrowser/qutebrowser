@@ -263,7 +263,7 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
         do_click(elem)
 
     def multiple_cb(elems: List[apitypes.WebElement]) -> None:
-        if len(elems) == 0:
+        if not elems:
             message.error(f"No element found matching {filter_}={value}!")
             return
 
@@ -286,8 +286,8 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
         'css': (tab.elements.find_css, multiple_cb, message.error),
         'position': (wrap_find_at_pos, single_cb),
     }
-    handler, *callback = handlers[filter_]
-    handler(value, *callback)
+    handler, *callbacks = handlers[filter_]
+    handler(value, *callbacks)
 
 
 @cmdutils.register(debug=True)
