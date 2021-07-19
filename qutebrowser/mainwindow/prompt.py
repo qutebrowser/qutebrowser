@@ -655,8 +655,6 @@ class FilenamePrompt(_BasePrompt):
         if os.path.expanduser(path) != path:
             path = os.path.expanduser(path)
             self._expands_user = True
-        elif not self._expands_user:
-            self._expands_user = False
 
         dirname = os.path.dirname(path)
         basename = os.path.basename(path)
@@ -706,20 +704,8 @@ class FilenamePrompt(_BasePrompt):
             # On Windows, when we have C:\foo and tab over .., we get C:\
             path = path.rstrip(os.sep)
 
-        c_sep = 0
-        index_end_home = 0
-        for i, character in enumerate(path):
-            if character in self._separators:
-                c_sep += 1
-
-            index_end_home = i
-
-            if c_sep == 3:
-                break
-
         if self._expands_user:
-            path = (path[:index_end_home].replace(os.path.expanduser('~'), '~') +
-                    path[index_end_home:])
+            path = path.replace(os.path.expanduser('~'), '~', 1)
         else:
             self._expands_user = False
 
