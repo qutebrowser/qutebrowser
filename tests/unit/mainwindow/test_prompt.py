@@ -156,7 +156,7 @@ class TestFileCompletion:
         assert prompt._lineedit.text()[0] == '~'
 
     def test_expand_once(self, qtbot, get_prompt, home_path):
-        pathlib.Path(str(home_path) + str(home_path)).mkdir(parents=True)
+        home_path.joinpath(*home_path.parts[1:]).mkdir(parents=True)
 
         prompt = get_prompt('/')
         prompt._lineedit.setText('~' + str(home_path))
