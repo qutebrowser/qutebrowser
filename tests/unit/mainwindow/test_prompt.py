@@ -18,6 +18,7 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
+from pathlib import Path
 
 import pytest
 from PyQt5.QtCore import Qt
@@ -130,3 +131,14 @@ class TestFileCompletion:
         """With / as path, show root contents."""
         prompt = get_prompt('/')
         assert prompt._file_model.rootPath() == '/'
+    
+    def test_expand_user(self, qtbot, get_prompt):
+        prompt = get_prompt('/')
+        prompt._lineedit.setText('')
+        qtbot.keyPress(prompt._lineedit, Qt.Key_AsciiTilde)
+        # The path currently seen by the file_model should be the same as os.path.expanduser('~')
+        assert str(Path(prompt._file_model.rootPath()) / prompt._to_complete) == os.path.expanduser('~')
+        # The first character on the lineedit should remain ~
+        prompt.item_focus('next')
+        prompt.item_focus('next')
+        assert prompt._lineedit.text()[0] == '~'
