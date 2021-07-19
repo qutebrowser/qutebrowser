@@ -27,7 +27,7 @@ import signal
 import functools
 import logging
 import pathlib
-from typing import Optional, Union, List
+from typing import Optional, List
 
 try:
     import hunter
@@ -244,25 +244,34 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
         force_event: Force generating a fake click event.
         select_first: Select first matching element if there are multiple.
     """
-    def single_cb(elem: Union[apitypes.WebElement, List[apitypes.WebElement], None]) -> None:
-        """Click a single element."""
-        if not elem:
-            message.error(f"No element found matching {filter_}={value}!")
-            return
-        if isinstance(elem, list):
-            if not select_first and len(elem) > 1:
-                message.error(f"Multiple elements found matching {filter_}={value}!")
-                return
-            elem = elem[0]
+    def do_click(elem: apitypes.WebElement) -> None:
         try:
             elem.click(target, force_event=force_event)
         except apitypes.WebElemError as e:
             message.error(str(e))
+
+    def single_cb(elem: Optional[apitypes.WebElement]) -> None:
+        """Click a single element."""
+        if elem is None:
+            message.error(f"No element found matching {filter_}={value}!")
             return
+
+        do_click(elem)
+
+    def multiple_cb(elems: List[apitypes.WebElement]) -> None:
+        if len(elems) == 0:
+            message.error(f"No element found matching {filter_}={value}!")
+            return
+
+        if not select_first and len(elems) > 1:
+            message.error(f"Multiple elements found matching {filter_}={value}!")
+            return
+
+        do_click(elems[0])
 
     handlers = {
         'id': (tab.elements.find_id, single_cb),
-        'css': (tab.elements.find_css, single_cb, message.error),
+        'css': (tab.elements.find_css, multiple_cb, message.error),
     }
     handler, *callback = handlers[filter_]
     handler(value, *callback)
