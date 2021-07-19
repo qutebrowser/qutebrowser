@@ -105,6 +105,9 @@ def check_exclusive(flags: Iterable[bool], names: Iterable[str]) -> None:
         raise CommandError("Only one of {} can be given!".format(argstr))
 
 
+_CmdHandlerType = Callable[..., Any]
+
+
 class register:  # noqa: N801,N806 pylint: disable=invalid-name
 
     """Decorator to register a new command handler."""
@@ -130,7 +133,7 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
         # The arguments to pass to Command.
         self._kwargs = kwargs
 
-    def __call__(self, func: Callable) -> Callable:
+    def __call__(self, func: _CmdHandlerType) -> _CmdHandlerType:
         """Register the command before running the function.
 
         Gets called when a function should be decorated.
@@ -222,7 +225,7 @@ class argument:  # noqa: N801,N806 pylint: disable=invalid-name
         self._argname = argname   # The name of the argument to handle.
         self._kwargs = kwargs  # Valid ArgInfo members.
 
-    def __call__(self, func: Callable) -> Callable:
+    def __call__(self, func: _CmdHandlerType) -> _CmdHandlerType:
         funcname = func.__name__
 
         if self._argname not in inspect.signature(func).parameters:

@@ -639,15 +639,6 @@ def short_tmpdir():
         yield py.path.local(tdir)  # pylint: disable=no-member
 
 
-@pytest.fixture
-def init_sql(data_tmpdir):
-    """Initialize the SQL module, and shut it down after the test."""
-    path = str(data_tmpdir / 'test.db')
-    sql.init(path)
-    yield
-    sql.close()
-
-
 class ModelValidator:
 
     """Validates completion models."""
@@ -682,12 +673,20 @@ def download_stub(win_registry, tmpdir, stubs):
 
 
 @pytest.fixture
-def web_history(fake_save_manager, tmpdir, init_sql, config_stub, stubs,
+def database(data_tmpdir):
+    """Create a Database object."""
+    db = sql.Database(str(data_tmpdir / 'test.db'))
+    yield db
+    db.close()
+
+
+@pytest.fixture
+def web_history(fake_save_manager, tmpdir, database, config_stub, stubs,
                 monkeypatch):
     """Create a WebHistory object."""
     config_stub.val.completion.timestamp_format = '%Y-%m-%d'
     config_stub.val.completion.web_history.max_items = -1
-    web_history = history.WebHistory(stubs.FakeHistoryProgress())
+    web_history = history.WebHistory(database, stubs.FakeHistoryProgress())
     monkeypatch.setattr(history, 'web_history', web_history)
     return web_history
 

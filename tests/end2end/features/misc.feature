@@ -196,7 +196,7 @@ Feature: Various utility commands.
         # We can't use "When I open" because we don't want to wait for load
         # finished
         When I run :open http://localhost:(port)/redirect-later?delay=-1
-        And I wait for "emitting: cur_load_status_changed(*loading*) (tab *)" in the log
+        And I wait for "emitting: cur_load_status_changed(<LoadStatus.loading: *>) (tab *)" in the log
         And I wait 1s
         And I run :stop
         And I open redirect-later-continue in a new tab

@@ -37,7 +37,10 @@ from qutebrowser.api import (
     qtutils,
 )
 from qutebrowser.components.utils import blockutils
-from qutebrowser.utils import version  # FIXME: Move needed parts into api namespace?
+from qutebrowser.utils import (  # FIXME: Move needed parts into api namespace?
+    urlutils,
+    version
+)
 
 
 logger = logging.getLogger("network")
@@ -124,10 +127,15 @@ class HostBlocker:
         if not config.get("content.blocking.enabled", url=first_party_url):
             return False
 
+        if blockutils.is_whitelisted_url(request_url):
+            return False
+
         host = request_url.host()
-        return (
-            host in self._blocked_hosts or host in self._config_blocked_hosts
-        ) and not blockutils.is_whitelisted_url(request_url)
+
+        return any(
+            hostname in self._blocked_hosts or hostname in self._config_blocked_hosts
+            for hostname in urlutils.widened_hostnames(host)
+        )
 
     def filter_request(self, info: interceptor.Request) -> None:
         """Block the given request if necessary."""

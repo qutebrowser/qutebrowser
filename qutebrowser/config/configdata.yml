@@ -528,6 +528,22 @@ content.frame_flattening:
 
     This will flatten all the frames to become one scrollable page.
 
+content.prefers_reduced_motion:
+  default: false
+  type: Bool
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+  restart: true
+  desc: >-
+    Request websites to minimize non-essentials animations and motion.
+
+    This results in the `prefers-reduced-motion` CSS media query to evaluate to
+    `reduce` (rather than `no-preference`).
+
+    On Windows, if this setting is set to False, the system-wide animation
+    setting is considered.
+
 content.site_specific_quirks:
   renamed: content.site_specific_quirks.enabled
 
@@ -545,6 +561,7 @@ content.site_specific_quirks.skip:
       - ua-whatsapp
       - ua-google
       - ua-slack
+      - ua-googledocs
       - js-whatsapp-web
       - js-discord
       - js-string-replaceall
@@ -581,6 +598,7 @@ content.headers.accept_language:
   type:
     name: String
     none_ok: true
+    encoding: ascii
   supports_pattern: true
   default: en-US,en;q=0.9
   desc: >-
@@ -642,6 +660,7 @@ content.headers.user_agent:
       Safari/{webkit_version}'
   type:
     name: FormatString
+    encoding: ascii
     fields:
       - os_info
       - webkit_version
@@ -657,15 +676,15 @@ content.headers.user_agent:
       # 'ua_fetch.py'
       # Vim-protip: Place your cursor below this comment and run
       # :r!python scripts/dev/ua_fetch.py
-      - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/89.0.4389.90 Safari/537.36"
-        - Chrome 89 Linux
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/89.0.4389.90 Safari/537.36"
-        - Chrome 89 Win10
+          like Gecko) Chrome/90.0.4430.93 Safari/537.36"
+        - Chrome 90 Win10
       - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
-          (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
-        - Chrome 89 macOS
+          (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36"
+        - Chrome 90 macOS
+      - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/90.0.4430.93 Safari/537.36"
+        - Chrome 90 Linux
   supports_pattern: true
   desc: |
     User agent to send.
@@ -1382,6 +1401,8 @@ fileselect.single_file.command:
       - ['["xterm", "-e", "ranger", "--choosefile={}"]', "Ranger in xterm"]
       - ['["xterm", "-e", "vifm", "--choose-files", "{}"]', "vifm in xterm"]
       - ['["xterm", "-e", "nnn", "-p", "{}"]', "nnn in xterm"]
+      - ['["xterm", "-e", "fff", "-p", "{}"]', "fff in xterm"]
+      - ['["xterm", "-e", "lf", "-selection-path", "{}"]', "lf in xterm"]
   default: ['xterm', '-e', 'ranger', '--choosefile={}']
   desc: >-
     Command (and arguments) to use for selecting a single file in forms.
@@ -1400,6 +1421,8 @@ fileselect.multiple_files.command:
       - ['["xterm", "-e", "ranger", "--choosefiles={}"]', "Ranger in xterm"]
       - ['["xterm", "-e", "vifm", "--choose-files", "{}"]', "vifm in xterm"]
       - ['["xterm", "-e", "nnn", "-p", "{}"]', "nnn in xterm"]
+      - ['["xterm", "-e", "fff", "-p", "{}"]', "fff in xterm"]
+      - ['["xterm", "-e", "lf", "-selection-path", "{}"]', "lf in xterm"]
   default: ['xterm', '-e', 'ranger', '--choosefiles={}']
   desc: >-
     Command (and arguments) to use for selecting multiple files in forms.
@@ -2746,6 +2769,11 @@ colors.prompts.bg:
   type: QssColor
   desc: Background color for prompts.
 
+colors.prompts.selected.fg:
+  default: white
+  type: QssColor
+  desc: Foreground color for the selected item in filename prompts.
+
 colors.prompts.selected.bg:
   default: grey
   type: QssColor
@@ -3272,6 +3300,7 @@ fonts.tabs.unselected:
 
 fonts.web.family.standard:
   default: ''
+  supports_pattern: true
   type:
     name: FontFamily
     none_ok: true
@@ -3279,6 +3308,7 @@ fonts.web.family.standard:
 
 fonts.web.family.fixed:
   default: ''
+  supports_pattern: true
   type:
     name: FontFamily
     none_ok: true
@@ -3286,6 +3316,7 @@ fonts.web.family.fixed:
 
 fonts.web.family.serif:
   default: ''
+  supports_pattern: true
   type:
     name: FontFamily
     none_ok: true
@@ -3293,6 +3324,7 @@ fonts.web.family.serif:
 
 fonts.web.family.sans_serif:
   default: ''
+  supports_pattern: true
   type:
     name: FontFamily
     none_ok: true
@@ -3300,6 +3332,7 @@ fonts.web.family.sans_serif:
 
 fonts.web.family.cursive:
   default: ''
+  supports_pattern: true
   type:
     name: FontFamily
     none_ok: true
@@ -3307,6 +3340,7 @@ fonts.web.family.cursive:
 
 fonts.web.family.fantasy:
   default: ''
+  supports_pattern: true
   type:
     name: FontFamily
     none_ok: true
@@ -3319,6 +3353,7 @@ fonts.web.family.fantasy:
 
 fonts.web.size.default:
   default: 16
+  supports_pattern: true
   type:
     name: Int
     minval: 1
@@ -3327,6 +3362,7 @@ fonts.web.size.default:
 
 fonts.web.size.default_fixed:
   default: 13
+  supports_pattern: true
   type:
     name: Int
     minval: 1
@@ -3335,6 +3371,7 @@ fonts.web.size.default_fixed:
 
 fonts.web.size.minimum:
   default: 0
+  supports_pattern: true
   type:
     name: Int
     minval: 0
@@ -3345,6 +3382,7 @@ fonts.web.size.minimum_logical:
   # This is 0 as default on QtWebKit, and 6 on QtWebEngine - so let's
   # just go for 6 here.
   default: 6
+  supports_pattern: true
   type:
     name: Int
     minval: 0

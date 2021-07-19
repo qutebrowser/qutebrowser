@@ -229,6 +229,10 @@ def is_ignored_chromium_message(line):
         # gpu_process_transport_factory.cc(1019)] Lost UI shared context.
         'Lost UI shared context.',
 
+        # [20870:20908:0607/081717.652282:ERROR:block_files.cc(465)] Failed to
+        # open /tmp/qutebrowser-basedir-cg284f_m/data/webengine/GPUCache/data_2
+        'Failed to open *GPUCache*',
+
         # Qt 5.12
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70702
         # [32123:32123:0923/224739.457307:ERROR:in_progress_cache_impl.cc(192)]
@@ -330,6 +334,7 @@ def is_ignored_chromium_message(line):
          'filtering (maybe)?'),
         ('[.DisplayCompositor]GL ERROR :GL_INVALID_OPERATION : '
          'DoEndSharedImageAccessCHROMIUM: bound texture is not a shared image'),
+        'Unable to map Index file',
 
         # WebRTC with Qt 5.13 / 5.14
         'Failed to query stereo recording.',
@@ -347,6 +352,20 @@ def is_ignored_chromium_message(line):
         # Flatpak
         'mDNS responder manager failed to start.',
         'The mDNS responder manager is not started yet.',
+
+        # GitHub Actions with Qt 5.15.0
+        # [5387:5407:0713/142608.526916:ERROR:cache_util.cc(135)] Unable to
+        # move cache folder
+        # /tmp/qutebrowser-basedir-4x3ue9fq/data/webengine/GPUCache to
+        # /tmp/qutebrowser-basedir-4x3ue9fq/data/webengine/old_GPUCache_000
+        # [5387:5407:0713/142608.526934:ERROR:disk_cache.cc(184)] Unable to
+        # create cache
+        # [5387:5407:0713/142608.526938:ERROR:shader_disk_cache.cc(606)] Shader
+        # Cache Creation failed: -2
+        ('Unable to move cache folder */data/webengine/GPUCache to '
+            '*/data/webengine/old_GPUCache_000'),
+        'Unable to create cache',
+        'Shader Cache Creation failed: -2',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)

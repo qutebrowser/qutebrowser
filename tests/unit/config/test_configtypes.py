@@ -1839,6 +1839,11 @@ class TestFormatString:
         with pytest.raises(configexc.ValidationError):
             typ.to_py(val)
 
+    def test_invalid_encoding(self, klass):
+        typ = klass(fields=[], encoding='ascii')
+        with pytest.raises(configexc.ValidationError):
+            typ.to_py('fooäbar')
+
     @pytest.mark.parametrize('value', [
         None,
         ['one', 'two'],

@@ -32,7 +32,7 @@ from typing import cast, List, Sequence
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
 from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
-                               javascript, urlmatch, version, usertypes)
+                               javascript, urlmatch, version, usertypes, message)
 from qutebrowser.api import cmdutils
 from qutebrowser.browser import downloads
 from qutebrowser.misc import objects
@@ -67,6 +67,7 @@ class GreasemonkeyScript:
         self.runs_on_sub_frames = True
         self.jsworld = "main"
         self.name = ''
+        self.dedup_suffix = 1
 
         for name, value in properties:
             if name == 'name':
@@ -100,6 +101,23 @@ class GreasemonkeyScript:
 
     HEADER_REGEX = r'// ==UserScript==|\n+// ==/UserScript==\n'
     PROPS_REGEX = r'// @(?P<prop>[^\s]+)\s*(?P<val>.*)'
+
+    def __str__(self):
+        return self.name
+
+    def full_name(self) -> str:
+        """Get the full name of this script.
+
+        This includes a GM- prefix, its namespace (if any) and deduplication
+        counter suffix, if set.
+        """
+        parts = ['GM-']
+        if self.namespace is not None:
+            parts += [self.namespace, '/']
+        parts.append(self.name)
+        if self.dedup_suffix > 1:
+            parts.append(f"-{self.dedup_suffix}")
+        return ''.join(parts)
 
     @classmethod
     def parse(cls, source, filename=None):
@@ -266,7 +284,7 @@ class GreasemonkeyManager(QObject):
 
         self.load_scripts()
 
-    def load_scripts(self, *, force=False):
+    def load_scripts(self, *, force: bool = False) -> List[GreasemonkeyScript]:
         """Re-read Greasemonkey scripts from disk.
 
         The scripts are read from a 'greasemonkey' subdirectory in
@@ -275,14 +293,19 @@ class GreasemonkeyManager(QObject):
         Args:
             force: For any scripts that have required dependencies,
                    re-download them.
+
+        Return:
+            A list of loaded scripts.
         """
         self._run_start = []
         self._run_end = []
         self._run_idle = []
 
+        scripts = []
         for scripts_dir in _scripts_dirs():
             scripts_dir = os.path.abspath(scripts_dir)
             log.greasemonkey.debug("Reading scripts from: {}".format(scripts_dir))
+
             for script_filename in glob.glob(os.path.join(scripts_dir, '*.js')):
                 if not os.path.isfile(script_filename):
                     continue
@@ -290,10 +313,12 @@ class GreasemonkeyManager(QObject):
                 with open(script_path, encoding='utf-8-sig') as script_file:
                     script = GreasemonkeyScript.parse(script_file.read(),
                                                       script_filename)
-                    if not script.name:
-                        script.name = script_filename
+                    assert script.name, script
                     self.add_script(script, force)
+                    scripts.append(script)
+
         self.scripts_reloaded.emit()
+        return sorted(scripts, key=str)
 
     def add_script(self, script, force=False):
         """Add a GreasemonkeyScript to this manager.
@@ -304,8 +329,7 @@ class GreasemonkeyManager(QObject):
         """
         if script.requires:
             log.greasemonkey.debug(
-                "Deferring script until requirements are "
-                "fulfilled: {}".format(script.name))
+                f"Deferring script until requirements are fulfilled: {script}")
             self._get_required_scripts(script, force)
         else:
             self._add_script(script)
@@ -319,14 +343,13 @@ class GreasemonkeyManager(QObject):
             self._run_idle.append(script)
         else:
             if script.run_at:
-                log.greasemonkey.warning("Script {} has invalid run-at "
-                                         "defined, defaulting to "
-                                         "document-end"
-                                         .format(script.name))
+                log.greasemonkey.warning(
+                    f"Script {script} has invalid run-at defined, defaulting to "
+                    "document-end")
                 # Default as per
                 # https://wiki.greasespot.net/Metadata_Block#.40run-at
             self._run_end.append(script)
-        log.greasemonkey.debug("Loaded script: {}".format(script.name))
+        log.greasemonkey.debug(f"Loaded script: {script}")
 
     def _required_url_to_file_path(self, url):
         requires_dir = os.path.join(_scripts_dirs()[0], 'requires')
@@ -338,9 +361,8 @@ class GreasemonkeyManager(QObject):
         self._in_progress_dls.remove(download)
         if not self._add_script_with_requires(script):
             log.greasemonkey.debug(
-                "Finished download {} for script {} "
-                "but some requirements are still pending"
-                .format(download.basename, script.name))
+                f"Finished download {download.basename} for script {script} "
+                "but some requirements are still pending")
 
     def _add_script_with_requires(self, script, quiet=False):
         """Add a script with pending downloads to this GreasemonkeyManager.
@@ -364,8 +386,7 @@ class GreasemonkeyManager(QObject):
         for url in reversed(script.requires):
             target_path = self._required_url_to_file_path(url)
             log.greasemonkey.debug(
-                "Adding required script for {} to IIFE: {}"
-                .format(script.name, url))
+                f"Adding required script for {script} to IIFE: {url}")
             with open(target_path, encoding='utf8') as f:
                 script.add_required_script(f.read())
 
@@ -426,7 +447,7 @@ class GreasemonkeyManager(QObject):
 
 
 @cmdutils.register()
-def greasemonkey_reload(force=False):
+def greasemonkey_reload(force: bool = False, quiet: bool = False) -> None:
     """Re-read Greasemonkey scripts from disk.
 
     The scripts are read from a 'greasemonkey' subdirectory in
@@ -435,8 +456,12 @@ def greasemonkey_reload(force=False):
     Args:
         force: For any scripts that have required dependencies,
                 re-download them.
+        quiet: Suppress message after loading scripts.
     """
-    gm_manager.load_scripts(force=force)
+    scripts = gm_manager.load_scripts(force=force)
+    names = '\n'.join(str(script) for script in scripts)
+    if not quiet:
+        message.info(f"Loaded scripts:\n\n{names}")
 
 
 def init():

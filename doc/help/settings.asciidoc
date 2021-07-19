@@ -67,6 +67,7 @@
 |<<colors.prompts.border,colors.prompts.border>>|Border used around UI elements in prompts.
 |<<colors.prompts.fg,colors.prompts.fg>>|Foreground color for prompts.
 |<<colors.prompts.selected.bg,colors.prompts.selected.bg>>|Background color for the selected item in filename prompts.
+|<<colors.prompts.selected.fg,colors.prompts.selected.fg>>|Foreground color for the selected item in filename prompts.
 |<<colors.statusbar.caret.bg,colors.statusbar.caret.bg>>|Background color of the statusbar in caret mode.
 |<<colors.statusbar.caret.fg,colors.statusbar.caret.fg>>|Foreground color of the statusbar in caret mode.
 |<<colors.statusbar.caret.selection.bg,colors.statusbar.caret.selection.bg>>|Background color of the statusbar in caret mode with a selection.
@@ -187,6 +188,7 @@
 |<<content.pdfjs,content.pdfjs>>|Allow pdf.js to view PDF files in the browser.
 |<<content.persistent_storage,content.persistent_storage>>|Allow websites to request persistent storage quota via `navigator.webkitPersistentStorage.requestQuota`.
 |<<content.plugins,content.plugins>>|Enable plugins in Web pages.
+|<<content.prefers_reduced_motion,content.prefers_reduced_motion>>|Request websites to minimize non-essentials animations and motion.
 |<<content.print_element_backgrounds,content.print_element_backgrounds>>|Draw the background color and images also when the page is printed.
 |<<content.private_browsing,content.private_browsing>>|Open new windows in private browsing mode which does not record visited pages.
 |<<content.proxy,content.proxy>>|Proxy to use.
@@ -1231,6 +1233,14 @@ Background color for the selected item in filename prompts.
 Type: <<types,QssColor>>
 
 Default: +pass:[grey]+
+
+[[colors.prompts.selected.fg]]
+=== colors.prompts.selected.fg
+Foreground color for the selected item in filename prompts.
+
+Type: <<types,QssColor>>
+
+Default: +pass:[white]+
 
 [[colors.statusbar.caret.bg]]
 === colors.statusbar.caret.bg
@@ -2607,6 +2617,22 @@ Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
+[[content.prefers_reduced_motion]]
+=== content.prefers_reduced_motion
+Request websites to minimize non-essentials animations and motion.
+This results in the `prefers-reduced-motion` CSS media query to evaluate to `reduce` (rather than `no-preference`).
+On Windows, if this setting is set to False, the system-wide animation setting is considered.
+
+This setting requires a restart.
+
+On QtWebEngine, this setting requires Qt 5.14 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
 [[content.print_element_backgrounds]]
 === content.print_element_backgrounds
 Draw the background color and images also when the page is printed.
@@ -2692,6 +2718,7 @@ Valid values:
  * +ua-whatsapp+
  * +ua-google+
  * +ua-slack+
+ * +ua-googledocs+
  * +js-whatsapp-web+
  * +js-discord+
  * +js-string-replaceall+
@@ -3088,6 +3115,8 @@ Default: +pass:[default_size default_family]+
 === fonts.web.family.cursive
 Font family for cursive fonts.
 
+This setting supports URL patterns.
+
 Type: <<types,FontFamily>>
 
 Default: empty
@@ -3095,6 +3124,8 @@ Default: empty
 [[fonts.web.family.fantasy]]
 === fonts.web.family.fantasy
 Font family for fantasy fonts.
+
+This setting supports URL patterns.
 
 Type: <<types,FontFamily>>
 
@@ -3104,6 +3135,8 @@ Default: empty
 === fonts.web.family.fixed
 Font family for fixed fonts.
 
+This setting supports URL patterns.
+
 Type: <<types,FontFamily>>
 
 Default: empty
@@ -3111,6 +3144,8 @@ Default: empty
 [[fonts.web.family.sans_serif]]
 === fonts.web.family.sans_serif
 Font family for sans-serif fonts.
+
+This setting supports URL patterns.
 
 Type: <<types,FontFamily>>
 
@@ -3120,6 +3155,8 @@ Default: empty
 === fonts.web.family.serif
 Font family for serif fonts.
 
+This setting supports URL patterns.
+
 Type: <<types,FontFamily>>
 
 Default: empty
@@ -3127,6 +3164,8 @@ Default: empty
 [[fonts.web.family.standard]]
 === fonts.web.family.standard
 Font family for standard fonts.
+
+This setting supports URL patterns.
 
 Type: <<types,FontFamily>>
 
@@ -3136,6 +3175,8 @@ Default: empty
 === fonts.web.size.default
 Default font size (in pixels) for regular text.
 
+This setting supports URL patterns.
+
 Type: <<types,Int>>
 
 Default: +pass:[16]+
@@ -3143,6 +3184,8 @@ Default: +pass:[16]+
 [[fonts.web.size.default_fixed]]
 === fonts.web.size.default_fixed
 Default font size (in pixels) for fixed-pitch text.
+
+This setting supports URL patterns.
 
 Type: <<types,Int>>
 
@@ -3152,6 +3195,8 @@ Default: +pass:[13]+
 === fonts.web.size.minimum
 Hard minimum font size (in pixels).
 
+This setting supports URL patterns.
+
 Type: <<types,Int>>
 
 Default: +pass:[0]+
@@ -3159,6 +3204,8 @@ Default: +pass:[0]+
 [[fonts.web.size.minimum_logical]]
 === fonts.web.size.minimum_logical
 Minimum logical font size (in pixels) that is applied when zooming out.
+
+This setting supports URL patterns.
 
 Type: <<types,Int>>
 

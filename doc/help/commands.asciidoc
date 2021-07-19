@@ -577,7 +577,7 @@ Toggle fullscreen mode.
 
 [[greasemonkey-reload]]
 === greasemonkey-reload
-Syntax: +:greasemonkey-reload [*--force*]+
+Syntax: +:greasemonkey-reload [*--force*] [*--quiet*]+
 
 Re-read Greasemonkey scripts from disk.
 
@@ -586,6 +586,7 @@ The scripts are read from a 'greasemonkey' subdirectory in qutebrowser's data or
 ==== optional arguments
 * +*-f*+, +*--force*+: For any scripts that have required dependencies, re-download them.
 
+* +*-q*+, +*--quiet*+: Suppress message after loading scripts.
 
 [[help]]
 === help
