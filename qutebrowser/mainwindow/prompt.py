@@ -617,7 +617,6 @@ class FilenamePrompt(_BasePrompt):
         self._init_key_label()
 
         self._expands_user = False
-        self._index_end = 0
 
         self._lineedit = LineEdit(self)
         if question.default:
@@ -708,18 +707,19 @@ class FilenamePrompt(_BasePrompt):
             path = path.rstrip(os.sep)
 
         c_sep = 0
+        index_end_home = 0
         for i, character in enumerate(path):
             if character in self._separators:
                 c_sep += 1
 
-            self._index_end = i
+            index_end_home = i
 
             if c_sep == 3:
                 break
 
         if self._expands_user:
-            path = (path[:self._index_end].replace(os.path.expanduser('~'), '~') +
-                    path[self._index_end:])
+            path = (path[:index_end_home].replace(os.path.expanduser('~'), '~') +
+                    path[index_end_home:])
         else:
             self._expands_user = False
 
