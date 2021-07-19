@@ -146,8 +146,8 @@ class TestFileCompletion:
 
         prompt = get_prompt('/')
         prompt._lineedit.setText('')
-        # _set_fileview_root isn't run unless there is an actual keypress
-        with qtbot.waitSignal(prompt._file_model.directoryLoaded) as blocker:
+        with qtbot.waitSignal(prompt._file_model.directoryLoaded):
+            # _set_fileview_root isn't run unless there is an actual keypress
             qtbot.keyPress(prompt._lineedit, Qt.Key_AsciiTilde)
             assert (pathlib.Path(prompt._file_model.rootPath()) /
                     prompt._to_complete) == pathlib.Path.home()
@@ -161,8 +161,8 @@ class TestFileCompletion:
 
         prompt = get_prompt('/')
         prompt._lineedit.setText('~' + str(home_path))
-        # _set_fileview_root isn't run unless there is an actual keypress
-        with qtbot.waitSignal(prompt._file_model.directoryLoaded) as blocker:
+        with qtbot.waitSignal(prompt._file_model.directoryLoaded):
+            # _set_fileview_root isn't run unless there is an actual keypress
             qtbot.keyPress(prompt._lineedit, Qt.Key_Slash)
             # The second instance of home_path shouldn't be replaced with ~
             assert prompt._lineedit.text()[:-1] == '~' + str(home_path)
@@ -173,8 +173,8 @@ class TestFileCompletion:
 
         prompt = get_prompt('/')
         prompt._lineedit.setText(str(home_path))
-        # _set_fileview_root isn't run unless there is an actual keypress
-        with qtbot.waitSignal(prompt._file_model.directoryLoaded) as blocker:
+        with qtbot.waitSignal(prompt._file_model.directoryLoaded):
+            # _set_fileview_root isn't run unless there is an actual keypress
             qtbot.keyPress(prompt._lineedit, Qt.Key_Slash)
 
             prompt.item_focus('next')
