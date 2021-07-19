@@ -717,16 +717,7 @@ class FilenamePrompt(_BasePrompt):
             if c_sep == 3:
                 break
 
-        # If the path is not the same as the path with expanduser set a boolean
-        if os.path.expanduser(path) != path:
-            path = os.path.expanduser(path)
-            self._expands_user = True
-        elif not self._expands_user:
-            self._expands_user = False
-
         if self._expands_user:
-            self._expands_user = True
-            print(path[:self._index_end])
             path = (path[:self._index_end].replace(os.path.expanduser('~'), '~') +
                     path[self._index_end:])
         else:
