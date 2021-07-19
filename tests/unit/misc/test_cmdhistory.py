@@ -175,6 +175,7 @@ def test_append_double(hist):
 def init_patch():
     yield
     objreg.delete('command-history')
+    objreg.delete('filename-prompt-history')
 
 
 def test_init(init_patch, fake_save_manager, data_tmpdir, config_stub):
