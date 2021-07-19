@@ -18,7 +18,7 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
-from pathlib import Path
+import pathlib
 
 import pytest
 from PyQt5.QtCore import Qt
@@ -134,10 +134,9 @@ class TestFileCompletion:
     
     def test_expand_user(self, qtbot, get_prompt):
         prompt = get_prompt('/')
-        prompt._lineedit.setText('')
-        qtbot.keyPress(prompt._lineedit, Qt.Key_AsciiTilde)
+        prompt._lineedit.setText('~')
         # The path currently seen by the file_model should be the same as os.path.expanduser('~')
-        assert Path(prompt._file_model.rootPath()) / prompt._to_complete == pathlib.Path.home()
+        assert pathlib.Path(prompt._file_model.rootPath()) / prompt._to_complete == pathlib.Path.home()
         # The first character on the lineedit should remain ~
         prompt.item_focus('next')
         prompt.item_focus('next')
