@@ -28,8 +28,7 @@ from typing import Deque, MutableSequence, Optional, cast
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
                           QItemSelectionModel, QObject, QEventLoop)
-from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import (QShortcut, QWidget, QGridLayout, QVBoxLayout, QLineEdit,
+from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QFileSystemModel, QTreeView, QSizePolicy,
                              QSpacerItem)
 
@@ -458,9 +457,17 @@ class PromptContainer(QWidget):
         """
         assert self._prompt is not None
         if which == 'prev':
-            self._prompt.history_prev()
+            try:
+                self._prompt.history_prev()
+            except UnsupportedOperationError:
+                pass
         elif which == 'next':
-            self._prompt.history_next()
+            try:
+                self._prompt.history_next()
+            except UnsupportedOperationError:
+                pass
+        else:
+            raise utils.Unreachable(which)
 
     @cmdutils.register(
         instance='prompt-container', scope='window',
@@ -644,16 +651,16 @@ class FilenamePrompt(_BasePrompt):
         self._init_fileview()
         self._set_fileview_root(question.default)
 
-        if config.val.prompt.filebrowser:
+        if config.val.prompt.filebrowser.enabled:
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
         self._to_complete = ''
         self._root_index = QModelIndex()
 
         self._history = cmdhistory.History(parent=self)
-        fprompt_history = objreg.get('fprompt-history')
-        self._history.history = fprompt_history.data
-        self._history.changed.connect(fprompt_history.changed)
+        filename_prompt_history = objreg.get('filename-prompt-history')
+        self._history.history = filename_prompt_history.data
+        self._history.changed.connect(filename_prompt_history.changed)
 
     def history_prev(self):
         """Go back in the history."""
@@ -663,9 +670,7 @@ class FilenamePrompt(_BasePrompt):
             else:
                 item = self._history.previtem()
         except (cmdhistory.HistoryEmptyError,
-                cmdhistory.HistoryEndReachedError) as e:
-            print(e)
-            print("error")
+                cmdhistory.HistoryEndReachedError):
             return
         self._lineedit.setText(item)
 
@@ -757,7 +762,7 @@ class FilenamePrompt(_BasePrompt):
         self._file_view.setModel(self._file_model)
         self._file_view.clicked.connect(self._insert_path)
 
-        if config.val.prompt.filebrowser:
+        if config.val.prompt.filebrowser.enabled:
             self._vbox.addWidget(self._file_view)
         else:
             self._file_view.hide()

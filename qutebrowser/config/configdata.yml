@@ -1819,6 +1819,9 @@ messages.unfocused:
 
 ## prompt
 
+prompt.filebrowser:
+    renamed: prompt.filebrowser.enabled
+
 prompt.filebrowser.enabled:
   type: Bool
   default: true

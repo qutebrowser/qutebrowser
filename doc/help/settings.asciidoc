@@ -755,7 +755,8 @@ Default:
 * +pass:[&lt;Ctrl-F&gt;]+: +pass:[rl-forward-char]+
 * +pass:[&lt;Ctrl-H&gt;]+: +pass:[rl-backward-delete-char]+
 * +pass:[&lt;Ctrl-K&gt;]+: +pass:[rl-kill-line]+
-* +pass:[&lt;Ctrl-P&gt;]+: +pass:[prompt-open-download --pdfjs]+
+* +pass:[&lt;Ctrl-N&gt;]+: +pass:[prompt-history prev]+
+* +pass:[&lt;Ctrl-P&gt;]+: +pass:[prompt-history next]+
 * +pass:[&lt;Ctrl-U&gt;]+: +pass:[rl-unix-line-discard]+
 * +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-unix-word-rubout]+
 * +pass:[&lt;Ctrl-X&gt;]+: +pass:[prompt-open-download]+
