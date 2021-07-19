@@ -706,8 +706,6 @@ class FilenamePrompt(_BasePrompt):
 
         if self._expands_user:
             path = path.replace(os.path.expanduser('~'), '~', 1)
-        else:
-            self._expands_user = False
 
         log.prompt.debug('Inserting path {}'.format(path))
         self._lineedit.setText(path)
