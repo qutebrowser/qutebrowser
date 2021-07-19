@@ -18,6 +18,7 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
+from PyQt5.QtGui import QKeySequence
 
 import pytest
 from PyQt5.QtCore import Qt
@@ -130,3 +131,9 @@ class TestFileCompletion:
         """With / as path, show root contents."""
         prompt = get_prompt('/')
         assert prompt._file_model.rootPath() == '/'
+    
+    def test_tab_root(self, get_prompt, qtbot):
+        prompt = get_prompt('/')
+        qtbot.keySequence(prompt._lineedit, QKeySequence(Qt.CTRL + Qt.Key_U))
+        prompt.item_focus('next')
+        assert prompt._lineedit.text() == '/'
