@@ -281,7 +281,7 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
         except ValueError:
             message.error(f"'{value}' is not a valid point.")
             return
-        tab.elements.find_at_position(QPoint(x, y), callback)
+        tab.elements.find_at_pos(QPoint(x, y), callback)
 
     handlers = {
         'id': (tab.elements.find_id, single_cb),
