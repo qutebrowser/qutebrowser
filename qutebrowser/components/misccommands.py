@@ -279,7 +279,7 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
         try:
             x, y = map(int, value.split(',', maxsplit=1))
         except ValueError:
-            message.error(f"'{value}' is not a valid point.")
+            message.error(f"'{value}' is not a valid point!")
             return
         tab.elements.find_at_pos(QPoint(x, y), callback)
 
