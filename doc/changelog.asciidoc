@@ -19,6 +19,13 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v2.4.0 (unreleased)
 -------------------
 
+Added
+~~~~~
+
+- New `content.blocking.hosts.block_subdomains` setting which can be used to
+  disable the subdomain blocking for the hosts-based adblocker introduced in
+  v2.3.0.
+
 Fixed
 ~~~~~
 

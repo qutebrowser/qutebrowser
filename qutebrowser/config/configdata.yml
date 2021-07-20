@@ -750,7 +750,11 @@ content.blocking.hosts.lists:
 content.blocking.hosts.block_subdomains:
   default: true
   type: Bool
-  desc: Block subdomains of blocked hosts.
+  desc: >-
+    Block subdomains of blocked hosts.
+
+    Note: If only a single subdomain is blocked but should be allowed, consider
+    using `content.blocking.whitelist` instead.
 
 content.blocking.method:
   default: auto

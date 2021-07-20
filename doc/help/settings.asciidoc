@@ -1998,6 +1998,7 @@ Default: +pass:[true]+
 [[content.blocking.hosts.block_subdomains]]
 === content.blocking.hosts.block_subdomains
 Block subdomains of blocked hosts.
+Note: If only a single subdomain is blocked but should be allowed, consider using `content.blocking.whitelist` instead.
 
 Type: <<types,Bool>>
 
