@@ -273,7 +273,9 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
 
         do_click(elems[0])
 
-    def wrap_find_at_pos(value: str, callback: Callable) -> None:
+    def wrap_find_at_pos(value: str,
+                         callback: Callable[[Optional[apitypes.WebElement]], None]
+                         ) -> None:
         try:
             x, y = map(int, value.split(',', maxsplit=1))
         except ValueError:
