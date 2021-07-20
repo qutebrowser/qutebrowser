@@ -471,6 +471,21 @@ Feature: Various utility commands.
         When I open data/click_element.html
         And I run :click-element --select-first css span
 
+    Scenario: Clicking an element by position
+        When I open data/click_element.html
+        And I run :click-element position 20,42
+        Then the javascript message "click_element position" should be logged  
+
+    Scenario: Clicking an element with invalid position
+        When I open data/click_element.html
+        And I run :click-element position 20.42
+        Then the error "'20.42' is not a valid point!" should be shown
+
+    Scenario: Clicking an element with non-integer position
+        When I open data/click_element.html
+        And I run :click-element position 20,42.001
+        Then the error "'20,42.001' is not a valid point!" should be shown
+
     ## :command-history-{prev,next}
 
     Scenario: Calling previous command
