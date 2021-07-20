@@ -20,7 +20,7 @@
 import os
 
 import pytest
-from PyQt5.QtCore import QDir, Qt
+from PyQt5.QtCore import Qt
 
 from qutebrowser.mainwindow import prompt as promptmod
 from qutebrowser.utils import usertypes
@@ -116,7 +116,7 @@ class TestFileCompletion:
             for key in keys:
                 qtbot.keyPress(prompt._lineedit, key)
 
-            # If there are no keys manually get the signal to emit 
+            # If there are no keys manually get the signal to emit
             if not keys:
                 prompt._set_fileview_root(prompt._lineedit.text())
 

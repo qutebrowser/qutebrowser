@@ -629,7 +629,8 @@ class FilenamePrompt(_BasePrompt):
         self._init_fileview()
         self._set_fileview_root(question.default)
 
-        self._file_model.rowsInserted.connect(self._directories_hide_show_model)
+        self._file_model.rowsInserted.connect(
+            self._directories_hide_show_model) # type: ignore[attr-defined]
 
         if config.val.prompt.filebrowser:
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
@@ -808,7 +809,8 @@ class DownloadFilenamePrompt(FilenamePrompt):
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
         self._file_model.setFilter(
-            QDir.AllDirs | QDir.Drives | QDir.NoDot | QDir.Hidden)  # type: ignore[arg-type]
+            QDir.AllDirs | QDir.Drives |
+            QDir.NoDot | QDir.Hidden)  # type: ignore[arg-type]
 
     def accept(self, value=None, save=False):
         done = super().accept(value, save)
