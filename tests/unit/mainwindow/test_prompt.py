@@ -112,8 +112,13 @@ class TestFileCompletion:
             (testdir / directory).mkdir(parents=True)
 
         prompt = get_prompt(str(testdir) + os.sep)
-        for key in keys:
-            qtbot.keyPress(prompt._lineedit, key)
+        with qtbot.wait_signal(prompt.files_hidden):
+            for key in keys:
+                qtbot.keyPress(prompt._lineedit, key)
+
+            # If there are no keys manually get the signal to emit 
+            if not keys:
+                prompt._set_fileview_root(prompt._lineedit.text())
 
         num_rows = prompt._file_model.rowCount(prompt._file_view.rootIndex())
         visible = []
