@@ -239,18 +239,19 @@ window._qutebrowser.webelem = (function() {
     };
 
     funcs.find_xpath = (xpath) => {
-        xpath_result = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+        const xpath_result = document.evaluate(xpath, document, null,
+            XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
         const out = [];
 
-        for(let i = 0; i < xpath_result.snapshotLength; i++) {
+        for (let i = 0; i < xpath_result.snapshotLength; i++) {
             out.push(serialize_elem(xpath_result.snapshotItem(i)));
         }
 
         // Maybe need to rescurse into the subframes.
 
         return {"success": true, "result": out};
-    }
+    };
 
     // Runs a function in a frame until the result is not null, then return
     // If no frame succeeds, return null
