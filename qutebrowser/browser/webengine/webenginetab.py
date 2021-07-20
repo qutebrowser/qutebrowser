@@ -796,6 +796,11 @@ class WebEngineElements(browsertab.AbstractElements):
         js_cb = functools.partial(self._js_cb_single, callback)
         self._tab.run_js_async(js_code, js_cb)
 
+    def find_xpath(self, xpath, callback):
+        js_code = javascript.assemble('webelem', 'find_xpath', xpath)
+        js_cb = functools.partial(self._js_cb_single, callback)
+        self._tab.run_js_async(js_code, js_cb)
+
 
 class WebEngineAudio(browsertab.AbstractAudio):
 
