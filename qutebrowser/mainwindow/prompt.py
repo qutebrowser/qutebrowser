@@ -629,8 +629,8 @@ class FilenamePrompt(_BasePrompt):
         self._init_fileview()
         self._set_fileview_root(question.default)
 
-        self._file_model.rowsInserted.connect(
-            self._directories_hide_show_model) # type: ignore[attr-defined]
+        self._file_model.rowsInserted.connect(      # type: ignore[attr-defined]
+            self._directories_hide_show_model)
 
         if config.val.prompt.filebrowser:
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)

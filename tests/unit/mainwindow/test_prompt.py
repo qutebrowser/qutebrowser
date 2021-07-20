@@ -17,13 +17,18 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
+import ctypes
 import os
+import platform
 
 import pytest
 from PyQt5.QtCore import Qt
 
 from qutebrowser.mainwindow import prompt as promptmod
 from qutebrowser.utils import usertypes
+
+
+FILE_ATTRIBUTE_HIDDEN = 0x02
 
 
 class TestFileCompletion:
@@ -110,6 +115,12 @@ class TestFileCompletion:
 
         for directory in ['.bar', 'bar', 'foo', 'bat']:
             (testdir / directory).mkdir(parents=True)
+
+        if platform.system() == 'Windows':
+            ret = ctypes.windll.kernel32.SetFileAttributesW('.bar',
+                                                            FILE_ATTRIBUTE_HIDDEN)
+            if not ret:
+                raise ctypes.WinError()
 
         prompt = get_prompt(str(testdir) + os.sep)
         with qtbot.wait_signal(prompt.files_hidden):
