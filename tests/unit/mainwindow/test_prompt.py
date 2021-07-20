@@ -117,7 +117,7 @@ class TestFileCompletion:
             (testdir / directory).mkdir(parents=True)
 
         if platform.system() == 'Windows':
-            ret = ctypes.windll.kernel32.SetFileAttributesW('.bar',
+            ret = ctypes.windll.kernel32.SetFileAttributesW(str(testdir / '.bar'),
                                                             FILE_ATTRIBUTE_HIDDEN)
             if not ret:
                 raise ctypes.WinError()
