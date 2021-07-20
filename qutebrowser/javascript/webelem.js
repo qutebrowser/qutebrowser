@@ -244,7 +244,7 @@ window._qutebrowser.webelem = (function() {
         const out = [];
 
         for(let i = 0; i < xpath_result.snapshotLength; i++) {
-            out.push(serialize_elem(xpath_result.snapshotItem(i));
+            out.push(serialize_elem(xpath_result.snapshotItem(i)));
         }
 
         // Maybe need to rescurse into the subframes.
