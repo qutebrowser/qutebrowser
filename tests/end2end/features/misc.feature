@@ -486,6 +486,19 @@ Feature: Various utility commands.
         And I run :click-element position 20,42.001
         Then the error "'20,42.001' is not a valid point!" should be shown
 
+    Scenario: Clicking on focused element when there is none
+        When I open data/click_element.html
+        # Need to loose focus on input element
+        And I run :click-element position 20,42
+        And I wait for the javascript message "click_element position"
+        And I run :click-element focused
+        Then the error "No element found matching focused=None!" should be shown
+
+    Scenario: Clicking on focused element
+        When I open data/click_element.html
+        And I run :click-element focused
+        Then "Entering mode KeyMode.insert (reason: clicking input)" should be logged
+
     ## :command-history-{prev,next}
 
     Scenario: Calling previous command
