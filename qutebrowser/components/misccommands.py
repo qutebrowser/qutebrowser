@@ -286,7 +286,8 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str = None, *,
         do_click(elems[0])
 
     if value is None and filter_ != 'focused':
-        raise cmdutils.CommandError("Argument 'value' is only optional with filter 'focused'!")
+        raise cmdutils.CommandError("Argument 'value' is only"
+                                    "optional with filter 'focused'!")
 
     handlers = {
         'id': (tab.elements.find_id, value, single_cb),
