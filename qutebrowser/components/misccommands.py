@@ -225,7 +225,7 @@ def insert_text(tab: apitypes.Tab, text: str) -> None:
 
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-@cmdutils.argument('filter_', choices=['id', 'css', 'position'])
+@cmdutils.argument('filter_', choices=['id', 'css', 'position', 'focused'])
 def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
                   target: apitypes.ClickTarget =
                   apitypes.ClickTarget.normal,
@@ -243,6 +243,7 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
             - css: Filter by a CSS selector.
             - position: Click the element at specified position.
                 Write value as 'x,y'.
+            - focused: Click the currently focused element.
         value: The value to filter for.
         target: How to open the clicked element (normal/tab/tab-bg/window).
         force_event: Force generating a fake click event.
@@ -287,6 +288,7 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
         'id': (tab.elements.find_id, value, single_cb),
         'css': (tab.elements.find_css, value, multiple_cb, message.error),
         'position': (wrap_find_at_pos, value, single_cb),
+        'focused': (tab.elements.find_focused, single_cb),
     }
     handler, *arguments = handlers[filter_]
     handler(*arguments)
