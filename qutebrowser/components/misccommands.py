@@ -223,10 +223,21 @@ def insert_text(tab: apitypes.Tab, text: str) -> None:
     tab.elements.find_focused(_insert_text_cb)
 
 
+def _wrap_find_at_pos(value: str, tab: apitypes.Tab,
+                      callback: Callable[[Optional[apitypes.WebElement]], None]
+                      ) -> None:
+    try:
+        x, y = map(int, value.split(',', maxsplit=1))
+    except ValueError:
+        message.error(f"'{value}' is not a valid point!")
+        return
+    tab.elements.find_at_pos(QPoint(x, y), callback)
+
+
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('filter_', choices=['id', 'css', 'position', 'focused'])
-def click_element(tab: apitypes.Tab, filter_: str, value: str=None, *,
+def click_element(tab: apitypes.Tab, filter_: str, value: str = None, *,
                   target: apitypes.ClickTarget =
                   apitypes.ClickTarget.normal,
                   force_event: bool = False,
@@ -274,23 +285,13 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str=None, *,
 
         do_click(elems[0])
 
-    def wrap_find_at_pos(value: str,
-                         callback: Callable[[Optional[apitypes.WebElement]], None]
-                         ) -> None:
-        try:
-            x, y = map(int, value.split(',', maxsplit=1))
-        except ValueError:
-            message.error(f"'{value}' is not a valid point!")
-            return
-        tab.elements.find_at_pos(QPoint(x, y), callback)
-
     if value is None and filter_ != 'focused':
         raise cmdutils.CommandError("Argument 'value' is only optional with filter 'focused'!")
 
     handlers = {
         'id': (tab.elements.find_id, value, single_cb),
         'css': (tab.elements.find_css, value, multiple_cb, message.error),
-        'position': (wrap_find_at_pos, value, single_cb),
+        'position': (_wrap_find_at_pos, value, tab, single_cb),
         'focused': (tab.elements.find_focused, single_cb),
     }
     handler, *arguments = handlers[filter_]
