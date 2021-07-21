@@ -284,12 +284,12 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
         tab.elements.find_at_pos(QPoint(x, y), callback)
 
     handlers = {
-        'id': (tab.elements.find_id, single_cb),
-        'css': (tab.elements.find_css, multiple_cb, message.error),
-        'position': (wrap_find_at_pos, single_cb),
+        'id': (tab.elements.find_id, value, single_cb),
+        'css': (tab.elements.find_css, value, multiple_cb, message.error),
+        'position': (wrap_find_at_pos, value, single_cb),
     }
-    handler, *callbacks = handlers[filter_]
-    handler(value, *callbacks)
+    handler, *arguments = handlers[filter_]
+    handler(*arguments)
 
 
 @cmdutils.register(debug=True)
