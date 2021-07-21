@@ -226,7 +226,7 @@ def insert_text(tab: apitypes.Tab, text: str) -> None:
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('filter_', choices=['id', 'css', 'position', 'focused'])
-def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
+def click_element(tab: apitypes.Tab, filter_: str, value: str=None, *,
                   target: apitypes.ClickTarget =
                   apitypes.ClickTarget.normal,
                   force_event: bool = False,
@@ -244,7 +244,7 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
             - position: Click the element at specified position.
                 Write value as 'x,y'.
             - focused: Click the currently focused element.
-        value: The value to filter for.
+        value: The value to filter for. Optional for 'focused' filter.
         target: How to open the clicked element (normal/tab/tab-bg/window).
         force_event: Force generating a fake click event.
         select_first: Select first matching element if there are multiple.
@@ -283,6 +283,9 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
             message.error(f"'{value}' is not a valid point!")
             return
         tab.elements.find_at_pos(QPoint(x, y), callback)
+
+    if value is None and filter_ != 'focused':
+        raise cmdutils.CommandError("Argument 'value' is only optional with filter 'focused'!")
 
     handlers = {
         'id': (tab.elements.find_id, value, single_cb),
