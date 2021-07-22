@@ -392,6 +392,7 @@ Pre-built colorschemes
 ^^^^^^^^^^^^^^^^^^^^^^
 
 - A collection of https://github.com/chriskempson/base16[base16] color-schemes can be found in https://github.com/theova/base16-qutebrowser[base16-qutebrowser] and used with https://github.com/AuditeMarlow/base16-manager[base16-manager].
+- Another collection: https://github.com/leosolid/qutebrowser-themes[qutebrowser-themes]
 - https://gitlab.com/jjzmajic/qutewal[Pywal integration]
 - https://github.com/arcticicestudio/nord[Nord]: https://github.com/Linuus/nord-qutebrowser[Linuus], https://github.com/KnownAsDon/QuteBrowser-Nord-Theme[KnownAsDon]
 - https://github.com/dracula/qutebrowser-dracula-theme[Dracula]
