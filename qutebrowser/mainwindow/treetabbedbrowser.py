@@ -21,6 +21,7 @@
 
 import collections
 import dataclasses
+import datetime
 from typing import List, Dict
 from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtCore import pyqtSlot, QUrl
@@ -44,6 +45,8 @@ class _TreeUndoEntry():
     parent_node_uid: int
     children_node_uids: List[int]
     local_index: int  # index of the tab relative to its siblings
+    created_at: datetime.datetime = dataclasses.field(
+        default_factory=datetime.datetime.now)
 
     @staticmethod
     def from_node(node, idx):
