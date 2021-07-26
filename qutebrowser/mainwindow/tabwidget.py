@@ -136,18 +136,31 @@ class TabWidget(QTabWidget):
                 (fmt is None or ('{' + field + '}') not in fmt)):
             return
 
+        def right_align(text):
+            return str(text).rjust(len(str(self.count())))
+
+        def left_align(text):
+            return str(text).ljust(len(str(self.count())))
+
+        bar = self.tabBar()
+        cur_idx = bar.currentIndex()
+        if idx == cur_idx:
+            rel_idx = left_align(idx + 1) + " "
+        else:
+            rel_idx = " " + right_align(abs(idx - cur_idx))
+
         fields = self.get_tab_fields(idx)
         fields['current_title'] = fields['current_title'].replace('&', '&&')
         fields['index'] = idx + 1
-        fields['aligned_index'] = str(idx + 1).rjust(len(str(self.count())))
+        fields['aligned_index'] = right_align(idx + 1)
+        fields['relative_index'] = rel_idx
 
         title = '' if fmt is None else fmt.format(**fields)
-        tabbar = self.tabBar()
 
         # Only change the tab title if it changes, setting the tab title causes
         # a size recalculation which is slow.
-        if tabbar.tabText(idx) != title:
-            tabbar.setTabText(idx, title)
+        if bar.tabText(idx) != title:
+            bar.setTabText(idx, title)
 
     def get_tab_fields(self, idx):
         """Get the tab field data."""
@@ -305,6 +318,7 @@ class TabWidget(QTabWidget):
     def _on_current_changed(self, index):
         """Emit the tab_index_changed signal if the current tab changed."""
         self.tabBar().on_current_changed()
+        self.update_tab_titles()
         self.tab_index_changed.emit(index, self.count())
 
     @pyqtSlot()
