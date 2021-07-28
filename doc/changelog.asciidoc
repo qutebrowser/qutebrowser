@@ -31,8 +31,6 @@ Fixed
 
 - Switching tabs via mouse wheel scrolling now works properly on macOS. Set
   `tabs.mousewheel_switching` to false if you prefer the previous behavior.
-- Crash when entering unicode surrogates into the filename prompt.
-- `UnboundLocalError` in `qute-keepass` when the database couldn't be opened.
 
 Changed
 ~~~~~~~
@@ -49,7 +47,12 @@ v2.3.1 (unreleased)
 Fixed
 ~~~~~
 
+- Updated the workaround for Google Account log in claiming that this browser
+  isn't secure. For an equivalent workaround on older versions, run:
+  `:set -u https://accounts.google.com/* content.headers.user_agent "Mozilla/5.0 ({os_info}; rv:90.0) Gecko/20100101 Firefox/90.0"`
 - Corrupt cache file exceptions with `adblock` 0.5.0+ are now handled properly.
+- Crash when entering unicode surrogates into the filename prompt.
+- `UnboundLocalError` in `qute-keepass` when the database couldn't be opened.
 
 [[v2.3.0]]
 v2.3.0 (2021-06-28)
