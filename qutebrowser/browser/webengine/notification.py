@@ -377,6 +377,7 @@ class NotificationBridgePresenter(QObject):
                 if tab.url().matches(notification.origin(), QUrl.RemovePath):
                     tabbedbrowser.widget.setCurrentIndex(idx)
                     return
+        log.misc.debug(f"No matching tab found for {notification.origin()}")
 
     def _drop_adapter(self) -> None:
         """Drop the currently active adapter (if any).
