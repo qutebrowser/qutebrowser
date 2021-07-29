@@ -361,8 +361,8 @@ class NotificationBridgePresenter(QObject):
             log.misc.debug("Did not find matching notification, ignoring")
             return
 
+        self._focus_first_matching_tab(notification)
         try:
-            self._focus_first_matching_tab(notification)
             notification.click()
         except RuntimeError:
             # WORKAROUND for
