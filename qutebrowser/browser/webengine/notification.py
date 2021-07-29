@@ -65,7 +65,7 @@ if TYPE_CHECKING:
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
-from qutebrowser.utils import qtutils, log, utils, debug, message, version
+from qutebrowser.utils import qtutils, log, utils, debug, message, version, objreg
 from qutebrowser.qt import sip
 
 
@@ -362,12 +362,21 @@ class NotificationBridgePresenter(QObject):
             return
 
         try:
+            self._focus_first_matching_tab(notification)
             notification.click()
         except RuntimeError:
             # WORKAROUND for
             # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
             log.misc.debug(f"Ignoring click request for notification {notification_id} "
                            "due to PyQt bug")
+
+    def _focus_first_matching_tab(self, notification: "QWebEngineNotification") -> None:
+        for win_id in objreg.window_registry:
+            tabbedbrowser = objreg.get("tabbed-browser", window=win_id, scope="window")
+            for idx, tab in enumerate(tabbedbrowser.widgets()):
+                if tab.url().matches(notification.origin(), QUrl.RemovePath):
+                    tabbedbrowser.widget.setCurrentIndex(idx)
+                    return
 
     def _drop_adapter(self) -> None:
         """Drop the currently active adapter (if any).
