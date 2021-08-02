@@ -39,6 +39,8 @@ Changed
 - When opening a file qutebrowser can't handle from a `file:///` directory
   listing, qutebrowser now opens it with the default application rather than
   displaying a download prompt.
+- In Greasemonkey scripts, using "overrideMimeType" with GM_xmlhttpRequest is
+  now supported.
 
 [[v2.3.1]]
 v2.3.1 (2021-07-28)
