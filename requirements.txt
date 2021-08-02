@@ -3,8 +3,8 @@
 adblock==0.5.0
 colorama==0.4.4
 dataclasses==0.6 ; python_version<"3.7"
-importlib-metadata==4.6.1 ; python_version<"3.8"
-importlib-resources==5.2.0 ; python_version<"3.9"
+importlib-metadata==4.6.3 ; python_version<"3.8"
+importlib-resources==5.2.2 ; python_version<"3.9"
 Jinja2==3.0.1
 MarkupSafe==2.0.1
 Pygments==2.9.0
