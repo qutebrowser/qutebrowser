@@ -120,6 +120,7 @@ class _WebEngineSearchWrapHandler:
         Args:
             page: The QtWebEnginePage to connect to this handler.
         """
+        # The API necessary to stop wrapping was added in this version
         if not qtutils.version_check("5.14"):
             return
 
@@ -159,6 +160,22 @@ class _WebEngineSearchWrapHandler:
         self._active_match = 0
         self._total_matches = 0
 
+    def get_active_match(self):
+        """Get the active search match as tracked by this handler.
+
+        Returns 0 if no search is active or this feature is unavailable
+        (QtWebKit or QtWebEngine < 5.14)
+        """
+        return self._active_match
+
+    def get_total_match_count(self):
+        """Get the total search match count as tracked by this handler.
+
+        Returns 0 if no search is active or this feature is unavailable
+        (QtWebKit or QtWebEngine < 5.14)
+        """
+        return self._total_matches
+
     def prevent_wrapping(self, *, going_up):
         """Prevent wrapping if possible and required.
 
@@ -171,13 +188,8 @@ class _WebEngineSearchWrapHandler:
                 self.flag_wrap or self._total_matches == 0):
             return False
         elif going_up and self._active_match == 1:
-            message.info("Search hit TOP")
             return True
-        elif not going_up and self._active_match == self._total_matches:
-            message.info("Search hit BOTTOM")
-            return True
-        else:
-            return False
+        return not going_up and self._active_match == self._total_matches
 
 
 class WebEngineSearch(browsertab.AbstractSearch):
@@ -194,7 +206,6 @@ class WebEngineSearch(browsertab.AbstractSearch):
         super().__init__(tab, parent)
         self._flags = self._empty_flags()
         self._pending_searches = 0
-        # The API necessary to stop wrapping was added in this version
         self._wrap_handler = _WebEngineSearchWrapHandler()
 
     def _empty_flags(self):
@@ -273,10 +284,12 @@ class WebEngineSearch(browsertab.AbstractSearch):
             int(self._flags))  # type: ignore[call-overload]
         if flags & QWebEnginePage.FindBackward:
             if self._wrap_handler.prevent_wrapping(going_up=False):
+                result_cb(True)
                 return
             flags &= ~QWebEnginePage.FindBackward
         else:
             if self._wrap_handler.prevent_wrapping(going_up=True):
+                result_cb(True)
                 return
             flags |= QWebEnginePage.FindBackward
         self._find(self.text, flags, result_cb, 'prev_result')
@@ -284,8 +297,15 @@ class WebEngineSearch(browsertab.AbstractSearch):
     def next_result(self, *, result_cb=None):
         going_up = self._flags & QWebEnginePage.FindBackward
         if self._wrap_handler.prevent_wrapping(going_up=going_up):
+            result_cb(True)
             return
         self._find(self.text, self._flags, result_cb, 'next_result')
+
+    def get_current_match(self):
+        return self._wrap_handler.get_active_match()
+
+    def get_total_match_count(self):
+        return self._wrap_handler.get_total_match_count()
 
 
 class WebEngineCaret(browsertab.AbstractCaret):

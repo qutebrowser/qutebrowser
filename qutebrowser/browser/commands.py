@@ -1528,13 +1528,13 @@ class CommandDispatcher:
             message.error(str(e))
             ed.backup()
 
-    def _search_cb(self, found, *, tab, old_scroll_pos, options, text, prev):
+    def _search_cb(self, found, *, tab, old_current_match, options, text, prev):
         """Callback called from search/search_next/search_prev.
 
         Args:
             found: Whether the text was found.
             tab: The AbstractTab in which the search was made.
-            old_scroll_pos: The scroll position (QPoint) before the search.
+            old_current_match: The previously active match before the search was performed.
             options: The options (dict) the search was made with.
             text: The text searched for.
             prev: Whether we're searching backwards (i.e. :search-prev)
@@ -1546,11 +1546,25 @@ class CommandDispatcher:
         going_up = options['reverse'] ^ prev
 
         if found:
-            # Check if the scroll position got smaller and show info.
-            if not going_up and tab.scroller.pos_px().y() < old_scroll_pos.y():
-                message.info("Search hit BOTTOM, continuing at TOP")
-            elif going_up and tab.scroller.pos_px().y() > old_scroll_pos.y():
-                message.info("Search hit TOP, continuing at BOTTOM")
+            new_current_match = tab.search.get_current_match()
+            total_match_count = tab.search.get_total_match_count()
+            if total_match_count > 0:
+                message.info("Match {}/{}".format(new_current_match, total_match_count),
+                             replace="search-match-count")
+            # Check if the match count change is opposite to the search direction
+            if old_current_match > 0:
+                if not going_up:
+                    if old_current_match > new_current_match:
+                        message.info("Search hit BOTTOM, continuing at TOP",
+                                     replace="search-hit-msg")
+                    elif old_current_match == new_current_match:
+                        message.info("Search hit BOTTOM", replace="search-hit-msg")
+                elif going_up:
+                    if old_current_match < new_current_match:
+                        message.info("Search hit TOP, continuing at BOTTOM",
+                                     replace="search-hit-msg")
+                    elif old_current_match == new_current_match:
+                        message.info("Search hit TOP", replace="search-hit-msg")
         else:
             message.warning(f"Text '{text}' not found on page!",
                             replace='find-in-page')
@@ -1581,8 +1595,8 @@ class CommandDispatcher:
         self._tabbed_browser.search_options = dict(options)
 
         cb = functools.partial(self._search_cb, tab=tab,
-                               old_scroll_pos=tab.scroller.pos_px(),
-                               options=options, text=text, prev=False)
+                               old_current_match=0, options=options,
+                               text=text, prev=False)
         options['result_cb'] = cb
 
         tab.scroller.before_jump_requested.emit()
@@ -1614,7 +1628,7 @@ class CommandDispatcher:
             return
 
         cb = functools.partial(self._search_cb, tab=tab,
-                               old_scroll_pos=tab.scroller.pos_px(),
+                               old_current_match=tab.search.get_current_match(),
                                options=window_options, text=window_text,
                                prev=False)
 
@@ -1648,7 +1662,7 @@ class CommandDispatcher:
             return
 
         cb = functools.partial(self._search_cb, tab=tab,
-                               old_scroll_pos=tab.scroller.pos_px(),
+                               old_current_match=tab.search.get_current_match(),
                                options=window_options, text=window_text,
                                prev=True)
 

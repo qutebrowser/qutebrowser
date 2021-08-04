@@ -364,6 +364,22 @@ class AbstractSearch(QObject):
         """
         raise NotImplementedError
 
+    def get_current_match(self) -> int:
+        """Get the 1-based index of the currently highlighted match on the page.
+
+        Returns 0 if no successful search has been performed or this feature is unavailable
+        (QtWebKit and QtWebEngine < 5.14)
+        """
+        raise NotImplementedError
+
+    def get_total_match_count(self) -> int:
+        """Get the total number of search matches on the page.
+
+        Returns 0 if no successful search has been performed or this feature is unavailable
+        (QtWebKit and QtWebEngine < 5.14)
+        """
+        raise NotImplementedError
+
 
 class AbstractZoom(QObject):
 
