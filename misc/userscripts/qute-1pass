@@ -66,19 +66,17 @@ TOKEN=$(rofi -dmenu -password -p "1password: "| op signin --output=raw) || TOKEN
 if [ -n "$TOKEN" ]; then
     UUID=$(op list items --cache --session="$TOKEN" | jq --arg url "$URL" -r '[.[] | {uuid, url: [.overview.URLs[]?.u, .overview.url][]?} | select(.uuid != null) | select(.url != null) | select(.url|test(".*\($url).*"))][.0].uuid') || UUID="" 
 
-    if [ -z "$UUID" ];then
+    if [ -z "$UUID" ] || [ $UUID == "null" ];then
         echo "message-error 'No entry found for $URL'" >> "$QUTE_FIFO"
         TITLE=$(op list items --cache --session="$TOKEN" | jq -r '.[].overview.title' | rofi -dmenu -i) || TITLE=""
-        echo "$TITLE"|xclip -in -selection clipboard
         if [ -n "$TITLE" ]; then
-            UUID=$(op list items --cache --session="$TOKEN" | jq -r '.[] | "\(.uuid):\(.overview.title)"' | grep "$TITLE") || UUID=""
+            UUID=$(op list items --cache --session="$TOKEN" | jq --arg title "$TITLE" -r '[.[] | {uuid, title:.overview.title}|select(.title|test("\($title)"))][.0].uuid') || UUID=""
         else
             UUID=""
         fi
     fi
 
     if [ -n "$UUID" ];then
-        #IFS=: read -r UUID var2 <<< "$UUID"
         ITEM=$(op get item --cache --session="$TOKEN" "$UUID")
 
         PASSWORD=$(echo "$ITEM" | jq -r '.details.fields | .[] | select(.designation=="password") | .value')
