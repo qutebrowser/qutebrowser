@@ -32,7 +32,7 @@ show it.
     Commands to execute on startup.
 
 *'URL'*::
-    URLs or search terms to open on startup (empty as a window separator).
+    URLs to open on startup (empty as a window separator).
 
 === optional arguments
 *-h*, *--help*::

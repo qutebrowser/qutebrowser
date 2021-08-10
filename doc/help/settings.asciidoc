@@ -2254,7 +2254,7 @@ Default: +pass:[true]+
 [[content.headers.referer]]
 === content.headers.referer
 When to send the Referer header.
-The Referer header tells websites from which website you were coming from when visiting them.
+The Referer header tells websites from which website you were coming from when visiting them. Note that with QtWebEngine, websites can override this preference by setting the `Referrer-Policy:` header, so that any websites visited from them get the full referer.
 No restart is needed with QtWebKit.
 
 This setting requires a restart.
