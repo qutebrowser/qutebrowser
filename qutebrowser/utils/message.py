@@ -23,7 +23,7 @@
 """Message singleton so we don't have to define unneeded signals."""
 
 import traceback
-from typing import Any, Callable, Iterable, List, Tuple, Union
+from typing import Any, Callable, Iterable, List, Tuple, Union, Optional
 
 from PyQt5.QtCore import pyqtSignal, pyqtBoundSignal, QObject
 
@@ -42,7 +42,7 @@ def _log_stack(typ: str, stack: str) -> None:
     log.message.debug("Stack for {} message:\n{}".format(typ, stack_text))
 
 
-def error(message: str, *, stack: str = None, replace: bool = False) -> None:
+def error(message: str, *, stack: str = None, replace: str = None) -> None:
     """Display an error message.
 
     Args:
@@ -60,7 +60,7 @@ def error(message: str, *, stack: str = None, replace: bool = False) -> None:
     global_bridge.show(usertypes.MessageLevel.error, message, replace)
 
 
-def warning(message: str, *, replace: bool = False) -> None:
+def warning(message: str, *, replace: str = None) -> None:
     """Display a warning message.
 
     Args:
@@ -72,7 +72,7 @@ def warning(message: str, *, replace: bool = False) -> None:
     global_bridge.show(usertypes.MessageLevel.warning, message, replace)
 
 
-def info(message: str, *, replace: bool = False) -> None:
+def info(message: str, *, replace: str = None) -> None:
     """Display an info message.
 
     Args:
@@ -198,8 +198,7 @@ class GlobalMessageBridge(QObject):
         show_message: Show a message
                       arg 0: A MessageLevel member
                       arg 1: The text to show
-                      arg 2: Whether to replace other messages with
-                             replace=True.
+                      arg 2: A message ID (as string) to replace, or None.
         prompt_done: Emitted when a prompt was answered somewhere.
         ask_question: Ask a question to the user.
                       arg 0: The Question object to ask.
@@ -210,7 +209,7 @@ class GlobalMessageBridge(QObject):
         mode_left: Emitted when a keymode was left in any window.
     """
 
-    show_message = pyqtSignal(usertypes.MessageLevel, str, bool)
+    show_message = pyqtSignal(usertypes.MessageLevel, str, str)
     prompt_done = pyqtSignal(usertypes.KeyMode)
     ask_question = pyqtSignal(usertypes.Question, bool)
     mode_left = pyqtSignal(usertypes.KeyMode)
@@ -219,7 +218,7 @@ class GlobalMessageBridge(QObject):
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
         self._connected = False
-        self._cache: List[Tuple[usertypes.MessageLevel, str, bool]] = []
+        self._cache: List[Tuple[usertypes.MessageLevel, str, Optional[str]]] = []
 
     def ask(self, question: usertypes.Question,
             blocking: bool, *,
@@ -239,7 +238,7 @@ class GlobalMessageBridge(QObject):
 
     def show(self, level: usertypes.MessageLevel,
              text: str,
-             replace: bool = False) -> None:
+             replace: str = None) -> None:
         """Show the given message."""
         if self._connected:
             self.show_message.emit(level, text, replace)

@@ -32,7 +32,7 @@ bdd.scenarios('editor.feature')
 from qutebrowser.utils import utils
 
 
-@bdd.when(bdd.parsers.parse('I set up a fake editor replacing "{text}" by '
+@bdd.when(bdd.parsers.parse('I setup a fake editor replacing "{text}" by '
                             '"{replacement}"'))
 def set_up_editor_replacement(quteproc, server, tmpdir, text, replacement):
     """Set up editor.command to a small python script doing a replacement."""
@@ -53,7 +53,7 @@ def set_up_editor_replacement(quteproc, server, tmpdir, text, replacement):
     quteproc.set_setting('editor.command', editor)
 
 
-@bdd.when(bdd.parsers.parse('I set up a fake editor returning "{text}"'))
+@bdd.when(bdd.parsers.parse('I setup a fake editor returning "{text}"'))
 def set_up_editor(quteproc, tmpdir, text):
     """Set up editor.command to a small python script inserting a text."""
     script = tmpdir / 'script.py'
@@ -67,7 +67,7 @@ def set_up_editor(quteproc, tmpdir, text):
     quteproc.set_setting('editor.command', editor)
 
 
-@bdd.when(bdd.parsers.parse('I set up a fake editor returning empty text'))
+@bdd.when(bdd.parsers.parse('I setup a fake editor returning empty text'))
 def set_up_editor_empty(quteproc, tmpdir):
     """Set up editor.command to a small python script inserting empty text."""
     set_up_editor(quteproc, tmpdir, "")
@@ -107,7 +107,7 @@ def editor_pid_watcher(tmpdir):
     return EditorPidWatcher(tmpdir)
 
 
-@bdd.when(bdd.parsers.parse('I set up a fake editor that writes "{text}" on '
+@bdd.when(bdd.parsers.parse('I setup a fake editor that writes "{text}" on '
                             'save'))
 def set_up_editor_wait(quteproc, tmpdir, text, editor_pid_watcher):
     """Set up editor.command to a small python script inserting a text."""
@@ -180,18 +180,31 @@ def save_editor_wait(tmpdir):
     os.kill(pid, signal.SIGUSR2)
 
 
-@bdd.when(bdd.parsers.parse('I set up a fake "{kind}" fileselector '
-                            'selecting "{files}"'))
-def set_up_fileselector(quteproc, py_proc, kind, files):
+@bdd.when(bdd.parsers.parse('I setup a fake {kind} fileselector '
+                            'selecting "{files}" and writes to {output_type}'))
+def set_up_fileselector(quteproc, py_proc, kind, files, output_type):
     """Set up fileselect.xxx.command to select the file(s)."""
     cmd, args = py_proc(r"""
         import os
         import sys
-        tmp_file = sys.argv[1]
-        with open(tmp_file, 'w') as f:
-            for selected_file in sys.argv[2:]:
-                f.write(os.path.abspath(selected_file) + "\n")
+        tmp_file = None
+        for i, arg in enumerate(sys.argv):
+            if arg.startswith('--file='):
+                tmp_file = arg[len('--file='):]
+                sys.argv.pop(i)
+                break
+        selected_files = sys.argv[1:]
+        if tmp_file is None:
+            for selected_file in selected_files:
+                print(os.path.abspath(selected_file))
+        else:
+            with open(tmp_file, 'w') as f:
+                for selected_file in selected_files:
+                    f.write(os.path.abspath(selected_file) + '\n')
     """)
-    fileselect_cmd = json.dumps([cmd, *args, '{}', *files.split(' ')])
+    args += files.split(' ')
+    if output_type == "a temporary file":
+        args += ['--file={}']
+    fileselect_cmd = json.dumps([cmd, *args])
     quteproc.set_setting('fileselect.handler', 'external')
     quteproc.set_setting(f'fileselect.{kind}.command', fileselect_cmd)

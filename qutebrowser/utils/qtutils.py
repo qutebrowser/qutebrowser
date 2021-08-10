@@ -31,7 +31,8 @@ Module attributes:
 import io
 import operator
 import contextlib
-from typing import TYPE_CHECKING, BinaryIO, IO, Iterator, Optional, Union, Tuple, cast
+from typing import (Any, AnyStr, TYPE_CHECKING, BinaryIO, IO, Iterator,
+                    Optional, Union, Tuple, cast)
 
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QFileDevice, QSaveFile, QT_VERSION_STR,
@@ -98,15 +99,15 @@ def version_check(version: str,
     if compiled and exact:
         raise ValueError("Can't use compiled=True with exact=True!")
 
-    parsed = utils.parse_version(version)
+    parsed = utils.VersionNumber.parse(version)
     op = operator.eq if exact else operator.ge
-    result = op(utils.parse_version(qVersion()), parsed)
+    result = op(utils.VersionNumber.parse(qVersion()), parsed)
     if compiled and result:
         # qVersion() ==/>= parsed, now check if QT_VERSION_STR ==/>= parsed.
-        result = op(utils.parse_version(QT_VERSION_STR), parsed)
+        result = op(utils.VersionNumber.parse(QT_VERSION_STR), parsed)
     if compiled and result:
         # Finally, check PYQT_VERSION_STR as well.
-        result = op(utils.parse_version(PYQT_VERSION_STR), parsed)
+        result = op(utils.VersionNumber.parse(PYQT_VERSION_STR), parsed)
     return result
 
 
@@ -116,8 +117,8 @@ MAX_WORLD_ID = 256
 def is_new_qtwebkit() -> bool:
     """Check if the given version is a new QtWebKit."""
     assert qWebKitVersion is not None
-    return (utils.parse_version(qWebKitVersion()) >
-            utils.parse_version('538.1'))
+    return (utils.VersionNumber.parse(qWebKitVersion()) >
+            utils.VersionNumber.parse('538.1'))
 
 
 def is_single_process() -> bool:
@@ -227,7 +228,7 @@ def savefile_open(
         filename: str,
         binary: bool = False,
         encoding: str = 'utf-8'
-) -> Iterator[IO]:
+) -> Iterator[IO[AnyStr]]:
     """Context manager to easily use a QSaveFile."""
     f = QSaveFile(filename)
     cancelled = False
@@ -239,7 +240,7 @@ def savefile_open(
         dev = cast(BinaryIO, PyQIODevice(f))
 
         if binary:
-            new_f: IO = dev
+            new_f: IO[Any] = dev  # FIXME:mypy Why doesn't AnyStr work?
         else:
             new_f = io.TextIOWrapper(dev, encoding=encoding)
 
@@ -298,7 +299,11 @@ class PyQIODevice(io.BufferedIOBase):
         if not self.writable():
             raise OSError("Trying to write to unwritable file!")
 
-    def open(self, mode: QIODevice.OpenMode) -> contextlib.closing:
+    # contextlib.closing is only generic in Python 3.9+
+    def open(
+        self,
+        mode: QIODevice.OpenMode,
+    ) -> contextlib.closing:  # type: ignore[type-arg]
         """Open the underlying device and ensure opening succeeded.
 
         Raises OSError if opening failed.

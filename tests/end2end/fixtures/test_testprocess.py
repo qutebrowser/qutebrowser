@@ -131,7 +131,7 @@ def test_no_ready_python_process(noready_pyproc):
 
 
 def test_quitting_process(qtbot, quit_pyproc):
-    with qtbot.waitSignal(quit_pyproc.proc.finished):
+    with qtbot.wait_signal(quit_pyproc.proc.finished):
         quit_pyproc.start()
     with pytest.raises(testprocess.ProcessExited):
         quit_pyproc.after_test()
@@ -139,7 +139,7 @@ def test_quitting_process(qtbot, quit_pyproc):
 
 def test_quitting_process_expected(qtbot, quit_pyproc):
     quit_pyproc.exit_expected = True
-    with qtbot.waitSignal(quit_pyproc.proc.finished):
+    with qtbot.wait_signal(quit_pyproc.proc.finished):
         quit_pyproc.start()
     quit_pyproc.after_test()
 

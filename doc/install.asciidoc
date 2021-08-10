@@ -48,7 +48,7 @@ instructions!
 Note you'll need some basic libraries to use the virtualenv-installed PyQt:
 
 ----
-# apt install --no-install-recommends git ca-certificates python3 python3-venv asciidoc libglib2.0-0 libgl1 libfontconfig1 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0 libdbus-1-3 libyaml-dev gcc python3-dev
+# apt install --no-install-recommends git ca-certificates python3 python3-venv asciidoc libglib2.0-0 libgl1 libfontconfig1 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0 libdbus-1-3 libyaml-dev gcc python3-dev libnss3
 ----
 
 // FIXME not needed anymore?
@@ -239,11 +239,12 @@ qutebrowser is available
 https://flathub.org/apps/details/org.qutebrowser.qutebrowser[on Flathub]
 as `org.qutebrowser.qutebrowser`.
 
-WARNING: As of October 2020, the Flatpak package is severely outdated (qutebrowser
-v1.7.0 from July 2019) and, among other issues, misses fixes for a
-(low-severity) https://github.com/qutebrowser/qutebrowser/security/advisories/GHSA-4rcq-jv2f-898j[security issue].
-It's recommended to <<tox,install qutebrowser in a virtualenv>> instead, which
-is one of the officially maintained options and will always be up-to-date.
+NOTE: The Flatpak package is
+https://github.com/flathub/org.qutebrowser.qutebrowser/issues/8#issuecomment-799579975[looking for (co-)maintainers].
+The package recently was updated after being out of date for multiple years. It
+currently (March 2021) is up to date again. If that situation changes, consider
+to <<tox,install qutebrowser in a virtualenv>> instead, which is one of the
+officially maintained options and will always be up-to-date.
 
 On FreeBSD
 ----------
@@ -263,6 +264,10 @@ and QtWebEngine backend is also not available.
 On Windows
 ----------
 
+NOTE: As an additional resource, see
+https://www.ii.com/installing-qutebrowser-on-windows/[Infinite Ink: Installing
+qutebrowser on Windows].
+
 There are different ways to install qutebrowser on Windows:
 
 Prebuilt binaries
@@ -280,6 +285,19 @@ without uninstalling the older one.
 The binary release ships with a QtWebEngine built without proprietary codec
 support. To get support for e.g. h264/mp4 videos, you'll need to build
 QtWebEngine from source yourself with support for that enabled.
+
+Nightly builds
+~~~~~~~~~~~~~~
+
+If you want to test out new features before an official qutebrowser release, automated
+https://github.com/qutebrowser/qutebrowser/actions/workflows/bleeding.yml[nightly
+builds] are available. To download them, open the lastest run (usually the first one),
+then download the archive at the bottom of the page. Note that due to GitHub
+limitations, all variants (Windows/macOS, 32/64 bit, debug/non-debug) are contained in a
+single archive.
+
+Those builds also include variants with debug logging enabled, which can be useful to
+track down issues.
 
 https://chocolatey.org/packages/qutebrowser[Chocolatey package]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -324,12 +342,25 @@ The binary release ships with a QtWebEngine built without proprietary codec
 support. To get support for e.g. h264/mp4 videos, you'll need to build
 QtWebEngine from source yourself with support for that enabled.
 
-This binary is also available through the
-https://caskroom.github.io/[Homebrew Cask] package manager:
+This binary is also available through the https://brew.sh/[Homebrew] package
+manager as a https://github.com/Homebrew/homebrew-cask[cask]:
 
 ----
-$ brew install qutebrowser --cask
+$ brew install qutebrowser
 ----
+
+Nightly builds
+~~~~~~~~~~~~~~
+
+If you want to test out new features before an official qutebrowser release, automated
+https://github.com/qutebrowser/qutebrowser/actions/workflows/bleeding.yml[nightly
+builds] are available. To download them, open the lastest run (usually the first one),
+then download the archive at the bottom of the page. Note that due to GitHub
+limitations, all variants (Windows/macOS, 32/64 bit, debug/non-debug) are contained in a
+single archive.
+
+Those builds also include variants with debug logging enabled, which can be useful to
+track down issues.
 
 Manual Install
 ~~~~~~~~~~~~~~
@@ -427,7 +458,7 @@ See the next section for an alternative install method which might help with
 those issues but result in an older Qt version.
 
 You can specify a Qt/PyQt version with the `--pyqt-version` flag, see
-`mkenv.py --help` for a list of available versions. By default, the latest
+`mkvenv.py --help` for a list of available versions. By default, the latest
 version which plays well with qutebrowser is used.
 
 NOTE: If the Qt smoke test fails with a _"This application failed to start
@@ -482,8 +513,10 @@ $ python3 scripts/asciidoc2html.py
 Updating
 ~~~~~~~~
 
-When you updated your local copy of the code (e.g. by pulling the git repo, or
-extracting a new version), the virtualenv should automatically use the updated
-code. However, dependencies won't be updated that way. Thus, it's recommended
-to run `mkvenv.py --update` instead, which will run `git pull` and recreate the
-virtualenv with updated dependencies.
+If you cloned the git repository, run `mkvenv.py --update` which will take care
+of updating the code (via `git pull`) and recreating the environment with the
+newest dependencies.
+
+Alternatively, you can update your local copy of the code (e.g. by pulling the
+git repo, or extracting a new version) and the virtualenv should automatically
+use the updated versions. However, dependencies won't be updated that way.

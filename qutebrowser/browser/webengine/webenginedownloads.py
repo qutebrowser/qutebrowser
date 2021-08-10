@@ -27,7 +27,8 @@ from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QObject
 from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
 
 from qutebrowser.browser import downloads, pdfjs
-from qutebrowser.utils import debug, usertypes, message, log, objreg, urlutils
+from qutebrowser.utils import (debug, usertypes, message, log, objreg, urlutils,
+                               utils, version)
 
 
 class DownloadItem(downloads.AbstractDownloadItem):
@@ -250,9 +251,12 @@ class DownloadManager(downloads.AbstractDownloadManager):
         qt_filename = os.path.basename(qt_item.path())   # FIXME use 5.14 API
         mime_type = qt_item.mimeType()
         url = qt_item.url()
+        origin = qt_item.page().url() if qt_item.page() else QUrl()
 
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-90355
-        if url.scheme().lower() == 'data':
+        if version.qtwebengine_versions().webengine >= utils.VersionNumber(5, 15, 3):
+            needs_workaround = False
+        elif url.scheme().lower() == 'data':
             if '/' in url.path().split(',')[-1]:  # e.g. a slash in base64
                 wrong_filename = url.path().split('/')[-1]
             else:
@@ -289,12 +293,16 @@ class DownloadManager(downloads.AbstractDownloadManager):
             download.set_target(target)
             return
 
+        if url.scheme() == "file" and origin.isValid() and origin.scheme() == "file":
+            utils.open_file(url.toLocalFile())
+            qt_item.cancel()
+            return
+
         # Ask the user for a filename - needs to be blocking!
         question = downloads.get_filename_question(
             suggested_filename=suggested_filename, url=qt_item.url(),
             parent=self)
         self._init_filename_question(question, download)
-
         message.global_bridge.ask(question, blocking=True)
         # The filename is set via the question.answered signal, connected in
         # _init_filename_question.

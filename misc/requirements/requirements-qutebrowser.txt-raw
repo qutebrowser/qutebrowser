@@ -1,6 +1,5 @@
 Jinja2
 PyYAML
-attrs
 
 ## stdlib backports
 importlib-resources
@@ -11,8 +10,11 @@ Pygments  # For :view-source --pygments or on QtWebKit
 colorama  # Colored log output on Windows
 adblock  # Improved adblocking
 
-#@ markers: importlib-resources python_version<"3.9"
-#@ markers: dataclasses python_version<"3.7"
+# Optional, only relevant when installing PyQt5/PyQtWebEngine via pip.
+importlib-metadata  # Determining PyQt version
+typing_extensions  # from importlib-metadata
 
-# https://github.com/ArniDagur/python-adblock/issues/28
-#@ markers: adblock python_version!="3.10"
+#@ markers: importlib-resources python_version<"3.9"
+#@ markers: importlib-metadata python_version<"3.8"
+#@ markers: typing_extensions python_version<"3.8"
+#@ markers: dataclasses python_version<"3.7"

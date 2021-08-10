@@ -61,6 +61,7 @@ def whitelist_generator():  # noqa: C901
     yield 'scripts.utils.bg_colors'
     yield 'qutebrowser.misc.sql.SqliteErrorCode.CONSTRAINT'
     yield 'qutebrowser.misc.throttle.Throttle.set_delay'
+    yield 'qutebrowser.misc.guiprocess.GUIProcess.stderr'
 
     # Qt attributes
     yield 'PyQt5.QtWebKit.QWebPage.ErrorPageExtensionReturn().baseUrl'
@@ -79,7 +80,6 @@ def whitelist_generator():  # noqa: C901
     yield 'qutebrowser.utils.jinja.Loader.get_source'
     yield 'qutebrowser.utils.log.QtWarningFilter.filter'
     yield 'qutebrowser.browser.pdfjs.is_available'
-    yield 'qutebrowser.misc.guiprocess.spawn_output'
     yield 'qutebrowser.utils.usertypes.ExitStatus.reserved'
     yield 'QEvent.posted'
     yield 'log_stack'  # from message.py
@@ -115,6 +115,7 @@ def whitelist_generator():  # noqa: C901
     for attr in ['_get_default_metavar_for_optional',
                  '_get_default_metavar_for_positional', '_metavar_formatter']:
         yield 'scripts.dev.src2asciidoc.UsageFormatter.' + attr
+    yield 'scripts.dev.build_release.pefile.PE.OPTIONAL_HEADER.CheckSum'
 
     for dist in version.Distribution:
         yield 'qutebrowser.utils.version.Distribution.{}'.format(dist.name)
@@ -137,6 +138,13 @@ def whitelist_generator():  # noqa: C901
     yield 'world_id_type'
     yield 'ParserDictType'
     yield 'qutebrowser.config.configutils.Values._VmapKeyType'
+
+    # ELF
+    yield 'qutebrowser.misc.elf.Endianness.big'
+    for name in ['phoff', 'ehsize', 'phentsize', 'phnum']:
+        yield f'qutebrowser.misc.elf.Header.{name}'
+    for name in ['addr', 'addralign', 'entsize']:
+        yield f'qutebrowser.misc.elf.SectionHeader.{name}'
 
 
 def filter_func(item):

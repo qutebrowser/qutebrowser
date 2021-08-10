@@ -109,6 +109,14 @@ class ExitCodes(enum.IntEnum):
     COULD_NOT_MATCH_PASSWORD = 4
 
 
+class CouldNotMatchUsername(Exception):
+    pass
+
+
+class CouldNotMatchPassword(Exception):
+    pass
+
+
 def qute_command(command):
     with open(os.environ['QUTE_FIFO'], 'w') as fifo:
         fifo.write(command + '\n')
@@ -152,12 +160,12 @@ def _run_pass(pass_arguments):
 
 
 def pass_(path):
-    if arguments.mode == "gopass":
-        return _run_pass(['show', '-o', path])
     return _run_pass(['show', path])
 
 
 def pass_otp(path):
+    if arguments.mode == "gopass":
+        return _run_pass(['otp', '-o', path])
     return _run_pass(['otp', path])
 
 
@@ -172,6 +180,26 @@ def fake_key_raw(text):
         # Escape all characters by default, space requires special handling
         sequence = '" "' if character == ' ' else '\{}'.format(character)
         qute_command('fake-key {}'.format(sequence))
+
+
+def extract_password(secret, pattern):
+    match = re.match(pattern, secret)
+    if not match:
+        raise CouldNotMatchPassword("Pattern did not match target")
+    try:
+        return match.group(1)
+    except IndexError:
+        raise CouldNotMatchPassword("Pattern did not contain capture group, please use capture group. Example: (.*)")
+
+
+def extract_username(target, pattern):
+    match = re.search(pattern, target, re.MULTILINE)
+    if not match:
+        raise CouldNotMatchUsername("Pattern did not match target")
+    try:
+        return match.group(1)
+    except IndexError:
+        raise CouldNotMatchUsername("Pattern did not contain capture group, please use capture group. Example: (.*)")
 
 
 def main(arguments):
@@ -212,39 +240,32 @@ def main(arguments):
     if not selection:
         return ExitCodes.SUCCESS
 
-    # If username-target is path and user asked for username-only, we don't need to run pass
+    # If username-target is path and user asked for username-only, we don't need to run pass.
+    # Or if using otp-only, it will run pass on its own.
     secret = None
-    if not (arguments.username_target == 'path' and arguments.username_only):
+    if not (arguments.username_target == 'path' and arguments.username_only) and not arguments.otp_only:
         secret = pass_(selection)
-
-        # Match password
-        match = re.match(arguments.password_pattern, secret)
-        if not match:
-            stderr('Failed to match password pattern on secret!')
-            return ExitCodes.COULD_NOT_MATCH_PASSWORD
-        password = match.group(1)
-
-    # Match username
-    target = selection if arguments.username_target == 'path' else secret
-    match = re.search(arguments.username_pattern, target, re.MULTILINE)
-    if not match:
-        stderr('Failed to match username pattern on {}!'.format(arguments.username_target))
+    username_target = selection if arguments.username_target == 'path' else secret
+    try:
+        if arguments.username_only:
+            fake_key_raw(extract_username(username_target, arguments.username_pattern))
+        elif arguments.password_only:
+            fake_key_raw(extract_password(secret, arguments.password_pattern))
+        elif arguments.otp_only:
+            otp = pass_otp(selection)
+            fake_key_raw(otp)
+        else:
+            # Enter username and password using fake-key and <Tab> (which seems to work almost universally), then switch
+            # back into insert-mode, so the form can be directly submitted by hitting enter afterwards
+            fake_key_raw(extract_username(username_target, arguments.username_pattern))
+            qute_command('fake-key <Tab>')
+            fake_key_raw(extract_password(secret, arguments.password_pattern))
+    except CouldNotMatchPassword as e:
+        stderr('Failed to match password, target: secret, error: {}'.format(e))
+        return ExitCodes.COULD_NOT_MATCH_PASSWORD
+    except CouldNotMatchUsername as e:
+        stderr('Failed to match username, target: {}, error: {}'.format(arguments.username_target, e))
         return ExitCodes.COULD_NOT_MATCH_USERNAME
-    username = match.group(1)
-
-    if arguments.username_only:
-        fake_key_raw(username)
-    elif arguments.password_only:
-        fake_key_raw(password)
-    elif arguments.otp_only:
-        otp = pass_otp(selection)
-        fake_key_raw(otp)
-    else:
-        # Enter username and password using fake-key and <Tab> (which seems to work almost universally), then switch
-        # back into insert-mode, so the form can be directly submitted by hitting enter afterwards
-        fake_key_raw(username)
-        qute_command('fake-key <Tab>')
-        fake_key_raw(password)
 
     if arguments.insert_mode:
         qute_command('mode-enter insert')

@@ -32,6 +32,8 @@ jobs:
           - testenv: yamllint
     steps:
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
       - uses: actions/cache@v2
         with:
           path: |
@@ -62,7 +64,7 @@ jobs:
             python -m pip install -U pip
             python -m pip install -U -r misc/requirements/requirements-tox.txt
       - name: "Run ${{ matrix.testenv }}"
-        run: "tox -e ${{ matrix.testenv}} -- ${{ matrix.args }}"
+        run: "dbus-run-session -- tox -e ${{ matrix.testenv}} -- ${{ matrix.args }}"
 
   tests-docker:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
@@ -88,9 +90,12 @@ jobs:
       options: --privileged --tty
     steps:
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py py38 ${{ runner.temp }}"
-      - run: tox -e py
+      - name: Run tox
+        run: dbus-run-session tox -e py
 
   tests:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
@@ -141,6 +146,8 @@ jobs:
     runs-on: "${{ matrix.os }}"
     steps:
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
       - uses: actions/cache@v2
         with:
           path: |
@@ -164,7 +171,11 @@ jobs:
             python -m pip install -U pip
             python -m pip install -U -r misc/requirements/requirements-tox.txt
       - name: "Run ${{ matrix.testenv }}"
-        run: "tox -e ${{ matrix.testenv}} -- ${{ matrix.args }}"
+        run: "dbus-run-session -- tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}"
+        if: "startsWith(matrix.os, 'ubuntu-')"
+      - name: "Run ${{ matrix.testenv }} without DBus"
+        run: "tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}"
+        if: "!startsWith(matrix.os, 'ubuntu-')"
       - name: Analyze backtraces
         run: "bash scripts/dev/ci/backtrace.sh ${{ matrix.testenv }}"
         if: "failure()"
@@ -176,15 +187,20 @@ jobs:
 
   codeql:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
+    permissions:
+      security-events: write
     timeout-minutes: 30
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+        with:
+          persist-credentials: false
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v1
         with:
           languages: javascript, python
+          queries: +security-extended
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
 
@@ -196,36 +212,36 @@ jobs:
     if: "always() && github.repository_owner == 'qutebrowser'"
     steps:
       - name: Send success IRC notification
-        uses: Gottox/irc-message-action@v1.1
+        uses: Gottox/irc-message-action@v1
         if: "needs.linters.result == 'success' && needs.tests.result == 'success' && needs.tests-docker.result == 'success' && needs.codeql.result == 'success'"
         with:
-          server: chat.freenode.net
-          channel: '#qutebrowser-dev'
+          server: irc.libera.chat
+          channel: '#qutebrowser-bots'
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
       - name: Send failure IRC notification
-        uses: Gottox/irc-message-action@v1.1
+        uses: Gottox/irc-message-action@v1
         if: "needs.linters.result == 'failure' || needs.tests.result == 'failure' || needs.tests-docker.result == 'failure' || needs.codeql.result == 'failure'"
         with:
-          server: chat.freenode.net
-          channel: '#qutebrowser-dev'
+          server: irc.libera.chat
+          channel: '#qutebrowser-bots'
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
             linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}"
       - name: Send skipped IRC notification
-        uses: Gottox/irc-message-action@v1.1
+        uses: Gottox/irc-message-action@v1
         if: "needs.linters.result == 'skipped' || needs.tests.result == 'skipped' || needs.tests-docker.result == 'skipped' || needs.codeql.result == 'skipped'"
         with:
-          server: chat.freenode.net
-          channel: '#qutebrowser-dev'
+          server: irc.libera.chat
+          channel: '#qutebrowser-bots'
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00038Skipped:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
       - name: Send cancelled IRC notification
-        uses: Gottox/irc-message-action@v1.1
+        uses: Gottox/irc-message-action@v1
         if: "needs.linters.result == 'cancelled' || needs.tests.result == 'cancelled' || needs.tests-docker.result == 'cancelled' || needs.codeql.result == 'cancelled'"
         with:
-          server: chat.freenode.net
-          channel: '#qutebrowser-dev'
+          server: irc.libera.chat
+          channel: '#qutebrowser-bots'
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u000314Cancelled:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
             linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}"

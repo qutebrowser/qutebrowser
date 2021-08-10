@@ -26,9 +26,9 @@ from unittest.mock import ANY, call
 
 import pytest
 
-from helpers import utils
+from helpers import testutils
 
-qute_lastpass = utils.import_userscript('qute-lastpass')
+qute_lastpass = testutils.import_userscript('qute-lastpass')
 
 default_lpass_match = [
     {
@@ -79,6 +79,7 @@ def arguments_mock():
     arguments.merge_candidates = False
     arguments.password_only = False
     arguments.username_only = False
+    arguments.no_tld_download = True
 
     return arguments
 

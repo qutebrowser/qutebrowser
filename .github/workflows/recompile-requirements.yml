@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
       - name: Set up Python 3.7
         uses: actions/setup-python@v2
         with:
@@ -30,6 +32,18 @@ jobs:
       - name: Recompile requirements
         run: "python3 scripts/dev/recompile_requirements.py ${{ github.events.input.environments }}"
         id: requirements
+      - name: Install apt dependencies
+        run: |
+            sudo apt-get update
+            sudo apt-get install --no-install-recommends libyaml-dev libegl1-mesa libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 asciidoc python3-venv xvfb
+      - name: Install dependencies
+        run: |
+            python -m pip install -U pip
+            python -m pip install -U -r misc/requirements/requirements-tox.txt
+      - name: Run mkvenv.py
+        run: "xvfb-run python3 scripts/mkvenv.py --dev"
+      - name: Run qutebrowser smoke test
+        run: "xvfb-run .venv/bin/python3 -m qutebrowser --no-err-windows --nowindow --temp-basedir about:blank ':later 500 quit'"
       - name: Create pull request
         uses: peter-evans/create-pull-request@v3
         with:
@@ -60,19 +74,19 @@ jobs:
     if: "always() && github.repository == 'qutebrowser/qutebrowser'"
     steps:
       - name: Send success IRC notification
-        uses: Gottox/irc-message-action@v1.1
+        uses: Gottox/irc-message-action@v1
         if: "needs.update.result == 'success'"
         with:
-          server: chat.freenode.net
-          channel: '#qutebrowser-dev'
+          server: irc.libera.chat
+          channel: '#qutebrowser-bots'
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00033Success:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})"
       - name: Send non-success IRC notification
-        uses: Gottox/irc-message-action@v1.1
+        uses: Gottox/irc-message-action@v1
         if: "needs.update.result != 'success'"
         with:
-          server: chat.freenode.net
-          channel: '#qutebrowser-dev'
+          server: irc.libera.chat
+          channel: '#qutebrowser-bots'
           nickname: qutebrowser-bot
           message: "[${{ github.workflow }}] \u00034FAIL:\u0003 ${{ github.ref }} https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} (@${{ github.actor }})\n
             linters: ${{ needs.linters.result }}, tests: ${{ needs.tests.result }}, tests-docker: ${{ needs.tests-docker.result }}, codeql: ${{ needs.codeql.result }}"

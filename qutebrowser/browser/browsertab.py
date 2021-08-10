@@ -27,16 +27,17 @@ from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional
                     Sequence, Set, Type, Union)
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
-                          QEvent, QPoint)
-from PyQt5.QtGui import QKeyEvent, QIcon
+                          QEvent, QPoint, QRect)
+from PyQt5.QtGui import QKeyEvent, QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QApplication, QDialog
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtNetwork import QNetworkAccessManager
 
 if TYPE_CHECKING:
-    from PyQt5.QtWebKit import QWebHistory
+    from PyQt5.QtWebKit import QWebHistory, QWebHistoryItem
     from PyQt5.QtWebKitWidgets import QWebPage
-    from PyQt5.QtWebEngineWidgets import QWebEngineHistory, QWebEnginePage
+    from PyQt5.QtWebEngineWidgets import (
+        QWebEngineHistory, QWebEngineHistoryItem, QWebEnginePage)
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
@@ -636,8 +637,8 @@ class AbstractHistoryPrivate:
         """Deserialize from a format produced by self.serialize."""
         raise NotImplementedError
 
-    def load_items(self, items: Sequence) -> None:
-        """Deserialize from a list of WebHistoryItems."""
+    def load_items(self, items: Sequence[sessions.TabHistoryItem]) -> None:
+        """Deserialize from a list of TabHistoryItems."""
         raise NotImplementedError
 
 
@@ -653,7 +654,7 @@ class AbstractHistory:
     def __len__(self) -> int:
         raise NotImplementedError
 
-    def __iter__(self) -> Iterable:
+    def __iter__(self) -> Iterable[Union['QWebHistoryItem', 'QWebEngineHistoryItem']]:
         raise NotImplementedError
 
     def _check_count(self, count: int) -> None:
@@ -872,13 +873,25 @@ class AbstractTabPrivate:
         tabdata = self._tab.data
         if tabdata.inspector is None:
             assert tabdata.splitter is not None
-            tabdata.inspector = inspector.create(
+            tabdata.inspector = self._init_inspector(
                 splitter=tabdata.splitter,
                 win_id=self._tab.win_id)
             self._tab.shutting_down.connect(tabdata.inspector.shutdown)
             tabdata.inspector.recreate.connect(self._recreate_inspector)
             tabdata.inspector.inspect(self._widget.page())
         tabdata.inspector.set_position(position)
+
+    def _init_inspector(self, splitter: 'miscwidgets.InspectorSplitter',
+           win_id: int,
+           parent: QWidget = None) -> 'AbstractWebInspector':
+        """Get a WebKitInspector/WebEngineInspector.
+
+        Args:
+            splitter: InspectorSplitter where the inspector can be placed.
+            win_id: The window ID this inspector is associated with.
+            parent: The Qt parent to set.
+        """
+        raise NotImplementedError
 
 
 class AbstractTab(QWidget):
@@ -933,7 +946,7 @@ class AbstractTab(QWidget):
     _insecure_hosts: Set[str] = set()
 
     def __init__(self, *, win_id: int,
-                 mode_manager: modeman.ModeManager,
+                 mode_manager: 'modeman.ModeManager',
                  private: bool,
                  parent: QWidget = None) -> None:
         utils.unused(mode_manager)  # needed for mypy
@@ -1205,6 +1218,22 @@ class AbstractTab(QWidget):
         supported.
         """
         raise NotImplementedError
+
+    def grab_pixmap(self, rect: QRect = None) -> Optional[QPixmap]:
+        """Grab a QPixmap of the displayed page.
+
+        Returns None if we got a null pixmap from Qt.
+        """
+        if rect is None:
+            pic = self._widget.grab()
+        else:
+            qtutils.ensure_valid(rect)
+            pic = self._widget.grab(rect)
+
+        if pic.isNull():
+            return None
+
+        return pic
 
     def __repr__(self) -> str:
         try:

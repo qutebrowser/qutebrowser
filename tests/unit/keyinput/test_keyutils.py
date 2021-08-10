@@ -28,6 +28,7 @@ from PyQt5.QtWidgets import QWidget
 
 from unit.keyinput import key_data
 from qutebrowser.keyinput import keyutils
+from qutebrowser.utils import utils
 
 
 @pytest.fixture(params=key_data.KEYS, ids=lambda k: k.attribute)
@@ -421,10 +422,13 @@ class TestKeySequence:
         ('', Qt.Key_Colon, Qt.AltModifier | Qt.ShiftModifier, ':',
          '<Alt+Shift+:>'),
 
-        # Modifiers
-        ('', Qt.Key_A, Qt.ControlModifier, '', '<Ctrl+A>'),
-        ('', Qt.Key_A, Qt.ControlModifier | Qt.ShiftModifier, '', '<Ctrl+Shift+A>'),
-        ('', Qt.Key_A, Qt.MetaModifier, '', '<Meta+A>'),
+        # Swapping Control/Meta on macOS
+        ('', Qt.Key_A, Qt.ControlModifier, '',
+         '<Meta+A>' if utils.is_mac else '<Ctrl+A>'),
+        ('', Qt.Key_A, Qt.ControlModifier | Qt.ShiftModifier, '',
+         '<Meta+Shift+A>' if utils.is_mac else '<Ctrl+Shift+A>'),
+        ('', Qt.Key_A, Qt.MetaModifier, '',
+         '<Ctrl+A>' if utils.is_mac else '<Meta+A>'),
 
         # Handling of Backtab
         ('', Qt.Key_Backtab, Qt.NoModifier, '', '<Backtab>'),
@@ -440,6 +444,27 @@ class TestKeySequence:
         event = QKeyEvent(QKeyEvent.KeyPress, key, modifiers, text)
         new = seq.append_event(event)
         assert new == keyutils.KeySequence.parse(expected)
+
+    @pytest.mark.fake_os('mac')
+    @pytest.mark.parametrize('modifiers, expected', [
+        (Qt.ControlModifier,
+         Qt.MetaModifier),
+        (Qt.MetaModifier,
+         Qt.ControlModifier),
+        (Qt.ControlModifier | Qt.MetaModifier,
+         Qt.ControlModifier | Qt.MetaModifier),
+        (Qt.ControlModifier | Qt.ShiftModifier,
+         Qt.MetaModifier | Qt.ShiftModifier),
+        (Qt.MetaModifier | Qt.ShiftModifier,
+         Qt.ControlModifier | Qt.ShiftModifier),
+        (Qt.ShiftModifier, Qt.ShiftModifier),
+    ])
+    def test_fake_mac(self, modifiers, expected):
+        """Make sure Control/Meta are swapped with a simulated Mac."""
+        seq = keyutils.KeySequence()
+        info = keyutils.KeyInfo(key=Qt.Key_A, modifiers=modifiers)
+        new = seq.append_event(info.to_event())
+        assert new[0] == keyutils.KeyInfo(Qt.Key_A, expected)
 
     @pytest.mark.parametrize('key', [Qt.Key_unknown, 0x0])
     def test_append_event_invalid(self, key):
@@ -457,13 +482,18 @@ class TestKeySequence:
                                         Qt.Key_A | Qt.ControlModifier)
         assert seq.strip_modifiers() == expected
 
-    def test_with_mappings(self):
-        seq = keyutils.KeySequence.parse('foobar')
-        mappings = {
-            keyutils.KeySequence.parse('b'): keyutils.KeySequence.parse('t')
-        }
-        seq2 = seq.with_mappings(mappings)
-        assert seq2 == keyutils.KeySequence.parse('footar')
+    @pytest.mark.parametrize('inp, mappings, expected', [
+        ('foobar', {'b': 't'}, 'footar'),
+        ('foo<Ctrl+x>bar', {'<Ctrl+x>': '<Ctrl+y>'}, 'foo<Ctrl+y>bar'),
+        ('foobar', {'b': 'sa'}, 'foosaar'),
+    ])
+    def test_with_mappings(self, inp, mappings, expected):
+        seq = keyutils.KeySequence.parse(inp)
+        seq2 = seq.with_mappings({
+            keyutils.KeySequence.parse(k): keyutils.KeySequence.parse(v)
+            for k, v in mappings.items()
+        })
+        assert seq2 == keyutils.KeySequence.parse(expected)
 
     @pytest.mark.parametrize('keystr, expected', [
         ('<Ctrl-Alt-y>',

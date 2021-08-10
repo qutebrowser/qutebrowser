@@ -77,7 +77,7 @@ class CovtestHelper:
         argv = [sys.argv[0]] + list(args)
         self._monkeypatch.setattr(check_coverage.sys, 'argv', argv)
         with pytest.raises(check_coverage.Skipped) as excinfo:
-            return check_coverage.check(None, perfect_files=[])
+            check_coverage.check(None, perfect_files=[])
         assert excinfo.value.reason == reason
 
 
@@ -98,7 +98,12 @@ def covtest(testdir, monkeypatch):
     # Check if coverage plugin is available
     res = testdir.runpytest('--version', '--version')
     assert res.ret == 0
+
     output = res.stderr.str()
+    if not output:
+        # pytest >= 7.0: https://github.com/pytest-dev/pytest/pull/8247
+        output = res.stdout.str()
+
     assert 'This is pytest version' in output
     if 'pytest-cov' not in output:
         pytest.skip("cov plugin not available")
@@ -176,9 +181,6 @@ def test_untested_floats(covtest):
     assert covtest.check() == [expected]
 
 
-@pytest.mark.skipif(
-    sys.version_info[:4] == (3, 10, 0, 'alpha') and sys.version_info.serial < 5,
-    reason='Different results, see https://github.com/nedbat/coveragepy/issues/1106')
 def test_untested_branches(covtest):
     covtest.makefile("""
         def func2(arg):
@@ -191,10 +193,11 @@ def test_untested_branches(covtest):
             func2(True)
     """)
     covtest.run()
+    line_coverage = "83.33%" if sys.version_info[:2] >= (3, 10) else "100.00%"
     expected = check_coverage.Message(
         check_coverage.MsgType.insufficient_coverage,
         'module.py',
-        'module.py has 100.00% line and 50.00% branch coverage!')
+        f'module.py has {line_coverage} line and 50.00% branch coverage!')
     assert covtest.check() == [expected]
 
 

@@ -19,15 +19,16 @@
 
 """pytest conftest file for javascript tests."""
 
-import os
-import os.path
-
+import pathlib
 import pytest
 import jinja2
 
 from PyQt5.QtCore import QUrl
 
 import qutebrowser
+from qutebrowser.utils import usertypes
+
+JS_DIR = pathlib.Path(__file__).parent
 
 
 class JSTester:
@@ -43,7 +44,7 @@ class JSTester:
     def __init__(self, tab, qtbot, config_stub):
         self.tab = tab
         self.qtbot = qtbot
-        loader = jinja2.FileSystemLoader(os.path.dirname(__file__))
+        loader = jinja2.FileSystemLoader(JS_DIR)
         self._jinja_env = jinja2.Environment(loader=loader, autoescape=True)
         # Make sure error logging via JS fails tests
         config_stub.val.content.javascript.log = {
@@ -53,27 +54,28 @@ class JSTester:
             'warning': 'error'
         }
 
-    def load(self, path, **kwargs):
+    def load(self, path, base_url=QUrl(), **kwargs):
         """Load and display the given jinja test data.
 
         Args:
             path: The path to the test file, relative to the javascript/
                   folder.
+            base_url: The url to pass to set_html.
             **kwargs: Passed to jinja's template.render().
         """
         template = self._jinja_env.get_template(path)
 
         try:
-            with self.qtbot.waitSignal(self.tab.load_finished,
+            with self.qtbot.wait_signal(self.tab.load_finished,
                                        timeout=2000) as blocker:
-                self.tab.set_html(template.render(**kwargs))
+                self.tab.set_html(template.render(**kwargs), base_url=base_url)
         except self.qtbot.TimeoutError:
             # Sometimes this fails for some odd reason on macOS, let's just try
             # again.
             print("Trying to load page again...")
-            with self.qtbot.waitSignal(self.tab.load_finished,
+            with self.qtbot.wait_signal(self.tab.load_finished,
                                        timeout=2000) as blocker:
-                self.tab.set_html(template.render(**kwargs))
+                self.tab.set_html(template.render(**kwargs), base_url=base_url)
 
         assert blocker.args == [True]
 
@@ -85,7 +87,7 @@ class JSTester:
             force: Whether to force loading even if the file is invalid.
         """
         self.load_url(QUrl.fromLocalFile(
-            os.path.join(os.path.dirname(__file__), path)), force)
+            str(JS_DIR / path)), force)
 
     def load_url(self, url: QUrl, force: bool = False):
         """Load a given QUrl.
@@ -94,7 +96,7 @@ class JSTester:
             url: The QUrl to load.
             force: Whether to force loading even if the file is invalid.
         """
-        with self.qtbot.waitSignal(self.tab.load_finished,
+        with self.qtbot.wait_signal(self.tab.load_finished,
                                    timeout=2000) as blocker:
             self.tab.load_url(url)
         if not force:
@@ -107,12 +109,11 @@ class JSTester:
             path: The path to the JS file, relative to the qutebrowser package.
             expected: The value expected return from the javascript execution
         """
-        base_path = os.path.dirname(os.path.abspath(qutebrowser.__file__))
-        with open(os.path.join(base_path, path), 'r', encoding='utf-8') as f:
-            source = f.read()
+        base_path = pathlib.Path(qutebrowser.__file__).resolve().parent
+        source = (base_path / path).read_text(encoding='utf-8')
         self.run(source, expected)
 
-    def run(self, source: str, expected, world=None) -> None:
+    def run(self, source: str, expected=usertypes.UNSET, world=None) -> None:
         """Run the given javascript source.
 
         Args:
@@ -122,7 +123,9 @@ class JSTester:
         """
         with self.qtbot.wait_callback() as callback:
             self.tab.run_js_async(source, callback, world=world)
-        callback.assert_called_with(expected)
+
+        if expected is not usertypes.UNSET:
+            callback.assert_called_with(expected)
 
 
 @pytest.fixture

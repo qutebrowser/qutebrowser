@@ -82,14 +82,22 @@ def get_argparser():
                              "qutebrowser instance running.")
     parser.add_argument('--backend', choices=['webkit', 'webengine'],
                         help="Which backend to use.")
-
-    parser.add_argument('--json-args', help=argparse.SUPPRESS)
-    parser.add_argument('--temp-basedir-restarted', help=argparse.SUPPRESS)
     parser.add_argument('--desktop-file-name',
                         default="org.qutebrowser.qutebrowser",
                         help="Set the base name of the desktop entry for this "
                         "application. Used to set the app_id under Wayland. See "
                         "https://doc.qt.io/qt-5/qguiapplication.html#desktopFileName-prop")
+
+    parser.add_argument('--json-args', help=argparse.SUPPRESS)
+    parser.add_argument('--temp-basedir-restarted',
+                        help=argparse.SUPPRESS,
+                        action='store_true')
+
+    # WORKAROUND to be able to restart from older qutebrowser versions into this one.
+    # Should be removed at some point.
+    parser.add_argument('--enable-webengine-inspector',
+                        help=argparse.SUPPRESS,
+                        action='store_true')
 
     debug = parser.add_argument_group('debug arguments')
     debug.add_argument('-l', '--loglevel', dest='loglevel',
@@ -165,16 +173,19 @@ def debug_flag_error(flag):
         log-requests: Log all network requests.
         log-cookies: Log cookies in cookie filter.
         log-scroll-pos: Log all scrolling changes.
+        log-sensitive-keys: Log keypresses in passthrough modes.
         stack: Enable Chromium stack logging.
         chromium: Enable Chromium logging.
         wait-renderer-process: Wait for debugger in renderer process.
         avoid-chromium-init: Enable `--version` without initializing Chromium.
         werror: Turn Python warnings into errors.
+        test-notification-service: Use the testing libnotify service.
     """
     valid_flags = ['debug-exit', 'pdb-postmortem', 'no-sql-history',
                    'no-scroll-filtering', 'log-requests', 'log-cookies',
-                   'log-scroll-pos', 'stack', 'chromium',
-                   'wait-renderer-process', 'avoid-chromium-init', 'werror']
+                   'log-scroll-pos', 'log-sensitive-keys', 'stack', 'chromium',
+                   'wait-renderer-process', 'avoid-chromium-init', 'werror',
+                   'test-notification-service']
 
     if flag in valid_flags:
         return flag
@@ -183,17 +194,25 @@ def debug_flag_error(flag):
                                          .format(', '.join(valid_flags)))
 
 
+def _unpack_json_args(args):
+    """Restore arguments from --json-args after a restart.
+
+    When restarting, we serialize the argparse namespace into json, and
+    construct a "fake" argparse.Namespace here based on the data loaded
+    from json.
+    """
+    new_args = vars(args)
+    data = json.loads(args.json_args)
+    new_args.update(data)
+    return argparse.Namespace(**new_args)
+
+
 def main():
     parser = get_argparser()
     argv = sys.argv[1:]
     args = parser.parse_args(argv)
     if args.json_args is not None:
-        # Restoring after a restart.
-        # When restarting, we serialize the argparse namespace into json, and
-        # construct a "fake" argparse.Namespace here based on the data loaded
-        # from json.
-        data = json.loads(args.json_args)
-        args = argparse.Namespace(**data)
+        args = _unpack_json_args(args)
     earlyinit.early_init(args)
     # We do this imports late as earlyinit needs to be run first (because of
     # version checking and other early initialization)

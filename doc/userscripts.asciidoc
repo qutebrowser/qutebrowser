@@ -22,7 +22,10 @@ To call a userscript, it needs to be stored in your config or data directory und
 `userscripts` (for example: `~/.local/share/qutebrowser/userscripts/myscript`),
 or just use an absolute path.
 
-NOTE: On Windows, only userscripts with `com`, `bat`, or `exe` extensions will be launched.
+NOTE: On Windows, only userscripts with `com`, `bat`, or `exe` extensions will
+be launched. As an additional resource, see
+https://www.ii.com/qutebrowser-userscripts-on-windows/[Infinite Ink:
+qutebrowser Userscripts on Windows].
 
 Getting information
 -------------------
@@ -49,7 +52,7 @@ The following environment variables will be set when a userscript is launched:
 
 In `command` mode:
 
-- `QUTE_URL`: The current URL.
+- `QUTE_URL`: The current page URL.
 - `QUTE_TITLE`: The title of the current page.
 - `QUTE_SELECTED_TEXT`: The text currently selected on the page.
 - `QUTE_COUNT`: The `count` from the spawn command running the userscript.
@@ -57,6 +60,7 @@ In `command` mode:
 In `hints` mode:
 
 - `QUTE_URL`: The URL selected via hints.
+- `QUTE_CURRENT_URL`: The current page URL.
 - `QUTE_SELECTED_TEXT`: The plain text of the element selected via hints.
 - `QUTE_SELECTED_HTML`: The HTML of the element selected via hints.
 

@@ -61,9 +61,9 @@ def handle_fatal_exc(exc: BaseException,
             "post_text: {}".format(post_text),
             "exception text: {}".format(str(exc) or 'none'),
         ]
-        log.misc.exception('\n'.join(lines))
+        log.misc.error('\n'.join(lines))
     else:
-        log.misc.exception("Fatal exception:")
+        log.misc.error("Fatal exception:")
         if pre_text:
             msg_text = '{}: {}'.format(pre_text, exc)
         else:

@@ -77,7 +77,7 @@ def test_finished_signal(qtbot):
 
     qtbot.add_widget(box)
 
-    with qtbot.waitSignal(box.finished):
+    with qtbot.wait_signal(box.finished):
         box.accept()
 
     assert signal_triggered
@@ -92,10 +92,8 @@ def test_information(qtbot):
     assert box.icon() == QMessageBox.Information
 
 
-def test_no_err_windows(fake_args, capsys):
+def test_no_err_windows(fake_args, caplog):
     fake_args.no_err_windows = True
     box = msgbox.information(parent=None, title='foo', text='bar')
     box.exec()  # should do nothing
-    out, err = capsys.readouterr()
-    assert not out
-    assert err == 'Message box: foo; bar\n'
+    assert caplog.messages == ['foo\n\nbar']

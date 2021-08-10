@@ -185,6 +185,11 @@ def check_qt_version():
                                                            PYQT_VERSION_STR))
         _die(text)
 
+    if qt_ver == QVersionNumber(5, 12, 0):
+        from qutebrowser.utils import log
+        log.init.warning("Running on Qt 5.12.0. Doing so is unsupported "
+                         "(newer 5.12.x versions are fine).")
+
 
 def check_ssl_support():
     """Check if SSL support is available."""
@@ -230,7 +235,11 @@ def check_libraries():
         'PyQt5.QtQml': _missing_str("PyQt5.QtQml"),
         'PyQt5.QtSql': _missing_str("PyQt5.QtSql"),
         'PyQt5.QtOpenGL': _missing_str("PyQt5.QtOpenGL"),
+        'PyQt5.QtDBus': _missing_str("PyQt5.QtDBus"),
     }
+    if sys.version_info < (3, 9):
+        # Backport required
+        modules['importlib_resources'] = _missing_str("importlib_resources")
     _check_modules(modules)
 
 
@@ -271,6 +280,21 @@ def check_optimize_flag():
                          "unexpected behavior may occur.")
 
 
+def webengine_early_import():
+    """If QtWebEngine is available, import it early.
+
+    We need to ensure that QtWebEngine is imported before a QApplication is created for
+    everything to work properly.
+
+    This needs to be done even when using the QtWebKit backend, to ensure that e.g.
+    error messages in backendproblem.py are accurate.
+    """
+    try:
+        from PyQt5 import QtWebEngineWidgets  # pylint: disable=unused-import
+    except ImportError:
+        pass
+
+
 def early_init(args):
     """Do all needed early initialization.
 
@@ -295,3 +319,4 @@ def early_init(args):
     configure_pyqt()
     check_ssl_support()
     check_optimize_flag()
+    webengine_early_import()

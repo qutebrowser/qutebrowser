@@ -41,9 +41,10 @@ import os
 import sys
 import functools
 import tempfile
+import pathlib
 import datetime
 import argparse
-from typing import Iterable, Optional, cast
+from typing import Iterable, Optional
 
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
@@ -66,15 +67,14 @@ from qutebrowser.misc import (ipc, savemanager, sessions, crashsignal,
                               earlyinit, sql, cmdhistory, backendproblem,
                               objects, quitter)
 from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
-                               usertypes, standarddir, error, qtutils, debug)
+                               resources, usertypes, standarddir,
+                               error, qtutils, debug)
 # pylint: disable=unused-import
 # We import those to run the cmdutils.register decorators.
 from qutebrowser.mainwindow.statusbar import command
 from qutebrowser.misc import utilcmds
+from qutebrowser.browser import commands
 # pylint: enable=unused-import
-
-
-q_app = cast(QApplication, None)
 
 
 def run(args):
@@ -86,7 +86,7 @@ def run(args):
 
     log.init.debug("Initializing directories...")
     standarddir.init(args)
-    utils.preload_resources()
+    resources.preload()
 
     log.init.debug("Initializing config...")
     configinit.early_init(args)
@@ -119,13 +119,14 @@ def run(args):
             log.init.warning(
                 "Backend from the running instance will be used")
         sys.exit(usertypes.Exit.ok)
-    else:
-        quitter.instance.shutting_down.connect(server.shutdown)
-        server.got_args.connect(lambda args, target_arg, cwd:
-                                process_pos_args(args, cwd=cwd, via_ipc=True,
-                                                 target_arg=target_arg))
 
     init(args=args)
+
+    quitter.instance.shutting_down.connect(server.shutdown)
+    server.got_args.connect(
+        lambda args, target_arg, cwd:
+        process_pos_args(args, cwd=cwd, via_ipc=True, target_arg=target_arg))
+
     ret = qt_mainloop()
     return ret
 
@@ -259,7 +260,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
 
     win_id: Optional[int] = None
 
-    if via_ipc and not args:
+    if via_ipc and (not args or args == ['']):
         win_id = mainwindow.get_window(via_ipc=via_ipc,
                                        target=new_window_target)
         _open_startpage(win_id)
@@ -395,7 +396,7 @@ def _open_special_pages(args):
         return
 
     try:
-        changelog = utils.read_file('html/doc/changelog.html')
+        changelog = resources.read_file('html/doc/changelog.html')
     except OSError as e:
         log.init.warning(f"Not showing changelog due to {e}")
         return
@@ -479,11 +480,9 @@ def _init_modules(*, args):
 
     with debug.log_time("init", "Initializing SQL/history"):
         try:
-            log.init.debug("Initializing SQL...")
-            sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
-
             log.init.debug("Initializing web history...")
-            history.init(objects.qapp)
+            history.init(db_path=pathlib.Path(standarddir.data()) / 'history.sqlite',
+                         parent=objects.qapp)
         except sql.KnownError as e:
             error.handle_fatal_exc(e, 'Error initializing SQL',
                                    pre_text='Error initializing SQL',
@@ -492,12 +491,13 @@ def _init_modules(*, args):
 
     log.init.debug("Initializing command history...")
     cmdhistory.init()
-    log.init.debug("Initializing sessions...")
-    sessions.init(objects.qapp)
 
     log.init.debug("Initializing websettings...")
     websettings.init(args)
     quitter.instance.shutting_down.connect(websettings.shutdown)
+
+    log.init.debug("Initializing sessions...")
+    sessions.init(objects.qapp)
 
     if not args.no_err_windows:
         crashsignal.crash_handler.display_faulthandler()
@@ -564,9 +564,7 @@ class Application(QApplication):
         self.launch_time = datetime.datetime.now()
         self.focusObjectChanged.connect(  # type: ignore[attr-defined]
             self.on_focus_object_changed)
-
         self.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
-        self.setAttribute(Qt.AA_MacDontSwapCtrlAndMeta, True)
 
         self.new_window.connect(self._on_new_window)
 

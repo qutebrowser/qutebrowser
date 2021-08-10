@@ -164,7 +164,7 @@ class TabEventFilter(QObject):
                 return True
 
             perc = int(100 * factor)
-            message.info("Zoom level: {}%".format(perc), replace=True)
+            message.info(f"Zoom level: {perc}%", replace='zoom-level')
             self._tab.zoom.set_factor(factor)
             return True
 

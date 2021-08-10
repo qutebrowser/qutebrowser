@@ -268,6 +268,7 @@ class PromptContainer(QWidget):
         }
 
         QTreeView {
+            selection-color: {{ conf.colors.prompts.selected.fg }};
             selection-background-color: {{ conf.colors.prompts.selected.bg }};
             border: {{ conf.colors.prompts.border }};
         }
@@ -278,6 +279,7 @@ class PromptContainer(QWidget):
 
         QTreeView::item:selected, QTreeView::item:selected:hover,
         QTreeView::branch:selected {
+            color: {{ conf.colors.prompts.selected.fg }};
             background-color: {{ conf.colors.prompts.selected.bg }};
         }
     """
@@ -521,6 +523,7 @@ class _BasePrompt(QWidget):
         if question.text is not None:
             # Not doing any HTML escaping here as the text can be formatted
             text_label = QLabel(question.text)
+            text_label.setWordWrap(True)
             text_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
             self._vbox.addWidget(text_label)
 
@@ -628,6 +631,16 @@ class FilenamePrompt(_BasePrompt):
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
         self._to_complete = ''
+        self._root_index = QModelIndex()
+
+    def _directories_hide_show_model(self):
+        """Get rid of non-matching directories."""
+        num_rows = self._file_model.rowCount(self._root_index)
+        for row in range(num_rows):
+            index = self._file_model.index(row, 0, self._root_index)
+            filename = index.data()
+            hidden = self._to_complete not in filename and filename != '..'
+            self._file_view.setRowHidden(index.row(), index.parent(), hidden)
 
     @pyqtSlot(str)
     def _set_fileview_root(self, path, *, tabbed=False):
@@ -660,8 +673,10 @@ class FilenamePrompt(_BasePrompt):
             log.prompt.exception("Failed to get directory information")
             return
 
-        root = self._file_model.setRootPath(path)
-        self._file_view.setRootIndex(root)
+        self._root_index = self._file_model.setRootPath(path)
+        self._file_view.setRootIndex(self._root_index)
+
+        self._directories_hide_show_model()
 
     @pyqtSlot(QModelIndex)
     def _insert_path(self, index, *, clicked=True):
@@ -761,15 +776,12 @@ class FilenamePrompt(_BasePrompt):
         self._insert_path(idx, clicked=False)
 
     def _do_completion(self, idx, which):
-        filename = self._file_model.fileName(idx)
-        while not filename.startswith(self._to_complete) and idx.isValid():
+        while idx.isValid() and self._file_view.isIndexHidden(idx):
             if which == 'prev':
                 idx = self._file_view.indexAbove(idx)
             else:
                 assert which == 'next', which
                 idx = self._file_view.indexBelow(idx)
-            filename = self._file_model.fileName(idx)
-
         return idx
 
     def _allowed_commands(self):
