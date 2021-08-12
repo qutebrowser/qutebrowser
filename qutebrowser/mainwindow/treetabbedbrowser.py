@@ -255,12 +255,13 @@ class TreeTabbedBrowser(TabbedBrowser):
             pos = config.val.tabs.new_position.tree.new_toplevel
             parent = self.widget.tree_root
 
-        self._position_tab(tab, pos, parent, sibling, related, background)
+        self._position_tab(cur_tab, tab, pos, parent, sibling, related, background)
 
         return tab
 
     def _position_tab(
         self,
+        cur_tab: browsertab.AbstractTab,
         tab: browsertab.AbstractTab,
         pos: str,
         parent: notree.Node,
@@ -268,7 +269,6 @@ class TreeTabbedBrowser(TabbedBrowser):
         related: bool = True,
         background: bool = None,
     ) -> None:
-        cur_tab = self.widget.currentWidget()
         toplevel = not sibling and not related
         siblings = list(parent.children)
         if tab.node in siblings:  # true if parent is tree_root
