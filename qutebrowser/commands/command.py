@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Contains the Command class, a skeleton for a command."""
 
@@ -125,10 +125,10 @@ class Command:
         self.flags_with_args: MutableSequence[str] = []
         self._has_vararg = False
 
-        # This is checked by future @cmdutils.argument calls so they fail
-        # (as they'd be silently ignored otherwise)
+        self._signature = inspect.signature(handler)
+        self._type_hints = typing.get_type_hints(handler)
+
         self._qute_args = getattr(self.handler, 'qute_args', {})
-        self.handler.qute_args = None
 
         self._check_func()
         self._inspect_func()
@@ -149,25 +149,23 @@ class Command:
                 "backend.".format(self.name, self.backend.name))
 
         if self.deprecated:
-            message.warning('{} is deprecated - {}'.format(self.name,
-                                                           self.deprecated))
+            message.warning(f'{self.name} is deprecated - {self.deprecated}')
 
     def _check_func(self):
         """Make sure the function parameters don't violate any rules."""
-        signature = inspect.signature(self.handler)
-        if 'self' in signature.parameters:
+        if 'self' in self._signature.parameters:
             if self._instance is None:
                 raise TypeError("{} is a class method, but instance was not "
                                 "given!".format(self.name))
-            arg_info = self.get_arg_info(signature.parameters['self'])
+            arg_info = self.get_arg_info(self._signature.parameters['self'])
             if arg_info.value is not None:
                 raise TypeError("{}: Can't fill 'self' with value!"
                                 .format(self.name))
-        elif 'self' not in signature.parameters and self._instance is not None:
+        elif 'self' not in self._signature.parameters and self._instance is not None:
             raise TypeError("{} is not a class method, but instance was "
                             "given!".format(self.name))
         elif any(param.kind == inspect.Parameter.VAR_KEYWORD
-                 for param in signature.parameters.values()):
+                 for param in self._signature.parameters.values()):
             raise TypeError("{}: functions with varkw arguments are not "
                             "supported!".format(self.name))
 
@@ -215,14 +213,13 @@ class Command:
         Return:
             How many user-visible arguments the command has.
         """
-        signature = inspect.signature(self.handler)
         doc = inspect.getdoc(self.handler)
         if doc is not None:
             self.desc = doc.splitlines()[0].strip()
         else:
             self.desc = ""
 
-        for param in signature.parameters.values():
+        for param in self._signature.parameters.values():
             # https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
             # "Python has no explicit syntax for defining positional-only
             # parameters, but many built-in and extension module functions
@@ -250,7 +247,7 @@ class Command:
             self.parser.add_argument(*args, **kwargs)
             if param.kind == inspect.Parameter.VAR_POSITIONAL:
                 self._has_vararg = True
-        return signature.parameters.values()
+        return self._signature.parameters.values()
 
     def _param_to_argparse_kwargs(self, param, is_bool):
         """Get argparse keyword arguments for a parameter.
@@ -341,10 +338,12 @@ class Command:
         elif param.kind in [inspect.Parameter.VAR_POSITIONAL,
                             inspect.Parameter.VAR_KEYWORD]:
             # For *args/**kwargs we only support strings
-            assert param.annotation in [inspect.Parameter.empty, str], param
+            if param.name in self._type_hints and self._type_hints[param.name] != str:
+                raise TypeError("Expected str annotation for {}, got {}".format(
+                    param, self._type_hints[param.name]))
             return None
-        elif param.annotation is not inspect.Parameter.empty:
-            return param.annotation
+        elif param.name in self._type_hints:
+            return self._type_hints[param.name]
         elif param.default not in [None, inspect.Parameter.empty]:
             return type(param.default)
         else:
@@ -496,9 +495,8 @@ class Command:
         """
         args: Any = []
         kwargs: MutableMapping[str, Any] = {}
-        signature = inspect.signature(self.handler)
 
-        for i, param in enumerate(signature.parameters.values()):
+        for i, param in enumerate(self._signature.parameters.values()):
             if self._handle_special_call_arg(pos=i, param=param,
                                              win_id=win_id, args=args,
                                              kwargs=kwargs):

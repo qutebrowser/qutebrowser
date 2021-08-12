@@ -34,6 +34,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<bind,bind>>|Bind a key to a command.
 |<<bookmark-add,bookmark-add>>|Save the current page as a bookmark, or a specific url.
 |<<bookmark-del,bookmark-del>>|Delete a bookmark.
+|<<bookmark-list,bookmark-list>>|Show all bookmarks/quickmarks.
 |<<bookmark-load,bookmark-load>>|Load a bookmark.
 |<<clear-keychain,clear-keychain>>|Clear the currently entered key chain.
 |<<clear-messages,clear-messages>>|Clear all message notifications.
@@ -86,6 +87,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<nop,nop>>|Do nothing.
 |<<open,open>>|Open a URL in the current/[count]th tab.
 |<<print,print>>|Print the current/[count]th tab.
+|<<process,process>>|Manage processes spawned by qutebrowser.
 |<<quickmark-add,quickmark-add>>|Add a new quickmark.
 |<<quickmark-del,quickmark-del>>|Delete a quickmark.
 |<<quickmark-load,quickmark-load>>|Load a quickmark.
@@ -98,6 +100,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<restart,restart>>|Restart qutebrowser while keeping existing tabs open.
 |<<run-with-count,run-with-count>>|Run a command with the given count.
 |<<save,save>>|Save configs and state.
+|<<screenshot,screenshot>>|Take a screenshot of the currently shown part of the page.
 |<<scroll,scroll>>|Scroll the current tab in the given direction.
 |<<scroll-page,scroll-page>>|Scroll the frame page-wise.
 |<<scroll-px,scroll-px>>|Scroll the current tab by 'count * dx/dy' pixels.
@@ -210,6 +213,18 @@ Delete a bookmark.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
+
+[[bookmark-list]]
+=== bookmark-list
+Syntax: +:bookmark-list [*--jump*] [*--tab*] [*--bg*] [*--window*]+
+
+Show all bookmarks/quickmarks.
+
+==== optional arguments
+* +*-j*+, +*--jump*+: Jump to the "bookmarks" header.
+* +*-t*+, +*--tab*+: Open in a new tab.
+* +*-b*+, +*--bg*+: Open in a background tab.
+* +*-w*+, +*--window*+: Open in a new window.
 
 [[bookmark-load]]
 === bookmark-load
@@ -366,7 +381,7 @@ Read a config.py file.
 
 [[config-unset]]
 === config-unset
-Syntax: +:config-unset [*--temp*] 'option'+
+Syntax: +:config-unset [*--pattern* 'pattern'] [*--temp*] 'option'+
 
 Unset an option.
 
@@ -376,6 +391,7 @@ This sets an option back to its default and removes it from autoconfig.yml.
 * +'option'+: The name of the option.
 
 ==== optional arguments
+* +*-u*+, +*--pattern*+: The URL pattern to use.
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 
 [[config-write-py]]
@@ -561,7 +577,7 @@ Toggle fullscreen mode.
 
 [[greasemonkey-reload]]
 === greasemonkey-reload
-Syntax: +:greasemonkey-reload [*--force*]+
+Syntax: +:greasemonkey-reload [*--force*] [*--quiet*]+
 
 Re-read Greasemonkey scripts from disk.
 
@@ -570,6 +586,7 @@ The scripts are read from a 'greasemonkey' subdirectory in qutebrowser's data or
 ==== optional arguments
 * +*-f*+, +*--force*+: For any scripts that have required dependencies, re-download them.
 
+* +*-q*+, +*--quiet*+: Suppress message after loading scripts.
 
 [[help]]
 === help
@@ -925,6 +942,23 @@ Print the current/[count]th tab.
 ==== count
 The tab index to print.
 
+[[process]]
+=== process
+Syntax: +:process ['pid'] ['action']+
+
+Manage processes spawned by qutebrowser.
+
+Note that processes with a successful exit get cleaned up after 1h.
+
+==== positional arguments
+* +'pid'+: The process ID of the process to manage.
+* +'action'+: What to do with the given process: 
+
+ - show: Show information about the process.
+ - terminate: Try to gracefully terminate the process (SIGTERM).
+ - kill: Kill the process forcefully (SIGKILL).
+
+
 [[quickmark-add]]
 === quickmark-add
 Syntax: +:quickmark-add 'url' 'name'+
@@ -1066,6 +1100,21 @@ Save configs and state.
 ==== positional arguments
 * +'what'+: What to save (`config`/`key-config`/`cookies`/...). If not given, everything is saved.
 
+
+[[screenshot]]
+=== screenshot
+Syntax: +:screenshot [*--rect* 'rect'] [*--force*] 'filename'+
+
+Take a screenshot of the currently shown part of the page.
+
+The file format is automatically determined based on the given file extension.
+
+==== positional arguments
+* +'filename'+: The file to save the screenshot to (~ gets expanded).
+
+==== optional arguments
+* +*-r*+, +*--rect*+: The rectangle to save, as a string like WxH+X+Y.
+* +*-f*+, +*--force*+: Overwrite existing files.
 
 [[scroll]]
 === scroll
@@ -1405,13 +1454,15 @@ How many tabs to switch forward.
 
 [[tab-only]]
 === tab-only
-Syntax: +:tab-only [*--prev*] [*--next*] [*--force*]+
+Syntax: +:tab-only [*--prev*] [*--next*] [*--pinned* 'behavior'] [*--force*]+
 
 Close all tabs except for the current one.
 
 ==== optional arguments
 * +*-p*+, +*--prev*+: Keep tabs before the current.
 * +*-n*+, +*--next*+: Keep tabs after the current.
+* +*-P*+, +*--pinned*+: What to do with pinned tabs. Valid values: prompt, close, keep.
+
 * +*-f*+, +*--force*+: Avoid confirmation for pinned tabs.
 
 [[tab-pin]]
@@ -2089,7 +2140,7 @@ Syntax: +:debug-webaction 'action'+
 
 Execute a webaction.
 
-Available actions: http://doc.qt.io/archives/qt-5.5/qwebpage.html#WebAction-enum (WebKit) http://doc.qt.io/qt-5/qwebenginepage.html#WebAction-enum (WebEngine)
+Available actions: https://doc.qt.io/archives/qt-5.5/qwebpage.html#WebAction-enum (WebKit) https://doc.qt.io/qt-5/qwebenginepage.html#WebAction-enum (WebEngine)
 
 ==== positional arguments
 * +'action'+: The action to execute, e.g. MoveToNextChar.

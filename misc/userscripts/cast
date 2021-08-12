@@ -116,7 +116,7 @@ cat <<EOF
     }
 
     /** force repainting the video, thanks to:
-     * http://martinwolf.org/2014/06/10/force-repaint-of-an-element-with-javascript/
+     * http://web.archive.org/web/20151029064649/https://martinwolf.org/2014/06/10/force-repaint-of-an-element-with-javascript/
      */
     var siteHeader = document.getElementById('header');
     siteHeader.style.display='none';

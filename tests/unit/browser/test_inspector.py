@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
 
@@ -146,9 +146,9 @@ def test_detach_after_toggling(hidden_again, needs_recreate,
 
     if needs_recreate:
         fake_inspector.needs_recreate = True
-        with qtbot.waitSignal(fake_inspector.recreate):
+        with qtbot.wait_signal(fake_inspector.recreate):
             fake_inspector.set_position(inspector.Position.window)
     else:
-        with qtbot.assertNotEmitted(fake_inspector.recreate):
+        with qtbot.assert_not_emitted(fake_inspector.recreate):
             fake_inspector.set_position(inspector.Position.window)
         assert fake_inspector.isVisible() and fake_inspector.isWindow()

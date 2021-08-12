@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Base class for vim-like key sequence parser."""
 
@@ -112,7 +112,7 @@ class BindingTrie:
 
         return lines
 
-    def update(self, mapping: Mapping) -> None:
+    def update(self, mapping: Mapping[keyutils.KeySequence, str]) -> None:
         """Add data from the given mapping to the trie."""
         for key in mapping:
             self[key] = mapping[key]

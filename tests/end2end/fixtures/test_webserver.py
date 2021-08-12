@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Test the server webserver used for tests."""
 
@@ -34,7 +34,7 @@ import pytest
     ('/data/hello.txt', 'Hello World!', True),
 ])
 def test_server(server, qtbot, path, content, expected):
-    with qtbot.waitSignal(server.new_request, timeout=100):
+    with qtbot.wait_signal(server.new_request, timeout=100):
         url = 'http://localhost:{}{}'.format(server.port, path)
         try:
             response = urllib.request.urlopen(url)

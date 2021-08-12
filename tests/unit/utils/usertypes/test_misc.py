@@ -15,16 +15,10 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 
 from qutebrowser.utils import usertypes
-
-
-def test_abstract_certificate_error_wrapper():
-    err = object()
-    wrapper = usertypes.AbstractCertificateErrorWrapper(err)
-    assert wrapper._error is err
 
 
 def test_unset_object_identity():

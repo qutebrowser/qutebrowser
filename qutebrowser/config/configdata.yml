@@ -35,6 +35,18 @@ history_gap_interval:
     Items with less time between them are grouped when being displayed in
     `:history`. Use -1 to disable separation.
 
+changelog_after_upgrade:
+  type:
+    name: String
+    valid_values:
+      - major: Show changelog for major upgrades (e.g. v2.0.0 -> v3.0.0).
+      - minor: Show changelog for major and minor upgrades (e.g. v2.0.0 -> v2.1.0).
+      - patch: Show changelog for major, minor and patch upgrades
+          (e.g. v2.0.0 -> v2.0.1).
+      - never: Never show changelog after upgrades.
+  default: minor
+  desc: When to show a changelog after qutebrowser was upgraded.
+
 ignore_case:
   renamed: search.ignore_case
 
@@ -286,6 +298,33 @@ qt.highdpi:
     As an alternative to this, it's possible to set font sizes and the
     `zoom.default` setting.
 
+qt.workarounds.remove_service_workers:
+  type: Bool
+  default: false
+  desc: >-
+    Delete the QtWebEngine Service Worker directory on every start.
+
+    This workaround can help with certain crashes caused by an unknown QtWebEngine bug
+    related to Service Workers. Those crashes happen seemingly immediately on Windows;
+    after one hour of operation on other systems.
+
+    Note however that enabling this option *can lead to data loss* on some pages (as
+    Service Worker data isn't persisted) and will negatively impact start-up time.
+
+qt.workarounds.locale:
+  type: Bool
+  default: false
+  backend: QtWebEngine
+  desc: >-
+    Work around locale parsing issues in QtWebEngine 5.15.3.
+
+    With some locales, QtWebEngine 5.15.3 is unusable without this workaround.
+    In affected scenarios, QtWebEngine will log "Network service crashed,
+    restarting service." and only display a blank page.
+
+    However, It is expected that distributions shipping QtWebEngine 5.15.3
+    follow up with a proper fix soon, so it is disabled by default.
+
 ## auto_save
 
 auto_save.interval:
@@ -360,7 +399,7 @@ content.cache.maximum_pages:
     _n_ pages.
 
     For more information about the feature, please refer to:
-    http://webkit.org/blog/427/webkit-page-cache-i-the-basics/
+    https://webkit.org/blog/427/webkit-page-cache-i-the-basics/
 
 content.cache.appcache:
   default: true
@@ -400,6 +439,16 @@ content.cookies.accept:
 
     If this setting is used with URL patterns, the pattern gets applied to the
     origin/first party URL of the page making the request, not the request URL.
+
+    With QtWebEngine 5.15.0+, paths will be stripped from URLs, so URL patterns
+    using paths will not match. With QtWebEngine 5.15.2+, subdomains are
+    additionally stripped as well, so you will typically need to set this
+    setting for `example.com` when the cookie is set on
+    `somesubdomain.example.com` for it to work properly.
+
+    To debug issues with this setting, start qutebrowser with `--debug
+    --logfilter network --debug-flag log-cookies` which will show all cookies
+    being set.
 
 content.cookies.store:
   default: true
@@ -479,12 +528,56 @@ content.frame_flattening:
 
     This will flatten all the frames to become one scrollable page.
 
+content.prefers_reduced_motion:
+  default: false
+  type: Bool
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+  restart: true
+  desc: >-
+    Request websites to minimize non-essentials animations and motion.
+
+    This results in the `prefers-reduced-motion` CSS media query to evaluate to
+    `reduce` (rather than `no-preference`).
+
+    On Windows, if this setting is set to False, the system-wide animation
+    setting is considered.
+
 content.site_specific_quirks:
+  renamed: content.site_specific_quirks.enabled
+
+content.site_specific_quirks.enabled:
   default: true
   restart: true
   type: Bool
   desc: 'Enable quirks (such as faked user agent headers) needed to get
       specific sites to work properly.'
+
+content.site_specific_quirks.skip:
+  type:
+    name: FlagList
+    valid_values:
+      - ua-whatsapp
+      - ua-google
+      - ua-slack
+      - ua-googledocs
+      - js-whatsapp-web
+      - js-discord
+      - js-string-replaceall
+      - js-globalthis
+      - js-object-fromentries
+      - misc-krunker
+      - misc-mathml-darkmode
+    none_ok: true
+  default: ["js-string-replaceall"]
+  desc: >-
+    Disable a list of named quirks.
+
+    The js-string-replaceall quirk is needed for Nextcloud Calendar < 2.2.0 with
+    QtWebEngine < 5.15.3. However, the workaround is not fully compliant to the
+    ECMAScript spec and might cause issues on other websites, so it's disabled by
+    default.
 
 # emacs: '
 
@@ -505,6 +598,7 @@ content.headers.accept_language:
   type:
     name: String
     none_ok: true
+    encoding: ascii
   supports_pattern: true
   default: en-US,en;q=0.9
   desc: >-
@@ -555,7 +649,9 @@ content.headers.referer:
     When to send the Referer header.
 
     The Referer header tells websites from which website you were coming from
-    when visiting them.
+    when visiting them. Note that with QtWebEngine, websites can override this
+    preference by setting the `Referrer-Policy:` header, so that any websites
+    visited from them get the full referer.
 
     No restart is needed with QtWebKit.
 
@@ -566,6 +662,7 @@ content.headers.user_agent:
       Safari/{webkit_version}'
   type:
     name: FormatString
+    encoding: ascii
     fields:
       - os_info
       - webkit_version
@@ -581,15 +678,15 @@ content.headers.user_agent:
       # 'ua_fetch.py'
       # Vim-protip: Place your cursor below this comment and run
       # :r!python scripts/dev/ua_fetch.py
-      - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/86.0.4240.75 Safari/537.36"
-        - Chrome 86 Linux
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/86.0.4240.75 Safari/537.36"
-        - Chrome 86 Win10
+          like Gecko) Chrome/90.0.4430.93 Safari/537.36"
+        - Chrome 90 Win10
       - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
-          (KHTML, like Gecko) Chrome/86.0.4240.80 Safari/537.36"
-        - Chrome 86 macOS
+          (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36"
+        - Chrome 90 macOS
+      - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/90.0.4430.93 Safari/537.36"
+        - Chrome 90 Linux
   supports_pattern: true
   desc: |
     User agent to send.
@@ -651,6 +748,15 @@ content.blocking.hosts.lists:
     case of a directory, all files in the directory are read as adblock lists.
 
     The file `~/.config/qutebrowser/blocked-hosts` is always read if it exists.
+
+content.blocking.hosts.block_subdomains:
+  default: true
+  type: Bool
+  desc: >-
+    Block subdomains of blocked hosts.
+
+    Note: If only a single subdomain is blocked but should be allowed, consider
+    using `content.blocking.whitelist` instead.
 
 content.blocking.method:
   default: auto
@@ -842,6 +948,9 @@ content.netrc_file:
     If unset, `~/.netrc` is used.
 
 content.notifications:
+  renamed: content.notifications.enabled
+
+content.notifications.enabled:
   default: ask
   type: BoolAsk
   supports_pattern: true
@@ -849,6 +958,59 @@ content.notifications:
     QtWebEngine: Qt 5.13
     QtWebKit: true
   desc: Allow websites to show notifications.
+
+content.notifications.presenter:
+  default: auto
+  type:
+    name: String
+    valid_values:
+      - auto: Tries `libnotify`, `systray` and `messages`, uses the first one available
+            without showing error messages.
+      - qt: Use Qt's native notification presenter, based on a system tray icon.
+            Switching from or to this value requires a restart of qutebrowser.
+            Recommended over `systray` on PyQt 5.14.
+      - libnotify: Shows messages via DBus in a libnotify-compatible way. If DBus isn't
+            available, falls back to `systray` or `messages`, but shows an error
+            message.
+      - systray: Use a notification presenter based on a systray icon. Falls back to
+            `libnotify` or `messages` if not systray is available. This is a
+            reimplementation of the `qt` setting value, but with the possibility to
+            switch to it at runtime.
+      - messages: Show notifications as qutebrowser messages. Most notification features
+            aren't available.
+      - herbe: (experimental!) Show notifications using herbe (github.com/dudik/herbe).
+            Most notification features aren't available.
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+  desc: >-
+    What notification presenter to use for web notifications.
+
+    Note that not all implementations support all features of notifications:
+
+    - With PyQt 5.14, any setting other than `qt` does not support  the `click` and
+      `close` events, as well as the `tag` option to replace existing notifications.
+    - The `qt` and `systray` options only support showing one notification at the time
+      and ignore the `tag` option to replace existing notifications.
+    - The `herbe` option only supports showing one notification at the time and doesn't
+      show icons.
+    - The `messages` option doesn't show icons and doesn't support the `click` and
+      `close` events.
+
+content.notifications.show_origin:
+  default: true
+  type: Bool
+  supports_pattern: true
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+  desc: >-
+    Whether to show the origin URL for notifications.
+
+    Note that URL patterns with this setting only get matched against the origin part of
+    the URL, so e.g. paths in patterns will never match.
+
+    Note that with the `qt` presenter, origins are never shown.
 
 content.pdfjs:
   default: false
@@ -914,11 +1076,22 @@ content.register_protocol_handler:
   desc: Allow websites to register protocol handlers via
     `navigator.registerProtocolHandler`.
 
-content.ssl_strict:
+content.tls.certificate_errors:
   default: ask
-  type: BoolAsk
+  type:
+    name: String
+    valid_values:
+      - ask: Ask how to proceed for every certificate error (unless non-overridable due
+            to HSTS).
+      - ask-block-thirdparty: Ask how to proceed for normal page loads, but silently
+            block resource loads.
+      - block: Automatically block loading on certificate errors.
+      - load-insecurely: Force loading pages despite certificate errors. This is
+            *insecure* and should be avoided. Instead of using this, consider fixing the
+            underlying issue or importing a self-signed certificate via `certutil` (or
+            Chromium) instead.
   supports_pattern: true
-  desc: Validate SSL handshakes.
+  desc: How to proceed on TLS certificate errors.
 
 content.user_stylesheets:
   type:
@@ -1063,7 +1236,7 @@ completion.web_history.exclude:
     A list of patterns which should not be shown in the history.
 
     This only affects the completion. Matching URLs are still saved in the
-    history (and visible on the qute://history page), but hidden in the
+    history (and visible on the `:history` page), but hidden in the
     completion.
 
     Changing this setting will cause the completion history to be regenerated
@@ -1234,35 +1407,61 @@ fileselect.handler:
 fileselect.single_file.command:
   type:
     name: ShellCommand
-    placeholder: true
+    placeholder: false
     completions:
       - ['["xterm", "-e", "ranger", "--choosefile={}"]', "Ranger in xterm"]
-      - ['["xterm", "-e", "vifm", "--choose-file", "{}"]', "vifm in xterm"]
+      - ['["xterm", "-e", "vifm", "--choose-files", "{}"]', "vifm in xterm"]
+      - ['["xterm", "-e", "nnn", "-p", "{}"]', "nnn in xterm"]
+      - ['["xterm", "-e", "fff", "-p", "{}"]', "fff in xterm"]
+      - ['["xterm", "-e", "lf", "-selection-path", "{}"]', "lf in xterm"]
   default: ['xterm', '-e', 'ranger', '--choosefile={}']
   desc: >-
     Command (and arguments) to use for selecting a single file in forms.
-    The command should write the selected file path to the specified file.
+    The command should write the selected file path to the specified file or stdout.
 
     The following placeholders are defined:
 
-    * `{}`: Filename of the file to be written to.
+    * `{}`: Filename of the file to be written to. If not contained in any argument, the
+      standard output of the command is read instead.
 
 fileselect.multiple_files.command:
   type:
     name: ShellCommand
-    placeholder: true
+    placeholder: false
     completions:
       - ['["xterm", "-e", "ranger", "--choosefiles={}"]', "Ranger in xterm"]
       - ['["xterm", "-e", "vifm", "--choose-files", "{}"]', "vifm in xterm"]
+      - ['["xterm", "-e", "nnn", "-p", "{}"]', "nnn in xterm"]
+      - ['["xterm", "-e", "fff", "-p", "{}"]', "fff in xterm"]
+      - ['["xterm", "-e", "lf", "-selection-path", "{}"]', "lf in xterm"]
   default: ['xterm', '-e', 'ranger', '--choosefiles={}']
   desc: >-
     Command (and arguments) to use for selecting multiple files in forms.
-    The command should write the selected file paths to the specified file,
+    The command should write the selected file paths to the specified file or to stdout,
     separated by newlines.
 
     The following placeholders are defined:
 
-    * `{}`: Filename of the file to be written to.
+    * `{}`: Filename of the file to be written to. If not contained in any argument, the
+      standard output of the command is read instead.
+
+fileselect.folder.command:
+  type:
+    name: ShellCommand
+    placeholder: false
+    completions:
+      - ['["xterm", "-e", "ranger", "--choosedir={}"]', "Ranger in xterm"]
+      - ['["xterm", "-e", "vifm", "--choose-dir", "{}"]', "vifm in xterm"]
+      - ['["xterm", "-e", "nnn", "-p", "{}"]', "nnn in xterm"]
+  default: ['xterm', '-e', 'ranger', '--choosedir={}']
+  desc: >-
+    Command (and arguments) to use for selecting a single folder in forms.
+    The command should write the selected folder path to the specified file or stdout.
+
+    The following placeholders are defined:
+
+    * `{}`: Filename of the file to be written to. If not contained in any argument, the
+      standard output of the command is read instead.
 
 ## hints
 
@@ -1469,7 +1668,7 @@ hints.uppercase:
   desc: Make characters in hint strings uppercase.
 
 hints.leave_on_load:
-  default: true
+  default: false
   type: Bool
   desc: Leave hint mode when starting a new page load.
 
@@ -1512,7 +1711,7 @@ input.insert_mode.plugins:
   desc: Switch to insert mode when clicking flash and other plugins.
 
 input.insert_mode.leave_on_load:
-  default: false
+  default: true
   type: Bool
   supports_pattern: true
   desc: >-
@@ -1570,6 +1769,18 @@ input.spatial_navigation:
     Right key, heuristics determine whether there is an element he might be
     trying to reach towards the right and which element he probably wants.
 
+input.media_keys:
+  default: true
+  type: Bool
+  backend:
+    QtWebEngine: Qt 5.14
+    QtWebKit: false
+  restart: true
+  desc: >-
+    Whether the underlying Chromium should handle media keys.
+
+    On Linux, disabling this also disables Chromium's MPRIS integration.
+
 ## keyhint
 
 keyhint.blacklist:
@@ -1608,7 +1819,7 @@ messages.timeout:
   type:
     name: Int
     minval: 0
-  default: 2000
+  default: 3000
   desc: >-
     Duration (in milliseconds) to show messages in the statusbar for.
 
@@ -1747,7 +1958,7 @@ statusbar.widgets:
   type:
     name: List
     valtype:
-      name: String
+      name: StatusbarWidget
       valid_values:
         - url: "Current page URL."
         - scroll: "Percentage of the current page position like `10%`."
@@ -1757,9 +1968,10 @@ statusbar.widgets:
         - tabs: "Current active tab, e.g. `2`."
         - keypress: "Display pressed keys when composing a vi command."
         - progress: "Progress bar for the current page loading."
+        - 'text:foo': "Display the static text after the colon, `foo` in the example."
     none_ok: true
   default: ['keypress', 'url', 'scroll', 'history', 'tabs', 'progress']
-  desc: List of widgets displayed in the statusbar.
+  desc: "List of widgets displayed in the statusbar."
 
 ## tabs
 
@@ -2548,7 +2760,7 @@ colors.messages.error.border:
   desc: Border color of an error message.
 
 colors.messages.warning.fg:
-  default: white
+  default: black
   type: QssColor
   desc: Foreground color of a warning message.
 
@@ -2591,6 +2803,11 @@ colors.prompts.bg:
   default: '#444444'
   type: QssColor
   desc: Background color for prompts.
+
+colors.prompts.selected.fg:
+  default: white
+  type: QssColor
+  desc: Foreground color for the selected item in filename prompts.
 
 colors.prompts.selected.bg:
   default: grey
@@ -2826,13 +3043,22 @@ colors.webpage.bg:
   desc: "Background color for webpages if unset (or empty to use the theme's
     color)."
 
-colors.webpage.force_dark_color_scheme:
-  renamed: colors.webpage.prefers_color_scheme_dark
+colors.webpage.preferred_color_scheme:
+  default: auto
+  type:
+    name: String
+    valid_values:
+      - auto: Use the system-wide color scheme setting.
+      - light: Force a light theme.
+      - dark: Force a dark theme.
+  desc: >-
+    Value to use for `prefers-color-scheme:` for websites.
 
-colors.webpage.prefers_color_scheme_dark:
-  default: false
-  type: Bool
-  desc: "Force `prefers-color-scheme: dark` colors for websites."
+    The "light" value is only available with QtWebEngine 5.15.2+. On older versions, it
+    is the same as "auto".
+
+    The "auto" value is broken on QtWebEngine 5.15.2 due to a Qt bug. There, it will
+    fall back to "light" unconditionally.
   backend:
     QtWebEngine: Qt 5.14
     QtWebKit: false
@@ -2926,7 +3152,11 @@ colors.webpage.darkmode.policy.page:
     valid_values:
       - always: Apply dark mode filter to all frames, regardless of content.
       - smart: Apply dark mode filter to frames based on background color.
-  desc: Which pages to apply dark mode to.
+  desc: >-
+    Which pages to apply dark mode to.
+
+    The underlying Chromium setting has been removed in QtWebEngine 5.15.3, thus this
+    setting is ignored there. Instead, every element is now classified individually.
   restart: true
   backend:
     QtWebEngine: Qt 5.14
@@ -3105,6 +3335,7 @@ fonts.tabs.unselected:
 
 fonts.web.family.standard:
   default: ''
+  supports_pattern: true
   type:
     name: FontFamily
     none_ok: true
@@ -3112,6 +3343,7 @@ fonts.web.family.standard:
 
 fonts.web.family.fixed:
   default: ''
+  supports_pattern: true
   type:
     name: FontFamily
     none_ok: true
@@ -3119,6 +3351,7 @@ fonts.web.family.fixed:
 
 fonts.web.family.serif:
   default: ''
+  supports_pattern: true
   type:
     name: FontFamily
     none_ok: true
@@ -3126,6 +3359,7 @@ fonts.web.family.serif:
 
 fonts.web.family.sans_serif:
   default: ''
+  supports_pattern: true
   type:
     name: FontFamily
     none_ok: true
@@ -3133,6 +3367,7 @@ fonts.web.family.sans_serif:
 
 fonts.web.family.cursive:
   default: ''
+  supports_pattern: true
   type:
     name: FontFamily
     none_ok: true
@@ -3140,6 +3375,7 @@ fonts.web.family.cursive:
 
 fonts.web.family.fantasy:
   default: ''
+  supports_pattern: true
   type:
     name: FontFamily
     none_ok: true
@@ -3152,6 +3388,7 @@ fonts.web.family.fantasy:
 
 fonts.web.size.default:
   default: 16
+  supports_pattern: true
   type:
     name: Int
     minval: 1
@@ -3160,6 +3397,7 @@ fonts.web.size.default:
 
 fonts.web.size.default_fixed:
   default: 13
+  supports_pattern: true
   type:
     name: Int
     minval: 1
@@ -3168,6 +3406,7 @@ fonts.web.size.default_fixed:
 
 fonts.web.size.minimum:
   default: 0
+  supports_pattern: true
   type:
     name: Int
     minval: 0
@@ -3178,6 +3417,7 @@ fonts.web.size.minimum_logical:
   # This is 0 as default on QtWebKit, and 6 on QtWebEngine - so let's
   # just go for 6 here.
   default: 6
+  supports_pattern: true
   type:
     name: Int
     minval: 0
@@ -3203,13 +3443,20 @@ bindings.key_mappings:
     keytype: Key
     valtype: Key
   desc: >-
-    This setting can be used to map keys to other keys.
+    Map keys to other keys, so that they are equivalent in all modes.
 
     When the key used as dictionary-key is pressed, the binding for the key
     used as dictionary-value is invoked instead.
 
-    This is useful for global remappings of keys, for example to map Ctrl-[ to
-    Escape.
+    This is useful for global remappings of keys, for example to map <Ctrl-[> to
+    <Escape>.
+
+    NOTE: This should only be used if two keys should always be equivalent, i.e. for
+    things like <Enter> (keypad) and <Return> (non-keypad). For normal command bindings,
+    qutebrowser works differently to vim: You always bind keys to commands, usually via
+    `:bind` or `config.bind()`. Instead of using this setting, consider finding the
+    command a key is bound to (e.g. via `:bind gg`) and then binding the same command to
+    the desired key.
 
     Note that when a key is bound (via `bindings.default` or
     `bindings.commands`), the mapping is ignored.
@@ -3239,7 +3486,7 @@ bindings.default:
       <Ctrl-Shift-W>: close
       D: tab-close -o
       co: tab-only
-      T: tab-focus
+      T: set-cmd-text -sr :tab-focus
       gm: tab-move
       gK: tab-move -
       gJ: tab-move +
@@ -3371,10 +3618,10 @@ bindings.default:
       <Ctrl-h>: home
       <Ctrl-s>: stop
       <Ctrl-Alt-p>: print
-      Ss: open qute://settings
-      Sb: open qute://bookmarks#bookmarks
-      Sq: open qute://bookmarks
-      Sh: open qute://history
+      Ss: set
+      Sb: bookmark-list --jump
+      Sq: bookmark-list
+      Sh: history
       <Return>: selection-follow
       <Ctrl-Return>: selection-follow -t
       .: repeat-command

@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Configuration data for config.py.
 
@@ -30,7 +30,7 @@ import functools
 import dataclasses
 
 from qutebrowser.config import configtypes
-from qutebrowser.utils import usertypes, qtutils, utils
+from qutebrowser.utils import usertypes, qtutils, utils, resources
 from qutebrowser.misc import debugcachestats
 
 DATA = cast(Mapping[str, 'Option'], None)
@@ -272,4 +272,4 @@ def is_valid_prefix(prefix: str) -> bool:
 def init() -> None:
     """Initialize configdata from the YAML file."""
     global DATA, MIGRATIONS
-    DATA, MIGRATIONS = _read_yaml(utils.read_file('config/configdata.yml'))
+    DATA, MIGRATIONS = _read_yaml(resources.read_file('config/configdata.yml'))

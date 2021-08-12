@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
 
@@ -27,7 +27,7 @@ bdd.scenarios('open.feature')
 @pytest.mark.parametrize('scheme', ['http://', ''])
 def test_open_s(request, quteproc, ssl_server, scheme):
     """Test :open with -s."""
-    quteproc.set_setting('content.ssl_strict', 'false')
+    quteproc.set_setting('content.tls.certificate_errors', 'load-insecurely')
     quteproc.send_cmd(':open -s {}localhost:{}/'
                       .format(scheme, ssl_server.port))
     if scheme == 'http://' or not request.config.webengine:

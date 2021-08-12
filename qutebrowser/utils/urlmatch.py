@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """A Chromium-like URL matching pattern.
 
@@ -104,7 +104,14 @@ class UrlPattern:
         self._init_path(parsed)
         self._init_port(parsed)
 
-    def _to_tuple(self) -> Tuple:
+    def _to_tuple(self) -> Tuple[
+        bool,  # _match_all
+        bool,  # _match_subdomains
+        Optional[str],  # _scheme
+        Optional[str],  # host
+        Optional[str],  # _path
+        Optional[int],  # _port
+    ]:
         """Get a pattern with information used for __eq__/__hash__."""
         return (self._match_all, self._match_subdomains, self._scheme,
                 self.host, self._path, self._port)

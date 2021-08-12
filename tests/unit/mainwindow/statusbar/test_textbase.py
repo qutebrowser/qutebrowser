@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 
 """Test TextBase widget."""
@@ -64,7 +64,7 @@ def test_resize(qtbot):
     long_string = 'Hello world! ' * 20
     label.setText(long_string)
 
-    with qtbot.waitExposed(label):
+    with qtbot.wait_exposed(label):
         label.show()
 
     text_1 = label._elided_text

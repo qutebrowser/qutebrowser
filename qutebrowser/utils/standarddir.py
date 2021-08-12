@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Utilities to get and initialize data/config paths."""
 
@@ -30,7 +30,7 @@ from typing import Iterator, Optional
 from PyQt5.QtCore import QStandardPaths
 from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.utils import log, debug, utils
+from qutebrowser.utils import log, debug, utils, version
 
 # The cached locations
 _locations = {}
@@ -232,6 +232,18 @@ def _init_runtime(args: Optional[argparse.Namespace]) -> None:
         # Unfortunately this path could get too long for sockets (which have a
         # maximum length of 104 chars), so we don't add the username here...
 
+        if version.is_flatpak():
+            # We need a path like
+            # /run/user/1000/app/org.qutebrowser.qutebrowser rather than
+            # /run/user/1000/qutebrowser on Flatpak, since that's bind-mounted
+            # in a way that it is accessible by any other qutebrowser
+            # instances.
+            *parts, app_name = os.path.split(path)
+            assert app_name == APPNAME, app_name
+            flatpak_id = version.flatpak_id()
+            assert flatpak_id is not None
+            path = os.path.join(*parts, 'app', flatpak_id)
+
     _create(path)
     _locations[_Location.runtime] = path
 
@@ -314,6 +326,9 @@ def _create(path: str) -> None:
         should not be changed.
     """
     if APPNAME == 'qute_test' and path.startswith('/home'):  # pragma: no cover
+        for k, v in os.environ.items():
+            if k == 'HOME' or k.startswith('XDG_'):
+                log.init.debug(f"{k} = {v}")
         raise Exception("Trying to create directory inside /home during "
                         "tests, this should not happen.")
     os.makedirs(path, 0o700, exist_ok=True)
@@ -344,7 +359,7 @@ def init(args: Optional[argparse.Namespace]) -> None:
 def _init_cachedir_tag() -> None:
     """Create CACHEDIR.TAG if it doesn't exist.
 
-    See http://www.brynosaurus.com/cachedir/spec.html
+    See https://bford.info/cachedir/
     """
     cachedir_tag = os.path.join(cache(), 'CACHEDIR.TAG')
     if not os.path.exists(cachedir_tag):
@@ -354,7 +369,6 @@ def _init_cachedir_tag() -> None:
                 f.write("# This file is a cache directory tag created by "
                         "qutebrowser.\n")
                 f.write("# For information about cache directory tags, see:\n")
-                f.write("#  http://www.brynosaurus.com/"
-                        "cachedir/\n")
+                f.write("#  https://bford.info/cachedir/\n")
         except OSError:
             log.init.exception("Failed to create CACHEDIR.TAG")

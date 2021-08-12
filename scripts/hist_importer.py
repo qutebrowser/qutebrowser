@@ -17,7 +17,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 
 """Tool to import browser history from other browsers."""
@@ -135,7 +135,8 @@ def insert_qb(history, dest):
         'INSERT INTO History (url,title,atime,redirect) VALUES (?,?,?,?)',
         history
     )
-    cursor.execute('DROP TABLE CompletionHistory')
+    cursor.execute('UPDATE CompletionMetaInfo SET value = 1 '
+                   'WHERE key = "force_rebuild"')
     conn.commit()
     conn.close()
 

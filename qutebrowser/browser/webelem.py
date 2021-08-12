@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Generic web element related code."""
 
@@ -58,7 +58,8 @@ def css_selector(group: str, url: QUrl) -> str:
     return ','.join(selectors[group])
 
 
-class AbstractWebElement(collections.abc.MutableMapping):
+# MutableMapping is only generic in Python 3.9+
+class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-arg]
 
     """A wrapper around QtWebKit/QtWebEngine web element."""
 

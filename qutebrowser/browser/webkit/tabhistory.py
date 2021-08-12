@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Utilities related to QWebHistory."""
 
@@ -64,10 +64,10 @@ def _serialize_item(item):
 
 
 def serialize(items):
-    """Serialize a list of WebHistoryItems to a data stream.
+    """Serialize a list of TabHistoryItems to a data stream.
 
     Args:
-        items: An iterable of WebHistoryItems.
+        items: An iterable of TabHistoryItems.
 
     Return:
         A (stream, data, user_data) tuple.

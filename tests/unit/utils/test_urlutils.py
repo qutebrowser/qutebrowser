@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.utils.urlutils."""
 
@@ -778,3 +778,26 @@ class TestParseJavascriptUrl:
             pass
         else:
             assert parsed == source
+
+
+class TestWiden:
+
+    @pytest.mark.parametrize('hostname, expected', [
+        ('a.b.c', ['a.b.c', 'b.c', 'c']),
+        ('foobarbaz', ['foobarbaz']),
+        ('', []),
+        ('.c', ['.c', 'c']),
+        ('c.', ['c.']),
+        ('.c.', ['.c.', 'c.']),
+        (None, []),
+    ])
+    def test_widen_hostnames(self, hostname, expected):
+        assert list(urlutils.widened_hostnames(hostname)) == expected
+
+    @pytest.mark.parametrize('hostname', [
+        'test.qutebrowser.org',
+        'a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.z.y.z',
+        'qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq.c',
+    ])
+    def test_bench_widen_hostnames(self, hostname, benchmark):
+        benchmark(lambda: list(urlutils.widened_hostnames(hostname)))

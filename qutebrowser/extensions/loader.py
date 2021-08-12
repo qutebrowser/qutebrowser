@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Loader for qutebrowser extensions."""
 
@@ -39,6 +39,9 @@ from qutebrowser.misc import objects
 # ModuleInfo objects for all loaded plugins
 _module_infos = []
 
+InitHookType = Callable[['InitContext'], None]
+ConfigChangedHookType = Callable[[], None]
+
 
 @dataclasses.dataclass
 class InitContext:
@@ -59,9 +62,13 @@ class ModuleInfo:
     """
 
     skip_hooks: bool = False
-    init_hook: Optional[Callable] = None
-    config_changed_hooks: List[Tuple[Optional[str], Callable]] = dataclasses.field(
-        default_factory=list)
+    init_hook: Optional[InitHookType] = None
+    config_changed_hooks: List[
+        Tuple[
+            Optional[str],
+            ConfigChangedHookType,
+        ]
+    ] = dataclasses.field(default_factory=list)
 
 
 @dataclasses.dataclass
@@ -108,6 +115,11 @@ def _walk_normal() -> Iterator[ExtensionInfo]:
             onerror=_on_walk_error):
         if ispkg:
             continue
+        if name == 'qutebrowser.components.adblock':
+            # WORKAROUND for packaging issues where the old adblock.py file is still
+            # lingering around.
+            log.extensions.debug("Ignoring stale 'adblock' component")
+            continue
         yield ExtensionInfo(name=name)
 
 
@@ -122,7 +134,7 @@ def _walk_pyinstaller() -> Iterator[ExtensionInfo]:
     toc: Set[str] = set()
     for importer in pkgutil.iter_importers('qutebrowser'):
         if hasattr(importer, 'toc'):
-            toc |= importer.toc
+            toc |= importer.toc  # type: ignore[union-attr]
     for name in toc:
         if name.startswith(components.__name__ + '.'):
             yield ExtensionInfo(name=name)

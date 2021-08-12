@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Function to return the url completion model for the `open` command."""
 
@@ -90,7 +90,8 @@ def url(*, info):
 
     history_disabled = info.config.get('completion.web_history.max_items') == 0
     if not history_disabled and 'history' in categories:
-        hist_cat = histcategory.HistoryCategory(delete_func=_delete_history)
+        hist_cat = histcategory.HistoryCategory(database=history.web_history.database,
+                                                delete_func=_delete_history)
         models['history'] = hist_cat
 
     if 'filesystem' in categories:

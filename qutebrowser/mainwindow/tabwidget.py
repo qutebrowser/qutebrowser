@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """The tab widget used for TabbedBrowser from browser.py."""
 
@@ -705,7 +705,21 @@ class TabBar(QTabBar):
             e: The QWheelEvent
         """
         if config.val.tabs.mousewheel_switching:
-            super().wheelEvent(e)
+            if utils.is_mac:
+                # WORKAROUND for this not being customizable until Qt 6:
+                # https://codereview.qt-project.org/c/qt/qtbase/+/327746
+                index = self.currentIndex()
+                if index == -1:
+                    return
+                dx = e.angleDelta().x()
+                dy = e.angleDelta().y()
+                delta = dx if abs(dx) > abs(dy) else dy
+                offset = -1 if delta > 0 else 1
+                index += offset
+                if 0 <= index < self.count():
+                    self.setCurrentIndex(index)
+            else:
+                super().wheelEvent(e)
         else:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=self._win_id)
@@ -739,7 +753,7 @@ class TabBarStyle(QCommonStyle):
 
     Based on:
 
-    http://stackoverflow.com/a/17294081
+    https://stackoverflow.com/a/17294081
     https://code.google.com/p/makehuman/source/browse/trunk/makehuman/lib/qtgui.py
     """
 

@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Handling of proxies."""
 
@@ -97,7 +97,7 @@ class ProxyFactory(QNetworkProxyFactory):
         if proxy is configtypes.SYSTEM_PROXY:
             # On Linux, use "export http_proxy=socks5://host:port" to manually
             # set system proxy.
-            # ref. http://doc.qt.io/qt-5/qnetworkproxyfactory.html#systemProxyForQuery
+            # ref. https://doc.qt.io/qt-5/qnetworkproxyfactory.html#systemProxyForQuery
             proxies = QNetworkProxyFactory.systemProxyForQuery(query)
         elif isinstance(proxy, pac.PACFetcher):
             if objects.backend == usertypes.Backend.QtWebEngine:

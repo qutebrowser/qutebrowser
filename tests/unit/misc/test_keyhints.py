@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Test the keyhint widget."""
 
@@ -55,8 +55,8 @@ def keyhint(qtbot, config_stub, key_config_stub):
 
 
 def test_show_and_hide(qtbot, keyhint):
-    with qtbot.waitSignal(keyhint.update_geometry):
-        with qtbot.waitExposed(keyhint):
+    with qtbot.wait_signal(keyhint.update_geometry):
+        with qtbot.wait_exposed(keyhint):
             keyhint.show()
     keyhint.update_keyhint(usertypes.KeyMode.normal, '')
     assert not keyhint.isVisible()

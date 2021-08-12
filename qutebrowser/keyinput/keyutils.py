@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Our own QKeySequence-like class and related utilities.
 
@@ -458,7 +458,7 @@ class KeySequence:
             assert self
         self._validate()
 
-    def _convert_key(self, key: Qt.Key) -> int:
+    def _convert_key(self, key: Union[int, Qt.KeyboardModifiers]) -> int:
         """Convert a single key for QKeySequence."""
         assert isinstance(key, (int, Qt.KeyboardModifiers)), key
         return int(key)
@@ -612,6 +612,22 @@ class KeySequence:
                 not ev.text().isupper()):
             modifiers = Qt.KeyboardModifiers()  # type: ignore[assignment]
 
+        # On macOS, swap Ctrl and Meta back
+        #
+        # We don't use Qt.AA_MacDontSwapCtrlAndMeta because that also affects
+        # Qt/QtWebEngine's own shortcuts. However, we do want "Ctrl" and "Meta"
+        # (or "Cmd") in a key binding name to actually represent what's on the
+        # keyboard.
+        if utils.is_mac:
+            if modifiers & Qt.ControlModifier and modifiers & Qt.MetaModifier:
+                pass
+            elif modifiers & Qt.ControlModifier:
+                modifiers &= ~Qt.ControlModifier
+                modifiers |= Qt.MetaModifier
+            elif modifiers & Qt.MetaModifier:
+                modifiers &= ~Qt.MetaModifier
+                modifiers |= Qt.ControlModifier
+
         keys = list(self._iter_keys())
         keys.append(key | int(modifiers))
 
@@ -632,10 +648,9 @@ class KeySequence:
         for key in self._iter_keys():
             key_seq = KeySequence(key)
             if key_seq in mappings:
-                new_seq = mappings[key_seq]
-                assert len(new_seq) == 1
-                key = new_seq[0].to_int()
-            keys.append(key)
+                keys += [info.to_int() for info in mappings[key_seq]]
+            else:
+                keys.append(key)
         return self.__class__(*keys)
 
     @classmethod

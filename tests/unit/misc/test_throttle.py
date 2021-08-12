@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.misc.throttle."""
 
@@ -25,11 +25,11 @@ import sip
 import pytest
 from PyQt5.QtCore import QObject
 
-from helpers import utils
+from helpers import testutils
 from qutebrowser.misc import throttle
 
 
-DELAY = 500 if utils.ON_CI else 100
+DELAY = 500 if testutils.ON_CI else 100
 
 
 @pytest.fixture

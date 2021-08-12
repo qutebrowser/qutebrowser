@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Prefers reduced motion test</title>
+        <style>
+#reduce-text {
+    display: none;
+}
+#no-preference-text {
+    display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    #no-preference-text {
+        display: inline;
+    }
+    #missing-support-text {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #reduce-text {
+        display: inline;
+    }
+    #missing-support-text {
+        display: none;
+    }
+}
+        </style>
+    </head>
+    <body>
+        <p id="reduce-text">Reduced motion preference detected.</p>
+        <p id="no-preference-text">No preference detected.</p>
+        <p id="missing-support-text">Preference support missing.</p>
+    </body>
+</html>

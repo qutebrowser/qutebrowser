@@ -1,0 +1,32 @@
+{% extends "styled.html" %}
+
+{% block content %}
+<header><h1>Process {{ proc.pid }}: {{ proc.cmd }}</h1></header>
+
+<h2>Info</h2>
+
+<table>
+    <tr>
+        <td><b>Command</b></td>
+        <td><pre>{{ proc }}</pre></td>
+    </tr>
+    <tr>
+        <td><b>Status<b></td>
+        <td>{{ proc.outcome }}</td>
+    </tr>
+</table>
+
+<h2>Standard output</h2>
+{% if proc.stdout %}
+<pre>{{ proc.stdout }}</pre>
+{% else %}
+No output.
+{% endif %}
+
+<h2>Standard error</h2>
+{% if proc.stderr %}
+<pre>{{ proc.stderr }}</pre>
+{% else %}
+No output.
+{% endif %}
+{% endblock %}

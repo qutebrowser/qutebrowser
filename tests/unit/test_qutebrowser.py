@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.qutebrowser.
 
@@ -60,3 +60,18 @@ class TestLogFilter:
         _out, err = capsys.readouterr()
         print(err)
         assert 'Invalid log category invalid - valid categories' in err
+
+
+class TestJsonArgs:
+
+    def test_partial(self, parser):
+        """Make sure we can provide a subset of all arguments.
+
+        This ensures that it's possible to restart into an older version of qutebrowser
+        when a new argument was added.
+        """
+        args = parser.parse_args(['--json-args', '{"debug": true}'])
+        args = qutebrowser._unpack_json_args(args)
+        # pylint: disable=no-member
+        assert args.debug
+        assert not args.temp_basedir

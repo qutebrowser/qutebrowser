@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for the webelement utils."""
 
@@ -303,7 +303,7 @@ class TestWebKitElement:
 
     def test_getitem_keyerror(self, elem):
         with pytest.raises(KeyError):
-            elem['foo']  # pylint: disable=pointless-statement
+            elem['foo']
 
     def test_setitem(self, elem):
         elem['foo'] = 'bar'

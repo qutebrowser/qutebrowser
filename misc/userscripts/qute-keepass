@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """This userscript allows for insertion of usernames and passwords from keepass
 databases using pykeepass. Since it is a userscript, it must be run from
@@ -178,6 +178,7 @@ def find_candidates(args, host):
         kp = pykeepass.PyKeePass(file_path, password=pw, keyfile=kf)
     except Exception as e:
         stderr("There was an error opening the DB: {}".format(str(e)))
+        sys.exit(ExitCodes.DB_OPEN_FAIL)
 
     return kp.find_entries(url="{}{}{}".format(".*", host, ".*"), regex=True)
 

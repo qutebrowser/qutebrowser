@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Run pylint on tests.
 
@@ -58,6 +58,7 @@ def main():
         'protected-access',
         'len-as-condition',
         'compare-to-empty-string',
+        'pointless-statement',
         # directories without __init__.py...
         'import-error',
     ]

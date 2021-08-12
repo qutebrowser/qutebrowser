@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Bridge from QWebSettings to our own settings.
 
@@ -82,7 +82,7 @@ class WebKitSettings(websettings.AbstractSettings):
             Attr(QWebSettings.PrintElementBackgrounds),
         'content.xss_auditing':
             Attr(QWebSettings.XSSAuditingEnabled),
-        'content.site_specific_quirks':
+        'content.site_specific_quirks.enabled':
             Attr(QWebSettings.SiteSpecificQuirksEnabled),
 
         'input.spatial_navigation':

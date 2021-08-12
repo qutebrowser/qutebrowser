@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Base class for a QtWebKit/QtWebEngine web inspector."""
 
@@ -30,30 +30,9 @@ from PyQt5.QtGui import QCloseEvent
 
 from qutebrowser.browser import eventfilter
 from qutebrowser.config import configfiles
-from qutebrowser.utils import log, usertypes, utils
+from qutebrowser.utils import log, usertypes
 from qutebrowser.keyinput import modeman
-from qutebrowser.misc import miscwidgets, objects
-
-
-def create(*, splitter: 'miscwidgets.InspectorSplitter',
-           win_id: int,
-           parent: QWidget = None) -> 'AbstractWebInspector':
-    """Get a WebKitInspector/WebEngineInspector.
-
-    Args:
-        splitter: InspectorSplitter where the inspector can be placed.
-        win_id: The window ID this inspector is associated with.
-        parent: The Qt parent to set.
-    """
-    # Importing modules here so we don't depend on QtWebEngine without the
-    # argument and to avoid circular imports.
-    if objects.backend == usertypes.Backend.QtWebEngine:
-        from qutebrowser.browser.webengine import webengineinspector
-        return webengineinspector.WebEngineInspector(splitter, win_id, parent)
-    elif objects.backend == usertypes.Backend.QtWebKit:
-        from qutebrowser.browser.webkit import webkitinspector
-        return webkitinspector.WebKitInspector(splitter, win_id, parent)
-    raise utils.Unreachable(objects.backend)
+from qutebrowser.misc import miscwidgets
 
 
 class Position(enum.Enum):

@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """An HTTP client based on QNetworkAccessManager."""
 
@@ -26,6 +26,8 @@ from typing import MutableMapping
 from PyQt5.QtCore import pyqtSignal, QObject, QTimer
 from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkRequest,
                              QNetworkReply)
+
+from qutebrowser.utils import log
 
 
 class HTTPRequest(QNetworkRequest):
@@ -59,7 +61,10 @@ class HTTPClient(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._nam = QNetworkAccessManager(self)
+        with log.disable_qt_msghandler():
+            # WORKAROUND for a hang when messages are printed, see our
+            # NetworkAccessManager subclass for details.
+            self._nam = QNetworkAccessManager(self)
         self._timers: MutableMapping[QNetworkReply, QTimer] = {}
 
     def post(self, url, data=None):

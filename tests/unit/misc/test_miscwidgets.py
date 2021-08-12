@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
 
@@ -127,7 +127,7 @@ class TestFullscreenNotification:
     def test_timeout(self, qtbot, key_config_stub):
         w = miscwidgets.FullscreenNotification()
         qtbot.add_widget(w)
-        with qtbot.waitSignal(w.destroyed):
+        with qtbot.wait_signal(w.destroyed):
             w.set_timeout(1)
 
 

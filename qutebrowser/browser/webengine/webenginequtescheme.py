@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """QtWebEngine specific qute://* handlers and glue code."""
 
@@ -109,8 +109,7 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
                     QWebEngineUrlRequestJob.RequestFailed,
             }
             exctype = type(e)
-            log.network.error("{} while handling qute://* URL".format(
-                exctype.__name__))
+            log.network.error(f"{exctype.__name__} while handling qute://* URL: {e}")
             job.fail(errors[exctype])
         except qutescheme.Redirect as e:
             qtutils.ensure_valid(e.url)

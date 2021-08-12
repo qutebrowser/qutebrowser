@@ -48,7 +48,7 @@ message_fifo("Found {} DOIs on page, selecting {}".format(len(dois), doi),
              level="info")
 
 # get bibtex data corresponding to DOI
-url = "http://dx.doi.org/" + url_parse.quote(doi)
+url = "https://dx.doi.org/" + url_parse.quote(doi)
 headers = dict(Accept='text/bibliography; style=bibtex')
 request = url_request.Request(url, headers=headers)
 response = url_request.urlopen(request)

@@ -15,13 +15,13 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Functions that return config-related completion models."""
 
 from qutebrowser.config import configdata, configexc
 from qutebrowser.completion.models import completionmodel, listcategory, util
-from qutebrowser.commands import runners, cmdexc
+from qutebrowser.commands import parser, cmdexc
 from qutebrowser.keyinput import keyutils
 
 
@@ -117,9 +117,8 @@ def _bind_current_default(key, info):
 
     cmd_text = info.keyconf.get_command(seq, 'normal')
     if cmd_text:
-        parser = runners.CommandParser()
         try:
-            cmd = parser.parse(cmd_text).cmd
+            cmd = parser.CommandParser().parse(cmd_text).cmd
         except cmdexc.NoSuchCommandError:
             data.append((cmd_text, '(Current) Invalid command!', key))
         else:
@@ -127,8 +126,7 @@ def _bind_current_default(key, info):
 
     cmd_text = info.keyconf.get_command(seq, 'normal', default=True)
     if cmd_text:
-        parser = runners.CommandParser()
-        cmd = parser.parse(cmd_text).cmd
+        cmd = parser.CommandParser().parse(cmd_text).cmd
         data.append((cmd_text, '(Default) {}'.format(cmd.desc), key))
 
     return data

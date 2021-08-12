@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Event handling for a browser tab."""
 
@@ -164,7 +164,7 @@ class TabEventFilter(QObject):
                 return True
 
             perc = int(100 * factor)
-            message.info("Zoom level: {}%".format(perc), replace=True)
+            message.info(f"Zoom level: {perc}%", replace='zoom-level')
             self._tab.zoom.set_factor(factor)
             return True
 

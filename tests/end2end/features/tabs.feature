@@ -192,7 +192,8 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
         And I run :tab-focus
-        Then the following tabs should be open:
+        Then the warning "Using :tab-focus without count is deprecated, use :tab-next instead." should be shown
+        And the following tabs should be open:
             - data/numbers/1.txt
             - data/numbers/2.txt
             - data/numbers/3.txt (active)
@@ -1531,13 +1532,44 @@ Feature: Tab management
         Then the following tabs should be open:
             - data/numbers/2.txt (active) (pinned)
 
+    Scenario: Pinned :tab-only --pinned close
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-next
+        And I run :tab-only --pinned close
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active) (pinned)
+
+    Scenario: Pinned :tab-only --pinned keep
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-next
+        And I run :tab-only --pinned keep
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active) (pinned)
+            - data/numbers/2.txt (pinned)
+
+    Scenario: Pinned :tab-only --pinned prompt
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-next
+        And I run :tab-only --pinned prompt
+        Then "*want to close pinned tabs*" should be logged
+
     Scenario: :tab-pin open url
         When I open data/numbers/1.txt
         And I run :tab-pin
-        And I open data/numbers/2.txt without waiting
-        Then the message "Tab is pinned!" should be shown
+        And I open data/numbers/2.txt
+        Then the message "Tab is pinned! Opening in new tab." should be shown
         And the following tabs should be open:
             - data/numbers/1.txt (active) (pinned)
+            - data/numbers/2.txt
 
     Scenario: :tab-pin open url with tabs.pinned.frozen = false
         When I set tabs.pinned.frozen to false

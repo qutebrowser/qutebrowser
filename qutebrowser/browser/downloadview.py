@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """The ListView to display downloads in."""
 
@@ -140,6 +140,10 @@ class DownloadView(QListView):
             actions.append(("Remove", item.remove))
         else:
             actions.append(("Cancel", item.cancel))
+
+        if item is not None:
+            actions.append(("Copy URL", functools.partial(
+                utils.set_clipboard, item.url().toDisplayString())))
         if model.can_clear():
             actions.append((None, None))
             actions.append(("Remove all finished", model.download_clear))

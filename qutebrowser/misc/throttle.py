@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """A throttle for throttling function calls."""
 
@@ -45,7 +45,7 @@ class Throttle(QObject):
     """
 
     def __init__(self,
-                 func: Callable,
+                 func: Callable[..., None],
                  delay_ms: int,
                  parent: QObject = None) -> None:
         """Constructor.

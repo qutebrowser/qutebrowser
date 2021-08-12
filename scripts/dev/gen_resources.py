@@ -16,7 +16,7 @@
 # gnu general public license for more details.
 #
 # you should have received a copy of the gnu general public license
-# along with qutebrowser.  if not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Generate Qt resources based on source files."""
 

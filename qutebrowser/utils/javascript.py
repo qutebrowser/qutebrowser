@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Utilities related to javascript interaction."""
 
@@ -42,7 +42,7 @@ def string_escape(text: str) -> str:
         ('\r', r'\r'),
         ('\x00', r'\x00'),
         ('\ufeff', r'\ufeff'),
-        # http://stackoverflow.com/questions/2965293/
+        # https://stackoverflow.com/questions/2965293/
         ('\u2028', r'\u2028'),
         ('\u2029', r'\u2029'),
     )

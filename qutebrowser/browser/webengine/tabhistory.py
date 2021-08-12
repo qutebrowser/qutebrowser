@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """QWebHistory serializer for QtWebEngine."""
 
@@ -35,10 +35,10 @@ HISTORY_STREAM_VERSION = 3
 
 
 def _serialize_item(item, stream):
-    """Serialize a single WebHistoryItem into a QDataStream.
+    """Serialize a single TabHistoryItem into a QDataStream.
 
     Args:
-        item: The WebHistoryItem to write.
+        item: The TabHistoryItem to write.
         stream: The QDataStream to write to.
     """
     # Thanks to Otter Browser:
@@ -108,10 +108,10 @@ def _serialize_item(item, stream):
 
 
 def serialize(items):
-    """Serialize a list of WebHistoryItems to a data stream.
+    """Serialize a list of TabHistoryItems to a data stream.
 
     Args:
-        items: An iterable of WebHistoryItems.
+        items: An iterable of TabHistoryItems.
 
     Return:
         A (stream, data, user_data) tuple.

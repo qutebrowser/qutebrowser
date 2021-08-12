@@ -15,12 +15,13 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Utilities related to jinja2."""
 
 import os
 import os.path
+import posixpath
 import functools
 import contextlib
 import html
@@ -30,7 +31,7 @@ import jinja2
 import jinja2.nodes
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils, urlutils, log, qtutils, javascript
+from qutebrowser.utils import utils, urlutils, log, qtutils, resources
 from qutebrowser.misc import debugcachestats
 
 
@@ -55,7 +56,7 @@ html_fallback = """
 
 class Loader(jinja2.BaseLoader):
 
-    """Jinja loader which uses utils.read_file to load templates.
+    """Jinja loader which uses resources.read_file to load templates.
 
     Attributes:
         _subdir: The subdirectory to find templates in.
@@ -71,7 +72,7 @@ class Loader(jinja2.BaseLoader):
     ) -> Tuple[str, str, Callable[[], bool]]:
         path = os.path.join(self._subdir, template)
         try:
-            source = utils.read_file(path)
+            source = resources.read_file(path)
         except OSError as e:
             source = html_fallback.replace("%ERROR%", html.escape(str(e)))
             source = source.replace("%FILE%", html.escape(template))
@@ -94,7 +95,6 @@ class Environment(jinja2.Environment):
         self.globals['file_url'] = urlutils.file_url
         self.globals['data_url'] = self._data_url
         self.globals['qcolor_to_qsscolor'] = qtutils.qcolor_to_qsscolor
-        self.filters['js_string_escape'] = javascript.string_escape
         self._autoescape = True
 
     @contextlib.contextmanager
@@ -105,19 +105,21 @@ class Environment(jinja2.Environment):
         self._autoescape = True
 
     def _resource_url(self, path: str) -> str:
-        """Load images from a relative path (to qutebrowser).
+        """Load qutebrowser resource files.
 
         Arguments:
-            path: The relative path to the image
+            path: The relative path to the resource.
         """
-        image = utils.resource_filename(path)
-        url = QUrl.fromLocalFile(image)
+        assert not posixpath.isabs(path), path
+        url = QUrl('qute://resource')
+        url.setPath('/' + path)
+        urlutils.ensure_valid(url)
         urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
         return urlstr
 
     def _data_url(self, path: str) -> str:
         """Get a data: url for the broken qutebrowser logo."""
-        data = utils.read_file(path, binary=True)
+        data = resources.read_file_binary(path)
         mimetype = utils.guess_mimetype(path)
         return urlutils.data_url(mimetype, data).toString()
 
@@ -143,7 +145,7 @@ js_environment = jinja2.Environment(loader=Loader('javascript'))
 @functools.lru_cache()
 def template_config_variables(template: str) -> FrozenSet[str]:
     """Return the config variables used in the template."""
-    unvisted_nodes = [environment.parse(template)]
+    unvisted_nodes: List[jinja2.nodes.Node] = [environment.parse(template)]
     result: Set[str] = set()
     while unvisted_nodes:
         node = unvisted_nodes.pop()
@@ -155,11 +157,11 @@ def template_config_variables(template: str) -> FrozenSet[str]:
         # For example it's ['ab', 'c', 'd'] for 'conf.d.c.ab'.
         attrlist: List[str] = []
         while isinstance(node, jinja2.nodes.Getattr):
-            attrlist.append(node.attr)  # type: ignore[attr-defined]
-            node = node.node  # type: ignore[attr-defined]
+            attrlist.append(node.attr)
+            node = node.node
 
         if isinstance(node, jinja2.nodes.Name):
-            if node.name == 'conf':  # type: ignore[attr-defined]
+            if node.name == 'conf':
                 result.add('.'.join(reversed(attrlist)))
             # otherwise, the node is a Name node so it doesn't have any
             # child nodes

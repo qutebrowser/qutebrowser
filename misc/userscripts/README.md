@@ -17,6 +17,8 @@ The following userscripts are included in the current directory.
   current website.
 - [qute-keepass](./qute-keepass): Insertion of usernames and passwords from keepass
   databases using pykeepass.
+- [qute-keepassxc](./qute-keepassxc): Insert credentials from open KeepassXC database
+  using keepassxc-browser protocol.
 - [qute-pass](./qute-pass): Insert login information using pass and a
   dmenu-compatible application (e.g. dmenu, rofi -dmenu, ...).
 - [qute-lastpass](./qute-lastpass): Similar to qute-pass, for Lastpass.
@@ -74,7 +76,14 @@ The following userscripts can be found on their own repositories.
   Opens DOIs on Sci-Hub.
 - [1password](https://github.com/tomoakley/dotfiles/blob/master/qutebrowser/userscripts/1password):
   Integration with 1password on macOS.
-
+- [localhost](https://github.com/SidharthArya/.qutebrowser/blob/master/userscripts/localhost):
+  Quickly navigate to localhost:port. For reference: [A quicker way to reach localhost with qutebrowser](https://sidhartharya.me/a-quicker-way-to-reach-localhost-with-qutebrowser/)
+- [untrack-url](https://github.com/qutebrowser/qutebrowser/discussions/6555),
+  convert various URLs (YouTube/Reddit/Twitter/Instagram/Google Maps) to other
+  services (Invidious, Teddit, Nitter, Bibliogram, OpenStreetMap).
+- [CIAvash/qutebrowser-userscripts](https://github.com/CIAvash/qutebrowser-userscripts),
+  various small userscripts written in Raku.
+  
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/
 [Instapaper]: https://www.instapaper.com/

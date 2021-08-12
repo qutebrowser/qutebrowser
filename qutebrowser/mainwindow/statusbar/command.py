@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """The commandline in the statusbar."""
 
@@ -187,10 +187,11 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         Args:
             rapid: Run the command without closing or clearing the command bar.
         """
-        text = self.text()
-        self.history.append(text)
-
         was_search = self._handle_search()
+
+        text = self.text()
+        if not (self.prefix() == ':' and text[1:].startswith(' ')):
+            self.history.append(text)
 
         if not rapid:
             modeman.leave(self._win_id, usertypes.KeyMode.command,

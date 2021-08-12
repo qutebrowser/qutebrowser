@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Completion view for statusbar command section.
 
@@ -138,7 +138,7 @@ class CompletionView(QTreeView):
         # This is a workaround for weird race conditions with invalid
         # item indexes leading to segfaults in Qt.
         #
-        # Some background: http://bugs.quassel-irc.org/issues/663
+        # Some background: https://bugs.quassel-irc.org/issues/663
         # The proposed fix there was later reverted because it didn't help.
         self.setUniformRowHeights(True)
         self.hide()

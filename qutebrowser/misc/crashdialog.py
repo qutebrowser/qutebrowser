@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """The dialog which gets shown when qutebrowser crashes."""
 
@@ -318,7 +318,7 @@ class _CrashDialog(QDialog):
             log.misc.exception("Error while getting user")
             user = 'unknown'
         try:
-            # parent: http://p.cmpl.cc/90286958
+            # parent: https://p.cmpl.cc/90286958
             self._paste_client.paste(user, self._get_paste_title(),
                                      self._paste_text, parent='90286958')
         except Exception as e:
@@ -359,8 +359,8 @@ class _CrashDialog(QDialog):
         Args:
             newest: The newest version as a string.
         """
-        new_version = utils.parse_version(newest)
-        cur_version = utils.parse_version(qutebrowser.__version__)
+        new_version = utils.VersionNumber.parse(newest)
+        cur_version = utils.VersionNumber.parse(qutebrowser.__version__)
         lines = ['The report has been sent successfully. Thanks!']
         if new_version > cur_version:
             lines.append("<b>Note:</b> The newest available version is v{}, "

@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.misc.lineparser."""
 
@@ -48,7 +48,7 @@ class TestBaseLineParser:
         mocker.patch('builtins.open', mock.mock_open())
 
         with lineparser._open('r'):
-            with pytest.raises(IOError,
+            with pytest.raises(OSError,
                                match="Refusing to double-open LineParser."):
                 with lineparser._open('r'):
                     pass
@@ -106,7 +106,7 @@ class TestLineParser:
     def test_double_open(self, lineparser):
         """Test if save() bails on an already open file."""
         with lineparser._open('r'):
-            with pytest.raises(IOError,
+            with pytest.raises(OSError,
                                match="Refusing to double-open LineParser."):
                 lineparser.save()
 

@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Utilities used for the documentation and built-in help."""
 
@@ -25,7 +25,7 @@ import inspect
 import os.path
 import collections
 import enum
-from typing import Callable, MutableMapping, Optional, List, Union
+from typing import Any, Callable, MutableMapping, Optional, List, Union
 
 import qutebrowser
 from qutebrowser.utils import log, utils
@@ -88,7 +88,7 @@ class DocstringParser:
         arg_inside = enum.auto()
         misc = enum.auto()
 
-    def __init__(self, func: Callable) -> None:
+    def __init__(self, func: Callable[..., Any]) -> None:
         """Constructor.
 
         Args:

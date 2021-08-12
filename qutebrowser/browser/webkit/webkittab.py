@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Wrapper over our (QtWebKit) WebView."""
 
@@ -38,8 +38,8 @@ if typing.TYPE_CHECKING:
 
 from qutebrowser.browser import browsertab, shared
 from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
-                                        webkitsettings)
-from qutebrowser.utils import qtutils, usertypes, utils, log, debug
+                                        webkitsettings, webkitinspector)
+from qutebrowser.utils import qtutils, usertypes, utils, log, debug, resources
 from qutebrowser.keyinput import modeman
 from qutebrowser.qt import sip
 
@@ -232,7 +232,7 @@ class WebKitCaret(browsertab.AbstractCaret):
             # true in caret mode.
             if self._selection_state is browsertab.SelectionState.none:
                 self._widget.page().currentFrame().evaluateJavaScript(
-                    utils.read_file('javascript/position_caret.js'))
+                    resources.read_file('javascript/position_caret.js'))
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self, _mode):
@@ -795,7 +795,7 @@ class WebKitElements(browsertab.AbstractElements):
         except webkitelem.IsNullError:
             # For some reason, the hit result element can be a null element
             # sometimes (e.g. when clicking the timetable fields on
-            # http://www.sbb.ch/ ).
+            # https://www.sbb.ch/ ).
             log.webview.debug("Hit test result element is null!")
             callback(None)
             return
@@ -837,6 +837,9 @@ class WebKitTabPrivate(browsertab.AbstractTabPrivate):
         document_element = self._widget.page().mainFrame().documentElement()
         result = document_element.evaluateJavaScript(code)
         return result
+
+    def _init_inspector(self, splitter, win_id, parent=None):
+        return webkitinspector.WebKitInspector(splitter, win_id, parent)
 
 
 class WebKitTab(browsertab.AbstractTab):

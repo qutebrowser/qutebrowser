@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Dialogs shown when there was a problem with a backend choice."""
 
@@ -173,7 +173,7 @@ class _BackendProblemChecker:
         """Show a dialog for a backend problem."""
         if self._no_err_windows:
             text = _error_text(*args, **kwargs)
-            print(text, file=sys.stderr)
+            log.init.error(text)
             sys.exit(usertypes.Exit.err_init)
 
         dialog = _Dialog(*args, **kwargs)
@@ -193,14 +193,6 @@ class _BackendProblemChecker:
             raise utils.Unreachable(status)
 
         sys.exit(usertypes.Exit.err_init)
-
-    def _nvidia_shader_workaround(self) -> None:
-        """Work around QOpenGLShaderProgram issues.
-
-        See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/941826
-        """
-        self._assert_backend(usertypes.Backend.QtWebEngine)
-        utils.libgl_workaround()
 
     def _xwayland_options(self) -> Tuple[str, List[_Button]]:
         """Get buttons/text for a possible XWayland solution."""
@@ -397,27 +389,31 @@ class _BackendProblemChecker:
         WORKAROUND for:
         https://bugreports.qt.io/browse/QTBUG-72532
         https://bugreports.qt.io/browse/QTBUG-82105
+        https://bugreports.qt.io/browse/QTBUG-93744
         """
         if ('serviceworker_workaround' not in configfiles.state['general'] and
                 qtutils.version_check('5.14', compiled=False)):
             # Nuke the service worker directory once for every install with Qt
             # 5.14, given that it seems to cause a variety of segfaults.
             configfiles.state['general']['serviceworker_workaround'] = '514'
-            affected = True
+            reason = 'Qt 5.14'
+        elif configfiles.state.qt_version_changed:
+            reason = 'Qt version changed'
+        elif configfiles.state.qtwe_version_changed:
+            reason = 'QtWebEngine version changed'
+        elif config.val.qt.workarounds.remove_service_workers:
+            reason = 'Explicitly enabled'
         else:
-            # Otherwise, just nuke it when the Qt version changed.
-            affected = configfiles.state.qt_version_changed
-
-        if not affected:
             return
 
-        service_worker_dir = os.path.join(standarddir.data(), 'webengine',
-                                          'Service Worker')
+        service_worker_dir = os.path.join(
+            standarddir.data(), 'webengine', 'Service Worker')
         bak_dir = service_worker_dir + '-bak'
         if not os.path.exists(service_worker_dir):
             return
 
-        log.init.info("Qt version changed, removing service workers")
+        log.init.info(
+            f"Removing service workers at {service_worker_dir} (reason: {reason})")
 
         # Keep one backup around - we're not 100% sure what persistent data
         # could be in there, but this folder can grow to ~300 MB.
@@ -434,7 +430,6 @@ class _BackendProblemChecker:
         self._check_backend_modules()
         if objects.backend == usertypes.Backend.QtWebEngine:
             self._handle_ssl_support()
-            self._nvidia_shader_workaround()
             self._handle_wayland_webgl()
             self._handle_cache_nuking()
             self._handle_serviceworker_nuking()

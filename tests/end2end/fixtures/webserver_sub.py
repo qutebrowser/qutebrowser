@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Web server for end2end tests.
 
@@ -30,6 +30,7 @@ import sys
 import json
 import time
 import threading
+import mimetypes
 import pathlib
 from http import HTTPStatus
 
@@ -198,6 +199,16 @@ def set_cookies():
     return r
 
 
+@app.route('/cookies/set-custom')
+def set_custom_cookie():
+    """Set a cookie with a custom max_age/expires."""
+    r = app.make_response(flask.redirect(flask.url_for('view_cookies')))
+    max_age = flask.request.args.get('max_age')
+    r.set_cookie(key='cookie', value='value',
+                 max_age=int(max_age) if max_age else None)
+    return r
+
+
 @app.route('/basic-auth/<user>/<passwd>')
 def basic_auth(user='user', passwd='passwd'):
     """Prompt the user for authorization using HTTP Basic Auth."""
@@ -248,6 +259,12 @@ def view_headers():
 def headers_link(port):
     """Get a (possibly cross-origin) link to /headers."""
     return flask.render_template('headers-link.html', port=port)
+
+
+@app.route('/https-script/<int:port>')
+def https_script(port):
+    """Get a script loaded via HTTPS."""
+    return flask.render_template('https-script.html', port=port)
 
 
 @app.route('/response-headers')
@@ -323,6 +340,11 @@ class WSGIServer(cheroot.wsgi.Server):
 def main():
     app.template_folder = END2END_DIR / 'templates'
     assert app.template_folder.is_dir(), app.template_folder
+
+    if mimetypes.guess_type('worker.js')[0] == 'text/plain':
+        # WORKAROUND for https://github.com/pallets/flask/issues/1045
+        # Needed for Windows on GitHub Actions for some reason...
+        mimetypes.add_type('application/javascript', '.js')
 
     port = int(sys.argv[1])
     server = WSGIServer(('127.0.0.1', port), app)

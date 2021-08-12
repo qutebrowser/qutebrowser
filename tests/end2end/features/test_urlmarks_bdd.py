@@ -15,13 +15,13 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import os.path
 
 import pytest_bdd as bdd
 
-from helpers import utils
+from helpers import testutils
 
 bdd.scenarios('urlmarks.feature')
 
@@ -48,7 +48,7 @@ def _check_marks(quteproc, quickmarks, expected, contains):
         lines = f.readlines()
 
     matched_line = any(
-        utils.pattern_match(pattern=expected, value=line.rstrip('\n'))
+        testutils.pattern_match(pattern=expected, value=line.rstrip('\n'))
         for line in lines)
 
     assert matched_line == contains, lines

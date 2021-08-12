@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Mode manager (per window) which handles the current keyboard mode."""
 
@@ -86,8 +86,9 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
     hintmanager = hints.HintManager(win_id, parent=parent)
     objreg.register('hintmanager', hintmanager, scope='window',
                     window=win_id, command_only=True)
-
     modeman.hintmanager = hintmanager
+
+    log_sensitive_keys = 'log-sensitive-keys' in objects.debug_flags
 
     keyparsers: ParserDictType = {
         usertypes.KeyMode.normal:
@@ -110,7 +111,7 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
                 commandrunner=commandrunner,
                 parent=modeman,
                 passthrough=True,
-                do_log=False,
+                do_log=log_sensitive_keys,
                 supports_count=False),
 
         usertypes.KeyMode.passthrough:
@@ -120,7 +121,7 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
                 commandrunner=commandrunner,
                 parent=modeman,
                 passthrough=True,
-                do_log=False,
+                do_log=log_sensitive_keys,
                 supports_count=False),
 
         usertypes.KeyMode.command:
@@ -130,7 +131,7 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
                 commandrunner=commandrunner,
                 parent=modeman,
                 passthrough=True,
-                do_log=False,
+                do_log=log_sensitive_keys,
                 supports_count=False),
 
         usertypes.KeyMode.prompt:
@@ -140,7 +141,7 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
                 commandrunner=commandrunner,
                 parent=modeman,
                 passthrough=True,
-                do_log=False,
+                do_log=log_sensitive_keys,
                 supports_count=False),
 
         usertypes.KeyMode.yesno:

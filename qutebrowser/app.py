@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Initialization of qutebrowser and application-wide things.
 
@@ -41,9 +41,10 @@ import os
 import sys
 import functools
 import tempfile
+import pathlib
 import datetime
 import argparse
-from typing import Iterable, Optional, cast
+from typing import Iterable, Optional
 
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
@@ -66,15 +67,14 @@ from qutebrowser.misc import (ipc, savemanager, sessions, crashsignal,
                               earlyinit, sql, cmdhistory, backendproblem,
                               objects, quitter)
 from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
-                               usertypes, standarddir, error, qtutils, debug)
+                               resources, usertypes, standarddir,
+                               error, qtutils, debug)
 # pylint: disable=unused-import
 # We import those to run the cmdutils.register decorators.
 from qutebrowser.mainwindow.statusbar import command
 from qutebrowser.misc import utilcmds
+from qutebrowser.browser import commands
 # pylint: enable=unused-import
-
-
-q_app = cast(QApplication, None)
 
 
 def run(args):
@@ -86,7 +86,7 @@ def run(args):
 
     log.init.debug("Initializing directories...")
     standarddir.init(args)
-    utils.preload_resources()
+    resources.preload()
 
     log.init.debug("Initializing config...")
     configinit.early_init(args)
@@ -119,13 +119,14 @@ def run(args):
             log.init.warning(
                 "Backend from the running instance will be used")
         sys.exit(usertypes.Exit.ok)
-    else:
-        quitter.instance.shutting_down.connect(server.shutdown)
-        server.got_args.connect(lambda args, target_arg, cwd:
-                                process_pos_args(args, cwd=cwd, via_ipc=True,
-                                                 target_arg=target_arg))
 
     init(args=args)
+
+    quitter.instance.shutting_down.connect(server.shutdown)
+    server.got_args.connect(
+        lambda args, target_arg, cwd:
+        process_pos_args(args, cwd=cwd, via_ipc=True, target_arg=target_arg))
+
     ret = qt_mainloop()
     return ret
 
@@ -259,7 +260,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
 
     win_id: Optional[int] = None
 
-    if via_ipc and not args:
+    if via_ipc and (not args or args == ['']):
         win_id = mainwindow.get_window(via_ipc=via_ipc,
                                        target=new_window_target)
         _open_startpage(win_id)
@@ -372,10 +373,42 @@ def _open_special_pages(args):
          'qute://warning/sessions'),
     ]
 
+    if 'quickstart-done' not in general_sect:
+        # New users aren't going to be affected by the Qt 5.15 session change much, as
+        # they aren't used to qutebrowser saving the full back/forward history in
+        # sessions.
+        general_sect['session-warning-shown'] = '1'
+
     for state, condition, url in pages:
         if general_sect.get(state) != '1' and condition:
             tabbed_browser.tabopen(QUrl(url), background=False)
             general_sect[state] = '1'
+
+    # Show changelog on new releases
+    change = configfiles.state.qutebrowser_version_changed
+    if change == configfiles.VersionChange.equal:
+        return
+
+    setting = config.val.changelog_after_upgrade
+    if not change.matches_filter(setting):
+        log.init.debug(
+            f"Showing changelog is disabled (setting {setting}, change {change})")
+        return
+
+    try:
+        changelog = resources.read_file('html/doc/changelog.html')
+    except OSError as e:
+        log.init.warning(f"Not showing changelog due to {e}")
+        return
+
+    qbversion = qutebrowser.__version__
+    if f'id="v{qbversion}"' not in changelog:
+        log.init.warning("Not showing changelog (anchor not found)")
+        return
+
+    message.info(f"Showing changelog after upgrade to qutebrowser v{qbversion}.")
+    changelog_url = f'qute://help/changelog.html#v{qbversion}'
+    tabbed_browser.tabopen(QUrl(changelog_url), background=False)
 
 
 def on_focus_changed(_old, new):
@@ -447,11 +480,9 @@ def _init_modules(*, args):
 
     with debug.log_time("init", "Initializing SQL/history"):
         try:
-            log.init.debug("Initializing SQL...")
-            sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
-
             log.init.debug("Initializing web history...")
-            history.init(objects.qapp)
+            history.init(db_path=pathlib.Path(standarddir.data()) / 'history.sqlite',
+                         parent=objects.qapp)
         except sql.KnownError as e:
             error.handle_fatal_exc(e, 'Error initializing SQL',
                                    pre_text='Error initializing SQL',
@@ -460,12 +491,13 @@ def _init_modules(*, args):
 
     log.init.debug("Initializing command history...")
     cmdhistory.init()
-    log.init.debug("Initializing sessions...")
-    sessions.init(objects.qapp)
 
     log.init.debug("Initializing websettings...")
     websettings.init(args)
     quitter.instance.shutting_down.connect(websettings.shutdown)
+
+    log.init.debug("Initializing sessions...")
+    sessions.init(objects.qapp)
 
     if not args.no_err_windows:
         crashsignal.crash_handler.display_faulthandler()
@@ -532,9 +564,7 @@ class Application(QApplication):
         self.launch_time = datetime.datetime.now()
         self.focusObjectChanged.connect(  # type: ignore[attr-defined]
             self.on_focus_object_changed)
-
         self.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
-        self.setAttribute(Qt.AA_MacDontSwapCtrlAndMeta, True)
 
         self.new_window.connect(self._on_new_window)
 

@@ -45,7 +45,7 @@ default-case */
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+ * along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
@@ -53,7 +53,7 @@ default-case */
  * https://cs.chromium.org/chromium/src/ui/accessibility/extensions/caretbrowsing/
  *
  * The behavior is based on Mozilla's spec whenever possible:
- *   http://www.mozilla.org/access/keyboard/proposal
+ *   https://web.archive.org/web/20110818013741/http://www.mozilla.org/access/keyboard/proposal
  *
  * The one exception is that Esc is used to escape out of a form control,
  * rather than their proposed key (which doesn't seem to work in the

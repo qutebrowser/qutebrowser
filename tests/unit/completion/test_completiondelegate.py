@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 from unittest import mock
 
 import hypothesis
@@ -92,7 +92,7 @@ def test_highlighted(qtbot):
 
     # Needed so the highlighting actually works.
     edit = QTextEdit()
-    qtbot.addWidget(edit)
+    qtbot.add_widget(edit)
     edit.setDocument(doc)
 
     colors = [f.foreground().color() for f in doc.allFormats()]

@@ -77,6 +77,9 @@
         if ("onerror" in details) {
             oXhr.onerror = function () { details.onerror(oXhr); };
         }
+        if ("overrideMimeType" in details) {
+            oXhr.overrideMimeType(details.overrideMimeType);
+        }
 
         oXhr.open(details.method, details.url, true);
 

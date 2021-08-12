@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 # pylint: disable=invalid-name
 
@@ -42,10 +42,11 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtNetwork import QNetworkCookieJar
 
 import helpers.stubs as stubsmod
+import qutebrowser
 from qutebrowser.config import (config, configdata, configtypes, configexc,
                                 configfiles, configcache, stylesheet)
 from qutebrowser.api import config as configapi
-from qutebrowser.utils import objreg, standarddir, utils, usertypes
+from qutebrowser.utils import objreg, standarddir, utils, usertypes, version
 from qutebrowser.browser import greasemonkey, history, qutescheme
 from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.misc import savemanager, sql, objects, sessions
@@ -73,7 +74,7 @@ class WidgetContainer(QWidget):
         self._widget = widget
 
     def expose(self):
-        with self._qtbot.waitExposed(self):
+        with self._qtbot.wait_exposed(self):
             self.show()
         self._widget.setFocus()
 
@@ -407,7 +408,7 @@ def status_command_stub(stubs, qtbot, win_registry):
     """Fixture which provides a fake status-command object."""
     cmd = stubs.StatusBarCommandStub()
     objreg.register('status-command', cmd, scope='window', window=0)
-    qtbot.addWidget(cmd)
+    qtbot.add_widget(cmd)
     yield cmd
     objreg.delete('status-command', scope='window', window=0)
 
@@ -638,15 +639,6 @@ def short_tmpdir():
         yield py.path.local(tdir)  # pylint: disable=no-member
 
 
-@pytest.fixture
-def init_sql(data_tmpdir):
-    """Initialize the SQL module, and shut it down after the test."""
-    path = str(data_tmpdir / 'test.db')
-    sql.init(path)
-    yield
-    sql.close()
-
-
 class ModelValidator:
 
     """Validates completion models."""
@@ -681,12 +673,20 @@ def download_stub(win_registry, tmpdir, stubs):
 
 
 @pytest.fixture
-def web_history(fake_save_manager, tmpdir, init_sql, config_stub, stubs,
+def database(data_tmpdir):
+    """Create a Database object."""
+    db = sql.Database(str(data_tmpdir / 'test.db'))
+    yield db
+    db.close()
+
+
+@pytest.fixture
+def web_history(fake_save_manager, tmpdir, database, config_stub, stubs,
                 monkeypatch):
     """Create a WebHistory object."""
     config_stub.val.completion.timestamp_format = '%Y-%m-%d'
     config_stub.val.completion.web_history.max_items = -1
-    web_history = history.WebHistory(stubs.FakeHistoryProgress())
+    web_history = history.WebHistory(database, stubs.FakeHistoryProgress())
     monkeypatch.setattr(history, 'web_history', web_history)
     return web_history
 
@@ -725,3 +725,32 @@ def unwritable_tmp_path(tmp_path):
 
     # Make sure pytest can clean up the tmp_path
     tmp_path.chmod(0o755)
+
+
+@pytest.fixture
+def webengine_versions(testdata_scheme):
+    """Get QtWebEngine version numbers.
+
+    Calling qtwebengine_versions() initializes QtWebEngine, so we depend on
+    testdata_scheme here, to make sure that happens before.
+    """
+    pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    return version.qtwebengine_versions()
+
+
+@pytest.fixture(params=[True, False])
+def freezer(request, monkeypatch):
+    if request.param and not getattr(sys, 'frozen', False):
+        monkeypatch.setattr(sys, 'frozen', True, raising=False)
+        monkeypatch.setattr(sys, 'executable', qutebrowser.__file__)
+    elif not request.param and getattr(sys, 'frozen', False):
+        # Want to test unfrozen tests, but we are frozen
+        pytest.skip("Can't run with sys.frozen = True!")
+    return request.param
+
+
+@pytest.fixture
+def fake_flatpak(monkeypatch):
+    app_id = 'org.qutebrowser.qutebrowser'
+    monkeypatch.setenv('FLATPAK_ID', app_id)
+    assert version.is_flatpak()

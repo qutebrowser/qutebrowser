@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Parsing functions for various HTTP headers."""
 
@@ -64,7 +64,7 @@ class ContentDisposition:
     # "duplicate ignored"), because even if we did ignore that one, it still wouldn't
     # work properly...
     _IGNORED_DEFECT = DefectWrapper(
-        email.errors.InvalidHeaderDefect,  # type: ignore[attr-defined]
+        email.errors.InvalidHeaderDefect,
         'duplicate parameter name; duplicate ignored'
     )
 

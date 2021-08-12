@@ -13,7 +13,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 # NSIS pages header. Uses NsisMultiUser plugin and contains portions of
 # its demo code, copyright 2017 Richard Drizin, Alex Mitev.
@@ -22,7 +22,7 @@
 ; NsisMultiUser optional defines
 !define MULTIUSER_INSTALLMODE_ALLOW_BOTH_INSTALLATIONS 0
 !define MULTIUSER_INSTALLMODE_ALLOW_ELEVATION 1
-!define MULTIUSER_INSTALLMODE_ALLOW_ELEVATION_IF_SILENT 0
+!define MULTIUSER_INSTALLMODE_ALLOW_ELEVATION_IF_SILENT 1
 !define MULTIUSER_INSTALLMODE_DEFAULT_ALLUSERS 1
 !if ${PLATFORM} == "win64"
   !define MULTIUSER_INSTALLMODE_64_BIT 1

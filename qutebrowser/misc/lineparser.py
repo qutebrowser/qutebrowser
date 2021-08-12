@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+# along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """Parser for line-based files like histories."""
 
@@ -88,14 +88,14 @@ class BaseLineParser(QObject):
             mode: The mode to use ('a'/'r'/'w')
 
         Raises:
-            IOError: if the file is already open
+            OSError: if the file is already open
 
         Yields:
             a file object for the config file
         """
         assert self._configfile is not None
         if self._opened:
-            raise IOError("Refusing to double-open LineParser.")
+            raise OSError("Refusing to double-open LineParser.")
         self._opened = True
         try:
             if self._binary:
@@ -172,7 +172,7 @@ class LineParser(BaseLineParser):
     def save(self):
         """Save the config file."""
         if self._opened:
-            raise IOError("Refusing to double-open LineParser.")
+            raise OSError("Refusing to double-open LineParser.")
         do_save = self._prepare_save()
         if not do_save:
             return
