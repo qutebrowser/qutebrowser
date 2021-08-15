@@ -641,8 +641,8 @@ class AbstractHistoryPrivate:
         """Deserialize from a format produced by self.serialize."""
         raise NotImplementedError
 
-    def load_items(self, items: Sequence[sessions.TabHistoryItem]) -> None:
-        """Deserialize from a list of TabHistoryItems."""
+    def load_items(self, items: Sequence[TypeHistoryItem]) -> None:
+        """Deserialize from a list of TypeHistoryItems."""
         raise NotImplementedError
 
 
