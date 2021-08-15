@@ -1938,6 +1938,7 @@ class NewTabPosition(String):
             ('first', "At the beginning."),
             ('last', "At the end."))
 
+
 class NewChildPosition(String):
 
     """How new children are positioned."""
@@ -1965,8 +1966,6 @@ class LogLevel(String):
         super().__init__(none_ok=none_ok, completions=completions)
         self.valid_values = ValidValues(*[level.lower()
                                           for level in log.LOG_LEVELS])
-
-
 
 
 class Key(BaseType):

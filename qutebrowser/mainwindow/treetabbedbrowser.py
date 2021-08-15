@@ -138,11 +138,11 @@ class TreeTabbedBrowser(TabbedBrowser):
         self.widget.tree_tab_update()
 
     def _add_undo_entry(self, tab, idx, new_undo):
-        """Save undo entry with tree information.  This function was removed in
-        tabbedbrowser, but it is still useful here because the mechanism is
-        quite a bit more complex
-        """
+        """Save undo entry with tree information.
 
+        This function was removed in tabbedbrowser, but it is still useful here because
+        the mechanism is quite a bit more complex
+        """
         # TODO see if it's possible to remove duplicate code from
         # super()._add_undo_entry
         try:
