@@ -13,8 +13,8 @@ filelock==3.0.12
 Flask==2.0.1
 glob2==0.7
 hunter==3.3.8
-hypothesis==6.14.5
-icdiff==2.0.3
+hypothesis==6.14.7
+icdiff==2.0.4
 idna==3.2
 iniconfig==1.1.1
 itsdangerous==2.0.1
@@ -31,7 +31,7 @@ pluggy==0.13.1
 pprintpp==0.4.0
 py==1.10.0
 py-cpuinfo==8.0.0
-Pygments==2.9.0
+Pygments==2.10.0
 pyparsing==2.4.7
 pytest==6.2.4
 pytest-bdd==4.1.0

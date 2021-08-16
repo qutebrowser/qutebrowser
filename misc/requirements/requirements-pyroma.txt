@@ -4,7 +4,7 @@ certifi==2021.5.30
 charset-normalizer==2.0.4
 docutils==0.17.1
 idna==3.2
-Pygments==2.9.0
+Pygments==2.10.0
 pyroma==3.2
 requests==2.26.0
 urllib3==1.26.6
