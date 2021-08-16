@@ -9,7 +9,7 @@ Deprecated==1.2.12
 github3.py==2.0.0
 hunter==3.3.8
 idna==3.2
-jwcrypto==0.9.1
+jwcrypto==1.0
 manhole==1.8.0
 packaging==21.0
 pycparser==2.20
