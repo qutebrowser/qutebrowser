@@ -684,9 +684,9 @@ class HintManager(QObject):
         Args:
             rapid: Whether to do rapid hinting. With rapid hinting, the hint
                    mode isn't left after a hint is followed, so you can easily
-                   open multiple links. This is only possible with targets
-                   `tab` (with `tabs.background=true`), `tab-bg`,
-                   `window`, `run`, `hover`, `userscript` and `spawn`.
+                   open multiple links. Note this won't work with targets `tab`
+                   (unless `tabs.background` is set), `tab-fg`, `fill` and
+                   `right-click`.
             add_history: Whether to add the spawned or yanked link to the
                          browsing history.
             first: Click the first hinted element without prompting.
@@ -755,10 +755,23 @@ class HintManager(QObject):
             modeman.leave(self._win_id, usertypes.KeyMode.hint, 're-hinting')
 
         if rapid:
-            if target in [Target.tab_bg, Target.window, Target.run,
-                          Target.hover, Target.userscript, Target.spawn,
-                          Target.download, Target.normal, Target.current,
-                          Target.yank, Target.yank_primary]:
+            if target in [
+                    Target.normal,
+                    Target.current,
+                    # Target.tab handled below
+                    # not Target.tab_fg
+                    Target.tab_bg,
+                    Target.window,
+                    Target.yank,
+                    Target.yank_primary,
+                    Target.run,
+                    # not Target.fill
+                    Target.hover,
+                    Target.download, 
+                    Target.userscript,
+                    Target.spawn,
+                    # not Target.right_click
+                ]:
                 pass
             elif target == Target.tab and config.val.tabs.background:
                 pass
