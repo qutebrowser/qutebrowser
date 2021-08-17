@@ -679,9 +679,8 @@ Start hinting.
 * +*-a*+, +*--add-history*+: Whether to add the spawned or yanked link to the browsing history.
 
 * +*-r*+, +*--rapid*+: Whether to do rapid hinting. With rapid hinting, the hint mode isn't left after a hint is followed, so you can easily
- open multiple links. Note this won't work with targets `tab`
- (unless `tabs.background` is set), `tab-fg`, `fill` and
- `right-click`.
+ open multiple links. Note this won't work with targets
+ `tab-fg`, `fill`, `delete` and `right-click`.
 
 * +*-f*+, +*--first*+: Click the first hinted element without prompting.
 

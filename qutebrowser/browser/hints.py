@@ -684,9 +684,8 @@ class HintManager(QObject):
         Args:
             rapid: Whether to do rapid hinting. With rapid hinting, the hint
                    mode isn't left after a hint is followed, so you can easily
-                   open multiple links. Note this won't work with targets `tab`
-                   (unless `tabs.background` is set), `tab-fg`, `fill` and
-                   `right-click`.
+                   open multiple links. Note this won't work with targets
+                   `tab-fg`, `fill`, `delete` and `right-click`.
             add_history: Whether to add the spawned or yanked link to the
                          browsing history.
             first: Click the first hinted element without prompting.
@@ -754,31 +753,15 @@ class HintManager(QObject):
         if mode_manager.mode == usertypes.KeyMode.hint:
             modeman.leave(self._win_id, usertypes.KeyMode.hint, 're-hinting')
 
-        if rapid:
-            if target in [
-                    Target.normal,
-                    Target.current,
-                    # Target.tab handled below
-                    # not Target.tab_fg
-                    Target.tab_bg,
-                    Target.window,
-                    Target.yank,
-                    Target.yank_primary,
-                    Target.run,
-                    # not Target.fill
-                    Target.hover,
-                    Target.download, 
-                    Target.userscript,
-                    Target.spawn,
-                    # not Target.right_click
-                ]:
-                pass
-            elif target == Target.tab and config.val.tabs.background:
-                pass
-            else:
-                name = target.name.replace('_', '-')
-                raise cmdutils.CommandError("Rapid hinting makes no sense "
-                                            "with target {}!".format(name))
+        if rapid and target in [
+                Target.tab_fg,  # opens new tab
+                Target.fill,  # exits hint mode
+                Target.right_click,  # opens multiple context menus
+                Target.delete,  # deleting elements shifts them
+            ]:
+            name = target.name.replace('_', '-')
+            raise cmdutils.CommandError(
+                f"Rapid hinting makes no sense with target {name}!")
 
         self._check_args(target, *args)
 
