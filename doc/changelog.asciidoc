@@ -41,6 +41,9 @@ Changed
   displaying a download prompt.
 - In Greasemonkey scripts, using "overrideMimeType" with GM_xmlhttpRequest is
   now supported.
+- `:hint --rapid` is now supported for the `tab` hinting target no matter what
+  `tabs.background` is set to, as there are various scenarios where tabs can
+  open in the background.
 
 [[v2.3.1]]
 v2.3.1 (2021-07-28)

@@ -753,12 +753,13 @@ class HintManager(QObject):
         if mode_manager.mode == usertypes.KeyMode.hint:
             modeman.leave(self._win_id, usertypes.KeyMode.hint, 're-hinting')
 
-        if rapid and target in [
-                Target.tab_fg,  # opens new tab
-                Target.fill,  # exits hint mode
-                Target.right_click,  # opens multiple context menus
-                Target.delete,  # deleting elements shifts them
-            ]:
+        no_rapid_targets = [
+            Target.tab_fg,  # opens new tab
+            Target.fill,  # exits hint mode
+            Target.right_click,  # opens multiple context menus
+            Target.delete,  # deleting elements shifts them
+        ]
+        if rapid and target in no_rapid_targets:
             name = target.name.replace('_', '-')
             raise cmdutils.CommandError(
                 f"Rapid hinting makes no sense with target {name}!")
