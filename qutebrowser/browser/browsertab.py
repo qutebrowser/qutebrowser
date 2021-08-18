@@ -20,7 +20,6 @@
 """Base class for a wrapper over QWebView/QWebEngineView."""
 
 import enum
-import datetime
 import itertools
 import functools
 import dataclasses
@@ -28,7 +27,7 @@ from typing import (cast, TYPE_CHECKING, Any, Callable, Dict, Iterator, Iterable
                     List, Optional, Sequence, Set, Type, Union)
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
-                          QEvent, QPoint, QRect)
+                          QEvent, QPoint, QRect, QDateTime)
 from PyQt5.QtGui import QKeyEvent, QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QApplication, QDialog
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
@@ -661,7 +660,7 @@ class AbstractHistoryItem:
     def __init__(self, url: QUrl, title: str, *, original_url: QUrl = None,
                  active: bool = False,
                  user_data: Dict[str, Any] = None,
-                 last_visited: bool = None) -> None:
+                 last_visited: Optional[QDateTime] = None) -> None:
         self.url = url
         if original_url is None:
             self.original_url = url
@@ -1363,7 +1362,7 @@ class AbstractTab(QWidget):
             self, url: QUrl, original_url: QUrl,
             title: str, active: bool,
             user_data: Dict[str, Any],
-            last_visited: datetime.datetime,
+            last_visited: Optional[QDateTime],
     ) -> AbstractHistoryItem:
         """Create `AbstractHistoryItem` from history item data."""
         raise NotImplementedError

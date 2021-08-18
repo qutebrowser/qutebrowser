@@ -21,12 +21,11 @@
 
 import re
 import functools
-import datetime
 import typing
 import xml.etree.ElementTree
 from typing import cast, Iterable, Optional
 
-from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
+from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize, QDateTime
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
@@ -636,6 +635,7 @@ class WebKitHistoryItem(browsertab.AbstractHistoryItem):
             qt_item.url(),
             qt_item.title(),
             original_url=qt_item.originalUrl(),
+            last_visited=qt_item.lastVisited(),
             active=active,
             user_data=qt_item.userData())
 
@@ -937,7 +937,7 @@ class WebKitTab(browsertab.AbstractTab):
             self, url: QUrl, original_url: QUrl,
             title: str, active: bool,
             user_data: typing.Dict[str, typing.Any],
-            last_visited: datetime.datetime,
+            last_visited: Optional[QDateTime],
     ) -> WebKitHistoryItem:
         return WebKitHistoryItem(
             url=url,

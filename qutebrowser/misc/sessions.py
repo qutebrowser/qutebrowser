@@ -191,7 +191,7 @@ class SessionManager(QObject):
 
         user_data = item.user_data
 
-        data['last_visited'] = item.last_visited
+        data['last_visited'] = item.last_visited.toString(Qt.ISODate)
 
         if tab.history.current_idx() == idx:
             pos = tab.scroller.pos_px()

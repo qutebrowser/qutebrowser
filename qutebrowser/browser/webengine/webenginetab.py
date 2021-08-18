@@ -625,6 +625,7 @@ class WebEngineHistoryItem(browsertab.AbstractHistoryItem):
             qt_item.url(),
             qt_item.title(),
             original_url=qt_item.originalUrl(),
+            last_visited=qt_item.lastVisited(),
             active=active,
             user_data=None)
 
