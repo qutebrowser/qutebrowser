@@ -23,11 +23,12 @@ demonstration can be seen here: https://i.imgur.com/KN3XuZP.gif.
 """
 
 USAGE = """The domain of the site has to appear as a segment in the pass path,
-for example: "github.com/cryzed" or "websites/github.com". How the username and
-password are determined is freely configurable using the CLI arguments. As an
-example, if you instead store the username as part of the secret (and use a
-site's name as filename), instead of the default configuration, use
-`--username-target secret` and `--username-pattern "username: (.+)"`.
+for example: "github.com/cryzed" or "websites/github.com". Alternatively the
+parameter `--unfiltered` may be used to get a list of all passwords. How the
+username and password are determined is freely configurable using the CLI
+arguments. As an example, if you instead store the username as part of the
+secret (and use a site's name as filename), instead of the default configuration,
+use `--username-target secret` and `--username-pattern "username: (.+)"`.
 
 The login information is inserted by emulating key events using qutebrowser's
 fake-key command in this manner: [USERNAME]<Tab>[PASSWORD], which is compatible
@@ -92,6 +93,8 @@ argument_parser.add_argument('--merge-candidates', '-m', action='store_true',
                              help='Merge pass candidates for fully-qualified and registered domain name')
 argument_parser.add_argument('--extra-url-suffixes', '-s', default='',
                              help='Comma-separated string containing extra suffixes (e.g local)')
+argument_parser.add_argument('--unfiltered', dest='unfiltered', action='store_true',
+                             help='Show an unfiltered selection of all passwords in the store')
 group = argument_parser.add_mutually_exclusive_group()
 group.add_argument('--username-only', '-e', action='store_true', help='Only insert username')
 group.add_argument('--password-only', '-w', action='store_true', help='Only insert password')
@@ -123,14 +126,14 @@ def qute_command(command):
         fifo.flush()
 
 
-def find_pass_candidates(domain):
+def find_pass_candidates(domain, unfiltered=False):
     candidates = []
 
     if arguments.mode == "gopass":
         all_passwords = subprocess.run(["gopass", "list", "--flat" ], stdout=subprocess.PIPE).stdout.decode("UTF-8").splitlines()
 
         for password in all_passwords:
-            if domain in password:
+            if unfiltered or domain in password:
                 candidates.append(password)
     else:
         for path, directories, file_names in os.walk(arguments.password_store, followlinks=True):
@@ -143,7 +146,7 @@ def find_pass_candidates(domain):
             split_path = pass_path.split(os.path.sep)
             for secret in secrets:
                 secret_base = os.path.splitext(secret)[0]
-                if domain not in (split_path + [secret_base]):
+                if not unfiltered and domain not in (split_path + [secret_base]):
                     continue
 
                 candidates.append(os.path.join(pass_path, secret_base))
@@ -223,7 +226,7 @@ def main(arguments):
 
     for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4, private_domain]):
         attempted_targets.append(target)
-        target_candidates = find_pass_candidates(target)
+        target_candidates = find_pass_candidates(target, unfiltered=arguments.unfiltered)
         if not target_candidates:
             continue
 
