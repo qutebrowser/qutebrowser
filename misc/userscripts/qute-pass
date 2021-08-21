@@ -95,6 +95,8 @@ argument_parser.add_argument('--extra-url-suffixes', '-s', default='',
                              help='Comma-separated string containing extra suffixes (e.g local)')
 argument_parser.add_argument('--unfiltered', dest='unfiltered', action='store_true',
                              help='Show an unfiltered selection of all passwords in the store')
+argument_parser.add_argument('--always-show-selection', dest='always_show_selection', action='store_true',
+                             help='Always show selection, even if there is only a single match')
 group = argument_parser.add_mutually_exclusive_group()
 group.add_argument('--username-only', '-e', action='store_true', help='Only insert username')
 group.add_argument('--password-only', '-w', action='store_true', help='Only insert password')
@@ -238,7 +240,11 @@ def main(arguments):
             stderr('No pass candidates for URL {!r} found! (I tried {!r})'.format(arguments.url, attempted_targets))
             return ExitCodes.NO_PASS_CANDIDATES
 
-    selection = candidates.pop() if len(candidates) == 1 else dmenu(sorted(candidates), arguments.dmenu_invocation)
+    if len(candidates) == 1 and not arguments.always_show_selection:
+        selection = candidates.pop()
+    else:
+        selection = dmenu(sorted(candidates), arguments.dmenu_invocation)
+
     # Nothing was selected, simply return
     if not selection:
         return ExitCodes.SUCCESS
