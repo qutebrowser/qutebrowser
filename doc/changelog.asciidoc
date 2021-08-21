@@ -46,6 +46,11 @@ Changed
 - `:hint --rapid` is now supported for the `tab` hinting target no matter what
   `tabs.background` is set to, as there are various scenarios where tabs can
   open in the background.
+- New flags for the `qute-pass` userscript:
+  * `--unfiltered` to show all secrets, not just the one matching the current
+    URL.
+  * `--always-show-selection` to confirm the password to be entered even if
+    there's only a single match.
 
 [[v2.3.1]]
 v2.3.1 (2021-07-28)
