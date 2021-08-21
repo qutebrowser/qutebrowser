@@ -31,6 +31,8 @@ Fixed
 
 - Switching tabs via mouse wheel scrolling now works properly on macOS. Set
   `tabs.mousewheel_switching` to false if you prefer the previous behavior.
+- Speculative fix for a crash when closing qutebrowser while a systray
+  notification is shown.
 
 Changed
 ~~~~~~~
