@@ -120,6 +120,10 @@ class DownloadItem(downloads.AbstractDownloadItem):
     def url(self) -> QUrl:
         return self._qt_item.url()
 
+    def origin(self) -> QUrl:
+        page = self._qt_item.page()
+        return page.url() if page else QUrl()
+
     def _set_fileobj(self, fileobj, *, autoclose=True):
         raise downloads.UnsupportedOperationError
 
@@ -294,18 +298,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
             download.set_target(target)
             return
 
-        if url.scheme() == "file" and origin.isValid() and origin.scheme() == "file":
-            utils.open_file(url.toLocalFile())
-            qt_item.cancel()
-            return
-
-        if (url.scheme() == "http" and
-                origin.isValid() and origin.scheme() == "https" and
-                config.instance.get("downloads.prevent_mixed_content", url=origin)):
-            # FIXME show failed download instead
-            message.error("Aborting insecure download from secure page "
-                          "(see downloads.prevent_mixed_content).")
-            qt_item.cancel()
+        if download.cancel_for_origin():
             return
 
         # Ask the user for a filename - needs to be blocking!

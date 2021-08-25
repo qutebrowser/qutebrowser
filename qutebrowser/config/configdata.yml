@@ -1359,7 +1359,6 @@ downloads.prevent_mixed_content:
   type: Bool
   default: true
   supports_pattern: true
-  backend: QtWebEngine
   desc:
     Automatically abort insecure (HTTP) downloads originating from secure
     (HTTPS) pages.

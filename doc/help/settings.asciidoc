@@ -2896,8 +2896,6 @@ For per-domain settings, the relevant URL is the URL initiating the download, no
 
 This setting supports URL patterns.
 
-This setting is only available with the QtWebEngine backend.
-
 Type: <<types,Bool>>
 
 Default: +pass:[true]+

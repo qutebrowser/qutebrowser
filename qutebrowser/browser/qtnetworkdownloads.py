@@ -202,6 +202,17 @@ class DownloadItem(downloads.AbstractDownloadItem):
         # Note: self._reply is deleted when the download finishes
         return self._url
 
+    def origin(self) -> QUrl:
+        if self._reply is None:
+            return QUrl()
+        origin = self._reply.request().originatingObject()
+        try:
+            return origin.url()
+        except AttributeError:
+            # Raised either if origin is None or some object that doesn't
+            # have its own url.
+            return QUrl()
+
     def _ensure_can_set_filename(self, filename):
         if self.fileobj is not None:  # pragma: no cover
             raise ValueError("fileobj was already set! filename: {}, "
@@ -548,6 +559,9 @@ class DownloadManager(downloads.AbstractDownloadManager):
                                                      suggested_filename))
         download = DownloadItem(reply, manager=self)
         self._init_item(download, auto_remove, suggested_filename)
+
+        if download.cancel_for_origin():
+            return download
 
         if target is not None:
             download.set_target(target)
