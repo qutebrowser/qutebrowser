@@ -25,6 +25,8 @@ Added
 - New `content.blocking.hosts.block_subdomains` setting which can be used to
   disable the subdomain blocking for the hosts-based adblocker introduced in
   v2.3.0.
+- New `downloads.prevent_mixed_content` setting to prevent insecure
+  mixed-content downloads (true by default).
 
 Fixed
 ~~~~~

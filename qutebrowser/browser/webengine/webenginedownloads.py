@@ -29,6 +29,7 @@ from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
 from qutebrowser.browser import downloads, pdfjs
 from qutebrowser.utils import (debug, usertypes, message, log, objreg, urlutils,
                                utils, version)
+from qutebrowser.config import config
 
 
 class DownloadItem(downloads.AbstractDownloadItem):
@@ -295,6 +296,15 @@ class DownloadManager(downloads.AbstractDownloadManager):
 
         if url.scheme() == "file" and origin.isValid() and origin.scheme() == "file":
             utils.open_file(url.toLocalFile())
+            qt_item.cancel()
+            return
+
+        if (url.scheme() == "http" and
+                origin.isValid() and origin.scheme() == "https" and
+                config.instance.get("downloads.prevent_mixed_content", url=origin)):
+            # FIXME show failed download instead
+            message.error("Aborting insecure download from secure page "
+                          "(see downloads.prevent_mixed_content).")
             qt_item.cancel()
             return
 

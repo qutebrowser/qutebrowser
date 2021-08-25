@@ -1355,6 +1355,19 @@ downloads.position:
   default: top
   desc: Where to show the downloaded files.
 
+downloads.prevent_mixed_content:
+  type: Bool
+  default: true
+  supports_pattern: true
+  backend: QtWebEngine
+  desc:
+    Automatically abort insecure (HTTP) downloads originating from secure
+    (HTTPS) pages.
+
+    For per-domain settings, the relevant URL is the URL initiating the
+    download, not the URL the download itself is coming from. It's not
+    recommended to set this setting to false globally.
+
 downloads.remove_finished:
   default: -1
   type:

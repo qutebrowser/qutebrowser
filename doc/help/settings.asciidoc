@@ -209,6 +209,7 @@
 |<<downloads.location.suggestion,downloads.location.suggestion>>|What to display in the download filename input.
 |<<downloads.open_dispatcher,downloads.open_dispatcher>>|Default program used to open downloads.
 |<<downloads.position,downloads.position>>|Where to show the downloaded files.
+|<<downloads.prevent_mixed_content,downloads.prevent_mixed_content>>|Automatically abort insecure (HTTP) downloads originating from secure (HTTPS) pages.
 |<<downloads.remove_finished,downloads.remove_finished>>|Duration (in milliseconds) to wait before removing finished downloads.
 |<<editor.command,editor.command>>|Editor (and arguments) to use for the `edit-*` commands.
 |<<editor.encoding,editor.encoding>>|Encoding to use for the editor.
@@ -2887,6 +2888,19 @@ Valid values:
  * +bottom+
 
 Default: +pass:[top]+
+
+[[downloads.prevent_mixed_content]]
+=== downloads.prevent_mixed_content
+Automatically abort insecure (HTTP) downloads originating from secure (HTTPS) pages.
+For per-domain settings, the relevant URL is the URL initiating the download, not the URL the download itself is coming from. It's not recommended to set this setting to false globally.
+
+This setting supports URL patterns.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
 
 [[downloads.remove_finished]]
 === downloads.remove_finished
