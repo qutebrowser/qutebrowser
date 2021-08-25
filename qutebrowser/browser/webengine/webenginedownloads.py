@@ -29,7 +29,6 @@ from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
 from qutebrowser.browser import downloads, pdfjs
 from qutebrowser.utils import (debug, usertypes, message, log, objreg, urlutils,
                                utils, version)
-from qutebrowser.config import config
 
 
 class DownloadItem(downloads.AbstractDownloadItem):
@@ -256,7 +255,6 @@ class DownloadManager(downloads.AbstractDownloadManager):
         qt_filename = os.path.basename(qt_item.path())   # FIXME use 5.14 API
         mime_type = qt_item.mimeType()
         url = qt_item.url()
-        origin = qt_item.page().url() if qt_item.page() else QUrl()
 
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-90355
         if version.qtwebengine_versions().webengine >= utils.VersionNumber(5, 15, 3):
