@@ -107,7 +107,7 @@ class TabEventFilter(QObject):
 
         self._ignore_wheel_event = True
 
-        pos = e.pos()
+        pos = e.position()
         if pos.x() < 0 or pos.y() < 0:
             log.mouse.warning("Ignoring invalid click at {}".format(pos))
             return False

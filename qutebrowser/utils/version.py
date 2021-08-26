@@ -850,8 +850,8 @@ def version_info() -> str:
         "Imported from {}".format(importpath),
         "Using Python from {}".format(sys.executable),
         "Qt library executable path: {}, data path: {}".format(
-            QLibraryInfo.location(QLibraryInfo.LibraryLocation.LibraryExecutablesPath),
-            QLibraryInfo.location(QLibraryInfo.LibraryLocation.DataPath)
+            QLibraryInfo.path(QLibraryInfo.LibraryPath.LibraryExecutablesPath),
+            QLibraryInfo.path(QLibraryInfo.LibraryPath.DataPath)
         )
     ]
 
