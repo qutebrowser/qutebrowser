@@ -565,7 +565,7 @@ class MainWindow(QWidget):
         refresh_window = self.isVisible()
         if hidden:
             window_flags |= Qt.WindowType.CustomizeWindowHint | Qt.WindowType.NoDropShadowWindowHint
-        self.setWindowFlags(cast(Qt.WindowFlags, window_flags))
+        self.setWindowFlags(window_flags)
         if refresh_window:
             self.show()
 

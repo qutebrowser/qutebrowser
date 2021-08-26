@@ -472,9 +472,9 @@ class KeySequence:
     def __iter__(self) -> Iterator[KeyInfo]:
         """Iterate over KeyInfo objects."""
         for key_and_modifiers in self._iter_keys():
-            key = Qt.Key(int(key_and_modifiers) & ~Qt.KeyboardModifier.KeyboardModifierMask)
-            modifiers = Qt.KeyboardModifier(  # type: ignore[call-overload]
-                int(key_and_modifiers) & Qt.KeyboardModifier.KeyboardModifierMask)
+            # key = Qt.Key(int(key_and_modifiers) & ~Qt.KeyboardModifier.KeyboardModifierMask)
+            key = key_and_modifiers.key()
+            modifiers = key_and_modifiers.keyboardModifiers()
             yield KeyInfo(key=key, modifiers=modifiers)
 
     def __repr__(self) -> str:
