@@ -35,7 +35,7 @@ import itertools
 import dataclasses
 from typing import cast, overload, Iterable, Iterator, List, Mapping, Optional, Union
 
-from PyQt6.QtCore import Qt, QEvent
+from PyQt6.QtCore import Qt, QEvent, QKeyCombination
 from PyQt6.QtGui import QKeySequence, QKeyEvent
 
 from qutebrowser.utils import utils
@@ -638,7 +638,7 @@ class KeySequence:
     def strip_modifiers(self) -> 'KeySequence':
         """Strip optional modifiers from keys."""
         modifiers = Qt.KeyboardModifier.KeypadModifier
-        keys = [key & ~modifiers for key in self._iter_keys()]
+        keys = [QKeyCombination(comb.keyboardModifiers() & ~modifiers, comb.key()) for comb in self._iter_keys()]
         return self.__class__(*keys)
 
     def with_mappings(
