@@ -1046,8 +1046,7 @@ class _WebEngineScripts(QObject):
     def _remove_js(self, name):
         """Remove an early QWebEngineScript."""
         scripts = self._widget.page().scripts()
-        script = scripts.findScript(f'_qute_{name}')
-        if not script.isNull():
+        for s in scripts.find(f'_qute_{name}'):
             scripts.remove(script)
 
     def init(self):
