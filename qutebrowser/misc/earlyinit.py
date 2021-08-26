@@ -258,7 +258,7 @@ def configure_pyqt():
         pass
 
     from qutebrowser.qt import sip
-    sip.enableoverflowchecking(True)
+    #sip.enableoverflowchecking(True)
 
 
 def init_log(args):
