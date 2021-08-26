@@ -23,7 +23,8 @@ from typing import List, Iterable
 
 from PyQt6.QtCore import pyqtSignal, QUrl
 from PyQt6.QtGui import QPalette
-from PyQt6.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
+from PyQt6.QtWebEngineWidgets import QWebEngineView
+from PyQt6.QtWebEngineCore import QWebEnginePage
 
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import webenginesettings, certificateerror

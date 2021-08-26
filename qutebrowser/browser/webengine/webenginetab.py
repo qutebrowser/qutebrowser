@@ -29,7 +29,7 @@ from typing import cast, Union, Optional
 from PyQt6.QtCore import pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl, QObject
 from PyQt6.QtNetwork import QAuthenticator
 from PyQt6.QtWidgets import QWidget
-from PyQt6.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript, QWebEngineHistory
+from PyQt6.QtWebEngineCore import QWebEnginePage, QWebEngineScript, QWebEngineHistory
 
 from qutebrowser.config import config
 from qutebrowser.browser import browsertab, eventfilter, shared, webelem, greasemonkey

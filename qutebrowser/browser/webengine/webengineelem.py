@@ -24,7 +24,7 @@ from typing import (
 
 from PyQt6.QtCore import QRect, QEventLoop
 from PyQt6.QtWidgets import QApplication
-from PyQt6.QtWebEngineWidgets import QWebEngineSettings
+from PyQt6.QtWebEngineCore import QWebEngineSettings
 
 from qutebrowser.utils import log, javascript, urlutils, usertypes, utils
 from qutebrowser.browser import webelem

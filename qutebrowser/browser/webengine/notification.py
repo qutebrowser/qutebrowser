@@ -238,7 +238,7 @@ class NotificationBridgePresenter(QObject):
         # Fixed in PyQtWebEngine 5.15.0
         # PYQT_WEBENGINE_VERSION was added with PyQtWebEngine 5.13, but if we're here,
         # we already did a version check above.
-        from PyQt6.QtWebEngine import PYQT_WEBENGINE_VERSION
+        from PyQt6.QtWebEngineCore import PYQT_WEBENGINE_VERSION
         if PYQT_WEBENGINE_VERSION < 0x050F00:
             # PyQtWebEngine unrefs the callback after it's called, for some
             # reason.  So we call setNotificationPresenter again to *increase*

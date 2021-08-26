@@ -20,7 +20,7 @@
 """Wrapper over a QWebEngineCertificateError."""
 
 from PyQt6.QtCore import QUrl
-from PyQt6.QtWebEngineWidgets import QWebEngineCertificateError
+from PyQt6.QtWebEngineCore import QWebEngineCertificateError
 
 from qutebrowser.utils import usertypes, utils, debug
 
