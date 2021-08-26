@@ -434,7 +434,7 @@ class WebHistory(sql.SqlTable):
             }, replace=True)
 
     def _format_url(self, url):
-        return url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
+        return url.toString()
 
     def _format_completion_url(self, url):
         return url.toString(QUrl.UrlFormattingOption.RemovePassword)
