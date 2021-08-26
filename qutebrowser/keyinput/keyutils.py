@@ -53,7 +53,7 @@ _MODIFIER_MAP = {
 
 _NIL_KEY = 0
 
-_ModifierType = Union[Qt.KeyboardModifier, Qt.KeyboardModifiers]
+_ModifierType = Qt.KeyboardModifier
 
 
 _SPECIAL_NAMES = {
@@ -458,9 +458,9 @@ class KeySequence:
             assert self
         self._validate()
 
-    def _convert_key(self, key: Union[int, Qt.KeyboardModifiers]) -> int:
+    def _convert_key(self, key: Union[int, Qt.KeyboardModifier]) -> int:
         """Convert a single key for QKeySequence."""
-        assert isinstance(key, (int, Qt.KeyboardModifiers)), key
+        assert isinstance(key, (int, Qt.KeyboardModifier)), key
         return int(key)
 
     def __str__(self) -> str:
@@ -473,7 +473,7 @@ class KeySequence:
         """Iterate over KeyInfo objects."""
         for key_and_modifiers in self._iter_keys():
             key = Qt.Key(int(key_and_modifiers) & ~Qt.KeyboardModifier.KeyboardModifierMask)
-            modifiers = Qt.KeyboardModifiers(  # type: ignore[call-overload]
+            modifiers = Qt.KeyboardModifier(  # type: ignore[call-overload]
                 int(key_and_modifiers) & Qt.KeyboardModifier.KeyboardModifierMask)
             yield KeyInfo(key=key, modifiers=modifiers)
 
@@ -610,7 +610,7 @@ class KeySequence:
         if (modifiers == Qt.KeyboardModifier.ShiftModifier and
                 _is_printable(key) and
                 not ev.text().isupper()):
-            modifiers = Qt.KeyboardModifiers()  # type: ignore[assignment]
+            modifiers = Qt.KeyboardModifier()  # type: ignore[assignment]
 
         # On macOS, swap Ctrl and Meta back
         #
