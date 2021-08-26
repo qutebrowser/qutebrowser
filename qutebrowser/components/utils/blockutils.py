@@ -24,7 +24,7 @@ import os
 import functools
 from typing import IO, List, Optional
 
-from PyQt5.QtCore import QUrl, QObject, pyqtSignal
+from PyQt6.QtCore import QUrl, QObject, pyqtSignal
 
 from qutebrowser.api import downloads, message, config
 

@@ -57,7 +57,7 @@ def test_result(qapp, caplog):
 
     If that happens, please report a bug about it!
     """
-    pytest.importorskip('PyQt5.QtWebEngineCore')
+    pytest.importorskip('PyQt6.QtWebEngineCore')
 
     versions = elf.parse_webenginecore()
     assert versions is not None

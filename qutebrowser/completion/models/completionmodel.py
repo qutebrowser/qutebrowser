@@ -21,7 +21,7 @@
 
 from typing import MutableSequence
 
-from PyQt5.QtCore import Qt, QModelIndex, QAbstractItemModel
+from PyQt6.QtCore import Qt, QModelIndex, QAbstractItemModel
 
 from qutebrowser.utils import log, qtutils, utils
 from qutebrowser.api import cmdutils

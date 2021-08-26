@@ -19,7 +19,7 @@
 
 """Tools related to error printing/displaying."""
 
-from PyQt5.QtWidgets import QMessageBox
+from PyQt6.QtWidgets import QMessageBox
 
 from qutebrowser.utils import log, utils
 

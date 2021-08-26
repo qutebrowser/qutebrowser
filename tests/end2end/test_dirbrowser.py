@@ -27,7 +27,7 @@ from typing import List
 import pytest
 import bs4
 
-from PyQt5.QtCore import QUrl
+from PyQt6.QtCore import QUrl
 
 from qutebrowser.utils import urlutils
 from helpers import testutils

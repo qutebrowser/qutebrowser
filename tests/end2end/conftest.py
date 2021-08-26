@@ -30,7 +30,7 @@ import pstats
 import operator
 
 import pytest
-from PyQt5.QtCore import PYQT_VERSION, QCoreApplication
+from PyQt6.QtCore import PYQT_VERSION, QCoreApplication
 
 pytest.register_assert_rewrite('end2end.fixtures')
 
@@ -117,7 +117,7 @@ def _get_version_tag(tag):
         )
     elif package == 'pyqtwebengine':
         try:
-            from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
+            from PyQt6.QtWebEngine import PYQT_WEBENGINE_VERSION
         except ImportError:
             running_version = PYQT_VERSION
         else:

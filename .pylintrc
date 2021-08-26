@@ -2,7 +2,7 @@
 
 [MASTER]
 ignore=resources.py
-extension-pkg-whitelist=PyQt5,sip
+extension-pkg-whitelist=PyQt6,sip
 load-plugins=qute_pylint.config,
              qute_pylint.modeline,
              qute_pylint.openencoding,
@@ -74,7 +74,7 @@ max-args=10
 valid-metaclass-classmethod-first-arg=cls
 
 [TYPECHECK]
-ignored-modules=PyQt5,PyQt5.QtWebKit
+ignored-modules=PyQt6,PyQt6.QtWebKit
 ignored-classes=DummyBox,__cause__
 
 [IMPORTS]

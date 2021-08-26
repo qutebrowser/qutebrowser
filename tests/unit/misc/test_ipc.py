@@ -30,9 +30,9 @@ from unittest import mock
 from typing import Optional, List
 
 import pytest
-from PyQt5.QtCore import pyqtSignal, QObject
-from PyQt5.QtNetwork import QLocalServer, QLocalSocket, QAbstractSocket
-from PyQt5.QtTest import QSignalSpy
+from PyQt6.QtCore import pyqtSignal, QObject
+from PyQt6.QtNetwork import QLocalServer, QLocalSocket, QAbstractSocket
+from PyQt6.QtTest import QSignalSpy
 
 import qutebrowser
 from qutebrowser.misc import ipc

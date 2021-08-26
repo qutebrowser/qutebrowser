@@ -26,8 +26,8 @@ import os
 import traceback
 from typing import Optional
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtWidgets import QApplication
+from PyQt6.QtCore import QUrl
+from PyQt6.QtWidgets import QApplication
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, objreg, usertypes, message, debug, utils

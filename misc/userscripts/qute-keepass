@@ -42,7 +42,7 @@ you do not do this, you will get 'element not editable' errors.
 If keepass takes a while to open the DB, you might want to consider reducing
 the number of transform rounds in your database settings.
 
-Dependencies: pykeepass (in python3), PyQt5. Without pykeepass, you will get an
+Dependencies: pykeepass (in python3), PyQt6. Without pykeepass, you will get an
 exit code of 100.
 
 ********************!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!******************
@@ -64,8 +64,8 @@ import shlex
 import subprocess
 import sys
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtWidgets import QApplication, QInputDialog, QLineEdit
+from PyQt6.QtCore import QUrl
+from PyQt6.QtWidgets import QApplication, QInputDialog, QLineEdit
 
 try:
     import pykeepass

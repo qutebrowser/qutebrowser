@@ -33,7 +33,7 @@ from typing import (TYPE_CHECKING, Any, Dict, Iterable, Iterator, List, Mapping,
                     MutableMapping, Optional, Tuple, cast)
 
 import yaml
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QSettings, qVersion
+from PyQt6.QtCore import pyqtSignal, pyqtSlot, QObject, QSettings, qVersion
 
 import qutebrowser
 from qutebrowser.config import (configexc, config, configdata, configutils,
@@ -118,7 +118,7 @@ class StateConfig(configparser.ConfigParser):
         Note that it's too early to use objects.backend here...
         """
         try:
-            import PyQt5.QtWebEngineWidgets  # pylint: disable=unused-import
+            import PyQt6.QtWebEngineWidgets  # pylint: disable=unused-import
         except ImportError:
             return 'no'
         return str(version.qtwebengine_versions(avoid_init=True).webengine)

@@ -18,8 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-from PyQt5.QtNetwork import QNetworkCookie
-from PyQt5.QtCore import QUrl
+from PyQt6.QtNetwork import QNetworkCookie
+from PyQt6.QtCore import QUrl
 import pytest
 
 from qutebrowser.browser.webkit import cookies

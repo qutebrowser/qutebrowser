@@ -21,7 +21,7 @@
 
 from typing import Dict, Sequence
 
-from PyQt5.QtCore import QAbstractItemModel
+from PyQt6.QtCore import QAbstractItemModel
 
 from qutebrowser.completion.models import (completionmodel, filepathcategory,
                                            listcategory, histcategory)

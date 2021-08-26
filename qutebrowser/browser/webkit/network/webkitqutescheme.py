@@ -19,8 +19,8 @@
 
 """QtWebKit specific qute://* handlers and glue code."""
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtNetwork import QNetworkReply, QNetworkAccessManager
+from PyQt6.QtCore import QUrl
+from PyQt6.QtNetwork import QNetworkReply, QNetworkAccessManager
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.browser.webkit.network import networkreply

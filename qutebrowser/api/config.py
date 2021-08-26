@@ -21,7 +21,7 @@
 
 from typing import cast, Any
 
-from PyQt5.QtCore import QUrl
+from PyQt6.QtCore import QUrl
 
 from qutebrowser.config import config
 

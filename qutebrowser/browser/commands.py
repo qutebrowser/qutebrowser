@@ -24,8 +24,8 @@ import shlex
 import functools
 from typing import cast, Callable, Dict, Union
 
-from PyQt5.QtWidgets import QApplication, QTabBar
-from PyQt5.QtCore import Qt, QUrl, QEvent, QUrlQuery
+from PyQt6.QtWidgets import QApplication, QTabBar
+from PyQt6.QtCore import Qt, QUrl, QEvent, QUrlQuery
 
 from qutebrowser.commands import userscripts, runners
 from qutebrowser.api import cmdutils

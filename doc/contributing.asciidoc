@@ -545,7 +545,7 @@ Setting up a Windows Development Environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Install https://www.python.org/downloads/release/python-362/[Python 3.6].
-* Install PyQt via `pip install PyQt5`.
+* Install PyQt via `pip install PyQt6`.
 * Create a file at `C:\Windows\system32\python3.bat` with the following content (adjust the path as necessary):
   `@C:\Python36\python %*`.
   This will make the Python 3.6 interpreter available as `python3`, which is used by various development scripts.

@@ -18,7 +18,7 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-pytest.importorskip('PyQt5.QtWebKitWidgets')
+pytest.importorskip('PyQt6.QtWebKitWidgets')
 
 from qutebrowser.browser.webkit import webkitsettings
 

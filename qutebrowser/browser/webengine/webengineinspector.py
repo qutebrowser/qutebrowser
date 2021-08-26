@@ -21,9 +21,9 @@
 
 import pathlib
 
-from PyQt5.QtCore import QLibraryInfo
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
-from PyQt5.QtWidgets import QWidget
+from PyQt6.QtCore import QLibraryInfo
+from PyQt6.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
+from PyQt6.QtWidgets import QWidget
 
 from qutebrowser.browser import inspector
 from qutebrowser.browser.webengine import webenginesettings

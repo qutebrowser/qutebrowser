@@ -20,9 +20,9 @@
 """The commandline in the statusbar."""
 
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize
-from PyQt5.QtGui import QKeyEvent
-from PyQt5.QtWidgets import QSizePolicy, QWidget
+from PyQt6.QtCore import pyqtSignal, pyqtSlot, Qt, QSize
+from PyQt6.QtGui import QKeyEvent
+from PyQt6.QtWidgets import QSizePolicy, QWidget
 
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.api import cmdutils

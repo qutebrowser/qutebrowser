@@ -26,10 +26,10 @@ import re
 import html as html_utils
 from typing import cast, Union, Optional
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl, QObject
-from PyQt5.QtNetwork import QAuthenticator
-from PyQt5.QtWidgets import QWidget
-from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript, QWebEngineHistory
+from PyQt6.QtCore import pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl, QObject
+from PyQt6.QtNetwork import QAuthenticator
+from PyQt6.QtWidgets import QWidget
+from PyQt6.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript, QWebEngineHistory
 
 from qutebrowser.config import config
 from qutebrowser.browser import browsertab, eventfilter, shared, webelem, greasemonkey
@@ -125,7 +125,7 @@ class _WebEngineSearchWrapHandler:
 
         try:
             # pylint: disable=unused-import
-            from PyQt5.QtWebEngineCore import QWebEngineFindTextResult
+            from PyQt6.QtWebEngineCore import QWebEngineFindTextResult
         except ImportError:
             # WORKAROUND for some odd PyQt/packaging bug where the
             # findTextResult signal is available, but QWebEngineFindTextResult
@@ -1671,7 +1671,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
         try:
             # pylint: disable=unused-import
-            from PyQt5.QtWebEngineWidgets import (
+            from PyQt6.QtWebEngineWidgets import (
                 QWebEngineClientCertificateSelection)
         except ImportError:
             pass

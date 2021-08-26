@@ -31,10 +31,10 @@ import importlib.machinery
 
 import pytest
 
-from PyQt5.QtCore import qVersion
-from PyQt5.QtGui import QColor
+from PyQt6.QtCore import qVersion
+from PyQt6.QtGui import QColor
 try:
-    from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION_STR
+    from PyQt6.QtWebEngine import PYQT_WEBENGINE_VERSION_STR
 except ImportError:
     PYQT_WEBENGINE_VERSION_STR = None
 

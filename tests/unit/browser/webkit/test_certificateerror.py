@@ -18,7 +18,7 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-from PyQt5.QtNetwork import QSslError
+from PyQt6.QtNetwork import QSslError
 
 from qutebrowser.browser.webkit import certificateerror
 

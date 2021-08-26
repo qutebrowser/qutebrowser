@@ -2,7 +2,7 @@ mypy
 lxml  # For HTML reports
 diff-cover
 
-PyQt5-stubs
+PyQt6-stubs
 types-dataclasses
 types-PyYAML
 

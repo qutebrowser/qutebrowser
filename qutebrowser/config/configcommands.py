@@ -23,7 +23,7 @@ import os.path
 import contextlib
 from typing import TYPE_CHECKING, Iterator, List, Optional, Any, Tuple
 
-from PyQt5.QtCore import QUrl
+from PyQt6.QtCore import QUrl
 
 from qutebrowser.api import cmdutils
 from qutebrowser.completion.models import configmodel

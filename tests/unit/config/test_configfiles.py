@@ -25,7 +25,7 @@ import textwrap
 import logging
 
 import pytest
-from PyQt5.QtCore import QSettings
+from PyQt6.QtCore import QSettings
 
 from qutebrowser.config import (config, configfiles, configexc, configdata,
                                 configtypes)
@@ -167,7 +167,7 @@ def state_writer(data_tmpdir):
 @pytest.fixture
 def qtwe_version_patcher(monkeypatch):
     try:
-        from PyQt5 import QtWebEngineWidgets  # pylint: disable=unused-import
+        from PyQt6 import QtWebEngineWidgets  # pylint: disable=unused-import
     except ImportError:
         pytest.skip("QtWebEngine not available")
 
@@ -223,7 +223,7 @@ def test_qtwe_version_changed(state_writer, qtwe_version_patcher,
 
 
 def test_qtwe_version_changed_webkit(stubs, monkeypatch, state_writer):
-    fake = stubs.ImportFake({'PyQt5.QtWebEngineWidgets': False}, monkeypatch)
+    fake = stubs.ImportFake({'PyQt6.QtWebEngineWidgets': False}, monkeypatch)
     fake.patch()
 
     state_writer('qtwe_version', 'no')

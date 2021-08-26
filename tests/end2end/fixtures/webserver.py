@@ -28,7 +28,7 @@ import dataclasses
 from http import HTTPStatus
 
 import pytest
-from PyQt5.QtCore import pyqtSignal, QUrl
+from PyQt6.QtCore import pyqtSignal, QUrl
 
 from end2end.fixtures import testprocess
 

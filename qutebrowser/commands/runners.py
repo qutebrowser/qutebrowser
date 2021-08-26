@@ -24,7 +24,7 @@ import re
 import contextlib
 from typing import TYPE_CHECKING, Callable, Dict, Iterator, Mapping, MutableMapping
 
-from PyQt5.QtCore import pyqtSlot, QUrl, QObject
+from PyQt6.QtCore import pyqtSlot, QUrl, QObject
 
 from qutebrowser.api import cmdutils
 from qutebrowser.commands import cmdexc, parser

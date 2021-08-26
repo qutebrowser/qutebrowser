@@ -26,7 +26,7 @@ import logging
 import pathlib
 from typing import cast, IO, Set
 
-from PyQt5.QtCore import QUrl
+from PyQt6.QtCore import QUrl
 
 from qutebrowser.api import (
     hook,

@@ -22,9 +22,9 @@
 import re
 from typing import Iterable, Tuple
 
-from PyQt5.QtCore import QSortFilterProxyModel, QRegularExpression
-from PyQt5.QtGui import QStandardItem, QStandardItemModel
-from PyQt5.QtWidgets import QWidget
+from PyQt6.QtCore import QSortFilterProxyModel, QRegularExpression
+from PyQt6.QtGui import QStandardItem, QStandardItemModel
+from PyQt6.QtWidgets import QWidget
 
 from qutebrowser.completion.models import util
 from qutebrowser.utils import qtutils, log

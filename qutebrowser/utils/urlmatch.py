@@ -34,7 +34,7 @@ import fnmatch
 import urllib.parse
 from typing import Any, Optional, Tuple
 
-from PyQt5.QtCore import QUrl
+from PyQt6.QtCore import QUrl
 
 from qutebrowser.utils import utils, qtutils
 

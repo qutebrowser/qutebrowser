@@ -20,7 +20,7 @@
 """Tests for Timer."""
 
 import pytest
-from PyQt5.QtCore import QObject
+from PyQt6.QtCore import QObject
 
 from qutebrowser.utils import usertypes
 

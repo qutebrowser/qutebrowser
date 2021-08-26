@@ -21,9 +21,9 @@
 
 # pylint: disable=unused-import
 
-# While upstream recommends using PyQt5.sip ever since PyQt5 5.11, some distributions
-# still package later versions of PyQt5 with a top-level "sip" rather than "PyQt5.sip".
+# While upstream recommends using PyQt6.sip ever since PyQt6 5.11, some distributions
+# still package later versions of PyQt6 with a top-level "sip" rather than "PyQt6.sip".
 try:
-    from PyQt5 import sip
+    from PyQt6 import sip
 except ImportError:
     import sip  # type: ignore[import, no-redef]

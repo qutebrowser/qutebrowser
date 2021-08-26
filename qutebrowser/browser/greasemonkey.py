@@ -29,7 +29,7 @@ import textwrap
 import dataclasses
 from typing import cast, List, Sequence
 
-from PyQt5.QtCore import pyqtSignal, QObject, QUrl
+from PyQt6.QtCore import pyqtSignal, QObject, QUrl
 
 from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
                                javascript, urlmatch, version, usertypes, message)

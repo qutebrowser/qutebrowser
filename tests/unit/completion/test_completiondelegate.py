@@ -21,9 +21,9 @@ from unittest import mock
 import hypothesis
 import hypothesis.strategies
 import pytest
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QTextDocument, QColor
-from PyQt5.QtWidgets import QTextEdit
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QTextDocument, QColor
+from PyQt6.QtWidgets import QTextEdit
 
 from qutebrowser.completion import completiondelegate
 

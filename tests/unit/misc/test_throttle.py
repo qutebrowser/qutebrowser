@@ -23,7 +23,7 @@ from unittest import mock
 
 import sip
 import pytest
-from PyQt5.QtCore import QObject
+from PyQt6.QtCore import QObject
 
 from helpers import testutils
 from qutebrowser.misc import throttle

@@ -21,7 +21,7 @@
 
 from typing import Sequence
 
-from PyQt5.QtNetwork import QSslError
+from PyQt6.QtNetwork import QSslError
 
 from qutebrowser.utils import usertypes, utils, debug, jinja
 

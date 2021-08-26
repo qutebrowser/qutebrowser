@@ -28,7 +28,7 @@ import warnings
 
 import pytest
 import hypothesis
-from PyQt5.QtCore import PYQT_VERSION
+from PyQt6.QtCore import PYQT_VERSION
 
 pytest.register_assert_rewrite('helpers')
 
@@ -224,7 +224,7 @@ def pytest_configure(config):
     config.webengine = webengine_arg or webengine_env == 'true'
     # Fail early if QtWebEngine is not available
     if config.webengine:
-        import PyQt5.QtWebEngineWidgets
+        import PyQt6.QtWebEngineWidgets
     earlyinit.configure_pyqt()
 
 

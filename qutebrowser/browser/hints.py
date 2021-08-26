@@ -30,8 +30,8 @@ from string import ascii_lowercase
 from typing import (TYPE_CHECKING, Callable, Dict, Iterable, Iterator, List, Mapping,
                     MutableSequence, Optional, Sequence, Set)
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt, QUrl
-from PyQt5.QtWidgets import QLabel
+from PyQt6.QtCore import pyqtSignal, pyqtSlot, QObject, Qt, QUrl
+from PyQt6.QtWidgets import QLabel
 
 from qutebrowser.config import config, configexc
 from qutebrowser.keyinput import modeman, modeparsers, basekeyparser

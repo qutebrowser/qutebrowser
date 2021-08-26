@@ -19,7 +19,7 @@
 
 """Keychain string displayed in the statusbar."""
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt6.QtCore import pyqtSlot
 
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import usertypes

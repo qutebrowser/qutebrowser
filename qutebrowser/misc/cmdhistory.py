@@ -21,7 +21,7 @@
 
 from typing import MutableSequence
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
+from PyQt6.QtCore import pyqtSlot, pyqtSignal, QObject
 
 from qutebrowser.utils import usertypes, log, standarddir, objreg
 from qutebrowser.misc import lineparser

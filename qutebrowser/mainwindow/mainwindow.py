@@ -25,10 +25,10 @@ import itertools
 import functools
 from typing import List, MutableSequence, Optional, Tuple, cast
 
-from PyQt5.QtCore import (pyqtBoundSignal, pyqtSlot, QRect, QPoint, QTimer, Qt,
+from PyQt6.QtCore import (pyqtBoundSignal, pyqtSlot, QRect, QPoint, QTimer, Qt,
                           QCoreApplication, QEventLoop, QByteArray)
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSizePolicy
-from PyQt5.QtGui import QPalette
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QSizePolicy
+from PyQt6.QtGui import QPalette
 
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils

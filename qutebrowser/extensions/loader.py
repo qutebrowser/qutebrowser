@@ -28,7 +28,7 @@ import argparse
 import dataclasses
 from typing import Callable, Iterator, List, Optional, Set, Tuple
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt6.QtCore import pyqtSlot
 
 from qutebrowser import components
 from qutebrowser.config import config

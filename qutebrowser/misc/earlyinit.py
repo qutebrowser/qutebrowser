@@ -78,8 +78,8 @@ def _die(message, exception=None):
         message: The message to display.
         exception: The exception object if we're handling an exception.
     """
-    from PyQt5.QtWidgets import QApplication, QMessageBox
-    from PyQt5.QtCore import Qt
+    from PyQt6.QtWidgets import QApplication, QMessageBox
+    from PyQt6.QtCore import Qt
     if (('--debug' in sys.argv or '--no-err-windows' in sys.argv) and
             exception is not None):
         print(file=sys.stderr)
@@ -132,7 +132,7 @@ def init_faulthandler(fileobj=sys.__stderr__):
 
 def check_pyqt():
     """Check if PyQt core modules (QtCore/QtWidgets) are installed."""
-    for name in ['PyQt5.QtCore', 'PyQt5.QtWidgets']:
+    for name in ['PyQt6.QtCore', 'PyQt6.QtWidgets']:
         try:
             importlib.import_module(name)
         except ImportError as e:
@@ -156,10 +156,10 @@ def check_pyqt():
 def qt_version(qversion=None, qt_version_str=None):
     """Get a Qt version string based on the runtime/compiled versions."""
     if qversion is None:
-        from PyQt5.QtCore import qVersion
+        from PyQt6.QtCore import qVersion
         qversion = qVersion()
     if qt_version_str is None:
-        from PyQt5.QtCore import QT_VERSION_STR
+        from PyQt6.QtCore import QT_VERSION_STR
         qt_version_str = QT_VERSION_STR
 
     if qversion != qt_version_str:
@@ -170,9 +170,9 @@ def qt_version(qversion=None, qt_version_str=None):
 
 def check_qt_version():
     """Check if the Qt version is recent enough."""
-    from PyQt5.QtCore import QT_VERSION, PYQT_VERSION, PYQT_VERSION_STR
+    from PyQt6.QtCore import QT_VERSION, PYQT_VERSION, PYQT_VERSION_STR
     try:
-        from PyQt5.QtCore import QVersionNumber, QLibraryInfo
+        from PyQt6.QtCore import QVersionNumber, QLibraryInfo
         qt_ver = QLibraryInfo.version().normalized()
         recent_qt_runtime = qt_ver >= QVersionNumber(5, 12)  # type: ignore[operator]
     except (ImportError, AttributeError):
@@ -194,7 +194,7 @@ def check_qt_version():
 def check_ssl_support():
     """Check if SSL support is available."""
     try:
-        from PyQt5.QtNetwork import QSslSocket  # pylint: disable=unused-import
+        from PyQt6.QtNetwork import QSslSocket  # pylint: disable=unused-import
     except ImportError:
         _die("Fatal error: Your Qt is built without SSL support.")
 
@@ -232,10 +232,10 @@ def check_libraries():
         'jinja2': _missing_str("jinja2"),
         'yaml': _missing_str("PyYAML"),
         'dataclasses': _missing_str("dataclasses"),
-        'PyQt5.QtQml': _missing_str("PyQt5.QtQml"),
-        'PyQt5.QtSql': _missing_str("PyQt5.QtSql"),
-        'PyQt5.QtOpenGL': _missing_str("PyQt5.QtOpenGL"),
-        'PyQt5.QtDBus': _missing_str("PyQt5.QtDBus"),
+        'PyQt6.QtQml': _missing_str("PyQt6.QtQml"),
+        'PyQt6.QtSql': _missing_str("PyQt6.QtSql"),
+        'PyQt6.QtOpenGL': _missing_str("PyQt6.QtOpenGL"),
+        'PyQt6.QtDBus': _missing_str("PyQt6.QtDBus"),
     }
     if sys.version_info < (3, 9):
         # Backport required
@@ -249,7 +249,7 @@ def configure_pyqt():
     Doing this means we can't use the interactive shell anymore (which we don't
     anyways), but we can use pdb instead.
     """
-    from PyQt5 import QtCore
+    from PyQt6 import QtCore
     QtCore.pyqtRemoveInputHook()
     try:
         QtCore.pyqt5_enable_new_onexit_scheme(True)  # type: ignore[attr-defined]
@@ -290,7 +290,7 @@ def webengine_early_import():
     error messages in backendproblem.py are accurate.
     """
     try:
-        from PyQt5 import QtWebEngineWidgets  # pylint: disable=unused-import
+        from PyQt6 import QtWebEngineWidgets  # pylint: disable=unused-import
     except ImportError:
         pass
 

@@ -26,7 +26,7 @@ import time
 
 import pytest
 import pytest_bdd as bdd
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QFileSystemWatcher
+from PyQt6.QtCore import pyqtSignal, pyqtSlot, QObject, QFileSystemWatcher
 bdd.scenarios('editor.feature')
 
 from qutebrowser.utils import utils

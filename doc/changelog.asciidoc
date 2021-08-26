@@ -504,7 +504,7 @@ Fixed
   missing changelog file) caused in a crash due to an inconsistent behavior in
   those versions of Python. This is now handled properly by qutebrowser.
 - In v2.0.0, support for importing the `sip` dependency as `sip` rather than
-  `PyQt5.sip` was dropped, since upstream claims it should be used as `PyQt5.sip`
+  `PyQt6.sip` was dropped, since upstream claims it should be used as `PyQt6.sip`
   ever since PyQt 5.11. However, some distributions still package sip as a global
   `sip` package. Thus, support for a global `sip` package is now reintroduced.
 - The changelog for v2.0.0 claimed that `hints.leave_on_load` was set to `true`
@@ -1496,7 +1496,7 @@ Fixed
 
 - When quitting qutebrowser, components are now cleaned up differently. This
   should fix certain (rare) segmentation faults and exceptions when quitting,
-  especially with the new exit scheme introduced in in PyQt5 5.13.1.
+  especially with the new exit scheme introduced in in PyQt6 5.13.1.
 - Added a workaround for per-domain settings (e.g. a JavaScript whitelist) not
   being applied in some scenarios with Qt 5.13 and above.
 - Added additional site-specific quirk for WhatsApp Web.
@@ -1784,7 +1784,7 @@ Changed
 ~~~~~~~
 
 - Updated dependencies for Windows/macOS releases:
-   - PyQt5 5.12.3 / PyQtWebEngine 5.12.1
+   - PyQt6 5.12.3 / PyQtWebEngine 5.12.1
    - Qt 5.12.4, which includes security fixes up to Chromium 74.0.3729.157
    - Python 3.7.4
    - OpenSSL 1.1.1
@@ -2341,7 +2341,7 @@ Fixed
 
 - Crash in a workaround for a Qt 5.11 bug in rare circumstances.
 - Workaround for a Qt bug which preserves searches between page loads.
-- In v1.3.2 a dependency on the `PyQt5.QtQuickWidgets` module was accidentally
+- In v1.3.2 a dependency on the `PyQt6.QtQuickWidgets` module was accidentally
   introduced. Since that module isn't packaged everywhere, it's been removed
   again.
 
@@ -2465,7 +2465,7 @@ v1.2.1 (2018-03-14)
 Fixed
 ~~~~~
 
-- qutebrowser now starts properly when the PyQt5 QOpenGLFunctions package wasn't
+- qutebrowser now starts properly when the PyQt6 QOpenGLFunctions package wasn't
   found.
 - The keybinding cheatsheet on the quickstart page is now loaded from a local
   `qute://` URL again.
@@ -2869,8 +2869,8 @@ Major changes
   * New dependency on the https://www.attrs.org/[attrs] project (packaged as
     `python-attr` in some distributions).
   * The depedency on PyOpenGL (when using QtWebEngine) got removed. Note
-    that PyQt5.QtOpenGL is still a dependency.
-  * PyQt5.QtOpenGL is now always required, even with QtWebKit.
+    that PyQt6.QtOpenGL is still a dependency.
+  * PyQt6.QtOpenGL is now always required, even with QtWebKit.
 - The QtWebEngine backend is now used by default. Note this means that
   QtWebEngine now should be a required dependency, and QtWebKit (if new enough)
   should be changed to an optional dependency.
@@ -2965,8 +2965,8 @@ v0.11.0 (2017-07-04)
 New dependencies
 ~~~~~~~~~~~~~~~~
 
-- New dependency on `PyQt5.QtOpenGL` if QtWebEngine is used. QtWebEngine depends
-  on QtOpenGL already, but on distributions packaging split PyQt5 wrappers, the
+- New dependency on `PyQt6.QtOpenGL` if QtWebEngine is used. QtWebEngine depends
+  on QtOpenGL already, but on distributions packaging split PyQt6 wrappers, the
   wrappers for QtOpenGL are now required.
 - New dependency on `PyOpenGL` if QtWebEngine is used.
 

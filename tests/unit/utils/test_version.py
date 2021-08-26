@@ -33,7 +33,7 @@ import dataclasses
 import pytest
 import hypothesis
 import hypothesis.strategies
-from PyQt5.QtCore import PYQT_VERSION_STR
+from PyQt6.QtCore import PYQT_VERSION_STR
 
 import qutebrowser
 from qutebrowser.config import config, websettings
@@ -1002,10 +1002,10 @@ class TestWebEngineVersions:
         pyqt_webengine_version = version._get_pyqt_webengine_qt_version()
         if pyqt_webengine_version is None:
             if '.dev' in PYQT_VERSION_STR:
-                pytest.skip("dev version of PyQt5")
+                pytest.skip("dev version of PyQt6")
 
             try:
-                from PyQt5.QtWebEngine import (
+                from PyQt6.QtWebEngine import (
                     PYQT_WEBENGINE_VERSION_STR, PYQT_WEBENGINE_VERSION)
             except ImportError as e:
                 # QtWebKit or QtWebEngine < 5.13
@@ -1059,7 +1059,7 @@ class TestChromiumVersion:
 
     @pytest.fixture(autouse=True)
     def clear_parsed_ua(self, monkeypatch):
-        pytest.importorskip('PyQt5.QtWebEngineWidgets')
+        pytest.importorskip('PyQt6.QtWebEngineWidgets')
         if webenginesettings is not None:
             # Not available with QtWebKit
             monkeypatch.setattr(webenginesettings, 'parsed_user_agent', None)
@@ -1341,7 +1341,7 @@ class TestOpenGLInfo:
 
     def test_func(self, qapp):
         """Simply call version.opengl_info() and see if it doesn't crash."""
-        pytest.importorskip("PyQt5.QtOpenGL")
+        pytest.importorskip("PyQt6.QtOpenGL")
         version.opengl_info()
 
     def test_func_fake(self, qapp, monkeypatch):

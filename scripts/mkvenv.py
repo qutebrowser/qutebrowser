@@ -232,25 +232,25 @@ def install_pyqt_binary(venv_dir: pathlib.Path, version: str) -> None:
         'darwin': {'x86_64'},
     }
     if sys.platform not in supported_archs:
-        utils.print_error(f"{sys.platform} is not a supported platform by PyQt5 binary "
+        utils.print_error(f"{sys.platform} is not a supported platform by PyQt6 binary "
                           "packages, this will most likely fail.")
     elif platform.machine() not in supported_archs[sys.platform]:
         utils.print_error(
-            f"{platform.machine()} is not a supported architecture for PyQt5 binaries "
+            f"{platform.machine()} is not a supported architecture for PyQt6 binaries "
             f"on {sys.platform}, this will most likely fail.")
     elif sys.platform == 'linux' and platform.libc_ver()[0] != 'glibc':
-        utils.print_error("Non-glibc Linux is not a supported platform for PyQt5 "
+        utils.print_error("Non-glibc Linux is not a supported platform for PyQt6 "
                           "binaries, this will most likely fail.")
 
     pip_install(venv_dir, '-r', pyqt_requirements_file(version),
-                '--only-binary', 'PyQt5,PyQtWebEngine')
+                '--only-binary', 'PyQt6,PyQtWebEngine')
 
 
 def install_pyqt_source(venv_dir: pathlib.Path, version: str) -> None:
     """Install PyQt from the source tarball."""
     utils.print_title("Installing PyQt from sources")
     pip_install(venv_dir, '-r', pyqt_requirements_file(version),
-                '--verbose', '--no-binary', 'PyQt5,PyQtWebEngine')
+                '--verbose', '--no-binary', 'PyQt6,PyQtWebEngine')
 
 
 def install_pyqt_link(venv_dir: pathlib.Path) -> None:
@@ -317,7 +317,7 @@ def apply_xcb_util_workaround(
     libxcb_util_path = pathlib.Path(libxcb_util_libs[0])
 
     code = [
-        'from PyQt5.QtCore import QLibraryInfo',
+        'from PyQt6.QtCore import QLibraryInfo',
         'print(QLibraryInfo.location(QLibraryInfo.LibrariesPath))',
     ]
     proc = run_venv(venv_dir, 'python', '-c', '; '.join(code), capture_output=True)
@@ -371,8 +371,8 @@ def run_qt_smoke_test(venv_dir: pathlib.Path) -> None:
     utils.print_title("Running Qt smoke test")
     code = [
         'import sys',
-        'from PyQt5.QtWidgets import QApplication',
-        'from PyQt5.QtCore import qVersion, QT_VERSION_STR, PYQT_VERSION_STR',
+        'from PyQt6.QtWidgets import QApplication',
+        'from PyQt6.QtCore import qVersion, QT_VERSION_STR, PYQT_VERSION_STR',
         'print(f"Python: {sys.version}")',
         'print(f"qVersion: {qVersion()}")',
         'print(f"QT_VERSION_STR: {QT_VERSION_STR}")',

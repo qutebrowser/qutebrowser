@@ -24,7 +24,7 @@ import os.path
 import contextlib
 from typing import Sequence
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
+from PyQt6.QtCore import pyqtSlot, pyqtSignal, QObject
 
 from qutebrowser.utils import log, utils, qtutils
 from qutebrowser.config import config

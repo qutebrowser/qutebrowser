@@ -20,13 +20,13 @@ import os
 import pathlib
 
 import pytest
-from PyQt5.QtCore import QLocale
+from PyQt6.QtCore import QLocale
 
 from qutebrowser.utils import utils
 from qutebrowser.config import qtargs
 
 
-pytest.importorskip('PyQt5.QtWebEngineWidgets')
+pytest.importorskip('PyQt6.QtWebEngineWidgets')
 
 
 @pytest.fixture(autouse=True)

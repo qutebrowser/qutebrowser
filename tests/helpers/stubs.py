@@ -30,11 +30,11 @@ import builtins
 import importlib
 import types
 
-from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject, QUrl, QByteArray
-from PyQt5.QtGui import QIcon
-from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
+from PyQt6.QtCore import pyqtSignal, QPoint, QProcess, QObject, QUrl, QByteArray
+from PyQt6.QtGui import QIcon
+from PyQt6.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
-from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
+from PyQt6.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
 
 from qutebrowser.browser import browsertab, downloads
 from qutebrowser.utils import usertypes

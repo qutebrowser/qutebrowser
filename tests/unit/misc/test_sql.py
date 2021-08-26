@@ -23,7 +23,7 @@ import pytest
 
 import hypothesis
 from hypothesis import strategies
-from PyQt5.QtSql import QSqlDatabase, QSqlError, QSqlQuery
+from PyQt6.QtSql import QSqlDatabase, QSqlError, QSqlQuery
 
 from qutebrowser.misc import sql
 

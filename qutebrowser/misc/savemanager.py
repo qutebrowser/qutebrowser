@@ -23,7 +23,7 @@ import os.path
 import collections
 from typing import MutableMapping
 
-from PyQt5.QtCore import pyqtSlot, QObject, QTimer
+from PyQt6.QtCore import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
 from qutebrowser.api import cmdutils

@@ -23,9 +23,9 @@ import sys
 import code
 from typing import MutableSequence
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
-from PyQt5.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QApplication
-from PyQt5.QtGui import QTextCursor
+from PyQt6.QtCore import pyqtSignal, pyqtSlot, Qt
+from PyQt6.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QApplication
+from PyQt6.QtGui import QTextCursor
 
 from qutebrowser.config import stylesheet
 from qutebrowser.misc import cmdhistory, miscwidgets

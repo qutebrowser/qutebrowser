@@ -19,7 +19,7 @@
 
 """Scroll percentage displayed in the statusbar."""
 
-from PyQt5.QtCore import pyqtSlot, Qt
+from PyQt6.QtCore import pyqtSlot, Qt
 
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.misc import throttle

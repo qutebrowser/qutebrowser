@@ -26,9 +26,9 @@ import functools
 import dataclasses
 from typing import Dict, IO, Optional
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, QUrl
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply, QNetworkAccessManager
+from PyQt6.QtCore import pyqtSlot, pyqtSignal, QTimer, QUrl
+from PyQt6.QtWidgets import QApplication
+from PyQt6.QtNetwork import QNetworkRequest, QNetworkReply, QNetworkAccessManager
 
 from qutebrowser.config import config, websettings
 from qutebrowser.utils import message, usertypes, log, urlutils, utils, debug, objreg

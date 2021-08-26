@@ -30,7 +30,7 @@ def get_data_files():
 
 
 def get_hidden_imports():
-    imports = ['PyQt5.QtOpenGL', 'PyQt5._QOpenGLFunctions_2_0']
+    imports = ['PyQt6.QtOpenGL', 'PyQt6._QOpenGLFunctions_2_0']
     for info in loader.walk_components():
         imports.append(info.name)
     return imports
@@ -84,5 +84,5 @@ coll = COLLECT(exe,
 app = BUNDLE(coll,
              name='qutebrowser.app',
              icon=icon,
-             # https://github.com/pyinstaller/pyinstaller/blob/b78bfe530cdc2904f65ce098bdf2de08c9037abb/PyInstaller/hooks/hook-PyQt5.QtWebEngineWidgets.py#L24
+             # https://github.com/pyinstaller/pyinstaller/blob/b78bfe530cdc2904f65ce098bdf2de08c9037abb/PyInstaller/hooks/hook-PyQt6.QtWebEngineWidgets.py#L24
              bundle_identifier='org.qt-project.Qt.QtWebEngineCore')

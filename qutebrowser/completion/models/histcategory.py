@@ -21,8 +21,8 @@
 
 from typing import Optional
 
-from PyQt5.QtSql import QSqlQueryModel
-from PyQt5.QtWidgets import QWidget
+from PyQt6.QtSql import QSqlQueryModel
+from PyQt6.QtWidgets import QWidget
 
 from qutebrowser.misc import sql
 from qutebrowser.utils import debug, message, log

@@ -28,7 +28,7 @@ import dataclasses
 
 import pytest
 import _pytest.logging
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 
 from qutebrowser import qutebrowser
 from qutebrowser.utils import log

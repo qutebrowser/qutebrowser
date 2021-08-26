@@ -25,9 +25,9 @@ import functools
 from typing import (TYPE_CHECKING, Any, Callable, MutableMapping, MutableSequence,
                     Optional, Sequence, Union)
 
-from PyQt5.QtCore import QObject, QTimer
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QWidget
+from PyQt6.QtCore import QObject, QTimer
+from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QWidget
 
 from qutebrowser.utils import log, usertypes, utils
 if TYPE_CHECKING:

@@ -30,7 +30,7 @@ import tempfile
 import enum
 from typing import Any, Dict, IO, List, MutableSequence, Optional, Union
 
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,
+from PyQt6.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,
                           QTimer, QAbstractListModel, QUrl)
 
 from qutebrowser.browser import pdfjs

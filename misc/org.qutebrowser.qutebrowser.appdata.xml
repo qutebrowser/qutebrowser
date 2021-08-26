@@ -10,7 +10,7 @@
 		<p>
 			qutebrowser is a keyboard-focused browser with a minimal GUI.
 			It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl,
-			and is based on Python and PyQt5.
+			and is based on Python and PyQt6.
 		</p>
 	</description>
 	<categories>

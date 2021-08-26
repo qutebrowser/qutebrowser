@@ -25,7 +25,7 @@ import logging
 import signal
 
 import pytest
-from PyQt5.QtCore import QFileSystemWatcher
+from PyQt6.QtCore import QFileSystemWatcher
 
 from qutebrowser.commands import userscripts
 from qutebrowser.utils import utils

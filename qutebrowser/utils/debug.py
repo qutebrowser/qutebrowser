@@ -28,7 +28,7 @@ import types
 from typing import (
     Any, Callable, List, Mapping, MutableSequence, Optional, Sequence, Type, Union)
 
-from PyQt5.QtCore import Qt, QEvent, QMetaMethod, QObject, pyqtBoundSignal
+from PyQt6.QtCore import Qt, QEvent, QMetaMethod, QObject, pyqtBoundSignal
 
 from qutebrowser.utils import log, utils, qtutils, objreg
 from qutebrowser.misc import objects

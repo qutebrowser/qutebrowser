@@ -23,7 +23,7 @@
 import os
 import sys
 
-from PyQt5.QtCore import (QT_VERSION_STR, PYQT_VERSION_STR, qVersion,
+from PyQt6.QtCore import (QT_VERSION_STR, PYQT_VERSION_STR, qVersion,
                           QStandardPaths, QCoreApplication)
 
 

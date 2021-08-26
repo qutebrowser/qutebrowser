@@ -25,7 +25,7 @@ import os
 import logging
 
 import pytest
-from PyQt5.QtCore import QProcess
+from PyQt6.QtCore import QProcess
 
 from qutebrowser.misc import editor as editormod
 from qutebrowser.utils import usertypes

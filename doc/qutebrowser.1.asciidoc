@@ -10,7 +10,7 @@
 :homepage: https://www.qutebrowser.org/
 
 == NAME
-qutebrowser - a keyboard-driven, vim-like browser based on PyQt5.
+qutebrowser - a keyboard-driven, vim-like browser based on PyQt6.
 
 == SYNOPSIS
 *qutebrowser* ['-OPTION' ['...']] [':COMMAND' ['...']] ['URL' ['...']]

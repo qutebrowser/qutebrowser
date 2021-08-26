@@ -78,8 +78,8 @@ def main():
 
     utils.print_title("Downloading wheels")
     subprocess.run([sys.executable, '-m', 'pip', 'download',
-                    '--no-deps', '--only-binary', 'PyQt5,PyQtWebEngine',
-                    'PyQt5', 'PyQtWebEngine'], check=True)
+                    '--no-deps', '--only-binary', 'PyQt6,PyQtWebEngine',
+                    'PyQt6', 'PyQtWebEngine'], check=True)
 
     utils.print_title("Patching wheels")
     input_files = wheels_dir.glob('*.whl')

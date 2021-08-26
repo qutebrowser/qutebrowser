@@ -19,8 +19,8 @@
 
 """Convenience functions to show message boxes."""
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QMessageBox
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QMessageBox
 
 from qutebrowser.misc import objects
 from qutebrowser.utils import log

@@ -64,11 +64,11 @@ def whitelist_generator():  # noqa: C901
     yield 'qutebrowser.misc.guiprocess.GUIProcess.stderr'
 
     # Qt attributes
-    yield 'PyQt5.QtWebKit.QWebPage.ErrorPageExtensionReturn().baseUrl'
-    yield 'PyQt5.QtWebKit.QWebPage.ErrorPageExtensionReturn().content'
-    yield 'PyQt5.QtWebKit.QWebPage.ErrorPageExtensionReturn().encoding'
-    yield 'PyQt5.QtWebKit.QWebPage.ErrorPageExtensionReturn().fileNames'
-    yield 'PyQt5.QtWidgets.QStyleOptionViewItem.backgroundColor'
+    yield 'PyQt6.QtWebKit.QWebPage.ErrorPageExtensionReturn().baseUrl'
+    yield 'PyQt6.QtWebKit.QWebPage.ErrorPageExtensionReturn().content'
+    yield 'PyQt6.QtWebKit.QWebPage.ErrorPageExtensionReturn().encoding'
+    yield 'PyQt6.QtWebKit.QWebPage.ErrorPageExtensionReturn().fileNames'
+    yield 'PyQt6.QtWidgets.QStyleOptionViewItem.backgroundColor'
 
     ## qute://... handlers
     for name in qutescheme._HANDLERS:  # pylint: disable=protected-access
@@ -86,7 +86,7 @@ def whitelist_generator():  # noqa: C901
     yield 'propagate'  # logging.getLogger('...).propagate = False
     # vulture doesn't notice the hasattr() and thus thinks netrc_used is unused
     # in NetworkManager.on_authentication_required
-    yield 'PyQt5.QtNetwork.QNetworkReply.netrc_used'
+    yield 'PyQt6.QtNetwork.QNetworkReply.netrc_used'
     yield 'qutebrowser.browser.downloads.last_used_directory'
     yield 'PaintContext.clip'  # from completiondelegate.py
     yield 'logging.LogRecord.log_color'  # from logging.py

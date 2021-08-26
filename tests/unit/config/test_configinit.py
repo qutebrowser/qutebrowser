@@ -427,7 +427,7 @@ def test_get_backend(monkeypatch, args, config_stub,
     real_import = __import__
 
     def fake_import(name, *args, **kwargs):
-        if name != 'PyQt5.QtWebKit':
+        if name != 'PyQt6.QtWebKit':
             return real_import(name, *args, **kwargs)
         raise ImportError
 

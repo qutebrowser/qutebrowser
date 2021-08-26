@@ -28,7 +28,7 @@ import textwrap
 import logging
 import subprocess
 
-from PyQt5.QtCore import QStandardPaths
+from PyQt6.QtCore import QStandardPaths
 import pytest
 
 from qutebrowser.utils import standarddir, utils, qtutils
@@ -465,7 +465,7 @@ def test_no_qapplication(qapp, tmpdir, monkeypatch):
 
         sys.path = sys.argv[1:]  # make sure we have the same python path
 
-        from PyQt5.QtWidgets import QApplication
+        from PyQt6.QtWidgets import QApplication
         from qutebrowser.utils import standarddir
 
         assert QApplication.instance() is None

@@ -35,7 +35,7 @@ import argparse
 from typing import (TYPE_CHECKING, Any, Iterator, Mapping, MutableSequence,
                     Optional, Set, Tuple, Union)
 
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 # Optional imports
 try:
     import colorama

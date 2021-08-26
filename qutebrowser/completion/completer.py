@@ -22,7 +22,7 @@
 import dataclasses
 from typing import TYPE_CHECKING
 
-from PyQt5.QtCore import pyqtSlot, QObject, QTimer
+from PyQt6.QtCore import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
 from qutebrowser.commands import parser, cmdexc

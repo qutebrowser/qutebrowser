@@ -22,7 +22,7 @@
 import logging
 
 import pytest
-from PyQt5.QtCore import QUrl
+from PyQt6.QtCore import QUrl
 
 from qutebrowser.browser import history
 from qutebrowser.utils import urlutils, usertypes
@@ -276,7 +276,7 @@ class TestHistoryInterface:
     @pytest.fixture
     def hist_interface(self, web_history):
         # pylint: disable=invalid-name
-        QtWebKit = pytest.importorskip('PyQt5.QtWebKit')
+        QtWebKit = pytest.importorskip('PyQt6.QtWebKit')
         from qutebrowser.browser.webkit import webkithistory
         QWebHistoryInterface = QtWebKit.QWebHistoryInterface
         # pylint: enable=invalid-name
@@ -304,7 +304,7 @@ class TestInit:
             history.web_history.setParent(None)
             history.web_history = None
         try:
-            from PyQt5.QtWebKit import QWebHistoryInterface
+            from PyQt6.QtWebKit import QWebHistoryInterface
             QWebHistoryInterface.setDefaultInterface(None)
         except ImportError:
             pass
@@ -313,7 +313,7 @@ class TestInit:
                                          usertypes.Backend.QtWebKit])
     def test_init(self, backend, qapp, tmpdir, data_tmpdir, monkeypatch, cleanup_init):
         if backend == usertypes.Backend.QtWebKit:
-            pytest.importorskip('PyQt5.QtWebKitWidgets')
+            pytest.importorskip('PyQt6.QtWebKitWidgets')
         else:
             assert backend == usertypes.Backend.QtWebEngine
 
@@ -322,7 +322,7 @@ class TestInit:
         assert history.web_history.parent() is qapp
 
         try:
-            from PyQt5.QtWebKit import QWebHistoryInterface
+            from PyQt6.QtWebKit import QWebHistoryInterface
         except ImportError:
             QWebHistoryInterface = None
 

@@ -26,9 +26,9 @@ import dataclasses
 
 import pytest
 import pytestqt.wait_signal
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QProcess, QObject,
+from PyQt6.QtCore import (pyqtSlot, pyqtSignal, QProcess, QObject,
                           QElapsedTimer, QProcessEnvironment)
-from PyQt5.QtTest import QSignalSpy
+from PyQt6.QtTest import QSignalSpy
 
 from helpers import testutils
 

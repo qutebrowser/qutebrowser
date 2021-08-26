@@ -22,9 +22,9 @@ import operator
 import hypothesis
 from hypothesis import strategies
 import pytest
-from PyQt5.QtCore import Qt, QEvent, pyqtSignal
-from PyQt5.QtGui import QKeyEvent, QKeySequence
-from PyQt5.QtWidgets import QWidget
+from PyQt6.QtCore import Qt, QEvent, pyqtSignal
+from PyQt6.QtGui import QKeyEvent, QKeySequence
+from PyQt6.QtWidgets import QWidget
 
 from unit.keyinput import key_data
 from qutebrowser.keyinput import keyutils

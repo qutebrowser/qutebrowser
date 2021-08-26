@@ -21,8 +21,8 @@
 
 from typing import Sequence
 
-from PyQt5.QtNetwork import QNetworkCookie, QNetworkCookieJar
-from PyQt5.QtCore import pyqtSignal, QDateTime
+from PyQt6.QtNetwork import QNetworkCookie, QNetworkCookieJar
+from PyQt6.QtCore import pyqtSignal, QDateTime
 
 from qutebrowser.config import config
 from qutebrowser.utils import utils, standarddir, objreg, log

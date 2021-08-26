@@ -22,9 +22,9 @@
 import enum
 import dataclasses
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot,  # type: ignore[attr-defined]
+from PyQt6.QtCore import (pyqtSignal, pyqtSlot,  # type: ignore[attr-defined]
                           pyqtProperty, Qt, QSize, QTimer)
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
+from PyQt6.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 from qutebrowser.browser import browsertab
 from qutebrowser.config import config, stylesheet

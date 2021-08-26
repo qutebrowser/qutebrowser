@@ -24,8 +24,8 @@ from typing import List
 
 import pytest
 import bs4
-from PyQt5.QtCore import QUrl
-from PyQt5.QtNetwork import QNetworkRequest
+from PyQt6.QtCore import QUrl
+from PyQt6.QtNetwork import QNetworkRequest
 
 from qutebrowser.browser.webkit.network import filescheme
 from qutebrowser.utils import urlutils, utils

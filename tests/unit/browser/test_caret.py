@@ -22,7 +22,7 @@
 import textwrap
 
 import pytest
-from PyQt5.QtCore import QUrl
+from PyQt6.QtCore import QUrl
 
 from qutebrowser.utils import usertypes
 from qutebrowser.browser import browsertab

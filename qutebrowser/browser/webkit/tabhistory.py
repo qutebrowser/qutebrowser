@@ -21,7 +21,7 @@
 
 from typing import Any, List, Mapping
 
-from PyQt5.QtCore import QByteArray, QDataStream, QIODevice, QUrl
+from PyQt6.QtCore import QByteArray, QDataStream, QIODevice, QUrl
 
 from qutebrowser.utils import qtutils
 

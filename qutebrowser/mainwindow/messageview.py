@@ -21,8 +21,8 @@
 
 from typing import MutableSequence, Optional
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
+from PyQt6.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
 from qutebrowser.config import config, stylesheet
 from qutebrowser.utils import usertypes

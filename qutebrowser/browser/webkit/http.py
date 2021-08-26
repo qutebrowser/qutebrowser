@@ -25,7 +25,7 @@ import dataclasses
 import os.path
 from typing import Type
 
-from PyQt5.QtNetwork import QNetworkRequest
+from PyQt6.QtNetwork import QNetworkRequest
 
 from qutebrowser.utils import log, utils
 

@@ -30,8 +30,8 @@ import shlex
 import math
 import operator
 
-from PyQt5.QtCore import QUrl, QRect
-from PyQt5.QtGui import QClipboard
+from PyQt6.QtCore import QUrl, QRect
+from PyQt6.QtGui import QClipboard
 import pytest
 import hypothesis
 from hypothesis import strategies
@@ -750,7 +750,7 @@ class TestOpenFile:
 
     @pytest.fixture
     def openurl_mock(self, mocker):
-        return mocker.patch('PyQt5.QtGui.QDesktopServices.openUrl', spec={},
+        return mocker.patch('PyQt6.QtGui.QDesktopServices.openUrl', spec={},
                             new_callable=mocker.Mock)
 
     def test_system_default_application(self, caplog, config_stub,

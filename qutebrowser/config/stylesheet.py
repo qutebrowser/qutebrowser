@@ -22,7 +22,7 @@
 import functools
 from typing import Optional, FrozenSet
 
-from PyQt5.QtCore import pyqtSlot, QObject
+from PyQt6.QtCore import pyqtSlot, QObject
 
 from qutebrowser.config import config
 from qutebrowser.misc import debugcachestats

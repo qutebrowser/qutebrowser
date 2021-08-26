@@ -23,7 +23,7 @@ import shlex
 
 import pytest
 import pytest_bdd as bdd
-from PyQt5.QtNetwork import QSslSocket
+from PyQt6.QtNetwork import QSslSocket
 bdd.scenarios('downloads.feature')
 
 

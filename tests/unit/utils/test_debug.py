@@ -25,8 +25,8 @@ import time
 import textwrap
 
 import pytest
-from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QObject, QTimer
-from PyQt5.QtWidgets import QStyle, QFrame, QSpinBox
+from PyQt6.QtCore import pyqtSignal, Qt, QEvent, QObject, QTimer
+from PyQt6.QtWidgets import QStyle, QFrame, QSpinBox
 
 from qutebrowser.utils import debug
 from qutebrowser.misc import objects
@@ -186,7 +186,7 @@ class TestQFlagsKey:
 
         No idea what's happening here exactly...
         """
-        qwebpage = pytest.importorskip("PyQt5.QtWebKitWidgets").QWebPage
+        qwebpage = pytest.importorskip("PyQt6.QtWebKitWidgets").QWebPage
 
         flags = qwebpage.FindWrapsAroundDocument
         flags |= qwebpage.FindBackward
@@ -297,6 +297,6 @@ class TestGetAllObjects:
     def test_get_all_objects_qapp(self, qapp, monkeypatch):
         monkeypatch.setattr(objects, 'qapp', qapp)
         objs = debug.get_all_objects()
-        event_dispatcher = '<PyQt5.QtCore.QAbstractEventDispatcher object at'
-        session_manager = '<PyQt5.QtGui.QSessionManager object at'
+        event_dispatcher = '<PyQt6.QtCore.QAbstractEventDispatcher object at'
+        session_manager = '<PyQt6.QtGui.QSessionManager object at'
         assert event_dispatcher in objs or session_manager in objs

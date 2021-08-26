@@ -31,7 +31,7 @@ import functools
 import subprocess
 from typing import Iterable, Mapping, MutableSequence, Sequence, cast
 
-from PyQt5.QtCore import QObject, pyqtSignal, QTimer
+from PyQt6.QtCore import QObject, pyqtSignal, QTimer
 try:
     import hunter
 except ImportError:

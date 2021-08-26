@@ -21,7 +21,7 @@
 
 import urllib.parse
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
+from PyQt6.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
 
 
 class PastebinClient(QObject):

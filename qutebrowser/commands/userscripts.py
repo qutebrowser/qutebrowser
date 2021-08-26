@@ -24,7 +24,7 @@ import os.path
 import tempfile
 from typing import cast, Any, MutableMapping, Tuple
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QSocketNotifier
+from PyQt6.QtCore import pyqtSignal, pyqtSlot, QObject, QSocketNotifier
 
 import qutebrowser
 from qutebrowser.utils import message, log, objreg, standarddir, utils
