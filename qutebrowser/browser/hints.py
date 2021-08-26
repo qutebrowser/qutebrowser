@@ -92,12 +92,12 @@ class HintLabel(QLabel):
         self._context = context
         self.elem = elem
 
-        self.setTextFormat(Qt.RichText)
+        self.setTextFormat(Qt.TextFormat.RichText)
 
         # Make sure we can style the background via a style sheet, and we don't
         # get any extra text indent from Qt.
         # The real stylesheet lives in mainwindow.py for performance reasons..
-        self.setAttribute(Qt.WA_StyledBackground, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self.setIndent(0)
 
         self._context.tab.contents_size_changed.connect(self._move_to_elem)
@@ -252,9 +252,9 @@ class HintActions:
         sel = (context.target == Target.yank_primary and
                utils.supports_selection())
 
-        flags = QUrl.FullyEncoded | QUrl.RemovePassword
+        flags = QUrl.ComponentFormattingOption.FullyEncoded | QUrl.UrlFormattingOption.RemovePassword
         if url.scheme() == 'mailto':
-            flags |= QUrl.RemoveScheme
+            flags |= QUrl.UrlFormattingOption.RemoveScheme
         urlstr = url.toString(flags)  # type: ignore[arg-type]
 
         new_content = urlstr
@@ -276,14 +276,14 @@ class HintActions:
 
     def run_cmd(self, url: QUrl, context: HintContext) -> None:
         """Run the command based on a hint URL."""
-        urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
+        urlstr = url.toString(QUrl.ComponentFormattingOption.FullyEncoded)  # type: ignore[arg-type]
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely(' '.join(args))
 
     def preset_cmd_text(self, url: QUrl, context: HintContext) -> None:
         """Preset a commandline text based on a hint URL."""
-        flags = QUrl.FullyEncoded
+        flags = QUrl.ComponentFormattingOption.FullyEncoded
         urlstr = url.toDisplayString(flags)  # type: ignore[arg-type]
         args = context.get_args(urlstr)
         text = ' '.join(args)
@@ -325,7 +325,7 @@ class HintActions:
 
         cmd = context.args[0]
         args = context.args[1:]
-        flags = QUrl.FullyEncoded
+        flags = QUrl.ComponentFormattingOption.FullyEncoded
 
         env = {
             'QUTE_MODE': 'hints',
@@ -357,7 +357,7 @@ class HintActions:
             context: The HintContext to use.
         """
         urlstr = url.toString(
-            QUrl.FullyEncoded | QUrl.RemovePassword)  # type: ignore[arg-type]
+            QUrl.ComponentFormattingOption.FullyEncoded | QUrl.UrlFormattingOption.RemovePassword)  # type: ignore[arg-type]
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely('spawn ' + ' '.join(args))

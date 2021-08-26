@@ -48,7 +48,7 @@ if __name__ == '__main__':
     wv.loadFinished.connect(lambda: print("Loading finished"))
 
     if args.plugins:
-        wv.settings().setAttribute(QWebSettings.PluginsEnabled, True)
+        wv.settings().setAttribute(QWebSettings.WebAttribute.PluginsEnabled, True)
 
     wv.load(QUrl.fromUserInput(args.url))
     wv.show()

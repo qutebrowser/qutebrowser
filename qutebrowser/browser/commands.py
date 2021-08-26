@@ -192,21 +192,21 @@ class CommandDispatcher:
                       what's configured in 'tabs.select_on_remove'.
 
         Return:
-            QTabBar.SelectLeftTab, QTabBar.SelectRightTab, or None if no change
+            QTabBar.SelectionBehavior.SelectLeftTab, QTabBar.SelectionBehavior.SelectRightTab, or None if no change
             should be made.
         """
         cmdutils.check_exclusive((prev, next_, opposite), 'pno')
         if prev:
-            return QTabBar.SelectLeftTab
+            return QTabBar.SelectionBehavior.SelectLeftTab
         elif next_:
-            return QTabBar.SelectRightTab
+            return QTabBar.SelectionBehavior.SelectRightTab
         elif opposite:
             conf_selection = config.val.tabs.select_on_remove
-            if conf_selection == QTabBar.SelectLeftTab:
-                return QTabBar.SelectRightTab
-            elif conf_selection == QTabBar.SelectRightTab:
-                return QTabBar.SelectLeftTab
-            elif conf_selection == QTabBar.SelectPreviousTab:
+            if conf_selection == QTabBar.SelectionBehavior.SelectLeftTab:
+                return QTabBar.SelectionBehavior.SelectRightTab
+            elif conf_selection == QTabBar.SelectionBehavior.SelectRightTab:
+                return QTabBar.SelectionBehavior.SelectLeftTab
+            elif conf_selection == QTabBar.SelectionBehavior.SelectPreviousTab:
                 raise cmdutils.CommandError(
                     "-o is not supported with 'tabs.select_on_remove' set to "
                     "'last-used'!")
@@ -669,9 +669,9 @@ class CommandDispatcher:
         assert what in ['url', 'pretty-url'], what
 
         if what == 'pretty-url':
-            flags = QUrl.RemovePassword | QUrl.DecodeReserved
+            flags = QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.DecodeReserved
         else:
-            flags = QUrl.RemovePassword | QUrl.FullyEncoded
+            flags = QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded
 
         url = QUrl(self._current_url())
         url_query = QUrlQuery()
@@ -1155,7 +1155,7 @@ class CommandDispatcher:
         except qtutils.QtValueError:
             pass
         else:
-            env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
+            env['QUTE_URL'] = url.toString(QUrl.ComponentFormattingOption.FullyEncoded)
 
         try:
             runner = userscripts.run_async(
@@ -1286,8 +1286,8 @@ class CommandDispatcher:
                  current page's url.
         """
         if url is None:
-            url = self._current_url().toString(QUrl.RemovePassword |
-                                               QUrl.FullyEncoded)
+            url = self._current_url().toString(QUrl.UrlFormattingOption.RemovePassword |
+                                               QUrl.ComponentFormattingOption.FullyEncoded)
         try:
             objreg.get('bookmark-manager').delete(url)
         except KeyError:
@@ -1749,8 +1749,8 @@ class CommandDispatcher:
             raise cmdutils.CommandError(str(e))
 
         for keyinfo in sequence:
-            press_event = keyinfo.to_event(QEvent.KeyPress)
-            release_event = keyinfo.to_event(QEvent.KeyRelease)
+            press_event = keyinfo.to_event(QEvent.Type.KeyPress)
+            release_event = keyinfo.to_event(QEvent.Type.KeyRelease)
 
             if global_:
                 window = QApplication.focusWindow()
@@ -1857,9 +1857,9 @@ class CommandDispatcher:
         if not window.isFullScreen():
             window.state_before_fullscreen = window.windowState()
         if enter:
-            window.setWindowState(window.windowState() | Qt.WindowFullScreen)
+            window.setWindowState(window.windowState() | Qt.WindowState.WindowFullScreen)
         else:
-            window.setWindowState(window.windowState() ^ Qt.WindowFullScreen)
+            window.setWindowState(window.windowState() ^ Qt.WindowState.WindowFullScreen)
 
         log.misc.debug('state before fullscreen: {}'.format(
             debug.qflags_key(Qt, window.state_before_fullscreen)))

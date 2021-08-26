@@ -318,7 +318,7 @@ def apply_xcb_util_workaround(
 
     code = [
         'from PyQt6.QtCore import QLibraryInfo',
-        'print(QLibraryInfo.location(QLibraryInfo.LibrariesPath))',
+        'print(QLibraryInfo.location(QLibraryInfo.LibraryLocation.LibrariesPath))',
     ]
     proc = run_venv(venv_dir, 'python', '-c', '; '.join(code), capture_output=True)
     venv_lib_path = pathlib.Path(proc.stdout.strip())

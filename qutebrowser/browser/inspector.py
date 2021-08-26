@@ -70,7 +70,7 @@ class _EventFilter(QObject):
 
     def eventFilter(self, _obj: QObject, event: QEvent) -> bool:
         """Translate mouse presses to a clicked signal."""
-        if event.type() == QEvent.MouseButtonPress:
+        if event.type() == QEvent.Type.MouseButtonPress:
             self.clicked.emit()
         return False
 

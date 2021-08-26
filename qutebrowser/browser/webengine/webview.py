@@ -32,8 +32,8 @@ from qutebrowser.utils import log, debug, usertypes
 
 
 _QB_FILESELECTION_MODES = {
-    QWebEnginePage.FileSelectOpen: shared.FileSelectionMode.single_file,
-    QWebEnginePage.FileSelectOpenMultiple: shared.FileSelectionMode.multiple_files,
+    QWebEnginePage.FileSelectionMode.FileSelectOpen: shared.FileSelectionMode.single_file,
+    QWebEnginePage.FileSelectionMode.FileSelectOpenMultiple: shared.FileSelectionMode.multiple_files,
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-91489
     #
     # QtWebEngine doesn't expose this value from its internal
@@ -54,7 +54,7 @@ class WebEngineView(QWebEngineView):
         self._win_id = win_id
         self._tabdata = tabdata
 
-        theme_color = self.style().standardPalette().color(QPalette.Base)
+        theme_color = self.style().standardPalette().color(QPalette.ColorRole.Base)
         if private:
             assert webenginesettings.private_profile is not None
             profile = webenginesettings.private_profile
@@ -103,21 +103,21 @@ class WebEngineView(QWebEngineView):
         log.webview.debug("createWindow with type {}, background {}".format(
             debug_type, background))
 
-        if wintype == QWebEnginePage.WebBrowserWindow:
+        if wintype == QWebEnginePage.WebWindowType.WebBrowserWindow:
             # Shift-Alt-Click
             target = usertypes.ClickTarget.window
-        elif wintype == QWebEnginePage.WebDialog:
+        elif wintype == QWebEnginePage.WebWindowType.WebDialog:
             log.webview.warning("{} requested, but we don't support "
                                 "that!".format(debug_type))
             target = usertypes.ClickTarget.tab
-        elif wintype == QWebEnginePage.WebBrowserTab:
+        elif wintype == QWebEnginePage.WebWindowType.WebBrowserTab:
             # Middle-click / Ctrl-Click with Shift
             # FIXME:qtwebengine this also affects target=_blank links...
             if background:
                 target = usertypes.ClickTarget.tab
             else:
                 target = usertypes.ClickTarget.tab_bg
-        elif wintype == QWebEnginePage.WebBrowserBackgroundTab:
+        elif wintype == QWebEnginePage.WebWindowType.WebBrowserBackgroundTab:
             # Middle-click / Ctrl-Click
             if background:
                 target = usertypes.ClickTarget.tab_bg
@@ -214,9 +214,9 @@ class WebEnginePage(QWebEnginePage):
     def javaScriptConsoleMessage(self, level, msg, line, source):
         """Log javascript messages to qutebrowser's log."""
         level_map = {
-            QWebEnginePage.InfoMessageLevel: usertypes.JsLogLevel.info,
-            QWebEnginePage.WarningMessageLevel: usertypes.JsLogLevel.warning,
-            QWebEnginePage.ErrorMessageLevel: usertypes.JsLogLevel.error,
+            QWebEnginePage.JavaScriptConsoleMessageLevel.InfoMessageLevel: usertypes.JsLogLevel.info,
+            QWebEnginePage.JavaScriptConsoleMessageLevel.WarningMessageLevel: usertypes.JsLogLevel.warning,
+            QWebEnginePage.JavaScriptConsoleMessageLevel.ErrorMessageLevel: usertypes.JsLogLevel.error,
         }
         shared.javascript_log_message(level_map[level], source, line, msg)
 
@@ -226,21 +226,21 @@ class WebEnginePage(QWebEnginePage):
                                 is_main_frame: bool) -> bool:
         """Override acceptNavigationRequest to forward it to the tab API."""
         type_map = {
-            QWebEnginePage.NavigationTypeLinkClicked:
+            QWebEnginePage.NavigationType.NavigationTypeLinkClicked:
                 usertypes.NavigationRequest.Type.link_clicked,
-            QWebEnginePage.NavigationTypeTyped:
+            QWebEnginePage.NavigationType.NavigationTypeTyped:
                 usertypes.NavigationRequest.Type.typed,
-            QWebEnginePage.NavigationTypeFormSubmitted:
+            QWebEnginePage.NavigationType.NavigationTypeFormSubmitted:
                 usertypes.NavigationRequest.Type.form_submitted,
-            QWebEnginePage.NavigationTypeBackForward:
+            QWebEnginePage.NavigationType.NavigationTypeBackForward:
                 usertypes.NavigationRequest.Type.back_forward,
-            QWebEnginePage.NavigationTypeReload:
+            QWebEnginePage.NavigationType.NavigationTypeReload:
                 usertypes.NavigationRequest.Type.reloaded,
-            QWebEnginePage.NavigationTypeOther:
+            QWebEnginePage.NavigationType.NavigationTypeOther:
                 usertypes.NavigationRequest.Type.other,
         }
         try:
-            type_map[QWebEnginePage.NavigationTypeRedirect] = (
+            type_map[QWebEnginePage.NavigationType.NavigationTypeRedirect] = (
                 usertypes.NavigationRequest.Type.redirect)
         except AttributeError:
             # Added in Qt 5.14

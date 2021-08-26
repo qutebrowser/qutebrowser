@@ -62,11 +62,11 @@ class DownloadView(QListView):
         if not utils.is_mac:
             self.setStyle(QStyleFactory.create('Fusion'))
         stylesheet.set_register(self)
-        self.setResizeMode(QListView.Adjust)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
-        self.setFocusPolicy(Qt.NoFocus)
-        self.setFlow(QListView.LeftToRight)
+        self.setResizeMode(QListView.ResizeMode.Adjust)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Fixed)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.setFlow(QListView.Flow.LeftToRight)
         self.setSpacing(1)
         self._menu = None
         model.rowsInserted.connect(self._update_geometry)
@@ -74,7 +74,7 @@ class DownloadView(QListView):
         model.dataChanged.connect(self._update_geometry)
         self.setModel(model)
         self.setWrapping(True)
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.show_context_menu)
         self.clicked.connect(self.on_clicked)
 

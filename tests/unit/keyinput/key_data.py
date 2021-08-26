@@ -62,7 +62,7 @@ class Modifier:
 
     Attributes:
         attribute: The name of the Qt::KeyboardModifier attribute
-                   ('Shift' -> Qt.ShiftModifier)
+                   ('Shift' -> Qt.KeyboardModifier.ShiftModifier)
         name: The name returned by str(KeyInfo) with that modifier.
         member: The numeric value.
     """

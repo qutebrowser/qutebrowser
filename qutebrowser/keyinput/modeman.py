@@ -289,8 +289,8 @@ class ModeManager(QObject):
         match = parser.handle(event, dry_run=dry_run)
 
         has_modifier = event.modifiers() not in [
-            Qt.NoModifier,
-            Qt.ShiftModifier,
+            Qt.KeyboardModifier.NoModifier,
+            Qt.KeyboardModifier.ShiftModifier,
         ]  # type: ignore[comparison-overlap]
         is_non_alnum = has_modifier or not event.text().strip()
 
@@ -459,9 +459,9 @@ class ModeManager(QObject):
             True if event should be filtered, False otherwise.
         """
         handlers: Mapping[QEvent.Type, Callable[[QKeyEvent], bool]] = {
-            QEvent.KeyPress: self._handle_keypress,
-            QEvent.KeyRelease: self._handle_keyrelease,
-            QEvent.ShortcutOverride:
+            QEvent.Type.KeyPress: self._handle_keypress,
+            QEvent.Type.KeyRelease: self._handle_keyrelease,
+            QEvent.Type.ShortcutOverride:
                 functools.partial(self._handle_keypress, dry_run=True),
         }
         handler = handlers[event.type()]

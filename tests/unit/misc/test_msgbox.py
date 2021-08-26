@@ -38,8 +38,8 @@ def test_attributes(qtbot):
     text = 'text'
     parent = QWidget()
     qtbot.add_widget(parent)
-    icon = QMessageBox.Critical
-    buttons = QMessageBox.Ok | QMessageBox.Cancel
+    icon = QMessageBox.Icon.Critical
+    buttons = QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel
 
     box = msgbox.msgbox(parent=parent, title=title, text=text, icon=icon,
                         buttons=buttons)
@@ -53,13 +53,13 @@ def test_attributes(qtbot):
 
 
 @pytest.mark.parametrize('plain_text, expected', [
-    (True, Qt.PlainText),
-    (False, Qt.RichText),
-    (None, Qt.AutoText),
+    (True, Qt.TextFormat.PlainText),
+    (False, Qt.TextFormat.RichText),
+    (None, Qt.TextFormat.AutoText),
 ])
 def test_plain_text(qtbot, plain_text, expected):
     box = msgbox.msgbox(parent=None, title='foo', text='foo',
-                        icon=QMessageBox.Information, plain_text=plain_text)
+                        icon=QMessageBox.Icon.Information, plain_text=plain_text)
     qtbot.add_widget(box)
     assert box.textFormat() == expected
 
@@ -73,7 +73,7 @@ def test_finished_signal(qtbot):
         signal_triggered = True
 
     box = msgbox.msgbox(parent=None, title='foo', text='foo',
-                        icon=QMessageBox.Information, on_finished=on_finished)
+                        icon=QMessageBox.Icon.Information, on_finished=on_finished)
 
     qtbot.add_widget(box)
 
@@ -89,7 +89,7 @@ def test_information(qtbot):
     if not utils.is_mac:
         assert box.windowTitle() == 'foo'
     assert box.text() == 'bar'
-    assert box.icon() == QMessageBox.Information
+    assert box.icon() == QMessageBox.Icon.Information
 
 
 def test_no_err_windows(fake_args, caplog):

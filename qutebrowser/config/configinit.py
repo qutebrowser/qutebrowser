@@ -135,7 +135,7 @@ def late_init(save_manager: savemanager.SaveManager) -> None:
         errbox = msgbox.msgbox(parent=None,
                                title="Error while reading config",
                                text=_init_errors.to_html(),
-                               icon=QMessageBox.Warning,
+                               icon=QMessageBox.Icon.Warning,
                                plain_text=False)
         errbox.exec()
 

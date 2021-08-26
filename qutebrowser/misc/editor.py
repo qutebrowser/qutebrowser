@@ -105,7 +105,7 @@ class ExternalEditor(QObject):
             return
 
         log.procs.debug("Editor closed")
-        if exitstatus != QProcess.NormalExit:
+        if exitstatus != QProcess.ExitStatus.NormalExit:
             # No error/cleanup here, since we already handle this in
             # on_proc_error.
             return

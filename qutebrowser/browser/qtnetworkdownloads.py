@@ -161,7 +161,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         # We could have got signals before we connected slots to them.
         # Here no signals are connected to the DownloadItem yet, so we use a
         # singleShot QTimer to emit them after they are connected.
-        if reply.error() != QNetworkReply.NoError:
+        if reply.error() != QNetworkReply.NetworkError.NoError:
             QTimer.singleShot(0, lambda: self._die(reply.errorString()))
 
     def _do_cancel(self):
@@ -285,7 +285,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
             self.fileobj.write(self._reply.readAll())
         if self._autoclose:
             self.fileobj.close()
-        self.successful = self._reply.error() == QNetworkReply.NoError
+        self.successful = self._reply.error() == QNetworkReply.NetworkError.NoError
         self._reply.close()
         self._reply.deleteLater()
         self._reply = None
@@ -333,7 +333,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
     @pyqtSlot('QNetworkReply::NetworkError')
     def _on_reply_error(self, code):
         """Handle QNetworkReply errors."""
-        if code == QNetworkReply.OperationCanceledError:
+        if code == QNetworkReply.NetworkError.OperationCanceledError:
             return
 
         if self._reply is None:
@@ -371,7 +371,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         """
         assert self._reply is not None
         redirect = self._reply.attribute(
-            QNetworkRequest.RedirectionTargetAttribute)
+            QNetworkRequest.Attribute.RedirectionTargetAttribute)
         if redirect is None or redirect.isEmpty():
             return False
         new_url = self._reply.url().resolved(redirect)
@@ -447,10 +447,10 @@ class DownloadManager(downloads.AbstractDownloadManager):
 
         req = QNetworkRequest(url)
         user_agent = websettings.user_agent(url)
-        req.setHeader(QNetworkRequest.UserAgentHeader, user_agent)
+        req.setHeader(QNetworkRequest.KnownHeaders.UserAgentHeader, user_agent)
 
         if not cache:
-            req.setAttribute(QNetworkRequest.CacheSaveControlAttribute, False)
+            req.setAttribute(QNetworkRequest.Attribute.CacheSaveControlAttribute, False)
 
         return self.get_request(req, **kwargs)
 
@@ -509,8 +509,8 @@ class DownloadManager(downloads.AbstractDownloadManager):
         """
         # WORKAROUND for Qt corrupting data loaded from cache:
         # https://bugreports.qt.io/browse/QTBUG-42757
-        request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
-                             QNetworkRequest.AlwaysNetwork)
+        request.setAttribute(QNetworkRequest.Attribute.CacheLoadControlAttribute,
+                             QNetworkRequest.CacheLoadControl.AlwaysNetwork)
 
         if suggested_fn is None:
             suggested_fn = self._get_suggested_filename(request)

@@ -110,93 +110,93 @@ class WebEngineSettings(websettings.AbstractSettings):
 
     _ATTRIBUTES = {
         'content.xss_auditing':
-            Attr(QWebEngineSettings.XSSAuditingEnabled),
+            Attr(QWebEngineSettings.WebAttribute.XSSAuditingEnabled),
         'content.images':
-            Attr(QWebEngineSettings.AutoLoadImages),
+            Attr(QWebEngineSettings.WebAttribute.AutoLoadImages),
         'content.javascript.enabled':
-            Attr(QWebEngineSettings.JavascriptEnabled),
+            Attr(QWebEngineSettings.WebAttribute.JavascriptEnabled),
         'content.javascript.can_open_tabs_automatically':
-            Attr(QWebEngineSettings.JavascriptCanOpenWindows),
+            Attr(QWebEngineSettings.WebAttribute.JavascriptCanOpenWindows),
         'content.javascript.can_access_clipboard':
-            Attr(QWebEngineSettings.JavascriptCanAccessClipboard),
+            Attr(QWebEngineSettings.WebAttribute.JavascriptCanAccessClipboard),
         'content.plugins':
-            Attr(QWebEngineSettings.PluginsEnabled),
+            Attr(QWebEngineSettings.WebAttribute.PluginsEnabled),
         'content.hyperlink_auditing':
-            Attr(QWebEngineSettings.HyperlinkAuditingEnabled),
+            Attr(QWebEngineSettings.WebAttribute.HyperlinkAuditingEnabled),
         'content.local_content_can_access_remote_urls':
-            Attr(QWebEngineSettings.LocalContentCanAccessRemoteUrls),
+            Attr(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls),
         'content.local_content_can_access_file_urls':
-            Attr(QWebEngineSettings.LocalContentCanAccessFileUrls),
+            Attr(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls),
         'content.webgl':
-            Attr(QWebEngineSettings.WebGLEnabled),
+            Attr(QWebEngineSettings.WebAttribute.WebGLEnabled),
         'content.local_storage':
-            Attr(QWebEngineSettings.LocalStorageEnabled),
+            Attr(QWebEngineSettings.WebAttribute.LocalStorageEnabled),
         'content.desktop_capture':
-            Attr(QWebEngineSettings.ScreenCaptureEnabled,
+            Attr(QWebEngineSettings.WebAttribute.ScreenCaptureEnabled,
                  converter=lambda val: True if val == 'ask' else val),
         # 'ask' is handled via the permission system
 
         'input.spatial_navigation':
-            Attr(QWebEngineSettings.SpatialNavigationEnabled),
+            Attr(QWebEngineSettings.WebAttribute.SpatialNavigationEnabled),
         'input.links_included_in_focus_chain':
-            Attr(QWebEngineSettings.LinksIncludedInFocusChain),
+            Attr(QWebEngineSettings.WebAttribute.LinksIncludedInFocusChain),
 
         'scrolling.smooth':
-            Attr(QWebEngineSettings.ScrollAnimatorEnabled),
+            Attr(QWebEngineSettings.WebAttribute.ScrollAnimatorEnabled),
 
         'content.print_element_backgrounds':
-            Attr(QWebEngineSettings.PrintElementBackgrounds),
+            Attr(QWebEngineSettings.WebAttribute.PrintElementBackgrounds),
 
         'content.autoplay':
-            Attr(QWebEngineSettings.PlaybackRequiresUserGesture,
+            Attr(QWebEngineSettings.WebAttribute.PlaybackRequiresUserGesture,
                  converter=operator.not_),
 
         'content.dns_prefetch':
-            Attr(QWebEngineSettings.DnsPrefetchEnabled),
+            Attr(QWebEngineSettings.WebAttribute.DnsPrefetchEnabled),
 
         'tabs.favicons.show':
-            Attr(QWebEngineSettings.AutoLoadIconsForPage,
+            Attr(QWebEngineSettings.WebAttribute.AutoLoadIconsForPage,
                  converter=lambda val: val != 'never'),
     }
 
     _FONT_SIZES = {
         'fonts.web.size.minimum':
-            QWebEngineSettings.MinimumFontSize,
+            QWebEngineSettings.FontSize.MinimumFontSize,
         'fonts.web.size.minimum_logical':
-            QWebEngineSettings.MinimumLogicalFontSize,
+            QWebEngineSettings.FontSize.MinimumLogicalFontSize,
         'fonts.web.size.default':
-            QWebEngineSettings.DefaultFontSize,
+            QWebEngineSettings.FontSize.DefaultFontSize,
         'fonts.web.size.default_fixed':
-            QWebEngineSettings.DefaultFixedFontSize,
+            QWebEngineSettings.FontSize.DefaultFixedFontSize,
     }
 
     _FONT_FAMILIES = {
-        'fonts.web.family.standard': QWebEngineSettings.StandardFont,
-        'fonts.web.family.fixed': QWebEngineSettings.FixedFont,
-        'fonts.web.family.serif': QWebEngineSettings.SerifFont,
-        'fonts.web.family.sans_serif': QWebEngineSettings.SansSerifFont,
-        'fonts.web.family.cursive': QWebEngineSettings.CursiveFont,
-        'fonts.web.family.fantasy': QWebEngineSettings.FantasyFont,
+        'fonts.web.family.standard': QWebEngineSettings.FontFamily.StandardFont,
+        'fonts.web.family.fixed': QWebEngineSettings.FontFamily.FixedFont,
+        'fonts.web.family.serif': QWebEngineSettings.FontFamily.SerifFont,
+        'fonts.web.family.sans_serif': QWebEngineSettings.FontFamily.SansSerifFont,
+        'fonts.web.family.cursive': QWebEngineSettings.FontFamily.CursiveFont,
+        'fonts.web.family.fantasy': QWebEngineSettings.FontFamily.FantasyFont,
     }
 
     _UNKNOWN_URL_SCHEME_POLICY = {
         'disallow':
-            QWebEngineSettings.DisallowUnknownUrlSchemes,
+            QWebEngineSettings.UnknownUrlSchemePolicy.DisallowUnknownUrlSchemes,
         'allow-from-user-interaction':
-            QWebEngineSettings.AllowUnknownUrlSchemesFromUserInteraction,
+            QWebEngineSettings.UnknownUrlSchemePolicy.AllowUnknownUrlSchemesFromUserInteraction,
         'allow-all':
-            QWebEngineSettings.AllowAllUnknownUrlSchemes,
+            QWebEngineSettings.UnknownUrlSchemePolicy.AllowAllUnknownUrlSchemes,
     }
 
     # Mapping from WebEngineSettings::initDefaults in
     # qtwebengine/src/core/web_engine_settings.cpp
     _FONT_TO_QFONT = {
-        QWebEngineSettings.StandardFont: QFont.Serif,
-        QWebEngineSettings.FixedFont: QFont.Monospace,
-        QWebEngineSettings.SerifFont: QFont.Serif,
-        QWebEngineSettings.SansSerifFont: QFont.SansSerif,
-        QWebEngineSettings.CursiveFont: QFont.Cursive,
-        QWebEngineSettings.FantasyFont: QFont.Fantasy,
+        QWebEngineSettings.FontFamily.StandardFont: QFont.StyleHint.Serif,
+        QWebEngineSettings.FontFamily.FixedFont: QFont.StyleHint.Monospace,
+        QWebEngineSettings.FontFamily.SerifFont: QFont.StyleHint.Serif,
+        QWebEngineSettings.FontFamily.SansSerifFont: QFont.StyleHint.SansSerif,
+        QWebEngineSettings.FontFamily.CursiveFont: QFont.StyleHint.Cursive,
+        QWebEngineSettings.FontFamily.FantasyFont: QFont.StyleHint.Fantasy,
     }
 
     def set_unknown_url_scheme_policy(
@@ -265,12 +265,12 @@ class ProfileSetter:
         settings = self._profile.settings()
 
         settings.setAttribute(
-            QWebEngineSettings.FullScreenSupportEnabled, True)
+            QWebEngineSettings.WebAttribute.FullScreenSupportEnabled, True)
         settings.setAttribute(
-            QWebEngineSettings.FocusOnNavigationEnabled, False)
+            QWebEngineSettings.WebAttribute.FocusOnNavigationEnabled, False)
 
         try:
-            settings.setAttribute(QWebEngineSettings.PdfViewerEnabled, False)
+            settings.setAttribute(QWebEngineSettings.WebAttribute.PdfViewerEnabled, False)
         except AttributeError:
             # Added in Qt 5.13
             pass
@@ -305,9 +305,9 @@ class ProfileSetter:
         if self._profile.isOffTheRecord():
             return
         if config.val.content.cookies.store:
-            value = QWebEngineProfile.AllowPersistentCookies
+            value = QWebEngineProfile.PersistentCookiesPolicy.AllowPersistentCookies
         else:
-            value = QWebEngineProfile.NoPersistentCookies
+            value = QWebEngineProfile.PersistentCookiesPolicy.NoPersistentCookies
         self._profile.setPersistentCookiesPolicy(value)
 
     def set_dictionary_language(self):

@@ -149,7 +149,7 @@ class QuickmarkManager(UrlMarkManager):
         if not url.isValid():
             urlutils.invalid_url_error(url, "save quickmark")
             return
-        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+        urlstr = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
         message.ask_async(
             "Add quickmark:", usertypes.PromptMode.text,
             functools.partial(self.quickmark_add, urlstr),
@@ -196,7 +196,7 @@ class QuickmarkManager(UrlMarkManager):
         Use a name instead where possible.
         """
         qtutils.ensure_valid(url)
-        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+        urlstr = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
 
         try:
             index = list(self.marks.values()).index(urlstr)
@@ -268,7 +268,7 @@ class BookmarkManager(UrlMarkManager):
             errstr = urlutils.get_errstring(url)
             raise InvalidUrlError(errstr)
 
-        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+        urlstr = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
 
         if urlstr in self.marks:
             if toggle:

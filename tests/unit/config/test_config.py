@@ -758,7 +758,7 @@ class TestContainer:
 
     @pytest.mark.parametrize('configapi, expected', [
         (object(), 'rgb'),
-        (None, QColor.Rgb),
+        (None, QColor.Spec.Rgb),
     ])
     def test_getattr_option(self, container, configapi, expected):
         container._configapi = configapi

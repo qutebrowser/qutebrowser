@@ -67,7 +67,7 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             log.network.warning("Blocking malicious request from {} to {}"
                                 .format(initiator.toDisplayString(),
                                         request_url.toDisplayString()))
-            job.fail(QWebEngineUrlRequestJob.RequestDenied)
+            job.fail(QWebEngineUrlRequestJob.Error.RequestDenied)
             return False
 
         return True
@@ -87,7 +87,7 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             return
 
         if job.requestMethod() != b'GET':
-            job.fail(QWebEngineUrlRequestJob.RequestDenied)
+            job.fail(QWebEngineUrlRequestJob.Error.RequestDenied)
             return
 
         assert url.scheme() == 'qute'
@@ -98,15 +98,15 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
         except qutescheme.Error as e:
             errors = {
                 qutescheme.NotFoundError:
-                    QWebEngineUrlRequestJob.UrlNotFound,
+                    QWebEngineUrlRequestJob.Error.UrlNotFound,
                 qutescheme.UrlInvalidError:
-                    QWebEngineUrlRequestJob.UrlInvalid,
+                    QWebEngineUrlRequestJob.Error.UrlInvalid,
                 qutescheme.RequestDeniedError:
-                    QWebEngineUrlRequestJob.RequestDenied,
+                    QWebEngineUrlRequestJob.Error.RequestDenied,
                 qutescheme.SchemeOSError:
-                    QWebEngineUrlRequestJob.UrlNotFound,
+                    QWebEngineUrlRequestJob.Error.UrlNotFound,
                 qutescheme.Error:
-                    QWebEngineUrlRequestJob.RequestFailed,
+                    QWebEngineUrlRequestJob.Error.RequestFailed,
             }
             exctype = type(e)
             log.network.error(f"{exctype.__name__} while handling qute://* URL: {e}")
@@ -121,7 +121,7 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             # because that somehow segfaults...
             # https://www.riverbankcomputing.com/pipermail/pyqt/2016-September/038075.html
             buf = QBuffer(parent=self)
-            buf.open(QIODevice.WriteOnly)
+            buf.open(QIODevice.OpenModeFlag.WriteOnly)
             buf.write(data)
             buf.seek(0)
             buf.close()
@@ -138,6 +138,6 @@ def init():
         assert not QWebEngineUrlScheme.schemeByName(b'qute').name()
         scheme = QWebEngineUrlScheme(b'qute')
         scheme.setFlags(
-            QWebEngineUrlScheme.LocalScheme |  # type: ignore[arg-type]
-            QWebEngineUrlScheme.LocalAccessAllowed)
+            QWebEngineUrlScheme.Flag.LocalScheme |  # type: ignore[arg-type]
+            QWebEngineUrlScheme.Flag.LocalAccessAllowed)
         QWebEngineUrlScheme.registerScheme(scheme)

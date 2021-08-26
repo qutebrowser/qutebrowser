@@ -89,7 +89,7 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         if dist is None or dist.parsed != version.Distribution.fedora:
             return
 
-        data_path = pathlib.Path(QLibraryInfo.location(QLibraryInfo.DataPath))
+        data_path = pathlib.Path(QLibraryInfo.location(QLibraryInfo.LibraryLocation.DataPath))
         pak = data_path / 'resources' / 'qtwebengine_devtools_resources.pak'
         if not pak.exists():
             raise inspector.Error("QtWebEngine devtools resources not found, "

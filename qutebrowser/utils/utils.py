@@ -536,7 +536,7 @@ def set_clipboard(data: str, selection: bool = False) -> None:
         log.misc.debug("Setting fake {}: {}".format(what, json.dumps(data)))
         fake_clipboard = data
     else:
-        mode = QClipboard.Selection if selection else QClipboard.Clipboard
+        mode = QClipboard.Mode.Selection if selection else QClipboard.Mode.Clipboard
         QApplication.clipboard().setText(data, mode=mode)
 
 
@@ -562,7 +562,7 @@ def get_clipboard(selection: bool = False, fallback: bool = False) -> str:
         data = fake_clipboard
         fake_clipboard = None
     else:
-        mode = QClipboard.Selection if selection else QClipboard.Clipboard
+        mode = QClipboard.Mode.Selection if selection else QClipboard.Mode.Clipboard
         data = QApplication.clipboard().text(mode=mode)
 
     target = "Primary selection" if selection else "Clipboard"

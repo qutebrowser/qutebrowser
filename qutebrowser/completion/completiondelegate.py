@@ -45,7 +45,7 @@ class _Highlighter(QSyntaxHighlighter):
         words.sort(key=len, reverse=True)
         pat = "|".join(re.escape(word) for word in words)
         self._expression = QRegularExpression(
-            pat, QRegularExpression.CaseInsensitiveOption
+            pat, QRegularExpression.PatternOption.CaseInsensitiveOption
         )
         qtutils.ensure_valid(self._expression)
 
@@ -109,12 +109,12 @@ class CompletionItemDelegate(QStyledItemDelegate):
             # be displayed.
             return
 
-        mode = QIcon.Normal
-        if not self._opt.state & QStyle.State_Enabled:
-            mode = QIcon.Disabled
-        elif self._opt.state & QStyle.State_Selected:
-            mode = QIcon.Selected
-        state = QIcon.On if self._opt.state & QStyle.State_Open else QIcon.Off
+        mode = QIcon.Mode.Normal
+        if not self._opt.state & QStyle.StateFlag.State_Enabled:
+            mode = QIcon.Mode.Disabled
+        elif self._opt.state & QStyle.StateFlag.State_Selected:
+            mode = QIcon.Mode.Selected
+        state = QIcon.State.On if self._opt.state & QStyle.StateFlag.State_Open else QIcon.State.Off
         self._opt.icon.paint(self._painter, icon_rect,
                              self._opt.decorationAlignment, mode, state)
 
@@ -136,7 +136,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         text_rect_ = self._style.subElementRect(
             self._style.SE_ItemViewItemText, self._opt, self._opt.widget)
         qtutils.ensure_valid(text_rect_)
-        margin = self._style.pixelMetric(QStyle.PM_FocusFrameHMargin,
+        margin = self._style.pixelMetric(QStyle.PixelMetric.PM_FocusFrameHMargin,
                                          self._opt, self._opt.widget) + 1
         # remove width padding
         text_rect = text_rect_.adjusted(margin, 0, -margin, 0)
@@ -148,24 +148,24 @@ class CompletionItemDelegate(QStyledItemDelegate):
             text_rect.adjust(0, -2, 0, -2)
         self._painter.save()
         state = self._opt.state
-        if state & QStyle.State_Enabled and state & QStyle.State_Active:
-            cg = QPalette.Normal
-        elif state & QStyle.State_Enabled:
-            cg = QPalette.Inactive
+        if state & QStyle.StateFlag.State_Enabled and state & QStyle.StateFlag.State_Active:
+            cg = QPalette.ColorGroup.Normal
+        elif state & QStyle.StateFlag.State_Enabled:
+            cg = QPalette.ColorGroup.Inactive
         else:
-            cg = QPalette.Disabled
+            cg = QPalette.ColorGroup.Disabled
 
-        if state & QStyle.State_Selected:
+        if state & QStyle.StateFlag.State_Selected:
             self._painter.setPen(self._opt.palette.color(
-                cg, QPalette.HighlightedText))
+                cg, QPalette.ColorRole.HighlightedText))
             # This is a dirty fix for the text jumping by one pixel for
             # whatever reason.
             text_rect.adjust(0, -1, 0, 0)
         else:
-            self._painter.setPen(self._opt.palette.color(cg, QPalette.Text))
+            self._painter.setPen(self._opt.palette.color(cg, QPalette.ColorRole.Text))
 
-        if state & QStyle.State_Editing:
-            self._painter.setPen(self._opt.palette.color(cg, QPalette.Text))
+        if state & QStyle.StateFlag.State_Editing:
+            self._painter.setPen(self._opt.palette.color(cg, QPalette.ColorRole.Text))
             self._painter.drawRect(text_rect_.adjusted(0, 0, -1, -1))
 
         self._painter.translate(text_rect.left(), text_rect.top())
@@ -187,9 +187,9 @@ class CompletionItemDelegate(QStyledItemDelegate):
         clip = QRectF(0, 0, rect.width(), rect.height())
         self._painter.save()
 
-        if self._opt.state & QStyle.State_Selected:
+        if self._opt.state & QStyle.StateFlag.State_Selected:
             color = config.cache['colors.completion.item.selected.fg']
-        elif not self._opt.state & QStyle.State_Enabled:
+        elif not self._opt.state & QStyle.StateFlag.State_Enabled:
             color = config.cache['colors.completion.category.fg']
         else:
             colors = config.cache['colors.completion.fg']
@@ -198,7 +198,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         self._painter.setPen(color)
 
         ctx = QAbstractTextDocumentLayout.PaintContext()
-        ctx.palette.setColor(QPalette.Text, self._painter.pen().color())
+        ctx.palette.setColor(QPalette.ColorRole.Text, self._painter.pen().color())
         if clip.isValid():
             self._painter.setClipRect(clip)
             ctx.clip = clip
@@ -216,10 +216,10 @@ class CompletionItemDelegate(QStyledItemDelegate):
         # qcommonstyle.cpp:viewItemDrawText
         # https://github.com/qutebrowser/qutebrowser/issues/118
         text_option = QTextOption()
-        if self._opt.features & QStyleOptionViewItem.WrapText:
-            text_option.setWrapMode(QTextOption.WordWrap)
+        if self._opt.features & QStyleOptionViewItem.ViewItemFeature.WrapText:
+            text_option.setWrapMode(QTextOption.WrapMode.WordWrap)
         else:
-            text_option.setWrapMode(QTextOption.ManualWrap)
+            text_option.setWrapMode(QTextOption.WrapMode.ManualWrap)
         text_option.setTextDirection(self._opt.direction)
         text_option.setAlignment(QStyle.visualAlignment(
             self._opt.direction, self._opt.displayAlignment))
@@ -236,7 +236,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
             pattern = view.pattern
             columns_to_filter = index.model().columns_to_filter(index)
             if index.column() in columns_to_filter and pattern:
-                if self._opt.state & QStyle.State_Selected:
+                if self._opt.state & QStyle.StateFlag.State_Selected:
                     color = config.val.colors.completion.item.selected.match.fg
                 else:
                     color = config.val.colors.completion.match.fg
@@ -253,23 +253,23 @@ class CompletionItemDelegate(QStyledItemDelegate):
         assert self._opt is not None
         assert self._style is not None
         state = self._opt.state
-        if not state & QStyle.State_HasFocus:
+        if not state & QStyle.StateFlag.State_HasFocus:
             return
         o = self._opt
         o.rect = self._style.subElementRect(
             self._style.SE_ItemViewItemFocusRect, self._opt, self._opt.widget)
-        o.state |= int(QStyle.State_KeyboardFocusChange | QStyle.State_Item)
+        o.state |= int(QStyle.StateFlag.State_KeyboardFocusChange | QStyle.StateFlag.State_Item)
         qtutils.ensure_valid(o.rect)
-        if state & QStyle.State_Enabled:
-            cg = QPalette.Normal
+        if state & QStyle.StateFlag.State_Enabled:
+            cg = QPalette.ColorGroup.Normal
         else:
-            cg = QPalette.Disabled
-        if state & QStyle.State_Selected:
-            role = QPalette.Highlight
+            cg = QPalette.ColorGroup.Disabled
+        if state & QStyle.StateFlag.State_Selected:
+            role = QPalette.ColorRole.Highlight
         else:
-            role = QPalette.Window
+            role = QPalette.ColorRole.Window
         o.backgroundColor = self._opt.palette.color(cg, role)
-        self._style.drawPrimitive(QStyle.PE_FrameFocusRect, o, self._painter,
+        self._style.drawPrimitive(QStyle.PrimitiveElement.PE_FrameFocusRect, o, self._painter,
                                   self._opt.widget)
 
     def sizeHint(self, option, index):
@@ -285,7 +285,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         Return:
             A QSize with the recommended size.
         """
-        value = index.data(Qt.SizeHintRole)
+        value = index.data(Qt.ItemDataRole.SizeHintRole)
         if value is not None:
             return value
         self._opt = QStyleOptionViewItem(option)
@@ -296,7 +296,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         assert self._doc is not None
 
         docsize = self._doc.size().toSize()
-        size = self._style.sizeFromContents(QStyle.CT_ItemViewItem, self._opt,
+        size = self._style.sizeFromContents(QStyle.ContentsType.CT_ItemViewItem, self._opt,
                                             docsize, self._opt.widget)
         qtutils.ensure_valid(size)
         return size + QSize(10, 3)  # type: ignore[operator]

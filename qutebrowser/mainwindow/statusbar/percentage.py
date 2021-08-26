@@ -32,7 +32,7 @@ class Percentage(textbase.TextBase):
 
     def __init__(self, parent=None):
         """Constructor. Set percentage to 0%."""
-        super().__init__(parent, elidemode=Qt.ElideNone)
+        super().__init__(parent, elidemode=Qt.TextElideMode.ElideNone)
         self._strings = self._calc_strings()
         self._set_text = throttle.Throttle(self.setText, 100, parent=self)
         self.set_perc(0, 0)

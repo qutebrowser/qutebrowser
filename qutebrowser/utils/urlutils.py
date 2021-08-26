@@ -520,7 +520,7 @@ def file_url(path: str) -> str:
         path: The absolute path to the local file
     """
     url = QUrl.fromLocalFile(path)
-    return url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
+    return url.toString(QUrl.ComponentFormattingOption.FullyEncoded)  # type: ignore[arg-type]
 
 
 def data_url(mimetype: str, data: bytes) -> QUrl:
@@ -542,11 +542,11 @@ def safe_display_string(qurl: QUrl) -> str:
     """
     ensure_valid(qurl)
 
-    host = qurl.host(QUrl.FullyEncoded)
+    host = qurl.host(QUrl.ComponentFormattingOption.FullyEncoded)
     assert '..' not in host, qurl  # https://bugreports.qt.io/browse/QTBUG-60364
 
     for part in host.split('.'):
-        url_host = qurl.host(QUrl.FullyDecoded)
+        url_host = qurl.host(QUrl.ComponentFormattingOption.FullyDecoded)
         if part.startswith('xn--') and host != url_host:
             return '({}) {}'.format(host, qurl.toDisplayString())
 
@@ -579,10 +579,10 @@ def proxy_from_url(url: QUrl) -> Union[QNetworkProxy, pac.PACFetcher]:
         return fetcher
 
     types = {
-        'http': QNetworkProxy.HttpProxy,
-        'socks': QNetworkProxy.Socks5Proxy,
-        'socks5': QNetworkProxy.Socks5Proxy,
-        'direct': QNetworkProxy.NoProxy,
+        'http': QNetworkProxy.ProxyType.HttpProxy,
+        'socks': QNetworkProxy.ProxyType.Socks5Proxy,
+        'socks5': QNetworkProxy.ProxyType.Socks5Proxy,
+        'direct': QNetworkProxy.ProxyType.NoProxy,
     }
     if scheme not in types:
         raise InvalidProxyTypeError(scheme)
@@ -611,7 +611,7 @@ def parse_javascript_url(url: QUrl) -> str:
         raise Error("URL contains unexpected components: {}"
                     .format(url.authority()))
 
-    urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
+    urlstr = url.toString(QUrl.ComponentFormattingOption.FullyEncoded)  # type: ignore[arg-type]
     urlstr = urllib.parse.unquote(urlstr)
 
     code = urlstr[len('javascript:'):]

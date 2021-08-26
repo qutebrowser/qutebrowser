@@ -180,7 +180,7 @@ def parse_content_type(reply):
         A [mimetype, rest] list, or [None, None] if unset.
         Rest can be None.
     """
-    content_type = reply.header(QNetworkRequest.ContentTypeHeader)
+    content_type = reply.header(QNetworkRequest.KnownHeaders.ContentTypeHeader)
     if content_type is None:
         return [None, None]
     if ';' in content_type:

@@ -135,7 +135,7 @@ class FakeNetworkReply:
     """QNetworkReply stub which provides a Content-Disposition header."""
 
     KNOWN_HEADERS = {
-        QNetworkRequest.ContentTypeHeader: 'Content-Type',
+        QNetworkRequest.KnownHeaders.ContentTypeHeader: 'Content-Type',
     }
 
     def __init__(self, headers=None, url=None):

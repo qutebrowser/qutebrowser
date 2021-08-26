@@ -339,7 +339,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         raise NotImplementedError
 
     def _click_fake_event(self, click_target: usertypes.ClickTarget,
-                          button: Qt.MouseButton = Qt.LeftButton) -> None:
+                          button: Qt.MouseButton = Qt.MouseButton.LeftButton) -> None:
         """Send a fake click event to the element."""
         pos = self._mouse_pos()
 
@@ -347,22 +347,22 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
                           "target {}".format(self, pos, click_target))
 
         target_modifiers = {
-            usertypes.ClickTarget.normal: Qt.NoModifier,
-            usertypes.ClickTarget.window: Qt.AltModifier | Qt.ShiftModifier,
-            usertypes.ClickTarget.tab: Qt.ControlModifier,
-            usertypes.ClickTarget.tab_bg: Qt.ControlModifier,
+            usertypes.ClickTarget.normal: Qt.KeyboardModifier.NoModifier,
+            usertypes.ClickTarget.window: Qt.KeyboardModifier.AltModifier | Qt.KeyboardModifier.ShiftModifier,
+            usertypes.ClickTarget.tab: Qt.KeyboardModifier.ControlModifier,
+            usertypes.ClickTarget.tab_bg: Qt.KeyboardModifier.ControlModifier,
         }
         if config.val.tabs.background:
-            target_modifiers[usertypes.ClickTarget.tab] |= Qt.ShiftModifier
+            target_modifiers[usertypes.ClickTarget.tab] |= Qt.KeyboardModifier.ShiftModifier
         else:
-            target_modifiers[usertypes.ClickTarget.tab_bg] |= Qt.ShiftModifier
+            target_modifiers[usertypes.ClickTarget.tab_bg] |= Qt.KeyboardModifier.ShiftModifier
 
         modifiers = cast(Qt.KeyboardModifiers, target_modifiers[click_target])
 
         events = [
-            QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton, Qt.NoModifier),
-            QMouseEvent(QEvent.MouseButtonPress, pos, button, button, modifiers),
-            QMouseEvent(QEvent.MouseButtonRelease, pos, button, Qt.NoButton, modifiers),
+            QMouseEvent(QEvent.Type.MouseMove, pos, Qt.MouseButton.NoButton, Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier),
+            QMouseEvent(QEvent.Type.MouseButtonPress, pos, button, button, modifiers),
+            QMouseEvent(QEvent.Type.MouseButtonRelease, pos, button, Qt.MouseButton.NoButton, modifiers),
         ]
 
         for evt in events:
@@ -446,11 +446,11 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
     def hover(self) -> None:
         """Simulate a mouse hover over the element."""
         pos = self._mouse_pos()
-        event = QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
-                            Qt.NoModifier)
+        event = QMouseEvent(QEvent.Type.MouseMove, pos, Qt.MouseButton.NoButton, Qt.MouseButton.NoButton,
+                            Qt.KeyboardModifier.NoModifier)
         self._tab.send_event(event)
 
     def right_click(self) -> None:
         """Simulate a right-click on the element."""
         self._click_fake_event(usertypes.ClickTarget.normal,
-                               button=Qt.RightButton)
+                               button=Qt.MouseButton.RightButton)
