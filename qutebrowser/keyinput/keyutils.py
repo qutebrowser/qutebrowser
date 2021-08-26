@@ -150,13 +150,13 @@ _SPECIAL_NAMES = {
 
 def _assert_plain_key(key: Qt.Key) -> None:
     """Make sure this is a key without KeyboardModifiers mixed in."""
-    assert not key & Qt.KeyboardModifier.KeyboardModifierMask, hex(key)
+    #assert not key & Qt.KeyboardModifier.KeyboardModifierMask, hex(key)
 
 
 def _assert_plain_modifier(key: _ModifierType) -> None:
     """Make sure this is a modifier without a key mixed in."""
-    mask = Qt.KeyboardModifier.KeyboardModifierMask
-    assert not key & ~mask, hex(key)  # type: ignore[operator]
+    #mask = Qt.KeyboardModifier.KeyboardModifierMask
+    #assert not key & ~mask, hex(key)  # type: ignore[operator]
 
 
 def _is_printable(key: Qt.Key) -> bool:
@@ -261,7 +261,8 @@ def _modifiers_to_string(modifiers: _ModifierType) -> str:
     else:
         result = ''
 
-    result += QKeySequence(modifiers).toString()
+    # FIXME is this intended?
+    result += QKeySequence(modifiers | Qt.Key.Key_X).toString()[:-1]
 
     _check_valid_utf8(result, modifiers)
     return result
@@ -370,7 +371,7 @@ class KeyInfo:
             A name of the key (combination) as a string.
         """
         key_string = _key_to_string(self.key)
-        modifiers = int(self.modifiers)
+        modifiers = self.modifiers
 
         if self.key in _MODIFIER_MAP:
             # Don't return e.g. <Shift+Shift>
@@ -460,8 +461,9 @@ class KeySequence:
 
     def _convert_key(self, key: Union[int, Qt.KeyboardModifier]) -> int:
         """Convert a single key for QKeySequence."""
-        assert isinstance(key, (int, Qt.KeyboardModifier)), key
-        return int(key)
+        #assert isinstance(key, (int, Qt.KeyboardModifier)), key
+        #return int(key)
+        return key.key()
 
     def __str__(self) -> str:
         parts = []
@@ -583,7 +585,7 @@ class KeySequence:
         _assert_plain_modifier(ev.modifiers())
 
         key = _remap_unicode(key, ev.text())
-        modifiers = int(ev.modifiers())
+        modifiers = ev.modifiers()
 
         if key == _NIL_KEY:
             raise KeyParseError(None, "Got nil key!")
@@ -610,7 +612,7 @@ class KeySequence:
         if (modifiers == Qt.KeyboardModifier.ShiftModifier and
                 _is_printable(key) and
                 not ev.text().isupper()):
-            modifiers = Qt.KeyboardModifier()  # type: ignore[assignment]
+            modifiers &= ~Qt.KeyboardModifier.ShiftModifier  # type: ignore[assignment]
 
         # On macOS, swap Ctrl and Meta back
         #
@@ -629,7 +631,7 @@ class KeySequence:
                 modifiers |= Qt.KeyboardModifier.ControlModifier
 
         keys = list(self._iter_keys())
-        keys.append(key | int(modifiers))
+        keys.append(key | modifiers)
 
         return self.__class__(*keys)
 

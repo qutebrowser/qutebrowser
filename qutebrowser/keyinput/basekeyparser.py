@@ -283,9 +283,8 @@ class BaseKeyParser(QObject):
         """
         key = Qt.Key(e.key())
         txt = str(keyutils.KeyInfo.from_event(e))
-        self._debug_log("Got key: 0x{:x} / modifiers: 0x{:x} / text: '{}' / "
-                        "dry_run {}".format(key, int(e.modifiers()), txt,
-                                            dry_run))
+        self._debug_log("Got key: 0x{:x} / modifiers: {} / text: '{}' / "
+                        "dry_run {}".format(key, e.modifiers(), txt, dry_run))
 
         if keyutils.is_modifier_key(key):
             self._debug_log("Ignoring, only modifier")
