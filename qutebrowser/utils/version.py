@@ -40,8 +40,8 @@ from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast,
 
 from PyQt6.QtCore import PYQT_VERSION_STR, QLibraryInfo, qVersion
 from PyQt6.QtNetwork import QSslSocket
-from PyQt6.QtGui import (QOpenGLContext, QOpenGLVersionProfile,
-                         QOffscreenSurface)
+#from PyQt6.QtGui import (QOpenGLContext, QOpenGLVersionProfile,
+#                         QOffscreenSurface)
 from PyQt6.QtWidgets import QApplication
 
 try:
@@ -941,6 +941,7 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
     determined.
     """
     assert QApplication.instance()
+    return None
 
     override = os.environ.get('QUTE_FAKE_OPENGL')
     if override is not None:
