@@ -94,7 +94,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         """Draw the background of an ItemViewItem."""
         assert self._opt is not None
         assert self._style is not None
-        self._style.drawPrimitive(self._style.PE_PanelItemViewItem, self._opt,
+        self._style.drawPrimitive(QStyle.PrimitiveElement.PE_PanelItemViewItem, self._opt,
                                   self._painter, self._opt.widget)
 
     def _draw_icon(self):
@@ -103,7 +103,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         assert self._style is not None
 
         icon_rect = self._style.subElementRect(
-            self._style.SE_ItemViewItemDecoration, self._opt, self._opt.widget)
+            QStyle.SubElement.SE_ItemViewItemDecoration, self._opt, self._opt.widget)
         if not icon_rect.isValid():
             # The rect seems to be wrong in all kind of ways if no icon should
             # be displayed.
@@ -134,7 +134,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
             return
 
         text_rect_ = self._style.subElementRect(
-            self._style.SE_ItemViewItemText, self._opt, self._opt.widget)
+            QStyle.SubElement.SE_ItemViewItemText, self._opt, self._opt.widget)
         qtutils.ensure_valid(text_rect_)
         margin = self._style.pixelMetric(QStyle.PixelMetric.PM_FocusFrameHMargin,
                                          self._opt, self._opt.widget) + 1
@@ -257,7 +257,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
             return
         o = self._opt
         o.rect = self._style.subElementRect(
-            self._style.SE_ItemViewItemFocusRect, self._opt, self._opt.widget)
+            QStyle.SubElement.SE_ItemViewItemFocusRect, self._opt, self._opt.widget)
         o.state |= int(QStyle.StateFlag.State_KeyboardFocusChange | QStyle.StateFlag.State_Item)
         qtutils.ensure_valid(o.rect)
         if state & QStyle.StateFlag.State_Enabled:
