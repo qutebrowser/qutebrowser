@@ -29,8 +29,9 @@ from typing import Deque, MutableSequence, Optional, cast
 from PyQt6.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
                           QItemSelectionModel, QObject, QEventLoop)
 from PyQt6.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
-                             QLabel, QFileSystemModel, QTreeView, QSizePolicy,
+                             QLabel, QTreeView, QSizePolicy,
                              QSpacerItem)
+from PyQt6.QtGui import QFileSystemModel
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import config, configtypes, configexc, stylesheet
