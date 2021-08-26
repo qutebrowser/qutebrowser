@@ -324,7 +324,7 @@ class Query:
             self.query.bindValue(f':{key}', val)
 
         bound_values = self.bound_values()
-        if None in bound_values.values():
+        if None in bound_values:
             raise BugError("Missing bound values!")
 
         return bound_values

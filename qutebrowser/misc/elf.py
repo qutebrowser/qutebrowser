@@ -314,7 +314,7 @@ def parse_webenginecore() -> Optional[Versions]:
         # Flatpak has Qt in /usr/lib/x86_64-linux-gnu, but QtWebEngine in /app/lib.
         library_path = pathlib.Path("/app/lib")
     else:
-        library_path = pathlib.Path(QLibraryInfo.location(QLibraryInfo.LibraryLocation.LibrariesPath))
+        library_path = pathlib.Path(QLibraryInfo.path(QLibraryInfo.LibraryPath.LibrariesPath))
 
     library_name = sorted(library_path.glob('libQt5WebEngineCore.so*'))
     if not library_name:
