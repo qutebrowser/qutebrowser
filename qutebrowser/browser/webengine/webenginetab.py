@@ -120,22 +120,6 @@ class _WebEngineSearchWrapHandler:
         Args:
             page: The QtWebEnginePage to connect to this handler.
         """
-        # The API necessary to stop wrapping was added in this version
-        if not qtutils.version_check("5.14"):
-            return
-
-        try:
-            # pylint: disable=unused-import
-            from PyQt5.QtWebEngineCore import QWebEngineFindTextResult
-        except ImportError:
-            # WORKAROUND for some odd PyQt/packaging bug where the
-            # findTextResult signal is available, but QWebEngineFindTextResult
-            # is not. Seems to happen on e.g. Gentoo.
-            log.webview.warning("Could not import QWebEngineFindTextResult "
-                                "despite running on Qt 5.14. You might need "
-                                "to rebuild PyQtWebEngine.")
-            return
-
         page.findTextFinished.connect(self._store_match_data)
         self._nowrap_available = True
 
@@ -202,6 +186,8 @@ class WebEngineSearch(browsertab.AbstractSearch):
                            back yet.
     """
 
+    search_match_changed = pyqtSignal(int, int)
+
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
         self._flags = self._empty_flags()
@@ -212,7 +198,24 @@ class WebEngineSearch(browsertab.AbstractSearch):
         return QWebEnginePage.FindFlags(0)  # type: ignore[call-overload]
 
     def connect_signals(self):
+        # The API necessary to stop wrapping was added in this version
+        if not qtutils.version_check("5.14"):
+            return
+
+        try:
+            # pylint: disable=unused-import
+            from PyQt5.QtWebEngineCore import QWebEngineFindTextResult
+        except ImportError:
+            # WORKAROUND for some odd PyQt/packaging bug where the
+            # findTextResult signal is available, but QWebEngineFindTextResult
+            # is not. Seems to happen on e.g. Gentoo.
+            log.webview.warning("Could not import QWebEngineFindTextResult "
+                                "despite running on Qt 5.14. You might need "
+                                "to rebuild PyQtWebEngine.")
+            return
+
         self._wrap_handler.connect_signal(self._widget.page())
+        self._widget.page().findTextFinished.connect(self._on_find_finished)
 
     def _find(self, text, flags, callback, caller):
         """Call findText on the widget."""
@@ -252,6 +255,10 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
         self._widget.page().findText(text, flags, wrapped_callback)
 
+    def _on_find_finished(self, findTextResult):
+        self.search_match_changed.emit(findTextResult.activeMatch(),
+                                       findTextResult.numberOfMatches())
+
     def search(self, text, *, ignore_case=usertypes.IgnoreCase.never,
                reverse=False, wrap=True, result_cb=None):
         # Don't go to next entry on duplicate search
@@ -274,6 +281,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
     def clear(self):
         if self.search_displayed:
             self.cleared.emit()
+            self.search_match_changed.emit(0, 0)
         self.search_displayed = False
         self._wrap_handler.reset_match_data()
         self._widget.page().findText('')
@@ -1389,6 +1397,9 @@ class WebEngineTab(browsertab.AbstractTab):
     def icon(self):
         return self._widget.icon()
 
+    def current_search_match(self) -> (int, int):
+        return (self.search.get_current_match(), self.search.get_total_match_count())
+
     def set_html(self, html, base_url=QUrl()):
         # FIXME:qtwebengine
         # check this and raise an exception if too big:
@@ -1633,6 +1644,10 @@ class WebEngineTab(browsertab.AbstractTab):
                 not qtutils.version_check('5.14')):
             self.settings.update_for_url(url)
 
+    @pyqtSlot(int, int)
+    def _on_search_match_changed(self, current: int, total: int):
+        self.search_match_changed.emit(current, total)
+
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(self, navigation):
         super()._on_navigation_request(navigation)
@@ -1708,6 +1723,8 @@ class WebEngineTab(browsertab.AbstractTab):
         page.loadFinished.connect(self._on_history_trigger)
         page.loadFinished.connect(self._restore_zoom)
         page.loadFinished.connect(self._on_load_finished)
+
+        self.search.search_match_changed.connect(self._on_search_match_changed)
 
         try:
             page.renderProcessPidChanged.connect(self._on_renderer_process_pid_changed)

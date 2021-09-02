@@ -885,6 +885,9 @@ class WebKitTab(browsertab.AbstractTab):
     def icon(self):
         return self._widget.icon()
 
+    def current_search_match(self):
+        return (0, 0)
+
     def reload(self, *, force=False):
         if force:
             action = QWebPage.ReloadAndBypassCache

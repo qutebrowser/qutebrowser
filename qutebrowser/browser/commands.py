@@ -1548,9 +1548,6 @@ class CommandDispatcher:
         if found:
             new_current_match = tab.search.get_current_match()
             total_match_count = tab.search.get_total_match_count()
-            if total_match_count > 0:
-                message.info("Match {}/{}".format(new_current_match, total_match_count),
-                             replace="search-match-count")
             # Check if the match count change is opposite to the search direction
             if old_current_match > 0:
                 if not going_up:

@@ -926,6 +926,8 @@ class AbstractTab(QWidget):
     icon_changed = pyqtSignal(QIcon)
     #: Signal emitted when a page's title changed (new title as str)
     title_changed = pyqtSignal(str)
+
+    search_match_changed = pyqtSignal(int, int)
     #: Signal emitted when this tab was pinned/unpinned (new pinned state as bool)
     pinned_changed = pyqtSignal(bool)
     #: Signal emitted when a new tab should be opened (url as QUrl)
@@ -1211,6 +1213,9 @@ class AbstractTab(QWidget):
         raise NotImplementedError
 
     def icon(self) -> None:
+        raise NotImplementedError
+
+    def current_search_match(self) -> (int, int):
         raise NotImplementedError
 
     def set_html(self, html: str, base_url: QUrl = QUrl()) -> None:

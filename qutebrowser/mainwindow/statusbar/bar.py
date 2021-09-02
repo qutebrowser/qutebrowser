@@ -32,7 +32,7 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.mainwindow.statusbar import (backforward, command, progress,
                                               keystring, percentage, url,
-                                              tabindex, textbase)
+                                              tabindex, textbase, searchmatch)
 
 
 @dataclasses.dataclass
@@ -144,6 +144,7 @@ class StatusBar(QWidget):
         url: The UrlText widget in the statusbar.
         prog: The Progress widget in the statusbar.
         cmd: The Command widget in the statusbar.
+        search_match: The SearchMatch widget in the statusbar.
         _hbox: The main QHBoxLayout.
         _stack: The QStackedLayout with cmd/txt widgets.
         _win_id: The window ID the statusbar is associated with.
@@ -194,6 +195,8 @@ class StatusBar(QWidget):
         self.cmd.hide_cmd.connect(self._hide_cmd_widget)
         self._hide_cmd_widget()
 
+        self.search_match = searchmatch.SearchMatch()
+
         self.url = url.UrlText()
         self.percentage = percentage.Percentage()
         self.backforward = backforward.Backforward()
@@ -226,7 +229,9 @@ class StatusBar(QWidget):
 
         # Read the list and set widgets accordingly
         for segment in config.val.statusbar.widgets:
-            if segment == 'url':
+            if segment == 'search_match':
+                self._hbox.addWidget(self.search_match)
+            elif segment == 'url':
                 self._hbox.addWidget(self.url)
                 self.url.show()
             elif segment == 'scroll':
