@@ -886,6 +886,7 @@ class WebKitTab(browsertab.AbstractTab):
         return self._widget.icon()
 
     def current_search_match(self):
+        """QtWebKit doesn't support match counts."""
         return (0, 0)
 
     def reload(self, *, force=False):

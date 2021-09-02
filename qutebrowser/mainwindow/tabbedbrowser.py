@@ -798,6 +798,12 @@ class TabbedBrowser(QWidget):
 
     @pyqtSlot(browsertab.AbstractTab, int, int)
     def _on_search_match_changed(self, tab, current: int, total: int):
+        """Pass along the signal of a changed active match.
+
+        Args:
+            current: The number of the currently active match.
+            total: The total number of matches on the page.
+        """
         self.search_match_changed.emit(current, total)
 
     @pyqtSlot(usertypes.KeyMode)

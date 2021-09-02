@@ -926,7 +926,7 @@ class AbstractTab(QWidget):
     icon_changed = pyqtSignal(QIcon)
     #: Signal emitted when a page's title changed (new title as str)
     title_changed = pyqtSignal(str)
-
+    #: Signal emitted when a page's currently active search match changed (match as current/total)
     search_match_changed = pyqtSignal(int, int)
     #: Signal emitted when this tab was pinned/unpinned (new pinned state as bool)
     pinned_changed = pyqtSignal(bool)

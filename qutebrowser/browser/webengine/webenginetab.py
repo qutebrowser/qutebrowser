@@ -184,6 +184,10 @@ class WebEngineSearch(browsertab.AbstractSearch):
         _flags: The QWebEnginePage.FindFlags of the last search.
         _pending_searches: How many searches have been started but not called
                            back yet.
+
+    Signals:
+        search_match_changed: The currently active search match has changed.
+                              Emits (0, 0) if no search is active.
     """
 
     search_match_changed = pyqtSignal(int, int)
@@ -256,6 +260,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self._widget.page().findText(text, flags, wrapped_callback)
 
     def _on_find_finished(self, findTextResult):
+        """Unwrap the QWebEngineFindTextResult and pass it along."""
         self.search_match_changed.emit(findTextResult.activeMatch(),
                                        findTextResult.numberOfMatches())
 
@@ -1646,6 +1651,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
     @pyqtSlot(int, int)
     def _on_search_match_changed(self, current: int, total: int):
+        """Pass the signal from the WebEngineSearch along."""
         self.search_match_changed.emit(current, total)
 
     @pyqtSlot(usertypes.NavigationRequest)

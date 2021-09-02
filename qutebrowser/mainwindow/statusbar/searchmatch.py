@@ -29,29 +29,16 @@ from qutebrowser.mainwindow.statusbar import textbase
 
 class SearchMatch(textbase.TextBase):
 
-    """The commandline part of the statusbar.
-
-    Attributes:
-        _win_id: The window ID this widget is associated with.
-
-    Signals:
-        got_cmd: Emitted when a command is triggered by the user.
-                 arg: The command string and also potentially the count.
-        got_search: Emitted when a search should happen.
-        clear_completion_selection: Emitted before the completion widget is
-                                    hidden.
-        hide_completion: Emitted when the completion widget should be hidden.
-        update_completion: Emitted when the completion should be shown/updated.
-        show_cmd: Emitted when command input should be shown.
-        hide_cmd: Emitted when command input can be hidden.
-    """
+    """The part of the statusbar that displays the search match counter."""
 
     @pyqtSlot(int, int)
     def set_match_index(self, current: int, total: int) -> None:
-        """Preset the statusbar to some text.
+        """Set the match counts in the statusbar.
+           Passing (0, 0) hides the match counter.
 
         Args:
-            text: The text to set as string.
+            current: The currently active search match.
+            total: The total number of search matches on the page.
         """
         if current <= 0 and total <= 0:
             self.setText('')
