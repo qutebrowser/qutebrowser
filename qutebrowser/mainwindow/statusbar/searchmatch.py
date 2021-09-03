@@ -34,6 +34,7 @@ class SearchMatch(textbase.TextBase):
     @pyqtSlot(int, int)
     def set_match_index(self, current: int, total: int) -> None:
         """Set the match counts in the statusbar.
+
            Passing (0, 0) hides the match counter.
 
         Args:

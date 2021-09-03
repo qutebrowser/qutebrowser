@@ -259,10 +259,10 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
         self._widget.page().findText(text, flags, wrapped_callback)
 
-    def _on_find_finished(self, findTextResult):
+    def _on_find_finished(self, find_text_result):
         """Unwrap the QWebEngineFindTextResult and pass it along."""
-        self.search_match_changed.emit(findTextResult.activeMatch(),
-                                       findTextResult.numberOfMatches())
+        self.search_match_changed.emit(find_text_result.activeMatch(),
+                                       find_text_result.numberOfMatches())
 
     def search(self, text, *, ignore_case=usertypes.IgnoreCase.never,
                reverse=False, wrap=True, result_cb=None):

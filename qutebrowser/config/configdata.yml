@@ -72,6 +72,13 @@ search.wrap:
     Wrap around at the top and bottom of the page when advancing through text
     matches using `:search-next` and `:search-prev`.
 
+search.wrap_messages:
+  type: Bool
+  default: true
+  desc: >-
+    Display messages when advancing through text matches at the top and bottom
+    of the page, e.g. `Search hit TOP`.
+
 new_instance_open_target:
   type:
     name: String

@@ -1546,8 +1546,10 @@ class CommandDispatcher:
         going_up = options['reverse'] ^ prev
 
         if found:
+            if not config.val.search.wrap_messages:
+                return
+
             new_current_match = tab.search.get_current_match()
-            total_match_count = tab.search.get_total_match_count()
             # Check if the match count change is opposite to the search direction
             if old_current_match > 0:
                 if not going_up:
