@@ -3653,6 +3653,7 @@ bindings.default:
       <Ctrl-E>: edit-text
       <Shift-Ins>: insert-text -- {primary}
       <Escape>: mode-leave
+      <Shift-Escape>: fake-key <Escape>
     hint:
       <Return>: hint-follow
       <Ctrl-R>: hint --rapid links tab-bg

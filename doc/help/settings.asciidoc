@@ -546,6 +546,7 @@ Default:
 
 * +pass:[&lt;Ctrl-E&gt;]+: +pass:[edit-text]+
 * +pass:[&lt;Escape&gt;]+: +pass:[mode-leave]+
+* +pass:[&lt;Shift-Escape&gt;]+: +pass:[fake-key &lt;Escape&gt;]+
 * +pass:[&lt;Shift-Ins&gt;]+: +pass:[insert-text -- {primary}]+
 - +pass:[normal]+:
 

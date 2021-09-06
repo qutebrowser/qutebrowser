@@ -53,6 +53,8 @@ Changed
     URL.
   * `--always-show-selection` to confirm the password to be entered even if
     there's only a single match.
+- In insert mode, `<Shift-Escape>` is now bound to `fake-key <Escape>` by
+  default, i.e., sends an Escape keypress to the website.
 
 [[v2.3.1]]
 v2.3.1 (2021-07-28)
