@@ -275,10 +275,10 @@ class Node(Generic[T]):
         if value in self.__children:
             self.__children.remove(value)
 
-    def get_descendent_by_uid(self, uid: int) -> 'Node[T]':
+    def get_descendent_by_uid(self, uid: int) -> Optional['Node[T]']:
         """Return descendent identified by the provided uid.
 
-        Raises an error if there is no such descendent.
+        Returns None if there is no such descendent.
 
         Args:
             uid: The uid of the node to return
@@ -286,7 +286,7 @@ class Node(Generic[T]):
         for descendent in self.traverse():
             if descendent.uid == uid:
                 return descendent
-        raise TreeError("No descendent with uid = %s" % uid)
+        return None
 
     def promote(self, times: int = 1, to: str = 'first') -> None:
         """Makes self a child of its grandparent, i.e. sibling of its parent.

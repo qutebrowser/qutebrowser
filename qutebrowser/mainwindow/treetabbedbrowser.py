@@ -31,6 +31,7 @@ from qutebrowser.mainwindow.tabbedbrowser import TabbedBrowser
 from qutebrowser.mainwindow.treetabwidget import TreeTabWidget
 from qutebrowser.browser import browsertab
 from qutebrowser.misc import notree
+from qutebrowser.utils import log
 
 
 @dataclasses.dataclass
@@ -197,6 +198,8 @@ class TreeTabbedBrowser(TabbedBrowser):
             uid = entry.uid
             parent_uid = entry.parent_node_uid
             parent_node = root.get_descendent_by_uid(parent_uid)
+            if not parent_node:
+                parent_node = root
 
             children = []
             for child_uid in entry.children_node_uids:
