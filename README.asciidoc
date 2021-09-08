@@ -202,6 +202,7 @@ Active
 ~~~~~~
 
 * https://fanglingsu.github.io/vimb/[vimb] (C, GTK+ with WebKit2)
+* https://github.com/jun7/wyeb[wyeb] (C, GTK+ with WebKit2)
 * https://luakit.github.io/luakit/[luakit] (C/Lua, GTK+ with WebKit2)
 * https://nyxt.atlas.engineer/[Nyxt browser] (formerly "Next browser", Lisp, Emacs-like but also offers Vim bindings, QtWebKit or GTK+/WebKit2 - note there was a https://jgkamat.gitlab.io/blog/next-rce.html[critical remote code execution] which was handled quite badly)
 * https://vieb.dev/[Vieb] (JavaScript, Electron)
