@@ -294,7 +294,7 @@ Cycle an option between multiple values.
 * +'values'+: The values to cycle through.
 
 ==== optional arguments
-* +*-u*+, +*--pattern*+: The URL pattern to use.
+* +*-u*+, +*--pattern*+: The link:configuring{outfilesuffix}#patterns[URL pattern] to use.
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 * +*-p*+, +*--print*+: Print the value after setting.
 
@@ -391,7 +391,7 @@ This sets an option back to its default and removes it from autoconfig.yml.
 * +'option'+: The name of the option.
 
 ==== optional arguments
-* +*-u*+, +*--pattern*+: The URL pattern to use.
+* +*-u*+, +*--pattern*+: The link:configuring{outfilesuffix}#patterns[URL pattern] to use.
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 
 [[config-write-py]]
@@ -1285,7 +1285,7 @@ If the option name ends with '?' or no value is provided, the value of the optio
 ==== optional arguments
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 * +*-p*+, +*--print*+: Print the value after setting.
-* +*-u*+, +*--pattern*+: The URL pattern to use.
+* +*-u*+, +*--pattern*+: The link:configuring{outfilesuffix}#patterns[URL pattern] to use.
 
 [[set-cmd-text]]
 === set-cmd-text

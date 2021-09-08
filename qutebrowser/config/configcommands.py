@@ -101,7 +101,7 @@ class ConfigCommands:
         Args:
             option: The name of the option.
             value: The value to set.
-            pattern: The URL pattern to use.
+            pattern: The link:configuring{outfilesuffix}#patterns[URL pattern] to use.
             temp: Set value temporarily until qutebrowser is closed.
             print_: Print the value after setting.
         """
@@ -205,7 +205,7 @@ class ConfigCommands:
         Args:
             option: The name of the option.
             values: The values to cycle through.
-            pattern: The URL pattern to use.
+            pattern: The link:configuring{outfilesuffix}#patterns[URL pattern] to use.
             temp: Set value temporarily until qutebrowser is closed.
             print_: Print the value after setting.
         """
@@ -259,7 +259,7 @@ class ConfigCommands:
 
         Args:
             option: The name of the option.
-            pattern: The URL pattern to use.
+            pattern: The link:configuring{outfilesuffix}#patterns[URL pattern] to use.
             temp: Set value temporarily until qutebrowser is closed.
         """
         parsed_pattern = self._parse_pattern(pattern)

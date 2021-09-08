@@ -1959,7 +1959,7 @@ Default:
 === content.autoplay
 Automatically start playing `<video>` elements.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 This setting is only available with the QtWebEngine backend.
 
@@ -1991,7 +1991,7 @@ Default:
 === content.blocking.enabled
 Enable the ad/host blocker
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2066,7 +2066,7 @@ Default: empty
 Enable support for the HTML 5 web application cache feature.
 An application cache acts like an HTTP cache in some sense. For documents that use the application cache via JavaScript, the loader engine will first ask the application cache for the contents, before hitting the network.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 This setting is only available with the QtWebKit backend.
 
@@ -2117,7 +2117,7 @@ If this setting is used with URL patterns, the pattern gets applied to the origi
 With QtWebEngine 5.15.0+, paths will be stripped from URLs, so URL patterns using paths will not match. With QtWebEngine 5.15.2+, subdomains are additionally stripped as well, so you will typically need to set this setting for `example.com` when the cookie is set on `somesubdomain.example.com` for it to work properly.
 To debug issues with this setting, start qutebrowser with `--debug --logfilter network --debug-flag log-cookies` which will show all cookies being set.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,String>>
 
@@ -2151,7 +2151,7 @@ Default: +pass:[iso-8859-1]+
 === content.desktop_capture
 Allow websites to share screen content.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,BoolAsk>>
 
@@ -2167,7 +2167,7 @@ Default: +pass:[ask]+
 === content.dns_prefetch
 Try to pre-fetch DNS entries to speed up browsing.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 This setting is only available with the QtWebEngine backend.
 
@@ -2180,7 +2180,7 @@ Default: +pass:[true]+
 Expand each subframe to its contents.
 This will flatten all the frames to become one scrollable page.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 This setting is only available with the QtWebKit backend.
 
@@ -2209,7 +2209,7 @@ Default: +pass:[false]+
 === content.geolocation
 Allow websites to request geolocations.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,BoolAsk>>
 
@@ -2226,7 +2226,7 @@ Default: +pass:[ask]+
 Value to send in the `Accept-Language` header.
 Note that the value read from JavaScript is always the global value.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,String>>
 
@@ -2236,7 +2236,7 @@ Default: +pass:[en-US,en;q=0.9]+
 === content.headers.custom
 Custom headers for qutebrowser HTTP requests.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Dict>>
 
@@ -2247,7 +2247,7 @@ Default: empty
 Value to send in the `DNT` header.
 When this is set to true, qutebrowser asks websites to not track your identity. If set to null, the DNT header is not sent at all.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2295,7 +2295,7 @@ QtWebEngine between 5.12 and 5.14 (inclusive), changing the value exposed
 to JavaScript requires a restart.
 
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,FormatString>>
 
@@ -2305,7 +2305,7 @@ Default: +pass:[Mozilla/5.0 ({os_info}) AppleWebKit/{webkit_version} (KHTML, lik
 === content.hyperlink_auditing
 Enable hyperlink auditing (`<a ping>`).
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2315,7 +2315,7 @@ Default: +pass:[false]+
 === content.images
 Load images automatically in web pages.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2334,7 +2334,7 @@ Default: +pass:[true]+
 Allow JavaScript to read from or write to the clipboard.
 With QtWebEngine, writing the clipboard as response to a user interaction is always allowed.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2344,7 +2344,7 @@ Default: +pass:[false]+
 === content.javascript.can_close_tabs
 Allow JavaScript to close tabs.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 This setting is only available with the QtWebKit backend.
 
@@ -2356,7 +2356,7 @@ Default: +pass:[false]+
 === content.javascript.can_open_tabs_automatically
 Allow JavaScript to open new tabs without user interaction.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2366,7 +2366,7 @@ Default: +pass:[false]+
 === content.javascript.enabled
 Enable JavaScript.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2408,7 +2408,7 @@ Default: +pass:[true]+
 === content.local_content_can_access_file_urls
 Allow locally loaded documents to access other local URLs.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2418,7 +2418,7 @@ Default: +pass:[true]+
 === content.local_content_can_access_remote_urls
 Allow locally loaded documents to access remote URLs.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2428,7 +2428,7 @@ Default: +pass:[false]+
 === content.local_storage
 Enable support for HTML 5 local storage and Web SQL.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2438,7 +2438,7 @@ Default: +pass:[true]+
 === content.media.audio_capture
 Allow websites to record audio.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 This setting is only available with the QtWebEngine backend.
 
@@ -2456,7 +2456,7 @@ Default: +pass:[ask]+
 === content.media.audio_video_capture
 Allow websites to record audio and video.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 This setting is only available with the QtWebEngine backend.
 
@@ -2474,7 +2474,7 @@ Default: +pass:[ask]+
 === content.media.video_capture
 Allow websites to record video.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 This setting is only available with the QtWebEngine backend.
 
@@ -2492,7 +2492,7 @@ Default: +pass:[ask]+
 === content.mouse_lock
 Allow websites to lock your mouse pointer.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 This setting is only available with the QtWebEngine backend.
 
@@ -2511,7 +2511,7 @@ Default: +pass:[ask]+
 Automatically mute tabs.
 Note that if the `:tab-mute` command is used, the mute status for the affected tab is now controlled manually, and this setting doesn't have any effect.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2530,7 +2530,7 @@ Default: empty
 === content.notifications.enabled
 Allow websites to show notifications.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 On QtWebEngine, this setting requires Qt 5.13 or newer.
 
@@ -2580,7 +2580,7 @@ Whether to show the origin URL for notifications.
 Note that URL patterns with this setting only get matched against the origin part of the URL, so e.g. paths in patterns will never match.
 Note that with the `qt` presenter, origins are never shown.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 On QtWebEngine, this setting requires Qt 5.14 or newer.
 
@@ -2595,7 +2595,7 @@ Default: +pass:[true]+
 Allow pdf.js to view PDF files in the browser.
 Note that the files can still be downloaded by clicking the download button in the pdf.js viewer.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2605,7 +2605,7 @@ Default: +pass:[false]+
 === content.persistent_storage
 Allow websites to request persistent storage quota via `navigator.webkitPersistentStorage.requestQuota`.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 This setting is only available with the QtWebEngine backend.
 
@@ -2623,7 +2623,7 @@ Default: +pass:[ask]+
 === content.plugins
 Enable plugins in Web pages.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2649,7 +2649,7 @@ Default: +pass:[false]+
 === content.print_element_backgrounds
 Draw the background color and images also when the page is printed.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 This setting is only available with the QtWebEngine backend.
 
@@ -2694,7 +2694,7 @@ Default: +pass:[true]+
 === content.register_protocol_handler
 Allow websites to register protocol handlers via `navigator.registerProtocolHandler`.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 This setting is only available with the QtWebEngine backend.
 
@@ -2747,7 +2747,7 @@ Default:
 === content.tls.certificate_errors
 How to proceed on TLS certificate errors.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,String>>
 
@@ -2764,7 +2764,7 @@ Default: +pass:[ask]+
 === content.unknown_url_scheme_policy
 How navigation requests to URLs with unknown schemes are handled.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 This setting is only available with the QtWebEngine backend.
 
@@ -2790,7 +2790,7 @@ Default: empty
 === content.webgl
 Enable WebGL.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2821,7 +2821,7 @@ Monitor load requests for cross-site scripting attempts.
 Suspicious scripts will be blocked and reported in the devtools JavaScript console.
 Note that bypasses for the XSS auditor are widely known and it can be abused for cross-site info leaks in some scenarios, see: https://www.chromium.org/developers/design-documents/xss-auditor
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -2895,7 +2895,7 @@ Default: +pass:[top]+
 Automatically abort insecure (HTTP) downloads originating from secure (HTTPS) pages.
 For per-domain settings, the relevant URL is the URL initiating the download, not the URL the download itself is coming from. It's not recommended to set this setting to false globally.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -3138,7 +3138,7 @@ Default: +pass:[default_size default_family]+
 === fonts.web.family.cursive
 Font family for cursive fonts.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,FontFamily>>
 
@@ -3148,7 +3148,7 @@ Default: empty
 === fonts.web.family.fantasy
 Font family for fantasy fonts.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,FontFamily>>
 
@@ -3158,7 +3158,7 @@ Default: empty
 === fonts.web.family.fixed
 Font family for fixed fonts.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,FontFamily>>
 
@@ -3168,7 +3168,7 @@ Default: empty
 === fonts.web.family.sans_serif
 Font family for sans-serif fonts.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,FontFamily>>
 
@@ -3178,7 +3178,7 @@ Default: empty
 === fonts.web.family.serif
 Font family for serif fonts.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,FontFamily>>
 
@@ -3188,7 +3188,7 @@ Default: empty
 === fonts.web.family.standard
 Font family for standard fonts.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,FontFamily>>
 
@@ -3198,7 +3198,7 @@ Default: empty
 === fonts.web.size.default
 Default font size (in pixels) for regular text.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Int>>
 
@@ -3208,7 +3208,7 @@ Default: +pass:[16]+
 === fonts.web.size.default_fixed
 Default font size (in pixels) for fixed-pitch text.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Int>>
 
@@ -3218,7 +3218,7 @@ Default: +pass:[13]+
 === fonts.web.size.minimum
 Hard minimum font size (in pixels).
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Int>>
 
@@ -3228,7 +3228,7 @@ Default: +pass:[0]+
 === fonts.web.size.minimum_logical
 Minimum logical font size (in pixels) that is applied when zooming out.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Int>>
 
@@ -3397,7 +3397,7 @@ Default: +pass:[true]+
 === hints.selectors
 CSS selectors used to determine which elements on a page should have hints.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 This setting can only be set in config.py.
 
@@ -3533,7 +3533,7 @@ Default: +pass:[false]+
 Leave insert mode when starting a new page load.
 Patterns may be unreliable on this setting, and they may match the url you are navigating to, or the URL you are navigating from.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -3551,7 +3551,7 @@ Default: +pass:[false]+
 === input.links_included_in_focus_chain
 Include hyperlinks in the keyboard focus chain when tabbing.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -3604,7 +3604,7 @@ Default: +pass:[0]+
 Enable spatial navigation.
 Spatial navigation consists in the ability to navigate between focusable elements in a Web page, such as hyperlinks and form controls, by using Left, Right, Up and Down arrow keys. For example, if the user presses the Right key, heuristics determine whether there is an element he might be trying to reach towards the right and which element he probably wants.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -3889,7 +3889,7 @@ Default: +pass:[overlay]+
 Enable smooth scrolling for web pages.
 Note smooth scrolling does not work with the `:scroll-px` command.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 Type: <<types,Bool>>
 
@@ -4617,7 +4617,7 @@ Default: +pass:[512]+
 === zoom.text_only
 Apply the zoom factor on a frame only to the text or to all content.
 
-This setting supports URL patterns.
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
 This setting is only available with the QtWebKit backend.
 

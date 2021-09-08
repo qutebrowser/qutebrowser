@@ -22,6 +22,19 @@ exists, the `autoconfig.yml` file **is not read anymore** by default. You need
 to <<configpy-autoconfig,load it from `config.py`>> if you want settings changed via
 `:set`/`:bind` to persist between restarts.
 
+[[patterns]]
+URL pattern support
+-------------------
+
+Many settings are customizable depending on the page being visited by using URL
+patterns. The link:settings{outfilesuffix}[settings documentation] marks such
+settings with "This setting supports URL patterns.
+
+The syntax is based on Chromium's
+https://developer.chrome.com/docs/extensions/mv3/match_patterns/[URL pattern syntax].
+As an extension, the scheme and path can be left off as a short-hand syntax, so
+`example.com` is equivalent to `*://example.com/*`.
+
 [[autoconfig]]
 Configuring qutebrowser via the user interface
 ----------------------------------------------
@@ -45,9 +58,10 @@ customizable.
 Using the link:commands{outfilesuffix}#set[`:set`] command and command completion, you
 can quickly set settings interactively, for example `:set tabs.position left`.
 
-Some settings are also customizable for a given
-https://developer.chrome.com/apps/match_patterns[URL pattern] by doing e.g.
-`:set --pattern=*://example.com/ content.images false`.
+<<patterns,URL patterns>> can be used via `
+`:set --pattern *://example.com/* content.images false`, or with shorthand
+syntax for both argument and pattern, `:set -u example.com content.images
+false`.
 
 To get more help about a setting, use e.g. `:help tabs.position`.
 
@@ -160,8 +174,8 @@ color = config.get('colors.completion.fg')
 Per-domain settings
 ~~~~~~~~~~~~~~~~~~~
 
-Using `config.set`, some settings are also customizable for a given
-https://developer.chrome.com/apps/match_patterns[URL pattern]:
+Using `config.set` instead of the `c.` shorthand, many settings are also
+customizable for a given <<patterns,URL patterns>>.
 
 [source,python]
 ----
