@@ -373,7 +373,7 @@ class TestFontFamilies:
 
         # Try to find out whether the monospace font did a fallback on a non-monospace
         # font...
-        fallback_label = QLabel()
+        fallback_label = QLabel()  # pylint: disable=unreachable
         qtbot.add_widget(label)
         fallback_label.setText("fallback")
 
