@@ -189,13 +189,6 @@ class WebKitSearch(browsertab.AbstractSearch):
         found = self._widget.findText(self.text, flags)
         self._call_cb(result_cb, found, self.text, flags, 'prev_result')
 
-    # These aren't supported when using the QtWebKit backend.
-    def get_current_match(self):
-        return 0
-
-    def get_total_match_count(self):
-        return 0
-
 
 class WebKitCaret(browsertab.AbstractCaret):
 
@@ -884,10 +877,6 @@ class WebKitTab(browsertab.AbstractTab):
 
     def icon(self):
         return self._widget.icon()
-
-    def current_search_match(self):
-        """QtWebKit doesn't support match counts."""
-        return (0, 0)
 
     def reload(self, *, force=False):
         if force:

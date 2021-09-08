@@ -23,7 +23,6 @@
 from PyQt5.QtCore import pyqtSlot
 
 from qutebrowser.utils import log
-from qutebrowser.config import config
 from qutebrowser.mainwindow.statusbar import textbase
 
 
@@ -46,4 +45,5 @@ class SearchMatch(textbase.TextBase):
             log.statusbar.debug('Clearing search match text.')
         else:
             self.setText('Match [{}/{}]'.format(current, total))
-            log.statusbar.debug('Setting search match text to {}/{}'.format(current, total))
+            log.statusbar.debug('Setting search match text to {}/{}'
+                    .format(current, total))

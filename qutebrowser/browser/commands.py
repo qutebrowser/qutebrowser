@@ -1534,7 +1534,8 @@ class CommandDispatcher:
         Args:
             found: Whether the text was found.
             tab: The AbstractTab in which the search was made.
-            old_current_match: The previously active match before the search was performed.
+            old_current_match: The previously active match before the search
+                               was performed.
             options: The options (dict) the search was made with.
             text: The text searched for.
             prev: Whether we're searching backwards (i.e. :search-prev)
@@ -1549,7 +1550,7 @@ class CommandDispatcher:
             if not config.val.search.wrap_messages:
                 return
 
-            new_current_match = tab.search.get_current_match()
+            new_current_match = tab.search.current_match
             # Check if the match count change is opposite to the search direction
             if old_current_match > 0:
                 if not going_up:
@@ -1627,7 +1628,7 @@ class CommandDispatcher:
             return
 
         cb = functools.partial(self._search_cb, tab=tab,
-                               old_current_match=tab.search.get_current_match(),
+                               old_current_match=tab.search.current_match,
                                options=window_options, text=window_text,
                                prev=False)
 
@@ -1661,7 +1662,7 @@ class CommandDispatcher:
             return
 
         cb = functools.partial(self._search_cb, tab=tab,
-                               old_current_match=tab.search.get_current_match(),
+                               old_current_match=tab.search.current_match,
                                options=window_options, text=window_text,
                                prev=True)
 

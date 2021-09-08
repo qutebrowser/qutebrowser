@@ -219,13 +219,13 @@ Feature: Searching on a page
     Scenario: Preventing wrapping at the top of the page with QtWebEngine
         When I set search.ignore_case to always
         And I set search.wrap to false
+        And I set search.wrap_messages to true
         And I run :search --reverse foo
         And I wait for "search found foo with flags FindBackward" in the log
         And I run :search-next
         And I wait for "next_result found foo with flags FindBackward" in the log
         And I run :search-next
-        And I wait for "Search hit TOP" in the log
-        Then "foo" should be found
+        Then the message "Search hit TOP" should be shown
 
     @qtwebkit_skip @qt>=5.14
     Scenario: Preventing wrapping at the bottom of the page with QtWebEngine
@@ -236,8 +236,7 @@ Feature: Searching on a page
         And I run :search-next
         And I wait for "next_result found foo" in the log
         And I run :search-next
-        And I wait for "Search hit BOTTOM" in the log
-        Then "Foo" should be found
+        Then the message "Search hit BOTTOM" should be shown
 
     @qtwebengine_skip
     Scenario: Preventing wrapping at the top of the page with QtWebKit
@@ -262,6 +261,48 @@ Feature: Searching on a page
         And I run :search-next
         And I wait for "next_result didn't find foo" in the log
         Then the warning "Text 'foo' not found on page!" should be shown
+
+    ## search match counter
+
+    @qtwebkit_skip @qt>=5.14
+    Scenario: Setting search match counter on search
+        When I set search.ignore_case to always
+        And I set search.wrap to true
+        And I run :search ba
+        And I wait for "search found ba" in the log
+        Then "Setting search match text to 1/5" should be logged
+
+    @qtwebkit_skip @qt>=5.14
+    Scenario: Updating search match counter on search-next
+        When I set search.ignore_case to always
+        And I set search.wrap to true
+        And I run :search ba
+        And I wait for "search found ba" in the log
+        And I run :search-next
+        And I wait for "next_result found ba" in the log
+        And I run :search-next
+        And I wait for "next_result found ba" in the log
+        Then "Setting search match text to 3/5" should be logged
+
+    @qtwebkit_skip @qt>=5.14
+    Scenario: Updating search match counter on search-prev with wrapping
+        When I set search.ignore_case to always
+        And I set search.wrap to true
+        And I run :search ba
+        And I wait for "search found ba" in the log
+        And I run :search-prev
+        And I wait for the message "Search hit TOP, continuing at BOTTOM"
+        Then "Setting search match text to 5/5" should be logged
+
+    @qtwebkit_skip @qt>=5.14
+    Scenario: Updating search match counter on search-prev without wrapping
+        When I set search.ignore_case to always
+        And I set search.wrap to false
+        And I run :search ba
+        And I wait for "search found ba" in the log
+        And I run :search-prev
+        And I wait for the message "Search hit TOP"
+        Then "Setting search match text to 1/5" should be logged
 
     ## follow searched links
     @skip  # Too flaky

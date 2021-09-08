@@ -293,14 +293,23 @@ class AbstractSearch(QObject):
         text: The last thing this view was searched for.
         search_displayed: Whether we're currently displaying search results in
                           this view.
+        current_match: The currently active search match on the page.
+                       0 if no search is active or the feature isn't available.
+        total_match_count: The total number of search matches on the page.
+                           0 if no search is active or the feature isn't available.
         _flags: The flags of the last search (needs to be set by subclasses).
         _widget: The underlying WebView widget.
+
+    Signals:
+        finished: A search has finished. True if the text was found, false otherwise.
+        search_match_changed: The currently active search match has changed.
+                              Emits (0, 0) if no search is active.
+                              Will not be emitted if search matches are not available.
+        cleared: An existing search was cleared.
     """
 
-    #: Signal emitted when a search was finished
-    #: (True if the text was found, False otherwise)
     finished = pyqtSignal(bool)
-    #: Signal emitted when an existing search was cleared.
+    search_match_changed = pyqtSignal(int, int)
     cleared = pyqtSignal()
 
     _Callback = Callable[[bool], None]
@@ -311,6 +320,8 @@ class AbstractSearch(QObject):
         self._widget = cast(QWidget, None)
         self.text: Optional[str] = None
         self.search_displayed = False
+        self.current_match = 0
+        self.total_match_count = 0
 
     def _is_case_sensitive(self, ignore_case: usertypes.IgnoreCase) -> bool:
         """Check if case-sensitivity should be used.
@@ -361,22 +372,6 @@ class AbstractSearch(QObject):
 
         Args:
             result_cb: Called with a bool indicating whether a match was found.
-        """
-        raise NotImplementedError
-
-    def get_current_match(self) -> int:
-        """Get the 1-based index of the currently highlighted match on the page.
-
-        Returns 0 if no successful search has been performed or this feature is unavailable
-        (QtWebKit and QtWebEngine < 5.14)
-        """
-        raise NotImplementedError
-
-    def get_total_match_count(self) -> int:
-        """Get the total number of search matches on the page.
-
-        Returns 0 if no successful search has been performed or this feature is unavailable
-        (QtWebKit and QtWebEngine < 5.14)
         """
         raise NotImplementedError
 
@@ -926,8 +921,6 @@ class AbstractTab(QWidget):
     icon_changed = pyqtSignal(QIcon)
     #: Signal emitted when a page's title changed (new title as str)
     title_changed = pyqtSignal(str)
-    #: Signal emitted when a page's currently active search match changed (match as current/total)
-    search_match_changed = pyqtSignal(int, int)
     #: Signal emitted when this tab was pinned/unpinned (new pinned state as bool)
     pinned_changed = pyqtSignal(bool)
     #: Signal emitted when a new tab should be opened (url as QUrl)
@@ -1213,9 +1206,6 @@ class AbstractTab(QWidget):
         raise NotImplementedError
 
     def icon(self) -> None:
-        raise NotImplementedError
-
-    def current_search_match(self) -> (int, int):
         raise NotImplementedError
 
     def set_html(self, html: str, base_url: QUrl = QUrl()) -> None:

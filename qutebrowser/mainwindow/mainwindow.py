@@ -537,7 +537,7 @@ class MainWindow(QWidget):
         self.tabbed_browser.cur_load_status_changed.connect(
             self.status.url.on_load_status_changed)
 
-        self.tabbed_browser.search_match_changed.connect(
+        self.tabbed_browser.cur_search_match_changed.connect(
             self.status.search_match.set_match_index)
 
         self.tabbed_browser.cur_caret_selection_toggled.connect(

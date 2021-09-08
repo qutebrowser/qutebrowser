@@ -139,6 +139,8 @@ PERFECT_FILES = [
 
     (None,
      'qutebrowser/mainwindow/statusbar/keystring.py'),
+    (None,
+     'qutebrowser/mainwindow/statusbar/searchmatch.py'),
     ('tests/unit/mainwindow/statusbar/test_percentage.py',
      'qutebrowser/mainwindow/statusbar/percentage.py'),
     ('tests/unit/mainwindow/statusbar/test_progress.py',

@@ -180,6 +180,7 @@ class TabbedBrowser(QWidget):
                                  arg 1: x-position in %.
                                  arg 2: y-position in %.
         cur_load_status_changed: Loading status of current tab changed.
+        cur_search_match_changed: The active search match changed.
         close_window: The last tab was closed, close this window.
         resized: Emitted when the browser window has resized, so the completion
                  widget can adjust its size to it.
@@ -196,7 +197,7 @@ class TabbedBrowser(QWidget):
     cur_link_hovered = pyqtSignal(str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
     cur_load_status_changed = pyqtSignal(usertypes.LoadStatus)
-    search_match_changed = pyqtSignal(int, int)
+    cur_search_match_changed = pyqtSignal(int, int)
     cur_fullscreen_requested = pyqtSignal(bool)
     cur_caret_selection_toggled = pyqtSignal(browsertab.SelectionState)
     close_window = pyqtSignal()
@@ -338,6 +339,8 @@ class TabbedBrowser(QWidget):
             self._filter.create(self.cur_fullscreen_requested, tab))
         tab.caret.selection_toggled.connect(
             self._filter.create(self.cur_caret_selection_toggled, tab))
+        tab.search.search_match_changed.connect(
+            self._filter.create(self.cur_search_match_changed, tab))
         # misc
         tab.scroller.perc_changed.connect(self._on_scroll_pos_changed)
         tab.scroller.before_jump_requested.connect(lambda: self.set_mark("'"))
@@ -347,8 +350,6 @@ class TabbedBrowser(QWidget):
             functools.partial(self._on_title_changed, tab))
         tab.icon_changed.connect(
             functools.partial(self._on_icon_changed, tab))
-        tab.search_match_changed.connect(
-            functools.partial(self._on_search_match_changed, tab))
         tab.pinned_changed.connect(
             functools.partial(self._on_pinned_changed, tab))
         tab.load_progress.connect(
@@ -796,16 +797,6 @@ class TabbedBrowser(QWidget):
             return
         self.widget.update_tab_favicon(tab)
 
-    @pyqtSlot(browsertab.AbstractTab, int, int)
-    def _on_search_match_changed(self, tab, current: int, total: int):
-        """Pass along the signal of a changed active match.
-
-        Args:
-            current: The number of the currently active match.
-            total: The total number of matches on the page.
-        """
-        self.search_match_changed.emit(current, total)
-
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
         """Save input mode when tabs.mode_on_change = restore."""
@@ -864,7 +855,8 @@ class TabbedBrowser(QWidget):
                         .format(current_mode.name, mode_on_change))
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
-        self.search_match_changed.emit(*tab.current_search_match())
+        self.cur_search_match_changed.emit(tab.search.current_match,
+                                           tab.search.total_match_count)
         QTimer.singleShot(0, self._update_window_title)
         self._tab_insert_idx_left = self.widget.currentIndex()
         self._tab_insert_idx_right = self.widget.currentIndex() + 1
