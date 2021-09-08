@@ -367,6 +367,10 @@ class TestFontFamilies:
         # Check the requested font to make sure CSS parsing worked
         assert label.font().family() == families.family
 
+        # Skipping the rest of the test as WORKAROUND for
+        # https://bugreports.qt.io/browse/QTBUG-94090
+        return
+
         # Try to find out whether the monospace font did a fallback on a non-monospace
         # font...
         fallback_label = QLabel()
@@ -380,10 +384,6 @@ class TestFontFamilies:
         fallback_family = fallback_label.fontInfo().family()
         print(f'fallback: {fallback_family}')
         if info.family() == fallback_family:
-            return
-
-        if info.family() == 'Noto Sans Mono':
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-94090
             return
 
         # If we didn't fall back, we should've gotten a fixed-pitch font.
