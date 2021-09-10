@@ -749,8 +749,8 @@ Feature: Tab management
                 - url: about:blank
                 - url: http://localhost:*/data/title.html
                   title: Test title
-            - tabs:
-              - private: true
+            - private: true
+              tabs:
               - active: true
                 history:
                 - url: about:blank
