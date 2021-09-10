@@ -389,7 +389,7 @@ class CommandDispatcher:
         Args:
             bg: Open in a background tab.
             window: Open in a new window.
-            private: If the tab should be detached into a private instance.
+            private: Open in a new private window.
 
         Return:
             The new QWebView.
