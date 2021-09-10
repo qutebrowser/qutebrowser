@@ -383,17 +383,18 @@ class CommandDispatcher:
                 yield parsed
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def tab_clone(self, bg=False, window=False):
+    def tab_clone(self, bg=False, window=False, private=False):
         """Duplicate the current tab.
 
         Args:
             bg: Open in a background tab.
             window: Open in a new window.
+            private: If the tab should be detached into a private instance.
 
         Return:
             The new QWebView.
         """
-        cmdutils.check_exclusive((bg, window), 'bw')
+        cmdutils.check_exclusive((bg, window, private), 'bwp')
         curtab = self._current_widget()
         cur_title = self._tabbed_browser.widget.page_title(
             self._current_index())
@@ -404,9 +405,9 @@ class CommandDispatcher:
 
         # The new tab could be in a new tabbed_browser (e.g. because of
         # tabs.tabs_are_windows being set)
-        if window:
+        if window or private:
             new_tabbed_browser = self._new_tabbed_browser(
-                private=self._tabbed_browser.is_private)
+                private=self._tabbed_browser.is_private or private)
         else:
             new_tabbed_browser = self._tabbed_browser
         newtab = new_tabbed_browser.tabopen(background=bg)
