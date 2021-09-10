@@ -653,7 +653,7 @@ Feature: Tab management
 
     Scenario: :tab-clone with -b and -w
         When I run :tab-clone -b -w
-        Then the error "Only one of -b/-w can be given!" should be shown.
+        Then the error "Only one of -b/-w/-p can be given!" should be shown.
 
     Scenario: Cloning a tab with history and title
         When I open data/title.html
@@ -731,6 +731,26 @@ Feature: Tab management
                 - url: http://localhost:*/data/title.html
                   title: Test title
             - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+
+    Scenario: Cloning to private window
+        When I open data/title.html
+        And I run :tab-clone -p
+        And I wait until data/title.html is loaded
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+            - tabs:
+              - private: true
               - active: true
                 history:
                 - url: about:blank
