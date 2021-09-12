@@ -1356,13 +1356,14 @@ The tab index to stop.
 
 [[tab-clone]]
 === tab-clone
-Syntax: +:tab-clone [*--bg*] [*--window*]+
+Syntax: +:tab-clone [*--bg*] [*--window*] [*--private*]+
 
 Duplicate the current tab.
 
 ==== optional arguments
 * +*-b*+, +*--bg*+: Open in a background tab.
 * +*-w*+, +*--window*+: Open in a new window.
+* +*-p*+, +*--private*+: Open in a new private window.
 
 [[tab-close]]
 === tab-close
