@@ -27,6 +27,8 @@ Added
   v2.3.0.
 - New `downloads.prevent_mixed_content` setting to prevent insecure
   mixed-content downloads (true by default).
+- New `--private` flag for `:tab-clone`, which clones a tab into a new private
+  window, mirroring the same flags for `:open` and `:tab-give`.
 
 Fixed
 ~~~~~
