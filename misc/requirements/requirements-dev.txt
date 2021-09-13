@@ -5,7 +5,7 @@ certifi==2021.5.30
 cffi==1.14.6
 charset-normalizer==2.0.4
 cryptography==3.4.8
-Deprecated==1.2.12
+Deprecated==1.2.13
 github3.py==2.0.0
 hunter==3.3.8
 idna==3.2
