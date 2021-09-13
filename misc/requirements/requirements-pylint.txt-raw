@@ -12,3 +12,6 @@ pefile
 
 # Already included via test requirements
 #@ ignore: urllib3
+
+# For pylint_checkers
+#@ pip_args: --use-feature=in-tree-build

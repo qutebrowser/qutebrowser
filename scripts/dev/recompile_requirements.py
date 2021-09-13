@@ -238,6 +238,7 @@ def read_comments(fobj):
         'add': [],
         'replace': {},
         'pre': False,
+        'pip_args': [],
     }
     for line in fobj:
         if line.startswith('#@'):
@@ -267,6 +268,8 @@ def read_comments(fobj):
                 comments['add'].append(args)
             elif command == 'pre':
                 comments['pre'] = True
+            elif command == 'pip_args':
+                comments['pip_args'] += args.split()
     return comments
 
 
@@ -290,7 +293,7 @@ def run_pip(venv_dir, *args, quiet=False, **kwargs):
     return subprocess.run([venv_python, '-m', 'pip'] + args, check=True, **kwargs)
 
 
-def init_venv(host_python, venv_dir, requirements, pre=False):
+def init_venv(host_python, venv_dir, requirements, pre=False, pip_args=None):
     """Initialize a new virtualenv and install the given packages."""
     with utils.gha_group('Creating virtualenv'):
         utils.print_col('$ python3 -m venv {}'.format(venv_dir), 'blue')
@@ -302,6 +305,8 @@ def init_venv(host_python, venv_dir, requirements, pre=False):
     install_command = ['install', '-r', requirements]
     if pre:
         install_command.append('--pre')
+    if pip_args:
+        install_command += pip_args
 
     with utils.gha_group('Installing requirements'):
         run_pip(venv_dir, *install_command)
@@ -497,7 +502,8 @@ def build_requirements(name):
         init_venv(host_python=host_python,
                   venv_dir=tmpdir,
                   requirements=filename,
-                  pre=comments['pre'])
+                  pre=comments['pre'],
+                  pip_args=comments['pip_args'])
         with utils.gha_group('Freezing requirements'):
             args = ['--all'] if name == 'tox' else []
             proc = run_pip(tmpdir, 'freeze', *args, stdout=subprocess.PIPE)
@@ -556,9 +562,13 @@ def test_requirements(name, outfile, *, force=False):
         print(f"Skipping test as there were no changes for {name}.")
         return
 
+    in_file = os.path.join(REQ_DIR, 'requirements-{}.txt-raw'.format(name))
+    with open(in_file, 'r', encoding='utf-8') as f:
+        comments = read_comments(f)
+
     host_python = get_host_python(name)
     with tempfile.TemporaryDirectory() as tmpdir:
-        init_venv(host_python, tmpdir, outfile)
+        init_venv(host_python, tmpdir, outfile, pip_args=comments['pip_args'])
 
 
 def main():
