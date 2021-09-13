@@ -5,7 +5,7 @@ certifi==2021.5.30
 cffi==1.14.6
 charset-normalizer==2.0.4
 cryptography==3.4.8
-Deprecated==1.2.12
+Deprecated==1.2.13
 future==0.18.2
 github3.py==2.0.0
 idna==3.2
@@ -13,7 +13,7 @@ isort==4.3.21
 jwcrypto==1.0
 lazy-object-proxy==1.4.3
 mccabe==0.6.1
-pefile==2021.5.24
+pefile==2021.9.3
 pycparser==2.20
 pylint==2.4.4  # rq.filter: < 2.5
 python-dateutil==2.8.2
