@@ -27,6 +27,8 @@ import glob
 import subprocess
 import tempfile
 import argparse
+import shutil
+import pathlib
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
@@ -571,6 +573,13 @@ def test_requirements(name, outfile, *, force=False):
         init_venv(host_python, tmpdir, outfile, pip_args=comments['pip_args'])
 
 
+def cleanup_pylint_build():
+    """Clean up pylint_checkers build files."""
+    path = pathlib.Path(__file__).parent / 'pylint_checkers' / 'build'
+    utils.print_col(f'$ rm -r {path}', 'blue')
+    shutil.rmtree(path)
+
+
 def main():
     """Re-compile the given (or all) requirement files."""
     args = parse_args()
@@ -584,6 +593,8 @@ def main():
         utils.print_title(name)
         outfile = build_requirements(name)
         test_requirements(name, outfile, force=args.force_test)
+        if name == 'pylint':
+            cleanup_pylint_build()
 
     utils.print_title('Testing via tox')
     if args.names and not args.force_test:
