@@ -7,7 +7,7 @@ javascript_escape() {
     # print the first argument in an escaped way, such that it can safely
     # be used within javascripts double quotes
     # shellcheck disable=SC2001
-    sed "s,[\\\\'\"],\\\\&,g" <<< "$1"
+    sed "s,[\\\\'\"\/],\\\\&,g" <<< "$1"
 }
 
 js() {
@@ -50,10 +50,14 @@ cat <<EOF
         }
     };
     var forms = document.getElementsByTagName("form");
-    for (i = 0; i < forms.length; i++) {
-        if (hasPasswordField(forms[i])) {
-            loadData2Form(forms[i]);
+    if("$(javascript_escape "${QUTE_URL}")" == window.location.href) {
+        for (i = 0; i < forms.length; i++) {
+            if (hasPasswordField(forms[i])) {
+                loadData2Form(forms[i]);
+            }
         }
+    } else {
+        alert("Secrets will not be inserted.\nUrl of this page and the one where the user script was started differ.");
     }
 EOF
 }
