@@ -11,9 +11,6 @@ pytest-mock
 pytest-qt
 pytest-rerunfailures
 
-## WORKAROUND for https://github.com/Bachmann1234/diff_cover/issues/249
-pluggy<1.0.0
-
 ## optional:
 # To test :debug-trace, gets skipped if hunter is not installed
 hunter
