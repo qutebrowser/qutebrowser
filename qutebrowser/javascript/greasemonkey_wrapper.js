@@ -22,11 +22,6 @@
 
     function GM_setValue(key, value) {
         checkKey(key, "GM_setValue");
-        if (typeof value !== "string" &&
-            typeof value !== "number" &&
-            typeof value !== "boolean") {
-          throw new Error(`GM_setValue requires the second parameter to be of type string, number or boolean, not '${typeof value}'`);
-        }
         localStorage.setItem(_qute_script_id + key, value);
     }
 
