@@ -3,7 +3,7 @@
 attrs==21.2.0
 beautifulsoup4==4.10.0
 certifi==2021.5.30
-charset-normalizer==2.0.4
+charset-normalizer==2.0.6
 cheroot==8.5.2
 click==8.0.1
 coverage==5.5
@@ -13,7 +13,7 @@ filelock==3.0.12
 Flask==2.0.1
 glob2==0.7
 hunter==3.3.8
-hypothesis==6.21.0
+hypothesis==6.21.6
 icdiff==2.0.4
 idna==3.2
 iniconfig==1.1.1
@@ -23,11 +23,11 @@ jaraco.functools==3.3.0
 Mako==1.1.5
 manhole==1.8.0
 # MarkupSafe==2.0.1
-more-itertools==8.9.0
+more-itertools==8.10.0
 packaging==21.0
 parse==1.19.0
 parse-type==0.5.2
-pluggy==0.13.1
+pluggy==1.0.0
 pprintpp==0.4.0
 py==1.10.0
 py-cpuinfo==8.0.0
@@ -43,7 +43,7 @@ pytest-instafail==0.4.2
 pytest-mock==3.6.1
 pytest-qt==4.0.2
 pytest-repeat==0.9.1
-pytest-rerunfailures==10.1
+pytest-rerunfailures==10.2
 pytest-xdist==2.3.0
 pytest-xvfb==2.0.0
 PyVirtualDisplay==2.2
