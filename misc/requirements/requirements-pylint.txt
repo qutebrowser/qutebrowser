@@ -22,5 +22,5 @@ requests==2.26.0
 six==1.16.0
 typed-ast==1.4.3 ; python_version<"3.8"
 uritemplate==3.0.1
-# urllib3==1.26.6
+# urllib3==1.26.7
 wrapt==1.11.2
