@@ -58,7 +58,7 @@ customizable.
 Using the link:commands{outfilesuffix}#set[`:set`] command and command completion, you
 can quickly set settings interactively, for example `:set tabs.position left`.
 
-<<patterns,URL patterns>> can be used via `
+<<patterns,URL patterns>> can be used via
 `:set --pattern *://example.com/* content.images false`, or with shorthand
 syntax for both argument and pattern, `:set -u example.com content.images
 false`.
