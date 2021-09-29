@@ -83,6 +83,8 @@ The following userscripts can be found on their own repositories.
   services (Invidious, Teddit, Nitter, Bibliogram, OpenStreetMap).
 - [CIAvash/qutebrowser-userscripts](https://github.com/CIAvash/qutebrowser-userscripts),
   various small userscripts written in Raku.
+- [bitwarden-rofi](https://github.com/haztecaso/bitwarden-rofi), rofi wrapper for bitwarden cli
+  interface using gpg instead of keyctl.
   
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/
