@@ -7,7 +7,9 @@ git+https://github.com/pallets/flask.git
 git+https://github.com/pallets/werkzeug.git  # transitive dep, but needed to work
 git+https://github.com/HypothesisWorks/hypothesis.git#subdirectory=hypothesis-python
 git+https://github.com/pytest-dev/pytest.git
-git+https://github.com/pytest-dev/pytest-bdd.git
+# Problematic: https://github.com/pytest-dev/pytest-bdd/issues/447
+# git+https://github.com/pytest-dev/pytest-bdd.git
+pytest-bdd
 git+https://github.com/ionelmc/pytest-benchmark.git
 git+https://github.com/pytest-dev/pytest-instafail.git
 git+https://github.com/pytest-dev/pytest-mock.git
