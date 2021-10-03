@@ -1545,7 +1545,7 @@ class CommandDispatcher:
         # :search-prev            with reverse -> down
         going_up = options['reverse'] ^ prev
 
-        if found:
+        if found.numberOfMatches() > 0:
             # Check if the scroll position got smaller and show info.
             if not going_up and tab.scroller.pos_px().y() < old_scroll_pos.y():
                 message.info("Search hit BOTTOM, continuing at TOP")
