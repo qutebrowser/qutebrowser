@@ -24,7 +24,7 @@ import dataclasses
 from typing import Mapping, Callable, MutableMapping, Union, Set, cast
 
 from PyQt6.QtCore import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
-from PyQt6.QtGui import QKeyEvent
+from PyQt6.QtGui import QKeySequence, QKeyEvent
 
 from qutebrowser.commands import runners
 from qutebrowser.keyinput import modeparsers, basekeyparser
@@ -296,7 +296,7 @@ class ModeManager(QObject):
 
         forward_unbound_keys = config.cache['input.forward_unbound_keys']
 
-        if match:
+        if match != QKeySequence.SequenceMatch.NoMatch:
             filter_this = True
         elif (parser.passthrough or forward_unbound_keys == 'all' or
               (forward_unbound_keys == 'auto' and is_non_alnum)):

@@ -427,7 +427,7 @@ class KeyInfo:
 
     def to_int(self) -> int:
         """Get the key as an integer (with key/modifiers)."""
-        return int(self.key) | int(self.modifiers)
+        return self.key | self.modifiers.value
 
 
 class KeySequence:
@@ -463,6 +463,8 @@ class KeySequence:
         """Convert a single key for QKeySequence."""
         #assert isinstance(key, (int, Qt.KeyboardModifier)), key
         #return int(key)
+        if isinstance(key, int):
+            return key
         return key.key()
 
     def __str__(self) -> str:
