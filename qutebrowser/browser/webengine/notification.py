@@ -679,7 +679,7 @@ class _ServerCapabilities:
 def _as_uint32(x: int) -> QVariant:
     """Convert the given int to an uint32 for DBus."""
     variant = QVariant(x)
-    successful = variant.convert(QVariant.Type.UInt)
+    successful = variant.convert(QMetaType(QMetaType.Type.UInt.value))
     assert successful
     return variant
 
@@ -934,7 +934,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         actions = []
         if self._capabilities.actions:
             actions = ['default', 'Activate']  # key, name
-        actions_arg = QDBusArgument(actions, QMetaType.Type.QStringList)
+        actions_arg = QDBusArgument(actions, QMetaType.Type.QStringList.value)
 
         origin_url_str = qt_notification.origin().toDisplayString()
         hints: Dict[str, Any] = {
@@ -949,7 +949,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             hints["x-kde-origin-name"] = origin_url_str
 
         icon = qt_notification.icon()
-        if icon.isNull():
+        if icon.isNull() or not bool(icon.rect()):
             filename = ':/icons/qutebrowser-64x64.png'
             icon = QImage(filename)
 
@@ -1027,6 +1027,9 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             # byteCount() is obsolete, but sizeInBytes() is only available with
             # SIP >= 5.3.0.
             size = qimage.byteCount()
+
+        if size == 0:
+            return None
 
         # Despite the spec not mandating this, many notification daemons mandate that
         # the last scanline does not have any padding bytes.

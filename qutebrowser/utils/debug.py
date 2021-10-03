@@ -125,7 +125,7 @@ def qenum_key(base: Type[_EnumValueType],
         meta_obj = base.staticMetaObject  # type: ignore[union-attr]
         idx = meta_obj.indexOfEnumerator(klass.__name__)
         meta_enum = meta_obj.enumerator(idx)
-        ret = meta_enum.valueToKey(int(value))  # type: ignore[arg-type]
+        ret = meta_enum.valueToKey(value.value)  # type: ignore[arg-type]
     except AttributeError:
         ret = None
 
@@ -135,7 +135,7 @@ def qenum_key(base: Type[_EnumValueType],
                 ret = name
                 break
         else:
-            ret = '0x{:04x}'.format(int(value))  # type: ignore[arg-type]
+            ret = '0x{:04x}'.format(value.value)  # type: ignore[arg-type]
 
     if add_base and hasattr(base, '__name__'):
         return '.'.join([base.__name__, ret])
