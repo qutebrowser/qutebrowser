@@ -106,9 +106,9 @@ def _version_key(v):
     always be sorted after all others (hence we return a "999" key).
     """
     try:
-        return tuple(int(v) for c in v.split('.'))
+        return tuple(int(c) for c in v.split('.'))
     except ValueError:
-        return 999
+        return (999,)
 
 
 def pyqt_versions() -> List[str]:
