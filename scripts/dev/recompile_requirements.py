@@ -170,7 +170,7 @@ CHANGELOG_URLS = {
     'check-manifest': 'https://github.com/mgedmin/check-manifest/blob/master/CHANGES.rst',
     'yamllint': 'https://github.com/adrienverge/yamllint/blob/master/CHANGELOG.rst',
     'pathspec': 'https://github.com/cpburnz/python-path-specification/blob/master/CHANGES.rst',
-    'filelock': 'https://github.com/benediktschmitt/py-filelock/commits/master',
+    'filelock': 'https://github.com/tox-dev/py-filelock/commits/main',
     'github3.py': 'https://github3py.readthedocs.io/en/master/release-notes/index.html',
     'manhole': 'https://github.com/ionelmc/python-manhole/blob/master/CHANGELOG.rst',
     'pycparser': 'https://github.com/eliben/pycparser/blob/master/CHANGES',
