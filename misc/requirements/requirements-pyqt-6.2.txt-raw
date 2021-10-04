@@ -1,0 +1,4 @@
+#@ filter: PyQt6 < 6.3
+#@ filter: PyQt6-WebEngine < 6.3
+PyQt6 >= 6.2, < 6.3
+PyQt6-WebEngine >= 6.2, < 6.3
