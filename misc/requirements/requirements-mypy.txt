@@ -18,4 +18,4 @@ toml==0.10.2
 types-dataclasses==0.1.7
 types-PyYAML==5.4.10
 typing-extensions==3.10.0.2
-zipp==3.5.0
+zipp==3.6.0

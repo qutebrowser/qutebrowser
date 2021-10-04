@@ -10,4 +10,4 @@ MarkupSafe==2.0.1
 Pygments==2.10.0
 PyYAML==5.4.1
 typing-extensions==3.10.0.2
-zipp==3.5.0
+zipp==3.6.0
