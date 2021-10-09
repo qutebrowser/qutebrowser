@@ -361,7 +361,6 @@ class NotificationBridgePresenter(QObject):
             log.misc.debug("Did not find matching notification, ignoring")
             return
 
-        self._focus_first_matching_tab(notification)
         try:
             notification.click()
         except RuntimeError:
@@ -369,6 +368,8 @@ class NotificationBridgePresenter(QObject):
             # https://www.riverbankcomputing.com/pipermail/pyqt/2020-May/042918.html
             log.misc.debug(f"Ignoring click request for notification {notification_id} "
                            "due to PyQt bug")
+            return
+        self._focus_first_matching_tab(notification)
 
     def _focus_first_matching_tab(self, notification: "QWebEngineNotification") -> None:
         for win_id in objreg.window_registry:
