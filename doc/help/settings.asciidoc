@@ -2669,7 +2669,7 @@ Default: +pass:[false]+
 === content.proxy
 Proxy to use.
 In addition to the listed values, you can use a `socks://...` or `http://...` URL.
-Note that with QtWebEngine, it will take a couple of seconds until the change is applied, if this value is changed at runtime.
+Note that with QtWebEngine, it will take a couple of seconds until the change is applied, if this value is changed at runtime. Authentication for SOCKS proxies isn't supported due to Chromium limitations.
 
 Type: <<types,Proxy>>
 

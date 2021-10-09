@@ -1060,7 +1060,8 @@ content.proxy:
     `http://...` URL.
 
     Note that with QtWebEngine, it will take a couple of seconds until the
-    change is applied, if this value is changed at runtime.
+    change is applied, if this value is changed at runtime. Authentication for
+    SOCKS proxies isn't supported due to Chromium limitations.
 
 content.proxy_dns_requests:
   default: true
