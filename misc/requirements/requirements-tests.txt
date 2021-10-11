@@ -2,24 +2,24 @@
 
 attrs==21.2.0
 beautifulsoup4==4.10.0
-certifi==2021.5.30
+certifi==2021.10.8
 charset-normalizer==2.0.6
 cheroot==8.5.2
-click==8.0.1
-coverage==6.0
+click==8.0.3
+coverage==6.0.1
 EasyProcess==0.3
 execnet==1.9.0
 filelock==3.3.0
-Flask==2.0.1
+Flask==2.0.2
 glob2==0.7
 hunter==3.3.8
-hypothesis==6.23.1
+hypothesis==6.23.2
 icdiff==2.0.4
 idna==3.2
 iniconfig==1.1.1
 itsdangerous==2.0.1
 jaraco.functools==3.3.0
-# Jinja2==3.0.1
+# Jinja2==3.0.2
 Mako==1.1.5
 manhole==1.8.0
 # MarkupSafe==2.0.1
@@ -57,4 +57,4 @@ toml==0.10.2
 tomli==1.2.1
 urllib3==1.26.7
 vulture==2.3
-Werkzeug==2.0.1
+Werkzeug==2.0.2
