@@ -81,7 +81,7 @@ CHANGELOG_URLS = {
     'attrs': 'https://www.attrs.org/en/stable/changelog.html',
     'Jinja2': 'https://jinja.palletsprojects.com/en/latest/changes/',
     'MarkupSafe': 'https://markupsafe.palletsprojects.com/en/latest/changes/',
-    'flake8': 'https://gitlab.com/pycqa/flake8/tree/master/docs/source/release-notes',
+    'flake8': 'https://github.com/PyCQA/flake8/tree/main/docs/source/release-notes',
     'flake8-docstrings': 'https://pypi.org/project/flake8-docstrings/',
     'flake8-debugger': 'https://github.com/JBKahn/flake8-debugger/',
     'flake8-builtins': 'https://github.com/gforcada/flake8-builtins/blob/master/CHANGES.rst',
