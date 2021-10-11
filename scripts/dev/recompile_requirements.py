@@ -98,6 +98,7 @@ CHANGELOG_URLS = {
     'pep8-naming': 'https://github.com/PyCQA/pep8-naming/blob/master/CHANGELOG.rst',
     'pycodestyle': 'https://github.com/PyCQA/pycodestyle/blob/master/CHANGES.txt',
     'pyflakes': 'https://github.com/PyCQA/pyflakes/blob/master/NEWS.rst',
+    'cached-property': 'https://github.com/pydanny/cached-property/blob/master/HISTORY.md',
     'cffi': 'https://github.com/python-cffi/release-doc/blob/master/doc/source/whatsnew.rst',
     'astroid': 'https://github.com/PyCQA/astroid/blob/2.4/ChangeLog',
     'pytest-instafail': 'https://github.com/pytest-dev/pytest-instafail/blob/master/CHANGES.rst',
