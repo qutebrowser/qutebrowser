@@ -90,6 +90,11 @@ def get_argparser():
                         "for more details. This is not needed anymore since "
                         "Qt 5.11 where the inspector is always enabled and "
                         "secure.")
+    parser.add_argument('--untrusted-args',
+                        action='store_true',
+                        help="Mark all following arguments as untrusted, which "
+                        "enforces that they are URLs/search terms (and not flags or "
+                        "commands)")
 
     parser.add_argument('--json-args', help=argparse.SUPPRESS)
     parser.add_argument('--temp-basedir-restarted', help=argparse.SUPPRESS)
@@ -185,7 +190,27 @@ def debug_flag_error(flag):
                                          .format(', '.join(valid_flags)))
 
 
+def _validate_untrusted_args(argv):
+    # NOTE: Do not use f-strings here, as this should run with older Python
+    # versions (so that a proper error can be displayed)
+    try:
+        untrusted_idx = argv.index('--untrusted-args')
+    except ValueError:
+        return
+
+    rest = argv[untrusted_idx + 1:]
+    if len(rest) > 1:
+        sys.exit(
+            "Found multiple arguments ({}) after --untrusted-args, "
+            "aborting.".format(' '.join(rest)))
+
+    for arg in rest:
+        if arg.startswith(('-', ':')):
+            sys.exit("Found {} after --untrusted-args, aborting.".format(arg))
+
+
 def main():
+    _validate_untrusted_args(sys.argv)
     parser = get_argparser()
     argv = sys.argv[1:]
     args = parser.parse_args(argv)
