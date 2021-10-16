@@ -357,7 +357,6 @@ Section "Register with Windows" SectionWindowsRegister
     StrCpy $2 "${PRODUCT_NAME}URL"
     StrCpy $3 "${PRODUCT_NAME} URL"
     Goto WriteRegHandler
-    !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\$2" "URL Protocol" ""
   ${endif}
 SectionEnd
 
