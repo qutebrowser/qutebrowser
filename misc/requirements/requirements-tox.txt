@@ -2,9 +2,9 @@
 
 backports.entry-points-selectable==1.1.0
 distlib==0.3.3
-filelock==3.3.0
+filelock==3.3.1
 packaging==21.0
-pip==21.2.4
+pip==21.3
 platformdirs==2.4.0
 pluggy==1.0.0
 py==1.10.0
