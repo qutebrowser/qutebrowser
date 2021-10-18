@@ -24,6 +24,7 @@ import functools
 import weakref
 import datetime
 import dataclasses
+import time
 from typing import (
     Any, Deque, List, Mapping, MutableMapping, MutableSequence, Optional, Tuple)
 
@@ -33,6 +34,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget, mainwindow
+from qutebrowser.misc import throttle
 from qutebrowser.browser import signalfilter, browsertab, history
 from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message, jinja, version)
@@ -219,6 +221,11 @@ class TabbedBrowser(QWidget):
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
+        # WORKAROUND for recentlyAudibleChanged being emitted without delay
+        # from the moment that the audio is paused
+        self._on_audio_changed_throttle = throttle.Throttle(
+            self._on_audio_changed, 2000, parent=self)
+
         # load_finished instead of load_started as WORKAROUND for
         # https://bugreports.qt.io/browse/QTBUG-65223
         self.cur_load_finished.connect(self._leave_modes_on_load)
@@ -363,7 +370,7 @@ class TabbedBrowser(QWidget):
         tab.audio.muted_changed.connect(
             functools.partial(self._on_audio_changed, tab))
         tab.audio.recently_audible_changed.connect(
-            functools.partial(self._on_audio_changed, tab))
+            functools.partial(self._delayed_recently_audible_changed, tab))
         tab.new_tab_requested.connect(self.tabopen)
         if not self.is_private:
             tab.history_item_triggered.connect(
@@ -911,6 +918,17 @@ class TabbedBrowser(QWidget):
         idx = self.widget.indexOf(tab)
         self.widget.update_tab_favicon(tab)
         self.widget.update_tab_title(idx)
+
+    def _delayed_recently_audible_changed(self, tab, _muted):
+        if tab.audio.is_recently_audible():
+            # Cancel and ignore any pending call to remove audible status [A]
+            self._on_audio_changed_throttle.cancel()
+            self._on_audio_changed_throttle._pending_call = None
+            self._on_audio_changed_throttle._last_call_ms = None
+        else:
+            # Fake a call, to delay the upcoming call
+            self._on_audio_changed_throttle._last_call_ms = int(time.monotonic() * 1000)
+        self._on_audio_changed_throttle(tab, _muted)
 
     def _on_audio_changed(self, tab, _muted):
         """Update audio field in tab when mute or recentlyAudible changed."""
