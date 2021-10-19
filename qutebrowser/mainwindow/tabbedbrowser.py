@@ -224,7 +224,7 @@ class TabbedBrowser(QWidget):
         # WORKAROUND for recentlyAudibleChanged being emitted without delay
         # from the moment that the audio is paused
         self._on_audio_changed_throttle = throttle.Throttle(
-            self._on_audio_changed, 2000, parent=self)
+            self._on_audio_changed, delay_ms=2000, parent=self)
 
         # load_finished instead of load_started as WORKAROUND for
         # https://bugreports.qt.io/browse/QTBUG-65223
