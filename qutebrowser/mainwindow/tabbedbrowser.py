@@ -221,8 +221,10 @@ class TabbedBrowser(QWidget):
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        # WORKAROUND for recentlyAudibleChanged being emitted without delay
-        # from the moment that the audio is paused
+        # Throttle calls to _on_audio_changed as WORKAROUND for recentlyAudibleChanged
+        # being emitted without delay from the moment that audio is dropped.
+        # delay_ms=2000 implements the intended two-second delay, specified at
+        # https://doc.qt.io/qt-5/qwebenginepage.html#recentlyAudibleChanged
         self._on_audio_changed_throttle = throttle.Throttle(
             self._on_audio_changed, delay_ms=2000, parent=self)
 
