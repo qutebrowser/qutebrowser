@@ -670,7 +670,8 @@ def yaml_load(f: Union[str, IO[str]]) -> Any:
         try:
             data = yaml.load(f, Loader=YamlLoader)
         except ValueError as e:
-            if str(e).startswith('could not convert string to float'):
+            pyyaml_error = 'could not convert string to float'
+            if str(e).startswith(pyyaml_error):  # pragma: no cover
                 # WORKAROUND for https://github.com/yaml/pyyaml/issues/168
                 raise yaml.YAMLError(e)
             raise  # pragma: no cover
