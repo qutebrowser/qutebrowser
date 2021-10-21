@@ -65,6 +65,9 @@ show it.
 *--desktop-file-name* 'DESKTOP_FILE_NAME'::
     Set the base name of the desktop entry for this application. Used to set the app_id under Wayland. See https://doc.qt.io/qt-5/qguiapplication.html#desktopFileName-prop
 
+*--untrusted-args*::
+    Mark all following arguments as untrusted, which enforces that they are URLs/search terms (and not flags or commands)
+
 === debug arguments
 *-l* '{critical,error,warning,info,debug,vdebug}', *--loglevel* '{critical,error,warning,info,debug,vdebug}'::
     Override the configured console loglevel
