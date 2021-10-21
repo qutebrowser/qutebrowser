@@ -19,6 +19,14 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v2.4.0 (unreleased)
 -------------------
 
+Security
+~~~~~~~~
+
+- **CVE-2021-41146**: Fix arbitrary command execution on Windows via URL handler
+  argument injection. See the
+  https://github.com/qutebrowser/qutebrowser/security/advisories/GHSA-vw27-fwjf-5qxm[security advisory]
+  for details.
+
 Added
 ~~~~~
 
