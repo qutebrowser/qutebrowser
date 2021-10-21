@@ -65,6 +65,9 @@ show it.
 *--enable-webengine-inspector*::
     Enable the web inspector / devtools for QtWebEngine. Note that this is a SECURITY RISK and you should not visit untrusted websites with the inspector turned on. See https://bugreports.qt.io/browse/QTBUG-50725 for more details. This is not needed anymore since Qt 5.11 where the inspector is always enabled and secure.
 
+*--untrusted-args*::
+    Mark all following arguments as untrusted, which enforces that they are URLs/search terms (and not flags or commands)
+
 === debug arguments
 *-l* '{critical,error,warning,info,debug,vdebug}', *--loglevel* '{critical,error,warning,info,debug,vdebug}'::
     Override the configured console loglevel
