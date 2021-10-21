@@ -225,6 +225,25 @@ def patch_mac_app():
     with open(plist_path, "wb") as f:
         plistlib.dump(plist_data, f)
 
+    # Replace some duplicate files by symlinks
+    framework_path = os.path.join(app_path, 'Contents', 'MacOS', 'PyQt5',
+                                  'Qt', 'lib', 'QtWebEngineCore.framework')
+
+    core_lib = os.path.join(framework_path, 'Versions', '5', 'QtWebEngineCore')
+    os.remove(core_lib)
+    core_target = os.path.join(*[os.pardir] * 7, 'MacOS', 'QtWebEngineCore')
+    os.symlink(core_target, core_lib)
+
+    framework_resource_path = os.path.join(framework_path, 'Resources')
+    for name in os.listdir(framework_resource_path):
+        file_path = os.path.join(framework_resource_path, name)
+        target = os.path.join(*[os.pardir] * 5, name)
+        if os.path.isdir(file_path):
+            shutil.rmtree(file_path)
+        else:
+            os.remove(file_path)
+        os.symlink(target, file_path)
+
 
 INFO_PLIST_UPDATES = {
     'CFBundleVersion': qutebrowser.__version__,
