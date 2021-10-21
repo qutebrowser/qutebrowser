@@ -669,12 +669,12 @@ def yaml_load(f: Union[str, IO[str]]) -> Any:
             r"of from 'collections\.abc' is deprecated.*"):
         try:
             data = yaml.load(f, Loader=YamlLoader)
-        except ValueError as e:
+        except ValueError as e:  # pragma: no cover
             pyyaml_error = 'could not convert string to float'
-            if str(e).startswith(pyyaml_error):  # pragma: no cover
+            if str(e).startswith(pyyaml_error):
                 # WORKAROUND for https://github.com/yaml/pyyaml/issues/168
                 raise yaml.YAMLError(e)
-            raise  # pragma: no cover
+            raise
 
     end = datetime.datetime.now()
 
