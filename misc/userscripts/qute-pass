@@ -165,7 +165,10 @@ def _run_pass(pass_arguments):
 
 
 def pass_(path):
-    return _run_pass(['show', path])
+    args = ['show', path]
+    if arguments.mode == "gopass":
+        args = ['show', '-o', path]
+    return _run_pass(args)
 
 
 def pass_otp(path):
