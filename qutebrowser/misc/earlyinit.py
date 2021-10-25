@@ -111,17 +111,21 @@ def init_faulthandler(fileobj=sys.__stderr__):
     Args:
         fobj: An opened file object to write the traceback to.
     """
-    if fileobj is None:
+    try:
+        faulthandler.enable(fileobj)
+    except (RuntimeError, AttributeError) as e:
         # When run with pythonw.exe, sys.__stderr__ can be None:
         # https://docs.python.org/3/library/sys.html#sys.__stderr__
-        # If we'd enable faulthandler in that case, we just get a weird
-        # exception, so we don't enable faulthandler if we have no stdout.
+        #
+        # With PyInstaller, it can be a NullWriter raising AttributeError on
+        # fileno: https://github.com/pyinstaller/pyinstaller/issues/4481
         #
         # Later when we have our data dir available we re-enable faulthandler
         # to write to a file so we can display a crash to the user at the next
         # start.
+        log.debug(f"Failed to enable early faulthandler: {e}", exc_info=True)
         return
-    faulthandler.enable(fileobj)
+
     if (hasattr(faulthandler, 'register') and hasattr(signal, 'SIGUSR1') and
             sys.stderr is not None):
         # If available, we also want a traceback on SIGUSR1.
