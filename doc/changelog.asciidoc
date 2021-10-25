@@ -15,6 +15,16 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+[[v2.4.1]]
+v2.4.1 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- Speculative fix for an immediate crash at start with the macOS/Windows
+  binaries (in certain rare environments).
+
 [[v2.4.0]]
 v2.4.0 (2021-10-21)
 -------------------
