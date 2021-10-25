@@ -4,6 +4,6 @@ build==0.7.0
 check-manifest==0.47
 packaging==21.0
 pep517==0.12.0
-pyparsing==2.4.7
+pyparsing==3.0.1
 toml==0.10.2
 tomli==1.2.1
