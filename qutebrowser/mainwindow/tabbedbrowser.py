@@ -25,7 +25,7 @@ import weakref
 import datetime
 import dataclasses
 from typing import (
-    Any, Deque, List, Mapping, MutableMapping, MutableSequence, Optional, Tuple)
+    Any, Deque, Dict, List, Mapping, MutableMapping, MutableSequence, Optional, Tuple)
 
 from PyQt5.QtWidgets import QSizePolicy, QWidget, QApplication
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
@@ -219,7 +219,7 @@ class TabbedBrowser(QWidget):
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        self._audio_muted_timers: Mapping[QWidget, QTimer] = {}
+        self._audio_muted_timers: Dict[QWidget, QTimer] = {}
 
         # load_finished instead of load_started as WORKAROUND for
         # https://bugreports.qt.io/browse/QTBUG-65223
