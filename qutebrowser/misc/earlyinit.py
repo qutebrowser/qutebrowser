@@ -123,7 +123,9 @@ def init_faulthandler(fileobj=sys.__stderr__):
         # Later when we have our data dir available we re-enable faulthandler
         # to write to a file so we can display a crash to the user at the next
         # start.
-        log.debug(f"Failed to enable early faulthandler: {e}", exc_info=True)
+        #
+        # Note that we don't have any logging initialized yet at this point, so
+        # this is a silent error.
         return
 
     if (hasattr(faulthandler, 'register') and hasattr(signal, 'SIGUSR1') and
