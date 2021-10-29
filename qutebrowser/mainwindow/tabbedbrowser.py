@@ -25,7 +25,7 @@ import weakref
 import datetime
 import dataclasses
 from typing import (
-    Any, Deque, Dict, List, Mapping, MutableMapping, MutableSequence, Optional, Tuple)
+    Any, Deque, List, Mapping, MutableMapping, MutableSequence, Optional, Tuple)
 
 from PyQt5.QtWidgets import QSizePolicy, QWidget, QApplication
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
@@ -219,8 +219,6 @@ class TabbedBrowser(QWidget):
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        self._audio_muted_timers: Dict[QWidget, QTimer] = {}
-
         # load_finished instead of load_started as WORKAROUND for
         # https://bugreports.qt.io/browse/QTBUG-65223
         self.cur_load_finished.connect(self._leave_modes_on_load)
@@ -365,7 +363,7 @@ class TabbedBrowser(QWidget):
         tab.audio.muted_changed.connect(
             functools.partial(self._on_audio_changed, tab))
         tab.audio.recently_audible_changed.connect(
-            functools.partial(self._delayed_recently_audible_changed, tab))
+            functools.partial(self._on_audio_changed, tab))
         tab.new_tab_requested.connect(self.tabopen)
         if not self.is_private:
             tab.history_item_triggered.connect(
@@ -913,33 +911,6 @@ class TabbedBrowser(QWidget):
         idx = self.widget.indexOf(tab)
         self.widget.update_tab_favicon(tab)
         self.widget.update_tab_title(idx)
-
-    # Delay calls to _on_audio_changed as WORKAROUND for recentlyAudibleChanged being
-    # emitted without delay from the moment that audio is dropped.
-    def _delayed_recently_audible_changed(self, tab, _muted):
-        # implements the intended two-second delay, specified at
-        # https://doc.qt.io/qt-5/qwebenginepage.html#recentlyAudibleChanged
-        delay_ms = 2000
-        # Get this tab's timer if available
-        timer = self._audio_muted_timers.pop(tab, None)
-        # Stop any active timer and immediately display [A] if tab is audible,
-        # otherwise start a timer to update audio field
-        if tab.audio.is_recently_audible():
-            if timer and timer.isActive():
-                timer.stop()
-            self._on_audio_changed(tab, _muted)
-        else:
-            # Ignore all subsequent calls while the tab is muted with an active timer
-            if timer and timer.isActive():
-                self._audio_muted_timers[tab] = timer
-                return
-            new_timer = QTimer(self)
-            new_timer.setSingleShot(True)
-            new_timer.timeout.connect(
-                functools.partial(self._on_audio_changed, tab, _muted))
-            # Store timer in case audio starts within the delay time window
-            self._audio_muted_timers[tab] = new_timer
-            new_timer.start(delay_ms)
 
     def _on_audio_changed(self, tab, _muted):
         """Update audio field in tab when mute or recentlyAudible changed."""
