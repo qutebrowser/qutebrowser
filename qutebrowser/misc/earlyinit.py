@@ -113,7 +113,7 @@ def init_faulthandler(fileobj=sys.__stderr__):
     """
     try:
         faulthandler.enable(fileobj)
-    except (RuntimeError, AttributeError) as e:
+    except (RuntimeError, AttributeError):
         # When run with pythonw.exe, sys.__stderr__ can be None:
         # https://docs.python.org/3/library/sys.html#sys.__stderr__
         #
