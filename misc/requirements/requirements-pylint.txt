@@ -7,7 +7,7 @@ charset-normalizer==2.0.7
 cryptography==35.0.0
 Deprecated==1.2.13
 future==0.18.2
-github3.py==2.0.0
+github3.py==3.0.0
 idna==3.3
 isort==4.3.21
 jwcrypto==1.0
