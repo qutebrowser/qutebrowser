@@ -246,7 +246,13 @@ class WebEngineSearch(browsertab.AbstractSearch):
         # Don't go to next entry on duplicate search
         if self.text == text and self.search_displayed:
             log.webview.debug("Ignoring duplicate search request"
-                              " for {}".format(text))
+                              " for {}, but resetting flags".format(text))
+            # Reset flags
+            self._flags = self._empty_flags()
+            if self._is_case_sensitive(ignore_case):
+                self._flags |= QWebEnginePage.FindCaseSensitively
+            if reverse:
+                self._flags |= QWebEnginePage.FindBackward
             return
 
         self.text = text
