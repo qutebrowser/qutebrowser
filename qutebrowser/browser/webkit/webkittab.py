@@ -150,7 +150,16 @@ class WebKitSearch(browsertab.AbstractSearch):
         # Don't go to next entry on duplicate search
         if self.text == text and self.search_displayed:
             log.webview.debug("Ignoring duplicate search request"
-                              " for {}".format(text))
+                              " for {}, but resetting flags".format(text))
+
+            # Reset flags
+            self._flags = self._empty_flags()
+            if self._is_case_sensitive(ignore_case):
+                self._flags |= QWebPage.FindCaseSensitively
+            if reverse:
+                self._flags |= QWebPage.FindBackward
+            if wrap:
+                self._flags |= QWebPage.FindWrapsAroundDocument
             return
 
         # Clear old search results, this is done automatically on QtWebEngine.
