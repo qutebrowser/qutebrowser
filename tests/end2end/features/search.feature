@@ -71,7 +71,7 @@ Feature: Searching on a page
         When I run :search foo
         And I wait for "search found foo" in the log
         And I run :search foo
-        Then "Ignoring duplicate search request for foo" should be logged
+        Then "Ignoring duplicate search request for foo, but resetting flags" should be logged
 
     ## search.ignore_case
 
