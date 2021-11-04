@@ -108,6 +108,16 @@ class WebKitSearch(browsertab.AbstractSearch):
     def _empty_flags(self):
         return QWebPage.FindFlags(0)  # type: ignore[call-overload]
 
+    def _args_to_flags(self, reverse, ignore_case, wrap):
+        flags = self._empty_flags()
+        if self._is_case_sensitive(ignore_case):
+            flags |= QWebPage.FindCaseSensitively
+        if reverse:
+            flags |= QWebPage.FindBackward
+        if wrap:
+            flags |= QWebPage.FindWrapsAroundDocument
+        return flags
+
     def _call_cb(self, callback, found, text, flags, caller):
         """Call the given callback if it's non-None.
 
@@ -151,15 +161,7 @@ class WebKitSearch(browsertab.AbstractSearch):
         if self.text == text and self.search_displayed:
             log.webview.debug("Ignoring duplicate search request"
                               " for {}, but resetting flags".format(text))
-
-            # Reset flags
-            self._flags = self._empty_flags()
-            if self._is_case_sensitive(ignore_case):
-                self._flags |= QWebPage.FindCaseSensitively
-            if reverse:
-                self._flags |= QWebPage.FindBackward
-            if wrap:
-                self._flags |= QWebPage.FindWrapsAroundDocument
+            self._flags = self._args_to_flags(reverse, ignore_case, reverse)
             return
 
         # Clear old search results, this is done automatically on QtWebEngine.
@@ -167,13 +169,7 @@ class WebKitSearch(browsertab.AbstractSearch):
 
         self.text = text
         self.search_displayed = True
-        self._flags = self._empty_flags()
-        if self._is_case_sensitive(ignore_case):
-            self._flags |= QWebPage.FindCaseSensitively
-        if reverse:
-            self._flags |= QWebPage.FindBackward
-        if wrap:
-            self._flags |= QWebPage.FindWrapsAroundDocument
+        self._flags = self._args_to_flags(reverse, ignore_case, wrap)
         # We actually search *twice* - once to highlight everything, then again
         # to get a mark so we can navigate.
         found = self._widget.findText(text, self._flags)

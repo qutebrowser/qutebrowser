@@ -200,6 +200,14 @@ class WebEngineSearch(browsertab.AbstractSearch):
     def _empty_flags(self):
         return QWebEnginePage.FindFlags(0)  # type: ignore[call-overload]
 
+    def _args_to_flags(self, reverse, ignore_case):
+        flags = self._empty_flags()
+        if self._is_case_sensitive(ignore_case):
+            flags |= QWebEnginePage.FindCaseSensitively
+        if reverse:
+            flags |= QWebEnginePage.FindBackward
+        return flags
+
     def connect_signals(self):
         self._wrap_handler.connect_signal(self._widget.page())
 
@@ -247,22 +255,13 @@ class WebEngineSearch(browsertab.AbstractSearch):
         if self.text == text and self.search_displayed:
             log.webview.debug("Ignoring duplicate search request"
                               " for {}, but resetting flags".format(text))
-            # Reset flags
-            self._flags = self._empty_flags()
-            if self._is_case_sensitive(ignore_case):
-                self._flags |= QWebEnginePage.FindCaseSensitively
-            if reverse:
-                self._flags |= QWebEnginePage.FindBackward
+            self._flags = self._args_to_flags(reverse, ignore_case)
             return
 
         self.text = text
-        self._flags = self._empty_flags()
+        self._flags = self._args_to_flags(reverse, ignore_case)
         self._wrap_handler.reset_match_data()
         self._wrap_handler.flag_wrap = wrap
-        if self._is_case_sensitive(ignore_case):
-            self._flags |= QWebEnginePage.FindCaseSensitively
-        if reverse:
-            self._flags |= QWebEnginePage.FindBackward
 
         self._find(text, self._flags, result_cb, 'search')
 
