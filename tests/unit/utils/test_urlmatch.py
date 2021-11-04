@@ -42,19 +42,23 @@ from qutebrowser.utils import urlmatch
     ### Chromium: kMissingSchemeSeparator
     ## TEST(ExtensionURLPatternTest, ParseInvalid)
     # ("http", "No scheme given"),
-    ("http:", "Invalid port: Port is empty"),
-    ("http:/", "Invalid port: Port is empty"),
-    ("about://", "Pattern without path"),
-    ("http:/bar", "Invalid port: Port is empty"),
+    pytest.param("http:", "Invalid port: Port is empty", id='scheme-no-slash'),
+    pytest.param("http:/", "Invalid port: Port is empty", id='scheme-single-slash'),
+    pytest.param("about://", "Pattern without path", id='scheme-no-path'),
+    pytest.param(
+        "http:/bar",
+        "Invalid port: Port is empty",
+        id='scheme-single-slash-path',
+    ),
 
     ### Chromium: kEmptyHost
     ## TEST(ExtensionURLPatternTest, ParseInvalid)
-    ("http://", "Pattern without host"),
-    ("http:///", "Pattern without host"),
-    ("http://:1234/", "Pattern without host"),
-    ("http://*./", "Pattern without host"),
+    pytest.param("http://", "Pattern without host", id='host-double-slash'),
+    pytest.param("http:///", "Pattern without host", id='host-triple-slash'),
+    pytest.param("http://:1234/", "Pattern without host", id='host-port'),
+    pytest.param("http://*./", "Pattern without host", id='host-pattern'),
     ## TEST(ExtensionURLPatternTest, IPv6Patterns)
-    ("http://[]:8888/*", "Pattern without host"),
+    pytest.param("http://[]:8888/*", "Pattern without host", id='host-ipv6'),
 
     ### Chromium: kEmptyPath
     ## TEST(ExtensionURLPatternTest, ParseInvalid)
@@ -63,48 +67,125 @@ from qutebrowser.utils import urlmatch
 
     ### Chromium: kInvalidHost
     ## TEST(ExtensionURLPatternTest, ParseInvalid)
-    ("http://\0www/", "May not contain NUL byte"),
+    pytest.param("http://\0www/", "May not contain NUL byte", id='host-nul'),
     ## TEST(ExtensionURLPatternTest, IPv6Patterns)
     # No closing bracket (`]`).
-    ("http://[2607:f8b0:4005:805::200e/*", "Invalid IPv6 URL"),
+    pytest.param(
+        "http://[2607:f8b0:4005:805::200e/*",
+        "Invalid IPv6 URL",
+        id='host-ipv6-no-closing',
+    ),
     # Two closing brackets (`]]`).
-    pytest.param("http://[2607:f8b0:4005:805::200e]]/*", "Invalid IPv6 URL", marks=pytest.mark.xfail(reason="https://bugs.python.org/issue34360")),
+    pytest.param(
+        "http://[2607:f8b0:4005:805::200e]]/*",
+        "Invalid IPv6 URL",
+        marks=pytest.mark.xfail(reason="https://bugs.python.org/issue34360"),
+        id='host-ipv6-two-closing',
+    ),
     # Two open brackets (`[[`).
-    ("http://[[2607:f8b0:4005:805::200e]/*", r"""Expected '\]' to match '\[' in hostname; source was "\[2607:f8b0:4005:805::200e"; host = """""),
+    pytest.param(
+        "http://[[2607:f8b0:4005:805::200e]/*",
+        r"""Expected '\]' to match '\[' in hostname; source was "\[2607:f8b0:4005:805::200e"; host = """"",
+        id='host-ipv6-two-open',
+    ),
     # Too few colons in the last chunk.
-    ("http://[2607:f8b0:4005:805:200e]/*", 'Invalid IPv6 address; source was "2607:f8b0:4005:805:200e"; host = ""'),
+    pytest.param(
+        "http://[2607:f8b0:4005:805:200e]/*",
+        'Invalid IPv6 address; source was "2607:f8b0:4005:805:200e"; host = ""',
+        id='host-ipv6-colons',
+    ),
     # Non-hex piece.
-    ("http://[2607:f8b0:4005:805:200e:12:bogus]/*", 'Invalid IPv6 address; source was "2607:f8b0:4005:805:200e:12:bogus"; host = ""'),
+    pytest.param(
+        "http://[2607:f8b0:4005:805:200e:12:bogus]/*",
+        'Invalid IPv6 address; source was "2607:f8b0:4005:805:200e:12:bogus"; host = ""',
+        id='host-ipv6-non-hex',
+    ),
 
     ### Chromium: kInvalidHostWildcard
     ## TEST(ExtensionURLPatternTest, ParseInvalid)
-    ("http://*foo/bar", "Invalid host wildcard"),
-    ("http://foo.*.bar/baz", "Invalid host wildcard"),
-    ("http://fo.*.ba:123/baz", "Invalid host wildcard"),
-    ("http://foo.*/bar", "Invalid host wildcard"),
+    pytest.param("http://*foo/bar", "Invalid host wildcard", id='host-wildcard-no-dot'),
+    pytest.param(
+        "http://foo.*.bar/baz",
+        "Invalid host wildcard",
+        id='host-wildcard-middle',
+    ),
+    pytest.param(
+        "http://fo.*.ba:123/baz",
+        "Invalid host wildcard",
+        id='host-wildcard-middle-port',
+    ),
+    pytest.param("http://foo.*/bar", "Invalid host wildcard", id='host-wildcard-end'),
 
     ### Chromium: kInvalidPort
     ## TEST(ExtensionURLPatternTest, Ports)
-    ("http://foo:/", "Invalid port: Port is empty"),
-    ("http://*.foo:/", "Invalid port: Port is empty"),
-    ("http://foo:com/", "Invalid port: .* 'com'"),
-    ("http://foo:123456/", "Invalid port: Port out of range 0-65535"),
-    ("http://foo:80:80/monkey", "Invalid port: .* '80:80'"),
-    ("chrome://foo:1234/bar", "Ports are unsupported with chrome scheme"),
+    pytest.param("http://foo:/", "Invalid port: Port is empty", id='port-empty'),
+    pytest.param(
+        "http://*.foo:/",
+        "Invalid port: Port is empty",
+        id='port-empty-wildcard',
+    ),
+    pytest.param("http://foo:com/", "Invalid port: .* 'com'", id='port-alpha'),
+    pytest.param(
+        "http://foo:123456/",
+        "Invalid port: Port out of range 0-65535",
+        id='port-range',
+    ),
+    pytest.param(
+        "http://foo:80:80/monkey",
+        "Invalid port: .* '80:80'",
+        id='port-double',
+    ),
+    pytest.param(
+        "chrome://foo:1234/bar",
+        "Ports are unsupported with chrome scheme",
+        id='port-chrome',
+    ),
     # No port specified, but port separator.
-    ("http://[2607:f8b0:4005:805::200e]:/*", "Invalid port: Port is empty"),
+    pytest.param(
+        "http://[2607:f8b0:4005:805::200e]:/*",
+        "Invalid port: Port is empty",
+        id='port-empty-ipv6',
+    ),
 
     ### Additional tests
-    ("http://[", "Invalid IPv6 URL"),
-    ("http://[fc2e::bb88::edac]", 'Invalid IPv6 address; source was "fc2e::bb88::edac"; host = ""'),
-    ("http://[fc2e:0e35:bb88::edac:fc2e:0e35:bb88:edac]", 'Invalid IPv6 address; source was "fc2e:0e35:bb88::edac:fc2e:0e35:bb88:edac"; host = ""'),
-    ("http://[fc2e:0e35:bb88:af:edac:fc2e:0e35:bb88:edac]", 'Invalid IPv6 address; source was "fc2e:0e35:bb88:af:edac:fc2e:0e35:bb88:edac"; host = ""'),
-    ("http://[127.0.0.1:fc2e::bb88:edac]", r'Invalid IPv6 address; source was "127\.0\.0\.1:fc2e::bb88:edac'),
-    ("http://[fc2e::bb88", "Invalid IPv6 URL"),
-    ("http://[fc2e:bb88:edac]", 'Invalid IPv6 address; source was "fc2e:bb88:edac"; host = ""'),
-    ("http://[fc2e:bb88:edac::z]", 'Invalid IPv6 address; source was "fc2e:bb88:edac::z"; host = ""'),
-    ("http://[fc2e:bb88:edac::2]:2a2", "Invalid port: .* '2a2'"),
-    ("://", "Missing scheme"),
+    pytest.param("http://[", "Invalid IPv6 URL", id='ipv6-single-open'),
+    pytest.param(
+        "http://[fc2e::bb88::edac]",
+        'Invalid IPv6 address; source was "fc2e::bb88::edac"; host = ""',
+        id='ipv6-double-double',
+    ),
+    pytest.param(
+        "http://[fc2e:0e35:bb88::edac:fc2e:0e35:bb88:edac]",
+        'Invalid IPv6 address; source was "fc2e:0e35:bb88::edac:fc2e:0e35:bb88:edac"; host = ""',
+        id='ipv6-long-double',
+    ),
+    pytest.param(
+        "http://[fc2e:0e35:bb88:af:edac:fc2e:0e35:bb88:edac]",
+        'Invalid IPv6 address; source was "fc2e:0e35:bb88:af:edac:fc2e:0e35:bb88:edac"; host = ""',
+        id='ipv6-long',
+    ),
+    pytest.param(
+        "http://[127.0.0.1:fc2e::bb88:edac]",
+        r'Invalid IPv6 address; source was "127\.0\.0\.1:fc2e::bb88:edac',
+        id='ipv6-ipv4',
+    ),
+    pytest.param("http://[fc2e::bb88", "Invalid IPv6 URL", id='ipv6-trailing'),
+    pytest.param(
+        "http://[fc2e:bb88:edac]",
+        'Invalid IPv6 address; source was "fc2e:bb88:edac"; host = ""',
+        id='ipv6-short',
+    ),
+    pytest.param(
+        "http://[fc2e:bb88:edac::z]",
+        'Invalid IPv6 address; source was "fc2e:bb88:edac::z"; host = ""',
+        id='ipv6-z',
+    ),
+    pytest.param(
+        "http://[fc2e:bb88:edac::2]:2a2",
+        "Invalid port: .* '2a2'",
+        id='ipv6-port',
+    ),
+    pytest.param("://", "Missing scheme", id='scheme-naked'),
 ])
 def test_invalid_patterns(pattern, error):
     with pytest.raises(urlmatch.ParseError, match=error):
