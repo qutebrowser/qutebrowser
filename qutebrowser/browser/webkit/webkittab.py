@@ -161,7 +161,7 @@ class WebKitSearch(browsertab.AbstractSearch):
         if self.text == text and self.search_displayed:
             log.webview.debug("Ignoring duplicate search request"
                               " for {}, but resetting flags".format(text))
-            self._flags = self._args_to_flags(reverse, ignore_case, reverse)
+            self._flags = self._args_to_flags(reverse, ignore_case, wrap)
             return
 
         # Clear old search results, this is done automatically on QtWebEngine.
