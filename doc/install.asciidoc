@@ -241,8 +241,8 @@ as `org.qutebrowser.qutebrowser`.
 
 NOTE: The Flatpak package is
 https://github.com/flathub/org.qutebrowser.qutebrowser/issues/8#issuecomment-799579975[looking for (co-)maintainers].
-The package recently was updated after being out of date for multiple years. It
-currently (March 2021) is up to date again. If that situation changes, consider
+The package recently was updated after being out of date for several months. It
+currently (October 2021) is up to date again. If that situation changes, consider
 to <<tox,install qutebrowser in a virtualenv>> instead, which is one of the
 officially maintained options and will always be up-to-date.
 
