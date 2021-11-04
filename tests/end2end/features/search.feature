@@ -89,7 +89,7 @@ Feature: Searching on a page
         And I wait for "Ignoring duplicate search request for baz, but resetting flags" in the log
         And I run :search-next
         And I wait for "next_result found baz" in the log
-        Then "Baz" should be found
+        Then "baz" should be found
 
     ## search.ignore_case
 
