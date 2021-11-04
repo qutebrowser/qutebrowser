@@ -37,6 +37,7 @@ from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import urlmatch
 
+# pylint: disable=line-too-long
 
 @pytest.mark.parametrize('pattern, error', [
     ### Chromium: kMissingSchemeSeparator
@@ -190,6 +191,8 @@ from qutebrowser.utils import urlmatch
 def test_invalid_patterns(pattern, error):
     with pytest.raises(urlmatch.ParseError, match=error):
         urlmatch.UrlPattern(pattern)
+
+# pylint: enable=line-too-long
 
 
 @pytest.mark.parametrize('host', ['.', ' ', ' .', '. ', '. .', '. . .', ' . '])
