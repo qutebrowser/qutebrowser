@@ -10,25 +10,42 @@ var cset = function(option, value) {
   xhr.open("GET", url);
   xhr.send();
 }
+
+let configVal;
+let inputId;
+let input;
+let currentVal;
 {% endblock %}
 
 {% block style %}
-table { border: 1px solid grey; border-collapse: collapse; }
+table { border: hidden; border-spacing: 10px; }
+tbody tr:nth-child(odd) { background: #eaf4fb; }
 pre { margin: 2px; }
-th, td { border: 1px solid grey; padding: 0px 5px; }
-th { background: lightgrey; }
+th, td { border: hidden; }
+th { background: #a6dfff; font-weight: normal; padding: 10px; text-align: left; 
+  border-radius: 5px; font-size: 1.5rem; color: #084c88; }
+td { padding: 5px 5px; }
 th pre { color: grey; text-align: left; }
-input { width: 98%; }
-.setting { width: 75%; }
+input { width: 98%; font-size: 0.9rem; font-family: DejaVu, serif; box-sizing: border-box;
+  border-radius: 4px; border: 1px solid #01cdd0; padding: 8px; }
+input:focus { outline: none; border: 2px solid #7a589ea6; }
+.setting { width: 60%; }
+input[type="radio"] { position: absolute; opacity: 1%; width: min-content; margin: 0; }
+.valid_value { text-align: center; }
+label { display: inline-flex; ; cursor: pointer; position: relative; 
+  background-color: #454545; color: white; padding: 5px 10px; 
+  border-radius: 5px; margin-bottom: 2px; }
+input[type="radio"]:checked + label { background-color: #a6dfff; color: #084c88; }
 .value { width: 25%; text-align: center; }
 .noscript, .noscript-text { color:red; }
 .noscript-text { margin-bottom: 5cm; }
-.option_description { margin: .5ex 0; color: grey; font-size: 80%; font-style: italic; white-space: pre-line; }
+.option_description { margin: .5ex 0; color: grey; font-size: 80%; font-style: italic; 
+  white-space: pre-line; }
+.current-setting { font-family: monospace; font-size: 1.2rem; }
 {% endblock %}
 
 {% block content %}
 <noscript><h1 class="noscript">View Only</h1><p class="noscript-text">Changing settings requires javascript to be enabled!</p></noscript>
-<header><h1>{{ title }}</h1></header>
 <table>
     <tr>
         <th>Setting</th>
@@ -37,18 +54,43 @@ input { width: 98%; }
   {% for option in configdata.DATA.values()|sort(attribute='name') if not option.no_autoconfig %}
     <tr>
       <!-- FIXME: convert to string properly -->
-      <td class="setting">{{ option.name }} (Current: {{ confget(option.name) | string |truncate(100) }})
+      <td class="setting">{{ option.name }} (Current: <span class="current-setting">{{ confget(option.name) | string |truncate(100) }}</span>)
         {% if option.description %}
           <p class="option_description">{{ option.description|e }}</p>
         {% endif %}
       </td>
-      <td class="value">
-        <input type="text"
-          id="input-{{ option.name }}"
-          onblur="cset('{{ option.name }}', this.value)"
-          value="{{ confget(option.name) }}">
-        </input>
-      </td>
+      {% if option.typ.valid_values is not none %}
+        <td class="valid_value">
+          {% for value in option.typ.valid_values.values %}
+	    <input type="radio" id="input-{{ option.name }}-{{ loop.index0 }}"
+	      name="{{ option.name }}" value="{{ value }}"
+	      onclick="cset('{{ option.name }}', this.value)">
+	    <label for="input-{{ option.name }}-{{ loop.index0 }}">
+	      {{ value }}
+	    </label>
+	    <script type="text/javascript">
+	      function checkInput() {
+	        configVal = '{{ confget(option.name) }}'
+	        currentVal = '{{ value }}'
+	        inputId = "input-{{ option.name }}-{{ loop.index0 }}"
+	        input = document.getElementById(inputId)
+	        
+	        if (configVal === currentVal) { input.checked = true }
+	      }
+	      
+	      checkInput()
+	    </script>
+	  {% endfor %}
+	</td>
+      {% else %}
+        <td class="value">
+	  <input type="text"
+	    id="input-{{ option.name }}"
+	    onblur="cset('{{ option.name }}', this.value)"
+	    value="{{ confget(option.name) }}">
+	  </input>
+        </td>
+      {% endif %}
     </tr>
   {% endfor %}
 </table>
