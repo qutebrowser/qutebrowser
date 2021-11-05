@@ -214,8 +214,8 @@ def pytest_addoption(parser):
                      help="Delay between qutebrowser commands.")
     parser.addoption('--qute-profile-subprocs', action='store_true',
                      default=False, help="Run cProfile for subprocesses.")
-    parser.addoption('--qute-bdd-webengine', action='store_true',
-                     help='Use QtWebEngine for BDD tests')
+    parser.addoption('--qute-bdd-backend', action='store',
+                     choices=['webkit', 'webengine'], help='Set backend for BDD tests')
 
 
 def pytest_configure(config):
@@ -229,9 +229,10 @@ def pytest_configure(config):
         import PyQt5.QtWebEngineWidgets
         config.backend = 'webengine'
 
-    webengine_arg = config.getoption('--qute-bdd-webengine')
-    webengine_env = os.environ.get('QUTE_BDD_WEBENGINE', 'false')
-    config.webengine = (webengine_arg or webengine_env == 'true' or
+    webengine_arg = config.getoption('--qute-bdd-backend')
+    webengine_env = os.environ.get('QUTE_BDD_BACKEND')
+    config.webengine = (webengine_arg == 'webengine' or
+                        webengine_env == 'webengine' or
                         config.backend == 'webengine')
 
     earlyinit.configure_pyqt()
