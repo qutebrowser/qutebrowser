@@ -231,10 +231,9 @@ def pytest_configure(config):
 
     webengine_arg = config.getoption('--qute-bdd-webengine')
     webengine_env = os.environ.get('QUTE_BDD_WEBENGINE', 'false')
-    config.webengine = webengine_arg or webengine_env == 'true'
-    # Fail early if QtWebEngine is not available
-    if config.webengine:
-        import PyQt5.QtWebEngineWidgets
+    config.webengine = (webengine_arg or webengine_env == 'true' or
+                        config.backend == 'webengine')
+
     earlyinit.configure_pyqt()
 
 
