@@ -39,6 +39,7 @@ from qutebrowser.utils import urlmatch
 
 # pylint: disable=line-too-long
 
+
 @pytest.mark.parametrize('pattern, error', [
     ### Chromium: kMissingSchemeSeparator
     ## TEST(ExtensionURLPatternTest, ParseInvalid)
