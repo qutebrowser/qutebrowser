@@ -237,6 +237,10 @@ def pytest_configure(config):
     earlyinit.configure_pyqt()
 
 
+def pytest_report_header(config):
+    return f'backend: {config.backend}'
+
+
 @pytest.fixture(scope='session', autouse=True)
 def check_display(request):
     if utils.is_linux and not os.environ.get('DISPLAY', ''):
