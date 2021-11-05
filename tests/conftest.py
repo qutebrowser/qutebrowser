@@ -219,6 +219,16 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
+    try:
+        # Try to use QtWebkit as the default backend
+        import PyQt5.QtWebKitWidgets
+        config.backend = 'webkit'
+    except ImportError:
+        # Try to use QtWebEngine as a fallback and fail early
+        # if that's also not available
+        import PyQt5.QtWebEngineWidgets
+        config.backend = 'webengine'
+
     webengine_arg = config.getoption('--qute-bdd-webengine')
     webengine_env = os.environ.get('QUTE_BDD_WEBENGINE', 'false')
     config.webengine = webengine_arg or webengine_env == 'true'
