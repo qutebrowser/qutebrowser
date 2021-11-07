@@ -1506,7 +1506,9 @@ Syntax: +:tab-take [*--keep*] 'index'+
 Take a tab from another window.
 
 ==== positional arguments
-* +'index'+: The [win_id/]index of the tab to take. Or a substring in which case the closest match will be taken.
+* +'index'+: The [win_id/]index of the tab to take. The window or tab ID may contain comma separated values and ranges including
+ the special values "*", "first", and "last". Alternatively
+ a substring in which case the closest match will be taken.
 
 
 ==== optional arguments

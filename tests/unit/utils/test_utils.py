@@ -23,6 +23,7 @@ import sys
 import enum
 import os
 import io
+import itertools
 import logging
 import functools
 import re
@@ -976,6 +977,40 @@ class TestCleanupFileContext:
                 pass
         assert len(caplog.messages) == 1
         assert caplog.messages[0].startswith("Failed to delete tempfile")
+
+
+class TestParseIntSet:
+
+    @pytest.mark.parametrize('s, universe, only_universe, expected', [
+        ('2-5, 7,15-17,12', [], False, [2, 3, 4, 5, 7, 12, 15, 16, 17]),
+        (' * ', [1, 2, 3], False, [1, 2, 3]),
+        ('first', [1, 2, 3], False, [1]),
+        ('2-last ', [1, 2, 3], False, [2, 3]),
+        ('2-last', [1, 3], True, [3]),
+        ('2', [], True, []),
+    ])
+    def test_parse_int_set_ranges(self, s, universe, only_universe, expected):
+        assert utils.parse_int_set(s, universe, only_universe) == expected
+
+    @pytest.mark.parametrize('s, universe, only_universe, msg', [
+        ('*', itertools.repeat(1), False, '`universe` must be finite'),
+        ('', [], False, 'Invalid value: ""'),
+        ('-5, 7,15-17,12', [], False, 'Invalid value: ""'),
+        ('1-5-10,7,15-17,12', [], False, 'Invalid range: "1-5-10"'),
+        ('first - 2', [], False,
+            'Cannot use "first" and "last" w/ empty universe'),
+    ])
+    def test_parse_int_set_bad_ranges(self, s, universe, only_universe, msg):
+        with pytest.raises(ValueError) as excinfo:
+            utils.parse_int_set(s, universe, only_universe)
+        assert str(excinfo.value) == msg
+
+    @hypothesis.given(strategies.text())
+    def test_hypothesis_text(self, s):
+        try:
+            utils.parse_int_set(s, [])
+        except ValueError as e:
+            print(e)
 
 
 class TestParseRect:

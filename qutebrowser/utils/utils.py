@@ -32,9 +32,8 @@ import functools
 import contextlib
 import shlex
 import mimetypes
-from typing import (Any, Callable, IO, Iterator,
-                    Optional, Sequence, Tuple, Type, Union,
-                    TypeVar, TYPE_CHECKING)
+from typing import (Any, Callable, IO, Iterator, List, Optional, Sequence,
+                    Sized, Tuple, Type, Union, Iterable, TypeVar, TYPE_CHECKING)
 try:
     # Protocol was added in Python 3.8
     from typing import Protocol
@@ -829,6 +828,57 @@ def cleanup_file(filepath: str) -> Iterator[None]:
             os.remove(filepath)
         except OSError as e:
             log.misc.error(f"Failed to delete tempfile {filepath} ({e})!")
+
+
+def parse_int_set(s: str, universe: Iterable[int] = (),
+                  only_universe: bool = False) -> List[int]:
+    """Parse a comma-separated list of numbers and range specifications.
+
+    If `universe` is given, the special values "*", "first", and "last"
+    are allowed which mean the whole universe, the minimum of the universe
+    and the maximum of the universe, respectively. All numbers should be
+    non-negative. The return value is sorted.
+
+    Args:
+        s: The string to parse
+        universe: The values in the context of which "first", "last", and "*"
+            are interpreted
+        only_universe: The returned list may contain numbers outside the
+            universe if this is False
+    """
+    if not isinstance(universe, Sized):
+        raise ValueError('`universe` must be finite')
+
+    if (('first' in s or 'last' in s) and not universe):
+        raise ValueError('Cannot use "first" and "last" w/ empty universe')
+
+    def parse_val(val: str) -> int:
+        if val == 'first':
+            assert universe
+            return min(universe)
+        elif val == 'last':
+            assert universe
+            return max(universe)
+        elif val.isdecimal():
+            return int(val)
+        else:
+            raise ValueError(f'Invalid value: "{val}"')
+
+    concatted = []
+    for range_ in s.split(','):
+        range_ = range_.strip()
+        parts = [piece.strip() for piece in range_.split('-')]
+        if len(parts) > 2:
+            raise ValueError(f'Invalid range: "{range_}"')
+        if parts == ['*']:
+            concatted += list(universe)
+        else:
+            concatted += list(range(parse_val(parts[0]),
+                                    parse_val(parts[-1]) + 1))
+    if only_universe:
+        return sorted(set(universe).intersection(concatted))
+    else:
+        return sorted(set(concatted))
 
 
 _RECT_PATTERN = re.compile(r'(?P<w>\d+)x(?P<h>\d+)\+(?P<x>\d+)\+(?P<y>\d+)')

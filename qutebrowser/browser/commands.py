@@ -22,9 +22,9 @@
 import os.path
 import shlex
 import functools
-from typing import cast, Callable, Dict, Union
+from typing import cast, Callable, Dict, List, Tuple, Union
 
-from PyQt5.QtWidgets import QApplication, QTabBar
+from PyQt5.QtWidgets import QApplication, QTabBar, QWidget
 from PyQt5.QtCore import Qt, QUrl, QEvent, QUrlQuery
 
 from qutebrowser.commands import userscripts, runners
@@ -431,27 +431,26 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
     @cmdutils.argument('index', completion=miscmodels.other_tabs)
-    def tab_take(self, index, keep=False):
+    def tab_take(self, index: str, keep: bool = False) -> None:
         """Take a tab from another window.
 
         Args:
-            index: The [win_id/]index of the tab to take. Or a substring
-                   in which case the closest match will be taken.
+            index: The [win_id/]index of the tab(s) to take. The window or
+                tab ID may contain comma separated values and ranges including
+                the special values "*", "first", and "last". Alternatively
+                a substring in which case the closest match will be taken.
             keep: If given, keep the old tab around.
         """
         if config.val.tabs.tabs_are_windows:
             raise cmdutils.CommandError("Can't take tabs when using "
                                         "windows as tabs")
 
-        tabbed_browser, tab = self._resolve_tab_index(index)
-
-        if tabbed_browser is self._tabbed_browser:
-            raise cmdutils.CommandError("Can't take a tab from the same "
-                                        "window")
-
-        self._open(tab.url(), tab=True)
-        if not keep:
-            tabbed_browser.close_tab(tab, add_undo=False)
+        # taking tabs to this window is a no-op, so exclude
+        resolution = self._resolve_tab_index(index, True, True)
+        for tabbed_browser, tab in resolution:
+            self._open(tab.url(), tab=True)
+            if not keep:
+                tabbed_browser.close_tab(tab, add_undo=False)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('win_id', completion=miscmodels.window)
@@ -880,51 +879,89 @@ class CommandDispatcher:
         else:
             log.webview.debug("Last tab")
 
-    def _resolve_tab_index(self, index):
-        """Resolve a tab index to the tabbedbrowser and tab.
+    def _get_index_parts(self, index: str) -> Tuple[str, str]:
+        """Get window part and tab part of tab index/pattern.
 
         Args:
-            index: The [win_id/]index of the tab to be selected. Or a substring
-                   in which case the closest match will be focused.
+            index: The [win_id/]index of the tab(s). The window or tab ID
+                may contain comma separated values and ranges including
+                the special values "*", "first", and "last". Alternatively
+                a substring in which case the closest match will be taken.
         """
-        index_parts = index.split('/', 1)
+        index_parts = index.split('/')
 
-        try:
-            for part in index_parts:
-                int(part)
-        except ValueError:
+        is_pattern = False
+        if len(index_parts) > 2:
+            is_pattern = True
+        else:
+            try:
+                utils.parse_int_set(index_parts[0], [1])
+                utils.parse_int_set(index_parts[-1], [1])
+            except ValueError:
+                is_pattern = True
+
+        if is_pattern:
             model = miscmodels.tabs()
             model.set_pattern(index)
             if model.count() > 0:
-                index = model.data(model.first_item())
-                index_parts = index.split('/', 1)
+                index_parts = model.data(model.first_item()).split('/')
             else:
                 raise cmdutils.CommandError(
                     "No matching tab for: {}".format(index))
 
-        if len(index_parts) == 2:
-            win_id = int(index_parts[0])
-            idx = int(index_parts[1])
-        elif len(index_parts) == 1:
-            idx = int(index_parts[0])
+        if len(index_parts) == 1:
             active_win = QApplication.activeWindow()
             if active_win is None:
                 # Not sure how you enter a command without an active window...
                 raise cmdutils.CommandError(
                     "No window specified and couldn't find active window!")
-            win_id = active_win.win_id
+            index_parts = [str(active_win.win_id)] + index_parts
 
-        if win_id not in objreg.window_registry:
-            raise cmdutils.CommandError(
-                "There's no window with id {}!".format(win_id))
+        return (index_parts[0], index_parts[1])
 
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=win_id)
-        if not 0 < idx <= tabbed_browser.widget.count():
-            raise cmdutils.CommandError(
-                "There's no tab with index {}!".format(idx))
+    def _resolve_tab_index(self, index: str, skip_on_error: bool = False,
+            exclude_self: bool = False) -> (List[Tuple[QWidget, QWidget]]):
+        """Resolve a tab index specification to list of tabbedbrowsers and tabs.
 
-        return (tabbed_browser, tabbed_browser.widget.widget(idx-1))
+        Args:
+            index: The [win_id/]index of the tab(s). The window or tab ID
+                may contain comma separated values and ranges including
+                the special values "*", "first", and "last". Alternatively
+                a substring in which case the closest match will be taken.
+            skip_on_error: Whether to show a message instead of an error
+                when a tab or window is not found.
+        """
+        index_parts = self._get_index_parts(index)
+        ret = []
+        win_ids = utils.parse_int_set(index_parts[0], objreg.window_registry)
+        if exclude_self and self._win_id in win_ids:
+            win_ids.remove(self._win_id)
+        for win_id in win_ids:
+            if win_id not in objreg.window_registry:
+                if skip_on_error:
+                    message.info(f'Skipping nonexistent window {win_id}')
+                    continue
+                raise cmdutils.CommandError(
+                    f"There's no window with id {win_id}!")
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+            tab_nums = utils.parse_int_set(
+                index_parts[1],
+                range(1, tabbed_browser.widget.count() + 1),
+            )
+            for tab_num in tab_nums:
+                if not 0 < tab_num <= tabbed_browser.widget.count():
+                    if skip_on_error:
+                        message.info(
+                            f'Skipping nonexistent tab {win_id}/{tab_num}')
+                        continue
+                    raise cmdutils.CommandError(
+                        "There's no tab with index {} in window {}!".format(
+                            tab_num, win_id))
+                ret.append((tabbed_browser, tabbed_browser.widget.widget(
+                    tab_num - 1)))
+
+        return ret
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
@@ -950,7 +987,7 @@ class CommandDispatcher:
         if count is not None:
             index = str(count)
 
-        tabbed_browser, tab = self._resolve_tab_index(index)
+        tabbed_browser, tab = self._resolve_tab_index(index)[0]
 
         window = tabbed_browser.widget.window()
         mainwindow.raise_window(window)

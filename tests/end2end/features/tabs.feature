@@ -1251,9 +1251,10 @@ Feature: Tab management
                 - url: http://localhost:*/data/paste_primary.html
 
     Scenario: :tab-select with no matching index
+        Given I have a fresh instance
         When I open data/title.html
         And I run :tab-select 666
-        Then the error "There's no tab with index 666!" should be shown
+        Then the error "There's no tab with index 666 in window 0!" should be shown
 
     Scenario: :tab-select with no matching window index
         When I open data/title.html
@@ -1293,7 +1294,7 @@ Feature: Tab management
     Scenario: :tab-select with wrong argument (-1)
         When I open data/title.html
         And I run :tab-select -1
-        Then the error "There's no tab with index -1!" should be shown
+        Then the error "No matching tab for: -1" should be shown
 
     Scenario: :tab-select with wrong argument (/)
         When I open data/title.html
@@ -1336,13 +1337,8 @@ Feature: Tab management
               - history:
                 - url: http://localhost:*/data/numbers/1.txt
 
-    Scenario: Take a tab from the same window
-        Given I have a fresh instance
-        When I open data/numbers/1.txt
-        And I run :tab-take 0/1
-        Then the error "Can't take a tab from the same window" should be shown
-
     Scenario: Take a tab while using tabs_are_windows
+        Given I have a fresh instance
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new window
         And I set tabs.tabs_are_windows to true
