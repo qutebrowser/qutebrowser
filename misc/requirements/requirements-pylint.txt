@@ -14,7 +14,7 @@ jwcrypto==1.0
 lazy-object-proxy==1.4.3
 mccabe==0.6.1
 pefile==2021.9.3
-pycparser==2.20
+pycparser==2.21
 pylint==2.4.4  # rq.filter: < 2.5
 python-dateutil==2.8.2
 ./scripts/dev/pylint_checkers
