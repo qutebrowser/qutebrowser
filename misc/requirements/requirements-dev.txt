@@ -12,7 +12,7 @@ idna==3.3
 jwcrypto==1.0
 manhole==1.8.0
 packaging==21.2
-pycparser==2.20
+pycparser==2.21
 Pympler==0.9
 pyparsing==2.4.7
 PyQt-builder==1.12.2
