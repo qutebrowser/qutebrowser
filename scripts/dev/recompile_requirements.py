@@ -133,7 +133,7 @@ CHANGELOG_URLS = {
     'six': 'https://github.com/benjaminp/six/blob/master/CHANGES',
     'altgraph': 'https://github.com/ronaldoussoren/altgraph/blob/master/doc/changelog.rst',
     'urllib3': 'https://github.com/urllib3/urllib3/blob/master/CHANGES.rst',
-    'lxml': 'https://lxml.de/index.html#old-versions',
+    'lxml': 'https://github.com/lxml/lxml/blob/master/CHANGES.txt',
     'jwcrypto': 'https://github.com/latchset/jwcrypto/commits/master',
     'wrapt': 'https://github.com/GrahamDumpleton/wrapt/blob/develop/docs/changes.rst',
     'pep517': 'https://github.com/pypa/pep517/blob/master/doc/changelog.rst',
