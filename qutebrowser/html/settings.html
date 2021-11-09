@@ -22,30 +22,116 @@ function checkInput(optionName, loopIndex) {
 {% endblock %}
 
 {% block style %}
-table { border: hidden; border-spacing: 10px; }
-tbody tr:nth-child(odd) { background: #eaf4fb; }
-pre { margin: 2px; }
-th, td { border: hidden; }
-th { background: #a6dfff; font-weight: normal; padding: 10px; text-align: left; 
-  border-radius: 5px; font-size: 1.5rem; color: #084c88; }
-td { padding: 5px 5px; }
-th pre { color: grey; text-align: left; }
-input { width: 98%; font-size: 0.9rem; font-family: DejaVu, serif; box-sizing: border-box;
-  border-radius: 4px; border: 1px solid #01cdd0; padding: 8px; }
-input:focus { outline: none; border: 2px solid #7a589ea6; }
-.setting { width: 60%; }
-input[type="radio"] { position: absolute; opacity: 1%; width: min-content; margin: 0; }
-.valid_value { text-align: center; }
-label { display: inline-flex; ; cursor: pointer; position: relative; 
-  background-color: #454545; color: white; padding: 5px 10px; 
-  border-radius: 5px; margin-bottom: 2px; }
-input[type="radio"]:checked + label { background-color: #a6dfff; color: #084c88; }
-.value { width: 25%; text-align: center; }
-.noscript, .noscript-text { color:red; }
-.noscript-text { margin-bottom: 5cm; }
-.option_description { margin: .5ex 0; color: grey; font-size: 80%; font-style: italic; 
-  white-space: pre-line; }
-.current-setting { font-family: monospace; font-size: 1.2rem; }
+table {
+    border-spacing: 10px;
+}
+
+tbody tr:nth-child(odd) {
+    background: #eaf4fb;
+}
+
+pre {
+    margin: 2px;
+}
+
+th {
+    padding: 10px;
+    border-radius: 5px;
+    background: #a6dfff;
+    text-align: left;
+    font-weight: normal;
+    font-size: 1.5rem;
+    color: #084c88;
+}
+
+td {
+    padding: 5px 5px;
+}
+
+th pre {
+    color: grey;
+    text-align: left;
+}
+
+input {
+    padding: 8px;
+    width: 98%;
+    box-sizing: border-box;
+    border-radius: 4px;
+    border: 1px solid #01cdd0;
+    font-size: 0.9rem;
+    font-family: DejaVu, serif;
+}
+
+input:focus {
+    outline: none;
+    border: 2px solid #7a589ea6;
+}
+
+input[type="radio"] {
+    position: absolute;
+    opacity: 1%;
+    width: min-content;
+    margin: 0;
+}
+
+label {
+    display: inline-flex;
+    cursor: pointer;
+    margin-bottom: 2px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    background-color: #454545;
+    color: white;
+}
+
+input[type="radio"]:checked + label {
+    background-color: #a6dfff;
+    color: #084c88;
+}
+
+.setting {
+    width: 60%;
+}
+
+.value {
+    width: 25%;
+    text-align: center;
+}
+
+.valid_value {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+}
+
+.noscript, .noscript-text {
+    color: red;
+}
+
+.noscript-text {
+    margin-bottom: 5cm;
+}
+
+.option_description {
+    margin: .5ex 0;
+    color: grey;
+    font-size: 80%;
+    font-style: italic;
+    white-space: pre-line;
+}
+
+.current-setting {
+    font-size: 1.2rem;
+    font-family: monospace;
+}
+
+.radio-button {
+    position: relative;
+    display: flex;
+    margin: 5px;
+}
 {% endblock %}
 
 {% block content %}
@@ -66,12 +152,14 @@ input[type="radio"]:checked + label { background-color: #a6dfff; color: #084c88;
       {% if option.typ.valid_values is not none %}
         <td class="valid_value">
           {% for value in option.typ.valid_values.values %}
-	    <input type="radio" id="input-{{ option.name }}-{{ loop.index0 }}"
-	      name="{{ option.name }}" value="{{ value }}"
-	      onclick="cset('{{ option.name }}', this.value)">
-	    <label for="input-{{ option.name }}-{{ loop.index0 }}">
-	      {{ value }}
-	    </label>
+	    <div class="radio-button">
+	      <input type="radio" id="input-{{ option.name }}-{{ loop.index0 }}"
+	        name="{{ option.name }}" value="{{ value }}"
+	        onclick="cset('{{ option.name }}', this.value)">
+	      <label for="input-{{ option.name }}-{{ loop.index0 }}">
+	        {{ value }}
+	      </label>
+	    </div>
 	    {% if confget(option.name) == value %}
 	      <script type="text/javascript">
 	        checkInput('{{ option.name}}', {{ loop.index0 }})
