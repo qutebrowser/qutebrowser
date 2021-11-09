@@ -11,10 +11,14 @@ var cset = function(option, value) {
   xhr.send();
 }
 
-let configVal;
-let inputId;
-let input;
-let currentVal;
+function checkInput(optionName, loopIndex) {
+  //  Checks the input which has the configured value
+
+  let inputId = `input-${optionName}-${loopIndex}`
+  let input = document.getElementById(inputId)
+
+  input.checked = true
+}
 {% endblock %}
 
 {% block style %}
@@ -68,18 +72,11 @@ input[type="radio"]:checked + label { background-color: #a6dfff; color: #084c88;
 	    <label for="input-{{ option.name }}-{{ loop.index0 }}">
 	      {{ value }}
 	    </label>
-	    <script type="text/javascript">
-	      function checkInput() {
-	        configVal = '{{ confget(option.name) }}'
-	        currentVal = '{{ value }}'
-	        inputId = "input-{{ option.name }}-{{ loop.index0 }}"
-	        input = document.getElementById(inputId)
-	        
-	        if (configVal === currentVal) { input.checked = true }
-	      }
-	      
-	      checkInput()
-	    </script>
+	    {% if confget(option.name) == value %}
+	      <script type="text/javascript">
+	        checkInput('{{ option.name}}', {{ loop.index0 }})
+	      </script>
+	    {% endif %}
 	  {% endfor %}
 	</td>
       {% else %}
