@@ -809,8 +809,11 @@ class TestYaml:
         assert utils.yaml_load("[1, 2]") == [1, 2]
 
     def test_load_float_bug(self):
-        with pytest.raises(yaml.YAMLError):
+        try:
             utils.yaml_load("._")
+        except yaml.YAMLError:
+            # Either no exception or YAMLError, not ValueError
+            pass
 
     def test_load_file(self, tmp_path):
         tmpfile = tmp_path / 'foo.yml'

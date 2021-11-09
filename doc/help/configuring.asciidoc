@@ -412,6 +412,7 @@ Pre-built colorschemes
 - https://github.com/dracula/qutebrowser-dracula-theme[Dracula]
 - https://gitlab.com/lovetocode999/selenized-qutebrowser[Selenized]
 - https://github.com/morhetz/gruvbox[gruvbox]: https://github.com/The-Compiler/dotfiles/blob/master/qutebrowser/gruvbox.py[The-Compiler], https://gitlab.com/shaneyost/dots-popos-september-2020/-/blob/master/qutebrowser/config.py[Shane Yost]
+- https://www.opencode.net/wakellor957/qb-breath/-/blob/main/qb-breath.py[Manjaro Breath-like]
 
 Avoiding flake8 errors
 ^^^^^^^^^^^^^^^^^^^^^^

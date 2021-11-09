@@ -9,7 +9,7 @@ git+https://github.com/HypothesisWorks/hypothesis.git#subdirectory=hypothesis-py
 git+https://github.com/pytest-dev/pytest.git
 # Problematic: https://github.com/pytest-dev/pytest-bdd/issues/447
 # git+https://github.com/pytest-dev/pytest-bdd.git
-pytest-bdd
+pytest-bdd<5
 git+https://github.com/ionelmc/pytest-benchmark.git
 git+https://github.com/pytest-dev/pytest-instafail.git
 git+https://github.com/pytest-dev/pytest-mock.git
