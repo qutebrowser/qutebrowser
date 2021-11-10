@@ -68,6 +68,7 @@ input:focus {
     border: 2px solid #7a589ea6;
 }
 
+/* Hides the radio button */
 input[type="radio"] {
     position: absolute;
     opacity: 1%;
@@ -76,7 +77,6 @@ input[type="radio"] {
 }
 
 label {
-    display: inline-flex;
     cursor: pointer;
     margin-bottom: 2px;
     padding: 5px 10px;
@@ -99,10 +99,7 @@ input[type="radio"]:checked + label {
     text-align: center;
 }
 
-.valid_value {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+.valid-value {
     text-align: center;
 }
 
@@ -114,9 +111,9 @@ input[type="radio"]:checked + label {
     margin-bottom: 5cm;
 }
 
-.option_description {
+.option-description {
     margin: .5ex 0;
-    color: grey;
+    color: #635d5dcf;
     font-size: 80%;
     font-style: italic;
     white-space: pre-line;
@@ -129,8 +126,8 @@ input[type="radio"]:checked + label {
 
 .radio-button {
     position: relative;
-    display: flex;
-    margin: 5px;
+    display: inline-flex;
+    margin: 3px 1px;
 }
 {% endblock %}
 
@@ -146,11 +143,11 @@ input[type="radio"]:checked + label {
       <!-- FIXME: convert to string properly -->
       <td class="setting">{{ option.name }} (Current: <span class="current-setting">{{ confget(option.name) | string |truncate(100) }}</span>)
         {% if option.description %}
-          <p class="option_description">{{ option.description|e }}</p>
+          <p class="option-description">{{ option.description|e }}</p>
         {% endif %}
       </td>
       {% if option.typ.valid_values is not none %}
-        <td class="valid_value">
+        <td class="valid-value">
           {% for value in option.typ.valid_values.values %}
 	    <div class="radio-button">
 	      <input type="radio" id="input-{{ option.name }}-{{ loop.index0 }}"
