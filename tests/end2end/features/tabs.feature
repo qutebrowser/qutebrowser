@@ -633,6 +633,27 @@ Feature: Tab management
             - data/numbers/1.txt (active)
             - data/numbers/3.txt
 
+    Scenario: :tab-move with absolute position
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-move with index end
+        Then the following tabs should be open:
+            - data/numbers/2.txt
+            - data/numbers/3.txt
+            - data/numbers/1.txt (active)
+
+    Scenario: :tab-move with absolute position
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-move with index start
+        Then the following tabs should be open:
+            - data/numbers/3.txt (active)
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+
     Scenario: Make sure :tab-move retains metadata
         When I open data/title.html
         And I open data/hello.txt in a new tab

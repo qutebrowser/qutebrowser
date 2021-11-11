@@ -1016,6 +1016,7 @@ class CommandDispatcher:
             index: `+` or `-` to move relative to the current tab by
                    count, or a default of 1 space.
                    A tab index to move to that index.
+                   `start` and `end` to move to the start and the end
             count: If moving relatively: Offset.
                    If moving absolutely: New position (default: 0). This
                    overrides the index argument, if given.
