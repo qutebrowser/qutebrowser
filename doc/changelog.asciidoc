@@ -24,6 +24,8 @@ Changed
 
 - Improved message if a spawned process wasn't found and a Flatpak container is
   in use.
+- The `:tab-move` command now takes `start` and `end` as `index` to move a tab
+  to the first/last position.
 
 [[v2.4.1]]
 v2.4.1 (unreleased)
