@@ -638,7 +638,7 @@ Feature: Tab management
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 1
-        And I run :tab-move with index end
+        And I run :tab-move end
         Then the following tabs should be open:
             - data/numbers/2.txt
             - data/numbers/3.txt
@@ -648,7 +648,7 @@ Feature: Tab management
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
-        And I run :tab-move with index start
+        And I run :tab-move start
         Then the following tabs should be open:
             - data/numbers/3.txt (active)
             - data/numbers/1.txt
