@@ -1004,11 +1004,10 @@ class CommandDispatcher:
             raise cmdutils.CommandError("There's no tab with index {}!".format(
                 index))
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('index', choices=['+', '-'])
-    @cmdutils.argument('count', value=cmdutils.Value.count)
-    def tab_move(self, index: Union[str, int] = None,
-                 count: int = None) -> None:
+    @cmdutils.register(instance="command-dispatcher", scope="window")
+    @cmdutils.argument("index", choices=["+", "-", "start", "end"])
+    @cmdutils.argument("count", value=cmdutils.Value.count)
+    def tab_move(self, index: Union[str, int] = None, count: int = None) -> None:
         """Move the current tab according to the argument and [count].
 
         If neither is given, move it to the first position.
@@ -1021,20 +1020,24 @@ class CommandDispatcher:
                    If moving absolutely: New position (default: 0). This
                    overrides the index argument, if given.
         """
-        if index in ['+', '-']:
+        if index in ["+", "-"]:
             # relative moving
             new_idx = self._current_index()
             delta = 1 if count is None else count
-            if index == '-':
+            if index == "-":
                 new_idx -= delta
-            elif index == '+':  # pragma: no branch
+            elif index == "+":  # pragma: no branch
                 new_idx += delta
 
             if config.val.tabs.wrap:
                 new_idx %= self._count()
         else:
             # absolute moving
-            if count is not None:
+            if index == "start":
+                new_idx = 0
+            elif index == "end":
+                new_idx = self._count() - 1
+            elif count is not None:
                 new_idx = count - 1
             elif index is not None:
                 assert isinstance(index, int)
