@@ -216,8 +216,8 @@ class HintKeyParser(basekeyparser.BaseKeyParser):
 
         assert not dry_run
 
-        if (self._command_parser.handle(e, dry_run=True) !=
-                QKeySequence.NoMatch):
+        if (self._command_parser.handle(e, dry_run=True) ==
+                QKeySequence.ExactMatch):
             log.keyboard.debug("Handling key via command parser")
             self.clear_keystring()
             return self._command_parser.handle(e)
