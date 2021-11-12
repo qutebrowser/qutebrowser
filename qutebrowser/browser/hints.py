@@ -29,7 +29,7 @@ import enum
 import dataclasses
 from string import ascii_lowercase
 from typing import (TYPE_CHECKING, Callable, Dict, Iterable, Iterator, List, Mapping,
-                    MutableSequence, Optional, Sequence, Set)
+                    MutableSequence, Optional, Sequence, Set, Union)
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt, QUrl
 from PyQt5.QtGui import QKeyEvent, QKeySequence
@@ -439,7 +439,7 @@ class HintManager(QObject):
 
     def _hint_strings(self, elems: _ElemsType,
                       keyparser: basekeyparser.BaseKeyParser
-    ) -> _HintStringsType:
+                      ) -> _HintStringsType:
         """Calculate the hint strings for elems.
 
         Inspired by Vimium.
@@ -475,7 +475,7 @@ class HintManager(QObject):
                         chars: str,
                         elems: _ElemsType,
                         keyparser: basekeyparser.BaseKeyParser
-    ) -> _HintStringsType:
+                        ) -> _HintStringsType:
         """Produce scattered hint labels with variable length (like Vimium).
 
         Args:
@@ -504,7 +504,7 @@ class HintManager(QObject):
         if needed > 1:
             for i in range(short_count):
                 hint_str = self._number_to_hint_str(i, chars, keyparser, needed)
-                if hint_str != None:
+                if hint_str is not None:
                     strings.append(hint_str)
                     long_count -= 1
 
@@ -512,7 +512,7 @@ class HintManager(QObject):
         i = offset
         while i < offset + long_count:
             hint_str = self._number_to_hint_str(i, chars, keyparser, needed)
-            if hint_str != None:
+            if hint_str is not None:
                 strings.append(hint_str)
             else:
                 offset += 1
@@ -524,7 +524,7 @@ class HintManager(QObject):
                      chars: str,
                      elems: _ElemsType,
                      keyparser: basekeyparser.BaseKeyParser
-    ) -> _HintStringsType:
+                     ) -> _HintStringsType:
         """Produce linear hint labels with constant length (like dwb).
 
         Args:
@@ -539,14 +539,14 @@ class HintManager(QObject):
         i = 0
         while i < offset + elems_count:
             hint_str = self._number_to_hint_str(i, chars, keyparser, needed)
-            if hint_str != None:
+            if hint_str is not None:
                 strings.append(hint_str)
             i += 1
         return strings
 
     def _hint_needed(self, min_chars: int,
                      chars: str,
-                     elems: _ElemsType) -> str:
+                     elems: _ElemsType) -> int:
         """Find the hint length required when avoiding binds.
 
         Args:
@@ -557,7 +557,7 @@ class HintManager(QObject):
         bindings = sorted(config.key_instance.get_bindings_for('hint').keys(),
                           key=len)
         restricted_substr_of_len = {}
-        restricted_end = [''] * len(bindings)
+        restricted_end = [''] * len(bindings) # type: Union[List[str], Set[str]]
         log.hints.debug('Storing bind substrings that may cause conflicts.')
         for i in range(len(bindings)):
             for key in bindings[i]:
@@ -571,19 +571,19 @@ class HintManager(QObject):
                 # Store longest substring of bind that cannot be used to end a
                 # hint (as it starts a bind and CommandKeyParser wouldn't pass
                 # it to HintKeyParser)
-                restricted_end[i] += str(key)
+                restricted_end[i] += str(key) # type: ignore[index]
             else:
                 # Ignore substrings with substrings we already have to exclude
-                if not any(substr in restricted_end[i]
-                           for substr in restricted_end[:i]):
-                    if len(restricted_end[i]) not in restricted_substr_of_len:
-                        restricted_substr_of_len[len(restricted_end[i])] = 1
+                if not any(substr in restricted_end[i] # type: ignore[index]
+                           for substr in restricted_end[:i]): # type: ignore[index]
+                    if len(restricted_end[i]) not in restricted_substr_of_len: # type: ignore[index]
+                        restricted_substr_of_len[len(restricted_end[i])] = 1 # type: ignore[index]
                     else:
-                        restricted_substr_of_len[len(restricted_end[i])] += 1
+                        restricted_substr_of_len[len(restricted_end[i])] += 1 # type: ignore[index]
         restricted_end = set(restricted_end)
-        restricted_end = set(word for word in restricted_end
-                             if not any(word in substr[:-1]
-                                        for substr in restricted_end))
+        restricted_end = {word for word in restricted_end
+            if not any(word in substr[:-1]
+                       for substr in restricted_end)}
         restricted_end.discard('')
 
         elems_count = len(elems)
@@ -591,15 +591,14 @@ class HintManager(QObject):
         needed = max(min_chars, utils.ceil_log(elems_count, chars_count))
         log.hints.debug('Adjusting \'needed\' for bind conflicts.')
         while True:
-            invalidated = 0
+            invalidated = 0.0
             # Invalidate the number of possible hint strings containing a bind
             # Imperfect, counts strings with one bind in them twice. . . twice
             # and strings with two different binds in them twice, obviously
-            for length, count in restricted_substr_of_len:
+            for length, count in restricted_substr_of_len.items():
                 invalidated += max(0, count * (chars_count - length + 1)) * \
-                               math.factorial(chars_count) / \
-                               math.factorial(chars_count -
-                                              (needed - length))
+                    math.factorial(chars_count) / \
+                    math.factorial(chars_count - (needed - length))
             # Invalidate strings ending with substring of a string in
             # restricted_end anchored at the left
             # sum(chars_count^n, needed-len(word), needed-1)
@@ -641,7 +640,7 @@ class HintManager(QObject):
     def _number_to_hint_str(self, number: int,
                             chars: str,
                             keyparser: basekeyparser.BaseKeyParser,
-                            digits: int = 0) -> str:
+                            digits: int = 0) -> Union[str, None]:
         """Convert a number like "8" into a hint string like "JK".
 
         This is used to sequentially generate all of the hint text.
@@ -656,7 +655,7 @@ class HintManager(QObject):
             digits: The minimum output length.
 
         Return:
-            A hint string.
+            A hint string, or None if the hint of this number is invalid.
         """
         base = len(chars)
         hintstr: MutableSequence[str] = []
@@ -672,15 +671,16 @@ class HintManager(QObject):
             hintstr.insert(0, chars[0])
 
         # Skip strings that trigger a bind
+        hintstr_str = ''.join(hintstr)
         log.hints.debug(
-                        "Checking hint string for bind conflicts: {}"
-                        .format(''.join(hintstr)))
-        for key_info in keyutils.KeySequence.parse(hintstr):
-            if (match := keyparser.handle(QKeyEvent(QKeyEvent.KeyPress,
-                                                    key_info.key,
-                                                    Qt.NoModifier,
-                                                    ''), dry_run=True)
-            ) == QKeySequence.ExactMatch:
+            "Checking hint string for bind conflicts: {}"
+            .format(hintstr_str))
+        for key_info in keyutils.KeySequence.parse(hintstr_str):
+            if (match := keyparser.handle(
+                    QKeyEvent(QKeyEvent.KeyPress,
+                    key_info.key,
+                    Qt.NoModifier,
+                    ''), dry_run=True)) == QKeySequence.ExactMatch:
                 keyparser.clear_keystring()
                 return None
         if match == QKeySequence.PartialMatch:
@@ -688,8 +688,8 @@ class HintManager(QObject):
             return None
         keyparser.clear_keystring()
 
-        log.hints.debug("Kept hint string: {}".format(''.join(hintstr)))
-        return ''.join(hintstr)
+        log.hints.debug("Kept hint string: {}".format(hintstr_str))
+        return hintstr_str
 
     def _check_args(self, target: Target, *args: str) -> None:
         """Check the arguments passed to start() and raise if they're wrong.
