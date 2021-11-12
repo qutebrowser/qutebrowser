@@ -239,14 +239,12 @@ def pytest_configure(config):
 
 
 def pytest_report_header(config):
-    if config.backend == 'webkit':
-        backend_version = version.qWebKitVersion()
-    elif config.backend == 'webengine':
+    if config.webengine:
         backend_version = version.qtwebengine_versions(avoid_init=True)
     else:
-        raise utils.Unreachable(config.backend)
+        backend_version = version.qWebKitVersion()
 
-    return f'backend: {config.backend} ({backend_version})'
+    return f'backend: {backend_version}'
 
 
 @pytest.fixture(scope='session', autouse=True)
