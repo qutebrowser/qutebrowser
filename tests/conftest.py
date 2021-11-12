@@ -229,10 +229,10 @@ def pytest_configure(config):
         import PyQt5.QtWebEngineWidgets
         config.backend = 'webengine'
 
-    webengine_arg = config.getoption('--qute-bdd-backend')
-    webengine_env = os.environ.get('QUTE_BDD_BACKEND')
-    config.webengine = (webengine_arg == 'webengine' or
-                        webengine_env == 'webengine' or
+    backend_arg = config.getoption('--qute-bdd-backend')
+    backend_env = os.environ.get('QUTE_BDD_BACKEND')
+    config.webengine = (backend_arg == 'webengine' or
+                        backend_env == 'webengine' or
                         config.backend == 'webengine')
 
     earlyinit.configure_pyqt()
