@@ -226,6 +226,25 @@ def pytest_configure(config):
 
 
 def _select_backend(config):
+    """Select the backend for running tests.
+
+    The backend is auto-selected in the following manner:
+    1. Use QtWebKit if available
+    2. Otherwise use QtWebEngine as a fallback
+
+    Auto-selection is overridden by either passing a backend via
+    `--qute-bdd-backend=<backend>` or setting the environment variable
+    `QUTE_BDD_BACKEND=<backend>`.
+
+    Args:
+        config: pytest config
+
+    Raises:
+        ImportError if the selected backend is not available.
+
+    Returns:
+        The selected backend as a string (e.g. 'webkit').
+    """
     backend_arg = config.getoption('--qute-bdd-backend')
     backend_env = os.environ.get('QUTE_BDD_BACKEND')
 
