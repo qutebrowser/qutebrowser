@@ -220,7 +220,7 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     try:
-        # Try to use QtWebkit as the default backend
+        # Try to use QtWebKit as the default backend
         import PyQt5.QtWebKitWidgets
         config.backend = 'webkit'
     except ImportError:
