@@ -219,23 +219,39 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
+    backend = _select_backend(config)
+    config.webengine = backend == 'webengine'
+
+    earlyinit.configure_pyqt()
+
+
+def _select_backend(config):
+    backend_arg = config.getoption('--qute-bdd-backend')
+    backend_env = os.environ.get('QUTE_BDD_BACKEND')
+
+    backend = backend_arg or backend_env or _auto_select_backend()
+
+    # Fail early if selected backend is not available
+    if backend == 'webkit':
+        import PyQt5.QtWebKitWidgets
+    elif backend == 'webengine':
+        import PyQt5.QtWebEngineWidgets
+    else:
+        raise utils.Unreachable(backend)
+
+    return backend
+
+
+def _auto_select_backend():
     try:
         # Try to use QtWebKit as the default backend
         import PyQt5.QtWebKitWidgets
-        config.backend = 'webkit'
+        return 'webkit'
     except ImportError:
         # Try to use QtWebEngine as a fallback and fail early
         # if that's also not available
         import PyQt5.QtWebEngineWidgets
-        config.backend = 'webengine'
-
-    backend_arg = config.getoption('--qute-bdd-backend')
-    backend_env = os.environ.get('QUTE_BDD_BACKEND')
-    config.webengine = (backend_arg == 'webengine' or
-                        backend_env == 'webengine' or
-                        config.backend == 'webengine')
-
-    earlyinit.configure_pyqt()
+        return 'webengine'
 
 
 def pytest_report_header(config):
