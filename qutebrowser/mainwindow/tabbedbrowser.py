@@ -415,20 +415,20 @@ class TabbedBrowser(QWidget):
             new_undo: Whether the undo entry should be a new item in the stack.
             transfer: Whether the tab is closing because it is moving to a new window.
         """
-        if config.val.tabs.tabs_are_windows:
+        if config.val.tabs.tabs_are_windows or transfer:
             last_close = 'close'
         else:
             last_close = config.val.tabs.last_close
 
         count = self.widget.count()
 
-        if last_close == 'ignore' and count == 1 and not transfer:
+        if last_close == 'ignore' and count == 1:
             return
 
         self._remove_tab(tab, add_undo=add_undo, new_undo=new_undo)
 
         if count == 1:  # We just closed the last tab above.
-            if last_close == 'close' or transfer:
+            if last_close == 'close':
                 self.close_window.emit()
             elif last_close == 'blank':
                 self.load_url(QUrl('about:blank'), newtab=True)
