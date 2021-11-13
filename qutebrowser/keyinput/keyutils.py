@@ -150,13 +150,13 @@ _SPECIAL_NAMES = {
 
 def _assert_plain_key(key: Qt.Key) -> None:
     """Make sure this is a key without KeyboardModifiers mixed in."""
-    #assert not key & Qt.KeyboardModifier.KeyboardModifierMask, hex(key)
+    assert not key.value & Qt.KeyboardModifier.KeyboardModifierMask.value, hex(key)
 
 
 def _assert_plain_modifier(key: _ModifierType) -> None:
     """Make sure this is a modifier without a key mixed in."""
-    #mask = Qt.KeyboardModifier.KeyboardModifierMask
-    #assert not key & ~mask, hex(key)  # type: ignore[operator]
+    mask = Qt.KeyboardModifier.KeyboardModifierMask
+    assert not key & ~mask, hex(key)  # type: ignore[operator]
 
 
 def _is_printable(key: Qt.Key) -> bool:
@@ -425,9 +425,9 @@ class KeyInfo:
         """Get a QKeyEvent from this KeyInfo."""
         return QKeyEvent(typ, self.key, self.modifiers, self.text())
 
-    def to_int(self) -> int:
+    def to_int(self) -> QKeyCombination:
         """Get the key as an integer (with key/modifiers)."""
-        return self.key | self.modifiers.value
+        return self.key | self.modifiers
 
 
 class KeySequence:
@@ -461,11 +461,8 @@ class KeySequence:
 
     def _convert_key(self, key: Union[int, Qt.KeyboardModifier]) -> int:
         """Convert a single key for QKeySequence."""
-        #assert isinstance(key, (int, Qt.KeyboardModifier)), key
-        #return int(key)
-        if isinstance(key, int):
-            return key
-        return key.key()
+        assert isinstance(key, QKeyCombination), key
+        return key.toCombined()
 
     def __str__(self) -> str:
         parts = []
