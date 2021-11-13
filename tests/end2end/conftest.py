@@ -165,7 +165,7 @@ if not getattr(sys, 'frozen', False):
 
 
 def pytest_collection_modifyitems(config, items):
-    """Apply @qtwebengine_* markers; skip unittests with QUTE_BDD_BACKEND=webengine."""
+    """Apply @qtwebengine_* markers."""
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-75884
     # (note this isn't actually fixed properly before Qt 5.15)
     header_bug_fixed = qtutils.version_check('5.15', compiled=False)

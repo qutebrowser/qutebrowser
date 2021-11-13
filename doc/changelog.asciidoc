@@ -26,6 +26,11 @@ Changed
   in use.
 - The `:tab-move` command now takes `start` and `end` as `index` to move a tab
   to the first/last position.
+- Tests now automatically pick the backend (QtWebKit/QtWebEngine) based on
+  what's available. The `QUTE_BDD_WEBENGINE` environment variable and
+  `--qute-bdd-webengine` argument got replaced by `QUTE_TESTS_BACKEND` and
+  `--qute-backend` respectively, which can be set to either `webengine` or
+  `webkit`.
 
 [[v2.4.1]]
 v2.4.1 (unreleased)
