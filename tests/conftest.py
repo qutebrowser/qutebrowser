@@ -214,7 +214,7 @@ def pytest_addoption(parser):
                      help="Delay between qutebrowser commands.")
     parser.addoption('--qute-profile-subprocs', action='store_true',
                      default=False, help="Run cProfile for subprocesses.")
-    parser.addoption('--qute-bdd-backend', action='store',
+    parser.addoption('--qute-backend', action='store',
                      choices=['webkit', 'webengine'], help='Set backend for BDD tests')
 
 
@@ -233,8 +233,8 @@ def _select_backend(config):
     2. Otherwise use QtWebEngine as a fallback
 
     Auto-selection is overridden by either passing a backend via
-    `--qute-bdd-backend=<backend>` or setting the environment variable
-    `QUTE_BDD_BACKEND=<backend>`.
+    `--qute-backend=<backend>` or setting the environment variable
+    `QUTE_TESTS_BACKEND=<backend>`.
 
     Args:
         config: pytest config
@@ -245,8 +245,8 @@ def _select_backend(config):
     Returns:
         The selected backend as a string (e.g. 'webkit').
     """
-    backend_arg = config.getoption('--qute-bdd-backend')
-    backend_env = os.environ.get('QUTE_BDD_BACKEND')
+    backend_arg = config.getoption('--qute-backend')
+    backend_env = os.environ.get('QUTE_TESTS_BACKEND')
 
     backend = backend_arg or backend_env or _auto_select_backend()
 
