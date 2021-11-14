@@ -15,15 +15,229 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+[[v2.5.0]]
+v2.5.0 (unreleased)
+-------------------
+
+Changed
+~~~~~~~
+
+- Improved message if a spawned process wasn't found and a Flatpak container is
+  in use.
+- The `:tab-move` command now takes `start` and `end` as `index` to move a tab
+  to the first/last position.
+- Tests now automatically pick the backend (QtWebKit/QtWebEngine) based on
+  what's available. The `QUTE_BDD_WEBENGINE` environment variable and
+  `--qute-bdd-webengine` argument got replaced by `QUTE_TESTS_BACKEND` and
+  `--qute-backend` respectively, which can be set to either `webengine` or
+  `webkit`.
+
+[[v2.4.1]]
+v2.4.1 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- Speculative fix for an immediate crash at start with the macOS/Windows
+  binaries (in certain rare environments).
+- Speculative fix for a qutebrowser crash when the notification daemon crashes
+  while showing the notification.
+
+[[v2.4.0]]
+v2.4.0 (2021-10-21)
+-------------------
+
+Security
+~~~~~~~~
+
+- **CVE-2021-41146**: Fix arbitrary command execution on Windows via URL handler
+  argument injection. See the
+  https://github.com/qutebrowser/qutebrowser/security/advisories/GHSA-vw27-fwjf-5qxm[security advisory]
+  for details.
+
+Added
+~~~~~
+
+- New `content.blocking.hosts.block_subdomains` setting which can be used to
+  disable the subdomain blocking for the hosts-based adblocker introduced in
+  v2.3.0.
+- New `downloads.prevent_mixed_content` setting to prevent insecure
+  mixed-content downloads (true by default).
+- New `--private` flag for `:tab-clone`, which clones a tab into a new private
+  window, mirroring the same flags for `:open` and `:tab-give`.
+
+Fixed
+~~~~~
+
+- Switching tabs via mouse wheel scrolling now works properly on macOS. Set
+  `tabs.mousewheel_switching` to false if you prefer the previous behavior.
+- Speculative fix for a crash when closing qutebrowser while a systray
+  notification is shown.
+
+Changed
+~~~~~~~
+
+- Typing in the filename prompt now filters matching directories.
+- When opening a file qutebrowser can't handle from a `file:///` directory
+  listing, qutebrowser now opens it with the default application rather than
+  displaying a download prompt.
+- In Greasemonkey scripts, using "overrideMimeType" with GM_xmlhttpRequest is
+  now supported.
+- `:hint --rapid` is now supported for the `tab` hinting target no matter what
+  `tabs.background` is set to, as there are various scenarios where tabs can
+  open in the background.
+- New flags for the `qute-pass` userscript:
+  * `--unfiltered` to show all secrets, not just the one matching the current
+    URL.
+  * `--always-show-selection` to confirm the password to be entered even if
+    there's only a single match.
+- In insert mode, `<Shift-Escape>` is now bound to `fake-key <Escape>` by
+  default, i.e., sends an Escape keypress to the website.
+- Using `GM_setClipboard` in Greasemonkey scripts is now supported.
+
+[[v2.3.1]]
+v2.3.1 (2021-07-28)
+-------------------
+
+Fixed
+~~~~~
+
+- Updated the workaround for Google Account log in claiming that this browser
+  isn't secure. For an equivalent workaround on older versions, run:
+  `:set -u https://accounts.google.com/* content.headers.user_agent "Mozilla/5.0 ({os_info}; rv:90.0) Gecko/20100101 Firefox/90.0"`
+- Corrupt cache file exceptions with `adblock` 0.5.0+ are now handled properly.
+- Crash when entering unicode surrogates into the filename prompt.
+- `UnboundLocalError` in `qute-keepass` when the database couldn't be opened.
+
+[[v2.3.0]]
+v2.3.0 (2021-06-28)
+-------------------
+
+Added
+~~~~~
+
+- New `content.prefers_reduced_motion` setting to request websites to reduce
+  non-essential motion/animations.
+- New `colors.prompts.selected.fg` setting to customize the text color for
+  selected items in filename prompts.
+
+Changed
+~~~~~~~
+
+- The hosts-based adblocker (using `content.blocking.hosts.lists`) now also
+  blocks all requests to any subdomains of blocked hosts.
+- The `fonts.web.*` settings now support URL patterns.
+- The `:greasemonkey-reload` command now shows a list of loaded scripts and has
+  a new `--quiet` switch to suppress that message.
+- When launching a userscript via hints, a new `QUTE_CURRENT_URL` environment
+  variable now points to the current page (rather than the URL of the selected
+  element, where `QUTE_URL` points to).
+
+Fixed
+~~~~~
+
+- Crash on macOS 10.14+ when logging into Google accounts -- the previous fix
+  was incomplete due wrong information in Apple's documentation.
+- Crash when two Greasemonkey scripts have the same name (usually happening
+  because the same file is in both the data and the config directory).
+- Deprecation warnings when using the `link_pyqt.py` script on Python 3.10
+  (e.g. via `tox` or `mkvenv.py`).
+
+[[v2.2.3]]
+v2.2.3 (2021-06-01)
+-------------------
+
+Fixed
+~~~~~
+
+- Logging into Google accounts or sharing the camera on macOS 10.14+ crashed,
+  which is now fixed.
+- The Windows installer now correctly aborts the installation on Windows 7
+  (rather than attempting an install which won't work, since Windows 7 is
+  unsupported since the v2.0.0 release).
+- Using `--json-logging` without `--debug` caused qutebrowser to crash since the
+  v1.13.0 release. It now works correctly again.
+- Mixing Qt 5.14+ with QtWebEngine 5.12 caused a crash related to qutebrowser's
+  notification support, which is now fixed.
+- The documentation now points to the new IRC channels on irc.libera.chat
+  instead of the defunct Freenode channels (due to a hostile takeover by
+  Freenode staff).
+- Setting `content.headers.user_agent` or `.accept_language` to a value
+  containing non-ascii characters was permitted by qutebrowser, but resulted in
+  a crash when loading a page. Such values are now rejected properly.
+- When quitting qutebrowser on the `qute://settings` page, a crash could happen, which is now fixed.
+- When `:edit-text` is used, but the existing text in the input isn't
+  representable in the configured encoding (`editor.encoding`), qutebrowser would
+  crash. It now shows a proper error instead.
+- The testsuite should now work properly on aarch64.
+- When QtWebEngine is in a "stuck" state while `:selection-follow` was used,
+  this could cause a crash in qutebrowser. This is now fixed (speculatively, due
+  to lack of a reproducer).
+- When the brave adblock data (`adblock-cache.dat`) got corrupted, qutebrowser
+  would crash when trying to load it. It now displays an error instead.
+- Combining `/S` (silent) and `/allusers` when uninstalling via the Windows
+  installer now works properly.
+
+[[v2.2.2]]
+v2.2.2 (2021-05-20)
+-------------------
+
+Fixed
+~~~~~
+
+- When awesomewm's "naughty" notification daemon was used with a development
+  version of AwesomeWM and an unknown version number, qutebrowser would crash
+  when trying to parse the version string. This is now fixed.
+- Due to a bug with QtWebEngine 5.15.4, old Service Worker data could cause
+  renderer process crashes. This is now worked around by qutebrowser.
+- When an (broken) binding to `set-cmd-text` without any argument existed,
+  using `:` would crash, which is now fixed.
+- New site-specific quirk (again) working around not being able to type
+  accented/composed characters on Google Docs.
+- When running with `python -OO` (which is not recommended), a notification
+  being shown would result in a crash, which is now fixed.
+
+[[v2.2.1]]
+v2.2.1 (2021-04-29)
+-------------------
+
+Changed
+~~~~~~~
+
+- When an error occurs in a notification presenter, qutebrowser now shows that
+  error in the statusbar instead of just logging it.
+- New site-specific-quirk for Discord logging users out when using vertical
+  tabs (yes, really)
+
+Fixed
+~~~~~
+
+- Certain errors from notification daemons are now displayed as non-fatal
+  errors instead of qutebrowser crashing:
+  * With the legacy GNOME Flashback notification daemon (not GNOME Shell), when
+    more than 20 notifications are currently shown.
+  * With the KDE Plasma notification daemon, when the same notification is
+    shown twice (with <1s delay).
+- The `mkvenv.py` script now works when `ldconfig -p` is failing.
+- Running `:spawn -u -o` broke in v2.2.0 and now works properly again.
+- Fixes in userscripts:
+  * The `qute-bitwarden` userscript now still consumes returned data if the
+    Bitwarden CLI showed a warning but exited with a 0 (successful) exit code.
+  * The `qute-pass` userscript now doesn't try to match a username with
+    `--password-only`, and error messages with invalid patterns are improved.
+  * The `qute-pass` userscript now avoids running `pass` twice when `--otp-only`
+    is used.
+
 [[v2.2.0]]
-v2.2.0 (unreleased)
+v2.2.0 (2021-04-13)
 -------------------
 
 Deprecated
 ~~~~~~~~~~
 
 - Running qutebrowser with Qt 5.12.0 is now unsupported and logs a warning. It
-  should still work, however, a workaround for issues with the Nvidia graphic
+  should still work - however, a workaround for issues with the Nvidia graphic
   driver was dropped. Newer Qt 5.12.x versions are still fully supported.
 - The `--force` argument for `:tab-only` is deprecated, use `--pinned close`
   instead.
@@ -33,6 +247,9 @@ Deprecated
 Added
 ~~~~~
 
+- New dependency on the `QtDBus` module. If this requirement is an issue for you
+  or your distribution, please open an issue! Note that a DBus connection at
+  runtime is still optional.
 - New `input.media_keys` setting which can be used to disable Chromium's
   handling of media keys.
 - New `:process` command (and associated `qute://process` pages) which can be
@@ -46,6 +263,19 @@ Added
   `fileselect.handler = external` to customize the command to use to upload
   directories (`<input type="file" webkitdirectory />` elements, which are
   non-standard but in wide use).
+- New `content.notifications.presenter` setting with various new ways to show
+  web notifications:
+     * `auto` (default): Automatically detect the best available option
+     * `qt`: Use Qt's built-in mechanism (like before this release)
+     * `libnotify`: Use a libnotify-compatible notification server (i.e. native
+       notifications on Linux)
+     * `systray`: Use a systray icon (very similar to `qt` but without some of
+       its drawbacks)
+     * `messages`: Use qutebrowser messages
+     * `herbe`: Use https://github.com/dudik/herbe[herbe]
+- New `content.notifications.show_origin` setting, which can be used to decide
+  for which notifications to show the origin (the URL the notification was sent
+  from).
 
 Changed
 ~~~~~~~
@@ -64,6 +294,8 @@ Changed
   clearer what kind of error occurred exactly.
 - The `content.site_specific_quirks` setting got renamed to
   `content.site_specific_quirks.enabled`.
+- The `content.notifications` option got renamed to
+  `content.notifications.enabled`.
 - The completion now also shows bindings starting with `set-cmd-text` in its
   third column, such as `o` for `:open`.
 - When `:spawn` is used with the `-m` / `--output-messages` flag, the output now
@@ -87,6 +319,19 @@ Changed
 - The default binding for `T` (`:tab-focus`) got changed so that it fills the
   command line with `:tab-focus` if used without a count (instead of being
   equivalent to `:tab-next` in that case).
+- The `:config-unset` command now understands the `--pattern` (`-u`) flag to
+  unset options customized for a given URL pattern (such as after answering a
+  prompt with "always"/"never").
+- The `:config-unset` command now shows an error when used on an option which is
+  valid, but was never customized.
+- The `statusbar.widgets` setting now understands `text:...` entries which
+  allows adding a hard-coded text to the statusbar.
+- The polyfill for `String.replaceAll` (required for Nextcloud Calendar < 2.2.0
+  with QtWebEngine < 5.15.3) is now disabled by default, as it's not fully
+  compliant to the ECMAScript spec and might cause issues on other websites.
+  If you still need it (e.g. if you're still on an old Nextcloud Calendar
+  version), remove `js-string-replaceall` from
+  `content.site_specific_quirks.skip`.
 
 Fixed
 ~~~~~
@@ -95,6 +340,15 @@ Fixed
   persisted. This already was the case when the editor crashed.
 - When a nonexistent file gets passed to `--config-py`, qutebrowser now
   complains instead of silently not loading it.
+- With some (rare) setups, opening the report dialog or using a PAC proxy with
+  QtWebKit could result in qutebrowser hanging due to a PyQt bug. There's now a
+  workaround which prevents the hang.
+- QtWebEngine version detection (influencing things like dark mode settings or
+  certain workarounds) now works correctly on OpenBSD.
+- Certain version number formats in `/etc/os-release` caused qutebrowser to
+  crash. Those are now handled correctly.
+- The macOS releases now properly support Dark Mode for UI elements by setting
+  `NSRequiresAquaSystemAppearance` to false.
 
 Removed
 ~~~~~~~
@@ -103,7 +357,7 @@ Removed
   replaced by the new `qute://process` pages.
 
 [[v2.1.1]]
-v2.1.1 (unreleased)
+v2.1.1 (2021-04-01)
 -------------------
 
 Added
@@ -124,11 +378,10 @@ Fixed
 
 - The workaround for black on (almost) black formula images in dark mode now
   also works with Qt 5.12 and 5.13.
-- When running in Flatpak, the QtWebEngine version is now detected properly.
-  Before, a wrong version was assumed, breaking dark mode and certain workarounds
-  (resulting in crashes on websites like LinkedIn or TradingView).
-- When running in Flatpak, communicating with an existing instance now works
-  properly. Before, a new instance was always opened.
+- When running in Flatpak or with the Windows/macOS releases, the QtWebEngine
+  version is now detected properly. Before, a wrong version was assumed, breaking
+  dark mode and certain workarounds (resulting in crashes on websites like
+  LinkedIn or TradingView).
 - When the metainfo in the completion database doesn't have the expected
   structure, qutebrowser now tries to gracefully recover from the situation
   instead of crashing.
@@ -137,8 +390,10 @@ Fixed
   to open a new page as long as it's not fully initialized yet.
 - When the Brave adblock cache folder was unreadable, qutebrowser crashed. It
   now displays an error instead.
-- The `qute-pass` userscript now works correctly when generating OTP tokens
-  with `gopass`.
+- Fixes in the `qute-pass` userscript for `gopass`:
+  * Generating OTP tokens now works correctly.
+  * Storing the username as part of the secret broke in v2.0.0 and now works
+    again.
 - When using `bindings.key_mappings` to map a key to multiple other keys,
   qutebrowser would crash. This is now handled correctly - however, note that
   it's usually better to map keys to commands instead.
@@ -147,6 +402,14 @@ Fixed
 - When a format string in the config (e.g. `tabs.title_format`) used a value
   like `{current_url.host}` (instead of `{current_url:host}`), qutebrowser
   would crash. It now correctly reports an invalid config value instead.
+- In rare circumstances, sending URLs/commands to existing instances would
+  result in a crash, which is now fixed.
+- Running the testsuite should now fully work without internet access again.
+- The `--asciidoc` script for `mkvenv.py` broke with v1.14.0. It now works
+  correctly again.
+- Various other fixes for running in Flatpak (backported in the Flatpak release
+  even before this qutebrowser release).
+- We are the Knights Who Say... ':Ni!'
 
 [[v2.1.0]]
 v2.1.0 (2021-03-12)

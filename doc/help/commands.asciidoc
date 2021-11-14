@@ -294,7 +294,7 @@ Cycle an option between multiple values.
 * +'values'+: The values to cycle through.
 
 ==== optional arguments
-* +*-u*+, +*--pattern*+: The URL pattern to use.
+* +*-u*+, +*--pattern*+: The link:configuring{outfilesuffix}#patterns[URL pattern] to use.
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 * +*-p*+, +*--print*+: Print the value after setting.
 
@@ -381,7 +381,7 @@ Read a config.py file.
 
 [[config-unset]]
 === config-unset
-Syntax: +:config-unset [*--temp*] 'option'+
+Syntax: +:config-unset [*--pattern* 'pattern'] [*--temp*] 'option'+
 
 Unset an option.
 
@@ -391,6 +391,7 @@ This sets an option back to its default and removes it from autoconfig.yml.
 * +'option'+: The name of the option.
 
 ==== optional arguments
+* +*-u*+, +*--pattern*+: The link:configuring{outfilesuffix}#patterns[URL pattern] to use.
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 
 [[config-write-py]]
@@ -576,7 +577,7 @@ Toggle fullscreen mode.
 
 [[greasemonkey-reload]]
 === greasemonkey-reload
-Syntax: +:greasemonkey-reload [*--force*]+
+Syntax: +:greasemonkey-reload [*--force*] [*--quiet*]+
 
 Re-read Greasemonkey scripts from disk.
 
@@ -585,6 +586,7 @@ The scripts are read from a 'greasemonkey' subdirectory in qutebrowser's data or
 ==== optional arguments
 * +*-f*+, +*--force*+: For any scripts that have required dependencies, re-download them.
 
+* +*-q*+, +*--quiet*+: Suppress message after loading scripts.
 
 [[help]]
 === help
@@ -677,9 +679,8 @@ Start hinting.
 * +*-a*+, +*--add-history*+: Whether to add the spawned or yanked link to the browsing history.
 
 * +*-r*+, +*--rapid*+: Whether to do rapid hinting. With rapid hinting, the hint mode isn't left after a hint is followed, so you can easily
- open multiple links. This is only possible with targets
- `tab` (with `tabs.background=true`), `tab-bg`,
- `window`, `run`, `hover`, `userscript` and `spawn`.
+ open multiple links. Note this won't work with targets
+ `tab-fg`, `fill`, `delete` and `right-click`.
 
 * +*-f*+, +*--first*+: Click the first hinted element without prompting.
 
@@ -1284,7 +1285,7 @@ If the option name ends with '?' or no value is provided, the value of the optio
 ==== optional arguments
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 * +*-p*+, +*--print*+: Print the value after setting.
-* +*-u*+, +*--pattern*+: The URL pattern to use.
+* +*-u*+, +*--pattern*+: The link:configuring{outfilesuffix}#patterns[URL pattern] to use.
 
 [[set-cmd-text]]
 === set-cmd-text
@@ -1355,13 +1356,14 @@ The tab index to stop.
 
 [[tab-clone]]
 === tab-clone
-Syntax: +:tab-clone [*--bg*] [*--window*]+
+Syntax: +:tab-clone [*--bg*] [*--window*] [*--private*]+
 
 Duplicate the current tab.
 
 ==== optional arguments
 * +*-b*+, +*--bg*+: Open in a background tab.
 * +*-w*+, +*--window*+: Open in a new window.
+* +*-p*+, +*--private*+: Open in a new private window.
 
 [[tab-close]]
 === tab-close
@@ -1429,6 +1431,7 @@ If neither is given, move it to the first position.
 ==== positional arguments
 * +'index'+: `+` or `-` to move relative to the current tab by count, or a default of 1 space.
  A tab index to move to that index.
+ `start` and `end` to move to the start and the end.
 
 
 ==== count

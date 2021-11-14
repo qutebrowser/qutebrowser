@@ -30,7 +30,7 @@ from typing import Any, Callable, List, Optional, Tuple, TypeVar
 _CACHE_FUNCTIONS: List[Tuple[str, Any]] = []
 
 
-_T = TypeVar('_T', bound=Callable)
+_T = TypeVar('_T', bound=Callable[..., Any])
 
 
 def register(name: Optional[str] = None) -> Callable[[_T], _T]:

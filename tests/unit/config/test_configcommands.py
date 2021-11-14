@@ -460,6 +460,40 @@ class TestUnsetAndClear:
         with pytest.raises(cmdutils.CommandError, match="No option 'tabs'"):
             commands.config_unset('tabs')
 
+    def test_unset_uncustomized(self, commands):
+        with pytest.raises(cmdutils.CommandError, match="tabs.show is not customized"):
+            commands.config_unset('tabs.show')
+
+    @pytest.mark.parametrize('set_global', [True, False])
+    def test_unset_pattern(self, commands, config_stub, set_global):
+        name = 'content.javascript.enabled'
+        pattern = urlmatch.UrlPattern('*://example.com')
+        url = QUrl('https://example.com')
+
+        if set_global:
+            config_stub.set_obj(name, False)
+            global_value = False
+            local_value = True
+        else:
+            global_value = True
+            local_value = False
+
+        config_stub.set_obj(name, local_value, pattern=pattern)
+        commands.config_unset(name, pattern=str(pattern))
+        assert config_stub.get_obj(name, url=url) == global_value
+        assert config_stub.get_obj(name, url=url, fallback=False) == usertypes.UNSET
+
+    def test_unset_uncustomized_pattern(self, commands, config_stub):
+        name = 'content.javascript.enabled'
+        pattern = 'example.com'
+
+        config_stub.set_obj(name, False)
+        with pytest.raises(
+            cmdutils.CommandError,
+            match=f"{name} is not customized for {pattern}",
+        ):
+            commands.config_unset(name, pattern=pattern)
+
     @pytest.mark.parametrize('save', [True, False])
     def test_clear(self, commands, config_stub, yaml_value, save):
         name = 'tabs.show'

@@ -240,7 +240,9 @@ def _init_runtime(args: Optional[argparse.Namespace]) -> None:
             # instances.
             *parts, app_name = os.path.split(path)
             assert app_name == APPNAME, app_name
-            path = os.path.join(*parts, 'app', os.environ['FLATPAK_ID'])
+            flatpak_id = version.flatpak_id()
+            assert flatpak_id is not None
+            path = os.path.join(*parts, 'app', flatpak_id)
 
     _create(path)
     _locations[_Location.runtime] = path

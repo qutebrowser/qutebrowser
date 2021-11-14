@@ -31,7 +31,8 @@ Module attributes:
 import io
 import operator
 import contextlib
-from typing import TYPE_CHECKING, BinaryIO, IO, Iterator, Optional, Union, Tuple, cast
+from typing import (Any, AnyStr, TYPE_CHECKING, BinaryIO, IO, Iterator,
+                    Optional, Union, Tuple, cast)
 
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QFileDevice, QSaveFile, QT_VERSION_STR,
@@ -227,7 +228,7 @@ def savefile_open(
         filename: str,
         binary: bool = False,
         encoding: str = 'utf-8'
-) -> Iterator[IO]:
+) -> Iterator[IO[AnyStr]]:
     """Context manager to easily use a QSaveFile."""
     f = QSaveFile(filename)
     cancelled = False
@@ -239,7 +240,7 @@ def savefile_open(
         dev = cast(BinaryIO, PyQIODevice(f))
 
         if binary:
-            new_f: IO = dev
+            new_f: IO[Any] = dev  # FIXME:mypy Why doesn't AnyStr work?
         else:
             new_f = io.TextIOWrapper(dev, encoding=encoding)
 
@@ -298,7 +299,11 @@ class PyQIODevice(io.BufferedIOBase):
         if not self.writable():
             raise OSError("Trying to write to unwritable file!")
 
-    def open(self, mode: QIODevice.OpenMode) -> contextlib.closing:
+    # contextlib.closing is only generic in Python 3.9+
+    def open(
+        self,
+        mode: QIODevice.OpenMode,
+    ) -> contextlib.closing:  # type: ignore[type-arg]
         """Open the underlying device and ensure opening succeeded.
 
         Raises OSError if opening failed.

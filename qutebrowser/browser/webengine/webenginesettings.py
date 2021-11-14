@@ -34,7 +34,7 @@ from PyQt5.QtWebEngineWidgets import QWebEngineSettings, QWebEngineProfile
 
 from qutebrowser.browser import history
 from qutebrowser.browser.webengine import (spell, webenginequtescheme, cookies,
-                                           webenginedownloads)
+                                           webenginedownloads, notification)
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import (standarddir, qtutils, message, log,
@@ -360,6 +360,9 @@ def _init_profile(profile: QWebEngineProfile) -> None:
     _download_manager.install(profile)
     cookies.install_filter(profile)
 
+    if notification.bridge is not None:
+        notification.bridge.install(profile)
+
     # Clear visited links on web history clear
     history.web_history.history_cleared.connect(profile.clearAllVisitedLinks)
     history.web_history.url_cleared.connect(
@@ -428,11 +431,7 @@ def _init_site_specific_quirks():
                      "AppleWebKit/537.36 (KHTML, like Gecko) "
                      "Chrome/99 "
                      "Safari/537.36")
-    edge_ua = ("Mozilla/5.0 ({os_info}) "
-               "AppleWebKit/{webkit_version} (KHTML, like Gecko) "
-               "{upstream_browser_key}/{upstream_browser_version} "
-               "Safari/{webkit_version} "
-               "Edg/{upstream_browser_version}")
+    firefox_ua = "Mozilla/5.0 ({os_info}; rv:90.0) Gecko/20100101 Firefox/90.0"
 
     user_agents = [
         # Needed to avoid a ""WhatsApp works with Google Chrome 36+" error
@@ -444,7 +443,7 @@ def _init_site_specific_quirks():
         # Needed to avoid a "you're using a browser [...] that doesn't allow us
         # to keep your account secure" error.
         # https://github.com/qutebrowser/qutebrowser/issues/5182
-        ("ua-google", 'https://accounts.google.com/*', edge_ua),
+        ("ua-google", 'https://accounts.google.com/*', firefox_ua),
 
         # Needed because Slack adds an error which prevents using it relatively
         # aggressively, despite things actually working fine.
@@ -508,6 +507,9 @@ def init():
     from qutebrowser.misc import quitter
     quitter.instance.shutting_down.connect(_download_manager.shutdown)
 
+    log.init.debug("Initializing notification presenter...")
+    notification.init()
+
     log.init.debug("Initializing global settings...")
     global _global_settings
     _global_settings = WebEngineSettings(_SettingsWrapper())
@@ -517,7 +519,7 @@ def init():
     init_private_profile()
     config.instance.changed.connect(_update_settings)
 
-    log.init.debug("Initializing site specific quirks...")
+    log.init.debug("Misc initialization...")
     _init_site_specific_quirks()
     _init_devtools_settings()
 

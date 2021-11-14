@@ -49,6 +49,7 @@ TODO
 /scripts/testbrowser/cpp/webengine/testbrowser
 /scripts/testbrowser/cpp/webengine/.qmake.stash
 /scripts/dev/pylint_checkers/qute_pylint.egg-info
+/scripts/dev/pylint_checkers/build
 /misc/file_version_info.txt
 /doc/extapi/_build
 /misc/nsis/include

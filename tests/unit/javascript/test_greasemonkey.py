@@ -131,6 +131,20 @@ def test_no_name_with_fallback():
     assert script.name == r"C:\COM1"
 
 
+@pytest.mark.parametrize('properties, inc_counter, expected', [
+    ([("name", "gorilla")], False, "GM-gorilla"),
+    ([("namespace", "apes"), ("name", "gorilla")], False, "GM-apes/gorilla"),
+
+    ([("name", "gorilla")], True, "GM-gorilla-2"),
+    ([("namespace", "apes"), ("name", "gorilla")], True, "GM-apes/gorilla-2"),
+])
+def test_full_name(properties, inc_counter, expected):
+    script = greasemonkey.GreasemonkeyScript(properties, code="")
+    if inc_counter:
+        script.dedup_suffix += 1
+    assert script.full_name() == expected
+
+
 def test_bad_scheme(caplog):
     """qute:// isn't in the list of allowed schemes."""
     _save_script("var nothing = true;\n", 'nothing.user.js')

@@ -28,12 +28,15 @@ import platform
 import subprocess
 import importlib
 import collections
+import pathlib
+import configparser
 import enum
 import datetime
 import getpass
 import functools
 import dataclasses
-from typing import Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast
+from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast,
+                    TYPE_CHECKING)
 
 
 from PyQt5.QtCore import PYQT_VERSION_STR, QLibraryInfo, qVersion
@@ -57,7 +60,9 @@ import qutebrowser
 from qutebrowser.utils import log, utils, standarddir, usertypes, message, resources
 from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin, elf
 from qutebrowser.browser import pdfjs
-from qutebrowser.config import config, websettings
+from qutebrowser.config import config
+if TYPE_CHECKING:
+    from qutebrowser.config import websettings
 
 _LOGO = r'''
          ______     ,,
@@ -85,7 +90,6 @@ class DistributionInfo:
 
     id: Optional[str]
     parsed: 'Distribution'
-    version: Optional[utils.VersionNumber]
     pretty: str
 
 
@@ -140,7 +144,6 @@ def distribution() -> Optional[DistributionInfo]:
     Returns:
         A DistributionInfo object, or None if no info could be determined.
             parsed: A Distribution enum member
-            version: A Version object, or None
             pretty: Always a string (might be "Unknown")
     """
     info = _parse_os_release()
@@ -151,12 +154,6 @@ def distribution() -> Optional[DistributionInfo]:
     if pretty in ['Linux', None]:  # Funtoo has PRETTY_NAME=Linux
         pretty = info.get('NAME', 'Unknown')
     assert pretty is not None
-
-    dist_version: Optional[utils.VersionNumber] = None
-    for version_key in ['VERSION', 'VERSION_ID']:
-        if version_key in info:
-            dist_version = utils.VersionNumber.parse(info[version_key])
-            break
 
     dist_id = info.get('ID', None)
     id_mappings = {
@@ -180,8 +177,7 @@ def distribution() -> Optional[DistributionInfo]:
         else:
             break
 
-    return DistributionInfo(
-        parsed=parsed, version=dist_version, pretty=pretty, id=dist_id)
+    return DistributionInfo(parsed=parsed, pretty=pretty, id=dist_id)
 
 
 def is_flatpak() -> bool:
@@ -190,10 +186,27 @@ def is_flatpak() -> bool:
     If packaged via Flatpak, the environment is has restricted access to the host
     system.
     """
-    current_distro = distribution()
-    if current_distro is None:
-        return False
-    return current_distro.parsed == Distribution.kde_flatpak
+    return flatpak_id() is not None
+
+
+_FLATPAK_INFO_PATH = '/.flatpak-info'
+
+
+def flatpak_id() -> Optional[str]:
+    """Get the ID of the currently running Flatpak (or None if outside of Flatpak)."""
+    if 'FLATPAK_ID' in os.environ:
+        return os.environ['FLATPAK_ID']
+
+    # 'FLATPAK_ID' was only added in Flatpak 1.2.0:
+    # https://lists.freedesktop.org/archives/flatpak/2019-January/001464.html
+    # but e.g. Ubuntu 18.04 ships 1.0.9.
+    info_file = pathlib.Path(_FLATPAK_INFO_PATH)
+    if not info_file.exists():
+        return None
+
+    parser = configparser.ConfigParser()
+    parser.read(info_file)
+    return parser['Application']['name']
 
 
 def _git_str() -> Optional[str]:
@@ -580,13 +593,13 @@ class WebEngineVersions:
     def __str__(self) -> str:
         s = f'QtWebEngine {self.webengine}'
         if self.chromium is not None:
-            s += f', Chromium {self.chromium}'
+            s += f', based on Chromium {self.chromium}'
         if self.source != 'UA':
             s += f' (from {self.source})'
         return s
 
     @classmethod
-    def from_ua(cls, ua: websettings.UserAgent) -> 'WebEngineVersions':
+    def from_ua(cls, ua: 'websettings.UserAgent') -> 'WebEngineVersions':
         """Get the versions parsed from a user agent.
 
         This is the most reliable and "default" way to get this information (at least
@@ -639,25 +652,72 @@ class WebEngineVersions:
         return cls._CHROMIUM_VERSIONS.get(minor_version)
 
     @classmethod
-    def from_pyqt(
-            cls,
-            pyqt_webengine_version: str,
-            source: str = 'PyQt',
-    ) -> 'WebEngineVersions':
+    def from_importlib(cls, pyqt_webengine_qt_version: str) -> 'WebEngineVersions':
+        """Get the versions based on the PyQtWebEngine version.
+
+        This is called if we don't want to fully initialize QtWebEngine (so
+        from_ua isn't possible), we're not on Linux (or ELF parsing failed), but we have
+        a PyQtWebEngine-Qt{,5} package from PyPI, so we could query its exact version.
+        """
+        parsed = utils.VersionNumber.parse(pyqt_webengine_qt_version)
+        return cls(
+            webengine=parsed,
+            chromium=cls._infer_chromium_version(parsed),
+            source='importlib',
+        )
+
+    @classmethod
+    def from_pyqt(cls, pyqt_webengine_version: str) -> 'WebEngineVersions':
         """Get the versions based on the PyQtWebEngine version.
 
         This is the "last resort" if we don't want to fully initialize QtWebEngine (so
-        from_ua isn't possible) and we're not on Linux (or ELF parsing failed).
+        from_ua isn't possible), we're not on Linux (or ELF parsing failed), and
+        PyQtWebEngine-Qt{5,} isn't available from PyPI.
 
         Here, we assume that the PyQtWebEngine version is the same as the QtWebEngine
         version, and infer the Chromium version from that. This assumption isn't
         generally true, but good enough for some scenarios, especially the prebuilt
         Windows/macOS releases.
-
-        Note that we only can get the PyQtWebEngine version with PyQt 5.13 or newer.
-        With Qt 5.12, we instead rely on qVersion().
         """
         parsed = utils.VersionNumber.parse(pyqt_webengine_version)
+        if utils.VersionNumber(5, 15, 3) <= parsed < utils.VersionNumber(6):
+            # If we land here, we're in a tricky situation where we are forced to guess:
+            #
+            # PyQt 5.15.3 and 5.15.4 from PyPI come with QtWebEngine 5.15.2 (Chromium
+            # 83), not 5.15.3 (Chromium 87). Given that there was no binary release of
+            # QtWebEngine 5.15.3, this is unlikely to change before Qt 6.
+            #
+            # However, at this point:
+            #
+            # - ELF parsing failed
+            #   (so we're likely on macOS or Windows, but not definitely)
+            #
+            # - Getting infos from a PyPI-installed PyQtWebEngine failed
+            #   (so we're either in a PyInstaller-deployed qutebrowser, or a self-built
+            #   or distribution-installed Qt)
+            #
+            # PyQt 5.15.3 and 5.15.4 come with QtWebEngine 5.15.2 (83-based), but if
+            # someone lands here with the last Qt/PyQt installed from source, they might
+            # be using QtWebEngine 5.15.3 (87-based). For now, we play it safe, and only
+            # do this kind of "downgrade" when we know we're using PyInstaller.
+            frozen = hasattr(sys, 'frozen')
+            log.misc.debug(f"PyQt5 >= 5.15.3, frozen {frozen}")
+            if frozen:
+                parsed = utils.VersionNumber(5, 15, 2)
+
+        return cls(
+            webengine=parsed,
+            chromium=cls._infer_chromium_version(parsed),
+            source='PyQt',
+        )
+
+    @classmethod
+    def from_qt(cls, qt_version: str, *, source: str = 'Qt') -> 'WebEngineVersions':
+        """Get the versions based on the Qt version.
+
+        This is called if we don't have PYQT_WEBENGINE_VERSION, i.e. with PyQt 5.12.
+        """
+        parsed = utils.VersionNumber.parse(qt_version)
         return cls(
             webengine=parsed,
             chromium=cls._infer_chromium_version(parsed),
@@ -692,20 +752,22 @@ def qtwebengine_versions(avoid_init: bool = False) -> WebEngineVersions:
     if webenginesettings.parsed_user_agent is not None:
         return WebEngineVersions.from_ua(webenginesettings.parsed_user_agent)
 
+    override = os.environ.get('QUTE_QTWEBENGINE_VERSION_OVERRIDE')
+    if override is not None:
+        return WebEngineVersions.from_qt(override, source='override')
+
     versions = elf.parse_webenginecore()
     if versions is not None:
         return WebEngineVersions.from_elf(versions)
 
     pyqt_webengine_qt_version = _get_pyqt_webengine_qt_version()
     if pyqt_webengine_qt_version is not None:
-        return WebEngineVersions.from_pyqt(
-            pyqt_webengine_qt_version, source='importlib')
+        return WebEngineVersions.from_importlib(pyqt_webengine_qt_version)
 
     if PYQT_WEBENGINE_VERSION_STR is not None:
         return WebEngineVersions.from_pyqt(PYQT_WEBENGINE_VERSION_STR)
 
-    return WebEngineVersions.from_pyqt(  # type: ignore[unreachable]
-        qVersion(), source='Qt')
+    return WebEngineVersions.from_qt(qVersion())  # type: ignore[unreachable]
 
 
 def _backend() -> str:
@@ -713,8 +775,6 @@ def _backend() -> str:
     if objects.backend == usertypes.Backend.QtWebKit:
         return 'new QtWebKit (WebKit {})'.format(qWebKitVersion())
     elif objects.backend == usertypes.Backend.QtWebEngine:
-        webengine = usertypes.Backend.QtWebEngine
-        assert objects.backend == webengine, objects.backend
         return str(qtwebengine_versions(
             avoid_init='avoid-chromium-init' in objects.debug_flags))
     raise utils.Unreachable(objects.backend)

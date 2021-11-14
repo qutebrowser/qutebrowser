@@ -64,7 +64,7 @@ class ContentDisposition:
     # "duplicate ignored"), because even if we did ignore that one, it still wouldn't
     # work properly...
     _IGNORED_DEFECT = DefectWrapper(
-        email.errors.InvalidHeaderDefect,  # type: ignore[attr-defined]
+        email.errors.InvalidHeaderDefect,
         'duplicate parameter name; duplicate ignored'
     )
 

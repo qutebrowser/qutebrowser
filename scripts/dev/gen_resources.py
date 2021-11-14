@@ -21,6 +21,10 @@
 """Generate Qt resources based on source files."""
 
 import subprocess
+import pathlib
 
-with open('qutebrowser/resources.py', 'w', encoding='utf-8') as f:
-    subprocess.run(['pyrcc5', 'qutebrowser.rcc'], stdout=f, check=True)
+ROOT = pathlib.Path(__file__).parents[2]
+OUTPUT = ROOT / 'qutebrowser' / 'resources.py'
+INPUT = ROOT / 'misc' / 'qutebrowser.rcc'
+
+subprocess.run(['pyrcc5', '-o', str(OUTPUT), str(INPUT)], check=True)

@@ -65,7 +65,7 @@ import re
 import dataclasses
 import mmap
 import pathlib
-from typing import IO, ClassVar, Dict, Optional, Tuple, cast
+from typing import Any, IO, ClassVar, Dict, Optional, Tuple, cast
 
 from PyQt5.QtCore import QLibraryInfo
 
@@ -93,7 +93,7 @@ class Endianness(enum.Enum):
     big = 2
 
 
-def _unpack(fmt: str, fobj: IO[bytes]) -> Tuple:
+def _unpack(fmt: str, fobj: IO[bytes]) -> Tuple[Any, ...]:
     """Unpack the given struct format from the given file."""
     size = struct.calcsize(fmt)
     data = _safe_read(fobj, size)
@@ -316,10 +316,13 @@ def parse_webenginecore() -> Optional[Versions]:
     else:
         library_path = pathlib.Path(QLibraryInfo.location(QLibraryInfo.LibrariesPath))
 
-    # PyQt bundles those files with a .5 suffix
-    lib_file = library_path / 'libQt5WebEngineCore.so.5'
-    if not lib_file.exists():
+    library_name = sorted(library_path.glob('libQt5WebEngineCore.so*'))
+    if not library_name:
+        log.misc.debug(f"No QtWebEngine .so found in {library_path}")
         return None
+    else:
+        lib_file = library_name[-1]
+        log.misc.debug(f"QtWebEngine .so found at {lib_file}")
 
     try:
         with lib_file.open('rb') as f:

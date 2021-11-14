@@ -41,9 +41,10 @@ import os
 import sys
 import functools
 import tempfile
+import pathlib
 import datetime
 import argparse
-from typing import Iterable, Optional, cast
+from typing import Iterable, Optional
 
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
@@ -74,9 +75,6 @@ from qutebrowser.mainwindow.statusbar import command
 from qutebrowser.misc import utilcmds
 from qutebrowser.browser import commands
 # pylint: enable=unused-import
-
-
-q_app = cast(QApplication, None)
 
 
 def run(args):
@@ -482,11 +480,9 @@ def _init_modules(*, args):
 
     with debug.log_time("init", "Initializing SQL/history"):
         try:
-            log.init.debug("Initializing SQL...")
-            sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
-
             log.init.debug("Initializing web history...")
-            history.init(objects.qapp)
+            history.init(db_path=pathlib.Path(standarddir.data()) / 'history.sqlite',
+                         parent=objects.qapp)
         except sql.KnownError as e:
             error.handle_fatal_exc(e, 'Error initializing SQL',
                                    pre_text='Error initializing SQL',

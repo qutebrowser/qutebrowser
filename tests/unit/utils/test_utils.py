@@ -39,7 +39,7 @@ import yaml
 
 import qutebrowser
 import qutebrowser.utils  # for test_qualname
-from qutebrowser.utils import utils, version, usertypes
+from qutebrowser.utils import utils, usertypes
 from qutebrowser.utils.utils import VersionNumber
 
 
@@ -57,6 +57,7 @@ class TestVersionNumber:
         (VersionNumber(5, 15, 2), '5.15.2'),
         (VersionNumber(5, 15), '5.15'),
         (VersionNumber(5), '5'),
+        (VersionNumber(1, 2, 3, 4), '1.2.3.4'),
     ])
     def test_str(self, num, expected):
         assert str(num) == expected
@@ -69,6 +70,7 @@ class TestVersionNumber:
         (VersionNumber(5, 15, 2), VersionNumber(5, 15)),
         (VersionNumber(5, 15), VersionNumber(5, 15)),
         (VersionNumber(6), VersionNumber(6)),
+        (VersionNumber(1, 2, 3, 4), VersionNumber(1, 2)),
     ])
     def test_strip_patch(self, num, expected):
         assert num.strip_patch() == expected
@@ -79,6 +81,7 @@ class TestVersionNumber:
         ('5.15', VersionNumber(5, 15)),
         ('5.15.3', VersionNumber(5, 15, 3)),
         ('5.15.3.dev1234', VersionNumber(5, 15, 3)),
+        ('1.2.3.4', VersionNumber(1, 2, 3, 4)),
     ])
     def test_parse_valid(self, s, expected):
         assert VersionNumber.parse(s) == expected
@@ -215,16 +218,6 @@ class TestElidingFilenames:
     ])
     def test_elided(self, filename, length, expected):
         assert utils.elide_filename(filename, length) == expected
-
-
-@pytest.fixture(params=[True, False])
-def freezer(request, monkeypatch):
-    if request.param and not getattr(sys, 'frozen', False):
-        monkeypatch.setattr(sys, 'frozen', True, raising=False)
-        monkeypatch.setattr(sys, 'executable', qutebrowser.__file__)
-    elif not request.param and getattr(sys, 'frozen', False):
-        # Want to test unfrozen tests, but we are frozen
-        pytest.skip("Can't run with sys.frozen = True!")
 
 
 @pytest.mark.parametrize('seconds, out', [
@@ -725,6 +718,7 @@ class TestGetSetClipboard:
 class TestOpenFile:
 
     @pytest.mark.not_frozen
+    @pytest.mark.not_flatpak
     def test_cmdline_without_argument(self, caplog, config_stub):
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass'.format(executable)
@@ -734,6 +728,7 @@ class TestOpenFile:
             r'Opening /foo/bar with \[.*python.*/foo/bar.*\]', result)
 
     @pytest.mark.not_frozen
+    @pytest.mark.not_flatpak
     def test_cmdline_with_argument(self, caplog, config_stub):
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass {{}} raboof'.format(executable)
@@ -743,6 +738,7 @@ class TestOpenFile:
             r"Opening /foo/bar with \[.*python.*/foo/bar.*'raboof'\]", result)
 
     @pytest.mark.not_frozen
+    @pytest.mark.not_flatpak
     def test_setting_override(self, caplog, config_stub):
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass'.format(executable)
@@ -765,17 +761,7 @@ class TestOpenFile:
             r"Opening /foo/bar with the system application", result)
         openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
 
-    @pytest.fixture
-    def sandbox_patch(self, monkeypatch):
-        info = version.DistributionInfo(
-            id='org.kde.Platform',
-            parsed=version.Distribution.kde_flatpak,
-            version=VersionNumber.parse('5.12'),
-            pretty='Unknown')
-        monkeypatch.setattr(version, 'distribution',
-                            lambda: info)
-
-    def test_cmdline_sandboxed(self, sandbox_patch,
+    def test_cmdline_sandboxed(self, fake_flatpak,
                                config_stub, message_mock, caplog):
         with caplog.at_level(logging.ERROR):
             utils.open_file('/foo/bar', 'custom_cmd')
@@ -783,7 +769,7 @@ class TestOpenFile:
         assert msg.text == 'Cannot spawn download dispatcher from sandbox'
 
     @pytest.mark.not_frozen
-    def test_setting_override_sandboxed(self, sandbox_patch, openurl_mock,
+    def test_setting_override_sandboxed(self, fake_flatpak, openurl_mock,
                                         caplog, config_stub):
         config_stub.val.downloads.open_dispatcher = 'test'
 
@@ -795,7 +781,7 @@ class TestOpenFile:
         openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
 
     def test_system_default_sandboxed(self, config_stub, openurl_mock,
-                                      sandbox_patch):
+                                      fake_flatpak):
         utils.open_file('/foo/bar')
         openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
 
@@ -823,8 +809,11 @@ class TestYaml:
         assert utils.yaml_load("[1, 2]") == [1, 2]
 
     def test_load_float_bug(self):
-        with pytest.raises(yaml.YAMLError):
+        try:
             utils.yaml_load("._")
+        except yaml.YAMLError:
+            # Either no exception or YAMLError, not ValueError
+            pass
 
     def test_load_file(self, tmp_path):
         tmpfile = tmp_path / 'foo.yml'

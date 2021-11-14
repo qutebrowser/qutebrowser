@@ -18,11 +18,32 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
+"""Show information about the OpenGL setup."""
 
-from scripts import mkvenv
+from PyQt5.QtGui import (QOpenGLContext, QOpenGLVersionProfile,
+                         QOffscreenSurface, QGuiApplication)
 
+app = QGuiApplication([])
 
-def test_smoke(tmp_path):
-    """Simple smoke test of mkvenv.py."""
-    args = mkvenv.parse_args(['--venv-dir', str(tmp_path / 'venv'), '--skip-docs'])
-    mkvenv.run(args)
+surface = QOffscreenSurface()
+surface.create()
+
+ctx = QOpenGLContext()
+ok = ctx.create()
+assert ok
+
+ok = ctx.makeCurrent(surface)
+assert ok
+
+print(f"GLES: {ctx.isOpenGLES()}")
+
+vp = QOpenGLVersionProfile()
+vp.setVersion(2, 0)
+
+vf = ctx.versionFunctions(vp)
+print(f"Vendor: {vf.glGetString(vf.GL_VENDOR)}")
+print(f"Renderer: {vf.glGetString(vf.GL_RENDERER)}")
+print(f"Version: {vf.glGetString(vf.GL_VERSION)}")
+print(f"Shading language version: {vf.glGetString(vf.GL_SHADING_LANGUAGE_VERSION)}")
+
+ctx.doneCurrent()

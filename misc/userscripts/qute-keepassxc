@@ -62,7 +62,7 @@ Unlike most browser extensions which only use plain local storage, this one atte
 by storing the key in encrypted form using GPG.
 Therefore you need to have a public-key-pair readily set up.
 
-GPG might then ask for your private-key passwort whenever you query the database for login credentials.
+GPG might then ask for your private-key password whenever you query the database for login credentials.
 
 
 [1]: https://keepassxc.org/

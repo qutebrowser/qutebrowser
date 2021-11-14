@@ -35,7 +35,7 @@ from qutebrowser.misc import objects
 from qutebrowser.qt import sip
 
 
-def log_events(klass: Type) -> Type:
+def log_events(klass: Type[QObject]) -> Type[QObject]:
     """Class decorator to log Qt events."""
     old_event = klass.event
 
@@ -46,7 +46,7 @@ def log_events(klass: Type) -> Type:
                                                 qenum_key(QEvent, e.type())))
         return old_event(self, e)
 
-    klass.event = new_event
+    klass.event = new_event  # type: ignore[assignment]
     return klass
 
 
@@ -96,10 +96,13 @@ def log_signals(obj: QObject) -> QObject:
     return obj
 
 
-def qenum_key(base: Type,
-              value: Union[int, sip.simplewrapper],
+_EnumValueType = Union[sip.simplewrapper, int]
+
+
+def qenum_key(base: Type[_EnumValueType],
+              value: _EnumValueType,
               add_base: bool = False,
-              klass: Type = None) -> str:
+              klass: Type[_EnumValueType] = None) -> str:
     """Convert a Qt Enum value to its key as a string.
 
     Args:
@@ -119,8 +122,9 @@ def qenum_key(base: Type,
             raise TypeError("Can't guess enum class of an int!")
 
     try:
-        idx = base.staticMetaObject.indexOfEnumerator(klass.__name__)
-        meta_enum = base.staticMetaObject.enumerator(idx)
+        meta_obj = base.staticMetaObject  # type: ignore[union-attr]
+        idx = meta_obj.indexOfEnumerator(klass.__name__)
+        meta_enum = meta_obj.enumerator(idx)
         ret = meta_enum.valueToKey(int(value))  # type: ignore[arg-type]
     except AttributeError:
         ret = None
@@ -139,10 +143,10 @@ def qenum_key(base: Type,
         return ret
 
 
-def qflags_key(base: Type,
-               value: Union[int, sip.simplewrapper],
+def qflags_key(base: Type[_EnumValueType],
+               value: _EnumValueType,
                add_base: bool = False,
-               klass: Type = None) -> str:
+               klass: Type[_EnumValueType] = None) -> str:
     """Convert a Qt QFlags value to its keys as string.
 
     Note: Passing a combined value (such as Qt.AlignCenter) will get the names
@@ -220,7 +224,7 @@ def signal_name(sig: pyqtBoundSignal) -> str:
     return m.group('name')
 
 
-def format_args(args: Sequence = None, kwargs: Mapping = None) -> str:
+def format_args(args: Sequence[Any] = None, kwargs: Mapping[str, Any] = None) -> str:
     """Format a list of arguments/kwargs to a function-call like string."""
     if args is not None:
         arglist = [utils.compact_text(repr(arg), 200) for arg in args]
@@ -245,9 +249,9 @@ def dbg_signal(sig: pyqtBoundSignal, args: Any) -> str:
     return '{}({})'.format(signal_name(sig), format_args(args))
 
 
-def format_call(func: Callable,
-                args: Sequence = None,
-                kwargs: Mapping = None,
+def format_call(func: Callable[..., Any],
+                args: Sequence[Any] = None,
+                kwargs: Mapping[str, Any] = None,
                 full: bool = True) -> str:
     """Get a string representation of a function calls with the given args.
 
@@ -302,7 +306,7 @@ class log_time:  # noqa: N801,N806 pylint: disable=invalid-name
         self._logger.debug("{} took {} seconds.".format(
             self._action.capitalize(), delta))
 
-    def __call__(self, func: Callable) -> Callable:
+    def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
         def wrapped(*args: Any, **kwargs: Any) -> Any:
             """Call the original function."""

@@ -53,7 +53,7 @@ except ImportError:
     # Invalid file
     ("\n# foo\n foo=bar=baz",
      version.DistributionInfo(id=None, parsed=version.Distribution.unknown,
-                              version=None, pretty='Unknown')),
+                              pretty='Unknown')),
     # Archlinux
     ("""
         NAME="Arch Linux"
@@ -66,8 +66,7 @@ except ImportError:
         BUG_REPORT_URL="https://bugs.archlinux.org/"
      """,
      version.DistributionInfo(
-         id='arch', parsed=version.Distribution.arch, version=None,
-         pretty='Arch Linux')),
+         id='arch', parsed=version.Distribution.arch, pretty='Arch Linux')),
     # Ubuntu 14.04
     ("""
         NAME="Ubuntu"
@@ -78,9 +77,7 @@ except ImportError:
         VERSION_ID="14.04"
      """,
      version.DistributionInfo(
-         id='ubuntu', parsed=version.Distribution.ubuntu,
-         version=utils.VersionNumber(14, 4, 5),
-         pretty='Ubuntu 14.04.5 LTS')),
+         id='ubuntu', parsed=version.Distribution.ubuntu, pretty='Ubuntu 14.04.5 LTS')),
     # Ubuntu 17.04
     ("""
         NAME="Ubuntu"
@@ -91,9 +88,7 @@ except ImportError:
         VERSION_ID="17.04"
      """,
      version.DistributionInfo(
-         id='ubuntu', parsed=version.Distribution.ubuntu,
-         version=utils.VersionNumber(17, 4),
-         pretty='Ubuntu 17.04')),
+         id='ubuntu', parsed=version.Distribution.ubuntu, pretty='Ubuntu 17.04')),
     # Debian Jessie
     ("""
         PRETTY_NAME="Debian GNU/Linux 8 (jessie)"
@@ -104,7 +99,6 @@ except ImportError:
      """,
      version.DistributionInfo(
          id='debian', parsed=version.Distribution.debian,
-         version=utils.VersionNumber(8),
          pretty='Debian GNU/Linux 8 (jessie)')),
     # Void Linux
     ("""
@@ -114,8 +108,7 @@ except ImportError:
         PRETTY_NAME="void"
      """,
      version.DistributionInfo(
-         id='void', parsed=version.Distribution.void,
-         version=None, pretty='void')),
+         id='void', parsed=version.Distribution.void, pretty='void')),
     # Gentoo
     ("""
         NAME=Gentoo
@@ -123,8 +116,7 @@ except ImportError:
         PRETTY_NAME="Gentoo/Linux"
      """,
      version.DistributionInfo(
-         id='gentoo', parsed=version.Distribution.gentoo,
-         version=None, pretty='Gentoo/Linux')),
+         id='gentoo', parsed=version.Distribution.gentoo, pretty='Gentoo/Linux')),
     # Fedora
     ("""
         NAME=Fedora
@@ -135,7 +127,6 @@ except ImportError:
      """,
      version.DistributionInfo(
          id='fedora', parsed=version.Distribution.fedora,
-         version=utils.VersionNumber(25),
          pretty='Fedora 25 (Twenty Five)')),
     # OpenSUSE
     ("""
@@ -148,7 +139,6 @@ except ImportError:
      """,
      version.DistributionInfo(
          id='opensuse', parsed=version.Distribution.opensuse,
-         version=utils.VersionNumber(42, 2),
          pretty='openSUSE Leap 42.2')),
     # Linux Mint
     ("""
@@ -161,7 +151,6 @@ except ImportError:
      """,
      version.DistributionInfo(
          id='linuxmint', parsed=version.Distribution.linuxmint,
-         version=utils.VersionNumber(18, 1),
          pretty='Linux Mint 18.1')),
     # Manjaro
     ("""
@@ -170,8 +159,7 @@ except ImportError:
         PRETTY_NAME="Manjaro Linux"
      """,
      version.DistributionInfo(
-         id='manjaro', parsed=version.Distribution.manjaro,
-         version=None, pretty='Manjaro Linux')),
+         id='manjaro', parsed=version.Distribution.manjaro, pretty='Manjaro Linux')),
     # Funtoo
     ("""
         ID="funtoo"
@@ -179,8 +167,7 @@ except ImportError:
         PRETTY_NAME="Linux"
      """,
      version.DistributionInfo(
-         id='funtoo', parsed=version.Distribution.gentoo,
-         version=None, pretty='Funtoo GNU/Linux')),
+         id='funtoo', parsed=version.Distribution.gentoo, pretty='Funtoo GNU/Linux')),
     # KDE neon
     ("""
         NAME="KDE neon"
@@ -193,7 +180,7 @@ except ImportError:
     """,
     version.DistributionInfo(
         id='neon', parsed=version.Distribution.neon,
-        version=utils.VersionNumber(5, 20), pretty='KDE neon User Edition 5.20')),
+        pretty='KDE neon User Edition 5.20')),
     # Archlinux ARM
     ("""
         NAME="Arch Linux ARM"
@@ -202,8 +189,7 @@ except ImportError:
         ID_LIKE=arch
     """,
     version.DistributionInfo(
-        id='archarm', parsed=version.Distribution.arch,
-        version=None, pretty='Arch Linux ARM')),
+        id='archarm', parsed=version.Distribution.arch, pretty='Arch Linux ARM')),
     # Alpine
     ("""
         NAME="Alpine Linux"
@@ -212,8 +198,7 @@ except ImportError:
         PRETTY_NAME="Alpine Linux edge"
     """,
     version.DistributionInfo(
-        id='alpine', parsed=version.Distribution.alpine,
-        version=utils.VersionNumber(3, 12), pretty='Alpine Linux edge')),
+        id='alpine', parsed=version.Distribution.alpine, pretty='Alpine Linux edge')),
     # EndeavourOS
     ("""
         NAME="EndeavourOS"
@@ -225,8 +210,7 @@ except ImportError:
         LOGO=endeavouros
     """,
     version.DistributionInfo(
-        id='endeavouros', parsed=version.Distribution.arch,
-        version=None, pretty='EndeavourOS')),
+        id='endeavouros', parsed=version.Distribution.arch, pretty='EndeavourOS')),
     # Manjaro ARM
     ("""
         NAME="Manjaro-ARM"
@@ -235,8 +219,7 @@ except ImportError:
         PRETTY_NAME="Manjaro ARM"
     """,
     version.DistributionInfo(
-        id='manjaro-arm', parsed=version.Distribution.manjaro,
-        version=None, pretty='Manjaro ARM')),
+        id='manjaro-arm', parsed=version.Distribution.manjaro, pretty='Manjaro ARM')),
     # Artix Linux
     ("""
         NAME="Artix Linux"
@@ -244,8 +227,7 @@ except ImportError:
         ID=artix
     """,
     version.DistributionInfo(
-        id='artix', parsed=version.Distribution.arch,
-        version=None, pretty='Artix Linux')),
+        id='artix', parsed=version.Distribution.arch, pretty='Artix Linux')),
     # NixOS
     ("""
         NAME=NixOS
@@ -256,9 +238,15 @@ except ImportError:
         PRETTY_NAME="NixOS 21.03 (Okapi)"
     """,
     version.DistributionInfo(
-        id='nixos', parsed=version.Distribution.nixos,
-        version=utils.VersionNumber(21, 3),
-        pretty='NixOS 21.03 (Okapi)')),
+        id='nixos', parsed=version.Distribution.nixos, pretty='NixOS 21.03 (Okapi)')),
+    # NixOS (fake fourth version component)
+    ("""
+        NAME=NixOS
+        ID=nixos
+        VERSION="21.05.20210402.1dead (Okapi)"
+    """,
+    version.DistributionInfo(
+        id='nixos', parsed=version.Distribution.nixos, pretty='NixOS')),
     # SolusOS
     ("""
         NAME="Solus"
@@ -269,9 +257,7 @@ except ImportError:
         PRETTY_NAME="Solus 4.2 Fortitude"
     """,
     version.DistributionInfo(
-        id='solus', parsed=version.Distribution.solus,
-        version=utils.VersionNumber(4, 2),
-        pretty='Solus 4.2 Fortitude')),
+        id='solus', parsed=version.Distribution.solus, pretty='Solus 4.2 Fortitude')),
     # KDE Platform
     ("""
         NAME=KDE
@@ -280,17 +266,14 @@ except ImportError:
         ID=org.kde.Platform
     """,
     version.DistributionInfo(
-        id='org.kde.Platform', parsed=version.Distribution.kde_flatpak,
-        version=utils.VersionNumber(5, 12),
-        pretty='KDE')),
+        id='org.kde.Platform', parsed=version.Distribution.kde_flatpak, pretty='KDE')),
     # No PRETTY_NAME
     ("""
         NAME="Tux"
         ID=tux
     """,
     version.DistributionInfo(
-        id='tux', parsed=version.Distribution.unknown,
-        version=None, pretty='Tux')),
+        id='tux', parsed=version.Distribution.unknown, pretty='Tux')),
     # Invalid multi-line value
     ("""
         ID=tux
@@ -298,8 +281,7 @@ except ImportError:
         Text"
     """,
     version.DistributionInfo(
-        id='tux', parsed=version.Distribution.unknown,
-        version=None, pretty='Multiline')),
+        id='tux', parsed=version.Distribution.unknown, pretty='Multiline')),
 ])
 def test_distribution(tmp_path, monkeypatch, os_release, expected):
     os_release_file = tmp_path / 'os-release'
@@ -310,19 +292,27 @@ def test_distribution(tmp_path, monkeypatch, os_release, expected):
     assert version.distribution() == expected
 
 
-@pytest.mark.parametrize('distribution, expected', [
-    (None, False),
-    (version.DistributionInfo(
-        id='org.kde.Platform', parsed=version.Distribution.kde_flatpak,
-        version=utils.VersionNumber(5, 12),
-        pretty='Unknown'), True),
-    (version.DistributionInfo(
-        id='arch', parsed=version.Distribution.arch, version=None,
-        pretty='Arch Linux'), False)
-])
-def test_is_flatpak(monkeypatch, distribution, expected):
-    monkeypatch.setattr(version, "distribution", lambda: distribution)
-    assert version.is_flatpak() == expected
+@pytest.mark.parametrize('has_env', [True, False])
+@pytest.mark.parametrize('has_file', [True, False])
+def test_is_flatpak(monkeypatch, tmp_path, has_env, has_file):
+    if has_env:
+        monkeypatch.setenv('FLATPAK_ID', 'org.qutebrowser.qutebrowser')
+    else:
+        monkeypatch.delenv('FLATPAK_ID', raising=False)
+
+    fake_info_path = tmp_path / '.flatpak_info'
+    if has_file:
+        lines = [
+            "[Application]",
+            "name=org.qutebrowser.qutebrowser",
+            "runtime=runtime/org.kde.Platform/x86_64/5.15",
+        ]
+        fake_info_path.write_text('\n'.join(lines))
+    else:
+        assert not fake_info_path.exists()
+    monkeypatch.setattr(version, '_FLATPAK_INFO_PATH', str(fake_info_path))
+
+    assert version.is_flatpak() == (has_env or has_file)
 
 
 class GitStrSubprocessFake:
@@ -494,8 +484,17 @@ class TestGitStrSubprocess:
     @needs_git
     def test_real_git(self, git_repo):
         """Test with a real git repository."""
+        branch_name = subprocess.run(
+            ['git', 'config', 'init.defaultBranch'],
+            check=False,
+            stdout=subprocess.PIPE,
+            encoding='utf-8',
+        ).stdout.strip()
+        if not branch_name:
+            branch_name = 'master'
+
         ret = version._git_str_subprocess(str(git_repo))
-        assert ret == '6e4b65a on master (1970-01-01 01:00:00 +0100)'
+        assert ret == f'6e4b65a on {branch_name} (1970-01-01 01:00:00 +0100)'
 
     def test_missing_dir(self, tmp_path):
         """Test with a directory which doesn't exist."""
@@ -919,14 +918,14 @@ class TestWebEngineVersions:
                 webengine=utils.VersionNumber(5, 15, 2),
                 chromium='87.0.4280.144',
                 source='UA'),
-            "QtWebEngine 5.15.2, Chromium 87.0.4280.144",
+            "QtWebEngine 5.15.2, based on Chromium 87.0.4280.144",
         ),
         (
             version.WebEngineVersions(
                 webengine=utils.VersionNumber(5, 15, 2),
                 chromium='87.0.4280.144',
                 source='faked'),
-            "QtWebEngine 5.15.2, Chromium 87.0.4280.144 (from faked)",
+            "QtWebEngine 5.15.2, based on Chromium 87.0.4280.144 (from faked)",
         ),
     ])
     def test_str(self, version, expected):
@@ -976,7 +975,7 @@ class TestWebEngineVersions:
         )
         assert version.WebEngineVersions.from_elf(elf_version) == expected
 
-    @pytest.mark.parametrize('qt_version, chromium_version', [
+    @pytest.mark.parametrize('pyqt_version, chromium_version', [
         ('5.12.10', '69.0.3497.128'),
         ('5.14.2', '77.0.3865.129'),
         ('5.15.1', '80.0.3987.163'),
@@ -985,35 +984,47 @@ class TestWebEngineVersions:
         ('5.15.4', '87.0.4280.144'),
         ('5.15.5', '87.0.4280.144'),
     ])
-    def test_from_pyqt(self, qt_version, chromium_version):
+    def test_from_pyqt(self, freezer, pyqt_version, chromium_version):
+        if freezer and pyqt_version in ['5.15.3', '5.15.4', '5.15.5']:
+            chromium_version = '83.0.4103.122'
+            expected_pyqt_version = '5.15.2'
+        else:
+            expected_pyqt_version = pyqt_version
+
         expected = version.WebEngineVersions(
-            webengine=utils.VersionNumber.parse(qt_version),
+            webengine=utils.VersionNumber.parse(expected_pyqt_version),
             chromium=chromium_version,
             source='PyQt',
         )
-        assert version.WebEngineVersions.from_pyqt(qt_version) == expected
+        assert version.WebEngineVersions.from_pyqt(pyqt_version) == expected
 
     def test_real_chromium_version(self, qapp):
         """Compare the inferred Chromium version with the real one."""
-        if '.dev' in PYQT_VERSION_STR:
-            pytest.skip("dev version of PyQt5")
-
-        try:
-            from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION_STR
-        except ImportError as e:
-            # QtWebKit or QtWebEngine < 5.13
-            pytest.skip(str(e))
-
         pyqt_webengine_version = version._get_pyqt_webengine_qt_version()
         if pyqt_webengine_version is None:
+            if '.dev' in PYQT_VERSION_STR:
+                pytest.skip("dev version of PyQt5")
+
+            try:
+                from PyQt5.QtWebEngine import (
+                    PYQT_WEBENGINE_VERSION_STR, PYQT_WEBENGINE_VERSION)
+            except ImportError as e:
+                # QtWebKit or QtWebEngine < 5.13
+                pytest.skip(str(e))
+
+            if PYQT_WEBENGINE_VERSION >= 0x050F02:
+                # Starting with Qt 5.15.2, we can only do bad guessing anyways...
+                pytest.skip("Could be QtWebEngine 5.15.2 or 5.15.3")
+
             pyqt_webengine_version = PYQT_WEBENGINE_VERSION_STR
 
         versions = version.WebEngineVersions.from_pyqt(pyqt_webengine_version)
+        inferred = versions.chromium
 
         webenginesettings.init_user_agent()
-        expected = webenginesettings.parsed_user_agent.upstream_browser_version
+        real = webenginesettings.parsed_user_agent.upstream_browser_version
 
-        assert versions.chromium == expected
+        assert inferred == real
 
 
 class FakeQSslSocket:
@@ -1164,6 +1175,16 @@ class TestChromiumVersion:
         assert versions.source == 'importlib'
         assert versions.webengine == expected
 
+    @pytest.mark.parametrize('override', [
+        utils.VersionNumber(5, 12, 10),
+        utils.VersionNumber(5, 15, 3),
+    ])
+    def test_override(self, monkeypatch, override):
+        monkeypatch.setenv('QUTE_QTWEBENGINE_VERSION_OVERRIDE', str(override))
+        versions = version.qtwebengine_versions(avoid_init=True)
+        assert versions.source == 'override'
+        assert versions.webengine == override
+
 
 @dataclasses.dataclass
 class VersionParams:
@@ -1261,8 +1282,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
 
     if params.known_distribution:
         patches['distribution'] = lambda: version.DistributionInfo(
-            parsed=version.Distribution.arch, version=None,
-            pretty='LINUX DISTRIBUTION', id='arch')
+            parsed=version.Distribution.arch, pretty='LINUX DISTRIBUTION', id='arch')
         substitutions['linuxdist'] = ('\nLinux distribution: '
                                       'LINUX DISTRIBUTION (arch)')
         substitutions['osinfo'] = ''

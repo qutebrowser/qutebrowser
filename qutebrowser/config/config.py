@@ -97,7 +97,10 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
         else:
             return False
 
-    def __call__(self, func: Callable) -> Callable:
+    def __call__(
+        self,
+        func: Callable[..., None],
+    ) -> Callable[..., None]:
         """Filter calls to the decorated function.
 
         Gets called when a function should be decorated.
@@ -105,7 +108,9 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
         Adds a filter which returns if we're not interested in the change-event
         and calls the wrapped function if we are.
 
-        We assume the function passed doesn't take any parameters.
+        We assume the function passed doesn't take any parameters. However, it
+        could take a "self" argument, so we can't cleary express this in the
+        type above.
 
         Args:
             func: The function to be decorated.
@@ -173,6 +178,8 @@ class KeyConfig:
         result = results[0]
         if result.cmd.name != "set-cmd-text":
             return cmdline
+        if not result.args:
+            return None  # doesn't look like this sets a command
         *flags, cmd = result.args
         if "-a" in flags or "--append" in flags or not cmd.startswith(":"):
             return None  # doesn't look like this sets a command
@@ -307,7 +314,7 @@ class Config(QObject):
 
     def _init_values(self) -> None:
         """Populate the self._values dict."""
-        self._values: Mapping = {}
+        self._values: Mapping[str, configutils.Values] = {}
         for name, opt in configdata.DATA.items():
             self._values[name] = configutils.Values(opt)
 
@@ -500,8 +507,12 @@ class Config(QObject):
 
     def unset(self, name: str, *,
               save_yaml: bool = False,
-              pattern: urlmatch.UrlPattern = None) -> None:
-        """Set the given setting back to its default."""
+              pattern: urlmatch.UrlPattern = None) -> bool:
+        """Set the given setting back to its default.
+
+        Return:
+            True if there was a change, False if nothing changed.
+        """
         opt = self.get_opt(name)
         self._check_yaml(opt, save_yaml)
         changed = self._values[name].remove(pattern)
@@ -510,6 +521,8 @@ class Config(QObject):
 
         if save_yaml:
             self._yaml.unset(name, pattern=pattern)
+
+        return changed
 
     def clear(self, *, save_yaml: bool = False) -> None:
         """Clear all settings in the config.

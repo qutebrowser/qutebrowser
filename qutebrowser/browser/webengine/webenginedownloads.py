@@ -119,6 +119,10 @@ class DownloadItem(downloads.AbstractDownloadItem):
     def url(self) -> QUrl:
         return self._qt_item.url()
 
+    def origin(self) -> QUrl:
+        page = self._qt_item.page()
+        return page.url() if page else QUrl()
+
     def _set_fileobj(self, fileobj, *, autoclose=True):
         raise downloads.UnsupportedOperationError
 
@@ -292,12 +296,14 @@ class DownloadManager(downloads.AbstractDownloadManager):
             download.set_target(target)
             return
 
+        if download.cancel_for_origin():
+            return
+
         # Ask the user for a filename - needs to be blocking!
         question = downloads.get_filename_question(
             suggested_filename=suggested_filename, url=qt_item.url(),
             parent=self)
         self._init_filename_question(question, download)
-
         message.global_bridge.ask(question, blocking=True)
         # The filename is set via the question.answered signal, connected in
         # _init_filename_question.

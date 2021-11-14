@@ -76,7 +76,16 @@ The following userscripts can be found on their own repositories.
   Opens DOIs on Sci-Hub.
 - [1password](https://github.com/tomoakley/dotfiles/blob/master/qutebrowser/userscripts/1password):
   Integration with 1password on macOS.
-
+- [localhost](https://github.com/SidharthArya/.qutebrowser/blob/master/userscripts/localhost):
+  Quickly navigate to localhost:port. For reference: [A quicker way to reach localhost with qutebrowser](https://sidhartharya.me/a-quicker-way-to-reach-localhost-with-qutebrowser/)
+- [untrack-url](https://github.com/qutebrowser/qutebrowser/discussions/6555),
+  convert various URLs (YouTube/Reddit/Twitter/Instagram/Google Maps) to other
+  services (Invidious, Teddit, Nitter, Bibliogram, OpenStreetMap).
+- [CIAvash/qutebrowser-userscripts](https://github.com/CIAvash/qutebrowser-userscripts),
+  various small userscripts written in Raku.
+- [bitwarden-rofi](https://github.com/haztecaso/bitwarden-rofi), rofi wrapper for bitwarden cli
+  interface using gpg instead of keyctl.
+  
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/
 [Instapaper]: https://www.instapaper.com/

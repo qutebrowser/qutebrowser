@@ -401,6 +401,16 @@ class WebEngineCaret(browsertab.AbstractCaret):
         self._js_call('reverseSelection')
 
     def _follow_selected_cb_wrapped(self, js_elem, tab):
+        if sip.isdeleted(self):
+            # Sometimes, QtWebEngine JS callbacks seem to be stuck, and will
+            # later get executed when the tab is closed. However, at this point,
+            # the WebEngineCaret is already gone.
+            log.webview.warning(
+                "Got follow_selected callback for deleted WebEngineCaret. "
+                "This is most likely due to a QtWebEngine bug, please report a "
+                "qutebrowser issue if you know a way to reproduce this.")
+            return
+
         try:
             self._follow_selected_cb(js_elem, tab)
         finally:
@@ -833,7 +843,7 @@ class _WebEnginePermissions(QObject):
     # https://www.riverbankcomputing.com/pipermail/pyqt/2019-July/041903.html
 
     _options = {
-        0: 'content.notifications',
+        0: 'content.notifications.enabled',
         QWebEnginePage.Geolocation: 'content.geolocation',
         QWebEnginePage.MediaAudioCapture: 'content.media.audio_capture',
         QWebEnginePage.MediaVideoCapture: 'content.media.video_capture',
@@ -882,9 +892,9 @@ class _WebEnginePermissions(QObject):
         if on:
             timeout = config.val.content.fullscreen.overlay_timeout
             if timeout != 0:
-                notification = miscwidgets.FullscreenNotification(self._widget)
-                notification.set_timeout(timeout)
-                notification.show()
+                notif = miscwidgets.FullscreenNotification(self._widget)
+                notif.set_timeout(timeout)
+                notif.show()
 
     @pyqtSlot(QUrl, 'QWebEnginePage::Feature')
     def _on_feature_permission_requested(self, url, feature):
@@ -983,6 +993,11 @@ class _Quirk:
         QWebEngineScript.DocumentCreation)
     world: QWebEngineScript.ScriptWorldId = QWebEngineScript.MainWorld
     predicate: bool = True
+    name: Optional[str] = None
+
+    def __post_init__(self):
+        if self.name is None:
+            self.name = f"js-{self.filename.replace('_', '-')}"
 
 
 class _WebEngineScripts(QObject):
@@ -1097,7 +1112,12 @@ class _WebEngineScripts(QObject):
         page_scripts = self._widget.page().scripts()
         self._remove_all_greasemonkey_scripts()
 
+        seen_names = set()
         for script in scripts:
+            while script.full_name() in seen_names:
+                script.dedup_suffix += 1
+            seen_names.add(script.full_name())
+
             new_script = QWebEngineScript()
 
             try:
@@ -1129,7 +1149,7 @@ class _WebEngineScripts(QObject):
             new_script.setInjectionPoint(QWebEngineScript.DocumentReady)
 
             new_script.setSourceCode(script.code())
-            new_script.setName(f"GM-{script.name}")
+            new_script.setName(script.full_name())
             new_script.setRunsOnSubFrames(script.runs_on_sub_frames)
 
             if script.needs_document_end_workaround():
@@ -1152,6 +1172,12 @@ class _WebEngineScripts(QObject):
                 injection_point=QWebEngineScript.DocumentReady,
                 world=QWebEngineScript.ApplicationWorld,
             ),
+            _Quirk('discord'),
+            _Quirk(
+                'googledocs',
+                # will be an UA quirk once we set the JS UA as well
+                name='ua-googledocs',
+            ),
             _Quirk(
                 'string_replaceall',
                 predicate=versions.webengine < utils.VersionNumber(5, 15, 3),
@@ -1170,8 +1196,7 @@ class _WebEngineScripts(QObject):
             if not quirk.predicate:
                 continue
             src = resources.read_file(f'javascript/quirks/{quirk.filename}.user.js')
-            name = f"js-{quirk.filename.replace('_', '-')}"
-            if name not in config.val.content.site_specific_quirks.skip:
+            if quirk.name not in config.val.content.site_specific_quirks.skip:
                 self._inject_js(
                     f'quirk_{quirk.filename}',
                     src,
@@ -1583,7 +1608,9 @@ class WebEngineTab(browsertab.AbstractTab):
         up doing it twice.
         """
         super()._on_url_changed(url)
-        if url.isValid() and qtutils.version_check('5.13'):
+        if (url.isValid() and
+                qtutils.version_check('5.13') and
+                not qtutils.version_check('5.14')):
             self.settings.update_for_url(url)
 
     @pyqtSlot(usertypes.NavigationRequest)

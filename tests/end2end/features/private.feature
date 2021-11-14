@@ -221,6 +221,7 @@ Feature: Using private browsing
         When I open about:blank in a private window
         And I run :close
         And I set content.blocking.hosts.lists to ["http://localhost:(port)/data/blocking/qutebrowser-hosts"]
+        And I set content.blocking.adblock.lists to []
         And I set content.blocking.method to hosts
         And I run :adblock-update
         And I wait for the message "hostblock: Read 1 hosts from 1 sources."

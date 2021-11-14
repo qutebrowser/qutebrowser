@@ -81,7 +81,12 @@ class TestFileCompletion:
             for _ in range(3):
                 qtbot.keyPress(prompt._lineedit, Qt.Key_Backspace)
 
-        # foo should get completed from f
+        # For some reason, this isn't always called when using qtbot.keyPress.
+        prompt._set_fileview_root(prompt._lineedit.text())
+
+        # '..' and 'foo' should get completed from 'f'
+        prompt.item_focus('next')
+        assert prompt._lineedit.text() == str(tmp_path)
         prompt.item_focus('next')
         assert prompt._lineedit.text() == str(testdir / 'foo')
 
@@ -93,6 +98,32 @@ class TestFileCompletion:
         prompt.item_focus('next')
         prompt.item_focus('next')
         assert prompt._lineedit.text() == str(testdir / 'bar')
+
+    @pytest.mark.parametrize("keys, expected", [
+        ([], ['..', 'bar', 'bat', 'foo']),
+        ([Qt.Key_F], ['..', 'foo']),
+        ([Qt.Key_A], ['..', 'bar', 'bat']),
+    ])
+    def test_filtering_path(self, qtbot, tmp_path, get_prompt, keys, expected):
+        testdir = tmp_path / 'test'
+
+        for directory in ['bar', 'foo', 'bat']:
+            (testdir / directory).mkdir(parents=True)
+
+        prompt = get_prompt(str(testdir) + os.sep)
+        for key in keys:
+            qtbot.keyPress(prompt._lineedit, key)
+        prompt._set_fileview_root(prompt._lineedit.text())
+
+        num_rows = prompt._file_model.rowCount(prompt._file_view.rootIndex())
+        visible = []
+        for row in range(num_rows):
+            parent = prompt._file_model.index(
+                os.path.dirname(prompt._lineedit.text()))
+            index = prompt._file_model.index(row, 0, parent)
+            if not prompt._file_view.isRowHidden(index.row(), index.parent()):
+                visible.append(index.data())
+        assert visible == expected
 
     @pytest.mark.linux
     def test_root_path(self, get_prompt):

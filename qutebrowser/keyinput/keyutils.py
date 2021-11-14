@@ -458,7 +458,7 @@ class KeySequence:
             assert self
         self._validate()
 
-    def _convert_key(self, key: Qt.Key) -> int:
+    def _convert_key(self, key: Union[int, Qt.KeyboardModifiers]) -> int:
         """Convert a single key for QKeySequence."""
         assert isinstance(key, (int, Qt.KeyboardModifiers)), key
         return int(key)

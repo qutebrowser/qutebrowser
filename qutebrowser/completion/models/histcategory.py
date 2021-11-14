@@ -34,11 +34,12 @@ class HistoryCategory(QSqlQueryModel):
 
     """A completion category that queries the SQL history store."""
 
-    def __init__(self, *,
+    def __init__(self, *, database: sql.Database,
                  delete_func: util.DeleteFuncType = None,
                  parent: QWidget = None) -> None:
         """Create a new History completion category."""
         super().__init__(parent=parent)
+        self._database = database
         self.name = "History"
         self._query: Optional[sql.Query] = None
 
@@ -56,7 +57,7 @@ class HistoryCategory(QSqlQueryModel):
         if max_items < 0:
             return ''
 
-        min_atime = sql.Query(' '.join([
+        min_atime = self._database.query(' '.join([
             'SELECT min(last_atime) FROM',
             '(SELECT last_atime FROM CompletionHistory',
             'ORDER BY last_atime DESC LIMIT :limit)',
@@ -107,7 +108,7 @@ class HistoryCategory(QSqlQueryModel):
                 # if the number of words changed, we need to generate a new
                 # query otherwise, we can reuse the prepared query for
                 # performance
-                self._query = sql.Query(' '.join([
+                self._query = self._database.query(' '.join([
                     "SELECT url, title, {}".format(timefmt),
                     "FROM CompletionHistory",
                     # the incoming pattern will have literal % and _ escaped we

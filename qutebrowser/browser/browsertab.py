@@ -34,9 +34,10 @@ from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtNetwork import QNetworkAccessManager
 
 if TYPE_CHECKING:
-    from PyQt5.QtWebKit import QWebHistory
+    from PyQt5.QtWebKit import QWebHistory, QWebHistoryItem
     from PyQt5.QtWebKitWidgets import QWebPage
-    from PyQt5.QtWebEngineWidgets import QWebEngineHistory, QWebEnginePage
+    from PyQt5.QtWebEngineWidgets import (
+        QWebEngineHistory, QWebEngineHistoryItem, QWebEnginePage)
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
@@ -634,8 +635,8 @@ class AbstractHistoryPrivate:
         """Deserialize from a format produced by self.serialize."""
         raise NotImplementedError
 
-    def load_items(self, items: Sequence) -> None:
-        """Deserialize from a list of WebHistoryItems."""
+    def load_items(self, items: Sequence[sessions.TabHistoryItem]) -> None:
+        """Deserialize from a list of TabHistoryItems."""
         raise NotImplementedError
 
 
@@ -651,7 +652,7 @@ class AbstractHistory:
     def __len__(self) -> int:
         raise NotImplementedError
 
-    def __iter__(self) -> Iterable:
+    def __iter__(self) -> Iterable[Union['QWebHistoryItem', 'QWebEngineHistoryItem']]:
         raise NotImplementedError
 
     def _check_count(self, count: int) -> None:

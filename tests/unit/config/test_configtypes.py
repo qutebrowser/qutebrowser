@@ -1839,6 +1839,11 @@ class TestFormatString:
         with pytest.raises(configexc.ValidationError):
             typ.to_py(val)
 
+    def test_invalid_encoding(self, klass):
+        typ = klass(fields=[], encoding='ascii')
+        with pytest.raises(configexc.ValidationError):
+            typ.to_py('fooäbar')
+
     @pytest.mark.parametrize('value', [
         None,
         ['one', 'two'],
@@ -2115,6 +2120,24 @@ class TestUrlPattern:
     def test_to_py_invalid(self, klass):
         with pytest.raises(configexc.ValidationError):
             klass().to_py('http://')
+
+
+class TestStatusbarWidget:
+
+    @pytest.fixture
+    def klass(self):
+        return configtypes.StatusbarWidget
+
+    @pytest.mark.parametrize('value', ['text:bar', 'foo'])
+    def test_validate_valid_values(self, klass, value):
+        widget = klass(valid_values=configtypes.ValidValues('foo'))
+        assert widget.to_py(value) == value
+
+    @pytest.mark.parametrize('value', ['text', 'foo:bar'])
+    def test_validate_invalid_values(self, klass, value):
+        widget = klass(valid_values=configtypes.ValidValues('foo'))
+        with pytest.raises(configexc.ValidationError):
+            widget.to_py(value)
 
 
 @pytest.mark.parametrize('first, second, equal', [

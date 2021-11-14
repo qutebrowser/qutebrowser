@@ -44,8 +44,14 @@ Feature: :spawn
         When I run :spawn -u -m (echo-exe) Message 2
         Then the message "Message 2" should be shown
 
+    Scenario: Running :spawn with -u -o
+        When I run :spawn -u -o (echo-exe) Message 3
+        And I wait for "load status for * url='qute://process/*'>: LoadStatus.success" in the log
+        Then the page should contain the plaintext "Message 3"
+
     @posix
     Scenario: Running :spawn with userscript
+        Given I clean up open tabs
         When I open data/hello.txt
         And I run :spawn -u (testdata)/userscripts/open_current_url
         And I wait until data/hello.txt is loaded
@@ -66,6 +72,7 @@ Feature: :spawn
 
     @windows
     Scenario: Running :spawn with userscript on Windows
+        Given I clean up open tabs
         When I open data/hello.txt
         And I run :spawn -u (testdata)/userscripts/open_current_url.bat
         And I wait until data/hello.txt is loaded

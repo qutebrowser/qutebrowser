@@ -62,7 +62,8 @@ from qutebrowser.utils import usertypes
         id='object-fromentries',
     ),
 ])
-def test_js_quirks(js_tester_webengine, base_url, source, expected):
+def test_js_quirks(config_stub, js_tester_webengine, base_url, source, expected):
+    config_stub.val.content.site_specific_quirks.skip = []
     js_tester_webengine.tab._scripts._inject_site_specific_quirks()
     js_tester_webengine.load('base.html', base_url=base_url)
     js_tester_webengine.run(source, expected, world=usertypes.JsWorld.main)

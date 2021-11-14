@@ -112,7 +112,7 @@ class BindingTrie:
 
         return lines
 
-    def update(self, mapping: Mapping) -> None:
+    def update(self, mapping: Mapping[keyutils.KeySequence, str]) -> None:
         """Add data from the given mapping to the trie."""
         for key in mapping:
             self[key] = mapping[key]

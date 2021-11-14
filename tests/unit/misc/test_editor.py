@@ -148,6 +148,17 @@ class TestFileHandling:
         assert msg.text.startswith("Failed to create initial file: ")
         assert editor._proc is None
 
+    def test_encode_error(self, message_mock, editor, caplog, config_stub):
+        """Test file handling when the initial text can't be encoded."""
+        config_stub.val.editor.encoding = 'ascii'
+
+        with caplog.at_level(logging.ERROR):
+            editor.edit("fooäbar")
+
+        msg = message_mock.getmsg(usertypes.MessageLevel.error)
+        assert msg.text.startswith("Failed to create initial file: ")
+        assert editor._proc is None
+
     def test_double_edit(self, editor):
         editor.edit("")
         with pytest.raises(ValueError):

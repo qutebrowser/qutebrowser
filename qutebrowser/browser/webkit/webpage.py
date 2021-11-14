@@ -343,7 +343,7 @@ class BrowserPage(QWebPage):
 
         for script in toload:
             if frame is self.mainFrame() or script.runs_on_sub_frames:
-                log.webview.debug('Running GM script: {}'.format(script.name))
+                log.webview.debug(f'Running GM script: {script}')
                 frame.evaluateJavaScript(script.code())
 
     @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
@@ -357,7 +357,7 @@ class BrowserPage(QWebPage):
             return
 
         options = {
-            QWebPage.Notifications: 'content.notifications',
+            QWebPage.Notifications: 'content.notifications.enabled',
             QWebPage.Geolocation: 'content.geolocation',
         }
         messages = {
