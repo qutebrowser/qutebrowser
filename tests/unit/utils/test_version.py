@@ -484,17 +484,20 @@ class TestGitStrSubprocess:
     @needs_git
     def test_real_git(self, git_repo):
         """Test with a real git repository."""
-        branch_name = subprocess.run(
-            ['git', 'config', 'init.defaultBranch'],
-            check=False,
-            stdout=subprocess.PIPE,
-            encoding='utf-8',
-        ).stdout.strip()
-        if not branch_name:
-            branch_name = 'master'
+        def _get_git_setting(name, default):
+            return subprocess.run(
+                ['git', 'config', '--default', default, name],
+                check=True,
+                stdout=subprocess.PIPE,
+                encoding='utf-8',
+            ).stdout.strip()
 
         ret = version._git_str_subprocess(str(git_repo))
-        assert ret == f'6e4b65a on {branch_name} (1970-01-01 01:00:00 +0100)'
+        branch_name = _get_git_setting('init.defaultBranch', 'master')
+        abbrev_length = int(_get_git_setting('core.abbrev', '7'))
+        expected_sha = '6e4b65a529c0ab78fb370c1527d5809f7436b8f3'[:abbrev_length]
+
+        assert ret == f'{expected_sha} on {branch_name} (1970-01-01 01:00:00 +0100)'
 
     def test_missing_dir(self, tmp_path):
         """Test with a directory which doesn't exist."""
