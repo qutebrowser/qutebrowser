@@ -159,7 +159,7 @@ CHANGELOG_URLS = {
     'idna': 'https://github.com/kjd/idna/blob/master/HISTORY.rst',
     'tldextract': 'https://github.com/john-kurkowski/tldextract/blob/master/CHANGELOG.md',
     'backports.entry-points-selectable': 'https://github.com/jaraco/backports.entry_points_selectable/blob/main/CHANGES.rst',
-    'typing-extensions': 'https://github.com/python/typing/commits/master/typing_extensions',
+    'typing_extensions': 'https://github.com/python/typing/commits/master/typing_extensions',
     'diff-cover': 'https://github.com/Bachmann1234/diff_cover/blob/master/CHANGELOG',
     'pytest-icdiff': 'https://github.com/hjwp/pytest-icdiff/blob/master/HISTORY.rst',
     'icdiff': 'https://github.com/jeffkaufman/icdiff/blob/master/ChangeLog',
