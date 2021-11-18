@@ -29,6 +29,8 @@ information. Depending on your sign-up date and how long you keep a certain
 level, you can get qutebrowser t-shirts, stickers and more!
 // QUTE_WEB_HIDE_END
 
+image:https://qmaury.com/images/banners/microbanners/quteget.gif["qutegetBanner",link="https://qmaury.com/images/banners/microbanners/quteget.gif"]
+
 Screenshots
 -----------
 
