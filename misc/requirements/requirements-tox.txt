@@ -2,14 +2,14 @@
 
 backports.entry-points-selectable==1.1.1
 distlib==0.3.3
-filelock==3.3.2
-packaging==21.2
+filelock==3.4.0
+packaging==21.3
 pip==21.3.1
 platformdirs==2.4.0
 pluggy==1.0.0
 py==1.11.0
-pyparsing==2.4.7
-setuptools==59.1.0
+pyparsing==3.0.6
+setuptools==59.2.0
 six==1.16.0
 toml==0.10.2
 tox==3.24.4
