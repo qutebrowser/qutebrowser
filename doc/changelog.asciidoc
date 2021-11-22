@@ -31,6 +31,8 @@ Changed
   `--qute-bdd-webengine` argument got replaced by `QUTE_TESTS_BACKEND` and
   `--qute-backend` respectively, which can be set to either `webengine` or
   `webkit`.
+- Using `:tab-give` or `:tab-take` on the last tab in a window now always
+  closes that window, no matter what `tabs.last_close` is set to.
 
 [[v2.4.1]]
 v2.4.1 (unreleased)
