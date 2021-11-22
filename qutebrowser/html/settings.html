@@ -10,15 +10,6 @@ var cset = function(option, value) {
   xhr.open("GET", url);
   xhr.send();
 }
-
-function checkInput(optionName, loopIndex) {
-  //  Checks the input which has the configured value
-
-  let inputId = `input-${optionName}-${loopIndex}`
-  let input = document.getElementById(inputId)
-
-  input.checked = true
-}
 {% endblock %}
 
 {% block style %}
@@ -81,8 +72,8 @@ label {
     margin-bottom: 2px;
     padding: 5px 10px;
     border-radius: 5px;
-    background-color: #454545;
-    color: white;
+    background-color: #dddddd;
+    color: #666666;
 }
 
 input[type="radio"]:checked + label {
@@ -119,11 +110,6 @@ input[type="radio"]:checked + label {
     white-space: pre-line;
 }
 
-.current-setting {
-    font-size: 1.2rem;
-    font-family: monospace;
-}
-
 .radio-button {
     position: relative;
     display: inline-flex;
@@ -141,7 +127,7 @@ input[type="radio"]:checked + label {
   {% for option in configdata.DATA.values()|sort(attribute='name') if not option.no_autoconfig %}
     <tr>
       <!-- FIXME: convert to string properly -->
-      <td class="setting">{{ option.name }} (Current: <span class="current-setting">{{ confget(option.name) | string |truncate(100) }}</span>)
+      <td class="setting">{{ option.name }}
         {% if option.description %}
           <p class="option-description">{{ option.description|e }}</p>
         {% endif %}
@@ -152,16 +138,14 @@ input[type="radio"]:checked + label {
 	    <div class="radio-button">
 	      <input type="radio" id="input-{{ option.name }}-{{ loop.index0 }}"
 	        name="{{ option.name }}" value="{{ value }}"
-	        onclick="cset('{{ option.name }}', this.value)">
+	        onclick="cset('{{ option.name }}', this.value)"
+	        {% if confget(option.name) == value %}
+		  checked
+		{% endif %}>
 	      <label for="input-{{ option.name }}-{{ loop.index0 }}">
 	        {{ value }}
 	      </label>
-	    </div>
-	    {% if confget(option.name) == value %}
-	      <script type="text/javascript">
-	        checkInput('{{ option.name}}', {{ loop.index0 }})
-	      </script>
-	    {% endif %}
+	      </div>
 	  {% endfor %}
 	</td>
       {% else %}
