@@ -451,7 +451,7 @@ class CommandDispatcher:
 
         self._open(tab.url(), tab=True)
         if not keep:
-            tabbed_browser.close_tab(tab, add_undo=False)
+            tabbed_browser.close_tab(tab, add_undo=False, transfer=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('win_id', completion=miscmodels.window)
@@ -500,7 +500,8 @@ class CommandDispatcher:
         tabbed_browser.tabopen(self._current_url())
         if not keep:
             self._tabbed_browser.close_tab(self._current_widget(),
-                                           add_undo=False)
+                                           add_undo=False,
+                                           transfer=True)
 
     def _back_forward(self, tab, bg, window, count, forward, index=None):
         """Helper function for :back/:forward."""

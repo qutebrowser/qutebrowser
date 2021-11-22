@@ -406,15 +406,16 @@ class TabbedBrowser(QWidget):
         else:
             yes_action()
 
-    def close_tab(self, tab, *, add_undo=True, new_undo=True):
+    def close_tab(self, tab, *, add_undo=True, new_undo=True, transfer=False):
         """Close a tab.
 
         Args:
             tab: The QWebView to be closed.
             add_undo: Whether the tab close can be undone.
             new_undo: Whether the undo entry should be a new item in the stack.
+            transfer: Whether the tab is closing because it is moving to a new window.
         """
-        if config.val.tabs.tabs_are_windows:
+        if config.val.tabs.tabs_are_windows or transfer:
             last_close = 'close'
         else:
             last_close = config.val.tabs.last_close

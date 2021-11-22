@@ -1370,6 +1370,25 @@ Feature: Tab management
         And I run :tab-take 0/1
         Then the error "Can't take tabs when using windows as tabs" should be shown
 
+    @windows_skip
+    Scenario: Close the last tab of a window when taken by another window
+        Given I have a fresh instance
+        When I open data/numbers/1.txt
+        And I run :tab-only
+        And I open data/numbers/2.txt in a new window
+        And I set tabs.last_close to ignore
+        And I run :tab-take 1/1
+        And I wait until data/numbers/2.txt is loaded
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/2.txt
+
     # :tab-give
 
     @xfail_norun  # Needs qutewm
@@ -1426,6 +1445,24 @@ Feature: Tab management
         And I set tabs.tabs_are_windows to true
         And I run :tab-give 0
         Then the error "Can't give tabs when using windows as tabs" should be shown
+
+    @windows_skip
+    Scenario: Close the last tab of a window when given to another window
+        Given I have a fresh instance
+        When I open data/numbers/1.txt
+        And I run :tab-only
+        And I open data/numbers/2.txt in a new window
+        And I set tabs.last_close to ignore
+        And I run :tab-give 1
+        And I wait until data/numbers/1.txt is loaded
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/2.txt
+              - history:
+                - url: http://localhost:*/data/numbers/1.txt
 
     # Other
 
