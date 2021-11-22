@@ -1349,6 +1349,7 @@ Feature: Tab management
         And I run :tab-take 0/1
         Then the error "Can't take tabs when using windows as tabs" should be shown
 
+    @windows_skip
     Scenario: Close the last tab of a window when taken by another window
         Given I have a fresh instance
         When I open data/numbers/1.txt
@@ -1424,6 +1425,7 @@ Feature: Tab management
         And I run :tab-give 0
         Then the error "Can't give tabs when using windows as tabs" should be shown
 
+    @windows_skip
     Scenario: Close the last tab of a window when given to another window
         Given I have a fresh instance
         When I open data/numbers/1.txt
