@@ -21,7 +21,7 @@
 
 from unittest import mock
 
-import sip
+from qutebrowser.qt import sip
 import pytest
 from PyQt6.QtCore import QObject
 

@@ -23,7 +23,7 @@ import dataclasses
 
 import pytest
 pytest.importorskip('PyQt6.QtWebEngineWidgets')
-from PyQt6.QtWebEngineWidgets import QWebEngineProfile
+from PyQt6.QtWebEngineCore import QWebEngineProfile
 
 from qutebrowser.utils import urlutils, usertypes, utils
 from qutebrowser.browser.webengine import webenginedownloads

@@ -20,8 +20,7 @@
 import pytest
 from PyQt6.QtCore import QUrl
 pytest.importorskip('PyQt6.QtWebEngineCore')
-from PyQt6.QtWebEngineCore import QWebEngineCookieStore
-from PyQt6.QtWebEngineWidgets import QWebEngineProfile
+from PyQt6.QtWebEngineCore import QWebEngineCookieStore, QWebEngineProfile
 
 from qutebrowser.browser.webengine import cookies
 from qutebrowser.utils import urlmatch
