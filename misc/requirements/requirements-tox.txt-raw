@@ -1,2 +1,3 @@
 tox
 wheel
+tox-pip-version

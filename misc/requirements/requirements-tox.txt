@@ -13,5 +13,6 @@ setuptools==59.2.0
 six==1.16.0
 toml==0.10.2
 tox==3.24.4
+tox-pip-version==0.0.7
 virtualenv==20.10.0
 wheel==0.37.0
