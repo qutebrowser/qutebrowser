@@ -45,6 +45,7 @@ Fixed
   binaries (in certain rare environments).
 - Speculative fix for a qutebrowser crash when the notification daemon crashes
   while showing the notification.
+- Fix crash when using `:screenshot` with an invalid `--rect` argument.
 
 [[v2.4.0]]
 v2.4.0 (2021-10-21)
