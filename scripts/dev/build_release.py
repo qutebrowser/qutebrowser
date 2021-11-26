@@ -155,8 +155,8 @@ def smoke_test(executable, debug):
     try:
         proc = _smoke_test_run(executable)
     except subprocess.CalledProcessError as e:
-        print(e.stdout)
-        print(e.stderr)
+        print(e.stdout.decode('utf-8'))
+        print(e.stderr.decode('utf-8'))
         raise
 
     if debug:
