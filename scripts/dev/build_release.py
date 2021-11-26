@@ -229,7 +229,7 @@ def patch_mac_app():
     framework_path = os.path.join(app_path, 'Contents', 'MacOS', 'PyQt6',
                                   'Qt', 'lib', 'QtWebEngineCore.framework')
 
-    core_lib = os.path.join(framework_path, 'Versions', '5', 'QtWebEngineCore')
+    core_lib = os.path.join(framework_path, 'Versions', '6', 'QtWebEngineCore')
     os.remove(core_lib)
     core_target = os.path.join(*[os.pardir] * 7, 'MacOS', 'QtWebEngineCore')
     os.symlink(core_target, core_lib)
