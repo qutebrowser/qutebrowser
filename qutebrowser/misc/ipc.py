@@ -275,7 +275,7 @@ class IPCServer(QObject):
         if socket.canReadLine():
             log.ipc.debug("We can read a line immediately.")
             self.on_ready_read()
-        socket.error.connect(self.on_error)  # type: ignore[attr-defined]
+        socket.errorOccurred.connect(self.on_error)  # type: ignore[attr-defined]
         if socket.error() not in [QLocalSocket.LocalSocketError.UnknownSocketError,
                                   QLocalSocket.LocalSocketError.PeerClosedError]:
             log.ipc.debug("We got an error immediately.")
