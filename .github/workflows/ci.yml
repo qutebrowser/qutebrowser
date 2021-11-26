@@ -105,32 +105,32 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          ### PyQt 5.12 (Python 3.6)
-          - testenv: py36-pyqt512
-            os: ubuntu-18.04
-            python: 3.6
-          ### PyQt 5.13 (Python 3.7)
-          - testenv: py37-pyqt513
-            os: ubuntu-20.04
-            python: 3.7
-          ### PyQt 5.14 (Python 3.8)
-          - testenv: py38-pyqt514
-            os: ubuntu-20.04
-            python: 3.8
-          ### PyQt 5.15.0 (Python 3.9)
-          - testenv: py39-pyqt5150
+          #### PyQt 5.12 (Python 3.6)
+          #- testenv: py36-pyqt512
+          #  os: ubuntu-18.04
+          #  python: 3.6
+          #### PyQt 5.13 (Python 3.7)
+          #- testenv: py37-pyqt513
+          #  os: ubuntu-20.04
+          #  python: 3.7
+          #### PyQt 5.14 (Python 3.8)
+          #- testenv: py38-pyqt514
+          #  os: ubuntu-20.04
+          #  python: 3.8
+          #### PyQt 5.15.0 (Python 3.9)
+          #- testenv: py39-pyqt5150
+          #  os: ubuntu-20.04
+          #  python: 3.9
+          ### PyQt 6 (Python 3.9, with coverage)
+          - testenv: py39-pyqt62-cov
             os: ubuntu-20.04
             python: 3.9
-          ### PyQt 5.15 (Python 3.9, with coverage)
-          - testenv: py39-pyqt515-cov
-            os: ubuntu-20.04
-            python: 3.9
-          ### PyQt 5.15 (Python 3.10)
-          - testenv: py310-pyqt515
+          ### PyQt 6 (Python 3.10)
+          - testenv: py310-pyqt62
             os: ubuntu-20.04
             python: 3.10-dev
-          ### macOS: PyQt 5.15 (Python 3.9 to match PyInstaller env)
-          - testenv: py39-pyqt515
+          ### macOS: PyQt 6 (Python 3.9 to match PyInstaller env)
+          - testenv: py39-pyqt62
             os: macos-10.15
             python: 3.7
             args: "tests/unit"  # Only run unit tests on macOS
@@ -139,8 +139,8 @@ jobs:
           #   os: macos-11.0
           #   python: 3.9
           #   args: "tests/unit"  # Only run unit tests on macOS
-          ### Windows: PyQt 5.15 (Python 3.9 to match PyInstaller env)
-          - testenv: py39-pyqt515
+          ### Windows: PyQt 6 (Python 3.9 to match PyInstaller env)
+          - testenv: py39-pyqt62
             os: windows-2019
             python: 3.9
     runs-on: "${{ matrix.os }}"
