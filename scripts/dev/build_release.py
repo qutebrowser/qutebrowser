@@ -152,7 +152,13 @@ def smoke_test(executable, debug):
         '[0-9:]* ERROR: Load error: ERR_FILE_NOT_FOUND',
     ]
 
-    proc = _smoke_test_run(executable)
+    try:
+        proc = _smoke_test_run(executable)
+    except subprocess.CalledProcessError as e:
+        print(e.stdout)
+        print(e.stderr)
+        raise
+
     if debug:
         print("Skipping output check for debug build")
         return
