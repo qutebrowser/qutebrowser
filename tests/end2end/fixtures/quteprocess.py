@@ -853,7 +853,8 @@ class QuteProc(testprocess.Process):
 
         # We really need the same representation that the webview uses in
         # its __repr__
-        url = utils.elide(qurl.toDisplayString(QUrl.ComponentFormattingOption.EncodeUnicode), 100)
+        #url = utils.elide(qurl.toDisplayString(QUrl.ComponentFormattingOption.EncodeUnicode), 100)
+        url = utils.elide(qurl.toDisplayString(), 100)
         assert url
 
         pattern = re.compile(
