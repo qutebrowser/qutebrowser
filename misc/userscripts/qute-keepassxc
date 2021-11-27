@@ -43,6 +43,8 @@ config.bind('<Alt-Shift-u>', 'spawn --userscript qute-keepassxc --key ABC1234', 
 config.bind('pw', 'spawn --userscript qute-keepassxc --key ABC1234', mode='normal')
 ```
 
+To manage multiple accounts you also need [rofi](https://github.com/davatorium/rofi) installed.
+
 
 # Usage
 
@@ -274,6 +276,30 @@ def connect_to_keepassxc(args):
     return kp
 
 
+def select_account(creds):
+    try:
+        if len(creds) == 1:
+            return creds[0]
+        idx = subprocess.check_output(
+                ['rofi', '-dmenu', '-format', 'i', '-matching', 'fuzzy',
+                '-p', 'Search',
+                '-mesg', '<b>qute-keepassxc</b>: select an account, please!'],
+                input=b"\n".join(c['login'].encode('utf-8') for c in creds)
+        )
+        idx = int(idx)
+        if idx < 0:
+            return None
+        return creds[idx]
+    except subprocess.CalledProcessError:
+        return None
+    except FileNotFoundError:
+        error("rofi not found. Please install rofi to select from multiple credentials")
+        return creds[0]
+    except Exception as e:
+        error(f"Error while picking account: {e}")
+        return None
+
+
 def make_js_code(username, password):
     return ' '.join("""
         function isVisible(elem) {
@@ -351,8 +377,11 @@ def main():
         if not creds:
             error('No credentials found')
             return
-        # TODO: handle multiple matches
-        name, pw = creds[0]['login'], creds[0]['password']
+        cred = select_account(creds)
+        if not cred:
+            error('No credentials selected')
+            return
+        name, pw = cred['login'], cred['password']
         if name and pw:
             qute('jseval -q ' + make_js_code(name, pw))
     except Exception as e:
