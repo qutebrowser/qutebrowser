@@ -160,7 +160,7 @@ class KeepassXC:
             action = 'test-associate',
             id     = self.id,
             key    = base64.b64encode(self.id_key.public_key.encode()).decode('utf-8')
-        ))
+        ), triggerUnlock = 'true')
         return self.recv_msg()['success'] == 'true'
 
     def associate(self):
