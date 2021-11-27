@@ -67,6 +67,26 @@ Therefore you need to have a public-key-pair readily set up.
 GPG might then ask for your private-key password whenever you query the database for login credentials.
 
 
+# TOTP
+
+This script recently received experimental TOTP support.
+To use it, you need to have working TOTP authentication within KeepassXC.
+Then call `qute-keepassxc` with the `--totp` flags.
+
+For example, I have the following line in my `config.py`:
+
+```python
+config.bind('pt', 'spawn --userscript qute-keepassxc --key ABC1234 --totp', mode='normal')
+```
+
+For now this script will simply insert the TOTP-token into the currently selected
+input field, since I have not yet found a reliable way to identify the correct field
+within all existing login forms.
+Thus you need to manually select the TOTP input field, press escape to leave input
+mode and then enter `pt` to fill in the token (or configure another key-binding for
+insert mode if you prefer that).
+
+
 [1]: https://keepassxc.org/
 [2]: https://qutebrowser.org/
 [3]: https://gnupg.org/
@@ -90,6 +110,8 @@ import nacl.public
 def parse_args():
     parser = argparse.ArgumentParser(description="Full passwords from KeepassXC")
     parser.add_argument('url', nargs='?', default=os.environ.get('QUTE_URL'))
+    parser.add_argument('--totp', action='store_true',
+                        help="Fill in current TOTP field instead of username/password")
     parser.add_argument('--socket', '-s', default='/run/user/{}/org.keepassxc.KeePassXC.BrowserServer'.format(os.getuid()),
                         help='Path to KeepassXC browser socket')
     parser.add_argument('--key', '-k', default='alice@example.com',
@@ -181,6 +203,16 @@ class KeepassXC:
             keys   = [{ 'id': self.id, 'key': base64.b64encode(self.id_key.public_key.encode()).decode('utf-8') }]
         ))
         return self.recv_msg()['entries']
+
+    def get_totp(self, uuid):
+        self.send_msg(dict(
+            action = 'get-totp',
+            uuid = uuid
+        ))
+        response = self.recv_msg()
+        if response['success'] != 'true' or not response['totp']:
+            return None
+        return response['totp']
 
     def send_raw_msg(self, msg):
         self.sock.send( json.dumps(msg).encode('utf-8') )
@@ -361,6 +393,21 @@ def make_js_code(username, password):
     """.splitlines()) % (json.dumps(username), json.dumps(password))
 
 
+def make_js_totp_code(totp):
+    return ' '.join("""
+        (function () {
+            var input = document.activeElement;
+            if (!input || input.tagName !== "INPUT") {
+                alert("No TOTP input field selected");
+                return;
+            }
+            input.value = %s;
+            input.dispatchEvent(new Event('input', { 'bubbles': true }));
+            input.dispatchEvent(new Event('change', { 'bubbles': true }));
+        })();
+    """.splitlines()) % (json.dumps(totp),)
+
+
 def main():
     if 'QUTE_FIFO' not in os.environ:
         print(f"No QUTE_FIFO found - {sys.argv[0]} must be run as a qutebrowser userscript")
@@ -381,9 +428,17 @@ def main():
         if not cred:
             error('No credentials selected')
             return
-        name, pw = cred['login'], cred['password']
-        if name and pw:
-            qute('jseval -q ' + make_js_code(name, pw))
+        if args.totp:
+            uuid = cred['uuid']
+            totp = kp.get_totp(uuid)
+            if not totp:
+                error('No TOTP key found')
+                return
+            qute('jseval -q ' + make_js_totp_code(totp))
+        else:
+            name, pw = cred['login'], cred['password']
+            if name and pw:
+                qute('jseval -q ' + make_js_code(name, pw))
     except Exception as e:
         error(str(e))
 
