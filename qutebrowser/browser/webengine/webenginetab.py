@@ -45,10 +45,10 @@ from qutebrowser.misc import objects, miscwidgets
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
 _JS_WORLD_MAP = {
-    usertypes.JsWorld.main: 1,
-    usertypes.JsWorld.application: 2,
-    usertypes.JsWorld.user: 3,
-    usertypes.JsWorld.jseval: 4,
+    usertypes.JsWorld.main: QWebEngineScript.ScriptWorldId.MainWorld,
+    usertypes.JsWorld.application: QWebEngineScript.ScriptWorldId.ApplicationWorld,
+    usertypes.JsWorld.user: QWebEngineScript.ScriptWorldId.UserWorld,
+    usertypes.JsWorld.jseval: QWebEngineScript.ScriptWorldId.UserWorld + 1,
 }
 
 
@@ -994,7 +994,7 @@ class _Quirk:
     filename: str
     injection_point: QWebEngineScript.InjectionPoint = (
         QWebEngineScript.InjectionPoint.DocumentCreation)
-    world: int = 1
+    world: QWebEngineScript.ScriptWorldId = QWebEngineScript.ScriptWorldId.MainWorld
     predicate: bool = True
     name: Optional[str] = None
 
@@ -1033,14 +1033,14 @@ class _WebEngineScripts(QObject):
         self._tab.run_js_async(code)
 
     def _inject_js(self, name, js_code, *,
-                   world=2,
+                   world=QWebEngineScript.ScriptWorldId.ApplicationWorld,
                    injection_point=QWebEngineScript.InjectionPoint.DocumentCreation,
                    subframes=False):
         """Inject the given script to run early on a page load."""
         script = QWebEngineScript()
         script.setInjectionPoint(injection_point)
         script.setSourceCode(js_code)
-        script.setWorldId(world)
+        script.setWorldId(world.value)
         script.setRunsOnSubFrames(subframes)
         script.setName(f'_qute_{name}')
         self._widget.page().scripts().insert(script)
@@ -1172,7 +1172,7 @@ class _WebEngineScripts(QObject):
             _Quirk(
                 'whatsapp_web',
                 injection_point=QWebEngineScript.InjectionPoint.DocumentReady,
-                world=1,
+                world=QWebEngineScript.ScriptWorldId.ApplicationWorld,
             ),
             _Quirk('discord'),
             _Quirk(
@@ -1332,7 +1332,9 @@ class WebEngineTab(browsertab.AbstractTab):
     def run_js_async(self, code, callback=None, *, world=None):
         world_id_type = Union[QWebEngineScript.ScriptWorldId, int]
         if world is None:
-            world_id: world_id_type = 1
+            world_id: world_id_type = _JS_WORLD_MAP[
+                usertypes.JsWorld.application
+            ].value
         elif isinstance(world, int):
             world_id = world
             if not 0 <= world_id <= qtutils.MAX_WORLD_ID:
@@ -1340,7 +1342,7 @@ class WebEngineTab(browsertab.AbstractTab):
                     "World ID should be between 0 and {}"
                     .format(qtutils.MAX_WORLD_ID))
         else:
-            world_id = _JS_WORLD_MAP[world]
+            world_id = _JS_WORLD_MAP[world].value
 
         if callback is None:
             self._widget.page().runJavaScript(code, world_id)
