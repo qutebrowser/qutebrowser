@@ -196,7 +196,7 @@ class PromptQueue(QObject):
             question.completed.connect(loop.quit)
             question.completed.connect(loop.deleteLater)
             log.prompt.debug("Starting loop.exec() for {}".format(question))
-            flags = cast(QEventLoop.ProcessEventsFlags,
+            flags = cast(QEventLoop.ProcessEventsFlag,
                          QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers)
             loop.exec(flags)
             log.prompt.debug("Ending loop.exec() for {}".format(question))
