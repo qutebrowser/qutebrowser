@@ -375,7 +375,7 @@ def _init_default_profile():
     """Init the default QWebEngineProfile."""
     global default_profile
 
-    default_profile = QWebEngineProfile.defaultProfile()
+    default_profile = QWebEngineProfile("Default")
 
     assert parsed_user_agent is None  # avoid earlier profile initialization
     non_ua_version = version.qtwebengine_versions(avoid_init=True)
