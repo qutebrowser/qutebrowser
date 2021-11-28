@@ -185,7 +185,9 @@ def _init_icon():
         filename = ':/icons/qutebrowser-{size}x{size}.png'.format(size=size)
         pixmap = QPixmap(filename)
         if pixmap.isNull():
-            log.init.warning("Failed to load {}".format(filename))
+            # FIXME
+            # log.init.warning("Failed to load {}".format(filename))
+            pass
         else:
             fallback_icon.addPixmap(pixmap)
     icon = QIcon.fromTheme('qutebrowser', fallback_icon)

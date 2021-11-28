@@ -121,6 +121,9 @@ def is_ignored_lowlevel_message(message):
         '<frozen importlib._bootstrap>:*: RuntimeWarning: builtins.type size changed, '
         'may indicate binary incompatibility. Expected 872 from C header, got 880 from '
         'PyObject',
+
+        # FIXME PyQt6
+        "QVariant::save: unable to save type 'QObject*' (type id: 39)."
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
