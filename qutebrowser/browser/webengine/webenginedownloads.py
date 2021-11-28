@@ -44,7 +44,9 @@ class DownloadItem(downloads.AbstractDownloadItem):
                  parent: QObject = None) -> None:
         super().__init__(manager=manager, parent=manager)
         self._qt_item = qt_item
-        qt_item.downloadProgress.connect(  # type: ignore[attr-defined]
+        qt_item.receivedBytesChanged.connect(  # type: ignore[attr-defined]
+            self.stats.on_download_progress)
+        qt_item.totalBytesChanged.connect(  # type: ignore[attr-defined]
             self.stats.on_download_progress)
         qt_item.stateChanged.connect(  # type: ignore[attr-defined]
             self._on_state_changed)
