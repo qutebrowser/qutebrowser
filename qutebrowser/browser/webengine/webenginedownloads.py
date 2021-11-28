@@ -252,7 +252,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
     @pyqtSlot(QWebEngineDownloadItem)
     def handle_download(self, qt_item):
         """Start a download coming from a QWebEngineProfile."""
-        qt_filename = os.path.basename(qt_item.path())   # FIXME use 5.14 API
+        qt_filename = qt_item.downloadFileName()
         mime_type = qt_item.mimeType()
         url = qt_item.url()
 
