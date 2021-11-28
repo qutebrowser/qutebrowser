@@ -28,6 +28,7 @@ import os
 import operator
 from typing import cast, Any, List, Optional, Tuple, Union, TYPE_CHECKING
 
+from qutebrowser.qt import machinery
 from qutebrowser.qt.gui import QFont
 from qutebrowser.qt.widgets import QApplication
 from qutebrowser.qt.webenginecore import QWebEngineSettings, QWebEngineProfile
@@ -397,7 +398,11 @@ def _init_default_profile():
     """Init the default QWebEngineProfile."""
     global default_profile
 
-    default_profile = QWebEngineProfile.defaultProfile()
+    if machinery.IS_QT6:
+        default_profile = QWebEngineProfile("Default")
+    else:
+        default_profile = QWebEngineProfile.defaultProfile()
+    assert not default_profile.isOffTheRecord()
 
     assert parsed_user_agent is None  # avoid earlier profile initialization
     non_ua_version = version.qtwebengine_versions(avoid_init=True)
