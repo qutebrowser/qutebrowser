@@ -357,7 +357,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
         else:
             target_modifiers[usertypes.ClickTarget.tab_bg] |= Qt.KeyboardModifier.ShiftModifier
 
-        modifiers = cast(Qt.KeyboardModifiers, target_modifiers[click_target])
+        modifiers = cast(Qt.KeyboardModifier, target_modifiers[click_target])
 
         events = [
             QMouseEvent(QEvent.Type.MouseMove, pos, Qt.MouseButton.NoButton, Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier),
