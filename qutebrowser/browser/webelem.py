@@ -22,7 +22,7 @@
 from typing import cast, TYPE_CHECKING, Iterator, Optional, Set, Union
 import collections.abc
 
-from PyQt6.QtCore import QUrl, Qt, QEvent, QTimer, QRect, QPoint
+from PyQt6.QtCore import QUrl, Qt, QEvent, QTimer, QRect, QPoint, QPointF
 from PyQt6.QtGui import QMouseEvent
 
 from qutebrowser.config import config
@@ -341,7 +341,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
     def _click_fake_event(self, click_target: usertypes.ClickTarget,
                           button: Qt.MouseButton = Qt.MouseButton.LeftButton) -> None:
         """Send a fake click event to the element."""
-        pos = self._mouse_pos()
+        pos = QPointF(self._mouse_pos())
 
         log.webelem.debug("Sending fake click to {!r} at position {} with "
                           "target {}".format(self, pos, click_target))
