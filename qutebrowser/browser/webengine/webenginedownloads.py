@@ -45,9 +45,9 @@ class DownloadItem(downloads.AbstractDownloadItem):
         super().__init__(manager=manager, parent=manager)
         self._qt_item = qt_item
         qt_item.receivedBytesChanged.connect(  # type: ignore[attr-defined]
-            self.stats.on_download_progress)
+                lambda: self.stats.on_download_progress(qt_item.receivedBytes(), qt_item.totalBytes()))
         qt_item.totalBytesChanged.connect(  # type: ignore[attr-defined]
-            self.stats.on_download_progress)
+                lambda: self.stats.on_download_progress(qt_item.receivedBytes(), qt_item.totalBytes()))
         qt_item.stateChanged.connect(  # type: ignore[attr-defined]
             self._on_state_changed)
 
