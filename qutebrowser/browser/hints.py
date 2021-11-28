@@ -255,7 +255,9 @@ class HintActions:
         flags = QUrl.ComponentFormattingOption.FullyEncoded | QUrl.UrlFormattingOption.RemovePassword
         if url.scheme() == 'mailto':
             flags |= QUrl.UrlFormattingOption.RemoveScheme
-        urlstr = url.toString(flags)  # type: ignore[arg-type]
+        #urlstr = url.toString(flags)  # type: ignore[arg-type]
+        # FIXME
+        urlstr = url.toString()
 
         new_content = urlstr
 
@@ -356,8 +358,9 @@ class HintActions:
             url: The URL to open as a QUrl.
             context: The HintContext to use.
         """
-        urlstr = url.toString(
-            QUrl.ComponentFormattingOption.FullyEncoded | QUrl.UrlFormattingOption.RemovePassword)  # type: ignore[arg-type]
+        # FIXME
+        urlstr = url.toString()
+            #QUrl.ComponentFormattingOption.FullyEncoded | QUrl.UrlFormattingOption.RemovePassword)  # type: ignore[arg-type]
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely('spawn ' + ' '.join(args))
