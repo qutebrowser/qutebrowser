@@ -124,7 +124,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
             return
         self._reply.downloadProgress.disconnect()
         self._reply.finished.disconnect()
-        self._reply.error.disconnect()
+        self._reply.errorOccurred.disconnect()
         self._reply.readyRead.disconnect()
         with log.hide_qt_warning('QNetworkReplyImplPrivate::error: Internal '
                                  'problem, this method must only be called '
