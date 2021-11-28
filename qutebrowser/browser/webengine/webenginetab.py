@@ -45,9 +45,9 @@ from qutebrowser.misc import objects, miscwidgets
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
 _JS_WORLD_MAP = {
-    usertypes.JsWorld.main: QWebEngineScript.ScriptWorldId.MainWorld,
-    usertypes.JsWorld.application: QWebEngineScript.ScriptWorldId.ApplicationWorld,
-    usertypes.JsWorld.user: QWebEngineScript.ScriptWorldId.UserWorld,
+    usertypes.JsWorld.main: QWebEngineScript.ScriptWorldId.MainWorld.value,
+    usertypes.JsWorld.application: QWebEngineScript.ScriptWorldId.ApplicationWorld.value,
+    usertypes.JsWorld.user: QWebEngineScript.ScriptWorldId.UserWorld.value,
     usertypes.JsWorld.jseval: QWebEngineScript.ScriptWorldId.UserWorld + 1,
 }
 
@@ -1334,7 +1334,7 @@ class WebEngineTab(browsertab.AbstractTab):
         if world is None:
             world_id: world_id_type = _JS_WORLD_MAP[
                 usertypes.JsWorld.application
-            ].value
+            ]
         elif isinstance(world, int):
             world_id = world
             if not 0 <= world_id <= qtutils.MAX_WORLD_ID:
@@ -1342,7 +1342,7 @@ class WebEngineTab(browsertab.AbstractTab):
                     "World ID should be between 0 and {}"
                     .format(qtutils.MAX_WORLD_ID))
         else:
-            world_id = _JS_WORLD_MAP[world].value
+            world_id = _JS_WORLD_MAP[world]
 
         if callback is None:
             self._widget.page().runJavaScript(code, world_id)
