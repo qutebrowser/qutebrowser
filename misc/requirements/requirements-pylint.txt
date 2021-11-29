@@ -3,7 +3,7 @@
 astroid==2.3.3  # rq.filter: < 2.4
 certifi==2021.10.8
 cffi==1.15.0
-charset-normalizer==2.0.7
+charset-normalizer==2.0.8
 cryptography==36.0.0
 Deprecated==1.2.13
 future==0.18.2
