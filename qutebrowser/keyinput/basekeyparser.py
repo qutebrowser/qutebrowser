@@ -254,6 +254,9 @@ class BaseKeyParser(QObject):
     def _match_count(self, sequence: keyutils.KeySequence,
                      dry_run: bool) -> bool:
         """Try to match a key as count."""
+        if not config.val.input.match_counts:
+            return False
+
         txt = str(sequence[-1])  # To account for sequences changed above.
         if (txt in string.digits and self._supports_count and
                 not (not self._count and txt == '0')):

@@ -1794,6 +1794,17 @@ input.media_keys:
 
     On Linux, disabling this also disables Chromium's MPRIS integration.
 
+input.match_counts:
+  default: true
+  type: Bool
+  desc: >-
+    Interpret number prefixes as counts for bindings.
+
+    This enables for vi-like bindings that can be prefixed with a number to
+    indicate a count.
+    Disabling it allows for emacs-like bindings where number keys are passed
+    through (according to `input.forward_unbound_keys`) instead.
+
 ## keyhint
 
 keyhint.blacklist:
