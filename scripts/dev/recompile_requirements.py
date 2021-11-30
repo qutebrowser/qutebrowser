@@ -155,7 +155,7 @@ CHANGELOG_URLS = {
     'cheroot': 'https://cheroot.cherrypy.org/en/latest/history.html',
     'certifi': 'https://ccadb-public.secure.force.com/mozilla/IncludedCACertificateReport',
     'chardet': 'https://github.com/chardet/chardet/releases',
-    'charset-normalizer': 'https://github.com/Ousret/charset_normalizer/commits/master',
+    'charset-normalizer': 'https://github.com/Ousret/charset_normalizer/blob/master/CHANGELOG.md',
     'idna': 'https://github.com/kjd/idna/blob/master/HISTORY.rst',
     'tldextract': 'https://github.com/john-kurkowski/tldextract/blob/master/CHANGELOG.md',
     'backports.entry-points-selectable': 'https://github.com/jaraco/backports.entry_points_selectable/blob/main/CHANGES.rst',
