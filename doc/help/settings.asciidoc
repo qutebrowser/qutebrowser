@@ -269,6 +269,7 @@
 |<<input.insert_mode.leave_on_load,input.insert_mode.leave_on_load>>|Leave insert mode when starting a new page load.
 |<<input.insert_mode.plugins,input.insert_mode.plugins>>|Switch to insert mode when clicking flash and other plugins.
 |<<input.links_included_in_focus_chain,input.links_included_in_focus_chain>>|Include hyperlinks in the keyboard focus chain when tabbing.
+|<<input.match_counts,input.match_counts>>|Interpret number prefixes as counts for bindings.
 |<<input.media_keys,input.media_keys>>|Whether the underlying Chromium should handle media keys.
 |<<input.mouse.back_forward_buttons,input.mouse.back_forward_buttons>>|Enable back and forward buttons on the mouse.
 |<<input.mouse.rocker_gestures,input.mouse.rocker_gestures>>|Enable Opera-like mouse rocker gestures.
@@ -3552,6 +3553,15 @@ Default: +pass:[false]+
 Include hyperlinks in the keyboard focus chain when tabbing.
 
 This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
+[[input.match_counts]]
+=== input.match_counts
+Interpret number prefixes as counts for bindings.
+This enables for vi-like bindings that can be prefixed with a number to indicate a count. Disabling it allows for emacs-like bindings where number keys are passed through (according to `input.forward_unbound_keys`) instead.
 
 Type: <<types,Bool>>
 

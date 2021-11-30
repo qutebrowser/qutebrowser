@@ -34,6 +34,12 @@ Changed
 - Using `:tab-give` or `:tab-take` on the last tab in a window now always
   closes that window, no matter what `tabs.last_close` is set to.
 
+Added
+~~~~~
+
+- New `input.match_counts` option which allows to turn off count matching for
+  more emacs-like bindings.
+
 [[v2.4.1]]
 v2.4.1 (unreleased)
 -------------------
