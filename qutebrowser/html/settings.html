@@ -59,12 +59,12 @@ input:focus {
     border: 2px solid #7a589ea6;
 }
 
-/* Hides the radio button */
 input[type="radio"] {
-    position: absolute;
-    opacity: 1%;
+    position: absolute; /* Positions the radio button relative to the edges of its containing element */
+    -webkit-appearance: none; /* Removes its native styling */
     width: min-content;
     margin: 0;
+    border: none;
 }
 
 label {
@@ -111,7 +111,7 @@ input[type="radio"]:checked + label {
 }
 
 .radio-button {
-    position: relative;
+    position: relative; /* The absolutely positioned element inside this tag (the radio button) gets positioned relative to it. */
     display: inline-flex;
     margin: 3px 1px;
 }
