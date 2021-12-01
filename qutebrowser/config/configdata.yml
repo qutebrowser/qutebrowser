@@ -1633,7 +1633,7 @@ hints.selectors:
       - '[ngClick]'
       - '[data-ng-click]'
       - '[x-ng-click]'
-      - '[tabindex]'
+      - '[tabindex]:not([tabindex="-1"])'
     links:
       - 'a[href]'
       - 'area[href]'
