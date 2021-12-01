@@ -48,6 +48,8 @@ Fixed
 - When `search.incremental` is disabled, searching using `/text` followed by a
   backwards search via `?text` (or vice-versa) now correctly changes the search
   direction.
+- Elements getting a hint due to a `tabindex` now are skipped if it's set to
+  `-1`, reducing some false-positives.
 
 [[v2.4.1]]
 v2.4.1 (unreleased)

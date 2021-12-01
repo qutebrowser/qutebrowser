@@ -3429,7 +3429,7 @@ Default:
 * +pass:[[ngClick\]]+
 * +pass:[[data-ng-click\]]+
 * +pass:[[x-ng-click\]]+
-* +pass:[[tabindex\]]+
+* +pass:[[tabindex\]:not([tabindex=&quot;-1&quot;\])]+
 - +pass:[images]+:
 
 * +pass:[img]+
