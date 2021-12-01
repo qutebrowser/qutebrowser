@@ -33,6 +33,8 @@ Changed
   `webkit`.
 - Using `:tab-give` or `:tab-take` on the last tab in a window now always
   closes that window, no matter what `tabs.last_close` is set to.
+- Redesigned `qute://settings` (`:set`) page with buttons for options with
+  fixed values.
 
 Added
 ~~~~~
